@@ -31,4 +31,9 @@ public enum PersistentItemStatus
     /// The item has been canceled.
     /// </summary>
     Canceled = 5,
+
+    /// <summary>
+    /// The item was abandoned because a workflow it depends on failed.
+    /// </summary>
+    DependencyFailed = 6,
 }

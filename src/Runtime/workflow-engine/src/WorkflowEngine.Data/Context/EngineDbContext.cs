@@ -28,6 +28,12 @@ internal sealed class EngineDbContext : DbContext
                 e.InstanceApp,
                 e.InstanceGuid,
             });
+            entity.HasIndex(e => new
+            {
+                e.InstanceGuid,
+                e.Type,
+                e.Status,
+            });
 
             // Self-referencing many-to-many: a workflow can depend on many other workflows
             entity

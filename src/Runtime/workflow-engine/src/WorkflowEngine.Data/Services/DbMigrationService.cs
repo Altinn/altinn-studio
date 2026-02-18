@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -60,6 +61,35 @@ public sealed class DbMigrationService
         {
             _logger?.MigrationError(ex.Message, ex);
             throw;
+        }
+
+        await RegisterFunctionsAsync(dbContext, cancellationToken);
+    }
+
+    /// <summary>
+    /// Reads all embedded SQL function files and executes them via CREATE OR REPLACE FUNCTION (idempotent).
+    /// </summary>
+    private static async Task RegisterFunctionsAsync(EngineDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var sqlResources = assembly
+            .GetManifestResourceNames()
+            .Where(name => name.EndsWith(".sql", StringComparison.OrdinalIgnoreCase));
+
+        foreach (var resourceName in sqlResources)
+        {
+            _logger?.RegisteringFunction(resourceName);
+
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream is null)
+                continue;
+
+            using var reader = new StreamReader(stream);
+            var sql = await reader.ReadToEndAsync(cancellationToken);
+
+            await dbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+
+            _logger?.FunctionRegistered(resourceName);
         }
     }
 
@@ -136,4 +166,10 @@ internal static partial class DatabaseMigrationServiceLogs
         string errorMessage,
         Exception ex
     );
+
+    [LoggerMessage(LogLevel.Information, "Registering SQL function: {ResourceName}")]
+    public static partial void RegisteringFunction(this ILogger<DbMigrationService> logger, string resourceName);
+
+    [LoggerMessage(LogLevel.Information, "SQL function registered: {ResourceName}")]
+    public static partial void FunctionRegistered(this ILogger<DbMigrationService> logger, string resourceName);
 }

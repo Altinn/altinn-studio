@@ -1,5 +1,6 @@
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -73,23 +74,19 @@ internal partial class Engine
 
         await AcquireQueueSlot(cancellationToken);
 
-        // TODO: Acquire database advisory lock scoped to Workflow.InstanceInformation
-
         using var scope = _serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-        if (!_concurrencyResolver.CanAcceptWorkflow(workflowRequest, repository))
+        Workflow workflow;
+        try
         {
-            activity?.Errored(errorMessage: "Concurrency limit reached for this workflow type on this instance");
-            return EngineResponse.Reject(
-                EngineResponse.Rejection.Duplicate,
-                "Concurrency limit reached for this workflow type on this instance"
-            );
+            workflow = await repository.AddWorkflow(workflowRequest, cancellationToken: cancellationToken);
         }
-
-        var workflow = await repository.AddWorkflow(workflowRequest, cancellationToken: cancellationToken);
-
-        // TODO: Release database lock
+        catch (ActiveWorkflowConstraintException ex)
+        {
+            activity?.Errored(errorMessage: ex.Message);
+            return EngineResponse.Reject(EngineResponse.Rejection.Duplicate, ex.Message);
+        }
 
         _inbox[workflow.IdempotencyKey] = workflow;
         _newWorkSignal.TrySetResult();

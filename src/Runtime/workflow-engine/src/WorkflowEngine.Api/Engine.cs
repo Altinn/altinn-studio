@@ -46,7 +46,6 @@ internal partial class Engine : IEngine, IDisposable
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<Engine> _logger;
     private readonly IWorkflowExecutor _workflowExecutor;
-    private readonly IWorkflowConcurrencyResolver _concurrencyResolver;
     private readonly EngineSettings _settings;
     private readonly ConcurrentBuffer<bool> _isEnabledHistory = new();
     private readonly SemaphoreSlim _cleanupLock = new(1, 1);
@@ -77,7 +76,6 @@ internal partial class Engine : IEngine, IDisposable
         _serviceProvider = serviceProvider;
         _logger = serviceProvider.GetRequiredService<ILogger<Engine>>();
         _workflowExecutor = serviceProvider.GetRequiredService<IWorkflowExecutor>();
-        _concurrencyResolver = serviceProvider.GetRequiredService<IWorkflowConcurrencyResolver>();
         _timeProvider = serviceProvider.GetService<TimeProvider>() ?? TimeProvider.System;
         _settings = serviceProvider.GetRequiredService<IOptions<EngineSettings>>().Value;
 
@@ -159,6 +157,8 @@ internal partial class Engine : IEngine, IDisposable
         Interlocked.Exchange(ref _newWorkSignal, signal);
 
         // TODO: We get a tick every 0.5s, but often sooner. Check here if it's time to fetch from database. Keep track of last time we queried, etc.
+        // TODO: The same task can also be responsible for maintaining the status trackers
+        // TODO: Fail all dependants for a workflow that has failed: cascade_dependency_failures()
         // Hydrate the inbox with workflows from the database
         // ...
 
