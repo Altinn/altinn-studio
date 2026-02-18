@@ -17,9 +17,10 @@ internal sealed class MunicipalitiesCodelistProvider(IAdministrativeUnitsClient 
     public async Task<AppOptions> GetAppOptionsAsync(string? language, Dictionary<string, string> keyValuePairs)
     {
         bool hasCountyParam = keyValuePairs.TryGetValue("fnr", out string? countyNumber);
-        List<Municipality> municipalities = hasCountyParam && countyNumber != null
-            ? await _administrativeUnitsHttpClient.GetMunicipalities(countyNumber)
-            : await _administrativeUnitsHttpClient.GetMunicipalities();
+        List<Municipality> municipalities =
+            hasCountyParam && countyNumber != null
+                ? await _administrativeUnitsHttpClient.GetMunicipalities(countyNumber)
+                : await _administrativeUnitsHttpClient.GetMunicipalities();
 
         var appOptions = new AppOptions()
         {
@@ -31,9 +32,10 @@ internal sealed class MunicipalitiesCodelistProvider(IAdministrativeUnitsClient 
                     Label = hasCountyParam && countyNumber != null ? x.Name : x.NameInNorwegian,
                 })
                 .ToList(),
-            Parameters = hasCountyParam && countyNumber != null
-                ? new Dictionary<string, string?>() { { "fnr", countyNumber } }
-                : new Dictionary<string, string?>(),
+            Parameters =
+                hasCountyParam && countyNumber != null
+                    ? new Dictionary<string, string?>() { { "fnr", countyNumber } }
+                    : new Dictionary<string, string?>(),
         };
 
         return appOptions;
