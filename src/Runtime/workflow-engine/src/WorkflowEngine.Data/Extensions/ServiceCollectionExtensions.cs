@@ -44,6 +44,7 @@ public static class ServiceCollectionExtensions
             );
             services.AddScoped<DbMigrationService>();
             services.AddScoped<DbConnectionResetService>();
+            services.AddHostedService<DbMaintenanceService>();
 
             return services;
         }
