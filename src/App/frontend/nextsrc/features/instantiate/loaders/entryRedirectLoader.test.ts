@@ -1,4 +1,4 @@
-// import { redirect } from 'react-router-dom';
+// import { redirect } from 'react-router';
 //
 // import 'whatwg-fetch';
 //
@@ -10,7 +10,7 @@
 // // import { InstantiateRoutes } from 'nextsrc/features/instantiate/routes';
 // import type { IInstance } from 'src/types/shared';
 //
-// jest.mock('react-router-dom', () => ({
+// jest.mock('react-router', () => ({
 //   redirect: jest.fn((url: string) => ({ redirectUrl: url })),
 // }));
 //

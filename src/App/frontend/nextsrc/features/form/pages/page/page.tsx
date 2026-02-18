@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLoaderData, useParams } from 'react-router-dom';
+import { useLoaderData, useParams } from 'react-router';
 
 import { FormEngine } from 'nextsrc/features/form/FormEngine/FormEngine';
 import { useFormData, useLayout } from 'nextsrc/libs/form-client/form-context';
