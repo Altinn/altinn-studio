@@ -5,13 +5,12 @@ import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { activeInstancesQuery, InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
+import { Button } from 'nextsrc/core/components/Button/Button';
+import { Pagination } from 'nextsrc/core/components/Pagination/Pagination';
 import { GlobalData } from 'nextsrc/core/globalData';
 import classes from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage.module.css';
 import { routeBuilders } from 'nextsrc/routesBuilder';
 import { useIsMobileOrTablet } from 'nextsrc/utils/useDeviceWidths';
-
-import { Button } from 'src/app-components/Button/Button';
-import { Pagination } from 'src/app-components/Pagination/Pagination';
 
 // TODO: Replace with i18n system when language support is added to nextsrc
 const texts = {
@@ -286,8 +285,6 @@ export const InstanceSelectionPage = () => {
         <Button
           onClick={() => createInstance.mutate()}
           disabled={createInstance.isPending}
-          size='md'
-          asChild={true}
         >
           {createInstance.isPending ? 'Oppretter...' : texts.newInstance}
         </Button>
