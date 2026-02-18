@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,17 +7,15 @@ using Altinn.Studio.Designer.Services.Interfaces;
 namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 
 /// <summary>
-/// Forwards the Designer session cookie (including chunked cookies) to the Gitea proxy
-/// so it can resolve the authenticated user via Designer's userinfo endpoint.
+/// Sets authentication headers for the git server using the configured auth headers provider.
 /// </summary>
-public class GiteaWebAuthDelegatingHandler(IDesignerCookieProvider cookieProvider) : DelegatingHandler
+public class GiteaWebAuthDelegatingHandler(IGitServerAuthHeadersProvider authHeadersProvider) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        string? cookieHeader = cookieProvider.GetDesignerCookieHeaderValue();
-        if (!string.IsNullOrEmpty(cookieHeader))
+        foreach (KeyValuePair<string, string> header in authHeadersProvider.GetAuthHeaders())
         {
-            request.Headers.Add("Cookie", cookieHeader);
+            request.Headers.TryAddWithoutValidation(header.Key, header.Value);
         }
 
         return await base.SendAsync(request, cancellationToken);

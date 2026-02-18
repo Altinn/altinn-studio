@@ -31,7 +31,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class SourceControlService(
     ServiceRepositorySettings repositorySettings,
     IGiteaClient giteaClient,
-    IDesignerCookieProvider cookieProvider
+    IGitServerAuthHeadersProvider authHeadersProvider
 ) : ISourceControl
 {
     private readonly ServiceRepositorySettings _repositorySettings = repositorySettings;
@@ -1372,13 +1372,9 @@ public class SourceControlService(
 
     private string[] GetAuthCustomHeaders()
     {
-        string cookieHeader = cookieProvider.GetDesignerCookieHeaderValue();
-        if (string.IsNullOrEmpty(cookieHeader))
-        {
-            return [];
-        }
-
-        return [$"Cookie: {cookieHeader}"];
+        return authHeadersProvider.GetAuthHeaders()
+            .Select(h => $"{h.Key}: {h.Value}")
+            .ToArray();
     }
 
     private static Activity? StartActivityCore(string methodName) =>

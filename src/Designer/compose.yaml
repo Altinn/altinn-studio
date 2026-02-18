@@ -120,6 +120,8 @@ services:
     restart: always
     build:
       context: ./development/gitea-proxy
+    ports:
+      - '3001:81'
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     volumes:
