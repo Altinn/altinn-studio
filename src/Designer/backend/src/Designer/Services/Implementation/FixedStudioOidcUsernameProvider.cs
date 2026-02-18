@@ -5,7 +5,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class FixedStudioOidcUsernameProvider : IStudioOidcUsernameProvider
 {
-    private const string FixedUsername = "newuser";
+    private const string FixedUsername = "localgiteaadmin";
 
     public Task<string> ResolveUsernameAsync(string sub, string pid)
     {

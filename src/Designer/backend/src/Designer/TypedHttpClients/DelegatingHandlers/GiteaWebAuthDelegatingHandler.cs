@@ -1,9 +1,7 @@
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Constants;
-using Microsoft.AspNetCore.Http;
+using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 
@@ -11,25 +9,14 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 /// Forwards the Designer session cookie (including chunked cookies) to the Gitea proxy
 /// so it can resolve the authenticated user via Designer's userinfo endpoint.
 /// </summary>
-public class GiteaWebAuthDelegatingHandler : DelegatingHandler
+public class GiteaWebAuthDelegatingHandler(IDesignerCookieProvider cookieProvider) : DelegatingHandler
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public GiteaWebAuthDelegatingHandler(IHttpContextAccessor httpContextAccessor)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
-
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var cookies = _httpContextAccessor.HttpContext?.Request.Cookies
-            .Where(c => c.Key.StartsWith(General.DesignerCookieName))
-            .Select(c => $"{c.Key}={c.Value}")
-            .ToList();
-
-        if (cookies is { Count: > 0 })
+        string? cookieHeader = cookieProvider.GetDesignerCookieHeaderValue();
+        if (!string.IsNullOrEmpty(cookieHeader))
         {
-            request.Headers.Add("Cookie", string.Join("; ", cookies));
+            request.Headers.Add("Cookie", cookieHeader);
         }
 
         return await base.SendAsync(request, cancellationToken);

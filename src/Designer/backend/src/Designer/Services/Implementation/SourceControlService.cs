@@ -16,7 +16,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -28,16 +27,15 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// </remarks>
 /// <param name="repositorySettings">The settings for the service repository.</param>
 /// <param name="giteaClient">The gitea client.</param>
-/// <param name="httpContextAccessor">The HTTP context accessor.</param>
+/// <param name="cookieProvider">The designer cookie provider.</param>
 public class SourceControlService(
     ServiceRepositorySettings repositorySettings,
     IGiteaClient giteaClient,
-    IHttpContextAccessor? httpContextAccessor = null
+    IDesignerCookieProvider cookieProvider
 ) : ISourceControl
 {
     private readonly ServiceRepositorySettings _repositorySettings = repositorySettings;
     private readonly IGiteaClient _giteaClient = giteaClient;
-    private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor;
 
     private const string DefaultBranch = General.DefaultBranch;
 
@@ -53,6 +51,7 @@ public class SourceControlService(
                 string remoteRepo = self.FindRemoteRepoLocation(authenticatedContext.Org, authenticatedContext.Repo);
                 CloneOptions cloneOptions = new();
                 cloneOptions.FetchOptions.CredentialsProvider = GetCredentialsHandler(authenticatedContext);
+                cloneOptions.FetchOptions.CustomHeaders = self.GetAuthCustomHeaders();
                 string localPath = self.FindLocalRepoLocation(authenticatedContext);
                 string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, localPath, cloneOptions);
 
@@ -87,6 +86,7 @@ public class SourceControlService(
                 );
                 CloneOptions cloneOptions = new();
                 cloneOptions.FetchOptions.CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext);
+                cloneOptions.FetchOptions.CustomHeaders = self.GetAuthCustomHeaders();
 
                 if (!string.IsNullOrEmpty(ctx.branchName))
                 {
@@ -94,7 +94,7 @@ public class SourceControlService(
                 }
 
                 string cloneResult = LibGit2Sharp.Repository.Clone(remoteRepo, ctx.destinationPath, cloneOptions);
-                FetchGitNotesAtPath(ctx.destinationPath, ctx.authenticatedContext);
+                self.FetchGitNotesAtPath(ctx.destinationPath, ctx.authenticatedContext);
                 return cloneResult;
             }
         );
@@ -125,6 +125,7 @@ public class SourceControlService(
                     FetchOptions = new FetchOptions(),
                 };
                 pullOptions.FetchOptions.CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext);
+                pullOptions.FetchOptions.CustomHeaders = self.GetAuthCustomHeaders();
 
                 try
                 {
@@ -200,7 +201,7 @@ public class SourceControlService(
             {
                 string logMessage = string.Empty;
                 using var repo = new LibGit2Sharp.Repository(self.FindLocalRepoLocation(authenticatedContext));
-                FetchOptions fetchOptions = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext) };
+                FetchOptions fetchOptions = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext), CustomHeaders = self.GetAuthCustomHeaders() };
 
                 foreach (Remote remote in repo.Network.Remotes)
                 {
@@ -326,6 +327,7 @@ public class SourceControlService(
                             SetErrorStatus(ctx.activity, "push_status_error");
                         },
                         CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext),
+                        CustomHeaders = self.GetAuthCustomHeaders(),
                     };
 
                     repo.Network.Push(remote, $"refs/heads/{DefaultBranch}", options);
@@ -726,7 +728,7 @@ public class SourceControlService(
                 NoteCollection notes = repo.Notes;
                 notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
 
-                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext) };
+                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext), CustomHeaders = GetAuthCustomHeaders() };
 
                 if (branchName == DefaultBranch)
                 {
@@ -797,7 +799,7 @@ public class SourceControlService(
                         updater.UpstreamBranch = $"refs/heads/{ctx.branchName}";
                     }
                 );
-                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext) };
+                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext), CustomHeaders = self.GetAuthCustomHeaders() };
                 repo.Network.Push(branch, options);
                 repo.Network.Push(remote, "refs/notes/commits", options);
             }
@@ -956,7 +958,7 @@ public class SourceControlService(
                 }
 
                 Remote remote = repo.Network.Remotes["origin"];
-                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext) };
+                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext), CustomHeaders = self.GetAuthCustomHeaders() };
                 string pushRefSpec = $":refs/heads/{ctx.branchName}";
                 repo.Network.Push(remote, pushRefSpec, options);
                 ctx.activity?.SetTag("branch.deleted", true);
@@ -1354,18 +1356,29 @@ public class SourceControlService(
             activity,
             authenticatedContext,
             static (self, authenticatedContext) =>
-                FetchGitNotesAtPath(self.FindLocalRepoLocation(authenticatedContext), authenticatedContext)
+                self.FetchGitNotesAtPath(self.FindLocalRepoLocation(authenticatedContext), authenticatedContext)
         );
     }
 
-    private static void FetchGitNotesAtPath(
+    private void FetchGitNotesAtPath(
         string localRepositoryPath,
         AltinnAuthenticatedRepoEditingContext authenticatedContext
     )
     {
         using LibGit2Sharp.Repository repo = new(localRepositoryPath);
-        FetchOptions options = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext) };
+        FetchOptions options = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext), CustomHeaders = GetAuthCustomHeaders() };
         Commands.Fetch(repo, "origin", ["refs/notes/*:refs/notes/*"], options, "fetch notes");
+    }
+
+    private string[] GetAuthCustomHeaders()
+    {
+        string cookieHeader = cookieProvider.GetDesignerCookieHeaderValue();
+        if (string.IsNullOrEmpty(cookieHeader))
+        {
+            return [];
+        }
+
+        return [$"Cookie: {cookieHeader}"];
     }
 
     private static Activity? StartActivityCore(string methodName) =>
@@ -1412,11 +1425,9 @@ public class SourceControlService(
     private static void SetRepositoryStatusTag(Activity? activity, Enums.RepositoryStatus repositoryStatus) =>
         activity?.SetTag("repository_status", repositoryStatus.ToString());
 
-    private void AddActivityEvent(string eventName, ActivityTagsCollection? tags = null)
+    private static void AddActivityEvent(string eventName, ActivityTagsCollection? tags = null)
     {
-        var activity =
-            _httpContextAccessor?.HttpContext?.Features.Get<IHttpActivityFeature>()?.Activity ?? Activity.Current;
-        activity?.AddEvent(new ActivityEvent(eventName, tags: tags));
+        Activity.Current?.AddEvent(new ActivityEvent(eventName, tags: tags));
     }
 
     private static void AddIndexedPushErrors(

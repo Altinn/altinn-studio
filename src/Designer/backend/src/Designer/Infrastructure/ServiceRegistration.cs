@@ -120,6 +120,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
             services.AddTransient<ICustomTemplateService, CustomTemplateService>();
             services.AddTransient<IStudioOidcUsernameProvider, FixedStudioOidcUsernameProvider>();
+            services.AddScoped<IDesignerCookieProvider, DesignerCookieProvider>();
             services.RegisterSettingsSingleton<CustomTemplateSettings>(configuration);
 
             return services;
