@@ -470,5 +470,11 @@ func recordPDFError(span trace.Span, pdfErr *types.PDFError) {
 	if pdfErr == nil || !span.IsRecording() {
 		return
 	}
+	// Queue-full 429s are expected; proxy retries handle them.
+	// Record as an event, not an error, to avoid false error noise.
+	if pdfErr.Is(types.ErrQueueFull) {
+		span.AddEvent("pdf.queue.full")
+		return
+	}
 	span.RecordError(pdfErr)
 }

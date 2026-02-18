@@ -579,7 +579,7 @@ steps:
               retries: 1
           chart:
             spec:
-              version: 3.9.0
+              version: 3.10.0
               chart: deployment
               sourceRef:
                 kind: HelmRepository
@@ -605,15 +605,11 @@ steps:
       targetType: inline
       script: |
 
-        # Determine base URL prefix and environment
+        # Determine host name used for ingress route
         if [ "$APP_ENVIRONMENT" = "production" ]; then
-          BASE_URL="https://platform.${ALTINN_HOST}"
           HOST_NAME="${ALTINN_HOST}"
-          ENVIRONMENT="Production"
         else
-          BASE_URL="https://platform.${APP_ENVIRONMENT}.${ALTINN_HOST}"
           HOST_NAME="${APP_ENVIRONMENT}.${ALTINN_HOST}"
-          ENVIRONMENT="Staging"
         fi
 
         # Start writing to overrides file
@@ -622,60 +618,21 @@ steps:
           pullSecrets: []
           repository: ${APP_OWNER}altinnregistry01.azurecr.io/${RELEASE_NAME}
           tag: "${TAGNAME}"
+          envFrom:
+            - configMapRef:
+                name: apps-runtime-common-config-env
+            - secretRef:
+                name: apps-runtime-common-secrets-env
           environment:
-            - name: ServiceRepositorySettings__BaseResourceFolderContainer
-              value: /AltinnService/
-            - name: ServiceRepositorySettings__RepositoryLocation
-              value: /AltinnService/
-            - name: PlatformSettings__ApiStorageEndpoint
-              value: ${BASE_URL}/storage/api/v1/
-            - name: PlatformSettings__ApiRegisterEndpoint
-              value: ${BASE_URL}/register/api/v1/
-            - name: PlatformSettings__ApiProfileEndpoint
-              value: ${BASE_URL}/profile/api/v1/
-            - name: PlatformSettings__ApiAuthenticationEndpoint
-              value: ${BASE_URL}/authentication/api/v1/
-            - name: PlatformSettings__ApiAuthorizationEndpoint
-              value: ${BASE_URL}/authorization/api/v1/
-            - name: PlatformSettings__ApiEventsEndpoint
-              value: ${BASE_URL}/events/api/v1/
-            - name: PlatformSettings__ApiNotificationEndpoint
-              value: ${BASE_URL}/notifications/api/v1/
-            - name: GeneralSettings__HostName
-              value: ${HOST_NAME}
-            - name: AppSettings__OpenIdWellKnownEndpoint
-              value: ${BASE_URL}/authentication/api/v1/openid/
             - name: PlatformSettings__SubscriptionKey
               value: ${SUBSCRIPTION_KEY}
-            - name: PlatformSettings__ApiAccessManagementEndpoint
-              value: ${BASE_URL}/accessmanagement/api/v1/
-            - name: PlatformSettings__ApiCorrespondenceEndpoint
-              value: ${BASE_URL}/correspondence/api/v1/
             - name: AppSettings__AppInsightsRoleName
               value: ${APP_REPO}
             - name: ApplicationInsights__InstrumentationKey
               value: ${AI_INSTR_KEY}
-            - name: ASPNETCORE_ENVIRONMENT
-              value: ${ENVIRONMENT}
             - name: AppSettings__AppVersion
               value: "${TAGNAME}"
-            - name: PdfGeneratorSettings__ServiceEndpointUri
-              value: http://pdf-generator.pdf.svc.cluster.local/pdf
-            - name: PlatformSettings__ApiPdf2Endpoint
-              value: http://pdf-generator.pdf.svc.cluster.local/pdf
-            - name: GeneralSettings__ExternalAppBaseUrl
-              value: https://{org}.apps.{hostName}/{org}/{app}/
         EOF
-
-        # Add tt02 and production-specific settings
-        if [ "$APP_ENVIRONMENT" = "tt02" ] || [ "$APP_ENVIRONMENT" = "production" ]; then
-          cat << EOF >> "$OVERRIDES_FILE"
-            - name: AppSettings__EFormidlingSender
-              value: "991825827"
-            - name: EFormidlingClientSettings__BaseUrl
-              value: ${BASE_URL}/eformidling/api/
-        EOF
-        fi
 
         # Add service and ingressRoute
         cat << EOF >> "$OVERRIDES_FILE"
