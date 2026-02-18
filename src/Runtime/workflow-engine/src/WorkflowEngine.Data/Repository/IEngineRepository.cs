@@ -45,6 +45,10 @@ public interface IEngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
+        string? org = null,
+        string? app = null,
+        string? party = null,
+        string? instanceGuid = null,
         CancellationToken cancellationToken = default
     );
 
@@ -59,8 +63,17 @@ public interface IEngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
+        string? org = null,
+        string? app = null,
+        string? party = null,
+        string? instanceGuid = null,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Gets all distinct org+app pairs.
+    /// </summary>
+    Task<IReadOnlyList<(string Org, string App)>> GetDistinctOrgsAndApps(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the number of active workflows.

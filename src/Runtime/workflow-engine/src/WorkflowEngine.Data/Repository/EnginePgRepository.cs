@@ -161,6 +161,43 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
+    public async Task<IReadOnlyList<(string Org, string App)>> GetDistinctOrgsAndApps(
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetDistinctOrgsAndApps");
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            _logger.FetchingWorkflows("dimensions");
+
+            var rows = await _context
+                .Workflows.Select(x => new { x.InstanceOrg, x.InstanceApp })
+                .Distinct()
+                .OrderBy(x => x.InstanceOrg)
+                .ThenBy(x => x.InstanceApp)
+                .ToListAsync(cancellationToken);
+
+            var result = rows.Select(x => (x.InstanceOrg, x.InstanceApp)).ToList();
+
+            _logger.SuccessfullyFetchedWorkflows(result.Count);
+
+            return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetFinishedWorkflows(
         IReadOnlyList<PersistentItemStatus> statuses,
         string? search = null,
@@ -168,6 +205,10 @@ internal sealed class EnginePgRepository : IEngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
+        string? org = null,
+        string? app = null,
+        string? party = null,
+        string? instanceGuid = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -179,7 +220,7 @@ internal sealed class EnginePgRepository : IEngineRepository
             _logger.FetchingWorkflows("finished");
 
             var result = await _context
-                .GetFinishedWorkflows(statuses, search, take, before, since, retriedOnly)
+                .GetFinishedWorkflows(statuses, search, take, before, since, retriedOnly, org, app, party, instanceGuid)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 
@@ -207,6 +248,10 @@ internal sealed class EnginePgRepository : IEngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
+        string? org = null,
+        string? app = null,
+        string? party = null,
+        string? instanceGuid = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -224,12 +269,27 @@ internal sealed class EnginePgRepository : IEngineRepository
                 take: null,
                 before: null,
                 since: since,
-                retriedOnly
+                retriedOnly,
+                org,
+                app,
+                party,
+                instanceGuid
             );
             var totalCount = await baseQuery.CountAsync(cancellationToken);
 
             // Data query adds cursor and limit
-            var dataQuery = _context.GetFinishedWorkflows(statuses, search, take, before, since, retriedOnly);
+            var dataQuery = _context.GetFinishedWorkflows(
+                statuses,
+                search,
+                take,
+                before,
+                since,
+                retriedOnly,
+                org,
+                app,
+                party,
+                instanceGuid
+            );
             var workflows = await dataQuery.ToDomainModel().ToListAsync(cancellationToken);
 
             _logger.SuccessfullyFetchedWorkflows(workflows.Count);
@@ -687,7 +747,11 @@ internal static class EnginePgRepositoryQueries
             int? take = null,
             DateTimeOffset? before = null,
             DateTimeOffset? since = null,
-            bool retriedOnly = false
+            bool retriedOnly = false,
+            string? org = null,
+            string? app = null,
+            string? party = null,
+            string? instanceGuid = null
         )
         {
             var query = dbContext.Workflows.Include(j => j.Steps).Where(x => statuses.Contains(x.Status));
@@ -700,6 +764,18 @@ internal static class EnginePgRepositoryQueries
 
             if (retriedOnly)
                 query = query.Where(x => x.Steps.Any(s => s.RequeueCount > 0));
+
+            if (!string.IsNullOrWhiteSpace(org))
+                query = query.Where(x => x.InstanceOrg == org);
+
+            if (!string.IsNullOrWhiteSpace(app))
+                query = query.Where(x => x.InstanceApp == app);
+
+            if (!string.IsNullOrWhiteSpace(party))
+                query = query.Where(x => x.InstanceOwnerPartyId.ToString() == party);
+
+            if (!string.IsNullOrWhiteSpace(instanceGuid))
+                query = query.Where(x => x.InstanceGuid.ToString() == instanceGuid);
 
             if (!string.IsNullOrWhiteSpace(search))
             {

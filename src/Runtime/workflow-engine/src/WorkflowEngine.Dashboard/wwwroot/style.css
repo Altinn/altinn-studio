@@ -54,11 +54,12 @@ body{min-height:100vh;padding:0}
 
 /* ── Filter bar ──────────────────────────────────────────── */
 .filter-bar{
-  display:flex;align-items:center;gap:8px;padding:12px 24px;border-bottom:1px solid var(--border);background:var(--bg2);
+  display:flex;align-items:center;gap:8px;padding:8px 24px;border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap;
 }
-.filter-search{position:relative;margin-left:auto}
+.filter-bar-chips{display:flex;align-items:center;gap:8px}
+.filter-search{position:relative}
 .filter-search input{
-  width:400px;background:var(--bg3);color:var(--text);border:1px solid var(--border);
+  width:220px;background:var(--bg3);color:var(--text);border:1px solid var(--border);
   padding:6px 28px 6px 12px;border-radius:6px;font-family:var(--font);font-size:12px;outline:none;
 }
 .filter-search input:focus{border-color:var(--cyan)}
@@ -71,6 +72,73 @@ body{min-height:100vh;padding:0}
 }
 .filter-clear.visible{opacity:1;pointer-events:auto}
 .filter-clear:hover{color:var(--text-bright)}
+
+/* ── Searchable dropdowns (Org / App) ────────────────────── */
+.dropdown{position:relative}
+.dropdown-toggle{
+  display:inline-flex;align-items:center;gap:5px;
+  background:none;border:1px solid var(--border);border-radius:6px;
+  color:var(--text-dim);font-family:var(--font);font-size:12px;font-weight:600;
+  padding:5px 10px;cursor:pointer;transition:all 0.15s;white-space:nowrap;
+}
+.dropdown-toggle:hover{color:var(--text);border-color:var(--text-dim)}
+.dropdown.has-selection .dropdown-toggle{color:var(--cyan);border-color:rgba(0,212,255,0.4)}
+.dropdown.disabled .dropdown-toggle{opacity:0.35;cursor:default;pointer-events:none}
+.dropdown-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.dropdown-selected{display:inline-flex;gap:4px;align-items:center}
+.dropdown-selected .mini-chip{
+  background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.3);
+  padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;
+}
+.dropdown-arrow{transition:transform 0.2s;flex-shrink:0}
+.dropdown.open .dropdown-arrow{transform:rotate(180deg)}
+.dropdown-panel{
+  display:none;position:absolute;top:100%;left:0;margin-top:4px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:6px;
+  min-width:200px;max-height:320px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.5);
+  overflow:hidden;display:none;flex-direction:column;
+}
+.dropdown.open .dropdown-panel{display:flex}
+.dropdown-search{
+  width:100%;background:var(--bg3);color:var(--text);border:none;border-bottom:1px solid var(--border);
+  padding:8px 12px;font-family:var(--font);font-size:12px;outline:none;box-sizing:border-box;
+}
+.dropdown-search::placeholder{color:var(--text-dim)}
+.dropdown-list{overflow-y:auto;max-height:260px;padding:4px 0}
+.dropdown-item{
+  padding:5px 12px;font-size:12px;font-weight:600;color:var(--text-dim);
+  cursor:pointer;transition:all 0.1s;display:flex;align-items:center;gap:8px;
+}
+.dropdown-item:hover{background:var(--bg3);color:var(--text)}
+.dropdown-item.selected{color:var(--cyan)}
+.dropdown-item.selected::before{content:'\2713';font-size:11px;color:var(--cyan);width:14px}
+.dropdown-item:not(.selected)::before{content:'';width:14px}
+.dropdown-item.hidden{display:none}
+.dropdown-actions{
+  display:flex;gap:4px;padding:4px 8px;border-bottom:1px solid var(--border);margin-bottom:2px;
+}
+.dropdown-action{
+  flex:1;padding:3px 0;font-size:11px;color:var(--text-dim);cursor:pointer;
+  text-align:center;border-radius:3px;
+}
+.dropdown-action:hover{color:var(--cyan);background:var(--bg3)}
+.dropdown-action.dim{opacity:0.35;pointer-events:none}
+
+/* ── Live filter row ─────────────────────────────────────── */
+.live-filter-row{
+  display:flex;align-items:center;gap:14px;padding:10px 24px;border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.live-filter-chips{display:flex;align-items:center;gap:8px}
+
+/* ── Query search input ──────────────────────────────────── */
+.query-search{position:relative}
+.query-search input{
+  width:180px;background:var(--bg3);color:var(--text);border:1px solid var(--border);
+  padding:4px 10px;border-radius:4px;font-family:var(--font);font-size:11px;outline:none;
+}
+.query-search input:focus{border-color:var(--cyan)}
+.query-search input::placeholder{color:var(--text-dim)}
 
 .status-chips{display:flex;gap:6px}
 .chip-sep{width:1px;background:var(--border);align-self:stretch;margin:0 4px}

@@ -207,6 +207,19 @@ internal static class DashboardEndpoints
             .ExcludeFromDescription();
 
         app.MapGet(
+                "/dashboard/orgs-and-apps",
+                async (IServiceProvider sp, CancellationToken ct) =>
+                {
+                    using var scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    var pairs = await repo.GetDistinctOrgsAndApps(ct);
+                    var result = pairs.Select(p => new { org = p.Org, app = p.App });
+                    return Results.Json(result, JsonCompact);
+                }
+            )
+            .ExcludeFromDescription();
+
+        app.MapGet(
                 "/dashboard/query",
                 async (
                     IServiceProvider sp,
@@ -216,6 +229,10 @@ internal static class DashboardEndpoints
                     DateTimeOffset? before,
                     DateTimeOffset? since,
                     bool? retried,
+                    string? org,
+                    string? app,
+                    string? party,
+                    string? instanceGuid,
                     CancellationToken ct
                 ) =>
                 {
@@ -244,6 +261,10 @@ internal static class DashboardEndpoints
                         before: before,
                         since: since,
                         retriedOnly: retriedOnly,
+                        org: org,
+                        app: app,
+                        party: party,
+                        instanceGuid: instanceGuid,
                         cancellationToken: ct
                     );
 

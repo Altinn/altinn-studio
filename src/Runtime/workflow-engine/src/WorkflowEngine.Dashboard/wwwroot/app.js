@@ -81,7 +81,8 @@
    *   workflowTimers:       Record<string, WorkflowTimer>,
    *   lastRecentKeys:       string,
    *   queryLoaded:        boolean,
-   *   filter:               string,
+   *   liveFilter:           string,
+   *   querySearch:          string,
    *   sectionStatus:        Record<string, string>,
    *   orgFilter:            Set<string>,
    *   appFilter:            Set<string>,
@@ -102,10 +103,15 @@
     recentSection:    /** @type {HTMLElement} */ (document.getElementById('recent-section')),
     queryContainer: /** @type {HTMLElement} */ (document.getElementById('query-workflows')),
     queryEmpty:     /** @type {HTMLElement} */ (document.getElementById('query-empty')),
-    filterInput:      /** @type {HTMLInputElement} */ (document.getElementById('filter-input')),
-    filterClear:      /** @type {HTMLElement} */ (document.getElementById('filter-clear')),
-    orgChips:         /** @type {HTMLElement} */ (document.getElementById('org-chips')),
-    appChips:         /** @type {HTMLElement} */ (document.getElementById('app-chips')),
+    liveFilterInput:  /** @type {HTMLInputElement} */ (document.getElementById('live-filter-input')),
+    liveFilterClear:  /** @type {HTMLElement} */ (document.getElementById('live-filter-clear')),
+    querySearchInput: /** @type {HTMLInputElement} */ (document.getElementById('query-search-input')),
+    orgDropdown:      /** @type {HTMLElement} */ (document.getElementById('org-dropdown')),
+    appDropdown:      /** @type {HTMLElement} */ (document.getElementById('app-dropdown')),
+    orgList:          /** @type {HTMLElement} */ (document.getElementById('org-list')),
+    appList:          /** @type {HTMLElement} */ (document.getElementById('app-list')),
+    orgSelected:      /** @type {HTMLElement} */ (document.getElementById('org-selected')),
+    appSelected:      /** @type {HTMLElement} */ (document.getElementById('app-selected')),
     partyChips:       /** @type {HTMLElement} */ (document.getElementById('party-chips')),
     guidChips:        /** @type {HTMLElement} */ (document.getElementById('guid-chips')),
     scheduledSection: /** @type {HTMLElement} */ (document.getElementById('scheduled-section')),
@@ -131,14 +137,16 @@
     workflowTimers:       {},
     lastRecentKeys:       '',
     queryLoaded:        false,
-    filter:               '',
+    liveFilter:           '',
+    querySearch:          '',
     sectionStatus:        { scheduled: '', live: '', recent: '', query: '' },
     orgFilter:            new Set(),
     appFilter:            new Set(),
     partyFilter:          new Set(),
     guidFilter:           new Set(),
-    /** @type {Set<string>} */ knownOrgs: new Set(),
-    /** @type {Set<string>} */ knownApps: new Set(),
+    /** @type {Map<string, Set<string>>} org → set of apps */
+    orgsAndApps: new Map(),
+    orgsAndAppsLoaded: false,
     compactSections: {
       scheduled: localStorage.getItem('compact:scheduled') === '1',
       inbox:     localStorage.getItem('compact:inbox') === '1',
@@ -161,17 +169,90 @@
    * @param {(data: unknown) => void} onMessage
    * @param {{ showStatus?: boolean }} [opts]
    */
-  /** Fetch a small query batch to seed org/app filter chips. */
-  const seedOrgAppChips = () => {
-    fetch(`${engineUrl}/dashboard/query?limit=20`).then(r => r.json()).then(/** @param {{ workflows: Workflow[] }} body */ body => {
-      const wfs = body.workflows;
-      for (const wf of wfs) {
-        if (wf.instance) {
-          if (wf.instance.org) state.knownOrgs.add(wf.instance.org.toLowerCase());
-          if (wf.instance.app) state.knownApps.add(wf.instance.app.toLowerCase());
-        }
+  /**
+   * Register an org+app pair in the orgsAndApps map.
+   * @param {string} org @param {string} app
+   * @returns {boolean} true if something new was added
+   */
+  const addOrgAndApp = (org, app) => {
+    const o = org.toLowerCase();
+    const a = app.toLowerCase();
+    let changed = false;
+    if (!state.orgsAndApps.has(o)) { state.orgsAndApps.set(o, new Set()); changed = true; }
+    const apps = /** @type {Set<string>} */ (state.orgsAndApps.get(o));
+    if (!apps.has(a)) { apps.add(a); changed = true; }
+    return changed;
+  };
+
+  /** Get the set of apps available for the currently selected org(s). */
+  const getAppsForSelectedOrgs = () => {
+    const result = new Set();
+    if (state.orgFilter.size === 0) return result;
+    const orgs = state.orgFilter;
+    for (const o of orgs) {
+      const apps = state.orgsAndApps.get(o);
+      if (apps) for (const a of apps) result.add(a);
+    }
+    return result;
+  };
+
+  /** Rebuild both dropdowns and auto-select when there's only one choice. */
+  const refreshOrgAppDropdowns = () => {
+    // Org dropdown — all known orgs
+    const allOrgs = new Set(state.orgsAndApps.keys());
+    rebuildDropdown(dom.orgList, allOrgs, state.orgFilter);
+    updateDropdownToggle('org');
+
+    // Auto-select sole org
+    if (allOrgs.size === 1 && state.orgFilter.size === 0) {
+      const sole = [...allOrgs][0];
+      state.orgFilter.add(sole);
+      rebuildDropdown(dom.orgList, allOrgs, state.orgFilter);
+      updateDropdownToggle('org');
+    }
+
+    // App dropdown — only apps for selected org(s)
+    refreshAppDropdown();
+  };
+
+  /** Rebuild the app dropdown based on current org selection. */
+  const refreshAppDropdown = () => {
+    const availableApps = getAppsForSelectedOrgs();
+
+    // Prune app selections that are no longer valid (only after orgs+apps have loaded)
+    if (state.orgsAndAppsLoaded) {
+      for (const a of [...state.appFilter]) {
+        if (!availableApps.has(a)) state.appFilter.delete(a);
       }
-      rebuildAllChips();
+    }
+
+    rebuildDropdown(dom.appList, availableApps, state.appFilter);
+    updateDropdownToggle('app');
+
+    // Disable app dropdown when no org is selected
+    const noOrg = state.orgFilter.size === 0;
+    dom.appDropdown.classList.toggle('disabled', noOrg);
+
+    // Auto-select all apps when 10 or fewer
+    if (availableApps.size > 0 && availableApps.size <= 10 && state.appFilter.size === 0) {
+      for (const a of availableApps) state.appFilter.add(a);
+      rebuildDropdown(dom.appList, availableApps, state.appFilter);
+      updateDropdownToggle('app');
+      syncUrl();
+    }
+  };
+
+  /** Fetch distinct org+app pairs from the DB to populate dropdowns. */
+  const fetchOrgsAndApps = () => {
+    fetch(`${engineUrl}/dashboard/orgs-and-apps`).then(r => r.json()).then(/** @param {{ org: string, app: string }[]} pairs */ pairs => {
+      for (const p of pairs) {
+        if (p.org && p.app) addOrgAndApp(p.org, p.app);
+      }
+      state.orgsAndAppsLoaded = true;
+      refreshOrgAppDropdowns();
+      applyFilter();
+      syncUrl();
+      if (state.queryLoaded) loadQuery();
     }).catch(() => {});
   };
 
@@ -182,7 +263,7 @@
     if (showStatus) {
       es.onopen = () => {
         dom.sseDot.className = 'sse-dot connected';
-        seedOrgAppChips();
+        fetchOrgsAndApps();
       };
     }
 
@@ -415,7 +496,7 @@
     // Only show empty state immediately if no cards exist (including exiting ones)
     const hasCards = dom.liveContainer.querySelector('.workflow-card') !== null;
     dom.liveEmpty.style.display = (workflows.length === 0 && !hasCards) ? 'block' : 'none';
-    rebuildAllChips();
+    mergeDiscoveredOrgsAndApps();
     applyFilter();
   };
 
@@ -476,7 +557,7 @@
       setCardFilterData(card, wf);
       dom.recentContainer.insertBefore(card, dom.recentContainer.children[i] ?? null);
     }
-    rebuildAllChips();
+    mergeDiscoveredOrgsAndApps();
     applyFilter();
   };
 
@@ -847,10 +928,10 @@
 
   /** @returns {boolean} */
   const hasActiveFilter = () =>
-    !!(state.filter || state.sectionStatus.scheduled || state.sectionStatus.live || state.sectionStatus.recent || state.sectionStatus.query || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size);
+    !!(state.liveFilter || state.querySearch || state.sectionStatus.scheduled || state.sectionStatus.live || state.sectionStatus.recent || state.sectionStatus.query || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size);
 
   const applyFilter = () => {
-    const f = state.filter;
+    const lf = state.liveFilter;
     const of_ = state.orgFilter;
     const af = state.appFilter;
     const pf = state.partyFilter;
@@ -859,19 +940,20 @@
      * @param {HTMLElement} container
      * @param {HTMLElement | null} countEl
      * @param {string} sectionStatus
+     * @param {boolean} [isLiveTab]
      */
-    const filterContainer = (container, countEl, sectionStatus) => {
+    const filterContainer = (container, countEl, sectionStatus, isLiveTab) => {
       const cards = /** @type {HTMLElement[]} */ ([...container.querySelectorAll('.workflow-card')]);
       let matched = 0;
       /** @type {Record<string, number>} */
       const statusCounts = {};
       for (const card of cards) {
-        const textHidden = f && !(card.dataset.filter || '').includes(f);
+        const textHidden = isLiveTab && lf && !(card.dataset.filter || '').includes(lf);
         const statusHidden = sectionStatus && !(card.dataset.status || '').includes(sectionStatus);
         const orgHidden = of_.size > 0 && !of_.has(card.dataset.org || '');
         const appHidden = af.size > 0 && !af.has(card.dataset.app || '');
-        const partyHidden = pf.size > 0 && !pf.has(card.dataset.party || '');
-        const guidHidden = gf.size > 0 && !gf.has(card.dataset.guid || '');
+        const partyHidden = isLiveTab && pf.size > 0 && !pf.has(card.dataset.party || '');
+        const guidHidden = isLiveTab && gf.size > 0 && !gf.has(card.dataset.guid || '');
         const hidden = textHidden || statusHidden || orgHidden || appHidden || partyHidden || guidHidden;
         card.classList.toggle('filtered-out', hidden);
         if (!hidden) matched++;
@@ -880,7 +962,7 @@
         }
       }
       if (countEl) {
-        const hasFilter = f || sectionStatus || of_.size > 0 || af.size > 0 || pf.size > 0 || gf.size > 0;
+        const hasFilter = (isLiveTab && lf) || sectionStatus || of_.size > 0 || af.size > 0 || (isLiveTab && pf.size > 0) || (isLiveTab && gf.size > 0);
         countEl.textContent = (hasFilter && cards.length > 0) ? `${matched} / ${cards.length}` : `${cards.length}`;
       }
       // Update chip counts (skip for query toggle chips — they have no counts)
@@ -899,88 +981,207 @@
         }
       }
     };
-    filterContainer(dom.scheduledContainer, null, state.sectionStatus.scheduled);
-    filterContainer(dom.liveContainer, null, state.sectionStatus.live);
-    filterContainer(dom.recentContainer, null, state.sectionStatus.recent);
-    filterContainer(dom.queryContainer, null, state.sectionStatus.query);
+    filterContainer(dom.scheduledContainer, null, state.sectionStatus.scheduled, true);
+    filterContainer(dom.liveContainer, null, state.sectionStatus.live, true);
+    filterContainer(dom.recentContainer, null, state.sectionStatus.recent, true);
+    filterContainer(dom.queryContainer, null, state.sectionStatus.query, false);
   };
 
   /** @param {string} value */
-  const setFilter = (value) => {
-    state.filter = value.toLowerCase();
-    dom.filterInput.value = value;
-    dom.filterClear.classList.toggle('visible', value.length > 0);
+  const setLiveFilter = (value) => {
+    state.liveFilter = value.toLowerCase();
+    dom.liveFilterInput.value = value;
+    dom.liveFilterClear.classList.toggle('visible', value.length > 0);
     applyFilter();
-    syncUrl();
-    if (state.queryLoaded) loadQuery();
   };
 
   /** @param {string} org */
-  const toggleOrgFilter = (org) => toggleSetFilter(state.orgFilter, org);
-
-  /**
-   * Toggle a value in a Set-based filter, then refresh.
-   * @param {Set<string>} filterSet
-   * @param {string} value
-   */
-  const toggleSetFilter = (filterSet, value) => {
-    const v = value.toLowerCase();
-    if (filterSet.has(v)) filterSet.delete(v); else filterSet.add(v);
+  const toggleOrgFilter = (org) => {
+    const v = org.toLowerCase();
+    const sole = state.orgFilter.size === 1 && state.orgFilter.has(v);
+    state.orgFilter.clear();
+    if (!sole) state.orgFilter.add(v);
+    const allOrgs = new Set(state.orgsAndApps.keys());
+    rebuildDropdown(dom.orgList, allOrgs, state.orgFilter);
+    updateDropdownToggle('org');
+    refreshAppDropdown(); // gate apps behind org
     applyFilter();
-    refreshChips();
     syncUrl();
     if (state.queryLoaded) loadQuery();
   };
 
   /** @param {string} app */
-  const toggleAppFilter = (app) => toggleSetFilter(state.appFilter, app);
+  const toggleAppFilter = (app) => {
+    const v = app.toLowerCase();
+    const sole = state.appFilter.size === 1 && state.appFilter.has(v);
+    state.appFilter.clear();
+    if (!sole) state.appFilter.add(v);
+    const availableApps = getAppsForSelectedOrgs();
+    rebuildDropdown(dom.appList, availableApps, state.appFilter);
+    updateDropdownToggle('app');
+    applyFilter();
+    syncUrl();
+    if (state.queryLoaded) loadQuery();
+  };
 
   /** @param {string} party */
-  const togglePartyFilter = (party) => toggleSetFilter(state.partyFilter, party);
+  const togglePartyFilter = (party) => {
+    const v = party.toLowerCase();
+    const sole = state.partyFilter.size === 1 && state.partyFilter.has(v);
+    state.partyFilter.clear();
+    if (!sole) state.partyFilter.add(v);
+    rebuildSelectedOnlyChips(dom.partyChips, state.partyFilter, 'party-chip');
+    updatePartyGuidLabels();
+    applyFilter();
+    syncUrl();
+    if (state.queryLoaded) loadQuery();
+  };
 
   /** @param {string} guid */
-  const toggleGuidFilter = (guid) => toggleSetFilter(state.guidFilter, guid);
+  const toggleGuidFilter = (guid) => {
+    const v = guid.toLowerCase();
+    const sole = state.guidFilter.size === 1 && state.guidFilter.has(v);
+    state.guidFilter.clear();
+    if (!sole) state.guidFilter.add(v);
+    rebuildSelectedOnlyChips(dom.guidChips, state.guidFilter, 'guid-chip', v => v.substring(0, 8));
+    updatePartyGuidLabels();
+    applyFilter();
+    syncUrl();
+    if (state.queryLoaded) loadQuery();
+  };
+
+  /* ── Searchable dropdown helpers ─────────────────────────── */
 
   /**
-   * Rebuild dynamic chip bars from all visible cards.
-   * @param {HTMLElement} container
-   * @param {string} dataAttr
+   * Rebuild dropdown list items.
+   * @param {HTMLElement} listEl
+   * @param {Set<string>} allValues
    * @param {Set<string>} filterSet
-   * @param {string} chipClass
-   * @param {(v: string) => string} [labelFn]
    */
-  const rebuildChipBar = (container, dataAttr, filterSet, chipClass, labelFn) => {
-    const values = new Set(dataAttr === 'org' ? state.knownOrgs : dataAttr === 'app' ? state.knownApps : []);
-    for (const card of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(`.workflow-card[data-${dataAttr}]`))) {
-      const v = card.dataset[dataAttr];
-      if (v) values.add(v);
+  const rebuildDropdown = (listEl, allValues, filterSet) => {
+    const sorted = [...allValues].sort();
+    listEl.innerHTML = '';
+    // Action row: Select all / Clear all
+    if (sorted.length > 0) {
+      const row = document.createElement('div');
+      row.className = 'dropdown-actions';
+      const selAll = document.createElement('span');
+      selAll.className = 'dropdown-action';
+      selAll.textContent = 'Select all';
+      selAll.dataset.action = 'select-all';
+      if (filterSet.size === sorted.length) selAll.classList.add('dim');
+      const clearAll = document.createElement('span');
+      clearAll.className = 'dropdown-action';
+      clearAll.textContent = 'Clear all';
+      clearAll.dataset.action = 'clear';
+      if (filterSet.size === 0) clearAll.classList.add('dim');
+      row.appendChild(selAll);
+      row.appendChild(clearAll);
+      listEl.appendChild(row);
     }
-    const sorted = [...values].sort();
-    const prev = container.dataset.values || '';
-    const next = sorted.join(',');
-    if (prev === next) { syncChipActive(container, filterSet); return; }
-    container.dataset.values = next;
-
-    container.innerHTML = '';
     for (const v of sorted) {
-      const btn = document.createElement('button');
-      btn.className = `chip ${chipClass}`;
-      btn.dataset.value = v;
-      btn.textContent = labelFn ? labelFn(v) : v;
-      if (filterSet.has(v)) btn.classList.add('active');
-      container.appendChild(btn);
+      const item = document.createElement('div');
+      item.className = `dropdown-item${filterSet.has(v) ? ' selected' : ''}`;
+      item.dataset.value = v;
+      item.textContent = v;
+      listEl.appendChild(item);
     }
   };
 
   /**
-   * Sync active class on existing chips without rebuilding.
-   * @param {HTMLElement} container
-   * @param {Set<string>} filterSet
+   * Update the toggle button to show selected chips.
+   * @param {'org' | 'app'} which
    */
-  const syncChipActive = (container, filterSet) => {
-    for (const c of container.querySelectorAll('.chip')) {
-      c.classList.toggle('active', filterSet.has(/** @type {HTMLElement} */ (c).dataset.value || ''));
+  const updateDropdownToggle = (which) => {
+    const filterSet = which === 'org' ? state.orgFilter : state.appFilter;
+    const selectedEl = which === 'org' ? dom.orgSelected : dom.appSelected;
+    const dropdown = which === 'org' ? dom.orgDropdown : dom.appDropdown;
+
+    if (filterSet.size === 0) {
+      selectedEl.innerHTML = '';
+      dropdown.classList.remove('has-selection');
+    } else {
+      selectedEl.innerHTML = [...filterSet].sort().map(v => `<span class="mini-chip">${esc(v)}</span>`).join('');
+      dropdown.classList.add('has-selection');
     }
+  };
+
+  /** @param {string} dropdownId */
+  window.toggleDropdown = (dropdownId) => {
+    const el = document.getElementById(dropdownId);
+    if (!el) return;
+    if (el.classList.contains('disabled')) return;
+    const wasOpen = el.classList.contains('open');
+    // Close all dropdowns first
+    for (const d of document.querySelectorAll('.dropdown.open')) d.classList.remove('open');
+    if (!wasOpen) {
+      el.classList.add('open');
+      const search = el.querySelector('.dropdown-search');
+      if (search) { /** @type {HTMLInputElement} */ (search).value = ''; /** @type {HTMLInputElement} */ (search).focus(); filterDropdownList(el, ''); }
+    }
+  };
+
+  /** @param {HTMLElement} dropdown @param {string} query */
+  const filterDropdownList = (dropdown, query) => {
+    const q = query.toLowerCase();
+    for (const item of dropdown.querySelectorAll('.dropdown-item')) {
+      /** @type {HTMLElement} */ (item).classList.toggle('hidden', q !== '' && !(/** @type {HTMLElement} */ (item).dataset.value || '').includes(q));
+    }
+  };
+
+  // Wire dropdown search inputs
+  for (const dd of document.querySelectorAll('.dropdown')) {
+    const searchInput = dd.querySelector('.dropdown-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => filterDropdownList(/** @type {HTMLElement} */ (dd), /** @type {HTMLInputElement} */ (e.target).value));
+      searchInput.addEventListener('click', (e) => e.stopPropagation());
+    }
+    const list = dd.querySelector('.dropdown-list');
+    if (list) {
+      list.addEventListener('click', (e) => {
+        e.stopPropagation(); // keep dropdown open for multi-select
+        const target = /** @type {HTMLElement} */ (e.target);
+        // Handle action row (Select all / Clear all)
+        if (target.classList.contains('dropdown-action')) {
+          const action = target.dataset.action;
+          if (dd.id === 'org-dropdown') {
+            if (action === 'clear') state.orgFilter.clear();
+            else if (action === 'select-all') for (const k of state.orgsAndApps.keys()) state.orgFilter.add(k);
+            refreshOrgAppDropdowns(); refreshAppDropdown(); applyFilter(); syncUrl(); if (state.queryLoaded) loadQuery();
+          } else if (dd.id === 'app-dropdown') {
+            const avail = getAppsForSelectedOrgs();
+            if (action === 'clear') state.appFilter.clear();
+            else if (action === 'select-all') for (const a of avail) state.appFilter.add(a);
+            rebuildDropdown(dom.appList, avail, state.appFilter); updateDropdownToggle('app'); applyFilter(); syncUrl(); if (state.queryLoaded) loadQuery();
+          }
+          return;
+        }
+        const item = /** @type {HTMLElement | null} */ (target.closest('.dropdown-item'));
+        if (!item) return;
+        const v = item.dataset.value || '';
+        if (dd.id === 'org-dropdown') toggleOrgFilter(v);
+        else if (dd.id === 'app-dropdown') toggleAppFilter(v);
+      });
+    }
+  }
+
+  // Close dropdowns on outside click
+  document.addEventListener('click', (e) => {
+    const target = /** @type {HTMLElement} */ (e.target);
+    if (!target.closest('.dropdown')) {
+      for (const d of document.querySelectorAll('.dropdown.open')) d.classList.remove('open');
+    }
+  });
+
+  /** Merge org/app values discovered from SSE into dropdown lists. */
+  const mergeDiscoveredOrgsAndApps = () => {
+    let changed = false;
+    for (const card of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.workflow-card[data-org]'))) {
+      const o = card.dataset.org;
+      const a = card.dataset.app;
+      if (o && a && addOrgAndApp(o, a)) changed = true;
+    }
+    if (changed) refreshOrgAppDropdowns();
   };
 
   /**
@@ -1007,30 +1208,9 @@
     }
   };
 
-  const updateSeparators = () => {
-    /** @param {string} sepId @param {string} labelId @param {boolean} visible */
-    const toggle = (sepId, labelId, visible) => {
-      /** @type {HTMLElement} */ (document.getElementById(sepId)).style.display = visible ? '' : 'none';
-      /** @type {HTMLElement} */ (document.getElementById(labelId)).style.display = visible ? '' : 'none';
-    };
-    toggle('sep-party', 'label-party', state.partyFilter.size > 0);
-    toggle('sep-guid', 'label-guid', state.guidFilter.size > 0);
-  };
-
-  const refreshChips = () => {
-    syncChipActive(dom.orgChips, state.orgFilter);
-    syncChipActive(dom.appChips, state.appFilter);
-    rebuildSelectedOnlyChips(dom.partyChips, state.partyFilter, 'party-chip');
-    rebuildSelectedOnlyChips(dom.guidChips, state.guidFilter, 'guid-chip', v => v.substring(0, 8));
-    updateSeparators();
-  };
-
-  const rebuildAllChips = () => {
-    rebuildChipBar(dom.orgChips, 'org', state.orgFilter, 'org-chip');
-    rebuildChipBar(dom.appChips, 'app', state.appFilter, 'app-chip');
-    rebuildSelectedOnlyChips(dom.partyChips, state.partyFilter, 'party-chip');
-    rebuildSelectedOnlyChips(dom.guidChips, state.guidFilter, 'guid-chip', v => v.substring(0, 8));
-    updateSeparators();
+  const updatePartyGuidLabels = () => {
+    /** @type {HTMLElement} */ (document.getElementById('label-party')).style.display = state.partyFilter.size > 0 ? '' : 'none';
+    /** @type {HTMLElement} */ (document.getElementById('label-guid')).style.display = state.guidFilter.size > 0 ? '' : 'none';
   };
 
   // Expose for inline onclick
@@ -1043,8 +1223,28 @@
   // @ts-ignore
   window.toggleGuidFilter = toggleGuidFilter;
 
-  dom.filterInput.addEventListener('input', () => setFilter(dom.filterInput.value));
-  dom.filterClear.addEventListener('click', () => { setFilter(''); dom.filterInput.focus(); });
+  dom.liveFilterInput.addEventListener('input', () => setLiveFilter(dom.liveFilterInput.value));
+  dom.liveFilterClear.addEventListener('click', () => { setLiveFilter(''); dom.liveFilterInput.focus(); });
+
+  // Query search — triggers on Enter key
+  dom.querySearchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      state.querySearch = dom.querySearchInput.value.trim();
+      syncUrl();
+      if (state.queryLoaded) loadQuery();
+    }
+  });
+
+  /** @param {HTMLElement} container @param {(value: string) => void} toggle */
+  const wireChipBar = (container, toggle) => {
+    container.addEventListener('click', (e) => {
+      const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.chip'));
+      if (!chip) return;
+      toggle(chip.dataset.value || '');
+    });
+  };
+  wireChipBar(dom.partyChips, togglePartyFilter);
+  wireChipBar(dom.guidChips, toggleGuidFilter);
 
   for (const bar of document.querySelectorAll('.section-chips')) {
     const isQueryToggle = bar.classList.contains('query-toggle');
@@ -1076,19 +1276,6 @@
       if (section === 'query' && state.queryLoaded) loadQuery();
     });
   }
-
-  /** @param {HTMLElement} container @param {(value: string) => void} toggle */
-  const wireChipBar = (container, toggle) => {
-    container.addEventListener('click', (e) => {
-      const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.chip'));
-      if (!chip) return;
-      toggle(chip.dataset.value || '');
-    });
-  };
-  wireChipBar(dom.orgChips, toggleOrgFilter);
-  wireChipBar(dom.appChips, toggleAppFilter);
-  wireChipBar(dom.partyChips, togglePartyFilter);
-  wireChipBar(dom.guidChips, toggleGuidFilter);
 
   // Time range dropdown
   /** @type {{ from: string, to: string } | null} */
@@ -1363,7 +1550,8 @@
   const fetchQuery = async (opts) => {
     const page = opts?.page ?? 0;
     const hs = state.sectionStatus.query;
-    const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(state.filter);
+    const searchTerm = state.querySearch;
+    const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(searchTerm);
     const retried = /** @type {HTMLInputElement} */ (document.getElementById('retried-check')).checked;
 
     // When searching for a specific GUID, bypass all filters for best results
@@ -1381,7 +1569,11 @@
       const params = new URLSearchParams();
       params.set('limit', String(QUERY_PAGE));
       if (dbStatus) params.set('status', dbStatus);
-      if (state.filter) params.set('search', state.filter);
+      if (searchTerm) params.set('search', searchTerm);
+      if (!isGuid && state.orgFilter.size === 1) params.set('org', [...state.orgFilter][0]);
+      if (!isGuid && state.appFilter.size === 1) params.set('app', [...state.appFilter][0]);
+      if (!isGuid && state.partyFilter.size === 1) params.set('party', [...state.partyFilter][0]);
+      if (!isGuid && state.guidFilter.size === 1) params.set('instanceGuid', [...state.guidFilter][0]);
       // Use page cursor for navigation
       const cursor = queryPageCursors[page] ?? null;
       if (cursor) params.set('before', cursor);
@@ -1402,7 +1594,7 @@
 
       // Smart status fallback: if filtered search for a specific GUID returns nothing, retry without filters
       if (workflows.length === 0 && page === 0 && (dbStatus || effectiveRetried) && isGuid) {
-        const fallbackRes = await fetch(`${engineUrl}/dashboard/query?limit=${QUERY_PAGE}&search=${encodeURIComponent(state.filter)}`);
+        const fallbackRes = await fetch(`${engineUrl}/dashboard/query?limit=${QUERY_PAGE}&search=${encodeURIComponent(searchTerm)}`);
         const fallbackBody = await fallbackRes.json();
         /** @type {Workflow[]} */
         const fallback = fallbackBody.workflows;
@@ -1596,7 +1788,7 @@
     const p = new URLSearchParams();
     const tab = document.querySelector('.tab.active')?.getAttribute('data-tab');
     if (tab && tab !== 'live') p.set('tab', tab);
-    if (state.filter) p.set('q', state.filter);
+    if (state.querySearch) p.set('q', state.querySearch);
     if (state.sectionStatus.scheduled) p.set('ss', state.sectionStatus.scheduled);
     if (state.sectionStatus.live) p.set('ls', state.sectionStatus.live);
     if (state.sectionStatus.recent) p.set('rs', state.sectionStatus.recent);
@@ -1665,7 +1857,7 @@
     }
 
     const q = p.get('q');
-    if (q) setFilter(q);
+    if (q) { state.querySearch = q; dom.querySearchInput.value = q; }
     for (const [key, section] of [['ss', 'scheduled'], ['ls', 'live'], ['rs', 'recent'], ['qs', 'query']]) {
       const v = p.get(key);
       if (v) {
@@ -1707,8 +1899,19 @@
     for (const v of (p.get('app') || '').split(',').filter(Boolean)) state.appFilter.add(v);
     for (const v of (p.get('party') || '').split(',').filter(Boolean)) state.partyFilter.add(v);
     for (const v of (p.get('guid') || '').split(',').filter(Boolean)) state.guidFilter.add(v);
+    if (state.orgFilter.size || state.appFilter.size) {
+      // Dropdowns will be fully rebuilt when orgs+apps arrive; just update toggle badges for now
+      updateDropdownToggle('org');
+      updateDropdownToggle('app');
+      // Disable app dropdown until org is selected
+      dom.appDropdown.classList.toggle('disabled', state.orgFilter.size === 0);
+    }
+    if (state.partyFilter.size || state.guidFilter.size) {
+      rebuildSelectedOnlyChips(dom.partyChips, state.partyFilter, 'party-chip');
+      rebuildSelectedOnlyChips(dom.guidChips, state.guidFilter, 'guid-chip', v => v.substring(0, 8));
+      updatePartyGuidLabels();
+    }
     if (state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size) {
-      refreshChips();
       applyFilter();
     }
     // Compact sections

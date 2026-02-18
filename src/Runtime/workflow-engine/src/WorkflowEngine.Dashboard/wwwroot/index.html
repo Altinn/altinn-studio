@@ -30,20 +30,33 @@
 </div>
 
 <div class="filter-bar">
-  <span class="chip-label" id="label-org">Org</span>
-  <div class="status-chips" id="org-chips"></div>
-  <div class="chip-sep" id="sep-app"></div>
-  <span class="chip-label" id="label-app">App</span>
-  <div class="status-chips" id="app-chips"></div>
-  <div class="chip-sep" id="sep-party" style="display:none"></div>
-  <span class="chip-label" id="label-party" style="display:none">Party</span>
-  <div class="status-chips" id="party-chips"></div>
-  <div class="chip-sep" id="sep-guid" style="display:none"></div>
-  <span class="chip-label" id="label-guid" style="display:none">Instance</span>
-  <div class="status-chips" id="guid-chips"></div>
-  <div class="filter-search">
-    <input type="text" id="filter-input" placeholder="Search..." autocomplete="off" spellcheck="false">
-    <button class="filter-clear" id="filter-clear" title="Clear filter">&times;</button>
+  <div class="dropdown" id="org-dropdown">
+    <button class="dropdown-toggle" onclick="toggleDropdown('org-dropdown')">
+      <span class="dropdown-label">Org</span>
+      <span class="dropdown-selected" id="org-selected"></span>
+      <svg class="dropdown-arrow" width="8" height="8" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="dropdown-panel">
+      <input type="text" class="dropdown-search" placeholder="Search orgs..." autocomplete="off" spellcheck="false">
+      <div class="dropdown-list" id="org-list"></div>
+    </div>
+  </div>
+  <div class="dropdown disabled" id="app-dropdown">
+    <button class="dropdown-toggle" onclick="toggleDropdown('app-dropdown')">
+      <span class="dropdown-label">App</span>
+      <span class="dropdown-selected" id="app-selected"></span>
+      <svg class="dropdown-arrow" width="8" height="8" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="dropdown-panel">
+      <input type="text" class="dropdown-search" placeholder="Search apps..." autocomplete="off" spellcheck="false">
+      <div class="dropdown-list" id="app-list"></div>
+    </div>
+  </div>
+  <div class="filter-bar-chips">
+    <span class="chip-label" id="label-party" style="display:none">Party</span>
+    <div class="status-chips" id="party-chips"></div>
+    <span class="chip-label" id="label-guid" style="display:none">Instance</span>
+    <div class="status-chips" id="guid-chips"></div>
   </div>
 </div>
 
@@ -53,6 +66,12 @@
 </div>
 
 <div class="tab-panel active" id="panel-live">
+  <div class="live-filter-row">
+    <div class="filter-search">
+      <input type="text" id="live-filter-input" placeholder="Filter..." autocomplete="off" spellcheck="false">
+      <button class="filter-clear" id="live-filter-clear" title="Clear filter">&times;</button>
+    </div>
+  </div>
   <div class="section collapsed" id="scheduled-section">
     <div class="section-title collapsible" onclick="toggleSection('scheduled-section')"><span class="chevron">&#9656;</span>SCHEDULED
       <span class="section-chips" data-section="scheduled" onclick="event.stopPropagation()">
@@ -132,6 +151,10 @@
       </div>
       <div class="chip-sep"></div>
       <label class="retried-toggle" title="Only show workflows where steps were retried"><input type="checkbox" id="retried-check" onchange="toggleRetried()"><span>Has retries</span></label>
+      <div class="chip-sep"></div>
+      <div class="query-search">
+        <input type="text" id="query-search-input" placeholder="Search..." autocomplete="off" spellcheck="false">
+      </div>
       <div class="chip-sep"></div>
       <div class="refresh-group">
         <button class="tab-reload" id="query-load" onclick="loadQuery()" title="Reload"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg></button>
