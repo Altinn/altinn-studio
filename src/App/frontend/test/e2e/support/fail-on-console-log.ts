@@ -6,12 +6,6 @@ export const ignoredConsoleMessages = [
   // Webpack stuff
   /^\[webpack-dev-server]/,
 
-  // React router v7 upgrade warnings
-  /React Router Future Flag Warning.*?v7_fetcherPersist/,
-  /React Router Future Flag Warning.*?v7_normalizeFormMethod/,
-  /React Router Future Flag Warning.*?v7_partialHydration/,
-  /React Router Future Flag Warning.*?v7_skipActionErrorRevalidation/,
-
   // This ia a bug we should fix, but it's not critical.
   /^FormProvider re-rendered/,
 
