@@ -1,5 +1,5 @@
 import type { ValidateConfigState } from './ValidateNavigationTypes';
-import type { StudioSuggestionItem } from '@studio/components';
+import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
 
 export enum Scope {
   AllTasks = 'allTasks',
@@ -23,48 +23,18 @@ export const getCardLabel = (scope: Scope): string => {
   return cardLabel[scope];
 };
 
-const toOption = (value: string): StudioSuggestionItem => ({ value, label: value });
-const toOptions = (values: string[]): StudioSuggestionItem[] => values.map(toOption);
+export enum RuleType {
+  Show = 'show',
+  Page = 'page',
+}
 
-type ExternalConfigVariant1 = {
-  show: string[];
-  page: string;
-};
-
-type ExternalConfigVariant2 = {
-  tasks: string[];
-} & ExternalConfigVariant1;
-
-type ExternalConfigVariant3 = {
-  task: string;
-  pages: string[];
-} & ExternalConfigVariant1;
-
-export const convertToInternalConfig = (
-  externalConfig: ExternalConfigVariant1 | ExternalConfigVariant2[] | ExternalConfigVariant3[],
-): ValidateConfigState | ValidateConfigState[] => {
-  const convertSingle = (
-    item: ExternalConfigVariant1 | ExternalConfigVariant2 | ExternalConfigVariant3,
-  ): ValidateConfigState => {
-    const baseConfig: ValidateConfigState = {
-      types: toOptions(item.show),
-      pageScope: toOption(item.page),
-    };
-
-    if ('tasks' in item) {
-      return { ...baseConfig, tasks: toOptions(item.tasks) };
-    }
-
-    if ('task' in item && 'pages' in item) {
-      return { ...baseConfig, task: toOption(item.task), pages: toOptions(item.pages) };
-    }
-
-    return baseConfig;
-  };
-
-  if (Array.isArray(externalConfig)) {
-    return externalConfig.map(convertSingle);
+export const getRuleEnums = (ruleType: RuleType) => {
+  const { page, show } = properties.validationOnNavigation.properties;
+  if (ruleType === RuleType.Page) {
+    return page.enum ?? [];
   }
 
-  return convertSingle(externalConfig);
+  if (ruleType === RuleType.Show) {
+    return show.items.enum ?? [];
+  }
 };

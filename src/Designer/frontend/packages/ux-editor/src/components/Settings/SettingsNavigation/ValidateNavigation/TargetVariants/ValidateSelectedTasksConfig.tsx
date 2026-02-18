@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import { convertToInternalConfig, Scope } from '../utils/ValidateNavigationUtils';
+import { Scope } from '../utils/ValidateNavigationUtils';
 import type { ValidateConfigState } from '../utils/ValidateNavigationTypes';
+import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 
 export const ValidateSelectedTasksConfig = () => {
   const { t } = useTranslation();
@@ -19,7 +20,7 @@ export const ValidateSelectedTasksConfig = () => {
     },
   ];
 
-  const internalConfig = convertToInternalConfig(dummyData) as ValidateConfigState[];
+  const internalConfigs = useConvertToInternalConfig(dummyData);
 
   const handleSave = (updatedConfig: ValidateConfigState) => {
     // For now just log the config that would be  saved, will implement actual save logic in next PR
@@ -28,8 +29,8 @@ export const ValidateSelectedTasksConfig = () => {
 
   return (
     <>
-      {internalConfig &&
-        internalConfig.map((conf, index) => (
+      {internalConfigs &&
+        internalConfigs.map((conf, index) => (
           <ValidateNavigationConfig
             key={index}
             propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
