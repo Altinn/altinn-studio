@@ -220,7 +220,9 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
         DateTimeOffset to
     )
     {
-        var operationNames = _operationNames[metricName];
+        if (!_operationNames.TryGetValue(metricName, out var operationNames))
+            throw new ArgumentException($"Unknown metricName '{metricName}'. Valid values: {string.Join(", ", OperationNameKeys)}", nameof(metricName));
+
         string jsonPath = Path.Combine(AppContext.BaseDirectory, "Clients", "MetricsClient", "logsQueryTemplate.json");
         var fromUtc = from.ToUniversalTime();
         var toUtc = to.ToUniversalTime();
