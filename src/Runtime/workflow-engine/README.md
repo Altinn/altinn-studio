@@ -73,4 +73,5 @@ dotnet ef migrations add <Name> \
 ## Further reading
 
 - [Architectural overview](docs/architecture.md)
+- [Concurrency rules](docs/concurrency.md)
 - [Performance testing](docs/performance.md)
