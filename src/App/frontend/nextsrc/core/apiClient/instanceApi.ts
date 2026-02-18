@@ -16,7 +16,7 @@ export class InstanceApi {
     const { data: createdInstance } = await axiosInstance.post<IInstanceWithProcess>(`/instances?${params}`);
     return createdInstance;
   }
-  public static async getActiveInstances(partyId: number): Promise<ISimpleInstance[]> {
+  public static async getActiveInstances(partyId: string): Promise<ISimpleInstance[]> {
     const { data } = await axiosInstance.get<ISimpleInstance[]>(`/instances/${partyId}/active`);
     return data;
   }
@@ -34,9 +34,3 @@ export class InstanceApi {
     return instance;
   }
 }
-
-export const activeInstancesQuery = (partyId: number) => ({
-  queryKey: ['activeInstances', partyId],
-  queryFn: () => InstanceApi.getActiveInstances(partyId),
-  staleTime: 1000 * 60,
-});

@@ -218,4 +218,39 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  {
+    files: ['src/app-components/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'warn',
+        {
+          patterns: [
+            {
+              regex: 'src/(?!app-components)',
+              message:
+                'app-components should not import from outside src/app-components/. Keep these components self-contained.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['nextsrc/**/*.{ts,tsx}'],
+    ignores: ['nextsrc/core/queries/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: 'nextsrc/core/queries/[^/]+/(?!index$)',
+              message:
+                'Only explicit exports from the index.ts in each nextsrc/core/queries/ folder can be imported outside the the folder itself. Do not import internal files directly.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );
