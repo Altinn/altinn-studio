@@ -90,7 +90,7 @@ internal static class HandleAlerts
         {
             Id = firstAlert.Fingerprint,
             RuleId = ruleId,
-            Name = firstAlert.Labels.GetValueOrDefault("alertname", "unknown"),
+            Name = firstAlert.Labels.GetValueOrDefault("alertname", string.Empty),
             Alerts = alerts,
             Url = firstAlert.GeneratorURL,
             LogsUrl = logsUrl,
