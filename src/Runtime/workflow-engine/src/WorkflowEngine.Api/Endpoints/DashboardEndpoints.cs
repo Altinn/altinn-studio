@@ -207,7 +207,7 @@ internal static class DashboardEndpoints
             .ExcludeFromDescription();
 
         app.MapGet(
-                "/dashboard/history",
+                "/dashboard/query",
                 async (
                     IServiceProvider sp,
                     string? status,
@@ -336,7 +336,7 @@ internal static class DashboardEndpoints
                     // Try inbox first (live workflows)
                     var workflow = engine.GetAllInboxWorkflows().FirstOrDefault(w => w.IdempotencyKey == wf);
 
-                    // Fall back to DB with targeted search (avoid loading entire history)
+                    // Fall back to DB with targeted search (avoid loading all records)
                     if (workflow is null)
                     {
                         using var scope = sp.CreateScope();

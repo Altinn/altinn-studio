@@ -80,7 +80,7 @@
    *   workflowFingerprints: Record<string, string>,
    *   workflowTimers:       Record<string, WorkflowTimer>,
    *   lastRecentKeys:       string,
-   *   historyLoaded:        boolean,
+   *   queryLoaded:        boolean,
    *   filter:               string,
    *   sectionStatus:        Record<string, string>,
    *   orgFilter:            Set<string>,
@@ -100,8 +100,8 @@
     recentContainer:  /** @type {HTMLElement} */ (document.getElementById('recent-workflows')),
     recentEmpty:      /** @type {HTMLElement} */ (document.getElementById('recent-empty')),
     recentSection:    /** @type {HTMLElement} */ (document.getElementById('recent-section')),
-    historyContainer: /** @type {HTMLElement} */ (document.getElementById('history-workflows')),
-    historyEmpty:     /** @type {HTMLElement} */ (document.getElementById('history-empty')),
+    queryContainer: /** @type {HTMLElement} */ (document.getElementById('query-workflows')),
+    queryEmpty:     /** @type {HTMLElement} */ (document.getElementById('query-empty')),
     filterInput:      /** @type {HTMLInputElement} */ (document.getElementById('filter-input')),
     filterClear:      /** @type {HTMLElement} */ (document.getElementById('filter-clear')),
     orgChips:         /** @type {HTMLElement} */ (document.getElementById('org-chips')),
@@ -130,9 +130,9 @@
     workflowFingerprints: {},
     workflowTimers:       {},
     lastRecentKeys:       '',
-    historyLoaded:        false,
+    queryLoaded:        false,
     filter:               '',
-    sectionStatus:        { scheduled: '', live: '', recent: '', history: '' },
+    sectionStatus:        { scheduled: '', live: '', recent: '', query: '' },
     orgFilter:            new Set(),
     appFilter:            new Set(),
     partyFilter:          new Set(),
@@ -143,7 +143,7 @@
       scheduled: localStorage.getItem('compact:scheduled') === '1',
       inbox:     localStorage.getItem('compact:inbox') === '1',
       recent:    localStorage.getItem('compact:recent') === '1',
-      history:   localStorage.getItem('compact:history') !== '0',
+      query:     localStorage.getItem('compact:query') !== '0',
     },
     /** @type {Workflow[]} */ recentWorkflows: [],
     /** @type {Set<string>} */ pendingExpand: new Set(),
@@ -161,9 +161,9 @@
    * @param {(data: unknown) => void} onMessage
    * @param {{ showStatus?: boolean }} [opts]
    */
-  /** Fetch a small history batch to seed org/app filter chips. */
+  /** Fetch a small query batch to seed org/app filter chips. */
   const seedOrgAppChips = () => {
-    fetch(`${engineUrl}/dashboard/history?limit=20`).then(r => r.json()).then(/** @param {{ workflows: Workflow[] }} body */ body => {
+    fetch(`${engineUrl}/dashboard/query?limit=20`).then(r => r.json()).then(/** @param {{ workflows: Workflow[] }} body */ body => {
       const wfs = body.workflows;
       for (const wf of wfs) {
         if (wf.instance) {
@@ -481,7 +481,7 @@
   };
 
   /* ============================================================
-   *  10. CARD RENDERING  (shared by live, recent, and history)
+   *  10. CARD RENDERING  (shared by live, recent, and query)
    * ============================================================ */
 
   /**
@@ -847,7 +847,7 @@
 
   /** @returns {boolean} */
   const hasActiveFilter = () =>
-    !!(state.filter || state.sectionStatus.scheduled || state.sectionStatus.live || state.sectionStatus.recent || state.sectionStatus.history || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size);
+    !!(state.filter || state.sectionStatus.scheduled || state.sectionStatus.live || state.sectionStatus.recent || state.sectionStatus.query || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size);
 
   const applyFilter = () => {
     const f = state.filter;
@@ -883,10 +883,10 @@
         const hasFilter = f || sectionStatus || of_.size > 0 || af.size > 0 || pf.size > 0 || gf.size > 0;
         countEl.textContent = (hasFilter && cards.length > 0) ? `${matched} / ${cards.length}` : `${cards.length}`;
       }
-      // Update chip counts (skip for history toggle chips — they have no counts)
+      // Update chip counts (skip for query toggle chips — they have no counts)
       const section = container.closest('.section')?.querySelector('.section-chips') ||
                        container.parentElement?.querySelector('.section-chips');
-      if (section && !section.classList.contains('history-toggle')) {
+      if (section && !section.classList.contains('query-toggle')) {
         for (const chip of section.querySelectorAll('.chip')) {
           const st = /** @type {HTMLElement} */ (chip).dataset.status || '';
           const label = /** @type {HTMLElement} */ (chip).dataset.label ||
@@ -902,7 +902,7 @@
     filterContainer(dom.scheduledContainer, null, state.sectionStatus.scheduled);
     filterContainer(dom.liveContainer, null, state.sectionStatus.live);
     filterContainer(dom.recentContainer, null, state.sectionStatus.recent);
-    filterContainer(dom.historyContainer, null, state.sectionStatus.history);
+    filterContainer(dom.queryContainer, null, state.sectionStatus.query);
   };
 
   /** @param {string} value */
@@ -912,7 +912,7 @@
     dom.filterClear.classList.toggle('visible', value.length > 0);
     applyFilter();
     syncUrl();
-    if (state.historyLoaded) loadHistory();
+    if (state.queryLoaded) loadQuery();
   };
 
   /** @param {string} org */
@@ -929,7 +929,7 @@
     applyFilter();
     refreshChips();
     syncUrl();
-    if (state.historyLoaded) loadHistory();
+    if (state.queryLoaded) loadQuery();
   };
 
   /** @param {string} app */
@@ -1047,13 +1047,13 @@
   dom.filterClear.addEventListener('click', () => { setFilter(''); dom.filterInput.focus(); });
 
   for (const bar of document.querySelectorAll('.section-chips')) {
-    const isHistoryToggle = bar.classList.contains('history-toggle');
+    const isQueryToggle = bar.classList.contains('query-toggle');
     bar.addEventListener('click', (e) => {
       const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.chip'));
       if (!chip) return;
       const section = /** @type {HTMLElement} */ (bar).dataset.section || '';
 
-      if (isHistoryToggle) {
+      if (isQueryToggle) {
         // Multi-select toggle: click toggles individual chips on/off
         chip.classList.toggle('active');
         // If none active, reset both to active (can't deselect everything)
@@ -1063,7 +1063,7 @@
         }
         // Derive sectionStatus: both active = '' (all), one active = that value
         const active = [...bar.querySelectorAll('.chip.active')];
-        state.sectionStatus.history = active.length >= 2 ? '' : (/** @type {HTMLElement} */ (active[0]).dataset.status || '');
+        state.sectionStatus.query = active.length >= 2 ? '' : (/** @type {HTMLElement} */ (active[0]).dataset.status || '');
       } else {
         // Radio-style: one active at a time
         const value = chip.dataset.status || '';
@@ -1073,7 +1073,7 @@
 
       applyFilter();
       syncUrl();
-      if (section === 'history' && state.historyLoaded) loadHistory();
+      if (section === 'query' && state.queryLoaded) loadQuery();
     });
   }
 
@@ -1108,8 +1108,8 @@
     if (customTimeRange) {
       label.textContent = 'Custom';
       btn.classList.add('has-range');
-    } else if (historyTimeRange > 0) {
-      label.textContent = timeLabels[historyTimeRange] || `${historyTimeRange}m`;
+    } else if (queryTimeRange > 0) {
+      label.textContent = timeLabels[queryTimeRange] || `${queryTimeRange}m`;
       btn.classList.add('has-range');
     } else {
       label.textContent = 'All time';
@@ -1142,13 +1142,13 @@
     }
     document.getElementById('time-custom').style.display = 'none';
     customTimeRange = null;
-    historyTimeRange = parseInt(minutes, 10);
+    queryTimeRange = parseInt(minutes, 10);
     const dropdown = document.getElementById('time-dropdown');
     if (dropdown) for (const o of dropdown.querySelectorAll('.time-option')) o.classList.toggle('active', o === opt);
     dropdown?.classList.remove('open');
     updateTimeLabel();
     syncUrl();
-    if (state.historyLoaded) loadHistory();
+    if (state.queryLoaded) loadQuery();
   });
 
   window.applyCustomTimeRange = () => {
@@ -1156,7 +1156,7 @@
     const to = /** @type {HTMLInputElement} */ (document.getElementById('time-to')).value;
     if (!from || !to) return;
     customTimeRange = { from: new Date(from).toISOString(), to: new Date(to).toISOString() };
-    historyTimeRange = 0;
+    queryTimeRange = 0;
     const dropdown = document.getElementById('time-dropdown');
     if (dropdown) {
       for (const o of dropdown.querySelectorAll('.time-option')) {
@@ -1166,13 +1166,13 @@
     dropdown?.classList.remove('open');
     updateTimeLabel();
     syncUrl();
-    if (state.historyLoaded) loadHistory();
+    if (state.queryLoaded) loadQuery();
   };
 
-  // Retried checkbox (history only)
+  // Retried checkbox (query only)
   window.toggleRetried = () => {
     syncUrl();
-    if (state.historyLoaded) loadHistory();
+    if (state.queryLoaded) loadQuery();
   };
 
   // Auto-refresh dropdown
@@ -1198,7 +1198,7 @@
 
     // Style the whole refresh group when auto-refresh is active
     document.getElementById('refresh-dropdown-btn')?.classList.toggle('active-interval', seconds > 0);
-    document.getElementById('history-load')?.classList.toggle('active-interval', seconds > 0);
+    document.getElementById('query-load')?.classList.toggle('active-interval', seconds > 0);
     const intervalLabel = document.getElementById('refresh-interval-label');
     if (intervalLabel) intervalLabel.textContent = seconds > 0 ? opt.textContent || '' : '';
 
@@ -1206,9 +1206,9 @@
     if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
 
     // Start new timer
-    if (seconds > 0 && state.historyLoaded) {
-      loadHistory();
-      refreshTimer = setInterval(() => { if (state.historyLoaded) loadHistory(); }, seconds * 1000);
+    if (seconds > 0 && state.queryLoaded) {
+      loadQuery();
+      refreshTimer = setInterval(() => { if (state.queryLoaded) loadQuery(); }, seconds * 1000);
     }
   });
 
@@ -1256,8 +1256,8 @@
       }
     } else if (section === 'scheduled') {
       if (!dom.scheduledSection.classList.contains('collapsed')) loadScheduled();
-    } else if (section === 'history') {
-      if (state.historyLoaded) loadHistory();
+    } else if (section === 'query') {
+      if (state.queryLoaded) loadQuery();
     }
   };
 
@@ -1301,7 +1301,7 @@
   setupCardExpand(dom.liveContainer, 'inbox', false);
   setupCardExpand(dom.recentContainer, 'recent', true);
   setupCardExpand(dom.scheduledContainer, 'scheduled', true, true);
-  setupCardExpand(dom.historyContainer, 'history', true);
+  setupCardExpand(dom.queryContainer, 'query', true);
 
   /* ============================================================
    *  14. TABS
@@ -1315,31 +1315,31 @@
     for (const p of document.querySelectorAll('.tab-panel')) {
       p.classList.toggle('active', p.id === `panel-${tabName}`);
     }
-    if (tabName === 'history') {
-      state.historyLoaded = true;
-      loadHistory();
+    if (tabName === 'query') {
+      state.queryLoaded = true;
+      loadQuery();
     }
     syncUrl();
   };
 
   /* ============================================================
-   *  15. HISTORY  (on-demand DB fetch)
+   *  15. QUERY  (on-demand DB fetch)
    * ============================================================ */
 
-  const HISTORY_PAGE = 100;
+  const QUERY_PAGE = 100;
   /** @type {number} Time range in minutes, 0 = all time */
-  let historyTimeRange = 0;
+  let queryTimeRange = 0;
 
   // Pagination state
-  let historyPage = 0;
+  let queryPage = 0;
   /** @type {(string | null)[]} Cursor for each page boundary: pageCursors[0]=null (first page), pageCursors[1]=cursor after page 0, etc. */
-  let historyPageCursors = [null];
-  let historyTotalCount = 0;
+  let queryPageCursors = [null];
+  let queryTotalCount = 0;
 
   /** Update pager UI */
   const updatePager = (pageSize, totalCount) => {
-    historyTotalCount = totalCount;
-    const pager = document.getElementById('history-pager');
+    queryTotalCount = totalCount;
+    const pager = document.getElementById('query-pager');
     const info = document.getElementById('pager-info');
     const prev = /** @type {HTMLButtonElement} */ (document.getElementById('pager-prev'));
     const next = /** @type {HTMLButtonElement} */ (document.getElementById('pager-next'));
@@ -1352,38 +1352,38 @@
       next.disabled = true;
       return;
     }
-    const from = historyPage * HISTORY_PAGE + 1;
+    const from = queryPage * QUERY_PAGE + 1;
     const to = Math.min(from + pageSize - 1, totalCount);
     info.textContent = `${from.toLocaleString()}\u2013${to.toLocaleString()} of ${totalCount.toLocaleString()}`;
-    prev.disabled = historyPage === 0;
+    prev.disabled = queryPage === 0;
     next.disabled = to >= totalCount;
   };
 
   /** @param {{ page?: number }} [opts] */
-  const fetchHistory = async (opts) => {
+  const fetchQuery = async (opts) => {
     const page = opts?.page ?? 0;
-    const hs = state.sectionStatus.history;
+    const hs = state.sectionStatus.query;
     const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(state.filter);
     const retried = /** @type {HTMLInputElement} */ (document.getElementById('retried-check')).checked;
 
     // When searching for a specific GUID, bypass all filters for best results
     const dbStatus = isGuid ? '' : (hs === 'failed' ? 'failed' : hs === 'completed' ? 'completed' : '');
     const effectiveCustom = isGuid ? null : customTimeRange;
-    const effectiveTimeRange = isGuid ? 0 : historyTimeRange;
+    const effectiveTimeRange = isGuid ? 0 : queryTimeRange;
     const effectiveRetried = isGuid ? false : retried;
 
-    const btn = /** @type {HTMLButtonElement} */ (document.getElementById('history-load'));
+    const btn = /** @type {HTMLButtonElement} */ (document.getElementById('query-load'));
     btn.disabled = true;
     btn.classList.add('spinning');
     const spinStart = Date.now();
 
     try {
       const params = new URLSearchParams();
-      params.set('limit', String(HISTORY_PAGE));
+      params.set('limit', String(QUERY_PAGE));
       if (dbStatus) params.set('status', dbStatus);
       if (state.filter) params.set('search', state.filter);
       // Use page cursor for navigation
-      const cursor = historyPageCursors[page] ?? null;
+      const cursor = queryPageCursors[page] ?? null;
       if (cursor) params.set('before', cursor);
       if (effectiveCustom) {
         params.set('since', effectiveCustom.from);
@@ -1392,17 +1392,17 @@
         params.set('since', new Date(Date.now() - effectiveTimeRange * 60000).toISOString());
       }
       if (effectiveRetried) params.set('retried', 'true');
-      const res = await fetch(`${engineUrl}/dashboard/history?${params}`);
+      const res = await fetch(`${engineUrl}/dashboard/query?${params}`);
       const body = await res.json();
       /** @type {Workflow[]} */
       let workflows = body.workflows;
       let totalCount = /** @type {number} */ (body.totalCount);
 
-      dom.historyContainer.innerHTML = '';
+      dom.queryContainer.innerHTML = '';
 
       // Smart status fallback: if filtered search for a specific GUID returns nothing, retry without filters
       if (workflows.length === 0 && page === 0 && (dbStatus || effectiveRetried) && isGuid) {
-        const fallbackRes = await fetch(`${engineUrl}/dashboard/history?limit=${HISTORY_PAGE}&search=${encodeURIComponent(state.filter)}`);
+        const fallbackRes = await fetch(`${engineUrl}/dashboard/query?limit=${QUERY_PAGE}&search=${encodeURIComponent(state.filter)}`);
         const fallbackBody = await fallbackRes.json();
         /** @type {Workflow[]} */
         const fallback = fallbackBody.workflows;
@@ -1411,8 +1411,8 @@
           const targetChip = actualStatus === 'completed' ? 'completed'
                            : actualStatus === 'failed' ? 'failed'
                            : '';
-          state.sectionStatus.history = targetChip;
-          const bar = document.querySelector('.section-chips[data-section="history"]');
+          state.sectionStatus.query = targetChip;
+          const bar = document.querySelector('.section-chips[data-section="query"]');
           if (bar) {
             for (const c of bar.querySelectorAll('.chip')) {
               const match = (/** @type {HTMLElement} */ (c).dataset.status || '') === targetChip;
@@ -1431,34 +1431,34 @@
         }
       }
 
-      historyPage = page;
+      queryPage = page;
 
       if (workflows.length === 0) {
-        dom.historyEmpty.textContent = 'No workflows found';
-        dom.historyEmpty.style.display = 'block';
+        dom.queryEmpty.textContent = 'No workflows found';
+        dom.queryEmpty.style.display = 'block';
         updatePager(0, 0);
       } else {
-        dom.historyEmpty.style.display = 'none';
+        dom.queryEmpty.style.display = 'none';
         for (const wf of workflows) {
           const card = document.createElement('div');
           const forceExpand = state.pendingExpand.delete(wf.idempotencyKey);
-          const compact = state.compactSections.history && !forceExpand;
+          const compact = state.compactSections.query && !forceExpand;
           card.className = `workflow-card${compact ? ' compact' : ''}`;
           card.style.animation = 'none';
           card.innerHTML = compact ? buildCompactCardHTML(wf, true) : buildCardHTML(wf, true);
           setCardFilterData(card, wf);
-          dom.historyContainer.appendChild(card);
+          dom.queryContainer.appendChild(card);
         }
         // Store cursor for next page
-        if (workflows.length >= HISTORY_PAGE) {
-          historyPageCursors[page + 1] = workflows[workflows.length - 1].updatedAt ?? null;
+        if (workflows.length >= QUERY_PAGE) {
+          queryPageCursors[page + 1] = workflows[workflows.length - 1].updatedAt ?? null;
         }
         updatePager(workflows.length, totalCount);
         applyFilter();
       }
     } catch (err) {
-      dom.historyEmpty.textContent = `Error loading history: ${/** @type {Error} */ (err).message}`;
-      dom.historyEmpty.style.display = 'block';
+      dom.queryEmpty.textContent = `Error loading query: ${/** @type {Error} */ (err).message}`;
+      dom.queryEmpty.style.display = 'block';
       updatePager(0, 0);
     } finally {
       const elapsed = Date.now() - spinStart;
@@ -1467,9 +1467,9 @@
     }
   };
 
-  window.loadHistory = () => { historyPage = 0; historyPageCursors = [null]; return fetchHistory({ page: 0 }); };
-  window.historyPrev = () => { if (historyPage > 0) fetchHistory({ page: historyPage - 1 }); };
-  window.historyNext = () => fetchHistory({ page: historyPage + 1 });
+  window.loadQuery = () => { queryPage = 0; queryPageCursors = [null]; return fetchQuery({ page: 0 }); };
+  window.queryPrev = () => { if (queryPage > 0) fetchQuery({ page: queryPage - 1 }); };
+  window.queryNext = () => fetchQuery({ page: queryPage + 1 });
 
   /* ============================================================
    *  16. STEP DETAIL MODAL
@@ -1600,10 +1600,10 @@
     if (state.sectionStatus.scheduled) p.set('ss', state.sectionStatus.scheduled);
     if (state.sectionStatus.live) p.set('ls', state.sectionStatus.live);
     if (state.sectionStatus.recent) p.set('rs', state.sectionStatus.recent);
-    if (state.sectionStatus.history) p.set('hs', state.sectionStatus.history);
-    if (customTimeRange) { p.set('htf', customTimeRange.from); p.set('htt', customTimeRange.to); }
-    else if (historyTimeRange) p.set('ht', String(historyTimeRange));
-    if (/** @type {HTMLInputElement} */ (document.getElementById('retried-check'))?.checked) p.set('hr', '1');
+    if (state.sectionStatus.query) p.set('qs', state.sectionStatus.query);
+    if (customTimeRange) { p.set('qtf', customTimeRange.from); p.set('qtt', customTimeRange.to); }
+    else if (queryTimeRange) p.set('qt', String(queryTimeRange));
+    if (/** @type {HTMLInputElement} */ (document.getElementById('retried-check'))?.checked) p.set('qr', '1');
     if (state.orgFilter.size) p.set('org', [...state.orgFilter].join(','));
     if (state.appFilter.size) p.set('app', [...state.appFilter].join(','));
     if (state.partyFilter.size) p.set('party', [...state.partyFilter].join(','));
@@ -1647,16 +1647,16 @@
       document.getElementById('scheduled-section')?.classList.add('collapsed');
       document.getElementById('live-section')?.classList.remove('collapsed');
       document.getElementById('recent-section')?.classList.remove('collapsed');
-      // Defaults: compact off except history (history defaults compact)
-      for (const s of Object.keys(state.compactSections)) state.compactSections[s] = s === 'history';
+      // Defaults: compact off except query (query defaults compact)
+      for (const s of Object.keys(state.compactSections)) state.compactSections[s] = s === 'query';
       // Defaults: all status filters = All, no time range, no retried
-      state.sectionStatus = { live: '', recent: '', history: '' };
-      historyTimeRange = 0;
+      state.sectionStatus = { live: '', recent: '', query: '' };
+      queryTimeRange = 0;
       customTimeRange = null;
       const rc = /** @type {HTMLInputElement | null} */ (document.getElementById('retried-check'));
       if (rc) rc.checked = false;
       for (const bar of document.querySelectorAll('.section-chips')) {
-        const isToggle = bar.classList.contains('history-toggle');
+        const isToggle = bar.classList.contains('query-toggle');
         for (const c of bar.querySelectorAll('.chip')) {
           if (isToggle) c.classList.add('active'); // toggle chips: all on by default
           else c.classList.toggle('active', (/** @type {HTMLElement} */ (c).dataset.status || '') === '');
@@ -1666,13 +1666,13 @@
 
     const q = p.get('q');
     if (q) setFilter(q);
-    for (const [key, section] of [['ss', 'scheduled'], ['ls', 'live'], ['rs', 'recent'], ['hs', 'history']]) {
+    for (const [key, section] of [['ss', 'scheduled'], ['ls', 'live'], ['rs', 'recent'], ['qs', 'query']]) {
       const v = p.get(key);
       if (v) {
         state.sectionStatus[section] = v;
         const bar = document.querySelector(`.section-chips[data-section="${section}"]`);
         if (bar) {
-          const isToggle = bar.classList.contains('history-toggle');
+          const isToggle = bar.classList.contains('query-toggle');
           if (isToggle) {
             // Toggle chips: activate only the matching one, deactivate the rest
             for (const c of bar.querySelectorAll('.chip')) c.classList.toggle('active', (c.dataset.status || '') === v);
@@ -1683,23 +1683,23 @@
         }
       }
     }
-    // History time range
-    const htf = p.get('htf');
-    const htt = p.get('htt');
-    if (htf && htt) {
-      customTimeRange = { from: htf, to: htt };
+    // Query time range
+    const qtf = p.get('qtf');
+    const qtt = p.get('qtt');
+    if (qtf && qtt) {
+      customTimeRange = { from: qtf, to: qtt };
       updateTimeLabel();
     } else {
-      const ht = parseInt(p.get('ht') || '0', 10);
-      if (ht > 0) {
-        historyTimeRange = ht;
+      const qt = parseInt(p.get('qt') || '0', 10);
+      if (qt > 0) {
+        queryTimeRange = qt;
         updateTimeLabel();
         const dropdown = document.getElementById('time-dropdown');
-        if (dropdown) for (const o of dropdown.querySelectorAll('.time-option')) o.classList.toggle('active', (/** @type {HTMLElement} */ (o).dataset.minutes || '') === String(ht));
+        if (dropdown) for (const o of dropdown.querySelectorAll('.time-option')) o.classList.toggle('active', (/** @type {HTMLElement} */ (o).dataset.minutes || '') === String(qt));
       }
     }
-    // History retried toggle
-    if (p.get('hr') === '1') {
+    // Query retried toggle
+    if (p.get('qr') === '1') {
       const check = /** @type {HTMLInputElement | null} */ (document.getElementById('retried-check'));
       if (check) check.checked = true;
     }
@@ -1726,7 +1726,7 @@
     const exp = (p.get('e') || '').split(',').filter(Boolean);
     for (const k of coll) { const el = document.getElementById(keyMap[k] || ''); if (el) el.classList.add('collapsed'); }
     for (const k of exp) { const el = document.getElementById(keyMap[k] || ''); if (el) el.classList.remove('collapsed'); }
-    // Switch tab last — switchTab triggers loadHistory + syncUrl, so all state must be restored first
+    // Switch tab last — switchTab triggers loadQuery + syncUrl, so all state must be restored first
     const tab = p.get('tab');
     if (tab) switchTab(tab);
   };

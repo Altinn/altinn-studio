@@ -49,7 +49,7 @@
 
 <div class="tab-bar">
   <div class="tab active" data-tab="live" onclick="switchTab('live')"><span class="sse-dot disconnected" id="sse-dot"></span>Live</div>
-  <div class="tab" data-tab="history" onclick="switchTab('history')">History</div>
+  <div class="tab" data-tab="query" onclick="switchTab('query')">Query</div>
 </div>
 
 <div class="tab-panel active" id="panel-live">
@@ -98,10 +98,10 @@
   </div>
 </div>
 
-<div class="tab-panel" id="panel-history">
+<div class="tab-panel" id="panel-query">
   <div class="section">
     <div class="section-title">
-      <span class="section-chips history-toggle" data-section="history">
+      <span class="section-chips query-toggle" data-section="query">
         <button class="chip active" data-status="completed">Completed</button>
         <button class="chip active" data-status="failed">Failed</button>
       </span>
@@ -134,7 +134,7 @@
       <label class="retried-toggle" title="Only show workflows where steps were retried"><input type="checkbox" id="retried-check" onchange="toggleRetried()"><span>Has retries</span></label>
       <div class="chip-sep"></div>
       <div class="refresh-group">
-        <button class="tab-reload" id="history-load" onclick="loadHistory()" title="Reload"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg></button>
+        <button class="tab-reload" id="query-load" onclick="loadQuery()" title="Reload"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg></button>
         <button class="refresh-dropdown-btn" id="refresh-dropdown-btn" onclick="toggleRefreshDropdown()" title="Auto-refresh interval"><span id="refresh-interval-label"></span><svg width="8" height="8" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <div class="refresh-dropdown" id="refresh-dropdown">
           <div class="refresh-option active" data-interval="0">Off</div>
@@ -145,15 +145,15 @@
           <div class="refresh-option" data-interval="300">5m</div>
         </div>
       </div>
-      <div class="history-pager" id="history-pager" style="display:none">
-        <button class="pager-btn" id="pager-prev" onclick="historyPrev()" title="Previous page" disabled><svg width="10" height="10" viewBox="0 0 10 10"><path d="M7 1L3 5l4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="query-pager" id="query-pager" style="display:none">
+        <button class="pager-btn" id="pager-prev" onclick="queryPrev()" title="Previous page" disabled><svg width="10" height="10" viewBox="0 0 10 10"><path d="M7 1L3 5l4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <span class="pager-info" id="pager-info"></span>
-        <button class="pager-btn" id="pager-next" onclick="historyNext()" title="Next page"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="pager-btn" id="pager-next" onclick="queryNext()" title="Next page"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
-      <span class="view-toggle"><button onclick="collapseAll('history')">Compact</button><button onclick="fullAll('history')">Full</button></span>
+      <span class="view-toggle"><button onclick="collapseAll('query')">Compact</button><button onclick="fullAll('query')">Full</button></span>
     </div>
-    <div id="history-workflows"></div>
-    <div class="empty-state" id="history-empty">Click Load to fetch history</div>
+    <div id="query-workflows"></div>
+    <div class="empty-state" id="query-empty">Click Load to query</div>
   </div>
 </div>
 

@@ -103,7 +103,7 @@ body{min-height:100vh;padding:0}
 .chip[data-status="failed"].active{color:var(--red);border-color:var(--red);background:rgba(255,51,102,0.08)}
 .chip[data-status="processing"].active{color:var(--green);border-color:var(--green);background:rgba(0,255,136,0.08)}
 .chip[data-status="completed"].active{color:var(--green);border-color:var(--green);background:rgba(0,255,136,0.08)}
-.history-toggle .chip.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,255,0.08)}
+.query-toggle .chip.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,255,0.08)}
 .chip[data-status="10s"].active{color:var(--red);border-color:var(--red);background:rgba(255,51,102,0.08)}
 .chip[data-status="1m"].active{color:var(--orange);border-color:var(--orange);background:rgba(255,102,0,0.08)}
 .chip[data-status="5m"].active{color:var(--green);border-color:var(--green);background:rgba(0,255,136,0.08)}
@@ -119,9 +119,9 @@ body{min-height:100vh;padding:0}
 .section.collapsed .section-title{margin-bottom:0}
 .section.collapsed .section-title:hover{opacity:1}
 .section.collapsed .section-body{display:none}
-/* ── History pager ────────────────────────────────────────── */
-#panel-history .section-title{position:relative}
-.history-pager{display:inline-flex;align-items:center;gap:4px;position:absolute;left:50%;transform:translateX(-50%)}
+/* ── Query pager ─────────────────────────────────────────── */
+#panel-query .section-title{position:relative}
+.query-pager{display:inline-flex;align-items:center;gap:4px;position:absolute;left:50%;transform:translateX(-50%)}
 .pager-info{
   font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;
   color:var(--text-dim);white-space:nowrap;letter-spacing:0.3px;padding:0 4px;
@@ -350,8 +350,8 @@ body{min-height:100vh;padding:0}
 .refresh-option.active{color:var(--cyan)}
 
 .empty-state{text-align:center;padding:40px 20px;color:var(--text-dim);font-size:13px}
-#panel-history .section:not(.collapsed){min-height:0}
-#panel-history .empty-state{position:static;transform:none;padding:24px 20px}
+#panel-query .section:not(.collapsed){min-height:0}
+#panel-query .empty-state{position:static;transform:none;padding:24px 20px}
 
 /* ── Step detail modal ────────────────────────────────────── */
 .modal-overlay{
