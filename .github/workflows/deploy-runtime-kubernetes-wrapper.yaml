@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Docker
-        uses: docker/setup-docker-action@efe9e3891a4f7307e689f2100b33a155b900a608 # v4.5.0
+        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
         with:
           daemon-config: |
             {

@@ -61,7 +61,7 @@ jobs:
           fetch-depth: 0 # Shallow clone
 
       - name: Set up Docker
-        uses: docker/setup-docker-action@efe9e3891a4f7307e689f2100b33a155b900a608 # v4.5.0
+        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
         with:
           daemon-config: |
             {
@@ -114,7 +114,7 @@ jobs:
           wait $WORKER_PID
 
       - name: scan image - proxy
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+        uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284 # 0.34.0
         with:
           image-ref: '${{ steps.vars.outputs.ghcr-image-proxy-repo }}'
           format: 'table'
@@ -125,7 +125,7 @@ jobs:
 
       - name: scan image - worker
         if: success() || failure()
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+        uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284 # 0.34.0
         with:
           image-ref: '${{ steps.vars.outputs.ghcr-image-worker-repo }}'
           format: 'table'
