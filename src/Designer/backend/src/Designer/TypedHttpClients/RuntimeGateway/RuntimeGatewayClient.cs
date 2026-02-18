@@ -138,6 +138,26 @@ public class RuntimeGatewayClient : IRuntimeGatewayClient
         return await client.GetFromJsonAsync<IEnumerable<AppHealthMetric>>(requestUrl, cancellationToken) ?? [];
     }
 
+    public async Task<AppActivityMetricsResponse> GetAppActivityMetricsAsync(
+        string org,
+        AltinnEnvironment environment,
+        int windowDays,
+        CancellationToken cancellationToken
+    )
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowDays);
+
+        using var client = _httpClientFactory.CreateClient("runtime-gateway");
+        var baseUrl = await _environmentsService.GetAppClusterUri(org, environment.Name);
+        string requestUrl = $"{baseUrl}/runtime/gateway/api/v1/metrics/app/activity?windowDays={windowDays}";
+
+        var response = await client.GetFromJsonAsync<AppActivityMetricsResponse>(requestUrl, cancellationToken);
+        return response
+            ?? throw new InvalidOperationException(
+                "Received empty or null response body when deserializing AppActivityMetricsResponse."
+            );
+    }
+
     public async Task TriggerReconcileAsync(string org, string app, AltinnEnvironment environment, bool isUndeploy, CancellationToken cancellationToken)
     {
         using var client = _httpClientFactory.CreateClient("runtime-gateway");

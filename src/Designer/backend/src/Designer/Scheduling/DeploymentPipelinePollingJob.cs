@@ -60,7 +60,7 @@ public class DeploymentPipelinePollingJob : IJob
             string environment = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Environment);
             Guard.ArgumentNotNull(buildId, nameof(buildId));
 
-            var build = await _azureDevOpsBuildClient.Get(buildId);
+            var build = await _azureDevOpsBuildClient.Get(buildId, context.CancellationToken);
 
             var deploymentEntity = await _deploymentRepository.Get(editingContext.Org, buildId);
 

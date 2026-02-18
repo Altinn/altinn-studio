@@ -64,6 +64,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IDeploymentRepository, DeploymentRepository>();
             services.AddScoped<IDeployEventRepository, DeployEventRepository>();
             services.AddScoped<IAppScopesRepository, AppScopesRepository>();
+            services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
             services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
@@ -72,6 +73,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IAppScopesService, AppScopesService>();
+            services.AddTransient<IAppSettingsService, AppSettingsService>();
+            services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
             services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
             services.AddTransient<IAppResourcesService, AppResourcesService>();
             services.AddTransient<IAlertsService, AlertsService>();

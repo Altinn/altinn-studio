@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
@@ -72,7 +73,7 @@ namespace Designer.Tests.Services
             _releaseRepository.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult)).ReturnsAsync(new List<ReleaseEntity>());
             _releaseRepository.Setup(r => r.Create(It.IsAny<ReleaseEntity>())).ReturnsAsync(GetReleases("createdRelease.json").First());
 
-            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>())).ReturnsAsync(GetBuild());
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(GetBuild());
             _appScopesRepository.Setup(r => r.GetAppScopesAsync(It.IsAny<AltinnRepoContext>(), It.IsAny<System.Threading.CancellationToken>())).ReturnsAsync((AppScopesEntity)null);
 
             ReleaseService releaseService = new(
@@ -97,7 +98,7 @@ namespace Designer.Tests.Services
 
             _releaseRepository.Verify(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult), Times.Once);
             _releaseRepository.Verify(r => r.Create(It.IsAny<ReleaseEntity>()), Times.Once);
-            _azureDevOpsBuildClient.Verify(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>()), Times.Once);
+            _azureDevOpsBuildClient.Verify(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -191,7 +192,7 @@ namespace Designer.Tests.Services
                 GetAzureDevOpsSettings(),
                 _generalSettings);
 
-            _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>())).ReturnsAsync(GetReleases("createdRelease.json").First().Build);
+            _azureDevOpsBuildClient.Setup(adob => adob.Get(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(GetReleases("createdRelease.json").First().Build);
 
             // Act
             await releaseService.UpdateAsync(GetReleases("createdRelease.json").First().Build.Id, "ttd");
@@ -270,7 +271,7 @@ namespace Designer.Tests.Services
             _releaseRepository.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult)).ReturnsAsync(new List<ReleaseEntity>());
             _releaseRepository.Setup(r => r.Create(It.IsAny<ReleaseEntity>())).ReturnsAsync(GetReleases("createdRelease.json").First());
             _appScopesRepository.Setup(r => r.GetAppScopesAsync(It.IsAny<AltinnRepoContext>(), It.IsAny<System.Threading.CancellationToken>())).ReturnsAsync(appScopes);
-            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>())).ReturnsAsync(GetBuild());
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(GetBuild());
 
             ReleaseService releaseService = new(
                 _httpContextAccessor.Object,
@@ -289,7 +290,8 @@ namespace Designer.Tests.Services
                     p.AppMaskinportenScopes != null &&
                     p.AppMaskinportenScopes.Contains("altinn:serviceowner/instances.read") &&
                     p.AppMaskinportenScopes.Contains("altinn:serviceowner/instances.write")),
-                It.IsAny<int>()), Times.Once);
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -324,7 +326,7 @@ namespace Designer.Tests.Services
             _releaseRepository.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult)).ReturnsAsync(new List<ReleaseEntity>());
             _releaseRepository.Setup(r => r.Create(It.IsAny<ReleaseEntity>())).ReturnsAsync(GetReleases("createdRelease.json").First());
             _appScopesRepository.Setup(r => r.GetAppScopesAsync(It.IsAny<AltinnRepoContext>(), It.IsAny<System.Threading.CancellationToken>())).ReturnsAsync(appScopes);
-            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>())).ReturnsAsync(GetBuild());
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(GetBuild());
 
             ReleaseService releaseService = new(
                 _httpContextAccessor.Object,
@@ -340,7 +342,8 @@ namespace Designer.Tests.Services
             // Assert
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
                 It.Is<QueueBuildParameters>(p => p.AppMaskinportenScopes == "[]"),
-                It.IsAny<int>()), Times.Once);
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -368,7 +371,7 @@ namespace Designer.Tests.Services
             _releaseRepository.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult)).ReturnsAsync(new List<ReleaseEntity>());
             _releaseRepository.Setup(r => r.Create(It.IsAny<ReleaseEntity>())).ReturnsAsync(GetReleases("createdRelease.json").First());
             _appScopesRepository.Setup(r => r.GetAppScopesAsync(It.IsAny<AltinnRepoContext>(), It.IsAny<System.Threading.CancellationToken>())).ReturnsAsync((AppScopesEntity)null);
-            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>())).ReturnsAsync(GetBuild());
+            _azureDevOpsBuildClient.Setup(b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync(GetBuild());
 
             ReleaseService releaseService = new(
                 _httpContextAccessor.Object,
@@ -384,7 +387,8 @@ namespace Designer.Tests.Services
             // Assert
             _azureDevOpsBuildClient.Verify(b => b.QueueAsync(
                 It.Is<QueueBuildParameters>(p => p.AppMaskinportenScopes == "[]"),
-                It.IsAny<int>()), Times.Once);
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

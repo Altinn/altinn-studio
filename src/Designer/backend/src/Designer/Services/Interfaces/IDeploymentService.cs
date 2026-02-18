@@ -39,11 +39,29 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="authenticatedContext"> An <see cref="AltinnAuthenticatedRepoEditingContext"/> holding the data about editing context.</param>
         /// <param name="env">The environment from which the application should be undeployed.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         /// <remarks>
         /// This method handles the undeploy of an application from the specified environment.
         /// </remarks>
-        Task UndeployAsync(AltinnAuthenticatedRepoEditingContext authenticatedContext, string env);
+        Task UndeployAsync(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            string env,
+            CancellationToken cancellationToken = default
+        );
+
+        /// <summary>
+        /// Undeploys an application in system context without relying on end-user tokens.
+        /// </summary>
+        /// <param name="editingContext">An <see cref="AltinnRepoEditingContext"/> holding org/repo/developer context.</param>
+        /// <param name="env">The environment from which the application should be undeployed.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task UndeploySystemAsync(
+            AltinnRepoEditingContext editingContext,
+            string env,
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// Publishes the sync-root GitOps OCI image to the container registry.

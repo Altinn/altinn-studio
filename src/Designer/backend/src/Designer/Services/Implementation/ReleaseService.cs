@@ -64,6 +64,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var httpContext = _httpContextAccessor.HttpContext;
             var cancellationToken = httpContext.RequestAborted;
+            cancellationToken.ThrowIfCancellationRequested();
             release.PopulateBaseProperties(release.Org, release.App, httpContext);
 
             await ValidateUniquenessOfRelease(release, cancellationToken);
@@ -80,9 +81,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppMaskinportenScopes = await GetAppScopesAsJson(release.Org, release.App, cancellationToken)
             };
 
+            // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
+            // cancels the request, but we prefer to atleast attempt the completion once we've started mutating some state
+            // This particular multi-step process starts mutating state by queueing the ADO build
+            cancellationToken = CancellationToken.None;
             Build queuedBuild = await _azureDevOpsBuildClient.QueueAsync(
                 queueBuildParameters,
-                _azureDevOpsSettings.BuildDefinitionId);
+                _azureDevOpsSettings.BuildDefinitionId,
+                cancellationToken);
 
             release.Build = new BuildEntity
             {
@@ -112,7 +118,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.Get(appOwner, buildNumber);
             ReleaseEntity releaseEntity = releaseDocuments.Single();
 
-            BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
+            BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber, CancellationToken.None);
             ReleaseEntity release = new() { Build = buildEntity };
 
             releaseEntity.Build.Status = release.Build.Status;

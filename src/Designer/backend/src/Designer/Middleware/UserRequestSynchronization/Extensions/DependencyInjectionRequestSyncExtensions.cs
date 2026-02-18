@@ -33,6 +33,7 @@ public static class DependencyInjectionRequestSyncExtensions
             PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
             return new PostgresDistributedSynchronizationProvider(postgresSettings.FormattedConnectionString());
         });
+        services.AddSingleton<ILockService, LockService>();
         return services;
     }
 

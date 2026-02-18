@@ -62,7 +62,7 @@ public class DeploymentPipelinePollingJobTest
             );
 
         fixture
-            .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>()))
+            .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new BuildEntity { Status = BuildStatus.Completed, Result = BuildResult.Succeeded }
             );
@@ -95,7 +95,7 @@ public class DeploymentPipelinePollingJobTest
         );
 
         fixture
-            .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>()))
+            .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
                 new BuildEntity { Status = BuildStatus.Completed, Result = BuildResult.Succeeded }
             );
@@ -110,7 +110,7 @@ public class DeploymentPipelinePollingJobTest
         await fixture.Service.Execute(jobExecutionContext);
 
         // Assert
-        fixture.MockAzureDevOpsBuildClient.Verify(x => x.Get("12345"), Times.Once);
+        fixture.MockAzureDevOpsBuildClient.Verify(x => x.Get("12345", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private sealed record Fixture(

@@ -16,6 +16,7 @@ public class DesignerdbContext : DbContext
     public virtual DbSet<DeployEventDbModel> DeployEvents { get; set; }
     public virtual DbSet<ReleaseDbModel> Releases { get; set; }
     public virtual DbSet<AppScopesDbModel> AppScopes { get; set; }
+    public virtual DbSet<AppSettingsDbModel> AppSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +26,7 @@ public class DesignerdbContext : DbContext
         modelBuilder.ApplyConfiguration(new DeployEventConfiguration());
         modelBuilder.ApplyConfiguration(new ReleaseConfiguration());
         modelBuilder.ApplyConfiguration(new AppScopesConfiguration());
+        modelBuilder.ApplyConfiguration(new AppSettingsConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

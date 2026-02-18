@@ -1,5 +1,6 @@
 ﻿#nullable disable
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
@@ -25,19 +26,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<OrgList> GetOrgList()
+        public async Task<OrgList> GetOrgList(CancellationToken cancellationToken = default)
         {
-            HttpResponseMessage response = await _client.GetAsync(_generalSettings.OrganizationsUrl);
+            HttpResponseMessage response = await _client.GetAsync(_generalSettings.OrganizationsUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
-            string orgListString = await response.Content.ReadAsStringAsync();
+            string orgListString = await response.Content.ReadAsStringAsync(cancellationToken);
             OrgList orgList = System.Text.Json.JsonSerializer.Deserialize<OrgList>(orgListString, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
             return orgList;
         }
 
         /// <inheritdoc />
-        public async Task<bool> IsOrg(string nameToCheck)
+        public async Task<bool> IsOrg(string nameToCheck, CancellationToken cancellationToken = default)
         {
-            var orgList = await GetOrgList();
+            var orgList = await GetOrgList(cancellationToken);
             return orgList.Orgs.ContainsKey(nameToCheck);
         }
     }
