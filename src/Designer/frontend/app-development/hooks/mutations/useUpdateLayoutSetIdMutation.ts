@@ -15,8 +15,10 @@ export const useUpdateLayoutSetIdMutation = (org: string, app: string) => {
       newLayoutSetId: string;
     }) => {
       const result = await updateLayoutSetId(org, app, layoutSetIdToUpdate, newLayoutSetId);
-      await queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
-      await queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] }),
+      ]);
       return result;
     },
   });
