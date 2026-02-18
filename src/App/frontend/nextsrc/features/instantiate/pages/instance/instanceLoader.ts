@@ -1,5 +1,5 @@
-import { redirect } from 'react-router-dom';
-import type { LoaderFunctionArgs } from 'react-router-dom';
+import { redirect } from 'react-router';
+import type { LoaderFunctionArgs } from 'react-router';
 
 import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
 import { routeBuilders } from 'nextsrc/routesBuilder';

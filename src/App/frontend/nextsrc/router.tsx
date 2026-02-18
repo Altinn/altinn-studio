@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router';
 
 import { GlobalData } from 'nextsrc/core/globalData';
 import { Page } from 'nextsrc/features/form/pages/page/page';
