@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Helpers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Altinn.Studio.Designer.Infrastructure.StudioOidc;
@@ -20,7 +24,8 @@ public static class StudioOidcAuthenticationExtensions
 
     public static IServiceCollection AddStudioOidcAuthentication(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IWebHostEnvironment env)
     {
         bool featureEnabled = configuration
             .GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}")
@@ -31,9 +36,7 @@ public static class StudioOidcAuthenticationExtensions
             return services;
         }
 
-        StudioOidcLoginSettings? oidcSettings = configuration
-            .GetSection(nameof(StudioOidcLoginSettings))
-            .Get<StudioOidcLoginSettings>();
+        StudioOidcLoginSettings? oidcSettings = FetchOidcSettingsFromConfiguration(configuration, env);
 
         if (oidcSettings == null)
         {
@@ -82,7 +85,10 @@ public static class StudioOidcAuthenticationExtensions
 
                 options.CallbackPath = OidcCallbackPath;
 
-                options.UsePkce = true;
+                // Temporarily disabled to support the same client that Gitea uses
+                options.UsePkce = false;
+                // Temporarily disabled to support the same client that Gitea uses
+                options.PushedAuthorizationBehavior = PushedAuthorizationBehavior.Disable;
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.SaveTokens = true;
                 options.MapInboundClaims = false;
@@ -114,8 +120,67 @@ public static class StudioOidcAuthenticationExtensions
                     return Task.CompletedTask;
                 };
 
+                // Temporarily using client_secret_basic (Authorization header) instead of client_secret_post to support the same client that Gitea uses
+                options.Events.OnAuthorizationCodeReceived = context =>
+                {
+                    var credentials = Convert.ToBase64String(
+                        System.Text.Encoding.UTF8.GetBytes($"{oidcSettings.ClientId}:{oidcSettings.ClientSecret}"));
+                    context.Backchannel.DefaultRequestHeaders.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
+                    if (context.TokenEndpointRequest != null)
+                    {
+                        context.TokenEndpointRequest.ClientSecret = null;
+                    }
+                    return Task.CompletedTask;
+                };
+
             });
 
         return services;
+    }
+
+    private static StudioOidcLoginSettings? FetchOidcSettingsFromConfiguration(
+        IConfiguration configuration,
+        IWebHostEnvironment env)
+    {
+        var oidcSettings = configuration
+            .GetSection(nameof(StudioOidcLoginSettings))
+            .Get<StudioOidcLoginSettings>();
+
+        if (oidcSettings == null)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(oidcSettings.ClientId) &&
+            !string.IsNullOrWhiteSpace(oidcSettings.ClientSecret))
+        {
+            return oidcSettings;
+        }
+
+        if (env.IsDevelopment() && oidcSettings.FetchClientIdAndSecretFromRootEnvFile)
+        {
+            TryGetClientSecretFromRootDotEnvFile(out string? clientId, out string? clientSecret);
+            oidcSettings.ClientId = clientId;
+            oidcSettings.ClientSecret = clientSecret;
+        }
+
+        if (string.IsNullOrWhiteSpace(oidcSettings.ClientId) ||
+            string.IsNullOrWhiteSpace(oidcSettings.ClientSecret))
+        {
+            throw new ArgumentException("ClientId or ClientSecret is missing in the configuration");
+        }
+
+        return oidcSettings;
+    }
+
+    private static void TryGetClientSecretFromRootDotEnvFile(out string? clientId, out string? clientSecret)
+    {
+        var keys = DotNetEnv.Env.Load(
+            AltinnStudioRepositoryScanner.FindDotEnvFilePath(),
+            new DotNetEnv.LoadOptions(false, false, false)).ToList();
+
+        clientId = keys.FirstOrDefault(k => k.Key == "STUDIO_OIDC_CLIENT_ID").Value;
+        clientSecret = keys.FirstOrDefault(k => k.Key == "STUDIO_OIDC_CLIENT_SECRET").Value;
     }
 }

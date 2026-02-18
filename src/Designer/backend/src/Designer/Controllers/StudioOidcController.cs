@@ -12,7 +12,7 @@ using Microsoft.FeatureManagement.Mvc;
 namespace Altinn.Studio.Designer.Controllers;
 
 [FeatureGate(StudioFeatureFlags.StudioOidc)]
-[Route("designer/api/v1/[controller]")]
+[Route("designer/api/v1/studio-oidc")]
 [ApiController]
 public class StudioOidcController(IStudioOidcUsernameProvider usernameProvider) : ControllerBase
 {

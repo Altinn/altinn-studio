@@ -43,7 +43,7 @@ namespace Altinn.Studio.Designer.Infrastructure
 
             if (studioOidcEnabled)
             {
-                return services.AddStudioOidcAuthentication(config);
+                return services.AddStudioOidcAuthentication(config, env);
             }
 
             return AddGiteaOidcAuthentication(services, config, env);
