@@ -18,7 +18,7 @@ require (
 	k8s.io/client-go v0.34.3
 	sigs.k8s.io/kind v0.30.0
 	sigs.k8s.io/kustomize/api v0.21.0
-	sigs.k8s.io/kustomize/kyaml v0.21.0
+	sigs.k8s.io/kustomize/kyaml v0.21.1
 )
 
 require (
