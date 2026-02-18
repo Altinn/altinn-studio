@@ -1,8 +1,8 @@
 import React, { forwardRef } from 'react';
-import { Route, Routes } from 'react-router-dom';
 import type { JSX, ReactNode } from 'react';
 
 import { type ComponentValidation } from 'src/features/validation';
+import { useNavigationParam } from 'src/hooks/navigation';
 import { type SummaryRendererProps } from 'src/layout/LayoutComponent';
 import { SubformDef } from 'src/layout/Subform/config.def.generated';
 import { SubformComponent } from 'src/layout/Subform/SubformComponent';
@@ -15,6 +15,18 @@ import type { PropsFromGenericComponent, SubRouting, ValidateComponent } from 's
 import type { NodeValidationProps } from 'src/layout/layout';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
+function SubformRouting({ baseComponentId }: { baseComponentId: string }) {
+  const dataElementId = useNavigationParam('dataElementId');
+  if (dataElementId) {
+    return (
+      <SubformWrapper baseComponentId={baseComponentId}>
+        <SubformForm />
+      </SubformWrapper>
+    );
+  }
+  return <RedirectBackToMainForm />;
+}
+
 export class Subform extends SubformDef implements ValidateComponent, SubRouting {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Subform'>>(
     function LayoutComponentSubformRender(props, _): JSX.Element | null {
@@ -23,22 +35,7 @@ export class Subform extends SubformDef implements ValidateComponent, SubRouting
   );
 
   subRouting({ baseComponentId }: { baseComponentId: string }): ReactNode {
-    return (
-      <Routes>
-        <Route
-          path=':dataElementId/:subformPage?'
-          element={
-            <SubformWrapper baseComponentId={baseComponentId}>
-              <SubformForm />
-            </SubformWrapper>
-          }
-        />
-        <Route
-          path='*'
-          element={<RedirectBackToMainForm />}
-        />
-      </Routes>
-    );
+    return <SubformRouting baseComponentId={baseComponentId} />;
   }
 
   renderLayoutValidators(props: NodeValidationProps<'Subform'>): JSX.Element | null {

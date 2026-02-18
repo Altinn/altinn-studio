@@ -22,10 +22,12 @@ const component: FormItem<SelectionComponentType> = {
   optionsId: undefined,
   options: undefined,
 };
+const openFormButtonText = 'Open';
 const defaultProps: PublishedOptionListSelectorProps = {
   component,
   handleComponentChange: jest.fn(),
   orgName,
+  triggerProps: { children: openFormButtonText },
 };
 
 describe('PublishedOptionListSelector', () => {
@@ -154,8 +156,7 @@ function setupUser(): ExtendedUserEvent {
 }
 
 function getPublishedCodeListButton(): HTMLElement {
-  const buttonText = textMock('ux_editor.options.published_code_list.choose');
-  return screen.getByRole('button', { name: buttonText });
+  return screen.getByRole('button', { name: openFormButtonText });
 }
 
 function getSaveButton(): HTMLElement {

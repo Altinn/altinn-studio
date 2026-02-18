@@ -1,4 +1,4 @@
-name: K8s wrapper - Build
+name: Runtime kubernetes-wrapper - Build and test
 
 on:
   pull_request:

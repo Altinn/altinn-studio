@@ -1,4 +1,4 @@
-import { matchPath } from 'react-router-dom';
+import { matchPath } from 'react-router';
 
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
 import { instanceQueries } from 'src/features/instance/InstanceContext';

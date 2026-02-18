@@ -34,9 +34,10 @@ make lint                 # Run linters with auto-fix
 make tidy                 # Tidy go modules
 
 # Testing
-make test                 # Run all integration tests (simple + smoke)
-make test-simple          # Run simple integration tests only
-make test-smoke           # Run smoke tests only
+make test                 # Run unit tests
+make test-e2e             # Run all e2e tests (simple + smoke)
+make test-e2e-simple      # Run simple e2e tests only
+make test-e2e-smoke       # Run smoke e2e tests only
 make test-loop n=10       # Run tests 10 times (flakiness check)
 
 # Load testing
@@ -158,12 +159,11 @@ make check                # Complete CI check (tidy, fmt, lint, test)
 
 ```bash
 # Recommended workflow
-make start             # Start cluster (if not running)
-make test              # Run all tests
+make test-e2e          # Run all e2e tests (starts cluster automatically)
 
 # Or run specific test suites
-make test-simple       # Simple tests only
-make test-smoke        # Smoke tests only
+make test-e2e-simple   # Simple tests only
+make test-e2e-smoke    # Smoke tests only
 ```
 
 Test logs are saved to `test/logs/` for debugging failures.

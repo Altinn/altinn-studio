@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kuberneteswrapper-ingress-route
+spec:
+  entryPoints:
+    - http
+    - https
+  routes:
+    - match: Host(`${SERVICEOWNER_ID}.apps.at22.altinn.cloud`)&&PathPrefix(`/kuberneteswrapper`)
+      kind: Rule
+      services:
+        - name: kuberneteswrapper-kubernetes-api-wrapper
+          port: 80
+      middlewares:
+        - name: kuberneteswrapper-strip-prefix
