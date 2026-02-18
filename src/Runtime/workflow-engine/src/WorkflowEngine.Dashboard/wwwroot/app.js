@@ -118,6 +118,7 @@
     scheduledContainer: /** @type {HTMLElement} */ (document.getElementById('scheduled-workflows')),
     sseDot:           /** @type {HTMLElement} */ (document.getElementById('sse-dot')),
     engineIcon:       /** @type {HTMLElement} */ (document.getElementById('engine-icon')),
+    engineStatusLabel:/** @type {HTMLElement} */ (document.getElementById('engine-status-label')),
     modal:            /** @type {HTMLElement} */ (document.getElementById('step-modal')),
     modalTitle:       /** @type {HTMLElement} */ (document.getElementById('modal-title')),
     modalBody:        /** @type {HTMLElement} */ (document.getElementById('modal-body')),
@@ -256,13 +257,17 @@
     }).catch(() => {});
   };
 
+  let disconnectTimer = 0;
+
   const connectSSE = (url, onMessage, opts) => {
     const es = new EventSource(url);
     const showStatus = opts?.showStatus ?? false;
 
     if (showStatus) {
       es.onopen = () => {
+        clearTimeout(disconnectTimer);
         dom.sseDot.className = 'sse-dot connected';
+        dom.engineStatusLabel.className = 'engine-status-label';
         fetchOrgsAndApps();
       };
     }
@@ -276,7 +281,11 @@
       if (showStatus) {
         dom.sseDot.className = 'sse-dot disconnected';
         dom.engineIcon.setAttribute('class', 'engine-icon stopped');
-        dom.engineIcon.setAttribute('title', 'Stopped');
+        dom.engineIcon.setAttribute('title', 'Disconnected');
+        clearTimeout(disconnectTimer);
+        disconnectTimer = setTimeout(() => {
+          dom.engineStatusLabel.className = 'engine-status-label visible';
+        }, 1000);
       }
       es.close();
       setTimeout(() => connectSSE(url, onMessage, opts), 2000);
@@ -314,6 +323,7 @@
 
     dom.engineIcon.setAttribute('class', `engine-icon ${cls}`);
     dom.engineIcon.setAttribute('title', label);
+    dom.engineStatusLabel.className = 'engine-status-label';
   };
 
   /* ============================================================
@@ -459,7 +469,9 @@
             card.style.pointerEvents = 'none';
             card.addEventListener('animationend', () => {
               card.remove();
-              if (!dom.liveContainer.querySelector('.workflow-card')) dom.liveEmpty.style.display = 'block';
+              if (!dom.liveContainer.querySelector('.workflow-card')) {
+                dom.liveEmpty.style.display = 'block';
+              }
             }, { once: true });
           } else {
             card.remove();
@@ -495,7 +507,8 @@
 
     // Only show empty state immediately if no cards exist (including exiting ones)
     const hasCards = dom.liveContainer.querySelector('.workflow-card') !== null;
-    dom.liveEmpty.style.display = (workflows.length === 0 && !hasCards) ? 'block' : 'none';
+    const isEmpty = workflows.length === 0 && !hasCards;
+    dom.liveEmpty.style.display = isEmpty ? 'block' : 'none';
     mergeDiscoveredOrgsAndApps();
     applyFilter();
   };
@@ -1774,10 +1787,30 @@
    *  HOT-RELOAD  (SSE from dashboard server on file change)
    * ============================================================ */
 
+  let hotReloadConnectedOnce = false;
+  let hotReloadDisabled = false;
+
   const watchForChanges = () => {
+    if (hotReloadDisabled) return;
     const es = new EventSource('/api/hot-reload');
+    es.onopen = () => {
+      if (hotReloadConnectedOnce) {
+        es.close();
+        location.reload();
+        return;
+      }
+      hotReloadConnectedOnce = true;
+    };
     es.onmessage = () => location.reload();
-    es.onerror = () => { es.close(); setTimeout(watchForChanges, 2000); };
+    es.onerror = () => {
+      es.close();
+      if (!hotReloadConnectedOnce) {
+        // Endpoint doesn't exist (production) — stop trying
+        hotReloadDisabled = true;
+        return;
+      }
+      setTimeout(watchForChanges, 2000);
+    };
   };
 
   /* ============================================================

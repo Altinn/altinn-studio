@@ -12,32 +12,42 @@ app.MapGet(
     (IConfiguration config) => Results.Json(new { engineUrl = config["Dashboard:EngineUrl"] ?? "" })
 );
 
-app.MapGet(
-    "/api/hot-reload",
-    async (IWebHostEnvironment env, HttpContext ctx, CancellationToken ct) =>
-    {
-        ctx.Response.ContentType = "text/event-stream";
-        ctx.Response.Headers.CacheControl = "no-cache";
-        ctx.Response.Headers.Connection = "keep-alive";
-
-        // Polling-based: Docker bind mounts on Windows don't propagate
-        // inotify events, so FileProvider.Watch() won't fire.
-        var webRoot = env.WebRootPath;
-        var lastHash = HashWebRoot(webRoot);
-
-        while (!ct.IsCancellationRequested)
+if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
+{
+    app.MapGet(
+        "/api/hot-reload",
+        async (IWebHostEnvironment env, HttpContext ctx, CancellationToken ct) =>
         {
-            await Task.Delay(500, ct);
-            var currentHash = HashWebRoot(webRoot);
-            if (currentHash != lastHash)
+            ctx.Response.ContentType = "text/event-stream";
+            ctx.Response.Headers.CacheControl = "no-cache";
+            ctx.Response.Headers.Connection = "keep-alive";
+
+            // Polling-based: Docker bind mounts on Windows don't propagate
+            // inotify events, so FileProvider.Watch() won't fire.
+            var webRoot = env.WebRootPath;
+            var lastHash = HashWebRoot(webRoot);
+            var heartbeatInterval = 0;
+
+            while (!ct.IsCancellationRequested)
             {
-                lastHash = currentHash;
-                await ctx.Response.WriteAsync("data: reload\n\n", ct);
-                await ctx.Response.Body.FlushAsync(ct);
+                await Task.Delay(500, ct);
+                var currentHash = HashWebRoot(webRoot);
+                if (currentHash != lastHash)
+                {
+                    lastHash = currentHash;
+                    await ctx.Response.WriteAsync("data: reload\n\n", ct);
+                    await ctx.Response.Body.FlushAsync(ct);
+                }
+                else if (++heartbeatInterval >= 10) // every 5s
+                {
+                    heartbeatInterval = 0;
+                    await ctx.Response.WriteAsync(": heartbeat\n\n", ct);
+                    await ctx.Response.Body.FlushAsync(ct);
+                }
             }
         }
-    }
-);
+    );
+}
 
 static long HashWebRoot(string path)
 {
@@ -45,7 +55,7 @@ static long HashWebRoot(string path)
     foreach (var file in Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories))
     {
         var info = new FileInfo(file);
-        hash = hash * 31 + info.LastWriteTimeUtc.Ticks ^ info.Length;
+        hash = hash * 31 + (info.LastWriteTimeUtc.Ticks ^ info.Length);
     }
     return hash;
 }
