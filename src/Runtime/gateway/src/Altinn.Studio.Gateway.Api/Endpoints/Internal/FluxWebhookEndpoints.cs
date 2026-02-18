@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Altinn.Studio.Gateway.Api.Clients.Designer.Contracts;
 using Altinn.Studio.Gateway.Api.Clients.K8s;
 using Altinn.Studio.Gateway.Api.Endpoints.Internal.Contracts;
-using Altinn.Studio.Gateway.Api.Hosting;
 using Altinn.Studio.Gateway.Api.Telemetry;
 
 namespace Altinn.Studio.Gateway.Api.Endpoints.Internal;
@@ -18,16 +17,16 @@ internal static class FluxWebhookEndpoints
         string? TraceState
     );
 
-    public static WebApplication MapFluxWebhookEndpoint(this WebApplication app)
+    public static RouteGroupBuilder MapFluxWebhookEndpoint(this RouteGroupBuilder internalApiV1)
     {
-        app.MapPost("/api/v1/flux/webhook", HandleFluxWebhook)
-            .RequireInternalPort()
+        internalApiV1
+            .MapPost("/flux/webhook", HandleFluxWebhook)
             .WithName("FluxWebhook")
             .WithSummary("Receive Flux CD webhook notifications")
             .WithDescription("Endpoint for receiving event notifications from Flux CD controllers")
             .WithTags("Flux");
 
-        return app;
+        return internalApiV1;
     }
 
     private static async Task<IResult> HandleFluxWebhook(

@@ -1,56 +1,37 @@
 using Altinn.Studio.Gateway.Api.Application;
-using Altinn.Studio.Gateway.Api.Hosting;
 
 namespace Altinn.Studio.Gateway.Api.Endpoints.Public;
 
 internal static class DeployEndpoints
 {
-    public static WebApplication MapDeployEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapDeployEndpoints(this RouteGroupBuilder publicApiV1)
     {
-        app.MapGet(
-                "/runtime/gateway/api/v1/deploy/origin/{originEnvironment}/apps/",
-                HandleListAppDeployments.ListAppDeploymentsHandler
-            )
-            .RequirePublicPort()
-            .RequireAuthorization("MaskinportenScope")
+        var deployApi = publicApiV1.MapGroup("/deploy").RequireAuthorization("MaskinportenScope").WithTags("Deploy");
+
+        deployApi
+            .MapGet("/origin/{originEnvironment}/apps/", HandleListAppDeployments.ListAppDeploymentsHandler)
             .WithName("ListAppDeployments")
             .WithSummary("List all App deployments.")
-            .WithDescription("Endpoint to list all app deployments.")
-            .WithTags("Deploy");
+            .WithDescription("Endpoint to list all app deployments.");
 
-        app.MapGet(
-                "/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}",
-                HandleGetAppDeployment.GetAppDeploymentHandler
-            )
-            .RequirePublicPort()
-            .RequireAuthorization("MaskinportenScope")
+        deployApi
+            .MapGet("/apps/{app}/{originEnvironment}", HandleGetAppDeployment.GetAppDeploymentHandler)
             .WithName("GetAppDeployment")
             .WithSummary("Get App deployment.")
-            .WithDescription("Endpoint to get a single app deployment.")
-            .WithTags("Deploy");
+            .WithDescription("Endpoint to get a single app deployment.");
 
-        app.MapGet(
-                "/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}/deployed",
-                HandleIsAppDeployed.IsAppDeployedHandler
-            )
-            .RequirePublicPort()
-            .RequireAuthorization("MaskinportenScope")
+        deployApi
+            .MapGet("/apps/{app}/{originEnvironment}/deployed", HandleIsAppDeployed.IsAppDeployedHandler)
             .WithName("IsAppDeployed")
             .WithSummary("Check if App is deployed.")
-            .WithDescription("Endpoint to check if app is deployed to cluster.")
-            .WithTags("Deploy");
+            .WithDescription("Endpoint to check if app is deployed to cluster.");
 
-        app.MapPost(
-                "/runtime/gateway/api/v1/deploy/apps/{app}/{originEnvironment}/reconcile",
-                HandleTriggerReconcile.Handler
-            )
-            .RequirePublicPort()
-            .RequireAuthorization("MaskinportenScope")
+        deployApi
+            .MapPost("/apps/{app}/{originEnvironment}/reconcile", HandleTriggerReconcile.Handler)
             .WithName("TriggerReconcile")
             .WithSummary("Trigger Flux reconciliation.")
-            .WithDescription("Triggers Flux to reconcile app resources by patching OCIRepository annotation.")
-            .WithTags("Deploy");
+            .WithDescription("Triggers Flux to reconcile app resources by patching OCIRepository annotation.");
 
-        return app;
+        return publicApiV1;
     }
 }
