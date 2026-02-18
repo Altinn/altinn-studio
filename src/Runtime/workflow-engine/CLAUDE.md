@@ -11,7 +11,7 @@ Async workflow processing engine for Altinn Studio. Processes workflows through 
 | `WorkflowEngine.Data` | EF Core persistence, `IEngineRepository`, Postgres via `EnginePgRepository` |
 | `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP semaphore pools), retry strategies |
 | `WorkflowEngine.Telemetry` | `Metrics` class (OpenTelemetry counters, histograms, activity source) |
-| `WorkflowEngine.Dashboard` | Static file server + `/api/config` endpoint for monitoring UI |
+| `WorkflowEngine.Dashboard` | Static file server + `/api/config` + `/api/hot-reload` for monitoring UI |
 
 ## Architecture
 
