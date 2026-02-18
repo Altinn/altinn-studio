@@ -495,7 +495,17 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string token = await HttpContext.GetDeveloperAppTokenAsync();
             AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repository, developer, token);
-            RepoStatus repoStatus = _sourceControl.CheckoutBranchWithValidation(authenticatedContext, request.BranchName);
+            AltinnRepoEditingContext editingContext = authenticatedContext.RepoEditingContext;
+
+            UncommittedChangesError uncommittedChanges = _sourceControl.GetUncommittedChanges(editingContext, request.BranchName);
+            if (uncommittedChanges != null)
+            {
+                return Conflict(uncommittedChanges);
+            }
+
+            await _repository.ResetLocalRepository(editingContext);
+            _sourceControl.CheckoutRepoOnBranch(editingContext, request.BranchName);
+            RepoStatus repoStatus = _sourceControl.RepositoryStatus(editingContext);
             return Ok(repoStatus);
         }
 

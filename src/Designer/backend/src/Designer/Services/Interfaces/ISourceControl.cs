@@ -214,6 +214,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         RepoStatus CheckoutBranchWithValidation(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName);
 
         /// <summary>
+        /// Checks for uncommitted changes in the repository
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="targetBranch">The target branch for the checkout</param>
+        /// <returns>Error details if there are uncommitted changes, null if clean</returns>
+        UncommittedChangesError GetUncommittedChanges(AltinnRepoEditingContext editingContext, string targetBranch);
+
+        /// <summary>
         /// Discards all local changes in the repository (hard reset + clean untracked files)
         /// </summary>
         /// <param name="editingContext">The altinn repo editing context</param>

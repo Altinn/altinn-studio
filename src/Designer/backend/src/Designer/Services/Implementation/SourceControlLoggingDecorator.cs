@@ -460,6 +460,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public UncommittedChangesError GetUncommittedChanges(AltinnRepoEditingContext editingContext, string targetBranch)
+        {
+            try
+            {
+                return _decoratedService.GetUncommittedChanges(editingContext, targetBranch);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, nameof(GetUncommittedChanges), editingContext.Org, editingContext.Repo);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
         public RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext)
         {
             try

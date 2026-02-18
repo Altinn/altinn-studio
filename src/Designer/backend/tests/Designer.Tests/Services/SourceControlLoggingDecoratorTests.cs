@@ -393,6 +393,7 @@ public class SourceControlStub : ISourceControl
     public void DeleteRemoteBranchIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) => throw new NotImplementedException();
     public Task DeleteRepository(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
     public RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+    public UncommittedChangesError GetUncommittedChanges(AltinnRepoEditingContext editingContext, string targetBranch) => throw new NotImplementedException();
     public void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
     public void FetchRemoteChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
     public string FindLocalRepoLocation(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();

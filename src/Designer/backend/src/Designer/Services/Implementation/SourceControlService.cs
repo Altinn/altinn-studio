@@ -670,6 +670,36 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public UncommittedChangesError GetUncommittedChanges(AltinnRepoEditingContext editingContext, string targetBranch)
+        {
+            RepoStatus repoStatus = RepositoryStatus(editingContext);
+
+            bool hasUncommittedChanges = repoStatus.ContentStatus
+                .Any(c => c.FileStatus != Enums.FileStatus.Unaltered);
+
+            if (!hasUncommittedChanges)
+            {
+                return null;
+            }
+
+            return new UncommittedChangesError
+            {
+                Error = "Cannot switch branches with uncommitted changes",
+                Message = "You have uncommitted changes. Please commit and push your changes, or discard them before switching branches.",
+                UncommittedFiles = repoStatus.ContentStatus
+                    .Where(c => c.FileStatus != Enums.FileStatus.Unaltered)
+                    .Select(c => new UncommittedFile
+                    {
+                        FilePath = c.FilePath,
+                        Status = c.FileStatus.ToString()
+                    })
+                    .ToList(),
+                CurrentBranch = repoStatus.CurrentBranch,
+                TargetBranch = targetBranch
+            };
+        }
+
+        /// <inheritdoc/>
         public RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext)
         {
             string localPath = repositorySettings.GetServicePath(editingContext.Org, editingContext.Repo, editingContext.Developer);

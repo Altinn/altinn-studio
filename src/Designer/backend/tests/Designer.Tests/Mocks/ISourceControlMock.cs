@@ -162,6 +162,7 @@ namespace Designer.Tests.Mocks
         public CurrentBranchInfo GetCurrentBranch(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
         public RepoStatus CheckoutBranchWithValidation(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) => throw new NotImplementedException();
         public RepoStatus DiscardLocalChanges(AltinnRepoEditingContext editingContext) => throw new NotImplementedException();
+        public UncommittedChangesError GetUncommittedChanges(AltinnRepoEditingContext editingContext, string targetBranch) => throw new NotImplementedException();
         public void DeleteRemoteBranchIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) => throw new NotImplementedException();
         public void PublishBranch(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName) => throw new NotImplementedException();
         public void FetchGitNotes(AltinnAuthenticatedRepoEditingContext authenticatedContext) => throw new NotImplementedException();
