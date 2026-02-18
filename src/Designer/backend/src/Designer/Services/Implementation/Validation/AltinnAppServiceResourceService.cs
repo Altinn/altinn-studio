@@ -168,7 +168,7 @@ public static class ApplicationMetadataMapper
                 {
                     ReferenceType = ResourceReferenceType.ApplicationId,
                     ReferenceSource = ResourceReferenceSource.Altinn3,
-                    Reference = $"altinn:{applicationmetadata?.Id}",
+                    Reference = applicationmetadata?.Id,
                 },
             },
             Title = applicationmetadata?.Title?.ToDictionary(),
