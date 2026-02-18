@@ -1,4 +1,5 @@
 using System.Reflection;
+using Altinn.Studio.KubernetesWrapper.Hosting;
 using Altinn.Studio.KubernetesWrapper.Services.Implementation;
 using Altinn.Studio.KubernetesWrapper.Services.Interfaces;
 using Microsoft.OpenApi;
@@ -7,6 +8,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 var builder = WebApplication.CreateBuilder(args);
 
 RegisterServices(builder.Services);
+builder.AddOpenTelemetry();
 
 var app = builder.Build();
 

@@ -155,7 +155,11 @@ func (g *Custom) Generate(ctx context.Context, request types.PdfRequest) (*types
 	} else {
 		g.logger.Warn("Request queue full, rejecting request", "url", request.URL)
 		pdfErr := types.NewPDFError(types.ErrQueueFull, "", nil)
-		recordPDFError(span, pdfErr)
+		// Queue-full 429s are expected; proxy retries handle them.
+		// Mark as an event, not a span error, to avoid false error noise.
+		if span.IsRecording() {
+			span.AddEvent("pdf.queue.full")
+		}
 		return nil, pdfErr
 	}
 

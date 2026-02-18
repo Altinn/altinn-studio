@@ -12,11 +12,7 @@ internal sealed class DesignerClient(
     private GatewayContext _gatewayContext => gatewayContextMonitor.CurrentValue;
 
     /// <inheritdoc />
-    public async Task NotifyAlertsUpdatedAsync(
-        IEnumerable<Alert> alerts,
-        string environment,
-        CancellationToken cancellationToken
-    )
+    public async Task NotifyAlertsUpdatedAsync(Alert alert, string environment, CancellationToken cancellationToken)
     {
         var httpClient = httpClientFactory.CreateClient(environment);
         string org = _gatewayContext.ServiceOwner;
@@ -25,8 +21,8 @@ internal sealed class DesignerClient(
 
         using HttpResponseMessage response = await httpClient.PostAsJsonAsync(
             requestUrl,
-            alerts,
-            AppJsonSerializerContext.Default.IEnumerableAlert,
+            alert,
+            AppJsonSerializerContext.Default.Alert,
             cancellationToken
         );
         response.EnsureSuccessStatusCode();
