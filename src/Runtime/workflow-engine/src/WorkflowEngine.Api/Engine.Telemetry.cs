@@ -16,6 +16,7 @@ internal partial class Engine
             links: Metrics.ParseSourceContext(workflow.DistributedTraceContext),
             tags: workflow.GetActivityTags()
         );
+        workflow.EngineTraceId ??= workflow.EngineActivity?.TraceId.ToString();
     }
 
     private static void StartProcessStepActivityOnce(Workflow workflow, Step step)

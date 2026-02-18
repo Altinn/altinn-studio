@@ -43,7 +43,8 @@ internal static class DashboardEndpoints
                             idempotencyKey = w.IdempotencyKey,
                             operationId = w.OperationId,
                             status = w.Status.ToString(),
-                            traceId = w.EngineActivity?.TraceId.ToString(),
+                            traceId = w.EngineTraceId ?? w.EngineActivity?.TraceId.ToString(),
+
                             instance = new
                             {
                                 org = w.InstanceInformation.Org,
@@ -167,6 +168,7 @@ internal static class DashboardEndpoints
                                 r.OperationId,
                                 r.Status,
                                 r.TraceId,
+
                                 instance = new
                                 {
                                     org = r.InstanceInformation.Org,
@@ -237,7 +239,7 @@ internal static class DashboardEndpoints
                         idempotencyKey = w.IdempotencyKey,
                         operationId = w.OperationId,
                         status = w.Status.ToString(),
-                        traceId = w.EngineActivity?.TraceId.ToString(),
+                        traceId = w.EngineTraceId ?? w.EngineActivity?.TraceId.ToString(),
                         instance = new
                         {
                             org = w.InstanceInformation.Org,

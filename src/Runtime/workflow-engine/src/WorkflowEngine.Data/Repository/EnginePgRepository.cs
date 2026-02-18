@@ -336,7 +336,8 @@ internal sealed class EnginePgRepository : IEngineRepository
                             setters =>
                                 setters
                                     .SetProperty(t => t.Status, workflow.Status)
-                                    .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt),
+                                    .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt)
+                                    .SetProperty(t => t.EngineTraceId, workflow.EngineTraceId),
                             ct
                         );
                 },
@@ -428,6 +429,7 @@ internal sealed class EnginePgRepository : IEngineRepository
                     var workflowEntry = _context.Workflows.Entry(WorkflowEntity.FromDomainModel(workflow));
                     workflowEntry.Property(e => e.Status).IsModified = true;
                     workflowEntry.Property(e => e.UpdatedAt).IsModified = true;
+                    workflowEntry.Property(e => e.EngineTraceId).IsModified = true;
 
                     foreach (var step in steps)
                     {

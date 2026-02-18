@@ -311,8 +311,11 @@ internal partial class Engine : IEngine, IDisposable
         }
 
         // Workflow is done (success or permanent failure)
-        StopActivity(workflow);
+        // Stop but don't dispose yet — RecentWorkflowCache needs the TraceId
+        StopActivity(workflow, dispose: false);
         RemoveWorkflowAndReleaseQueueSlot(workflow);
+        workflow.EngineActivity?.Dispose();
+        workflow.EngineActivity = null;
         _logger.WorkflowCompleted(workflow);
     }
 
