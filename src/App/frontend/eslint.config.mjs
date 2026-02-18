@@ -17,6 +17,8 @@ import { fileURLToPath } from 'node:url';
 import tseslint from 'typescript-eslint';
 
 // eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
+import noFeatureInternalImports from './nextsrc/eslint-rules/no-feature-internal-imports.js';
+// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import langKey from './src/language/eslint.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -67,6 +69,7 @@ export default tseslint.config(
       local: {
         rules: {
           'language-key': langKey,
+          'no-feature-internal-imports': noFeatureInternalImports,
         },
       },
     },
@@ -216,6 +219,24 @@ export default tseslint.config(
     rules: {
       'no-explicit-any': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  // Enforce feature boundary: imports into nextsrc/features/<name>/** must go through the feature index.
+  {
+    files: ['nextsrc/**/*.{ts,tsx}'],
+    rules: {
+      'local/no-feature-internal-imports': ['error'],
+    },
+  },
+  // Feature index files are the public API of a feature and may use named re-exports.
+  // We relax the global no-restricted-syntax ban on re-exports here, but still disallow export *.
+  {
+    files: ['nextsrc/features/*/index.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        { selector: 'ExportAllDeclaration', message: 'Use explicit named re-exports instead of export *.' },
+      ],
     },
   },
   {

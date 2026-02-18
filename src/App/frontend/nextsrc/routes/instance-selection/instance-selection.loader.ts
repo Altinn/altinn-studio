@@ -3,8 +3,8 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
 import { GlobalData } from 'nextsrc/core/globalData';
-import { activeInstancesQuery } from 'nextsrc/core/queries/instance/instance.queries';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
+import { activeInstancesQuery } from 'nextsrc/features/Instantiation';
 import { routeBuilders } from 'nextsrc/routesBuilder';
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -23,8 +23,8 @@ export const instanceSelectionLoader = (queryClient: QueryClient) => async (_arg
   if (activeInstances.length === 0) {
     const newInstance = await InstanceApi.create(selectedParty.partyId);
     const [instanceOwnerPartyId, instanceGuid] = newInstance.id.split('/');
-    return redirect(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
+    throw redirect(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
   }
 
-  return null;
+  return { selectedParty };
 };

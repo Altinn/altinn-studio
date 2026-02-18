@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs } from 'react-router-dom';
 
 import { PartiesApi } from 'nextsrc/core/apiClient/partiesApi';
-import { partyQueries } from 'nextsrc/core/queries/parties/parties.queries';
+import { instantiationQueries } from 'nextsrc/features/Instantiation';
 import { queryClient } from 'nextsrc/QueryClient';
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -16,7 +16,7 @@ export const partySelectionAction =
     console.log('selectedPartyId: ', selectedPartyId);
 
     await PartiesApi.updateSelectedParty(selectedPartyId);
-    queryClient.invalidateQueries({ queryKey: partyQueries.all });
+    queryClient.invalidateQueries({ queryKey: instantiationQueries.allParties() });
 
     // TODO: update selected party on frontend too. But on window?
 

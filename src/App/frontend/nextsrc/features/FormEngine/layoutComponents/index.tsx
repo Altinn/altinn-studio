@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { InputComponent } from 'nextsrc/core/layoutComponents/Input/InputComponent';
+import { InputComponent } from 'nextsrc/features/FormEngine/layoutComponents/Input/InputComponent';
 import {
   isRepeatingGroup,
   RepeatingGroupNext,
-} from 'nextsrc/core/layoutComponents/RepeatingGroup/RepeatingGroupComponent';
+} from 'nextsrc/features/FormEngine/layoutComponents/RepeatingGroup/RepeatingGroupComponent';
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
 
 export function getLayoutComponent(componentProps: ResolvedCompExternal) {

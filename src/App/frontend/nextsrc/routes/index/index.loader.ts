@@ -3,8 +3,8 @@ import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
 import { GlobalData } from 'nextsrc/core/globalData';
-import { activeInstancesQuery } from 'nextsrc/core/queries/instance/instance.queries';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
+import { activeInstancesQuery } from 'nextsrc/features/Instantiation';
 import { routeBuilders } from 'nextsrc/routesBuilder';
 import type { QueryClient } from '@tanstack/react-query';
 

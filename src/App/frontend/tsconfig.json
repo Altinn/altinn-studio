@@ -46,6 +46,13 @@
       }
     ]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "nextsrc/**/*.ts", "nextsrc/**/*.tsx", "scripts/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "nextsrc/**/*.ts",
+    "nextsrc/**/*.tsx",
+    "scripts/**/*.ts",
+    "nextsrc/features/Instantiation/components/instanceSelection"
+  ],
   "exclude": ["node_modules/cypress"]
 }

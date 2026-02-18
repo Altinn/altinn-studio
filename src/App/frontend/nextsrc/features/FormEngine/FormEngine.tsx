@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { getLayoutComponent } from 'nextsrc/core/layoutComponents';
+import { getLayoutComponent } from 'nextsrc/features/FormEngine/layoutComponents';
 import type { FormDataNode } from 'nextsrc/core/apiClient/dataApi';
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
 

@@ -11,5 +11,10 @@
     },
     "noImplicitAny": true
   },
-  "include": ["./**/*.ts", "./**/*.tsx"]
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "features/Instantiation/components/partySelection",
+    "features/Instantiation/components/instanceSelection"
+  ]
 }

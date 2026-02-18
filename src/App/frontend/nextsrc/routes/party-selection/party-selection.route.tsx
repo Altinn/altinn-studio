@@ -1,31 +1,22 @@
 import React from 'react';
-import { Form } from 'react-router-dom';
+import { useLoaderData } from 'react-router-dom';
 
 import { useQuery } from '@tanstack/react-query';
-import { partiesAllowedToInstantiateQuery } from 'nextsrc/core/queries/parties/parties.queries';
-import classes from 'nextsrc/routes/party-selection/party-selection.route.module.css';
+import { partiesAllowedToInstantiateQuery, PartySelection } from 'nextsrc/features/Instantiation';
+import type { partySelectionLoader } from 'nextsrc/routes/party-selection/party-selection.loader';
 
 export const PartySelectionPage = () => {
-  const { data: partiesAllowedToInstantiate, isPending } = useQuery(partiesAllowedToInstantiateQuery());
+  const userPartyId = useLoaderData() as Awaited<ReturnType<ReturnType<typeof partySelectionLoader>>>;
+
+  const { data: partiesAllowedToInstantiate, isPending } = useQuery(partiesAllowedToInstantiateQuery(userPartyId));
 
   if (isPending) {
     return 'Fetching parties...';
   }
 
-  return (
-    <div className={classes.container}>
-      <h1>Party selection</h1>
-      <Form method='put'>
-        {partiesAllowedToInstantiate?.map((party) => (
-          <button
-            name='partyId'
-            key={party.partyId}
-            value={party.partyId}
-          >
-            {party.name}
-          </button>
-        ))}
-      </Form>
-    </div>
-  );
+  if (!partiesAllowedToInstantiate) {
+    throw new Error('Backend returned null when we expected a list of parties.');
+  }
+
+  return <PartySelection partiesAllowedToInstantiate={partiesAllowedToInstantiate} />;
 };
