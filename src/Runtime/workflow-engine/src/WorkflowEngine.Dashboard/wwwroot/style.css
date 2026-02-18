@@ -14,12 +14,11 @@ body{min-height:100vh;padding:0}
   display:flex;align-items:center;justify-content:space-between;
   padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg2);
 }
-.header h1{
-  font-size:22px;font-weight:800;letter-spacing:4px;
-  background:linear-gradient(135deg, var(--cyan), #7dd3fc);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
-  filter:drop-shadow(0 0 16px rgba(0,212,255,0.25));
+.header h1{font-size:22px;font-weight:800;letter-spacing:4px;filter:drop-shadow(0 0 12px rgba(0,212,255,0.12))}
+.title-link,.title-link:visited,.title-link:hover,.title-link:active{
+  text-decoration:none;
+  color:var(--cyan);
+  -webkit-background-clip:text;-webkit-text-fill-color:var(--cyan);
 }
 
 /* ── Engine status (cog icon + label) ────────────────────── */
@@ -99,8 +98,8 @@ body{min-height:100vh;padding:0}
 
 /* ── Sections & titles ────────────────────────────────────── */
 .section{padding:20px 24px;border-bottom:1px solid var(--border)}
-.section.collapsed{padding:0 24px}
-.section.collapsed .section-title{margin-bottom:0;padding:10px 0}
+.section.collapsed{padding:20px 24px}
+.section.collapsed .section-title{margin-bottom:0}
 .section.collapsed .section-title:hover{opacity:1}
 .section.collapsed .section-body{display:none}
 .section-chips{display:inline-flex;gap:4px;margin-left:12px}

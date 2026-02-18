@@ -298,6 +298,7 @@
     section.classList.toggle('collapsed');
     const collapsed = section.classList.contains('collapsed');
     try { localStorage.setItem(`section:${sectionId}`, collapsed ? '1' : '0'); } catch { /* ignore */ }
+    syncUrl();
     if (sectionId === 'scheduled-section' && !collapsed) loadScheduled();
   };
 
@@ -751,6 +752,7 @@
     dom.filterInput.value = value;
     dom.filterClear.classList.toggle('visible', value.length > 0);
     applyFilter();
+    syncUrl();
     if (state.historyLoaded) loadHistory();
   };
 
@@ -767,6 +769,7 @@
     if (filterSet.has(v)) filterSet.delete(v); else filterSet.add(v);
     applyFilter();
     refreshChips();
+    syncUrl();
     if (state.historyLoaded) loadHistory();
   };
 
@@ -893,6 +896,7 @@
       state.sectionStatus[section] = value;
       for (const c of bar.querySelectorAll('.chip')) c.classList.toggle('active', c === chip);
       applyFilter();
+      syncUrl();
       if (section === 'history' && state.historyLoaded) loadHistory();
     });
   }
@@ -926,6 +930,7 @@
       state.historyLoaded = true;
       loadHistory();
     }
+    syncUrl();
   };
 
   /* ============================================================
@@ -1094,6 +1099,68 @@
   };
 
   /* ============================================================
+   *  URL SYNC — persist tab + filters to query params
+   * ============================================================ */
+
+  const syncUrl = () => {
+    const p = new URLSearchParams();
+    const tab = document.querySelector('.tab.active')?.getAttribute('data-tab');
+    if (tab && tab !== 'live') p.set('tab', tab);
+    if (state.filter) p.set('q', state.filter);
+    if (state.sectionStatus.live) p.set('ls', state.sectionStatus.live);
+    if (state.sectionStatus.recent) p.set('rs', state.sectionStatus.recent);
+    if (state.sectionStatus.history) p.set('hs', state.sectionStatus.history);
+    if (state.orgFilter.size) p.set('org', [...state.orgFilter].join(','));
+    if (state.appFilter.size) p.set('app', [...state.appFilter].join(','));
+    if (state.partyFilter.size) p.set('party', [...state.partyFilter].join(','));
+    if (state.guidFilter.size) p.set('guid', [...state.guidFilter].join(','));
+    const collapsed = [];
+    const expanded = [];
+    for (const [id, key] of [['scheduled-section','sched'],['live-section','inbox'],['recent-section','recent']]) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      // scheduled defaults collapsed, others default expanded
+      if (id === 'scheduled-section') { if (!el.classList.contains('collapsed')) expanded.push(key); }
+      else { if (el.classList.contains('collapsed')) collapsed.push(key); }
+    }
+    if (collapsed.length) p.set('c', collapsed.join(','));
+    if (expanded.length) p.set('e', expanded.join(','));
+    const qs = p.toString();
+    history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
+  };
+
+  const restoreUrl = () => {
+    const p = new URLSearchParams(location.search);
+    const tab = p.get('tab');
+    if (tab) switchTab(tab);
+    const q = p.get('q');
+    if (q) setFilter(q);
+    for (const [key, section] of [['ls', 'live'], ['rs', 'recent'], ['hs', 'history']]) {
+      const v = p.get(key);
+      if (v) {
+        state.sectionStatus[section] = v;
+        const bar = document.querySelector(`.section-chips[data-section="${section}"]`);
+        if (bar) for (const c of bar.querySelectorAll('.chip')) c.classList.toggle('active', (c.dataset.status || '') === v);
+      }
+    }
+    for (const v of (p.get('org') || '').split(',').filter(Boolean)) state.orgFilter.add(v);
+    for (const v of (p.get('app') || '').split(',').filter(Boolean)) state.appFilter.add(v);
+    for (const v of (p.get('party') || '').split(',').filter(Boolean)) state.partyFilter.add(v);
+    for (const v of (p.get('guid') || '').split(',').filter(Boolean)) state.guidFilter.add(v);
+    if (state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size) {
+      refreshChips();
+      applyFilter();
+    }
+    const keyMap = { sched: 'scheduled-section', inbox: 'live-section', recent: 'recent-section' };
+    const coll = (p.get('c') || '').split(',').filter(Boolean);
+    const exp = (p.get('e') || '').split(',').filter(Boolean);
+    if (coll.length || exp.length) {
+      for (const k of coll) { const el = document.getElementById(keyMap[k] || ''); if (el) el.classList.add('collapsed'); }
+      for (const k of exp) { const el = document.getElementById(keyMap[k] || ''); if (el) el.classList.remove('collapsed'); }
+    }
+  };
+
+  /* ============================================================
    *  INIT — fetch engine URL from config, then connect SSE
    * ============================================================ */
 
@@ -1106,6 +1173,7 @@
       console.warn('Failed to load config, using same-origin for engine URL');
     }
 
+    restoreUrl();
     connectSSE(`${engineUrl}/dashboard/stream`, updateDashboard, { showStatus: true });
     connectSSE(`${engineUrl}/dashboard/stream/recent`, (data) => updateRecentWorkflows(/** @type {Workflow[]} */ (data)));
     requestAnimationFrame(updateTimers);
