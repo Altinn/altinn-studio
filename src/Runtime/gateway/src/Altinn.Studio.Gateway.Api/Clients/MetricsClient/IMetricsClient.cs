@@ -16,7 +16,7 @@ internal interface IMetricsClient
         string org,
         string env,
         IReadOnlyCollection<string> apps,
-        string? metricName,
+        string metricName,
         DateTimeOffset from,
         DateTimeOffset to
     );

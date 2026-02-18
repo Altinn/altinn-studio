@@ -10,10 +10,8 @@ using Azure.ResourceManager.OperationalInsights;
 
 namespace Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 
-internal sealed class AzureMonitorClient(
-    GatewayContext gatewayContext,
-    LogsQueryClient logsQueryClient
-) : IMetricsClient
+internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQueryClient logsQueryClient)
+    : IMetricsClient
 {
     private ResourceIdentifier? _workspaceId;
 
@@ -147,11 +145,7 @@ internal sealed class AzureMonitorClient(
                 return new AppFailedRequest
                 {
                     Name = row.Key,
-                    DataPoints = row.Select(e => new DataPoint
-                    {
-                        DateTimeOffset = e.DateTimeOffset,
-                        Count = e.Count,
-                    }),
+                    DataPoints = row.Select(e => new DataPoint { DateTimeOffset = e.DateTimeOffset, Count = e.Count }),
                 };
             });
 
@@ -207,11 +201,7 @@ internal sealed class AzureMonitorClient(
                 return new AppMetric
                 {
                     Name = row.Key,
-                    DataPoints = row.Select(e => new DataPoint
-                    {
-                        DateTimeOffset = e.DateTimeOffset,
-                        Count = e.Count,
-                    }),
+                    DataPoints = row.Select(e => new DataPoint { DateTimeOffset = e.DateTimeOffset, Count = e.Count }),
                 };
             });
 
@@ -225,11 +215,12 @@ internal sealed class AzureMonitorClient(
         string org,
         string env,
         IReadOnlyCollection<string> apps,
-        string? metricName,
+        string metricName,
         DateTimeOffset from,
         DateTimeOffset to
     )
     {
+        var operationNames = _operationNames[metricName];
         string jsonPath = Path.Combine(AppContext.BaseDirectory, "Clients", "MetricsClient", "logsQueryTemplate.json");
         var fromUtc = from.ToUniversalTime();
         var toUtc = to.ToUniversalTime();
@@ -240,12 +231,9 @@ internal sealed class AzureMonitorClient(
             .Replace("{to}", toUtc.ToString("O", CultureInfo.InvariantCulture))
             .Replace("{durationMs}", durationMs.ToString(CultureInfo.InvariantCulture))
             .Replace("{app_Names}", string.Join(", ", apps.Select(n => $"'{n.Replace("'", "''")}'")))
-            .Replace("{operation_Names}", string.Join(", ", apps.Select(n => $"'{n}'")))
-            .Replace(
-                "\"{appNames}\"",
-                string.Join(", ", apps.Select(name => $"\"{JsonEncodedText.Encode(name)}\""))
-            )
-            .Replace("\"{operationNames}\"", string.Join(",", apps.Select(n => $"\"{n}\"")));
+            .Replace("{operation_Names}", string.Join(", ", operationNames.Select(n => $"'{n}'")))
+            .Replace("\"{appNames}\"", string.Join(", ", apps.Select(name => $"\"{JsonEncodedText.Encode(name)}\"")))
+            .Replace("\"{operationNames}\"", string.Join(",", operationNames.Select(n => $"\"{n}\"")));
         var minifiedJson = System.Text.Json.Nodes.JsonNode.Parse(json)?.ToJsonString() ?? string.Empty;
 
         string encodedLogsQuery = Uri.EscapeDataString(minifiedJson);
