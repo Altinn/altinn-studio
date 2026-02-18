@@ -10,7 +10,7 @@
     "@microsoft/signalr": "8.0.17",
     "@tanstack/react-query": "5.90.16",
     "@tanstack/react-query-devtools": "5.91.2",
-    "ajv": "8.17.1",
+    "ajv": "8.18.0",
     "ajv-formats": "3.0.1",
     "chart.js": "4.5.0",
     "chartjs-adapter-date-fns": "3.0.0",
