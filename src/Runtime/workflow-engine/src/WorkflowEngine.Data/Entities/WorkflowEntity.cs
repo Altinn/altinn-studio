@@ -48,17 +48,13 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [MaxLength(100)]
     public string? TraceContext { get; set; }
 
+    [Column(TypeName = "jsonb")]
+    public string? MetadataJson { get; set; }
+
     public WorkflowType Type { get; set; }
 
-    public long? ParentWorkflowId { get; set; }
-
-    public WorkflowStartMode StartMode { get; set; }
-
-    public WorkflowEntity? Parent { get; set; }
-
-    public ICollection<WorkflowEntity> Children { get; set; } = [];
-
     public ICollection<StepEntity> Steps { get; set; } = [];
+    public ICollection<WorkflowEntity>? Dependencies { get; set; }
 
     public static WorkflowEntity FromDomainModel(Workflow workflow) =>
         new()
@@ -79,9 +75,9 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             InstanceGuid = workflow.InstanceInformation.InstanceGuid,
             TraceContext = workflow.DistributedTraceContext,
             Type = workflow.Type,
-            ParentWorkflowId = workflow.ParentWorkflowId,
-            StartMode = workflow.StartMode,
+            MetadataJson = workflow.Metadata,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
+            Dependencies = workflow.Dependencies?.Select(FromDomainModel).ToList(),
         };
 
     public Workflow ToDomainModel() =>
@@ -105,8 +101,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             },
             DistributedTraceContext = TraceContext,
             Type = Type,
-            ParentWorkflowId = ParentWorkflowId,
-            StartMode = StartMode,
-            Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(t => t.ToDomainModel(TraceContext)).ToList(),
+            Metadata = MetadataJson,
+            Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(x => x.ToDomainModel()).ToList(),
+            Dependencies = Dependencies?.Select(x => x.ToDomainModel()).ToList(),
         };
 }

@@ -35,7 +35,7 @@ public class EngineEndpointTests
         // Arrange
         var engineMock = new Mock<IEngine>();
         engineMock
-            .Setup(e => e.EnqueueWorkflow(It.IsAny<EngineRequest>(), It.IsAny<CancellationToken>()))
+            .Setup(e => e.EnqueueWorkflow(It.IsAny<WorkflowEnqueueRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(EngineResponse.Accept(123));
 
         // Act
@@ -59,7 +59,7 @@ public class EngineEndpointTests
         // Arrange
         var engineMock = new Mock<IEngine>();
         engineMock
-            .Setup(e => e.EnqueueWorkflow(It.IsAny<EngineRequest>(), It.IsAny<CancellationToken>()))
+            .Setup(e => e.EnqueueWorkflow(It.IsAny<WorkflowEnqueueRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(EngineResponse.Reject(EngineResponse.Rejection.Duplicate, "Duplicate workflow"));
 
         // Act
@@ -81,7 +81,7 @@ public class EngineEndpointTests
         // Arrange
         var engineMock = new Mock<IEngine>();
         engineMock
-            .Setup(e => e.EnqueueWorkflow(It.IsAny<EngineRequest>(), It.IsAny<CancellationToken>()))
+            .Setup(e => e.EnqueueWorkflow(It.IsAny<WorkflowEnqueueRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(EngineResponse.Reject(EngineResponse.Rejection.AtCapacity, "Queue full"));
 
         // Act
@@ -104,7 +104,7 @@ public class EngineEndpointTests
         // Arrange
         var engineMock = new Mock<IEngine>();
         engineMock
-            .Setup(e => e.EnqueueWorkflow(It.IsAny<EngineRequest>(), It.IsAny<CancellationToken>()))
+            .Setup(e => e.EnqueueWorkflow(It.IsAny<WorkflowEnqueueRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(EngineResponse.Reject(EngineResponse.Rejection.Unavailable, "Engine unavailable"));
 
         // Act
@@ -127,7 +127,7 @@ public class EngineEndpointTests
         // Arrange
         var engineMock = new Mock<IEngine>();
         engineMock
-            .Setup(e => e.EnqueueWorkflow(It.IsAny<EngineRequest>(), It.IsAny<CancellationToken>()))
+            .Setup(e => e.EnqueueWorkflow(It.IsAny<WorkflowEnqueueRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(EngineResponse.Reject(EngineResponse.Rejection.Invalid, "Invalid request"));
 
         // Act

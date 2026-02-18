@@ -8,7 +8,7 @@ namespace WorkflowEngine.Api;
 internal partial class Engine
 {
     public async Task<EngineResponse> EnqueueWorkflow(
-        EngineRequest engineRequest,
+        WorkflowEnqueueRequest workflowRequest,
         CancellationToken cancellationToken = default
     )
     {
@@ -16,19 +16,19 @@ internal partial class Engine
             "Engine.EnqueueWorkflow",
             tags:
             [
-                ("request.operation.id", engineRequest.OperationId),
-                ("request.idempotency.key", engineRequest.IdempotencyKey),
-                ("request.actor.id", engineRequest.Actor.UserIdOrOrgNumber),
-                ("request.instance.guid", engineRequest.InstanceInformation.InstanceGuid),
-                ("request.instance.party.id", engineRequest.InstanceInformation.InstanceOwnerPartyId),
+                ("request.operation.id", workflowRequest.OperationId),
+                ("request.idempotency.key", workflowRequest.IdempotencyKey),
+                ("request.actor.id", workflowRequest.Actor.UserIdOrOrgNumber),
+                ("request.instance.guid", workflowRequest.InstanceInformation.InstanceGuid),
+                ("request.instance.party.id", workflowRequest.InstanceInformation.InstanceOwnerPartyId),
                 (
                     "request.instance.app",
-                    $"{engineRequest.InstanceInformation.Org}/{engineRequest.InstanceInformation.App}"
+                    $"{workflowRequest.InstanceInformation.Org}/{workflowRequest.InstanceInformation.App}"
                 ),
             ]
         );
 
-        _logger.EnqueuingWorkflow(engineRequest);
+        _logger.EnqueuingWorkflow(workflowRequest);
 
         if (!CanAcceptNewWork)
         {
@@ -36,27 +36,18 @@ internal partial class Engine
             return EngineResponse.Reject(EngineResponse.Rejection.AtCapacity);
         }
 
-        if (!engineRequest.IsValid())
+        if (!workflowRequest.IsValid())
         {
             activity?.Errored(errorMessage: "Invalid request");
-            return EngineResponse.Reject(EngineResponse.Rejection.Invalid, $"Invalid request: {engineRequest}");
+            return EngineResponse.Reject(EngineResponse.Rejection.Invalid, $"Invalid request: {workflowRequest}");
         }
 
-        if (HasDuplicateWorkflow(engineRequest.IdempotencyKey))
+        if (HasDuplicateWorkflow(workflowRequest.IdempotencyKey))
         {
             activity?.Errored(errorMessage: "Duplicate workflow request");
             return EngineResponse.Reject(
                 EngineResponse.Rejection.Duplicate,
-                "Duplicate request. A job with the same identifier is already being processed"
-            );
-        }
-
-        if (!_concurrencyResolver.CanAccept(engineRequest.Type, engineRequest.InstanceInformation, _inbox.Values))
-        {
-            activity?.Errored(errorMessage: "Concurrency limit reached for this workflow type on this instance");
-            return EngineResponse.Reject(
-                EngineResponse.Rejection.Duplicate,
-                "Concurrency limit reached for this workflow type on this instance"
+                "Duplicate request. A workflow with the same identifier is already being processed"
             );
         }
 
@@ -81,20 +72,32 @@ internal partial class Engine
         }
 
         await AcquireQueueSlot(cancellationToken);
-        long workflowId;
-        using (var scope = _serviceProvider.CreateScope())
+
+        // TODO: Acquire database advisory lock scoped to Workflow.InstanceInformation
+
+        using var scope = _serviceProvider.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+
+        if (!_concurrencyResolver.CanAcceptWorkflow(workflowRequest, repository))
         {
-            var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-            var workflow = await repository.AddWorkflow(engineRequest, cancellationToken: cancellationToken);
-            _inbox[engineRequest.IdempotencyKey] = workflow;
-            workflowId = workflow.DatabaseId;
+            activity?.Errored(errorMessage: "Concurrency limit reached for this workflow type on this instance");
+            return EngineResponse.Reject(
+                EngineResponse.Rejection.Duplicate,
+                "Concurrency limit reached for this workflow type on this instance"
+            );
         }
+
+        var workflow = await repository.AddWorkflow(workflowRequest, cancellationToken: cancellationToken);
+
+        // TODO: Release database lock
+
+        _inbox[workflow.IdempotencyKey] = workflow;
         _newWorkSignal.TrySetResult();
 
         Metrics.WorkflowRequestsAccepted.Add(1);
-        Metrics.StepRequestsAccepted.Add(engineRequest.Steps.Count());
+        Metrics.StepRequestsAccepted.Add(workflowRequest.Steps.Count());
 
-        return EngineResponse.Accept(workflowId);
+        return EngineResponse.Accept(workflow.DatabaseId);
     }
 
     public bool HasDuplicateWorkflow(string jobIdentifier)

@@ -85,7 +85,7 @@ public class WorkflowTests
         var startAt = createdAt.AddMinutes(10);
         var traceContext = "trace-context-123";
 
-        var request = new EngineRequest(
+        var request = new WorkflowEnqueueRequest(
             "idempotency-key-1",
             "next",
             instanceInfo,
@@ -93,15 +93,13 @@ public class WorkflowTests
             createdAt,
             startAt,
             steps,
-            traceContext,
-            "lock-key-1",
             WorkflowType.AppProcessChange,
-            77,
-            WorkflowStartMode.Scheduled
+            traceContext,
+            "lock-key-1"
         );
 
         // Act
-        var workflow = Workflow.FromRequest(request);
+        var workflow = Workflow.FromRequest(request, dependencies: null);
 
         // Assert — Workflow fields
         Assert.Equal("idempotency-key-1", workflow.IdempotencyKey);
@@ -114,8 +112,7 @@ public class WorkflowTests
         Assert.Equal("lock-key-1", workflow.InstanceLockKey);
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Status);
         Assert.Equal(WorkflowType.AppProcessChange, workflow.Type);
-        Assert.Equal(77, workflow.ParentWorkflowId);
-        Assert.Equal(WorkflowStartMode.Scheduled, workflow.StartMode);
+        Assert.Null(workflow.Dependencies);
 
         // Assert — Steps are created with correct count and ordering
         Assert.Equal(2, workflow.Steps.Count);
@@ -133,7 +130,7 @@ public class WorkflowTests
     public void FromRequest_MapsNullOptionalFields()
     {
         // Arrange
-        var request = new EngineRequest(
+        var request = new WorkflowEnqueueRequest(
             "key-1",
             "op-1",
             new InstanceInformation
@@ -147,19 +144,17 @@ public class WorkflowTests
             DateTimeOffset.UtcNow,
             null, // StartAt
             [new StepRequest { Command = new Command.Debug.Noop() }],
-            null, // TraceContext
-            null // InstanceLockKey
+            WorkflowType.Generic
         );
 
         // Act
-        var workflow = Workflow.FromRequest(request);
+        var workflow = Workflow.FromRequest(request, dependencies: null);
 
         // Assert
         Assert.Null(workflow.StartAt);
         Assert.Null(workflow.DistributedTraceContext);
         Assert.Null(workflow.InstanceLockKey);
         Assert.Equal(WorkflowType.Generic, workflow.Type);
-        Assert.Null(workflow.ParentWorkflowId);
-        Assert.Equal(WorkflowStartMode.Immediate, workflow.StartMode);
+        Assert.Null(workflow.Dependencies);
     }
 }

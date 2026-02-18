@@ -65,7 +65,7 @@ public class StepTests
         var retryStrategy = RetryStrategy.Exponential(baseInterval: TimeSpan.FromSeconds(2));
         var createdAt = DateTimeOffset.UtcNow;
 
-        var parentRequest = new EngineRequest(
+        var parentRequest = new WorkflowEnqueueRequest(
             "parent-key",
             "next",
             new InstanceInformation
@@ -78,7 +78,8 @@ public class StepTests
             actor,
             createdAt,
             null,
-            []
+            [],
+            WorkflowType.Generic
         );
 
         var stepRequest = new StepRequest { Command = command, RetryStrategy = retryStrategy };
@@ -103,7 +104,7 @@ public class StepTests
     {
         // Arrange
         var parentActor = new Actor { UserIdOrOrgNumber = "parent-user" };
-        var parentRequest = new EngineRequest(
+        var parentRequest = new WorkflowEnqueueRequest(
             "key-1",
             "op-1",
             new InstanceInformation
@@ -116,7 +117,8 @@ public class StepTests
             parentActor,
             DateTimeOffset.UtcNow,
             null,
-            []
+            [],
+            WorkflowType.Generic
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
@@ -132,7 +134,7 @@ public class StepTests
     public void FromRequest_DefaultsOptionalFieldsCorrectly()
     {
         // Arrange
-        var parentRequest = new EngineRequest(
+        var parentRequest = new WorkflowEnqueueRequest(
             "key-1",
             "op-1",
             new InstanceInformation
@@ -145,7 +147,8 @@ public class StepTests
             new Actor { UserIdOrOrgNumber = "user-1" },
             DateTimeOffset.UtcNow,
             null,
-            []
+            [],
+            WorkflowType.Generic
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };

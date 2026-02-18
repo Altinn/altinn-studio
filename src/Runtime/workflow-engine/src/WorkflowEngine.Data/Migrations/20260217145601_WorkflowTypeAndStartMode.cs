@@ -14,26 +14,30 @@ namespace WorkflowEngine.Data.Migrations
                 name: "ParentWorkflowId",
                 table: "Workflows",
                 type: "bigint",
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.AddColumn<int>(
                 name: "StartMode",
                 table: "Workflows",
                 type: "integer",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 0
+            );
 
             migrationBuilder.AddColumn<int>(
                 name: "Type",
                 table: "Workflows",
                 type: "integer",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 0
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workflows_ParentWorkflowId",
                 table: "Workflows",
-                column: "ParentWorkflowId");
+                column: "ParentWorkflowId"
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Workflows_Workflows_ParentWorkflowId",
@@ -41,31 +45,22 @@ namespace WorkflowEngine.Data.Migrations
                 column: "ParentWorkflowId",
                 principalTable: "Workflows",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
+                onDelete: ReferentialAction.SetNull
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Workflows_Workflows_ParentWorkflowId",
-                table: "Workflows");
+            migrationBuilder.DropForeignKey(name: "FK_Workflows_Workflows_ParentWorkflowId", table: "Workflows");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Workflows_ParentWorkflowId",
-                table: "Workflows");
+            migrationBuilder.DropIndex(name: "IX_Workflows_ParentWorkflowId", table: "Workflows");
 
-            migrationBuilder.DropColumn(
-                name: "ParentWorkflowId",
-                table: "Workflows");
+            migrationBuilder.DropColumn(name: "ParentWorkflowId", table: "Workflows");
 
-            migrationBuilder.DropColumn(
-                name: "StartMode",
-                table: "Workflows");
+            migrationBuilder.DropColumn(name: "StartMode", table: "Workflows");
 
-            migrationBuilder.DropColumn(
-                name: "Type",
-                table: "Workflows");
+            migrationBuilder.DropColumn(name: "Type", table: "Workflows");
         }
     }
 }

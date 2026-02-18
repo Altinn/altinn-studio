@@ -38,9 +38,17 @@ public interface IEngineRepository
     Task<int> CountFailedWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the status of a workflow by its database ID, or null if not found.
+    /// </summary>
+    Task<PersistentItemStatus?> GetWorkflowStatus(long workflowId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Adds a new workflow to the repository.
     /// </summary>
-    Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default);
+    Task<Workflow> AddWorkflow(
+        WorkflowEnqueueRequest workflowEnqueueRequest,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Updates a workflow in the repository.

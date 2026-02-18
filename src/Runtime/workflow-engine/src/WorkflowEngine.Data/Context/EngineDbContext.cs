@@ -22,20 +22,6 @@ internal sealed class EngineDbContext : DbContext
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.IdempotencyKey);
-            entity.HasIndex(e => new
-            {
-                e.InstanceOrg,
-                e.InstanceApp,
-                e.InstanceGuid,
-            });
-            entity.HasIndex(e => e.ParentWorkflowId);
-
-            // Self-referencing relationship
-            entity
-                .HasOne(e => e.Parent)
-                .WithMany(e => e.Children)
-                .HasForeignKey(e => e.ParentWorkflowId)
-                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure Step entity

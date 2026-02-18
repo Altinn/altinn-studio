@@ -21,9 +21,23 @@ internal interface IEngine
     bool CanAcceptNewWork { get; }
     Task Start(CancellationToken cancellationToken = default);
     Task Stop();
-    Task<EngineResponse> EnqueueWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default);
+    Task<EngineResponse> EnqueueWorkflow(
+        WorkflowEnqueueRequest workflowRequest,
+        CancellationToken cancellationToken = default
+    );
     bool HasDuplicateWorkflow(string jobIdentifier);
     Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation);
+}
+
+public sealed record WorkflowStatusTracker(long DatabaseId, PersistentItemStatus Status)
+{
+    public override int GetHashCode() => DatabaseId.GetHashCode();
+
+    public bool Equals(WorkflowStatusTracker? other) => other?.DatabaseId == DatabaseId;
+
+    public static implicit operator WorkflowStatusTracker(Workflow workflow) => FromWorkflow(workflow);
+
+    public static WorkflowStatusTracker FromWorkflow(Workflow workflow) => new(workflow.DatabaseId, workflow.Status);
 }
 
 internal partial class Engine : IEngine, IDisposable
@@ -44,6 +58,8 @@ internal partial class Engine : IEngine, IDisposable
     private ConcurrentDictionary<string, Workflow> _inbox;
     private HashSet<Workflow> _activeSet;
     private readonly Lock _activeSetLock = new();
+    private HashSet<WorkflowStatusTracker> _statusTrackers;
+    private readonly Lock _statusTrackersLock = new();
     private CancellationTokenSource? _cancellationTokenSource;
     private Task? _mainLoopTask;
     private SemaphoreSlim _inboxCapacityLimit;
@@ -203,14 +219,14 @@ internal partial class Engine : IEngine, IDisposable
                     if (workflow.ExecutionStartedAt is null)
                     {
                         RecordWorkflowQueueTime(workflow);
+                        UpdateWorkflowStatusAndTracker(workflow, PersistentItemStatus.Processing);
                         workflow.ExecutionStartedAt = _timeProvider.GetUtcNow();
-                        workflow.Status = PersistentItemStatus.Processing;
                         workflow.DatabaseTask = UpdateWorkflowInDb(workflow, cancellationToken); // Background
                     }
 
                     // Process steps and update overall status
                     var processingStatus = await ProcessSteps(workflow, cancellationToken);
-                    workflow.Status = workflow.OverallStatus();
+                    UpdateWorkflowStatusAndTracker(workflow, workflow.OverallStatus());
 
                     // If we're still processing the db task at this point, we have to return early while we wait
                     if (workflow.DatabaseTask is not null)

@@ -4,8 +4,11 @@ namespace WorkflowEngine.Api;
 
 internal static partial class EngineLogs
 {
-    [LoggerMessage(LogLevel.Debug, "Enqueuing workflow request {engineRequest}")]
-    internal static partial void EnqueuingWorkflow(this ILogger<Engine> logger, EngineRequest engineRequest);
+    [LoggerMessage(LogLevel.Debug, "Enqueuing workflow request {workflowEnqueueRequest}")]
+    internal static partial void EnqueuingWorkflow(
+        this ILogger<Engine> logger,
+        WorkflowEnqueueRequest workflowEnqueueRequest
+    );
 
     [LoggerMessage(LogLevel.Debug, "Restored workflow {WorkflowIdentifier} from database")]
     internal static partial void RestoredWorkflowFromDb(this ILogger<Engine> logger, string workflowIdentifier);

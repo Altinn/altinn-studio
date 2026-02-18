@@ -19,7 +19,12 @@ public sealed record Step : PersistentItem
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
     internal bool HasPendingChanges { get; set; }
 
-    public static Step FromRequest(EngineRequest parent, StepRequest request, DateTimeOffset createdAt, int index) =>
+    public static Step FromRequest(
+        WorkflowEnqueueRequest parent,
+        StepRequest request,
+        DateTimeOffset createdAt,
+        int index
+    ) =>
         new()
         {
             DatabaseId = 0,
@@ -30,6 +35,7 @@ public sealed record Step : PersistentItem
             ProcessingOrder = index,
             Command = request.Command,
             RetryStrategy = request.RetryStrategy,
+            Metadata = request.Metadata,
         };
 
     public override string ToString() => $"[{nameof(Step)}.{Command.GetType().Name}] {IdempotencyKey} ({Status})";

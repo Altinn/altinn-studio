@@ -1,24 +1,41 @@
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Api;
 
+internal interface IWorkflowConcurrencyResolver
+{
+    bool CanAcceptWorkflow(WorkflowEnqueueRequest workflow, IEngineRepository repository);
+}
+
 internal class WorkflowConcurrencyResolver : IWorkflowConcurrencyResolver
 {
-    public bool CanAccept(WorkflowType type, InstanceInformation instance, IEnumerable<Workflow> existingWorkflows)
+    public bool CanAcceptWorkflow(WorkflowEnqueueRequest workflow, IEngineRepository repository)
     {
-        var maxConcurrent = GetMaxConcurrent(type);
-        if (maxConcurrent is null)
+        var concurrencyLimit = workflow.Type switch
+        {
+            WorkflowType.AppProcessChange => ConcurrencyLimit.Single,
+            _ => ConcurrencyLimit.Infinite,
+        };
+
+        if (concurrencyLimit == ConcurrencyLimit.Infinite)
             return true;
 
-        var activeCount = existingWorkflows.Count(w => w.Type == type && w.InstanceInformation == instance);
+        // TODO: Run stored postgres proc and return result
 
-        return activeCount < maxConcurrent;
+        // Rules:
+        // - At most ONE workflow of this type can execute at any given time
+        // - If we have a workflow of this type currently processing, we can allow at most ONE dependent workflow
+        //   of the same type to be added
+        // - Dependent workflows must resolve to the same execution graph as the currently processing one, meaning
+        //   the new workflow must have the other one as an ancestor -- as opposed to parallel branches on the family tree
+
+        throw new NotImplementedException();
     }
 
-    private static int? GetMaxConcurrent(WorkflowType type) =>
-        type switch
-        {
-            WorkflowType.AppProcessChange => 1,
-            _ => null,
-        };
+    private enum ConcurrencyLimit
+    {
+        Single,
+        Infinite,
+    }
 }

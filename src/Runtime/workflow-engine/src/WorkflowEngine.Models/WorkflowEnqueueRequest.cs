@@ -1,18 +1,21 @@
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// A request to enqueue one or more task in the process engine.
+/// A request to enqueue a workflow for execution by the engine.
 /// </summary>
-/// <param name="IdempotencyKey">The job identifier. A unique keyword describing the job.</param>
+/// <param name="IdempotencyKey">The workflow identifier. A unique keyword describing the job.</param>
 /// <param name="OperationId">An identifier for this operation (eg. 'next').</param>
-/// <param name="InstanceInformation">Information about the instance this job relates to.</param>
+/// <param name="InstanceInformation">Information about the instance this workflow relates to.</param>
 /// <param name="Actor">The actor this request is executed on behalf of.</param>
 /// <param name="CreatedAt">The time this request was created (eg. now).</param>
 /// <param name="StartAt">An optional start time for when the workflow should be executed.</param>
-/// <param name="Steps">The individual steps comprising this job.</param>
+/// <param name="Steps">The individual steps comprising this workflow.</param>
 /// <param name="TraceContext">The trace context for distributed tracing.</param>
 /// <param name="InstanceLockKey">The lock key for the instance.</param>
-public record EngineRequest(
+/// <param name="Metadata">Optional metadata for the request. Expects JSON string.</param>
+/// <param name="Type">The type of workflow this request is for.</param>
+/// <param name="Dependencies">Optional workflow IDs that must be completed before this request can be executed.</param>
+public sealed record WorkflowEnqueueRequest(
     string IdempotencyKey,
     string OperationId,
     InstanceInformation InstanceInformation,
@@ -20,11 +23,11 @@ public record EngineRequest(
     DateTimeOffset CreatedAt,
     DateTimeOffset? StartAt,
     IEnumerable<StepRequest> Steps,
+    WorkflowType Type,
     string? TraceContext = null,
     string? InstanceLockKey = null,
-    WorkflowType Type = WorkflowType.Generic,
-    long? ParentWorkflowId = null,
-    WorkflowStartMode StartMode = WorkflowStartMode.Immediate
+    string? Metadata = null,
+    IEnumerable<long>? Dependencies = null
 )
 {
     /// <summary>

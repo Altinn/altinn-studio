@@ -39,36 +39,33 @@ public sealed record ProcessNextRequest
     public DateTimeOffset? StartAt { get; init; }
 
     /// <summary>
+    /// Optional metadata associated with this request. Expects JSON string.
+    /// </summary>
+    [JsonPropertyName("metadata")]
+    public string? Metadata { get; init; }
+
+    /// <summary>
+    /// Optional dependencies for this request. The workflow will not be executed until all dependencies have completed.
+    /// </summary>
+    /// <remarks>
+    /// Expects a list of workflow database IDs.
+    /// </remarks>
+    [JsonPropertyName("dependencies")]
+    public IEnumerable<long>? Dependencies { get; init; }
+
+    /// <summary>
     /// Workflow steps associated with this request.
     /// </summary>
     [JsonPropertyName("steps")]
     public required IEnumerable<StepRequest> Steps { get; init; }
 
     /// <summary>
-    /// The type of workflow.
-    /// </summary>
-    [JsonPropertyName("type")]
-    public WorkflowType Type { get; init; } = WorkflowType.Generic;
-
-    /// <summary>
-    /// The optional parent workflow ID, for hierarchical workflow chains.
-    /// </summary>
-    [JsonPropertyName("parentWorkflowId")]
-    public long? ParentWorkflowId { get; init; }
-
-    /// <summary>
-    /// The start mode for the workflow.
-    /// </summary>
-    [JsonPropertyName("startMode")]
-    public WorkflowStartMode StartMode { get; init; } = WorkflowStartMode.Immediate;
-
-    /// <summary>
-    /// Converts this request to an <see cref="EngineRequest"/> with the provided instance information.
+    /// Converts this request to an <see cref="WorkflowEnqueueRequest"/> with the provided instance information.
     /// </summary>
     /// <param name="instanceInformation">The instance information.</param>
     /// <param name="createdAt">The creation time of the request (eg. now).</param>
     /// <param name="traceContext">The trace context, if available.</param>
-    public EngineRequest ToEngineRequest(
+    public WorkflowEnqueueRequest ToEngineRequest(
         InstanceInformation instanceInformation,
         DateTimeOffset createdAt,
         string? traceContext
@@ -81,10 +78,9 @@ public sealed record ProcessNextRequest
             createdAt,
             StartAt,
             Steps,
+            WorkflowType.AppProcessChange,
             traceContext,
             LockToken,
-            Type,
-            ParentWorkflowId,
-            StartMode
+            Metadata
         );
 };

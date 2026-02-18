@@ -1,12 +1,12 @@
 namespace WorkflowEngine.Models.Tests;
 
-public class EngineRequestTests
+public class WorkflowEnqueueRequestTests
 {
     [Fact]
     public void IsValid_ReturnsTrue_WhenStepsArePresent()
     {
         // Arrange
-        var request = new EngineRequest(
+        var request = new WorkflowEnqueueRequest(
             "key-1",
             "op-1",
             new InstanceInformation
@@ -19,7 +19,8 @@ public class EngineRequestTests
             new Actor { UserIdOrOrgNumber = "user-1" },
             DateTimeOffset.UtcNow,
             null,
-            [new StepRequest { Command = new Command.Debug.Noop() }]
+            [new StepRequest { Command = new Command.Debug.Noop() }],
+            WorkflowType.Generic
         );
 
         // Act
@@ -33,7 +34,7 @@ public class EngineRequestTests
     public void IsValid_ReturnsFalse_WhenStepsAreEmpty()
     {
         // Arrange
-        var request = new EngineRequest(
+        var request = new WorkflowEnqueueRequest(
             "key-1",
             "op-1",
             new InstanceInformation
@@ -46,7 +47,8 @@ public class EngineRequestTests
             new Actor { UserIdOrOrgNumber = "user-1" },
             DateTimeOffset.UtcNow,
             null,
-            []
+            [],
+            WorkflowType.Generic
         );
 
         // Act

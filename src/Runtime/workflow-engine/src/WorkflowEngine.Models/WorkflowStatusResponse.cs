@@ -22,18 +22,11 @@ public sealed record WorkflowStatusResponse
     public required WorkflowType Type { get; init; }
 
     /// <summary>
-    /// The optional parent workflow ID.
+    /// Optional dependencies for this workflow, presented as a dictionary of workflow ID and corresponding processing status.
     /// </summary>
-    [JsonPropertyName("parentWorkflowId")]
+    [JsonPropertyName("dependencies")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public long? ParentWorkflowId { get; init; }
-
-    /// <summary>
-    /// The start mode for the workflow.
-    /// </summary>
-    [JsonPropertyName("startMode")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required WorkflowStartMode StartMode { get; init; }
+    public IReadOnlyDictionary<long, PersistentItemStatus>? Dependencies { get; init; }
 
     /// <summary>
     /// Details about each step in the workflow.
@@ -46,8 +39,7 @@ public sealed record WorkflowStatusResponse
         {
             OverallStatus = workflow.Status,
             Type = workflow.Type,
-            ParentWorkflowId = workflow.ParentWorkflowId,
-            StartMode = workflow.StartMode,
+            Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Steps = workflow.Steps.Select(StepDetail.FromStep).ToList(),
         };
 }

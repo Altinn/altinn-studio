@@ -10,7 +10,7 @@ public abstract record PersistentItem
     public PersistentItemStatus Status { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; internal set; }
-    public string? DistributedTraceContext { get; set; }
+    public string? Metadata { get; init; }
 
     internal Activity? EngineActivity { get; set; }
 }

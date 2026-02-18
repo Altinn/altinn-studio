@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Extensions;
 using WorkflowEngine.Resilience.Models;
@@ -206,24 +207,72 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default)
+    public async Task<PersistentItemStatus?> GetWorkflowStatus(
+        long workflowId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetWorkflowStatus");
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            var entity = await _context
+                .Workflows.Where(w => w.Id == workflowId)
+                .Select(w => new { w.Status })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return entity?.Status;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<Workflow> AddWorkflow(
+        WorkflowEnqueueRequest workflowEnqueueRequest,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.AddWorkflow");
         using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
-            _logger.AddingWorkflow(engineRequest);
+            _logger.AddingWorkflow(workflowEnqueueRequest);
 
-            var workflow = Workflow.FromRequest(engineRequest);
+            // Resolve and validate dependencies
+            IReadOnlyList<Workflow>? dependencies = null;
+            if (workflowEnqueueRequest.Dependencies?.Any() is true)
+            {
+                var dependencyEntities = await _context
+                    .Workflows.Where(x => workflowEnqueueRequest.Dependencies.Contains(x.Id))
+                    .ToListAsync(cancellationToken);
+
+                if (dependencyEntities.Count != workflowEnqueueRequest.Dependencies.Count())
+                    throw new EngineDbException(
+                        $"Not all specified Workflow dependencies could be found in the database: {string.Join(", ", workflowEnqueueRequest.Dependencies)}"
+                    );
+
+                dependencies = dependencyEntities.Select(x => x.ToDomainModel()).ToList();
+            }
+
+            // Add workflow to database
+            var workflow = Workflow.FromRequest(workflowEnqueueRequest, dependencies: dependencies);
             var entity = WorkflowEntity.FromDomainModel(workflow);
-            var dbRecord = _context.Workflows.Add(entity);
-            await _context.SaveChangesAsync(cancellationToken);
-            var result = dbRecord.Entity.ToDomainModel();
+            var dbRecord = await _context.Workflows.AddAsync(entity, cancellationToken);
 
             _logger.SuccessfullyAddedWorkflow(workflow);
 
-            return result; // Result contains updated `Id`
+            return dbRecord.Entity.ToDomainModel(); // Contains updated `Id`
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -491,14 +540,14 @@ internal static class EnginePgRepositoryQueries
         public IQueryable<WorkflowEntity> GetActiveWorkflows() =>
             dbContext
                 .Workflows.Include(j => j.Steps)
-                .Include(j => j.Parent)
+                .Include(j => j.Dependencies)
                 .Where(x => x.StartAt == null || x.StartAt <= DateTime.UtcNow)
                 .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows() =>
             dbContext
                 .Workflows.Include(j => j.Steps)
-                .Include(j => j.Parent)
+                .Include(j => j.Dependencies)
                 .Where(x => x.StartAt == null || x.StartAt <= DateTime.UtcNow)
                 .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
 
@@ -513,8 +562,7 @@ internal static class EnginePgRepositoryQueries
 
     extension(IQueryable<StepEntity> entityQuery)
     {
-        public IQueryable<Step> ToDomainModel(string? traceContext) =>
-            entityQuery.Select(x => x.ToDomainModel(traceContext));
+        public IQueryable<Step> ToDomainModel() => entityQuery.Select(x => x.ToDomainModel());
     }
 }
 
@@ -542,8 +590,11 @@ internal static partial class EnginePgRepositoryLogs
         Exception ex
     );
 
-    [LoggerMessage(LogLevel.Debug, "Adding workflow to database: {engineRequest}")]
-    internal static partial void AddingWorkflow(this ILogger<EnginePgRepository> logger, EngineRequest engineRequest);
+    [LoggerMessage(LogLevel.Debug, "Adding workflow to database: {workflowEnqueueRequest}")]
+    internal static partial void AddingWorkflow(
+        this ILogger<EnginePgRepository> logger,
+        WorkflowEnqueueRequest workflowEnqueueRequest
+    );
 
     [LoggerMessage(LogLevel.Debug, "Successfully added workflow to database: {Workflow}")]
     internal static partial void SuccessfullyAddedWorkflow(this ILogger<EnginePgRepository> logger, Workflow workflow);

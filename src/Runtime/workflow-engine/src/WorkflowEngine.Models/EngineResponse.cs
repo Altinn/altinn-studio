@@ -1,7 +1,7 @@
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// The response from the process engine for a <see cref="EngineRequest"/>.
+/// The response from the process engine for a <see cref="WorkflowEnqueueRequest"/>.
 /// </summary>
 public abstract record EngineResponse
 {

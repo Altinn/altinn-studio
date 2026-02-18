@@ -58,17 +58,10 @@ public static class WorkflowExtensions
         /// </summary>
         public bool IsReadyForExecution(DateTimeOffset now)
         {
-            bool startConditionMet = workflow.StartMode switch
-            {
-                WorkflowStartMode.Immediate => true,
-                WorkflowStartMode.Scheduled => workflow.StartAt is null || workflow.StartAt <= now,
+            if (workflow.StartAt > now)
+                return false;
 
-                // TODO: How do we resolve this?
-                WorkflowStartMode.AfterParent => false, // Cannot determine from workflow alone
-                _ => true,
-            };
-
-            if (!startConditionMet)
+            if (workflow.Dependencies?.Any(x => x.Status != PersistentItemStatus.Completed) is true)
                 return false;
 
             return workflow.OrderedIncompleteSteps().FirstOrDefault()?.IsReadyForExecution(now) ?? true;

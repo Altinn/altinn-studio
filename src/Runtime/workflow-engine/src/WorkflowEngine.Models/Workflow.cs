@@ -8,28 +8,32 @@ public sealed record Workflow : PersistentItem
     public DateTimeOffset? StartAt { get; init; }
     public required IReadOnlyList<Step> Steps { get; init; }
     public WorkflowType Type { get; init; }
-    public long? ParentWorkflowId { get; init; }
-    public WorkflowStartMode StartMode { get; init; }
+    public string? DistributedTraceContext { get; set; }
+    public IEnumerable<Workflow>? Dependencies { get; init; }
 
     internal Task? DatabaseTask { get; set; }
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
 
-    public static Workflow FromRequest(EngineRequest engineRequest) =>
+    public static Workflow FromRequest(
+        WorkflowEnqueueRequest workflowEnqueueRequest,
+        IEnumerable<Workflow>? dependencies
+    ) =>
         new()
         {
-            IdempotencyKey = engineRequest.IdempotencyKey,
-            InstanceLockKey = engineRequest.InstanceLockKey,
-            InstanceInformation = engineRequest.InstanceInformation,
-            Actor = engineRequest.Actor,
-            CreatedAt = engineRequest.CreatedAt,
-            StartAt = engineRequest.StartAt,
-            DistributedTraceContext = engineRequest.TraceContext,
-            OperationId = engineRequest.OperationId,
-            Type = engineRequest.Type,
-            ParentWorkflowId = engineRequest.ParentWorkflowId,
-            StartMode = engineRequest.StartMode,
-            Steps = engineRequest
-                .Steps.Select((step, i) => Step.FromRequest(engineRequest, step, engineRequest.CreatedAt, i))
+            IdempotencyKey = workflowEnqueueRequest.IdempotencyKey,
+            InstanceLockKey = workflowEnqueueRequest.InstanceLockKey,
+            InstanceInformation = workflowEnqueueRequest.InstanceInformation,
+            Actor = workflowEnqueueRequest.Actor,
+            CreatedAt = workflowEnqueueRequest.CreatedAt,
+            StartAt = workflowEnqueueRequest.StartAt,
+            DistributedTraceContext = workflowEnqueueRequest.TraceContext,
+            OperationId = workflowEnqueueRequest.OperationId,
+            Type = workflowEnqueueRequest.Type,
+            Dependencies = dependencies,
+            Steps = workflowEnqueueRequest
+                .Steps.Select(
+                    (step, i) => Step.FromRequest(workflowEnqueueRequest, step, workflowEnqueueRequest.CreatedAt, i)
+                )
                 .ToList(),
         };
 

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
@@ -136,6 +137,8 @@ internal partial class Engine
             }
         }
 
+        UpdateWorkflowStatusAndTracker(workflow, workflow.Status);
+
         _inboxCapacityLimit.Release();
 
         if (workflow.OverallStatus().IsSuccessful())
@@ -144,11 +147,29 @@ internal partial class Engine
             Metrics.WorkflowsFailed.Add(1);
     }
 
-    [MemberNotNull(nameof(_inbox), nameof(_activeSet), nameof(_inboxCapacityLimit), nameof(_newWorkSignal))]
+    // TODO: Need to drop unused items periodically
+    private void UpdateWorkflowStatusAndTracker(Workflow workflow, PersistentItemStatus status)
+    {
+        workflow.Status = status;
+
+        lock (_statusTrackersLock)
+        {
+            _statusTrackers.AddOrUpdate(workflow);
+        }
+    }
+
+    [MemberNotNull(
+        nameof(_inbox),
+        nameof(_activeSet),
+        nameof(_statusTrackers),
+        nameof(_inboxCapacityLimit),
+        nameof(_newWorkSignal)
+    )]
     private void InitializeInbox()
     {
         _inbox = [];
         _activeSet = [];
+        _statusTrackers = [];
         _inboxCapacityLimit = new SemaphoreSlim(_settings.QueueCapacity, _settings.QueueCapacity);
         Interlocked.Exchange(
             ref _newWorkSignal,
@@ -174,6 +195,7 @@ internal partial class Engine
 
             _inbox.Clear();
             _activeSet.Clear();
+            _statusTrackers.Clear();
             _inboxCapacityLimit.Dispose();
 
             InitializeInbox();

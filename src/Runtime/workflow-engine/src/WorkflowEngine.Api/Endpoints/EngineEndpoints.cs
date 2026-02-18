@@ -101,5 +101,3 @@ internal readonly struct InstanceRouteParams
             InstanceGuid = routeParams.InstanceGuid,
         };
 }
-
-internal sealed record WorkflowAcceptedResponse(long WorkflowId);
