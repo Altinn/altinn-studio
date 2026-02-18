@@ -29,12 +29,15 @@ internal static class GatewayExtensions
         });
 
         builder.Services.AddSingleton(TimeProvider.System);
-        builder.Configuration.AddJsonFile(
-            "/app/secrets/maskinporten-client-for-designer.json",
-            optional: true,
-            reloadOnChange: true
-        );
-        builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: true, reloadOnChange: true);
+        if (!builder.Environment.IsDevelopment())
+        {
+            builder.Configuration.AddJsonFile(
+                "/app/secrets/maskinporten-client-for-designer.json",
+                optional: true,
+                reloadOnChange: true
+            );
+            builder.Configuration.AddJsonFile("/app/secrets/grafana-token.json", optional: true, reloadOnChange: true);
+        }
         var environment = builder.Configuration.GetSection("Gateway").GetValue<string>("Environment") ?? "";
         var hasGrafanaInstance = AltinnEnvironments.IsProd(environment) || AltinnEnvironments.IsTT02(environment);
 
