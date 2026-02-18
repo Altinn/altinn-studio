@@ -1,8 +1,8 @@
 import React from 'react';
-import { type ValidateConfigState } from './ValidateNavigationTypes';
+import { type ValidateConfigState } from '../utils/ValidateNavigationTypes';
 import { ValidateRuleConfig } from './ValidateRuleConfig';
 import { PagesSelector, TaskSelector, TasksSelector } from './ValidateTargetSelectors';
-import { Scope } from './ValidateNavigationUtils';
+import { Scope } from '../utils/ValidateNavigationUtils';
 
 export type ValidateCardContentProps = {
   scope: Scope;

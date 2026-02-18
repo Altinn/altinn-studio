@@ -2,8 +2,9 @@ import React from 'react';
 import { StudioHeading, StudioParagraph } from '@studio/components';
 import classes from './ValidateNavigation.module.css';
 import { useTranslation } from 'react-i18next';
-import { ValidateNavigationConfig } from './ValidateNavigationConfig';
-import { Scope } from './ValidateNavigationUtils';
+import { ValidateAllTasksConfig } from './TargetVariants/ValidateAllTasksConfig';
+import { ValidateSelectedPagesConfig } from './TargetVariants/ValidateSelectedPagesConfig';
+import { ValidateSelectedTasksConfig } from './TargetVariants/ValidateSelectedTasksConfig';
 
 export const ValidateNavigation = () => {
   const { t } = useTranslation();
@@ -25,10 +26,7 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_all_tasks_description')}
         </StudioParagraph>
-        <ValidateNavigationConfig
-          propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
-          scope={Scope.AllTasks}
-        />
+        <ValidateAllTasksConfig />
       </div>
       <div>
         <StudioHeading level={4} data-size='2xs'>
@@ -37,10 +35,7 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_specific_task_description')}
         </StudioParagraph>
-        <ValidateNavigationConfig
-          propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
-          scope={Scope.SelectedTasks}
-        />
+        <ValidateSelectedTasksConfig />
       </div>
       <div>
         <StudioHeading level={4} data-size='2xs'>
@@ -49,10 +44,7 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_specific_page_description')}
         </StudioParagraph>
-        <ValidateNavigationConfig
-          propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
-          scope={Scope.SelectedPages}
-        />
+        <ValidateSelectedPagesConfig />
       </div>
     </div>
   );

@@ -1,60 +1,74 @@
 import React, { useState } from 'react';
 import { StudioConfigCard, StudioProperty } from '@studio/components';
-import type { Scope } from './ValidateNavigationUtils';
+import { type Scope, getCardLabel, getDefaultConfig } from './utils/ValidateNavigationUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './ValidateNavigationConfig.module.css';
-import { ValidateCardContent } from './ValidateCardContent';
-import type { ValidateConfigState } from './ValidateNavigationTypes';
-import { getCardLabel, getDefaultConfig } from './ValidateNavigationUtils';
+import { ValidateCardContent } from './ValidateCardContent/ValidateCardContent';
+import type { ValidateConfigState } from './utils/ValidateNavigationTypes';
+import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks';
 
 export type ValidateNavigationConfigProps = {
   propertyLabel: string;
   scope: Scope;
+  config?: ValidateConfigState;
+  onSave: (config: ValidateConfigState) => void;
 };
 
 export const ValidateNavigationConfig = ({
   propertyLabel,
   scope,
+  config,
+  onSave,
 }: ValidateNavigationConfigProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
+
+  const enumValue = useComponentPropertyEnumValue();
+
+  const valueToDisplay = config
+    ? `Varianter: ${config?.types.map((type) => enumValue(type.label)).join(', ') || ''}. Omfang: ${enumValue(config?.pageScope?.label) || ''}`
+    : null;
 
   if (!isEditMode) {
     return (
       <StudioProperty.Button
         onClick={() => setIsEditMode(true)}
         property={propertyLabel}
-        value={null} // For now left as null since we don't have a real config object, will replace with actual config in next PR
+        value={valueToDisplay}
         className={classes.configWrapper}
       />
     );
   }
 
-  return <ValidateCard scope={scope} setIsEditMode={setIsEditMode} />;
+  return (
+    <ValidateCard scope={scope} config={config} setIsEditMode={setIsEditMode} onSave={onSave} />
+  );
 };
 
 type ValidateCardProps = {
   scope: Scope;
+  config?: ValidateConfigState;
   setIsEditMode: (isEditMode: boolean) => void;
+  onSave: (config: ValidateConfigState) => void; // This will be used in next PR when we implement actual save logic
 };
 
-const ValidateCard = ({ scope, setIsEditMode }: ValidateCardProps) => {
-  const getConfig = null; // Placeholder for function that would get the actual config based on scope, will implement in next PR
+const ValidateCard = ({ scope, config, setIsEditMode, onSave }: ValidateCardProps) => {
   const { t } = useTranslation();
-  const [config, setConfig] = useState<ValidateConfigState>(getConfig || getDefaultConfig(scope));
+  const [currentConfig, setCurrentConfig] = useState<ValidateConfigState>(
+    config || getDefaultConfig(scope),
+  );
 
   const update = (updates: Partial<ValidateConfigState>) => {
-    setConfig((prev) => ({ ...prev, ...updates }));
+    setCurrentConfig((prev) => ({ ...prev, ...updates }));
   };
 
   const handleDelete = () => {
     // For now just log the config that would be deleted, will implement actual delete logic in next PR
-    console.log(`Deleted validation rule with config: ${config} for ${scope}`);
+    console.log(`Deleted validation rule with config: ${currentConfig} for ${scope}`);
     setIsEditMode(false);
   };
 
-  const handleSave = () => {
-    // For now just log the config that would be  saved, will implement actual save logic in next PR
-    console.log(`Saved validation rule with config:`, config, `for scope: ${scope}`);
+  const handleSaveAndClose = () => {
+    onSave(currentConfig);
     setIsEditMode(false);
   };
 
@@ -70,12 +84,12 @@ const ValidateCard = ({ scope, setIsEditMode }: ValidateCardProps) => {
         onDelete={handleDelete}
       />
       <StudioConfigCard.Body>
-        <ValidateCardContent scope={scope} config={config} onChange={update} />
+        <ValidateCardContent scope={scope} config={currentConfig} onChange={update} />
       </StudioConfigCard.Body>
       <StudioConfigCard.Footer
         saveLabel={t('general.save')}
         cancelLabel={t('general.cancel')}
-        onSave={handleSave}
+        onSave={handleSaveAndClose}
         onCancel={handleCancel}
       />
     </StudioConfigCard>

@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { ValidateRuleConfig, type ValidateRuleConfigProps } from './ValidateRuleConfig';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { selectSuggestionOption } from './ValidateNavigationTestUtils';
+import { selectSuggestionOption } from '../utils/ValidateNavigationTestUtils';
 
 describe('ValidateRuleConfig', () => {
   it('should call onChange with correct values when types are changed', async () => {
