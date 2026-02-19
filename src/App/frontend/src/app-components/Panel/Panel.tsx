@@ -12,9 +12,9 @@ import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
+import { useIsMobile } from 'src/app-components/hooks/useDeviceWidths';
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import classes from 'src/app-components/Panel/Panel.module.css';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
 
 export type PanelVariant = (typeof PANEL_VARIANT)[keyof typeof PANEL_VARIANT];
 

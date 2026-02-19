@@ -9,8 +9,8 @@ import {
 } from '@digdir/designsystemet-react';
 
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
+import { useIsMini, useIsMobile, useIsTablet } from 'src/app-components/hooks/useDeviceWidths';
 import classes from 'src/app-components/Pagination/Pagination.module.css';
-import { useIsMini, useIsMobile, useIsTablet } from 'src/hooks/useDeviceWidths';
 
 type PaginationProps = {
   id: string;
