@@ -671,7 +671,10 @@ internal static class EnginePgRepositoryQueries
             dbContext
                 .Workflows.Include(j => j.Steps)
                 .Include(j => j.Dependencies)
-                .Where(x => x.StartAt == null || x.StartAt <= DateTime.UtcNow)
+                .Where(x =>
+                    x.StartAt > DateTime.UtcNow
+                    || (x.Dependencies != null && x.Dependencies.Any(y => _incompleteItemStatuses.Contains(y.Status)))
+                )
                 .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
 
         public IQueryable<WorkflowEntity> GetFailedWorkflows() =>
