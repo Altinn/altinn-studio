@@ -4,8 +4,8 @@ import type { PropsWithChildren } from 'react';
 import { Button as DesignSystemButton } from '@digdir/designsystemet-react';
 import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsystemet-react';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
-import { useLanguage } from 'src/features/language/useLanguage';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;
 export type ButtonColor = 'first' | 'second' | 'success' | 'danger' | undefined;
@@ -48,7 +48,7 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
   },
   ref,
 ) {
-  const { langAsString } = useLanguage();
+  const t = useTranslation();
   const expandedStyle = { ...style, justifyContent: textAlign ? textAlign : undefined };
   return (
     <DesignSystemButton
@@ -61,19 +61,15 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
       ref={ref}
       style={expandedStyle}
     >
-      {isLoading ? (
-        <>
-          <Spinner
-            aria-hidden='true'
-            data-color={color}
-            data-size={size === 'lg' ? 'sm' : 'xs'}
-            aria-label={langAsString('general.loading')}
-          />
-          {children}
-        </>
-      ) : (
-        children
+      {isLoading && (
+        <Spinner
+          aria-hidden='true'
+          data-color={color}
+          data-size={size === 'lg' ? 'sm' : 'xs'}
+          aria-label={t('general.loading')}
+        />
       )}
+      {children}
     </DesignSystemButton>
   );
 });

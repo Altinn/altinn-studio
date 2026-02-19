@@ -8,8 +8,8 @@ import {
   usePagination,
 } from '@digdir/designsystemet-react';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import classes from 'src/app-components/Pagination/Pagination.module.css';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsMini, useIsMobile, useIsTablet } from 'src/hooks/useDeviceWidths';
 
 type PaginationProps = {
@@ -68,7 +68,7 @@ export const Pagination = ({
     onChange,
     showPages,
   });
-  const { langAsString } = useLanguage();
+  const t = useTranslation();
 
   return (
     <>
@@ -110,7 +110,7 @@ export const Pagination = ({
               {typeof page === 'number' && (
                 <DesignSystemPagination.Button
                   aria-current={currentPage === page}
-                  aria-label={langAsString('general.page_number', [page])}
+                  aria-label={t('general.page_number', [page])}
                   {...buttonProps}
                 >
                   {page}
