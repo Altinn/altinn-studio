@@ -5,10 +5,10 @@ go 1.25.7
 require (
 	github.com/fluxcd/helm-controller/api v1.4.5
 	github.com/fluxcd/kustomize-controller/api v1.7.3
-	k8s.io/api v0.34.3
-	k8s.io/apimachinery v0.34.3
-	k8s.io/client-go v0.34.3
-	k8s.io/metrics v0.33.7
+	k8s.io/api v0.34.4
+	k8s.io/apimachinery v0.34.4
+	k8s.io/client-go v0.34.4
+	k8s.io/metrics v0.33.8
 	sigs.k8s.io/gateway-api v1.4.1
 )
 
