@@ -15,7 +15,7 @@ dependencies = [
     "mcp==1.23.3",
     "fastmcp>=2.0.0",
     "pydantic==2.11.10",
-    "pydantic-core==2.33.2",
+    "pydantic-core==2.41.5",
     "pydantic-settings==2.10.1",
     "python-dotenv==1.1.1",
     "fastapi==0.129.0",
