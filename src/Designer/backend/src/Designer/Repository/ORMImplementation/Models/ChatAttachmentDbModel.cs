@@ -2,7 +2,7 @@ using System;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
-public class AttachmentDbModel
+public class ChatAttachmentDbModel
 {
     /// <summary>
     /// Unique identifier for the attachment.
