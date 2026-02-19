@@ -20,6 +20,7 @@ public class ChatThreadRepository : IChatThreadRepository
         _dbContext = dbContext;
     }
 
+    /// <inheritdoc />
     public async Task<ChatThreadEntity> GetThreadAsync(long id, CancellationToken cancellationToken = default)
     {
         var thread = await _dbContext.ChatThreads.AsNoTracking()
@@ -31,6 +32,7 @@ public class ChatThreadRepository : IChatThreadRepository
         return thread is null ? null : ChatThreadMapper.MapToModel(thread);
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<ChatThreadTitle>> GetThreadTitlesAsync(string org, string app, string createdBy, CancellationToken cancellationToken = default)
     {
         return await _dbContext.ChatThreads.AsNoTracking()
@@ -40,6 +42,7 @@ public class ChatThreadRepository : IChatThreadRepository
             .ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<ChatThreadEntity> CreateThreadAsync(ChatThreadEntity thread, CancellationToken cancellationToken = default)
     {
         var dbModel = ChatThreadMapper.MapToDbModel(thread);
@@ -48,6 +51,7 @@ public class ChatThreadRepository : IChatThreadRepository
         return ChatThreadMapper.MapToModel(dbModel);
     }
 
+    /// <inheritdoc />
     public async Task UpdateThreadAsync(ChatThreadEntity thread, CancellationToken cancellationToken = default)
     {
         var dbModel = ChatThreadMapper.MapToDbModel(thread);
@@ -56,6 +60,7 @@ public class ChatThreadRepository : IChatThreadRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task DeleteThreadAsync(long id, CancellationToken cancellationToken = default)
     {
         var stub = new ChatThreadDbModel { Id = id };
@@ -63,6 +68,7 @@ public class ChatThreadRepository : IChatThreadRepository
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<ChatMessageEntity> CreateMessageAsync(ChatMessageEntity message, CancellationToken cancellationToken = default)
     {
         var dbModel = ChatMessageMapper.MapToDbModel(message);
@@ -71,6 +77,7 @@ public class ChatThreadRepository : IChatThreadRepository
         return ChatMessageMapper.MapToModel(dbModel);
     }
 
+    /// <inheritdoc />
     public async Task<ChatAttachmentEntity> CreateAttachmentAsync(ChatAttachmentEntity attachment, CancellationToken cancellationToken = default)
     {
         var dbModel = ChatAttachmentMapper.MapToDbModel(attachment);
@@ -79,6 +86,7 @@ public class ChatThreadRepository : IChatThreadRepository
         return ChatAttachmentMapper.MapToModel(dbModel);
     }
 
+    /// <inheritdoc />
     public async Task DeleteAttachmentAsync(long id, CancellationToken cancellationToken = default)
     {
         var stub = new ChatAttachmentDbModel { Id = id };
