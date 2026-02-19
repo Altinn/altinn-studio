@@ -68,7 +68,6 @@ export function Input(props: InputProps) {
     maxLength,
     'aria-label': ariaLabel,
     'aria-labelledby': ariaLabelledBy,
-    'aria-describedby': ariaDescribedBy,
     label,
     prefix,
     suffix,
@@ -106,7 +105,7 @@ export function Input(props: InputProps) {
   const labelProps = ariaLabel
     ? { 'aria-label': t(ariaLabel) }
     : ariaLabelledBy
-      ? { 'aria-labelledby': t(ariaLabelledBy) }
+      ? { 'aria-labelledby': ariaLabelledBy }
       : { label };
 
   return (
@@ -119,7 +118,6 @@ export function Input(props: InputProps) {
       prefix={prefix ? t(prefix) : undefined}
       suffix={suffix ? t(suffix) : undefined}
       placeholder={placeholder ? t(placeholder) : undefined}
-      aria-describedby={ariaDescribedBy ? t(ariaDescribedBy) : undefined}
       {...labelProps}
       {...rest}
     />
