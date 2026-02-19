@@ -102,6 +102,20 @@ describe('Guard', () => {
     });
   });
 
+  describe('againstNullInArray', () => {
+    it('Throws when there is a null value in the array', () => {
+      expect(() => Guard.againstNullInArray(['a', 2, null])).toThrow();
+    });
+
+    it('Allows arrays with truthy values', () => {
+      expect(() => Guard.againstNullInArray(['a', 2, true, ['a']])).not.toThrow();
+    });
+
+    it('Allows arrays with falsy values that are not null', () => {
+      expect(() => Guard.againstNullInArray([false, 0, NaN, '', undefined, [], {}])).not.toThrow();
+    });
+  });
+
   describe('AgainstNonJsonTypes', () => {
     it('Throws when file type is not json', () => {
       expect(() => Guard.againstNonJsonTypes('myFile.xsd')).toThrow();

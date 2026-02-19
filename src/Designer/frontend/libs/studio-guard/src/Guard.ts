@@ -35,6 +35,12 @@ export class Guard {
     }
   }
 
+  static againstNullInArray<T>(array: (T | null)[]): asserts array is T[] {
+    if (array.includes(null)) {
+      throw new Error('Guarded against null in array.');
+    }
+  }
+
   static againstNonJsonTypes(filename: string): void {
     if (!filename.toLowerCase().endsWith('.json')) {
       throw Error(`Guarded against non-json filename: ${filename}`);
