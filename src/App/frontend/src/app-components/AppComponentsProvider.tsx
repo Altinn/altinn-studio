@@ -45,8 +45,8 @@ export function useTranslation(): Pick<AppComponentsContextProps, 'translate' | 
   }
 
   return {
-    translate: (key, params) => context.translate(context.translationKeyMap[key], params),
+    translate: (key, params) => context.translate(context.translationKeyMap[key] ?? key, params),
     TranslateComponent: ({ tKey, params }) =>
-      context.TranslateComponent({ tKey: context.translationKeyMap[tKey], params }),
+      context.TranslateComponent({ tKey: context.translationKeyMap[tKey] ?? tKey, params }),
   };
 }
