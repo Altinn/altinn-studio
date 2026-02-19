@@ -2083,20 +2083,20 @@
   const updateThemeToggle = (/** @type {string} */ theme) => {
     if (!dom.themeIcon || !dom.themeLabel) return;
     if (theme === 'altinn') {
-      dom.themeIcon.innerHTML = SUN_SVG;
-      dom.themeIcon.setAttribute('fill', 'none');
-      dom.themeIcon.setAttribute('stroke', 'currentColor');
-      dom.themeIcon.setAttribute('stroke-width', '2');
-      dom.themeIcon.setAttribute('stroke-linecap', 'round');
-      dom.themeIcon.setAttribute('stroke-linejoin', 'round');
-      dom.themeLabel.textContent = 'Dark';
-    } else {
       dom.themeIcon.innerHTML = MOON_SVG;
       dom.themeIcon.setAttribute('fill', 'currentColor');
       dom.themeIcon.removeAttribute('stroke');
       dom.themeIcon.removeAttribute('stroke-width');
       dom.themeIcon.removeAttribute('stroke-linecap');
       dom.themeIcon.removeAttribute('stroke-linejoin');
+      dom.themeLabel.textContent = 'Dark';
+    } else {
+      dom.themeIcon.innerHTML = SUN_SVG;
+      dom.themeIcon.setAttribute('fill', 'none');
+      dom.themeIcon.setAttribute('stroke', 'currentColor');
+      dom.themeIcon.setAttribute('stroke-width', '2');
+      dom.themeIcon.setAttribute('stroke-linecap', 'round');
+      dom.themeIcon.setAttribute('stroke-linejoin', 'round');
       dom.themeLabel.textContent = 'Altinn';
     }
   };

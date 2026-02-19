@@ -10,7 +10,7 @@
   --font-ui:var(--font);
   --header-bg:var(--bg2);--seg-bg:rgba(255,255,255,0.04);--seg-hover-bg:rgba(255,255,255,0.1);
   --shadow-card:none;--shadow-popup:0 8px 24px rgba(0,0,0,0.5);--overlay-bg:rgba(0,0,0,0.7);
-  --phase-border:var(--phase-border);
+  --phase-border:rgba(255,255,255,0.08);
 }
 html{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
 body{min-height:100vh;padding:0}
@@ -627,7 +627,7 @@ body{min-height:100vh;padding:0}
 /* ── Altinn light theme ───────────────────────────────────── */
 [data-theme="altinn"]{
   --bg:#f3f4f6;--bg2:#ffffff;--bg3:#e7e9ea;--border:#d1d5db;
-  --text:#1f2c3d;--text-dim:#68737d;--text-bright:#0a0a0f;
+  --text:#1f2c3d;--text-dim:#3b4550;--text-bright:#0a0a0f;
   --cyan:#0062BA;--cyan-rgb:0,98,186;
   --amber:#c57a0a;--amber-rgb:197,122,10;
   --green:#068718;--green-rgb:6,135,24;
