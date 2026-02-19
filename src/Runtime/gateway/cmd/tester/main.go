@@ -12,33 +12,38 @@ import (
 	"syscall"
 	"time"
 
-	"altinn.studio/runtime-fixture/pkg/harness"
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
+	"altinn.studio/devenv/pkg/harness"
+	"altinn.studio/devenv/pkg/runtimes/kind"
 )
 
 const (
 	cachePath              = ".cache"
 	startCommandArgCount   = 3
 	projectRootSearchDepth = 10
+	exitCodeCanceled       = 130
 )
 
 func main() {
-	if len(os.Args) < 2 {
+	os.Exit(run(os.Args))
+}
+
+func run(args []string) int {
+	if len(args) < 2 {
 		printUsage()
-		os.Exit(1)
+		return 1
 	}
 
-	switch os.Args[1] {
+	switch args[1] {
 	case "start":
-		runStart(os.Args)
+		return runStart(args)
 	case "stop":
-		runStop()
+		return runStop()
 	case "test":
-		runTest()
+		return runTest()
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n\n", os.Args[1])
+		fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n\n", args[1])
 		printUsage()
-		os.Exit(1)
+		return 1
 	}
 }
 
@@ -56,71 +61,99 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "")
 }
 
-func runStart(args []string) {
+func runStart(args []string) (exitCode int) {
 	writeStdoutln("=== Gateway Runtime Start ===")
 
 	if len(args) < startCommandArgCount {
 		fmt.Fprintf(os.Stderr, "Must specify 'standard' or 'minimal'\n")
-		os.Exit(1)
+		return 1
 	}
 
 	variant, err := parseVariant(args[2])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
-	if err := setupRuntime(variant); err != nil {
+	result, err := setupRuntime(variant)
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start runtime: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
+	defer func() {
+		if cerr := result.Runtime.Close(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "Failed to close runtime handle: %v\n", cerr)
+			if exitCode == 0 {
+				exitCode = 1
+			}
+		}
+	}()
 
 	writeStdoutln("\n=== Runtime is Running ===")
 	writeStdoutln("Use 'make stop' to stop the cluster")
+	return 0
 }
 
-func runStop() {
+func runStop() (exitCode int) {
 	writeStdoutln("=== Gateway Runtime Stop ===")
 
 	root, err := findProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	result, err := harness.LoadExisting(filepath.Join(root, cachePath))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load runtime: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
+	defer func() {
+		if cerr := result.Runtime.Close(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "Failed to close runtime handle: %v\n", cerr)
+			if exitCode == 0 {
+				exitCode = 1
+			}
+		}
+	}()
 
 	if err := result.Runtime.Stop(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to stop runtime: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	writeStdoutln("=== Runtime Stopped ===")
+	return 0
 }
 
-func runTest() {
+func runTest() (exitCode int) {
 	root, err := findProjectRoot()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find project root: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	writeStdoutln("=== Gateway Test Orchestrator ===")
 
 	isCI := os.Getenv("CI") != ""
+	var result *harness.Result
 	if isCI {
-		_, err = harness.LoadExisting(filepath.Join(root, cachePath))
+		result, err = harness.LoadExisting(filepath.Join(root, cachePath))
 	} else {
-		err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
+		result, err = setupRuntime(kind.KindContainerRuntimeVariantMinimal)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to setup runtime: %v\n", err)
-		os.Exit(1)
+		return 1
 	}
+	defer func() {
+		if cerr := result.Runtime.Close(); cerr != nil {
+			fmt.Fprintf(os.Stderr, "Failed to close runtime handle: %v\n", cerr)
+			if exitCode == 0 {
+				exitCode = 1
+			}
+		}
+	}()
 
 	writeStdoutln("=== Environment Ready, Running Tests ===")
 
@@ -133,29 +166,31 @@ func runTest() {
 	cmd.Env = append(os.Environ(), "GATEWAY_TEST_BASE_URL=http://localhost:8080")
 
 	err = cmd.Run()
+	ctxErr := ctx.Err()
 	stop()
 	if err != nil {
-		if errors.Is(ctx.Err(), context.Canceled) {
+		if errors.Is(ctxErr, context.Canceled) {
 			writeStdoutln("\n=== Tests CANCELED ===")
-			os.Exit(130)
+			return exitCodeCanceled
 		}
 
 		var exitErr *exec.ExitError
 		if errors.As(err, &exitErr) {
 			writeStdoutf("\n=== Tests FAILED (exit code %d) ===\n", exitErr.ExitCode())
-			os.Exit(exitErr.ExitCode())
+			return exitErr.ExitCode()
 		}
 		writeStdoutf("\n=== Tests FAILED: %v ===\n", err)
-		os.Exit(1)
+		return 1
 	}
 
 	writeStdoutln("\n=== All Tests PASSED ===")
+	return 0
 }
 
-func setupRuntime(variant kind.KindContainerRuntimeVariant) error {
+func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, error) {
 	root, err := findProjectRoot()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	cfg := harness.Config{
@@ -222,7 +257,7 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) error {
 		},
 	}
 
-	_, err = harness.RunAsync(
+	result, err := harness.RunAsync(
 		cfg,
 		harness.AsyncOptions{
 			RegistryReady: nil,
@@ -230,10 +265,10 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) error {
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("run runtime setup: %w", err)
+		return nil, fmt.Errorf("run runtime setup: %w", err)
 	}
 
-	return nil
+	return result, nil
 }
 
 func findProjectRoot() (string, error) {

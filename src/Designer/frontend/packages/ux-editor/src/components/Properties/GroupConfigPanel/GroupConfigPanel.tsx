@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  StudioAlert,
   StudioFieldset,
   StudioSpinner,
   StudioSwitch,
@@ -120,10 +119,6 @@ export const GroupConfigPanel = ({ selectedItem }: GroupConfigPanelProps) => {
               {...getRadioProps({ value: GroupType.Info })}
             />
           </StudioFieldset>
-          {/*Remove this studioAlert when config for group is completed*/}
-          <StudioAlert data-color='info' className={classes.alertMessage}>
-            {t('right_menu.content_group_message')}
-          </StudioAlert>
         </div>
       </div>
     </>

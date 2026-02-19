@@ -1,0 +1,68 @@
+name: Runtime - deploy localtest
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/Runtime/localtest/**
+      - .github/workflows/deploy-runtime-localtest.yaml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  get-short-sha:
+    uses: ./.github/workflows/template-short-sha.yaml
+
+  push-localtest:
+    name: Push localtest image to GHCR
+    needs: get-short-sha
+    runs-on: ubuntu-latest
+    environment: dev
+    defaults:
+      run:
+        working-directory: src/Runtime/localtest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@efe9e3891a4f7307e689f2100b33a155b900a608 # v4.5.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+
+      - name: Set vars
+        id: vars
+        run: |
+          SHA=${{ needs.get-short-sha.outputs.short-sha }}
+          GHCR_BASE="ghcr.io/altinn/altinn-studio"
+          echo "image=${GHCR_BASE}/runtime-localtest:${SHA}" >> $GITHUB_OUTPUT
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build image
+        run: docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.image }} .
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+        with:
+          image-ref: '${{ steps.vars.outputs.image }}'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+      - name: Push image
+        run: docker push ${{ steps.vars.outputs.image }}

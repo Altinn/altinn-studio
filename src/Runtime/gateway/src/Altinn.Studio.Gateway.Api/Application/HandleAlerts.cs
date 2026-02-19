@@ -66,18 +66,26 @@ internal static class HandleAlerts
             return Results.BadRequest();
         }
 
-        var alerts = alertPayload.Alerts.Select(alertInstance => new AlertInstance
-        {
-            Status = alertInstance.Status,
-            App = alertInstance.Labels.GetValueOrDefault("cloud_RoleName", string.Empty),
-        }).Where(alertInstance => !string.IsNullOrEmpty(alertInstance.App)).ToList();
+        var alerts = alertPayload
+            .Alerts.Select(alertInstance => new AlertInstance
+            {
+                Status = alertInstance.Status,
+                App = alertInstance.Labels.GetValueOrDefault("cloud_RoleName", string.Empty),
+            })
+            .Where(alertInstance => !string.IsNullOrEmpty(alertInstance.App))
+            .ToList();
 
         if (alerts.Count == 0)
         {
             return Results.BadRequest();
         }
 
-        int? intervalInMinutes = int.TryParse(firstAlert.Annotations.GetValueOrDefault("intervalInMinutes"), out var interval) ? interval : null;
+        int? intervalInMinutes = int.TryParse(
+            firstAlert.Annotations.GetValueOrDefault("intervalInMinutes"),
+            out var interval
+        )
+            ? interval
+            : null;
         var to = DateTimeOffset.UtcNow;
         var from = intervalInMinutes.HasValue ? to.AddMinutes(-intervalInMinutes.Value) : to.AddMinutes(-5);
         var apps = alerts.Select(alertInstance => alertInstance.App).ToList();
