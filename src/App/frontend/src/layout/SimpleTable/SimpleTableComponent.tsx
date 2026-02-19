@@ -17,6 +17,7 @@ import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { AddToListModal } from 'src/layout/AddToList/AddToList';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
+import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
 import type { TableActionButton } from 'src/app-components/Table/Table';
@@ -194,6 +195,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
                           }))
                         : undefined,
                   }}
+                  getDatepickerFormat={getDatepickerFormat}
                   handleChange={(fieldName, value) => {
                     const valueToUpdate = data.find((_, idx) => idx === rowIndex);
                     const nextValue = { ...valueToUpdate, [`${fieldName}`]: value };

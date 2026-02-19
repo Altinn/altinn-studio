@@ -12,6 +12,7 @@ import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
+import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -97,6 +98,7 @@ export function AddToListModal({
         <DynamicForm
           schema={schema?.items}
           onChange={onFormDataUpdate}
+          getDatepickerFormat={getDatepickerFormat}
           initialData={tempFormData}
           DropdownCaption={DropdownCaption}
           buttonAriaLabel={langAsString('date_picker.aria_label_icon')}

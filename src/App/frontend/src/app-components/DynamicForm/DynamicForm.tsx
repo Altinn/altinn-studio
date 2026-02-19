@@ -6,7 +6,6 @@ import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
 
 import { DatePickerControl } from 'src/app-components/Datepicker/Datepicker';
 import { getDateFormat } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { getDatepickerFormat } from 'src/utils/dateUtils';
 
 export type FormDataValue = string | number | boolean | null | FormDataValue[] | { [key: string]: FormDataValue };
 
@@ -22,6 +21,7 @@ export interface DynamicFormProps {
   DropdownCaption: typeof MonthCaption;
   buttonAriaLabel: string;
   calendarIconTitle: string;
+  getDatepickerFormat: (unicodeFormat: string) => string;
 }
 
 export function DynamicForm({
@@ -32,6 +32,7 @@ export function DynamicForm({
   DropdownCaption,
   buttonAriaLabel,
   calendarIconTitle,
+  getDatepickerFormat,
 }: DynamicFormProps) {
   const [formData, setFormData] = useState<FormDataObject>(initialData || {});
 
@@ -61,6 +62,7 @@ export function DynamicForm({
           buttonAriaLabel={buttonAriaLabel}
           calendarIconTitle={calendarIconTitle}
           DropdownCaption={DropdownCaption}
+          getDatepickerFormat={getDatepickerFormat}
         />
       ));
     }
@@ -89,6 +91,7 @@ interface FieldRendererProps {
   DropdownCaption: typeof MonthCaption;
   buttonAriaLabel: string;
   calendarIconTitle: string;
+  getDatepickerFormat: (unicodeFormat: string) => string;
 }
 
 export function FieldRenderer({
@@ -104,6 +107,7 @@ export function FieldRenderer({
   DropdownCaption,
   buttonAriaLabel,
   calendarIconTitle,
+  getDatepickerFormat,
 }: FieldRendererProps) {
   if (typeof fieldSchema === 'boolean') {
     return null;
