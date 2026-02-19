@@ -10,11 +10,6 @@ public class ChatThreadDbModel
     public long Id { get; set; }
 
     /// <summary>
-    /// Thread title. AI generated or edited by user.
-    /// </summary>
-    public string Title { get; set; }
-
-    /// <summary>
     /// Org that owns the thread.
     /// </summary>
     public string Org { get; set; }
@@ -28,6 +23,11 @@ public class ChatThreadDbModel
     /// User who created the thread.
     /// </summary>
     public string CreatedBy { get; set; }
+
+    /// <summary>
+    /// Thread title. AI generated or set by user.
+    /// </summary>
+    public string Title { get; set; }
 
     /// <summary>
     /// Thread creation timestamp.
