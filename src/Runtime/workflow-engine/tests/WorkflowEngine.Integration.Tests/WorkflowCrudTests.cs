@@ -317,4 +317,312 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Null(status);
         Assert.Null(await fixture.GetWorkflow(999999L));
     }
+
+    [Fact]
+    public async Task UpdateStep_ChangesStatus()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+        var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+        var step = workflow.Steps[0];
+
+        step.Status = PersistentItemStatus.Processing;
+        step.RequeueCount = 3;
+        step.BackoffUntil = DateTimeOffset.UtcNow.AddMinutes(5);
+        await repo.UpdateStep(step, cancellationToken: TestContext.Current.CancellationToken);
+
+        var dbStep = await fixture.GetStep(step.DatabaseId);
+        Assert.NotNull(dbStep);
+        Assert.Equal(PersistentItemStatus.Processing, dbStep.Status);
+        Assert.Equal(3, dbStep.RequeueCount);
+        Assert.NotNull(dbStep.BackoffUntil);
+        Assert.NotNull(dbStep.UpdatedAt);
+    }
+
+    [Fact]
+    public async Task BatchUpdateWorkflowAndSteps_UpdatesWorkflowAndSteps()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+        var request = new WorkflowEnqueueRequest(
+            IdempotencyKey: Guid.NewGuid().ToString(),
+            OperationId: "next",
+            InstanceInformation: new InstanceInformation
+            {
+                Org = "ttd",
+                App = "test-app",
+                InstanceOwnerPartyId = 50001234,
+                InstanceGuid = Guid.NewGuid(),
+            },
+            Actor: new Actor { UserIdOrOrgNumber = "12345" },
+            CreatedAt: DateTimeOffset.UtcNow,
+            StartAt: null,
+            Steps:
+            [
+                new StepRequest { Command = new Command.AppCommand("step-one") },
+                new StepRequest { Command = new Command.AppCommand("step-two") },
+            ],
+            Type: WorkflowType.Generic
+        );
+        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+        var step0 = workflow.Steps[0];
+        var step1 = workflow.Steps[1];
+
+        workflow.Status = PersistentItemStatus.Completed;
+        step0.Status = PersistentItemStatus.Completed;
+        step1.Status = PersistentItemStatus.Failed;
+        step1.RequeueCount = 2;
+        await repo.BatchUpdateWorkflowAndSteps(
+            workflow,
+            [step0, step1],
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+
+        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(dbWorkflow);
+        Assert.Equal(PersistentItemStatus.Completed, dbWorkflow.Status);
+        Assert.NotNull(dbWorkflow.UpdatedAt);
+
+        var dbStep0 = await fixture.GetStep(step0.DatabaseId);
+        Assert.NotNull(dbStep0);
+        Assert.Equal(PersistentItemStatus.Completed, dbStep0.Status);
+        Assert.NotNull(dbStep0.UpdatedAt);
+
+        var dbStep1 = await fixture.GetStep(step1.DatabaseId);
+        Assert.NotNull(dbStep1);
+        Assert.Equal(PersistentItemStatus.Failed, dbStep1.Status);
+        Assert.Equal(2, dbStep1.RequeueCount);
+        Assert.NotNull(dbStep1.UpdatedAt);
+    }
+
+    [Fact]
+    public async Task AddWorkflow_WithFutureStartAt_PersistsStartAt()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+        var startAt = DateTimeOffset.UtcNow.AddHours(1);
+        var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, startAt: startAt);
+
+        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+
+        Assert.NotNull(workflow.StartAt);
+        Assert.Equal(startAt.ToUnixTimeSeconds(), workflow.StartAt.Value.ToUnixTimeSeconds());
+
+        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(dbWorkflow);
+        Assert.NotNull(dbWorkflow.StartAt);
+        Assert.Equal(startAt.ToUnixTimeSeconds(), dbWorkflow.StartAt.Value.ToUnixTimeSeconds());
+    }
+
+    [Fact]
+    public async Task GetActiveWorkflows_IncludesRequeuedStep()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+        var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+        var step = workflow.Steps[0];
+        step.Status = PersistentItemStatus.Requeued;
+        await repo.UpdateStep(step, cancellationToken: TestContext.Current.CancellationToken);
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        var active = await queryRepo.GetActiveWorkflows(TestContext.Current.CancellationToken);
+
+        Assert.Single(active);
+        Assert.Equal(workflow.DatabaseId, active[0].DatabaseId);
+    }
+
+    [Fact]
+    public async Task GetScheduledWorkflows_ReturnsFutureDated()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+        var futureRequest = WorkflowTestHelper.CreateRequest(
+            type: WorkflowType.Generic,
+            startAt: DateTimeOffset.UtcNow.AddHours(1)
+        );
+        var futureWorkflow = await repo.AddWorkflow(futureRequest, TestContext.Current.CancellationToken);
+        var immediateRequest = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var immediateWorkflow = await repo.AddWorkflow(immediateRequest, TestContext.Current.CancellationToken);
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
+
+        Assert.Single(scheduled);
+        Assert.Equal(futureWorkflow.DatabaseId, scheduled[0].DatabaseId);
+        Assert.DoesNotContain(scheduled, w => w.DatabaseId == immediateWorkflow.DatabaseId);
+    }
+
+    [Fact]
+    public async Task GetScheduledWorkflows_ReturnsWorkflowBlockedByDependency()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        // A: Enqueued (non-terminal) — its dependents should appear as scheduled
+        var requestA = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflowA = await repo.AddWorkflow(requestA, TestContext.Current.CancellationToken);
+
+        // B: depends on A (blocked by non-terminal dependency)
+        var requestB = WorkflowTestHelper.CreateRequest(
+            type: WorkflowType.Generic,
+            dependencies: [workflowA.DatabaseId]
+        );
+        var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
+
+        Assert.Contains(scheduled, w => w.DatabaseId == workflowB.DatabaseId);
+    }
+
+    [Fact]
+    public async Task GetScheduledWorkflows_ExcludesTerminalDependency()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        // A: Completed (terminal) — dependents should NOT be blocked
+        var workflowA = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Completed,
+            finalType: WorkflowType.Generic
+        );
+
+        // B: depends on A (dependency is terminal, no future StartAt)
+        await using var context2 = fixture.CreateDbContext();
+        var repo2 = fixture.CreateRepository(context2);
+        var requestB = WorkflowTestHelper.CreateRequest(
+            type: WorkflowType.Generic,
+            dependencies: [workflowA.DatabaseId]
+        );
+        var workflowB = await repo2.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
+        var active = await queryRepo.GetActiveWorkflows(TestContext.Current.CancellationToken);
+
+        Assert.DoesNotContain(scheduled, w => w.DatabaseId == workflowB.DatabaseId);
+        Assert.Contains(active, w => w.DatabaseId == workflowB.DatabaseId);
+    }
+
+    [Fact]
+    public async Task CountActiveWorkflows_ReturnsCorrectCount()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Enqueued,
+            finalType: WorkflowType.Generic
+        );
+        await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Processing,
+            finalType: WorkflowType.Generic
+        );
+        var terminal = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Completed,
+            finalType: WorkflowType.Generic
+        );
+        foreach (var step in terminal.Steps)
+        {
+            step.Status = PersistentItemStatus.Completed;
+            await repo.UpdateStep(step, cancellationToken: TestContext.Current.CancellationToken);
+        }
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        var count = await queryRepo.CountActiveWorkflows(TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public async Task CountFailedWorkflows_ReturnsCorrectCount()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Failed,
+            finalType: WorkflowType.Generic
+        );
+        await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Requeued,
+            finalType: WorkflowType.Generic
+        );
+        await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.DependencyFailed,
+            finalType: WorkflowType.Generic
+        );
+        await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Completed,
+            finalType: WorkflowType.Generic
+        );
+        await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Enqueued,
+            finalType: WorkflowType.Generic
+        );
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        var count = await queryRepo.CountFailedWorkflows(TestContext.Current.CancellationToken);
+
+        Assert.Equal(3, count);
+    }
+
+    [Fact]
+    public async Task CountScheduledWorkflows_ReturnsCorrectCount()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        await repo.AddWorkflow(
+            WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, startAt: DateTimeOffset.UtcNow.AddHours(1)),
+            TestContext.Current.CancellationToken
+        );
+        await repo.AddWorkflow(
+            WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, startAt: DateTimeOffset.UtcNow.AddHours(2)),
+            TestContext.Current.CancellationToken
+        );
+        await repo.AddWorkflow(
+            WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic),
+            TestContext.Current.CancellationToken
+        );
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        var count = await queryRepo.CountScheduledWorkflows(TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, count);
+    }
 }

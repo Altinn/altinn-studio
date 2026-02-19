@@ -356,6 +356,35 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
     }
 
     [Fact]
+    public async Task R4b_RequeuedWorkflow_Rejected()
+    {
+        var instanceGuid = Guid.NewGuid();
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        // A Requeued workflow (non-terminal, no processing workflow behind it)
+        await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Requeued,
+            instanceGuid: instanceGuid
+        );
+
+        await using var context2 = fixture.CreateDbContext();
+        var repo2 = fixture.CreateRepository(context2);
+        var request = WorkflowTestHelper.CreateRequest(instanceGuid: instanceGuid);
+
+        var ex = await Assert.ThrowsAsync<ActiveWorkflowConstraintException>(() =>
+            repo2.AddWorkflow(request, TestContext.Current.CancellationToken)
+        );
+
+        Assert.Equal("pending_exists", ex.RejectionReason);
+
+        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
+        Assert.Null(notPersisted);
+    }
+
+    [Fact]
     public async Task R5_DependOnDifferentProcessing_Rejected()
     {
         var instanceGuid = Guid.NewGuid();

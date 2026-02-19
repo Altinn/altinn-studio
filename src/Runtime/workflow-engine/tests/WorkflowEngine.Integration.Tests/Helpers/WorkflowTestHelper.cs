@@ -14,7 +14,8 @@ internal static class WorkflowTestHelper
         string? idempotencyKey = null,
         string org = "ttd",
         string app = "test-app",
-        int instanceOwnerPartyId = 50001234
+        int instanceOwnerPartyId = 50001234,
+        DateTimeOffset? startAt = null
     )
     {
         instanceGuid ??= Guid.NewGuid();
@@ -32,7 +33,7 @@ internal static class WorkflowTestHelper
             },
             Actor: new Actor { UserIdOrOrgNumber = "12345" },
             CreatedAt: DateTimeOffset.UtcNow,
-            StartAt: null,
+            StartAt: startAt,
             Steps: [new StepRequest { Command = new Command.AppCommand("test-step") }],
             Type: type,
             Dependencies: dependencies

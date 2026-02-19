@@ -282,6 +282,124 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
     }
 
     [Fact]
+    public async Task ProcessingDependent_MarkedAsDependencyFailed()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        // A: failed
+        var workflowA = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Failed,
+            finalType: WorkflowType.Generic
+        );
+
+        // B: Processing, depends on A
+        var requestB = WorkflowTestHelper.CreateRequest(
+            type: WorkflowType.Generic,
+            dependencies: [workflowA.DatabaseId]
+        );
+        var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        workflowB.Status = PersistentItemStatus.Processing;
+        await repo.UpdateWorkflow(workflowB, cancellationToken: TestContext.Current.CancellationToken);
+
+        var affected = await RunCascade();
+
+        Assert.Equal(1, affected);
+
+        await using var verifyContext = fixture.CreateDbContext();
+        var verifyRepo = fixture.CreateRepository(verifyContext);
+        Assert.Equal(
+            PersistentItemStatus.DependencyFailed,
+            await verifyRepo.GetWorkflowStatus(workflowB.DatabaseId, TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task DependencyFailedWorkflow_CascadesToDependents()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        // A: already DependencyFailed (itself previously cascaded)
+        var workflowA = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.DependencyFailed,
+            finalType: WorkflowType.Generic
+        );
+
+        // B: Enqueued, depends on A
+        var requestB = WorkflowTestHelper.CreateRequest(
+            type: WorkflowType.Generic,
+            dependencies: [workflowA.DatabaseId]
+        );
+        var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+
+        var affected = await RunCascade();
+
+        Assert.Equal(1, affected);
+
+        await using var verifyContext = fixture.CreateDbContext();
+        var verifyRepo = fixture.CreateRepository(verifyContext);
+        Assert.Equal(
+            PersistentItemStatus.DependencyFailed,
+            await verifyRepo.GetWorkflowStatus(workflowB.DatabaseId, TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task CascadeFreesActiveSlot()
+    {
+        var instanceGuid = Guid.NewGuid();
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        // P: Processing AppProcessChange workflow
+        var workflowP = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Processing,
+            instanceGuid: instanceGuid
+        );
+
+        // Q: Enqueued, depends on P (fills the pending slot)
+        await using var context2 = fixture.CreateDbContext();
+        var repo2 = fixture.CreateRepository(context2);
+        var requestQ = WorkflowTestHelper.CreateRequest(
+            instanceGuid: instanceGuid,
+            dependencies: [workflowP.DatabaseId]
+        );
+        var workflowQ = await repo2.AddWorkflow(requestQ, TestContext.Current.CancellationToken);
+
+        // P fails; cascade marks Q as DependencyFailed, freeing both slots
+        workflowP.Status = PersistentItemStatus.Failed;
+        await using var failContext = fixture.CreateDbContext();
+        var failRepo = fixture.CreateRepository(failContext);
+        await failRepo.UpdateWorkflow(workflowP, cancellationToken: TestContext.Current.CancellationToken);
+
+        var affected = await RunCascade();
+        Assert.Equal(1, affected);
+
+        // Now both slots are free — a new AppProcessChange should be accepted
+        await using var context3 = fixture.CreateDbContext();
+        var repo3 = fixture.CreateRepository(context3);
+        var requestR = WorkflowTestHelper.CreateRequest(instanceGuid: instanceGuid);
+        var workflowR = await repo3.AddWorkflow(requestR, TestContext.Current.CancellationToken);
+
+        Assert.NotEqual(0, workflowR.DatabaseId);
+
+        var dbQ = await fixture.GetWorkflow(workflowQ.DatabaseId);
+        Assert.NotNull(dbQ);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, dbQ.Status);
+
+        var dbR = await fixture.GetWorkflow(workflowR.DatabaseId);
+        Assert.NotNull(dbR);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbR.Status);
+    }
+
+    [Fact]
     public async Task ReturnsCorrectAffectedCount()
     {
         await using var context = fixture.CreateDbContext();
