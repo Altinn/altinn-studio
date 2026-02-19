@@ -24,6 +24,13 @@
       "minimumReleaseAge": null
     },
     {
+      "matchManagers": ["gomod", "pep621"],
+      "groupName": "{{manager}} non-major dependencies",
+      "matchPackageNames": ["*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupSlug": "{{manager}}-minor-patch"
+    },
+    {
       "groupName": "LibGit2Sharp dependency",
       "groupSlug": "LibGit2Sharp",
       "matchPackageNames": ["LibGit2Sharp"]
