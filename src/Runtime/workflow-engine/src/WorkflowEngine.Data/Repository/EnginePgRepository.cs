@@ -249,18 +249,22 @@ internal sealed class EnginePgRepository : IEngineRepository
         try
         {
             _logger.AddingWorkflow(workflowEnqueueRequest);
-
             var policy = workflowEnqueueRequest.Type.GetConcurrencyPolicy();
 
-            return policy == ConcurrencyPolicy.SingleActive
-                ? await AddWorkflowConstrained(workflowEnqueueRequest, cancellationToken)
-                : await AddWorkflowUnconstrained(workflowEnqueueRequest, cancellationToken);
+            return policy switch
+            {
+                ConcurrencyPolicy.SingleActive => await AddWorkflowConstrained(
+                    workflowEnqueueRequest,
+                    cancellationToken
+                ),
+                ConcurrencyPolicy.Unrestricted => await AddWorkflowUnconstrained(
+                    workflowEnqueueRequest,
+                    cancellationToken
+                ),
+                _ => throw new InvalidOperationException($"Unknown concurrency policy: {policy}"),
+            };
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (ActiveWorkflowConstraintException)
         {
             throw;
         }
@@ -277,11 +281,21 @@ internal sealed class EnginePgRepository : IEngineRepository
         CancellationToken cancellationToken
     )
     {
-        var (workflow, entity) = await InsertWorkflowEntity(workflowEnqueueRequest, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        using var activity = Metrics.Source.StartActivity("EnginePgRepository.AddWorkflowUnconstrained");
 
-        _logger.SuccessfullyAddedWorkflow(workflow);
-        return entity.ToDomainModel();
+        try
+        {
+            var (workflow, entity) = await InsertWorkflowEntity(workflowEnqueueRequest, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.SuccessfullyAddedWorkflow(workflow);
+            return entity.ToDomainModel();
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            throw;
+        }
     }
 
     private async Task<Workflow> AddWorkflowConstrained(
@@ -289,45 +303,64 @@ internal sealed class EnginePgRepository : IEngineRepository
         CancellationToken cancellationToken
     )
     {
-        var instanceGuid = workflowEnqueueRequest.InstanceInformation.InstanceGuid;
-        var workflowType = (int)workflowEnqueueRequest.Type;
-        var lockKey = DeriveAdvisoryLockKey(instanceGuid, workflowType);
+        using var activity = Metrics.Source.StartActivity("EnginePgRepository.AddWorkflowConstrained");
 
-        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-
-        // Acquire advisory lock scoped to (InstanceGuid, WorkflowType) for the duration of the transaction
-        await _context.Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock({lockKey})", cancellationToken);
-
-        // Insert the workflow + dependencies (flush so the stored function can see them)
-        var (workflow, entity) = await InsertWorkflowEntity(workflowEnqueueRequest, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Check the active workflow constraint via stored function
-        var workflowId = entity.Id;
-        var violation = await _context
-            .Database.SqlQueryRaw<ConstraintCheckResult>(
-                "SELECT rejection_reason AS \"RejectionReason\", blocking_workflow_id AS \"BlockingWorkflowId\" "
-                    + "FROM check_active_workflow_constraint({0}, {1}, {2})",
-                workflowId,
-                workflowType,
-                instanceGuid
-            )
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (violation is not null)
+        try
         {
-            await transaction.RollbackAsync(cancellationToken);
-            throw new ActiveWorkflowConstraintException(
-                workflowEnqueueRequest.Type,
-                violation.RejectionReason,
-                violation.BlockingWorkflowId
+            var instanceGuid = workflowEnqueueRequest.InstanceInformation.InstanceGuid;
+            var workflowType = (int)workflowEnqueueRequest.Type;
+
+            var lockKey = GetAdvisoryLockKey(instanceGuid, workflowType);
+            await using var dbLock = await AdvisoryLockScope.Acquire(
+                lockKey,
+                _context.Database.GetDbConnection(),
+                cancellationToken
             );
+
+            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+            // Insert the workflow + dependencies (flush so the stored function can see them)
+            var (workflow, entity) = await InsertWorkflowEntity(workflowEnqueueRequest, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Check the active workflow constraint via stored function
+            var workflowId = entity.Id;
+            var violation = await _context
+                .Database.SqlQueryRaw<ConstraintCheckResult>(
+                    "SELECT rejection_reason AS \"RejectionReason\", blocking_workflow_id AS \"BlockingWorkflowId\" "
+                        + "FROM check_active_workflow_constraint({0}, {1}, {2})",
+                    workflowId,
+                    workflowType,
+                    instanceGuid
+                )
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (violation is not null)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw new ActiveWorkflowConstraintException(
+                    workflowEnqueueRequest.Type,
+                    violation.RejectionReason,
+                    violation.BlockingWorkflowId
+                );
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+
+            _logger.SuccessfullyAddedWorkflow(workflow);
+            return entity.ToDomainModel();
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            throw;
         }
 
-        await transaction.CommitAsync(cancellationToken);
-
-        _logger.SuccessfullyAddedWorkflow(workflow);
-        return entity.ToDomainModel();
+        static long GetAdvisoryLockKey(Guid instanceGuid, int workflowType)
+        {
+            long guidHash = instanceGuid.GetHashCode();
+            return (guidHash << 32) | (uint)workflowType;
+        }
     }
 
     private async Task<(Workflow workflow, WorkflowEntity entity)> InsertWorkflowEntity(
@@ -335,53 +368,44 @@ internal sealed class EnginePgRepository : IEngineRepository
         CancellationToken cancellationToken
     )
     {
-        // Resolve and validate dependencies
-        List<WorkflowEntity>? dependencyEntities = null;
-        IReadOnlyList<Workflow>? dependencies = null;
-        if (workflowEnqueueRequest.Dependencies?.Any() is true)
+        using var activity = Metrics.Source.StartActivity("EnginePgRepository.InsertWorkflowEntity");
+
+        try
         {
-            dependencyEntities = await _context
-                .Workflows.Where(x => workflowEnqueueRequest.Dependencies.Contains(x.Id))
-                .ToListAsync(cancellationToken);
+            // Resolve and validate dependencies
+            List<WorkflowEntity>? dependencyEntities = null;
+            IReadOnlyList<Workflow>? dependencies = null;
+            if (workflowEnqueueRequest.Dependencies?.Any() is true)
+            {
+                dependencyEntities = await _context
+                    .Workflows.Where(x => workflowEnqueueRequest.Dependencies.Contains(x.Id))
+                    .ToListAsync(cancellationToken);
 
-            if (dependencyEntities.Count != workflowEnqueueRequest.Dependencies.Count())
-                throw new EngineDbException(
-                    $"Not all specified Workflow dependencies could be found in the database: {string.Join(", ", workflowEnqueueRequest.Dependencies)}"
-                );
+                if (dependencyEntities.Count != workflowEnqueueRequest.Dependencies.Count())
+                    throw new EngineDbException(
+                        $"Not all specified Workflow dependencies could be found in the database: {string.Join(", ", workflowEnqueueRequest.Dependencies)}"
+                    );
 
-            dependencies = dependencyEntities.Select(x => x.ToDomainModel()).ToList();
+                dependencies = dependencyEntities.Select(x => x.ToDomainModel()).ToList();
+            }
+
+            // Add workflow to database
+            var workflow = Workflow.FromRequest(workflowEnqueueRequest, dependencies: dependencies);
+            var entity = WorkflowEntity.FromDomainModel(workflow);
+
+            // Use already-tracked dependency entities to avoid EF trying to re-insert them
+            entity.Dependencies = dependencyEntities;
+
+            await _context.Workflows.AddAsync(entity, cancellationToken);
+
+            return (workflow, entity);
         }
-
-        // Add workflow to database
-        var workflow = Workflow.FromRequest(workflowEnqueueRequest, dependencies: dependencies);
-        var entity = WorkflowEntity.FromDomainModel(workflow);
-
-        // Use already-tracked dependency entities to avoid EF trying to re-insert them
-        entity.Dependencies = dependencyEntities;
-
-        await _context.Workflows.AddAsync(entity, cancellationToken);
-
-        return (workflow, entity);
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            throw;
+        }
     }
-
-    /// <summary>
-    /// Derives a deterministic advisory lock key from an instance GUID and workflow type.
-    /// Uses the GUID's GetHashCode() (deterministic in .NET for the same GUID value) combined with the type integer.
-    /// </summary>
-    private static long DeriveAdvisoryLockKey(Guid instanceGuid, int workflowType)
-    {
-        long guidHash = instanceGuid.GetHashCode();
-        return (guidHash << 32) | (uint)workflowType;
-    }
-
-    // Result type for the stored function query — properties set by EF materialization
-#pragma warning disable S3459, S1144
-    private sealed class ConstraintCheckResult
-    {
-        public string RejectionReason { get; set; } = string.Empty;
-        public long BlockingWorkflowId { get; set; }
-    }
-#pragma warning restore S3459, S1144
 
     /// <inheritdoc/>
     public async Task UpdateWorkflow(
@@ -622,6 +646,8 @@ internal sealed class EnginePgRepository : IEngineRepository
 
         return cts;
     }
+
+    private sealed record ConstraintCheckResult(string RejectionReason, long BlockingWorkflowId);
 }
 
 internal static class EnginePgRepositoryQueries
