@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Integration.Tests.Helpers;
 using WorkflowEngine.Models;
@@ -199,14 +198,16 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Also mark the steps of terminal workflows as terminal so GetActiveWorkflows
         // (which filters by step status) correctly excludes them
-        await context.Database.ExecuteSqlAsync(
-            $"""UPDATE "Steps" SET "Status" = 3 WHERE "JobId" = {completed.DatabaseId}""",
-            cancellationToken: TestContext.Current.CancellationToken
-        );
-        await context.Database.ExecuteSqlAsync(
-            $"""UPDATE "Steps" SET "Status" = 4 WHERE "JobId" = {failed.DatabaseId}""",
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        foreach (var step in completed.Steps)
+        {
+            step.Status = PersistentItemStatus.Completed;
+            await repo.UpdateStep(step, cancellationToken: TestContext.Current.CancellationToken);
+        }
+        foreach (var step in failed.Steps)
+        {
+            step.Status = PersistentItemStatus.Failed;
+            await repo.UpdateStep(step, cancellationToken: TestContext.Current.CancellationToken);
+        }
 
         // Use a fresh context/repo for the query to avoid stale tracking
         await using var queryContext = fixture.CreateDbContext();

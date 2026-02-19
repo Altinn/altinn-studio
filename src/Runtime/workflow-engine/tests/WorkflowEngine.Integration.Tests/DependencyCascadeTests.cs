@@ -187,11 +187,9 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         );
         var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
 
-        // Mark B as Completed directly
-        await context.Database.ExecuteSqlAsync(
-            $"""UPDATE "Workflows" SET "Status" = 3 WHERE "Id" = {workflowB.DatabaseId}""",
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        // Mark B as Completed
+        workflowB.Status = PersistentItemStatus.Completed;
+        await repo.UpdateWorkflow(workflowB, cancellationToken: TestContext.Current.CancellationToken);
 
         var affected = await RunCascade();
 

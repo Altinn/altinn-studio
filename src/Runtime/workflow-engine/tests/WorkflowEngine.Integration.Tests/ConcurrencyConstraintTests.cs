@@ -412,12 +412,11 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
             instanceGuid: instanceGuid
         );
 
-        // Mark P as completed via raw SQL
+        // Mark P as completed
+        workflowP.Status = PersistentItemStatus.Completed;
         await using var updateContext = fixture.CreateDbContext();
-        await updateContext.Database.ExecuteSqlAsync(
-            $"""UPDATE "Workflows" SET "Status" = 3 WHERE "Id" = {workflowP.DatabaseId}""",
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        var updateRepo = fixture.CreateRepository(updateContext);
+        await updateRepo.UpdateWorkflow(workflowP, cancellationToken: TestContext.Current.CancellationToken);
 
         // Insert B depending on P — P is now terminal, so no active count
         await using var context2 = fixture.CreateDbContext();
@@ -469,11 +468,10 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         var workflowQ = await repo2.AddWorkflow(requestQ, TestContext.Current.CancellationToken);
 
         // Fail P
+        workflowP.Status = PersistentItemStatus.Failed;
         await using var failContext = fixture.CreateDbContext();
-        await failContext.Database.ExecuteSqlAsync(
-            $"""UPDATE "Workflows" SET "Status" = 4 WHERE "Id" = {workflowP.DatabaseId}""",
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        var failRepo = fixture.CreateRepository(failContext);
+        await failRepo.UpdateWorkflow(workflowP, cancellationToken: TestContext.Current.CancellationToken);
 
         // Run cascade
         await failContext.Database.ExecuteSqlRawAsync(
@@ -514,18 +512,16 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         var workflowQ = await repo2.AddWorkflow(requestQ, TestContext.Current.CancellationToken);
 
         // Complete P
+        workflowP.Status = PersistentItemStatus.Completed;
         await using var completeContext = fixture.CreateDbContext();
-        await completeContext.Database.ExecuteSqlAsync(
-            $"""UPDATE "Workflows" SET "Status" = 3 WHERE "Id" = {workflowP.DatabaseId}""",
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        var completeRepo = fixture.CreateRepository(completeContext);
+        await completeRepo.UpdateWorkflow(workflowP, cancellationToken: TestContext.Current.CancellationToken);
 
         // Mark Q as processing (simulating engine pick-up)
+        workflowQ.Status = PersistentItemStatus.Processing;
         await using var context3 = fixture.CreateDbContext();
-        await context3.Database.ExecuteSqlAsync(
-            $"""UPDATE "Workflows" SET "Status" = 1 WHERE "Id" = {workflowQ.DatabaseId}""",
-            cancellationToken: TestContext.Current.CancellationToken
-        );
+        var repo3 = fixture.CreateRepository(context3);
+        await repo3.UpdateWorkflow(workflowQ, cancellationToken: TestContext.Current.CancellationToken);
 
         // Add R depending on Q — should succeed since P completed and Q is the sole active
         await using var context4 = fixture.CreateDbContext();
