@@ -24,7 +24,7 @@ export const IFrameComponent = ({ baseComponentId }: PropsFromGenericComponent<'
       <Panel
         variant={PANEL_VARIANT.Error}
         showIcon={true}
-        title={<Lang id='iframe_component.unsupported_browser_title' />}
+        title='iframe_component.unsupported_browser_title'
         fullWidth={false}
       >
         <p>

@@ -30,7 +30,7 @@ export const PanelComponent = ({ baseComponentId }: PropsFromGenericComponent<'P
   return (
     <ComponentStructureWrapper baseComponentId={baseComponentId}>
       <Panel
-        title={textResourceBindings.title ? <Lang id={textResourceBindings.title} /> : undefined}
+        title={textResourceBindings.title}
         showIcon={showIcon ?? true}
         variant={variant ?? PANEL_VARIANT.Info}
         forceMobileLayout={!fullWidth}

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { JSX, PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
 import {
@@ -10,6 +10,7 @@ import {
 } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { useIsMobile } from 'src/app-components/hooks/useDeviceWidths';
@@ -22,7 +23,7 @@ export type PanelProps = PropsWithChildren<{
   variant: PanelVariant;
   showIcon?: boolean;
   forceMobileLayout?: boolean;
-  title?: JSX.Element;
+  title?: string;
   style?: React.CSSProperties;
   className?: string;
   fullWidth?: boolean;
@@ -82,6 +83,7 @@ export const Panel: React.FC<PanelProps> = ({
   className,
   children,
 }) => {
+  const t = useTranslation();
   const isMobile = useIsMobile();
   const isMobileLayout = forceMobileLayout || isMobile;
 
@@ -123,7 +125,7 @@ export const Panel: React.FC<PanelProps> = ({
                 data-size={isMobileLayout ? 'xs' : 'sm'}
                 className={classes.panelHeader}
               >
-                {title}
+                {t(title)}
               </Heading>
             )}
             <div>{children}</div>

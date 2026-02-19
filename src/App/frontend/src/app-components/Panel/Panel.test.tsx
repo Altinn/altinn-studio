@@ -6,14 +6,12 @@ import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
 import type { PanelVariant } from 'src/app-components/Panel/Panel';
 
-const MockLang = ({ text }: { text: string }) => text;
-
 describe('Panel', () => {
   it('should show title and content', () => {
     render(
       <Panel
         variant={PANEL_VARIANT.Info}
-        title={<MockLang text='Panel Title' />}
+        title='Panel Title'
       >
         Panel Content
       </Panel>,
@@ -26,7 +24,7 @@ describe('Panel', () => {
     render(
       <Panel
         variant={PANEL_VARIANT.Info}
-        title={<MockLang text='Panel Title' />}
+        title='Panel Title'
       >
         Panel Content
       </Panel>,
@@ -38,7 +36,7 @@ describe('Panel', () => {
     render(
       <Panel
         variant={PANEL_VARIANT.Info}
-        title={<MockLang text='Panel Title' />}
+        title='Panel Title'
         showIcon={false}
       >
         Panel Content
@@ -53,7 +51,7 @@ describe('Panel', () => {
       render(
         <Panel
           variant={variant}
-          title={<MockLang text='Panel Title' />}
+          title='Panel Title'
           showIcon
         >
           Panel Content
