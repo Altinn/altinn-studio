@@ -309,6 +309,9 @@ body{min-height:100vh;padding:0}
   padding:12px 16px;margin-bottom:16px;color:var(--red);font-size:13px;
   line-height:1.5;word-break:break-word;
 }
+.modal-error-hint{
+  font-size:12px;color:var(--text-dim);margin-bottom:12px;font-style:italic;
+}
 
 /* ── Step command-type badges ─────────────────────────────── */
 .step-type{
@@ -463,14 +466,14 @@ body{min-height:100vh;padding:0}
 .modal-overlay.open{display:flex}
 .modal{
   background:var(--bg2);border:1px solid var(--border);border-radius:12px;
-  max-width:720px;width:90%;max-height:80vh;display:flex;flex-direction:column;
+  max-width:900px;width:90%;max-height:80vh;display:flex;flex-direction:column;
   box-shadow:0 24px 48px rgba(0,0,0,0.5);
 }
 .modal-header{
   display:flex;justify-content:space-between;align-items:center;
   padding:16px 20px;border-bottom:1px solid var(--border);
 }
-.modal-header h2{font-size:14px;font-weight:700;color:var(--text-bright);letter-spacing:1px;text-transform:uppercase}
+.modal-header h2{font-size:14px;font-weight:700;color:var(--text-bright)}
 .modal-close{
   background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;
   padding:4px 8px;border-radius:4px;transition:color 0.2s;
@@ -488,6 +491,38 @@ body{min-height:100vh;padding:0}
 .modal-body .json-bool{color:var(--orange)}
 .modal-body .json-null{color:var(--gray)}
 .modal-loading{text-align:center;padding:40px;color:var(--text-dim)}
+
+/* ── Step detail structured view ─────────────────────────── */
+.detail-section{
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text-dim);margin:16px 0 6px;padding-bottom:4px;
+  border-bottom:1px solid var(--border);
+}
+.detail-section:first-child{margin-top:0}
+.detail-section-sub{
+  font-size:11px;font-weight:600;color:var(--text-dim);margin:12px 0 4px;
+}
+.detail-row{
+  display:flex;align-items:baseline;gap:12px;padding:3px 0;font-size:13px;
+}
+.detail-label{
+  flex-shrink:0;width:140px;color:var(--text-dim);font-size:12px;
+}
+.detail-value{
+  color:var(--text);word-break:break-word;
+}
+.detail-ago{
+  color:var(--text-dim);font-size:11px;margin-left:8px;
+}
+.modal-grafana-link{
+  display:inline-block;font-size:12px;color:var(--cyan);
+  margin-bottom:12px;text-decoration:none;
+  border:1px solid rgba(0,212,255,0.3);border-radius:6px;padding:4px 12px;
+  transition:background 0.2s,border-color 0.2s;
+}
+.modal-grafana-link:hover{
+  background:rgba(0,212,255,0.08);border-color:var(--cyan);
+}
 
 /* ── Animations ───────────────────────────────────────────── */
 @keyframes pulse-glow{

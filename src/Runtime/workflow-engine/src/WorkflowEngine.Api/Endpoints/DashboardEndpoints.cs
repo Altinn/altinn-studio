@@ -187,6 +187,7 @@ internal static class DashboardEndpoints
                                     s.CommandType,
                                     s.CommandDetail,
                                     s.CommandPayload,
+                                    s.LastError,
                                     s.Status,
                                     s.ProcessingOrder,
                                     s.RetryCount,
@@ -368,6 +369,35 @@ internal static class DashboardEndpoints
                     // Try inbox first (live workflows)
                     var workflow = engine.GetAllInboxWorkflows().FirstOrDefault(w => w.IdempotencyKey == wf);
 
+                    // Try recent cache (has lastError still in memory)
+                    var cached = workflow is null
+                        ? engine.GetRecentWorkflows(100).FirstOrDefault(c => c.IdempotencyKey == wf)
+                        : null;
+                    if (cached is not null)
+                    {
+                        var cs = cached.Steps.FirstOrDefault(s => s.IdempotencyKey == step);
+                        if (cs is null)
+                            return Results.NotFound();
+
+                        return Results.Json(
+                            new
+                            {
+                                idempotencyKey = cs.IdempotencyKey,
+                                operationId = cs.OperationId,
+                                status = cs.Status,
+                                processingOrder = cs.ProcessingOrder,
+                                retryCount = cs.RetryCount,
+                                lastError = cs.LastError,
+                                createdAt = cs.CreatedAt,
+                                executionStartedAt = cs.ExecutionStartedAt,
+                                updatedAt = cs.UpdatedAt,
+                                backoffUntil = cs.BackoffUntil,
+                                traceId = cached.TraceId,
+                            },
+                            JsonIndented
+                        );
+                    }
+
                     // Fall back to DB by idempotency key + createdAt
                     if (workflow is null && createdAt.HasValue)
                     {
@@ -378,7 +408,7 @@ internal static class DashboardEndpoints
 
                     var s = workflow?.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
 
-                    if (s is null)
+                    if (s is null || workflow is null)
                         return Results.NotFound();
 
                     var result = new
@@ -396,6 +426,7 @@ internal static class DashboardEndpoints
                         actor = s.Actor,
                         command = s.Command,
                         retryStrategy = s.RetryStrategy,
+                        traceId = workflow.EngineTraceId ?? workflow.EngineActivity?.TraceId.ToString(),
                     };
 
                     return Results.Json(result, JsonIndented);

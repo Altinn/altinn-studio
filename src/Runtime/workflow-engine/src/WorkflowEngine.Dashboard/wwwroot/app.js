@@ -1803,6 +1803,146 @@
    * @param {string} stepName
    * @param {string} [createdAt]
    */
+  /** Format an ISO duration / TimeSpan string to a human-friendly label */
+  const fmtDuration = (/** @type {string|null|undefined} */ v) => {
+    if (!v) return null;
+    // .NET TimeSpan JSON: "HH:MM:SS" or "D.HH:MM:SS" or ISO 8601 "PT..."
+    const iso = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?$/i.exec(v);
+    if (iso) {
+      const h = parseInt(iso[1] || '0'), m = parseInt(iso[2] || '0'), s = parseFloat(iso[3] || '0');
+      const parts = [];
+      if (h) parts.push(`${h}h`);
+      if (m) parts.push(`${m}m`);
+      if (s) parts.push(`${s}s`);
+      return parts.join(' ') || '0s';
+    }
+    // .NET "d.hh:mm:ss" or "hh:mm:ss" or "hh:mm:ss.fffffff"
+    const dotnet = /^(?:(\d+)\.)?(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/.exec(v);
+    if (dotnet) {
+      const d = parseInt(dotnet[1] || '0'), h = parseInt(dotnet[2]), m = parseInt(dotnet[3]), s = parseInt(dotnet[4]);
+      const parts = [];
+      if (d) parts.push(`${d}d`);
+      if (h) parts.push(`${h}h`);
+      if (m) parts.push(`${m}m`);
+      if (s) parts.push(`${s}s`);
+      return parts.join(' ') || '0s';
+    }
+    return v;
+  };
+
+  /** Format an ISO timestamp to a locale-friendly string */
+  const fmtTime = (/** @type {string|null|undefined} */ v) => {
+    if (!v) return null;
+    try {
+      const d = new Date(v);
+      return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' });
+    } catch { return v; }
+  };
+
+  /** Format a relative time ago string */
+  const fmtAgo = (/** @type {string|null|undefined} */ v) => {
+    if (!v) return '';
+    const ms = Date.now() - new Date(v).getTime();
+    if (ms < 0) return '';
+    const s = Math.floor(ms / 1000);
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ${m % 60}m ago`;
+    const d = Math.floor(h / 24);
+    return `${d}d ${h % 24}h ago`;
+  };
+
+  /**
+   * Build structured HTML for a step detail modal.
+   * @param {Record<string, unknown>} data
+   * @returns {string}
+   */
+  const buildStepDetailHTML = (data) => {
+    let html = '';
+
+    const row = (/** @type {string} */ label, /** @type {unknown} */ val) => {
+      if (val == null) return '';
+      return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${esc(String(val))}</span></div>`;
+    };
+
+    const timeRow = (/** @type {string} */ label, /** @type {string|null|undefined} */ raw) => {
+      if (!raw) return '';
+      const abs = fmtTime(raw);
+      const rel = fmtAgo(raw);
+      const suffix = rel ? `<span class="detail-ago">${esc(rel)}</span>` : '';
+      return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${esc(abs || '')}${suffix}</span></div>`;
+    };
+
+    const status = /** @type {string} */ (data.status) || '';
+    const isFailing = status === 'Failed' || status === 'Requeued';
+
+    // --- Error banner + Loki link ---
+    if (data.lastError) {
+      html += `<div class="modal-error">${esc(/** @type {string} */ (data.lastError))}</div>`;
+    } else if (isFailing) {
+      html += `<div class="modal-error-hint">Error details are not persisted to the database. Available in Inbox and Recent views only.</div>`;
+    }
+    if (data.idempotencyKey && isFailing) {
+      const lokiQuery = `{service_name="WorkflowEngine"} |= \`${data.idempotencyKey}\``;
+      const panes = JSON.stringify({l:{datasource:"loki",queries:[{refId:"logs",expr:lokiQuery,datasource:{type:"loki",uid:"loki"}}],range:{from:"now-1h",to:"now"}}});
+      const lokiUrl = 'http://localhost:7070/explore?schemaVersion=1&panes=' + encodeURIComponent(panes) + '&orgId=1';
+      html += `<a class="modal-grafana-link" href="${lokiUrl}" target="_blank">View error logs in Grafana</a>`;
+    }
+
+    // --- Status + key ---
+    html += `<div class="detail-row"><span class="detail-label">Status</span><span class="status-pill ${status}">${esc(status)}</span></div>`;
+    html += row('Idempotency Key', data.idempotencyKey);
+
+    const actor = /** @type {Record<string, unknown>|null} */ (data.actor);
+    if (actor) {
+      const actorLabel = actor.language
+        ? `${actor.userIdOrOrgNumber} (${actor.language})`
+        : String(actor.userIdOrOrgNumber);
+      html += row('Actor', actorLabel);
+    }
+    html += timeRow('Created', /** @type {string} */ (data.createdAt));
+    html += timeRow('Execution Started', /** @type {string} */ (data.executionStartedAt));
+    html += timeRow('Last Updated', /** @type {string} */ (data.updatedAt));
+    html += timeRow('Backoff Until', /** @type {string} */ (data.backoffUntil));
+
+    // --- Retry ---
+    if (data.retryCount || data.retryStrategy) {
+      html += '<div class="detail-section">Retry</div>';
+      html += row('Retry Count', data.retryCount);
+      const rs = /** @type {Record<string, unknown>|null} */ (data.retryStrategy);
+      if (rs) {
+        html += row('Backoff Type', rs.backoffType);
+        html += row('Base Interval', fmtDuration(/** @type {string} */ (rs.baseInterval)));
+        html += row('Max Retries', rs.maxRetries);
+        html += row('Max Delay', fmtDuration(/** @type {string} */ (rs.maxDelay)));
+        html += row('Max Duration', fmtDuration(/** @type {string} */ (rs.maxDuration)));
+      }
+    }
+
+    // --- Command ---
+    const cmd = /** @type {Record<string, unknown>|null} */ (data.command);
+    if (cmd) {
+      html += '<div class="detail-section">Command</div>';
+      const cmdType = cmd.type === 'app' ? 'AppCommand' : cmd.type === 'webhook' ? 'Webhook' : String(cmd.type || '');
+      html += row('Type', cmdType);
+      html += row('Max Execution Time', fmtDuration(/** @type {string} */ (cmd.maxExecutionTime)));
+      if (cmd.type === 'webhook') {
+        html += row('URI', cmd.uri);
+        html += row('Content-Type', cmd.contentType);
+      }
+      // Payload as JSON
+      const payload = cmd.payload;
+      if (payload != null) {
+        html += '<div class="detail-section-sub">Payload</div>';
+        html += `<pre>${syntaxHighlight(expandJsonStrings(payload))}</pre>`;
+      }
+    }
+
+    return html;
+  };
+
   window.openStepModal = async (wfKey, stepKey, stepName, createdAt) => {
     dom.modalTitle.textContent = stepName || 'Step Details';
     dom.modalBody.innerHTML = '<div class="modal-loading">Loading...</div>';
@@ -1814,12 +1954,7 @@
       const res = await fetch(url);
       if (!res.ok) throw new Error('Step not found (may have left inbox)');
       const data = await res.json();
-      let modalHtml = '';
-      if (data.lastError) {
-        modalHtml += `<div class="modal-error">${esc(data.lastError)}</div>`;
-      }
-      modalHtml += `<pre>${syntaxHighlight(expandJsonStrings(data))}</pre>`;
-      dom.modalBody.innerHTML = modalHtml;
+      dom.modalBody.innerHTML = buildStepDetailHTML(data);
     } catch (err) {
       dom.modalBody.innerHTML = `<div class="modal-loading">${esc(/** @type {Error} */ (err).message)}</div>`;
     }
