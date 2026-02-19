@@ -47,6 +47,8 @@ export const Pagination = ({
   rowsPerPageOptions,
   rowsPerPageText,
   showRowsPerPageDropdown = false,
+  previousLabelAriaLabel,
+  nextLabelAriaLabel,
   pageSize,
 }: PaginationProps) => {
   const isMini = useIsMini();
@@ -90,7 +92,7 @@ export const Pagination = ({
               </Select.Option>
             ))}
           </Select>
-          <Label htmlFor={`paginationRowsPerPageDropdown-${id}`}>{rowsPerPageText}</Label>
+          <Label htmlFor={`paginationRowsPerPageDropdown-${id}`}>{t(rowsPerPageText)}</Label>
         </Field>
       )}
       <DesignSystemPagination
@@ -101,8 +103,11 @@ export const Pagination = ({
       >
         <DesignSystemPagination.List>
           <DesignSystemPagination.Item>
-            <DesignSystemPagination.Button {...prevButtonProps}>
-              {!hideLabels && !isMobile && previousLabel}
+            <DesignSystemPagination.Button
+              {...prevButtonProps}
+              aria-label={t(previousLabelAriaLabel)}
+            >
+              {!hideLabels && !isMobile && t(previousLabel)}
             </DesignSystemPagination.Button>
           </DesignSystemPagination.Item>
           {pages.map(({ page, itemKey, buttonProps }) => (
@@ -119,8 +124,11 @@ export const Pagination = ({
             </DesignSystemPagination.Item>
           ))}
           <DesignSystemPagination.Item>
-            <DesignSystemPagination.Button {...nextButtonProps}>
-              {!hideLabels && !isMobile && nextLabel}
+            <DesignSystemPagination.Button
+              {...nextButtonProps}
+              aria-label={t(nextLabelAriaLabel)}
+            >
+              {!hideLabels && !isMobile && t(nextLabel)}
             </DesignSystemPagination.Button>
           </DesignSystemPagination.Item>
         </DesignSystemPagination.List>

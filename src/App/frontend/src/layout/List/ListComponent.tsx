@@ -377,7 +377,6 @@ function Pagination({
   numberOfRows = 0,
   rowsPerPageOptions = [],
 }: PaginationProps) {
-  const { langAsString } = useLanguage();
   const isMobile = useIsMobile();
 
   function handlePageSizeChange(newSize: number) {
@@ -388,11 +387,11 @@ function Pagination({
     <div className={cn({ [classes.paginationMobile]: isMobile }, classes.pagination, 'ds-table__header__cell')}>
       <CustomPagination
         id={id}
-        nextLabel={langAsString('list_component.nextPage')}
-        nextLabelAriaLabel={langAsString('list_component.nextPageAriaLabel')}
-        previousLabel={langAsString('list_component.previousPage')}
-        previousLabelAriaLabel={langAsString('list_component.previousPageAriaLabel')}
-        rowsPerPageText={langAsString('list_component.rowsPerPage')}
+        nextLabel='list_component.nextPage'
+        nextLabelAriaLabel='list_component.nextPageAriaLabel'
+        previousLabel='list_component.previousPage'
+        previousLabelAriaLabel='list_component.previousPageAriaLabel'
+        rowsPerPageText='list_component.rowsPerPage'
         size='sm'
         currentPage={currentPage}
         numberOfRows={numberOfRows}
