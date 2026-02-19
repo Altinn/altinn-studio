@@ -1,31 +1,24 @@
 using System.Collections.Generic;
-using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.DeveloperSession;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class GiteaAuthHeadersProvider(IHttpContextAccessor httpContextAccessor) : IGitServerAuthHeadersProvider
+public class GiteaAuthHeadersProvider(IDeveloperContextAccessor developerContextAccessor) : IGitServerAuthHeadersProvider
 {
     public Dictionary<string, string> GetAuthHeaders()
     {
         var headers = new Dictionary<string, string>();
+        var context = developerContextAccessor.DeveloperContext;
 
-        var httpContext = httpContextAccessor.HttpContext;
-        if (httpContext == null)
+        if (context == null)
         {
             return headers;
         }
 
-        string username = AuthenticationHelper.GetDeveloperUserName(httpContext);
-        if (!string.IsNullOrEmpty(username))
-        {
-            headers["X-WEBAUTH-USER"] = username;
-        }
+        headers["X-WEBAUTH-USER"] = context.Username;
 
-        string? givenName = httpContext.User.FindFirst("given_name")?.Value;
-        string? familyName = httpContext.User.FindFirst("family_name")?.Value;
-        string fullName = $"{givenName} {familyName}".Trim();
+        string fullName = $"{context.GivenName} {context.FamilyName}".Trim();
         if (!string.IsNullOrEmpty(fullName))
         {
             headers["X-WEBAUTH-FULLNAME"] = fullName;

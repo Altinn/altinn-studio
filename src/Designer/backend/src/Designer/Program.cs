@@ -17,6 +17,8 @@ using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Infrastructure.Maskinporten;
+using Altinn.Studio.Designer.Infrastructure.DeveloperSession;
+using Altinn.Studio.Designer.Middleware;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Extensions;
 using Altinn.Studio.Designer.Scheduling;
@@ -171,6 +173,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
 
+    services.AddDeveloperContextAccessor();
     services.RegisterServiceImplementations(configuration);
 
     services.AddHttpContextAccessor();
@@ -276,6 +279,7 @@ void Configure(IConfiguration configuration)
 
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseMiddleware<DeveloperContextMiddleware>();
 
     app.UseResponseCompression();
     app.UseRequestLocalization();

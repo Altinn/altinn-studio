@@ -9,6 +9,7 @@ using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Evaluators;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Implementation;
@@ -120,7 +121,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
             services.AddTransient<ICustomTemplateService, CustomTemplateService>();
             services.AddTransient<IStudioOidcUsernameProvider, FixedStudioOidcUsernameProvider>();
-            services.AddScoped<IGitServerAuthHeadersProvider, GiteaAuthHeadersProvider>();
+            services.AddSingleton<IGitServerAuthHeadersProvider, GiteaAuthHeadersProvider>();
             services.RegisterSettingsSingleton<CustomTemplateSettings>(configuration);
 
             return services;
