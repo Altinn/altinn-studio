@@ -97,6 +97,7 @@ services:
       - SchedulingSettings:UsePersistentScheduling=true
       - SchedulingSettings:AddHostedService=true
       - GitOpsSettings:BotPersonalAccessToken=${GITOPS_BOT_PERSONAL_ACCESS_TOKEN:-}
+      - GiteaDbSettings:ConnectionString=Host=studio_db;Port=5432;Username=gitea;Password=gitea;Database=giteadb
     ports:
       - '6000:6000'
     depends_on:
@@ -122,6 +123,8 @@ services:
       context: ./development/gitea-proxy
     ports:
       - '3001:81'
+    environment:
+      - STUDIO_OIDC_ENABLED=${FEATUREFLAGS_STUDIOOIDC:-true}
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     volumes:

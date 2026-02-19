@@ -120,7 +120,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IOrgLibraryService, OrgLibraryService>();
             services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
             services.AddTransient<ICustomTemplateService, CustomTemplateService>();
-            services.AddTransient<IStudioOidcUsernameProvider, FixedStudioOidcUsernameProvider>();
+            services.AddTransient<IStudioOidcUsernameProvider, GiteaDbStudioOidcUsernameProvider>();
             services.AddSingleton<IGitServerAuthHeadersProvider, GiteaAuthHeadersProvider>();
             services.RegisterSettingsSingleton<CustomTemplateSettings>(configuration);
 

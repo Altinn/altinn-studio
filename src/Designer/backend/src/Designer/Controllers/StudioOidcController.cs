@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -80,11 +81,9 @@ public class StudioOidcController(IStudioOidcUsernameProvider usernameProvider) 
     [HttpGet("userinfo")]
     public IActionResult UserInfo()
     {
-        return Ok(new
-        {
-            Username = User.Identity?.Name,
-            GivenName = User.FindFirst("given_name")?.Value,
-            FamilyName = User.FindFirst("family_name")?.Value,
-        });
+        return Ok(new UserInfoResponse(
+            User.Identity?.Name,
+            User.FindFirst("given_name")?.Value,
+            User.FindFirst("family_name")?.Value));
     }
 }
