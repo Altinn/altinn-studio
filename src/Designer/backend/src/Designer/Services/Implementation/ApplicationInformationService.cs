@@ -14,7 +14,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -28,7 +27,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ITextResourceService _textResourceService;
         private readonly IResourceRegistry _resourceRegistryService;
         private readonly IOrgService _orgService;
-        private readonly ILogger<ApplicationInformationService> _logger;
 
         /// <summary>
         /// Constructor
@@ -38,8 +36,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IAuthorizationPolicyService authorizationPolicyService,
             ITextResourceService textResourceService,
             IResourceRegistry resourceRegistryService,
-            IOrgService orgService,
-            ILogger<ApplicationInformationService> logger
+            IOrgService orgService
         )
         {
             _applicationMetadataService = applicationMetadataService;
@@ -47,7 +44,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _textResourceService = textResourceService;
             _resourceRegistryService = resourceRegistryService;
             _orgService = orgService;
-            _logger = logger;
         }
 
         private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -126,14 +122,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     JsonSerializer.Deserialize<ApplicationMetadata>(appMetadataJson, s_jsonOptions)
                     ?? throw new JsonException("Could not deserialize application metadata");
 
-                ServiceResource serviceResource = applicationMetadata.ToServiceResource();
                 Org orgListOrg = await _orgService.GetOrg(org);
-                serviceResource.HasCompetentAuthority = new()
-                {
-                    Name = orgListOrg.Name,
-                    Organization = orgListOrg.Orgnr,
-                    Orgcode = org,
-                };
+                ServiceResource serviceResource = applicationMetadata
+                    .ToServiceResource()
+                    .WithOrgInformation(org, orgListOrg);
 
                 ActionResult publishResponse =
                     await _resourceRegistryService.PublishServiceResource(serviceResource, envName);
@@ -160,12 +152,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             tags: new ActivityTagsCollection { { "validation.errors", errors } }
                         )
                     );
-                    _logger.LogWarning(
-                        "Resource Registry returned validation problems for {Org}/{App}: {Errors}",
-                        org,
-                        app,
-                        errors
-                    );
                     return;
                 }
 
@@ -182,24 +168,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     ActivityStatusCode.Error,
                     $"Unexpected response status: {statusCode}"
                 );
-                _logger.LogWarning(
-                    "Resource Registry returned unexpected response for {Org}/{App}: {StatusCode}",
-                    org,
-                    app,
-                    statusCode
-                );
             }
             catch (Exception ex)
             {
                 activity?.SetTag("publish.result", "exception");
                 activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
                 activity?.AddException(ex);
-                _logger.LogWarning(
-                    ex,
-                    "Publishing to Resource Registry failed for {Org}/{App}",
-                    org,
-                    app
-                );
             }
         }
     }

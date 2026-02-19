@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.ResourceRegistry.Core.Models;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
@@ -178,6 +179,21 @@ public static class ApplicationMetadataMapper
             Delegable = applicationmetadata?.Access?.Delegable ?? false,
             AvailableForType = applicationmetadata?.Access?.AvailableForType,
         };
+    }
+
+    public static ServiceResource WithOrgInformation(
+        this ServiceResource serviceResource,
+        string org,
+        Org orgListOrg
+    )
+    {
+        serviceResource.HasCompetentAuthority = new()
+        {
+            Name = orgListOrg?.Name,
+            Organization = orgListOrg?.Orgnr,
+            Orgcode = org,
+        };
+        return serviceResource;
     }
 
     public static Dictionary<string, string> ToDictionary(
