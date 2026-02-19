@@ -1,4 +1,5 @@
 #nullable disable
+using System.Linq;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
@@ -30,7 +31,8 @@ public static class ChatMessageMapper
             Role = dbModel.Role,
             Content = dbModel.Content,
             ActionMode = dbModel.ActionMode,
-            FilesChanged = dbModel.FilesChanged
+            FilesChanged = dbModel.FilesChanged,
+            Attachments = dbModel.Attachments?.Select(ChatAttachmentMapper.MapToModel).ToList()
         };
     }
 

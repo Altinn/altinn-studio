@@ -41,4 +41,9 @@ public class ChatMessageDbModel
     /// List of app files changed by assistant.
     /// </summary>
     public List<string> FilesChanged { get; set; }
+
+    /// <summary>
+    /// Navigation property for attachments.
+    /// </summary>
+    public List<ChatAttachmentDbModel> Attachments { get; set; }
 }

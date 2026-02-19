@@ -16,7 +16,7 @@ public class ChatThreadConfiguration : IEntityTypeConfiguration<ChatThreadDbMode
         builder.HasIndex(e => new { e.Org, e.App, e.CreatedBy }, "idx_chat_threads_org_app_created_by");
 
         builder.Property(e => e.Id)
-            .HasColumnType("BIGSERIAL")
+            .HasColumnType("bigint")
             .HasColumnName("id")
             .ValueGeneratedOnAdd();
 

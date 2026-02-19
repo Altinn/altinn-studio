@@ -14,14 +14,14 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
         builder.HasKey(e => e.Id);
 
         builder.HasOne<ChatThreadDbModel>()
-            .WithMany()
+            .WithMany(t => t.Messages)
             .HasForeignKey(e => e.ThreadId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(e => e.ThreadId, "idx_chat_messages_thread_id");
 
         builder.Property(e => e.Id)
-            .HasColumnType("BIGSERIAL")
+            .HasColumnType("bigint")
             .HasColumnName("id")
             .ValueGeneratedOnAdd();
 

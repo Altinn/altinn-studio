@@ -23,37 +23,12 @@ public class ChatThreadRepository : IChatThreadRepository
     public async Task<ChatThreadEntity> GetThreadAsync(long id, CancellationToken cancellationToken = default)
     {
         var thread = await _dbContext.ChatThreads.AsNoTracking()
+            .AsSplitQuery()
+            .Include(t => t.Messages.OrderBy(m => m.CreatedAt))
+                .ThenInclude(m => m.Attachments)
             .SingleOrDefaultAsync(t => t.Id == id, cancellationToken);
 
-        if (thread is null)
-        {
-            return null;
-        }
-
-        var messages = await _dbContext.ChatMessages.AsNoTracking()
-            .Where(m => m.ThreadId == id)
-            .OrderBy(m => m.CreatedAt)
-            .ToListAsync(cancellationToken);
-
-        var messageIds = messages.Select(m => m.Id).ToList();
-
-        var attachments = await _dbContext.ChatAttachments.AsNoTracking()
-            .Where(a => messageIds.Contains(a.MessageId))
-            .ToListAsync(cancellationToken);
-
-        var attachmentsByMessageId = attachments
-            .GroupBy(a => a.MessageId)
-            .ToDictionary(g => g.Key, g => g.Select(ChatAttachmentMapper.MapToModel).ToList());
-
-        var threadEntity = ChatThreadMapper.MapToModel(thread);
-        threadEntity.Messages = messages.Select(m =>
-        {
-            var messageEntity = ChatMessageMapper.MapToModel(m);
-            messageEntity.Attachments = attachmentsByMessageId.GetValueOrDefault(m.Id, []);
-            return messageEntity;
-        }).ToList();
-
-        return threadEntity;
+        return thread is null ? null : ChatThreadMapper.MapToModel(thread);
     }
 
     public async Task<IEnumerable<ChatThreadTitle>> GetThreadTitlesAsync(string org, string app, string createdBy, CancellationToken cancellationToken = default)

@@ -14,14 +14,14 @@ public class ChatAttachmentConfiguration : IEntityTypeConfiguration<ChatAttachme
         builder.HasKey(e => e.Id);
 
         builder.HasOne<ChatMessageDbModel>()
-            .WithMany()
+            .WithMany(m => m.Attachments)
             .HasForeignKey(e => e.MessageId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(e => e.MessageId, "idx_chat_attachments_message_id");
 
         builder.Property(e => e.Id)
-            .HasColumnType("BIGSERIAL")
+            .HasColumnType("bigint")
             .HasColumnName("id")
             .ValueGeneratedOnAdd();
 
