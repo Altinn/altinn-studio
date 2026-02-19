@@ -26,4 +26,15 @@ function handleRequest(r) {
   });
 }
 
-export default { handleRequest };
+function handleInternalRequest(r) {
+  var username = r.headersIn['X-WEBAUTH-USER'];
+  if (username) {
+    r.variables.auth_username = username;
+    r.variables.auth_fullname = r.headersIn['X-WEBAUTH-FULLNAME'] || '';
+    r.internalRedirect('@proxy_to_gitea_internal');
+  } else {
+    r.internalRedirect('@proxy_to_gitea_passthrough');
+  }
+}
+
+export default { handleRequest, handleInternalRequest };
