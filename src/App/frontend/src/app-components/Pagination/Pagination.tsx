@@ -109,7 +109,7 @@ export const Pagination = ({
               {typeof page === 'number' && (
                 <DesignSystemPagination.Button
                   aria-current={currentPage === page}
-                  aria-label={translate('general.page_number', [page])}
+                  aria-label={translate('pagination.page_number', [page])}
                   {...buttonProps}
                 >
                   {page}

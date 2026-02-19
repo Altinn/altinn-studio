@@ -21,8 +21,8 @@ export const useCharacterLimit = (maxLength: number | undefined): FieldCounterPr
 
   return {
     limit: maxLength,
-    under: translate('input_components.remaining_characters'),
-    over: translate('input_components.exceeded_max_limit'),
+    under: translate('input.remaining_characters'),
+    over: translate('input.exceeded_max_limit'),
   };
 };
 

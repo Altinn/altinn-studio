@@ -17,6 +17,8 @@ import { fileURLToPath } from 'node:url';
 import tseslint from 'typescript-eslint';
 
 // eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
+import appComponentsTranslationKey from './src/app-components/eslint.js';
+// eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import langKey from './src/language/eslint.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -67,6 +69,7 @@ export default tseslint.config(
       local: {
         rules: {
           'language-key': langKey,
+          'app-components-translation-key': appComponentsTranslationKey,
         },
       },
     },
@@ -214,6 +217,7 @@ export default tseslint.config(
   {
     files: ['src/app-components/**/*.{ts,tsx}'],
     rules: {
+      'local/app-components-translation-key': ['error'],
       'no-restricted-imports': [
         'error',
         {
