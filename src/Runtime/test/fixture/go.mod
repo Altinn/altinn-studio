@@ -11,7 +11,7 @@ require (
 	github.com/fluxcd/source-controller/api v1.7.4
 	github.com/go-git/go-git/v5 v5.16.5
 	golang.org/x/sync v0.19.0
-	helm.sh/helm/v3 v3.19.4
+	helm.sh/helm/v3 v3.19.5
 	k8s.io/api v0.34.3
 	k8s.io/apiextensions-apiserver v0.34.3
 	k8s.io/apimachinery v0.34.3
