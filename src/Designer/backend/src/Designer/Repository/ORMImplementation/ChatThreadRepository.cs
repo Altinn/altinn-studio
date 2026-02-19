@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
@@ -33,10 +34,10 @@ public class ChatThreadRepository : IChatThreadRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<ChatThreadTitle>> GetThreadTitlesAsync(string org, string app, string createdBy, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ChatThreadTitle>> GetThreadTitlesAsync(AltinnRepoEditingContext context, CancellationToken cancellationToken = default)
     {
         return await _dbContext.ChatThreads.AsNoTracking()
-            .Where(t => t.Org == org && t.App == app && t.CreatedBy == createdBy)
+            .Where(t => t.Org == context.Org && t.App == context.Repo && t.CreatedBy == context.Developer)
             .OrderByDescending(t => t.CreatedAt)
             .Select(t => new ChatThreadTitle(t.Id, t.Title, t.CreatedAt))
             .ToListAsync(cancellationToken);

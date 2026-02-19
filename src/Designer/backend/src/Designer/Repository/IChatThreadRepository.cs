@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 
 namespace Altinn.Studio.Designer.Repository;
 
 /// <summary>
-/// Repository for managing chat threads, messages, and attachments.
+/// Repository for managing chat threads, messages, and attachments for the AI Assistant.
 /// </summary>
 public interface IChatThreadRepository
 {
@@ -22,11 +23,9 @@ public interface IChatThreadRepository
     /// <summary>
     /// Gets thread titles for a given org, app, and user, ordered by newest first.
     /// </summary>
-    /// <param name="org">The organisation identifier.</param>
-    /// <param name="app">The application identifier.</param>
-    /// <param name="createdBy">The user who created the threads.</param>
+    /// <param name="context">An <see cref="AltinnRepoEditingContext"/>.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
-    Task<IEnumerable<ChatThreadTitle>> GetThreadTitlesAsync(string org, string app, string createdBy, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ChatThreadTitle>> GetThreadTitlesAsync(AltinnRepoEditingContext context, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates a new chat thread.
