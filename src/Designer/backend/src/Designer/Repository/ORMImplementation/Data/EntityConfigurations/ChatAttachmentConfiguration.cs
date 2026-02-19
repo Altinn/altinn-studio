@@ -23,30 +23,37 @@ public class ChatAttachmentConfiguration : IEntityTypeConfiguration<ChatAttachme
         builder.Property(e => e.Id)
             .HasColumnType("bigint")
             .HasColumnName("id")
-            .ValueGeneratedOnAdd();
+            .ValueGeneratedOnAdd()
+            .IsRequired();
 
         builder.Property(e => e.MessageId)
             .HasColumnType("bigint")
-            .HasColumnName("message_id");
+            .HasColumnName("message_id")
+            .IsRequired();
 
         builder.Property(e => e.FileName)
             .HasColumnType("character varying")
-            .HasColumnName("file_name");
+            .HasColumnName("file_name")
+            .IsRequired();
 
         builder.Property(e => e.CreatedAt)
             .HasColumnType("timestamptz")
-            .HasColumnName("created_at");
+            .HasColumnName("created_at")
+            .IsRequired();
 
         builder.Property(e => e.MimeType)
             .HasColumnType("character varying")
-            .HasColumnName("mime_type");
+            .HasColumnName("mime_type")
+            .IsRequired();
 
         builder.Property(e => e.SizeBytes)
             .HasColumnType("bigint")
-            .HasColumnName("size_bytes");
+            .HasColumnName("size_bytes")
+            .IsRequired();
 
         builder.Property(e => e.BlobStorageKey)
             .HasColumnType("character varying")
-            .HasColumnName("blob_storage_key");
+            .HasColumnName("blob_storage_key")
+            .IsRequired();
     }
 }

@@ -23,23 +23,28 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
         builder.Property(e => e.Id)
             .HasColumnType("bigint")
             .HasColumnName("id")
-            .ValueGeneratedOnAdd();
+            .ValueGeneratedOnAdd()
+            .IsRequired();
 
         builder.Property(e => e.ThreadId)
             .HasColumnType("bigint")
-            .HasColumnName("thread_id");
+            .HasColumnName("thread_id")
+            .IsRequired();
 
         builder.Property(e => e.CreatedAt)
             .HasColumnType("timestamptz")
-            .HasColumnName("created_at");
+            .HasColumnName("created_at")
+            .IsRequired();
 
         builder.Property(e => e.Role)
             .HasColumnType("integer")
-            .HasColumnName("role");
+            .HasColumnName("role")
+            .IsRequired();
 
         builder.Property(e => e.Content)
             .HasColumnType("character varying")
-            .HasColumnName("content");
+            .HasColumnName("content")
+            .IsRequired();
 
         builder.Property(e => e.ActionMode)
             .HasColumnType("integer")

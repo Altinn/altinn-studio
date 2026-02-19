@@ -18,26 +18,32 @@ public class ChatThreadConfiguration : IEntityTypeConfiguration<ChatThreadDbMode
         builder.Property(e => e.Id)
             .HasColumnType("bigint")
             .HasColumnName("id")
-            .ValueGeneratedOnAdd();
+            .ValueGeneratedOnAdd()
+            .IsRequired();
 
         builder.Property(e => e.Org)
             .HasColumnType("character varying")
-            .HasColumnName("org");
+            .HasColumnName("org")
+            .IsRequired();
 
         builder.Property(e => e.App)
             .HasColumnType("character varying")
-            .HasColumnName("app");
+            .HasColumnName("app")
+            .IsRequired();
 
         builder.Property(e => e.CreatedBy)
             .HasColumnType("character varying")
-            .HasColumnName("created_by");
+            .HasColumnName("created_by")
+            .IsRequired();
 
         builder.Property(e => e.Title)
             .HasColumnType("character varying")
-            .HasColumnName("title");
+            .HasColumnName("title")
+            .IsRequired();
 
         builder.Property(e => e.CreatedAt)
             .HasColumnType("timestamptz")
-            .HasColumnName("created_at");
+            .HasColumnName("created_at")
+            .IsRequired();
     }
 }
