@@ -5,7 +5,7 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
-        "/\\.github/workflows/app-frontend-k6-browser\\.yml$/"
+        "//\\.github/workflows/app-frontend-k6-browser\\.yml$//"
       ],
       "matchStrings": ["grafana/k6:(?<currentValue>[\\w.-]+)-with-browser"],
       "datasourceTemplate": "docker",
