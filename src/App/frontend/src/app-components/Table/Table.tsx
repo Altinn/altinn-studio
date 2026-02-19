@@ -8,8 +8,8 @@ import { pick } from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
 
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
+import utilClasses from 'src/app-components/style/utils.module.css';
 import classes from 'src/app-components/Table/Table.module.css';
-import utilClasses from 'src/styles/utils.module.css';
 import type { FormDataValue } from 'src/app-components/DynamicForm/DynamicForm';
 
 interface Column<T> {
