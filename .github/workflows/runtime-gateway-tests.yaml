@@ -5,7 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Runtime/gateway/**'
-      - 'src/Runtime/test/fixture/**'
+      - 'src/Runtime/devenv/**'
       - '.github/workflows/runtime-gateway-tests.yaml'
   workflow_dispatch:
 

@@ -6,10 +6,10 @@ WORKDIR /app
 
 COPY go.mod go.sum ./
 
-# Remove the test fixture dependency from go.mod as it's not needed for building binaries
-# The test/harness package is only imported by test files, not by cmd/proxy or cmd/worker
-RUN sed -i '/altinn.studio\/runtime-fixture v/d' go.mod && \
-    sed -i '/replace altinn.studio\/runtime-fixture/d' go.mod
+# Remove the devenv dependency from go.mod as it's not needed for building binaries
+# The test/harness package is only imported by test files, not by cmd/worker.
+RUN sed -i '/altinn\.studio\/devenv v/d' go.mod && \
+    sed -i '/replace altinn\.studio\/devenv/d' go.mod
 
 RUN go mod download
 

@@ -5,7 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Runtime/pdf3/**'
-      - 'src/Runtime/test/fixture/**'
+      - 'src/Runtime/devenv/**'
       - '.github/workflows/runtime-pdf3-build.yml'
   workflow_dispatch:
 

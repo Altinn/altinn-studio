@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"altinn.studio/runtime-fixture/pkg/kubernetes"
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
+	"altinn.studio/devenv/pkg/kubernetes"
+	"altinn.studio/devenv/pkg/runtimes/kind"
 )
 
 // LogsCollector streams logs from pdf3 deployments and checks for assertion failures

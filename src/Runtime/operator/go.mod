@@ -3,7 +3,7 @@ module altinn.studio/operator
 go 1.25.7
 
 require (
-	altinn.studio/runtime-fixture v0.0.0
+	altinn.studio/devenv v0.0.0
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.20.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets v1.4.0
@@ -46,6 +46,7 @@ require (
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/internal v1.2.0 // indirect
+	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.6.0 // indirect
 	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
@@ -62,14 +63,20 @@ require (
 	github.com/cloudnative-pg/machinery v0.3.3 // indirect
 	github.com/containerd/containerd v1.7.29 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
+	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
-	github.com/containerd/platforms v0.2.1 // indirect
+	github.com/containerd/platforms v1.0.0-rc.1 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.18.1 // indirect
+	github.com/creack/pty v1.1.24 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/cli v29.1.3+incompatible // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
+	github.com/docker/docker v28.5.2+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.9.4 // indirect
+	github.com/docker/go-connections v0.6.0 // indirect
+	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
@@ -147,10 +154,13 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
+	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/spdystream v0.5.0 // indirect
+	github.com/moby/term v0.5.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
+	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
@@ -220,4 +230,4 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace altinn.studio/runtime-fixture => ../test/fixture
+replace altinn.studio/devenv => ../devenv
