@@ -130,3 +130,20 @@ func TestExecutor_StopAndRemoveContainer_JoinsStopAndRemoveErrors(t *testing.T) 
 		t.Fatalf("stopAndRemoveContainer() error = %v, want to include removeErr", err)
 	}
 }
+
+func TestExecutor_StopAndRemoveContainer_IgnoresContainerNotFound(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+	client.ContainerStopFunc = func(context.Context, string, *int) error {
+		return types.ErrContainerNotFound
+	}
+	client.ContainerRemoveFunc = func(context.Context, string, bool) error {
+		return types.ErrContainerNotFound
+	}
+
+	exec := NewExecutor(client)
+	if err := exec.stopAndRemoveContainer(t.Context(), "test"); err != nil {
+		t.Fatalf("stopAndRemoveContainer() error = %v, want nil", err)
+	}
+}

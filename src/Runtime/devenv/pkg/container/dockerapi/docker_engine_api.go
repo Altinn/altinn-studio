@@ -455,6 +455,9 @@ func (c *Client) ContainerStop(ctx context.Context, nameOrID string, timeout *in
 		opts.Timeout = timeout
 	}
 	if err := c.cli.ContainerStop(ctx, nameOrID, opts); err != nil {
+		if cerrdefs.IsNotFound(err) {
+			return types.ErrContainerNotFound
+		}
 		return fmt.Errorf("failed to stop container: %w", err)
 	}
 	return nil

@@ -387,6 +387,9 @@ func (c *Client) ContainerStop(ctx context.Context, nameOrID string, timeout *in
 	cmd := exec.CommandContext(ctx, "podman", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
+		if isContainerNotFoundOutput(output) {
+			return types.ErrContainerNotFound
+		}
 		return fmt.Errorf("podman stop failed: %w\nOutput: %s", err, string(output))
 	}
 	return nil
@@ -403,16 +406,20 @@ func (c *Client) ContainerRemove(ctx context.Context, nameOrID string, force boo
 	cmd := exec.CommandContext(ctx, "podman", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		lower := strings.ToLower(string(output))
-		if strings.Contains(lower, "no such container") ||
-			strings.Contains(lower, "no such object") ||
-			strings.Contains(lower, "container does not exist") ||
-			strings.Contains(lower, "unable to find") {
+		if isContainerNotFoundOutput(output) {
 			return types.ErrContainerNotFound
 		}
 		return fmt.Errorf("podman rm failed: %w\nOutput: %s", err, string(output))
 	}
 	return nil
+}
+
+func isContainerNotFoundOutput(output []byte) bool {
+	lower := strings.ToLower(string(output))
+	return strings.Contains(lower, "no such container") ||
+		strings.Contains(lower, "no such object") ||
+		strings.Contains(lower, "container does not exist") ||
+		strings.Contains(lower, "unable to find")
 }
 
 // NetworkCreate creates a new network

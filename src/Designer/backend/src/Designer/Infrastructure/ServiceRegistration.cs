@@ -88,6 +88,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IOrgCodeListService, OrgCodeListService>();
             services.AddTransient<IOrgContentService, OrgContentService>();
             services.AddTransient<IEnvironmentsService, EnvironmentsService>();
+            services.AddSingleton<IStudioctlInstallScriptService, StudioctlInstallScriptService>();
             services.AddHttpClient<IOrgService, OrgService>();
             services.AddHttpClient<ImageClient>();
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
