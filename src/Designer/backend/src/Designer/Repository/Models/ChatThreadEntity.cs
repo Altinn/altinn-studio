@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using System.Collections.Generic;
 
 namespace Altinn.Studio.Designer.Repository.Models;
 
@@ -11,4 +12,5 @@ public class ChatThreadEntity
     public string App { get; set; }
     public string CreatedBy { get; set; }
     public DateTime CreatedAt { get; set; }
+    public List<ChatMessageEntity> Messages { get; set; }
 }

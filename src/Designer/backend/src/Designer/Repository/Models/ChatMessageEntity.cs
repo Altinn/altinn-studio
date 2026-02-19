@@ -13,6 +13,7 @@ public class ChatMessageEntity
     public string Content { get; set; }
     public ActionMode ActionMode { get; set; }
     public List<string> FilesChanged { get; set; }
+    public List<ChatAttachmentEntity> Attachments { get; set; }
 }
 
 public enum Role { User = 0, Assistant = 1 }
