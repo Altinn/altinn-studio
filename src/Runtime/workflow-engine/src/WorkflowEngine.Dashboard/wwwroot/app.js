@@ -172,8 +172,8 @@
    *  @returns {{ from: string, to: string } | null} */
   const parseTransition = (wf) => {
     if (wf.operationId !== 'next') return null;
-    const m = wf.idempotencyKey.match(/\/next\/from-(.*?)-to-(.+)$/);
-    return m ? { from: m[1], to: m[2] } : null;
+    const m = wf.idempotencyKey.match(/\/next\/from-(.*?)-to-(.*)$/);
+    return m ? { from: m[1], to: m[2] || 'End Event' } : null;
   };
 
   const TASK_END_COMMANDS = new Set([
