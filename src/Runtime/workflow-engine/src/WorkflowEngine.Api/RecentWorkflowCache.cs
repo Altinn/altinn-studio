@@ -33,6 +33,7 @@ internal sealed class RecentWorkflowCache
                     OperationId = s.OperationId,
                     CommandType = s.Command.GetType().Name,
                     CommandDetail = s.Command.OperationId,
+                    CommandPayload = (s.Command as Command.AppCommand)?.Payload,
                     Status = s.Status.ToString(),
                     ProcessingOrder = s.ProcessingOrder,
                     RetryCount = s.RequeueCount,
@@ -79,6 +80,7 @@ internal sealed record CachedStep
     public required string OperationId { get; init; }
     public required string CommandType { get; init; }
     public required string CommandDetail { get; init; }
+    public string? CommandPayload { get; init; }
     public required string Status { get; init; }
     public required int ProcessingOrder { get; init; }
     public required int RetryCount { get; init; }

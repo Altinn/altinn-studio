@@ -198,6 +198,23 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
+    public async Task<Workflow?> GetWorkflow(
+        string idempotencyKey,
+        DateTimeOffset createdAt,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetWorkflow");
+        var entity = await _context
+            .Workflows.Include(w => w.Steps)
+            .FirstOrDefaultAsync(
+                w => w.IdempotencyKey == idempotencyKey && w.CreatedAt == createdAt,
+                cancellationToken
+            );
+        return entity?.ToDomainModel();
+    }
+
+    /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetFinishedWorkflows(
         IReadOnlyList<PersistentItemStatus> statuses,
         string? search = null,

@@ -17,6 +17,7 @@
    *   operationId:    string,
    *   commandType:    CommandType,
    *   commandDetail:  string,
+   *   commandPayload: string | null,
    *   status:         StepStatus,
    *   processingOrder: number,
    *   retryCount:     number,
@@ -160,6 +161,54 @@
 
   /** @type {Record<string, Workflow>} */
   const workflowData = {};
+
+  /* ── BPMN transition parsing & step phase mapping ────────── */
+
+  /** Parse BPMN transition from a "next" workflow's idempotencyKey.
+   *  @param {Workflow} wf
+   *  @returns {{ from: string, to: string } | null} */
+  const parseTransition = (wf) => {
+    if (wf.operationId !== 'next') return null;
+    const m = wf.idempotencyKey.match(/\/next\/from-(.*?)-to-(.+)$/);
+    return m ? { from: m[1], to: m[2] } : null;
+  };
+
+  const TASK_END_COMMANDS = new Set([
+    'ProcessTaskEnd','CommonTaskFinalization','EndTaskLegacyHook',
+    'OnTaskEndingHook','LockTaskData',
+    'ProcessTaskAbandon','OnTaskAbandonHook','AbandonTaskLegacyHook',
+  ]);
+  const TASK_START_COMMANDS = new Set([
+    'UnlockTaskData','ProcessTaskStart','OnTaskStartingHook',
+    'CommonTaskInitialization',
+  ]);
+  const COMMIT_COMMANDS = new Set([
+    'UpdateProcessState',
+  ]);
+  const POST_COMMIT_COMMANDS = new Set([
+    'MovedToAltinnEvent','ExecuteServiceTask','InstanceCreatedAltinnEvent',
+    'OnProcessEndingHook','ProcessEndLegacyHook','CompletedAltinnEvent',
+  ]);
+
+  /** @param {string} commandDetail @returns {'end'|'start'|'process'|'post'|null} */
+  const stepPhase = (commandDetail) => {
+    if (TASK_END_COMMANDS.has(commandDetail)) return 'end';
+    if (TASK_START_COMMANDS.has(commandDetail)) return 'start';
+    if (COMMIT_COMMANDS.has(commandDetail)) return 'commit';
+    if (POST_COMMIT_COMMANDS.has(commandDetail)) return 'post';
+    return null;
+  };
+
+  /** Extra sub-label for a step (e.g. service task type). Returns null if none. */
+  const stepSubLabel = (step) => {
+    if (step.commandDetail === 'ExecuteServiceTask' && step.commandPayload) {
+      try {
+        const p = JSON.parse(step.commandPayload);
+        if (p.serviceTaskType) return p.serviceTaskType;
+      } catch { /* ignore */ }
+    }
+    return null;
+  };
 
   /* ============================================================
    *  3. SSE CONNECTION
@@ -420,9 +469,9 @@
    */
   const buildScheduledCardHTML = (wf) => {
     const { instance: inst } = wf;
+    const tx = parseTransition(wf);
+    const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
     let html = `<div class="card-header">`;
-    html += `<div class="instance-path">`;
-    html += `<span class="wf-name">${esc(wf.operationId)}</span>`;
     html += `<span class="seg">${esc(inst.org)}</span>`;
     html += `<span class="seg-sep">/</span>`;
     html += `<span class="seg">${esc(inst.app)}</span>`;
@@ -430,16 +479,16 @@
     html += `<span class="seg">${inst.instanceOwnerPartyId}</span>`;
     html += `<span class="seg-sep">/</span>`;
     html += `<span class="seg guid">${esc(inst.instanceGuid)}</span>`;
-    html += copyIconHTML(inst.instanceGuid);
-    html += openIconHTML(inst);
-    html += `</div>`;
-    html += `<div style="display:flex;align-items:center;gap:10px">`;
+    html += `<span class="wf-name">${esc(wfLabel)}</span>`;
+    html += `<span class="header-spacer"></span>`;
     if (wf.startAt) {
       html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
     }
     html += `<span class="status-pill scheduled" style="animation:none">Scheduled</span>`;
-    html += `</div></div>`;
-    html += buildPipelineHTML(wf.idempotencyKey, wf.steps, true);
+    html += copyIconHTML(inst.instanceGuid);
+    html += openIconHTML(inst);
+    html += `</div>`;
+    html += buildPipelineHTML(wf, true);
     return html;
   };
 
@@ -597,18 +646,18 @@
 
   /** @param {string} guid */
   const copyIconHTML = (guid) =>
-    `<a class="open-btn compact-copy" onclick="copyGuid(event,'${esc(guid)}')" title="Copy instance GUID">&#10697;</a>`;
+    `<a class="open-btn" onclick="copyGuid(event,'${esc(guid)}')" title="Copy instance GUID">&#10697;</a>`;
   /** @param {InstanceInfo} inst */
   const openIconHTML = (inst) => {
     const url = `http://local.altinn.cloud/${esc(inst.org)}/${esc(inst.app)}/#/instance/${inst.instanceOwnerPartyId}/${esc(inst.instanceGuid)}`;
-    return `<a class="open-btn compact-copy" href="${url}" target="_blank" onclick="event.stopPropagation()" title="Open instance">&#8599;</a>`;
+    return `<a class="open-btn" href="${url}" target="_blank" onclick="event.stopPropagation()" title="Open instance">&#8599;</a>`;
   };
 
   /** @param {string} traceId @param {string} [title] @param {string} [extraClass] @returns {string} */
   const traceLink = (traceId, title, extraClass) => {
     const panes = JSON.stringify({t:{datasource:"tempo",queries:[{refId:"traceId",queryType:"traceql",query:traceId,datasource:{type:"tempo",uid:"tempo"},limit:20,tableType:"traces"}],range:{from:"now-1h",to:"now"}}});
     const url = 'http://localhost:7070/explore?schemaVersion=1&panes=' + encodeURIComponent(panes) + '&orgId=1';
-    return `<a class="open-btn compact-copy grafana-btn${extraClass ? ' ' + extraClass : ''}" href="${url}" target="_blank" onclick="event.stopPropagation()" title="${title || 'View trace in Grafana'}"><svg viewBox="0 0 351 365" fill="currentColor"><path d="M342,161.2c-.6-6.1-1.6-13.1-3.6-20.9-2-7.7-5-16.2-9.4-25-4.4-8.8-10.1-17.9-17.5-26.8-2.9-3.5-6.1-6.9-9.5-10.2 5.1-20.3-6.2-37.9-6.2-37.9-19.5-1.2-31.9 6.1-36.5 9.4-.8-.3-1.5-.7-2.3-1-3.3-1.3-6.7-2.6-10.3-3.7-3.5-1.1-7.1-2.1-10.8-3-3.7-.9-7.4-1.6-11.2-2.2-.7-.1-1.3-.2-2-.3-8.5-27.2-32.9-38.6-32.9-38.6-27.3 17.3-32.4 41.5-32.4 41.5s-.1.5-.3 1.4c-1.5.4-3 .9-4.5 1.3-2.1.6-4.2 1.4-6.2 2.2-2.1.8-4.1 1.6-6.2 2.5-4.1 1.8-8.2 3.8-12.2 6-3.9 2.2-7.7 4.6-11.4 7.1-.5-.2-1-.4-1-.4-37.8-14.4-71.3 2.9-71.3 2.9-3.1 40.2 15.1 65.5 18.7 70.1-.9 2.5-1.7 5-2.5 7.5-2.8 9.1-4.9 18.4-6.2 28.1-.2 1.4-.4 2.8-.5 4.2C18.8 192.7 8.5 228 8.5 228c29.1 33.5 63.1 35.6 63.1 35.6 0 0 .1-.1.1-.1 4.3 7.7 9.3 15 14.9 21.9 2.4 2.9 4.8 5.6 7.4 8.3-10.6 30.4 1.5 55.6 1.5 55.6 32.4 1.2 53.7-14.2 58.2-17.7 3.2 1.1 6.5 2.1 9.8 2.9 10 2.6 20.2 4.1 30.4 4.5 2.5.1 5.1.2 7.6.1l1.2 0 .8 0 1.6 0 1.6-.1 0 .1c15.3 21.8 42.1 24.9 42.1 24.9 19.1-20.1 20.2-40.1 20.2-44.4l0 0c0 0 0-.1 0-.3 0-.4 0-.6 0-.6l0 0c0-.3 0-.6 0-.9 4-2.8 7.8-5.8 11.4-9.1 7.6-6.9 14.3-14.8 19.9-23.3.5-.8 1-1.6 1.5-2.4 21.6 1.2 36.9-13.4 36.9-13.4-3.6-22.5-16.4-33.5-19.1-35.6l0 0c0 0-.1-.1-.3-.2-.2-.1-.2-.2-.2-.2 0 0 0 0 0 0-.1-.1-.3-.2-.5-.3.1-1.4.2-2.7.3-4.1.2-2.4.2-4.9.2-7.3l0-1.8 0-.9 0-.5c0-.6 0-.4 0-.6l-.1-1.5-.1-2c0-.7-.1-1.3-.2-1.9-.1-.6-.1-1.3-.2-1.9l-.2-1.9-.3-1.9c-.4-2.5-.8-4.9-1.4-7.4-2.3-9.7-6.1-18.9-11-27.2-5-8.3-11.2-15.6-18.3-21.8-7-6.2-14.9-11.2-23.1-14.9-8.3-3.7-16.9-6.1-25.5-7.2-4.3-.6-8.6-.8-12.9-.7l-1.6 0-.4 0c-.1 0-.6 0-.5 0l-.7 0-1.6.1c-.6 0-1.2.1-1.7.1-2.2.2-4.4.5-6.5.9-8.6 1.6-16.7 4.7-23.8 9-7.1 4.3-13.3 9.6-18.3 15.6-5 6-8.9 12.7-11.6 19.6-2.7 6.9-4.2 14.1-4.6 21-.1 1.7-.1 3.5-.1 5.2 0 .4 0 .9 0 1.3l.1 1.4c.1.8.1 1.7.2 2.5.3 3.5 1 6.9 1.9 10.1 1.9 6.5 4.9 12.4 8.6 17.4 3.7 5 8.2 9.1 12.9 12.4 4.7 3.2 9.8 5.5 14.8 7 5 1.5 10 2.1 14.7 2.1.6 0 1.2 0 1.7 0 .3 0 .6 0 .9 0 .3 0 .6 0 .9-.1.5 0 1-.1 1.5-.1.1 0 .3 0 .4-.1l.5-.1c.3 0 .6-.1.9-.1.6-.1 1.1-.2 1.7-.3.6-.1 1.1-.2 1.6-.4 1.1-.2 2.1-.6 3.1-.9 2-.7 4-1.5 5.7-2.4 1.8-.9 3.4-2 5-3 .4-.3.9-.6 1.3-1 1.6-1.3 1.9-3.7.6-5.3-1.1-1.4-3.1-1.8-4.7-.9-.4.2-.8.4-1.2.6-1.4.7-2.8 1.3-4.3 1.8-1.5.5-3.1.9-4.7 1.2-.8.1-1.6.2-2.5.3-.4 0-.8.1-1.3.1-.4 0-.9 0-1.2 0-.4 0-.8 0-1.2 0-.5 0-1 0-1.5-.1 0 0-.3 0-.1 0l-.2 0-.3 0c-.2 0-.5 0-.7-.1-.5-.1-.9-.1-1.4-.2-3.7-.5-7.4-1.6-10.9-3.2-3.6-1.6-7-3.8-10.1-6.6-3.1-2.8-5.8-6.1-7.9-9.9-2.1-3.8-3.6-8-4.3-12.4-.3-2.2-.5-4.5-.4-6.7 0-.6.1-1.2.1-1.8 0 .2 0-.1 0-.1l0-.2 0-.5c0-.3.1-.6.1-.9.1-1.2.3-2.4.5-3.6 1.7-9.6 6.5-19 13.9-26.1 1.9-1.8 3.9-3.4 6-4.9 2.1-1.5 4.4-2.8 6.8-3.9 2.4-1.1 4.8-2 7.4-2.7 2.5-.7 5.1-1.1 7.8-1.4 1.3-.1 2.6-.2 4-.2.4 0 .6 0 .9 0l1.1 0 .7 0c.3 0 0 0 .1 0l.3 0 1.1.1c2.9.2 5.7.6 8.5 1.3 5.6 1.2 11.1 3.3 16.2 6.1 10.2 5.7 18.9 14.5 24.2 25.1 2.7 5.3 4.6 11 5.5 16.9.2 1.5.4 3 .5 4.5l.1 1.1.1 1.1c0 .4 0 .8 0 1.1 0 .4 0 .8 0 1.1l0 1 0 1.1c0 .7-.1 1.9-.1 2.6-.1 1.6-.3 3.3-.5 4.9-.2 1.6-.5 3.2-.8 4.8-.3 1.6-.7 3.2-1.1 4.7-.8 3.1-1.8 6.2-3 9.3-2.4 6-5.6 11.8-9.4 17.1-7.7 10.6-18.2 19.2-30.2 24.7-6 2.7-12.3 4.7-18.8 5.7-3.2.6-6.5.9-9.8 1l-.6 0-.5 0-1.1 0-1.6 0-.8 0c.4 0-.1 0-.1 0l-.3 0c-1.8 0-3.5-.1-5.3-.3-7-.5-13.9-1.8-20.7-3.7-6.7-1.9-13.2-4.6-19.4-7.8-12.3-6.6-23.4-15.6-32-26.5-4.3-5.4-8.1-11.3-11.2-17.4-3.1-6.1-5.6-12.6-7.4-19.1-1.8-6.6-2.9-13.3-3.4-20.1l-.1-1.3 0-.3 0-.3 0-.6 0-1.1 0-.3 0-.4 0-.8 0-1.6 0-.3c0 0 0 .1 0-.1l0-.6c0-.8 0-1.7 0-2.5.1-3.3.4-6.8.8-10.2.4-3.4 1-6.9 1.7-10.3.7-3.4 1.5-6.8 2.5-10.2 1.9-6.7 4.3-13.2 7.1-19.3 5.7-12.2 13.1-23.1 22-31.8 2.2-2.2 4.5-4.2 6.9-6.2 2.4-1.9 4.9-3.7 7.5-5.4 2.5-1.7 5.2-3.2 7.9-4.6 1.3-.7 2.7-1.4 4.1-2 .7-.3 1.4-.6 2.1-.9.7-.3 1.4-.6 2.1-.9 2.8-1.2 5.7-2.2 8.7-3.1.7-.2 1.5-.4 2.2-.7.7-.2 1.5-.4 2.2-.6 1.5-.4 3-.8 4.5-1.1.7-.2 1.5-.3 2.3-.5.8-.2 1.5-.3 2.3-.5.8-.1 1.5-.3 2.3-.4l1.1-.2 1.2-.2c.8-.1 1.5-.2 2.3-.3.9-.1 1.7-.2 2.6-.3.7-.1 1.9-.2 2.6-.3.5-.1 1.1-.1 1.6-.2l1.1-.1.5-.1.6 0c.9-.1 1.7-.1 2.6-.2l1.3-.1c0 0 .5 0 .1 0l.3 0 .6 0c.7 0 1.5-.1 2.2-.1 2.9-.1 5.9-.1 8.8 0 5.8.2 11.5.9 17 1.9 11.1 2.1 21.5 5.6 31 10.3 9.5 4.6 17.9 10.3 25.3 16.5.5.4.9.8 1.4 1.2.4.4.9.8 1.3 1.2.9.8 1.7 1.6 2.6 2.4.9.8 1.7 1.6 2.5 2.4.8.8 1.6 1.6 2.4 2.5 3.1 3.3 6 6.6 8.6 10 5.2 6.7 9.4 13.5 12.7 19.9.2.4.4.8.6 1.2.2.4.4.8.6 1.2.4.8.8 1.6 1.1 2.4.4.8.7 1.5 1.1 2.3.3.8.7 1.5 1 2.3 1.2 3 2.4 5.9 3.3 8.6 1.5 4.4 2.6 8.3 3.5 11.7.3 1.4 1.6 2.3 3 2.1 1.5-.1 2.6-1.3 2.6-2.8C342.6 170.4 342.5 166.1 342 161.2z"/></svg></a>`;
+    return `<a class="open-btn grafana-btn${extraClass ? ' ' + extraClass : ''}" href="${url}" target="_blank" onclick="event.stopPropagation()" title="${title || 'View trace in Grafana'}"><svg viewBox="0 0 351 365" fill="currentColor"><path d="M342,161.2c-.6-6.1-1.6-13.1-3.6-20.9-2-7.7-5-16.2-9.4-25-4.4-8.8-10.1-17.9-17.5-26.8-2.9-3.5-6.1-6.9-9.5-10.2 5.1-20.3-6.2-37.9-6.2-37.9-19.5-1.2-31.9 6.1-36.5 9.4-.8-.3-1.5-.7-2.3-1-3.3-1.3-6.7-2.6-10.3-3.7-3.5-1.1-7.1-2.1-10.8-3-3.7-.9-7.4-1.6-11.2-2.2-.7-.1-1.3-.2-2-.3-8.5-27.2-32.9-38.6-32.9-38.6-27.3 17.3-32.4 41.5-32.4 41.5s-.1.5-.3 1.4c-1.5.4-3 .9-4.5 1.3-2.1.6-4.2 1.4-6.2 2.2-2.1.8-4.1 1.6-6.2 2.5-4.1 1.8-8.2 3.8-12.2 6-3.9 2.2-7.7 4.6-11.4 7.1-.5-.2-1-.4-1-.4-37.8-14.4-71.3 2.9-71.3 2.9-3.1 40.2 15.1 65.5 18.7 70.1-.9 2.5-1.7 5-2.5 7.5-2.8 9.1-4.9 18.4-6.2 28.1-.2 1.4-.4 2.8-.5 4.2C18.8 192.7 8.5 228 8.5 228c29.1 33.5 63.1 35.6 63.1 35.6 0 0 .1-.1.1-.1 4.3 7.7 9.3 15 14.9 21.9 2.4 2.9 4.8 5.6 7.4 8.3-10.6 30.4 1.5 55.6 1.5 55.6 32.4 1.2 53.7-14.2 58.2-17.7 3.2 1.1 6.5 2.1 9.8 2.9 10 2.6 20.2 4.1 30.4 4.5 2.5.1 5.1.2 7.6.1l1.2 0 .8 0 1.6 0 1.6-.1 0 .1c15.3 21.8 42.1 24.9 42.1 24.9 19.1-20.1 20.2-40.1 20.2-44.4l0 0c0 0 0-.1 0-.3 0-.4 0-.6 0-.6l0 0c0-.3 0-.6 0-.9 4-2.8 7.8-5.8 11.4-9.1 7.6-6.9 14.3-14.8 19.9-23.3.5-.8 1-1.6 1.5-2.4 21.6 1.2 36.9-13.4 36.9-13.4-3.6-22.5-16.4-33.5-19.1-35.6l0 0c0 0-.1-.1-.3-.2-.2-.1-.2-.2-.2-.2 0 0 0 0 0 0-.1-.1-.3-.2-.5-.3.1-1.4.2-2.7.3-4.1.2-2.4.2-4.9.2-7.3l0-1.8 0-.9 0-.5c0-.6 0-.4 0-.6l-.1-1.5-.1-2c0-.7-.1-1.3-.2-1.9-.1-.6-.1-1.3-.2-1.9l-.2-1.9-.3-1.9c-.4-2.5-.8-4.9-1.4-7.4-2.3-9.7-6.1-18.9-11-27.2-5-8.3-11.2-15.6-18.3-21.8-7-6.2-14.9-11.2-23.1-14.9-8.3-3.7-16.9-6.1-25.5-7.2-4.3-.6-8.6-.8-12.9-.7l-1.6 0-.4 0c-.1 0-.6 0-.5 0l-.7 0-1.6.1c-.6 0-1.2.1-1.7.1-2.2.2-4.4.5-6.5.9-8.6 1.6-16.7 4.7-23.8 9-7.1 4.3-13.3 9.6-18.3 15.6-5 6-8.9 12.7-11.6 19.6-2.7 6.9-4.2 14.1-4.6 21-.1 1.7-.1 3.5-.1 5.2 0 .4 0 .9 0 1.3l.1 1.4c.1.8.1 1.7.2 2.5.3 3.5 1 6.9 1.9 10.1 1.9 6.5 4.9 12.4 8.6 17.4 3.7 5 8.2 9.1 12.9 12.4 4.7 3.2 9.8 5.5 14.8 7 5 1.5 10 2.1 14.7 2.1.6 0 1.2 0 1.7 0 .3 0 .6 0 .9 0 .3 0 .6 0 .9-.1.5 0 1-.1 1.5-.1.1 0 .3 0 .4-.1l.5-.1c.3 0 .6-.1.9-.1.6-.1 1.1-.2 1.7-.3.6-.1 1.1-.2 1.6-.4 1.1-.2 2.1-.6 3.1-.9 2-.7 4-1.5 5.7-2.4 1.8-.9 3.4-2 5-3 .4-.3.9-.6 1.3-1 1.6-1.3 1.9-3.7.6-5.3-1.1-1.4-3.1-1.8-4.7-.9-.4.2-.8.4-1.2.6-1.4.7-2.8 1.3-4.3 1.8-1.5.5-3.1.9-4.7 1.2-.8.1-1.6.2-2.5.3-.4 0-.8.1-1.3.1-.4 0-.9 0-1.2 0-.4 0-.8 0-1.2 0-.5 0-1 0-1.5-.1 0 0-.3 0-.1 0l-.2 0-.3 0c-.2 0-.5 0-.7-.1-.5-.1-.9-.1-1.4-.2-3.7-.5-7.4-1.6-10.9-3.2-3.6-1.6-7-3.8-10.1-6.6-3.1-2.8-5.8-6.1-7.9-9.9-2.1-3.8-3.6-8-4.3-12.4-.3-2.2-.5-4.5-.4-6.7 0-.6.1-1.2.1-1.8 0 .2 0-.1 0-.1l0-.2 0-.5c0-.3.1-.6.1-.9.1-1.2.3-2.4.5-3.6 1.7-9.6 6.5-19 13.9-26.1 1.9-1.8 3.9-3.4 6-4.9 2.1-1.5 4.4-2.8 6.8-3.9 2.4-1.1 4.8-2 7.4-2.7 2.5-.7 5.1-1.1 7.8-1.4 1.3-.1 2.6-.2 4-.2.4 0 .6 0 .9 0l1.1 0 .7 0c.3 0 0 0 .1 0l.3 0 1.1.1c2.9.2 5.7.6 8.5 1.3 5.6 1.2 11.1 3.3 16.2 6.1 10.2 5.7 18.9 14.5 24.2 25.1 2.7 5.3 4.6 11 5.5 16.9.2 1.5.4 3 .5 4.5l.1 1.1.1 1.1c0 .4 0 .8 0 1.1 0 .4 0 .8 0 1.1l0 1 0 1.1c0 .7-.1 1.9-.1 2.6-.1 1.6-.3 3.3-.5 4.9-.2 1.6-.5 3.2-.8 4.8-.3 1.6-.7 3.2-1.1 4.7-.8 3.1-1.8 6.2-3 9.3-2.4 6-5.6 11.8-9.4 17.1-7.7 10.6-18.2 19.2-30.2 24.7-6 2.7-12.3 4.7-18.8 5.7-3.2.6-6.5.9-9.8 1l-.6 0-.5 0-1.1 0-1.6 0-.8 0c.4 0-.1 0-.1 0l-.3 0c-1.8 0-3.5-.1-5.3-.3-7-.5-13.9-1.8-20.7-3.7-6.7-1.9-13.2-4.6-19.4-7.8-12.3-6.6-23.4-15.6-32-26.5-4.3-5.4-8.1-11.3-11.2-17.4-3.1-6.1-5.6-12.6-7.4-19.1-1.8-6.6-2.9-13.3-3.4-20.1l-.1-1.3 0-.3 0-.3 0-.6 0-1.1 0-.3 0-.4 0-.8 0-1.6 0-.3c0 0 0 .1 0-.1l0-.6c0-.8 0-1.7 0-2.5.1-3.3.4-6.8.8-10.2.4-3.4 1-6.9 1.7-10.3.7-3.4 1.5-6.8 2.5-10.2 1.9-6.7 4.3-13.2 7.1-19.3 5.7-12.2 13.1-23.1 22-31.8 2.2-2.2 4.5-4.2 6.9-6.2 2.4-1.9 4.9-3.7 7.5-5.4 2.5-1.7 5.2-3.2 7.9-4.6 1.3-.7 2.7-1.4 4.1-2 .7-.3 1.4-.6 2.1-.9.7-.3 1.4-.6 2.1-.9 2.8-1.2 5.7-2.2 8.7-3.1.7-.2 1.5-.4 2.2-.7.7-.2 1.5-.4 2.2-.6 1.5-.4 3-.8 4.5-1.1.7-.2 1.5-.3 2.3-.5.8-.2 1.5-.3 2.3-.5.8-.1 1.5-.3 2.3-.4l1.1-.2 1.2-.2c.8-.1 1.5-.2 2.3-.3.9-.1 1.7-.2 2.6-.3.7-.1 1.9-.2 2.6-.3.5-.1 1.1-.1 1.6-.2l1.1-.1.5-.1.6 0c.9-.1 1.7-.1 2.6-.2l1.3-.1c0 0 .5 0 .1 0l.3 0 .6 0c.7 0 1.5-.1 2.2-.1 2.9-.1 5.9-.1 8.8 0 5.8.2 11.5.9 17 1.9 11.1 2.1 21.5 5.6 31 10.3 9.5 4.6 17.9 10.3 25.3 16.5.5.4.9.8 1.4 1.2.4.4.9.8 1.3 1.2.9.8 1.7 1.6 2.6 2.4.9.8 1.7 1.6 2.5 2.4.8.8 1.6 1.6 2.4 2.5 3.1 3.3 6 6.6 8.6 10 5.2 6.7 9.4 13.5 12.7 19.9.2.4.4.8.6 1.2.2.4.4.8.6 1.2.4.8.8 1.6 1.1 2.4.4.8.7 1.5 1.1 2.3.3.8.7 1.5 1 2.3 1.2 3 2.4 5.9 3.3 8.6 1.5 4.4 2.6 8.3 3.5 11.7.3 1.4 1.6 2.3 3 2.1 1.5-.1 2.6-1.3 2.6-2.8C342.6 170.4 342.5 166.1 342 161.2z"/></svg></a>`;
   };
 
   /** @param {string} traceId @returns {string} */
@@ -633,11 +682,10 @@
   const buildCardHTML = (wf, isStatic) => {
     const { instance: inst } = wf;
     const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
-
+    const tx = parseTransition(wf);
+    const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
 
     let html = `<div class="card-header">`;
-    html += `<div class="instance-path">`;
-    html += `<span class="wf-name">${esc(wf.operationId)}</span>`;
     html += `<span class="seg" onclick="toggleOrgFilter('${esc(inst.org)}')" title="Filter by org">${esc(inst.org)}</span>`;
     html += `<span class="seg-sep">/</span>`;
     html += `<span class="seg" onclick="toggleAppFilter('${esc(inst.app)}')" title="Filter by app">${esc(inst.app)}</span>`;
@@ -645,11 +693,8 @@
     html += `<span class="seg" onclick="togglePartyFilter('${inst.instanceOwnerPartyId}')" title="Filter by party">${inst.instanceOwnerPartyId}</span>`;
     html += `<span class="seg-sep">/</span>`;
     html += `<span class="seg guid" onclick="toggleGuidFilter('${esc(inst.instanceGuid)}')" title="Filter by instance">${esc(inst.instanceGuid)}</span>`;
-    html += copyIconHTML(inst.instanceGuid);
-    html += openIconHTML(inst);
-    if (wf.traceId) html += traceIconHTML(wf.traceId);
-    html += `</div>`;
-    html += `<div style="display:flex;align-items:center;gap:10px">`;
+    html += `<span class="wf-name">${esc(wfLabel)}</span>`;
+    html += `<span class="header-spacer"></span>`;
     if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
     html += `<span class="status-pill ${wf.status}"${isStatic ? ' style="animation:none"' : ''}>${wf.status}</span>`;
     if (!isStatic) {
@@ -662,9 +707,12 @@
         html += `<span class="elapsed">${label}</span>`;
       }
     }
-    html += `</div></div>`;
+    html += copyIconHTML(inst.instanceGuid);
+    html += openIconHTML(inst);
+    if (wf.traceId) html += traceIconHTML(wf.traceId);
+    html += `</div>`;
 
-    html += buildPipelineHTML(wf.idempotencyKey, wf.steps, isStatic);
+    html += buildPipelineHTML(wf, isStatic);
     return html;
   };
 
@@ -677,9 +725,10 @@
   const buildCompactCardHTML = (wf, isStatic) => {
     const { instance: inst } = wf;
     const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
+    const tx = parseTransition(wf);
+    const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
 
     let html = `<div class="compact-row">`;
-    html += `<span class="compact-name">${esc(wf.operationId)}</span>`;
     html += `<span class="seg" onclick="toggleOrgFilter('${esc(inst.org)}')" title="Filter by org">${esc(inst.org)}</span>`;
     html += `<span class="seg-sep">/</span>`;
     html += `<span class="seg" onclick="toggleAppFilter('${esc(inst.app)}')" title="Filter by app">${esc(inst.app)}</span>`;
@@ -687,17 +736,17 @@
     html += `<span class="seg" onclick="togglePartyFilter('${inst.instanceOwnerPartyId}')" title="Filter by party">${inst.instanceOwnerPartyId}</span>`;
     html += `<span class="seg-sep">/</span>`;
     html += `<span class="seg guid" onclick="toggleGuidFilter('${esc(inst.instanceGuid)}')" title="Filter by instance">${esc(inst.instanceGuid)}</span>`;
-    html += copyIconHTML(inst.instanceGuid);
-    html += openIconHTML(inst);
-    if (wf.traceId) html += traceIconHTML(wf.traceId);
+    html += `<span class="compact-name">${esc(wfLabel)}</span>`;
 
     html += `<div class="compact-pipeline">`;
     for (const step of wf.steps) {
-      html += `<span class="compact-dot ${step.status}" onclick="openStepModal('${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}')" title="${esc(step.commandDetail)} (${step.status})"></span>`;
+      const sub = stepSubLabel(step);
+      const dotTitle = sub ? `${step.commandDetail} [${sub}] (${step.status})` : `${step.commandDetail} (${step.status})`;
+      html += `<span class="compact-dot ${step.status}" onclick="openStepModal('${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','${esc(wf.createdAt)}')" title="${esc(dotTitle)}"></span>`;
     }
     html += `</div>`;
 
-    if (retries > 0) html += `<span class="retry-badge compact-retry">&#8635;${retries}</span>`;
+    if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
     html += `<span class="status-pill ${wf.status} compact-pill">${wf.status}</span>`;
 
     if (!isStatic) {
@@ -711,6 +760,9 @@
       }
     }
 
+    html += copyIconHTML(inst.instanceGuid);
+    html += openIconHTML(inst);
+    if (wf.traceId) html += traceIconHTML(wf.traceId);
     html += `</div>`;
     return html;
   };
@@ -722,8 +774,9 @@
    */
   const buildCompactScheduledCardHTML = (wf) => {
     const { instance: inst } = wf;
+    const tx = parseTransition(wf);
+    const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
     let html = `<div class="compact-row">`;
-    html += `<span class="compact-name">${esc(wf.operationId)}</span>`;
     html += `<span class="seg">${esc(inst.org)}</span>`;
     html += `<span class="seg-sep">/</span>`;
     html += `<span class="seg">${esc(inst.app)}</span>`;
@@ -731,8 +784,7 @@
     html += `<span class="seg">${inst.instanceOwnerPartyId}</span>`;
     html += `<span class="seg-sep">/</span>`;
     html += `<span class="seg guid">${esc(inst.instanceGuid)}</span>`;
-    html += copyIconHTML(inst.instanceGuid);
-    html += openIconHTML(inst);
+    html += `<span class="compact-name">${esc(wfLabel)}</span>`;
     html += `<div class="compact-pipeline">`;
     for (const step of wf.steps) {
       html += `<span class="compact-dot ${step.status}" title="${esc(step.commandDetail)} (${step.status})"></span>`;
@@ -742,6 +794,8 @@
       html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
     }
     html += `<span class="status-pill scheduled compact-pill" style="animation:none">Scheduled</span>`;
+    html += copyIconHTML(inst.instanceGuid);
+    html += openIconHTML(inst);
     html += `</div>`;
     return html;
   };
@@ -751,18 +805,67 @@
    * ============================================================ */
 
   /**
-   * @param {string} wfKey
-   * @param {Step[]} steps
+   * @param {Workflow} wf
    * @param {boolean} [isStatic]
    * @returns {string}
    */
-  const buildPipelineHTML = (wfKey, steps, isStatic) => {
+  const buildPipelineHTML = (wf, isStatic) => {
+    const { steps } = wf;
     if (!steps?.length) return '';
 
-    let html = '<div class="pipeline">';
+    const tx = parseTransition(wf);
+
+    // No grouping for non-"next" workflows
+    if (!tx) {
+      let html = '<div class="pipeline">';
+      steps.forEach((step, i) => {
+        if (i > 0) html += buildConnectorHTML(steps[i - 1], step, isStatic);
+        html += buildStepNodeHTML(wf, step, isStatic);
+      });
+      html += '</div>';
+      return html;
+    }
+
+    // Flat pipeline with phase annotations on step-nodes
+    const phases = steps.map(s => stepPhase(s.commandDetail));
+    /** @param {string} phase @returns {string} */
+    const phaseLabel = (phase) => {
+      if (phase === 'end') return tx.from;
+      if (phase === 'start') return tx.to;
+      if (phase === 'commit') return 'commit';
+      if (phase === 'post') return 'post-commit';
+      return '';
+    };
+
+    // Find the middle index of each phase group for centered labels
+    // Map: stepIndex → needsHalfOffset (true for even-count groups)
+    const labelAt = new Map();
+    let groupStart = -1;
+    let groupPhase = null;
+    for (let i = 0; i <= steps.length; i++) {
+      const p = i < steps.length ? phases[i] : null;
+      if (p !== groupPhase) {
+        if (groupPhase !== null && groupStart >= 0) {
+          const count = i - groupStart;
+          const mid = groupStart + Math.floor((count - 1) / 2);
+          labelAt.set(mid, count % 2 === 0);
+        }
+        groupStart = p !== null ? i : -1;
+        groupPhase = p;
+      }
+    }
+
+    let html = '<div class="pipeline pipeline-grouped">';
     steps.forEach((step, i) => {
       if (i > 0) html += buildConnectorHTML(steps[i - 1], step, isStatic);
-      html += buildStepNodeHTML(wfKey, step, isStatic);
+
+      const phase = phases[i];
+      const isFirst = phase !== null && phase !== (i > 0 ? phases[i - 1] : null);
+      const isLast  = phase !== null && phase !== (i < steps.length - 1 ? phases[i + 1] : null);
+
+      const hasLabel = labelAt.has(i);
+      html += buildStepNodeHTML(wf, step, isStatic,
+        phase ? { phase, first: isFirst, last: isLast, label: hasLabel ? phaseLabel(phase) : null, halfOffset: hasLabel && labelAt.get(i) } : null);
     });
     html += '</div>';
     return html;
@@ -826,17 +929,31 @@
    * @param {string} wfKey
    * @param {Step} step
    * @param {boolean} [isStatic]
+   * @param {{ phase: string, first: boolean, last: boolean, label: string|null, halfOffset: boolean }} [phaseOpts]
    * @returns {string}
    */
-  const buildStepNodeHTML = (wfKey, step, isStatic) => {
-    let html = `<div class="step-node">`;
+  const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
+    let attrs = '';
+    let labelHtml = '';
+    if (phaseOpts) {
+      attrs = ` data-phase="${phaseOpts.phase}"`;
+      if (phaseOpts.first) attrs += ' data-phase-first';
+      if (phaseOpts.last) attrs += ' data-phase-last';
+      if (phaseOpts.label) labelHtml = `<span class="phase-label${phaseOpts.halfOffset ? ' phase-label-offset' : ''}">${escHtml(phaseOpts.label)}</span>`;
+    }
+    let html = `<div class="step-node"${attrs}>`;
+    html += labelHtml;
 
     html += `<div class="step-circle ${step.status}"`
       + ` style="cursor:pointer${isStatic ? ';animation:none;box-shadow:none' : ''}"`
-      + ` onclick="openStepModal('${esc(wfKey)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}')">`
+      + ` onclick="openStepModal('${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','${esc(wf.createdAt)}')">`
       + `${stepIcon(step.status)}</div>`;
 
+    const sub = stepSubLabel(step);
+    html += `<div class="step-label-wrap">`;
     html += `<div class="step-label" title="${esc(step.commandDetail)}">${esc(step.commandDetail)}</div>`;
+    if (sub) html += `<div class="step-sublabel">${esc(sub)}</div>`;
+    html += `</div>`;
 
     html += `<div class="step-meta">`;
     html += `<span class="step-type ${esc(step.commandType)}">${esc(step.commandType)}</span>`;
@@ -1684,14 +1801,17 @@
    * @param {string} wfKey
    * @param {string} stepKey
    * @param {string} stepName
+   * @param {string} [createdAt]
    */
-  window.openStepModal = async (wfKey, stepKey, stepName) => {
+  window.openStepModal = async (wfKey, stepKey, stepName, createdAt) => {
     dom.modalTitle.textContent = stepName || 'Step Details';
     dom.modalBody.innerHTML = '<div class="modal-loading">Loading...</div>';
     dom.modal.classList.add('open');
 
     try {
-      const res = await fetch(`${engineUrl}/dashboard/step?wf=${encodeURIComponent(wfKey)}&step=${encodeURIComponent(stepKey)}`);
+      let url = `${engineUrl}/dashboard/step?wf=${encodeURIComponent(wfKey)}&step=${encodeURIComponent(stepKey)}`;
+      if (createdAt) url += `&createdAt=${encodeURIComponent(createdAt)}`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error('Step not found (may have left inbox)');
       const data = await res.json();
       let modalHtml = '';

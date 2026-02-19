@@ -62,6 +62,7 @@ internal static class DashboardEndpoints
                                     operationId = s.OperationId,
                                     commandType = s.Command.GetType().Name,
                                     commandDetail = s.Command.OperationId,
+                                    commandPayload = (s.Command as Command.AppCommand)?.Payload,
                                     status = s.Status.ToString(),
                                     processingOrder = s.ProcessingOrder,
                                     retryCount = s.RequeueCount,
@@ -185,6 +186,7 @@ internal static class DashboardEndpoints
                                     s.OperationId,
                                     s.CommandType,
                                     s.CommandDetail,
+                                    s.CommandPayload,
                                     s.Status,
                                     s.ProcessingOrder,
                                     s.RetryCount,
@@ -295,6 +297,7 @@ internal static class DashboardEndpoints
                                     operationId = s.OperationId,
                                     commandType = s.Command.GetType().Name,
                                     commandDetail = s.Command.OperationId,
+                                    commandPayload = (s.Command as Command.AppCommand)?.Payload,
                                     status = s.Status.ToString(),
                                     processingOrder = s.ProcessingOrder,
                                     retryCount = s.RequeueCount,
@@ -340,6 +343,7 @@ internal static class DashboardEndpoints
                                 operationId = s.OperationId,
                                 commandType = s.Command.GetType().Name,
                                 commandDetail = s.Command.OperationId,
+                                commandPayload = (s.Command as Command.AppCommand)?.Payload,
                                 status = s.Status.ToString(),
                                 processingOrder = s.ProcessingOrder,
                             }),
@@ -352,19 +356,24 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/step",
-                async (IEngine engine, IServiceProvider sp, string wf, string step, CancellationToken ct) =>
+                async (
+                    IEngine engine,
+                    IServiceProvider sp,
+                    string wf,
+                    string step,
+                    DateTimeOffset? createdAt,
+                    CancellationToken ct
+                ) =>
                 {
                     // Try inbox first (live workflows)
                     var workflow = engine.GetAllInboxWorkflows().FirstOrDefault(w => w.IdempotencyKey == wf);
 
-                    // Fall back to DB with targeted search (avoid loading all records)
-                    if (workflow is null)
+                    // Fall back to DB by idempotency key + createdAt
+                    if (workflow is null && createdAt.HasValue)
                     {
                         using var scope = sp.CreateScope();
                         var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                        var completed = await repo.GetCompletedWorkflows(search: wf, take: 1, cancellationToken: ct);
-                        var failed = await repo.GetFailedWorkflows(search: wf, take: 1, cancellationToken: ct);
-                        workflow = completed.FirstOrDefault() ?? failed.FirstOrDefault();
+                        workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
                     }
 
                     var s = workflow?.Steps.FirstOrDefault(st => st.IdempotencyKey == step);

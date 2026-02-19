@@ -71,6 +71,15 @@ public interface IEngineRepository
     );
 
     /// <summary>
+    /// Gets a workflow by idempotency key and creation time.
+    /// </summary>
+    Task<Workflow?> GetWorkflow(
+        string idempotencyKey,
+        DateTimeOffset createdAt,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
     /// Gets all distinct org+app pairs.
     /// </summary>
     Task<IReadOnlyList<(string Org, string App)>> GetDistinctOrgsAndApps(CancellationToken cancellationToken = default);
