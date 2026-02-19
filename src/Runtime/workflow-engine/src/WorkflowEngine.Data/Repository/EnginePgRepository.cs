@@ -667,6 +667,7 @@ internal static class EnginePgRepositoryQueries
                 .Where(x => x.StartAt == null || x.StartAt <= DateTime.UtcNow)
                 .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
 
+#pragma warning disable CS8604 // EFCore deals with nullable Dependencies prop appropriately
         public IQueryable<WorkflowEntity> GetScheduledWorkflows() =>
             dbContext
                 .Workflows.Include(j => j.Steps)
@@ -675,6 +676,7 @@ internal static class EnginePgRepositoryQueries
                     x.StartAt > DateTime.UtcNow || x.Dependencies.Any(y => _incompleteItemStatuses.Contains(y.Status))
                 )
                 .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
+#pragma warning restore CS8604 // Possible null reference argument.
 
         public IQueryable<WorkflowEntity> GetFailedWorkflows() =>
             dbContext.Workflows.Include(j => j.Steps).Where(x => _failedItemStatuses.Contains(x.Status));

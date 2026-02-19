@@ -123,6 +123,8 @@ dotnet_diagnostic.S3251.severity = none
 dotnet_diagnostic.S3267.severity = none
 # CA1031: Do not catch general exception types
 dotnet_diagnostic.CA1031.severity = none
+# Explicit argument passed to parameter with caller info attribute -- triggers for all Telemetry->StartActivity calls
+resharper_explicit_caller_info_argument_highlighting = none
 
 
 ## WorkflowEngine.Data ##
