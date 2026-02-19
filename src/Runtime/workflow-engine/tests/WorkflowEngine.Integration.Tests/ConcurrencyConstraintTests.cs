@@ -20,14 +20,13 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-
         var request = WorkflowTestHelper.CreateRequest();
+
         var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
 
         Assert.NotEqual(0, workflow.DatabaseId);
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Status);
 
-        // Verify persisted correctly in database
         var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
         Assert.NotNull(dbWorkflow);
         Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Status);
@@ -54,16 +53,15 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
 
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-
         var request = WorkflowTestHelper.CreateRequest(
             instanceGuid: instanceGuid,
             dependencies: [workflowA.DatabaseId]
         );
+
         var workflowB = await repo2.AddWorkflow(request, TestContext.Current.CancellationToken);
 
         Assert.NotEqual(0, workflowB.DatabaseId);
 
-        // Verify persisted with correct dependency
         var dbWorkflow = await fixture.GetWorkflow(workflowB.DatabaseId);
         Assert.NotNull(dbWorkflow);
         Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Status);
@@ -90,22 +88,23 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
 
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-
         var request = WorkflowTestHelper.CreateRequest(
             instanceGuid: instanceGuid,
             dependencies: [workflowA.DatabaseId]
         );
+
         var workflowB = await repo2.AddWorkflow(request, TestContext.Current.CancellationToken);
 
         Assert.NotEqual(0, workflowB.DatabaseId);
 
-        // Verify persisted with correct dependency
         var dbWorkflow = await fixture.GetWorkflow(workflowB.DatabaseId);
         Assert.NotNull(dbWorkflow);
         Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Status);
         Assert.NotNull(dbWorkflow.Dependencies);
         Assert.Single(dbWorkflow.Dependencies);
         Assert.Equal(workflowA.DatabaseId, dbWorkflow.Dependencies.First().DatabaseId);
+        Assert.Single(dbWorkflow.Steps);
+        Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Steps[0].Status);
     }
 
     [Fact]
@@ -124,16 +123,15 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
 
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-
         var request = WorkflowTestHelper.CreateRequest(
             instanceGuid: instanceGuid,
             dependencies: [workflowP.DatabaseId]
         );
+
         var workflowQ = await repo2.AddWorkflow(request, TestContext.Current.CancellationToken);
 
         Assert.NotEqual(0, workflowQ.DatabaseId);
 
-        // Verify the pending workflow is persisted with its dependency on the processing one
         var dbWorkflow = await fixture.GetWorkflow(workflowQ.DatabaseId);
         Assert.NotNull(dbWorkflow);
         Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Status);
@@ -150,7 +148,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
     {
         var instanceX = Guid.NewGuid();
         var instanceY = Guid.NewGuid();
-
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
 
@@ -164,14 +161,12 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
 
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-
-        // New workflow on instance Y — should be accepted
         var request = WorkflowTestHelper.CreateRequest(instanceGuid: instanceY);
+
         var workflow = await repo2.AddWorkflow(request, TestContext.Current.CancellationToken);
 
         Assert.NotEqual(0, workflow.DatabaseId);
 
-        // Verify the workflow on instance Y is persisted correctly
         var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
         Assert.NotNull(dbWorkflow);
         Assert.Equal(instanceY, dbWorkflow.InstanceInformation.InstanceGuid);
@@ -183,11 +178,10 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
     public async Task A6_DifferentType_NoInterference()
     {
         var instanceGuid = Guid.NewGuid();
-
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
 
-        // Processing AppProcessChange workflow
+        // Processing AppProcessChange workflow on the same instance
         await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
@@ -197,14 +191,12 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
 
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-
-        // Generic workflow on same instance — no constraint
         var request = WorkflowTestHelper.CreateRequest(instanceGuid: instanceGuid, type: WorkflowType.Generic);
+
         var workflow = await repo2.AddWorkflow(request, TestContext.Current.CancellationToken);
 
         Assert.NotEqual(0, workflow.DatabaseId);
 
-        // Verify the Generic workflow is persisted on the same instance
         var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
         Assert.NotNull(dbWorkflow);
         Assert.Equal(WorkflowType.Generic, dbWorkflow.Type);
@@ -218,7 +210,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
     public async Task R1_ProcessingExists_NoDependency_Rejected()
     {
         var instanceGuid = Guid.NewGuid();
-
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
 
@@ -231,25 +222,28 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
 
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-
         var request = WorkflowTestHelper.CreateRequest(instanceGuid: instanceGuid);
 
         var ex = await Assert.ThrowsAsync<ActiveWorkflowConstraintException>(() =>
             repo2.AddWorkflow(request, TestContext.Current.CancellationToken)
         );
+
         Assert.Equal("disconnected", ex.RejectionReason);
 
-        // Verify the rejected workflow was NOT persisted (transaction rolled back)
-        var dbWorkflow = await fixture.GetWorkflow(ex.BlockingWorkflowId);
-        Assert.NotNull(dbWorkflow); // The blocking workflow exists
-        Assert.Equal(PersistentItemStatus.Processing, (await fixture.GetWorkflow(dbWorkflow.DatabaseId))!.Status);
+        // Blocking workflow exists and is still Processing
+        var dbBlocking = await fixture.GetWorkflow(ex.BlockingWorkflowId);
+        Assert.NotNull(dbBlocking);
+        Assert.Equal(PersistentItemStatus.Processing, dbBlocking.Status);
+
+        // Rejected workflow was not persisted (transaction rolled back)
+        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
+        Assert.Null(notPersisted);
     }
 
     [Fact]
     public async Task R2_ProcessingExists_DependOnWrongWorkflow_Rejected()
     {
         var instanceGuid = Guid.NewGuid();
-
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
 
@@ -260,8 +254,7 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
             PersistentItemStatus.Processing,
             instanceGuid: instanceGuid
         );
-
-        // C is completed (different workflow)
+        // C is completed (a different workflow for the same instance)
         var workflowC = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
@@ -271,8 +264,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
 
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-
-        // Depend on C instead of P
         var request = WorkflowTestHelper.CreateRequest(
             instanceGuid: instanceGuid,
             dependencies: [workflowC.DatabaseId]
@@ -281,14 +272,17 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         var ex = await Assert.ThrowsAsync<ActiveWorkflowConstraintException>(() =>
             repo2.AddWorkflow(request, TestContext.Current.CancellationToken)
         );
+
         Assert.Equal("disconnected", ex.RejectionReason);
+
+        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
+        Assert.Null(notPersisted);
     }
 
     [Fact]
     public async Task R3_SlotFull_Rejected()
     {
         var instanceGuid = Guid.NewGuid();
-
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
 
@@ -300,7 +294,7 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
             instanceGuid: instanceGuid
         );
 
-        // Q is enqueued, depending on P
+        // Q is enqueued, depending on P (fills the pending slot)
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
         var requestQ = WorkflowTestHelper.CreateRequest(
@@ -309,7 +303,7 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         );
         var workflowQ = await repo2.AddWorkflow(requestQ, TestContext.Current.CancellationToken);
 
-        // Verify Q was persisted before testing rejection
+        // Verify Q was persisted — both slots are now occupied
         var dbQ = await fixture.GetWorkflow(workflowQ.DatabaseId);
         Assert.NotNull(dbQ);
         Assert.Equal(PersistentItemStatus.Enqueued, dbQ.Status);
@@ -325,18 +319,21 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         var ex = await Assert.ThrowsAsync<ActiveWorkflowConstraintException>(() =>
             repo3.AddWorkflow(requestR, TestContext.Current.CancellationToken)
         );
+
         Assert.Equal("slot_full", ex.RejectionReason);
+
+        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(requestR.IdempotencyKey);
+        Assert.Null(notPersisted);
     }
 
     [Fact]
     public async Task R4_PendingExists_Rejected()
     {
         var instanceGuid = Guid.NewGuid();
-
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
 
-        // Q is enqueued (no processing workflow)
+        // Q is enqueued with no processing workflow behind it
         await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
@@ -346,33 +343,34 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
 
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-
         var request = WorkflowTestHelper.CreateRequest(instanceGuid: instanceGuid);
 
         var ex = await Assert.ThrowsAsync<ActiveWorkflowConstraintException>(() =>
             repo2.AddWorkflow(request, TestContext.Current.CancellationToken)
         );
+
         Assert.Equal("pending_exists", ex.RejectionReason);
+
+        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
+        Assert.Null(notPersisted);
     }
 
     [Fact]
     public async Task R5_DependOnDifferentProcessing_Rejected()
     {
         var instanceGuid = Guid.NewGuid();
-
+        var otherInstanceGuid = Guid.NewGuid();
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
 
-        // P is processing on this instance
+        // P is processing on the target instance
         await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
             PersistentItemStatus.Processing,
             instanceGuid: instanceGuid
         );
-
         // Other is processing on a different instance
-        var otherInstanceGuid = Guid.NewGuid();
         var otherWorkflow = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
@@ -382,8 +380,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
 
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-
-        // Depend on the other instance's workflow — should be disconnected
         var request = WorkflowTestHelper.CreateRequest(
             instanceGuid: instanceGuid,
             dependencies: [otherWorkflow.DatabaseId]
@@ -392,7 +388,11 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         var ex = await Assert.ThrowsAsync<ActiveWorkflowConstraintException>(() =>
             repo2.AddWorkflow(request, TestContext.Current.CancellationToken)
         );
+
         Assert.Equal("disconnected", ex.RejectionReason);
+
+        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
+        Assert.Null(notPersisted);
     }
 
     // ── Edge cases ──
@@ -401,10 +401,9 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
     public async Task E1_DependencyCompletesBeforeInsert_Accepted()
     {
         var instanceGuid = Guid.NewGuid();
-
-        // Set up P as processing, then complete it
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
+
         var workflowP = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
@@ -412,45 +411,43 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
             instanceGuid: instanceGuid
         );
 
-        // Mark P as completed
+        // P completes before B is submitted
         workflowP.Status = PersistentItemStatus.Completed;
         await using var updateContext = fixture.CreateDbContext();
         var updateRepo = fixture.CreateRepository(updateContext);
         await updateRepo.UpdateWorkflow(workflowP, cancellationToken: TestContext.Current.CancellationToken);
 
-        // Insert B depending on P — P is now terminal, so no active count
+        // B depends on the now-terminal P — active count is zero, so accepted
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
         var request = WorkflowTestHelper.CreateRequest(
             instanceGuid: instanceGuid,
             dependencies: [workflowP.DatabaseId]
         );
+
         var workflowB = await repo2.AddWorkflow(request, TestContext.Current.CancellationToken);
 
         Assert.NotEqual(0, workflowB.DatabaseId);
 
-        // Verify B is persisted with dependency on the now-completed P
+        var dbWorkflowP = await fixture.GetWorkflow(workflowP.DatabaseId);
+        Assert.NotNull(dbWorkflowP);
+        Assert.Equal(PersistentItemStatus.Completed, dbWorkflowP.Status);
+
         var dbWorkflowB = await fixture.GetWorkflow(workflowB.DatabaseId);
         Assert.NotNull(dbWorkflowB);
         Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflowB.Status);
         Assert.NotNull(dbWorkflowB.Dependencies);
         Assert.Single(dbWorkflowB.Dependencies);
         Assert.Equal(workflowP.DatabaseId, dbWorkflowB.Dependencies.First().DatabaseId);
-
-        // Verify P is indeed completed in the database
-        var dbWorkflowP = await fixture.GetWorkflow(workflowP.DatabaseId);
-        Assert.NotNull(dbWorkflowP);
-        Assert.Equal(PersistentItemStatus.Completed, dbWorkflowP.Status);
     }
 
     [Fact]
     public async Task E2_FailedWorkflow_CascadesCleansUp()
     {
         var instanceGuid = Guid.NewGuid();
-
-        // P is processing
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
+
         var workflowP = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
@@ -467,19 +464,17 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         );
         var workflowQ = await repo2.AddWorkflow(requestQ, TestContext.Current.CancellationToken);
 
-        // Fail P
+        // P fails; cascade marks Q as DependencyFailed
         workflowP.Status = PersistentItemStatus.Failed;
         await using var failContext = fixture.CreateDbContext();
         var failRepo = fixture.CreateRepository(failContext);
         await failRepo.UpdateWorkflow(workflowP, cancellationToken: TestContext.Current.CancellationToken);
 
-        // Run cascade
         await failContext.Database.ExecuteSqlRawAsync(
             "SELECT cascade_dependency_failures()",
             cancellationToken: TestContext.Current.CancellationToken
         );
 
-        // Verify Q is DependencyFailed
         await using var verifyContext = fixture.CreateDbContext();
         var verifyRepo = fixture.CreateRepository(verifyContext);
         var qStatus = await verifyRepo.GetWorkflowStatus(workflowQ.DatabaseId, TestContext.Current.CancellationToken);
@@ -491,10 +486,9 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
     public async Task E3_CompletedWorkflow_FreesSlot()
     {
         var instanceGuid = Guid.NewGuid();
-
-        // P is processing
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
+
         var workflowP = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
@@ -511,19 +505,19 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         );
         var workflowQ = await repo2.AddWorkflow(requestQ, TestContext.Current.CancellationToken);
 
-        // Complete P
+        // P completes, freeing the processing slot
         workflowP.Status = PersistentItemStatus.Completed;
         await using var completeContext = fixture.CreateDbContext();
         var completeRepo = fixture.CreateRepository(completeContext);
         await completeRepo.UpdateWorkflow(workflowP, cancellationToken: TestContext.Current.CancellationToken);
 
-        // Mark Q as processing (simulating engine pick-up)
+        // Engine picks up Q
         workflowQ.Status = PersistentItemStatus.Processing;
         await using var context3 = fixture.CreateDbContext();
         var repo3 = fixture.CreateRepository(context3);
         await repo3.UpdateWorkflow(workflowQ, cancellationToken: TestContext.Current.CancellationToken);
 
-        // Add R depending on Q — should succeed since P completed and Q is the sole active
+        // R depends on Q — should succeed since P completed and Q is the sole active
         await using var context4 = fixture.CreateDbContext();
         var repo4 = fixture.CreateRepository(context4);
         var requestR = WorkflowTestHelper.CreateRequest(
@@ -534,7 +528,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
 
         Assert.NotEqual(0, workflowR.DatabaseId);
 
-        // Verify the full chain is persisted in the database
         var dbP = await fixture.GetWorkflow(workflowP.DatabaseId);
         Assert.NotNull(dbP);
         Assert.Equal(PersistentItemStatus.Completed, dbP.Status);
@@ -588,7 +581,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         Assert.Single(succeeded);
         Assert.Equal(1, failed);
 
-        // Verify the winning workflow is actually in the database
         var winner = succeeded[0].Workflow!;
         var dbWorkflow = await fixture.GetWorkflow(winner.DatabaseId);
         Assert.NotNull(dbWorkflow);

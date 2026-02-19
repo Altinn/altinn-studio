@@ -296,17 +296,28 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         );
 
         // B, C, D: all depend on A
+        var dependents = new List<Workflow>();
         for (int i = 0; i < 3; i++)
         {
             var req = WorkflowTestHelper.CreateRequest(
                 type: WorkflowType.Generic,
                 dependencies: [workflowA.DatabaseId]
             );
-            await repo.AddWorkflow(req, TestContext.Current.CancellationToken);
+            dependents.Add(await repo.AddWorkflow(req, TestContext.Current.CancellationToken));
         }
 
         var affected = await RunCascade();
 
         Assert.Equal(3, affected);
+
+        await using var verifyContext = fixture.CreateDbContext();
+        var verifyRepo = fixture.CreateRepository(verifyContext);
+        foreach (var dependent in dependents)
+        {
+            Assert.Equal(
+                PersistentItemStatus.DependencyFailed,
+                await verifyRepo.GetWorkflowStatus(dependent.DatabaseId, TestContext.Current.CancellationToken)
+            );
+        }
     }
 }

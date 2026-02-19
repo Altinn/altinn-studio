@@ -69,6 +69,17 @@ public sealed class PostgresFixture : IAsyncLifetime
         return entity?.ToDomainModel();
     }
 
+    internal async Task<Workflow?> GetWorkflowByIdempotencyKey(string idempotencyKey)
+    {
+        await using var context = CreateDbContext();
+        var entity = await context
+            .Workflows.Include(w => w.Steps)
+            .Include(w => w.Dependencies)
+            .FirstOrDefaultAsync(w => w.IdempotencyKey == idempotencyKey);
+
+        return entity?.ToDomainModel();
+    }
+
     internal async Task<Step?> GetStep(long stepId)
     {
         await using var context = CreateDbContext();

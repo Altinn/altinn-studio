@@ -17,8 +17,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-
         var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+
         var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
 
         Assert.NotEqual(0, workflow.DatabaseId);
@@ -27,7 +27,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(WorkflowType.Generic, workflow.Type);
         Assert.Equal(request.InstanceInformation.InstanceGuid, workflow.InstanceInformation.InstanceGuid);
 
-        // Verify against database
         var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
         Assert.NotNull(dbWorkflow);
         Assert.Equal(workflow.DatabaseId, dbWorkflow.DatabaseId);
@@ -50,7 +49,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-
         var request = new WorkflowEnqueueRequest(
             IdempotencyKey: Guid.NewGuid().ToString(),
             OperationId: "next",
@@ -77,11 +75,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
 
         Assert.Equal(3, workflow.Steps.Count);
         for (int i = 0; i < workflow.Steps.Count; i++)
-        {
             Assert.Equal(i, workflow.Steps[i].ProcessingOrder);
-        }
 
-        // Verify workflow and steps against database
         var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
         Assert.NotNull(dbWorkflow);
         Assert.Equal(3, dbWorkflow.Steps.Count);
@@ -98,7 +93,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             Assert.Equal(repoStep.IdempotencyKey, dbStep.IdempotencyKey);
         }
 
-        // Also verify individual step lookups
         foreach (var step in workflow.Steps)
         {
             var dbStep = await fixture.GetStep(step.DatabaseId);
@@ -117,11 +111,9 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
 
-        // Insert workflow A
         var requestA = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
         var workflowA = await repo.AddWorkflow(requestA, TestContext.Current.CancellationToken);
 
-        // Insert workflow B depending on A
         var requestB = WorkflowTestHelper.CreateRequest(
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
@@ -132,14 +124,12 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Single(workflowB.Dependencies);
         Assert.Equal(workflowA.DatabaseId, workflowB.Dependencies.First().DatabaseId);
 
-        // Verify dependencies against database
         var dbWorkflowB = await fixture.GetWorkflow(workflowB.DatabaseId);
         Assert.NotNull(dbWorkflowB);
         Assert.NotNull(dbWorkflowB.Dependencies);
         Assert.Single(dbWorkflowB.Dependencies);
         Assert.Equal(workflowA.DatabaseId, dbWorkflowB.Dependencies.First().DatabaseId);
 
-        // Verify the dependency target also exists correctly
         var dbWorkflowA = await fixture.GetWorkflow(workflowA.DatabaseId);
         Assert.NotNull(dbWorkflowA);
         Assert.Equal(requestA.IdempotencyKey, dbWorkflowA.IdempotencyKey);
@@ -150,12 +140,15 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-
         var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, dependencies: [999999L]);
 
         await Assert.ThrowsAsync<EngineDbException>(() =>
             repo.AddWorkflow(request, TestContext.Current.CancellationToken)
         );
+
+        // Verify the workflow was not persisted (transaction rolled back)
+        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
+        Assert.Null(notPersisted);
     }
 
     [Fact]
@@ -163,10 +156,9 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-
         var instanceGuid = Guid.NewGuid();
 
-        // Insert workflows in various statuses
+        // Insert one workflow in each relevant status
         var enqueued = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
@@ -196,8 +188,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             finalType: WorkflowType.Generic
         );
 
-        // Also mark the steps of terminal workflows as terminal so GetActiveWorkflows
-        // (which filters by step status) correctly excludes them
+        // GetActiveWorkflows filters by step status, so terminal workflows must have terminal steps
         foreach (var step in completed.Steps)
         {
             step.Status = PersistentItemStatus.Completed;
@@ -209,15 +200,17 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             await repo.UpdateStep(step, cancellationToken: TestContext.Current.CancellationToken);
         }
 
-        // Use a fresh context/repo for the query to avoid stale tracking
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository(queryContext);
 
         var active = await queryRepo.GetActiveWorkflows(TestContext.Current.CancellationToken);
 
-        // Active = has incomplete steps (Enqueued, Processing, Requeued).
-        // The Enqueued and Processing workflows have Enqueued steps.
+        // Active = workflows with at least one incomplete step (Enqueued, Processing, Requeued)
         Assert.Equal(2, active.Count);
+        Assert.Contains(active, w => w.DatabaseId == enqueued.DatabaseId);
+        Assert.Contains(active, w => w.DatabaseId == processing.DatabaseId);
+        Assert.DoesNotContain(active, w => w.DatabaseId == completed.DatabaseId);
+        Assert.DoesNotContain(active, w => w.DatabaseId == failed.DatabaseId);
     }
 
     [Fact]
@@ -225,38 +218,37 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-
         var instanceGuid = Guid.NewGuid();
 
-        await WorkflowTestHelper.InsertAndSetStatus(
+        var requeued = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
             PersistentItemStatus.Requeued,
             instanceGuid: instanceGuid,
             finalType: WorkflowType.Generic
         );
-        await WorkflowTestHelper.InsertAndSetStatus(
+        var failed = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
             PersistentItemStatus.Failed,
             instanceGuid: instanceGuid,
             finalType: WorkflowType.Generic
         );
-        await WorkflowTestHelper.InsertAndSetStatus(
+        var dependencyFailed = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
             PersistentItemStatus.DependencyFailed,
             instanceGuid: instanceGuid,
             finalType: WorkflowType.Generic
         );
-        await WorkflowTestHelper.InsertAndSetStatus(
+        var completed = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
             PersistentItemStatus.Completed,
             instanceGuid: instanceGuid,
             finalType: WorkflowType.Generic
         );
-        await WorkflowTestHelper.InsertAndSetStatus(
+        var enqueued = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
             PersistentItemStatus.Enqueued,
@@ -267,9 +259,14 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository(queryContext);
 
-        var failed = await queryRepo.GetFailedWorkflows(TestContext.Current.CancellationToken);
+        var results = await queryRepo.GetFailedWorkflows(TestContext.Current.CancellationToken);
 
-        Assert.Equal(3, failed.Count);
+        Assert.Equal(3, results.Count);
+        Assert.Contains(results, w => w.DatabaseId == requeued.DatabaseId);
+        Assert.Contains(results, w => w.DatabaseId == failed.DatabaseId);
+        Assert.Contains(results, w => w.DatabaseId == dependencyFailed.DatabaseId);
+        Assert.DoesNotContain(results, w => w.DatabaseId == completed.DatabaseId);
+        Assert.DoesNotContain(results, w => w.DatabaseId == enqueued.DatabaseId);
     }
 
     [Fact]
@@ -277,18 +274,15 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-
         var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
         var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
 
         workflow.Status = PersistentItemStatus.Processing;
         await repo.UpdateWorkflow(workflow, cancellationToken: TestContext.Current.CancellationToken);
 
-        // Verify via repository
         var status = await repo.GetWorkflowStatus(workflow.DatabaseId, TestContext.Current.CancellationToken);
         Assert.Equal(PersistentItemStatus.Processing, status);
 
-        // Verify directly against database
         var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
         Assert.NotNull(dbWorkflow);
         Assert.Equal(PersistentItemStatus.Processing, dbWorkflow.Status);
@@ -300,14 +294,13 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-
         var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
         var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
 
         var status = await repo.GetWorkflowStatus(workflow.DatabaseId, TestContext.Current.CancellationToken);
+
         Assert.Equal(PersistentItemStatus.Enqueued, status);
 
-        // Cross-check with direct database read
         var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
         Assert.NotNull(dbWorkflow);
         Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Status);
@@ -320,10 +313,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var repo = fixture.CreateRepository(context);
 
         var status = await repo.GetWorkflowStatus(999999L, TestContext.Current.CancellationToken);
-        Assert.Null(status);
 
-        // Cross-check with direct database read
-        var dbWorkflow = await fixture.GetWorkflow(999999L);
-        Assert.Null(dbWorkflow);
+        Assert.Null(status);
+        Assert.Null(await fixture.GetWorkflow(999999L));
     }
 }
