@@ -6,8 +6,7 @@ import { constructResult } from "./construct-environments.mjs";
 test("studio: uses defaults when inputs context is null", () => {
   const result = constructResult({
     mode: "studio",
-    value: "",
-    inputsJson: "null",
+    inputs: "null",
     allowEmpty: false,
   });
 
@@ -21,12 +20,33 @@ test("studio: uses defaults when inputs context is null", () => {
 test("studio: empty with allow-empty true returns []", () => {
   const result = constructResult({
     mode: "studio",
-    value: "",
-    inputsJson: "{}",
+    inputs: "{}",
     allowEmpty: true,
   });
 
   assert.deepEqual(result, []);
+});
+
+test("studio: resolves environments from inputs.environments", () => {
+  const result = constructResult({
+    mode: "studio",
+    inputs: '{"environments":"dev,staging"}',
+    allowEmpty: false,
+  });
+
+  assert.deepEqual(result, [{ environment: "dev" }, { environment: "staging" }]);
+});
+
+test("studio: rejects preapproved-prod", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "studio",
+        inputs: '{"environments":"staging,preapproved-prod"}',
+        allowEmpty: false,
+      }),
+    /invalid studio environment/
+  );
 });
 
 test("studio: rejects empty token", () => {
@@ -34,8 +54,7 @@ test("studio: rejects empty token", () => {
     () =>
       constructResult({
         mode: "studio",
-        value: "dev,,prod",
-        inputsJson: "{}",
+        inputs: '{"environments":"dev,,prod"}',
         allowEmpty: false,
       }),
     /empty values/
@@ -45,8 +64,7 @@ test("studio: rejects empty token", () => {
 test("runtime: maps rings to runtime environments", () => {
   const result = constructResult({
     mode: "runtime",
-    value: "at_ring1,tt_ring2",
-    inputsJson: "{}",
+    inputs: '{"environments":"at_ring1,tt_ring2"}',
     allowEmpty: false,
   });
 
@@ -59,8 +77,7 @@ test("runtime: maps rings to runtime environments", () => {
 test("runtime: empty string with allow-empty true returns []", () => {
   const result = constructResult({
     mode: "runtime",
-    value: "",
-    inputsJson: "{}",
+    inputs: "{}",
     allowEmpty: true,
   });
 
@@ -72,8 +89,7 @@ test("runtime: rejects json array input", () => {
     () =>
       constructResult({
         mode: "runtime",
-        value: '[{"ring":"at_ring1"}]',
-        inputsJson: "{}",
+        inputs: '{"environments":"[{\\"ring\\":\\"at_ring1\\"}]"}',
         allowEmpty: false,
       }),
     /invalid runtime ring/
@@ -85,32 +101,41 @@ test("runtime: rejects empty json array input", () => {
     () =>
       constructResult({
         mode: "runtime",
-        value: "[]",
-        inputsJson: "{}",
+        inputs: '{"environments":"[]"}',
         allowEmpty: true,
       }),
     /invalid runtime ring/
   );
 });
 
-test("runtime: rejects invalid env value", () => {
+test("runtime: rejects invalid environment token", () => {
   assert.throws(
     () =>
       constructResult({
         mode: "runtime",
-        value: "AT_RING1",
-        inputsJson: "{}",
+        inputs: '{"environments":"AT_RING1"}',
         allowEmpty: false,
       }),
     /invalid runtime ring/
   );
 });
 
+test("runtime: rejects non-string ring input in inputs", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "runtime",
+        inputs: '{"environments":["at_ring1"]}',
+        allowEmpty: false,
+      }),
+    /must be a string/
+  );
+});
+
 test("runtime: uses defaults when inputs context is null", () => {
   const result = constructResult({
     mode: "runtime",
-    value: "",
-    inputsJson: "null",
+    inputs: "null",
     allowEmpty: false,
   });
 
@@ -124,34 +149,103 @@ test("runtime: uses defaults when inputs context is null", () => {
   ]);
 });
 
-test("studio: uses OVERRIDE_STUDIO_ENVIRONMENTS in push context", () => {
-  process.env.OVERRIDE_STUDIO_ENVIRONMENTS = "dev";
+test("studio-preapproved: uses defaults when inputs context is null", () => {
+  const result = constructResult({
+    mode: "studio-preapproved",
+    inputs: "null",
+    allowEmpty: false,
+  });
+
+  assert.deepEqual(result, [
+    { environment: "dev" },
+    { environment: "staging" },
+    { environment: "preapproved-prod" },
+  ]);
+});
+
+test("studio-preapproved: rejects prod", () => {
+  assert.throws(
+    () =>
+      constructResult({
+        mode: "studio-preapproved",
+        inputs: '{"environments":"prod"}',
+        allowEmpty: false,
+      }),
+    /invalid studio environment/
+  );
+});
+
+test("studio: uses OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS in push context", () => {
+  process.env.OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS = "dev";
   try {
     const result = constructResult({
       mode: "studio",
-      value: "",
-      inputsJson: "null",
+      inputs: "null",
       allowEmpty: false,
     });
 
     assert.deepEqual(result, [{ environment: "dev" }]);
   } finally {
-    delete process.env.OVERRIDE_STUDIO_ENVIRONMENTS;
+    delete process.env.OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS;
   }
 });
 
-test("runtime: uses OVERRIDE_RUNTIME_RINGS in push context", () => {
-  process.env.OVERRIDE_RUNTIME_RINGS = "at_ring1";
+test("studio-preapproved: uses OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS in push context", () => {
+  process.env.OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS = "preapproved-prod";
+  try {
+    const result = constructResult({
+      mode: "studio-preapproved",
+      inputs: "null",
+      allowEmpty: false,
+    });
+
+    assert.deepEqual(result, [{ environment: "preapproved-prod" }]);
+  } finally {
+    delete process.env.OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS;
+  }
+});
+
+test("runtime: uses OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS in push context", () => {
+  process.env.OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS = "at_ring1";
   try {
     const result = constructResult({
       mode: "runtime",
-      value: "",
-      inputsJson: "null",
+      inputs: "null",
       allowEmpty: false,
     });
 
     assert.deepEqual(result, [{ ring: "at_ring1", environment: "runtime_at_ring1" }]);
   } finally {
-    delete process.env.OVERRIDE_RUNTIME_RINGS;
+    delete process.env.OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS;
+  }
+});
+
+test("studio: explicit environments input takes precedence over default override", () => {
+  process.env.OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS = "prod";
+  try {
+    const result = constructResult({
+      mode: "studio",
+      inputs: '{"environments":"dev"}',
+      allowEmpty: false,
+    });
+
+    assert.deepEqual(result, [{ environment: "dev" }]);
+  } finally {
+    delete process.env.OVERRIDE_DEFAULT_STUDIO_ENVIRONMENTS;
+  }
+});
+
+test("runtime: explicit environments input takes precedence over default override", () => {
+  process.env.OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS = "tt_ring1,tt_ring2";
+  try {
+    const result = constructResult({
+      mode: "runtime",
+      inputs: '{"environments":"at_ring1"}',
+      allowEmpty: false,
+    });
+
+    assert.deepEqual(result, [{ ring: "at_ring1", environment: "runtime_at_ring1" }]);
+  } finally {
+    delete process.env.OVERRIDE_DEFAULT_RUNTIME_ENVIRONMENTS;
   }
 });

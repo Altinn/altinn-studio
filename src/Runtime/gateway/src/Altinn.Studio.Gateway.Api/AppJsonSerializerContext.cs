@@ -21,11 +21,10 @@ namespace Altinn.Studio.Gateway.Api;
 [JsonSerializable(typeof(IEnumerable<GrafanaAlertRule>))]
 [JsonSerializable(typeof(IEnumerable<AlertRule>))]
 [JsonSerializable(typeof(AlertPayload))]
-[JsonSerializable(typeof(IEnumerable<Alert>))]
+[JsonSerializable(typeof(Alert))]
 [JsonSerializable(typeof(IEnumerable<ErrorMetric>))]
 [JsonSerializable(typeof(IEnumerable<AppMetric>))]
 [JsonSerializable(typeof(IEnumerable<AppErrorMetric>))]
 [JsonSerializable(typeof(List<AppHealthMetric>))]
-[JsonSerializable(typeof(AzureUrl))]
 [JsonSerializable(typeof(TriggerReconcileRequest))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext { }

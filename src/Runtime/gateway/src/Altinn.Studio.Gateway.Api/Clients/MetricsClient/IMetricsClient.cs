@@ -1,4 +1,3 @@
-using System;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 
 namespace Altinn.Studio.Gateway.Api.Clients.MetricsClient;
@@ -12,12 +11,12 @@ internal interface IMetricsClient
         CancellationToken cancellationToken
     );
     public Task<IEnumerable<AppMetric>> GetAppMetricsAsync(string app, int range, CancellationToken cancellationToken);
-    public Uri? GetLogsUrl(
+    public Uri GetLogsUrl(
         string subscriptionId,
         string org,
         string env,
         IReadOnlyCollection<string> apps,
-        string? metricName,
+        string metricName,
         DateTimeOffset from,
         DateTimeOffset to
     );

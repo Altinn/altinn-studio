@@ -22,15 +22,14 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: git config --system core.longpaths true
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
-        with:
-          dotnet-version: |
-            8.0.x
-
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          global-json-file: src/cli/global.json
 
       - name: Build
         working-directory: src/cli

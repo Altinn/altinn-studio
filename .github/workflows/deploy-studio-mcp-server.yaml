@@ -24,9 +24,10 @@ jobs:
     uses: ./.github/workflows/template-short-sha.yaml
 
   construct-environments-array:
-    uses: ./.github/workflows/template-construct-environments.yaml
+    uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'dev,staging,preapproved-prod' }}
+      use-preapproved: true
+      inputs: ${{ toJSON(github.event.inputs) }}
 
   push-artifact:
     name: Push mcp server as OCI artifact
@@ -101,7 +102,7 @@ jobs:
       REGISTRY_NAME: altinntjenestercontainerregistry
     strategy:
       matrix:
-        environment: ${{ fromJSON(needs.construct-environments-array.outputs.environmentsjson) }}
+        include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
     steps:
       - name: az login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2
@@ -120,4 +121,3 @@ jobs:
         run: |
           flux tag artifact oci://${{ needs.push-artifact.outputs.CONFIG_REPO }} \
             --tag ${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }}
-
