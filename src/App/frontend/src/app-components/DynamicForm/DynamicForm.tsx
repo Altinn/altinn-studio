@@ -4,6 +4,7 @@ import type { MonthCaption } from 'react-day-picker';
 import { Radio, Textfield } from '@digdir/designsystemet-react';
 import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import { DatePickerControl } from 'src/app-components/Datepicker/Datepicker';
 import { getDateFormat } from 'src/app-components/Datepicker/utils/dateHelpers';
 
@@ -35,6 +36,7 @@ export function DynamicForm({
   getDatepickerFormat,
 }: DynamicFormProps) {
   const [formData, setFormData] = useState<FormDataObject>(initialData || {});
+  const t = useTranslation();
 
   useEffect(() => {
     if (initialData) {
@@ -59,8 +61,8 @@ export function DynamicForm({
           schema={schema}
           renderFields={renderFields}
           locale={locale}
-          buttonAriaLabel={buttonAriaLabel}
-          calendarIconTitle={calendarIconTitle}
+          buttonAriaLabel={t(buttonAriaLabel)}
+          calendarIconTitle={t(calendarIconTitle)}
           DropdownCaption={DropdownCaption}
           getDatepickerFormat={getDatepickerFormat}
         />
