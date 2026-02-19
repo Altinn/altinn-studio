@@ -342,8 +342,12 @@ internal sealed class LocaltestHttpTransformer : HttpTransformer
         CancellationToken cancellationToken
     )
     {
-        await base.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix, cancellationToken);
-        AddXForwardedFor(httpContext, proxyRequest);
+        await HttpTransformer.Default.TransformRequestAsync(
+            httpContext,
+            proxyRequest,
+            destinationPrefix,
+            cancellationToken
+        );
     }
 
     public override async ValueTask<bool> TransformResponseAsync(
@@ -382,23 +386,6 @@ internal sealed class LocaltestHttpTransformer : HttpTransformer
     {
         var contentType = proxyResponse.Content?.Headers?.ContentType?.MediaType;
         return string.Equals(contentType, "text/html", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static void AddXForwardedFor(HttpContext httpContext, HttpRequestMessage proxyRequest)
-    {
-        var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString();
-        if (string.IsNullOrWhiteSpace(remoteIp))
-        {
-            return;
-        }
-
-        var existing = httpContext.Request.Headers["X-Forwarded-For"];
-        var headerValue = existing.Count > 0
-            ? $"{string.Join(", ", existing)}, {remoteIp}"
-            : remoteIp;
-
-        proxyRequest.Headers.Remove("X-Forwarded-For");
-        proxyRequest.Headers.TryAddWithoutValidation("X-Forwarded-For", headerValue);
     }
 
     /// <summary>
