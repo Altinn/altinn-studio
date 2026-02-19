@@ -605,16 +605,27 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
 
+        // Can start immediately (no scheduling, no dependencies)
+        var parent = await repo.AddWorkflow(
+            WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic),
+            TestContext.Current.CancellationToken
+        );
+
+        // Have to wait for either dependencies, start time, or both
         await repo.AddWorkflow(
             WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, startAt: DateTimeOffset.UtcNow.AddHours(1)),
             TestContext.Current.CancellationToken
         );
         await repo.AddWorkflow(
-            WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, startAt: DateTimeOffset.UtcNow.AddHours(2)),
+            WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, dependencies: [parent.DatabaseId]),
             TestContext.Current.CancellationToken
         );
         await repo.AddWorkflow(
-            WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic),
+            WorkflowTestHelper.CreateRequest(
+                type: WorkflowType.Generic,
+                startAt: DateTimeOffset.UtcNow.AddHours(2),
+                dependencies: [parent.DatabaseId]
+            ),
             TestContext.Current.CancellationToken
         );
 
@@ -623,6 +634,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
 
         var count = await queryRepo.CountScheduledWorkflows(TestContext.Current.CancellationToken);
 
-        Assert.Equal(2, count);
+        Assert.Equal(3, count);
     }
 }
