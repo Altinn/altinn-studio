@@ -1,5 +1,7 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
+using Altinn.Studio.Designer.Repository.Models;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
@@ -33,23 +35,10 @@ public class ChatMessageDbModel
     /// <summary>
     /// Assistant action mode, set by the user.
     /// </summary>
-    public ActionMode ActionMode  { get; set; }
+    public ActionMode ActionMode { get; set; }
 
     /// <summary>
     /// List of app files changed by assistant.
     /// </summary>
-    public List<string>? FilesChanged { get; set; }
-}
-
-public enum Role
-{
-    User = 0,
-    Assistant = 1
-}
-
-public enum ActionMode
-{
-    Auto = 0,
-    Ask = 1,
-    Edit = 2,
+    public List<string> FilesChanged { get; set; }
 }
