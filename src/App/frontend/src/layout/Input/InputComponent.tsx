@@ -7,7 +7,6 @@ import { Label } from 'src/app-components/Label/Label';
 import { getDescriptionId } from 'src/components/label/Label';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { useMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
@@ -122,7 +121,6 @@ export const InputVariant = ({
     formData: { simpleBinding: realFormValue },
     setValue,
   } = useDataModelBindings(dataModelBindings, saveWhileTyping);
-  const { langAsString } = useLanguage();
 
   const [localValue, setLocalValue] = React.useState<string | undefined>(undefined);
   const formValue = localValue ?? realFormValue;
@@ -147,7 +145,7 @@ export const InputVariant = ({
 
   const inputProps: InputProps = {
     id,
-    'aria-label': langAsString(textResourceBindings?.title),
+    'aria-label': textResourceBindings?.title ?? '',
     'aria-describedby': inputDescribedBy,
     autoComplete: autocomplete,
     className: formatting?.align ? classes[`text-align-${formatting.align}`] : '',
@@ -156,8 +154,8 @@ export const InputVariant = ({
     required,
     onBlur: () => debounce('blur'),
     error: !useIsValid(baseComponentId),
-    prefix: textResourceBindings?.prefix ? langAsString(textResourceBindings.prefix) : undefined,
-    suffix: textResourceBindings?.suffix ? langAsString(textResourceBindings.suffix) : undefined,
+    prefix: textResourceBindings?.prefix,
+    suffix: textResourceBindings?.suffix,
     style: { width: '100%' },
     inputMode,
     pattern,

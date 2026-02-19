@@ -223,7 +223,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
             <NumericInput
               id={`${id}_ssn`}
               aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_ssn`) : undefined}
-              aria-label={langAsString('person_lookup.ssn_label')}
+              aria-label='person_lookup.ssn_label'
               value={hasSuccessfullyFetched ? person_lookup_ssn : tempSsn}
               required={required}
               readOnly={hasSuccessfullyFetched}
@@ -274,9 +274,7 @@ export function PersonLookupComponent({ baseComponentId, overrideDisplay }: Prop
             <Input
               id={`${id}_name`}
               aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_name`) : undefined}
-              aria-label={langAsString(
-                hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label',
-              )}
+              aria-label={hasSuccessfullyFetched ? 'person_lookup.name_label' : 'person_lookup.surname_label'}
               value={hasSuccessfullyFetched ? displayName : tempName}
               type='text'
               required={required}

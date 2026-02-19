@@ -2,10 +2,28 @@ import React from 'react';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 
 import { Paragraph, Textfield } from '@digdir/designsystemet-react';
+import type { FieldCounterProps } from '@digdir/designsystemet-react';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import classes from 'src/app-components/Input/Input.module.css';
-import { useCharacterLimit } from 'src/utils/inputUtils';
 import type { InputType } from 'src/app-components/Input/constants';
+
+/**
+ * Hook to create a character limit object for use in input components
+ */
+export const useCharacterLimit = (maxLength: number | undefined): FieldCounterProps | undefined => {
+  const t = useTranslation();
+
+  if (maxLength === undefined) {
+    return undefined;
+  }
+
+  return {
+    limit: maxLength,
+    under: t('input.remaining_characters'),
+    over: t('input.exceeded_max_limit'),
+  };
+};
 
 type LabelRequired =
   | { 'aria-label': string; 'aria-labelledby'?: never; label?: never }
@@ -42,9 +60,24 @@ export type InputProps = {
   LabelRequired;
 
 export function Input(props: InputProps) {
-  const { size = 'sm', readOnly, error, textonly, maxLength, ...rest } = props;
+  const {
+    size = 'sm',
+    readOnly,
+    error,
+    textonly,
+    maxLength,
+    'aria-label': ariaLabel,
+    'aria-labelledby': ariaLabelledBy,
+    'aria-describedby': ariaDescribedBy,
+    label,
+    prefix,
+    suffix,
+    placeholder,
+    ...rest
+  } = props;
 
   const characterLimit = useCharacterLimit(maxLength);
+  const t = useTranslation();
 
   const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
     if (readOnly) {
@@ -70,6 +103,12 @@ export function Input(props: InputProps) {
     );
   }
 
+  const labelProps = ariaLabel
+    ? { 'aria-label': t(ariaLabel) }
+    : ariaLabelledBy
+      ? { 'aria-labelledby': t(ariaLabelledBy) }
+      : { label };
+
   return (
     <Textfield
       data-size={size}
@@ -77,6 +116,11 @@ export function Input(props: InputProps) {
       aria-invalid={!!error}
       readOnly={readOnly}
       counter={!readOnly ? characterLimit : undefined}
+      prefix={prefix ? t(prefix) : undefined}
+      suffix={suffix ? t(suffix) : undefined}
+      placeholder={placeholder ? t(placeholder) : undefined}
+      aria-describedby={ariaDescribedBy ? t(ariaDescribedBy) : undefined}
+      {...labelProps}
       {...rest}
     />
   );

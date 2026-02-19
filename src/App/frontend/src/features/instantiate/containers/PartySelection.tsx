@@ -140,8 +140,8 @@ export const PartySelection = () => {
       >
         <Input
           size='md'
-          aria-label={langAsString('party_selection.search_placeholder')}
-          placeholder={langAsString('party_selection.search_placeholder')}
+          aria-label='party_selection.search_placeholder'
+          placeholder='party_selection.search_placeholder'
           onChange={onFilterStringChange}
           value={filterString}
           inputMode='search'
