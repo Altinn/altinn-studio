@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react';
 import { Popover } from '@digdir/designsystemet-react';
 import cl from 'clsx';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import classes from 'src/app-components/HelpText/Helptext.module.css';
 import { HelpTextIcon } from 'src/app-components/HelpText/HelpTextIcon';
 
@@ -19,13 +20,14 @@ export const HelpText = forwardRef<HTMLButtonElement, HelpTextProps>(function He
   ref,
 ) {
   const [open, setOpen] = useState(false);
+  const t = useTranslation();
 
   return (
     <Popover.TriggerContext>
       <Popover.Trigger
         asChild
         ref={ref}
-        aria-label={title}
+        aria-label={title ? t(title) : undefined}
         id={id}
       >
         <button
