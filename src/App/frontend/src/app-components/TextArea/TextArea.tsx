@@ -3,6 +3,8 @@ import React from 'react';
 import { Field, Textarea } from '@digdir/designsystemet-react';
 import type { FieldCounterProps } from '@digdir/designsystemet-react';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
+
 export interface TextAreaWithLabelProps {
   id: string;
   value: string;
@@ -30,20 +32,23 @@ export const TextArea: React.FC<TextAreaWithLabelProps> = ({
   ariaLabel,
   autoComplete,
   style,
-}) => (
-  <Field>
-    <Textarea
-      id={id}
-      onChange={(e) => onChange(e.target.value)}
-      onBlur={onBlur}
-      readOnly={readOnly}
-      value={value}
-      data-testid={dataTestId}
-      aria-describedby={ariaDescribedBy}
-      aria-label={ariaLabel}
-      autoComplete={autoComplete}
-      style={style}
-    />
-    {characterLimit && <Field.Counter {...characterLimit} />}
-  </Field>
-);
+}) => {
+  const t = useTranslation();
+  return (
+    <Field>
+      <Textarea
+        id={id}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        readOnly={readOnly}
+        value={value}
+        data-testid={dataTestId}
+        aria-describedby={ariaDescribedBy}
+        aria-label={ariaLabel ? t(ariaLabel) : undefined}
+        autoComplete={autoComplete}
+        style={style}
+      />
+      {characterLimit && <Field.Counter {...characterLimit} />}
+    </Field>
+  );
+};

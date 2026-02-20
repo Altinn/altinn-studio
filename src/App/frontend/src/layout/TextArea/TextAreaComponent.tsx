@@ -5,7 +5,6 @@ import { TextArea } from 'src/app-components/TextArea/TextArea';
 import { getDescriptionId } from 'src/components/label/Label';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -19,7 +18,6 @@ import 'src/styles/shared.css';
 export type ITextAreaProps = Readonly<PropsFromGenericComponent<'TextArea'>>;
 
 export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAreaProps) {
-  const { langAsString } = useLanguage();
   const isValid = useIsValid(baseComponentId);
   const {
     id,
@@ -78,7 +76,7 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
           error={!isValid}
           dataTestId={id}
           ariaDescribedBy={textAreaDescribedBy}
-          ariaLabel={overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined}
+          ariaLabel={overrideDisplay?.renderedInTable === true ? textResourceBindings?.title : undefined}
           autoComplete={autocomplete}
           style={{ minHeight: '150px', height: '150px', width: '100%' }}
         />
