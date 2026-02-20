@@ -11,7 +11,7 @@ export const ValidateAllTasksConfig = () => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSetsSchema } = useLayoutSetsQuery(org, app);
-  const { validationOnNavigation: configData } = layoutSetsSchema;
+  const configData = layoutSetsSchema?.validationOnNavigation;
   const [tempExtConfig, setTempExtConfig] = useState(configData); // This is just to simulate the save functionality, in real implementation this would be handled differently
   const config = useConvertToInternalConfig(tempExtConfig);
 

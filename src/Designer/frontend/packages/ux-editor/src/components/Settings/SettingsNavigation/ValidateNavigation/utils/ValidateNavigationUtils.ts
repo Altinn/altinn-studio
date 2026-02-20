@@ -41,6 +41,7 @@ export const getRuleEnums = (ruleType: RuleType) => {
   if (ruleType === RuleType.Show) {
     return show.items.enum ?? [];
   }
+  return [];
 };
 
 export const convertToExternalConfig = (
