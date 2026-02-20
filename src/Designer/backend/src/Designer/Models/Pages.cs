@@ -43,6 +43,10 @@ public class Pages
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? PdfLayoutName { get; set; }
 
+    [JsonPropertyName("validationOnNavigation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ValidationOnNavigation? ValidationOnNavigation { get; set; }
+
     [JsonExtensionData]
     public IDictionary<string, object?>? UnknownProperties { get; set; }
 
@@ -59,6 +63,7 @@ public class Pages
             TaskNavigation = TaskNavigation,
             ExcludeFromPdf = ExcludeFromPdf,
             PdfLayoutName = PdfLayoutName,
+            ValidationOnNavigation = ValidationOnNavigation,
             UnknownProperties = UnknownProperties,
         };
     }
@@ -76,6 +81,7 @@ public class Pages
             TaskNavigation = TaskNavigation,
             ExcludeFromPdf = ExcludeFromPdf,
             PdfLayoutName = PdfLayoutName,
+            ValidationOnNavigation = ValidationOnNavigation,
             UnknownProperties = UnknownProperties,
         };
     }

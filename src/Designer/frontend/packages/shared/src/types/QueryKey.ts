@@ -21,6 +21,7 @@ export enum QueryKey {
   FetchBpmn = 'FetchBpmn',
   FormComponent = 'FormComponent',
   FormLayoutSettings = 'FormLayoutSettings',
+  ValidationOnNavigationLayoutSettings = 'ValidationOnNavigationLayoutSettings',
   FormLayouts = 'FormLayouts',
   FrontEndSettings = 'FrontEndSettings',
   ImageFileNames = 'ImageFileNames',

@@ -274,6 +274,55 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Gets validation on navigation settings grouped by shared show/page values across all layout sets
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>A list of grouped validation navigation settings</returns>
+        [HttpGet("layout-settings/validation-on-navigation")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> GetValidationOnNavigationLayoutSettings(string org, string app, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(editingContext, cancellationToken);
+
+            var settingsWithIds = new List<(string Id, LayoutSettings Settings)>();
+            foreach (var layoutSet in layoutSetsModel.Sets)
+            {
+                try
+                {
+                    LayoutSettings settings = await _layoutService.GetLayoutSettings(editingContext, layoutSet.Id);
+                    settingsWithIds.Add((layoutSet.Id, settings));
+                }
+                catch (FileNotFoundException)
+                {
+                    // Skip layout sets without settings.json
+                }
+            }
+
+            var result = settingsWithIds
+                .Select(item => new
+                {
+                    item.Id,
+                    Show = item.Settings?.Pages?.ValidationOnNavigation?.Show,
+                    Page = item.Settings?.Pages?.ValidationOnNavigation?.Page,
+                })
+                .GroupBy(x => new { ShowKey = x.Show != null ? string.Join(",", x.Show.OrderBy(s => s)) : "", x.Page })
+                .Select(group => new ValidationOnNavigationDto
+                {
+                    Tasks = group.Select(x => x.Id).ToList(),
+                    Show = group.First().Show,
+                    Page = group.First().Page,
+                })
+                .ToList();
+
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Get all names of layouts across layoutSets
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
