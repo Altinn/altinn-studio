@@ -1,24 +1,49 @@
 'use strict';
 
-const RUNTIME_ENVS = ['at_ring1', 'at_ring2', 'tt_ring1', 'tt_ring2', 'prod_ring1', 'prod_ring2'];
-const STUDIO_ENVS = ['dev', 'staging', 'prod'];
 const REFRESH_INTERVAL_MS = 10_000;
 
-// Environments without approval gates — no split cell needed
-const UNGATED = new Set(['at_ring1', 'dev', 'staging']);
-
-// key (`${runId}:${env}`) → {runId, env, service, sha}
-const selected = new Map();
-let hoveredWaitingCell = null; // {key, checkbox, runId, env, service, sha}
+const selected = new Map(); // key => { key, runId, workflow, env, service, envDisplay, sha }
+let hoveredWaitingCell = null; // { selection, checkbox }
 let lastStatus = null;
 
-function selectionKey(runId, env) {
-  return `${runId}:${env}`;
+function selectionKey(runId, workflow, env) {
+  return `${runId}:${workflow}:${env}`;
+}
+
+function setSelection(selection, checked) {
+  if (checked) selected.set(selection.key, selection);
+  else selected.delete(selection.key);
+  updateApproveBar();
+}
+
+function reconcileSelections(status) {
+  const valid = new Set();
+  for (const service of status.services) {
+    for (const plane of service.planes) {
+      for (const slot of Object.values(plane.envs)) {
+        const next = slot.next;
+        if (!next || next.status !== 'waiting' || next.canApprove !== true || !Number.isInteger(next.runId)) continue;
+        valid.add(selectionKey(next.runId, service.workflow, slot.name));
+      }
+    }
+  }
+
+  let changed = false;
+  for (const key of selected.keys()) {
+    if (valid.has(key)) continue;
+    selected.delete(key);
+    changed = true;
+  }
+  if (hoveredWaitingCell && !valid.has(hoveredWaitingCell.selection.key)) hoveredWaitingCell = null;
+  if (changed) updateApproveBar();
 }
 
 function effectiveStatus(data) {
-  if (data.status === 'completed') return data.conclusion || 'success';
-  return data.status;
+  return data.status === 'completed' ? (data.conclusion ?? data.status) : data.status;
+}
+
+function deploymentStatusClass(data) {
+  return data ? `half-${effectiveStatus(data)}` : 'half-none';
 }
 
 function relativeTime(iso) {
@@ -33,21 +58,25 @@ function relativeTime(iso) {
 }
 
 function el(tag, className, text) {
-  const e = document.createElement(tag);
-  if (className) e.className = className;
-  if (text) e.textContent = text;
-  return e;
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text) node.textContent = text;
+  return node;
+}
+
+function setLastUpdatedFromStatus(status) {
+  const ts = status.fetchedAt ? new Date(status.fetchedAt).toLocaleTimeString() : new Date().toLocaleTimeString();
+  document.getElementById('last-updated').textContent = `Data from ${ts}`;
 }
 
 function updateApproveBar() {
   const bar = document.getElementById('approve-bar');
-  const count = selected.size;
-  if (count === 0) {
+  if (selected.size === 0) {
     bar.classList.add('hidden');
     return;
   }
   bar.classList.remove('hidden');
-  document.getElementById('approve-count').textContent = `${count} pending selected`;
+  document.getElementById('approve-count').textContent = `${selected.size} pending selected`;
 }
 
 function renderDeployment(data, statusClass) {
@@ -57,62 +86,70 @@ function renderDeployment(data, statusClass) {
     return container;
   }
 
-  const isActive = statusClass === 'half-in_progress' || statusClass === 'half-queued';
-
   const link = el('a');
   link.href = data.runUrl;
   link.target = '_blank';
   link.rel = 'noopener';
   link.title = data.title;
-
-  if (isActive) link.appendChild(el('span', 'spinner'));
+  if (statusClass === 'half-in_progress' || statusClass === 'half-queued') link.appendChild(el('span', 'spinner'));
   link.appendChild(el('span', 'sha', data.sha));
   link.appendChild(el('span', 'title', data.title));
   link.appendChild(el('span', 'time', relativeTime(data.updatedAt)));
-
   container.appendChild(link);
   return container;
 }
 
-function renderWaitingHalf(data, env, service) {
-  const key = selectionKey(data.runId, env);
+function renderWaitingHalf(next, service, slot) {
   const container = el('div', 'cell-half half-waiting waiting-half');
+  const selection = {
+    key: selectionKey(next.runId, service.workflow, slot.name),
+    runId: next.runId,
+    workflow: service.workflow,
+    env: slot.name,
+    service: service.displayName,
+    envDisplay: slot.displayName,
+    sha: next.sha,
+  };
 
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   checkbox.className = 'approve-check';
-  checkbox.checked = selected.has(key);
-  checkbox.addEventListener('change', () => {
-    if (checkbox.checked) {
-      selected.set(key, { runId: data.runId, env, service, sha: data.sha });
-    } else {
-      selected.delete(key);
-    }
-    updateApproveBar();
-  });
+  checkbox.checked = selected.has(selection.key);
+  checkbox.addEventListener('change', () => setSelection(selection, checkbox.checked));
 
   const body = el('div', 'waiting-body');
-  body.appendChild(el('span', 'sha', data.sha));
-  body.appendChild(el('span', 'title', data.title));
-  body.appendChild(el('span', 'time', relativeTime(data.updatedAt)));
+  body.appendChild(el('span', 'sha', next.sha));
+  body.appendChild(el('span', 'title', next.title));
+  body.appendChild(el('span', 'time', relativeTime(next.updatedAt)));
 
   const ghLink = el('a', 'gh-ext-link', '\u2197');
-  ghLink.href = data.runUrl;
+  ghLink.href = next.runUrl;
   ghLink.target = '_blank';
   ghLink.rel = 'noopener';
   ghLink.title = 'Open in GitHub';
 
-  container.appendChild(checkbox);
-  container.appendChild(body);
-  container.appendChild(ghLink);
+  container.append(checkbox, body, ghLink);
 
-  const cellInfo = { key, checkbox, runId: data.runId, env, service, sha: data.sha };
-  container.addEventListener('mouseenter', () => { hoveredWaitingCell = cellInfo; });
+  const hovered = { selection, checkbox };
+  container.addEventListener('mouseenter', () => { hoveredWaitingCell = hovered; });
   container.addEventListener('mouseleave', () => {
-    if (hoveredWaitingCell?.key === key) hoveredWaitingCell = null;
+    if (hoveredWaitingCell?.selection.key === selection.key) hoveredWaitingCell = null;
   });
-
   return container;
+}
+
+function getPlaneServices(status, planeName) {
+  const services = [];
+  for (const service of status.services) {
+    const plane = service.planes.find((p) => p.name === planeName);
+    if (!plane) continue;
+    services.push({
+      workflow: service.workflow,
+      displayName: service.displayName,
+      envs: plane.envs,
+    });
+  }
+  return services;
 }
 
 function renderGrid(containerId, services, envs) {
@@ -120,61 +157,53 @@ function renderGrid(containerId, services, envs) {
   grid.style.gridTemplateColumns = `140px repeat(${envs.length}, 1fr)`;
   grid.innerHTML = '';
 
-  // Header row
   grid.appendChild(el('div', 'cell cell-header', 'Service'));
-  for (const env of envs) {
-    grid.appendChild(el('div', 'cell cell-header', env));
-  }
+  for (const env of envs) grid.appendChild(el('div', 'cell cell-header', env.displayName));
 
-  // Service rows
-  for (const [svcName, envData] of Object.entries(services)) {
-    grid.appendChild(el('div', 'cell cell-service', svcName));
-
+  for (const service of services) {
+    grid.appendChild(el('div', 'cell cell-service', service.displayName));
     for (const env of envs) {
+      const slot = service.envs[env.name] ?? { name: env.name, displayName: env.displayName, current: null, next: null };
+      const current = slot.current;
+      const next = slot.next;
       const cell = el('div', 'cell cell-env');
-      const slot = envData[env];
-      const current = slot?.current || null;
-      const next = slot?.next || null;
 
-      if (UNGATED.has(env)) {
-        // Single cell — show current only (or next if deploying)
-        const data = current || next;
-        const status = data ? `half-${effectiveStatus(data)}` : 'half-none';
+      if (env.ungated) {
+        const nextIsActiveOrFailed = next && effectiveStatus(next) !== 'success';
+        const data = nextIsActiveOrFailed ? next : (current || next);
         cell.classList.add('cell-single');
-        cell.appendChild(renderDeployment(data, status));
+        cell.appendChild(renderDeployment(data, deploymentStatusClass(data)));
       } else {
-        // Split cell — left: current deployed, right: next candidate
-        const currentStatus = current ? `half-${effectiveStatus(current)}` : 'half-none';
-        cell.appendChild(renderDeployment(current, currentStatus));
-
+        cell.appendChild(renderDeployment(current, deploymentStatusClass(current)));
         if (next && effectiveStatus(next) === 'waiting' && next.canApprove === true) {
-          cell.appendChild(renderWaitingHalf(next, env, svcName));
+          cell.appendChild(renderWaitingHalf(next, service, slot));
         } else {
-          const nextStatus = next ? `half-${effectiveStatus(next)}` : 'half-none';
-          cell.appendChild(renderDeployment(next, nextStatus));
+          cell.appendChild(renderDeployment(next, deploymentStatusClass(next)));
         }
       }
-
       grid.appendChild(cell);
     }
   }
 }
 
+function applyStatus(status) {
+  lastStatus = status;
+  reconcileSelections(status);
+  for (const plane of status.planes) {
+    const containerId = `${plane.name}-grid`;
+    if (!document.getElementById(containerId)) continue;
+    renderGrid(containerId, getPlaneServices(status, plane.name), plane.envs);
+  }
+  setLastUpdatedFromStatus(status);
+}
+
 async function fetchAndRender() {
   const loading = document.getElementById('loading');
   loading.classList.remove('hidden');
-
   try {
     const res = await fetch('/api/status');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    lastStatus = data;
-
-    renderGrid('runtime-grid', data.runtime, RUNTIME_ENVS);
-    renderGrid('studio-grid', data.studio, STUDIO_ENVS);
-
-    const ts = data.fetchedAt ? new Date(data.fetchedAt).toLocaleTimeString() : new Date().toLocaleTimeString();
-    document.getElementById('last-updated').textContent = `Data from ${ts}`;
+    applyStatus(await res.json());
   } catch (err) {
     console.error('Fetch failed:', err);
     document.getElementById('last-updated').textContent = `Error: ${err.message}`;
@@ -183,17 +212,15 @@ async function fetchAndRender() {
   }
 }
 
-// --- Approve flow ---
-
 function showConfirmModal() {
   const list = document.getElementById('confirm-list');
   list.innerHTML = '';
-  for (const { service, env, sha } of selected.values()) {
-    const li = el('li', 'confirm-item');
-    li.appendChild(el('span', 'confirm-service', service));
-    li.appendChild(el('span', 'confirm-env', env));
-    li.appendChild(el('span', 'confirm-sha sha', sha));
-    list.appendChild(li);
+  for (const { service, envDisplay, sha } of selected.values()) {
+    const item = el('li', 'confirm-item');
+    item.appendChild(el('span', 'confirm-service', service));
+    item.appendChild(el('span', 'confirm-env', envDisplay));
+    item.appendChild(el('span', 'confirm-sha sha', sha));
+    list.appendChild(item);
   }
   document.getElementById('confirm-modal').classList.remove('hidden');
 }
@@ -203,43 +230,30 @@ function hideConfirmModal() {
 }
 
 async function doApprove() {
-  const items = [...selected.values()].map(({ runId, env }) => ({ runId, env }));
   const confirmOk = document.getElementById('confirm-ok');
   confirmOk.disabled = true;
   confirmOk.textContent = 'Approving...';
-
   try {
+    const items = [...selected.values()].map(({ runId, workflow, env }) => ({ runId, workflow, env }));
     const res = await fetch('/api/approve', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(items),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
 
+    const data = await res.json();
     hideConfirmModal();
     selected.clear();
     updateApproveBar();
-    // Follow-up fetch timed to land after the server's +5s re-refresh, catching any
-    // jobs that were still 'waiting' on GitHub when the immediate response was built.
-    setTimeout(fetchAndRender, 6_000);
-
-    const errors = data.results?.filter((r) => !r.ok) ?? [];
-    if (errors.length > 0) console.error('[approve] errors:', errors);
-
-    if (data.status) {
-      lastStatus = data.status;
-      renderGrid('runtime-grid', data.status.runtime, RUNTIME_ENVS);
-      renderGrid('studio-grid', data.status.studio, STUDIO_ENVS);
-      const ts = data.status.fetchedAt
-        ? new Date(data.status.fetchedAt).toLocaleTimeString()
-        : new Date().toLocaleTimeString();
-      document.getElementById('last-updated').textContent = `Data from ${ts}`;
-    } else {
-      await fetchAndRender();
-    }
+    setTimeout(fetchAndRender, 6_000); // follow-up after server-side delayed refresh
+    const hasErrors = data.results?.some((result) => !result.ok) ?? false;
+    if (hasErrors) console.error('[approve] errors:', data.results);
+    if (data.status) applyStatus(data.status);
+    else await fetchAndRender();
   } catch (err) {
     console.error('Approve failed:', err);
+    document.getElementById('last-updated').textContent = `Approve error: ${err.message}`;
   } finally {
     confirmOk.disabled = false;
     confirmOk.textContent = 'Approve';
@@ -247,42 +261,25 @@ async function doApprove() {
 }
 
 document.getElementById('approve-bar-btn').addEventListener('click', showConfirmModal);
-
 document.getElementById('approve-clear').addEventListener('click', () => {
   selected.clear();
   updateApproveBar();
-  // Re-render with cached data to uncheck all boxes without a round-trip
-  if (lastStatus) {
-    renderGrid('runtime-grid', lastStatus.runtime, RUNTIME_ENVS);
-    renderGrid('studio-grid', lastStatus.studio, STUDIO_ENVS);
-  }
+  if (lastStatus) applyStatus(lastStatus);
 });
-
 document.getElementById('confirm-ok').addEventListener('click', doApprove);
 document.getElementById('confirm-cancel').addEventListener('click', hideConfirmModal);
-
-// Close modal on backdrop click
 document.getElementById('confirm-modal').addEventListener('click', (e) => {
   if (e.target === e.currentTarget) hideConfirmModal();
 });
 
-// Space key to toggle the hovered waiting cell's checkbox
 document.addEventListener('keydown', (e) => {
   if (e.key !== ' ' || !hoveredWaitingCell) return;
   const tag = document.activeElement?.tagName ?? '';
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
   e.preventDefault();
-  const { key, checkbox, runId, env, service, sha } = hoveredWaitingCell;
-  checkbox.checked = !checkbox.checked;
-  if (checkbox.checked) {
-    selected.set(key, { runId, env, service, sha });
-  } else {
-    selected.delete(key);
-  }
-  updateApproveBar();
+  hoveredWaitingCell.checkbox.checked = !hoveredWaitingCell.checkbox.checked;
+  setSelection(hoveredWaitingCell.selection, hoveredWaitingCell.checkbox.checked);
 });
-
-// --- Refresh ---
 
 document.getElementById('refresh-btn').addEventListener('click', async () => {
   const loading = document.getElementById('loading');
@@ -290,7 +287,7 @@ document.getElementById('refresh-btn').addEventListener('click', async () => {
   try {
     await fetch('/api/refresh', { method: 'POST' });
   } catch {
-    // Refresh failed, fetchAndRender will show the error
+    // fetchAndRender below reports failure
   }
   await fetchAndRender();
 });
