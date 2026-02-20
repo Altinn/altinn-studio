@@ -4,7 +4,7 @@ import type { AppMetric as Metric } from 'admin/types/metrics/AppMetric';
 
 import { Bar } from 'react-chartjs-2';
 import { Alert } from 'admin/components/Alert/Alert';
-import { fillMissingDataPoints, getChartData, getChartOptions } from 'admin/utils/charts';
+import { getChartData, getChartOptions } from 'admin/utils/charts';
 
 type AppMetricProps = {
   range: number;
@@ -14,11 +14,11 @@ type AppMetricProps = {
 export const AppMetric = ({ range, metric }: AppMetricProps) => {
   const { t } = useTranslation();
   const options = getChartOptions(range);
-  const count = metric.dataPoints.reduce((sum, item) => sum + item.count, 0);
+  const count = metric.counts.reduce((sum, item) => sum + item, 0);
 
-  const metricsChartData = getChartData(fillMissingDataPoints(metric.dataPoints, range), {
-    borderColor: '#042d4d',
-    backgroundColor: '#042d4d',
+  const metricsChartData = getChartData(metric.timestamps, metric.counts, {
+    borderColor: '#0860a3',
+    backgroundColor: '#0860a3',
   });
 
   return (
