@@ -6,7 +6,6 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, Navigate, Outlet, RouterProvider, useLocation } from 'react-router';
 import { Slide, ToastContainer } from 'react-toastify';
-import type { PropsWithChildren } from 'react';
 
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-theme';
@@ -17,7 +16,7 @@ import 'src/features/toggles';
 
 import { useQueryClient } from '@tanstack/react-query';
 
-import { AppComponentsProvider } from 'src/app-components/AppComponentsProvider';
+import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
@@ -32,7 +31,6 @@ import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataRea
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
 import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
@@ -173,13 +171,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function AppLayout() {
   return (
-    <NavigationEffectProvider>
-      <ErrorBoundary>
-        <ViewportWrapper>
-          <UiConfigProvider>
-            <InstantiationUrlReset />
-            <GlobalFormDataReadersProvider>
-              <AppComponentsBridge>
+    <AppComponentsBridge>
+      <NavigationEffectProvider>
+        <ErrorBoundary>
+          <ViewportWrapper>
+            <UiConfigProvider>
+              <InstantiationUrlReset />
+              <GlobalFormDataReadersProvider>
                 <PartyProvider>
                   <KeepAliveProvider>
                     <Outlet />
@@ -192,19 +190,13 @@ function AppLayout() {
                   </KeepAliveProvider>
                 </PartyProvider>
                 <PartyPrefetcher />
-              </AppComponentsBridge>
-            </GlobalFormDataReadersProvider>
-          </UiConfigProvider>
-        </ViewportWrapper>
-      </ErrorBoundary>
-    </NavigationEffectProvider>
+              </GlobalFormDataReadersProvider>
+            </UiConfigProvider>
+          </ViewportWrapper>
+        </ErrorBoundary>
+      </NavigationEffectProvider>
+    </AppComponentsBridge>
   );
-}
-
-function AppComponentsBridge({ children }: PropsWithChildren) {
-  const { langAsString } = useLanguage();
-
-  return <AppComponentsProvider t={langAsString}>{children}</AppComponentsProvider>;
 }
 
 function InstantiationUrlReset() {

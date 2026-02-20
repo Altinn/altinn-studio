@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
 import { TimePicker } from 'src/app-components/TimePicker/TimePicker';
 
 describe('TimePicker - Responsive & Accessibility', () => {
@@ -46,7 +47,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
         value: 205,
       });
 
-      render(<TimePicker {...defaultProps} />);
+      renderWithAppComponentsProvider(<TimePicker {...defaultProps} />);
 
       const wrapper = screen.getByRole('textbox', { name: /hours/i }).closest('.calendarInputWrapper');
       expect(wrapper).toBeInTheDocument();
@@ -63,7 +64,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
         value: 348,
       });
 
-      render(<TimePicker {...defaultProps} />);
+      renderWithAppComponentsProvider(<TimePicker {...defaultProps} />);
 
       const inputs = screen.getAllByRole('textbox');
       expect(inputs).toHaveLength(2);
@@ -81,7 +82,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
         value: 205,
       });
 
-      render(
+      renderWithAppComponentsProvider(
         <TimePicker
           {...defaultProps}
           format='hh:mm:ss a'
@@ -101,7 +102,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
 
   describe('Screen Reader Accessibility', () => {
     it('should have proper aria-labels for all inputs', () => {
-      render(<TimePicker {...defaultProps} />);
+      renderWithAppComponentsProvider(<TimePicker {...defaultProps} />);
 
       const hoursInput = screen.getByRole('textbox', { name: /hours/i });
       const minutesInput = screen.getByRole('textbox', { name: /minutes/i });
@@ -111,7 +112,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
     });
 
     it('should have proper aria-labels with custom labels', () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimePicker
           {...defaultProps}
           labels={{
@@ -129,7 +130,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
     });
 
     it('should have proper aria-labels for 12-hour format', () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimePicker
           {...defaultProps}
           format='hh:mm a'
@@ -147,7 +148,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
     });
 
     it('should have proper aria-labels with seconds', () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimePicker
           {...defaultProps}
           format='HH:mm:ss'
@@ -160,7 +161,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
     });
 
     it('should have accessible dropdown dialog', () => {
-      render(<TimePicker {...defaultProps} />);
+      renderWithAppComponentsProvider(<TimePicker {...defaultProps} />);
 
       const clockButton = screen.getByRole('button', { name: /open time picker/i });
       expect(clockButton).toHaveAttribute('aria-label', 'Open time picker');
@@ -168,7 +169,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
 
     it('should announce dropdown state to screen readers', async () => {
       const user = userEvent.setup();
-      render(<TimePicker {...defaultProps} />);
+      renderWithAppComponentsProvider(<TimePicker {...defaultProps} />);
 
       const clockButton = screen.getByRole('button', { name: /open time picker/i });
       await user.click(clockButton);
@@ -179,7 +180,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
     });
 
     it('should maintain semantic structure for screen readers', () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimePicker
           {...defaultProps}
           format='hh:mm:ss a'
@@ -204,7 +205,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
 
   describe('Disabled State Accessibility', () => {
     it('should properly indicate disabled state to screen readers', () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimePicker
           {...defaultProps}
           disabled
@@ -221,7 +222,7 @@ describe('TimePicker - Responsive & Accessibility', () => {
     });
 
     it('should properly indicate readonly state', () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimePicker
           {...defaultProps}
           readOnly

@@ -15,6 +15,7 @@ import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
+import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormContext';
@@ -301,11 +302,13 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
       <UiConfigProvider>
         <PageNavigationProvider>
           <Router>
-            <NavigationEffectProvider>
-              <GlobalFormDataReadersProvider>
-                <PartyProvider>{children}</PartyProvider>
-              </GlobalFormDataReadersProvider>
-            </NavigationEffectProvider>
+            <AppComponentsBridge>
+              <NavigationEffectProvider>
+                <GlobalFormDataReadersProvider>
+                  <PartyProvider>{children}</PartyProvider>
+                </GlobalFormDataReadersProvider>
+              </NavigationEffectProvider>
+            </AppComponentsBridge>
           </Router>
         </PageNavigationProvider>
       </UiConfigProvider>
@@ -334,7 +337,9 @@ function MinimalProviders({ children, queries, queryClient, Router = DefaultRout
       queryClient={queryClient}
     >
       <Router>
-        <NavigationEffectProvider>{children}</NavigationEffectProvider>
+        <NavigationEffectProvider>
+          <AppComponentsBridge>{children}</AppComponentsBridge>
+        </NavigationEffectProvider>
       </Router>
     </AppQueriesProvider>
   );

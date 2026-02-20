@@ -1,16 +1,17 @@
 import React from 'react';
 
-import { act, render as renderRtl, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { HelpText } from 'src/app-components/HelpText/HelpText';
+import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
 import type { HelpTextProps } from 'src/app-components/HelpText/HelpText';
 
 const render = (props: Partial<HelpTextProps> = {}) => {
   const allProps = {
     ...props,
   };
-  renderRtl(
+  renderWithAppComponentsProvider(
     <HelpText
       title='Helptext for test'
       {...allProps}
