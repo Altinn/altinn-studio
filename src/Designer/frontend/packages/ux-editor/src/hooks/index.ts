@@ -6,6 +6,7 @@ export { useSelectedFormLayout } from './useSelectedFormLayout';
 export { useSelectedFormLayoutWithName } from './useSelectedFormLayoutWithName';
 export { useText } from './useText';
 export { useComponentPropertyLabel } from './useComponentPropertyLabel';
+export { useComponentPropertyEnumValue } from './useComponentPropertyEnumValue';
 export { useComponentPropertyDescription } from './useComponentPropertyDescription';
 export { useAppContext } from './useAppContext';
 export { useGetLayoutSetByName } from './useGetLayoutSetByName';

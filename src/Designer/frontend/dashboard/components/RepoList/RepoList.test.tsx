@@ -1,7 +1,6 @@
 import React from 'react';
-import { screen, render } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { searchRepositoryResponseMock } from '../../data-mocks/searchRepositoryResponseMock';
 import type { RepoListProps } from './RepoList';
 import { RepoList } from './RepoList';
@@ -9,10 +8,12 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { type ProviderData, renderWithProviders } from '../../testing/mocks';
 
 const renderWithMockServices = (
   componentProps: Partial<RepoListProps>,
   services?: Partial<ServicesContextProps>,
+  providerData: ProviderData = {},
 ) => {
   const repos = searchRepositoryResponseMock.data;
   const allComponentProps = {
@@ -26,13 +27,18 @@ const renderWithMockServices = (
     onSortClick: jest.fn(),
     ...componentProps,
   };
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.CurrentUser], {
+
+  const defaultProviderData: ProviderData = {
+    queries: services,
+    queryClient: createQueryClientMock(),
+    featureFlags: [],
+  };
+  defaultProviderData.queryClient.setQueryData([QueryKey.CurrentUser], {
     id: 1,
     login: 'testuser',
     full_name: 'Test User',
   });
-  queryClient.setQueryData(
+  defaultProviderData.queryClient.setQueryData(
     [QueryKey.Organizations],
     [
       {
@@ -42,11 +48,10 @@ const renderWithMockServices = (
       },
     ],
   );
-  render(
-    <MockServicesContextWrapper customServices={services} client={queryClient}>
-      <RepoList {...allComponentProps} />
-    </MockServicesContextWrapper>,
-  );
+  renderWithProviders(<RepoList {...allComponentProps} />, {
+    ...defaultProviderData,
+    ...providerData,
+  });
 };
 
 describe('RepoList', () => {

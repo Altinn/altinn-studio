@@ -1,0 +1,21 @@
+.root {
+  display: grid;
+  gap: var(--ds-size-3);
+  grid-template:
+    'info info'
+    'edit-button delete-button'
+    / min-content auto;
+}
+
+.info {
+  grid-area: info;
+}
+
+.editButton {
+  grid-area: edit-button;
+}
+
+.deleteButton {
+  grid-area: delete-button;
+  justify-self: flex-start;
+}

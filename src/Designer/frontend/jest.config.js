@@ -49,6 +49,8 @@ const config = {
     // prettier-ignore
     '\\.(jpg|jpeg|png|gif|eot|otf|svg|webp|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': path.join(__dirname, 'testing/mocks/fileMock.js'),
     '\\.(css|less)$': 'identity-obj-proxy',
+    // Force react-i18next to resolve to root node_modules to ensure global mock applies for app-development
+    '^react-i18next$': require.resolve('react-i18next'),
     '^@bpmn-io/diagram-js-ui$': resolveNodeModulesPath('@bpmn-io/diagram-js-ui/lib/index.js'),
     '^path-intersection$': resolveNodeModulesPath('path-intersection/intersect.js'),
     '^preact(/(.*)|$)': 'preact$1',

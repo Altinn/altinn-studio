@@ -35,12 +35,12 @@ public class AlertsController(IAlertsService alertsService) : ControllerBase
     public async Task<ActionResult> NotifyAlertsUpdated(
         string org,
         string env,
-        IEnumerable<Alert> alerts,
+        Alert alert,
         CancellationToken cancellationToken
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        await _alertsService.NotifyAlertsUpdatedAsync(org, environment, alerts, cancellationToken);
+        await _alertsService.NotifyAlertsUpdatedAsync(org, environment, alert, cancellationToken);
         return Ok();
     }
 }

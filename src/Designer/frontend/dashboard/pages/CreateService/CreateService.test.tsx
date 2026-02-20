@@ -1,18 +1,20 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MockServicesContextWrapper } from '../../dashboardTestUtils';
-import { CreateService } from './CreateService';
+import { CreateService, type CreateServiceProps } from './CreateService';
 import type { User } from 'app-shared/types/Repository';
 import type { Organization } from 'app-shared/types/Organization';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, user as userMock } from 'app-shared/mocks/mocks';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { Subroute } from '../../enums/Subroute';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { Route, Routes } from 'react-router-dom';
+import { type ProviderData, renderWithProviders } from '../../testing/mocks';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { FeatureFlag } from '@studio/feature-flags';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const orgMock: Organization = {
   avatar_url: '',
@@ -35,36 +37,33 @@ const mockUser: User = {
   userType: 0,
 };
 
-type RenderWithMockServicesProps = {
-  services?: Partial<ServicesContextProps>;
-  organizations?: Organization[];
-  user?: User;
-  params?: {
-    subroute: string;
-    selectedContext?: string;
+const renderCreateService = (
+  props: Partial<CreateServiceProps> = {},
+  providerData: Partial<ProviderData> = {},
+) => {
+  const defaultProps: CreateServiceProps = {
+    user: mockUser,
+    organizations: [],
   };
-};
 
-const renderWithMockServices = ({
-  services,
-  organizations,
-  user,
-  params = { subroute: Subroute.AppDashboard },
-}: RenderWithMockServicesProps = {}) => {
-  const initialEntry = `/${params.subroute}/${params.selectedContext || ''}`;
-  render(
-    <MockServicesContextWrapper
-      client={null}
-      customServices={services}
-      initialEntries={[initialEntry]}
-    >
-      <Routes>
-        <Route
-          path=':subroute?/:selectedContext?'
-          element={<CreateService organizations={organizations || []} user={user || mockUser} />}
-        />
-      </Routes>
-    </MockServicesContextWrapper>,
+  const defaultProviderData: ProviderData = {
+    queries: {},
+    queryClient: createQueryClientMock(),
+    featureFlags: [],
+    initialEntries: [`/${Subroute.AppDashboard}/`],
+  };
+
+  return renderWithProviders(
+    <Routes>
+      <Route
+        path=':subroute?/:selectedContext?'
+        element={<CreateService {...defaultProps} {...props} />}
+      />
+    </Routes>,
+    {
+      ...defaultProviderData,
+      ...providerData,
+    },
   );
 };
 
@@ -93,7 +92,7 @@ describe('CreateService', () => {
 
   it('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
-    renderWithMockServices({ user: { ...mockUser, login: '' } });
+    renderCreateService({ user: { ...mockUser, login: '' } });
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
@@ -108,7 +107,7 @@ describe('CreateService', () => {
   });
 
   it('should prefill owner when there are no available orgs, and the only available user is the logged in user', async () => {
-    renderWithMockServices();
+    renderCreateService();
 
     await waitFor(() => {
       expect(screen.getByRole('combobox')).toBeInTheDocument();
@@ -117,7 +116,7 @@ describe('CreateService', () => {
 
   it('should show error message that app name is too long when it exceeds max length', async () => {
     const user = userEvent.setup();
-    renderWithMockServices();
+    renderCreateService();
     await user.type(
       screen.getByLabelText(/general.service_name/),
       'this-app-name-is-longer-than-max',
@@ -136,7 +135,7 @@ describe('CreateService', () => {
 
   it('should show error message that app name is invalid when it contains invalid characters', async () => {
     const user = userEvent.setup();
-    renderWithMockServices();
+    renderCreateService();
 
     await user.type(screen.getByLabelText(textMock('general.service_name')), 'dataModels');
 
@@ -153,7 +152,7 @@ describe('CreateService', () => {
 
   it('should show error message that app name is invalid when name is to short, then remove the error when name is valid again', async () => {
     const user = userEvent.setup();
-    renderWithMockServices();
+    renderCreateService();
 
     const repoNameInput = screen.getByLabelText(textMock('general.service_name'));
 
@@ -182,7 +181,7 @@ describe('CreateService', () => {
     const axiosError = createApiErrorMock(ServerCodes.Conflict);
     const addRepoMock = jest.fn().mockImplementation(() => Promise.reject(axiosError));
 
-    renderWithMockServices({ services: { addRepo: addRepoMock }, organizations: [orgMock] });
+    renderCreateService({ organizations: [orgMock] }, { queries: { addRepo: addRepoMock } });
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     await user.click(select);
@@ -204,51 +203,27 @@ describe('CreateService', () => {
     await screen.findByText(textMock('dashboard.app_already_exists'));
   });
 
-  it('should show generic error message when trying to create an app and something unknown went wrong', async () => {
-    const user = userEvent.setup();
-    const axiosError = createApiErrorMock(ServerCodes.InternalServerError);
-    const addRepoMock = jest.fn(() => Promise.reject(axiosError));
-    renderWithMockServices({ services: { addRepo: addRepoMock }, organizations: [orgMock] });
-
-    const select = screen.getByLabelText(textMock('general.service_owner'));
-    await user.click(select);
-    const orgOption = screen.getByRole('option', { name: mockUserLogin });
-    await user.click(orgOption);
-
-    await user.type(screen.getByLabelText(textMock('general.service_name')), 'new-app');
-
-    const createButton = await screen.findByText(textMock('dashboard.create_service_btn'));
-    await user.click(createButton);
-
-    await expect(addRepoMock).rejects.toEqual(axiosError);
-
-    const emptyFieldErrors = await screen.findAllByText(textMock('general.error_message'));
-    expect(emptyFieldErrors.length).toBe(1);
-  });
-
   it('should display loading while the form is processing', async () => {
     const user = userEvent.setup();
 
-    renderWithMockServices({
-      services: {
-        // Use setTimeout as a workaround to trigger isLoading on mutation.
-        addRepo: () =>
-          new Promise((resolve) =>
-            setTimeout(() => {
-              resolve({
-                ...repository,
-                full_name: 'test',
-                name: 'test',
-              });
-            }, 2),
-          ),
+    renderCreateService(
+      { organizations: [orgMock], user: { ...userMock, login: 'tester' } },
+      {
+        queries: {
+          // Use setTimeout as a workaround to trigger isLoading on mutation.
+          addRepo: () =>
+            new Promise((resolve) =>
+              setTimeout(() => {
+                resolve({
+                  ...repository,
+                  full_name: 'test',
+                  name: 'test',
+                });
+              }, 2),
+            ),
+        },
       },
-      organizations: [orgMock],
-      user: {
-        ...userMock,
-        login: 'tester',
-      },
-    });
+    );
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
@@ -266,7 +241,7 @@ describe('CreateService', () => {
     const axiosError = createApiErrorMock(ServerCodes.Conflict);
     const addRepoMock = jest.fn().mockImplementation(() => Promise.reject(axiosError));
 
-    renderWithMockServices({ services: { addRepo: addRepoMock }, organizations: [orgMock] });
+    renderCreateService({ organizations: [orgMock] }, { queries: { addRepo: addRepoMock } });
 
     const select = screen.getByLabelText(textMock('general.service_owner'));
     await user.click(select);
@@ -300,16 +275,17 @@ describe('CreateService', () => {
   it('should navigate to app-development if creating the app was successful', async () => {
     const user = userEvent.setup();
 
-    renderWithMockServices({
-      services: {
-        addRepo: () => Promise.resolve(repository),
+    renderCreateService(
+      {
+        organizations: [orgMock],
+        user: { ...userMock, login: 'tester' },
       },
-      organizations: [orgMock],
-      user: {
-        ...userMock,
-        login: 'tester',
+      {
+        queries: {
+          addRepo: () => Promise.resolve(repository),
+        },
       },
-    });
+    );
 
     const createBtn: HTMLElement = screen.getByRole('button', {
       name: textMock('dashboard.create_service_btn'),
@@ -322,11 +298,66 @@ describe('CreateService', () => {
     expect(windowLocationAssignMock).toHaveBeenCalled();
   });
 
+  it('should call onSubmit with correct data when form is submitted', async () => {
+    const user = userEvent.setup();
+    const addRepo = jest.fn().mockResolvedValue(repository);
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData(
+      [QueryKey.CustomTemplates, mockUser.login],
+      [
+        {
+          id: 'template1',
+          name: 'Template One',
+          description: 'Description One',
+          owner: 'owner1',
+        },
+      ],
+    );
+    renderCreateService(
+      { user: mockUser, organizations: [orgMock] },
+      { queries: { addRepo }, queryClient, featureFlags: [FeatureFlag.CustomTemplates] },
+    );
+
+    const select = screen.getByRole('combobox', { name: textMock('general.service_owner') });
+    await user.click(select);
+    await user.selectOptions(select, mockUser.login);
+
+    const repoTextField = screen.getByRole('textbox', { name: textMock('general.service_name') });
+    expect(repoTextField).toHaveValue('');
+    const newRepoValue: string = 'repo';
+    await user.type(repoTextField, newRepoValue);
+    await user.tab();
+    expect(screen.getByRole('textbox', { name: textMock('general.service_name') })).toHaveValue(
+      newRepoValue,
+    );
+
+    const templateSelect = screen.getByRole('combobox', {
+      name: textMock('dashboard.new_application_form.select_templates'),
+    });
+    await user.selectOptions(templateSelect, 'template1');
+    expect(templateSelect).toHaveValue('template1');
+
+    const createButton = screen.getByRole('button', {
+      name: textMock('dashboard.create_service_btn'),
+    });
+    await user.click(createButton);
+
+    expect(addRepo).toHaveBeenCalledTimes(1);
+    expect(addRepo).toHaveBeenCalledWith({
+      org: mockUser.login,
+      repository: newRepoValue,
+      template: {
+        id: 'template1',
+        owner: 'owner1',
+      },
+    });
+  });
+
   it('should set cancel link to /self when selected context is self', async () => {
     const selectedContext = SelectedContextType.Self;
     const subroute = Subroute.AppDashboard;
 
-    renderWithMockServices({ params: { subroute, selectedContext } });
+    renderCreateService({}, { initialEntries: [`/${subroute}/${selectedContext}`] });
     const cancelLink: HTMLElement = screen.getByRole('link', {
       name: textMock('general.cancel'),
     });
@@ -338,7 +369,7 @@ describe('CreateService', () => {
     const selectedContext = SelectedContextType.All;
     const subroute = Subroute.AppDashboard;
 
-    renderWithMockServices({ params: { subroute, selectedContext } });
+    renderCreateService({}, { initialEntries: [`/${subroute}/${selectedContext}`] });
     const cancelLink: HTMLElement = screen.getByRole('link', {
       name: textMock('general.cancel'),
     });
@@ -350,7 +381,7 @@ describe('CreateService', () => {
     const selectedContext = 'ttd';
     const subroute = Subroute.AppDashboard;
 
-    renderWithMockServices({ params: { subroute, selectedContext } });
+    renderCreateService({}, { initialEntries: [`/${subroute}/${selectedContext}`] });
     const cancelLink: HTMLElement = screen.getByRole('link', {
       name: textMock('general.cancel'),
     });

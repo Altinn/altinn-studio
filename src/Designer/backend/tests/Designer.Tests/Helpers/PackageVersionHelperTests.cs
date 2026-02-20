@@ -17,7 +17,7 @@ namespace Designer.Tests.Helpers
         [InlineData("NonExistingNuget")]
         public async Task TryGetPackageVersionFromCsprojFile_GivenValidCsprojFile_ReturnsTrue(string packageName)
         {
-            string testTemplateCsProjPath = Path.Join(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "..", "App", "template", "src", "App", "App.csproj");
+            string testTemplateCsProjPath = Path.Join(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "App", "App.csproj");
 
 
             string[] packages = [packageName, $"{packageName}.Experimental"];

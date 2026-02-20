@@ -18,6 +18,7 @@ import {
   policySubjectOrg,
 } from '@altinn/policy-editor/utils';
 import type { Policy, PolicyRule } from '@altinn/policy-editor/types';
+import { CONSENT_ACTION, REQUEST_CONSENT_ACTION } from '@altinn/policy-editor/constants';
 
 const policySubject = [
   {
@@ -436,13 +437,13 @@ describe('getResourcePolicyRules', () => {
     {
       ...emptyPolicyRule,
       subject: [organizationSubject.urn],
-      actions: ['requestconsent'],
+      actions: [REQUEST_CONSENT_ACTION],
       ruleId: '1',
       resources: [[`urn:altinn:resource:${resourceId}`]],
     },
     {
       ...emptyPolicyRule,
-      actions: ['consent'],
+      actions: [CONSENT_ACTION],
       ruleId: '2',
       resources: [[`urn:altinn:resource:${resourceId}`]],
     },

@@ -17,7 +17,7 @@ describe('CompactInterface', () => {
 
   it('should render the chat input', () => {
     renderCompactInterface();
-    const textarea = screen.getByPlaceholderText(mockTexts.textareaPlaceholder);
+    const textarea = screen.getByPlaceholderText(mockTexts.textarea.placeholder);
 
     expect(textarea).toBeInTheDocument();
   });

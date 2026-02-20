@@ -1,0 +1,32 @@
+# Read-only repo inspection commands.
+prefix_rule(
+  pattern = [["cat", "find", "rg", "grep", "sed", "awk", "head", "tail", "wc", "stat", "file", "pwd", "realpath", "ls", "tree"]],
+  decision = "allow",
+)
+
+# Read-only git commands.
+prefix_rule(
+  pattern = ["git", ["diff", "status", "log", "show"]],
+  decision = "allow",
+)
+
+# Read-only GitHub CLI commands.
+prefix_rule(
+  pattern = ["gh", "pr", ["view", "list"]],
+  decision = "allow",
+)
+
+prefix_rule(
+  pattern = ["gh", "issue", "view"],
+  decision = "allow",
+)
+
+prefix_rule(
+  pattern = ["gh", "search", "prs"],
+  decision = "allow",
+)
+
+prefix_rule(
+  pattern = ["yarn", ["test", "lint", "build", "gen", "typecheck"]],
+  decision = "allow",
+)

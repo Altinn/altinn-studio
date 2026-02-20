@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Altinn Studio App Custom Template Descriptor",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [ "id", "owner", "name", "description" ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "minLength": 5
+        },
+        "owner": {
+            "type": "string",
+            "minLength": 2
+        },
+        "name": {
+            "type": "string",
+            "minLength": 5
+        },
+        "description": {
+            "type": "string",
+            "minLength": 20
+        },
+        "remove": {
+            "type": "array",
+            "description": "Optional list of relative repo paths/globs from application repo root. No absolute paths, no drive/UNC, no '..'.",
+            "items": {
+                "type": "string",
+                "pattern": "^(?!/)(?!\\\\\\\\)(?!.*\\\\)(?!.*:)(?!.*(^|/)\\.\\.(/|$))[A-Za-z0-9._\\-/*?\\[\\]{}!]+(?:/[A-Za-z0-9._\\-/*?\\[\\]{}!]+)*/?$"
+            }
+        }
+    }
+}

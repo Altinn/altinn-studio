@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/out/
+**/.vs/
+**/.idea/
+*.md
+.git
+.gitignore
+test/

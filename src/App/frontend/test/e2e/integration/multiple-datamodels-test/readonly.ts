@@ -47,7 +47,11 @@ describe('readonly data models', () => {
     cy.gotoNavPage('Side6');
     cy.findByRole('radio', { name: /kåre/i }).dsCheck();
     cy.findByText(errorReportTitle).should('not.exist');
+    cy.waitUntilSaved();
     cy.findByRole('button', { name: /send inn/i }).click();
+    cy.get('#finishedLoading').should('exist');
+
+    cy.intercept('PATCH', '**/data*').as('saveFormData');
 
     cy.findByRole('heading', { name: /fra forrige steg/i }).should('be.visible');
     cy.findByText(errorReportTitle).should('not.exist');
@@ -68,32 +72,27 @@ describe('readonly data models', () => {
     cy.get(appFrontend.multipleDatamodelsTest.personsSummary).should('contain.text', 'Etternavn : Persen');
     cy.get(appFrontend.multipleDatamodelsTest.personsSummary).should('contain.text', 'Alder : 25 år');
 
-    const formDataRequests: string[] = [];
-    cy.intercept('PATCH', '**/data*', (req) => {
-      formDataRequests.push(req.url);
-    }).as('saveFormData');
-
     cy.findByRole('textbox', { name: /tekstfelt 3/i }).type('Litt mer informasjon');
     cy.waitUntilSaved();
-    cy.then(() => expect(formDataRequests.length).to.be.eq(1));
+    cy.get('@saveFormData.all').should('have.length', 1);
 
     cy.findByRole('button', { name: /legg til ny/i }).click();
     cy.waitUntilSaved();
-    cy.then(() => expect(formDataRequests.length).to.be.eq(2));
+    cy.get('@saveFormData.all').should('have.length', 2);
 
     cy.findByRole('textbox', { name: /e-post/i }).type('test@test.test');
     cy.waitUntilSaved();
-    cy.then(() => expect(formDataRequests.length).to.be.eq(3));
+    cy.get('@saveFormData.all').should('have.length', 3);
 
     cy.findByRole('textbox', { name: /mobilnummer/i }).type('98765432');
     cy.waitUntilSaved();
-    cy.then(() => expect(formDataRequests.length).to.be.eq(4));
+    cy.get('@saveFormData.all').should('have.length', 4);
 
     cy.findAllByRole('button', { name: /lagre og lukk/i })
       .first()
       .click();
     cy.waitUntilSaved();
-    cy.then(() => expect(formDataRequests.length).to.be.eq(4));
+    cy.get('@saveFormData.all').should('have.length', 4);
 
     cy.findByText(errorReportTitle).should('not.exist');
 
@@ -101,7 +100,6 @@ describe('readonly data models', () => {
     interceptAltinnAppGlobalData((globalData) => {
       globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangePage';
     });
-    cy.then(() => formDataRequests.splice(0, formDataRequests.length)); // Clear requests
     cy.reloadAndWait();
 
     cy.findByRole('textbox', { name: /tekstfelt 3/i }).clear();
@@ -113,25 +111,29 @@ describe('readonly data models', () => {
       .first()
       .click();
 
-    cy.waitForNetworkIdle(400);
-
-    cy.then(() => expect(formDataRequests.length).to.be.eq(0));
-
+    cy.intercept('PATCH', '**/data*').as('saveFormData2');
     cy.findByRole('button', { name: 'Neste' }).click();
+    cy.waitUntilSaved();
+    cy.get('@saveFormData2.all').should('have.length', 1);
 
     cy.findByRole('heading', { name: /Test av delt modell/ }).should('be.visible');
-    cy.waitUntilSaved();
 
-    cy.then(() => expect(formDataRequests.length).to.be.eq(1));
+    // Casing is important here. The Address component will normally try to look up the post code and overwrite
+    // it with 'KARDEMOMME BY' here, but since the component is marked as readOnly that should not happen.
+    cy.findByRole('textbox', { name: /Poststed/ }).should('have.value', 'Kardemomme By');
+
     cy.findByText(errorReportTitle).should('not.exist');
 
-    cy.findByRole('button', { name: 'Forrige' }).click();
-    cy.findByRole('button', { name: 'Send inn' }).click();
+    cy.findByRole('button', { name: 'Send inn' }).clickAndGone();
 
     cy.findByRole('heading', { name: /kvittering/i }).should('be.visible');
     cy.get(appFrontend.multipleDatamodelsTest.textField1Summary).should('contain.text', 'første');
     cy.get(appFrontend.multipleDatamodelsTest.textField2Paragraph).should('contain.text', 'andre');
     cy.get(appFrontend.multipleDatamodelsTest.textField3Summary).should('contain.text', 'Noe annet denne gangen');
+
+    // This assertion helps to make sure the post place field is not updated above. Since we save on page changes,
+    // any updates to that field would have resulted in another save request.
+    cy.get('@saveFormData2.all').should('have.length', 1);
 
     cy.findByText(errorReportTitle).should('not.exist');
   });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router-dom';
+import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { jest } from '@jest/globals';
@@ -13,7 +13,6 @@ import type { JSONSchema7 } from 'json-schema';
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
-import { getOrgsMock } from 'src/__mocks__/getOrgsMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { paymentResponsePayload } from 'src/__mocks__/getPaymentPayloadMock';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
@@ -25,7 +24,6 @@ import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataRea
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
-import { OrgsProvider } from 'src/features/orgs/OrgsProvider';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import { PageNavigationRouter } from 'src/test/routerUtils';
@@ -123,8 +121,6 @@ const defaultPostalCodesMock = (() => {
 const defaultQueryMocks: AppQueries = {
   fetchLogo: async () => getLogoMock(),
   fetchActiveInstances: async () => [],
-  fetchSelectedParty: async () => getPartyMock(),
-  fetchOrgs: async () => ({ orgs: getOrgsMock() }),
   fetchDataModelSchema: async () => ({}),
   fetchPartiesAllowedToInstantiate: async () => [getPartyMock()],
   fetchRefreshJwtToken: async () => ({}),
@@ -203,7 +199,7 @@ function NotFound() {
 
 function DefaultRouter({ children }: PropsWithChildren) {
   return (
-    <MemoryRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+    <MemoryRouter>
       <Routes>
         <Route
           path='/'
@@ -246,7 +242,6 @@ export function InstanceRouter({
     {
       basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
-      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -255,12 +250,7 @@ export function InstanceRouter({
     routerRef.current = router;
   }
 
-  return (
-    <RouterProvider
-      router={router}
-      future={{ v7_startTransition: true }}
-    />
-  );
+  return <RouterProvider router={router} />;
 }
 
 export function StatelessRouter({
@@ -285,7 +275,6 @@ export function StatelessRouter({
     {
       basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
-      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -294,12 +283,7 @@ export function StatelessRouter({
     routerRef.current = router;
   }
 
-  return (
-    <RouterProvider
-      router={router}
-      future={{ v7_startTransition: true }}
-    />
-  );
+  return <RouterProvider router={router} />;
 }
 
 interface ProvidersProps extends PropsWithChildren {
@@ -319,9 +303,7 @@ function DefaultProviders({ children, queries, queryClient, Router = DefaultRout
           <Router>
             <NavigationEffectProvider>
               <GlobalFormDataReadersProvider>
-                <OrgsProvider>
-                  <PartyProvider>{children}</PartyProvider>
-                </OrgsProvider>
+                <PartyProvider>{children}</PartyProvider>
               </GlobalFormDataReadersProvider>
             </NavigationEffectProvider>
           </Router>

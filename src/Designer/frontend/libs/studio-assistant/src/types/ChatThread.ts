@@ -4,8 +4,26 @@ export type ChatThread = {
   id: string;
   title: string;
   messages: Message[];
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type UserAttachment = {
+  name: string;
+  mimeType: string;
+  size: number;
+  dataBase64: string;
+};
+
+export type Source = {
+  tool: string;
+  title: string;
+  preview: string;
+  content_length?: number;
+  url?: string;
+  relevance?: number;
+  matched_terms?: string;
+  cited?: boolean;
 };
 
 export type UserMessage = {
@@ -13,13 +31,16 @@ export type UserMessage = {
   content: string;
   timestamp: Date;
   allowAppChanges?: boolean;
+  attachments?: UserAttachment[];
 };
 
 export type AssistantMessage = {
   author: MessageAuthor.Assistant;
   content: string;
   timestamp: Date;
-  filesChanged?: string[];
+  filesChanged: string[];
+  isLoading?: boolean;
+  sources?: Source[];
 };
 
 export type Message = UserMessage | AssistantMessage;

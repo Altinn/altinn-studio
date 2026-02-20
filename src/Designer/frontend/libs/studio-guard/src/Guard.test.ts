@@ -92,6 +92,16 @@ describe('Guard', () => {
     });
   });
 
+  describe('againstInvalidValue', () => {
+    it('Throws when value is invalid', () => {
+      expect(() => Guard.againstInvalidValue<string, 'abc'>('abc', 'abc')).toThrow();
+    });
+
+    it('Allows valid values', () => {
+      expect(() => Guard.againstInvalidValue<string, 'def'>('abc', 'def')).not.toThrow();
+    });
+  });
+
   describe('AgainstNonJsonTypes', () => {
     it('Throws when file type is not json', () => {
       expect(() => Guard.againstNonJsonTypes('myFile.xsd')).toThrow();

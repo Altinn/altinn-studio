@@ -1,50 +1,111 @@
-using System.Net.Http.Json;
 using System.Text.Json;
+using Altinn.App.Core.Internal.App;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Internal.AltinnCdn;
 
 internal static class AltinnCdnClientDI
 {
-    internal static void AddAltinnCdnClient(this IServiceCollection services) =>
-        services.AddHttpClient<IAltinnCdnClient, AltinnCdnClient>();
+    internal static void AddAltinnCdnClient(this IServiceCollection services)
+    {
+        services.AddHybridCache();
+        services.AddHttpClient(nameof(AltinnCdnClient));
+        services.AddSingleton<IAltinnCdnClient, AltinnCdnClient>();
+    }
 }
 
 internal sealed class AltinnCdnClient : IAltinnCdnClient
 {
+    private const string CacheKey = "altinn-cdn-org-details";
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
-    private readonly HttpClient _httpClient;
 
-    public AltinnCdnClient(HttpClient httpClient)
+    private static readonly HybridCacheEntryOptions _cacheOptions = new()
     {
-        _httpClient = httpClient;
+        Expiration = TimeSpan.FromHours(24),
+        LocalCacheExpiration = TimeSpan.FromHours(24),
+    };
+
+    private readonly HybridCache _cache;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IAppMetadata _appMetadata;
+
+    private AltinnCdnOrgDetails? _lastKnownGood;
+
+    public AltinnCdnClient(HybridCache cache, IHttpClientFactory httpClientFactory, IAppMetadata appMetadata)
+    {
+        _cache = cache;
+        _httpClientFactory = httpClientFactory;
+        _appMetadata = appMetadata;
     }
 
-    public async Task<AltinnCdnOrgs> GetOrgs(CancellationToken cancellationToken = default)
+    public async Task<AltinnCdnOrgDetails?> GetOrgDetails(CancellationToken cancellationToken = default)
     {
-        AltinnCdnOrgs orgs =
-            await _httpClient.GetFromJsonAsync<AltinnCdnOrgs>(
-                requestUri: "https://altinncdn.no/orgs/altinn-orgs.json",
-                options: _jsonOptions,
+        try
+        {
+            return await _cache.GetOrCreateAsync(
+                CacheKey,
+                FetchOrgDetails,
+                _cacheOptions,
                 cancellationToken: cancellationToken
-            ) ?? throw new JsonException("Received literal \"null\" response from Altinn CDN");
+            );
+        }
+        catch (Exception ex)
+            when (_lastKnownGood is not null && !cancellationToken.IsCancellationRequested && IsTransientError(ex))
+        {
+            // Return stale data on transient errors (but not caller cancellation)
+            // Cache miss means next call will retry (with stampede protection from HybridCache)
+            return _lastKnownGood;
+        }
+    }
+
+    private async ValueTask<AltinnCdnOrgDetails?> FetchOrgDetails(CancellationToken cancellationToken)
+    {
+        using var httpClient = _httpClientFactory.CreateClient(nameof(AltinnCdnClient));
+        using var response = await httpClient.GetAsync("https://altinncdn.no/orgs/altinn-orgs.json", cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+
+        if (
+            doc.RootElement.ValueKind != JsonValueKind.Object
+            || !doc.RootElement.TryGetProperty("orgs", out var orgsElement)
+        )
+        {
+            throw new JsonException("Missing 'orgs' property in Altinn CDN response");
+        }
+
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
+
+        // Only deserialize the org we care about - other orgs with bad data won't affect us
+        if (!orgsElement.TryGetProperty(appMetadata.Org, out var orgElement))
+        {
+            return null;
+        }
+
+        var orgDetails =
+            orgElement.Deserialize<AltinnCdnOrgDetails>(_jsonOptions)
+            ?? throw new JsonException($"Org '{appMetadata.Org}' deserialized to null");
 
         // Inject Digdir's organisation number for TTD, because TTD does not have an organisation number
         if (
-            !orgs.Orgs.IsNullOrEmpty()
-            && orgs.Orgs.TryGetValue("ttd", out var ttdOrgDetails)
-            && orgs.Orgs.TryGetValue("digdir", out var digdirOrgDetails)
-            && string.IsNullOrEmpty(ttdOrgDetails.Orgnr)
+            string.Equals(appMetadata.Org, "ttd", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrEmpty(orgDetails.Orgnr)
+            && orgsElement.TryGetProperty("digdir", out var digdirElement)
         )
         {
-            ttdOrgDetails.Orgnr = digdirOrgDetails.Orgnr;
+            var digdirDetails = digdirElement.Deserialize<AltinnCdnOrgDetails>(_jsonOptions);
+            if (!string.IsNullOrEmpty(digdirDetails?.Orgnr))
+            {
+                orgDetails.Orgnr = digdirDetails.Orgnr;
+            }
         }
 
-        return orgs;
+        _lastKnownGood = orgDetails;
+        return orgDetails;
     }
 
-    public void Dispose()
-    {
-        // We don't dispose the HttpClient here as it's managed by the HttpClientFactory
-    }
+    private static bool IsTransientError(Exception ex) =>
+        ex is HttpRequestException or TaskCanceledException or OperationCanceledException or JsonException;
 }

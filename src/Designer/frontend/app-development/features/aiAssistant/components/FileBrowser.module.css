@@ -1,0 +1,228 @@
+.container {
+  display: flex;
+  height: 100%;
+  max-height: 80vh;
+  width: 100%;
+  background: #f7f8fa;
+  min-width: 0;
+  overflow: scroll;
+}
+
+.sidebar {
+  width: 40%;
+  max-width: 340px;
+  min-width: 220px;
+  background: #f9fafc; /* subtle light background */
+  border-right: 1px solid #e2e5ec; /* soft grey separator */
+  box-shadow: 1px 0 4px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px; /* more padding in top bar */
+  border-bottom: 1px solid #e2e5ec;
+}
+
+.sidebarTitle {
+  font-weight: 500;
+}
+
+.upButton {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #d0d0d0;
+  background-color: #ffffff;
+  cursor: pointer;
+}
+
+.upButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.fileList {
+  list-style: none;
+  margin: 0;
+  padding: 6px 4px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.fileButton,
+.fileButtonSelected {
+  width: 100%;
+  padding: 8px 14px; /* more vertical spacing */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 6px; /* modern rounded rows */
+  transition:
+    background 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.fileButton:hover {
+  background-color: #eef3ff; /* subtle blue/grey hover */
+}
+
+.fileButtonSelected {
+  background-color: #e2ecff;
+  box-shadow: inset 3px 0 0 #3366ff; /* left accent border */
+}
+
+.fileIcon {
+  width: 18px;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.fileName {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px; /* clearer file names */
+  color: #1f2933;
+}
+
+.viewer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  min-height: 0;
+  min-width: 0;
+}
+
+.viewerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid #e2e5ec;
+  border-bottom: none;
+  background: #f5f7fb; /* subtle header bg */
+  font-size: 13px;
+}
+
+.viewerTitle {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #1f2933;
+}
+
+.loadingIndicator {
+  font-size: 12px;
+  color: #666666;
+}
+
+.placeholder {
+  padding: 16px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.error {
+  padding: 8px 12px;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.code {
+  flex: 1;
+  margin: 0;
+  padding: 12px 14px;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre;
+  overflow: auto;
+  background-color: #fbfcff; /* subtle editor bg */
+  border-radius: 0 0 8px 8px;
+  border: 1px solid #e2e5ec;
+  border-top: none;
+  min-height: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Modern scrollbars */
+.code::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.code::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.code::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.6);
+  border-radius: 999px;
+}
+
+.code::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.9);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.breadcrumbItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.breadcrumbItem:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.breadcrumbItem:hover:not(:disabled) {
+  background-color: #e5edff;
+}
+
+.breadcrumbLabel {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breadcrumbSeparator {
+  display: inline-flex;
+  align-items: center;
+  color: #9ca3af;
+}

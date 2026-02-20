@@ -83,5 +83,17 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonPropertyName("APP_MASKINPORTEN_SCOPES")]
         public string AppMaskinportenScopes { get; set; }
+
+        /// <summary>
+        /// W3C traceparent propagated from the request that queued the deployment.
+        /// </summary>
+        [JsonPropertyName("TRACEPARENT")]
+        public string TraceParent { get; set; }
+
+        /// <summary>
+        /// W3C tracestate propagated from the request that queued the deployment.
+        /// </summary>
+        [JsonPropertyName("TRACESTATE")]
+        public string TraceState { get; set; }
     }
 }

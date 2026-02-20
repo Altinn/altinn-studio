@@ -13,6 +13,8 @@ public static class DeploymentPipelinePollingJobConstants
         public const string BuildId = "buildId";
         public const string PipelineType = "pipelineType";
         public const string Environment = "environment";
+        public const string TraceParent = "traceparent";
+        public const string TraceState = "tracestate";
     }
 
     public const string DeploymentPipelineGroup = nameof(DeploymentPipelineGroup);

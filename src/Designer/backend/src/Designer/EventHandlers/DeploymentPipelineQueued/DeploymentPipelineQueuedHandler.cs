@@ -29,6 +29,16 @@ public class DeploymentPipelineQueuedHandler : INotificationHandler<Events.Deplo
             { DeploymentPipelinePollingJobConstants.Arguments.Environment, notification.Environment }
         };
 
+        if (!string.IsNullOrWhiteSpace(notification.TraceParent))
+        {
+            jobData[DeploymentPipelinePollingJobConstants.Arguments.TraceParent] = notification.TraceParent;
+        }
+
+        if (!string.IsNullOrWhiteSpace(notification.TraceState))
+        {
+            jobData[DeploymentPipelinePollingJobConstants.Arguments.TraceState] = notification.TraceState;
+        }
+
         var job = JobBuilder.Create<Scheduling.DeploymentPipelinePollingJob>()
             .WithIdentity(DeploymentPipelinePollingJobConstants.JobIdentity(notification.EditingContext, notification.BuildId), DeploymentPipelinePollingJobConstants.DeploymentPipelineGroup)
             .UsingJobData(jobData)

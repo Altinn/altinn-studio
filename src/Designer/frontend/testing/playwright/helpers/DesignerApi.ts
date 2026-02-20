@@ -2,7 +2,6 @@ import type { APIRequestContext, APIResponse } from '@playwright/test';
 import type { Environment } from './StudioEnvironment';
 import { StudioEnvironment } from './StudioEnvironment';
 import type { Cookie, StorageState } from '../types/StorageState';
-
 export class DesignerApi extends StudioEnvironment {
   constructor(environment?: Environment) {
     super(environment);
@@ -14,10 +13,11 @@ export class DesignerApi extends StudioEnvironment {
     org = this.org,
   ): Promise<APIResponse> {
     const headers = this.generateHeaders(storageState);
-    return request.post(
-      `/designer/api/repos/create-app?org=${org}&repository=${this.app}&datamodellingPreference=1`,
-      { headers },
-    );
+    const requestBody = {
+      org,
+      repository: this.app,
+    };
+    return request.post(`/designer/api/repos/create-app`, { headers, data: requestBody });
   }
 
   private generateHeaders(storageState: StorageState): Record<string, string> {

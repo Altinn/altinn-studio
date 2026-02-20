@@ -39,6 +39,7 @@ import {
   mockResourecId1,
   mockPolicyResourceBackendString1,
 } from '../../test/mocks/policySubResourceMocks';
+import { INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE } from '../constants';
 
 describe('PolicyEditorUtils', () => {
   describe('mapResourceFromBackendToResource', () => {
@@ -135,7 +136,7 @@ describe('PolicyEditorUtils', () => {
         description: '',
         id: 'urn:altinn:rolecode:S4',
         provider: {
-          code: 'sys-internal',
+          code: INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE,
           id: '',
           name: '',
         },

@@ -1,27 +1,57 @@
 import React from 'react';
 import type { ReactElement } from 'react';
-import { StudioHeading, StudioToggleGroup } from '@studio/components';
+import { StudioHeading, StudioToggleGroup, StudioTag } from '@studio/components';
 import classes from './HeadingBar.module.css';
 import { CodeIcon, PlayFillIcon } from '@studio/icons';
 import { ToolColumnMode } from '../../types/ToolColumnMode';
 import type { AssistantTexts } from '../../types/AssistantTexts';
+import type { ConnectionStatus } from '../../types/ConnectionStatus';
 
 export type HeadingBarProps = {
   texts: AssistantTexts;
   selectedToolColumnMode?: ToolColumnMode;
   onModeChange?: (mode: ToolColumnMode) => void;
+  connectionStatus?: ConnectionStatus;
 };
 
 export function HeadingBar({
   texts,
   selectedToolColumnMode,
   onModeChange,
+  connectionStatus,
 }: HeadingBarProps): ReactElement {
   const shouldShowToggleGroup = selectedToolColumnMode && onModeChange;
 
+  const getConnectionStatusDisplay = (): {
+    text: string;
+    color: 'warning' | 'success' | 'danger' | 'neutral';
+  } => {
+    switch (connectionStatus) {
+      case 'connecting':
+        return { text: 'Kobler til...', color: 'warning' as const };
+      case 'connected':
+        return { text: 'Tilkoblet', color: 'success' as const };
+      case 'error':
+        return { text: 'Kobling feilet', color: 'danger' as const };
+      default:
+        return { text: 'Ikke tilkoblet', color: 'neutral' as const };
+    }
+  };
+
+  const statusDisplay = connectionStatus ? getConnectionStatusDisplay() : null;
+
   return (
     <div className={classes.headingBar}>
-      <StudioHeading>{texts.heading}</StudioHeading>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 24 }}>
+        <div>
+          <StudioHeading>{texts.heading}</StudioHeading>
+        </div>
+        {statusDisplay && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <StudioTag data-color={statusDisplay.color}>{statusDisplay.text}</StudioTag>
+          </div>
+        )}
+      </div>
       {shouldShowToggleGroup && (
         <StudioToggleGroup
           value={selectedToolColumnMode}

@@ -18,3 +18,44 @@
   align-items: center;
   gap: var(--ds-size-4);
 }
+
+.hiddenFileInput {
+  display: none;
+}
+
+.attachmentList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-size-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attachmentItem {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  background: var(--ds-color-neutral-surface-strong-subtle);
+  border-radius: var(--ds-border-radius-md);
+  padding: var(--ds-size-2) var(--ds-size-3);
+}
+
+.attachmentName {
+  font-size: var(--ds-font-size-xs);
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.removeAttachmentButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--ds-color-danger-border);
+}
+
+.removeAttachmentButton:hover {
+  color: var(--ds-color-danger-text);
+}

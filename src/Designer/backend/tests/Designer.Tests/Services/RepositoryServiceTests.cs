@@ -120,7 +120,7 @@ namespace Designer.Tests.Services
 
             try
             {
-                await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
+                await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName }, []);
                 var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory).GetAltinnGitRepository(org, repositoryName, developer).GetAltinnStudioSettings();
                 Assert.Equal(AltinnRepositoryType.App, altinnStudioSettings.RepoType);
                 Assert.True(altinnStudioSettings.UseNullableReferenceTypes);
@@ -321,6 +321,152 @@ namespace Designer.Tests.Services
             mock.VerifyAll();
         }
 
+        [Fact]
+        public async Task CreateRepository_WithOneTemplate_AppliesTemplateOnce()
+        {
+            // Arrange
+            string org = "ttd";
+            string repositoryName = TestDataHelper.GenerateTestRepoName();
+            string developer = "testUser";
+            string templateOwner = "als";
+            string templateId = "test-template";
+
+            var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
+            var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
+
+            Mock<ICustomTemplateService> customTemplateServiceMock = new();
+            customTemplateServiceMock
+                .Setup(m => m.ApplyTemplateToRepository(templateOwner, templateId, org, repositoryName, developer))
+                .Returns(Task.CompletedTask);
+
+            var repositoryService = GetServiceForTest(developer, customTemplateServiceMock: customTemplateServiceMock.Object);
+
+            try
+            {
+                var serviceConfig = new ServiceConfiguration
+                {
+                    RepositoryName = repositoryName,
+                    ServiceName = repositoryName
+                };
+
+                var templates = new List<CustomTemplateReference>
+                {
+                    new() { Owner = templateOwner, Id = templateId }
+                };
+
+                // Act
+                await repositoryService.CreateService(org, serviceConfig, templates);
+
+                // Assert
+                customTemplateServiceMock.Verify(
+                    m => m.ApplyTemplateToRepository(templateOwner, templateId, org, repositoryName, developer),
+                    Times.Once);
+            }
+            finally
+            {
+                Thread.Sleep(400);
+                TestDataHelper.DeleteDirectory(repositoryDirectory);
+                TestDataHelper.DeleteDirectory(repositoryRemoteDirectory);
+            }
+        }
+
+        [Fact]
+        public async Task CreateRepository_WithMultipleTemplates_AppliesEachTemplateOnce()
+        {
+            // Arrange
+            string org = "ttd";
+            string repositoryName = TestDataHelper.GenerateTestRepoName();
+            string developer = "testUser";
+
+            var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
+            var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
+
+            Mock<ICustomTemplateService> customTemplateServiceMock = new();
+            customTemplateServiceMock
+                .Setup(m => m.ApplyTemplateToRepository(It.IsAny<string>(), It.IsAny<string>(), org, repositoryName, developer))
+                .Returns(Task.CompletedTask);
+
+            var repositoryService = GetServiceForTest(developer, customTemplateServiceMock: customTemplateServiceMock.Object);
+
+            try
+            {
+                var serviceConfig = new ServiceConfiguration
+                {
+                    RepositoryName = repositoryName,
+                    ServiceName = repositoryName
+                };
+
+                var templates = new List<CustomTemplateReference>
+                {
+                    new() { Owner = "als", Id = "template-1" },
+                    new() { Owner = "als", Id = "template-2" },
+                    new() { Owner = "custom-org", Id = "template-3" }
+                };
+
+                // Act
+                await repositoryService.CreateService(org, serviceConfig, templates);
+
+                // Assert
+                customTemplateServiceMock.Verify(
+                    m => m.ApplyTemplateToRepository("als", "template-1", org, repositoryName, developer),
+                    Times.Once);
+                customTemplateServiceMock.Verify(
+                    m => m.ApplyTemplateToRepository("als", "template-2", org, repositoryName, developer),
+                    Times.Once);
+                customTemplateServiceMock.Verify(
+                    m => m.ApplyTemplateToRepository("custom-org", "template-3", org, repositoryName, developer),
+                    Times.Once);
+                customTemplateServiceMock.Verify(
+                    m => m.ApplyTemplateToRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Exactly(3));
+            }
+            finally
+            {
+                Thread.Sleep(400);
+                TestDataHelper.DeleteDirectory(repositoryDirectory);
+                TestDataHelper.DeleteDirectory(repositoryRemoteDirectory);
+            }
+        }
+
+        [Fact]
+        public async Task CreateRepository_WithNoTemplates_DoesNotApplyTemplates()
+        {
+            // Arrange
+            string org = "ttd";
+            string repositoryName = TestDataHelper.GenerateTestRepoName();
+            string developer = "testUser";
+
+            var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
+            var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
+
+            Mock<ICustomTemplateService> customTemplateServiceMock = new();
+
+            var repositoryService = GetServiceForTest(developer, customTemplateServiceMock: customTemplateServiceMock.Object);
+
+            try
+            {
+                var serviceConfig = new ServiceConfiguration
+                {
+                    RepositoryName = repositoryName,
+                    ServiceName = repositoryName
+                };
+
+                // Act
+                await repositoryService.CreateService(org, serviceConfig, []);
+
+                // Assert
+                customTemplateServiceMock.Verify(
+                    m => m.ApplyTemplateToRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Never);
+            }
+            finally
+            {
+                Thread.Sleep(400);
+                TestDataHelper.DeleteDirectory(repositoryDirectory);
+                TestDataHelper.DeleteDirectory(repositoryRemoteDirectory);
+            }
+        }
+
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
             List<Claim> claims = new();
@@ -382,7 +528,7 @@ namespace Designer.Tests.Services
             }
         }
 
-        private static RepositoryService GetServiceForTest(string developer, ISourceControl sourceControlMock = null)
+        private static RepositoryService GetServiceForTest(string developer, ISourceControl sourceControlMock = null, ICustomTemplateService customTemplateServiceMock = null)
         {
             HttpContext ctx = GetHttpContextForTestUser(developer);
 
@@ -390,7 +536,7 @@ namespace Designer.Tests.Services
             httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
 
             sourceControlMock ??= new ISourceControlMock();
-
+            customTemplateServiceMock ??= new Mock<ICustomTemplateService>().Object;
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryServiceTests).Assembly.Location).LocalPath);
             ServiceRepositorySettings repoSettings = new()
             {
@@ -420,7 +566,6 @@ namespace Designer.Tests.Services
             ApplicationMetadataService applicationInformationService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, httpContextAccessorMock.Object, giteaClientMock);
 
             ISchemaModelService schemaModelServiceMock = new Mock<ISchemaModelService>().Object;
-            AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelServiceMock);
             Mock<ILogger<GiteaContentLibraryService>> loggerMock = new();
             IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory, new GiteaContentLibraryService(giteaClientMock, loggerMock.Object));
 
@@ -432,14 +577,14 @@ namespace Designer.Tests.Services
                 repoSettings,
                 generalSettings,
                 httpContextAccessorMock.Object,
-                new IGiteaClientMock(),
+                giteaClientMock,
                 sourceControlMock,
                 new Mock<ILogger<RepositoryService>>().Object,
                 altinnGitRepositoryFactory,
                 applicationInformationService,
-                appDevelopmentService,
                 textsService,
-                resourceRegistryService);
+                resourceRegistryService,
+                customTemplateServiceMock);
 
             return service;
         }

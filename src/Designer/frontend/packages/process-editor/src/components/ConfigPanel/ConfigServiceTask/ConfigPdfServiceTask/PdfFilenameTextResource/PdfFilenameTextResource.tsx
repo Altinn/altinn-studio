@@ -10,7 +10,6 @@ import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations';
 import { useBpmnContext } from '../../../../../contexts/BpmnContext';
 import { usePdfConfig } from '../usePdfConfig';
-import { useStickyBottomScroll } from '../useStickyBottomScroll';
 import { generateTextResourceId } from '../utils';
 import classes from './PdfFilenameTextResource.module.css';
 
@@ -31,8 +30,6 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
     storedFilenameTextResourceId,
   );
 
-  const { ref: textResourceActionRef, onOpen: onOpenTextResourceEditor } =
-    useStickyBottomScroll<HTMLDivElement>(isTextResourceEditorOpen);
   const modelerInstance = modelerRef?.current;
 
   if (!modelerInstance || !bpmnDetails) {
@@ -74,11 +71,6 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
     });
   };
 
-  const handleOpenTextResourceEditor = (event: React.MouseEvent<HTMLButtonElement>): void => {
-    onOpenTextResourceEditor(event.currentTarget);
-    setIsTextResourceEditorOpen(true);
-  };
-
   const handleTextResourceIdChange = (id: string): void => {
     updateBpmnFilenameTextResourceKey(id);
     setCurrentTextResourceId(id);
@@ -103,7 +95,7 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
       description={t('process_editor.configuration_panel_pdf_filename_description')}
     >
       {isTextResourceEditorOpen ? (
-        <div ref={textResourceActionRef} className={classes.filenameContent}>
+        <div className={classes.filenameContent}>
           <StudioTextResourceAction
             textResources={textResources}
             textResourceId={currentTextResourceId}
@@ -118,7 +110,7 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
       ) : (
         <div className={classes.filenameContent}>
           <StudioProperty.Button
-            onClick={handleOpenTextResourceEditor}
+            onClick={() => setIsTextResourceEditorOpen(true)}
             property={t('process_editor.configuration_panel_pdf_filename_label')}
             value={displayTextResourceValue}
           />

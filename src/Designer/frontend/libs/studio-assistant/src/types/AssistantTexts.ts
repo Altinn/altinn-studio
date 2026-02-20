@@ -7,9 +7,16 @@ export type AssistantTexts = {
   newThread: string;
   previousThreads: string;
   aboutAssistant: string;
-  textareaPlaceholder: string;
+  textarea: TextAreaTexts;
   addAttachment: string;
   allowAppChangesSwitch: string;
   send: string;
+  cancel: string;
   assistantFirstMessage: string;
+};
+
+export type TextAreaTexts = {
+  placeholder: string;
+  wait: string;
+  waitingForConnection: string;
 };

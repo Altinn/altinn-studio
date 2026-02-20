@@ -1,6 +1,5 @@
 #nullable disable
 using Altinn.Common.AccessToken.Configuration;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +21,6 @@ namespace Altinn.Studio.Designer.Infrastructure
         {
             services.RegisterSettings<KeyVaultSettings>(configuration, "kvSetting");
             services.RegisterSettings<AzureDevOpsSettings>(configuration, "Integrations:AzureDevOpsSettings");
-            services.RegisterSettings<ApplicationInsightsSettings>(configuration, "ApplicationInsights");
             return services;
         }
     }

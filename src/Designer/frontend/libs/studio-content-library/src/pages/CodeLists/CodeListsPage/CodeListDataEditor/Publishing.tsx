@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { StudioButton, StudioTag } from '@studio/components';
-import { PublishedElements } from '../../../../utils/PublishedElements/PublishedElements';
+import { PublishedElements } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 
 export type PublishingProps = {

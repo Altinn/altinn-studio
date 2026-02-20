@@ -1,4 +1,10 @@
-import type { AssistantTexts } from '../types/AssistantTexts';
+import type { AssistantTexts, TextAreaTexts } from '../types/AssistantTexts';
+
+const textAreaTexts: TextAreaTexts = {
+  placeholder: 'placeholder',
+  wait: 'wait',
+  waitingForConnection: 'waitingForConnection',
+};
 
 export const mockTexts: AssistantTexts = {
   heading: 'heading',
@@ -9,9 +15,10 @@ export const mockTexts: AssistantTexts = {
   newThread: 'newThread',
   previousThreads: 'previousThreads',
   aboutAssistant: 'aboutAssistant',
-  textareaPlaceholder: 'textareaPlaceholder',
+  textarea: textAreaTexts,
   addAttachment: 'addAttachment',
   allowAppChangesSwitch: 'allowAppChangesSwitch',
   send: 'send',
+  cancel: 'cancel',
   assistantFirstMessage: 'Hva kan jeg hjelpe med?',
 };

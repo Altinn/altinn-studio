@@ -1,5 +1,5 @@
 # Building studio frontend
-FROM node:lts-alpine@sha256:c921b97d4b74f51744057454b306b418cf693865e73b8100559189605f6955b8 AS generate-studio-frontend
+FROM node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03 AS generate-studio-frontend
 WORKDIR /build
 
 COPY ./package.json yarn.lock ./
@@ -44,7 +44,7 @@ COPY . .
 RUN cd src/Designer/frontend && yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:e0f7abfb9c18aa419198b2c4e05dc2f7fd864a6098f09bddb1ceb2b0bce67685 AS generate-studio-backend
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:ebdd46c1a72c10bb992c276e5e6afc6e245757bd1a295d7f0870b266e11c306e AS generate-studio-backend
 ARG DESIGNER_VERSION=''
 WORKDIR /build
 COPY src/Designer/backend .
@@ -55,7 +55,7 @@ WORKDIR /version
 RUN echo "{\"version\": \"${DESIGNER_VERSION}\"}" > version.json
 
 # Prepare app template
-FROM alpine@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62 AS app-template-release
+FROM alpine@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS app-template-release
 RUN apk add --no-cache rsync
 
 COPY ./src/App/template/src /app-template-dotnet-src
@@ -63,7 +63,7 @@ WORKDIR /app-template-dotnet-src
 RUN rsync . -rv --exclude-from=.releaseignore --exclude-from=.gitignore /app-template-release
 
 # Building the final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:be36809e32840cf9fcbf1a3366657c903e460d3c621d6593295a5e5d02268a0d AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine@sha256:c60d76bf35b268f7bab7d5f4e5405c89dcc45616453004e89baea303677ca635 AS final
 EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \

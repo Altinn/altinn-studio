@@ -7,7 +7,6 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
@@ -35,7 +34,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IAppDevelopmentService _appDevelopmentService;
         private readonly IRepository _repository;
         private readonly ISourceControl _sourceControl;
-        private readonly ApplicationInsightsSettings _applicationInsightsSettings;
         private readonly ILayoutService _layoutService;
         private readonly IMediator _mediator;
 
@@ -46,15 +44,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="appDevelopmentService">The app development service</param>
         /// <param name="repositoryService">The application repository service</param>
         /// <param name="sourceControl">The source control service.</param>
-        /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
         /// <param name="layoutService">An <see cref="ILayoutService"/></param>
         /// <param name="mediator"></param>
-        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, ApplicationInsightsSettings applicationInsightsSettings, ILayoutService layoutService, IMediator mediator)
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, ILayoutService layoutService, IMediator mediator)
         {
             _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
             _sourceControl = sourceControl;
-            _applicationInsightsSettings = applicationInsightsSettings;
             _layoutService = layoutService;
             _mediator = mediator;
         }

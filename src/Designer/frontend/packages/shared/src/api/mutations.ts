@@ -75,7 +75,6 @@ import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
 import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
-import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
 import type { Policy } from '../types/Policy';
@@ -115,7 +114,7 @@ export const deleteImage = (org: string, app: string, imageName: string) => del(
 export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del(layoutSetPath(org, app, layoutSetIdToUpdate));
 export const deleteOptionList = (org: string, app: string, optionListId: string) => del(optionListPath(org, app, optionListId));
 export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put(layoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
-export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
+export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepoPath(), repoToAdd);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
 export const copyApp = (org: string, app: string, newRepoName: string, newOrg: string) => post(copyAppPath(org, app, newRepoName, newOrg));

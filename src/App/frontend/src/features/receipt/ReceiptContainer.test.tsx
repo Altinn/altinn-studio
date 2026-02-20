@@ -119,21 +119,6 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
       </InstanceRouter>
     ),
     queries: {
-      fetchOrgs: async () => ({
-        orgs: {
-          brg: {
-            name: {
-              en: 'Brønnøysund Register Centre',
-              nb: 'Brønnøysundregistrene',
-              nn: 'Brønnøysundregistera',
-            },
-            logo: 'https://altinncdn.no/orgs/brg/brreg.png',
-            orgnr: '974760673',
-            homepage: 'https://www.brreg.no',
-            environments: ['tt02', 'production'],
-          },
-        },
-      }),
       fetchFormData: async () => ({}),
     },
   });

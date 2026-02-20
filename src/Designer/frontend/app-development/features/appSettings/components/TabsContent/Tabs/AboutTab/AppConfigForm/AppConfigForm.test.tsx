@@ -19,11 +19,13 @@ describe('AppConfigForm', () => {
     const user = userEvent.setup();
     renderAppConfigForm({ appConfig: mockAppConfigComplete });
 
-    const anInputField = getOptionalTextbox(
+    const homepageInput = await getOptionalInlineEditTextbox(
+      user,
       textMock('app_settings.about_tab_homepage_field_label'),
     );
     const newValue: string = 'A';
-    await user.type(anInputField, newValue);
+    await user.type(homepageInput, newValue);
+    await user.click(getInlineEditSaveButton());
 
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
@@ -91,10 +93,14 @@ describe('AppConfigForm', () => {
     expect(description).toHaveValue('');
   });
 
-  it('displays homepage as empty when there is no homepage set', () => {
+  it('displays homepage as empty when there is no homepage set', async () => {
+    const user = userEvent.setup();
     renderAppConfigForm();
 
-    const homepage = getOptionalTextbox(textMock('app_settings.about_tab_homepage_field_label'));
+    const homepage = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_homepage_field_label'),
+    );
     expect(homepage).toHaveValue('');
   });
 
@@ -102,7 +108,10 @@ describe('AppConfigForm', () => {
     const user = userEvent.setup();
     renderAppConfigForm({ appConfig: { ...mockAppConfig, homepage: mockHomepage } });
 
-    const homepage = getOptionalTextbox(textMock('app_settings.about_tab_homepage_field_label'));
+    const homepage = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_homepage_field_label'),
+    );
     expect(homepage).toHaveValue(mockHomepage);
 
     const newText: string = 'A';
@@ -111,75 +120,46 @@ describe('AppConfigForm', () => {
     expect(homepage).toHaveValue(`${mockHomepage}${newText}`);
   });
 
-  it('displays isDelegable as false when there is no value set', () => {
+  it('defaults visibility and delegation to true when not set', () => {
     renderAppConfigForm();
 
-    const isDelegable = getSwitch(
-      textMock('app_settings.about_tab_delegable_show_text', {
-        shouldText: textMock('app_settings.about_tab_switch_should_not'),
-      }),
+    const visibleSwitch = getSwitch(
+      textMock('app_settings.about_tab_visibility_and_delegation_visible_label'),
     );
-    expect(isDelegable).not.toBeChecked();
+    expect(visibleSwitch).toBeChecked();
+
+    const delegableSwitch = getSwitch(
+      textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
+    );
+    expect(delegableSwitch).toBeChecked();
+    expect(delegableSwitch).toBeDisabled();
   });
 
-  it('displays correct value in "isDelegable", and updates the value on change', async () => {
-    const user = userEvent.setup();
-    renderAppConfigForm({ appConfig: { ...mockAppConfig, access: { delegable: false } } });
-
-    const isDelegable = getSwitch(
-      textMock('app_settings.about_tab_delegable_show_text', {
-        shouldText: textMock('app_settings.about_tab_switch_should_not'),
-      }),
-    );
-    expect(isDelegable).not.toBeChecked();
-
-    await user.click(isDelegable);
-
-    expect(isDelegable).toBeChecked();
-  });
-
-  it('does not show rightDescription when isDelegable is false', () => {
-    renderAppConfigForm({ appConfig: { ...mockAppConfig, access: { delegable: false } } });
-    const rightDescription = queryRequiredTextbox(
-      `${textMock('app_settings.about_tab_right_description_field_label')} (${textMock('language.nb')})`,
-    );
-    expect(rightDescription).not.toBeInTheDocument();
-  });
-
-  it('displays correct value in "rightDescription" input field, and updates the value on change', async () => {
+  it('displays correct value in delegation when app is hidden, and updates the value on change', async () => {
     const user = userEvent.setup();
     renderAppConfigForm({
-      appConfig: {
-        ...mockAppConfig,
-        access: { rightDescription: mockRightDescription, delegable: true },
-      },
+      appConfig: { ...mockAppConfig, visible: false, access: { delegable: false } },
     });
 
-    const rightDescription = getTextbox(
-      `${textMock('app_settings.about_tab_right_description_field_label')} (${textMock('language.nb')})`,
+    const delegableSwitch = getSwitch(
+      textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
     );
-    expect(rightDescription).toHaveValue(mockRightDescription.nb);
+    expect(delegableSwitch).not.toBeChecked();
+    expect(delegableSwitch).not.toBeDisabled();
 
-    const newText: string = 'A';
-    await user.type(rightDescription, newText);
+    await user.click(delegableSwitch);
 
-    expect(rightDescription).toHaveValue(`${mockRightDescription.nb}${newText}`);
-  });
-
-  it('displays rightDescription as empty when there is no description set', () => {
-    renderAppConfigForm({ appConfig: { ...mockAppConfig, access: { delegable: true } } });
-
-    const rightDescription = getTextbox(
-      `${textMock('app_settings.about_tab_right_description_field_label')} (${textMock('language.nb')})`,
-    );
-    expect(rightDescription).toHaveValue('');
+    expect(delegableSwitch).toBeChecked();
   });
 
   it('updates "keywords" input field with correct value on change', async () => {
     const user = userEvent.setup();
     renderAppConfigForm();
 
-    const keywords = getOptionalTextbox(textMock('app_settings.about_tab_keywords_label'));
+    const keywords = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_keywords_label'),
+    );
     expect(keywords).toHaveValue('');
 
     const newText: string = 'keyword1, keyword2';
@@ -188,20 +168,33 @@ describe('AppConfigForm', () => {
     expect(keywords).toHaveValue(newText);
   });
 
-  it('updates "visible" input field with correct value on change', async () => {
+  it('updates keywords in app config when keywords inline edit is saved and form is saved', async () => {
     const user = userEvent.setup();
-    renderAppConfigForm();
+    const saveAppConfig = jest.fn();
+    renderAppConfigForm({
+      appConfig: mockAppConfigComplete,
+      saveAppConfig,
+    });
 
-    const visible = getSwitch(
-      textMock('app_settings.about_tab_visible_show_text', {
-        shouldText: textMock('app_settings.about_tab_switch_should_not'),
+    const keywordsInput = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_keywords_label'),
+    );
+    const newKeywordsText = 'Krav, Betaling';
+    await user.type(keywordsInput, newKeywordsText);
+    await user.click(getInlineEditSaveButton());
+
+    const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
+    await user.click(saveButton);
+
+    expect(saveAppConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        keywords: [
+          { language: 'nb', word: 'Krav' },
+          { language: 'nb', word: 'Betaling' },
+        ],
       }),
     );
-    expect(visible).not.toBeChecked();
-
-    await user.click(visible);
-
-    expect(visible).toBeChecked();
   });
 
   it('disables the action buttons when no changes are made', () => {
@@ -218,9 +211,13 @@ describe('AppConfigForm', () => {
     const user = userEvent.setup();
     renderAppConfigForm();
 
-    const altId = getOptionalTextbox(textMock('app_settings.about_tab_homepage_field_label'));
+    const homepageInput = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_homepage_field_label'),
+    );
     const newText: string = 'A';
-    await user.type(altId, newText);
+    await user.type(homepageInput, newText);
+    await user.click(getInlineEditSaveButton());
 
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     expect(saveButton).not.toBeDisabled();
@@ -237,18 +234,22 @@ describe('AppConfigForm', () => {
       saveAppConfig,
     });
 
-    const altId = getOptionalTextbox(textMock('app_settings.about_tab_homepage_field_label'));
+    const homepageInput = await getOptionalInlineEditTextbox(
+      user,
+      textMock('app_settings.about_tab_homepage_field_label'),
+    );
     const newText: string = 'A';
-    await user.type(altId, newText);
-    await user.tab();
+    await user.type(homepageInput, newText);
+    await user.click(getInlineEditSaveButton());
 
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
 
-    expect(saveAppConfig).toHaveBeenCalledWith({
-      ...mockAppConfigComplete,
-      homepage: `${mockAppConfigComplete.homepage}${newText}`,
-    });
+    expect(saveAppConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        homepage: `${mockAppConfigComplete.homepage}${newText}`,
+      }),
+    );
   });
 
   it('should not reset the form when the cancel button is clicked without confirmation', async () => {
@@ -256,15 +257,14 @@ describe('AppConfigForm', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => false);
     renderAppConfigForm();
 
-    const altId = getServiceNameNbTextbox();
+    const titleInput = getServiceNameNbTextbox();
     const newText: string = 'A';
-    await user.type(altId, newText);
-    await user.tab();
+    await user.type(titleInput, newText);
 
-    expect(altId).toHaveValue(`${mockAppConfig.title.nb}${newText}`);
+    expect(titleInput).toHaveValue(`${mockAppConfig.title.nb}${newText}`);
     const cancelButton = getButton(textMock('app_settings.about_tab_reset_button'));
     await user.click(cancelButton);
-    expect(altId).toHaveValue(`${mockAppConfig.title.nb}${newText}`);
+    expect(titleInput).toHaveValue(`${mockAppConfig.title.nb}${newText}`);
   });
 
   it('should reset the form to the original values when the cancel button is clicked', async () => {
@@ -273,20 +273,19 @@ describe('AppConfigForm', () => {
 
     renderAppConfigForm();
 
-    const altId = getServiceNameNbTextbox();
+    const titleInput = getServiceNameNbTextbox();
     const newText: string = 'A';
-    await user.type(altId, newText);
-    await user.tab();
+    await user.type(titleInput, newText);
 
     const saveButton = getButton(textMock('app_settings.about_tab_save_button'));
     await user.click(saveButton);
 
-    expect(altId).toHaveValue(`${mockAppConfig.title.nb}${newText}`);
+    expect(titleInput).toHaveValue(`${mockAppConfig.title.nb}${newText}`);
 
     const cancelButton = getButton(textMock('app_settings.about_tab_reset_button'));
     await user.click(cancelButton);
 
-    expect(altId).toHaveValue(mockAppConfig.title.nb);
+    expect(titleInput).toHaveValue(mockAppConfig.title.nb);
   });
 });
 
@@ -341,14 +340,22 @@ function renderAppConfigForm(props: Partial<AppConfigFormProps> = {}) {
   return renderWithProviders()(<AppConfigForm {...defaultProps} {...props} />);
 }
 
-const queryRequiredTextbox = (name: string): HTMLInputElement | null =>
-  queryTextbox(`${name} ${requiredText}`) || null;
-const getOptionalTextbox = (name: string): HTMLInputElement =>
-  getTextbox(`${name} ${optionalText}`);
 const getTextbox = (name: string | RegExp): HTMLInputElement =>
   screen.getByRole('textbox', { name });
-const queryTextbox = (name: string): HTMLInputElement | null =>
-  screen.queryByRole('textbox', { name });
+
+async function getOptionalInlineEditTextbox(
+  user: ReturnType<typeof userEvent.setup>,
+  label: string,
+): Promise<HTMLInputElement> {
+  const viewButton = screen.getByRole('button', { name: label });
+  await user.click(viewButton);
+  return screen.getByRole('textbox', { name: `${label} ${optionalText}` }) as HTMLInputElement;
+}
+
+function getInlineEditSaveButton(): HTMLElement {
+  return screen.getByRole('button', { name: textMock('general.save') });
+}
+
 const getServiceNameNbTextbox = (): HTMLInputElement =>
   getTextbox(/app_settings\.about_tab_name_label.*language\.nb/i);
 // const getLink = (name: string): HTMLAnchorElement => screen.getByRole('link', { name });
@@ -368,7 +375,6 @@ const getSwitch = (name: string): HTMLInputElement => screen.getByRole('switch',
 // const getLabelText = (name: string): HTMLLabelElement => screen.getByLabelText(name);
 
 const optionalText: string = textMock('general.optional');
-const requiredText: string = textMock('general.required');
 // const errorMessageServiceNameNN = (field: string): string =>
 //   textMock('app_settings.about_tab_error_translation_missing_nn', {
 //     field: textMock(field),
