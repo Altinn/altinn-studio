@@ -19,10 +19,18 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
 
         builder.HasIndex(e => e.ThreadId, "idx_chat_messages_thread_id");
 
+        builder.HasIndex(e => e.ExternalId, "idx_chat_messages_external_id")
+            .IsUnique();
+
         builder.Property(e => e.Id)
             .HasColumnType("bigint")
             .HasColumnName("id")
             .ValueGeneratedOnAdd()
+            .IsRequired();
+
+        builder.Property(e => e.ExternalId)
+            .HasColumnType("uuid")
+            .HasColumnName("external_id")
             .IsRequired();
 
         builder.Property(e => e.ThreadId)

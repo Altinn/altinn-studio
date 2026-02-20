@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -21,25 +22,26 @@ public class ChatThreadRepository : IChatThreadRepository
     }
 
     /// <inheritdoc />
-    public async Task<ChatThreadEntity?> GetThreadAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<ChatThreadEntity?> GetThreadAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var thread = await _dbContext.ChatThreads.AsNoTracking()
             .AsSplitQuery()
             .Include(t => t.Messages.OrderBy(m => m.CreatedAt))
                 .ThenInclude(m => m.Attachments)
-            .SingleOrDefaultAsync(t => t.Id == id, cancellationToken);
+            .SingleOrDefaultAsync(t => t.ExternalId == id, cancellationToken);
 
         return thread is null ? null : ChatThreadMapper.MapToModel(thread);
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<ChatThreadTitle>> GetThreadTitlesAsync(AltinnRepoEditingContext context, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ChatThreadEntity>> GetThreadsAsync(AltinnRepoEditingContext context, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.ChatThreads.AsNoTracking()
+        var threads = await _dbContext.ChatThreads.AsNoTracking()
             .Where(t => t.Org == context.Org && t.App == context.Repo && t.CreatedBy == context.Developer)
             .OrderByDescending(t => t.CreatedAt)
-            .Select(t => new ChatThreadTitle(t.Id, t.Title, t.CreatedAt))
             .ToListAsync(cancellationToken);
+
+        return threads.Select(ChatThreadMapper.MapToModel);
     }
 
     /// <inheritdoc />
@@ -54,39 +56,50 @@ public class ChatThreadRepository : IChatThreadRepository
     /// <inheritdoc />
     public async Task UpdateThreadAsync(ChatThreadEntity thread, CancellationToken cancellationToken = default)
     {
-        var dbModel = ChatThreadMapper.MapToDbModel(thread);
-        _dbContext.ChatThreads.Attach(dbModel);
-        _dbContext.Entry(dbModel).Property(t => t.Title).IsModified = true;
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _dbContext.ChatThreads
+            .Where(t => t.ExternalId == thread.Id)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.Title, thread.Title), cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task DeleteThreadAsync(long id, CancellationToken cancellationToken = default)
+    public async Task DeleteThreadAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _dbContext.ChatThreads.Where(t => t.Id == id).ExecuteDeleteAsync(cancellationToken);
+        await _dbContext.ChatThreads.Where(t => t.ExternalId == id).ExecuteDeleteAsync(cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<ChatMessageEntity> CreateMessageAsync(ChatMessageEntity message, CancellationToken cancellationToken = default)
+    public async Task<ChatMessageEntity> CreateMessageAsync(Guid threadId, ChatMessageEntity message, CancellationToken cancellationToken = default)
     {
+        long internalThreadId = await _dbContext.ChatThreads
+            .Where(t => t.ExternalId == threadId)
+            .Select(t => t.Id)
+            .SingleAsync(cancellationToken);
+
         var dbModel = ChatMessageMapper.MapToDbModel(message);
+        dbModel.ThreadId = internalThreadId;
         _dbContext.ChatMessages.Add(dbModel);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return ChatMessageMapper.MapToModel(dbModel);
     }
 
     /// <inheritdoc />
-    public async Task<ChatAttachmentEntity> CreateAttachmentAsync(ChatAttachmentEntity attachment, CancellationToken cancellationToken = default)
+    public async Task<ChatAttachmentEntity> CreateAttachmentAsync(Guid messageId, ChatAttachmentEntity attachment, CancellationToken cancellationToken = default)
     {
+        long internalMessageId = await _dbContext.ChatMessages
+            .Where(m => m.ExternalId == messageId)
+            .Select(m => m.Id)
+            .SingleAsync(cancellationToken);
+
         var dbModel = ChatAttachmentMapper.MapToDbModel(attachment);
+        dbModel.MessageId = internalMessageId;
         _dbContext.ChatAttachments.Add(dbModel);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return ChatAttachmentMapper.MapToModel(dbModel);
     }
 
     /// <inheritdoc />
-    public async Task DeleteAttachmentAsync(long id, CancellationToken cancellationToken = default)
+    public async Task DeleteAttachmentAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _dbContext.ChatAttachments.Where(a => a.Id == id).ExecuteDeleteAsync(cancellationToken);
+        await _dbContext.ChatAttachments.Where(a => a.ExternalId == id).ExecuteDeleteAsync(cancellationToken);
     }
 }

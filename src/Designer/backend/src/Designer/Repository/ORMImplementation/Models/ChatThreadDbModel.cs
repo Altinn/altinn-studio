@@ -8,7 +8,12 @@ public class ChatThreadDbModel
     /// <summary>
     /// Unique identifier for the chat thread.
     /// </summary>
-    public required long Id { get; set; }
+    public long Id { get; set; }
+
+    /// <summary>
+    /// External identifier exposed to clients.
+    /// </summary>
+    public required Guid ExternalId { get; set; }
 
     /// <summary>
     /// Org that owns the thread.

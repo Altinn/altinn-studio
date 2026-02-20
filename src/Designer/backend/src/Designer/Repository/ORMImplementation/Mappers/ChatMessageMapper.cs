@@ -10,8 +10,7 @@ public static class ChatMessageMapper
     {
         return new ChatMessageDbModel
         {
-            Id = entity.Id,
-            ThreadId = entity.ThreadId,
+            ExternalId = entity.Id,
             CreatedAt = entity.CreatedAt,
             Role = entity.Role,
             Content = entity.Content,
@@ -24,8 +23,7 @@ public static class ChatMessageMapper
     {
         return new ChatMessageEntity
         {
-            Id = dbModel.Id,
-            ThreadId = dbModel.ThreadId,
+            Id = dbModel.ExternalId,
             CreatedAt = dbModel.CreatedAt,
             Role = dbModel.Role,
             Content = dbModel.Content,

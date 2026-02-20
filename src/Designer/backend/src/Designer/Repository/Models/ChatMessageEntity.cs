@@ -5,8 +5,7 @@ namespace Altinn.Studio.Designer.Repository.Models;
 
 public class ChatMessageEntity
 {
-    public required long Id { get; set; }
-    public required long ThreadId { get; set; }
+    public required Guid Id { get; set; }
     public required DateTime CreatedAt { get; set; }
     public required Role Role { get; set; }
     public required string Content { get; set; }

@@ -5,7 +5,7 @@ namespace Altinn.Studio.Designer.Repository.Models;
 
 public class ChatThreadEntity
 {
-    public required long Id { get; set; }
+    public required Guid Id { get; set; }
     public required string Title { get; set; }
     public required string Org { get; set; }
     public required string App { get; set; }

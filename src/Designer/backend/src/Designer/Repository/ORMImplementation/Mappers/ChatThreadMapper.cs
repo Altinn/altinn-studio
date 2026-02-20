@@ -10,7 +10,7 @@ public static class ChatThreadMapper
     {
         return new ChatThreadDbModel
         {
-            Id = entity.Id,
+            ExternalId = entity.Id,
             Title = entity.Title,
             Org = entity.Org,
             App = entity.App,
@@ -23,7 +23,7 @@ public static class ChatThreadMapper
     {
         return new ChatThreadEntity
         {
-            Id = dbModel.Id,
+            Id = dbModel.ExternalId,
             Title = dbModel.Title,
             Org = dbModel.Org,
             App = dbModel.App,

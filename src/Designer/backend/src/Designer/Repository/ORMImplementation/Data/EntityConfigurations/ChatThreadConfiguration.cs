@@ -14,10 +14,18 @@ public class ChatThreadConfiguration : IEntityTypeConfiguration<ChatThreadDbMode
 
         builder.HasIndex(e => new { e.Org, e.App, e.CreatedBy }, "idx_chat_threads_org_app_created_by");
 
+        builder.HasIndex(e => e.ExternalId, "idx_chat_threads_external_id")
+            .IsUnique();
+
         builder.Property(e => e.Id)
             .HasColumnType("bigint")
             .HasColumnName("id")
             .ValueGeneratedOnAdd()
+            .IsRequired();
+
+        builder.Property(e => e.ExternalId)
+            .HasColumnType("uuid")
+            .HasColumnName("external_id")
             .IsRequired();
 
         builder.Property(e => e.Org)
