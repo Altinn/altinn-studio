@@ -4,12 +4,12 @@ using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class GiteaAuthHeadersProvider(IDeveloperContextAccessor developerContextAccessor) : IGitServerAuthHeadersProvider
+public class GiteaAuthHeadersProvider(IDeveloperContextProvider developerContextProvider) : IGitServerAuthHeadersProvider
 {
     public Dictionary<string, string> GetAuthHeaders()
     {
         var headers = new Dictionary<string, string>();
-        var context = developerContextAccessor.DeveloperContext;
+        var context = developerContextProvider.DeveloperContext;
 
         if (context == null)
         {

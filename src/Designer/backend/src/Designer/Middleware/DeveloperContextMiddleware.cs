@@ -7,14 +7,14 @@ namespace Altinn.Studio.Designer.Middleware;
 
 public class DeveloperContextMiddleware(RequestDelegate next)
 {
-    public async Task InvokeAsync(HttpContext httpContext, IDeveloperContextAccessor developerContextAccessor)
+    public async Task InvokeAsync(HttpContext httpContext, IDeveloperContextProvider developerContextProvider)
     {
         string username = AuthenticationHelper.GetDeveloperUserName(httpContext);
         if (!string.IsNullOrEmpty(username))
         {
             string? givenName = httpContext.User.FindFirst("given_name")?.Value;
             string? familyName = httpContext.User.FindFirst("family_name")?.Value;
-            developerContextAccessor.DeveloperContext = new DeveloperContext(username, givenName, familyName);
+            developerContextProvider.Initialize(new DeveloperContext(username, givenName, familyName));
         }
 
         await next(httpContext);

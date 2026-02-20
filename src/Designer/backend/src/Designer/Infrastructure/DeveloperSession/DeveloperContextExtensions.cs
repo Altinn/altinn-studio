@@ -6,7 +6,7 @@ public static class DeveloperContextExtensions
 {
     public static IServiceCollection AddDeveloperContextAccessor(this IServiceCollection services)
     {
-        services.AddSingleton<IDeveloperContextAccessor, DeveloperContextAccessor>();
+        services.AddSingleton<IDeveloperContextProvider, DeveloperContextProvider>();
         return services;
     }
 }
