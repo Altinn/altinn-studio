@@ -14,6 +14,7 @@ export type AssistantProps = {
   activeThreadId: string;
   connectionStatus: ConnectionStatus;
   onSubmitMessage: (message: UserMessage) => void;
+  onCancelWorkflow?: () => void;
   onSelectThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
   onCreateThread?: () => void;
@@ -30,6 +31,7 @@ export function Assistant({
   connectionStatus,
   workflowStatus,
   onSubmitMessage,
+  onCancelWorkflow,
   onSelectThread,
   onDeleteThread,
   onCreateThread,
@@ -46,6 +48,7 @@ export function Assistant({
       connectionStatus={connectionStatus}
       workflowStatus={workflowStatus}
       onSubmitMessage={onSubmitMessage}
+      onCancelWorkflow={onCancelWorkflow}
       onSelectThread={onSelectThread}
       onDeleteThread={onDeleteThread}
       onCreateThread={onCreateThread}

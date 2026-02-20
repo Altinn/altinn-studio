@@ -30,16 +30,16 @@ async def plan_atomic_step(user_goal, facts):
         span.update(metadata={
             "goal_length": len(user_goal),
             "facts_count": len(facts) if isinstance(facts, list) else 1,
-            "tool": "planning_tool",
+            "tool": "altinn_route",
             "guidance_type": "high_level"
         })
-        span.update(input={
+        span.set_inputs({
             "user_goal": user_goal,
             "repository_facts": facts
         })
         
-        # Call planning tool
-        response = await client.call_tool("planning_tool", tool_input)
+        # Call altinn_route - the v2 entry point
+        response = await client.call_tool("altinn_route", tool_input)
         
         # Parse response
         if hasattr(response, 'text'):

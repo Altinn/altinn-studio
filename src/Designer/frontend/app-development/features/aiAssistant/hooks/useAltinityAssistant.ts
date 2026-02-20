@@ -33,6 +33,7 @@ export interface UseAltinityAssistantResult {
 
   // Actions
   onSubmitMessage: (message: UserMessage) => Promise<void>;
+  cancelCurrentWorkflow: () => Promise<void>;
   selectThread: (threadId: string | null) => void;
   createNewThread: () => void;
   deleteThread: (threadId: string) => void;
@@ -46,6 +47,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     connectionStatus,
     sessionId: backendSessionId,
     startWorkflow,
+    cancelWorkflow,
     onAgentMessage,
   } = useAltinityWebSocket();
 
@@ -210,7 +212,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
               console.log('Repository reset completed, triggering preview reload');
               currentBranchRef.current = branch;
               queryClient.invalidateQueries({
-              queryKey: [QueryKey.CurrentBranch, org, app],
+                queryKey: [QueryKey.CurrentBranch, org, app],
               });
               window.dispatchEvent(
                 new CustomEvent('altinity-repo-reset', {
@@ -222,7 +224,7 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
               console.warn('Failed to reset repository:', error);
             });
         }
-      } else if (event.type === 'workflow_status') {
+      } else if (event.type === 'workflow_status' || event.type === 'status') {
         if (currentSessionId) {
           const existingThread = chatThreads.find((t) => t.id === currentSessionId);
           if (existingThread) {
@@ -241,9 +243,31 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
             updateThread(currentSessionId, { messages: updatedMessages });
           }
         }
+      } else if (event.type === 'done') {
+        // Safety net: if assistant_message was missed, stop loading on 'done'
+        setWorkflowStatus((prev) => {
+          if (prev.isActive) {
+            return { ...prev, isActive: false, currentStep: 'Completed' };
+          }
+          return prev;
+        });
+      } else if (event.type === 'error') {
+        // Handle error/cancellation events — always stop loading
+        setWorkflowStatus({ isActive: false });
+        const currentSession = currentSessionIdRef.current;
+        if (currentSession && event.data?.message) {
+          const errorMsg: AssistantMessage = {
+            author: MessageAuthor.Assistant,
+            content: event.data.message,
+            timestamp: new Date(),
+            filesChanged: [],
+            isLoading: false,
+          };
+          addMessageToThread(currentSession, errorMsg);
+        }
       }
     },
-    [currentSessionId, getThread],
+    [currentSessionId, getThread, addMessageToThread],
   );
 
   const startAgentWorkflow = async (
@@ -467,12 +491,34 @@ export const useAltinityAssistant = (): UseAltinityAssistantResult => {
     }
   };
 
+  const cancelCurrentWorkflow = useCallback(async () => {
+    const sessionToCancel = currentSessionIdRef.current;
+    if (!sessionToCancel) return;
+
+    try {
+      await cancelWorkflow(sessionToCancel);
+    } catch (error) {
+      console.error('Failed to cancel workflow:', error);
+    }
+
+    setWorkflowStatus({ isActive: false });
+
+    const cancelMessage: AssistantMessage = {
+      author: MessageAuthor.Assistant,
+      content: 'Workflow cancelled.',
+      timestamp: new Date(),
+      filesChanged: [],
+    };
+    addMessageToThread(sessionToCancel, cancelMessage);
+  }, [cancelWorkflow, addMessageToThread]);
+
   return {
     connectionStatus,
     workflowStatus,
     chatThreads,
     currentSessionId,
     onSubmitMessage,
+    cancelCurrentWorkflow,
     selectThread,
     createNewThread,
     deleteThread,

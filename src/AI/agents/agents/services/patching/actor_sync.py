@@ -21,11 +21,10 @@ class SyncError(Exception):
 
 
 async def sync_generated_artifacts(
-    plan: PlanStep,
-    repo_path: str,
-    mcp_client,
-    check_only: bool = False,
-    gitea_token: Optional[str] = None
+    plan: PlanStep, 
+    repo_path: str, 
+    mcp_client, 
+    check_only: bool = False
 ) -> Dict[str, Any]:
     """
     Synchronize generated artifacts after Source of Truth edits.
@@ -33,7 +32,7 @@ async def sync_generated_artifacts(
     Args:
         plan: The plan step that was executed
         repo_path: Repository root path
-        mcp_client: MCP client for calling datamodel_sync tool
+        mcp_client: MCP client for calling altinn_datamodel_sync tool
         check_only: Only check if sync needed, don't generate
         
     Returns:
@@ -58,7 +57,7 @@ async def sync_generated_artifacts(
     for sot_file in sot_files_touched:
         try:
             result = await _sync_single_file(
-                sot_file, repo_path, mcp_client, check_only, gitea_token
+                sot_file, repo_path, mcp_client, check_only
             )
             all_results.append(result)
             
@@ -109,7 +108,6 @@ async def _sync_single_file(
     repo_path: str,
     mcp_client,
     check_only: bool,
-    gitea_token: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Sync artifacts for a single Source of Truth file."""
     
@@ -150,14 +148,14 @@ async def _sync_single_file(
         "schema_filename": schema_filename,
     }
     
-    log.debug(f"Calling datamodel_sync with: {sync_request}")
+    log.debug(f"Calling altinn_datamodel_sync with: {sync_request}")
     
     # Call MCP tool with langfuse tracking
     from langfuse import get_client
     langfuse = get_client()
-    with langfuse.start_as_current_span(name="tool_datamodel_sync", metadata={"span_type": "TOOL"}, input=sync_request) as span:
+    with langfuse.start_as_current_span(name="tool_altinn_datamodel_sync", metadata={"span_type": "TOOL"}, input=sync_request) as span:
         try:
-            result = await mcp_client.call_tool("datamodel_sync", sync_request, gitea_token=gitea_token)
+            result = await mcp_client.call_tool("altinn_datamodel_sync", sync_request)
             span.update(output={"result": result})
             
             # Handle CallToolResult objects with structured_content
@@ -307,8 +305,7 @@ def should_sync_artifacts(plan: PlanStep) -> bool:
 async def check_artifacts_in_sync(
     repo_path: str,
     context,
-    mcp_client,
-    gitea_token: Optional[str] = None
+    mcp_client
 ) -> Dict[str, Any]:
     """
     Check if all datamodel artifacts are in sync with Source of Truth.
@@ -341,7 +338,7 @@ async def check_artifacts_in_sync(
         
         try:
             result = await _sync_single_file(
-                relative_path, repo_path, mcp_client, check_only=True, gitea_token=gitea_token
+                relative_path, repo_path, mcp_client, check_only=True
             )
             
             status = result.get("status", "unknown")

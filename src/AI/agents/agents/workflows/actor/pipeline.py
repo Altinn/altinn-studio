@@ -61,7 +61,7 @@ def extract_tool_text(result: Any) -> str:
 
 
 def extract_component_types_from_tool_results(tool_results: List[Dict[str, Any]]) -> Set[str]:
-    """Extract component types from layout_components_tool results.
+    """Extract component types from altinn_layout_list results.
     
     Only looks at actual component types found in layout files via "type": "ComponentName" pattern.
     This is the only reliable source for component types.
@@ -70,7 +70,7 @@ def extract_component_types_from_tool_results(tool_results: List[Dict[str, Any]]
     
     for result in tool_results:
         tool_name = result.get("tool", "")
-        if tool_name == "layout_components_tool":
+        if tool_name == "altinn_layout_list":
             # Extract from the tool result text
             result_text = str(result.get("result", ""))
             # Find "type": "ComponentName" patterns
@@ -82,11 +82,11 @@ def extract_component_types_from_tool_results(tool_results: List[Dict[str, Any]]
 
 
 def get_looked_up_component_types(tool_results: List[Dict[str, Any]]) -> Set[str]:
-    """Extract component types that have already been looked up via layout_properties_tool."""
+    """Extract component types that have already been looked up via altinn_layout_props."""
     looked_up: Set[str] = set()
     
     for result in tool_results:
-        if result.get("tool") == "layout_properties_tool":
+        if result.get("tool") == "altinn_layout_props":
             # Extract component_type from arguments
             args = result.get("arguments", {})
             comp_type = args.get("component_type")
@@ -99,7 +99,6 @@ def get_looked_up_component_types(tool_results: List[Dict[str, Any]]) -> Set[str
 async def ensure_component_schemas_looked_up(
     mcp_client,
     tool_results: List[Dict[str, Any]],
-    gitea_token: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Ensure all component types found in layout files have their schemas looked up.
     
@@ -124,23 +123,20 @@ async def ensure_component_schemas_looked_up(
         try:
             log.info(f"🔍 Looking up schema for {comp_type}...")
             result = await mcp_client.call_tool(
-                "layout_properties_tool",
+                "altinn_layout_props",
                 {
                     "component_type": comp_type,
-                    "schema_url": schema_url,
-                },
-                gitea_token=gitea_token,
+                }
             )
             
             # Extract text from result
             result_text = extract_tool_text(result)
             
             tool_results.append({
-                "tool": "layout_properties_tool",
+                "tool": "altinn_layout_props",
                 "objective": f"Auto-fetched schema for {comp_type} (was missing)",
                 "arguments": {
                     "component_type": comp_type,
-                    "schema_url": schema_url,
                 },
                 "result": result_text,
             })
@@ -164,81 +160,102 @@ async def run_actor_pipeline(
     tool_results_override: Optional[List[Dict[str, Any]]] = None,
     implementation_plan_override: Optional[Dict[str, Any]] = None,
     attachments: Optional[List[AgentAttachment]] = None,
-    gitea_token: Optional[str] = None,
+    form_spec_summary: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Execute the full actor workflow pipeline."""
+    
+    langfuse = get_client()
+    
+    # Wrap entire pipeline in a span for proper trace nesting
+    with langfuse.start_as_current_span(
+        name="actor_pipeline",
+        metadata={"span_type": "AGENT"},
+        input={
+            "user_goal_length": len(user_goal),
+            "has_planner_step": bool(planner_step),
+            "has_attachments": bool(attachments),
+            "repo_facts_keys": list(repo_facts.keys()) if repo_facts else []
+        }
+    ) as pipeline_span:
+        # Ensure MCP client is connected and has available tools populated
+        if not hasattr(mcp_client, '_available_tools') or not mcp_client._available_tools:
+            await mcp_client.connect()
 
-    # Ensure MCP client is connected and has available tools populated
-    if not hasattr(mcp_client, '_available_tools') or not mcp_client._available_tools:
-        await mcp_client.connect(gitea_token)
-
-    attachments = attachments or repo_facts.get("attachments")
-    general_plan = general_plan_override or await create_general_plan(user_goal, planner_step, attachments=attachments)
-    tool_plan = tool_plan_override or await create_tool_plan(
-        user_goal, general_plan, repo_facts, mcp_client._available_tools, planner_step, attachments=attachments
-    )
-    if tool_results_override is not None:
-        tool_results = tool_results_override
-    else:
-        tool_results = await execute_tool_plan(
-            mcp_client, repository_path, user_goal, repo_facts, tool_plan, planner_step, general_plan, gitea_token
+        attachments = attachments or repo_facts.get("attachments")
+        general_plan = general_plan_override or await create_general_plan(user_goal, planner_step, attachments=attachments, form_spec_summary=form_spec_summary)
+        tool_plan = tool_plan_override or await create_tool_plan(
+            user_goal, general_plan, repo_facts, mcp_client._available_tools, planner_step, attachments=attachments
         )
-    
-    # 🚨 CRITICAL: Ensure all component types found in layout files have their schemas looked up
-    # This prevents issues like Datepicker defaulting to timeStamp=true when data model expects date format
-    # Only looks at actual component types from layout_components_tool results
-    tool_results = await ensure_component_schemas_looked_up(
-        mcp_client,
-        tool_results,
-        gitea_token,
-    )
-    
-    # Skip the separate implementation_planning_llm step - it was taking ~99s and only
-    # passing truncated data anyway. patch_synthesis now handles planning inline with
-    # full tool results context.
-    implementation_plan = implementation_plan_override or {}
-    
-    patch = await synthesize_patch(
-        user_goal,
-        repo_facts,
-        tool_results,
-        implementation_plan,
-        general_plan,
-        planner_step,
-        repository_path,
-        attachments=attachments,
-    )
-
-    if repository_path:
-        added_keys = ensure_text_resources_in_patch(
-            patch,
-            repository_path,
-            resource_files=repo_facts.get("resources"),
-            available_locales=repo_facts.get("available_locales"),
-        )
-        if added_keys:
-            log.info(
-                "Ensured %d missing text resource bindings: %s",
-                len(added_keys),
-                ", ".join(added_keys[:10]) + ("..." if len(added_keys) > 10 else ""),
+        if tool_results_override is not None:
+            tool_results = tool_results_override
+        else:
+            tool_results = await execute_tool_plan(
+                mcp_client, repository_path, user_goal, repo_facts, tool_plan, planner_step, general_plan
             )
+        
+        # 🚨 CRITICAL: Ensure all component types found in layout files have their schemas looked up
+        # This prevents issues like Datepicker defaulting to timeStamp=true when data model expects date format
+        # Only looks at actual component types from layout_components_tool results
+        tool_results = await ensure_component_schemas_looked_up(
+            mcp_client,
+            tool_results,
+        )
+        
+        # Skip the separate implementation_planning_llm step - it was taking ~99s and only
+        # passing truncated data anyway. patch_synthesis now handles planning inline with
+        # full tool results context.
+        implementation_plan = implementation_plan_override or {}
+        
+        patch = await synthesize_patch(
+            user_goal,
+            repo_facts,
+            tool_results,
+            implementation_plan,
+            general_plan,
+            planner_step,
+            repository_path,
+            attachments=attachments,
+            form_spec_summary=form_spec_summary,
+        )
 
-    return {
-        "general_plan": general_plan,
-        "tool_plan": tool_plan,
-        "tool_results": tool_results,
-        "implementation_plan": implementation_plan,
-        "patch": patch,
-    }
+        if repository_path:
+            added_keys = ensure_text_resources_in_patch(
+                patch,
+                repository_path,
+                resource_files=repo_facts.get("resources"),
+                available_locales=repo_facts.get("available_locales"),
+            )
+            if added_keys:
+                log.info(
+                    "Ensured %d missing text resource bindings: %s",
+                    len(added_keys),
+                    ", ".join(added_keys[:10]) + ("..." if len(added_keys) > 10 else ""),
+                )
+
+        result = {
+            "general_plan": general_plan,
+            "tool_plan": tool_plan,
+            "tool_results": tool_results,
+            "implementation_plan": implementation_plan,
+            "patch": patch,
+        }
+        
+        pipeline_span.update(output={
+            "patch_changes": len(patch.get("changes", [])) if patch else 0,
+            "tool_results_count": len(tool_results) if tool_results else 0,
+        })
+        
+        return result
 
 
-async def create_general_plan(user_goal: str, planner_step: Optional[str] = None, *, attachments: Optional[List[AgentAttachment]] = None) -> Dict[str, Any]:
+async def create_general_plan(user_goal: str, planner_step: Optional[str] = None, *, attachments: Optional[List[AgentAttachment]] = None, form_spec_summary: Optional[str] = None) -> Dict[str, Any]:
     client = LLMClient(role="planner")
     system_prompt = get_prompt_content("general_planning")
     user_prompt = render_template(
         "general_planning_user",
         user_goal=user_goal,
-        planner_step=planner_step or "No plan generated yet"
+        planner_step=planner_step or "No plan generated yet",
+        form_spec=form_spec_summary or "Not available (no attachment-based form spec)"
     )
 
     langfuse = get_client()
@@ -249,8 +266,14 @@ async def create_general_plan(user_goal: str, planner_step: Optional[str] = None
         input={"user_goal": user_goal, "planner_step_present": bool(planner_step)},
         metadata={**client.get_model_metadata(), "user_goal_length": len(user_goal)}
     ) as span:
-        response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
+        # Don't pass image attachments — form_spec_summary has the extracted text.
+        # Images consume massive tokens and cause context window overflow.
+        response = client.call_sync(system_prompt, user_prompt)
         span.update(output={"response": response[:5000]})
+
+    if not response or not response.strip():
+        log.error("General plan LLM returned empty response — using fallback plan")
+        return {"approach": "direct", "steps": [{"description": user_goal}]}
 
     return parse_json_response(response, "general plan")
 
@@ -278,7 +301,7 @@ async def create_tool_plan(
 
     # Extract tool names from available_tools (which may be dicts with name/description)
     # Tools that should NOT be shown to the tool planner (internal/validation tools)
-    hidden_tools = {"schema_validator_tool", "resource_validator_tool", "policy_validation_tool", "layout_validator_tool"}
+    hidden_tools = {"altinn_layout_validate", "altinn_resource_validate", "altinn_policy_validate", "altinn_policy_summarize"}
     
     if available_tools:
         if isinstance(available_tools[0], dict):
@@ -293,8 +316,8 @@ async def create_tool_plan(
     else:
         # Fallback to hardcoded list if no tools provided
         available_tools_list = [
-            "layout_components_tool", "resource_tool", "datamodel_tool",
-            "layout_properties_tool", "planning_tool", "scan_repository"
+            "altinn_layout_list", "altinn_resource_docs", "altinn_datamodel_docs",
+            "altinn_layout_props", "altinn_route", "scan_repository"
         ]
 
     goal_summary = ""
@@ -366,8 +389,13 @@ async def create_tool_plan(
         },
         metadata={**client.get_model_metadata(), "user_goal_length": len(user_goal)}
     ) as span:
-        response = client.call_sync(system_prompt, user_prompt, attachments=attachments)
+        # Don't pass image attachments — tool plan uses text context only.
+        response = client.call_sync(system_prompt, user_prompt)
         span.update(output={"response": response[:5000]})
+
+    if not response or not response.strip():
+        log.error("Tool plan LLM returned empty response — using fallback")
+        return [{"tool": "scan_repository", "query": user_goal[:200]}]
 
     tool_plan_data = parse_json_response(response, "tool plan")
 
@@ -446,7 +474,6 @@ async def execute_tool_plan(
     tool_plan: List[Dict[str, Any]],
     planner_step: Optional[str] = None,
     general_plan: Optional[Dict[str, Any]] = None,
-    gitea_token: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     results: List[Dict[str, Any]] = []
     langfuse = get_client()
@@ -485,9 +512,12 @@ async def execute_tool_plan(
             arguments = entry.get("arguments")
             
             # Skip validation tools - they require specific file content, not queries
-            validation_tools = {"schema_validator_tool", "resource_validator_tool", "policy_validation_tool"}
-            if tool_name in validation_tools:
+            if tool_name in {"altinn_layout_validate", "altinn_resource_validate", "altinn_policy_validate"}:
                 log.info("Skipping %s (validation tools are called by verifier, not tool planner)", tool_name)
+                continue
+            
+            if tool_name == "altinn_datamodel_sync":
+                log.info("Skipping %s (sync tool is called by artifact sync, not tool planner)", tool_name)
                 continue
             
             # Extra safety check for any tool containing "validator"
@@ -497,10 +527,10 @@ async def execute_tool_plan(
             
             if arguments is None:
                 query = entry.get("query")
-                if query and tool_name not in {"layout_properties_tool", "layout_components_tool", "datamodel_tool", "prefill_tool", "dynamic_expression", "resource_tool"}:
+                if query and tool_name not in {"altinn_route", "altinn_layout_props", "altinn_layout_list", "altinn_datamodel_docs", "altinn_prefill_docs", "altinn_expression_docs", "altinn_resource_docs", "altinn_policy_docs", "altinn_help"}:
                     arguments = {"query": query}
             # Documentation tools take no parameters
-            if tool_name in {"datamodel_tool", "prefill_tool", "dynamic_expression", "resource_tool"}:
+            if tool_name in {"altinn_datamodel_docs", "altinn_prefill_docs", "altinn_expression_docs", "altinn_resource_docs", "altinn_policy_docs", "altinn_help"}:
                 arguments = {}
             elif arguments is None:
                 arguments = build_tool_arguments(
@@ -525,11 +555,27 @@ async def execute_tool_plan(
                 input={"arguments": arguments},
                 metadata={"span_type": "TOOL", "tool": tool_name, "objective": objective}
             ) as tool_span:
-                result = await mcp_client.call_tool(tool_name, arguments, gitea_token=gitea_token)
-                if isinstance(result, dict) and "error" in result:
-                    error_message = result["error"]
+                try:
+                    result = await mcp_client.call_tool(tool_name, arguments)
+                    if isinstance(result, dict) and "error" in result:
+                        error_message = result["error"]
+                        tool_span.update(output={"success": False, "error": error_message})
+                        log.warning(f"⚠️ MCP tool '{tool_name}' returned error: {error_message}")
+                        # Continue with other tools instead of crashing
+                        continue
+                except Exception as e:
+                    error_message = str(e)
                     tool_span.update(output={"success": False, "error": error_message})
-                    raise Exception(f"MCP tool '{tool_name}' failed: {error_message}")
+                    log.error(f"❌ MCP tool '{tool_name}' failed with exception: {error_message}")
+                    # Log the error but continue with remaining tools
+                    results.append({
+                        "tool": tool_name,
+                        "objective": objective,
+                        "arguments": arguments,
+                        "result": f"ERROR: {error_message}",
+                        "error": True
+                    })
+                    continue
 
                 result_text = extract_tool_text(result)
                 result_summary = result_text[:500] + "..." if len(result_text) > 500 else result_text
@@ -556,9 +602,9 @@ async def execute_tool_plan(
                     }
                 )
 
-                # Auto-enqueue layout_properties_tool after layout_components_tool
-                if tool_name == "layout_components_tool":
-                    log.info(f"🔍 layout_components_tool returned, checking for components to enqueue properties...")
+                # Auto-enqueue altinn_layout_props after altinn_layout_list
+                if tool_name == "altinn_layout_list":
+                    log.info(f"🔍 altinn_layout_list returned, checking for components to enqueue properties...")
                     component_ids = []
                     components_data = []
                     
@@ -602,17 +648,14 @@ async def execute_tool_plan(
                                 normalized_type = comp_type.lower()
                                 if normalized_type not in properties_enqueued_ids:
                                     properties_enqueued_ids.add(normalized_type)
-                                    schema_url = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
-                                    log.info(f"📋 Auto-enqueuing layout_properties_tool for component type: {comp_type}")
+                                    log.info(f"📋 Auto-enqueuing altinn_layout_props for component type: {comp_type}")
                                     pending_entries.insert(
                                         0,
                                         {
-                                            "tool": "layout_properties_tool",
+                                            "tool": "altinn_layout_props",
                                             "objective": f"Retrieve schema and allowed props for {comp_type} component",
                                             "arguments": {
                                                 "component_type": comp_type,
-                                                "schema_url": schema_url,
-                                                "user_goal": user_goal,
                                             },
                                         },
                                     )
@@ -638,18 +681,14 @@ async def execute_tool_plan(
                             or component_data.get("_componentType")
                             or "Input"
                         )
-                        schema_url = "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
-                        log.info(f"📋 Auto-enqueuing layout_properties_tool for component: {component_id} (type: {component_type})")
+                        log.info(f"📋 Auto-enqueuing altinn_layout_props for component: {component_id} (type: {component_type})")
                         pending_entries.insert(
                             0,
                             {
-                                "tool": "layout_properties_tool",
+                                "tool": "altinn_layout_props",
                                 "objective": f"Retrieve schema and allowed props for component {component_id}",
                                 "arguments": {
-                                    "component_id": component_id,
                                     "component_type": component_type,
-                                    "schema_url": schema_url,
-                                    "user_goal": user_goal,
                                 },
                             },
                         )
@@ -667,14 +706,15 @@ async def synthesize_patch(
     repository_path: Optional[str] = None,
     *,
     attachments: Optional[List[AgentAttachment]] = None,
+    form_spec_summary: Optional[str] = None,
 ) -> Dict[str, Any]:
     client = LLMClient(role="actor")
     system_prompt = get_prompt_content("patch_synthesis")
 
     # Documentation tools need full content preserved
-    documentation_tools = {"datamodel_tool", "prefill_tool", "planning_tool", "dynamic_expression", "resource_tool"}
+    documentation_tools = {"altinn_datamodel_docs", "altinn_prefill_docs", "altinn_route", "altinn_expression_docs", "altinn_resource_docs", "altinn_help"}
     # Schema tools are critical for implementation - preserve their results
-    schema_tools = {"layout_properties_tool", "layout_components_tool"}
+    schema_tools = {"altinn_layout_props", "altinn_layout_list"}
     
     serializable_tools = []
     max_result_size = 15000  # Increased limit for schema tools
@@ -734,6 +774,7 @@ async def synthesize_patch(
         "patch_synthesis_user",
         user_goal=user_goal,
         general_plan=json.dumps(general_plan, indent=2),
+        form_spec=form_spec_summary or "Not available (no attachment-based form spec)",
         tool_results=json.dumps(serializable_tools, indent=2) if serializable_tools else "[]",
         current_layout_content=current_layout_content[:3000] if current_layout_content else "Not available",
         current_model_content=current_model_content[:3000] if current_model_content else "Not available",
@@ -751,7 +792,31 @@ async def synthesize_patch(
         },
         metadata={**client.get_model_metadata(), "tool_results_count": len(tool_results)}
     ) as span:
-        response = client.call_sync(system_prompt, user_prompt)
+        import time
+        # Log request details before making the call
+        system_tokens = len(system_prompt) // 4  # Rough estimate
+        user_tokens = len(user_prompt) // 4
+        log.info(f"🚀 Starting patch synthesis LLM call")
+        log.info(f"   System prompt: ~{system_tokens} tokens ({len(system_prompt)} chars)")
+        log.info(f"   User prompt: ~{user_tokens} tokens ({len(user_prompt)} chars)")
+        log.info(f"   Total context: ~{system_tokens + user_tokens} tokens")
+        log.info(f"   Max output tokens: {client.max_tokens}")
+        log.info(f"   Model: {client.model}")
+        
+        start_time = time.time()
+        try:
+            # Don't pass image attachments — form_spec_summary + tool_results provide text context.
+            response = client.call_sync(system_prompt, user_prompt)
+            elapsed = time.time() - start_time
+            log.info(f"✅ Patch synthesis completed in {elapsed:.1f}s")
+            log.info(f"   Response length: {len(response)} chars (~{len(response) // 4} tokens)")
+        except Exception as e:
+            elapsed = time.time() - start_time
+            log.error(f"❌ Patch synthesis failed after {elapsed:.1f}s: {e}")
+            log.error(f"   This suggests the request is too large or complex for the Azure gateway timeout")
+            log.error(f"   Consider: 1) Reducing PDF size, 2) Splitting into smaller tasks, 3) Using streaming API")
+            raise
+        
         span.update(output={"response": response[:5000]})
 
     patch_data = parse_json_response(response, "patch synthesis")
@@ -779,7 +844,7 @@ def validate_patch_operations(patch: Dict[str, Any], repo_facts: Dict[str, Any],
 
     for change in changes:
         file_path = change.get("file", "")
-        operation = change.get("op", "")
+        operation = change.get("op") or change.get("operation", "")
 
         # Check file exists in repo
         full_path = Path(repository_path) / file_path
@@ -839,12 +904,43 @@ def parse_json_response(response: str, context: str) -> Dict[str, Any]:
         # Not a JSON wrapper, continue with normal parsing
         pass
     
-    if "```json" in clean:
-        start = clean.find("```json") + 7
+    # Try json-repair first for malformed JSON (common with large LLM outputs)
+    try:
+        from json_repair import repair_json
+        repaired = repair_json(clean)
+        if repaired and repaired != clean:
+            log.info(f"🔧 JSON repair fixed malformed {context} output")
+            try:
+                parsed = json.loads(repaired)
+                if isinstance(parsed, dict):
+                    return parsed
+                if isinstance(parsed, list):
+                    return {"items": parsed}
+            except json.JSONDecodeError:
+                log.warning(f"JSON repair attempted but result still invalid for {context}")
+    except Exception as e:
+        log.debug(f"JSON repair not available or failed: {e}")
+    
+    # Strip markdown code fences if present
+    if "```json" in clean or "```" in clean:
+        # Find opening fence
+        if "```json" in clean:
+            start = clean.find("```json") + len("```json")
+        elif clean.startswith("```"):
+            start = clean.find("```") + 3
+        else:
+            start = 0
+        
+        # Find closing fence (must be after opening)
         end = clean.find("```", start)
         if end != -1:
             clean = clean[start:end].strip()
-    elif not clean.startswith("{") and not clean.startswith("["):
+        else:
+            # No closing fence found, take everything after opening
+            clean = clean[start:].strip()
+    
+    # If still doesn't look like JSON, try to extract JSON object/array
+    if not clean.startswith("{") and not clean.startswith("["):
         start = clean.find("{")
         end = clean.rfind("}")
         if start != -1 and end != -1 and start < end:
@@ -910,13 +1006,12 @@ def build_tool_arguments(
     resource_files = repo_facts.get("resources", [])
     model_files = repo_facts.get("models", [])
 
-    if tool_name == "layout_components_tool":
-        # layout_components_tool does NOT accept a query parameter.
+    if tool_name == "altinn_layout_list":
+        # altinn_layout_list does NOT accept a query parameter.
         # It returns ALL available component examples from the library.
-        # Only user_goal is required (verbatim user request).
-        return {"user_goal": user_goal}
+        return {}
 
-    if tool_name == "resource_tool":
+    if tool_name == "altinn_resource_docs":
         # Get the tool query from tool_plan
         tool_query = ""
         if tool_plan:
@@ -926,47 +1021,30 @@ def build_tool_arguments(
                     break
         
         # If the planner provided an explicit query, use it.
-        # Otherwise, respect that decision and call the tool with only the user_goal,
-        # letting the MCP-side implementation interpret the goal.
+        # Otherwise, call with no parameters (documentation tool).
         if tool_query:
-            return {"query": tool_query, "user_goal": user_goal}
+            return {"query": tool_query}
 
-        return {"user_goal": user_goal}
+        return {}
 
-    if tool_name in {"datamodel_tool", "prefill_tool", "dynamic_expression"}:
-        # Documentation tools now require user_goal parameter
-        return {"user_goal": user_goal}
+    if tool_name in {"altinn_datamodel_docs", "altinn_prefill_docs", "altinn_expression_docs"}:
+        # Documentation tools take no parameters
+        return {}
 
-    if tool_name == "layout_properties_tool":
-        # layout_properties_tool has a strict MCP schema (component_id, component_type, schema_url)
-        # and does NOT accept a free-form `query` argument. We normally enqueue it with
-        # fully-specified arguments right after layout_components_tool has discovered
-        # concrete component IDs:
-        #
-        #     {
-        #         "tool": "layout_properties_tool",
-        #         "arguments": {
-        #             "component_id": ...,
-        #             "component_type": ...,
-        #             "schema_url": ...,
-        #         },
-        #     }
-        #
-        # If we get here, there were no explicit arguments on the plan entry, and trying
-        # to synthesize them from a textual `query` would produce invalid MCP calls
-        # (and Pydantic errors about unexpected keyword argument `query`).
-        #
-        # To keep runs robust, we skip such calls and rely solely on the auto-enqueued
-        # layout_properties_tool invocations that already have proper arguments.
+    if tool_name == "altinn_layout_props":
+        # altinn_layout_props requires component_type parameter.
+        # If we get here without explicit arguments, skip the call.
+        # We rely on auto-enqueued calls that have proper arguments.
         return None
 
-    if tool_name == "planning_tool":
-        return {"user_goal": user_goal}
+    if tool_name == "altinn_route":
+        # altinn_route is the entry point - accepts query parameter
+        return {"query": user_goal}
 
     if tool_name == "scan_repository":
         return {"repository_path": repository_path, "user_goal": user_goal}
 
-    if tool_name in {"schema_validator_tool", "resource_validator_tool", "policy_validation_tool"}:
+    if tool_name in {"altinn_layout_validate", "altinn_resource_validate", "altinn_policy_validate"}:
         return None
 
     # Default: use goal-based query

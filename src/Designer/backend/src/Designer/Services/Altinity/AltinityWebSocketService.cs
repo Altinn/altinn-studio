@@ -16,7 +16,7 @@ namespace Altinn.Studio.Designer.Services.Altinity;
 /// </summary>
 public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 {
-    private const int WebSocketBufferSize = 4096;
+    private const int WebSocketBufferSize = 1024 * 1024; // 1MB to handle large agent messages with PDF content
     private const int ReconnectionDelayMilliseconds = 5000;
     private const string WebSocketPath = "/ws";
     private const string SessionRegistrationMessageType = "session";
@@ -30,18 +30,25 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 
     public AltinityWebSocketService(
         ILogger<AltinityWebSocketService> logger,
-        IOptions<AltinitySettings> settings)
+        IOptions<AltinitySettings> settings
+    )
     {
         _logger = logger;
         _settings = settings.Value;
     }
 
-    public async Task<string> ConnectAndRegisterSessionAsync(string sessionId, Func<object, Task> onMessageReceived)
+    public async Task<string> ConnectAndRegisterSessionAsync(
+        string sessionId,
+        Func<object, Task> onMessageReceived
+    )
     {
         var wsUri = BuildWebSocketUri(_settings.AgentUrl);
         var webSocket = await CreateAndConnectWebSocketAsync(wsUri);
 
-        _logger.LogInformation("Connected to Altinity WebSocket for session {SessionId}", sessionId);
+        _logger.LogInformation(
+            "Connected to Altinity WebSocket for session {SessionId}",
+            sessionId
+        );
 
         var connectionId = CreateConnectionId();
         var connection = CreateWebSocketConnection(webSocket, sessionId, onMessageReceived);
@@ -65,14 +72,15 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
     private static WebSocketConnection CreateWebSocketConnection(
         ClientWebSocket webSocket,
         string sessionId,
-        Func<object, Task> onMessageReceived)
+        Func<object, Task> onMessageReceived
+    )
     {
         return new WebSocketConnection
         {
             WebSocket = webSocket,
             SessionId = sessionId,
             OnMessageReceived = onMessageReceived,
-            CancellationTokenSource = new CancellationTokenSource()
+            CancellationTokenSource = new CancellationTokenSource(),
         };
     }
 
@@ -101,17 +109,23 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
                     await connection.WebSocket.CloseAsync(
                         WebSocketCloseStatus.NormalClosure,
                         "Session closed",
-                        CancellationToken.None);
+                        CancellationToken.None
+                    );
                 }
 
                 connection.WebSocket.Dispose();
                 connection.CancellationTokenSource.Dispose();
 
-                _logger.LogInformation($"Disconnected WebSocket for session {connection.SessionId}");
+                _logger.LogInformation(
+                    $"Disconnected WebSocket for session {connection.SessionId}"
+                );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error disconnecting WebSocket for session {connection.SessionId}");
+                _logger.LogError(
+                    ex,
+                    $"Error disconnecting WebSocket for session {connection.SessionId}"
+                );
             }
         }
     }
@@ -128,11 +142,7 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 
     private static object CreateSessionRegistrationMessage(string sessionId)
     {
-        return new
-        {
-            type = SessionRegistrationMessageType,
-            session_id = sessionId
-        };
+        return new { type = SessionRegistrationMessageType, session_id = sessionId };
     }
 
     private static byte[] SerializeMessageToBytes(object message)
@@ -141,10 +151,18 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         return Encoding.UTF8.GetBytes(json);
     }
 
-    private static async Task SendWebSocketMessageAsync(ClientWebSocket webSocket, byte[] messageBytes)
+    private static async Task SendWebSocketMessageAsync(
+        ClientWebSocket webSocket,
+        byte[] messageBytes
+    )
     {
         var messageSegment = new ArraySegment<byte>(messageBytes);
-        await webSocket.SendAsync(messageSegment, WebSocketMessageType.Text, endOfMessage: true, CancellationToken.None);
+        await webSocket.SendAsync(
+            messageSegment,
+            WebSocketMessageType.Text,
+            endOfMessage: true,
+            CancellationToken.None
+        );
     }
 
     private async Task ListenForMessagesAsync(string connectionId, WebSocketConnection connection)
@@ -155,11 +173,20 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
 
         try
         {
-            await ProcessWebSocketMessagesAsync(connectionId, connection, buffer, webSocket, cancellationToken);
+            await ProcessWebSocketMessagesAsync(
+                connectionId,
+                connection,
+                buffer,
+                webSocket,
+                cancellationToken
+            );
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation("WebSocket listener cancelled for session {SessionId}", connection.SessionId);
+            _logger.LogInformation(
+                "WebSocket listener cancelled for session {SessionId}",
+                connection.SessionId
+            );
         }
         catch (Exception ex)
         {
@@ -172,46 +199,95 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
         WebSocketConnection connection,
         byte[] buffer,
         ClientWebSocket webSocket,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
+        _logger.LogInformation(
+            "Started listening for WebSocket messages for session {SessionId}",
+            connection.SessionId
+        );
+
         while (webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
         {
-            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+            _logger.LogDebug(
+                "Waiting for WebSocket message for session {SessionId}",
+                connection.SessionId
+            );
 
-            if (result.MessageType == WebSocketMessageType.Close)
+            // Accumulate fragments until we get a complete message.
+            // WebSocket messages may be split across multiple frames,
+            // especially for large payloads like assistant_message with file contents.
+            using var messageStream = new System.IO.MemoryStream();
+            WebSocketReceiveResult result;
+            do
             {
-                await HandleCloseMessageAsync(connectionId, connection);
-                break;
-            }
+                result = await webSocket.ReceiveAsync(
+                    new ArraySegment<byte>(buffer),
+                    cancellationToken
+                );
+
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    await HandleCloseMessageAsync(connectionId, connection);
+                    return;
+                }
+
+                messageStream.Write(buffer, 0, result.Count);
+            } while (!result.EndOfMessage);
+
+            _logger.LogDebug(
+                "Received complete WebSocket message ({Bytes} bytes) for session {SessionId}",
+                messageStream.Length,
+                connection.SessionId
+            );
 
             if (result.MessageType == WebSocketMessageType.Text)
             {
-                await ProcessTextMessageAsync(connection, buffer, result);
+                var messageJson = Encoding.UTF8.GetString(
+                    messageStream.GetBuffer(),
+                    0,
+                    (int)messageStream.Length
+                );
+                await ProcessTextMessageAsync(connection, messageJson);
             }
         }
     }
 
     private async Task HandleCloseMessageAsync(string connectionId, WebSocketConnection connection)
     {
-        _logger.LogInformation("Altinity WebSocket closed for session {SessionId}", connection.SessionId);
+        _logger.LogInformation(
+            "Altinity WebSocket closed for session {SessionId}",
+            connection.SessionId
+        );
         await DisconnectSessionAsync(connectionId);
     }
 
-    private async Task ProcessTextMessageAsync(
-        WebSocketConnection connection,
-        byte[] buffer,
-        WebSocketReceiveResult result)
+    private async Task ProcessTextMessageAsync(WebSocketConnection connection, string messageJson)
     {
-        var messageJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
+        _logger.LogInformation(
+            "Received WebSocket message for session {SessionId} ({Length} chars)",
+            connection.SessionId,
+            messageJson.Length
+        );
 
         try
         {
             var message = DeserializeMessage(messageJson);
             await connection.OnMessageReceived(message);
+            _logger.LogDebug(
+                "Successfully processed WebSocket message for session {SessionId}",
+                connection.SessionId
+            );
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to parse WebSocket message: {MessageJson}", messageJson);
+            _logger.LogError(
+                ex,
+                "Failed to parse WebSocket message for session {SessionId} ({Length} chars): {Preview}",
+                connection.SessionId,
+                messageJson.Length,
+                messageJson.Length > 500 ? messageJson[..500] + "..." : messageJson
+            );
         }
     }
 
@@ -223,15 +299,24 @@ public class AltinityWebSocketService : IAltinityWebSocketService, IDisposable
     private async Task HandleWebSocketErrorAsync(
         WebSocketConnection connection,
         CancellationToken cancellationToken,
-        Exception ex)
+        Exception ex
+    )
     {
-        _logger.LogError(ex, "Error in WebSocket listener for session {SessionId}", connection.SessionId);
+        _logger.LogError(
+            ex,
+            "Error in WebSocket listener for session {SessionId}. WebSocket state: {State}",
+            connection.SessionId,
+            connection.WebSocket.State
+        );
 
         await Task.Delay(ReconnectionDelayMilliseconds, cancellationToken);
 
         if (!cancellationToken.IsCancellationRequested)
         {
-            _logger.LogInformation("Reconnection attempt needed for session {SessionId}", connection.SessionId);
+            _logger.LogInformation(
+                "Reconnection attempt needed for session {SessionId}",
+                connection.SessionId
+            );
         }
     }
 

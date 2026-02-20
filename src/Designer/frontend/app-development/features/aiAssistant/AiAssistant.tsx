@@ -17,6 +17,7 @@ export function AiAssistant(): ReactElement {
     chatThreads,
     currentSessionId,
     onSubmitMessage,
+    cancelCurrentWorkflow,
     selectThread,
     createNewThread,
     deleteThread,
@@ -51,6 +52,7 @@ export function AiAssistant(): ReactElement {
         chatThreads={chatThreads}
         activeThreadId={currentSessionId}
         onSubmitMessage={onSubmitMessage}
+        onCancelWorkflow={cancelCurrentWorkflow}
         onSelectThread={selectThread}
         onCreateThread={createNewThread}
         onDeleteThread={deleteThread}

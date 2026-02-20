@@ -68,7 +68,7 @@ class BaseConfig:
     LLM_TOOL_PLANNER_USE_RESPONSES = os.getenv("LLM_TOOL_PLANNER_USE_RESPONSES", "false").lower() == "true"
     
     # Actor: Precise code generation (Claude recommended)
-    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "claude-sonnet-4-5")
+    LLM_MODEL_ACTOR = os.getenv("LLM_MODEL_ACTOR", "gpt-5.2")
     LLM_VERSION_ACTOR = os.getenv("LLM_VERSION_ACTOR", "2025-04-14")
     LLM_TEMPERATURE_ACTOR = float(os.getenv("LLM_TEMPERATURE_ACTOR", "0.1"))
     
@@ -94,9 +94,9 @@ class BaseConfig:
     # Langfuse configuration
     LANGFUSE_SECRET_KEY = os.getenv("LANGFUSE_SECRET_KEY")
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
-    LANGFUSE_HOST = os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com")  # Use cloud by default, or self-hosted URL
+    LANGFUSE_HOST = os.getenv("LANGFUSE_BASE_URL", "https://langfuse.digdir.cloud")  # Use cloud by default, or self-hosted URL
     LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
-    LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "altinity-agents-v1")  # Version/release tag for traces
+    LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "altinity-agents-v1.1")  # Version/release tag for traces
     LANGFUSE_ENVIRONMENT = os.getenv("LANGFUSE_ENVIRONMENT", ENVIRONMENT)  # Inherit from general environment
 
 

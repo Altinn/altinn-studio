@@ -4,11 +4,93 @@ USER GOAL:
 GENERAL PLAN (high-level approach):
 {general_plan}
 
+FORM SPECIFICATION (authoritative source of truth for form structure):
+{form_spec}
+
+🚨 CRITICAL: FORM SPEC IS THE SOURCE OF TRUTH 🚨
+
+If a FORM SPECIFICATION is provided above, it is the ONLY source of field information. You MUST:
+
+1. **Create one layout file per page** listed in the spec (e.g., side1.json, side2.json, etc.)
+2. **Use EXACT field labels** from the spec for textResourceBindings values
+3. **Use the field IDs** from the spec as component IDs (prefix with "field-" if needed)
+4. **Use the field_type** to choose the correct component (text→Input, checkbox→Checkboxes, radio→RadioButtons, etc.)
+5. **Use the description** for tooltip text via textResourceBindings.description
+6. **Use data_model_binding** for dataModelBindings.simpleBinding
+7. **Update Settings.json** (App/ui/form/Settings.json) with ALL pages from the spec in order
+
+DO NOT invent fields. DO NOT rename labels. DO NOT skip fields from the spec.
+
+Example from spec:
+Page: side1 (Section A) — "Søkerinformasjon" - [text] "Søkerens navn" — Fullt juridisk navn \*
+
+Creates:
+
+- Component ID: "field-sokerens-navn" in App/ui/form/layouts/side1.json
+- Text resource: "app.field.sokerensNavn" → "Søkerens navn"
+- Text resource: "app.field.sokerensNavn.description" → "Fullt juridisk navn"
+- dataModelBindings: {{"simpleBinding": "sokerensNavn"}}
+- required: true (because of \*)
+
 TOOL RESULTS (use these to understand component schemas, data model patterns, and Altinn conventions):
 {tool_results}
 
 CURRENT LAYOUT CONTENT (for component placement reference):
 {current_layout_content}
+
+🚨 CRITICAL: LAYOUT FILES ARE MANDATORY 🚨
+
+Every form change MUST include layout file modifications! A form without UI components is useless.
+
+**If creating a new form or adding fields:**
+
+- You MUST add components to the layout file (check REPOSITORY FACTS for the layout path)
+- Each data model field needs a corresponding UI component in the layout
+- Use the layout file path from REPOSITORY FACTS (e.g., "App/ui/form/layouts/Side1.json")
+
+**If CURRENT LAYOUT CONTENT shows "Not available"**, create a new layout file using insert_json_property operations.
+
+**If CURRENT LAYOUT CONTENT shows existing content**, add new components using insert_json_array_item:
+
+```json
+{{
+  "file": "App/ui/form/layouts/Side1.json",
+  "op": "insert_json_array_item",
+  "path": ["data", "layout"],
+  "item": {{
+    "id": "field-toolname",
+    "type": "Input",
+    "dataModelBindings": {{"simpleBinding": "toolName"}},
+    "textResourceBindings": {{"title": "app.field.toolName"}}
+  }}
+}}
+```
+
+DO NOT generate a patch that only modifies data model and text resources without also adding UI components to the layout!
+
+🚨 CRITICAL: NAVIGATION BUTTONS FOR MULTI-PAGE FORMS 🚨
+
+If the form has MORE THAN ONE layout page, EVERY page MUST have a NavigationButtons component as the LAST component in the layout array.
+
+- First page: NavigationButtons with next only (showBackButton: false)
+- Middle pages: NavigationButtons with both back and next (showBackButton: true)
+- Last page: NavigationButtons with back only (showBackButton: true)
+
+Example NavigationButtons component:
+
+```json
+{{
+  "id": "nav-buttons",
+  "type": "NavigationButtons",
+  "textResourceBindings": {{
+    "next": "Neste",
+    "back": "Tilbake"
+  }},
+  "showBackButton": true
+}}
+```
+
+Without NavigationButtons, users CANNOT navigate between pages and the form is broken!
 
 CURRENT MODEL SCHEMA (for datamodel updates):
 {current_model_content}
@@ -53,9 +135,35 @@ Text resource file structure:
 CRITICAL: The operation expects "item" key, not "value"! The resource object itself has an "id" and "value".
 CRITICAL: Path must be ["resources"], not [] - text resources are nested, not at root level.
 
-IMPORTANT: Before creating any component properties, check the TOOL RESULTS section for layout_properties_tool results to see what properties are valid for each component type. Only use properties that are explicitly validated by the schema.
+IMPORTANT: Before creating any component properties, check the TOOL RESULTS section for altinn_layout_props results to see what properties are valid for each component type. Only use properties that are explicitly validated by the schema.
 
 For datamodel updates, use the CURRENT MODEL SCHEMA to understand the existing structure and add new fields to appropriate schema objects. Follow JSON Schema conventions and avoid unnecessary nesting.
+
+🚨 CRITICAL: FIXING DATA MODEL BINDING ERRORS 🚨
+
+When the USER GOAL contains "data model binding errors" or mentions that a property "was not found" in the data model:
+
+1. The error tells you EXACTLY which fields are MISSING from the data model
+2. You MUST add these missing fields to the .schema.json file
+3. Look at the CURRENT MODEL SCHEMA to see the existing structure
+4. Add new properties following the same pattern as existing ones
+
+Example error: "Ved oppslag av `useFor` i datamodellen ble ikke egenskapen `useFor` funnet. Gyldige egenskaper er: tools, property1"
+This means: The field `useFor` does NOT exist in the data model. You MUST add it!
+
+To fix this, add the missing field to the schema's "properties" object:
+
+```json
+{{
+  "file": "App/models/model.schema.json",
+  "op": "insert_json_property",
+  "path": ["properties"],
+  "key": "useFor",
+  "value": {{ "type": "string" }}
+}}
+```
+
+DO NOT just modify layout files - you MUST add the missing fields to the data model schema!
 
 IMPORTANT: For Altinn datamodels, you should ONLY update the .schema.json file. The .cs and .xsd files will be automatically regenerated from the .schema.json using MCP tools. Do NOT manually update .cs or .xsd files in your patch.
 
@@ -120,7 +228,7 @@ Common functions:
 
 CRITICAL: PREFILL IMPLEMENTATION
 
-- If the TOOL RESULTS contain prefill_tool documentation AND the user goal mentions prefilling or prepopulating data, you MUST implement prefill configuration
+- If the TOOL RESULTS contain altinn_prefill_docs documentation AND the user goal mentions prefilling or prepopulating data, you MUST implement prefill configuration
 - Create a [dataModelName].prefill.json file in App/models/ directory using the insert_json_property operations
 - Follow the prefill documentation structure exactly: include $schema, allowOverwrite, and data source mappings (ER, DSF, UserProfile, QueryParameters)
 - Pay attention to which data source is appropriate: UserProfile (submitter info, always available), ER (organization data), DSF (person data)
@@ -216,7 +324,7 @@ If YES → STOP! Create ONE RadioButtons/Checkboxes component with options array
 If NO → Continue
 
 ✓ PROPERTY VALIDATION CHECK:
-Q: Am I adding ANY property that wasn't in the layout_properties_tool results?
+Q: Am I adding ANY property that wasn't in the altinn_layout_props results?
 If YES → STOP! Remove that property (e.g., placeholder, validation, inputMode)
 If NO → Continue
 
@@ -240,12 +348,40 @@ If YES → STOP! Either remove the hyphen (e.g., 'component41') OR use descripti
 If NO → Continue
 
 ✓ COMPONENT SCHEMA CHECK:
-Q: Did I check the layout_properties_tool results for EVERY component type I'm using?
+Q: Did I check the altinn_layout_props results for EVERY component type I'm using?
 If NO → STOP! You MUST use the schema information to configure components correctly
 If YES → Continue - use the schema to set correct defaults and required properties
 
 If you passed all checks above, proceed with generating the patch JSON.
 If you failed any check, fix your approach and then generate the corrected patch.
+
+🚨 CRITICAL: LAYOUT SETTINGS JSON FORMAT 🚨
+
+When modifying Settings.json (App/ui/form/Settings.json), the pages.order array MUST be valid JSON:
+
+CORRECT format:
+{{
+"pages": {{
+"order": ["side1", "side2", "side3", "side4", "side5", "side6"]
+}}
+}}
+
+WRONG (will cause 500 error):
+{{
+"pages": {{
+"order": ["side1", "side2", "side3""side4"] ← Missing comma, causes crash
+}}
+}}
+
+RULES for Settings.json:
+
+- The file path is ALWAYS App/ui/form/Settings.json — do NOT create App/ui/layoutSettings.json
+- Include the $schema property: "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layoutSettings.schema.v1.json"
+- Each page name must be in quotes
+- Page names must be separated by commas
+- No duplicate entries
+- No missing commas between array elements
+- Use lowercase for page names (side1, side2, not Side1, Side2)
 
 🚨 CRITICAL OUTPUT REQUIREMENT 🚨
 Your response MUST be ONLY valid JSON. Do NOT include:

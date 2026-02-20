@@ -27,15 +27,34 @@ def _is_claude_model(model_name: Optional[str]) -> bool:
     model_lower = model_name.lower()
     return model_lower.startswith("claude") or "anthropic" in model_lower
 
+
+def _is_reasoning_model(model_name: Optional[str]) -> bool:
+    """Check if model is a reasoning model that uses internal reasoning tokens.
+
+    Reasoning models (o1, o3, gpt-5, etc.) allocate part of max_tokens to
+    internal chain-of-thought reasoning.  They need a much larger token budget
+    than non-reasoning models to leave room for actual output.
+    """
+    if not model_name:
+        return False
+    m = model_name.lower()
+    # o1, o1-mini, o1-preview, o3, o3-mini, gpt-5, gpt-5-mini, gpt-5-nano, gpt-5-pro
+    return (
+        m.startswith("o1") or m.startswith("o3")
+        or m.startswith("gpt-5")
+    )
+
 class LLMClient:
     """Client for LLM operations with role-based model selection"""
 
-    def __init__(self, role: str = "default"):
+    def __init__(self, role: str = "default", max_tokens: Optional[int] = None):
         """
         Initialize LLM client with role-specific configuration
         
         Args:
             role: Agent role (planner, actor, reviewer, verifier, default)
+            max_tokens: Maximum tokens for response. For reasoning models (gpt-5, o1, o3)
+                        this must be high enough to cover both reasoning + output tokens.
         """
         self.role = role
         
@@ -135,6 +154,19 @@ class LLMClient:
         self.temperature = temperature if temperature is not None else config.LLM_TEMPERATURE
         self.use_anthropic = False
         self.anthropic_client = None
+        self.is_reasoning_model = _is_reasoning_model(model)
+
+        # Set max_tokens based on role and model type
+        if max_tokens is not None:
+            self.max_tokens = max_tokens
+        elif self.is_reasoning_model:
+            # Reasoning models (gpt-5, o1, o3) use internal reasoning tokens that
+            # consume the max_tokens budget. With 8192, the model may spend all tokens
+            # on reasoning and return empty output. Use 32768 to leave ample room.
+            self.max_tokens = 32768
+            log.info(f"Reasoning model detected ({model}), using max_tokens={self.max_tokens}")
+        else:
+            self.max_tokens = 8192
 
         # Check if this is a Claude model - use Anthropic SDK instead of OpenAI
         if _is_claude_model(model):
@@ -154,9 +186,14 @@ class LLMClient:
                 "api_key": config.AZURE_API_KEY,
                 "api_version": config.AZURE_API_VERSION,
                 "deployment_name": model,
+                "max_tokens": self.max_tokens,
             }
 
-            if temperature is not None and temperature != 1.0:
+            if self.is_reasoning_model:
+                # Reasoning models: use low effort to preserve tokens for output.
+                # They also don't support the temperature parameter.
+                llm_params["model_kwargs"] = {"reasoning_effort": "low"}
+            elif temperature is not None and temperature != 1.0:
                 llm_params["temperature"] = temperature
 
             if self.use_responses:
@@ -181,8 +218,11 @@ class LLMClient:
             chat_kwargs = {
                 "api_key": config.OPENAI_API_KEY,
                 "model": model,
+                "max_tokens": self.max_tokens,
             }
-            if temperature is not None:
+            if self.is_reasoning_model:
+                chat_kwargs["model_kwargs"] = {"reasoning_effort": "low"}
+            elif temperature is not None:
                 chat_kwargs["temperature"] = temperature
             if self.use_responses:
                 try:
@@ -221,6 +261,7 @@ class LLMClient:
             self.anthropic_client = Anthropic(
                 api_key=config.AZURE_API_KEY,
                 base_url=config.AZURE_ANTHROPIC_ENDPOINT,
+                timeout=600.0,  # 10 minutes for large patch synthesis tasks
             )
         elif config.ANTHROPIC_API_KEY:
             # Direct Anthropic API
@@ -228,7 +269,10 @@ class LLMClient:
                 f"Using direct Anthropic API for LLM operations "
                 f"(role={role}, model={model}, temperature={temperature if temperature is not None else 'default'})"
             )
-            self.anthropic_client = Anthropic(api_key=config.ANTHROPIC_API_KEY)
+            self.anthropic_client = Anthropic(
+                api_key=config.ANTHROPIC_API_KEY,
+                timeout=600.0,  # 10 minutes for large patch synthesis tasks
+            )
         else:
             raise ValueError(
                 "No API key configured for Anthropic/Claude. "
@@ -339,7 +383,7 @@ class LLMClient:
                         model=self.model,
                         system=system_prompt.strip() if system_prompt else "",
                         messages=[{"role": "user", "content": user_prompt.strip()}],
-                        max_tokens=8192,
+                        max_tokens=self.max_tokens,
                     )
 
                 response = await asyncio.wait_for(
@@ -459,12 +503,41 @@ class LLMClient:
                 if self.use_anthropic:
                     if attachments:
                         log.warning("Attachments provided but Anthropic model does not support them in this implementation; ignoring attachments")
-                    response = self.anthropic_client.messages.create(
-                        model=self.model,
-                        system=system_message.strip() if system_message else "",
-                        messages=[{"role": "user", "content": user_message.strip()}],
-                        max_tokens=8192,
-                    )
+                    
+                    import time
+                    system_len = len(system_message.strip() if system_message else "")
+                    user_len = len(user_message.strip())
+                    log.info(f"🔵 Anthropic API call starting")
+                    log.info(f"   System: {system_len} chars, User: {user_len} chars")
+                    log.info(f"   Model: {self.model}, Max tokens: {self.max_tokens}")
+                    log.info(f"   Client timeout: 600s (10 min)")
+                    
+                    call_start = time.time()
+                    try:
+                        response = self.anthropic_client.messages.create(
+                            model=self.model,
+                            system=system_message.strip() if system_message else "",
+                            messages=[{"role": "user", "content": user_message.strip()}],
+                            max_tokens=self.max_tokens,
+                        )
+                        call_elapsed = time.time() - call_start
+                        log.info(f"✅ Anthropic API call succeeded in {call_elapsed:.1f}s")
+                    except Exception as api_error:
+                        call_elapsed = time.time() - call_start
+                        log.error(f"❌ Anthropic API call failed after {call_elapsed:.1f}s")
+                        log.error(f"   Error type: {type(api_error).__name__}")
+                        log.error(f"   Error: {api_error}")
+                        if "408" in str(api_error) or "Timeout" in str(api_error):
+                            log.error(f"   ⚠️  AZURE GATEWAY TIMEOUT DETECTED")
+                            log.error(f"   The Azure AI Foundry gateway has a ~4 minute timeout limit")
+                            log.error(f"   Your request took {call_elapsed:.1f}s before timing out")
+                            log.error(f"   Possible solutions:")
+                            log.error(f"   1. Reduce input size (smaller PDF, fewer tool results)")
+                            log.error(f"   2. Reduce max_tokens (currently {self.max_tokens})")
+                            log.error(f"   3. Use streaming API (not yet implemented)")
+                            log.error(f"   4. Split task into smaller subtasks")
+                        raise
+                    
                     response_text = self._extract_anthropic_text(response)
                 elif self.use_responses:
                     if attachments:
@@ -501,6 +574,17 @@ class LLMClient:
                     
                     response = self.llm.invoke(messages)
                     response_text = response.content
+
+                    # Detect empty/filtered responses
+                    if not response_text or not response_text.strip():
+                        finish_reason = None
+                        if hasattr(response, 'response_metadata'):
+                            finish_reason = response.response_metadata.get('finish_reason')
+                        log.warning(
+                            f"⚠️ LLM returned empty response (role={self.role}, model={self.model}, "
+                            f"finish_reason={finish_reason}, "
+                            f"metadata={getattr(response, 'response_metadata', {})})"
+                        )
                 
                 # Set outputs and usage details
                 usage_details = {}

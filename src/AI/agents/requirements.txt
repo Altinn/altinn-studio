@@ -23,7 +23,12 @@ anthropic>=0.40.0
 
 # MCP client
 fastmcp>=2.0.0
-mcp>=1.23.0
 
 # Observability
 langfuse>=3.0.0
+
+# PDF processing
+pypdf>=5.1.0
+
+# JSON repair for malformed LLM outputs
+json-repair>=0.30.0

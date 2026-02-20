@@ -13,6 +13,8 @@ export type ChatColumnProps = {
   texts: AssistantTexts;
   messages: Message[];
   onSubmitMessage: (message: Message) => void;
+  onCancelWorkflow?: () => void;
+  workflowIsActive?: boolean;
   enableCompactInterface: boolean;
 };
 
@@ -20,6 +22,8 @@ export function ChatColumn({
   texts,
   messages,
   onSubmitMessage,
+  onCancelWorkflow,
+  workflowIsActive = false,
   enableCompactInterface,
 }: ChatColumnProps): ReactElement {
   const { data: currentUser } = useUserQuery();
@@ -68,6 +72,8 @@ export function ChatColumn({
       <UserInput
         texts={texts}
         onSubmitMessage={onSubmitMessage}
+        onCancelWorkflow={onCancelWorkflow}
+        workflowIsActive={workflowIsActive}
         enableCompactInterface={enableCompactInterface}
       />
     </div>

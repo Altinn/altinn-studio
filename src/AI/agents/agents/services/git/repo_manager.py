@@ -26,7 +26,7 @@ class RepoManager:
         self.temp_dir = Path(tempfile.gettempdir()) / "altinity_repos"
         self.temp_dir.mkdir(exist_ok=True)
         self.active_repos: Dict[str, Path] = {}  # session_id -> repo_path
-        self.session_tokens: Dict[str, str] = {}  # session_id -> token
+        self.session_tokens: Dict[str, str] = {}  # session_id -> gitea_token
 
     def _get_port(self, parsed_url) -> int:
         if parsed_url.port:
@@ -39,17 +39,23 @@ class RepoManager:
     def _strip_repos_from_path(self, repo_url: str) -> str:
         return repo_url.replace('/repos', '')
 
-    def _get_auth_url(self, repo_url: str, token: str) -> str:
+    def _get_auth_url(self, repo_url: str, token: Optional[str] = None) -> str:
         """
-        Convert a repo URL to include authentication token.
+        Convert a repo URL to include authentication token if available.
 
         Args:
             repo_url: Original repository URL
-            token: Authentication token
+            token: Authentication token (if None, falls back to config)
 
         Returns:
-            URL with authentication token
+            URL with authentication token if available
         """
+        # Use provided token or fall back to config
+        auth_token = token or config.GITEA_LOCAL_TOKEN
+        if not auth_token:
+            log.warning("No authentication token provided - git operations may fail if authentication is required")
+            return repo_url
+
         try:
             parsed = urlparse(repo_url)
             port = self._get_port(parsed)
@@ -58,27 +64,32 @@ class RepoManager:
             # Format: https://token@host:port/path or https://username:token@host:port/path
             if parsed.username:
                 # Already has username, replace with token as password
-                netloc = f"{parsed.username}:{token}@{parsed.hostname}:{port}"
+                netloc = f"{parsed.username}:{auth_token}@{parsed.hostname}:{port}"
             else:
                 # No username, use token as username
-                netloc = f"{token}@{parsed.hostname}:{port}"
+                netloc = f"{auth_token}@{parsed.hostname}:{port}"
 
             auth_url = urlunparse(parsed._replace(netloc=netloc))
+            log.debug(f"Added authentication to URL")
             return auth_url
 
         except Exception as e:
-            log.error(f"Failed to add authentication to URL {repo_url}: {e}")
-            raise Exception(f"Failed to create authenticated URL: {e}")
+            log.warning(f"Failed to add authentication to URL {repo_url}: {e}")
+            return repo_url
 
     def _normalize_repo_url(self, repo_url: str) -> str:
         """
         Normalize repository URL for the current environment.
         Handles Docker vs local environment differences.
         """
+        # If URL already contains host.docker.internal, it's already been translated - don't normalize
+        if "host.docker.internal" in repo_url:
+            return repo_url
+        
         repo_path_part = urlparse(repo_url).path
         return f"{config.GITEA_BASE_URL}{repo_path_part}"
 
-    def clone_repo_for_session(self, repo_url: str, session_id: str, branch: Optional[str] = None, token: str = None) -> Path:
+    def clone_repo_for_session(self, repo_url: str, session_id: str, branch: Optional[str] = None, gitea_token: Optional[str] = None) -> Path:
         """
         Clone a repository for a specific session.
 
@@ -86,20 +97,14 @@ class RepoManager:
             repo_url: Git repository URL (e.g., http://localhost:3000/user/repo.git)
             session_id: Unique session identifier
             branch: Optional branch name to checkout after cloning
-            token: Authentication token from X-User-Token header (required)
+            gitea_token: Optional Gitea authentication token (passed from Designer backend)
 
         Returns:
             Path to the cloned repository
 
         Raises:
-            Exception: If cloning fails or token not provided
+            Exception: If cloning fails
         """
-        # Validate token
-        if not token or not token.strip():
-            raise ValueError("Authentication token is required and cannot be empty")
-
-        token = token.strip()
-
         # Create a unique directory name based on repo URL and session
         repo_hash = hashlib.md5(repo_url.encode()).hexdigest()[:8]
         repo_name = f"{session_id}_{repo_hash}"
@@ -140,9 +145,9 @@ class RepoManager:
             normalized_url = self._strip_repos_from_path(normalized_url)
 
             # Use authenticated URL for cloning
-            auth_url = self._get_auth_url(normalized_url, token)
+            auth_url = self._get_auth_url(normalized_url, gitea_token)
             cmd = ["git", "clone", auth_url, str(repo_path)]
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=300)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
             log.info(f"Successfully cloned {repo_url} for session {session_id}")
 
@@ -163,11 +168,10 @@ class RepoManager:
                         log.error(f"Failed to create branch {branch}: {e.stderr}")
                         # Continue anyway - we'll work on default branch
 
-            # Store the active repo mapping
+            # Store the active repo mapping and token
             self.active_repos[session_id] = repo_path
-
-            # Store the token for this session (for later push operations)
-            self.session_tokens[session_id] = token
+            if gitea_token:
+                self.session_tokens[session_id] = gitea_token
 
             return repo_path
 
@@ -198,17 +202,13 @@ class RepoManager:
         log.info(f"Pushing branch {branch_name} for session {session_id}")
 
         try:
-            # Get the token for this session
-            session_token = self.session_tokens.get(session_id)
-            if not session_token:
-                raise Exception(f"No authentication token found for session {session_id}. Token must be provided during clone.")
-
             # Get the current remote URL and ensure it has authentication
             get_url_cmd = ["git", "remote", "get-url", "origin"]
             url_result = subprocess.run(get_url_cmd, cwd=repo_path, capture_output=True, text=True, check=True)
             current_url = url_result.stdout.strip()
 
-            # Add authentication to the URL
+            # Add authentication to the URL if needed
+            session_token = self.session_tokens.get(session_id)
             auth_url = self._get_auth_url(current_url, session_token)
             if auth_url != current_url:
                 # Update remote URL with authentication
@@ -245,13 +245,10 @@ class RepoManager:
                 log.info(f"Cleaning up repository for session {session_id}: {repo_path}")
                 shutil.rmtree(repo_path)
 
-            # Remove from active repos
+            # Remove from active repos and tokens
             del self.active_repos[session_id]
-
-            # Remove stored token if any
             if session_id in self.session_tokens:
                 del self.session_tokens[session_id]
-
             log.info(f"Successfully cleaned up session {session_id}")
 
         except Exception as e:
