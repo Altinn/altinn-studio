@@ -63,7 +63,7 @@ generation_llm = AzureChatOpenAI(
     api_key=API_KEY,
     api_version=LLM_CONFIG["API_VERSION"],
     deployment_name=DEPLOYMENT_NAME,
-    temperature=LLM_CONFIG["CODE_GENERATION_TEMPERATURE"],
+    # temperature=LLM_CONFIG["CODE_GENERATION_TEMPERATURE"],
     max_tokens=LLM_CONFIG["MAX_TOKENS"]
 )
 
@@ -73,7 +73,7 @@ review_llm = AzureChatOpenAI(
     api_key=API_KEY,
     api_version=LLM_CONFIG["API_VERSION"],
     deployment_name=DEPLOYMENT_NAME,
-    temperature=LLM_CONFIG["CODE_REVIEW_TEMPERATURE"],
+    # temperature=LLM_CONFIG["CODE_REVIEW_TEMPERATURE"],
     max_tokens=LLM_CONFIG["MAX_TOKENS"]
 )
 
@@ -305,7 +305,7 @@ def review_code_with_llm(file_path: str, content: str) -> Dict[str, Any]:
                 # Create a detailed output summary
                 output_summary = f"Review completed: {len(review)} characters\n"
                 output_summary += f"Issues found: {'Yes' if issues_found else 'No'}\n"
-                output_summary += f"Review temperature: {LLM_CONFIG['CODE_REVIEW_TEMPERATURE']}\n"
+                # output_summary += f"Review temperature: {LLM_CONFIG['CODE_REVIEW_TEMPERATURE']}\n"
                 
                 # Add a snippet of the review (first 300 chars)
                 if len(review) > 0:

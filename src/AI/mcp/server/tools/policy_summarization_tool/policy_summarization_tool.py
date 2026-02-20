@@ -10,13 +10,47 @@ from server.tools.policy_tool.static import all_roles
 @register_tool(
     name="policy_summarization_tool",
     description="""
-    This tool provides a summarization of all authorization rules and access control in different roles have in a Altinn application.
-    Use this tool when you need a understandable summary of a the policy file in altinn, or want to know who has what accesses to the application. 
+Parses policy.xml and creates a readable summary of authorization rules.
 
-    The tool takes the XML content of the policy file and creates a readable summary of the authorization rules.
-    
-    Always use summarization tool before using policy validation tool, but it is possible to use summarization tool as standalone tool. 
-    After every change to the policy.xml file, run summarization tool to update the summary.
+## Purpose
+Convert XACML policy XML into a structured summary showing who can do what.
+
+## Required Parameters
+- `xml_content`: The complete policy.xml content as a string
+
+## Returns
+- `status`: "success" | "error"
+- `rules`: List of parsed rules with role, resource, and action information
+- `message`: Summary or error description
+
+## Output Structure
+Each rule contains:
+- `type`: "info" | "warning" | "error"
+- `message`: Human-readable rule description
+- `role`: List of roles/subjects that can perform actions
+- `resource`: List of resources the rule applies to
+- `action`: List of allowed actions (read, write, instantiate, etc.)
+
+## When to Use
+✅ To understand existing policy.xml authorization rules
+✅ BEFORE calling `policy_validation_tool` (required prerequisite)
+✅ After modifying policy.xml to verify changes
+✅ To audit who has access to what in the application
+
+## When NOT to Use
+❌ To learn how to write policy.xml (use `policy_tool` instead)
+❌ To validate rules against requirements (use `policy_validation_tool` AFTER this tool)
+
+## Common Errors
+- "No XML content provided" → Pass the xml_content parameter
+- "XML parsing error" → The XML is malformed, check syntax
+- "No rules found" → The policy.xml doesn't contain any Rule elements
+
+## Usage Flow
+```
+1. policy_summarization_tool(xml_content) → Get rules summary
+2. [Optional] policy_validation_tool(query, policy_rules) → Validate against requirements
+```
 """,
     title="Policy Summarization Tool",
     annotations=ToolAnnotations(
@@ -40,7 +74,14 @@ def policy_summarization_tool(user_goal: str, xml_content: str) -> dict:
 
     # Check if XML content is provided
     if not xml_content:
-        return {"status": "error", "message": "No XML content provided. Please specify the policy XML content."}
+        return {
+            "status": "error",
+            "error_code": "MISSING_INPUT",
+            "message": "MISSING_PARAMETER: No xml_content provided. You must pass the complete policy.xml content as a string.",
+            "hint": "Read the policy.xml file and pass its content as the xml_content parameter.",
+            "example": 'policy_summarization_tool(xml_content="<Policy xmlns=\\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\\" ...>...</Policy>")',
+            "retry_allowed": False
+        }
     
     try:
         # Parse the XML content

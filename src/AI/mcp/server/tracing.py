@@ -10,7 +10,8 @@ from server.config import (
     LANGFUSE_PUBLIC_KEY,
     LANGFUSE_SECRET_KEY,
     LANGFUSE_HOST,
-    LANGFUSE_ENABLED
+    LANGFUSE_ENABLED,
+    LANGFUSE_ENVIRONMENT
 )
 
 # Default organization if headers are not available
@@ -36,7 +37,8 @@ def get_langfuse_client() -> Optional[Langfuse]:
         _langfuse_client = Langfuse(
             public_key=LANGFUSE_PUBLIC_KEY,
             secret_key=LANGFUSE_SECRET_KEY,
-            host=LANGFUSE_HOST
+            host=LANGFUSE_HOST,
+            environment=LANGFUSE_ENVIRONMENT
         )
     
     return _langfuse_client
