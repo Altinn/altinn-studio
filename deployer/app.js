@@ -147,7 +147,7 @@ function renderGrid(containerId, services, envs) {
         const currentStatus = current ? `half-${effectiveStatus(current)}` : 'half-none';
         cell.appendChild(renderDeployment(current, currentStatus));
 
-        if (next && effectiveStatus(next) === 'waiting') {
+        if (next && effectiveStatus(next) === 'waiting' && next.canApprove === true) {
           cell.appendChild(renderWaitingHalf(next, env, svcName));
         } else {
           const nextStatus = next ? `half-${effectiveStatus(next)}` : 'half-none';

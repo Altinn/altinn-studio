@@ -384,7 +384,22 @@ async function syncRuns() {
   return { totalRuns, jobFetches, coverage };
 }
 
+let pendingJobsRefreshing = false;
+
 async function refreshPendingJobs({ activeOnly = false } = {}) {
+  if (pendingJobsRefreshing) {
+    console.log('[pending-refresh] Already running, skipping');
+    return 0;
+  }
+  pendingJobsRefreshing = true;
+  try {
+    return await _refreshPendingJobs({ activeOnly });
+  } finally {
+    pendingJobsRefreshing = false;
+  }
+}
+
+async function _refreshPendingJobs({ activeOnly }) {
   const pendingRows = (activeOnly ? stmts.getActiveJobs : stmts.getPendingJobs).all();
   if (pendingRows.length === 0) return 0;
 
@@ -409,10 +424,50 @@ async function refreshPendingJobs({ activeOnly = false } = {}) {
     if (result) storeRunJobs(result.run, result.jobs);
   }
 
+  // Fetch can_approve for newly-seen waiting runs — one API call per run, result cached in DB.
+  const needCanApprove = stmts.getWaitingNeedingCanApprove.all();
+  if (needCanApprove.length > 0) {
+    await Promise.all(
+      needCanApprove.map(async ({ run_id: runId }) => {
+        try {
+          const pending = await ghApi(`repos/${REPO}/actions/runs/${runId}/pending_deployments`);
+          if (!Array.isArray(pending)) return;
+          for (const p of pending) {
+            const ghEnvName = p?.environment?.name ?? '';
+            const canApprove = p?.current_user_can_approve ? 1 : 0;
+            for (const shortEnv of VALID_ENVS) {
+              if (envMatchesGhName(ghEnvName, shortEnv)) {
+                stmts.setCanApprove.run(canApprove, runId, shortEnv);
+                break;
+              }
+            }
+          }
+        } catch (err) {
+          console.error(`  Failed to fetch pending_deployments for run ${runId}: ${err.message}`);
+        }
+      }),
+    );
+  }
+
   return runIds.length;
 }
 
+let syncRunning = false;
+
 async function syncOnce() {
+  if (syncRunning) {
+    console.log('[sync] Already running, skipping');
+    return;
+  }
+  syncRunning = true;
+  try {
+    await _syncOnce();
+  } finally {
+    syncRunning = false;
+  }
+}
+
+async function _syncOnce() {
   const start = Date.now();
   const syncStartRequests = getRequestCount();
   console.log('[sync] Running...');
@@ -481,6 +536,7 @@ function buildStatus() {
             status: next.job_status,
             conclusion: next.job_conclusion,
             updatedAt: next.updated_at,
+            canApprove: next.can_approve === 1 ? true : next.can_approve === 0 ? false : null,
           };
         }
       }

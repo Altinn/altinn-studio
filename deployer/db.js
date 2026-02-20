@@ -34,7 +34,8 @@ function initDb() {
       job_status TEXT NOT NULL,
       job_conclusion TEXT,
       run_created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
+      updated_at TEXT NOT NULL,
+      can_approve INTEGER
     );
     CREATE INDEX IF NOT EXISTS idx_jobs_workflow_env ON jobs (workflow, env);
     CREATE INDEX IF NOT EXISTS idx_jobs_run_id ON jobs (run_id);
@@ -69,7 +70,7 @@ function prepareStatements() {
       ORDER BY run_id DESC LIMIT 1
     `),
     getNext: db.prepare(`
-      SELECT sha, full_sha, title, run_url, run_id, job_status, job_conclusion, updated_at
+      SELECT sha, full_sha, title, run_url, run_id, job_status, job_conclusion, updated_at, can_approve
       FROM jobs
       WHERE workflow = ? AND env = ?
         AND job_status IN ('queued', 'waiting', 'in_progress')
@@ -131,6 +132,16 @@ function prepareStatements() {
         )
       ) ui_rows
       WHERE job_status IN ('queued', 'in_progress')
+    `),
+    // Waiting jobs whose can_approve has not yet been fetched from GH pending_deployments.
+    // Used to make exactly one API call per newly-seen waiting run.
+    getWaitingNeedingCanApprove: db.prepare(`
+      SELECT DISTINCT run_id FROM jobs
+      WHERE job_status = 'waiting' AND can_approve IS NULL
+    `),
+    setCanApprove: db.prepare(`
+      UPDATE jobs SET can_approve = ?
+      WHERE run_id = ? AND env = ? AND job_status = 'waiting'
     `),
     hasRunId: db.prepare('SELECT 1 AS found FROM jobs WHERE run_id = ? LIMIT 1'),
     getRunCoverageRows: db.prepare(`
