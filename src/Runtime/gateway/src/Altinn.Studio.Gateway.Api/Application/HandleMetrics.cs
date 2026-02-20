@@ -59,11 +59,8 @@ internal static class HandleMetrics
         var metrics = amMetrics.Select(metric => new AppMetric
         {
             Name = metric.Name,
-            DataPoints = metric.DataPoints.Select(dataPoint => new AppMetricDataPoint
-            {
-                DateTimeOffset = dataPoint.DateTimeOffset,
-                Count = dataPoint.Count,
-            }),
+            Timestamps = metric.Timestamps,
+            Counts = metric.Counts,
         });
 
         return Results.Ok(metrics);
@@ -90,11 +87,8 @@ internal static class HandleMetrics
         var metrics = amFailedRequests.Select(failedRequest => new AppErrorMetric
         {
             Name = failedRequest.Name,
-            DataPoints = failedRequest.DataPoints.Select(dataPoint => new AppMetricDataPoint
-            {
-                DateTimeOffset = dataPoint.DateTimeOffset,
-                Count = dataPoint.Count,
-            }),
+            Timestamps = failedRequest.Timestamps,
+            Counts = failedRequest.Counts,
             LogsUrl = metricsClient.GetLogsUrl(
                 gatewayContext.AzureSubscriptionId,
                 gatewayContext.ServiceOwner,
