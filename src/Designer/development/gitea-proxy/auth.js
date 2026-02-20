@@ -8,7 +8,7 @@ function handleRequest(r) {
 
   r.subrequest('/_internal/userinfo', { method: 'GET' }, function (reply) {
     if (reply.status === 401 || reply.status === 403) {
-      r.return(401, 'Unauthorized');
+      r.internalRedirect('@proxy_to_gitea_clean');
       return;
     }
 
