@@ -20,7 +20,7 @@
     "uuid": "13.0.0"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^4.0.0",
+    "@chromatic-com/storybook": "^5.0.0",
     "@storybook/addon-docs": "9.1.17",
     "@storybook/addon-links": "9.1.17",
     "@storybook/builder-vite": "9.1.17",
