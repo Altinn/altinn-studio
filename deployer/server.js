@@ -12,6 +12,7 @@ const PAGE_SIZE = 100;
 const SYNC_MAX_PAGES = 10;
 const EXPECTED_ENVS_DISCOVERY_RUNS = 2;
 const SYNC_INTERVAL_MS = 60_000;
+const PENDING_REFRESH_INTERVAL_MS = 10_000;
 const { createGhClient } = require('./gh');
 const {
   DB_PATH,
@@ -21,7 +22,7 @@ const {
   setWorkflowStopAtRunId,
 } = require('./db');
 const { openUrlInBrowser } = require('./browser');
-const { ghApi, getRequestCount } = createGhClient({ parallel: GH_PARALLEL });
+const { ghApi, ghApiPost, getRequestCount } = createGhClient({ parallel: GH_PARALLEL });
 
 // --- Service & environment definitions ---
 
@@ -29,26 +30,31 @@ const RUNTIME_ENVS = ['at_ring1', 'at_ring2', 'tt_ring1', 'tt_ring2', 'prod_ring
 const STUDIO_ENVS = ['dev', 'staging', 'prod'];
 
 const RUNTIME_SERVICES = [
+  // syncroot first — drives all other deployments
+  { name: 'syncroot', workflow: 'deploy-runtime-syncroot.yaml' },
+  // services
+  { name: 'kubernetes-wrapper', workflow: 'deploy-runtime-kubernetes-wrapper.yaml' },
   { name: 'gateway', workflow: 'deploy-runtime-gateway.yaml' },
   { name: 'operator', workflow: 'deploy-runtime-operator.yaml' },
-  { name: 'flux-config', workflow: 'deploy-runtime-flux-config.yaml' },
-  { name: 'syncroot', workflow: 'deploy-runtime-syncroot.yaml' },
-  { name: 'observability', workflow: 'deploy-runtime-observability.yaml' },
   { name: 'pdf3', workflow: 'deploy-runtime-pdf3.yaml' },
+  { name: 'observability', workflow: 'deploy-runtime-observability.yaml' },
+  // pure config (no running pods)
+  { name: 'flux-config', workflow: 'deploy-runtime-flux-config.yaml' },
   { name: 'grafana-manifests', workflow: 'deploy-runtime-grafana-manifests.yaml' },
-  { name: 'kubernetes-wrapper', workflow: 'deploy-runtime-kubernetes-wrapper.yaml' },
   { name: 'apps-config', workflow: 'deploy-runtime-apps-config.yaml' },
 ];
 
 const STUDIO_SERVICES = [
+  // syncroot first — drives all other deployments
+  { name: 'syncroot', workflow: 'deploy-studio-syncroot.yaml' },
+  // services
+  { name: 'loadbalancer', workflow: 'deploy-loadbalancer.yaml' },
   { name: 'designer', workflow: 'deploy-designer.yaml' },
   { name: 'repositories', workflow: 'deploy-repositories.yaml' },
-  { name: 'loadbalancer', workflow: 'deploy-loadbalancer.yaml' },
-  { name: 'syncroot', workflow: 'deploy-studio-syncroot.yaml' },
-  { name: 'observability', workflow: 'deploy-studio-observability.yaml' },
-  { name: 'otel-operator', workflow: 'deploy-studio-otel-operator.yaml' },
-  { name: 'mcp-server', workflow: 'deploy-studio-mcp-server.yaml' },
   { name: 'gitea-runners', workflow: 'deploy-gitea-runners.yaml' },
+  { name: 'mcp-server', workflow: 'deploy-studio-mcp-server.yaml' },
+  { name: 'otel-operator', workflow: 'deploy-studio-otel-operator.yaml' },
+  { name: 'observability', workflow: 'deploy-studio-observability.yaml' },
   { name: 'lhci-server', workflow: 'deploy-lhci-server.yaml' },
 ];
 
@@ -56,6 +62,8 @@ const ALL_SERVICES = [
   ...RUNTIME_SERVICES.map((s) => ({ ...s, plane: 'runtime', envs: s.envs || RUNTIME_ENVS })),
   ...STUDIO_SERVICES.map((s) => ({ ...s, plane: 'studio', envs: s.envs || STUDIO_ENVS })),
 ];
+
+const VALID_ENVS = new Set([...RUNTIME_ENVS, ...STUDIO_ENVS]);
 
 // Lookup: workflow filename → service definition
 const SVC_BY_WORKFLOW = new Map(ALL_SERVICES.map((s) => [s.workflow, s]));
@@ -367,8 +375,8 @@ async function syncRuns() {
   return { totalRuns, jobFetches, coverage };
 }
 
-async function refreshPendingJobs() {
-  const pendingRows = stmts.getPendingJobs.all();
+async function refreshPendingJobs({ activeOnly = false } = {}) {
+  const pendingRows = (activeOnly ? stmts.getActiveJobs : stmts.getPendingJobs).all();
   if (pendingRows.length === 0) return 0;
 
   const runIds = pendingRows.map((r) => r.run_id);
@@ -421,6 +429,10 @@ async function syncOnce() {
 function startWorker() {
   syncOnce().then(() => {
     setInterval(() => syncOnce().catch((e) => console.error(`[sync] Error: ${e.message}`)), SYNC_INTERVAL_MS);
+    setInterval(
+      () => refreshPendingJobs({ activeOnly: true }).catch((e) => console.error(`[pending-refresh] ${e.message}`)),
+      PENDING_REFRESH_INTERVAL_MS,
+    );
   });
 }
 
@@ -435,7 +447,7 @@ function buildStatus() {
 
     for (const env of svc.envs) {
       const current = stmts.getCurrent.get(svc.workflow, env) || null;
-      const next = stmts.getNext.get(svc.workflow, env) || null;
+      const next = stmts.getNext.get(svc.workflow, env, svc.workflow, env) || null;
       if (current || next) {
         envStatus[env] = {};
         if (current) {
@@ -469,6 +481,53 @@ function buildStatus() {
   }
 
   return { runtime, studio, fetchedAt: new Date().toISOString() };
+}
+
+// --- Approval ---
+
+function envMatchesGhName(ghEnvName, shortEnv) {
+  // GH environment names vary: runtime_at_ring2, studio_prod, prod, etc.
+  return (
+    ghEnvName === shortEnv ||
+    ghEnvName === `runtime_${shortEnv}` ||
+    ghEnvName === `studio_${shortEnv}` ||
+    ghEnvName.endsWith(`_${shortEnv}`)
+  );
+}
+
+async function approveDeployment(runId, env) {
+  const pending = await ghApi(`repos/${REPO}/actions/runs/${runId}/pending_deployments`);
+  if (!Array.isArray(pending)) throw new Error(`unexpected pending_deployments response for run ${runId}`);
+
+  const match = pending.find((p) => envMatchesGhName(p?.environment?.name ?? '', env));
+  if (!match) throw new Error(`no pending deployment for env '${env}' in run ${runId}`);
+
+  const envId = match.environment.id;
+  if (!Number.isInteger(envId)) throw new Error(`unexpected env id ${envId} for run ${runId}`);
+
+  await ghApiPost(`repos/${REPO}/actions/runs/${runId}/pending_deployments`, {
+    environment_ids: [envId],
+    state: 'approved',
+    comment: 'Approved via deployer',
+  });
+}
+
+function readBody(req, maxBytes = 65_536) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > maxBytes) {
+        reject(new Error('request body too large'));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    req.on('error', reject);
+  });
 }
 
 // --- HTTP server ---
@@ -508,6 +567,50 @@ const server = http.createServer(async (req, res) => {
     } else if (req.url === '/api/refresh' && req.method === 'POST') {
       await syncOnce();
       sendJson(res, 200, buildStatus());
+    } else if (req.url === '/api/approve' && req.method === 'POST') {
+      const raw = await readBody(req);
+      let items;
+      try {
+        items = JSON.parse(raw);
+      } catch {
+        sendJson(res, 400, { error: 'invalid JSON' });
+        return;
+      }
+      if (!Array.isArray(items) || items.length === 0 || items.length > 50) {
+        sendJson(res, 400, { error: 'expected non-empty array (max 50)' });
+        return;
+      }
+      for (const item of items) {
+        if (!item || !Number.isInteger(item.runId) || item.runId <= 0) {
+          sendJson(res, 400, { error: `invalid runId: ${item?.runId}` });
+          return;
+        }
+        if (typeof item.env !== 'string' || !VALID_ENVS.has(item.env)) {
+          sendJson(res, 400, { error: `invalid env: ${item?.env}` });
+          return;
+        }
+      }
+      console.log(`[approve] ${items.length} item(s): ${items.map((i) => `run=${i.runId} env=${i.env}`).join(', ')}`);
+      const results = await Promise.all(
+        items.map(async ({ runId, env }) => {
+          try {
+            await approveDeployment(runId, env);
+            console.log(`[approve] OK run=${runId} env=${env}`);
+            return { runId, env, ok: true };
+          } catch (err) {
+            console.error(`[approve] FAIL run=${runId} env=${env}: ${err.message}`);
+            return { runId, env, ok: false, error: err.message };
+          }
+        }),
+      );
+      await refreshPendingJobs();
+      sendJson(res, 200, { results, status: buildStatus() });
+      // Follow-up refresh to catch GitHub's approval processing lag — the immediate
+      // refreshPendingJobs above often reads back 'waiting' before GitHub transitions the job.
+      setTimeout(
+        () => refreshPendingJobs().catch((e) => console.error(`[approve-followup] ${e.message}`)),
+        5_000,
+      );
     } else if (!req.url.startsWith('/api/')) {
       serveStatic(req, res);
     } else {

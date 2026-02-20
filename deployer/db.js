@@ -55,6 +55,7 @@ function prepareStatements() {
         job_status = excluded.job_status,
         job_conclusion = excluded.job_conclusion,
         updated_at = excluded.updated_at
+      WHERE excluded.updated_at >= jobs.updated_at
     `),
     getState: db.prepare('SELECT value FROM sync_state WHERE key = ?'),
     setState: db.prepare(`
@@ -70,7 +71,13 @@ function prepareStatements() {
     getNext: db.prepare(`
       SELECT sha, full_sha, title, run_url, run_id, job_status, job_conclusion, updated_at
       FROM jobs
-      WHERE workflow = ? AND env = ? AND job_status IN ('queued', 'waiting', 'in_progress')
+      WHERE workflow = ? AND env = ?
+        AND job_status IN ('queued', 'waiting', 'in_progress')
+        AND run_id > COALESCE(
+          (SELECT MAX(run_id) FROM jobs
+           WHERE workflow = ? AND env = ? AND job_status = 'completed' AND job_conclusion = 'success'),
+          0
+        )
       ORDER BY run_id DESC LIMIT 1
     `),
     getPendingJobs: db.prepare(`
@@ -97,6 +104,33 @@ function prepareStatements() {
         )
       ) ui_rows
       WHERE job_status IN ('queued', 'waiting', 'in_progress')
+    `),
+    // Like getPendingJobs but excludes 'waiting' — for frequent polling where waiting jobs
+    // won't change without human intervention.
+    getActiveJobs: db.prepare(`
+      SELECT DISTINCT run_id FROM (
+        SELECT j.run_id, j.job_status
+        FROM jobs j
+        WHERE j.run_id = (
+          SELECT MAX(j2.run_id)
+          FROM jobs j2
+          WHERE j2.workflow = j.workflow
+            AND j2.env = j.env
+            AND j2.job_status = 'completed'
+            AND j2.job_conclusion = 'success'
+        )
+        UNION ALL
+        SELECT j.run_id, j.job_status
+        FROM jobs j
+        WHERE j.run_id = (
+          SELECT MAX(j2.run_id)
+          FROM jobs j2
+          WHERE j2.workflow = j.workflow
+            AND j2.env = j.env
+            AND j2.job_status IN ('queued', 'in_progress')
+        )
+      ) ui_rows
+      WHERE job_status IN ('queued', 'in_progress')
     `),
     hasRunId: db.prepare('SELECT 1 AS found FROM jobs WHERE run_id = ? LIMIT 1'),
     getRunCoverageRows: db.prepare(`

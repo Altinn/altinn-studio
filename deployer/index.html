@@ -8,7 +8,7 @@
 <body>
   <header>
     <h1>Deployer</h1>
-    <button id="refresh-btn" title="Force refresh">Refresh</button>
+    <button id="refresh-btn" title="Force refresh">Refresh from GH</button>
     <span id="last-updated"></span>
     <span id="loading" class="hidden">Loading...</span>
     <div class="legend">
@@ -32,6 +32,23 @@
       <div class="pipeline-grid" id="studio-grid"></div>
     </section>
   </main>
+  <div id="approve-bar" class="approve-bar hidden">
+    <span id="approve-count"></span>
+    <button id="approve-bar-btn">Approve</button>
+    <button id="approve-clear">Clear</button>
+  </div>
+
+  <div id="confirm-modal" class="modal hidden">
+    <div class="modal-box">
+      <h3>Approve deployments</h3>
+      <ul id="confirm-list"></ul>
+      <div class="modal-footer">
+        <button id="confirm-ok">Approve</button>
+        <button id="confirm-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

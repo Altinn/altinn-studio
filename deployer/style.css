@@ -34,7 +34,7 @@ h2 {
 
 #last-updated { font-size: 11px; color: #8b949e; }
 #loading { font-size: 11px; color: #d4a72c; }
-.hidden { display: none; }
+.hidden { display: none !important; }
 
 button {
   background: #21262d;
@@ -178,3 +178,150 @@ button:hover { background: #30363d; }
 .half-queued      { border-left-color: #d18616; }
 .half-failure     { border-left-color: #cf222e; }
 .half-none        { border-left-color: #21262d; color: #484f58; }
+
+/* Spinner for active (queued / in_progress) deployments */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid #d4a72c;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+/* Waiting half with approve checkbox */
+
+.waiting-half {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.approve-check {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  cursor: pointer;
+  accent-color: #2da44e;
+}
+
+.waiting-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.gh-ext-link {
+  flex-shrink: 0;
+  color: #484f58;
+  text-decoration: none;
+  font-size: 11px;
+  line-height: 1;
+  padding: 1px 2px;
+}
+.gh-ext-link:hover { color: #8b949e; }
+
+/* Approve action bar */
+
+.approve-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #161b22;
+  border-top: 1px solid #2da44e;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 100;
+  font-size: 13px;
+}
+
+#approve-bar-btn {
+  background: #2da44e;
+  border-color: #2da44e;
+  color: #fff;
+  padding: 4px 12px;
+}
+#approve-bar-btn:not(:disabled):hover { background: #3fb950; border-color: #3fb950; }
+#approve-bar-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Confirmation modal */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal-box {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 20px;
+  min-width: 340px;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-box h3 { font-size: 14px; font-weight: 600; }
+
+#confirm-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  max-height: 300px;
+}
+
+.confirm-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.confirm-service { font-weight: 600; min-width: 120px; }
+
+.confirm-env {
+  color: #8b949e;
+  font-family: ui-monospace, 'SFMono-Regular', monospace;
+  font-size: 11px;
+}
+
+.confirm-sha { color: #484f58; }
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+#confirm-ok {
+  background: #2da44e;
+  border-color: #2da44e;
+  color: #fff;
+  padding: 4px 14px;
+}
+#confirm-ok:not(:disabled):hover { background: #3fb950; }
+#confirm-ok:disabled { opacity: 0.6; cursor: not-allowed; }

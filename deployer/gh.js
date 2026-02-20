@@ -52,12 +52,28 @@ function createGhClient({ parallel }) {
     }
   }
 
+  async function ghApiPost(apiPath, fields) {
+    counter.total++;
+    const args = ['api', '--method', 'POST', apiPath, '--silent'];
+    for (const [key, val] of Object.entries(fields)) {
+      if (Array.isArray(val)) {
+        for (const v of val) args.push('-F', `${key}[]=${v}`);
+      } else if (typeof val === 'number') {
+        args.push('-F', `${key}=${val}`);
+      } else {
+        args.push('-f', `${key}=${String(val)}`);
+      }
+    }
+    await withGhPermit(() => ghRaw(args));
+  }
+
   function getRequestCount() {
     return counter.total;
   }
 
   return {
     ghApi,
+    ghApiPost,
     getRequestCount,
   };
 }
