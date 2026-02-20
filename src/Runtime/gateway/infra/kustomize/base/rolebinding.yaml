@@ -4,7 +4,7 @@ metadata:
   name: gateway-role-binding
 subjects:
   - kind: ServiceAccount
-    name: gateway
+    name: studio-gateway
     namespace: runtime-gateway
 roleRef:
   kind: ClusterRole

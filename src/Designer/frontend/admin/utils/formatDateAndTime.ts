@@ -13,10 +13,3 @@ export function formatDateAndTime(dateString: string | undefined | null) {
     hour12: false,
   }).format(new Date(dateString));
 }
-
-export const getIsoRangeFromMinutes = (rangeMinutes: number, now: Date = new Date()) => {
-  const to = now.toISOString();
-  const from = new Date(now.getTime() - rangeMinutes * 60 * 1000).toISOString();
-
-  return { from, to };
-};

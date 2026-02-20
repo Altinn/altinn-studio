@@ -1,4 +1,6 @@
 #nullable disable
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -32,5 +34,15 @@ public class UserOrganizationService : IUserOrganizationService
             return false;
         }
         return organizations.Exists(organization => organization.Username == org);
+    }
+
+    public async Task<bool> UserIsMemberOfAnyOf(IEnumerable<string> organizations)
+    {
+        var userOrganizations = await _giteaClient.GetUserOrganizations();
+        if (userOrganizations == null)
+        {
+            return false;
+        }
+        return userOrganizations.Any(userOrg => organizations.Contains(userOrg.Username));
     }
 }

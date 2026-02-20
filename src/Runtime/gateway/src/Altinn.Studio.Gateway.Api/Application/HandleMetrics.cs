@@ -2,7 +2,6 @@ using Altinn.Studio.Gateway.Api.Clients.K8s;
 using Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 using Altinn.Studio.Gateway.Api.Settings;
 using Altinn.Studio.Gateway.Contracts.Metrics;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Gateway.Api.Application;
 
@@ -20,12 +19,24 @@ internal static class HandleMetrics
             metricsClientSettings.Provider
         );
 
+        var now = DateTimeOffset.UtcNow;
+        var from = now.AddMinutes(-range);
+
         var amFailedRequests = await metricsClient.GetFailedRequestsAsync(range, cancellationToken);
         var metrics = amFailedRequests.Select(metric => new ErrorMetric
         {
             Name = metric.Name,
             AppName = metric.AppName,
             Count = metric.Count,
+            LogsUrl = metricsClient.GetLogsUrl(
+                gatewayContext.AzureSubscriptionId,
+                gatewayContext.ServiceOwner,
+                gatewayContext.Environment,
+                [metric.AppName],
+                metric.Name,
+                from,
+                now
+            ),
         });
 
         return Results.Ok(metrics);
@@ -59,6 +70,7 @@ internal static class HandleMetrics
     }
 
     internal static async Task<IResult> GetAppErrorMetricsAsync(
+        GatewayContext gatewayContext,
         IServiceProvider serviceProvider,
         MetricsClientSettings metricsClientSettings,
         string app,
@@ -70,6 +82,9 @@ internal static class HandleMetrics
             metricsClientSettings.Provider
         );
 
+        var now = DateTimeOffset.UtcNow;
+        var from = now.AddMinutes(-range);
+
         var amFailedRequests = await metricsClient.GetAppFailedRequestsAsync(app, range, cancellationToken);
 
         var metrics = amFailedRequests.Select(failedRequest => new AppErrorMetric
@@ -80,36 +95,18 @@ internal static class HandleMetrics
                 DateTimeOffset = dataPoint.DateTimeOffset,
                 Count = dataPoint.Count,
             }),
+            LogsUrl = metricsClient.GetLogsUrl(
+                gatewayContext.AzureSubscriptionId,
+                gatewayContext.ServiceOwner,
+                gatewayContext.Environment,
+                [app],
+                failedRequest.Name,
+                from,
+                now
+            ),
         });
 
         return Results.Ok(metrics);
-    }
-
-    internal static IResult GetAppErrorMetricsLogsAsync(
-        GatewayContext gatewayContext,
-        IServiceProvider serviceProvider,
-        MetricsClientSettings metricsClientSettings,
-        [FromQuery] string[] apps,
-        [FromQuery] string metric,
-        [FromQuery] DateTimeOffset from,
-        [FromQuery] DateTimeOffset to
-    )
-    {
-        IMetricsClient metricsClient = serviceProvider.GetRequiredKeyedService<IMetricsClient>(
-            metricsClientSettings.Provider
-        );
-
-        Uri? azureUrl = metricsClient.GetLogsUrl(
-            gatewayContext.AzureSubscriptionId,
-            gatewayContext.ServiceOwner,
-            gatewayContext.Environment,
-            apps,
-            metric,
-            from,
-            to
-        );
-
-        return Results.Ok(new AzureUrl(azureUrl));
     }
 
     internal static async Task<IResult> GetAppHealthMetricsAsync(

@@ -109,7 +109,7 @@ internal static class FrontendUpgrade
             DefaultValueFactory = _ => false,
         };
 
-        var upgradeCommand = new Command("frontend-v3-to-v4", "Upgrade an app from using App-Frontend v3 to v4")
+        var upgradeCommand = new Command("frontend-v4", "Upgrade an app from using App-Frontend v3 to v4")
         {
             projectFolderOption,
             targetVersionOption,

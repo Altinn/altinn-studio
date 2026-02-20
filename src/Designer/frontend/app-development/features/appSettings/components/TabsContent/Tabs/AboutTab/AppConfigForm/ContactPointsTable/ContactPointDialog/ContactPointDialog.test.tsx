@@ -57,13 +57,29 @@ describe('ContactPointDialog', () => {
     }
   });
 
-  it('calls onSave and onClose when actions are clicked', async () => {
+  it('disables Save button when all fields are empty', () => {
+    renderContactPointDialog({
+      draftContactPoint: { email: '', telephone: '', contactPage: '', category: '' },
+    });
+    const saveButton = screen.getByRole('button', { name: textMock('general.save'), hidden: true });
+    expect(saveButton).toBeDisabled();
+  });
+
+  it('calls onSave when Save is clicked and at least one field has value', async () => {
     const user = userEvent.setup();
     const onSave = jest.fn();
-    const onClose = jest.fn();
-    renderContactPointDialog({ onSave, onClose });
+    renderContactPointDialog({
+      draftContactPoint: { email: 'a', telephone: '', contactPage: '', category: '' },
+      onSave,
+    });
     await user.click(screen.getByRole('button', { name: textMock('general.save'), hidden: true }));
     expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onClose when Cancel is clicked', async () => {
+    const user = userEvent.setup();
+    const onClose = jest.fn();
+    renderContactPointDialog({ onClose });
     await user.click(
       screen.getByRole('button', { name: textMock('general.cancel'), hidden: true }),
     );

@@ -35,64 +35,29 @@ internal sealed class AlertsService(
     }
 
     /// <inheritdoc />
-    public async Task NotifyAlertsUpdatedAsync(string org, AltinnEnvironment environment, IEnumerable<Alert> alerts, CancellationToken cancellationToken)
+    public async Task NotifyAlertsUpdatedAsync(string org, AltinnEnvironment environment, Alert alert, CancellationToken cancellationToken)
     {
-        DateTimeOffset to = DateTimeOffset.UtcNow;
-        DateTimeOffset from = to.AddMinutes(-5);
-        string fromIso = Uri.EscapeDataString(from.ToString("O"));
-        string toIso = Uri.EscapeDataString(to.ToString("O"));
+        var apps = alert.Alerts.Where(alertInstance => alertInstance.Status == "firing").Select(alertInstance => alertInstance.App).ToList();
 
-        var firingAlerts = alerts
-        .Select(alert => new
+        if (apps.Count > 0)
         {
-            alert.Id,
-            alert.Name,
-            alert.URL,
-            FiringApps = alert.Alerts
-                .Where(a => a.Status == "firing")
-                .Select(a => a.App)
-                .ToList()
-        })
-        .Where(a => a.FiringApps.Count > 0);
-
-        await Task.WhenAll(
-            firingAlerts.Select(async alert =>
-            {
-                Uri? appInsightsUrl = null;
-                if (!string.IsNullOrWhiteSpace(alert.Id))
-                {
-                    IEnumerable<string> queryParts = alert.FiringApps.Select(app => $"apps={Uri.EscapeDataString(app)}").Concat([
-                        $"metric={Uri.EscapeDataString(alert.Id)}",
-                        $"from={fromIso}",
-                        $"to={toIso}",
-                    ]);
-                    string queryString = string.Join("&", queryParts);
-                    appInsightsUrl = new Uri($"https://{generalSettings.HostName}/designer/api/v1/admin/metrics/{org}/{environment.Name}/app/errors/logs?{queryString}");
-                }
-
-                await SendToSlackAsync(org, environment, alert.FiringApps, alert.Name, alert.URL, appInsightsUrl, cancellationToken);
-
-            })
-        );
+            await SendToSlackAsync(org, environment, apps, alert.Name, alert.Url, alert.LogsUrl, cancellationToken);
+        }
 
         await alertsUpdatedHubContext.Clients.Group(org).AlertsUpdated(new AlertsUpdated(environment.Name));
     }
 
-    private async Task SendToSlackAsync(string org, AltinnEnvironment environment, List<string> apps, string alertName, Uri grafanaUrl, Uri? appInsightsUrl, CancellationToken cancellationToken)
+    private async Task SendToSlackAsync(string org, AltinnEnvironment environment, List<string> apps, string alertName, Uri grafanaUrl, Uri appInsightsUrl, CancellationToken cancellationToken)
     {
         string studioEnv = generalSettings.OriginEnvironment;
         string appsFormatted = string.Join(", ", apps.Select(a => $"`{a}`"));
         const string Emoji = ":x:";
 
-        var links = new List<SlackText>();
-        if (grafanaUrl is not null)
+        var links = new List<SlackText>
         {
-            links.Add(new SlackText { Type = "mrkdwn", Text = $"<{grafanaUrl}|Grafana>" });
-        }
-        if (appInsightsUrl is not null)
-        {
-            links.Add(new SlackText { Type = "mrkdwn", Text = $"<{appInsightsUrl}|Application Insights>" });
-        }
+            new() { Type = "mrkdwn", Text = $"<{grafanaUrl}|Grafana>" },
+            new() { Type = "mrkdwn", Text = $"<{appInsightsUrl.OriginalString}|Application Insights>" }
+        };
 
         var message = new SlackMessage
         {
