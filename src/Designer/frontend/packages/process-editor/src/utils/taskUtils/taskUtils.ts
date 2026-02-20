@@ -9,7 +9,7 @@ export class TaskUtils {
   public static isUserControlledSigning(bpmnDetails: Element): boolean {
     const dataType = 'user-controlled-signatures';
     const signatureConfig =
-      bpmnDetails.di?.bpmnElement?.extensionElements?.values?.[0]?.signatureConfig;
+      bpmnDetails.businessObject?.extensionElements?.values?.[0]?.signatureConfig;
     return signatureConfig?.signatureDataType?.includes(dataType) ?? false;
   }
 }

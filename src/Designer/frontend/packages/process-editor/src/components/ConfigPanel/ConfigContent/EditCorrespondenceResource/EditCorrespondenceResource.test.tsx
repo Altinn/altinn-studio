@@ -1,7 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { EditCorrespondenceResource } from './EditCorrespondenceResource';
+import {
+  EditCorrespondenceResource,
+  EditCorrespondenceResourceProps,
+} from './EditCorrespondenceResource';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 jest.mock('./useGetCorrespondenceResource', () => ({
@@ -38,6 +41,19 @@ describe('EditCorrespondenceResource', (): void => {
     expect(screen.getByDisplayValue('default value')).toBeInTheDocument();
   });
 
+  it('should render with label, description and default value when task is user controlled signing', async (): Promise<void> => {
+    const user = userEvent.setup();
+    mockUseGetCorrespondenceResource.mockReturnValue('default value');
+    mockUseUpdateCorrespondenceResource.mockReturnValue(jest.fn());
+
+    renderEditCorrespondenceResource({ isUserControlledSigningTask: true });
+    await user.click(getToggableTextFieldButton(true));
+
+    expect(getToggableTextFieldByLabel(true)).toBeInTheDocument();
+    expect(getToggableTextFieldDescription(true)).toBeInTheDocument();
+    expect(screen.getByDisplayValue('default value')).toBeInTheDocument();
+  });
+
   it('should call updateCorrespondenceResource on blur with the new value', async (): Promise<void> => {
     const user = userEvent.setup();
     const mockUpdate = jest.fn();
@@ -57,24 +73,38 @@ describe('EditCorrespondenceResource', (): void => {
   });
 });
 
-function getToggableTextFieldButton(): HTMLButtonElement {
+function getToggableTextFieldButton(isUserControlledSigningTask = false): HTMLButtonElement {
   return screen.getByRole('button', {
-    name: textMock('process_editor.configuration_panel.correspondence_resource'),
+    name: textMock(
+      isUserControlledSigningTask
+        ? 'process_editor.configuration_panel.correspondence_resource_user_controlled_signing'
+        : 'process_editor.configuration_panel.correspondence_resource',
+    ),
   });
 }
 
-function getToggableTextFieldByLabel(): HTMLInputElement {
+function getToggableTextFieldByLabel(isUserControlledSigningTask = false): HTMLInputElement {
   return screen.getByLabelText(
-    textMock('process_editor.configuration_panel.correspondence_resource'),
+    textMock(
+      isUserControlledSigningTask
+        ? 'process_editor.configuration_panel.correspondence_resource_user_controlled_signing'
+        : 'process_editor.configuration_panel.correspondence_resource',
+    ),
   );
 }
 
-function getToggableTextFieldDescription(): HTMLElement {
+function getToggableTextFieldDescription(isUserControlledSigningTask = false): HTMLElement {
   return screen.getByText(
-    textMock('process_editor.configuration_panel.correspondence_resource_description'),
+    textMock(
+      isUserControlledSigningTask
+        ? 'process_editor.configuration_panel.correspondence_resource_user_controlled_signing_description'
+        : 'process_editor.configuration_panel.correspondence_resource_description',
+    ),
   );
 }
 
-function renderEditCorrespondenceResource(): void {
-  render(<EditCorrespondenceResource />);
+function renderEditCorrespondenceResource(
+  props: Partial<EditCorrespondenceResourceProps> = {},
+): void {
+  render(<EditCorrespondenceResource {...props} />);
 }

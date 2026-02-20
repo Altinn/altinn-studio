@@ -70,7 +70,10 @@ export const ConfigContent = (): React.ReactElement => {
             {!isFirstSigningTask && (
               <EditUniqueFromSignaturesInDataTypes key={`${bpmnDetails.id}-uniqueSignature`} />
             )}
-            <EditCorrespondenceResource key={`${bpmnDetails.id}-correspondenceResource`} />
+            <EditCorrespondenceResource
+              isUserControlledSigningTask={isUserControlledSigningTask}
+              key={`${bpmnDetails.id}-correspondenceResource`}
+            />
           </>
         )}
         {isUserControlledSigningTask && (
