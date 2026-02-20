@@ -1,4 +1,8 @@
-import type { ValidateConfigState } from './ValidateNavigationTypes';
+import type {
+  ExternalConfigState,
+  ExternalConfigWithId,
+  InternalConfigState,
+} from './ValidateNavigationTypes';
 import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
 
 export enum Scope {
@@ -7,7 +11,7 @@ export enum Scope {
   SelectedPages = 'selectedPages',
 }
 
-export const getDefaultConfig = (scope: Scope): ValidateConfigState => ({
+export const getDefaultConfig = (scope: Scope): InternalConfigState => ({
   types: [],
   pageScope: { value: '', label: '' },
   ...(scope === Scope.SelectedTasks && { tasks: [] }),
@@ -38,3 +42,26 @@ export const getRuleEnums = (ruleType: RuleType) => {
     return show.items.enum ?? [];
   }
 };
+
+export const convertToExternalConfig = (
+  internalConfig: InternalConfigState,
+): ExternalConfigState => ({
+  show: internalConfig.types.map((type) => type.value),
+  page: internalConfig.pageScope.value,
+  tasks: internalConfig.tasks?.map((task) => task.value),
+  task: internalConfig.task?.value,
+  pages: internalConfig.pages?.map((page) => page.value),
+});
+
+export const getValuesToDisplay = (config: InternalConfigState) => {
+  return {
+    tasks: config?.tasks?.map((task) => task.label).join(', '),
+    task: config?.task?.label,
+    pages: config?.pages?.map((page) => page.label).join(', '),
+    types: config?.types?.map((type) => type.label).join(', '),
+    pageScope: config?.pageScope?.label,
+  };
+};
+
+export const withUniqueIds = (configs: ExternalConfigState[]): ExternalConfigWithId[] =>
+  configs.map((config) => ({ ...config, id: crypto.randomUUID() }));

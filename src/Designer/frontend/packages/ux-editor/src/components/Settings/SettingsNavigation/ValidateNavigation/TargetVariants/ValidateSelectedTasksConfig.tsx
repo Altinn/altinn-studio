@@ -1,7 +1,8 @@
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import { Scope } from '../utils/ValidateNavigationUtils';
-import type { ValidateConfigState } from '../utils/ValidateNavigationTypes';
+import { Scope, convertToExternalConfig, withUniqueIds } from '../utils/ValidateNavigationUtils';
+import type { ExternalConfigWithId, InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 
 export const ValidateSelectedTasksConfig = () => {
@@ -20,11 +21,27 @@ export const ValidateSelectedTasksConfig = () => {
     },
   ];
 
-  const internalConfigs = useConvertToInternalConfig(dummyData);
+  const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigWithId[]>( // This is just to simulate the save functionality, in real implementation this would be handled differently
+    withUniqueIds(dummyData),
+  );
 
-  const handleSave = (updatedConfig: ValidateConfigState) => {
-    // For now just log the config that would be  saved, will implement actual save logic in next PR
-    console.log(`Saved validation rule with config:`, updatedConfig);
+  const internalConfigs = useConvertToInternalConfig(tempExtConfigs)?.map((conf, i) => ({
+    ...conf,
+    id: tempExtConfigs[i].id,
+  }));
+
+  const handleSave = (updatedConfig: InternalConfigState, id?: string) => {
+    const newExternal = convertToExternalConfig(updatedConfig);
+
+    setTempExtConfigs((prevConfigs) =>
+      id
+        ? prevConfigs.map((config) => (config.id === id ? { ...newExternal, id } : config))
+        : [...prevConfigs, { ...newExternal, id: crypto.randomUUID() }],
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    setTempExtConfigs((prev) => prev.filter((config) => config.id !== id));
   };
 
   return (
@@ -32,17 +49,18 @@ export const ValidateSelectedTasksConfig = () => {
       {internalConfigs &&
         internalConfigs.map((conf, index) => (
           <ValidateNavigationConfig
-            key={index}
+            key={conf.id}
             propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
             scope={Scope.SelectedTasks}
             config={conf}
-            onSave={handleSave}
+            onSave={(newConf) => handleSave(newConf, conf.id)}
+            onDelete={() => handleDelete(conf.id)}
           />
         ))}
       <ValidateNavigationConfig
         propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
         scope={Scope.SelectedTasks}
-        onSave={handleSave}
+        onSave={(newConf) => handleSave(newConf)}
       />
     </>
   );

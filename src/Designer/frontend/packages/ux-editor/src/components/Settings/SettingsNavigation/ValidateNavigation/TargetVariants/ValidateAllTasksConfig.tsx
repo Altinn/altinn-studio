@@ -1,9 +1,10 @@
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import { Scope } from '../utils/ValidateNavigationUtils';
+import { convertToExternalConfig, Scope } from '../utils/ValidateNavigationUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import type { ValidateConfigState } from '../utils/ValidateNavigationTypes';
+import type { InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 
 export const ValidateAllTasksConfig = () => {
@@ -11,11 +12,11 @@ export const ValidateAllTasksConfig = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSetsSchema } = useLayoutSetsQuery(org, app);
   const { validationOnNavigation: configData } = layoutSetsSchema;
-  const config = useConvertToInternalConfig(configData);
+  const [tempExtConfig, setTempExtConfig] = useState(configData); // This is just to simulate the save functionality, in real implementation this would be handled differently
+  const config = useConvertToInternalConfig(tempExtConfig);
 
-  const handleSave = (updatedConfig: ValidateConfigState) => {
-    // For now just log the config that would be  saved, will implement actual save logic in next PR
-    console.log(`Saved validation rule with config:`, updatedConfig);
+  const handleSave = (updatedConfig: InternalConfigState) => {
+    setTempExtConfig(convertToExternalConfig(updatedConfig));
   };
 
   return (

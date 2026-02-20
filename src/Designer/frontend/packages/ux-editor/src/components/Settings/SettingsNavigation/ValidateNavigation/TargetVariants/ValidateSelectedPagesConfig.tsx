@@ -1,13 +1,18 @@
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import { Scope } from '../utils/ValidateNavigationUtils';
-import type { ValidateConfigState } from '../utils/ValidateNavigationTypes';
+import { Scope, convertToExternalConfig, withUniqueIds } from '../utils/ValidateNavigationUtils';
+import type {
+  ExternalConfigState,
+  ExternalConfigWithId,
+  InternalConfigState,
+} from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 
 export const ValidateSelectedPagesConfig = () => {
   const { t } = useTranslation();
 
-  const dummyData = [
+  const dummyData: ExternalConfigState[] = [
     {
       show: ['Schema', 'Component'],
       page: 'current',
@@ -22,29 +27,44 @@ export const ValidateSelectedPagesConfig = () => {
     },
   ];
 
-  const internalConfigs = useConvertToInternalConfig(dummyData);
+  const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigWithId[]>(
+    withUniqueIds(dummyData),
+  );
+  const internalConfigs = useConvertToInternalConfig(tempExtConfigs)?.map((conf, i) => ({
+    ...conf,
+    id: tempExtConfigs[i].id,
+  }));
 
-  const handleSave = (updatedConfig: ValidateConfigState) => {
-    // For now just log the config that would be  saved, will implement actual save logic in next PR
-    console.log(`Saved validation rule with config:`, updatedConfig);
+  const handleSave = (updatedConfig: InternalConfigState, id?: string) => {
+    const newExternal = convertToExternalConfig(updatedConfig);
+
+    setTempExtConfigs((prevConfigs) =>
+      id
+        ? prevConfigs.map((config) => (config.id === id ? { ...newExternal, id } : config))
+        : [...prevConfigs, { ...newExternal, id: crypto.randomUUID() }],
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    setTempExtConfigs((prev) => prev.filter((config) => config.id !== id));
   };
 
   return (
     <>
-      {internalConfigs &&
-        internalConfigs.map((conf, index) => (
-          <ValidateNavigationConfig
-            key={index}
-            propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
-            scope={Scope.SelectedPages}
-            config={conf}
-            onSave={handleSave}
-          />
-        ))}
+      {internalConfigs?.map((conf) => (
+        <ValidateNavigationConfig
+          key={conf.id}
+          propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
+          scope={Scope.SelectedPages}
+          config={conf}
+          onSave={(newConf) => handleSave(newConf, conf.id)}
+          onDelete={() => handleDelete(conf.id)}
+        />
+      ))}
       <ValidateNavigationConfig
         propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
         scope={Scope.SelectedPages}
-        onSave={handleSave}
+        onSave={(newConf) => handleSave(newConf)}
       />
     </>
   );

@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
 import { StudioConfigCard, StudioProperty } from '@studio/components';
-import { type Scope, getCardLabel, getDefaultConfig } from './utils/ValidateNavigationUtils';
+import {
+  type Scope,
+  getCardLabel,
+  getDefaultConfig,
+  getValuesToDisplay,
+} from './utils/ValidateNavigationUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './ValidateNavigationConfig.module.css';
 import { ValidateCardContent } from './ValidateCardContent/ValidateCardContent';
-import type { ValidateConfigState } from './utils/ValidateNavigationTypes';
-import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks';
+import type { InternalConfigState } from './utils/ValidateNavigationTypes';
 
 export type ValidateNavigationConfigProps = {
   propertyLabel: string;
   scope: Scope;
-  config?: ValidateConfigState;
-  onSave: (config: ValidateConfigState) => void;
+  config?: InternalConfigState;
+  onSave: (config: InternalConfigState) => void;
+  onDelete?: () => void;
 };
 
 export const ValidateNavigationConfig = ({
@@ -19,51 +24,52 @@ export const ValidateNavigationConfig = ({
   scope,
   config,
   onSave,
+  onDelete,
 }: ValidateNavigationConfigProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
-
-  const enumValue = useComponentPropertyEnumValue();
-
-  const valueToDisplay = config
-    ? `Varianter: ${config?.types.map((type) => enumValue(type.label)).join(', ') || ''}. Omfang: ${enumValue(config?.pageScope?.label) || ''}`
-    : null;
 
   if (!isEditMode) {
     return (
       <StudioProperty.Button
         onClick={() => setIsEditMode(true)}
         property={propertyLabel}
-        value={valueToDisplay}
+        value={config && <DisplayValues {...config} />}
         className={classes.configWrapper}
       />
     );
   }
 
   return (
-    <ValidateCard scope={scope} config={config} setIsEditMode={setIsEditMode} onSave={onSave} />
+    <ValidateCard
+      scope={scope}
+      config={config}
+      setIsEditMode={setIsEditMode}
+      onSave={onSave}
+      onDelete={onDelete}
+    />
   );
 };
 
 type ValidateCardProps = {
   scope: Scope;
-  config?: ValidateConfigState;
+  config?: InternalConfigState;
   setIsEditMode: (isEditMode: boolean) => void;
-  onSave: (config: ValidateConfigState) => void; // This will be used in next PR when we implement actual save logic
+  onSave: (config: InternalConfigState) => void; // This will be used in next PR when we implement actual save logic
+  onDelete?: () => void; // This will be used in next PR when we implement actual delete logic
 };
 
-const ValidateCard = ({ scope, config, setIsEditMode, onSave }: ValidateCardProps) => {
+const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: ValidateCardProps) => {
   const { t } = useTranslation();
-  const [currentConfig, setCurrentConfig] = useState<ValidateConfigState>(
+  const [currentConfig, setCurrentConfig] = useState<InternalConfigState>(
     config || getDefaultConfig(scope),
   );
 
-  const update = (updates: Partial<ValidateConfigState>) => {
+  const update = (updates: Partial<InternalConfigState>) => {
     setCurrentConfig((prev) => ({ ...prev, ...updates }));
   };
 
   const handleDelete = () => {
-    // For now just log the config that would be deleted, will implement actual delete logic in next PR
-    console.log(`Deleted validation rule with config: ${currentConfig} for ${scope}`);
+    onDelete();
     setIsEditMode(false);
   };
 
@@ -82,6 +88,7 @@ const ValidateCard = ({ scope, config, setIsEditMode, onSave }: ValidateCardProp
         cardLabel={t(getCardLabel(scope))}
         deleteAriaLabel={t('general.delete')}
         onDelete={handleDelete}
+        isDeleteDisabled={!onDelete}
       />
       <StudioConfigCard.Body>
         <ValidateCardContent scope={scope} config={currentConfig} onChange={update} />
@@ -93,5 +100,17 @@ const ValidateCard = ({ scope, config, setIsEditMode, onSave }: ValidateCardProp
         onCancel={handleCancel}
       />
     </StudioConfigCard>
+  );
+};
+
+const DisplayValues = (config: InternalConfigState) => {
+  const valueToDisplay = getValuesToDisplay(config);
+
+  return (
+    <div>
+      {Object.entries(valueToDisplay).map(([key, value]) => (
+        <div key={key}> {value}</div>
+      ))}
+    </div>
   );
 };
