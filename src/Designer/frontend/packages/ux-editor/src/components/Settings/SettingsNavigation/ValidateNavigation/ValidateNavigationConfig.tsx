@@ -69,7 +69,7 @@ const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: Valida
   };
 
   const handleDelete = () => {
-    onDelete();
+    onDelete?.();
     setIsEditMode(false);
   };
 
