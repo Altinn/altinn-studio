@@ -15,9 +15,7 @@ import classes from 'src/app-components/Pagination/Pagination.module.css';
 type PaginationProps = {
   id: string;
   nextLabel: string;
-  nextLabelAriaLabel: string;
   previousLabel: string;
-  previousLabelAriaLabel: string;
   size: NonNullable<Parameters<typeof DesignSystemPagination>[0]['data-size']>;
   compact?: boolean;
   hideLabels?: boolean;
@@ -47,8 +45,6 @@ export const Pagination = ({
   rowsPerPageOptions,
   rowsPerPageText,
   showRowsPerPageDropdown = false,
-  previousLabelAriaLabel,
-  nextLabelAriaLabel,
   pageSize,
 }: PaginationProps) => {
   const isMini = useIsMini();
@@ -103,10 +99,7 @@ export const Pagination = ({
       >
         <DesignSystemPagination.List>
           <DesignSystemPagination.Item>
-            <DesignSystemPagination.Button
-              {...prevButtonProps}
-              aria-label={t(previousLabelAriaLabel)}
-            >
+            <DesignSystemPagination.Button {...prevButtonProps}>
               {!hideLabels && !isMobile && t(previousLabel)}
             </DesignSystemPagination.Button>
           </DesignSystemPagination.Item>
@@ -124,10 +117,7 @@ export const Pagination = ({
             </DesignSystemPagination.Item>
           ))}
           <DesignSystemPagination.Item>
-            <DesignSystemPagination.Button
-              {...nextButtonProps}
-              aria-label={t(nextLabelAriaLabel)}
-            >
+            <DesignSystemPagination.Button {...nextButtonProps}>
               {!hideLabels && !isMobile && t(nextLabel)}
             </DesignSystemPagination.Button>
           </DesignSystemPagination.Item>

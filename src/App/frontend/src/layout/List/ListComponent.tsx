@@ -388,9 +388,7 @@ function Pagination({
       <CustomPagination
         id={id}
         nextLabel='list_component.nextPage'
-        nextLabelAriaLabel='list_component.nextPageAriaLabel'
         previousLabel='list_component.previousPage'
-        previousLabelAriaLabel='list_component.previousPageAriaLabel'
         rowsPerPageText='list_component.rowsPerPage'
         size='sm'
         currentPage={currentPage}

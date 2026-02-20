@@ -138,9 +138,7 @@ function InstanceSelection() {
                   <Pagination
                     id='instance-selection'
                     nextLabel='list_component.nextPage'
-                    nextLabelAriaLabel='list_component.nextPageAriaLabel'
                     previousLabel='list_component.previousPage'
-                    previousLabelAriaLabel='list_component.previousPageAriaLabel'
                     rowsPerPageText='list_component.rowsPerPage'
                     size='sm'
                     numberOfRows={instances.length}
@@ -207,11 +205,9 @@ function InstanceSelection() {
                 <div className={classes.paginationWrapper}>
                   <Pagination
                     id='instance-selection'
-                    nextLabel={langAsString('list_component.nextPage')}
-                    nextLabelAriaLabel={langAsString('list_component.nextPageAriaLabel')}
-                    previousLabel={langAsString('list_component.previousPage')}
-                    previousLabelAriaLabel={langAsString('list_component.previousPageAriaLabel')}
-                    rowsPerPageText={langAsString('list_component.rowsPerPage')}
+                    nextLabel='list_component.nextPage'
+                    previousLabel='list_component.previousPage'
+                    rowsPerPageText='list_component.rowsPerPage'
                     size='sm'
                     hideLabels={false}
                     currentPage={currentPage}
