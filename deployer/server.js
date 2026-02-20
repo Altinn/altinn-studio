@@ -20,6 +20,7 @@ const {
   getWorkflowStopAtRunId,
   setWorkflowStopAtRunId,
 } = require('./db');
+const { openUrlInBrowser } = require('./browser');
 const { ghApi, getRequestCount } = createGhClient({ parallel: GH_PARALLEL });
 
 // --- Service & environment definitions ---
@@ -525,9 +526,11 @@ initDb();
 stmts = prepareStatements();
 
 server.listen(PORT, () => {
-  console.log(`Deployer: http://localhost:${PORT}`);
+  const deployerUrl = `http://localhost:${PORT}`;
+  console.log(`Deployer: ${deployerUrl}`);
   console.log(`Repo: ${REPO}`);
   console.log(`DB: ${DB_PATH}`);
+  openUrlInBrowser(deployerUrl);
   console.log('Starting worker...');
   startWorker();
 });
