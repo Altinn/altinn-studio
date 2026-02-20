@@ -28,7 +28,7 @@ public class ChatThreadRepository : IChatThreadRepository
             .AsSplitQuery()
             .Include(t => t.Messages.OrderBy(m => m.CreatedAt))
                 .ThenInclude(m => m.Attachments)
-            .SingleOrDefaultAsync(t => t.ExternalId == id, cancellationToken);
+            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
         return thread is null ? null : ChatThreadMapper.MapToModel(thread);
     }
@@ -57,26 +57,21 @@ public class ChatThreadRepository : IChatThreadRepository
     public async Task UpdateThreadAsync(ChatThreadEntity thread, CancellationToken cancellationToken = default)
     {
         await _dbContext.ChatThreads
-            .Where(t => t.ExternalId == thread.Id)
+            .Where(t => t.Id == thread.Id)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.Title, thread.Title), cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task DeleteThreadAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _dbContext.ChatThreads.Where(t => t.ExternalId == id).ExecuteDeleteAsync(cancellationToken);
+        await _dbContext.ChatThreads.Where(t => t.Id == id).ExecuteDeleteAsync(cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<ChatMessageEntity> CreateMessageAsync(Guid threadId, ChatMessageEntity message, CancellationToken cancellationToken = default)
     {
-        long internalThreadId = await _dbContext.ChatThreads
-            .Where(t => t.ExternalId == threadId)
-            .Select(t => t.Id)
-            .SingleAsync(cancellationToken);
-
         var dbModel = ChatMessageMapper.MapToDbModel(message);
-        dbModel.ThreadId = internalThreadId;
+        dbModel.ThreadId = threadId;
         _dbContext.ChatMessages.Add(dbModel);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return ChatMessageMapper.MapToModel(dbModel);
@@ -85,13 +80,8 @@ public class ChatThreadRepository : IChatThreadRepository
     /// <inheritdoc />
     public async Task<ChatAttachmentEntity> CreateAttachmentAsync(Guid messageId, ChatAttachmentEntity attachment, CancellationToken cancellationToken = default)
     {
-        long internalMessageId = await _dbContext.ChatMessages
-            .Where(m => m.ExternalId == messageId)
-            .Select(m => m.Id)
-            .SingleAsync(cancellationToken);
-
         var dbModel = ChatAttachmentMapper.MapToDbModel(attachment);
-        dbModel.MessageId = internalMessageId;
+        dbModel.MessageId = messageId;
         _dbContext.ChatAttachments.Add(dbModel);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return ChatAttachmentMapper.MapToModel(dbModel);
@@ -100,6 +90,6 @@ public class ChatThreadRepository : IChatThreadRepository
     /// <inheritdoc />
     public async Task DeleteAttachmentAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _dbContext.ChatAttachments.Where(a => a.ExternalId == id).ExecuteDeleteAsync(cancellationToken);
+        await _dbContext.ChatAttachments.Where(a => a.Id == id).ExecuteDeleteAsync(cancellationToken);
     }
 }

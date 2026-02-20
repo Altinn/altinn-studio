@@ -7,17 +7,12 @@ public class ChatAttachmentDbModel
     /// <summary>
     /// Unique identifier for the attachment.
     /// </summary>
-    public long Id { get; set; }
-
-    /// <summary>
-    /// External identifier exposed to clients.
-    /// </summary>
-    public required Guid ExternalId { get; set; }
+    public required Guid Id { get; set; }
 
     /// <summary>
     /// Foreign key for message where attachment belongs.
     /// </summary>
-    public long MessageId { get; set; }
+    public Guid MessageId { get; set; }
 
     /// <summary>
     /// Attachment file name with extension.

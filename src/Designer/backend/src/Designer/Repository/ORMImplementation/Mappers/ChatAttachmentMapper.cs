@@ -9,7 +9,7 @@ public static class ChatAttachmentMapper
     {
         return new ChatAttachmentDbModel
         {
-            ExternalId = entity.Id,
+            Id = entity.Id,
             FileName = entity.FileName,
             CreatedAt = entity.CreatedAt,
             MimeType = entity.MimeType,
@@ -22,7 +22,7 @@ public static class ChatAttachmentMapper
     {
         return new ChatAttachmentEntity
         {
-            Id = dbModel.ExternalId,
+            Id = dbModel.Id,
             FileName = dbModel.FileName,
             CreatedAt = dbModel.CreatedAt,
             MimeType = dbModel.MimeType,

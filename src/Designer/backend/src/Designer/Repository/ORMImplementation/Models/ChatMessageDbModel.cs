@@ -9,17 +9,12 @@ public class ChatMessageDbModel
     /// <summary>
     /// Unique identifier for the message.
     /// </summary>
-    public long Id { get; set; }
-
-    /// <summary>
-    /// External identifier exposed to clients.
-    /// </summary>
-    public required Guid ExternalId { get; set; }
+    public required Guid Id { get; set; }
 
     /// <summary>
     /// Foreign key for thread where message belongs.
     /// </summary>
-    public long ThreadId { get; set; }
+    public Guid ThreadId { get; set; }
 
     /// <summary>
     /// Creation timestamp.

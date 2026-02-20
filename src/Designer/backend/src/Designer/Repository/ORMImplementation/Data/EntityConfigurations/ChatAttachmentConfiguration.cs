@@ -19,22 +19,13 @@ public class ChatAttachmentConfiguration : IEntityTypeConfiguration<ChatAttachme
 
         builder.HasIndex(e => e.MessageId, "idx_chat_attachments_message_id");
 
-        builder.HasIndex(e => e.ExternalId, "idx_chat_attachments_external_id")
-            .IsUnique();
-
         builder.Property(e => e.Id)
-            .HasColumnType("bigint")
-            .HasColumnName("id")
-            .ValueGeneratedOnAdd()
-            .IsRequired();
-
-        builder.Property(e => e.ExternalId)
             .HasColumnType("uuid")
-            .HasColumnName("external_id")
+            .HasColumnName("id")
             .IsRequired();
 
         builder.Property(e => e.MessageId)
-            .HasColumnType("bigint")
+            .HasColumnType("uuid")
             .HasColumnName("message_id")
             .IsRequired();
 
