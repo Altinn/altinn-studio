@@ -726,10 +726,7 @@ internal static partial class EnginePgRepositoryLogs
     [LoggerMessage(LogLevel.Debug, "Successfully added workflow to database: {Workflow}")]
     internal static partial void SuccessfullyAddedWorkflow(this ILogger<EnginePgRepository> logger, Workflow workflow);
 
-    [LoggerMessage(
-        LogLevel.Error,
-        "Failed to add workflow to database due to task cancellation or after all retries exhausted. Database down? Error: {Message}"
-    )]
+    [LoggerMessage(LogLevel.Error, "Failed to add workflow to database: {Message}")]
     internal static partial void FailedToAddWorkflows(
         this ILogger<EnginePgRepository> logger,
         string message,

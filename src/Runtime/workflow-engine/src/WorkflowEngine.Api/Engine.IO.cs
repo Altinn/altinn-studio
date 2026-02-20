@@ -75,7 +75,7 @@ internal partial class Engine
         catch (ActiveWorkflowConstraintException ex)
         {
             activity?.Errored(errorMessage: ex.Message);
-            return EngineResponse.Reject(EngineResponse.Rejection.Duplicate, ex.Message);
+            return EngineResponse.Reject(EngineResponse.Rejection.ConcurrencyViolation, ex.Message);
         }
 
         _inbox[workflow.DatabaseId] = workflow;

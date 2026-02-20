@@ -56,6 +56,7 @@ internal static class EngineRequestHandlers
                 {
                     EngineResponse.Rejection.AtCapacity => StatusCodes.Status429TooManyRequests,
                     EngineResponse.Rejection.Unavailable => StatusCodes.Status503ServiceUnavailable,
+                    EngineResponse.Rejection.ConcurrencyViolation => StatusCodes.Status409Conflict,
                     _ => StatusCodes.Status400BadRequest,
                 }
             ),
