@@ -18,6 +18,11 @@ async def handle(state: AgentState) -> AgentState:
     """Execute the complete actor workflow pipeline and apply the resulting patch."""
 
     log.info("🎭 Actor node executing")
+    sink.send(AgentEvent(
+        type="status",
+        session_id=state.session_id,
+        data={"message": "Generating code changes..."},
+    ))
     try:
         # Check if we already have patch data from planner
         if state.patch_data:
@@ -36,8 +41,7 @@ async def handle(state: AgentState) -> AgentState:
                 repository_path=state.repo_path,
                 user_goal=state.user_goal,
                 repo_facts=state.repo_facts or {},
-                planner_step=state.implementation_plan or state.step_plan[0] if state.step_plan else None,
-                gitea_token=state.gitea_token,
+                planner_step=state.implementation_plan or (state.step_plan[0] if state.step_plan else None),
             )
             patch_data = result["patch"]
 
@@ -164,7 +168,6 @@ async def handle(state: AgentState) -> AgentState:
                             repo_path=state.repo_path,
                             mcp_client=mcp_client,
                             check_only=False,
-                            gitea_token=state.gitea_token
                         )
                         all_sync_results.append(sync_result)
                         status = sync_result.get("status", "unknown")
@@ -215,25 +218,22 @@ async def handle(state: AgentState) -> AgentState:
                 log.error(f"❌ Artifact sync failed: {e}")
                 # Don't fail the entire workflow for sync issues
         
-        # Check what actually changed
-        import subprocess
-        try:
-            git_result = subprocess.run(["git", "status", "--porcelain"], cwd=state.repo_path, capture_output=True, text=True)
-            changed_files = [line for line in git_result.stdout.strip().split('\n') if line.strip()]
-            log.info(f"📊 Git status after patch: {len(changed_files)} files changed")
-            if changed_files:
-                for change in changed_files[:5]:  # Show first 5
-                    log.info(f"  {change}")
-            else:
-                log.warning("⚠️  No files changed according to git status")
-        except Exception as e:
-            log.error(f"Failed to check git status: {e}")
-        
+        # Ensure NavigationButtons exist in multi-page forms
+        nav_modified = _ensure_navigation_buttons(state.repo_path)
+
         state.changed_files = preview["files"] + generated_files
 
-        # Always check git status after applying changes to see what actually changed
+        # Track files modified by navigation button post-processing
+        if nav_modified:
+            from pathlib import Path
+            for page_name in nav_modified:
+                nav_file = f"App/ui/form/layouts/{page_name}.json"
+                if nav_file not in state.changed_files:
+                    state.changed_files.append(nav_file)
+
+        # Check git status to see what actually changed
+        import subprocess
         try:
-            import subprocess
             git_status = subprocess.run(["git", "status", "--porcelain"], cwd=state.repo_path, capture_output=True, text=True)
             actual_changed_files = [line.split()[-1] for line in git_status.stdout.strip().split('\n') if line.strip()]
             
@@ -241,20 +241,6 @@ async def handle(state: AgentState) -> AgentState:
                 log.warning("⚠️ Git status shows no actual changes after patch application")
                 # Don't proceed to verification/review if no changes
                 state.next_action = "stop"
-                state.completion_message = "No changes made to the repository."
-
-                # Send event to notify consumer
-                sink.send(
-                    AgentEvent(
-                        type="status",
-                        session_id=state.session_id,
-                        data={
-                            "status": "no_changes",
-                            "message": state.completion_message
-                        },
-                    )
-                )
-
                 log.info("Stopping workflow - no changes to verify")
                 return state
             else:
@@ -291,3 +277,76 @@ async def handle(state: AgentState) -> AgentState:
         state.next_action = "stop"
 
     return state
+
+
+def _ensure_navigation_buttons(repo_path: str):
+    """Ensure every layout file in a multi-page form has NavigationButtons.
+
+    This is a deterministic post-processing step that runs after the LLM patch
+    is applied. It reads Settings.json to discover pages, then checks each
+    layout file for a NavigationButtons component. If missing, it appends one.
+    """
+    import json
+    from pathlib import Path
+
+    settings_path = Path(repo_path) / "App" / "ui" / "form" / "Settings.json"
+    if not settings_path.exists():
+        return []
+
+    try:
+        with open(settings_path, "r") as f:
+            settings = json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return []
+
+    page_order = settings.get("pages", {}).get("order", [])
+    if len(page_order) < 2:
+        return []  # Single page — no navigation needed
+
+    layouts_dir = Path(repo_path) / "App" / "ui" / "form" / "layouts"
+    modified = []
+
+    for idx, page_name in enumerate(page_order):
+        layout_path = layouts_dir / f"{page_name}.json"
+        if not layout_path.exists():
+            continue
+
+        try:
+            with open(layout_path, "r") as f:
+                layout = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            continue
+
+        components = layout.get("data", {}).get("layout", [])
+        has_nav = any(
+            c.get("type") == "NavigationButtons" for c in components
+        )
+
+        if has_nav:
+            continue
+
+        # Determine button config based on position
+        is_first = idx == 0
+        is_last = idx == len(page_order) - 1
+
+        nav_component = {
+            "id": f"nav-buttons-{page_name}",
+            "type": "NavigationButtons",
+            "showBackButton": not is_first,
+        }
+
+        components.append(nav_component)
+        layout["data"]["layout"] = components
+
+        with open(layout_path, "w") as f:
+            json.dump(layout, f, indent=2, ensure_ascii=False)
+
+        modified.append(page_name)
+
+    if modified:
+        log.info(
+            f"🧭 Added NavigationButtons to {len(modified)} layout(s): "
+            f"{', '.join(modified)}"
+        )
+
+    return modified

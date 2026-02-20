@@ -10,12 +10,16 @@ import type { AssistantTexts } from '../../../types/AssistantTexts';
 export type UserInputProps = {
   texts: AssistantTexts;
   onSubmitMessage: (message: UserMessage) => void;
+  onCancelWorkflow?: () => void;
+  workflowIsActive?: boolean;
   enableCompactInterface: boolean;
 };
 
 export function UserInput({
   texts,
   onSubmitMessage,
+  onCancelWorkflow,
+  workflowIsActive = false,
   enableCompactInterface,
 }: UserInputProps): ReactElement {
   const [messageContent, setMessageContent] = useState<string>('');
@@ -128,9 +132,15 @@ export function UserInput({
             />
           )}
         </div>
-        <StudioButton onClick={handleSubmit} disabled={!canSubmit}>
-          {texts.send} <PaperplaneFillIcon />
-        </StudioButton>
+        {workflowIsActive && onCancelWorkflow ? (
+          <StudioButton onClick={onCancelWorkflow} variant='secondary'>
+            {texts.cancel} <XMarkIcon />
+          </StudioButton>
+        ) : (
+          <StudioButton onClick={handleSubmit} disabled={!canSubmit}>
+            {texts.send} <PaperplaneFillIcon />
+          </StudioButton>
+        )}
       </div>
       {attachments.length > 0 && (
         <ul className={classes.attachmentList}>

@@ -1,74 +1,232 @@
-from typing import Dict, Callable, List, Union, Awaitable, Optional, Any
+from typing import Dict, List, Optional, Any
 from .events import AgentEvent
 import asyncio
+import logging
 import threading
-import concurrent.futures
-from datetime import datetime
+from datetime import datetime, timezone
 
-class EventSink:
+log = logging.getLogger(__name__)
+
+
+class _SessionBuffer:
+    """Thread-safe event buffer for a single session with async notification."""
+
     def __init__(self):
-        self._subs: Dict[str, List[Callable[[AgentEvent], Union[None, Awaitable[None]]]]] = {}
-        self._main_loop = None
-        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix="EventSink")
-        # Track session completion status for reconnection scenarios
-        self._session_status: Dict[str, Dict[str, Any]] = {}
+        self.events: List[AgentEvent] = []
+        self._lock = threading.Lock()
+        self._notify: Optional[asyncio.Event] = None
+        self._main_loop: Optional[asyncio.AbstractEventLoop] = None
 
     def set_main_loop(self, loop: asyncio.AbstractEventLoop):
-        """Set the main event loop for scheduling async callbacks"""
         self._main_loop = loop
 
-    def subscribe(self, session_id: str, cb: Callable[[AgentEvent], Union[None, Awaitable[None]]]):
-        self._subs.setdefault(session_id, []).append(cb)
+    def append(self, event: AgentEvent):
+        with self._lock:
+            self.events.append(event)
+        self._signal()
+
+    def get_events_since(self, index: int) -> List[AgentEvent]:
+        """Return events from *index* onward (thread-safe snapshot)."""
+        with self._lock:
+            return list(self.events[index:])
+
+    def __len__(self):
+        with self._lock:
+            return len(self.events)
+
+    # --- async notification ---------------------------------------------------
+
+    def _signal(self):
+        """Set the asyncio.Event so any waiter wakes up. Thread-safe."""
+        if self._notify is not None and self._main_loop and not self._main_loop.is_closed():
+            self._main_loop.call_soon_threadsafe(self._notify.set)
+
+    async def wait_for_new(self, known_count: int, timeout: float = 30.0) -> bool:
+        """Wait until the buffer has more than *known_count* events, or timeout.
+
+        This is race-free: if events arrived between the caller's last read and
+        this call, we return immediately without waiting.
+        """
+        with self._lock:
+            # Fast path — events already available
+            if len(self.events) > known_count:
+                return True
+            # Create/clear the event while holding the lock so that a
+            # concurrent _signal() cannot set-then-lose the notification.
+            if self._notify is None:
+                self._notify = asyncio.Event()
+            self._notify.clear()
+
+        try:
+            await asyncio.wait_for(self._notify.wait(), timeout=timeout)
+            return True
+        except asyncio.TimeoutError:
+            return False
+
+
+class EventSink:
+    """Central event bus.
+
+    Design:
+    - Every event is appended to a per-session buffer (thread-safe).
+    - WebSocket consumers read from the buffer at their own pace.
+    - No callbacks, no stale references, full reconnection support.
+    """
+
+    def __init__(self):
+        self._buffers: Dict[str, _SessionBuffer] = {}
+        self._buf_lock = threading.Lock()
+        self._state_lock = threading.Lock()  # Protects _session_status, _cancelled, _conversation_history
+        self._main_loop: Optional[asyncio.AbstractEventLoop] = None
+        self._session_status: Dict[str, Dict[str, Any]] = {}
+        self._conversation_history: Dict[str, List[Dict[str, Any]]] = {}
+        self._cancelled: set = set()
+
+    # --- lifecycle ------------------------------------------------------------
+
+    def set_main_loop(self, loop: asyncio.AbstractEventLoop):
+        """Set the main event loop (called once at startup)."""
+        self._main_loop = loop
+        with self._buf_lock:
+            for buf in self._buffers.values():
+                buf.set_main_loop(loop)
+
+    # --- event publishing (called from any thread) ----------------------------
 
     def send(self, event: AgentEvent):
-        # Track assistant_message for reconnection scenarios
-        if event.type == "assistant_message":
-            if event.session_id not in self._session_status:
-                self._session_status[event.session_id] = {"status": "running"}
-            self._session_status[event.session_id]["last_message"] = event.data
-        
-        # Track completion status for "done" events
-        if event.type == "done":
-            existing = self._session_status.get(event.session_id, {})
-            self._session_status[event.session_id] = {
-                "status": "done",
-                "success": event.data.get("success", True),
-                "completed_at": datetime.utcnow().isoformat(),
-                "data": event.data,
-                "last_message": existing.get("last_message"),  # Preserve the assistant message
-            }
-        
-        for cb in self._subs.get(event.session_id, []):
-            try:
-                result = cb(event)
-                # If callback is async, schedule it properly
-                if asyncio.iscoroutine(result):
-                    try:
-                        # Try to get the running loop
-                        loop = asyncio.get_running_loop()
-                        loop.create_task(result)
-                    except RuntimeError:
-                        # No running loop in this thread
-                        if self._main_loop and not self._main_loop.is_closed():
-                            # Schedule on the main loop from another thread
-                            asyncio.run_coroutine_threadsafe(result, self._main_loop)
-                        else:
-                            # Silently drop the event - no way to deliver it
-                            # This prevents the RuntimeWarning spam
-                            pass
-            except Exception as e:
-                # Log errors but don't spam the console
-                pass
-    
+        """Append *event* to the session buffer. Thread-safe."""
+        log.info(f"📨 EventSink.send: type={event.type}, session={event.session_id}")
+
+        # Update session status cache
+        with self._state_lock:
+            if event.type == "assistant_message":
+                self._session_status.setdefault(event.session_id, {"status": "running"})
+                self._session_status[event.session_id]["last_message"] = event.data
+            elif event.type == "done":
+                existing = self._session_status.get(event.session_id, {})
+                self._session_status[event.session_id] = {
+                    "status": "done",
+                    "success": event.data.get("success", True),
+                    "completed_at": datetime.now(timezone.utc).isoformat(),
+                    "data": event.data,
+                    "last_message": existing.get("last_message"),
+                }
+
+        buf = self._get_or_create_buffer(event.session_id)
+        buf.append(event)
+
+    # --- event consumption (called from WebSocket handler) --------------------
+
+    def get_events_since(self, session_id: str, index: int) -> List[AgentEvent]:
+        """Return events for *session_id* from *index* onward."""
+        buf = self._buffers.get(session_id)
+        if buf is None:
+            return []
+        return buf.get_events_since(index)
+
+    def event_count(self, session_id: str) -> int:
+        """Return total number of buffered events for *session_id*."""
+        buf = self._buffers.get(session_id)
+        return len(buf) if buf else 0
+
+    async def wait_for_events(self, session_id: str, known_count: int, timeout: float = 30.0) -> bool:
+        """Block (async) until buffer has more than *known_count* events, or timeout."""
+        buf = self._get_or_create_buffer(session_id)
+        return await buf.wait_for_new(known_count, timeout)
+
+    # --- legacy subscribe (kept for backward compat, now a no-op) -------------
+
+    def subscribe(self, session_id: str, cb):
+        """No-op — kept so existing callers don't break.
+
+        WebSocket delivery is now handled by the buffer-polling model.
+        """
+        pass
+
+    # --- session status -------------------------------------------------------
+
     def get_session_status(self, session_id: str) -> Optional[Dict[str, Any]]:
-        """Get the completion status of a session. Returns None if session not found or still running."""
-        return self._session_status.get(session_id)
-    
+        """Get the completion status of a session."""
+        with self._state_lock:
+            return self._session_status.get(session_id)
+
     def mark_session_started(self, session_id: str):
         """Mark a session as started/running."""
-        self._session_status[session_id] = {
-            "status": "running",
-            "started_at": datetime.utcnow().isoformat(),
-        }
+        with self._state_lock:
+            self._cancelled.discard(session_id)
+            self._session_status[session_id] = {
+                "status": "running",
+                "started_at": datetime.now(timezone.utc).isoformat(),
+            }
+        # Pre-create the buffer so events can be buffered immediately
+        self._get_or_create_buffer(session_id)
+
+    # --- cancellation ---------------------------------------------------------
+
+    def cancel_session(self, session_id: str):
+        """Cancel a running session. Sends a terminal event so the frontend stops loading."""
+        log.info(f"🛑 Cancelling session {session_id}")
+        with self._state_lock:
+            self._cancelled.add(session_id)
+            self._session_status[session_id] = {
+                "status": "cancelled",
+                "cancelled_at": datetime.now(timezone.utc).isoformat(),
+            }
+        self.send(AgentEvent(
+            type="error",
+            session_id=session_id,
+            data={
+                "done": True,
+                "success": False,
+                "status": "cancelled",
+                "message": "Workflow cancelled by user",
+            },
+        ))
+
+    def is_cancelled(self, session_id: str) -> bool:
+        """Check if a session has been cancelled."""
+        with self._state_lock:
+            return session_id in self._cancelled
+
+    # --- conversation history -------------------------------------------------
+
+    def add_to_conversation_history(
+        self, session_id: str, role: str, content: str,
+        sources: Optional[List[Dict[str, Any]]] = None,
+    ):
+        """Add a message to the conversation history for a session."""
+        with self._state_lock:
+            if session_id not in self._conversation_history:
+                self._conversation_history[session_id] = []
+            message: Dict[str, Any] = {
+                "role": role,
+                "content": content,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            if sources:
+                message["sources"] = sources
+            self._conversation_history[session_id].append(message)
+
+    def get_conversation_history(self, session_id: str) -> List[Dict[str, Any]]:
+        """Get the conversation history for a session."""
+        with self._state_lock:
+            return list(self._conversation_history.get(session_id, []))
+
+    def clear_conversation_history(self, session_id: str):
+        """Clear the conversation history for a session."""
+        with self._state_lock:
+            self._conversation_history.pop(session_id, None)
+
+    # --- internals ------------------------------------------------------------
+
+    def _get_or_create_buffer(self, session_id: str) -> _SessionBuffer:
+        with self._buf_lock:
+            if session_id not in self._buffers:
+                buf = _SessionBuffer()
+                if self._main_loop:
+                    buf.set_main_loop(self._main_loop)
+                self._buffers[session_id] = buf
+            return self._buffers[session_id]
+
 
 sink = EventSink()

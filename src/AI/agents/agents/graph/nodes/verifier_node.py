@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent
@@ -26,6 +26,11 @@ async def handle(state: AgentState) -> AgentState:
         Updated agent state
     """
     log.info("🔍 Verifier node executing")
+    sink.send(AgentEvent(
+        type="status",
+        session_id=state.session_id,
+        data={"message": "Verifying changes..."},
+    ))
 
     # Check if workflow should stop
     if state.next_action == "stop":
@@ -92,6 +97,23 @@ async def handle(state: AgentState) -> AgentState:
             
             log.info("✅ Auto-fix applied, re-running verification...")
         
+        # Spec validation: check generated output against FormSpec
+        # NOTE: These are soft warnings only — fuzzy label matching is unreliable
+        # and should never block a commit. They are included in verify_notes so the
+        # reviewer LLM can mention them, but they do NOT affect tests_passed.
+        if state.form_spec:
+            spec_notes = _validate_against_spec(state.form_spec, state.repo_path)
+            if spec_notes:
+                log.warning(f"⚠️ Spec validation found {len(spec_notes)} soft warnings (will not block commit)")
+                for note in spec_notes:
+                    log.warning(f"  - {note}")
+                state.verify_notes = (state.verify_notes or []) + [
+                    f"[soft warning] {note}" for note in spec_notes
+                ]
+            else:
+                log.info("✅ Spec validation passed — all spec fields accounted for")
+                state.verify_notes = (state.verify_notes or []) + ["Spec validation passed"]
+
         state.next_action = "review"
 
         
@@ -272,3 +294,89 @@ async def _generate_fix_patch(
     except Exception as e:
         log.error(f"Failed to generate fix patch: {e}", exc_info=True)
         return {}
+
+
+def _validate_against_spec(form_spec, repo_path: str) -> List[str]:
+    """Validate generated layout files against the FormSpec.
+    
+    Checks:
+    1. All spec pages have corresponding layout files
+    2. All spec fields have corresponding components in the layout
+    3. Settings.json includes all pages in order
+    
+    Returns list of warning strings (empty = all good).
+    """
+    notes = []
+    
+    try:
+        layouts_dir = Path(repo_path) / "App" / "ui" / "form" / "layouts"
+        
+        # Check 1: All spec pages have layout files
+        for page in form_spec.pages:
+            layout_file = layouts_dir / f"{page.page_name}.json"
+            if not layout_file.exists():
+                notes.append(f"Spec page '{page.page_name}' ({page.title}) has no layout file")
+                continue
+            
+            # Check 2: All spec fields have components in the layout
+            try:
+                with open(layout_file, 'r') as f:
+                    layout_data = json.loads(f.read())
+                
+                components = layout_data.get("data", {}).get("layout", [])
+                component_ids = {c.get("id", "").lower() for c in components}
+                
+                # Also collect text resource binding values for matching
+                text_bindings = set()
+                for c in components:
+                    trb = c.get("textResourceBindings", {})
+                    if isinstance(trb, dict):
+                        for val in trb.values():
+                            if isinstance(val, str):
+                                text_bindings.add(val.lower())
+                
+                for field in page.fields:
+                    if field.field_type in ("header", "paragraph"):
+                        continue  # Static elements don't need strict matching
+                    
+                    # Try to find the field by ID or by label match in text bindings
+                    field_id_lower = field.id.lower()
+                    found = any(
+                        field_id_lower in cid or cid in field_id_lower
+                        for cid in component_ids
+                    )
+                    if not found:
+                        # Check if any text binding references this field's label
+                        label_lower = field.label.lower()
+                        found = any(label_lower in tb for tb in text_bindings)
+                    
+                    if not found:
+                        notes.append(
+                            f"Spec field '{field.label}' (page {page.page_name}) "
+                            f"not found in layout components"
+                        )
+            except (json.JSONDecodeError, IOError) as e:
+                notes.append(f"Could not read layout file {page.page_name}.json: {e}")
+        
+        # Check 3: Settings.json includes all pages
+        settings_path = Path(repo_path) / "App" / "ui" / "form" / "Settings.json"
+        if settings_path.exists():
+            try:
+                with open(settings_path, 'r') as f:
+                    settings = json.loads(f.read())
+                
+                order = settings.get("pages", {}).get("order", [])
+                order_lower = [p.lower() for p in order]
+                
+                for page in form_spec.pages:
+                    if page.page_name.lower() not in order_lower:
+                        notes.append(
+                            f"Spec page '{page.page_name}' missing from Settings.json order"
+                        )
+            except (json.JSONDecodeError, IOError) as e:
+                notes.append(f"Could not read Settings.json: {e}")
+        
+    except Exception as e:
+        notes.append(f"Spec validation error: {e}")
+    
+    return notes

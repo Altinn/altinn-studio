@@ -35,13 +35,26 @@ def run_intake_pipeline(
     user_goal: str,
     *,
     attachments: Optional[List[AgentAttachment]] = None,
+    conversation_history: Optional[List] = None,
 ) -> Dict[str, object]:
     """Execute the intake workflow and return plan WITHOUT repository context."""
     
     # Don't scan here - let the scan node handle repository discovery
     context = RepositoryContext()  # Use defaults
     system_prompt = get_prompt_content("intake_planning")
+    
+    # Build user prompt with conversation history context if available
     user_prompt = render_template("intake_planning_user", user_goal=user_goal)
+    
+    # Add conversation history context for follow-up requests
+    if conversation_history and len(conversation_history) > 0:
+        history_context = "\n\nPREVIOUS CONVERSATION CONTEXT:\n"
+        for msg in conversation_history[-6:]:  # Last 3 exchanges (6 messages)
+            role = "User" if msg.role == "user" else "Assistant"
+            content = msg.content[:500] + "..." if len(msg.content) > 500 else msg.content
+            history_context += f"{role}: {content}\n\n"
+        history_context += "Use this context to understand what has already been done and what the user is asking for now.\n"
+        user_prompt = history_context + user_prompt
 
     client = LLMClient(role="planner")
     langfuse = get_client()

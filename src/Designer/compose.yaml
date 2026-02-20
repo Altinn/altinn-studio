@@ -95,7 +95,8 @@ services:
       - RedisCacheSettings:InstanceName=designer
       - SchedulingSettings:UsePersistentScheduling=true
       - SchedulingSettings:AddHostedService=true
-      - GitOpsSettings:BotPersonalAccessToken=${GITOPS_BOT_PERSONAL_ACCESS_TOKEN:-}
+      - AltinitySettings:AgentUrl=http://host.docker.internal:8071
+      - AltinitySettings:TimeoutSeconds=300
     ports:
       - '6000:6000'
     depends_on:

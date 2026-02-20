@@ -12,7 +12,9 @@ import type { User } from '../../types/User';
 export type ChatColumnProps = {
   texts: AssistantTexts;
   messages: Message[];
-  onSubmitMessage: (message: UserMessage) => void;
+  onSubmitMessage: (message: Message) => void;
+  onCancelWorkflow?: () => void;
+  workflowIsActive?: boolean;
   enableCompactInterface: boolean;
   currentUser?: User;
 };
@@ -21,6 +23,8 @@ export function ChatColumn({
   texts,
   messages,
   onSubmitMessage,
+  onCancelWorkflow,
+  workflowIsActive = false,
   enableCompactInterface,
   currentUser,
 }: ChatColumnProps): ReactElement {
@@ -69,6 +73,8 @@ export function ChatColumn({
       <UserInput
         texts={texts}
         onSubmitMessage={onSubmitMessage}
+        onCancelWorkflow={onCancelWorkflow}
+        workflowIsActive={workflowIsActive}
         enableCompactInterface={enableCompactInterface}
       />
     </div>

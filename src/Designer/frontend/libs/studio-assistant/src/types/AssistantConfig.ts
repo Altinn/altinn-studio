@@ -33,11 +33,21 @@ export interface AssistantMessageEvent extends WorkflowEventBase {
 }
 
 export interface WorkflowStatusEvent extends WorkflowEventBase {
-  type: 'workflow_status';
+  type: 'workflow_status' | 'status';
   data: WorkflowStatusData;
 }
 
-export type WorkflowEvent = AssistantMessageEvent | WorkflowStatusEvent;
+export interface DoneEvent extends WorkflowEventBase {
+  type: 'done';
+  data: { success?: boolean; message?: string };
+}
+
+export interface ErrorEvent extends WorkflowEventBase {
+  type: 'error';
+  data: { done?: boolean; success?: boolean; status?: string; message?: string };
+}
+
+export type WorkflowEvent = AssistantMessageEvent | WorkflowStatusEvent | DoneEvent | ErrorEvent;
 
 export interface WorkflowRequest {
   session_id: string;

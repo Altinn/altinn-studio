@@ -140,7 +140,8 @@ async def handle(state: AgentState) -> AgentState:
             
         except Exception as e:
             log.error(f"Assistant query failed: {e}")
-            main_span.update(metadata={"error": True, "error_message": str(e)})
+            main_span.set_attribute("error", True)
+            main_span.set_attribute("error_message", str(e))
             raise
 
 
@@ -148,7 +149,7 @@ async def _scan_repository(state: AgentState) -> Dict[str, Any]:
     """Scan repository and extract context."""
     langfuse = get_client()
     with langfuse.start_as_current_span(name="repository_scan", metadata={"span_type": "TOOL"}) as span:
-        span.update(input={"repo_path": state.repo_path})
+        span.set_inputs({"repo_path": state.repo_path})
         
         repo_context = discover_repository_context(state.repo_path)
         repo_summary = {
@@ -192,7 +193,7 @@ async def _select_relevant_tools(
     """Use LLM to intelligently select relevant tools, always starting with planning_tool."""
     langfuse = get_client()
     with langfuse.start_as_current_span(name="tool_selection", metadata={"span_type": "AGENT"}) as span:
-        span.update(input={
+        span.set_inputs({
             "query": query,
             "available_tools": tool_names,
             "has_conversation_history": bool(conversation_history)
@@ -221,6 +222,7 @@ async def _select_relevant_tools(
                 role = "User" if msg.role == "user" else "Assistant"
                 history_lines.append(f"{role}: {msg.content[:200]}")  # Truncate long messages
             history_context = "CONVERSATION HISTORY:\n" + "\n".join(history_lines) + "\n\n"
+        
         user_prompt = render_template(
             "assistant_tool_selection_user",
             history_context=history_context,
@@ -229,8 +231,8 @@ async def _select_relevant_tools(
             repo_context=repo_context,
             tool_names=', '.join(tool_names)
         )
-
-        span.update(input={
+        
+        span.set_inputs({
             "system_prompt": system_prompt,
             "user_prompt": user_prompt[:500] + "...",
             "semantic_query": semantic_query
@@ -250,20 +252,20 @@ async def _select_relevant_tools(
             
             tool_plan = json.loads(response_clean.strip())
             
-            # Ensure planning_tool is first with semantic query
-            planning_tool_exists = False
+            # Ensure altinn_route is first with user goal
+            altinn_route_exists = False
             for tool_spec in tool_plan:
-                if tool_spec.get("tool") == "planning_tool":
-                    # Update with semantic query
-                    tool_spec["query"] = semantic_query
-                    planning_tool_exists = True
+                if tool_spec.get("tool") == "altinn_route":
+                    # Update with user goal
+                    tool_spec["user_goal"] = query
+                    altinn_route_exists = True
                     break
             
-            if not planning_tool_exists:
+            if not altinn_route_exists:
                 tool_plan.insert(0, {
-                    "tool": "planning_tool",
-                    "query": semantic_query,
-                    "objective": "Search documentation for relevant information"
+                    "tool": "altinn_route",
+                    "user_goal": query,
+                    "objective": "Get planning context and routing guidance"
                 })
             
             span.update(output={
@@ -277,8 +279,8 @@ async def _select_relevant_tools(
             return tool_plan
             
         except Exception as e:
-            log.warning(f"Tool planning failed: {e}, falling back to planning_tool with semantic query")
-            fallback = [{"tool": "planning_tool", "query": semantic_query or query, "objective": "Search documentation"}]
+            log.warning(f"Tool planning failed: {e}, falling back to altinn_route")
+            fallback = [{"tool": "altinn_route", "arguments": {"query": query}, "objective": "Get planning context"}]
             span.update(output={
                 "selected_tools": ["planning_tool"],
                 "selection_strategy": "fallback",
@@ -291,7 +293,7 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Execute selected MCP tools according to the plan."""
     langfuse = get_client()
     with langfuse.start_as_current_span(name="tool_execution", metadata={"span_type": "TOOL"}) as span:
-        span.update(input={"tool_plan": tool_plan})
+        span.set_inputs({"tool_plan": tool_plan})
         
         mcp_client = get_mcp_client()
         tool_results = {}
@@ -302,31 +304,34 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
             objective = tool_spec.get("objective", "")
             
             # Skip validation tools - they require specific file content, not queries
-            if tool_name and ("validator" in tool_name.lower() or tool_name in {"schema_validator_tool", "resource_validator_tool", "policy_validation_tool"}):
+            if tool_name and ("validate" in tool_name.lower() or tool_name in {"altinn_layout_validate", "altinn_resource_validate", "altinn_policy_validate"}):
                 log.warning(f"Skipping {tool_name} - validation tools not available in chat mode")
                 continue
             
             # Prepare arguments based on tool type
-            if tool_name in {"datamodel_tool", "prefill_tool", "dynamic_expression", "policy_tool"}:
+            if tool_name in {"altinn_datamodel_docs", "altinn_prefill_docs", "altinn_expression_docs", "altinn_policy_docs"}:
                 # Documentation tools - no parameters
                 arguments = {}
-            elif tool_name == "layout_properties_tool":
-                # Layout properties tool requires component_type and schema_url
-                # Extract from tool_spec or skip if not provided
+            elif tool_name == "altinn_layout_props":
+                # Layout properties tool requires component_type
                 arguments = {
-                    "component_type": tool_spec.get("component_type", ""),
-                    "schema_url": tool_spec.get("schema_url", "")
+                    "component_type": tool_spec.get("component_type", "")
                 }
-                if not arguments["component_type"] or not arguments["schema_url"]:
-                    log.warning(f"Skipping {tool_name} - missing required parameters")
+                if not arguments["component_type"]:
+                    log.warning(f"Skipping {tool_name} - missing component_type")
                     continue
+            elif tool_name == "altinn_route":
+                # Router tool takes user_goal
+                arguments = {"user_goal": tool_spec.get("user_goal", query)}
+            elif tool_name == "altinn_layout_list":
+                # Layout list tool - no parameters
+                arguments = {}
             else:
-                # All other tools require query parameter (may be empty string)
-                # layout_components_tool, resource_tool, planning_tool, etc.
+                # Other tools may take query parameter
                 arguments = {"query": query or ""}
             
             with langfuse.start_as_current_span(name=f"call_{tool_name}", metadata={"span_type": "TOOL"}) as tool_span:
-                tool_span.update(input={
+                tool_span.set_inputs({
                     "tool": tool_name,
                     "arguments": arguments,
                     "objective": objective
@@ -334,9 +339,8 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 
                 try:
                     result = await mcp_client.call_tool(tool_name, arguments)
-
+                    
                     # Handle CallToolResult objects
-                    extracted = None
                     if hasattr(result, 'structured_content') and result.structured_content:
                         extracted = result.structured_content
                         tool_results[tool_name] = extracted
@@ -354,9 +358,8 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                             extracted = content
                         tool_results[tool_name] = extracted
                     else:
-                        extracted = result
                         tool_results[tool_name] = result
-
+                    
                     result_size = len(str(extracted)) if extracted else 0
                     
                     # Extract text content for markdown display
@@ -568,8 +571,8 @@ def _extract_sources(tool_results: Dict[str, Any]) -> List[Dict[str, Any]]:
         if not text_content:
             continue
         
-        # Special handling for planning_tool - extract from "## Relevant Documentation" section
-        if tool_name == "planning_tool":
+        # Special handling for altinn_route - extract from "## Relevant Documentation" section
+        if tool_name == "altinn_route":
             # Find the "## Relevant Documentation" section
             # Handle both real newlines and escaped newlines (\\n in the string)
             relevant_doc_match = re.search(r'##\s+Relevant Documentation(?:\\n|\n)(?:\\n|\n)(.+)', text_content, re.DOTALL)
@@ -619,14 +622,14 @@ def _extract_sources(tool_results: Dict[str, Any]) -> List[Dict[str, Any]]:
                     })
                 
                 if sections_found > 0:
-                    log.info(f"📖 Extracted {sections_found} sections from planning_tool")
+                    log.info(f"📖 Extracted {sections_found} sections from altinn_route")
                 else:
                     log.warning(f"⚠️ No numbered sections found in Relevant Documentation section")
             else:
-                log.warning(f"⚠️ No '## Relevant Documentation' section found in planning_tool (length: {len(text_content)})")
+                log.warning(f"⚠️ No '## Relevant Documentation' section found in altinn_route (length: {len(text_content)})")
         
-        # Special handling for dynamic_expression - extract clean content
-        elif tool_name == "dynamic_expression":
+        # Special handling for altinn_expression_docs - extract clean content
+        elif tool_name == "altinn_expression_docs":
             # Parse JSON if it's wrapped
             try:
                 if text_content.strip().startswith("{"):
@@ -670,12 +673,12 @@ def _extract_sources(tool_results: Dict[str, Any]) -> List[Dict[str, Any]]:
         # Generic handling for other tools
         else:
             title_map = {
-                "datamodel_tool": "Data Model Documentation",
-                "prefill_tool": "Prefill Documentation",
-                "policy_tool": "Authorization Policy Documentation",
-                "layout_components_tool": "Layout Components",
-                "resource_tool": "Text Resources",
-                "layout_properties_tool": "Component Properties"
+                "altinn_datamodel_docs": "Data Model Documentation",
+                "altinn_prefill_docs": "Prefill Documentation",
+                "altinn_policy_docs": "Authorization Policy Documentation",
+                "altinn_layout_list": "Layout Components",
+                "altinn_resource_docs": "Text Resources",
+                "altinn_layout_props": "Component Properties"
             }
             
             title = title_map.get(tool_name, tool_name.replace("_", " ").title())
@@ -702,7 +705,7 @@ async def _generate_response(
     """Generate natural language response using LLM."""
     langfuse = get_client()
     with langfuse.start_as_current_span(name="response_generation", metadata={"span_type": "LLM"}) as span:
-        span.update(input={
+        span.set_inputs({
             "query": query,
             "repo_summary": repo_summary,
             "tools_used": list(tool_results.keys()),
@@ -787,8 +790,8 @@ REPOSITORY CONTEXT:
             tool_context=tool_context,
             citation_note=citation_note
         )
-
-        span.update(input={
+        
+        span.set_inputs({
             "system_prompt": system_prompt,
             "user_prompt": user_prompt[:500] + "...",  # Truncate for logging
             "model": client.model,

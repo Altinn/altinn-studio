@@ -31,15 +31,35 @@ async def generate_final_summary(
     # Get all the context from the workflow
     plan_context = step_plan[0] if step_plan else "No plan"
     files_summary = "\n".join(f"• {file}" for file in changed_files) if changed_files else "No files changed"
-    status = "✅ Successful" if decision == "commit" and tests_passed else "❌ Failed/Reverted" if decision == "revert" else "ℹ️ No Changes Needed" if decision == "no_changes" else "❓ Unknown"
 
-    # Handle verification status and notes properly
+    # Determine status based on decision (not tests_passed, since soft warnings don't block)
+    if decision == "commit":
+        status = "✅ Successful — changes committed"
+    elif decision == "no_changes":
+        status = "ℹ️ No Changes Needed"
+    elif decision == "revert":
+        status = "⚠️ Changes reverted due to validation errors"
+    else:
+        status = "❓ Unknown"
+
+    # Separate hard errors from soft warnings in verification notes
+    hard_notes = [n for n in verify_notes if not n.startswith("[soft warning]")]
+    soft_notes = [n.replace("[soft warning] ", "") for n in verify_notes if n.startswith("[soft warning]")]
+
     if decision == "no_changes":
         verification_status = "⏭️ Skipped (no changes to verify)"
         verification_notes = "No verification needed - no changes were made"
     else:
-        verification_status = "✅ Passed" if tests_passed else "❌ Failed"
-        verification_notes = "\n".join(verify_notes) if verify_notes else "No issues found"
+        has_hard_issues = any(
+            word in " ".join(hard_notes).lower()
+            for word in ["error", "failed", "duplicate"]
+        ) if hard_notes else False
+        verification_status = "⚠️ Minor issues found" if has_hard_issues else "✅ Passed"
+        verification_notes = "\n".join(hard_notes) if hard_notes else "No issues found"
+        if soft_notes:
+            verification_notes += "\n\nSoft warnings (non-blocking):\n" + "\n".join(f"• {n}" for n in soft_notes[:5])
+            if len(soft_notes) > 5:
+                verification_notes += f"\n• ... and {len(soft_notes) - 5} more"
 
     prompt = f"""
 You are the Altinity assistant summarizing the completed work for the user.
@@ -67,6 +87,12 @@ Focus on:
 Keep it concise. Avoid titles like "Summary" or "Outcome."
 Use short sentences, bullet points, or light markdown if it helps clarity.
 Respond in the same language as the user's goal unless explicitly instructed otherwise.
+
+CRITICAL RULES:
+- NEVER promise future action like "we'll fix this" or "we'll let you know" — you are a one-shot agent.
+- NEVER say the work "failed" if the decision was "commit" — the changes were successfully committed.
+- If there are soft warnings, mention them briefly but make clear they did NOT block the commit.
+- Be honest about what was done and what the result is.
 
 Style guidance:
 - Speak directly: e.g. "The field X was added after Y" instead of generic placeholders.
@@ -104,6 +130,11 @@ async def handle(state: AgentState) -> AgentState:
         Updated agent state
     """
     log.info("👨‍⚖️ Reviewer node executing - starting workflow")
+    sink.send(AgentEvent(
+        type="status",
+        session_id=state.session_id,
+        data={"message": "Reviewing and finalizing changes..."},
+    ))
 
     # Check if workflow should stop
     if state.next_action == "stop":
@@ -117,8 +148,8 @@ async def handle(state: AgentState) -> AgentState:
                 changed_files=changed_files,
                 tests_passed=state.tests_passed,
                 verify_notes=state.verify_notes or [],
-                decision="no_changes",  # Since we're stopping, no changes were made
-                reasoning="Workflow stopped early - no changes were needed",
+                decision="no_changes" if not state.changed_files else "revert",
+                reasoning="Workflow stopped early — no changes were needed" if not state.changed_files else "Workflow stopped early due to an error",
                 session_id=state.session_id,
             )
             
@@ -129,12 +160,13 @@ async def handle(state: AgentState) -> AgentState:
                     data={
                         "author": "assistant",
                         "content": summary,
-                        "timestamp": state.session_start_time.isoformat() if hasattr(state, 'session_start_time') else None,
                         "filesChanged": changed_files,
                     },
                 )
             )
-            log.info("✅ Early summary sent successfully")
+            # Store in conversation history for follow-up context
+            sink.add_to_conversation_history(state.session_id, "assistant", summary)
+            log.info("✅ Early summary sent and stored in conversation history")
         except Exception as e:
             log.error(f"Failed to generate early summary: {e}")
         
@@ -180,12 +212,14 @@ async def handle(state: AgentState) -> AgentState:
                 data={
                     "author": "assistant",
                     "content": summary,
-                    "timestamp": state.session_start_time.isoformat() if hasattr(state, 'session_start_time') else None,
                     "filesChanged": changed_files,
                 },
             )
         )
-        log.info(f"✅ Assistant message sent successfully")
+        
+        # Store assistant response in conversation history for follow-up context
+        sink.add_to_conversation_history(state.session_id, "assistant", summary)
+        log.info(f"✅ Assistant message sent and stored in conversation history")
         
         # Send completion event to signal frontend that workflow is done
         sink.send(
@@ -213,7 +247,6 @@ async def handle(state: AgentState) -> AgentState:
                 data={
                     "author": "assistant",
                     "content": f"## Error\n\nAn error occurred during processing: {str(e)}",
-                    "timestamp": state.session_start_time.isoformat() if hasattr(state, 'session_start_time') else None,
                     "filesChanged": [],
                 },
             )

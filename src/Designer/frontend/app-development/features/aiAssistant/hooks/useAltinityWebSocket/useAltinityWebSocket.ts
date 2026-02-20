@@ -19,6 +19,7 @@ export interface UseAltinityWebSocketResult {
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
   sessionId: string | null;
   startWorkflow: (request: WorkflowRequest) => Promise<AgentResponse>;
+  cancelWorkflow: (sessionId: string) => Promise<void>;
   onAgentMessage: (callback: (message: WorkflowEvent) => void) => void;
 }
 
@@ -64,10 +65,25 @@ export const useAltinityWebSocket = (): UseAltinityWebSocketResult => {
     return await invokeStartWorkflowOnServer(connection, request);
   }, []);
 
+  const cancelWorkflow = useCallback(async (cancelSessionId: string): Promise<void> => {
+    const connection = getAltinitySignalRConnection(wsInstanceRef.current);
+    if (!connection) {
+      throw new Error('No active SignalR connection to Altinity hub');
+    }
+
+    try {
+      await connection.invoke('CancelWorkflow', cancelSessionId);
+    } catch (error) {
+      console.error('Failed to cancel workflow:', error);
+      throw error;
+    }
+  }, []);
+
   return {
     connectionStatus,
     sessionId,
     startWorkflow,
+    cancelWorkflow,
     onAgentMessage,
   };
 };

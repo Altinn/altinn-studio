@@ -82,6 +82,14 @@ class MCPVerifier:
                 else:
                     result.add_success("resource_validation_skipped")
                 
+                # 3. Settings.json validation (critical - catches broken JSON that causes 500 errors)
+                layout_settings_files = [f for f in patch.get('changes', []) if f.get('file', '').endswith('Settings.json') and 'ui/form' in f.get('file', '')]
+                if layout_settings_files:
+                    log.info(f"Validating Settings.json for {len(layout_settings_files)} file(s)")
+                    await self._verify_layout_settings(layout_settings_files, result)
+                else:
+                    result.add_success("layout_settings_validation_skipped")
+                
                 # 4. Policy validation (only if actual policy files are being modified)
                 policy_files = [f for f in changed_files if 'policy' in f.lower() or 'rule' in f.lower()]
                 if policy_files:
@@ -120,172 +128,157 @@ class MCPVerifier:
         return result
     
     async def _verify_layout(self, mcp_client, layout_files: List[Dict], plan_step: PlanStep, result: MCPVerificationResult):
-        """Call schema_validator_tool for layout validation"""
+        """Call altinn_layout_validate for each changed layout file"""
         langfuse = get_client()
-        with langfuse.start_as_current_span(name="layout_schema_validation", metadata={"span_type": "TOOL"}) as span:
-            try:
-                # Read the layout file content
-                layout_file_path = Path(self.repo_path) / layout_files[0]['file']
-                with open(layout_file_path, 'r') as f:
-                    layout_content = f.read()
-                
-                tool_input = {
-                    "json_obj": layout_content,
-                    "schema_path": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
-                }
-                
-                # Set detailed metadata
-                span.update(metadata={
-                    "file_path": layout_files[0]['file'],
-                    "validation_type": "layout_schema",
-                    "tool": "schema_validator_tool"
-                })
-                span.update(input={
-                    "tool_parameters": tool_input,
-                    "file_content": layout_content[:500] + "..." if len(layout_content) > 500 else layout_content,
-                })
-                
-                # Call the tool
-                layout_result = await mcp_client.call_tool("schema_validator_tool", tool_input)
-                
-                # Format the output for multiple views
-                # Handle CallToolResult objects with structured_content
-                if hasattr(layout_result, 'structured_content') and layout_result.structured_content:
-                    result_text = json.dumps(layout_result.structured_content)
-                    result_json = layout_result.structured_content
-                elif hasattr(layout_result, 'text'):
-                    result_text = layout_result.text
-                    try:
-                        result_json = json.loads(result_text)
-                    except:
-                        result_json = None
-                elif isinstance(layout_result, list) and len(layout_result) > 0 and hasattr(layout_result[0], 'text'):
-                    result_text = layout_result[0].text
-                    try:
-                        result_json = json.loads(result_text)
-                    except:
-                        result_json = None
-                else:
-                    result_text = str(layout_result)
-                    result_json = layout_result if isinstance(layout_result, dict) else None
+        for layout_entry in layout_files:
+            file_path = layout_entry['file']
+            with langfuse.start_as_current_span(name="layout_schema_validation", metadata={"span_type": "TOOL", "file_path": file_path}) as span:
+                try:
+                    layout_file_path = Path(self.repo_path) / file_path
+                    with open(layout_file_path, 'r') as f:
+                        layout_content = f.read()
                     
-                span.update(output={
-                    "result": result_json if result_json else result_text
-                })
-                result.tool_results.append({"tool": "schema_validator_tool", "result": layout_result})
-                
-                # Handle various MCP response formats (list, dict, TextContent, CallToolResult)
-                if hasattr(layout_result, 'structured_content') and layout_result.structured_content:
-                    layout_data = layout_result.structured_content
-                elif isinstance(layout_result, list):
-                    # If it's a list, get first item
-                    layout_data = layout_result[0] if layout_result else {}
-                    # If first item is TextContent, get its text and parse
-                    if hasattr(layout_data, 'text'):
-                        layout_data = json.loads(layout_data.text)
-                elif hasattr(layout_result, 'text'):
-                    # Direct TextContent response
-                    layout_data = json.loads(layout_result.text)
-                else:
-                    layout_data = layout_result
-                
-                if layout_data.get("valid", True):
-                    result.add_success("layout_validation")
-                else:
-                    for error in layout_data.get("errors", []):
-                        result.add_error("layout_validation", error)
-                        
-            except Exception as e:
-                result.add_error("layout_validation", f"Tool call failed: {e}")
+                    tool_input = {"json_content": layout_content}
+                    span.update(input={
+                        "tool_parameters": tool_input,
+                        "file_content": layout_content[:500] + "..." if len(layout_content) > 500 else layout_content,
+                    })
+                    
+                    layout_result = await mcp_client.call_tool("altinn_layout_validate", tool_input)
+                    
+                    # Extract structured data from MCP response
+                    layout_data = self._extract_mcp_result(layout_result)
+                    span.update(output={"result": layout_data})
+                    result.tool_results.append({"tool": "altinn_layout_validate", "file": file_path, "result": layout_result})
+                    
+                    if layout_data.get("valid", True):
+                        result.add_success(f"layout_validation:{file_path}")
+                    else:
+                        for error in layout_data.get("errors", []):
+                            result.add_error("layout_validation", f"{file_path}: {error}")
+                            
+                except Exception as e:
+                    result.add_error("layout_validation", f"{file_path}: Tool call failed: {e}")
     
     async def _verify_resources(self, mcp_client, resource_files: List[Dict], plan_step: PlanStep, result: MCPVerificationResult):
-        """Call resource_validator_tool"""
+        """Call altinn_resource_validate for each changed resource file"""
         langfuse = get_client()
-        with langfuse.start_as_current_span(name="resource_text_validation", metadata={"span_type": "TOOL"}) as span:
+        for resource_entry in resource_files:
+            file_path = resource_entry['file']
+            with langfuse.start_as_current_span(name="resource_text_validation", metadata={"span_type": "TOOL", "file_path": file_path}) as span:
+                try:
+                    resource_file_path = Path(self.repo_path) / file_path
+                    with open(resource_file_path, 'r') as f:
+                        resource_content = f.read()
+                    
+                    # Determine language from filename (e.g., resource.nb.json -> nb)
+                    filename = file_path.split('/')[-1]
+                    language = "nb"  # default
+                    if "resource." in filename and ".json" in filename:
+                        parts = filename.split('.')
+                        if len(parts) >= 3:
+                            language = parts[1]
+                    
+                    tool_input = {
+                        "resource_json": resource_content,
+                        "language": language,
+                    }
+                    span.update(input={
+                        "tool_parameters": tool_input,
+                        "resource_content": resource_content[:500] + "..." if len(resource_content) > 500 else resource_content,
+                    })
+                    
+                    resource_result = await mcp_client.call_tool("altinn_resource_validate", tool_input)
+                    
+                    # Extract structured data from MCP response
+                    resource_data = self._extract_mcp_result(resource_result)
+                    span.update(output={"result": resource_data})
+                    result.tool_results.append({"tool": "altinn_resource_validate", "file": file_path, "result": resource_result})
+                    
+                    if resource_data.get("valid", True):
+                        result.add_success(f"resource_validation:{file_path}")
+                    else:
+                        for error in resource_data.get("errors", []):
+                            result.add_error("resource_validation", f"{file_path}: {error}")
+                            
+                except Exception as e:
+                    result.add_error("resource_validation", f"{file_path}: Tool call failed: {e}")
+    
+    async def _verify_layout_settings(self, layout_settings_files: List[Dict], result: MCPVerificationResult):
+        """Validate Settings.json for correct JSON syntax and structure"""
+        langfuse = get_client()
+        with langfuse.start_as_current_span(name="layout_settings_validation", metadata={"span_type": "TOOL"}) as span:
             try:
-                # Read the resource file content
-                resource_file_path = Path(self.repo_path) / resource_files[0]['file']
-                with open(resource_file_path, 'r') as f:
-                    resource_content = f.read()
+                # Read the Settings.json file content
+                settings_file_path = Path(self.repo_path) / layout_settings_files[0]['file']
+                with open(settings_file_path, 'r') as f:
+                    settings_content = f.read()
                 
-                # Determine language from filename (e.g., resource.nb.json -> nb)
-                filename = resource_files[0]['file'].split('/')[-1]
-                language = "nb"  # default
-                if "resource." in filename and ".json" in filename:
-                    parts = filename.split('.')
-                    if len(parts) >= 3:
-                        language = parts[1]
-                
-                tool_input = {
-                    "resource_json": resource_content,
-                    "language": language,
-                    "repo_path": self.repo_path
-                }
-                
-                # Set detailed metadata
                 span.update(metadata={
-                    "file_path": resource_files[0]['file'],
-                    "validation_type": "resource_text",
-                    "tool": "resource_validator_tool",
-                    "language": language,
+                    "file_path": layout_settings_files[0]['file'],
+                    "validation_type": "layout_settings_json",
                 })
                 span.update(input={
-                    "tool_parameters": tool_input,
-                    "resource_content": resource_content[:500] + "..." if len(resource_content) > 500 else resource_content,
+                    "file_content": settings_content[:500] + "..." if len(settings_content) > 500 else settings_content,
                 })
                 
-                # Call the tool
-                resource_result = await mcp_client.call_tool("resource_validator_tool", tool_input)
+                # Parse JSON to check for syntax errors
+                try:
+                    settings_data = json.loads(settings_content)
+                except json.JSONDecodeError as e:
+                    error_msg = f"Invalid JSON syntax in Settings.json: {e.msg} at line {e.lineno}, column {e.colno}"
+                    result.add_error("layout_settings_validation", error_msg)
+                    span.update(output={"valid": False, "error": error_msg})
+                    return
                 
-                # Format the output for multiple views
-                # Handle CallToolResult objects with structured_content
-                if hasattr(resource_result, 'structured_content') and resource_result.structured_content:
-                    result_text = json.dumps(resource_result.structured_content)
-                    result_json = resource_result.structured_content
-                elif hasattr(resource_result, 'text'):
-                    result_text = resource_result.text
-                    try:
-                        result_json = json.loads(result_text)
-                    except:
-                        result_json = None
-                elif isinstance(resource_result, list) and len(resource_result) > 0 and hasattr(resource_result[0], 'text'):
-                    result_text = resource_result[0].text
-                    try:
-                        result_json = json.loads(result_text)
-                    except:
-                        result_json = None
+                # Validate structure
+                errors = []
+                
+                # Check for required "pages" key
+                if "pages" not in settings_data:
+                    errors.append("Missing required 'pages' key in Settings.json")
+                elif not isinstance(settings_data["pages"], dict):
+                    errors.append("'pages' must be an object/dict")
                 else:
-                    result_text = str(resource_result)
-                    result_json = resource_result if isinstance(resource_result, dict) else None
+                    pages = settings_data["pages"]
                     
-                span.update(output={
-                    "result": result_json if result_json else result_text
-                })
-                result.tool_results.append({"tool": "resource_validator_tool", "result": resource_result})
+                    # Check for "order" array
+                    if "order" not in pages:
+                        errors.append("Missing required 'pages.order' array")
+                    elif not isinstance(pages["order"], list):
+                        errors.append("'pages.order' must be an array")
+                    else:
+                        order = pages["order"]
+                        
+                        # Check for duplicates
+                        if len(order) != len(set(order)):
+                            duplicates = [page for page in order if order.count(page) > 1]
+                            errors.append(f"Duplicate page names in order array: {set(duplicates)}")
+                        
+                        # Check for empty array
+                        if len(order) == 0:
+                            errors.append("'pages.order' array is empty - must contain at least one page")
+                        
+                        # Check that all entries are strings
+                        non_strings = [page for page in order if not isinstance(page, str)]
+                        if non_strings:
+                            errors.append(f"All page names must be strings, found: {non_strings}")
                 
-                # Handle various MCP response formats (list, dict, TextContent, CallToolResult)
-                if hasattr(resource_result, 'structured_content') and resource_result.structured_content:
-                    resource_data = resource_result.structured_content
-                elif isinstance(resource_result, list):
-                    resource_data = resource_result[0] if resource_result else {}
-                    if hasattr(resource_data, 'text'):
-                        resource_data = json.loads(resource_data.text)
-                elif hasattr(resource_result, 'text'):
-                    resource_data = json.loads(resource_result.text)
+                if errors:
+                    for error in errors:
+                        result.add_error("layout_settings_validation", error)
+                    span.update(output={"valid": False, "errors": errors})
                 else:
-                    resource_data = resource_result
-                
-                if resource_data.get("valid", True):
-                    result.add_success("resource_validation")
-                else:
-                    for error in resource_data.get("errors", []):
-                        result.add_error("resource_validation", error)
+                    result.add_success("layout_settings_validation")
+                    span.update(output={"valid": True, "page_count": len(settings_data.get("pages", {}).get("order", []))})
+                    log.info(f"✅ Settings.json is valid with {len(settings_data['pages']['order'])} pages")
                         
             except Exception as e:
-                result.add_error("resource_validation", f"Tool call failed: {e}")
+                result.add_error("layout_settings_validation", f"Validation failed: {e}")
+                span.update(output={"valid": False, "error": str(e)})
     
     async def _verify_policies(self, mcp_client, patch: Dict, plan_step: PlanStep, result: MCPVerificationResult):
-        """Call policy_validation_tool for generated files and constraint checks"""
+        """Call altinn_policy_validate for generated files and constraint checks"""
         langfuse = get_client()
         with langfuse.start_as_current_span(name="policy_validation", metadata={"span_type": "TOOL"}) as span:
             try:
@@ -303,7 +296,7 @@ class MCPVerifier:
                     }
 
                 span.update(input=tool_input)
-                policy_result = await mcp_client.call_tool("policy_validation_tool", tool_input)
+                policy_result = await mcp_client.call_tool("altinn_policy_validate", tool_input)
                 
                 # Handle CallToolResult objects with structured_content
                 if hasattr(policy_result, 'structured_content') and policy_result.structured_content:
@@ -312,7 +305,7 @@ class MCPVerifier:
                     policy_data = policy_result
                 
                 span.update(output={"result": policy_data})
-                result.tool_results.append({"tool": "policy_validation_tool", "result": policy_data})
+                result.tool_results.append({"tool": "altinn_policy_validate", "result": policy_data})
                 
                 if policy_data.get("valid", True):
                     result.add_success("policy_validation")
@@ -322,6 +315,27 @@ class MCPVerifier:
                         
             except Exception as e:
                 result.add_error("policy_validation", f"Tool call failed: {e}")
+
+
+    @staticmethod
+    def _extract_mcp_result(mcp_response) -> dict:
+        """Extract a plain dict from various MCP response formats."""
+        if hasattr(mcp_response, 'structured_content') and mcp_response.structured_content:
+            return mcp_response.structured_content
+        if isinstance(mcp_response, list) and mcp_response:
+            first = mcp_response[0]
+            if hasattr(first, 'text'):
+                try:
+                    return json.loads(first.text)
+                except json.JSONDecodeError:
+                    return {}
+            return first if isinstance(first, dict) else {}
+        if hasattr(mcp_response, 'text'):
+            try:
+                return json.loads(mcp_response.text)
+            except json.JSONDecodeError:
+                return {}
+        return mcp_response if isinstance(mcp_response, dict) else {}
 
 
 async def run_mcp_verification(patch: Dict, plan_step: PlanStep, repository_path: str) -> MCPVerificationResult:

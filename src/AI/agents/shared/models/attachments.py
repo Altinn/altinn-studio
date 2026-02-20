@@ -5,8 +5,11 @@ import shutil
 from pathlib import Path
 from typing import Optional
 from uuid import uuid4
+import logging
 
 from pydantic import BaseModel, Field, field_validator, ConfigDict
+
+logger = logging.getLogger(__name__)
 
 
 class AttachmentUpload(BaseModel):
@@ -53,7 +56,29 @@ class AgentAttachment(BaseModel):
     data_base64: Optional[str] = None
     azure_file_id: Optional[str] = None
 
+    def _extract_pdf_text(self) -> Optional[str]:
+        """Extract text content from PDF file."""
+        try:
+            from pypdf import PdfReader
+            
+            reader = PdfReader(self.path)
+            text_parts = []
+            
+            for page_num, page in enumerate(reader.pages, 1):
+                page_text = page.extract_text()
+                if page_text.strip():
+                    text_parts.append(f"--- Page {page_num} ---\n{page_text}")
+            
+            if text_parts:
+                return "\n\n".join(text_parts)
+            return None
+            
+        except Exception as e:
+            logger.error(f"Failed to extract text from PDF {self.name}: {e}")
+            return None
+
     def to_content_block(self) -> Optional[dict]:
+        # Handle images as visual content
         if self.mime_type.startswith("image/") and self.data_base64:
             return {
                 "type": "image_url",
@@ -61,6 +86,22 @@ class AgentAttachment(BaseModel):
                     "url": f"data:{self.mime_type};base64,{self.data_base64}"
                 },
             }
+        
+        # Handle PDFs by extracting text content
+        if self.mime_type == "application/pdf":
+            pdf_text = self._extract_pdf_text()
+            if pdf_text:
+                return {
+                    "type": "text",
+                    "text": f"PDF Document: {self.name}\n\n{pdf_text}"
+                }
+            # Fallback if extraction fails
+            return {
+                "type": "text",
+                "text": f"PDF Document: {self.name} (text extraction failed, file saved to {self.path})"
+            }
+        
+        # Handle other file types
         if self.data_base64:
             text = f"Attachment {self.name} ({self.mime_type}) base64:\n{self.data_base64}"
             return {"type": "text", "text": text}

@@ -23,6 +23,7 @@ async def handle(state: AgentState) -> AgentState:
             state.repo_path,
             state.user_goal,
             attachments=state.attachments,
+            conversation_history=state.conversation_history,
         )
 
         state.step_plan = [result["plan"]]
@@ -50,6 +51,8 @@ async def handle(state: AgentState) -> AgentState:
         state.next_action = "scan"
 
     except Exception as exc:
+        error_type = type(exc).__name__
+        log.error(f"Intake failed ({error_type}): {exc}", exc_info=True)
         sink.send(
             AgentEvent(
                 type="error",

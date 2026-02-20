@@ -24,6 +24,27 @@ logging.basicConfig(
     level=getattr(logging, config.LOG_LEVEL),
     format=config.LOG_FORMAT
 )
+
+
+class SuppressLangfuseTimeouts(logging.Filter):
+    """Filter out noisy OTLP ReadTimeout logs to cloud.langfuse.com.
+
+    These come from the OpenTelemetry HTTP exporter used by Langfuse and
+    do not affect agent correctness. We treat them as best-effort noise
+    and suppress them at the logging layer.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:  # type: ignore[override]
+        msg = record.getMessage()
+        if ("cloud.langfuse.com" or "langfuse.digdir.cloud") in msg and "ReadTimeout" in msg:
+            return False
+        return True
+
+
+# Attach filter to OpenTelemetry loggers so Langfuse remains fully enabled
+otel_logger = logging.getLogger("opentelemetry")
+otel_logger.addFilter(SuppressLangfuseTimeouts())
+
 logger = logging.getLogger(__name__)
 
 # Create FastAPI app
@@ -54,10 +75,10 @@ async def startup_event():
     from agents.services.events import sink
     from agents.services.mcp import check_mcp_server_startup
     from shared.config import get_config
-
+    
     # Check MCP server status first
     await check_mcp_server_startup()
-
+    
     # Initialize Langfuse if enabled
     config = get_config()
     if config.LANGFUSE_ENABLED:
@@ -67,6 +88,7 @@ async def startup_event():
             print(f"✅ Langfuse initialized - view traces at {config.LANGFUSE_HOST}")
         except Exception as e:
             print(f"⚠️  Failed to initialize Langfuse: {e}")
+    
     loop = asyncio.get_running_loop()
     sink.set_main_loop(loop)
     logger.info("Event sink configured with main event loop")
