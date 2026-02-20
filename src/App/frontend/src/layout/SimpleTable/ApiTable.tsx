@@ -65,10 +65,9 @@ export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
       }
       data={dataToDisplay}
       stickyHeader={true}
-      emptyText={<Lang id='general.empty_table' />}
+      emptyText='general.empty_table'
       columns={columns.map((config) => {
         const { component } = config;
-        const header = <Lang id={config.header} />;
         let renderCell;
         if (component) {
           renderCell = (_, __, rowIndex) => {
@@ -90,12 +89,11 @@ export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
 
         return {
           ...config,
-          header,
           renderCell,
         };
       })}
       mobile={isMobile}
-      actionButtonHeader={<Lang id='general.action' />}
+      actionButtonHeader='general.action'
     />
   );
 }

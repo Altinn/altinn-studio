@@ -54,12 +54,9 @@ export function ApiTableSummary({ targetBaseComponentId }: Summary2Props) {
       <AppTable
         caption={title && <Caption title={<Lang id={title} />} />}
         data={dataToDisplay}
-        columns={columns.map((config) => ({
-          ...config,
-          header: <Lang id={config.header} />,
-        }))}
+        columns={columns}
         mobile={isMobile}
-        emptyText={<Lang id='general.empty_table' />}
+        emptyText='general.empty_table'
       />
     </SummaryFlex>
   );

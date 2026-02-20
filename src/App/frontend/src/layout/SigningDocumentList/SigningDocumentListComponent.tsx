@@ -4,6 +4,7 @@ import { useParams } from 'react-router';
 import { Link } from '@digdir/designsystemet-react';
 import { DownloadIcon } from '@navikt/aksel-icons';
 
+import { AppComponentsProvider } from 'src/app-components/AppComponentsProvider';
 import { AppTable } from 'src/app-components/Table/Table';
 import { Caption } from 'src/components/form/caption/Caption';
 import { Lang } from 'src/features/language/Lang';
@@ -12,6 +13,7 @@ import classes from 'src/layout/SigneeList/SigneeListComponent.module.css';
 import { useDocumentList } from 'src/layout/SigningDocumentList/api';
 import { SigningDocumentListError } from 'src/layout/SigningDocumentList/SigningDocumentListError';
 import { getSizeWithUnit } from 'src/utils/attachmentsUtils';
+import type { TranslationKeyMap } from 'src/app-components/AppComponentsProvider';
 import type { ITextResourceBindings } from 'src/layout/layout';
 
 export function SigningDocumentListComponent({
@@ -29,62 +31,67 @@ export function SigningDocumentListComponent({
   }
 
   return (
-    <AppTable
-      size='md'
-      isLoading={isLoading}
-      headerClassName={classes.header}
-      tableClassName={classes.table}
-      data={data ?? []}
-      emptyText={<Lang id='general.empty_table' />}
-      caption={
-        textResourceBindings?.title ? (
-          <Caption
-            title={<Lang id={textResourceBindings?.title} />}
-            description={textResourceBindings?.description && <Lang id={textResourceBindings?.description} />}
-            helpText={textResourceBindings?.help ? { text: textResourceBindings?.help } : undefined}
-            designSystemLabelProps={{ 'data-size': 'lg' }}
-          />
-        ) : undefined
-      }
-      columns={[
-        {
-          header: langAsString('signing_document_list.header_filename'),
-          accessors: [],
-          renderCell: (_, rowData) => (
-            <Link
-              href={rowData.url}
-              rel='noopener noreferrer'
-            >
-              {rowData.filename}
-            </Link>
-          ),
-        },
-        {
-          header: langAsString('signing_document_list.header_attachment_type'),
-          accessors: [],
-          renderCell: (_, rowData) => rowData.attachmentTypes.map((it) => langAsString(it)).join(', '),
-        },
-        {
-          header: langAsString('signing_document_list.header_size'),
-          accessors: [],
-          renderCell: (_, rowData) => getSizeWithUnit(rowData.size),
-        },
-        {
-          header: null,
-          ariaLabel: langAsString('signing_document_list.download'),
-          accessors: [],
-          renderCell: (_, rowData) => (
-            <Link
-              href={rowData.url}
-              style={{ display: 'flex', gap: '0.5rem', whiteSpace: 'nowrap', textDecoration: 'none' }}
-              download
-            >
-              {langAsString('signing_document_list.download')}
-              <DownloadIcon fontSize='1.5rem' />
-            </Link>
-          ),
-        },
-      ]}
-    />
+    <AppComponentsProvider
+      t={(key: string) => key}
+      translationKeyMap={{} as TranslationKeyMap}
+    >
+      <AppTable
+        size='md'
+        isLoading={isLoading}
+        headerClassName={classes.header}
+        tableClassName={classes.table}
+        data={data ?? []}
+        emptyText='general.empty_table'
+        caption={
+          textResourceBindings?.title ? (
+            <Caption
+              title={<Lang id={textResourceBindings?.title} />}
+              description={textResourceBindings?.description && <Lang id={textResourceBindings?.description} />}
+              helpText={textResourceBindings?.help ? { text: textResourceBindings?.help } : undefined}
+              designSystemLabelProps={{ 'data-size': 'lg' }}
+            />
+          ) : undefined
+        }
+        columns={[
+          {
+            header: 'signing_document_list.header_filename',
+            accessors: [],
+            renderCell: (_, rowData) => (
+              <Link
+                href={rowData.url}
+                rel='noopener noreferrer'
+              >
+                {rowData.filename}
+              </Link>
+            ),
+          },
+          {
+            header: 'signing_document_list.header_attachment_type',
+            accessors: [],
+            renderCell: (_, rowData) => rowData.attachmentTypes.map((it) => langAsString(it)).join(', '),
+          },
+          {
+            header: 'signing_document_list.header_size',
+            accessors: [],
+            renderCell: (_, rowData) => getSizeWithUnit(rowData.size),
+          },
+          {
+            header: null,
+            ariaLabel: 'signing_document_list.download',
+            accessors: [],
+            renderCell: (_, rowData) => (
+              <Link
+                href={rowData.url}
+                style={{ display: 'flex', gap: '0.5rem', whiteSpace: 'nowrap', textDecoration: 'none' }}
+                download
+              >
+                {langAsString('signing_document_list.download')}
+                <DownloadIcon fontSize='1.5rem' />
+              </Link>
+            ),
+          },
+        ]}
+      />
+    </AppComponentsProvider>
   );
 }

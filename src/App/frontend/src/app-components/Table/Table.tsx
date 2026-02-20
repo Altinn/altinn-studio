@@ -1,5 +1,4 @@
 import React from 'react';
-import type { ReactElement } from 'react';
 
 import { Button, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
@@ -7,13 +6,14 @@ import { format, isValid, parseISO } from 'date-fns';
 import { pick } from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import utilClasses from 'src/app-components/style/utils.module.css';
 import classes from 'src/app-components/Table/Table.module.css';
 import type { FormDataValue } from 'src/app-components/DynamicForm/DynamicForm';
 
 interface Column<T> {
-  header: React.ReactNode;
+  header: string | null;
   ariaLabel?: string;
   accessors: string[];
   renderCell?: (values: FormDataValue[], rowData: T, rowIndex: number) => React.ReactNode;
@@ -34,13 +34,13 @@ interface DataTableProps<T> {
   columns: Column<T>[];
   caption?: React.ReactNode;
   actionButtons?: TableActionButton<T>[];
-  actionButtonHeader?: React.ReactNode;
+  actionButtonHeader?: string;
   mobile?: boolean;
   size?: 'sm' | 'md' | 'lg';
   zebra?: boolean;
   stickyHeader?: boolean;
   isLoading?: boolean;
-  emptyText: ReactElement | undefined;
+  emptyText: string | undefined;
   tableClassName?: string;
   headerClassName?: string;
 }
@@ -86,6 +86,14 @@ export function AppTable<T>({
   isLoading = false,
   emptyText,
 }: DataTableProps<T>) {
+  const t = useTranslation();
+  function translate(key: string | null) {
+    if (!key) {
+      return '';
+    }
+    return t(key);
+  }
+
   const defaultButtonVariant = mobile ? 'secondary' : 'tertiary';
   return (
     <Table
@@ -102,14 +110,14 @@ export function AppTable<T>({
               style={stickyHeader ? { zIndex: 2 } : {}}
               className={headerClassName}
               key={index}
-              aria-label={col.ariaLabel}
+              aria-label={col.ariaLabel ? t(col.ariaLabel) : undefined}
             >
-              {col.header}
+              {translate(col.header)}
             </Table.HeaderCell>
           ))}
           {actionButtons && actionButtons.length > 0 && (
             <Table.HeaderCell>
-              <span className={utilClasses.visuallyHidden}>{actionButtonHeader}</span>
+              <span className={utilClasses.visuallyHidden}>{actionButtonHeader && translate(actionButtonHeader)}</span>
             </Table.HeaderCell>
           )}
         </Table.Row>
@@ -133,7 +141,7 @@ export function AppTable<T>({
               colSpan={columns.length + (actionButtons ? 1 : 0)}
               className={classes.emptyCell}
             >
-              <em>{emptyText}</em>
+              <em>{emptyText && translate(emptyText)}</em>
             </Table.Cell>
           </Table.Row>
         ) : (
@@ -148,7 +156,7 @@ export function AppTable<T>({
                   return (
                     <Table.Cell
                       key={colIndex}
-                      data-header-title={col.header}
+                      data-header-title={translate(col.header)}
                     >
                       {col.renderCell(cellValues, rowData, rowIndex)}
                     </Table.Cell>
@@ -159,7 +167,7 @@ export function AppTable<T>({
                   return (
                     <Table.Cell
                       key={colIndex}
-                      data-header-title={col.header}
+                      data-header-title={translate(col.header)}
                     >
                       -
                     </Table.Cell>
@@ -170,7 +178,7 @@ export function AppTable<T>({
                   return (
                     <Table.Cell
                       key={colIndex}
-                      data-header-title={col.header}
+                      data-header-title={translate(col.header)}
                     >
                       {formatValue(cellValues[0])}
                     </Table.Cell>
@@ -180,7 +188,7 @@ export function AppTable<T>({
                 return (
                   <Table.Cell
                     key={colIndex}
-                    data-header-title={col.header}
+                    data-header-title={translate(col.header)}
                   >
                     <ul>
                       {cellValues.map((value, idx) => (

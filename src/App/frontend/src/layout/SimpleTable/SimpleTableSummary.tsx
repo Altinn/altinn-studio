@@ -58,12 +58,9 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
         schema={schema}
         caption={title && <Caption title={<Lang id={title} />} />}
         data={Array.isArray(data) ? data : emptyArray}
-        columns={columns.map((config) => ({
-          ...config,
-          header: <Lang id={config.header} />,
-        }))}
+        columns={columns}
         mobile={isMobile}
-        emptyText={<Lang id='general.empty_table' />}
+        emptyText='general.empty_table'
       />
     </SummaryFlex>
   );

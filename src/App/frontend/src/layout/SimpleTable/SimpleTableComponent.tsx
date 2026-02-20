@@ -145,8 +145,8 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
         schema={schema}
         mobile={isMobile}
         actionButtons={actionButtons}
-        actionButtonHeader={<Lang id='general.action' />}
-        emptyText={<Lang id='general.empty_table' />}
+        actionButtonHeader='general.action'
+        emptyText='general.empty_table'
         caption={
           title && (
             <Caption
@@ -160,7 +160,6 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
         stickyHeader={true}
         columns={columns.map((config) => {
           const { component } = config;
-          const header = <Lang id={config.header} />;
           let renderCell;
           if (component) {
             renderCell = (_, __, rowIndex) => {
@@ -212,7 +211,6 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
 
           return {
             ...config,
-            header,
             renderCell,
           };
         })}
