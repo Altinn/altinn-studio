@@ -61,15 +61,19 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
       ref={ref}
       style={expandedStyle}
     >
-      {isLoading && (
-        <Spinner
-          aria-hidden='true'
-          data-color={color}
-          data-size={size === 'lg' ? 'sm' : 'xs'}
-          aria-label={t('general.loading')}
-        />
+      {isLoading ? (
+        <>
+          <Spinner
+            aria-hidden='true'
+            data-color={color}
+            data-size={size === 'lg' ? 'sm' : 'xs'}
+            aria-label={t('general.loading')}
+          />
+          {children}
+        </>
+      ) : (
+        children
       )}
-      {children}
     </DesignSystemButton>
   );
 });
