@@ -1,4 +1,3 @@
-#nullable disable
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 

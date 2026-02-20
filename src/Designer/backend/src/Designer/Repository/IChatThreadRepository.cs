@@ -1,4 +1,3 @@
-#nullable disable
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ public interface IChatThreadRepository
     /// <param name="id">The thread id.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
     /// <returns>The thread, or null if not found.</returns>
-    Task<ChatThreadEntity> GetThreadAsync(long id, CancellationToken cancellationToken = default);
+    Task<ChatThreadEntity?> GetThreadAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets thread titles for a given org, app, and user, ordered by newest first.

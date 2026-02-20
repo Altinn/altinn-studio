@@ -1,4 +1,3 @@
-#nullable disable
 using System.Linq;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
@@ -30,7 +29,7 @@ public static class ChatThreadMapper
             App = dbModel.App,
             CreatedBy = dbModel.CreatedBy,
             CreatedAt = dbModel.CreatedAt,
-            Messages = dbModel.Messages?.Select(ChatMessageMapper.MapToModel).ToList()
+            Messages = dbModel.Messages.Select(ChatMessageMapper.MapToModel).ToList()
         };
     }
 

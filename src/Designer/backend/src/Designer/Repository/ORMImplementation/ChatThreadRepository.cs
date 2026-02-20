@@ -1,4 +1,3 @@
-#nullable disable
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,7 +21,7 @@ public class ChatThreadRepository : IChatThreadRepository
     }
 
     /// <inheritdoc />
-    public async Task<ChatThreadEntity> GetThreadAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<ChatThreadEntity?> GetThreadAsync(long id, CancellationToken cancellationToken = default)
     {
         var thread = await _dbContext.ChatThreads.AsNoTracking()
             .AsSplitQuery()
@@ -64,9 +63,7 @@ public class ChatThreadRepository : IChatThreadRepository
     /// <inheritdoc />
     public async Task DeleteThreadAsync(long id, CancellationToken cancellationToken = default)
     {
-        var stub = new ChatThreadDbModel { Id = id };
-        _dbContext.ChatThreads.Remove(stub);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _dbContext.ChatThreads.Where(t => t.Id == id).ExecuteDeleteAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -90,8 +87,6 @@ public class ChatThreadRepository : IChatThreadRepository
     /// <inheritdoc />
     public async Task DeleteAttachmentAsync(long id, CancellationToken cancellationToken = default)
     {
-        var stub = new ChatAttachmentDbModel { Id = id };
-        _dbContext.ChatAttachments.Remove(stub);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _dbContext.ChatAttachments.Where(a => a.Id == id).ExecuteDeleteAsync(cancellationToken);
     }
 }
