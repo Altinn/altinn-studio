@@ -48,6 +48,7 @@ const STUDIO_SERVICES = [
   // syncroot first — drives all other deployments
   { name: 'syncroot', workflow: 'deploy-studio-syncroot.yaml' },
   // services
+  { name: 'kubernetes-wrapper', workflow: 'deploy-runtime-kubernetes-wrapper.yaml' },
   { name: 'loadbalancer', workflow: 'deploy-loadbalancer.yaml' },
   { name: 'designer', workflow: 'deploy-designer.yaml' },
   { name: 'repositories', workflow: 'deploy-repositories.yaml' },
@@ -65,8 +66,13 @@ const ALL_SERVICES = [
 
 const VALID_ENVS = new Set([...RUNTIME_ENVS, ...STUDIO_ENVS]);
 
-// Lookup: workflow filename → service definition
-const SVC_BY_WORKFLOW = new Map(ALL_SERVICES.map((s) => [s.workflow, s]));
+// Lookup: workflow filename → service definitions (array; one workflow can cover multiple planes)
+const SVC_BY_WORKFLOW = new Map();
+for (const svc of ALL_SERVICES) {
+  const arr = SVC_BY_WORKFLOW.get(svc.workflow);
+  if (arr) arr.push(svc);
+  else SVC_BY_WORKFLOW.set(svc.workflow, [svc]);
+}
 
 // --- Environment extraction from job name ---
 
@@ -99,21 +105,26 @@ let stmts;
 
 function storeRunJobs(run, jobs, workflowOverride = null) {
   const workflowFile = workflowOverride || path.posix.basename(run.path || '');
-  const svc = SVC_BY_WORKFLOW.get(workflowFile);
-  if (!svc) return false;
+  const svcs = SVC_BY_WORKFLOW.get(workflowFile);
+  if (!svcs) return false;
 
+  // A workflow can cover multiple planes (e.g. kubernetes-wrapper deploys to both
+  // runtime and studio envs). Runtime and studio env names are disjoint, so each
+  // job will match at most one service definition.
   let stored = 0;
-  for (const job of jobs) {
-    const env = extractEnvFromJobName(job.name, svc.plane, svc.envs);
-    if (!env) continue;
-    stmts.upsertJob.run(
-      job.id, run.id, svc.workflow, env,
-      run.head_sha.slice(0, 7), run.head_sha,
-      run.display_title || '', run.html_url,
-      job.status, job.conclusion ?? null,
-      run.created_at, run.updated_at,
-    );
-    stored++;
+  for (const svc of svcs) {
+    for (const job of jobs) {
+      const env = extractEnvFromJobName(job.name, svc.plane, svc.envs);
+      if (!env) continue;
+      stmts.upsertJob.run(
+        job.id, run.id, svc.workflow, env,
+        run.head_sha.slice(0, 7), run.head_sha,
+        run.display_title || '', run.html_url,
+        job.status, job.conclusion ?? null,
+        run.created_at, run.updated_at,
+      );
+      stored++;
+    }
   }
   return stored > 0;
 }
@@ -132,57 +143,52 @@ async function fetchRunJobs(runId) {
 
 // Coverage tracker: for each workflow, track which envs we've seen
 // and which have a successful deployment.
+// Coverage key is `workflow:plane` so multi-plane workflows get separate tracking.
+function svcCoverageKey(svc) {
+  return `${svc.workflow}:${svc.plane}`;
+}
+
 function createCoverageTracker(services) {
-  // workflow → { expected: Set, seen: Set, covered: Set }
+  // svcKey → { expected: Set, seen: Set, covered: Set }
   const map = new Map(
     services.map((svc) => [
-      svc.workflow,
-      {
-        expected: new Set(svc.envs),
-        seen: new Set(),
-        covered: new Set(),
-      },
+      svcCoverageKey(svc),
+      { expected: new Set(svc.envs), seen: new Set(), covered: new Set() },
     ]),
   );
 
-  function get(workflow) {
-    let entry = map.get(workflow);
+  function get(key) {
+    let entry = map.get(key);
     if (!entry) {
-      entry = {
-        expected: new Set(),
-        seen: new Set(),
-        covered: new Set(),
-      };
-      map.set(workflow, entry);
+      entry = { expected: new Set(), seen: new Set(), covered: new Set() };
+      map.set(key, entry);
     }
     return entry;
   }
 
-  function getMissingEnvs(workflow) {
-    const { expected, covered } = get(workflow);
+  function getMissingEnvs(key) {
+    const { expected, covered } = get(key);
     return [...expected].filter((env) => !covered.has(env));
   }
 
   return {
-    recordJob(workflow, env, jobStatus, jobConclusion) {
-      const e = get(workflow);
+    recordJob(key, env, jobStatus, jobConclusion) {
+      const e = get(key);
       e.seen.add(env);
-      if (jobStatus === 'completed' && jobConclusion === 'success') {
-        e.covered.add(env);
-      }
+      if (jobStatus === 'completed' && jobConclusion === 'success') e.covered.add(env);
     },
-    setExpectedEnvs(workflow, envs) {
-      const e = get(workflow);
+    setExpectedEnvs(key, envs) {
+      const e = get(key);
       if (envs.size > 0) e.expected = new Set(envs);
     },
     getMissingEnvs,
     summary() {
       const lines = [];
-      for (const [wf, { seen, covered }] of map) {
+      for (const [key, { seen, covered }] of map) {
         if (seen.size === 0) continue;
-        const missing = getMissingEnvs(wf);
+        const missing = getMissingEnvs(key);
         lines.push(
-          `  ${wf}: ${seen.size} envs seen, ${covered.size} covered` +
+          `  ${key}: ${seen.size} envs seen, ${covered.size} covered` +
             (missing.length > 0 ? ` (missing: ${missing.join(', ')})` : ''),
         );
       }
@@ -191,9 +197,9 @@ function createCoverageTracker(services) {
   };
 }
 
-async function processWorkflowRunsPage({ workflow, runs, stopAtRunId, coverage, skipFailedCompleted }) {
-  const svc = SVC_BY_WORKFLOW.get(workflow);
-  if (!svc) return { reachedStopAtRunId: false, relevantRuns: 0, jobFetches: 0, discoveredEnvs: new Set() };
+async function processWorkflowRunsPage({ svc, runs, stopAtRunId, coverage, skipFailedCompleted }) {
+  const workflow = svc.workflow;
+  const coverageKey = svcCoverageKey(svc);
   let reachedStopAtRunId = false;
   const relevant = [];
   for (const run of runs) {
@@ -234,14 +240,16 @@ async function processWorkflowRunsPage({ workflow, runs, stopAtRunId, coverage, 
       for (const job of jobs) {
         const env = extractEnvFromJobName(job.name, svc.plane, svc.envs);
         if (!env) continue;
-        coverage.recordJob(svc.workflow, env, job.status, job.conclusion);
+        coverage.recordJob(coverageKey, env, job.status, job.conclusion);
         if (sampledRuns < EXPECTED_ENVS_DISCOVERY_RUNS) discoveredEnvs.add(env);
       }
     } else {
       const coverageRows = stmts.getRunCoverageRows.all(run.id, workflow);
-      if (coverageRows.length > 0) {
-        for (const row of coverageRows) {
-          coverage.recordJob(svc.workflow, row.env, row.job_status, row.job_conclusion);
+      // Filter coverage rows to only those matching this svc's plane/envs
+      const relevantRows = coverageRows.filter((r) => svc.envs.includes(r.env));
+      if (relevantRows.length > 0) {
+        for (const row of relevantRows) {
+          coverage.recordJob(coverageKey, row.env, row.job_status, row.job_conclusion);
           if (sampledRuns < EXPECTED_ENVS_DISCOVERY_RUNS) discoveredEnvs.add(row.env);
         }
       } else {
@@ -251,7 +259,7 @@ async function processWorkflowRunsPage({ workflow, runs, stopAtRunId, coverage, 
         for (const job of fetchedJobs) {
           const env = extractEnvFromJobName(job.name, svc.plane, svc.envs);
           if (!env) continue;
-          coverage.recordJob(svc.workflow, env, job.status, job.conclusion);
+          coverage.recordJob(coverageKey, env, job.status, job.conclusion);
           if (sampledRuns < EXPECTED_ENVS_DISCOVERY_RUNS) discoveredEnvs.add(env);
         }
       }
@@ -315,16 +323,17 @@ async function syncWorkflowRuns({ svc, stopAtRunId, coverage }) {
       if (newestWorkflowRunId === 0 && page === 1) newestWorkflowRunId = runs[0].id;
 
       const pageStats = await processWorkflowRunsPage({
-        workflow,
+        svc,
         runs,
         stopAtRunId,
         coverage,
         skipFailedCompleted: true,
       });
+      const coverageKey = svcCoverageKey(svc);
       totalRuns += pageStats.relevantRuns;
       jobFetches += pageStats.jobFetches;
       if (page === 1) {
-        coverage.setExpectedEnvs(workflow, pageStats.discoveredEnvs);
+        coverage.setExpectedEnvs(coverageKey, pageStats.discoveredEnvs);
       }
 
       if (pageStats.reachedStopAtRunId) {
@@ -333,7 +342,7 @@ async function syncWorkflowRuns({ svc, stopAtRunId, coverage }) {
         break;
       }
 
-      if (coverage.getMissingEnvs(workflow).length === 0) {
+      if (coverage.getMissingEnvs(coverageKey).length === 0) {
         reachedWatermark = true;
         stopped = true;
         break;
