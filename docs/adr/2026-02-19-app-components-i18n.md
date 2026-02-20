@@ -71,6 +71,4 @@ The naive solution of importing `useLanguage` from `src/features/language/` dire
 
 ## Implementation notes
 
-The context lives at `src/app-components/i18n.tsx` and exposes `AppComponentsProvider` and `useTranslation`. The app side contains a small bridge component that calls `useLanguage()` and passes `langAsString` to the provider.
-
-The bridge must be placed **inside `TextResourcesProvider`** in `Root()` in `src/index.tsx`. Above that point `useLanguage` is available syntactically but returns bare keys, because text resources have not yet been loaded into `LangToolsStore`.
+The context lives at `src/app-components/AppComponentsProvider.tsx` and exposes `AppComponentsProvider` and `useTranslation`. The app side contains a small bridge component that calls `useLanguage()` and passes `langAsString` to the provider.
