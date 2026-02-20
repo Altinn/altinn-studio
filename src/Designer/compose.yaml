@@ -86,6 +86,9 @@ services:
       - OidcLoginSettings:RequireHttpsMetadata=false
       - OidcLoginSettings:CookieExpiryTimeInMinutes=59
       - OidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
+      - StudioOidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
+      - StudioOidcLoginSettings:ClientId=${STUDIO_OIDC_CLIENT_ID:-dummyRequired}
+      - StudioOidcLoginSettings:ClientSecret=${STUDIO_OIDC_CLIENT_SECRET:-dummyRequired}
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
       - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
       - FeatureManagement:StudioOidc=${FEATUREFLAGS_STUDIOOIDC:-true}
@@ -98,6 +101,8 @@ services:
       - SchedulingSettings:AddHostedService=true
       - GitOpsSettings:BotPersonalAccessToken=${GITOPS_BOT_PERSONAL_ACCESS_TOKEN:-}
       - GiteaDbSettings:ConnectionString=Host=studio_db;Port=5432;Username=gitea;Password=gitea;Database=giteadb
+      - DeveloperMappingSettings:PidHashSalt=${PID_HASH_SALT:-local-dev-salt}
+      - DeveloperMappingSettings:UsernamePrefix=dev
     ports:
       - '6000:6000'
     depends_on:
