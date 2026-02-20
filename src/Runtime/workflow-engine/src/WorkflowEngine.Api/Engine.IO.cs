@@ -18,7 +18,6 @@ internal partial class Engine
             tags:
             [
                 ("request.operation.id", workflowRequest.OperationId),
-                ("request.idempotency.key", workflowRequest.IdempotencyKey),
                 ("request.actor.id", workflowRequest.Actor.UserIdOrOrgNumber),
                 ("request.instance.guid", workflowRequest.InstanceInformation.InstanceGuid),
                 ("request.instance.party.id", workflowRequest.InstanceInformation.InstanceOwnerPartyId),
@@ -41,15 +40,6 @@ internal partial class Engine
         {
             activity?.Errored(errorMessage: "Invalid request");
             return EngineResponse.Reject(EngineResponse.Rejection.Invalid, $"Invalid request: {workflowRequest}");
-        }
-
-        if (HasDuplicateWorkflow(workflowRequest.IdempotencyKey))
-        {
-            activity?.Errored(errorMessage: "Duplicate workflow request");
-            return EngineResponse.Reject(
-                EngineResponse.Rejection.Duplicate,
-                "Duplicate request. A workflow with the same identifier is already being processed"
-            );
         }
 
         if (_mainLoopTask is null)
@@ -88,25 +78,13 @@ internal partial class Engine
             return EngineResponse.Reject(EngineResponse.Rejection.Duplicate, ex.Message);
         }
 
-        _inbox[workflow.IdempotencyKey] = workflow;
+        _inbox[workflow.DatabaseId] = workflow;
         _newWorkSignal.TrySetResult();
 
         Metrics.WorkflowRequestsAccepted.Add(1);
         Metrics.StepRequestsAccepted.Add(workflowRequest.Steps.Count());
 
         return EngineResponse.Accept(workflow.DatabaseId);
-    }
-
-    public bool HasDuplicateWorkflow(string jobIdentifier)
-    {
-        bool isDupe = _inbox.ContainsKey(jobIdentifier);
-
-        using var activity = Metrics.Source.StartActivity(
-            "Engine.HasDuplicateWorkflow",
-            tags: [("workflow.isDuplicate", isDupe)]
-        );
-
-        return isDupe;
     }
 
     public Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation)
@@ -134,9 +112,9 @@ internal partial class Engine
         {
             // TODO: Not sure about this logic...
             // Only add if not already in memory to avoid duplicates
-            if (_inbox.TryAdd(job.IdempotencyKey, job))
+            if (_inbox.TryAdd(job.DatabaseId, job))
             {
-                _logger.RestoredWorkflowFromDb(job.IdempotencyKey);
+                _logger.RestoredWorkflowFromDb(job.DatabaseId.ToString());
             }
         }
     }

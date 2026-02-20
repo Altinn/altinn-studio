@@ -25,7 +25,6 @@ internal interface IEngine
         WorkflowEnqueueRequest workflowRequest,
         CancellationToken cancellationToken = default
     );
-    bool HasDuplicateWorkflow(string jobIdentifier);
     Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation);
 }
 
@@ -54,7 +53,7 @@ internal partial class Engine : IEngine, IDisposable
         maxDelay: TimeSpan.FromMinutes(1)
     );
 
-    private ConcurrentDictionary<string, Workflow> _inbox;
+    private ConcurrentDictionary<long, Workflow> _inbox;
     private HashSet<Workflow> _activeSet;
     private readonly Lock _activeSetLock = new();
     private HashSet<WorkflowStatusTracker> _statusTrackers;

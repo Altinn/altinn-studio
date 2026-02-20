@@ -14,7 +14,6 @@ public class StepEntityTests
         new()
         {
             Id = 99,
-            IdempotencyKey = "step-key-1",
             OperationId = "send-email",
             Status = PersistentItemStatus.Processing,
             ProcessingOrder = 3,
@@ -42,7 +41,6 @@ public class StepEntityTests
 
         // Assert
         Assert.Equal(entity.Id, roundTripped.Id);
-        Assert.Equal(entity.IdempotencyKey, roundTripped.IdempotencyKey);
         Assert.Equal(entity.OperationId, roundTripped.OperationId);
         Assert.Equal(entity.Status, roundTripped.Status);
         Assert.Equal(entity.ProcessingOrder, roundTripped.ProcessingOrder);

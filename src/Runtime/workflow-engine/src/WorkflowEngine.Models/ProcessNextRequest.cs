@@ -71,7 +71,6 @@ public sealed record ProcessNextRequest
         string? traceContext
     ) =>
         new(
-            $"{instanceInformation.InstanceGuid}/next/from-{CurrentElementId}-to-{DesiredElementId}",
             "next",
             instanceInformation,
             Actor,

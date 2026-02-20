@@ -23,7 +23,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
 
         Assert.NotEqual(0, workflow.DatabaseId);
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Status);
-        Assert.Equal(request.IdempotencyKey, workflow.IdempotencyKey);
+        Assert.Equal(request.OperationId, workflow.OperationId);
         Assert.Equal(WorkflowType.Generic, workflow.Type);
         Assert.Equal(request.InstanceInformation.InstanceGuid, workflow.InstanceInformation.InstanceGuid);
 
@@ -31,7 +31,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.NotNull(dbWorkflow);
         Assert.Equal(workflow.DatabaseId, dbWorkflow.DatabaseId);
         Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Status);
-        Assert.Equal(request.IdempotencyKey, dbWorkflow.IdempotencyKey);
+        Assert.Equal(request.OperationId, dbWorkflow.OperationId);
         Assert.Equal(WorkflowType.Generic, dbWorkflow.Type);
         Assert.Equal(request.InstanceInformation.Org, dbWorkflow.InstanceInformation.Org);
         Assert.Equal(request.InstanceInformation.App, dbWorkflow.InstanceInformation.App);
@@ -50,7 +50,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
         var request = new WorkflowEnqueueRequest(
-            IdempotencyKey: Guid.NewGuid().ToString(),
             OperationId: "next",
             InstanceInformation: new InstanceInformation
             {
@@ -80,7 +79,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
         Assert.NotNull(dbWorkflow);
         Assert.Equal(3, dbWorkflow.Steps.Count);
-        Assert.Equal(request.IdempotencyKey, dbWorkflow.IdempotencyKey);
+        Assert.Equal(request.OperationId, dbWorkflow.OperationId);
 
         for (int i = 0; i < dbWorkflow.Steps.Count; i++)
         {
@@ -90,7 +89,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             Assert.Equal(repoStep.DatabaseId, dbStep.DatabaseId);
             Assert.Equal(i, dbStep.ProcessingOrder);
             Assert.Equal(PersistentItemStatus.Enqueued, dbStep.Status);
-            Assert.Equal(repoStep.IdempotencyKey, dbStep.IdempotencyKey);
+            Assert.Equal(repoStep.OperationId, dbStep.OperationId);
         }
 
         foreach (var step in workflow.Steps)
@@ -100,7 +99,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             Assert.Equal(step.DatabaseId, dbStep.DatabaseId);
             Assert.Equal(step.ProcessingOrder, dbStep.ProcessingOrder);
             Assert.Equal(PersistentItemStatus.Enqueued, dbStep.Status);
-            Assert.Equal(step.IdempotencyKey, dbStep.IdempotencyKey);
+            Assert.Equal(step.OperationId, dbStep.OperationId);
             Assert.Equal(step.Actor.UserIdOrOrgNumber, dbStep.Actor.UserIdOrOrgNumber);
         }
     }
@@ -132,7 +131,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
 
         var dbWorkflowA = await fixture.GetWorkflow(workflowA.DatabaseId);
         Assert.NotNull(dbWorkflowA);
-        Assert.Equal(requestA.IdempotencyKey, dbWorkflowA.IdempotencyKey);
+        Assert.Equal(requestA.OperationId, dbWorkflowA.OperationId);
     }
 
     [Fact]
@@ -145,10 +144,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await Assert.ThrowsAsync<EngineDbException>(() =>
             repo.AddWorkflow(request, TestContext.Current.CancellationToken)
         );
-
-        // Verify the workflow was not persisted (transaction rolled back)
-        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
-        Assert.Null(notPersisted);
     }
 
     [Fact]
@@ -346,7 +341,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
         var request = new WorkflowEnqueueRequest(
-            IdempotencyKey: Guid.NewGuid().ToString(),
             OperationId: "next",
             InstanceInformation: new InstanceInformation
             {

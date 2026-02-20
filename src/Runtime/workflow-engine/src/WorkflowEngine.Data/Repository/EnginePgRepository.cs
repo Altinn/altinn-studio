@@ -221,7 +221,7 @@ internal sealed class EnginePgRepository : IEngineRepository
             var entity = await _context
                 .Workflows.Where(w => w.Id == workflowId)
                 .Select(w => new { w.Status })
-                .FirstOrDefaultAsync(cancellationToken);
+                .SingleOrDefaultAsync(cancellationToken);
 
             return entity?.Status;
         }
@@ -333,7 +333,7 @@ internal sealed class EnginePgRepository : IEngineRepository
                     workflowType,
                     instanceGuid
                 )
-                .FirstOrDefaultAsync(cancellationToken);
+                .SingleOrDefaultAsync(cancellationToken);
 
             if (violation is not null)
             {
@@ -447,7 +447,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         catch (Exception ex)
         {
             activity?.Errored(ex);
-            _logger.FailedToUpdateWorkflow(workflow.IdempotencyKey, workflow.DatabaseId, ex.Message, ex);
+            _logger.FailedToUpdateWorkflow(workflow.OperationId, workflow.DatabaseId, ex.Message, ex);
             throw;
         }
     }
@@ -490,7 +490,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         catch (Exception ex)
         {
             activity?.Errored(ex);
-            _logger.FailedToUpdateStep(step.IdempotencyKey, step.DatabaseId, ex.Message, ex);
+            _logger.FailedToUpdateStep(step.OperationId, step.DatabaseId, ex.Message, ex);
             throw;
         }
     }

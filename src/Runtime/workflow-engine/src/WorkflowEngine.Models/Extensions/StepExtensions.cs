@@ -55,7 +55,6 @@ public static class StepExtensions
             [
                 ("step.database.id", step.DatabaseId),
                 ("step.actor.id", step.Actor.UserIdOrOrgNumber),
-                ("step.idempotency.key", step.IdempotencyKey),
                 ("step.operation.id", step.OperationId),
                 ("step.command.type", step.Command.GetType()),
             ];

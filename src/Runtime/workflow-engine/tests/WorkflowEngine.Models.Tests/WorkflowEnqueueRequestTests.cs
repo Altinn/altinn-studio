@@ -7,7 +7,6 @@ public class WorkflowEnqueueRequestTests
     {
         // Arrange
         var request = new WorkflowEnqueueRequest(
-            "key-1",
             "op-1",
             new InstanceInformation
             {
@@ -35,7 +34,6 @@ public class WorkflowEnqueueRequestTests
     {
         // Arrange
         var request = new WorkflowEnqueueRequest(
-            "key-1",
             "op-1",
             new InstanceInformation
             {

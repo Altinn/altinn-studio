@@ -166,7 +166,6 @@ public class EngineEndpointTests
         // Arrange
         var workflow = new Workflow
         {
-            IdempotencyKey = "test-key",
             OperationId = "test-op",
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             InstanceInformation = WorkflowEngineTestFixture.DefaultInstanceInformation,
@@ -174,7 +173,6 @@ public class EngineEndpointTests
             [
                 new Step
                 {
-                    IdempotencyKey = "step-1",
                     OperationId = "step-op",
                     ProcessingOrder = 0,
                     Command = new Command.Debug.Noop(),
@@ -194,7 +192,7 @@ public class EngineEndpointTests
         Assert.NotNull(ok.Value);
         Assert.Equal(PersistentItemStatus.Enqueued, ok.Value.OverallStatus);
         Assert.Single(ok.Value.Steps);
-        Assert.Equal("step-1", ok.Value.Steps[0].Identifier);
+        Assert.Equal("step-op", ok.Value.Steps[0].Identifier);
     }
 
     // === InstanceRouteParams Conversion Tests ===

@@ -10,6 +10,7 @@ public sealed record Workflow : PersistentItem
     public WorkflowType Type { get; init; }
     public string? DistributedTraceContext { get; set; }
     public IEnumerable<Workflow>? Dependencies { get; init; }
+    public IEnumerable<Workflow>? Links { get; init; }
 
     internal Task? DatabaseTask { get; set; }
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
@@ -20,7 +21,6 @@ public sealed record Workflow : PersistentItem
     ) =>
         new()
         {
-            IdempotencyKey = workflowEnqueueRequest.IdempotencyKey,
             InstanceLockKey = workflowEnqueueRequest.InstanceLockKey,
             InstanceInformation = workflowEnqueueRequest.InstanceInformation,
             Actor = workflowEnqueueRequest.Actor,
@@ -37,10 +37,9 @@ public sealed record Workflow : PersistentItem
                 .ToList(),
         };
 
-    public override string ToString() => $"[{GetType().Name}] {IdempotencyKey} ({Status})";
+    public override string ToString() => $"[{GetType().Name}] {OperationId} ({Status})";
 
-    public override int GetHashCode() => IdempotencyKey.GetHashCode(StringComparison.InvariantCulture);
+    public override int GetHashCode() => DatabaseId.GetHashCode();
 
-    public bool Equals(Workflow? other) =>
-        other?.IdempotencyKey.Equals(IdempotencyKey, StringComparison.OrdinalIgnoreCase) is true;
+    public bool Equals(Workflow? other) => other?.DatabaseId == DatabaseId;
 };

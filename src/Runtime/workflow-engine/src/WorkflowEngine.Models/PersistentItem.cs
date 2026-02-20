@@ -5,10 +5,9 @@ namespace WorkflowEngine.Models;
 public abstract record PersistentItem
 {
     public long DatabaseId { get; internal set; }
-    public required string IdempotencyKey { get; init; }
-    public required string OperationId { get; set; }
+    public required string OperationId { get; init; }
     public PersistentItemStatus Status { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; internal set; }
     public string? Metadata { get; init; }
 

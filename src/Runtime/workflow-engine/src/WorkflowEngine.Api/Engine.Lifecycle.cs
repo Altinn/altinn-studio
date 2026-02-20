@@ -129,11 +129,11 @@ internal partial class Engine
 
         lock (_activeSetLock)
         {
-            var removed = _inbox.TryRemove(workflow.IdempotencyKey, out _) && _activeSet.Remove(workflow);
+            var removed = _inbox.TryRemove(workflow.DatabaseId, out _) && _activeSet.Remove(workflow);
             if (!removed)
             {
                 Metrics.Errors.Add(1, ("operation", "queueSlotRelease"));
-                throw new EngineException($"Unable to release queue slot {workflow.IdempotencyKey}");
+                throw new EngineException($"Unable to release queue slot {workflow.DatabaseId}");
             }
         }
 

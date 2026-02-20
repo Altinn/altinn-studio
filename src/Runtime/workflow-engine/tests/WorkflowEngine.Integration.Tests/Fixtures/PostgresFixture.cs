@@ -64,18 +64,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         var entity = await context
             .Workflows.Include(w => w.Steps)
             .Include(w => w.Dependencies)
-            .FirstOrDefaultAsync(w => w.Id == workflowId);
-
-        return entity?.ToDomainModel();
-    }
-
-    internal async Task<Workflow?> GetWorkflowByIdempotencyKey(string idempotencyKey)
-    {
-        await using var context = CreateDbContext();
-        var entity = await context
-            .Workflows.Include(w => w.Steps)
-            .Include(w => w.Dependencies)
-            .FirstOrDefaultAsync(w => w.IdempotencyKey == idempotencyKey);
+            .Include(w => w.Links)
+            .SingleOrDefaultAsync(w => w.Id == workflowId);
 
         return entity?.ToDomainModel();
     }
@@ -83,7 +73,7 @@ public sealed class PostgresFixture : IAsyncLifetime
     internal async Task<Step?> GetStep(long stepId)
     {
         await using var context = CreateDbContext();
-        var entity = await context.Steps.FirstOrDefaultAsync(s => s.Id == stepId);
+        var entity = await context.Steps.SingleOrDefaultAsync(s => s.Id == stepId);
 
         return entity?.ToDomainModel();
     }

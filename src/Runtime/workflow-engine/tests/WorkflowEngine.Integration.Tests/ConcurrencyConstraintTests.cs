@@ -31,7 +31,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         Assert.NotNull(dbWorkflow);
         Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Status);
         Assert.Equal(WorkflowType.AppProcessChange, dbWorkflow.Type);
-        Assert.Equal(request.IdempotencyKey, dbWorkflow.IdempotencyKey);
         Assert.Equal(request.InstanceInformation.InstanceGuid, dbWorkflow.InstanceInformation.InstanceGuid);
         Assert.Single(dbWorkflow.Steps);
         Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Steps[0].Status);
@@ -234,10 +233,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         var dbBlocking = await fixture.GetWorkflow(ex.BlockingWorkflowId);
         Assert.NotNull(dbBlocking);
         Assert.Equal(PersistentItemStatus.Processing, dbBlocking.Status);
-
-        // Rejected workflow was not persisted (transaction rolled back)
-        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
-        Assert.Null(notPersisted);
     }
 
     [Fact]
@@ -274,9 +269,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         );
 
         Assert.Equal("disconnected", ex.RejectionReason);
-
-        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
-        Assert.Null(notPersisted);
     }
 
     [Fact]
@@ -321,9 +313,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         );
 
         Assert.Equal("slot_full", ex.RejectionReason);
-
-        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(requestR.IdempotencyKey);
-        Assert.Null(notPersisted);
     }
 
     [Fact]
@@ -350,9 +339,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         );
 
         Assert.Equal("pending_exists", ex.RejectionReason);
-
-        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
-        Assert.Null(notPersisted);
     }
 
     [Fact]
@@ -379,9 +365,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         );
 
         Assert.Equal("pending_exists", ex.RejectionReason);
-
-        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
-        Assert.Null(notPersisted);
     }
 
     [Fact]
@@ -419,9 +402,6 @@ public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsync
         );
 
         Assert.Equal("disconnected", ex.RejectionReason);
-
-        var notPersisted = await fixture.GetWorkflowByIdempotencyKey(request.IdempotencyKey);
-        Assert.Null(notPersisted);
     }
 
     // ── Edge cases ──

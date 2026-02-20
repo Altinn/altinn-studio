@@ -28,7 +28,6 @@ public sealed record Step : PersistentItem
         new()
         {
             DatabaseId = 0,
-            IdempotencyKey = $"{parent.IdempotencyKey}/{request.Command}",
             OperationId = request.Command.OperationId,
             Actor = parent.Actor,
             CreatedAt = createdAt,
@@ -38,10 +37,9 @@ public sealed record Step : PersistentItem
             Metadata = request.Metadata,
         };
 
-    public override string ToString() => $"[{nameof(Step)}.{Command.GetType().Name}] {IdempotencyKey} ({Status})";
+    public override string ToString() => $"[{nameof(Step)}.{Command.GetType().Name}] {OperationId} ({Status})";
 
-    public override int GetHashCode() => IdempotencyKey.GetHashCode(StringComparison.InvariantCulture);
+    public override int GetHashCode() => DatabaseId.GetHashCode();
 
-    public bool Equals(Step? other) =>
-        other?.IdempotencyKey.Equals(IdempotencyKey, StringComparison.OrdinalIgnoreCase) is true;
+    public bool Equals(Step? other) => other?.DatabaseId == DatabaseId;
 }

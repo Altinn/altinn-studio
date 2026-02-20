@@ -11,7 +11,6 @@ public class StepExtensionsTests
     ) =>
         new()
         {
-            IdempotencyKey = "test-key",
             OperationId = "test-op",
             Actor = new Actor { UserIdOrOrgNumber = "user-1" },
             ProcessingOrder = 0,

@@ -11,7 +11,6 @@ internal static class WorkflowTestHelper
         Guid? instanceGuid = null,
         WorkflowType type = WorkflowType.AppProcessChange,
         IEnumerable<long>? dependencies = null,
-        string? idempotencyKey = null,
         string org = "ttd",
         string app = "test-app",
         int instanceOwnerPartyId = 50001234,
@@ -19,10 +18,8 @@ internal static class WorkflowTestHelper
     )
     {
         instanceGuid ??= Guid.NewGuid();
-        idempotencyKey ??= Guid.NewGuid().ToString();
 
         return new WorkflowEnqueueRequest(
-            IdempotencyKey: idempotencyKey,
             OperationId: "next",
             InstanceInformation: new InstanceInformation
             {
@@ -46,17 +43,11 @@ internal static class WorkflowTestHelper
         PersistentItemStatus status,
         Guid? instanceGuid = null,
         WorkflowType finalType = WorkflowType.AppProcessChange,
-        IEnumerable<long>? dependencies = null,
-        string? idempotencyKey = null
+        IEnumerable<long>? dependencies = null
     )
     {
         // Insert as Generic to bypass constraint checks
-        var request = CreateRequest(
-            instanceGuid: instanceGuid,
-            type: WorkflowType.Generic,
-            dependencies: dependencies,
-            idempotencyKey: idempotencyKey
-        );
+        var request = CreateRequest(instanceGuid: instanceGuid, type: WorkflowType.Generic, dependencies: dependencies);
 
         var workflow = await repository.AddWorkflow(request);
 

@@ -12,9 +12,6 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long Id { get; set; }
 
-    [MaxLength(500)]
-    public required string IdempotencyKey { get; set; }
-
     [MaxLength(100)]
     public required string OperationId { get; set; }
 
@@ -55,12 +52,12 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public ICollection<StepEntity> Steps { get; set; } = [];
     public ICollection<WorkflowEntity>? Dependencies { get; set; }
+    public ICollection<WorkflowEntity>? Links { get; set; }
 
     public static WorkflowEntity FromDomainModel(Workflow workflow) =>
         new()
         {
             Id = workflow.DatabaseId,
-            IdempotencyKey = workflow.IdempotencyKey,
             InstanceLockKey = workflow.InstanceLockKey,
             OperationId = workflow.OperationId,
             CreatedAt = workflow.CreatedAt,
@@ -78,13 +75,13 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             MetadataJson = workflow.Metadata,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
             Dependencies = workflow.Dependencies?.Select(FromDomainModel).ToList(),
+            Links = workflow.Links?.Select(FromDomainModel).ToList(),
         };
 
     public Workflow ToDomainModel() =>
         new()
         {
             DatabaseId = Id,
-            IdempotencyKey = IdempotencyKey,
             InstanceLockKey = InstanceLockKey,
             OperationId = OperationId,
             CreatedAt = CreatedAt,
@@ -104,5 +101,6 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             Metadata = MetadataJson,
             Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(x => x.ToDomainModel()).ToList(),
             Dependencies = Dependencies?.Select(x => x.ToDomainModel()).ToList(),
+            Links = Links?.Select(x => x.ToDomainModel()).ToList(),
         };
 }

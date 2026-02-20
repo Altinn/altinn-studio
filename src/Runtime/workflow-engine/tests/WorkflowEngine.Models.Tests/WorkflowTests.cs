@@ -15,29 +15,29 @@ public class WorkflowTests
         };
 
     [Fact]
-    public void Equality_Uses_IdempotencyKey()
+    public void Equality_Uses_DatabaseId()
     {
         // Arrange
 
-        var sharedKey1 = new Workflow
+        var sharedId1 = new Workflow
         {
-            IdempotencyKey = "shared-idempotency-key",
+            DatabaseId = 42,
             OperationId = "workflow-1-operation",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
         };
-        var sharedKey2 = new Workflow
+        var sharedId2 = new Workflow
         {
-            IdempotencyKey = "shared-idempotency-key",
+            DatabaseId = 42,
             OperationId = "workflow-2-operation",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
         };
-        var uniqueKey = new Workflow
+        var uniqueId = new Workflow
         {
-            IdempotencyKey = "unique-idempotency-key",
+            DatabaseId = 99,
             OperationId = "workflow-3-operation",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
@@ -45,13 +45,13 @@ public class WorkflowTests
         };
 
         // Act
-        bool shouldBeEqual1 = sharedKey1 == sharedKey2;
-        bool shouldBeEqual2 = sharedKey1.Equals(sharedKey2);
+        bool shouldBeEqual1 = sharedId1 == sharedId2;
+        bool shouldBeEqual2 = sharedId1.Equals(sharedId2);
 
-        bool shouldNotBeEqual1 = uniqueKey == sharedKey1;
-        bool shouldNotBeEqual2 = uniqueKey.Equals(sharedKey1);
+        bool shouldNotBeEqual1 = uniqueId == sharedId1;
+        bool shouldNotBeEqual2 = uniqueId.Equals(sharedId1);
 
-        bool shouldContain = new[] { sharedKey1, uniqueKey }.Contains(sharedKey2);
+        bool shouldContain = new[] { sharedId1, uniqueId }.Contains(sharedId2);
 
         // Assert
         Assert.True(shouldBeEqual1);
@@ -86,7 +86,6 @@ public class WorkflowTests
         var traceContext = "trace-context-123";
 
         var request = new WorkflowEnqueueRequest(
-            "idempotency-key-1",
             "next",
             instanceInfo,
             actor,
@@ -102,7 +101,6 @@ public class WorkflowTests
         var workflow = Workflow.FromRequest(request, dependencies: null);
 
         // Assert — Workflow fields
-        Assert.Equal("idempotency-key-1", workflow.IdempotencyKey);
         Assert.Equal("next", workflow.OperationId);
         Assert.Same(instanceInfo, workflow.InstanceInformation);
         Assert.Same(actor, workflow.Actor);
@@ -120,8 +118,8 @@ public class WorkflowTests
         Assert.Equal(1, workflow.Steps[1].ProcessingOrder);
 
         // Assert — Step fields are mapped from parent request
-        Assert.Equal("idempotency-key-1/step-1", workflow.Steps[0].IdempotencyKey);
-        Assert.Equal("idempotency-key-1/step-2", workflow.Steps[1].IdempotencyKey);
+        Assert.Equal("step-1", workflow.Steps[0].OperationId);
+        Assert.Equal("step-2", workflow.Steps[1].OperationId);
         Assert.Same(actor, workflow.Steps[0].Actor);
         Assert.Equal(createdAt, workflow.Steps[0].CreatedAt);
     }
@@ -131,7 +129,6 @@ public class WorkflowTests
     {
         // Arrange
         var request = new WorkflowEnqueueRequest(
-            "key-1",
             "op-1",
             new InstanceInformation
             {

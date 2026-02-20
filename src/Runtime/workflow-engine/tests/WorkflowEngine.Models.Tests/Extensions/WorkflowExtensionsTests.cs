@@ -18,7 +18,6 @@ public class WorkflowExtensionsTests
     private static Step CreateStep(PersistentItemStatus status, int order = 0) =>
         new()
         {
-            IdempotencyKey = $"key-{order}",
             OperationId = "op",
             Actor = _defaultActor,
             ProcessingOrder = order,
@@ -29,7 +28,6 @@ public class WorkflowExtensionsTests
     private static Workflow CreateWorkflow(params Step[] steps) =>
         new()
         {
-            IdempotencyKey = "workflow-key",
             OperationId = "test-op",
             Actor = _defaultActor,
             InstanceInformation = _defaultInstance,

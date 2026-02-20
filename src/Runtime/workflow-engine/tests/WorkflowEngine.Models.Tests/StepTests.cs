@@ -8,29 +8,29 @@ public class StepTests
     private static Actor _randomActor => new() { UserIdOrOrgNumber = Guid.NewGuid().ToString() };
 
     [Fact]
-    public void Equality_Uses_IdempotencyKey()
+    public void Equality_Uses_DatabaseId()
     {
         // Arrange
 
-        var sharedKey1 = new Step
+        var sharedId1 = new Step
         {
-            IdempotencyKey = "shared-idempotency-key",
+            DatabaseId = 42,
             OperationId = "step-1-command",
             Actor = _randomActor,
             ProcessingOrder = 0,
             Command = _randomAppCommand,
         };
-        var sharedKey2 = new Step
+        var sharedId2 = new Step
         {
-            IdempotencyKey = "shared-idempotency-key",
+            DatabaseId = 42,
             OperationId = "step-2-command",
             Actor = _randomActor,
             ProcessingOrder = 0,
             Command = _randomAppCommand,
         };
-        var uniqueKey = new Step
+        var uniqueId = new Step
         {
-            IdempotencyKey = "unique-idempotency-key",
+            DatabaseId = 99,
             OperationId = "step-3-command",
             Actor = _randomActor,
             ProcessingOrder = 0,
@@ -38,13 +38,13 @@ public class StepTests
         };
 
         // Act
-        bool shouldBeEqual1 = sharedKey1 == sharedKey2;
-        bool shouldBeEqual2 = sharedKey1.Equals(sharedKey2);
+        bool shouldBeEqual1 = sharedId1 == sharedId2;
+        bool shouldBeEqual2 = sharedId1.Equals(sharedId2);
 
-        bool shouldNotBeEqual1 = uniqueKey == sharedKey1;
-        bool shouldNotBeEqual2 = uniqueKey.Equals(sharedKey1);
+        bool shouldNotBeEqual1 = uniqueId == sharedId1;
+        bool shouldNotBeEqual2 = uniqueId.Equals(sharedId1);
 
-        bool shouldContain = new[] { sharedKey1, uniqueKey }.Contains(sharedKey2);
+        bool shouldContain = new[] { sharedId1, uniqueId }.Contains(sharedId2);
 
         // Assert
         Assert.True(shouldBeEqual1);
@@ -66,7 +66,6 @@ public class StepTests
         var createdAt = DateTimeOffset.UtcNow;
 
         var parentRequest = new WorkflowEnqueueRequest(
-            "parent-key",
             "next",
             new InstanceInformation
             {
@@ -89,7 +88,6 @@ public class StepTests
 
         // Assert
         Assert.Equal(0, step.DatabaseId);
-        Assert.Equal("parent-key/process-payment", step.IdempotencyKey);
         Assert.Equal("process-payment", step.OperationId);
         Assert.Same(actor, step.Actor);
         Assert.Equal(createdAt, step.CreatedAt);
@@ -105,7 +103,6 @@ public class StepTests
         // Arrange
         var parentActor = new Actor { UserIdOrOrgNumber = "parent-user" };
         var parentRequest = new WorkflowEnqueueRequest(
-            "key-1",
             "op-1",
             new InstanceInformation
             {
@@ -135,7 +132,6 @@ public class StepTests
     {
         // Arrange
         var parentRequest = new WorkflowEnqueueRequest(
-            "key-1",
             "op-1",
             new InstanceInformation
             {

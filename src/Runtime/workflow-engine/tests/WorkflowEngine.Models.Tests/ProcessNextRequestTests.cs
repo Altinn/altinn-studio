@@ -34,7 +34,6 @@ public class ProcessNextRequestTests
         var engineRequest = request.ToEngineRequest(instanceInfo, createdAt, traceContext);
 
         // Assert
-        Assert.Equal($"{instanceGuid}/next/from-Task_1-to-Task_2", engineRequest.IdempotencyKey);
         Assert.Equal("next", engineRequest.OperationId);
         Assert.Same(instanceInfo, engineRequest.InstanceInformation);
         Assert.Same(actor, engineRequest.Actor);
@@ -72,33 +71,5 @@ public class ProcessNextRequestTests
         // Assert
         Assert.Equal(WorkflowType.AppProcessChange, engineRequest.Type);
         Assert.Null(engineRequest.Dependencies);
-    }
-
-    [Fact]
-    public void ToEngineRequest_BuildsExpectedIdempotencyKeyFormat()
-    {
-        // Arrange
-        var instanceGuid = Guid.NewGuid();
-        var request = new ProcessNextRequest
-        {
-            CurrentElementId = "Payment",
-            DesiredElementId = "Signing",
-            Actor = new Actor { UserIdOrOrgNumber = "user-1" },
-            LockToken = "lock-1",
-            Steps = [],
-        };
-        var instanceInfo = new InstanceInformation
-        {
-            Org = "ttd",
-            App = "app",
-            InstanceOwnerPartyId = 1,
-            InstanceGuid = instanceGuid,
-        };
-
-        // Act
-        var engineRequest = request.ToEngineRequest(instanceInfo, DateTimeOffset.UtcNow, null);
-
-        // Assert
-        Assert.Equal($"{instanceGuid}/next/from-Payment-to-Signing", engineRequest.IdempotencyKey);
     }
 }

@@ -96,7 +96,6 @@ internal sealed record WorkflowEngineTestFixture(
     {
         return new Workflow
         {
-            IdempotencyKey = Guid.NewGuid().ToString(),
             OperationId = "test-operation",
             Actor = DefaultActor,
             InstanceInformation = DefaultInstanceInformation,
@@ -108,7 +107,6 @@ internal sealed record WorkflowEngineTestFixture(
     public static Step CreateStep(Command command) =>
         new()
         {
-            IdempotencyKey = Guid.NewGuid().ToString(),
             OperationId = command.OperationId,
             ProcessingOrder = 0,
             Command = command,

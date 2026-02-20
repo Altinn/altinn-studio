@@ -9,7 +9,6 @@ public class WorkflowEntityTests
         new()
         {
             Id = 42,
-            IdempotencyKey = "workflow-key-1",
             InstanceLockKey = "lock-key-1",
             OperationId = "next",
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
@@ -31,7 +30,6 @@ public class WorkflowEntityTests
         new()
         {
             Id = 100 + order,
-            IdempotencyKey = $"step-key-{order}",
             OperationId = "noop",
             Status = PersistentItemStatus.Enqueued,
             ProcessingOrder = order,
@@ -53,7 +51,6 @@ public class WorkflowEntityTests
 
         // Assert
         Assert.Equal(entity.Id, roundTripped.Id);
-        Assert.Equal(entity.IdempotencyKey, roundTripped.IdempotencyKey);
         Assert.Equal(entity.InstanceLockKey, roundTripped.InstanceLockKey);
         Assert.Equal(entity.OperationId, roundTripped.OperationId);
         Assert.Equal(entity.CreatedAt, roundTripped.CreatedAt);

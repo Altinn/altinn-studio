@@ -3,7 +3,6 @@ namespace WorkflowEngine.Models;
 /// <summary>
 /// A request to enqueue a workflow for execution by the engine.
 /// </summary>
-/// <param name="IdempotencyKey">The workflow identifier. A unique keyword describing the job.</param>
 /// <param name="OperationId">An identifier for this operation (eg. 'next').</param>
 /// <param name="InstanceInformation">Information about the instance this workflow relates to.</param>
 /// <param name="Actor">The actor this request is executed on behalf of.</param>
@@ -16,7 +15,6 @@ namespace WorkflowEngine.Models;
 /// <param name="Type">The type of workflow this request is for.</param>
 /// <param name="Dependencies">Optional workflow IDs that must be completed before this request can be executed.</param>
 public sealed record WorkflowEnqueueRequest(
-    string IdempotencyKey,
     string OperationId,
     InstanceInformation InstanceInformation,
     Actor Actor,

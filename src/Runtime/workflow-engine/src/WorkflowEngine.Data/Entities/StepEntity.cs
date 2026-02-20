@@ -14,9 +14,6 @@ internal sealed class StepEntity : IHasCommonMetadata
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long Id { get; set; }
 
-    [MaxLength(500)]
-    public required string IdempotencyKey { get; set; }
-
     [MaxLength(100)]
     public required string OperationId { get; set; }
 
@@ -57,7 +54,6 @@ internal sealed class StepEntity : IHasCommonMetadata
         return new StepEntity
         {
             Id = step.DatabaseId,
-            IdempotencyKey = step.IdempotencyKey,
             OperationId = step.OperationId,
             Status = step.Status,
             CreatedAt = step.CreatedAt,
@@ -84,7 +80,6 @@ internal sealed class StepEntity : IHasCommonMetadata
         return new Step
         {
             DatabaseId = Id,
-            IdempotencyKey = IdempotencyKey,
             OperationId = OperationId,
             Status = Status,
             ProcessingOrder = ProcessingOrder,
