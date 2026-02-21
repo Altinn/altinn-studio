@@ -1,9 +1,15 @@
 {
   "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
+    "showLanguageSelector": true,
     "order": [
-      "moped-utfylling"
+      "Side1",
+      "Side2",
+      "Side3",
+      "Side4",
+      "Side5",
+      "Side6"
     ]
   },
-  "defaultDataType": "moped"
+  "defaultDataType": "modell1"
 }

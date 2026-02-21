@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.17.1-pr.605.navigation.b716a1c3/schemas/json/layout/layoutSettings.schema.v1.json",
   "pages": {
     "showLanguageSelector": true,
@@ -14,5 +14,7 @@
         "order": ["brand", "year"]
       }
     ]
-  }
+  },
+  "defaultDataType": "subform"
 }
+
