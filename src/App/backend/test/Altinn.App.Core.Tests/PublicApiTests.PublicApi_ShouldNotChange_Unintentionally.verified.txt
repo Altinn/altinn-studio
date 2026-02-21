@@ -4079,9 +4079,12 @@ namespace Altinn.App.Core.Models
         public System.Collections.Generic.List<Altinn.App.Core.Models.Attachment> Attachments { get; set; }
         public string Type { get; set; }
     }
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<Altinn.App.Core.Models.AutoSaveBehavior>))]
     public enum AutoSaveBehavior
     {
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("onChangeFormData")]
         OnChangeFormData = 0,
+        [System.Text.Json.Serialization.JsonStringEnumMemberName("onChangePage")]
         OnChangePage = 1,
     }
     public sealed class BinaryDataChange : Altinn.App.Core.Models.DataElementChange
@@ -4201,7 +4204,7 @@ namespace Altinn.App.Core.Models
         [System.Text.Json.Serialization.JsonPropertyName("showProgress")]
         public bool ShowProgress { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("taskNavigation")]
-        public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry> TaskNavigation { get; set; }
+        public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
     }
     public interface ILanguageCodeStandard
     {
@@ -4299,6 +4302,9 @@ namespace Altinn.App.Core.Models
         public Altinn.App.Core.Models.Components? Components { get; set; }
         public string? DefaultDataType { get; set; }
         public Altinn.App.Core.Models.Pages? Pages { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="$schema")]
+        [System.Text.Json.Serialization.JsonPropertyName("$schema")]
+        public string? Schema { get; set; }
     }
     public class Logo
     {
@@ -4419,15 +4425,25 @@ namespace Altinn.App.Core.Models
     public class PageGroup
     {
         public PageGroup() { }
+        public bool? MarkWhenCompleted { get; set; }
         public string? Name { get; set; }
         public required System.Collections.Generic.List<string> Order { get; set; }
+        public string? Type { get; set; }
     }
     public class Pages
     {
         public Pages() { }
+        public Altinn.App.Core.Models.AutoSaveBehavior? AutoSaveBehavior { get; set; }
         public System.Collections.Generic.List<string>? ExcludeFromPdf { get; set; }
+        public bool? ExpandedWidth { get; set; }
         public System.Collections.Generic.List<Altinn.App.Core.Models.PageGroup>? Groups { get; set; }
+        public bool? HideCloseButton { get; set; }
         public System.Collections.Generic.List<string>? Order { get; set; }
+        public string? PdfLayoutName { get; set; }
+        public bool? ShowExpandWidthButton { get; set; }
+        public bool? ShowLanguageSelector { get; set; }
+        public bool? ShowProgress { get; set; }
+        public System.Collections.Generic.List<Altinn.App.Core.Models.TaskNavigationEntry>? TaskNavigation { get; set; }
     }
     public class QueryResponse<T>
     {
