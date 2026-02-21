@@ -14,7 +14,7 @@ import { useAllAttachments } from 'src/features/attachments/hooks';
 import { FileScanResults } from 'src/features/attachments/types';
 import { useExpandedWidthLayouts, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
-import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { useLanguage } from 'src/features/language/useLanguage';

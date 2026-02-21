@@ -3,10 +3,9 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import * as useNavigatePageModule from 'src/hooks/useNavigatePage';
-import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -166,6 +165,15 @@ describe('RepeatingGroupTableSummary', () => {
       jest.spyOn(useNavigatePageModule, 'useNavigateToComponent').mockReturnValue(navigate);
     }
 
+    window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+      ui.folders.Task_1 = {
+        defaultDataType: defaultDataTypeMock,
+        pages: {
+          order: ['FormPage1', 'FormPage2'],
+        },
+      };
+    });
+
     return await renderWithInstanceAndLayout({
       renderer: (
         <RepeatingGroupProvider baseComponentId='repeating-group'>
@@ -177,11 +185,6 @@ describe('RepeatingGroupTableSummary', () => {
         fetchLayouts: async () => layout,
         fetchFormData: async () => ({
           group: [{ field1: 'field1-row0', field2: 'field2-row0', field3: 'field3-row0', [ALTINN_ROW_ID]: 'abc123' }],
-        }),
-        fetchLayoutSettings: async () => ({
-          pages: {
-            order: ['FormPage1', 'FormPage2'],
-          } as unknown as IPagesSettingsWithOrder,
         }),
       },
     });

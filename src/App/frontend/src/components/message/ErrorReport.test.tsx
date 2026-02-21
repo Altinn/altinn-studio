@@ -5,27 +5,29 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
-import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
-import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { doProcessNext } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 describe('ErrorReport', () => {
-  jest.mocked(useTextResources).mockImplementation(() => ({ submit: { value: 'This is a page title' } }));
-  const render = async (validationIssues: BackendValidationIssue[] = []) =>
-    await renderWithInstanceAndLayout({
+  const render = async (validationIssues: BackendValidationIssue[] = []) => {
+    window.altinnAppGlobalData.textResources!.resources = [{ id: 'submit', value: 'This is a page title' }];
+    window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+      ui.folders.Task_1 = {
+        defaultDataType: defaultDataTypeMock,
+        pages: {
+          order: ['form', 'submit'],
+        },
+      };
+    });
+
+    return await renderWithInstanceAndLayout({
       initialPage: 'submit',
       renderer: () => <Form />,
       queries: {
         fetchBackendValidations: async () => validationIssues,
-        fetchLayoutSettings: async () => ({
-          pages: {
-            order: ['form', 'submit'],
-          } as unknown as IPagesSettingsWithOrder,
-        }),
         fetchLayouts: async () => ({
           form: {
             data: {
@@ -56,6 +58,7 @@ describe('ErrorReport', () => {
         }),
       },
     });
+  };
 
   it('should not render when there are no errors', async () => {
     await render();

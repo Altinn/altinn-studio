@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { AxiosResponse } from 'axios';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { resourcesAsMap } from 'src/features/language/textResources/TextResourcesProvider';
 import { BackendValidationSeverity } from 'src/features/validation';
@@ -14,7 +14,7 @@ import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource, TextResourceMap } from 'src/features/language/textResources';
 import type { BackendValidationIssue } from 'src/features/validation';
-import type { IPagesSettingsWithOrder, IRawOption } from 'src/layout/common.generated';
+import type { IRawOption } from 'src/layout/common.generated';
 import type { CompLikertExternal } from 'src/layout/Likert/config.generated';
 import type { CompLikertItemExternal } from 'src/layout/LikertItem/config.generated';
 
@@ -131,6 +131,15 @@ export const render = async ({
   // Set the mutable mock value before rendering
   mockTextResourcesValue = resourcesAsMap(createTextResource(mockQuestions, extraTextResources));
 
+  window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+    ui.folders.Task_1 = {
+      defaultDataType: defaultDataTypeMock,
+      pages: {
+        order: ['FormLayout'],
+      },
+    };
+  });
+
   setScreenWidth(mobileView ? 600 : 1200);
   const result = await renderWithInstanceAndLayout({
     renderer: () => (
@@ -149,11 +158,6 @@ export const render = async ({
             layout: [mockLikertLayout],
           },
         },
-      }),
-      fetchLayoutSettings: async () => ({
-        pages: {
-          order: ['FormLayout'],
-        } as unknown as IPagesSettingsWithOrder,
       }),
       fetchBackendValidations: async () => validationIssues,
     },

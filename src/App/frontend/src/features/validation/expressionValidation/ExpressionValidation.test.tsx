@@ -6,7 +6,6 @@ import fs from 'node:fs';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
 import { Validation } from 'src/features/validation/validationContext';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -83,7 +82,7 @@ describe('Expression validation shared tests', () => {
       result = validations;
     });
     jest.spyOn(Validation, 'useUpdateDataModelValidations').mockImplementation(() => updateDataModelValidations);
-    jest.mocked(useTextResources).mockImplementation(() => resourcesAsMap(textResources ?? []));
+    window.altinnAppGlobalData.textResources!.resources = textResources ?? [];
 
     await renderWithInstanceAndLayout({
       renderer: () => <ExpressionValidation />,

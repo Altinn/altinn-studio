@@ -9,8 +9,7 @@ import type { AxiosResponse } from 'axios';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getAttachmentsMock } from 'src/__mocks__/getAttachmentsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { DataPostResponse } from 'src/features/attachments';
 import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -531,16 +530,6 @@ describe('File uploading components', () => {
     attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
     queries,
   }: Props<T>) {
-    jest.mocked(getApplicationMetadata).mockImplementation(() =>
-      getApplicationMetadataMock((a) => {
-        a.dataTypes.push({
-          id,
-          allowedContentTypes: ['image/png'],
-          maxCount: 4,
-          minCount: 1,
-        });
-      }),
-    );
     jest.mocked(fetchInstanceData).mockImplementation(async () =>
       getInstanceDataMock((i) => {
         i.data.push(...attachments);
@@ -549,6 +538,15 @@ describe('File uploading components', () => {
 
     const id = uuidv4();
     const attachments = attachmentsGenerator(id);
+
+    window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
+      a.dataTypes.push({
+        id,
+        allowedContentTypes: ['image/png'],
+        maxCount: 4,
+        minCount: 1,
+      });
+    });
 
     const textResourceBindings = {
       title: 'attachment-title',

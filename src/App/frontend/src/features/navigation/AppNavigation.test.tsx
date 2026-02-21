@@ -4,9 +4,8 @@ import { jest } from '@jest/globals';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getGlobalUiSettings } from 'src/features/form/layoutSets';
-import { NavigationReceipt, NavigationTask } from 'src/features/form/layoutSets/types';
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
+import { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
 import { AppNavigation } from 'src/features/navigation/AppNavigation';
 import { BackendValidationSeverity } from 'src/features/validation';
 import * as UseNavigatePage from 'src/hooks/useNavigatePage';
@@ -19,7 +18,6 @@ import type {
 } from 'src/layout/common.generated';
 
 const user = userEvent.setup({ delay: 100 });
-const layoutSetsMock = getLayoutSetsMock();
 
 describe('AppNavigation', () => {
   async function render({
@@ -41,23 +39,27 @@ describe('AppNavigation', () => {
   }) {
     const rawOrder = order ?? groups?.flatMap((g) => g.order) ?? [];
 
-    jest.mocked(getGlobalUiSettings).mockReturnValue({
-      ...layoutSetsMock.uiSettings,
-      taskNavigation:
-        (taskNavigation as (NavigationTask | NavigationReceipt)[]) ?? layoutSetsMock.uiSettings.taskNavigation,
+    window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+      if (taskNavigation) {
+        ui.settings = {
+          ...ui.settings,
+          taskNavigation: taskNavigation as (NavigationTask | NavigationReceipt)[],
+        };
+      }
+      ui.folders.Task_1 = {
+        defaultDataType: defaultDataTypeMock,
+        pages: {
+          ...(order && { order }),
+          ...(groups && { groups }),
+          ...(overrideTaskNavigation && { taskNavigation: overrideTaskNavigation }),
+        },
+      } as ILayoutSettings;
     });
+
     return renderWithInstanceAndLayout({
       renderer: () => <AppNavigation />,
       initialPage: initialPage ?? order?.[0] ?? groups?.[0].order[0],
       queries: {
-        fetchLayoutSettings: async () =>
-          ({
-            pages: {
-              ...(order && { order }),
-              ...(groups && { groups }),
-              ...(overrideTaskNavigation && { taskNavigation: overrideTaskNavigation }),
-            },
-          }) as ILayoutSettings,
         fetchLayouts: async () =>
           Object.fromEntries(
             rawOrder.map((page) => [

@@ -7,10 +7,9 @@ import type { AxiosResponse } from 'axios';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getSubFormLayoutSetMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
+import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { type FunctionTestBase, getSharedTests, type SharedTestFunctionContext } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
@@ -21,8 +20,6 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { getLayoutSets } from 'src/features/form/layoutSets';
-import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
@@ -186,7 +183,9 @@ describe('Expressions shared function tests', () => {
         stateless,
       } = test;
 
-      jest.mocked(useTextResources).mockReturnValue(resourcesAsMap(textResources ?? []));
+      window.altinnAppGlobalData.availableLanguages = [{ language: profileSettings?.language ?? 'nb' }];
+      window.altinnAppGlobalData.textResources!.language = profileSettings?.language ?? 'nb';
+      window.altinnAppGlobalData.textResources!.resources = textResources ?? [];
 
       if (disabledFrontend) {
         // Skipped tests usually means that the frontend does not support the feature yet
@@ -310,11 +309,10 @@ describe('Expressions shared function tests', () => {
         window.altinnAppGlobalData.frontendSettings = getApplicationSettingsMock(frontendSettings);
       }
 
-      jest.mocked(getApplicationMetadata).mockReturnValue(applicationMetadata);
-      jest
-        .mocked(getLayoutSets)
-        .mockReturnValue([{ id: 'layout-set', dataType: 'default', tasks: ['Task_1'] }, getSubFormLayoutSetMock()]);
-      jest.mocked(useIsStateless).mockImplementation(() => stateless ?? false);
+      window.altinnAppGlobalData.applicationMetadata = applicationMetadata;
+      window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+        ui.folders.Task_1 = { defaultDataType: 'default', pages: { order: ['FormLayout'] } };
+      });
       jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
       jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
       jest.mocked(fetchInstanceData).mockImplementation(async () => {

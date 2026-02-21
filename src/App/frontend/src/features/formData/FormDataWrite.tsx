@@ -12,7 +12,7 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
-import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteStateMachine';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';

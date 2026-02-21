@@ -10,12 +10,10 @@ import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import { getLayoutSets } from 'src/features/form/layoutSets';
-import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
+import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
-import { fetchLayoutsForInstance } from 'src/queries/queries';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
@@ -30,37 +28,37 @@ export interface LayoutContextValue {
 export function useLayoutQueryDef(
   enabled: boolean,
   defaultDataModelType: string,
-  layoutSetId?: string,
+  uiFolder?: string,
 ): QueryDefinition<LayoutContextValue> {
-  const { fetchLayouts } = useAppQueries();
+  const { fetchLayouts, fetchLayoutsForInstance } = useAppQueries();
   const instanceId = useLaxInstanceId();
   const features = getApplicationMetadata().features ?? {};
 
   return {
-    queryKey: ['formLayouts', layoutSetId, enabled],
-    queryFn: layoutSetId
+    queryKey: ['formLayouts', uiFolder, enabled],
+    queryFn: uiFolder
       ? async () => {
           const shouldUseInstanceEndpoint = features.addInstanceIdentifierToLayoutRequests && instanceId;
           const layouts = shouldUseInstanceEndpoint
-            ? await fetchLayoutsForInstance(layoutSetId, instanceId)
-            : await fetchLayouts(layoutSetId);
+            ? await fetchLayoutsForInstance(uiFolder, instanceId)
+            : await fetchLayouts(uiFolder);
 
           return processLayouts(layouts, defaultDataModelType);
         }
       : skipToken,
-    enabled: enabled && !!layoutSetId,
+    enabled: enabled && !!uiFolder,
   };
 }
 
 function useLayoutQuery() {
   const { data: process } = useProcessQuery();
-  const currentLayoutSetId = useLayoutSetIdFromUrl();
+  const currentUiFolder = useCurrentUiFolderNameFromUrl();
   const defaultDataModel = useCurrentDataModelName() ?? 'unknown';
   const hasInstance = !!useInstanceDataQuery().data;
 
   // Waiting to fetch layouts until we have an instance, if we're supposed to have one
   // We don't want to fetch form layouts for a process step which we are currently not on
-  const utils = useQuery(useLayoutQueryDef(hasInstance ? !!process : true, defaultDataModel, currentLayoutSetId));
+  const utils = useQuery(useLayoutQueryDef(hasInstance ? !!process : true, defaultDataModel, currentUiFolder));
 
   useEffect(() => {
     utils.error && window.logError('Fetching form layout failed:\n', utils.error);
@@ -86,11 +84,6 @@ const { Provider, useCtx, useLaxCtx } = delayedContext(() =>
     query: useLayoutQuery,
   }),
 );
-
-export function useDataTypeFromLayoutSet(layoutSetName: string | undefined) {
-  const layoutSets = getLayoutSets();
-  return layoutSets.find((set) => set.id === layoutSetName)?.dataType;
-}
 
 const emptyLayouts: ILayouts = {};
 export const LayoutsProvider = Provider;

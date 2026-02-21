@@ -10,13 +10,9 @@ import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { GlobalPageSettings, UiConfig } from 'src/features/form/ui/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
-import type {
-  ILayoutFile,
-  ILayoutSetFromSchema,
-  ILayoutSetsFromSchema,
-  ILayoutSettings,
-} from 'src/layout/common.generated';
+import type { ILayoutFile, ILayoutSettings } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
 import type { IInstance, IProcess } from 'src/types/shared';
 
@@ -111,59 +107,11 @@ export class ExternalApp {
     return parseInt(version.split('.')[0], 10);
   }
 
-  getFrontendVersion(): string | undefined {
-    let indexFile = '';
-    try {
-      indexFile = this.readFile('/App/views/Home/Index.cshtml');
-    } catch (_e) {
-      return undefined;
-    }
-
-    const cleaned = indexFile.replace(/<!--[\s\S]*?-->/g, '').replace(/@[\s\S]*?@/g, '');
-    const scriptTags = cleaned.match(/<script src="(.*?)"/g);
-    if (!scriptTags) {
-      return undefined;
-    }
-
-    for (const tag of scriptTags) {
-      const url = tag.split('src=')[1].replace(/"/g, '');
-      if (!url.startsWith('https://altinncdn.no')) {
-        continue;
-      }
-      const version = url.match(/altinn-app-frontend\/(\d[^/]*)/);
-      if (!version) {
-        continue;
-      }
-      return version[1];
-    }
-
-    return undefined;
-  }
-
-  getFrontendMajorVersion(): number | undefined {
-    const version = this.getFrontendVersion();
-    if (!version) {
-      return undefined;
-    }
-    return parseInt(version.split('.')[0], 10);
-  }
-
   isValid(): boolean {
     if (!this.dirExists('/App')) {
       return false;
     }
-    if (!this.fileExists('/App/config/applicationmetadata.json')) {
-      return false;
-    }
-    if (!this.fileExists('/App/views/Home/Index.cshtml')) {
-      return false;
-    }
-    if (!this.fileExists('/App/ui/layout-sets.json')) {
-      return false;
-    }
-
-    const indexFile = this.readFile('/App/views/Home/Index.cshtml');
-    return !!indexFile.match(/altinn-app-frontend\/4.*?\/altinn-app-frontend\.js/);
+    return this.fileExists('/App/config/applicationmetadata.json');
   }
 
   isValidLayoutSet(setId: string): boolean {
@@ -236,38 +184,50 @@ export class ExternalApp {
     return out;
   }
 
-  getRawLayoutSets(): ILayoutSetsFromSchema {
-    const out = this.readJson<ILayoutSetsFromSchema>('/App/ui/layout-sets.json');
+  getUiConfig(): UiConfig {
+    const uiDir = '/App/ui';
+    const folders: UiConfig['folders'] = {};
+    let settings: Partial<GlobalPageSettings> | undefined;
 
-    for (const set of out.sets) {
-      if (this.compat && !set.tasks) {
-        // Fixing compatibility with stateless apps, so they can run in stateful modes
-        set.tasks = ['Task_1'];
+    if (this.dirExists(uiDir)) {
+      for (const entry of this.readDir(uiDir)) {
+        if (!this.dirExists(`${uiDir}/${entry}`)) {
+          continue;
+        }
+        folders[entry] = this.getLayoutSettings(entry);
+      }
+
+      const globalSettingsFile = `${uiDir}/Settings.json`;
+      if (this.fileExists(globalSettingsFile)) {
+        settings = this.readJson<Partial<GlobalPageSettings>>(globalSettingsFile);
       }
     }
 
-    return out;
+    return { folders, settings };
   }
 
-  getLayoutSets(): ExternalAppLayoutSet[] {
-    const raw = this.getRawLayoutSets();
-    return raw.sets.map((set) => new ExternalAppLayoutSet(this, set.id, set));
+  getUiFolders(): ExternalAppUiFolder[] {
+    const { folders } = this.getUiConfig();
+    return Object.entries(folders).map(([id, settings]) => new ExternalAppUiFolder(this, id, settings));
   }
 
-  getLayoutSet(setId: string): ExternalAppLayoutSet {
-    const set = this.getRawLayoutSets().sets.find((s) => s.id === setId);
-    if (!set) {
+  getUiFolder(setId: string): ExternalAppUiFolder {
+    const { folders } = this.getUiConfig();
+    const settings = folders[setId];
+    if (!settings) {
       throw new Error(`Layout set '${setId}' not found`);
     }
-    return new ExternalAppLayoutSet(this, setId, set);
+    return new ExternalAppUiFolder(this, setId, settings);
   }
 
-  getRawLayoutSet(setId: string): ILayoutCollection {
-    const layoutsDir = `/App/ui/${setId}/layouts`;
+  getRawUiFolder(folderName: string): ILayoutCollection {
+    const layoutsDir = `/App/ui/${folderName}/layouts`;
     if (!this.dirExists(layoutsDir)) {
-      throw new Error(`Layout set '${setId}' folder not found`);
+      throw new Error(`Layout set '${folderName}' folder not found`);
     }
-    const set = this.getRawLayoutSets().sets.find((s) => s.id === setId);
+
+    const settings = this.getLayoutSettings(folderName);
+    const defaultDataType = settings.defaultDataType;
 
     const collection: ILayoutCollection = {};
     for (const file of this.readDir(layoutsDir)) {
@@ -277,16 +237,16 @@ export class ExternalApp {
 
       const pageKey = file.replace('.json', '');
       collection[pageKey] = this.readJson<ILayoutFile>(`${layoutsDir}/${file}`);
-      collection[pageKey].data.layout = cleanLayout(collection[pageKey].data.layout, set?.dataType ?? 'unknown');
+      collection[pageKey].data.layout = cleanLayout(collection[pageKey].data.layout, defaultDataType ?? 'unknown');
     }
 
     return collection;
   }
 
-  getLayoutSetSettings(setId: string): ILayoutSettings {
-    const settingsFile = `/App/ui/${setId}/Settings.json`;
+  getLayoutSettings(folderName: string): ILayoutSettings {
+    const settingsFile = `/App/ui/${folderName}/Settings.json`;
     if (!this.fileExists(settingsFile)) {
-      throw new Error(`Layout set '${setId}' settings file not found`);
+      throw new Error(`App/ui/'${folderName}'/Settings.json file not found`);
     }
 
     return this.readJson<ILayoutSettings>(settingsFile);
@@ -310,9 +270,9 @@ export class ExternalApp {
     return out;
   }
 
-  getDataModelsFromLayoutSets(): ExternalAppDataModel[] {
+  getDataModelsFromUiFolders(): ExternalAppDataModel[] {
     const out: ExternalAppDataModel[] = [];
-    for (const layoutSet of this.getLayoutSets()) {
+    for (const layoutSet of this.getUiFolders()) {
       if (layoutSet.isValid()) {
         out.push(layoutSet.getModel());
       }
@@ -330,11 +290,11 @@ export class ExternalApp {
   }
 }
 
-export class ExternalAppLayoutSet {
+export class ExternalAppUiFolder {
   constructor(
     public readonly app: ExternalApp,
     private id: string,
-    private config: ILayoutSetFromSchema,
+    private config: ILayoutSettings,
   ) {}
 
   getName() {
@@ -342,8 +302,8 @@ export class ExternalAppLayoutSet {
   }
 
   isValid(): boolean {
-    // A layout-set must have a dataType to be valid, and that dataType must be in applicationmetadata
-    if (!this.config.dataType) {
+    // A UI folder must have a default dataType to be valid, and that dataType must be in applicationmetadata
+    if (!this.config.defaultDataType) {
       return false;
     }
 
@@ -353,18 +313,18 @@ export class ExternalAppLayoutSet {
 
     try {
       const metadata = this.app.getAppMetadata();
-      return !!metadata?.dataTypes.find((element) => element.id === this.config.dataType);
+      return !!metadata?.dataTypes.find((element) => element.id === this.config.defaultDataType);
     } catch (_e) {
       return false;
     }
   }
 
   getLayouts() {
-    return this.app.getRawLayoutSet(this.id);
+    return this.app.getRawUiFolder(this.id);
   }
 
   getSettings() {
-    return this.app.getLayoutSetSettings(this.id);
+    return this.app.getLayoutSettings(this.id);
   }
 
   getModel(identifier?: { url: string } | { name: string }): ExternalAppDataModel {
@@ -372,13 +332,13 @@ export class ExternalAppLayoutSet {
     if (!identifier) {
       const folderContents = this.app.readDir('/App/models');
       const schemaFile = folderContents.find((file) =>
-        file.match(new RegExp(`^${this.config.dataType}\\.schema\\.json$`, 'i')),
+        file.match(new RegExp(`^${this.config.defaultDataType}\\.schema\\.json$`, 'i')),
       );
       if (!schemaFile) {
         throw new Error('Data model schema not found');
       }
       const fileBase = schemaFile.replace(/\.schema\.json$/, '');
-      model = new ExternalAppDataModel(this.app, this.config.dataType, fileBase, this);
+      model = new ExternalAppDataModel(this.app, this.config.defaultDataType!, fileBase, this);
     } else {
       const models = this.app.getDataModelsFromMetaData();
       if ('url' in identifier) {
@@ -416,20 +376,19 @@ export class ExternalAppLayoutSet {
   }
 
   getTaskId(): string {
-    const firstTask = this.config.tasks?.[0];
-    return firstTask ?? 'Task_1'; // Fallback to simulate Task_1 for stateless apps
+    return this.getName();
   }
 
-  initialize(): { pathname: string; mainSet: ExternalAppLayoutSet; subformComponent?: CompExternal<'Subform'> } {
+  initialize(): { pathname: string; mainFolder: ExternalAppUiFolder; subformComponent?: CompExternal<'Subform'> } {
     const instance = getInstanceDataMock();
     const pageSettings = this.getSettings().pages;
     const firstPage = 'order' in pageSettings ? pageSettings.order[0] : pageSettings.groups[0].order[0];
 
     let pathname = `/dummyOrg/dummyApp/instance/${instance.instanceOwner.partyId}/${instance.id}`;
-    let mainSet: ExternalAppLayoutSet | undefined;
+    let mainSet: ExternalAppUiFolder | undefined;
     let subformComponent: CompExternal<'Subform'> | undefined = undefined;
 
-    for (const otherSet of this.app.getLayoutSets()) {
+    for (const otherSet of this.app.getUiFolders()) {
       for (const page of Object.values(otherSet.getLayouts())) {
         for (const component of page.data.layout) {
           if (component.type === 'Subform' && component.layoutSet === this.getName()) {
@@ -447,16 +406,16 @@ export class ExternalAppLayoutSet {
     if (!mainSet || !subformComponent) {
       // No other layout set includes us as a subform, we must be the main form.
       pathname += `/${this.getTaskId()}/${firstPage}`;
-      return { pathname, mainSet: this };
+      return { pathname, mainFolder: this };
     }
 
     // From here on out, we're in a subform
     const mainPages = mainSet.getSettings().pages;
     const firstMainPage = 'order' in mainPages ? mainPages.order[0] : mainPages.groups[0].order[0];
-    const elementId = `fakeUuid:${this.config.dataType}:end`;
+    const elementId = `fakeUuid:${this.config.defaultDataType}:end`;
     pathname += `/${mainSet.getTaskId()}/${firstMainPage}/${subformComponent.id}/${elementId}/${firstPage}`;
 
-    return { pathname, mainSet, subformComponent };
+    return { pathname, mainFolder: mainSet, subformComponent };
   }
 
   simulateProcessData(): IProcess {
@@ -476,14 +435,14 @@ export class ExternalAppDataModel {
     public readonly app: ExternalApp,
     private dataType: string,
     private baseFileName: string,
-    public layoutSet?: ExternalAppLayoutSet,
+    public layoutSet?: ExternalAppUiFolder,
   ) {}
 
   getName(): string {
     return this.dataType;
   }
 
-  setLayoutSet(layoutSet: ExternalAppLayoutSet) {
+  setLayoutSet(layoutSet: ExternalAppUiFolder) {
     this.layoutSet = layoutSet;
   }
 

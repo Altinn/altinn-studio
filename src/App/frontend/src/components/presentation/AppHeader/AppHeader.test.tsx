@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { expect, jest } from '@jest/globals';
+import { expect } from '@jest/globals';
 import { act, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
@@ -9,9 +9,6 @@ import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
-import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -57,8 +54,9 @@ describe('presentation/AppHeader', () => {
     textResources?: IRawTextResource[];
   }
   const render = async ({ logo, showLanguageSelector = false, textResources = [] }: IRenderComponentProps) => {
-    jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock({ logo }));
-    jest.mocked(useTextResources).mockImplementation(() => resourcesAsMap(textResources));
+    window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({ logo });
+    window.altinnAppGlobalData.textResources!.resources = textResources;
+    window.altinnAppGlobalData.ui.settings = { showLanguageSelector };
 
     return await renderWithInstanceAndLayout({
       renderer: () => (
@@ -67,13 +65,6 @@ describe('presentation/AppHeader', () => {
           headerBackgroundColor={headerBackgroundColor}
         />
       ),
-
-      queries: {
-        fetchLayoutSettings: () =>
-          Promise.resolve({
-            pages: { showLanguageSelector, order: ['1', '2', '3'] } as unknown as IPagesSettingsWithOrder,
-          }),
-      },
     });
   };
 

@@ -123,7 +123,7 @@ describe('Hide row in group', () => {
 
     cy.navPage('repeating (store endringer)').click();
     verifyNumCells();
-    cy.interceptLayout('group', (c) => {
+    cy.interceptLayout('Task_3', (c) => {
       if (c.id === 'mainGroup2' && c.type === 'RepeatingGroup') {
         c.tableColumns = undefined;
         c.tableHeaders = undefined;

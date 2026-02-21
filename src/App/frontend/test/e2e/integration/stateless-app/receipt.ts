@@ -5,9 +5,7 @@ const appFrontend = new AppFrontend();
 
 describe('Receipt', () => {
   it('feedback task should work, and it should be possible to view simple receipt when auto delete is true', () => {
-    cy.intercept('**/api/layoutsettings/stateless').as('getLayoutStateless');
     cy.startAppInstance(appFrontend.apps.stateless);
-    cy.wait('@getLayoutStateless');
     cy.startStatefulFromStateless();
     cy.intercept('PUT', '**/process/next*').as('nextProcess');
     cy.get(appFrontend.sendinButton).click();

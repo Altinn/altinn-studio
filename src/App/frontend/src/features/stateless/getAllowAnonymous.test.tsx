@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { expect, jest } from '@jest/globals';
+import { expect } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
-import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 
@@ -14,7 +13,7 @@ const TestComponent = () => {
 };
 
 const render = async (stateless: boolean, allowAnonymous: boolean) => {
-  jest.mocked(getApplicationMetadata).mockImplementation(() => ({
+  window.altinnAppGlobalData.applicationMetadata = {
     ...getApplicationMetadataMock(),
     ...(stateless
       ? {
@@ -23,9 +22,7 @@ const render = async (stateless: boolean, allowAnonymous: boolean) => {
           },
         }
       : {}),
-  }));
-
-  jest.mocked(useIsStateless).mockImplementation(() => stateless);
+  };
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => <TestComponent />,

@@ -9,16 +9,17 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { getGlobalUiSettings, getLayoutSets } from 'src/features/form/layoutSets';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import type { GlobalPageSettings } from 'src/features/form/layoutSets/types';
-import type { ExternalAppLayoutSet } from 'src/test/allApps';
+import type { ExternalAppUiFolder } from 'src/test/allApps';
+
+jest.mock('src/features/applicationMetadata');
+jest.mock('src/features/form/ui');
+jest.mock('src/queries/queries');
 
 const env = dotenv.config({ quiet: true });
 const ENV: 'prod' | 'all' = env.parsed?.ALTINN_ALL_APPS_ENV === 'prod' ? 'prod' : 'all';
@@ -86,7 +87,7 @@ function SubformTestWrapper({ baseId, children }: PropsWithChildren<{ baseId: st
 const windowLoggers = ['logError', 'logErrorOnce', 'logWarn', 'logWarnOnce', 'logInfo', 'logInfoOnce'];
 const consoleLoggers = ['error', 'warn', 'log'];
 
-describe('All known layout sets should evaluate as a hierarchy', () => {
+describe('All known UI folders should render successfully', () => {
   let pathnameWas: string;
   beforeAll(() => {
     window.forceNodePropertiesValidation = 'on';
@@ -125,7 +126,7 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
   const allSets = getAllApps(dir)
     .filter((app) => app.isValid())
     .filter((app) => (ENV === 'prod' ? app.getName().match(/^\w+-prod-.*$/) : true))
-    .map((app) => app.enableCompatibilityMode().getLayoutSets())
+    .map((app) => app.enableCompatibilityMode().getUiFolders())
     .flat()
     .filter((set) => set.isValid())
     .map((set) => ({ appName: set.app.getName(), setName: set.getName(), set }));
@@ -133,30 +134,27 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
   // Randomize the order of the tests so we don't have to wait for the same first ones every time
   allSets.sort(() => Math.random() - 0.5);
 
-  async function testSet(set: ExternalAppLayoutSet) {
-    const { pathname, mainSet, subformComponent } = set.initialize();
+  async function testSet(uiFolder: ExternalAppUiFolder) {
+    const { pathname, mainFolder, subformComponent } = uiFolder.initialize();
     window.location.pathname = pathname;
-    const [org, app] = set.app.getOrgApp();
+    const [org, app] = uiFolder.app.getOrgApp();
     window.org = org;
     window.app = app;
 
-    jest.mocked(getApplicationMetadata).mockImplementation(() => set.app.getAppMetadata());
-    jest.mocked(getLayoutSets).mockReturnValue(set.app.getRawLayoutSets().sets);
-    // Real apps have backend-populated uiSettings, cast to GlobalPageSettings
-    jest.mocked(getGlobalUiSettings).mockReturnValue(set.app.getRawLayoutSets().uiSettings as GlobalPageSettings);
-    jest.mocked(fetchProcessState).mockImplementation(async () => mainSet.simulateProcessData());
-    jest.mocked(fetchInstanceData).mockImplementation(async () => set.simulateInstance());
+    window.altinnAppGlobalData.applicationMetadata = uiFolder.app.getAppMetadata();
+    window.altinnAppGlobalData.ui = uiFolder.app.getUiConfig();
+    jest.mocked(fetchProcessState).mockImplementation(async () => mainFolder.simulateProcessData());
+    jest.mocked(fetchInstanceData).mockImplementation(async () => uiFolder.simulateInstance());
 
     const children = env.parsed?.ALTINN_ALL_APPS_RENDER_COMPONENTS === 'true' ? <RenderAllComponents /> : <TestApp />;
     await renderWithInstanceAndLayout({
-      taskId: mainSet.getTaskId(),
+      taskId: mainFolder.getTaskId(),
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       queries: {
-        fetchLayouts: async (setId) => set.app.getLayoutSet(setId).getLayouts(),
-        fetchLayoutSettings: async (setId) => set.app.getLayoutSet(setId).getSettings(),
-        fetchFormData: async (url) => set.getModel({ url }).simulateDataModel(),
-        fetchDataModelSchema: async (name) => set.getModel({ name }).getSchema(),
+        fetchLayouts: async (setId) => uiFolder.app.getUiFolder(setId).getLayouts(),
+        fetchFormData: async (url) => uiFolder.getModel({ url }).simulateDataModel(),
+        fetchDataModelSchema: async (name) => uiFolder.getModel({ name }).getSchema(),
         fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,
       },
       alwaysRouteToChildren: true,

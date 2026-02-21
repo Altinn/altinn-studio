@@ -9,9 +9,7 @@ describe('Start stateless with query params', () => {
   beforeEach(() => {
     cy.visit(`${getTargetUrl('stateless-app')}/set-query-params?jobTitle=${prefilledValue}`);
 
-    cy.intercept('**/api/layoutsettings/stateless').as('getLayoutStateless');
     cy.startAppInstance(appFrontend.apps.stateless);
-    cy.wait('@getLayoutStateless');
     cy.get(appFrontend.stateless.name).should('exist').and('be.visible');
   });
 

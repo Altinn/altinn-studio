@@ -1,9 +1,7 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { Accordion } from 'src/layout/Accordion/Accordion';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
@@ -32,7 +30,7 @@ describe('Accordion', () => {
 });
 
 const render = ({ title, openByDefault }: { title?: string; openByDefault?: boolean } = {}) => {
-  jest.mocked(useTextResources).mockImplementation(() => ({ 'accordion.title': { value: 'This is a title' } }));
+  window.altinnAppGlobalData.textResources!.resources = [{ id: 'accordion.title', value: 'This is a title' }];
 
   return renderGenericComponentTest<'Accordion'>({
     type: 'Accordion',

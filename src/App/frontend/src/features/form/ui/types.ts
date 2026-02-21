@@ -1,4 +1,6 @@
 // These types should ultimately be generated from the backend DTOs, but for now we define them manually here.
+import type { ILayoutSettings } from 'src/layout/common.generated';
+
 export type GlobalPageSettings = {
   hideCloseButton: boolean;
   showLanguageSelector: boolean;
@@ -21,13 +23,7 @@ export type NavigationTask = {
   taskId: string;
 };
 
-export type ILayoutSet = {
-  id: string;
-  dataType: string;
-  tasks?: string[];
-};
-
-export type ILayoutSets = {
-  sets: ILayoutSet[];
-  uiSettings: GlobalPageSettings;
+export type UiConfig = {
+  folders: Record<string, ILayoutSettings>;
+  settings?: Partial<GlobalPageSettings>;
 };

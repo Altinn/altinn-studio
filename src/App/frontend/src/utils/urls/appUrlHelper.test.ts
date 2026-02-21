@@ -5,7 +5,6 @@ import {
   getHostname,
   getInstanceLayoutsUrl,
   getInstantiateUrl,
-  getLayoutSettingsUrl,
   getLayoutsUrl,
   getOptionsUrl,
   getProcessStateUrl,
@@ -360,14 +359,6 @@ describe('Frontend urlHelper.ts', () => {
     it('should include instance ID in layout URL when provided', () => {
       const result = getInstanceLayoutsUrl('custom-layout.json', 'instanceId-1234');
       expect(result).toBe('https://local.altinn.cloud/ttd/test/instances/instanceId-1234/layouts/custom-layout.json');
-    });
-  });
-
-  describe('getLayoutSettingsUrl', () => {
-    it('should return layout as passed argument', () => {
-      const result = getLayoutSettingsUrl('custom-layout.json');
-
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/layoutsettings/custom-layout.json');
     });
   });
 });

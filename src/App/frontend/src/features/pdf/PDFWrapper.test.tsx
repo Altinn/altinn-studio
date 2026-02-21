@@ -9,7 +9,6 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
@@ -26,13 +25,11 @@ enum RenderAs {
 }
 
 const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>) => {
-  jest.mocked(getApplicationMetadata).mockImplementationOnce(() =>
-    getApplicationMetadataMock((m) => {
-      m.org = 'brg';
-      m.partyTypesAllowed.person = true;
-      m.partyTypesAllowed.organisation = true;
-    }),
-  );
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((m) => {
+    m.org = 'brg';
+    m.partyTypesAllowed.person = true;
+    m.partyTypesAllowed.organisation = true;
+  });
   jest.mocked(fetchProcessState).mockImplementation(async () =>
     getProcessDataMock((p) => {
       p.processTasks = [p.currentTask!];

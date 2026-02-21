@@ -148,7 +148,7 @@ describe('Grid component', () => {
   });
 
   it("should allow adding help text to Grid's text cells or referencing a component", () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.type === 'Grid' && component.id === 'page3-grid') {
         const cell1 = component.rows[3].cells[0];
         if (cell1 && 'text' in cell1) {

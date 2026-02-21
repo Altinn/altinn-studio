@@ -7,7 +7,7 @@ import { AppHeaderMenu } from 'src/components/presentation/AppHeader/AppHeaderMe
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
 import type { LogoColor } from 'src/components/logo/AltinnLogo';
 

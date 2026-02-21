@@ -410,7 +410,8 @@ export function nb() {
     'config_error.component_has_errors': 'En feil oppstod for <code>{0}</code>:',
     'config_error.component_has_errors_after':
       'Så lenge komponenten har konfigurasjonsfeil kan vi ikke vise den i skjemaet. Rett opp i feilene og prøv igjen.',
-    'config_error.subform_no_datatype_layoutset': 'Datatype-spesifikasjon ikke funnet i layout-sets.json.',
+    'config_error.subform_no_datatype_layoutset':
+      'Datatype-spesifikasjon ikke funnet i App/ui/{folderId}/Settings.json.',
     'config_error.subform_no_datatype_appmetadata': "Datatype '{0}' ble ikke funnet i applicationmetadata.json.",
     'config_error.subform_misconfigured_add_button':
       "Datatype '{0}' er markert som 'disallowUserCreate=true', men underskjema-komponenten er konfigurert med 'showAddButton=true'. Dette er en motsetning, siden brukeren aldri vil få lov til å utføre handlingene bak legg-til knappen.",

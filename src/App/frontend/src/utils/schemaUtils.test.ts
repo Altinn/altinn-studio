@@ -131,7 +131,7 @@ describe('schemaUtils', () => {
 
     const allApps = getAllApps(dir)
       .filter((app) => app.isValid())
-      .map((app) => app.enableCompatibilityMode().getDataModelsFromLayoutSets())
+      .map((app) => app.enableCompatibilityMode().getDataModelsFromUiFolders())
       .flat()
       .filter((model) => model.isValid())
       .map((model) => ({ appName: model.app.getName(), dataType: model.getName(), model }));

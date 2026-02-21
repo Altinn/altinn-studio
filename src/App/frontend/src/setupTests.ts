@@ -18,18 +18,12 @@ import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettings
 import { getFooterLayoutMock } from 'src/__mocks__/getFooterLayoutMock';
 // Importing CSS for jest-preview to look nicer
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
-import { getTextResourceMapMock, getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
-import type {
-  doProcessNext,
-  doUpdateAttachmentTags,
-  fetchInstanceData,
-  fetchProcessState,
-  fetchUserProfile,
-} from 'src/queries/queries';
+import { getTextResourcesMock } from 'src/__mocks__/getTextResourcesMock';
+import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
+import type { doProcessNext, doUpdateAttachmentTags, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import type { AppQueries } from 'src/queries/types';
 import type { IProcess } from 'src/types/shared';
 
@@ -76,16 +70,20 @@ window.inUnitTest = true;
 window.org = 'ttd';
 window.app = 'test';
 
-// Set up altinnAppGlobalData with default mocks
-window.altinnAppGlobalData = {
-  applicationMetadata: getApplicationMetadataMock(),
-  frontendSettings: getApplicationSettingsMock(),
-  footer: getFooterLayoutMock(),
-  layoutSets: getLayoutSetsMock(),
-  availableLanguages: [{ language: 'nb' }, { language: 'nn' }, { language: 'en' }],
-  selectedParty: getPartyMock(),
-  textResources: { language: 'en', resources: getTextResourcesMock() },
-};
+// Set up altinnAppGlobalData with default mocks before each test to prevent pollution between tests
+// eslint-disable-next-line no-undef
+beforeEach(() => {
+  window.altinnAppGlobalData = {
+    applicationMetadata: getApplicationMetadataMock(),
+    frontendSettings: getApplicationSettingsMock(),
+    footer: getFooterLayoutMock(),
+    ui: getUiConfigMock(),
+    userProfile: getProfileMock(),
+    availableLanguages: [{ language: 'nb' }],
+    selectedParty: getPartyMock(),
+    textResources: { language: 'nb', resources: getTextResourcesMock() },
+  };
+});
 
 window.logError = (...args) => {
   throw new Error(args.join(' '));
@@ -135,33 +133,10 @@ testingLibraryConfigure({
   asyncUtilTimeout: env.parsed?.WAITFOR_TIMEOUT ? parseInt(env.parsed.WAITFOR_TIMEOUT, 10) : 15000,
 });
 
-jest.mock('src/features/applicationMetadata', () => ({
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  ...jest.requireActual<typeof import('src/features/applicationMetadata')>('src/features/applicationMetadata'),
-  getApplicationMetadata: jest.fn(() => getApplicationMetadataMock()),
-  useIsStateless: jest.fn(() => false),
-}));
-
-jest.mock('src/features/form/layoutSets', () => ({
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  ...jest.requireActual<typeof import('src/features/form/layoutSets')>('src/features/form/layoutSets'),
-  getLayoutSets: jest.fn(() => getLayoutSetsMock().sets),
-  getGlobalUiSettings: jest.fn(() => getLayoutSetsMock().uiSettings),
-}));
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => ({
-  __esModule: true,
-  ...jest.requireActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider'),
-  useTextResources: jest.fn(() => getTextResourceMapMock()),
-}));
-
 jest.mock('src/queries/queries', () => ({
   ...jest.requireActual<AppQueries>('src/queries/queries'),
   fetchProcessState: jest.fn<typeof fetchProcessState>(async () => getProcessDataMock()),
   doProcessNext: jest.fn<typeof doProcessNext>(async () => ({ data: getProcessDataMock() }) as AxiosResponse<IProcess>),
-  fetchUserProfile: jest.fn<typeof fetchUserProfile>(async () => getProfileMock()),
   fetchInstanceData: jest.fn<typeof fetchInstanceData>(async () => getInstanceDataMock()),
   doUpdateAttachmentTags: jest.fn<typeof doUpdateAttachmentTags>(async ({ setTagsRequest }) => ({
     tags: setTagsRequest.tags,

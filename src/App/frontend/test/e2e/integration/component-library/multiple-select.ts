@@ -109,7 +109,7 @@ describe('Multiple select component', () => {
   });
 
   it('Adds and removes data properly when using group and hard deletion', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'MultipleSelect' && component.id === 'MultipleSelectPage-Checkboxes2') {
         component.deletionStrategy = 'hard';
         component.dataModelBindings.checked = undefined;
@@ -235,7 +235,7 @@ describe('Multiple select component', () => {
       .should('have.text', expectedText);
   });
   it('Renders the summary2 component with correct text for MultipleSelect with group and hard deletion', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'MultipleSelect' && component.id === 'MultipleSelectPage-Checkboxes2') {
         component.deletionStrategy = 'hard';
         component.dataModelBindings.checked = undefined;
@@ -276,7 +276,7 @@ describe('Multiple select component', () => {
   });
 
   it('Required validation shows when MultipleSelect is selected with simpleBinding', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'MultipleSelect' && component.id === 'MultipleSelectPage-Checkboxes') {
         component.required = true;
       }
@@ -294,7 +294,7 @@ describe('Multiple select component', () => {
     cy.get(checkboxes).contains('span', 'Du må fylle ut hva skal kjøretøyet brukes til?').should('not.exist');
   });
   it('Required validation shows when MultipleSelect is selected with group and soft delete', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'MultipleSelect' && component.id === 'MultipleSelectPage-Checkboxes2') {
         component.required = true;
       }
@@ -315,7 +315,7 @@ describe('Multiple select component', () => {
     cy.get(checkboxes).contains('span', 'Du må fylle ut velg personer').should('not.exist');
   });
   it('Required validation shows when MultipleSelect is selected with group and hard delete', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'MultipleSelectPage-Checkboxes2') {
         component.required = true;
         component.deletionStrategy = 'hard';

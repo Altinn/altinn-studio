@@ -73,7 +73,7 @@ describe('Checkboxes component', () => {
     cy.get(repGroup).findAllByRole('cell', { name: '20' }).should('exist');
   });
   it('Adds and removes data properly when using group and hard deletion', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
         component.deletionStrategy = 'hard';
         component.dataModelBindings.checked = undefined;
@@ -147,7 +147,7 @@ describe('Checkboxes component', () => {
   });
   it('Adds and removes data properly when using group and soft deletion, Number and label', () => {
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes') {
         component.optionsId = 'personsNumber';
         component.dataModelBindings.simpleBinding = {
@@ -293,7 +293,7 @@ describe('Checkboxes component', () => {
       .should('have.text', expectedText);
   });
   it('Renders the summary2 component with correct text for Checkboxes with group and hard deletion', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
         component.deletionStrategy = 'hard';
         component.dataModelBindings.checked = undefined;
@@ -337,7 +337,7 @@ describe('Checkboxes component', () => {
       .should('have.text', expectedText);
   });
   it('Renders the summary2 component with correct text for Checkboxes with group, hard deletion, Number and label', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
         component.deletionStrategy = 'hard';
         component.dataModelBindings.checked = undefined;
@@ -392,7 +392,7 @@ describe('Checkboxes component', () => {
 
   //Required
   it('Required validation shows when chekcbox is selected with simpleBinding', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes') {
         component.required = true;
       }
@@ -412,7 +412,7 @@ describe('Checkboxes component', () => {
     cy.get(checkboxes).contains('span', 'Du må fylle ut hva skal kjøretøyet brukes til?').should('not.exist');
   });
   it('Required validation shows when chekcbox is selected with group and soft delete', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
         component.required = true;
       }
@@ -432,7 +432,7 @@ describe('Checkboxes component', () => {
     cy.get(checkboxes).contains('span', 'Du må fylle ut hva skal kjøretøyet brukes til?').should('not.exist');
   });
   it('Required validation shows when chekcbox is selected with group and hard delete', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
         component.required = true;
         component.deletionStrategy = 'hard';
@@ -454,7 +454,7 @@ describe('Checkboxes component', () => {
     cy.get(checkboxes).contains('span', 'Du må fylle ut hva skal kjøretøyet brukes til?').should('not.exist');
   });
   it('Required validation shows when chekcbox is selected with group, hard delete, Number and label', () => {
-    cy.interceptLayout('ComponentLayouts', (component) => {
+    cy.interceptLayout('Task_1', (component) => {
       if (component.type === 'Checkboxes' && component.id === 'CheckboxesPage-Checkboxes2') {
         component.required = true;
         component.deletionStrategy = 'hard';

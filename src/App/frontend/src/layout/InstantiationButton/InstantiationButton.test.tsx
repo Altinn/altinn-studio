@@ -1,26 +1,22 @@
 import React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 
-import { expect, jest } from '@jest/globals';
+import { expect } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
 const render = async () => {
-  jest.mocked(getApplicationMetadata).mockImplementation(() =>
-    getApplicationMetadataMock({
-      onEntry: {
-        show: 'stateless',
-      },
-    }),
-  );
-  jest.mocked(useIsStateless).mockImplementation(() => true);
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
+    onEntry: {
+      show: 'stateless',
+    },
+  });
   return await renderGenericComponentTest({
     type: 'InstantiationButton',
     component: {
