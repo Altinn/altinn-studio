@@ -2422,18 +2422,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-links@npm:9.1.17":
-  version: 9.1.17
-  resolution: "@storybook/addon-links@npm:9.1.17"
+"@storybook/addon-links@npm:10.2.10":
+  version: 10.2.10
+  resolution: "@storybook/addon-links@npm:10.2.10"
   dependencies:
     "@storybook/global": "npm:^5.0.0"
   peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
-    storybook: ^9.1.17
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    storybook: ^10.2.10
   peerDependenciesMeta:
     react:
       optional: true
-  checksum: 10/711d815be2b2726895c43499afa596bea0ef1a2150609c8b65e58d254a7c4101e7c9f6d961ba611585eec463afff70912dad6163b401a17a495d09c87760c3da
+  checksum: 10/487670ed82eb5d115098e904387e09fe6f3eef37fd50323aa03315f57840d88118d509e27d8ae5de8b4d3a415fccf5febb4cd2aee6a267b6648fa2b0bf9a9f3b
   languageName: node
   linkType: hard
 
@@ -2558,7 +2558,7 @@ __metadata:
   dependencies:
     "@chromatic-com/storybook": "npm:^5.0.0"
     "@storybook/addon-docs": "npm:9.1.17"
-    "@storybook/addon-links": "npm:9.1.17"
+    "@storybook/addon-links": "npm:10.2.10"
     "@storybook/builder-vite": "npm:9.1.17"
     "@storybook/react-vite": "npm:9.1.17"
     "@studio/icons": "workspace:^"
@@ -2591,7 +2591,7 @@ __metadata:
     "@digdir/designsystemet-react": "npm:1.11.0"
     "@digdir/designsystemet-theme": "npm:1.11.0"
     "@storybook/addon-docs": "npm:9.1.17"
-    "@storybook/addon-links": "npm:9.1.17"
+    "@storybook/addon-links": "npm:10.2.10"
     "@storybook/builder-vite": "npm:9.1.17"
     "@storybook/react-vite": "npm:9.1.17"
     "@studio/icons": "workspace:^"
