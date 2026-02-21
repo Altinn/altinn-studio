@@ -20,7 +20,6 @@ partial class AltinnTestAppFixture
             "config",
             "applicationmetadata.json"
         );
-        public static readonly DocumentSelector LayoutSets = new DocumentSelector("ui", "layout-sets.json");
         public static readonly DocumentSelector ModelClass = new DocumentSelector("models", "model.cs");
 
         public static readonly DocumentSelector InvalidHttpContextAccessorUse = new DocumentSelector(

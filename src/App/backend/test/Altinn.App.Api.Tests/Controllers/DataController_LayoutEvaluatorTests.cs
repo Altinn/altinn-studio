@@ -41,8 +41,8 @@ public class DataController_LayoutEvaluatorTests : ApiTestBase, IClassFixture<We
             string? language
         )
         {
-            var layoutSetId = "default";
-            var layoutEvaluatorState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSetId);
+            var uiFolder = "Task_1";
+            var layoutEvaluatorState = await _layoutEvaluatorStateInitializer.Init(instance, data, uiFolder);
             var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(layoutEvaluatorState);
             if (dataId.HasValue)
             {

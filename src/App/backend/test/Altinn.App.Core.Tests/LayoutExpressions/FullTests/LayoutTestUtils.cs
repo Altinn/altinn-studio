@@ -88,10 +88,10 @@ public static class LayoutTestUtils
             pages.Add(PageComponent.Parse(document.RootElement, pageName, "layout"));
         }
         var dataType = new DataType() { Id = DataTypeId };
-        var layout = new LayoutSetComponent(pages, "layout", dataType);
+        var layout = new UiFolderComponent(pages, "layout", dataType);
         var layoutModel = new LayoutModel([layout], null);
 
-        resources.Setup(r => r.GetLayoutModelForTask(TaskId)).Returns(layoutModel);
+        resources.Setup(r => r.GetLayoutModelForFolder(TaskId)).Returns(layoutModel);
 
         services.AddSingleton(resources.Object);
         services.AddSingleton(appMetadata.Object);

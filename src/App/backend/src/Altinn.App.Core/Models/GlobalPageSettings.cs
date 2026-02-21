@@ -49,22 +49,25 @@ public class GlobalPageSettings
     /// Shows the listed tasks in the sidebar navigation menu.
     /// </summary>
     [JsonPropertyName("taskNavigation")]
-    public List<TaskNavigationEntry> TaskNavigation { get; set; } = [];
+    public List<TaskNavigationEntry>? TaskNavigation { get; set; }
 }
 
 /// <summary>
 /// Auto save behavior options for form data.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<AutoSaveBehavior>))]
 public enum AutoSaveBehavior
 {
     /// <summary>
     /// Save on every interaction with form elements.
     /// </summary>
+    [JsonStringEnumMemberName("onChangeFormData")]
     OnChangeFormData,
 
     /// <summary>
     /// Save on every page change.
     /// </summary>
+    [JsonStringEnumMemberName("onChangePage")]
     OnChangePage,
 }
 

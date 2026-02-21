@@ -79,15 +79,9 @@ public interface IAppResources
     string GetClassRefForLogicDataType(string dataType);
 
     /// <summary>
-    /// Gets the the layout sets
+    /// Gets the UI configuration, which specifies which sub-folders are in the ui/ directory and their Settings.json
     /// </summary>
-    /// <returns>The layout sets</returns>
-    string? GetLayoutSetsString();
-
-    /// <summary>
-    /// Get the layout set definition. Return null if no layout sets exists
-    /// </summary>
-    LayoutSets? GetLayoutSets();
+    UiConfiguration? GetUiConfiguration();
 
     /// <summary>
     /// Gets the footer layout
@@ -96,40 +90,29 @@ public interface IAppResources
     Task<string?> GetFooter();
 
     /// <summary>
-    /// Get the layout set definition for a given task. Return null if no layout sets exists
+    /// Gets the layouts in a given subfolder in ui/
     /// </summary>
-    LayoutSet? GetLayoutSetForTask(string taskId);
+    /// <param name="folderId">The folder name</param>
+    /// <returns>A dictionary of Layout objects serialized to JSON</returns>
+    string GetLayoutsInFolder(string folderId);
 
     /// <summary>
-    /// Gets the layouts for av given layoutset
+    /// Gets the full layout model for a folder
     /// </summary>
-    /// <param name="layoutSetId">The layot set id</param>
-    /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
-    string GetLayoutsForSet(string layoutSetId);
+    LayoutModel? GetLayoutModelForFolder(string folder);
 
     /// <summary>
-    /// Gets the full layout model for the task
+    /// Gets the the layouts settings for a subfolder in App/ui (as a string)
     /// </summary>
-    LayoutModel? GetLayoutModelForTask(string taskId);
-
-    /// <summary>
-    /// Gets the full layout model for the optional set
-    /// </summary>
-    [Obsolete("Use GetLayoutModelForTask instead", false)]
-    LayoutModel GetLayoutModel(string? layoutSetId = null);
-
-    /// <summary>
-    /// Gets the the layouts settings for a layoutset
-    /// </summary>
-    /// <param name="layoutSetId">The layot set id</param>
+    /// <param name="folder">The layot set id</param>
     /// <returns>The layout settings as a JSON string</returns>
-    string? GetLayoutSettingsStringForSet(string layoutSetId);
+    string? GetLayoutSettingsStringForFolder(string folder);
 
     /// <summary>
-    /// Gets the the layouts settings for a layoutset
+    /// Gets the the layouts settings for a subfolder in App/ui
     /// </summary>
     /// <returns>The layout settings</returns>
-    LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
+    LayoutSettings? GetLayoutSettingsForFolder(string? folder);
 
     /// <summary>
     /// Gets the validation configuration for a given data type

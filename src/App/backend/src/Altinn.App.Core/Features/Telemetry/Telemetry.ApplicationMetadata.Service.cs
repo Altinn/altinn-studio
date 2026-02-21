@@ -16,14 +16,10 @@ partial class Telemetry
 
     internal Activity? StartGetLayoutsActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayouts");
 
-    internal Activity? StartGetLayoutSetActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutSet");
+    internal Activity? StartGetLayoutsForSetActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutsInFolder");
 
-    internal Activity? StartGetLayoutSetsActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutSets");
-
-    internal Activity? StartGetLayoutsForSetActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutsForSet");
-
-    internal Activity? StartGetLayoutSetsForTaskActivity() =>
-        ActivitySource.StartActivity($"{Prefix}.GetLayoutSetsForTask");
+    internal Activity? StartGetTaskUiConfigurationActivity() =>
+        ActivitySource.StartActivity($"{Prefix}.GetTaskUiConfiguration");
 
     internal Activity? StartGetLayoutSettingsActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutSettings");
 
@@ -31,10 +27,10 @@ partial class Telemetry
         ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsString");
 
     internal Activity? StartGetLayoutSettingsForSetActivity() =>
-        ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsForSet");
+        ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsForFolder");
 
     internal Activity? StartGetLayoutSettingsStringForSetActivity() =>
-        ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsStringForSet");
+        ActivitySource.StartActivity($"{Prefix}.GetLayoutSettingsStringForFolder");
 
     internal Activity? StartGetTextsActivity() => ActivitySource.StartActivity($"{Prefix}.GetTexts");
 
@@ -44,6 +40,9 @@ partial class Telemetry
         ActivitySource.StartActivity($"{Prefix}.GetValidationConfiguration");
 
     internal Activity? StartGetLayoutModelActivity() => ActivitySource.StartActivity($"{Prefix}.GetLayoutModel");
+
+    internal Activity? StartGetUiConfigurationActivity() =>
+        ActivitySource.StartActivity($"{Prefix}.GetUiConfiguration");
 
     internal Activity? StartGetClassRefActivity() => ActivitySource.StartActivity($"{Prefix}.GetClassRef");
 

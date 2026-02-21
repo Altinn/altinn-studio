@@ -135,23 +135,12 @@ public sealed class MockedServiceCollection
                 }
             );
         AppResourcesMock
-            .Setup(a => a.GetLayoutModelForTask(It.IsAny<string>()))
+            .Setup(a => a.GetLayoutModelForFolder(It.IsAny<string>()))
             .Returns(
                 (string taskid) =>
                 {
-                    var layouts = _layoutSetComponents.ToList();
-                    var layoutForTask =
-                        layouts.Find(lsc => lsc.DefaultDataType.TaskId == taskid)
-                        ?? throw new Exception($"Layout for task {taskid} not found.");
-                    return new LayoutModel(
-                        layouts,
-                        new LayoutSet()
-                        {
-                            DataType = layoutForTask.DefaultDataType.Id,
-                            Id = layoutForTask.Id,
-                            Tasks = [taskid],
-                        }
-                    );
+                    var layouts = _uiFolderComponents.ToList();
+                    return new LayoutModel(layouts, taskid);
                 }
             );
     }
@@ -211,16 +200,15 @@ public sealed class MockedServiceCollection
         }
     }
 
-    private readonly ConcurrentBag<LayoutSetComponent> _layoutSetComponents = new();
+    private readonly ConcurrentBag<UiFolderComponent> _uiFolderComponents = new();
 
     /// <summary>
     /// Add single page layout set from JSON definition
     /// </summary>
     public void AddLayoutSet(DataType dataType, [StringSyntax("json")] string pageJson)
     {
-        var layoutId = $"layoutSet-{dataType.TaskId}";
         using var document = JsonDocument.Parse(pageJson);
-        var page = PageComponent.Parse(document.RootElement, "page1", layoutId);
+        var page = PageComponent.Parse(document.RootElement, "page1", dataType.TaskId);
         AddLayoutSet(dataType, [page]);
     }
 
@@ -239,13 +227,13 @@ public sealed class MockedServiceCollection
                 Tasks = [dataType.TaskId],
             };
 
-            var layoutComponent = new LayoutSetComponent(
+            var layoutComponent = new UiFolderComponent(
                 pages: grouping.ToList(),
                 id: layoutSet.Id,
                 defaultDataType: dataType
             );
 
-            _layoutSetComponents.Add(layoutComponent);
+            _uiFolderComponents.Add(layoutComponent);
         }
     }
 
@@ -360,7 +348,8 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
     )
         where T : class, new()
     {
-        var layoutSetName = "layoutSet1";
+        DataType defaultDataType = _serviceCollection.AddDataType<T>();
+        var layoutSetName = defaultDataType.TaskId!;
         var pages = components
             .GroupBy(c => c.PageId)
             .Select(group =>
@@ -390,7 +379,6 @@ public sealed class WrappedServiceProvider : IKeyedServiceProvider, IDisposable,
                 };
             });
 
-        DataType defaultDataType = _serviceCollection.AddDataType<T>();
         _serviceCollection.AddLayoutSet(defaultDataType, pages);
 
         return await CreateInstanceDataUnitOfWork(model, defaultDataType, language);

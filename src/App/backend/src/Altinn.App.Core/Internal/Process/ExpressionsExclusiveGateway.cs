@@ -84,8 +84,12 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
             {
                 // TODO: getting the data type from layout is kind of sketchy, because it depends on the previous task
                 //       and in a future version we should probably require <altinn:connectedDataTypeId>
-                var layoutSet = _resources.GetLayoutSetForTask(instance.Process.CurrentTask.ElementId);
-                dataTypeId = layoutSet?.DataType;
+                var taskId = instance.Process.CurrentTask.ElementId;
+                var uiConfiguration = _resources.GetUiConfiguration();
+                if (uiConfiguration is not null && uiConfiguration.Folders.TryGetValue(taskId, out var folderSettings))
+                {
+                    dataTypeId = folderSettings.DefaultDataType;
+                }
             }
             var expression = GetExpressionFromCondition(sequenceFlow.ConditionExpression);
             DataElementIdentifier? dataElement = instance.Data.Find(d => d.DataType == dataTypeId);

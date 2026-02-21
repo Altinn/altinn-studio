@@ -23,6 +23,6 @@ public abstract class NoReferenceComponent : BaseLayoutComponent
         LayoutEvaluatorState state,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, LayoutSetComponent> layoutsLookup
+        Dictionary<string, UiFolderComponent> layoutsLookup
     ) => Task.FromResult(new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier));
 }
