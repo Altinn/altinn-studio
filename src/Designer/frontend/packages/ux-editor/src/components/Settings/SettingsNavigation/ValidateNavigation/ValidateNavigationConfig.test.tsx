@@ -58,6 +58,10 @@ const renderValidateNavigationConfig = (props: Partial<ValidateNavigationConfigP
     scope: Scope.AllTasks,
     onSave: jest.fn(),
     onDelete: jest.fn(),
+    config: {
+      types: [],
+      pageScope: { value: '', label: '' },
+    },
   };
   return render(<ValidateNavigationConfig {...defaultProps} {...props} />);
 };
