@@ -88,7 +88,7 @@ const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: Valida
         cardLabel={t(getCardLabel(scope))}
         deleteAriaLabel={t('general.delete')}
         onDelete={handleDelete}
-        isDeleteDisabled={!onDelete}
+        isDeleteDisabled={!config}
       />
       <StudioConfigCard.Body>
         <ValidateCardContent scope={scope} config={currentConfig} onChange={update} />
