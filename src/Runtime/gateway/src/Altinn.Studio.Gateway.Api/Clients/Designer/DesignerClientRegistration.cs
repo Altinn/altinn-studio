@@ -22,7 +22,11 @@ internal static class DesignerClientRegistration
                             throw new InvalidOperationException(
                                 $"Studio environment '{name}' is missing from configuration."
                             );
-                        client.BaseAddress = new Uri(config.Url);
+                        if (!Uri.TryCreate(config.Url, UriKind.Absolute, out var baseAddress))
+                            throw new InvalidOperationException(
+                                $"Studio environment '{name}' has invalid Url: '{config.Url}'."
+                            );
+                        client.BaseAddress = baseAddress;
                     }
                 )
                 .UseMaskinportenAuth()
