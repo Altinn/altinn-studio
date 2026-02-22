@@ -129,10 +129,15 @@ func main() {
 	}
 
 	logger.Info("Shutting down telemetry")
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := otelShutdown(shutdownCtx); err != nil {
-		logger.Warn("Failed to gracefully shut down telemetry", "error", err)
+	telemetryShutdownTimeout := config.ResolveTelemetryShutdownTimeoutForEnvironment(cfg.Environment)
+	if telemetryShutdownTimeout == 0 {
+		logger.Info("Skipping graceful telemetry flush", "environment", cfg.Environment)
+	} else {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), telemetryShutdownTimeout)
+		defer cancel()
+		if err := otelShutdown(shutdownCtx); err != nil {
+			logger.Warn("Failed to gracefully shut down telemetry", "error", err)
+		}
 	}
 
 	logger.Info("Server shut down gracefully")
