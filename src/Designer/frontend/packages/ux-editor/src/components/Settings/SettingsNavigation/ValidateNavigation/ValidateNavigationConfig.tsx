@@ -54,8 +54,8 @@ type ValidateCardProps = {
   scope: Scope;
   config?: InternalConfigState;
   setIsEditMode: (isEditMode: boolean) => void;
-  onSave: (config: InternalConfigState) => void; // This will be used in next PR when we implement actual save logic
-  onDelete?: () => void; // This will be used in next PR when we implement actual delete logic
+  onSave: (config: InternalConfigState) => void;
+  onDelete?: () => void;
 };
 
 const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: ValidateCardProps) => {
