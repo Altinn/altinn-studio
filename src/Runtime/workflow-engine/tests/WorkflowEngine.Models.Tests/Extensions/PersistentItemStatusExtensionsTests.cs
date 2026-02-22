@@ -11,6 +11,7 @@ public class PersistentItemStatusExtensionsTests
     [InlineData(PersistentItemStatus.Enqueued, false)]
     [InlineData(PersistentItemStatus.Processing, false)]
     [InlineData(PersistentItemStatus.Requeued, false)]
+    [InlineData(PersistentItemStatus.Suspended, false)]
     public void IsDone_ReturnsExpectedResult(PersistentItemStatus status, bool expected)
     {
         // Act
@@ -27,6 +28,7 @@ public class PersistentItemStatusExtensionsTests
     [InlineData(PersistentItemStatus.Enqueued, false)]
     [InlineData(PersistentItemStatus.Processing, false)]
     [InlineData(PersistentItemStatus.Requeued, false)]
+    [InlineData(PersistentItemStatus.Suspended, false)]
     public void IsSuccessful_ReturnsExpectedResult(PersistentItemStatus status, bool expected)
     {
         // Act

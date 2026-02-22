@@ -24,7 +24,7 @@ indent_size = 2
 dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 
-end_of_line = crlf
+end_of_line = lf
 
 #### Naming styles ####
 
@@ -132,7 +132,7 @@ dotnet_diagnostic.CA1031.severity = none
 dotnet_diagnostic.CA1861.severity = none
 
 
-## Test projects ## 
+## Test projects ##
 
 [tests/**/*.cs]
 

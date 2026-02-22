@@ -34,9 +34,11 @@ internal sealed class MetricsCollector(
                 var active = await engineRepository.CountActiveWorkflows(cancellationToken: stoppingToken);
                 var scheduled = await engineRepository.CountScheduledWorkflows(cancellationToken: stoppingToken);
                 var failed = await engineRepository.CountFailedWorkflows(cancellationToken: stoppingToken);
+                var suspended = await engineRepository.CountSuspendedWorkflows(cancellationToken: stoppingToken);
                 Telemetry.SetActiveWorkflowsCount(active);
                 Telemetry.SetScheduledWorkflowsCount(scheduled);
                 Telemetry.SetFailedWorkflowsCount(failed);
+                Telemetry.SetSuspendedWorkflowsCount(suspended);
 
                 var dbSlotStatus = concurrencyLimiter.DbSlotStatus;
                 var httpSlotStatus = concurrencyLimiter.HttpSlotStatus;

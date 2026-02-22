@@ -23,5 +23,10 @@ public static class ExecutionStatusExtensions
         /// Determines if the execution result indicates a critical error.
         /// </summary>
         public bool IsCriticalError() => result.Status == ExecutionStatus.CriticalError;
+
+        /// <summary>
+        /// Determines if the execution result indicates a suspended state.
+        /// </summary>
+        public bool IsSuspended() => result.Status == ExecutionStatus.Suspended;
     }
 }

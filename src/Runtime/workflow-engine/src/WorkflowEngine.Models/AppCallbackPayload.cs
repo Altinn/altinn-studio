@@ -31,4 +31,16 @@ public sealed record AppCallbackPayload
     /// </summary>
     [JsonPropertyName("payload")]
     public string? Payload { get; init; }
+
+    /// <summary>
+    /// A correlation ID linking paired AppCommand and ReplyAppCommand steps.
+    /// The app uses this ID to POST replies back to the engine via the reply endpoint.
+    /// </summary>
+    [JsonPropertyName("correlationId")]
+    public Guid? CorrelationId { get; init; }
+
+    /// <summary>
+    /// </summary>
+    [JsonPropertyName("reply")]
+    public string? Reply { get; init; }
 }

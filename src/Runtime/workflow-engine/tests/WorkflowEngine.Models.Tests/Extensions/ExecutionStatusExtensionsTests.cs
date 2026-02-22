@@ -55,4 +55,18 @@ public class ExecutionStatusExtensionsTests
         Assert.False(result.IsCanceled());
         Assert.False(result.IsRetryableError());
     }
+
+    [Fact]
+    public void IsSuspended_ReturnsTrue_ForSuspendedStatus()
+    {
+        // Arrange
+        var result = ExecutionResult.Suspended();
+
+        // Act & Assert
+        Assert.True(result.IsSuspended());
+        Assert.False(result.IsSuccess());
+        Assert.False(result.IsCanceled());
+        Assert.False(result.IsRetryableError());
+        Assert.False(result.IsCriticalError());
+    }
 }

@@ -6,10 +6,13 @@ namespace WorkflowEngine.Data.Tests.Entities;
 
 public class StepEntityTests
 {
+    private static readonly Guid TestCorrelationId = Guid.Parse("11111111-2222-3333-4444-555555555555");
+
     private static StepEntity CreateEntity(
         string? commandJson = null,
         string? retryStrategyJson = null,
-        bool includeRetryStrategy = true
+        bool includeRetryStrategy = true,
+        Guid? correlationId = null
     ) =>
         new()
         {
@@ -18,6 +21,7 @@ public class StepEntityTests
             OperationId = "send-email",
             Status = PersistentItemStatus.Processing,
             ProcessingOrder = 3,
+            CorrelationId = correlationId,
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
             UpdatedAt = new DateTimeOffset(2025, 6, 15, 11, 0, 0, TimeSpan.Zero),
             StartAt = new DateTimeOffset(2025, 6, 15, 12, 0, 0, TimeSpan.Zero),
@@ -54,6 +58,60 @@ public class StepEntityTests
         Assert.Equal(entity.RequeueCount, roundTripped.RequeueCount);
         Assert.Equal(entity.ActorUserIdOrOrgNumber, roundTripped.ActorUserIdOrOrgNumber);
         Assert.Equal(entity.ActorLanguage, roundTripped.ActorLanguage);
+        Assert.Equal(entity.CorrelationId, roundTripped.CorrelationId);
+    }
+
+    [Fact]
+    public void ToDomainModel_FromDomainModel_RoundTrip_PreservesCorrelationId()
+    {
+        // Arrange
+        var entity = CreateEntity(correlationId: TestCorrelationId);
+
+        // Act
+        var domain = entity.ToDomainModel();
+        var roundTripped = StepEntity.FromDomainModel(domain);
+
+        // Assert
+        Assert.Equal(TestCorrelationId, domain.CorrelationId);
+        Assert.Equal(TestCorrelationId, roundTripped.CorrelationId);
+    }
+
+    [Fact]
+    public void ToDomainModel_FromDomainModel_RoundTrip_NullCorrelationId()
+    {
+        // Arrange
+        var entity = CreateEntity(correlationId: null);
+
+        // Act
+        var domain = entity.ToDomainModel();
+        var roundTripped = StepEntity.FromDomainModel(domain);
+
+        // Assert
+        Assert.Null(domain.CorrelationId);
+        Assert.Null(roundTripped.CorrelationId);
+    }
+
+    [Fact]
+    public void ReplyAppCommand_JsonSerialization_RoundTrip()
+    {
+        // Arrange
+        var entity = CreateEntity(
+            commandJson: """{"type":"reply-app","commandKey":"sign","payload":"{\"context\":1}"}"""
+        );
+
+        // Act
+        var domain = entity.ToDomainModel();
+        var roundTripped = StepEntity.FromDomainModel(domain);
+
+        // Assert — verify the domain model parsed the command correctly
+        var replyAppCommand = Assert.IsType<Command.ReplyAppCommand>(domain.Command);
+        Assert.Equal("sign", replyAppCommand.CommandKey);
+        Assert.Equal("{\"context\":1}", replyAppCommand.Payload);
+
+        // Verify the round-tripped entity serialized it back to valid JSON
+        Assert.NotNull(roundTripped.CommandJson);
+        Assert.Contains("sign", roundTripped.CommandJson, StringComparison.Ordinal);
+        Assert.Contains("reply-app", roundTripped.CommandJson, StringComparison.Ordinal);
     }
 
     [Fact]

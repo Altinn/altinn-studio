@@ -8,4 +8,5 @@ public enum PersistentItemStatus
     Completed = 3,
     Failed = 4,
     Canceled = 5,
+    Suspended = 6,
 }

@@ -48,6 +48,7 @@ internal static class ServiceCollectionExtensions
             services.AddSingleton<IEngine, Engine>();
             services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
             services.AddHostedService<EngineHost>();
+            services.AddSingleton<WorkflowReplies>();
 
             return services;
         }

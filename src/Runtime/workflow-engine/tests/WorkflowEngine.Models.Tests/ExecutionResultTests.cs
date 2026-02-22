@@ -64,4 +64,16 @@ public class ExecutionResultTests
         Assert.Equal("fatal error", result.Message);
         Assert.Null(result.Exception);
     }
+
+    [Fact]
+    public void Suspended_CreatesResultWithSuspendedStatus()
+    {
+        // Act
+        var result = ExecutionResult.Suspended();
+
+        // Assert
+        Assert.Equal(ExecutionStatus.Suspended, result.Status);
+        Assert.Null(result.Message);
+        Assert.Null(result.Exception);
+    }
 }

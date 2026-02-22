@@ -28,6 +28,8 @@ internal sealed class StepEntity : IHasCommonMetadata
 
     public int ProcessingOrder { get; set; }
 
+    public Guid? CorrelationId { get; set; }
+
     public DateTimeOffset? StartAt { get; set; }
 
     public DateTimeOffset? BackoffUntil { get; set; }
@@ -62,6 +64,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             CreatedAt = step.CreatedAt,
             UpdatedAt = step.UpdatedAt,
             ProcessingOrder = step.ProcessingOrder,
+            CorrelationId = step.CorrelationId,
             StartAt = step.StartAt,
             BackoffUntil = step.BackoffUntil,
             RequeueCount = step.RequeueCount,
@@ -87,6 +90,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             OperationId = OperationId,
             Status = Status,
             ProcessingOrder = ProcessingOrder,
+            CorrelationId = CorrelationId,
             CreatedAt = CreatedAt,
             UpdatedAt = UpdatedAt,
             StartAt = StartAt,

@@ -48,6 +48,10 @@ internal static class Telemetry
     public static readonly Counter<long> StepsSucceeded = Meter.CreateCounter<long>("engine.steps.execution.success");
     public static readonly Counter<long> StepsRequeued = Meter.CreateCounter<long>("engine.steps.execution.requeued");
     public static readonly Counter<long> StepsFailed = Meter.CreateCounter<long>("engine.steps.execution.failed");
+    public static readonly Counter<long> StepsSuspended = Meter.CreateCounter<long>("engine.steps.execution.suspended");
+    public static readonly Counter<long> WorkflowsSuspended = Meter.CreateCounter<long>(
+        "engine.workflows.execution.suspended"
+    );
 
     public static readonly Histogram<double> StepQueueTime = Meter.CreateHistogram<double>(
         "engine.steps.time.queue",
@@ -81,6 +85,12 @@ internal static class Telemetry
     public static readonly ObservableGauge<long> FailedWorkflows = Meter.CreateObservableGauge(
         "engine.workflows.failed",
         static () => _failedWorkflowsCount
+    );
+
+    private static long _suspendedWorkflowsCount;
+    public static readonly ObservableGauge<long> SuspendedWorkflows = Meter.CreateObservableGauge(
+        "engine.workflows.suspended",
+        static () => _suspendedWorkflowsCount
     );
 
     private static long _availableInboxSlotsCount;
@@ -124,6 +134,8 @@ internal static class Telemetry
     public static void SetScheduledWorkflowsCount(long count) => _scheduledWorkflowsCount = count;
 
     public static void SetFailedWorkflowsCount(long count) => _failedWorkflowsCount = count;
+
+    public static void SetSuspendedWorkflowsCount(long count) => _suspendedWorkflowsCount = count;
 
     public static void SetAvailableInboxSlots(int count) => _availableInboxSlotsCount = count;
 

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkflowEngine.Data.Context;
@@ -11,9 +12,11 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    partial class EngineDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260217111948_Replies")]
+    partial class Replies
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,8 +50,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("ReplyId");
 
-                    b.HasIndex("StepId")
-                        .IsUnique();
+                    b.HasIndex("StepId");
 
                     b.ToTable("Replies");
                 });
@@ -76,9 +78,6 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("CommandJson")
                         .IsRequired()
                         .HasColumnType("jsonb");
-
-                    b.Property<Guid?>("CorrelationId")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -117,8 +116,6 @@ namespace WorkflowEngine.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BackoffUntil");
-
-                    b.HasIndex("CorrelationId");
 
                     b.HasIndex("CreatedAt");
 

@@ -13,6 +13,119 @@ public class WorkflowTests
         };
 
     [Fact]
+    public void FromRequest_AssignsCorrelationId_ForPairedAppCommandAndReplyAppCommand()
+    {
+        // Arrange
+        var engineRequest = new EngineRequest(
+            "test-key",
+            "test-op",
+            _randomInstance,
+            _randomActor,
+            DateTimeOffset.UtcNow,
+            [
+                new StepRequest { Command = new Command.AppCommand("validate", Payload: "data") },
+                new StepRequest { Command = new Command.ReplyAppCommand("validate", Payload: "context") },
+                new StepRequest { Command = new Command.AppCommand("finalize") },
+            ],
+            null,
+            "lock-key"
+        );
+
+        // Act
+        var workflow = Workflow.FromRequest(engineRequest);
+
+        // Assert — first two steps should share a CorrelationId
+        Assert.NotNull(workflow.Steps[0].CorrelationId);
+        Assert.NotNull(workflow.Steps[1].CorrelationId);
+        Assert.Equal(workflow.Steps[0].CorrelationId, workflow.Steps[1].CorrelationId);
+
+        // Third step should not have a CorrelationId
+        Assert.Null(workflow.Steps[2].CorrelationId);
+    }
+
+    [Fact]
+    public void FromRequest_DoesNotAssignCorrelationId_WhenCommandKeysDoNotMatch()
+    {
+        // Arrange
+        var engineRequest = new EngineRequest(
+            "test-key",
+            "test-op",
+            _randomInstance,
+            _randomActor,
+            DateTimeOffset.UtcNow,
+            [
+                new StepRequest { Command = new Command.AppCommand("validate") },
+                new StepRequest { Command = new Command.ReplyAppCommand("different-key") },
+            ],
+            null,
+            "lock-key"
+        );
+
+        // Act
+        var workflow = Workflow.FromRequest(engineRequest);
+
+        // Assert — no correlation since keys don't match
+        Assert.Null(workflow.Steps[0].CorrelationId);
+        Assert.Null(workflow.Steps[1].CorrelationId);
+    }
+
+    [Fact]
+    public void FromRequest_DoesNotAssignCorrelationId_ForStandaloneAppCommand()
+    {
+        // Arrange
+        var engineRequest = new EngineRequest(
+            "test-key",
+            "test-op",
+            _randomInstance,
+            _randomActor,
+            DateTimeOffset.UtcNow,
+            [new StepRequest { Command = new Command.AppCommand("validate") }],
+            null,
+            "lock-key"
+        );
+
+        // Act
+        var workflow = Workflow.FromRequest(engineRequest);
+
+        // Assert
+        Assert.Null(workflow.Steps[0].CorrelationId);
+    }
+
+    [Fact]
+    public void FromRequest_AssignsDistinctCorrelationIds_ForMultiplePairs()
+    {
+        // Arrange
+        var engineRequest = new EngineRequest(
+            "test-key",
+            "test-op",
+            _randomInstance,
+            _randomActor,
+            DateTimeOffset.UtcNow,
+            [
+                new StepRequest { Command = new Command.AppCommand("sign") },
+                new StepRequest { Command = new Command.ReplyAppCommand("sign") },
+                new StepRequest { Command = new Command.AppCommand("pay") },
+                new StepRequest { Command = new Command.ReplyAppCommand("pay") },
+            ],
+            null,
+            "lock-key"
+        );
+
+        // Act
+        var workflow = Workflow.FromRequest(engineRequest);
+
+        // Assert — each pair should have its own CorrelationId
+        Assert.NotNull(workflow.Steps[0].CorrelationId);
+        Assert.Equal(workflow.Steps[0].CorrelationId, workflow.Steps[1].CorrelationId);
+
+        Assert.NotNull(workflow.Steps[2].CorrelationId);
+        Assert.Equal(workflow.Steps[2].CorrelationId, workflow.Steps[3].CorrelationId);
+
+        // The two pairs should have different CorrelationIds
+        Assert.NotEqual(workflow.Steps[0].CorrelationId, workflow.Steps[2].CorrelationId);
+    }
+
+    [Fact]
     public void Equality_Uses_IdempotencyKey()
     {
         // Arrange

@@ -70,6 +70,8 @@ internal sealed record WorkflowEngineTestFixture(
         services.AddSingleton(
             new ConcurrencyLimiter(engineSettings.MaxConcurrentDbOperations, engineSettings.MaxConcurrentHttpCalls)
         );
+        services.AddSingleton<WorkflowReplies>();
+        services.AddSingleton<TimeProvider>(TimeProvider.System);
 
         configureServices?.Invoke(services);
 

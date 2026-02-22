@@ -1,20 +1,30 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience;
 
 namespace WorkflowEngine.Api.Tests;
 
-public class EngineHealthCheckTests
+public sealed class EngineHealthCheckTests : IDisposable
 {
-    private static (EngineHealthCheck HealthCheck, Mock<IEngine> EngineMock) CreateHealthCheck(
+    private readonly ConcurrencyLimiter _concurrencyLimiter = new(
+        maxConcurrentDbOperations: 10,
+        maxConcurrentHttpCalls: 10
+    );
+
+    public void Dispose() => _concurrencyLimiter.Dispose();
+
+    private (EngineHealthCheck HealthCheck, Mock<IEngine> EngineMock) CreateHealthCheck(
         EngineHealthStatus status,
-        int inboxCount = 0
+        int inboxCount = 0,
+        int inboxCapacityLimit = 100
     )
     {
         var engineMock = new Mock<IEngine>();
         engineMock.Setup(e => e.Status).Returns(status);
         engineMock.Setup(e => e.InboxCount).Returns(inboxCount);
-        return (new EngineHealthCheck(engineMock.Object), engineMock);
+        engineMock.Setup(e => e.InboxCapacityLimit).Returns(inboxCapacityLimit);
+        return (new EngineHealthCheck(engineMock.Object, _concurrencyLimiter), engineMock);
     }
 
     [Fact]
@@ -122,7 +132,8 @@ public class EngineHealthCheckTests
         // Arrange
         var (healthCheck, _) = CreateHealthCheck(
             EngineHealthStatus.Healthy | EngineHealthStatus.Running,
-            inboxCount: 42
+            inboxCount: 42,
+            inboxCapacityLimit: 100
         );
 
         // Act
@@ -134,6 +145,8 @@ public class EngineHealthCheckTests
         // Assert
         Assert.NotNull(result.Data);
         Assert.Equal("Healthy, Running", result.Data["status"]);
-        Assert.Equal(42, result.Data["queue"]);
+        var queueData = Assert.IsType<Dictionary<string, int>>(result.Data["queue"]);
+        Assert.Equal(42, queueData["count"]);
+        Assert.Equal(100, queueData["limit"]);
     }
 }

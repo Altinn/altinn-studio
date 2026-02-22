@@ -27,6 +27,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
     private readonly ILogger<WorkflowExecutor> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ConcurrencyLimiter _limiter;
+    private readonly WorkflowReplies _workflowReplies;
 
     public WorkflowExecutor(IServiceProvider serviceProvider)
     {
@@ -35,6 +36,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
         _appCommandSettings = serviceProvider.GetRequiredService<IOptions<AppCommandSettings>>().Value;
         _logger = serviceProvider.GetRequiredService<ILogger<WorkflowExecutor>>();
         _limiter = serviceProvider.GetRequiredService<ConcurrencyLimiter>();
+        _workflowReplies = serviceProvider.GetRequiredService<WorkflowReplies>();
     }
 
     public async Task<ExecutionResult> Execute(Workflow workflow, Step step, CancellationToken cancellationToken)
@@ -54,6 +56,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
             var result = step.Command switch
             {
                 Command.AppCommand cmd => await AppCommand(cmd, workflow, step, cts.Token),
+                Command.ReplyAppCommand cmd => await ReplyAppCommand(cmd, workflow, step, cts.Token),
                 Command.Webhook cmd => await Webhook(cmd, workflow, step, cts.Token),
                 Command.Debug.Timeout cmd => await Timeout(cmd, workflow, step, cts.Token),
                 Command.Debug.Delegate cmd => await Delegate(cmd, workflow, step, cts.Token),
@@ -64,6 +67,8 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
             if (result.IsSuccess())
                 _logger.SuccessfulExecution(step, stopwatch.Elapsed);
+            else if (result.IsSuspended())
+                _logger.SuspendedExecution(step, stopwatch.Elapsed);
             else
                 _logger.FailedExecution(step, stopwatch.Elapsed, result.Message ?? "no details specified");
 
@@ -98,22 +103,77 @@ internal class WorkflowExecutor : IWorkflowExecutor
             tags: [("command.key", command.CommandKey)]
         );
 
-        using var httpClient = GetAuthorizedAppClient(workflow.InstanceInformation);
-        httpClient.Timeout = command.MaxExecutionTime ?? _engineSettings.DefaultStepCommandTimeout;
+        return await CallApp(
+            workflow,
+            step,
+            commandKey: command.CommandKey,
+            payload: command.Payload,
+            reply: null,
+            cancellationToken
+        );
+    }
 
-        var payload = new AppCallbackPayload
+    private async Task<ExecutionResult> ReplyAppCommand(
+        Command.ReplyAppCommand command,
+        Workflow workflow,
+        Step step,
+        CancellationToken cancellationToken
+    )
+    {
+        using var activity = Telemetry.Source.StartActivity(
+            "WorkflowExecutor.ReplyAppCommand",
+            kind: ActivityKind.Client,
+            tags: [("command.key", command.CommandKey), ("correlation.id", step.CorrelationId?.ToString())]
+        );
+
+        if (step.CorrelationId is not { } correlationId)
         {
-            CommandKey = command.CommandKey,
+            return ExecutionResult.RetryableError("ReplyAppCommand step is missing a CorrelationId");
+        }
+
+        var reply = await _workflowReplies.GetReplyByCorrelationId(correlationId, cancellationToken);
+        if (reply is null)
+        {
+            return ExecutionResult.Suspended();
+        }
+
+        return await CallApp(
+            workflow,
+            step,
+            commandKey: command.CommandKey,
+            payload: command.Payload,
+            reply: reply.Payload,
+            cancellationToken
+        );
+    }
+
+    private async Task<ExecutionResult> CallApp(
+        Workflow workflow,
+        Step step,
+        string commandKey,
+        string? payload,
+        string? reply,
+        CancellationToken cancellationToken
+    )
+    {
+        using var httpClient = GetAuthorizedAppClient(workflow.InstanceInformation);
+        httpClient.Timeout = step.Command.MaxExecutionTime ?? _engineSettings.DefaultStepCommandTimeout;
+
+        var callbackPayload = new AppCallbackPayload
+        {
+            CommandKey = commandKey,
             Actor = step.Actor,
             LockToken =
                 workflow.InstanceLockKey
                 ?? throw new InvalidOperationException("Missing InstanceLockKey for app callback payload"),
-            Payload = command.Payload,
+            Payload = payload,
+            Reply = reply,
+            CorrelationId = step.CorrelationId,
         };
-        var endpoint = command.CommandKey.ToUri(UriKind.Relative);
-        using var jsonPayload = JsonContent.Create(payload);
+        var endpoint = commandKey.ToUri(UriKind.Relative);
+        using var jsonPayload = JsonContent.Create(callbackPayload);
 
-        _logger.SendingAppCommandToEndpoint(endpoint, payload);
+        _logger.SendingAppCommandToEndpoint(endpoint, callbackPayload);
 
         using var response = await httpClient.PostAsync(endpoint, jsonPayload, cancellationToken);
 
@@ -229,6 +289,9 @@ internal static partial class WorkflowExecutorLogs
 
     [LoggerMessage(LogLevel.Information, "Step {Step} executed with success in {Elapsed}")]
     public static partial void SuccessfulExecution(this ILogger<WorkflowExecutor> logger, Step step, TimeSpan elapsed);
+
+    [LoggerMessage(LogLevel.Information, "Step {Step} suspended after {Elapsed}, waiting for external reply")]
+    public static partial void SuspendedExecution(this ILogger<WorkflowExecutor> logger, Step step, TimeSpan elapsed);
 
     [LoggerMessage(LogLevel.Error, "Step {Step} executed with error in {Elapsed}: {Message}")]
     public static partial void FailedExecution(

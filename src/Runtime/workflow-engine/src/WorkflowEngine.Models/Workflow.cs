@@ -11,8 +11,15 @@ public sealed record Workflow : PersistentItem
 
     public DateTimeOffset? ExecutionStartedAt { get; set; }
 
-    public static Workflow FromRequest(EngineRequest engineRequest) =>
-        new()
+    public static Workflow FromRequest(EngineRequest engineRequest)
+    {
+        var steps = engineRequest
+            .Steps.Select((step, i) => Step.FromRequest(engineRequest, step, engineRequest.CreatedAt, i))
+            .ToList();
+
+        AssignCorrelationIds(steps);
+
+        return new()
         {
             IdempotencyKey = engineRequest.IdempotencyKey,
             InstanceLockKey = engineRequest.InstanceLockKey,
@@ -21,10 +28,30 @@ public sealed record Workflow : PersistentItem
             CreatedAt = engineRequest.CreatedAt,
             DistributedTraceContext = engineRequest.TraceContext,
             OperationId = engineRequest.OperationId,
-            Steps = engineRequest
-                .Steps.Select((step, i) => Step.FromRequest(engineRequest, step, engineRequest.CreatedAt, i))
-                .ToList(),
+            Steps = steps,
         };
+    }
+
+    /// <summary>
+    /// Assigns a shared CorrelationId to adjacent AppCommand + ReplyAppCommand pairs
+    /// that have matching CommandKeys.
+    /// </summary>
+    private static void AssignCorrelationIds(List<Step> steps)
+    {
+        for (int i = 0; i < steps.Count - 1; i++)
+        {
+            if (
+                steps[i].Command is Command.AppCommand appCommand
+                && steps[i + 1].Command is Command.ReplyAppCommand replyCommand
+                && appCommand.CommandKey == replyCommand.CommandKey
+            )
+            {
+                var correlationId = Guid.NewGuid();
+                steps[i] = steps[i] with { CorrelationId = correlationId };
+                steps[i + 1] = steps[i + 1] with { CorrelationId = correlationId };
+            }
+        }
+    }
 
     public override string ToString() => $"[{GetType().Name}] {IdempotencyKey} ({Status})";
 

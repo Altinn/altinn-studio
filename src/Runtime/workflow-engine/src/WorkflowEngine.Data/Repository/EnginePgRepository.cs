@@ -286,6 +286,140 @@ internal sealed class EnginePgRepository : IEngineRepository
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<int> CountSuspendedWorkflows(
+        bool bypassConcurrencyLimit = true,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var slot = await AcquireDbSlotIfRequired(bypassConcurrencyLimit, cancellationToken);
+        try
+        {
+            _logger.CountingWorkflows("suspended");
+
+            var result = await _context
+                .Workflows.Where(x => x.Status == PersistentItemStatus.Suspended)
+                .CountAsync(cancellationToken);
+
+            _logger.SuccessfullyFetchedWorkflows(result);
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<Reply?> GetReplyForStep(long stepId, CancellationToken cancellationToken = default)
+    {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        try
+        {
+            _logger.FetchingReplyForStep(stepId);
+
+            var entity = await _context.Replies.FirstOrDefaultAsync(r => r.StepId == stepId, cancellationToken);
+
+            return entity?.ToDomainModel();
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchReply(stepId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<Reply?> GetReplyByCorrelationId(Guid correlationId, CancellationToken cancellationToken = default)
+    {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        try
+        {
+            _logger.FetchingReplyByCorrelationId(correlationId);
+
+            var entity = await _context
+                .Replies.Where(r => _context.Steps.Any(s => s.Id == r.StepId && s.CorrelationId == correlationId))
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return entity?.ToDomainModel();
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchReplyByCorrelationId(correlationId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task AddReply(Reply reply, CancellationToken cancellationToken = default)
+    {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        try
+        {
+            _logger.AddingReply(reply.ReplyId, reply.StepId);
+
+            var entity = ReplyEntity.FromDomainModel(reply);
+            _context.Replies.Add(entity);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.SuccessfullyAddedReply(reply.ReplyId, reply.StepId);
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToAddReply(reply.ReplyId, reply.StepId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<Workflow?> GetWorkflowByStepId(long stepId, CancellationToken cancellationToken = default)
+    {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        try
+        {
+            _logger.FetchingWorkflowByStepId(stepId);
+
+            var stepEntity = await _context
+                .Steps.Include(s => s.Job)
+                    .ThenInclude(j => j!.Steps)
+                .FirstOrDefaultAsync(s => s.Id == stepId, cancellationToken);
+
+            return stepEntity?.Job?.ToDomainModel();
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchWorkflowByStepId(stepId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<Workflow?> GetWorkflowByCorrelationId(
+        Guid correlationId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var slot = await _limiter.AcquireDbSlotAsync(cancellationToken);
+        try
+        {
+            _logger.FetchingWorkflowByCorrelationId(correlationId);
+
+            var stepEntity = await _context
+                .Steps.Include(s => s.Job)
+                    .ThenInclude(j => j!.Steps)
+                .FirstOrDefaultAsync(s => s.CorrelationId == correlationId, cancellationToken);
+
+            return stepEntity?.Job?.ToDomainModel();
+        }
+        catch (Exception ex)
+        {
+            _logger.FailedToFetchWorkflowByCorrelationId(correlationId, ex.Message, ex);
+            throw;
+        }
+    }
+
     private async Task<IDisposable?> AcquireDbSlotIfRequired(
         bool bypassConcurrencyLimit,
         CancellationToken cancellationToken
@@ -477,6 +611,75 @@ internal static partial class EnginePgRepositoryLogs
         this ILogger<EnginePgRepository> logger,
         string stepIdentifier,
         long databaseId,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Debug, "Fetching reply for step {StepId}")]
+    internal static partial void FetchingReplyForStep(this ILogger<EnginePgRepository> logger, long stepId);
+
+    [LoggerMessage(LogLevel.Error, "Failed to fetch reply for step {StepId}: {Message}")]
+    internal static partial void FailedToFetchReply(
+        this ILogger<EnginePgRepository> logger,
+        long stepId,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Debug, "Adding reply {ReplyId} for step {StepId}")]
+    internal static partial void AddingReply(this ILogger<EnginePgRepository> logger, Guid replyId, long stepId);
+
+    [LoggerMessage(LogLevel.Debug, "Successfully added reply {ReplyId} for step {StepId}")]
+    internal static partial void SuccessfullyAddedReply(
+        this ILogger<EnginePgRepository> logger,
+        Guid replyId,
+        long stepId
+    );
+
+    [LoggerMessage(LogLevel.Error, "Failed to add reply {ReplyId} for step {StepId}: {Message}")]
+    internal static partial void FailedToAddReply(
+        this ILogger<EnginePgRepository> logger,
+        Guid replyId,
+        long stepId,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Debug, "Fetching workflow by step ID {StepId}")]
+    internal static partial void FetchingWorkflowByStepId(this ILogger<EnginePgRepository> logger, long stepId);
+
+    [LoggerMessage(LogLevel.Error, "Failed to fetch workflow by step ID {StepId}: {Message}")]
+    internal static partial void FailedToFetchWorkflowByStepId(
+        this ILogger<EnginePgRepository> logger,
+        long stepId,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Debug, "Fetching reply by correlation ID {CorrelationId}")]
+    internal static partial void FetchingReplyByCorrelationId(
+        this ILogger<EnginePgRepository> logger,
+        Guid correlationId
+    );
+
+    [LoggerMessage(LogLevel.Error, "Failed to fetch reply by correlation ID {CorrelationId}: {Message}")]
+    internal static partial void FailedToFetchReplyByCorrelationId(
+        this ILogger<EnginePgRepository> logger,
+        Guid correlationId,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Debug, "Fetching workflow by correlation ID {CorrelationId}")]
+    internal static partial void FetchingWorkflowByCorrelationId(
+        this ILogger<EnginePgRepository> logger,
+        Guid correlationId
+    );
+
+    [LoggerMessage(LogLevel.Error, "Failed to fetch workflow by correlation ID {CorrelationId}: {Message}")]
+    internal static partial void FailedToFetchWorkflowByCorrelationId(
+        this ILogger<EnginePgRepository> logger,
+        Guid correlationId,
         string message,
         Exception ex
     );

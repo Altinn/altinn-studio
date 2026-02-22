@@ -102,6 +102,22 @@ public class WorkflowExtensionsTests
     }
 
     [Fact]
+    public void OverallStatus_ReturnsSuspended_WhenAnyStepSuspended()
+    {
+        // Arrange
+        var workflow = CreateWorkflow(
+            CreateStep(PersistentItemStatus.Completed, 0),
+            CreateStep(PersistentItemStatus.Suspended, 1)
+        );
+
+        // Act
+        var result = workflow.OverallStatus();
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Suspended, result);
+    }
+
+    [Fact]
     public void OverallStatus_ReturnsEnqueued_WhenAllStepsEnqueued()
     {
         // Arrange

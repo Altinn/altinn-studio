@@ -10,6 +10,7 @@ internal sealed class EngineDbContext : DbContext
 
     public DbSet<WorkflowEntity> Workflows { get; set; }
     public DbSet<StepEntity> Steps { get; set; }
+    public DbSet<ReplyEntity> Replies { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,6 +39,14 @@ internal sealed class EngineDbContext : DbContext
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.ProcessingOrder);
             entity.HasIndex(e => e.IdempotencyKey);
+            entity.HasIndex(e => e.CorrelationId);
+        });
+
+        // Configure Reply entity
+        modelBuilder.Entity<ReplyEntity>(entity =>
+        {
+            entity.HasIndex(e => e.StepId).IsUnique();
+            entity.HasIndex(e => e.ReplyId);
         });
     }
 }

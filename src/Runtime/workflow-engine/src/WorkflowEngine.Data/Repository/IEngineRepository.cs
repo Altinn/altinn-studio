@@ -71,4 +71,37 @@ public interface IEngineRepository
     /// Updates the specified step in the workflow repository.
     /// </summary>
     Task UpdateStep(Step step, bool bypassConcurrencyLimit = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the number of suspended workflows.
+    /// </summary>
+    Task<int> CountSuspendedWorkflows(
+        bool bypassConcurrencyLimit = true,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets a reply for the specified step, if one exists.
+    /// </summary>
+    Task<Reply?> GetReplyForStep(long stepId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a reply by the correlation ID of the step it is attached to.
+    /// </summary>
+    Task<Reply?> GetReplyByCorrelationId(Guid correlationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a reply to the repository.
+    /// </summary>
+    Task AddReply(Reply reply, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the workflow that contains the specified step.
+    /// </summary>
+    Task<Workflow?> GetWorkflowByStepId(long stepId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the workflow that contains a step with the specified correlation ID.
+    /// </summary>
+    Task<Workflow?> GetWorkflowByCorrelationId(Guid correlationId, CancellationToken cancellationToken = default);
 }

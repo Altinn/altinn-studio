@@ -36,4 +36,9 @@ public record struct ExecutionResult(ExecutionStatus Status, string? Message = n
     /// </summary>
     public static ExecutionResult CriticalError(Exception exception) =>
         new(ExecutionStatus.CriticalError, exception.Message, exception);
+
+    /// <summary>
+    /// Creates a suspended execution result. This indicates the step is waiting for an external reply.
+    /// </summary>
+    public static ExecutionResult Suspended() => new(ExecutionStatus.Suspended);
 };
