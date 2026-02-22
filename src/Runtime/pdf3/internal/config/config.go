@@ -11,6 +11,10 @@ import (
 
 var logger = log.NewComponent("config")
 
+const (
+	EnvironmentLocaltest = "localtest"
+)
+
 type Config struct {
 	Environment string
 
@@ -72,7 +76,7 @@ type HostParameters struct {
 // ResolveHostParametersForEnvironment returns appropriate host parameters based on environment.
 // Localtest uses zero timeouts for fast restarts, production uses full graceful shutdown periods.
 func ResolveHostParametersForEnvironment(environment string) HostParameters {
-	if environment == "localtest" {
+	if environment == EnvironmentLocaltest {
 		// Minimal delays for local development - fast restarts
 		return HostParameters{
 			ReadinessDrainDelay: 0,
@@ -86,4 +90,13 @@ func ResolveHostParametersForEnvironment(environment string) HostParameters {
 		ShutdownPeriod:      45 * time.Second,
 		ShutdownHardPeriod:  3 * time.Second,
 	}
+}
+
+// ResolveTelemetryShutdownTimeoutForEnvironment returns how long to wait for OTel shutdown flush.
+// Localtest skips graceful flush to prioritize fast restarts.
+func ResolveTelemetryShutdownTimeoutForEnvironment(environment string) time.Duration {
+	if environment == EnvironmentLocaltest {
+		return 0
+	}
+	return 5 * time.Second
 }
