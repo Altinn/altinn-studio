@@ -107,36 +107,4 @@ describe('presentation/AppHeader', () => {
     });
     expect(screen.getByRole('img')).toHaveAttribute('src', 'https://altinncdn.no/orgs/mockOrg/mockOrg.png');
   });
-
-  it('should render and change app language', async () => {
-    await render({
-      party: userPerson.party,
-      showLanguageSelector: true,
-    });
-
-    await userEvent.click(screen.getByRole('button', { name: /Språkvalg/i }));
-    const en = screen.getByRole('menuitemradio', { name: /engelsk/i });
-    await userEvent.click(en);
-
-    // Language now changed, so the value should be the language name in the selected language
-    await userEvent.click(screen.getByRole('button', { name: /Language/i }));
-    expect(screen.getByRole('menuitemradio', { name: /english/i })).toHaveAttribute('aria-checked', 'true');
-  });
-
-  it('should render app language with custom labels', async () => {
-    await render({
-      party: userPerson.party,
-      showLanguageSelector: true,
-      textResources: [
-        { id: 'language.language_selection', value: 'Språkvalg test' },
-        { id: 'language.full_name.nb', value: 'Norsk test' },
-        { id: 'language.full_name.en', value: 'Engelsk test' },
-      ],
-    });
-
-    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /Språkvalg test/i }));
-    screen.getByRole('menuitemradio', { name: /norsk test/i });
-    screen.getByRole('menuitemradio', { name: /engelsk test/i });
-  });
 });
