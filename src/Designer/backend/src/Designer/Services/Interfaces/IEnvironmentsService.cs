@@ -1,6 +1,7 @@
 #nullable disable
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Models;
 
@@ -14,7 +15,10 @@ public interface IEnvironmentsService
     /// <returns>List of environments</returns>
     Task<List<EnvironmentModel>> GetEnvironments();
 
-    Task<IEnumerable<EnvironmentModel>> GetOrganizationEnvironments(string org);
+    Task<IEnumerable<EnvironmentModel>> GetOrganizationEnvironments(
+        string org,
+        CancellationToken cancellationToken = default
+    );
 
     Task<Uri> CreatePlatformUri(string envName);
 

@@ -19,7 +19,6 @@ namespace Designer.Tests.Services
 {
     public class SourceControlServiceTest : IDisposable
     {
-
         private Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private Mock<IGiteaClient> _giteaClientMock;
         private Mock<ILogger<SourceControlService>> _loggerMock;
@@ -30,6 +29,7 @@ namespace Designer.Tests.Services
         private readonly string _org = "ttd";
         private readonly string _developer = "testUser";
         private string _repoDir;
+
         private void Setup()
         {
             // Setup mocks
@@ -37,31 +37,23 @@ namespace Designer.Tests.Services
             _giteaClientMock = new Mock<IGiteaClient>();
             _loggerMock = new Mock<ILogger<SourceControlService>>();
             _httpContextMock = new Mock<HttpContext>();
-            _httpContextMock.Setup(x => x.User).Returns(new ClaimsPrincipal(new ClaimsIdentity(
-            [
-                new Claim(ClaimTypes.Name, "testUser")
-            ], "mock")));
+            _httpContextMock
+                .Setup(x => x.User)
+                .Returns(new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Name, "testUser")], "mock")));
 
             // Setup settings with a test repository location
             _settings = new ServiceRepositorySettings
             {
                 RepositoryLocation = TestDataHelper.GetTestDataRepositoriesRootDirectory(),
-                RepositoryBaseURL = "https://test.gitea.com"
+                RepositoryBaseURL = "https://test.gitea.com",
             };
 
             // Setup HttpContextAccessor to return mock HttpContext
-            _httpContextAccessorMock
-                .Setup(x => x.HttpContext)
-                .Returns(_httpContextMock.Object);
+            _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(_httpContextMock.Object);
 
             // Create the service under test
-            _sourceControlService = new SourceControlService(
-                _settings,
-                _giteaClientMock.Object,
-                _loggerMock.Object
-            );
+            _sourceControlService = new SourceControlService(_settings, _giteaClientMock.Object, _loggerMock.Object);
         }
-
 
         [Fact]
         public void DeleteLocalBranchIfExists()
@@ -198,7 +190,6 @@ namespace Designer.Tests.Services
             AddFileToRepo("file-on-master");
             _sourceControlService.CommitToLocalRepo(context, commitMessageMaster);
 
-
             // Act
             _sourceControlService.CheckoutRepoOnBranch(context, branchName);
             _sourceControlService.RebaseOntoDefaultBranch(context);
@@ -249,13 +240,16 @@ namespace Designer.Tests.Services
             string origApp = "hvem-er-hvem";
             string app = TestDataHelper.GenerateTestRepoName(origApp);
             string developer = "testUser";
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                app,
+                developer
+            );
 
             await TestDataHelper.CopyRepositoryForTest(org, origApp, developer, app);
 
             Mock<IGiteaClient> mock = new();
-            mock.Setup(m => m.DeleteRepository(org, app))
-                .ReturnsAsync(true);
+            mock.Setup(m => m.DeleteRepository(org, app)).ReturnsAsync(true);
 
             SourceControlService sut = GetServiceForTest(developer, mock);
 
@@ -277,12 +271,19 @@ namespace Designer.Tests.Services
             string user = "testUser";
 
             Mock<IGiteaClient> mock = new();
-            mock.Setup(m => m.CreatePullRequest(
+            mock.Setup(m =>
+                    m.CreatePullRequest(
+                        "ttd",
+                        "apps-test",
+                        It.Is<CreatePullRequestOption>(o => o.Base == target && o.Head == source)
+                    )
+                )
+                .ReturnsAsync(true);
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
                 "ttd",
                 "apps-test",
-                It.Is<CreatePullRequestOption>(o => o.Base == target && o.Head == source)))
-                .ReturnsAsync(true);
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper("ttd", "apps-test", user);
+                user
+            );
 
             SourceControlService sut = GetServiceForTest(user, mock);
 
@@ -298,7 +299,8 @@ namespace Designer.Tests.Services
         {
             // Arrange
             string repoName = TestDataHelper.GenerateTestRepoName();
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromEditingContext(CreateTestRepository(repoName), "dummytoken");
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromEditingContext(CreateTestRepository(repoName), "dummytoken");
 
             string testFile = Path.Join(_repoDir, "uncommitted-file.txt");
             File.WriteAllText(testFile, "This is new content");
@@ -318,7 +320,8 @@ namespace Designer.Tests.Services
             string repoName = TestDataHelper.GenerateTestRepoName();
             const string BranchName = "feature-branch";
             var context = CreateTestRepository(repoName);
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromEditingContext(context, "dummytoken");
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromEditingContext(context, "dummytoken");
 
             // Create feature branch and commit a file
             _sourceControlService.CreateLocalBranch(context, BranchName);
@@ -352,7 +355,8 @@ namespace Designer.Tests.Services
         {
             // Arrange
             string repoName = TestDataHelper.GenerateTestRepoName();
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromEditingContext(CreateTestRepository(repoName), "dummytoken");
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromEditingContext(CreateTestRepository(repoName), "dummytoken");
 
             // Act
             var result = _sourceControlService.GetChangedContent(authenticatedContext);
@@ -384,16 +388,21 @@ namespace Designer.Tests.Services
 
             giteaMock ??= new Mock<IGiteaClient>();
 
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryServiceTests).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(
+                new Uri(typeof(RepositoryServiceTests).Assembly.Location).LocalPath
+            );
             var repoSettings = new ServiceRepositorySettings()
             {
-                RepositoryLocation = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories") + Path.DirectorySeparatorChar
+                RepositoryLocation =
+                    Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
+                    + Path.DirectorySeparatorChar,
             };
 
             SourceControlService service = new(
                 repoSettings,
                 giteaMock.Object,
-                new Mock<ILogger<SourceControlService>>().Object);
+                new Mock<ILogger<SourceControlService>>().Object
+            );
 
             return service;
         }
@@ -401,11 +410,7 @@ namespace Designer.Tests.Services
         private AltinnRepoEditingContext CreateTestRepository(string repoName, string additionalBranch = null)
         {
             Setup();
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                _org,
-                repoName,
-                _developer
-            );
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, repoName, _developer);
             _repoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
             Directory.CreateDirectory(_repoDir);
 

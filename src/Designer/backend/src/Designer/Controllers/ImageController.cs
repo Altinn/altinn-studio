@@ -33,8 +33,7 @@ public class ImageController : ControllerBase
     /// </summary>
     /// <param name="imagesService">The images service.</param>
     /// <param name="imageUrlValidationService"></param>
-    public ImageController(IImagesService imagesService,
-        IImageUrlValidationService imageUrlValidationService)
+    public ImageController(IImagesService imagesService, IImageUrlValidationService imageUrlValidationService)
     {
         _imagesService = imagesService;
         _imageUrlValidationService = imageUrlValidationService;
@@ -85,8 +84,7 @@ public class ImageController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> ValidateExternalImageUrl([FromQuery] string url)
     {
-        ImageUrlValidationResult imageUrlValidationResult =
-            await _imageUrlValidationService.ValidateUrlAsync(url);
+        ImageUrlValidationResult imageUrlValidationResult = await _imageUrlValidationService.ValidateUrlAsync(url);
 
         if (imageUrlValidationResult == ImageUrlValidationResult.NotValidImage)
         {
@@ -106,8 +104,12 @@ public class ImageController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> UploadImage(string org, string app, [FromForm(Name = "file")] IFormFile image,
-        [FromForm(Name = "overrideExisting")] bool overrideExisting = false)
+    public async Task<ActionResult> UploadImage(
+        string org,
+        string app,
+        [FromForm(Name = "file")] IFormFile image,
+        [FromForm(Name = "overrideExisting")] bool overrideExisting = false
+    )
     {
         if (image == null || image.Length == 0)
         {

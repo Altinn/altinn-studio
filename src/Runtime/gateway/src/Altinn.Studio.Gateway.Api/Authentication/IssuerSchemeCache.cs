@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Authentication;
 
@@ -25,10 +26,10 @@ internal sealed class IssuerSchemeCache
 }
 
 internal sealed class IssuerSchemeCacheInitializer(
-    IssuerSchemeCache cache,
-    IConfiguration configuration,
-    IHttpClientFactory httpClientFactory,
-    ILogger<IssuerSchemeCacheInitializer> logger
+    IssuerSchemeCache _cache,
+    IOptionsMonitor<MaskinportenSettings> _settings,
+    IHttpClientFactory _httpClientFactory,
+    ILogger<IssuerSchemeCacheInitializer> _logger
 ) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -37,12 +38,12 @@ internal sealed class IssuerSchemeCacheInitializer(
         cts.CancelAfter(TimeSpan.FromSeconds(20));
         cancellationToken = cts.Token;
 
-        var metadataAddresses =
-            configuration.GetSection("Maskinporten:MetadataAddresses").Get<string[]>()
-            ?? throw new InvalidOperationException("Maskinporten:MetadataAddresses configuration is required");
+        var metadataAddresses = _settings.CurrentValue.MetadataAddresses;
+        if (metadataAddresses.Length == 0)
+            throw new InvalidOperationException("Maskinporten:MetadataAddresses must contain at least one address");
 
         var mapping = new Dictionary<string, string>(metadataAddresses.Length);
-        using var httpClient = httpClientFactory.CreateClient();
+        using var httpClient = _httpClientFactory.CreateClient();
 
         for (var i = 0; i < metadataAddresses.Length; i++)
         {
@@ -64,10 +65,10 @@ internal sealed class IssuerSchemeCacheInitializer(
                 );
 
             mapping[issuer] = schemeName;
-            logger.LogInformation("Mapped issuer {Issuer} to authentication scheme {Scheme}", issuer, schemeName);
+            _logger.LogInformation("Mapped issuer {Issuer} to authentication scheme {Scheme}", issuer, schemeName);
         }
 
-        cache.Initialize(mapping.ToFrozenDictionary());
+        _cache.Initialize(mapping.ToFrozenDictionary());
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

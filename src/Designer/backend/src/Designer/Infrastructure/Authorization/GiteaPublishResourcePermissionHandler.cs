@@ -24,9 +24,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// </summary>
         /// <param name="giteaClient">IGiteaClient</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        public GiteaPublishResourcePermissionHandler(
-            IGiteaClient giteaClient,
-            IHttpContextAccessor httpContextAccessor)
+        public GiteaPublishResourcePermissionHandler(IGiteaClient giteaClient, IHttpContextAccessor httpContextAccessor)
         {
             _httpContext = httpContextAccessor.HttpContext;
             _giteaClient = giteaClient;
@@ -35,7 +33,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <inheritdoc/>
         protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
-            GiteaPublishResourcePermissionRequirement requirement)
+            GiteaPublishResourcePermissionRequirement requirement
+        )
         {
             if (_httpContext == null)
             {
@@ -54,8 +53,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             List<Team> teams = await _giteaClient.GetTeams();
 
             bool isTeamMember = teams.Any(t =>
-                t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase) &&
-                t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
+                t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
+                && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
             );
 
             if (isTeamMember)

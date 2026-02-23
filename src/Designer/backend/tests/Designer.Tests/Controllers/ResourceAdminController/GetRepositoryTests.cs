@@ -6,11 +6,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetRepositoryTests : ResourceAdminControllerTestsBaseClass<GetRepositoryTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetRepositoryTests
+        : ResourceAdminControllerTestsBaseClass<GetRepositoryTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        public GetRepositoryTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetRepositoryTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task GetResourceRepository_OK()

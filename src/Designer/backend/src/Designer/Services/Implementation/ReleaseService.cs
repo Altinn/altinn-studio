@@ -49,7 +49,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IReleaseRepository releaseRepository,
             IAppScopesRepository appScopesRepository,
             AzureDevOpsSettings azureDevOpsOptions,
-            GeneralSettings generalSettings)
+            GeneralSettings generalSettings
+        )
         {
             _azureDevOpsSettings = azureDevOpsOptions;
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
@@ -64,6 +65,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var httpContext = _httpContextAccessor.HttpContext;
             var cancellationToken = httpContext.RequestAborted;
+            cancellationToken.ThrowIfCancellationRequested();
             release.PopulateBaseProperties(release.Org, release.App, httpContext);
 
             await ValidateUniquenessOfRelease(release, cancellationToken);
@@ -77,19 +79,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
                 AppDeployToken = await httpContext.GetDeveloperAppTokenAsync(),
                 AltinnStudioHostname = _generalSettings.HostName,
-                AppMaskinportenScopes = await GetAppScopesAsJson(release.Org, release.App, cancellationToken)
+                AppMaskinportenScopes = await GetAppScopesAsJson(release.Org, release.App, cancellationToken),
             };
 
+            // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
+            // cancels the request, but we prefer to atleast attempt the completion once we've started mutating some state
+            // This particular multi-step process starts mutating state by queueing the ADO build
+            cancellationToken = CancellationToken.None;
             Build queuedBuild = await _azureDevOpsBuildClient.QueueAsync(
                 queueBuildParameters,
-                _azureDevOpsSettings.BuildDefinitionId);
+                _azureDevOpsSettings.BuildDefinitionId,
+                cancellationToken
+            );
 
             release.Build = new BuildEntity
             {
                 Id = queuedBuild.Id.ToString(),
                 Status = queuedBuild.Status,
                 Result = BuildResult.None,
-                Started = queuedBuild.StartTime
+                Started = queuedBuild.StartTime,
             };
 
             return await _releaseRepository.Create(release);
@@ -98,12 +106,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<SearchResults<ReleaseEntity>> GetAsync(string org, string app, DocumentQueryModel query)
         {
-
             IEnumerable<ReleaseEntity> results = await _releaseRepository.Get(org, app, query);
-            return new SearchResults<ReleaseEntity>
-            {
-                Results = results
-            };
+            return new SearchResults<ReleaseEntity> { Results = results };
         }
 
         /// <inheritdoc/>
@@ -112,7 +116,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.Get(appOwner, buildNumber);
             ReleaseEntity releaseEntity = releaseDocuments.Single();
 
-            BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
+            BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber, CancellationToken.None);
             ReleaseEntity release = new() { Build = buildEntity };
 
             releaseEntity.Build.Status = release.Build.Status;
@@ -126,19 +130,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task ValidateUniquenessOfRelease(ReleaseEntity release, CancellationToken _)
         {
             List<string> buildStatus = new()
-                {
-                    BuildStatus.InProgress.ToEnumMemberAttributeValue(),
-                    BuildStatus.NotStarted.ToEnumMemberAttributeValue()
-                };
+            {
+                BuildStatus.InProgress.ToEnumMemberAttributeValue(),
+                BuildStatus.NotStarted.ToEnumMemberAttributeValue(),
+            };
 
             List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
 
-            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.Get(release.Org, release.App, release.TagName, buildStatus, buildResult);
+            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.Get(
+                release.Org,
+                release.App,
+                release.TagName,
+                buildStatus,
+                buildResult
+            );
             if (existingReleaseEntity.Any())
             {
                 throw new HttpRequestWithStatusException("A release with the same properties already exist.")
                 {
-                    StatusCode = HttpStatusCode.Conflict
+                    StatusCode = HttpStatusCode.Conflict,
                 };
             }
         }

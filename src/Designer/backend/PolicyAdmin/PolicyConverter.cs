@@ -25,16 +25,19 @@ namespace Altinn.Studio.PolicyAdmin
                 rule.Actions = new List<string>();
                 rule.Resources = new List<List<string>>();
 
-
                 if (xr.Target != null)
                 {
                     foreach (XacmlAnyOf anyOf in xr.Target.AnyOf)
                     {
                         foreach (XacmlAllOf allOf in anyOf.AllOf)
                         {
-                            List<string>? subject = GetRuleSubjects(allOf)?.Where(x => !x.StartsWith("urn:altinn:accesspackage")).ToList();
+                            List<string>? subject = GetRuleSubjects(allOf)
+                                ?.Where(x => !x.StartsWith("urn:altinn:accesspackage"))
+                                .ToList();
 
-                            List<string>? accessPackages = GetRuleSubjects(allOf)?.Where(x => x.StartsWith("urn:altinn:accesspackage")).ToList();
+                            List<string>? accessPackages = GetRuleSubjects(allOf)
+                                ?.Where(x => x.StartsWith("urn:altinn:accesspackage"))
+                                .ToList();
 
                             List<string>? resource = GetRuleResources(allOf);
 
@@ -60,7 +63,6 @@ namespace Altinn.Studio.PolicyAdmin
                                 rule.Resources.Add(resource);
                             }
                         }
-
                     }
                 }
 
@@ -76,9 +78,15 @@ namespace Altinn.Studio.PolicyAdmin
         {
             foreach (XacmlObligationExpression obligationExpression in xacmlPolicy.ObligationExpressions)
             {
-                foreach (XacmlAttributeAssignmentExpression attributeAssignmentExpression in obligationExpression.AttributeAssignmentExpressions)
+                foreach (
+                    XacmlAttributeAssignmentExpression attributeAssignmentExpression in obligationExpression.AttributeAssignmentExpressions
+                )
                 {
-                    if (attributeAssignmentExpression.Category.AbsoluteUri.Equals(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel))
+                    if (
+                        attributeAssignmentExpression.Category.AbsoluteUri.Equals(
+                            AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel
+                        )
+                    )
                     {
                         XacmlAttributeValue? astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
                         if (astr != null)
@@ -87,7 +95,11 @@ namespace Altinn.Studio.PolicyAdmin
                         }
                     }
 
-                    if (attributeAssignmentExpression.Category.AbsoluteUri.Equals(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg))
+                    if (
+                        attributeAssignmentExpression.Category.AbsoluteUri.Equals(
+                            AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg
+                        )
+                    )
                     {
                         XacmlAttributeValue? astr = attributeAssignmentExpression.Property as XacmlAttributeValue;
                         if (astr != null)
@@ -95,7 +107,6 @@ namespace Altinn.Studio.PolicyAdmin
                             policy.RequiredAuthenticationLevelOrg = astr.Value;
                         }
                     }
-
                 }
             }
         }
@@ -104,7 +115,11 @@ namespace Altinn.Studio.PolicyAdmin
         {
             List<string>? action = null;
 
-            foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Action)))
+            foreach (
+                XacmlMatch match in allOf.Matches.Where(m =>
+                    m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Action)
+                )
+            )
             {
                 if (action == null)
                 {
@@ -121,7 +136,11 @@ namespace Altinn.Studio.PolicyAdmin
         {
             List<string>? resource = null;
 
-            foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Resource)))
+            foreach (
+                XacmlMatch match in allOf.Matches.Where(m =>
+                    m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Resource)
+                )
+            )
             {
                 if (resource == null)
                 {
@@ -129,7 +148,6 @@ namespace Altinn.Studio.PolicyAdmin
                 }
 
                 resource.Add($"{match.AttributeDesignator.AttributeId.ToString()}:{match.AttributeValue.Value}");
-
             }
 
             return resource;
@@ -139,7 +157,11 @@ namespace Altinn.Studio.PolicyAdmin
         {
             List<string>? subject = null;
 
-            foreach (XacmlMatch match in allOf.Matches.Where(m => m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Subject)))
+            foreach (
+                XacmlMatch match in allOf.Matches.Where(m =>
+                    m.AttributeDesignator.Category.AbsoluteUri.Equals(XacmlConstants.MatchAttributeCategory.Subject)
+                )
+            )
             {
                 if (subject == null)
                 {
@@ -154,7 +176,11 @@ namespace Altinn.Studio.PolicyAdmin
 
         public static XacmlPolicy ConvertPolicy(ResourcePolicy? policyInput)
         {
-            XacmlPolicy policyOutput = new XacmlPolicy(new Uri($"{AltinnXacmlConstants.Prefixes.PolicyId}{1}"), new Uri(XacmlConstants.CombiningAlgorithms.RuleDenyOverrides), new XacmlTarget(new List<XacmlAnyOf>()));
+            XacmlPolicy policyOutput = new XacmlPolicy(
+                new Uri($"{AltinnXacmlConstants.Prefixes.PolicyId}{1}"),
+                new Uri(XacmlConstants.CombiningAlgorithms.RuleDenyOverrides),
+                new XacmlTarget(new List<XacmlAnyOf>())
+            );
 
             if (policyInput == null)
             {
@@ -180,13 +206,16 @@ namespace Altinn.Studio.PolicyAdmin
 
             if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelEndUser))
             {
-                policyOutput.ObligationExpressions.Add(GetAuthenticationLevelObligation(policyInput.RequiredAuthenticationLevelEndUser));
+                policyOutput.ObligationExpressions.Add(
+                    GetAuthenticationLevelObligation(policyInput.RequiredAuthenticationLevelEndUser)
+                );
             }
 
             if (!string.IsNullOrEmpty(policyInput.RequiredAuthenticationLevelOrg))
             {
-                policyOutput.ObligationExpressions.Add(GetAuthenticationLevelObligationOrg(policyInput.RequiredAuthenticationLevelOrg));
-
+                policyOutput.ObligationExpressions.Add(
+                    GetAuthenticationLevelObligationOrg(policyInput.RequiredAuthenticationLevelOrg)
+                );
             }
 
             return policyOutput;
@@ -239,25 +268,32 @@ namespace Altinn.Studio.PolicyAdmin
                     string attributeDesignator = res.Substring(0, splitLocation);
                     string attributeValue = res.Substring(splitLocation + 1);
 
-                    XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
+                    XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(
+                        new Uri(XacmlConstants.DataTypes.XMLString)
+                    );
                     xacmlAttributeValue.Value = attributeValue;
 
-                    XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(new Uri(attributeDesignator), new Uri(XacmlConstants.DataTypes.XMLString));
+                    XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(
+                        new Uri(attributeDesignator),
+                        new Uri(XacmlConstants.DataTypes.XMLString)
+                    );
                     xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Resource);
                     xacmlAttributeDesignator.MustBePresent = false;
 
-                    XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqual), xacmlAttributeValue, xacmlAttributeDesignator);
+                    XacmlMatch xacmlMatch = new XacmlMatch(
+                        new Uri(XacmlConstants.AttributeMatchFunction.StringEqual),
+                        xacmlAttributeValue,
+                        xacmlAttributeDesignator
+                    );
                     matches.Add(xacmlMatch);
                 }
 
                 XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
                 resourceAllOfs.Add(xacmlAllOf);
-
             }
 
             return new XacmlAnyOf(resourceAllOfs);
         }
-
 
         private static XacmlAnyOf GetSubjectAnyOfs(List<string> subjects)
         {
@@ -275,14 +311,23 @@ namespace Altinn.Studio.PolicyAdmin
                 string attributeDesignator = subject.Substring(0, splitLocation);
                 string attributeValue = subject.Substring(splitLocation + 1);
 
-                XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
+                XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(
+                    new Uri(XacmlConstants.DataTypes.XMLString)
+                );
                 xacmlAttributeValue.Value = attributeValue;
 
-                XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(new Uri(attributeDesignator), new Uri(XacmlConstants.DataTypes.XMLString));
+                XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(
+                    new Uri(attributeDesignator),
+                    new Uri(XacmlConstants.DataTypes.XMLString)
+                );
                 xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Subject);
                 xacmlAttributeDesignator.MustBePresent = false;
 
-                XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase), xacmlAttributeValue, xacmlAttributeDesignator);
+                XacmlMatch xacmlMatch = new XacmlMatch(
+                    new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase),
+                    xacmlAttributeValue,
+                    xacmlAttributeDesignator
+                );
                 matches.Add(xacmlMatch);
 
                 XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
@@ -299,14 +344,23 @@ namespace Altinn.Studio.PolicyAdmin
             foreach (string action in actions)
             {
                 List<XacmlMatch> matches = new List<XacmlMatch>();
-                XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString));
+                XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(
+                    new Uri(XacmlConstants.DataTypes.XMLString)
+                );
                 xacmlAttributeValue.Value = action;
 
-                XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(new Uri(XacmlConstants.MatchAttributeIdentifiers.ActionId), new Uri(XacmlConstants.DataTypes.XMLString));
+                XacmlAttributeDesignator xacmlAttributeDesignator = new XacmlAttributeDesignator(
+                    new Uri(XacmlConstants.MatchAttributeIdentifiers.ActionId),
+                    new Uri(XacmlConstants.DataTypes.XMLString)
+                );
                 xacmlAttributeDesignator.Category = new Uri(XacmlConstants.MatchAttributeCategory.Action);
                 xacmlAttributeDesignator.MustBePresent = false;
 
-                XacmlMatch xacmlMatch = new XacmlMatch(new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase), xacmlAttributeValue, xacmlAttributeDesignator);
+                XacmlMatch xacmlMatch = new XacmlMatch(
+                    new Uri(XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase),
+                    xacmlAttributeValue,
+                    xacmlAttributeDesignator
+                );
                 matches.Add(xacmlMatch);
                 XacmlAllOf xacmlAllOf = new XacmlAllOf(matches);
                 actionAllOfs.Add(xacmlAllOf);
@@ -315,16 +369,21 @@ namespace Altinn.Studio.PolicyAdmin
             return new XacmlAnyOf(actionAllOfs);
         }
 
-
         private static XacmlObligationExpression GetAuthenticationLevelObligation(string level)
         {
-            XacmlObligationExpression expression = new XacmlObligationExpression(new Uri("urn:altinn:obligation:authenticationLevel1"), XacmlEffectType.Permit);
+            XacmlObligationExpression expression = new XacmlObligationExpression(
+                new Uri("urn:altinn:obligation:authenticationLevel1"),
+                XacmlEffectType.Permit
+            );
 
             XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
             astr.Value = level;
 
-            XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation1-assignment1"), astr);
-            xacmlAttributeAssignmentExpression.Category = new Uri(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel);
+            XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression =
+                new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation1-assignment1"), astr);
+            xacmlAttributeAssignmentExpression.Category = new Uri(
+                AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevel
+            );
             expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
             expression.FulfillOn = XacmlEffectType.Permit;
             return expression;
@@ -332,13 +391,19 @@ namespace Altinn.Studio.PolicyAdmin
 
         private static XacmlObligationExpression GetAuthenticationLevelObligationOrg(string level)
         {
-            XacmlObligationExpression expression = new XacmlObligationExpression(new Uri("urn:altinn:obligation:authenticationLevel2"), XacmlEffectType.Permit);
+            XacmlObligationExpression expression = new XacmlObligationExpression(
+                new Uri("urn:altinn:obligation:authenticationLevel2"),
+                XacmlEffectType.Permit
+            );
 
             XacmlAttributeValue astr = new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLInteger));
             astr.Value = level;
 
-            XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression = new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation2-assignment2"), astr);
-            xacmlAttributeAssignmentExpression.Category = new Uri(AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg);
+            XacmlAttributeAssignmentExpression xacmlAttributeAssignmentExpression =
+                new XacmlAttributeAssignmentExpression(new Uri("urn:altinn:obligation2-assignment2"), astr);
+            xacmlAttributeAssignmentExpression.Category = new Uri(
+                AltinnXacmlConstants.MatchAttributeCategory.MinimumAuthenticationLevelOrg
+            );
             expression.AttributeAssignmentExpressions.Add(xacmlAttributeAssignmentExpression);
             expression.FulfillOn = XacmlEffectType.Permit;
             return expression;

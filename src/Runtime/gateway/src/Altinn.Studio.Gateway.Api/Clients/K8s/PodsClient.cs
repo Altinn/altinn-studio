@@ -4,17 +4,16 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Clients.K8s;
 
-internal sealed class PodsClient(IKubernetes client, IOptionsMonitor<GatewayContext> gatewayContextMonitor)
+internal sealed class PodsClient(IKubernetes _client, IOptionsMonitor<GatewayContext> _gatewayContextMonitor)
 {
-    private GatewayContext _gatewayContext => gatewayContextMonitor.CurrentValue;
-
-    public async Task<double> GetReadyPodsCountAsync(string app, CancellationToken cancellationToken)
+    public async Task<double> GetReadyPodsCount(string app, CancellationToken cancellationToken)
     {
-        string org = _gatewayContext.ServiceOwner;
+        var gatewayContext = _gatewayContextMonitor.CurrentValue;
+        string org = gatewayContext.ServiceOwner;
 
         var namespaceName = "default";
 
-        var deployment = await client.AppsV1.ReadNamespacedDeploymentAsync(
+        var deployment = await _client.AppsV1.ReadNamespacedDeploymentAsync(
             $"{org}-{app}-deployment-v2",
             namespaceName,
             cancellationToken: cancellationToken
@@ -37,7 +36,7 @@ internal sealed class PodsClient(IKubernetes client, IOptionsMonitor<GatewayCont
 
         string labelSelector = string.Join(",", selector.Select(kv => $"{kv.Key}={kv.Value}"));
 
-        var pods = await client.CoreV1.ListNamespacedPodAsync(
+        var pods = await _client.CoreV1.ListNamespacedPodAsync(
             namespaceName,
             labelSelector: labelSelector,
             cancellationToken: cancellationToken

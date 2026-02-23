@@ -83,6 +83,7 @@ import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceLis
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
+import type { AppSettings } from 'app-shared/types/AppSettings';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -245,7 +246,11 @@ export const queriesMock: ServicesContextProps = {
   getSelectedMaskinportenScopes: jest
     .fn()
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
+  getAppSettings: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<AppSettings>({ undeployOnInactivity: false })),
   updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateAppSettings: jest.fn().mockImplementation(() => Promise.resolve()),
   getConsentTemplates: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Queries - Contact

@@ -17,6 +17,11 @@ namespace Altinn.Studio.Designer.Repository
         /// <param name="buildId">Azure DevOps build ID</param>
         /// <param name="deployEvent">The deploy event to add</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        Task AddAsync(string org, string buildId, DeployEvent deployEvent, CancellationToken cancellationToken = default);
+        Task AddAsync(
+            string org,
+            string buildId,
+            DeployEvent deployEvent,
+            CancellationToken cancellationToken = default
+        );
     }
 }

@@ -19,12 +19,17 @@ export const ValidateAllTasksConfig = () => {
     setTempExtConfig(convertToExternalConfig(updatedConfig));
   };
 
+  const handleDelete = () => {
+    setTempExtConfig(undefined); // This is just to simulate the delete functionality, in real implementation this would be handled differently
+  };
+
   return (
     <ValidateNavigationConfig
       propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
       scope={Scope.AllTasks}
       config={config}
       onSave={handleSave}
+      onDelete={handleDelete}
     />
   );
 };

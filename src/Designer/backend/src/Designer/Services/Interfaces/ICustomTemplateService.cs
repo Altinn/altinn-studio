@@ -20,5 +20,11 @@ public interface ICustomTemplateService
     /// <param name="org">The organization to apply the template to</param>
     /// <param name="repo">The repository to apply the template to</param>
     /// <param name="developer">The developer applying the template</param>
-    public Task ApplyTemplateToRepository(string templateOwner, string templateId, string org, string repo, string developer);
+    public Task ApplyTemplateToRepository(
+        string templateOwner,
+        string templateId,
+        string org,
+        string repo,
+        string developer
+    );
 }

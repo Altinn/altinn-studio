@@ -1,8 +1,9 @@
 using Altinn.Studio.Gateway.Api.Settings;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Authentication;
 
-internal sealed class GrafanaAuthenticationFilter(GrafanaSettings grafanaSettings) : IEndpointFilter
+internal sealed class GrafanaAuthenticationFilter(IOptionsMonitor<GrafanaSettings> _grafanaSettings) : IEndpointFilter
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
@@ -16,7 +17,7 @@ internal sealed class GrafanaAuthenticationFilter(GrafanaSettings grafanaSetting
             return Results.Unauthorized();
 
         var token = authValue.Substring(7).Trim();
-        if (token != grafanaSettings.Token)
+        if (token != _grafanaSettings.CurrentValue.Token)
             return Results.Unauthorized();
 
         return await next(context);

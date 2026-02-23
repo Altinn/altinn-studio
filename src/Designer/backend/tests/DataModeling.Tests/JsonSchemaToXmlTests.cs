@@ -11,7 +11,8 @@ namespace DataModeling.Tests
         [ClassData(typeof(Json2XmlTestData))]
         public void TestJsonSchemaToXml(string jsonPath, string expectedXsdPath)
         {
-            Given.That.JsonSchemaLoaded(jsonPath)
+            Given
+                .That.JsonSchemaLoaded(jsonPath)
                 .And.XsdSchemaLoaded(expectedXsdPath)
                 .When.LoadedJsonSchemaConvertedToXsdSchema()
                 .Then.LoadedAndConvertedXmlSchemasShouldBeEquivalent();

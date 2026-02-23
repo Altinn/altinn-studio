@@ -9,6 +9,7 @@ export { useCreateRepoCommitMutation } from './useCreateRepoCommitMutation';
 export { useDeleteDataModelMutation } from './useDeleteDataModelMutation';
 export { useDeleteLanguageMutation } from './useDeleteLanguageMutation';
 export { useGenerateModelsMutation } from './useGenerateModelsMutation';
+export { useUpdateAppSettingsMutation } from './useUpdateAppSettingsMutation';
 export { useRepoPushMutation } from './useRepoPushMutation';
 export { useSchemaMutation } from './useSchemaMutation';
 export { useTextIdMutation } from './useTextIdMutation';

@@ -11,11 +11,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class AccessListTests : ResourceAdminControllerTestsBaseClass<AccessListTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class AccessListTests
+        : ResourceAdminControllerTestsBaseClass<AccessListTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        public AccessListTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public AccessListTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task GetAccessLists_Ok()
@@ -24,8 +25,9 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/testEnv/ttd/resources/accesslist";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-
-            ResourceRegistryMock.Setup(r => r.GetAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new PagedAccessListResponse());
+            ResourceRegistryMock
+                .Setup(r => r.GetAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new PagedAccessListResponse());
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -46,10 +48,12 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             {
                 Identifier = "test-list",
                 Name = "Test list",
-                Description = ""
+                Description = "",
             };
 
-            ResourceRegistryMock.Setup(r => r.GetAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(list);
+            ResourceRegistryMock
+                .Setup(r => r.GetAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(list);
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -66,8 +70,16 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/testEnv/ttd/resources/ttd_resource/accesslists/";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-
-            ResourceRegistryMock.Setup(r => r.GetResourceAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new PagedAccessListResponse());
+            ResourceRegistryMock
+                .Setup(r =>
+                    r.GetResourceAccessLists(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()
+                    )
+                )
+                .ReturnsAsync(new PagedAccessListResponse());
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -88,11 +100,17 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             {
                 Identifier = "test-list",
                 Name = "Test list",
-                Description = ""
+                Description = "",
             };
 
-            ResourceRegistryMock.Setup(r => r.CreateAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessList>())).ReturnsAsync(list);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(list), Encoding.UTF8, "application/json");
+            ResourceRegistryMock
+                .Setup(r => r.CreateAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessList>()))
+                .ReturnsAsync(list);
+            httpRequestMessage.Content = new StringContent(
+                JsonConvert.SerializeObject(list),
+                Encoding.UTF8,
+                "application/json"
+            );
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -109,7 +127,11 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/testEnv/ttd/resources/accesslist/test-liste";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
-            ResourceRegistryMock.Setup(r => r.DeleteAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(204));
+            ResourceRegistryMock
+                .Setup(r =>
+                    r.DeleteAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())
+                )
+                .ReturnsAsync(new StatusCodeResult(204));
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -130,11 +152,24 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             {
                 Identifier = "test-list",
                 Name = "Test list",
-                Description = ""
+                Description = "",
             };
 
-            ResourceRegistryMock.Setup(r => r.UpdateAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessList>())).ReturnsAsync(list);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(list), Encoding.UTF8, "application/json");
+            ResourceRegistryMock
+                .Setup(r =>
+                    r.UpdateAccessList(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<AccessList>()
+                    )
+                )
+                .ReturnsAsync(list);
+            httpRequestMessage.Content = new StringContent(
+                JsonConvert.SerializeObject(list),
+                Encoding.UTF8,
+                "application/json"
+            );
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -151,12 +186,22 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/testEnv/ttd/resources/accesslist/test-liste/members/";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            ResourceRegistryMock.Setup(r => r.AddAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(201));
-            AccessListOrganizationNumbers payload = new()
-            {
-                Data = ["991825827"]
-            };
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+            ResourceRegistryMock
+                .Setup(r =>
+                    r.AddAccessListMembers(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<AccessListOrganizationNumbers>(),
+                        It.IsAny<string>()
+                    )
+                )
+                .ReturnsAsync(new StatusCodeResult(201));
+            AccessListOrganizationNumbers payload = new() { Data = ["991825827"] };
+            httpRequestMessage.Content = new StringContent(
+                JsonConvert.SerializeObject(payload),
+                Encoding.UTF8,
+                "application/json"
+            );
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -173,12 +218,22 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/testEnv/ttd/resources/accesslist/test-liste/members/";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
-            ResourceRegistryMock.Setup(r => r.RemoveAccessListMembers(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AccessListOrganizationNumbers>(), It.IsAny<string>())).ReturnsAsync(new StatusCodeResult(204));
-            AccessListOrganizationNumbers payload = new()
-            {
-                Data = ["991825827"]
-            };
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+            ResourceRegistryMock
+                .Setup(r =>
+                    r.RemoveAccessListMembers(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<AccessListOrganizationNumbers>(),
+                        It.IsAny<string>()
+                    )
+                )
+                .ReturnsAsync(new StatusCodeResult(204));
+            AccessListOrganizationNumbers payload = new() { Data = ["991825827"] };
+            httpRequestMessage.Content = new StringContent(
+                JsonConvert.SerializeObject(payload),
+                Encoding.UTF8,
+                "application/json"
+            );
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -195,7 +250,16 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/testEnv/ttd/resources/ttd_resource/accesslists/test-liste";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            ResourceRegistryMock.Setup(r => r.AddResourceAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.OK);
+            ResourceRegistryMock
+                .Setup(r =>
+                    r.AddResourceAccessList(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()
+                    )
+                )
+                .ReturnsAsync(HttpStatusCode.OK);
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -212,7 +276,16 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/testEnv/ttd/resources/ttd_resource/accesslists/test-liste";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
-            ResourceRegistryMock.Setup(r => r.RemoveResourceAccessList(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(HttpStatusCode.NoContent);
+            ResourceRegistryMock
+                .Setup(r =>
+                    r.RemoveResourceAccessList(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()
+                    )
+                )
+                .ReturnsAsync(HttpStatusCode.NoContent);
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
@@ -229,7 +302,9 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/ttd/resources/allaccesslists";
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            ResourceRegistryMock.Setup(r => r.GetAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(new PagedAccessListResponse());
+            ResourceRegistryMock
+                .Setup(r => r.GetAccessLists(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new PagedAccessListResponse());
 
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);

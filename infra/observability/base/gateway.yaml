@@ -54,6 +54,17 @@ spec:
               - set(span.attributes["http.host"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
               - set(span.attributes["http.target"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
               - set(span.attributes["server.address"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+      transform/pdf3_expected_429_success:
+        error_mode: ignore
+        trace_statements:
+          - context: span
+            statements:
+              # Queue-full retries are expected in pdf3 worker. Re-map 429 to 299 so
+              # Azure Monitor request success stays true, while retaining original code.
+              - set(span.attributes["altinn.original_http.response.status_code"], span.attributes["http.response.status_code"]) where resource.attributes["service.name"] == "pdf3-worker" and name == "POST /generate" and span.attributes["http.response.status_code"] == 429
+              - set(span.attributes["altinn.original_http.status_code"], span.attributes["http.status_code"]) where resource.attributes["service.name"] == "pdf3-worker" and name == "POST /generate" and span.attributes["http.status_code"] == 429
+              - set(span.attributes["http.response.status_code"], 299) where resource.attributes["service.name"] == "pdf3-worker" and name == "POST /generate" and span.attributes["http.response.status_code"] == 429
+              - set(span.attributes["http.status_code"], 299) where resource.attributes["service.name"] == "pdf3-worker" and name == "POST /generate" and span.attributes["http.status_code"] == 429
       filter/metrics_allowlist:
         error_mode: ignore
         metrics:

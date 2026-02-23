@@ -23,7 +23,9 @@ namespace Altinn.Studio.Designer.Controllers;
 /// </summary>
 [ApiController]
 [Authorize(MaskinportenConstants.AuthorizationPolicy)]
-[Route("/designer/api/v1/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments/webhooks")]
+[Route(
+    "/designer/api/v1/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments/webhooks"
+)]
 public class DeploymentWebhooksController : ControllerBase
 {
     private readonly IDeployEventRepository _deployEventRepository;
@@ -35,7 +37,8 @@ public class DeploymentWebhooksController : ControllerBase
         IDeployEventRepository deployEventRepository,
         IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
         IDeploymentService deploymentService,
-        IDeploymentRepository deploymentRepository)
+        IDeploymentRepository deploymentRepository
+    )
     {
         _deployEventRepository = deployEventRepository;
         _entityUpdatedHubContext = entityUpdatedHubContext;
@@ -53,7 +56,12 @@ public class DeploymentWebhooksController : ControllerBase
     /// <returns>Ok response</returns>
     [HttpPost("events")]
     [FeatureGate(StudioFeatureFlags.GitOpsDeploy)]
-    public async Task<IActionResult> ReceiveDeployEvent(string org, string app, [FromBody] DeployEventRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> ReceiveDeployEvent(
+        string org,
+        string app,
+        [FromBody] DeployEventRequest request,
+        CancellationToken cancellationToken
+    )
     {
         if (!TryParseEventType(request.EventType, out var eventType))
         {
@@ -78,7 +86,15 @@ public class DeploymentWebhooksController : ControllerBase
 
         await _deployEventRepository.AddAsync(org, buildId, deployEvent, cancellationToken);
 
-        await _deploymentService.SendToSlackAsync(org, AltinnEnvironment.FromName(request.Environment), app, eventType, buildId, deployment.Events.FirstOrDefault()?.Created, cancellationToken);
+        await _deploymentService.SendToSlackAsync(
+            org,
+            AltinnEnvironment.FromName(request.Environment),
+            app,
+            eventType,
+            buildId,
+            deployment.Events.FirstOrDefault()?.Created,
+            cancellationToken
+        );
 
         await PublishEntityUpdatedAsync(deployment);
 
@@ -90,27 +106,31 @@ public class DeploymentWebhooksController : ControllerBase
         return Enum.TryParse(eventTypeString, out eventType);
     }
 
-    private record DeploymentResolveResult(
-        DeploymentEntity Deployment,
-        string BuildId,
-        IActionResult ErrorResult);
+    private record DeploymentResolveResult(DeploymentEntity Deployment, string BuildId, IActionResult ErrorResult);
 
     private async Task<DeploymentResolveResult> TryResolveDeploymentAsync(
         string org,
         string app,
         DeployEventRequest request,
-        DeployEventType eventType)
+        DeployEventType eventType
+    )
     {
         bool isUninstallEvent = eventType is DeployEventType.UninstallSucceeded or DeployEventType.UninstallFailed;
 
         if (isUninstallEvent)
         {
             // Gateway currently gets the environment set to prod when in the production environment
-            var environment = request.Environment.Equals("prod", StringComparison.OrdinalIgnoreCase) ? "production" : request.Environment;
+            var environment = request.Environment.Equals("prod", StringComparison.OrdinalIgnoreCase)
+                ? "production"
+                : request.Environment;
             var deployment = await _deploymentRepository.GetPendingDecommission(org, app, environment);
             if (deployment == null)
             {
-                return new DeploymentResolveResult(null, null, NotFound($"No pending decommission deployment found for {org}/{app} in {environment}"));
+                return new DeploymentResolveResult(
+                    null,
+                    null,
+                    NotFound($"No pending decommission deployment found for {org}/{app} in {environment}")
+                );
             }
 
             return new DeploymentResolveResult(deployment, deployment.Build.Id, null);
@@ -119,13 +139,21 @@ public class DeploymentWebhooksController : ControllerBase
         {
             if (string.IsNullOrWhiteSpace(request.BuildId))
             {
-                return new DeploymentResolveResult(null, null, BadRequest("BuildId is required for non-uninstall events"));
+                return new DeploymentResolveResult(
+                    null,
+                    null,
+                    BadRequest("BuildId is required for non-uninstall events")
+                );
             }
 
             var deployment = await _deploymentRepository.Get(org, request.BuildId);
             if (deployment == null)
             {
-                return new DeploymentResolveResult(null, null, NotFound($"Deployment with build ID {request.BuildId} not found"));
+                return new DeploymentResolveResult(
+                    null,
+                    null,
+                    NotFound($"Deployment with build ID {request.BuildId} not found")
+                );
             }
 
             return new DeploymentResolveResult(deployment, request.BuildId, null);
@@ -139,13 +167,14 @@ public class DeploymentWebhooksController : ControllerBase
             EventType = eventType,
             Message = request.Message,
             Timestamp = request.Timestamp,
-            Origin = DeployEventOrigin.Webhook
+            Origin = DeployEventOrigin.Webhook,
         };
     }
 
     private async Task PublishEntityUpdatedAsync(DeploymentEntity deployment)
     {
-        await _entityUpdatedHubContext.Clients.Group(deployment.CreatedBy)
+        await _entityUpdatedHubContext
+            .Clients.Group(deployment.CreatedBy)
             .EntityUpdated(new EntityUpdated(EntityConstants.Deployment));
     }
 }

@@ -37,7 +37,11 @@ public sealed class XsdStructureKeyword : IJsonSchemaKeyword, IEquatable<XsdStru
         Value = value;
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -78,7 +82,11 @@ public sealed class XsdStructureKeyword : IJsonSchemaKeyword, IEquatable<XsdStru
         /// <summary>
         /// Read @xsdStructure keyword from json schema
         /// </summary>
-        public override XsdStructureKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdStructureKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             if (reader.TokenType != JsonTokenType.String)
             {

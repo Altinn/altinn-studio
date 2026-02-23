@@ -20,9 +20,13 @@ namespace DataModeling.Tests
 
         [Theory]
         [ClassData(typeof(RoundTripConversionTestData))]
-        public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
+        public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(
+            string xsdSchemaPath,
+            string xmlPath
+        )
         {
-            Given.That.XsdSchemaLoaded(xsdSchemaPath)
+            Given
+                .That.XsdSchemaLoaded(xsdSchemaPath)
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.When.ConvertedJsonSchemaConvertedToXsdSchema()
                 .Then.OriginalAndConvertedXsdSchemasShouldBeEquivalent()

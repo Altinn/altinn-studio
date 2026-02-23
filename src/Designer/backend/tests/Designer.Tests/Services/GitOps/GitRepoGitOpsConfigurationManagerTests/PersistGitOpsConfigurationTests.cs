@@ -4,25 +4,26 @@ using Xunit;
 
 namespace Designer.Tests.Services.GitOps.GitRepoGitOpsConfigurationManagerTests;
 
-public class PersistGitOpsConfigurationTests : GitRepoGitOpsConfigurationManagerTestsBase<PersistGitOpsConfigurationTests>
+public class PersistGitOpsConfigurationTests
+    : GitRepoGitOpsConfigurationManagerTestsBase<PersistGitOpsConfigurationTests>
 {
     [Theory]
     [InlineData("tt02")]
     public async Task WhenCalled_ShouldCommitAndPushChanges(string environment)
     {
-        await Given.That
-                .RepositoryHasChanges();
+        await Given.That.RepositoryHasChanges();
 
-        When
-            .PersistGitOpsConfigurationCalled(environment);
+        When.PersistGitOpsConfigurationCalled(environment);
 
-        Then
-            .ShouldCompleteSuccessfully();
+        Then.ShouldCompleteSuccessfully();
     }
 
     private void PersistGitOpsConfigurationCalled(string environment)
     {
-        GitOpsConfigurationManager.PersistGitOpsConfiguration(OrgEditingContext, AltinnEnvironment.FromName(environment));
+        GitOpsConfigurationManager.PersistGitOpsConfiguration(
+            OrgEditingContext,
+            AltinnEnvironment.FromName(environment)
+        );
     }
 
     private async Task RepositoryHasChanges()

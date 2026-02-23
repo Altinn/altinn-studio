@@ -17,7 +17,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="env">The environment the resource should be published to</param>
         /// <param name="policyPath">The policy that goes with the resource</param>
         /// <returns></returns>
-        Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, string policyPath = null);
+        Task<ActionResult> PublishServiceResource(
+            ServiceResource serviceResource,
+            string env,
+            string policyPath = null
+        );
 
         /// <summary>
         ///
@@ -42,12 +46,20 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Get Resource from Altinn 2 service
         /// </summary>
-        Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment);
+        Task<ServiceResource> GetServiceResourceFromService(
+            string serviceCode,
+            int serviceEditionCode,
+            string environment
+        );
 
         /// <summary>
         /// Get the number of delegations of Altinn 2 service
         /// </summary>
-        Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEditionCode, string environment);
+        Task<DelegationCountOverview> GetDelegationCount(
+            string serviceCode,
+            int serviceEditionCode,
+            string environment
+        );
 
         /// <summary>
         /// Start migration batch of Altinn 2 delegations to Altinn 3
@@ -57,7 +69,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Get Policy from Altinn 2 Service
         /// </summary>
-        Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment);
+        Task<XacmlPolicy> GetXacmlPolicy(
+            string serviceCode,
+            int serviceEditionCode,
+            string identifier,
+            string environment
+        );
 
         /// <summary>
         /// Get Policy from Altinn 3 resource
@@ -90,7 +107,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="env">Chosen environment</param>
         /// <param name="page">Full page url, if requesting any other page than the first page</param>
         /// <returns>The access list, if it exists in the given environment for the given organization. Access list members are returned</returns>
-        Task<PagedAccessListMembersResponse> GetAccessListMembers(string org, string identifier, string env, string page);
+        Task<PagedAccessListMembersResponse> GetAccessListMembers(
+            string org,
+            string identifier,
+            string env,
+            string page
+        );
 
         /// <summary>
         /// Gets all access lists for an organization in a given environment
@@ -129,7 +151,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="env">Chosen environment</param>
         /// <param name="accessList">New data with name and description of access list</param>
         /// <returns>The updated access list</returns>
-        Task<ActionResult<AccessList>> UpdateAccessList(string org, string identifier, string env, AccessList accessList);
+        Task<ActionResult<AccessList>> UpdateAccessList(
+            string org,
+            string identifier,
+            string env,
+            AccessList accessList
+        );
 
         /// <summary>
         /// Add a new party as access list member
@@ -139,7 +166,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="members">Object with list of 9-digit organization number of party to add to list</param>
         /// <param name="env">Chosen environment</param>
         /// <returns>HTTP status code of the operation. 200 OK if add was successful</returns>
-        Task<ActionResult> AddAccessListMembers(string org, string identifier, AccessListOrganizationNumbers members, string env);
+        Task<ActionResult> AddAccessListMembers(
+            string org,
+            string identifier,
+            AccessListOrganizationNumbers members,
+            string env
+        );
 
         /// <summary>
         /// Remove a party as access list member
@@ -149,7 +181,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="members">Object with list of 9-digit organization number of party to remove from the list</param>
         /// <param name="env">Chosen environment</param>
         /// <returns>HTTP status code of the operation. 204 No content if remove was successful</returns>
-        Task<ActionResult> RemoveAccessListMembers(string org, string identifier, AccessListOrganizationNumbers members, string env);
+        Task<ActionResult> RemoveAccessListMembers(
+            string org,
+            string identifier,
+            AccessListOrganizationNumbers members,
+            string env
+        );
 
         /// <summary>
         /// Connect a resource to a given access list

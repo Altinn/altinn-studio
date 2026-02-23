@@ -11,14 +11,12 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
-
 using Microsoft.Extensions.Logging;
 
 namespace Designer.Tests.Utils
 {
     public static class TestDataHelper
     {
-
         public static string LoadDataFromEmbeddedResourceAsString(string resourceName)
         {
             var resourceStream = LoadDataFromEmbeddedResource(resourceName);
@@ -97,7 +95,8 @@ namespace Designer.Tests.Utils
         public static string GetTestDataDirectory()
         {
             var unitTestFolder = Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().Location).LocalPath);
-            return Path.GetFullPath(Path.Combine(unitTestFolder, "..", "..", "..", "_TestData")) + Path.DirectorySeparatorChar;
+            return Path.GetFullPath(Path.Combine(unitTestFolder, "..", "..", "..", "_TestData"))
+                + Path.DirectorySeparatorChar;
         }
 
         public static string GetTestDataRepositoriesRootDirectory()
@@ -151,17 +150,31 @@ namespace Designer.Tests.Utils
             return suffix == null ? nonSuffixName : $"{nonSuffixName[..^suffix.Length]}{suffix}";
         }
 
-        public static async Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepository)
+        public static async Task<string> CopyRepositoryForTest(
+            string org,
+            string repository,
+            string developer,
+            string targetRepository
+        )
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
-            var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepository);
+            var targetDirectory = Path.Combine(
+                GetTestDataRepositoriesRootDirectory(),
+                developer,
+                org,
+                targetRepository
+            );
 
             await CopyDirectory(sourceAppRepository, targetDirectory);
 
             return targetDirectory;
         }
 
-        public static async Task<string> CopyRemoteRepositoryForTest(string org, string repository, string targetRepository)
+        public static async Task<string> CopyRemoteRepositoryForTest(
+            string org,
+            string repository,
+            string targetRepository
+        )
         {
             var sourceRemoteRepository = GetTestDataRemoteRepository(org, repository);
             var targetDirectory = Path.Combine(GetTestDataRemoteRepositoryRootDirectory(), org, targetRepository);
@@ -183,7 +196,9 @@ namespace Designer.Tests.Utils
 
             if (!directoryToDeleteInfo.Exists)
             {
-                throw new DirectoryNotFoundException($"Directory does not exist or could not be found: {directoryToDelete}");
+                throw new DirectoryNotFoundException(
+                    $"Directory does not exist or could not be found: {directoryToDelete}"
+                );
             }
 
             DirectoryInfo[] subDirectories = directoryToDeleteInfo.GetDirectories();
@@ -251,7 +266,9 @@ namespace Designer.Tests.Utils
 
             if (!sourceDirectoryInfo.Exists)
             {
-                throw new DirectoryNotFoundException($"Source directory does not exist or could not be found: {sourceDirectory}");
+                throw new DirectoryNotFoundException(
+                    $"Source directory does not exist or could not be found: {sourceDirectory}"
+                );
             }
 
             DirectoryInfo[] sourceSubDirectories = sourceDirectoryInfo.GetDirectories();
@@ -259,19 +276,25 @@ namespace Designer.Tests.Utils
             Directory.CreateDirectory(targetDirectory);
 
             FileInfo[] files = sourceDirectoryInfo.GetFiles();
-            await Parallel.ForEachAsync(files, async (file, _) =>
-            {
-                string tempPath = Path.Combine(targetDirectory, file.Name);
-                await CopyFileIfNotExistsAsync(file, tempPath);
-            });
+            await Parallel.ForEachAsync(
+                files,
+                async (file, _) =>
+                {
+                    string tempPath = Path.Combine(targetDirectory, file.Name);
+                    await CopyFileIfNotExistsAsync(file, tempPath);
+                }
+            );
 
             if (copySubDirs)
             {
-                await Parallel.ForEachAsync(sourceSubDirectories, async (subDir, _) =>
-                {
-                    string tempPath = Path.Combine(targetDirectory, subDir.Name);
-                    await CopyDirectory(subDir.FullName, tempPath, copySubDirs);
-                });
+                await Parallel.ForEachAsync(
+                    sourceSubDirectories,
+                    async (subDir, _) =>
+                    {
+                        string tempPath = Path.Combine(targetDirectory, subDir.Name);
+                        await CopyDirectory(subDir.FullName, tempPath, copySubDirs);
+                    }
+                );
             }
         }
 
@@ -283,7 +306,11 @@ namespace Designer.Tests.Utils
                 return;
             }
             await using FileStream sourceStream = file.OpenRead();
-            await using FileStream destinationStream = File.Create(destinationPath, bufferSize: 4096, FileOptions.Asynchronous);
+            await using FileStream destinationStream = File.Create(
+                destinationPath,
+                bufferSize: 4096,
+                FileOptions.Asynchronous
+            );
             await sourceStream.CopyToAsync(destinationStream, bufferSize: 4096);
             File.SetAttributes(destinationPath, FileAttributes.Normal);
         }
@@ -325,7 +352,12 @@ namespace Designer.Tests.Utils
             return string.Empty;
         }
 
-        public static byte[] GetFileAsByteArrayFromRepo(string org, string repository, string developer, string relativePath)
+        public static byte[] GetFileAsByteArrayFromRepo(
+            string org,
+            string repository,
+            string developer,
+            string relativePath
+        )
         {
             string filePath = Path.Combine(GetTestDataRepositoryDirectory(org, repository, developer), relativePath);
             if (File.Exists(filePath))
@@ -336,7 +368,12 @@ namespace Designer.Tests.Utils
             return new byte[0];
         }
 
-        public static string GetFileAsBase64StringFromRepo(string org, string repository, string developer, string relativePath)
+        public static string GetFileAsBase64StringFromRepo(
+            string org,
+            string repository,
+            string developer,
+            string relativePath
+        )
         {
             byte[] fileBytes = GetFileAsByteArrayFromRepo(org, repository, developer, relativePath);
             return Convert.ToBase64String(fileBytes);
@@ -350,39 +387,43 @@ namespace Designer.Tests.Utils
 
         public static ILogger<T> CreateLogger<T>() => LogFactory.CreateLogger<T>();
 
-        public static ILoggerFactory LogFactory { get; } = LoggerFactory.Create(builder =>
-        {
-            builder.ClearProviders();
-            builder
-                .AddSimpleConsole(options =>
+        public static ILoggerFactory LogFactory { get; } =
+            LoggerFactory.Create(builder =>
+            {
+                builder.ClearProviders();
+                builder.AddSimpleConsole(options =>
                 {
                     options.IncludeScopes = true;
                     options.TimestampFormat = "hh:mm:ss ";
                 });
-        });
+            });
 
         public static ServiceRepositorySettings GetServiceRepositorySettings()
         {
-            var options = new ServiceRepositorySettings()
-            {
-                RepositoryBaseURL = @"http://studio.localhost/repos"
-            };
+            var options = new ServiceRepositorySettings() { RepositoryBaseURL = @"http://studio.localhost/repos" };
 
             return options;
         }
 
         public static ServiceRepositorySettings ServiceRepositorySettings { get; } = GetServiceRepositorySettings();
 
-        public static IXmlSchemaToJsonSchemaConverter XmlSchemaToJsonSchemaConverter => new XmlSchemaToJsonSchemaConverter();
+        public static IXmlSchemaToJsonSchemaConverter XmlSchemaToJsonSchemaConverter =>
+            new XmlSchemaToJsonSchemaConverter();
 
-        public static IJsonSchemaToXmlSchemaConverter JsonSchemaToXmlSchemaConverter => new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+        public static IJsonSchemaToXmlSchemaConverter JsonSchemaToXmlSchemaConverter =>
+            new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
-        public static IModelMetadataToCsharpConverter ModelMetadataToCsharpConverter => new JsonMetadataToCsharpConverter(new CSharpGenerationSettings());
+        public static IModelMetadataToCsharpConverter ModelMetadataToCsharpConverter =>
+            new JsonMetadataToCsharpConverter(new CSharpGenerationSettings());
 
         /// <summary>
         /// File.ReadAllBytes alternative to avoid read and/or write locking
         /// </summary>
-        private static byte[] ReadAllBytesWithoutLocking(string filePath, FileAccess fileAccess = FileAccess.Read, FileShare shareMode = FileShare.ReadWrite)
+        private static byte[] ReadAllBytesWithoutLocking(
+            string filePath,
+            FileAccess fileAccess = FileAccess.Read,
+            FileShare shareMode = FileShare.ReadWrite
+        )
         {
             using (var fs = new FileStream(filePath, FileMode.Open, fileAccess, shareMode))
             {
@@ -397,7 +438,13 @@ namespace Designer.Tests.Utils
         /// <summary>
         /// Same method as <see cref="ReadAllBytesWithoutLocking(string, FileAccess, FileShare)"/> but with retries in case some other process has a lock on the file.
         /// </summary>
-        private static byte[] ReadAllBytesWithoutLockingWithRetry(string filePath, FileAccess fileAccess = FileAccess.Read, FileShare shareMode = FileShare.ReadWrite, int retries = 3, int waitTimeMs = 100)
+        private static byte[] ReadAllBytesWithoutLockingWithRetry(
+            string filePath,
+            FileAccess fileAccess = FileAccess.Read,
+            FileShare shareMode = FileShare.ReadWrite,
+            int retries = 3,
+            int waitTimeMs = 100
+        )
         {
             byte[] bytes = Array.Empty<byte>();
             int attempt = 1;
@@ -438,7 +485,13 @@ namespace Designer.Tests.Utils
             return $"{org}-content";
         }
 
-        public static async Task<string> CopyOrgForTest(string developer, string org, string repository, string targetOrg, string targetRepository)
+        public static async Task<string> CopyOrgForTest(
+            string developer,
+            string org,
+            string repository,
+            string targetOrg,
+            string targetRepository
+        )
         {
             string sourceDirectory = GetRepositoryDirectory(developer, org, repository);
             string targetOrgDirectory = GetOrgDirectory(targetOrg, developer);
@@ -450,7 +503,13 @@ namespace Designer.Tests.Utils
             return targetOrgDirectory;
         }
 
-        public static async Task AddRepositoryToTestOrg(string developer, string org, string repository, string targetOrg, string targetRepository)
+        public static async Task AddRepositoryToTestOrg(
+            string developer,
+            string org,
+            string repository,
+            string targetOrg,
+            string targetRepository
+        )
         {
             string sourceDirectory = GetRepositoryDirectory(developer, org, repository);
             string targetRepoDirectory = GetRepositoryDirectory(developer, targetOrg, targetRepository);
@@ -468,7 +527,12 @@ namespace Designer.Tests.Utils
             return Path.Join(GetTestDataRepositoriesRootDirectory(), developer, org, repository);
         }
 
-        public static string[] GetRepositoryFileNames(string developer, string org, string repository, string searchPattern)
+        public static string[] GetRepositoryFileNames(
+            string developer,
+            string org,
+            string repository,
+            string searchPattern
+        )
         {
             return Directory.GetFiles(GetRepositoryDirectory(developer, org, repository), searchPattern);
         }

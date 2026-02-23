@@ -22,16 +22,25 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
         /// Key in the inner dictionary is the language code.
         /// </returns>
         public static Dictionary<string, Dictionary<string, string>> ToKeyToLanguageToValueDictionary(
-            this IEnumerable<ResourceCollection> resourcesCollections)
+            this IEnumerable<ResourceCollection> resourcesCollections
+        )
         {
             Guard.AssertArgumentNotNull(resourcesCollections, nameof(resourcesCollections));
 
             var allKeys = resourcesCollections
                 .Where(r => r?.Resources != null)
-                .SelectMany(c => c.Resources.Select(r => new { c.Language, r.Id, r.Value }))
+                .SelectMany(c =>
+                    c.Resources.Select(r => new
+                    {
+                        c.Language,
+                        r.Id,
+                        r.Value,
+                    })
+                )
                 .ToList();
-            var result = allKeys.GroupBy(k => k.Id)
-                    .ToDictionary(g => g.Key, g => g.ToDictionary(l => l.Language, l => l.Value));
+            var result = allKeys
+                .GroupBy(k => k.Id)
+                .ToDictionary(g => g.Key, g => g.ToDictionary(l => l.Language, l => l.Value));
             return result;
         }
     }

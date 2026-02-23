@@ -25,7 +25,11 @@ public class RoundTripConversionTestData : IEnumerable<object[]>
         yield return new object[] { "Seres/schema_4956_1_forms_5692_42617.xsd", string.Empty };
         yield return new object[] { "Seres/schema_4660_1_forms_2500_2500.xsd", string.Empty };
         yield return new object[] { "Seres/schema_4388-39288.xsd", string.Empty };
-        yield return new object[] { "Seres/schema_RR-0200 Mellombalanse_M_2020-05-18_6301_45717_SERES.xsd", string.Empty };
+        yield return new object[]
+        {
+            "Seres/schema_RR-0200 Mellombalanse_M_2020-05-18_6301_45717_SERES.xsd",
+            string.Empty,
+        };
         yield return new object[] { "Seres/schema_1266-42897.xsd", string.Empty };
         yield return new object[] { "Seres/schema_1266-43710.xsd", string.Empty };
         yield return new object[] { "Seres/schema_1266-44775.xsd", string.Empty };

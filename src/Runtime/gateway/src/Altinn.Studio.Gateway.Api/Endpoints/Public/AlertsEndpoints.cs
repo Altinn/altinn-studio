@@ -1,25 +1,24 @@
 using Altinn.Studio.Gateway.Api.Application;
 using Altinn.Studio.Gateway.Api.Authentication;
-using Altinn.Studio.Gateway.Api.Hosting;
 
 namespace Altinn.Studio.Gateway.Api.Endpoints.Public;
 
 internal static class AlertsEndpoints
 {
-    public static WebApplication MapAlertsEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapAlertsEndpoints(this RouteGroupBuilder publicApiV1)
     {
-        app.MapGet("/runtime/gateway/api/v1/alerts", HandleAlerts.GetAlertRulesAsync)
-            .RequirePublicPort()
+        var alertsApi = publicApiV1.MapGroup("/alerts").WithTags("Alerts");
+
+        alertsApi
+            .MapGet(string.Empty, HandleAlerts.GetAlertRules)
             .RequireAuthorization("MaskinportenScope")
-            .WithName("GetAlertsRules")
-            .WithTags("Alerts");
+            .WithName("GetAlertsRules");
 
-        app.MapPost("/runtime/gateway/api/v1/alerts", HandleAlerts.NotifyAlertsUpdatedAsync)
-            .RequirePublicPort()
+        alertsApi
+            .MapPost(string.Empty, HandleAlerts.NotifyAlertsUpdated)
             .RequireGrafanaAuthentication()
-            .WithName("NotifyAlertsUpdated")
-            .WithTags("Alerts");
+            .WithName("NotifyAlertsUpdated");
 
-        return app;
+        return publicApiV1;
     }
 }

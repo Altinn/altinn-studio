@@ -54,8 +54,8 @@ type ValidateCardProps = {
   scope: Scope;
   config?: InternalConfigState;
   setIsEditMode: (isEditMode: boolean) => void;
-  onSave: (config: InternalConfigState) => void; // This will be used in next PR when we implement actual save logic
-  onDelete?: () => void; // This will be used in next PR when we implement actual delete logic
+  onSave: (config: InternalConfigState) => void;
+  onDelete?: () => void;
 };
 
 const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: ValidateCardProps) => {
@@ -88,7 +88,7 @@ const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: Valida
         cardLabel={t(getCardLabel(scope))}
         deleteAriaLabel={t('general.delete')}
         onDelete={handleDelete}
-        isDeleteDisabled={!onDelete}
+        isDeleteDisabled={!config}
       />
       <StudioConfigCard.Body>
         <ValidateCardContent scope={scope} config={currentConfig} onChange={update} />

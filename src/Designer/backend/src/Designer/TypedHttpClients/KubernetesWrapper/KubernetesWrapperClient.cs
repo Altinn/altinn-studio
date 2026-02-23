@@ -42,9 +42,7 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         {
             using HttpResponseMessage response = await _client.GetAsync(deploymentsUrl, ct);
             response.EnsureSuccessStatusCode();
-            var deployments = await response.Content.ReadFromJsonAsync<
-                List<KubernetesDeployment>
-            >();
+            var deployments = await response.Content.ReadFromJsonAsync<List<KubernetesDeployment>>();
             return deployments.FirstOrDefault();
         }
         catch (OperationCanceledException)
@@ -69,13 +67,10 @@ public class KubernetesWrapperClient : IKubernetesWrapperClient
         {
             using HttpResponseMessage response = await _client.GetAsync(deploymentsUrl, ct);
             response.EnsureSuccessStatusCode();
-            var deployments = await response.Content.ReadFromJsonAsync<
-                List<KubernetesDeployment>
-            >();
+            var deployments = await response.Content.ReadFromJsonAsync<List<KubernetesDeployment>>();
 
             return deployments.Where(deployment =>
-                !string.IsNullOrEmpty(deployment.Release)
-                && deployment.Release.StartsWith($"{org}-")
+                !string.IsNullOrEmpty(deployment.Release) && deployment.Release.StartsWith($"{org}-")
             );
         }
         catch (OperationCanceledException)

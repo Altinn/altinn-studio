@@ -9,7 +9,10 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public partial class EntityAssertions
 {
-    public static void AssertEqual(AppScopesEntity appScopesEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbModel dbRecord)
+    public static void AssertEqual(
+        AppScopesEntity appScopesEntity,
+        Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbModel dbRecord
+    )
     {
         Assert.Equal(dbRecord.App, appScopesEntity.App);
         Assert.Equal(dbRecord.Org, appScopesEntity.Org);
@@ -34,5 +37,4 @@ public partial class EntityAssertions
         Assert.Equal(expected.Version, actual.Version);
         AssertionUtil.AssertEqualTo(expected.Scopes, actual.Scopes);
     }
-
 }

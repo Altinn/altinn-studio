@@ -14,19 +14,19 @@ internal sealed record PortScopeMetadata(PortScope Scope);
 internal static class PortFilteringExtensions
 {
     /// <summary>
-    /// Adds an endpoint filter that restricts the endpoint to only accept requests on the internal port.
-    /// Returns 404 if accessed via the public port to avoid leaking endpoint existence.
+    /// Adds an endpoint filter that restricts all endpoints in the route group to only accept requests
+    /// on the internal port. Returns 404 if accessed via the public port.
     /// </summary>
-    public static RouteHandlerBuilder RequireInternalPort(this RouteHandlerBuilder builder)
+    public static RouteGroupBuilder RequireInternalPort(this RouteGroupBuilder builder)
     {
         return builder.AddEndpointFilter<InternalPortFilter>().WithMetadata(new PortScopeMetadata(PortScope.Internal));
     }
 
     /// <summary>
-    /// Adds an endpoint filter that restricts the endpoint to only accept requests on the public port.
-    /// Returns 404 if accessed via the internal port.
+    /// Adds an endpoint filter that restricts all endpoints in the route group to only accept requests
+    /// on the public port. Returns 404 if accessed via the internal port.
     /// </summary>
-    public static RouteHandlerBuilder RequirePublicPort(this RouteHandlerBuilder builder)
+    public static RouteGroupBuilder RequirePublicPort(this RouteGroupBuilder builder)
     {
         return builder.AddEndpointFilter<PublicPortFilter>().WithMetadata(new PortScopeMetadata(PortScope.Public));
     }

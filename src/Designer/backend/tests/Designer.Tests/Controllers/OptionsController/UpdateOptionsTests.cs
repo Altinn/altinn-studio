@@ -14,11 +14,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class UpdateOptionsTests
+    : DesignerEndpointsTestsBase<UpdateOptionsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public UpdateOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public UpdateOptionsTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private const string Org = "ttd";
     private const string Developer = "testUser";
@@ -33,7 +34,8 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
-        string optionsJson = @"[
+        string optionsJson =
+            @"[
             { ""label"": ""label1"", ""value"": ""value1"" },
             { ""label"": ""label2"", ""value"": ""value2"" }
         ]";
@@ -73,7 +75,8 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        var stringBoolNumbersOptionsList = @"[
+        var stringBoolNumbersOptionsList =
+            @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },
             { ""label"": ""NumberValue"", ""value"": 3.1415 },
@@ -100,10 +103,15 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        var emptyStringsValueAndLabelOptionsList = @"[
+        var emptyStringsValueAndLabelOptionsList =
+            @"[
             { ""label"": """", ""value"": """" },
         ]";
-        httpRequestMessage.Content = new StringContent(emptyStringsValueAndLabelOptionsList, Encoding.UTF8, "application/json");
+        httpRequestMessage.Content = new StringContent(
+            emptyStringsValueAndLabelOptionsList,
+            Encoding.UTF8,
+            "application/json"
+        );
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -122,7 +130,8 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
 
-        var newOptionsList = @"[
+        var newOptionsList =
+            @"[
             { ""label"": ""aNewLabelThatDidNotExistBefore"", ""value"": ""aNewValueThatDidNotExistBefore"" },
             { ""label"": ""label2"", ""value"": ""value2"" }
         ]";
@@ -160,7 +169,6 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/empty-options";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-
         httpRequestMessage.Content = new StringContent("null", Encoding.UTF8, "application/json");
 
         // Act
@@ -185,7 +193,8 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/option-invalid-value";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        string optionsInvalidValue = @"[
+        string optionsInvalidValue =
+            @"[
             { ""value"": {}, ""label"": ""label2"" },
         ]";
 
@@ -214,7 +223,8 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/options-missing-fields";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        string optionsWithMissingFields = @"[
+        string optionsWithMissingFields =
+            @"[
             { ""value"": ""value1"" },
             { ""label"": ""label2"" },
             { ""value"": null, ""label"": null },

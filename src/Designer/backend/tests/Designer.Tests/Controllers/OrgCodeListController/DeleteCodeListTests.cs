@@ -14,10 +14,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTests>, IClassFixture<WebApplicationFactory<Program>>
+public class DeleteCodeListTests
+    : DesignerEndpointsTestsBase<DeleteCodeListTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<ISharedContentClient> _contentClientMock;
-    public DeleteCodeListTests(WebApplicationFactory<Program> factory) : base(factory)
+
+    public DeleteCodeListTests(WebApplicationFactory<Program> factory)
+        : base(factory)
     {
         _contentClientMock = new Mock<ISharedContentClient>();
     }
@@ -77,5 +81,6 @@ public class DeleteCodeListTests : DesignerEndpointsTestsBase<DeleteCodeListTest
         Assert.Equal($"The code list file {CodeListId}.json does not exist.", responseDocument.RootElement.ToString());
     }
 
-    private static string ApiUrl(string targetOrg, string codeListId) => $"designer/api/{targetOrg}/code-lists/{codeListId}";
+    private static string ApiUrl(string targetOrg, string codeListId) =>
+        $"designer/api/{targetOrg}/code-lists/{codeListId}";
 }

@@ -1,0 +1,5 @@
+# Keep src/ build context minimal for gateway image.
+**
+!Runtime/gateway/Directory.Packages.props
+!Runtime/gateway/src/Altinn.Studio.Gateway.Api/**
+!Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/**
