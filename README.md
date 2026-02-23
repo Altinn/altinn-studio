@@ -77,7 +77,11 @@ Run all parts of the solution in containers (Make sure docker is running), with 
 docker compose up -d --build
 ```
 
-The solution is now available locally at [studio.localhost][15]. Use `localgiteaadmin` as username and the corresponding password set for `GITEA_ADMIN_PASS` in `.env`. If you make changes and want to rebuild a specific project using docker compose this can be done from `src/Designer` using
+The solution is now available locally at [studio.localhost][15].
+
+When logging in, use the default username `localgiteaadmin`. You can find the randomly generated password in the `.env` file, under the `GITEA_ADMIN_PASS` variable.
+
+If you make changes and want to rebuild a specific project using docker compose this can be done from `src/Designer` using
 
 ```bash
 docker compose up -d --build <container>
