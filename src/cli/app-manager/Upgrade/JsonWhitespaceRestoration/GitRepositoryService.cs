@@ -1,7 +1,7 @@
 using System.Text;
 using LibGit2Sharp;
 
-namespace Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration.ConditionalRenderingRules;
+namespace Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 
 /// <summary>
 /// Service interface for git repository operations

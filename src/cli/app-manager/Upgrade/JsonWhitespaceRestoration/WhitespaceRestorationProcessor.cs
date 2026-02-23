@@ -1,4 +1,4 @@
-namespace Altinn.Studio.Cli.Upgrade.v8Tov10.RuleConfiguration.ConditionalRenderingRules;
+namespace Altinn.Studio.Cli.Upgrade.JsonWhitespaceRestoration;
 
 /// <summary>
 /// Main orchestrator for restoring whitespace-only changes
