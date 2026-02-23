@@ -261,7 +261,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="referenceId">The name of the commit/branch/tag. Default the repository’s default branch</param>
         /// <returns>The application metadata for an application.</returns>
-        private async Task<string> GetApplicationMetadataJsonFromSpecificReference(string org, string app, string referenceId)
+        public async Task<string> GetApplicationMetadataJsonFromSpecificReference(string org, string app, string referenceId)
         {
             var file = await _giteaClient.GetFileAsync(org, app, "App/config/applicationmetadata.json", referenceId);
             if (string.IsNullOrEmpty(file.Content))

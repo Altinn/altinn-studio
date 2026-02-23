@@ -38,6 +38,15 @@ namespace Altinn.Studio.Designer.Filters.AppDevelopment
             {
                 context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.UploadedImageNotValid, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
             }
+            if (context.Exception is ResourceRegistryPublishingException)
+            {
+                context.Result =
+                    new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception,
+                        AppDevelopmentErrorCodes.ResourcePublishingError, HttpStatusCode.BadRequest))
+                    {
+                        StatusCode = (int)HttpStatusCode.BadRequest
+                    };
+            }
         }
     }
 }

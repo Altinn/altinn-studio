@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.ResourceRegistry.Core.Models;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
@@ -160,14 +162,38 @@ public static class ApplicationMetadataMapper
         return new ServiceResource
         {
             ResourceType = ResourceType.AltinnApp,
-            Identifier = applicationmetadata?.Id,
+            Identifier = "app_" + applicationmetadata?.Id?.Replace('/', '_'),
+            ResourceReferences = new()
+            {
+                new()
+                {
+                    ReferenceType = ResourceReferenceType.ApplicationId,
+                    ReferenceSource = ResourceReferenceSource.Altinn3,
+                    Reference = applicationmetadata?.Id,
+                },
+            },
             Title = applicationmetadata?.Title?.ToDictionary(),
             Description = applicationmetadata?.Description?.ToDictionary(),
             ContactPoints = applicationmetadata?.ContactPoints?.ToServiceContactPoints(),
             RightDescription = applicationmetadata?.Access?.RightDescription?.ToDictionary(),
-            Delegable = applicationmetadata?.Access?.Delegable,
+            Delegable = applicationmetadata?.Access?.Delegable ?? false,
             AvailableForType = applicationmetadata?.Access?.AvailableForType,
         };
+    }
+
+    public static ServiceResource WithOrgInformation(
+        this ServiceResource serviceResource,
+        string org,
+        Org orgListOrg
+    )
+    {
+        serviceResource.HasCompetentAuthority = new()
+        {
+            Name = orgListOrg?.Name,
+            Organization = orgListOrg?.Orgnr,
+            Orgcode = org,
+        };
+        return serviceResource;
     }
 
     public static Dictionary<string, string> ToDictionary(
