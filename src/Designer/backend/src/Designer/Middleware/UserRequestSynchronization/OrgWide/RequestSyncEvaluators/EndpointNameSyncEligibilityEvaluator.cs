@@ -25,9 +25,9 @@ public class EndpointNameSyncEligibilityEvaluator : IOrgWideSyncEligibilityEvalu
             )
         },
         {
-            TrimmedControllerName(nameof(AppsSyncRootController)),
+            TrimmedControllerName(nameof(InternalsController)),
             GenerateFrozenSet(
-                nameof(AppsSyncRootController.PublishSyncRoot)
+                nameof(InternalsController.PublishSyncRoot)
             )
         }
     }.ToFrozenDictionary();

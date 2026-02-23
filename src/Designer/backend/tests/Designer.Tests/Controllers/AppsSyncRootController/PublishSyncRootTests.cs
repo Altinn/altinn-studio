@@ -2,10 +2,14 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.AppsSyncRootController;
@@ -16,8 +20,9 @@ public class PublishSyncRootTests : DbDesignerEndpointsTestsBase<PublishSyncRoot
     IClassFixture<MockServerFixture>
 {
     private readonly MockServerFixture _mockServerFixture;
+    private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
     private const int GitOpsManagerDefinitionId = 299;
-    private static string VersionPrefix(string org, string environment) => $"/designer/api/v1/{org}/sync-gitops/{environment}/push";
+    private static string VersionPrefix(string org, string environment) => $"/designer/api/v1/{org}/internals/sync-gitops/{environment}/push";
 
     public PublishSyncRootTests(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture, MockServerFixture mockServerFixture) : base(factory, designerDbFixture)
     {
@@ -37,6 +42,16 @@ public class PublishSyncRootTests : DbDesignerEndpointsTestsBase<PublishSyncRoot
                  }
               }
               """);
+    }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+        services.RemoveAll<IUserOrganizationService>();
+        _userOrganizationServiceMock
+            .Setup(s => s.UserIsMemberOfOrganization("ttd"))
+            .ReturnsAsync(true);
+        services.AddSingleton(_userOrganizationServiceMock.Object);
     }
 
     [Theory]
