@@ -79,7 +79,7 @@ public class LocaltestValidationTests
     }
 
     // The version that the LocaltestValidation service expects to see from the API.
-    private static readonly int _okExpectedVersion = 2;
+    private static readonly int _okExpectedVersion = 3;
 
     // Old version that the LocaltestValidation service will complain about.
     private static readonly int _oldExpectedVersion = 0;

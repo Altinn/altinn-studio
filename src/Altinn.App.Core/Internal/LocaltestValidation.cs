@@ -74,7 +74,7 @@ internal sealed class LocaltestValidation : BackgroundService
                         case VersionResult.Ok { Version: var version }:
                         {
                             _logger.LogInformation("Localtest version: {Version}", version);
-                            if (version >= 2)
+                            if (version >= 3)
                                 return;
                             _logger.LogError(
                                 "Localtest version is not supported for this version of the app backend. Update your local copy of localtest (git pull)."
