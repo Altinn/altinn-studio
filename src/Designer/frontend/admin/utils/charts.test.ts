@@ -19,9 +19,10 @@ describe('getChartOptions', () => {
 
     const minuteInMs = 60 * 1000;
     const intervalInMs = intervalInMinutes * minuteInMs;
+    const rangeInMs = rangeInMinutes * minuteInMs;
     const now = 1_700_000_000_000;
-    const expectedMax = (now / intervalInMs) * intervalInMs;
-    const expectedMin = expectedMax - rangeInMinutes * minuteInMs;
+    const expectedMax = Math.ceil(now / intervalInMs) * intervalInMs;
+    const expectedMin = Math.floor((now - rangeInMs) / intervalInMs) * intervalInMs;
 
     expect(xScale?.min).toBe(expectedMin);
     expect(xScale?.max).toBe(expectedMax);

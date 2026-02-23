@@ -9,8 +9,8 @@ export const getChartOptions = (
   const intervalInMs = intervalInMinutes * minuteInMs;
   const rangeInMs = rangeInMinutes * minuteInMs;
   const now = Date.now();
-  const max = (now / intervalInMs) * intervalInMs;
-  const min = max - rangeInMs;
+  const max = Math.ceil(now / intervalInMs) * intervalInMs;
+  const min = Math.floor((now - rangeInMs) / intervalInMs) * intervalInMs;
   return {
     responsive: true,
     maintainAspectRatio: false,
