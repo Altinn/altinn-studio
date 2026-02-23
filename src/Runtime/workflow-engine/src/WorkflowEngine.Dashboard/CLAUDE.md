@@ -18,7 +18,7 @@ Real-time monitoring UI for the workflow engine. Vanilla JS ES Modules (no build
 | `wwwroot/app.js` | Entry point (~60 lines). Imports modules, wires callbacks, runs `init()`. |
 | `wwwroot/modules/core/state.js` | JSDoc types, DOM refs, state objects, BPMN helpers. |
 | `wwwroot/modules/core/helpers.js` | `cssId`, `esc`, `escHtml`, `formatElapsed`, JSON expand/highlight. |
-| `wwwroot/modules/core/sse.js` | `connectSSE()`, org/app fetching, dropdown helpers, hot-reload watcher. |
+| `wwwroot/modules/core/sse.js` | `connectSSE()`, hot-reload watcher. Pure SSE plumbing. |
 | `wwwroot/modules/core/url.js` | `syncUrl()`, `restoreUrl()`, time range state. |
 | `wwwroot/modules/shared/cards.js` | `buildCardHTML()`, `buildCompactCardHTML()`, copy/trace icons. |
 | `wwwroot/modules/shared/pipeline.js` | `buildPipelineHTML()`, step nodes, connectors, scroll. |
@@ -27,7 +27,7 @@ Real-time monitoring UI for the workflow engine. Vanilla JS ES Modules (no build
 | `wwwroot/modules/features/scheduled.js` | `updateScheduledBadge()`, `loadScheduled()`, scheduled cards. |
 | `wwwroot/modules/features/live.js` | `fingerprint()`, `updateLiveWorkflows()`. |
 | `wwwroot/modules/features/recent.js` | `updateRecentWorkflows()`, glow animations. |
-| `wwwroot/modules/features/filters.js` | All filtering, status chips, dropdowns, compact toggle, tabs. |
+| `wwwroot/modules/features/filters.js` | All filtering, org/app dropdowns, status chips, compact toggle, tabs. |
 | `wwwroot/modules/features/query.js` | `fetchQuery()`, pagination, auto-refresh, time range. |
 | `wwwroot/modules/features/modal.js` | Step detail modal: fetch, render, open/close. |
 | `wwwroot/modules/features/theme.js` | `getTheme()`, `setTheme()`, `toggleTheme()`. |
@@ -42,7 +42,7 @@ wwwroot/
     core/                            — "set and forget" plumbing
       state.js                       — types, DOM refs, state objects, BPMN helpers
       helpers.js                     — cssId, esc, escHtml, formatElapsed, JSON utilities
-      sse.js                         — connectSSE(), org/app fetching, hot-reload
+      sse.js                         — connectSSE(), hot-reload watcher
       url.js                         — syncUrl(), restoreUrl(), time range state
     shared/                          — rendering building blocks used by all features
       cards.js                       — buildCardHTML(), buildCompactCardHTML()
@@ -53,7 +53,7 @@ wwwroot/
       scheduled.js                   — scheduled workflows section
       live.js                        — inbox (live) workflows section
       recent.js                      — recent workflows section
-      filters.js                     — all filtering, compact toggle, tabs
+      filters.js                     — all filtering, org/app dropdowns, compact toggle, tabs
       query.js                       — query tab with pagination
       modal.js                       — step detail modal
       theme.js                       — theme toggle (dark/altinn)

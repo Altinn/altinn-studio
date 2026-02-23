@@ -4,14 +4,14 @@
  * ============================================================ */
 
 import { engineUrl, setEngineUrl } from './modules/core/state.js';
-import { connectSSE, watchForChanges, bindSSECallbacks } from './modules/core/sse.js';
+import { connectSSE, watchForChanges } from './modules/core/sse.js';
 import { syncUrl, restoreUrl, bindUrlCallbacks } from './modules/core/url.js';
 import { updateTimers } from './modules/shared/timers.js';
 import { updateStatusBadges, updateCapacity } from './modules/features/header.js';
 import { updateScheduledBadge, bindScheduledCallbacks } from './modules/features/scheduled.js';
 import { updateLiveWorkflows, bindLiveCallbacks } from './modules/features/live.js';
 import { updateRecentWorkflows, bindRecentCallbacks } from './modules/features/recent.js';
-import { applyFilter, mergeDiscoveredOrgsAndApps, switchTab, bindFilterCallbacks } from './modules/features/filters.js';
+import { applyFilter, mergeDiscoveredOrgsAndApps, switchTab, fetchOrgsAndApps, bindFilterCallbacks } from './modules/features/filters.js';
 import { loadQuery } from './modules/features/query.js';
 import { bindThemeCallbacks } from './modules/features/theme.js';
 
@@ -20,7 +20,6 @@ import './modules/features/modal.js';
 
 /* ── Wire up late-bound callbacks to break circular dependencies ── */
 
-bindSSECallbacks({ applyFilter, syncUrl, loadQuery });
 bindUrlCallbacks({ switchTab, loadQuery, applyFilter });
 bindScheduledCallbacks({ applyFilter, syncUrl });
 bindLiveCallbacks({ mergeDiscoveredOrgsAndApps, applyFilter });
@@ -50,7 +49,7 @@ const init = async () => {
   }
 
   restoreUrl();
-  connectSSE(`${engineUrl}/dashboard/stream`, updateDashboard, { showStatus: true });
+  connectSSE(`${engineUrl}/dashboard/stream`, updateDashboard, { showStatus: true, onConnect: fetchOrgsAndApps });
   connectSSE(`${engineUrl}/dashboard/stream/recent`, (data) => updateRecentWorkflows(/** @type {import('./modules/core/state.js').Workflow[]} */ (data)));
   requestAnimationFrame(updateTimers);
   watchForChanges();
