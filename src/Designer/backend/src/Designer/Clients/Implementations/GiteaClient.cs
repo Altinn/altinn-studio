@@ -367,7 +367,8 @@ public class GiteaClient(
         }
         else
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
+            var context = httpContextAccessor.HttpContext;
+            string developer = context is null ? null : AuthenticationHelper.GetDeveloperUserName(context);
             logger.LogError("User {Developer}, method {MethodName} failed with statuscode {StatusCode}", developer, nameof(GetRepository), response.StatusCode);
         }
 
@@ -375,10 +376,13 @@ public class GiteaClient(
         {
             returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
 
-            Organization organisation = await GetCachedOrg(returnRepository.Owner.Login);
-            if (organisation.Id != -1)
+            if (httpContextAccessor.HttpContext is not null)
             {
-                returnRepository.Owner.UserType = UserType.Org;
+                Organization organisation = await GetCachedOrg(returnRepository.Owner.Login);
+                if (organisation.Id != -1)
+                {
+                    returnRepository.Owner.UserType = UserType.Org;
+                }
             }
         }
 
@@ -649,7 +653,14 @@ public class GiteaClient(
 
     private bool IsLocalRepo(string org, string app)
     {
-        string localAppRepoFolder = repositorySettings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext));
+        var context = httpContextAccessor.HttpContext;
+        string developer = context is null ? null : AuthenticationHelper.GetDeveloperUserName(context);
+        if (string.IsNullOrWhiteSpace(developer))
+        {
+            return false;
+        }
+
+        string localAppRepoFolder = repositorySettings.GetServicePath(org, app, developer);
         if (Directory.Exists(localAppRepoFolder))
         {
             try
@@ -724,4 +735,3 @@ public class GiteaClient(
         return $"{path}?ref={Uri.EscapeDataString(reference)}";
     }
 }
-

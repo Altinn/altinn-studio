@@ -364,6 +364,47 @@ public class GiteaClientTest
         handlerMock.VerifyAll();
     }
 
+    [Fact]
+    public async Task Get_Repository_WhenHttpContextIsNull_DoesNotThrowAndMarksAsNotLocal()
+    {
+        Repository repository = new Repository
+        {
+            Description = "Description",
+            Name = "repo",
+            Id = 1769,
+            Owner = new User { FullName = "Testdepartementet", Login = "ttd" },
+        };
+
+        HttpResponseMessage httpRepositoryResponseMessage = new HttpResponseMessage()
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonSerializer.Serialize(repository), Encoding.UTF8, "application/json"),
+        };
+
+        var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(request => request.Method == HttpMethod.Get && request.RequestUri.AbsolutePath.Contains("/repos/ttd/repo")),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(httpRepositoryResponseMessage)
+            .Verifiable();
+
+        var httpClient = new HttpClient(handlerMock.Object)
+        {
+            BaseAddress = new Uri("http://studio.localhost/designer/api/")
+        };
+
+        GiteaClient giteaClient = GetServiceForTest(httpClient, useNullContext: true);
+
+        Repository result = await giteaClient.GetRepository("ttd", "repo");
+
+        Assert.Equal(1769, result.Id);
+        Assert.False(result.IsClonedToLocal);
+        handlerMock.VerifyAll();
+    }
+
 
     [Fact]
     public async Task GetDirectoryAsync_Successful_DirectoryContentsReturned()
@@ -874,12 +915,22 @@ public class GiteaClientTest
         return codeList;
     }
 
-    private static GiteaClient GetServiceForTest(HttpClient client, ILogger<GiteaClient> logger = null)
+    private static GiteaClient GetServiceForTest(
+        HttpClient client,
+        ILogger<GiteaClient> logger = null,
+        bool useNullContext = false
+    )
     {
-        HttpContext context = new DefaultHttpContext();
-
         Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.Setup(s => s.HttpContext).Returns(context);
+        if (useNullContext)
+        {
+            httpContextAccessorMock.Setup(s => s.HttpContext).Returns((HttpContext)null);
+        }
+        else
+        {
+            HttpContext context = new DefaultHttpContext();
+            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(context);
+        }
 
         string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(GiteaClientTest).Assembly.Location).LocalPath);
         var repoSettings = new ServiceRepositorySettings
@@ -919,4 +970,3 @@ public class GiteaClientTest
         return searchOption;
     }
 }
-
