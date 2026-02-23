@@ -65,7 +65,7 @@ public class StepTests
         var retryStrategy = RetryStrategy.Exponential(baseInterval: TimeSpan.FromSeconds(2));
         var createdAt = DateTimeOffset.UtcNow;
 
-        var parentRequest = new WorkflowEnqueueRequest(
+        var parentRequest = new WorkflowEnqueueRequestOld(
             "next",
             new InstanceInformation
             {
@@ -102,7 +102,7 @@ public class StepTests
     {
         // Arrange
         var parentActor = new Actor { UserIdOrOrgNumber = "parent-user" };
-        var parentRequest = new WorkflowEnqueueRequest(
+        var parentRequest = new WorkflowEnqueueRequestOld(
             "op-1",
             new InstanceInformation
             {
@@ -131,7 +131,7 @@ public class StepTests
     public void FromRequest_DefaultsOptionalFieldsCorrectly()
     {
         // Arrange
-        var parentRequest = new WorkflowEnqueueRequest(
+        var parentRequest = new WorkflowEnqueueRequestOld(
             "op-1",
             new InstanceInformation
             {

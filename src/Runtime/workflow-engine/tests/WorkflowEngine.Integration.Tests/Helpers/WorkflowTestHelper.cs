@@ -7,7 +7,7 @@ namespace WorkflowEngine.Integration.Tests.Helpers;
 
 internal static class WorkflowTestHelper
 {
-    public static WorkflowEnqueueRequest CreateRequest(
+    public static WorkflowEnqueueRequestOld CreateRequest(
         Guid? instanceGuid = null,
         WorkflowType type = WorkflowType.AppProcessChange,
         IEnumerable<long>? dependencies = null,
@@ -19,7 +19,7 @@ internal static class WorkflowTestHelper
     {
         instanceGuid ??= Guid.NewGuid();
 
-        return new WorkflowEnqueueRequest(
+        return new WorkflowEnqueueRequestOld(
             OperationId: "next",
             InstanceInformation: new InstanceInformation
             {

@@ -46,7 +46,18 @@ public interface IEngineRepository
     /// Adds a new workflow to the repository.
     /// </summary>
     Task<Workflow> AddWorkflow(
-        WorkflowEnqueueRequest workflowEnqueueRequest,
+        WorkflowRequest request,
+        WorkflowRequestMetadata metadata,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Inserts a batch of workflows in a single transaction. Requests must be in topological dependency order.
+    /// Within-batch <c>DependsOn</c> refs are resolved to database IDs as each item is inserted.
+    /// </summary>
+    Task<IReadOnlyList<Workflow>> AddWorkflowBatch(
+        IReadOnlyList<WorkflowRequest> orderedRequests,
+        WorkflowRequestMetadata metadata,
         CancellationToken cancellationToken = default
     );
 
@@ -70,4 +81,17 @@ public interface IEngineRepository
         bool updateStepTimestamps = true,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Gets all active (incomplete) workflows for the given instance GUID.
+    /// </summary>
+    Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForInstance(
+        Guid instanceGuid,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets the full workflow (with steps) by database ID, or null if not found.
+    /// </summary>
+    Task<Workflow?> GetWorkflow(long workflowId, CancellationToken cancellationToken = default);
 }

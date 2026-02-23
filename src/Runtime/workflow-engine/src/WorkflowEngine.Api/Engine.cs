@@ -21,14 +21,15 @@ internal interface IEngine
     bool CanAcceptNewWork { get; }
     Task Start(CancellationToken cancellationToken = default);
     Task Stop();
-    Task<EngineResponse> EnqueueWorkflow(
-        WorkflowEnqueueRequest workflowRequest,
+    Task<WorkflowEnqueueResponse> EnqueueWorkflow(
+        WorkflowEnqueueRequest request,
+        WorkflowRequestMetadata metadata,
         CancellationToken cancellationToken = default
     );
     Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation);
 }
 
-public sealed record WorkflowStatusTracker(long DatabaseId, PersistentItemStatus Status)
+internal sealed record WorkflowStatusTracker(long DatabaseId, PersistentItemStatus Status)
 {
     public override int GetHashCode() => DatabaseId.GetHashCode();
 

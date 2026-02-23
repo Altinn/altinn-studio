@@ -4,10 +4,11 @@ namespace WorkflowEngine.Api;
 
 internal static partial class EngineLogs
 {
-    [LoggerMessage(LogLevel.Debug, "Enqueuing workflow request {workflowEnqueueRequest}")]
-    internal static partial void EnqueuingWorkflow(
+    [LoggerMessage(LogLevel.Debug, "Enqueuing batch of {WorkflowCount} workflows for {InstanceInformation}")]
+    internal static partial void EnqueuingWorkflowBatch(
         this ILogger<Engine> logger,
-        WorkflowEnqueueRequest workflowEnqueueRequest
+        int workflowCount,
+        InstanceInformation instanceInformation
     );
 
     [LoggerMessage(LogLevel.Debug, "Restored workflow {WorkflowIdentifier} from database")]
@@ -130,13 +131,4 @@ internal static partial class EngineLogs
 
     [LoggerMessage(LogLevel.Information, "Stopping workflow engine")]
     internal static partial void StoppingEngine(this ILogger<Engine> logger);
-
-    [LoggerMessage(LogLevel.Trace, "Acquiring queue slot")]
-    internal static partial void AcquiringQueueSlot(this ILogger<Engine> logger);
-
-    [LoggerMessage(LogLevel.Trace, "Status after acquiring slot: {Status}")]
-    internal static partial void StatusAfterAcquiringSlot(this ILogger<Engine> logger, EngineHealthStatus status);
-
-    [LoggerMessage(LogLevel.Trace, "Releasing queue slot")]
-    internal static partial void ReleasingQueueSlot(this ILogger<Engine> logger);
 }

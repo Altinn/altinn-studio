@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Altinn.Studio.Runtime.Common;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
@@ -94,7 +95,6 @@ internal partial class Engine
     private async Task AcquireQueueSlot(CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("Engine.AcquireQueueSlot");
-        _logger.AcquiringQueueSlot();
 
         await _inboxCapacityLimit.WaitAsync(cancellationToken);
 
@@ -102,8 +102,45 @@ internal partial class Engine
             Status |= EngineHealthStatus.QueueFull;
         else
             Status &= ~EngineHealthStatus.QueueFull;
+    }
 
-        _logger.StatusAfterAcquiringSlot(Status);
+    private async Task AcquireQueueSlots(int count, CancellationToken cancellationToken = default)
+    {
+        using var activity = Metrics.Source.StartActivity("Engine.AcquireQueueSlots", tags: [("count", $"{count}")]);
+
+        Assert.That(count > 0, "Count must be greater than 0");
+
+        for (int i = 0; i < count; i++)
+            await _inboxCapacityLimit.WaitAsync(cancellationToken);
+
+        UpdateQueueHealthStatus();
+    }
+
+    private void UpdateQueueHealthStatus()
+    {
+        if (InboxCount >= _settings.QueueCapacity)
+            Status |= EngineHealthStatus.QueueFull;
+        else
+            Status &= ~EngineHealthStatus.QueueFull;
+    }
+
+    private void ReleaseQueueSlot()
+    {
+        using var activity = Metrics.Source.StartActivity("Engine.ReleaseQueueSlot");
+
+        _inboxCapacityLimit.Release();
+
+        UpdateQueueHealthStatus();
+    }
+
+    private void ReleaseQueueSlots(int count)
+    {
+        using var activity = Metrics.Source.StartActivity("Engine.ReleaseQueueSlot");
+
+        for (int i = 0; i < count; i++)
+            _inboxCapacityLimit.Release();
+
+        UpdateQueueHealthStatus();
     }
 
     private void RefreshActiveSet()
@@ -125,8 +162,6 @@ internal partial class Engine
 
     private void RemoveWorkflowAndReleaseQueueSlot(Workflow workflow)
     {
-        _logger.ReleasingQueueSlot();
-
         lock (_activeSetLock)
         {
             var removed = _inbox.TryRemove(workflow.DatabaseId, out _) && _activeSet.Remove(workflow);
@@ -138,8 +173,7 @@ internal partial class Engine
         }
 
         UpdateWorkflowStatusAndTracker(workflow, workflow.Status);
-
-        _inboxCapacityLimit.Release();
+        ReleaseQueueSlot();
 
         if (workflow.OverallStatus().IsSuccessful())
             Metrics.WorkflowsSucceeded.Add(1);

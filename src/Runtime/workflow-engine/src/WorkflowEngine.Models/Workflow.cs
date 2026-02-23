@@ -16,25 +16,24 @@ public sealed record Workflow : PersistentItem
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
 
     public static Workflow FromRequest(
-        WorkflowEnqueueRequest workflowEnqueueRequest,
-        IEnumerable<Workflow>? dependencies
+        WorkflowRequest request,
+        WorkflowRequestMetadata metadata,
+        IEnumerable<Workflow>? dependencies,
+        IEnumerable<Workflow>? links
     ) =>
         new()
         {
-            InstanceLockKey = workflowEnqueueRequest.InstanceLockKey,
-            InstanceInformation = workflowEnqueueRequest.InstanceInformation,
-            Actor = workflowEnqueueRequest.Actor,
-            CreatedAt = workflowEnqueueRequest.CreatedAt,
-            StartAt = workflowEnqueueRequest.StartAt,
-            DistributedTraceContext = workflowEnqueueRequest.TraceContext,
-            OperationId = workflowEnqueueRequest.OperationId,
-            Type = workflowEnqueueRequest.Type,
+            InstanceLockKey = metadata.InstanceLockKey,
+            InstanceInformation = metadata.InstanceInformation,
+            Actor = metadata.Actor,
+            CreatedAt = metadata.CreatedAt,
+            StartAt = request.StartAt,
+            DistributedTraceContext = metadata.TraceContext,
+            OperationId = request.OperationId,
+            Type = request.Type,
             Dependencies = dependencies,
-            Steps = workflowEnqueueRequest
-                .Steps.Select(
-                    (step, i) => Step.FromRequest(workflowEnqueueRequest, step, workflowEnqueueRequest.CreatedAt, i)
-                )
-                .ToList(),
+            Links = links,
+            Steps = request.Steps.Select((step, i) => Step.FromRequest(step, metadata, i)).ToList(),
         };
 
     public override string ToString() => $"[{GetType().Name}] {OperationId} ({Status})";

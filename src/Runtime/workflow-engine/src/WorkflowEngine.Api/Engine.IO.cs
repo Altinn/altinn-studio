@@ -1,3 +1,5 @@
+using WorkflowEngine.Api.Endpoints;
+using WorkflowEngine.Api.Utils;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
@@ -8,83 +10,90 @@ namespace WorkflowEngine.Api;
 
 internal partial class Engine
 {
-    public async Task<EngineResponse> EnqueueWorkflow(
-        WorkflowEnqueueRequest workflowRequest,
+    public async Task<WorkflowEnqueueResponse> EnqueueWorkflow(
+        WorkflowEnqueueRequest request,
+        WorkflowRequestMetadata metadata,
         CancellationToken cancellationToken = default
     )
     {
         using var activity = Metrics.Source.StartActivity(
-            "Engine.EnqueueWorkflow",
+            "Engine.EnqueueBatch",
             tags:
             [
-                ("request.operation.id", workflowRequest.OperationId),
-                ("request.actor.id", workflowRequest.Actor.UserIdOrOrgNumber),
-                ("request.instance.guid", workflowRequest.InstanceInformation.InstanceGuid),
-                ("request.instance.party.id", workflowRequest.InstanceInformation.InstanceOwnerPartyId),
-                (
-                    "request.instance.app",
-                    $"{workflowRequest.InstanceInformation.Org}/{workflowRequest.InstanceInformation.App}"
-                ),
+                ("request.actor.id", request.Actor.UserIdOrOrgNumber),
+                ("request.workflows.count", request.Workflows.Count),
+                ("request.instance.guid", metadata.InstanceInformation.InstanceGuid),
+                ("request.instance.party.id", metadata.InstanceInformation.InstanceOwnerPartyId),
+                ("request.instance.app", $"{metadata.InstanceInformation.Org}/{metadata.InstanceInformation.App}"),
             ]
         );
 
-        _logger.EnqueuingWorkflow(workflowRequest);
+        _logger.EnqueuingWorkflowBatch(request.Workflows.Count, metadata.InstanceInformation);
 
+        // Early capacity check before potentially expensive operations
         if (!CanAcceptNewWork)
         {
             activity?.Errored(errorMessage: "At capacity");
-            return EngineResponse.Reject(EngineResponse.Rejection.AtCapacity);
+            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.AtCapacity);
         }
 
-        if (!workflowRequest.IsValid())
+        // Validate the dependency graph and get topologically sorted requests
+        IReadOnlyList<WorkflowRequest> sortedRequests;
+        try
         {
-            activity?.Errored(errorMessage: "Invalid request");
-            return EngineResponse.Reject(EngineResponse.Rejection.Invalid, $"Invalid request: {workflowRequest}");
+            sortedRequests = WorkflowGraphUtils.ValidateAndSortGraph(request.Workflows);
         }
-
-        if (_mainLoopTask is null)
+        catch (ArgumentException ex)
         {
-            activity?.Errored(errorMessage: "Workflow engine not started");
-            return EngineResponse.Reject(
-                EngineResponse.Rejection.Unavailable,
-                "Workflow engine is not running. Did you call Start()?"
+            activity?.Errored(ex);
+            return WorkflowEnqueueResponse.Reject(
+                WorkflowEnqueueResponse.Rejection.Invalid,
+                $"Invalid request. Workflow graph did not validate: {ex.Message}"
             );
         }
 
-        // TODO: We probably don't need these `ShouldRun` checks now that we are running standalone.
-        var enabled = await _isEnabledHistory.Latest() ?? await ShouldRun(cancellationToken);
-        if (!enabled)
+        // Do we have capacity for this batch?
+        if (_inboxCapacityLimit.CurrentCount < sortedRequests.Count)
         {
-            activity?.Errored(errorMessage: "Workflow engine inactive (disabled)");
-            return EngineResponse.Reject(
-                EngineResponse.Rejection.Unavailable,
-                "Workflow engine is currently inactive. Did you call the right instance?"
+            activity?.Errored(errorMessage: "At capacity");
+            throw new EngineAtCapacityException(
+                $"Not enough capacity to enqueue {sortedRequests.Count} workflows. Available: {_inboxCapacityLimit.CurrentCount}"
             );
         }
 
-        await AcquireQueueSlot(cancellationToken);
+        await AcquireQueueSlots(sortedRequests.Count, cancellationToken);
 
         using var scope = _serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-        Workflow workflow;
+        IReadOnlyList<Workflow> workflows;
         try
         {
-            workflow = await repository.AddWorkflow(workflowRequest, cancellationToken: cancellationToken);
+            workflows = await repository.AddWorkflowBatch(sortedRequests, metadata, cancellationToken);
         }
-        catch (ActiveWorkflowConstraintException ex)
+        catch (Exception ex)
         {
-            activity?.Errored(errorMessage: ex.Message);
-            return EngineResponse.Reject(EngineResponse.Rejection.ConcurrencyViolation, ex.Message);
+            ReleaseQueueSlots(sortedRequests.Count);
+
+            activity?.Errored(ex);
+            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, ex.Message);
         }
 
-        _inbox[workflow.DatabaseId] = workflow;
+        // Add all to inbox and signal once
+        foreach (var workflow in workflows)
+            _inbox[workflow.DatabaseId] = workflow;
+
         _newWorkSignal.TrySetResult();
 
-        Metrics.WorkflowRequestsAccepted.Add(1);
-        Metrics.StepRequestsAccepted.Add(workflowRequest.Steps.Count());
+        Metrics.WorkflowRequestsAccepted.Add(sortedRequests.Count);
+        Metrics.StepRequestsAccepted.Add(workflows.Sum(w => w.Steps.Count));
 
-        return EngineResponse.Accept(workflow.DatabaseId);
+        // Build DatabaseId -> Ref map
+        var results = sortedRequests
+            .Zip(workflows, (req, wf) => (wf.DatabaseId, req.Ref))
+            .ToDictionary(t => t.DatabaseId, t => t.Ref);
+
+        return WorkflowEnqueueResponse.Accept(results);
     }
 
     public Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation)

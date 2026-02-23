@@ -49,7 +49,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-        var request = new WorkflowEnqueueRequest(
+        var request = new WorkflowEnqueueRequestOld(
             OperationId: "next",
             InstanceInformation: new InstanceInformation
             {
@@ -340,7 +340,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-        var request = new WorkflowEnqueueRequest(
+        var request = new WorkflowEnqueueRequestOld(
             OperationId: "next",
             InstanceInformation: new InstanceInformation
             {

@@ -19,18 +19,13 @@ public sealed record Step : PersistentItem
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
     internal bool HasPendingChanges { get; set; }
 
-    public static Step FromRequest(
-        WorkflowEnqueueRequest parent,
-        StepRequest request,
-        DateTimeOffset createdAt,
-        int index
-    ) =>
+    public static Step FromRequest(StepRequest request, WorkflowRequestMetadata metadata, int index) =>
         new()
         {
             DatabaseId = 0,
             OperationId = request.Command.OperationId,
-            Actor = parent.Actor,
-            CreatedAt = createdAt,
+            Actor = metadata.Actor,
+            CreatedAt = metadata.CreatedAt,
             ProcessingOrder = index,
             Command = request.Command,
             RetryStrategy = request.RetryStrategy,

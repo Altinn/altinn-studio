@@ -1,12 +1,12 @@
 namespace WorkflowEngine.Models.Tests;
 
-public class WorkflowEnqueueRequestTests
+public class WorkflowEnqueueRequestOldTests
 {
     [Fact]
     public void IsValid_ReturnsTrue_WhenStepsArePresent()
     {
         // Arrange
-        var request = new WorkflowEnqueueRequest(
+        var request = new WorkflowEnqueueRequestOld(
             "op-1",
             new InstanceInformation
             {
@@ -33,7 +33,7 @@ public class WorkflowEnqueueRequestTests
     public void IsValid_ReturnsFalse_WhenStepsAreEmpty()
     {
         // Arrange
-        var request = new WorkflowEnqueueRequest(
+        var request = new WorkflowEnqueueRequestOld(
             "op-1",
             new InstanceInformation
             {

@@ -8,6 +8,12 @@ namespace WorkflowEngine.Models;
 public sealed record WorkflowStatusResponse
 {
     /// <summary>
+    /// The database ID of the workflow.
+    /// </summary>
+    [JsonPropertyName("databaseId")]
+    public long DatabaseId { get; init; }
+
+    /// <summary>
     /// The overall status of the workflow for this instance.
     /// </summary>
     [JsonPropertyName("overallStatus")]
@@ -37,6 +43,7 @@ public sealed record WorkflowStatusResponse
     public static WorkflowStatusResponse FromWorkflow(Workflow workflow) =>
         new()
         {
+            DatabaseId = workflow.DatabaseId,
             OverallStatus = workflow.Status,
             Type = workflow.Type,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),

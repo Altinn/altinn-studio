@@ -85,7 +85,7 @@ public class WorkflowTests
         var startAt = createdAt.AddMinutes(10);
         var traceContext = "trace-context-123";
 
-        var request = new WorkflowEnqueueRequest(
+        var request = new WorkflowEnqueueRequestOld(
             "next",
             instanceInfo,
             actor,
@@ -128,7 +128,7 @@ public class WorkflowTests
     public void FromRequest_MapsNullOptionalFields()
     {
         // Arrange
-        var request = new WorkflowEnqueueRequest(
+        var request = new WorkflowEnqueueRequestOld(
             "op-1",
             new InstanceInformation
             {
