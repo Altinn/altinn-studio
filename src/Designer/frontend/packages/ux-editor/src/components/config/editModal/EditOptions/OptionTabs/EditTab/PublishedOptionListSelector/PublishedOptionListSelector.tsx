@@ -85,7 +85,10 @@ function DialogContentWithData({
   publishedCodeListFiles,
   ...rest
 }: DialogContentWithDataProps): React.ReactElement {
-  const publishedCodeLists = new PublishedElements(publishedCodeListFiles);
+  const publishedCodeLists = React.useMemo(
+    () => new PublishedElements(publishedCodeListFiles),
+    [publishedCodeListFiles],
+  );
   if (publishedCodeLists.hasAtLeastOneElement()) {
     return <Form {...rest} publishedCodeLists={publishedCodeLists} />;
   } else return <NoCodeListsAlert closeDialog={rest.closeDialog} />;
@@ -214,10 +217,13 @@ function VersionPicker({
   const latestVersionAsString = latestVersion === null ? '' : latestVersion.toString();
   const versionNumber = isLatest ? latestVersionAsString : version;
 
-  const handleLatestToggle = React.useCallback(
-    (shouldReferToLatest: boolean): void => {
-      onVersionChange(shouldReferToLatest ? latestVersionString : versionNumber);
-    },
+  const handleSetLatestVersion = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(
+    () => onVersionChange(latestVersionString),
+    [onVersionChange],
+  );
+
+  const handleSetFixedVersion = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>(
+    () => onVersionChange(versionNumber),
     [versionNumber, onVersionChange],
   );
 
@@ -239,13 +245,13 @@ function VersionPicker({
           checked={isLatest}
           label={t('ux_editor.options.published_code_list.latest_version')}
           name={versionRadioName}
-          onChange={({ target }) => handleLatestToggle(target.checked)}
+          onChange={handleSetLatestVersion}
         />
         <StudioRadio
           checked={!isLatest}
           label={t('ux_editor.options.published_code_list.fixed_version')}
           name={versionRadioName}
-          onChange={({ target }) => handleLatestToggle(!target.checked)}
+          onChange={handleSetFixedVersion}
         />
       </StudioRadioGroup>
       <StudioTextfield

@@ -1,5 +1,3 @@
-import { Guard } from '@studio/guard';
-
 export class ArrayUtils {
   /**
    * Removes duplicates from an array
@@ -258,8 +256,6 @@ export class ArrayUtils {
   }
 
   public static filterNotNull<T>(array: (T | null)[]): T[] {
-    const result = ArrayUtils.removeItemByValue(array, null);
-    Guard.againstNullInArray(result);
-    return result;
+    return array.filter((item): item is T => item !== null);
   }
 }
