@@ -6,5 +6,13 @@
 
 .releaseVersionInput {
   width: 50%;
-  margin-bottom: 8px;
+}
+
+.validationDialogTrigger {
+  display: inline;
+  padding: 0;
+}
+
+.validationDialogTrigger span {
+  text-decoration: underline;
 }

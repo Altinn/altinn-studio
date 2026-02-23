@@ -20,11 +20,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
 
+	"altinn.studio/devenv/pkg/runtimes/kind"
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/maskinporten"
 	"altinn.studio/operator/test/utils"
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
 
 // createStateFetcher creates a FetchStateFunc for a given MaskinportenClient name and namespace

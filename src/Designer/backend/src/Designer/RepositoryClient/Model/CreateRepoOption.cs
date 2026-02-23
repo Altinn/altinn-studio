@@ -29,9 +29,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// Initializes a new instance of the <see cref="CreateRepoOption" /> class.
         /// </summary>
         [JsonConstructor]
-        protected CreateRepoOption()
-        {
-        }
+        protected CreateRepoOption() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateRepoOption" /> class.
@@ -43,7 +41,15 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="name">Name of the repository to create (required).</param>
         /// <param name="makePrivate">Whether the repository should be made private.</param>
         /// <param name="readme">Readme of the repository to create.</param>
-        public CreateRepoOption(string name, bool autoInit = false, string description = null, string gitignores = null, string license = null, bool makePrivate = false, string readme = null)
+        public CreateRepoOption(
+            string name,
+            bool autoInit = false,
+            string description = null,
+            string gitignores = null,
+            string license = null,
+            bool makePrivate = false,
+            string readme = null
+        )
         {
             // to ensure "Name" is required (not null)
             if (name == null)
@@ -143,32 +149,22 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.AutoInit == input.AutoInit ||
-                    (this.AutoInit != null &&
-                    this.AutoInit.Equals(input.AutoInit))) && (
-                    this.Description == input.Description ||
-                    (this.Description != null &&
-                    this.Description.Equals(input.Description))) &&
-                (this.Gitignores == input.Gitignores ||
-                    (this.Gitignores != null &&
-                    this.Gitignores.Equals(input.Gitignores))) &&
-                (
-                    this.License == input.License ||
-                    (this.License != null &&
-                    this.License.Equals(input.License))) &&
-                (
-                    this.Name == input.Name ||
-                    (this.Name != null &&
-                    this.Name.Equals(input.Name))) &&
-                (
-                    this.IsPrivate == input.IsPrivate || (this.IsPrivate != null &&
-                    this.IsPrivate.Equals(input.IsPrivate))) &&
-                (
-                    this.Readme == input.Readme ||
-                    (this.Readme != null &&
-                    this.Readme.Equals(input.Readme)));
+            return (this.AutoInit == input.AutoInit || (this.AutoInit != null && this.AutoInit.Equals(input.AutoInit)))
+                && (
+                    this.Description == input.Description
+                    || (this.Description != null && this.Description.Equals(input.Description))
+                )
+                && (
+                    this.Gitignores == input.Gitignores
+                    || (this.Gitignores != null && this.Gitignores.Equals(input.Gitignores))
+                )
+                && (this.License == input.License || (this.License != null && this.License.Equals(input.License)))
+                && (this.Name == input.Name || (this.Name != null && this.Name.Equals(input.Name)))
+                && (
+                    this.IsPrivate == input.IsPrivate
+                    || (this.IsPrivate != null && this.IsPrivate.Equals(input.IsPrivate))
+                )
+                && (this.Readme == input.Readme || (this.Readme != null && this.Readme.Equals(input.Readme)));
         }
 
         /// <summary>

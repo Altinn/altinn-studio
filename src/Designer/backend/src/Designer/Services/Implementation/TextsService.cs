@@ -26,7 +26,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
         /// <param name="applicationMetadataService">IApplicationMetadataService</param>
         /// <param name="optionsService">IOptionsService</param>
-        public TextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IApplicationMetadataService applicationMetadataService, IOptionsService optionsService)
+        public TextsService(
+            IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+            IApplicationMetadataService applicationMetadataService,
+            IOptionsService optionsService
+        )
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationMetadataService = applicationMetadataService;
@@ -37,7 +41,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             if (!string.IsNullOrEmpty(repo))
             {
-                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    org,
+                    repo,
+                    developer
+                );
                 TextResource textResource = await altinnAppGitRepository.GetText("nb");
                 if (textResource?.Resources == null)
                 {
@@ -71,22 +79,41 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task SaveText(string org, string repo, string developer, TextResource textResource, string languageCode)
+        public async Task SaveText(
+            string org,
+            string repo,
+            string developer,
+            TextResource textResource,
+            string languageCode
+        )
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            string[] duplicateKeys = textResource.Resources.GroupBy(tre => tre.Id).Where(grp => grp.Count() > 1).Select(grp => grp.Key).ToArray();
+            string[] duplicateKeys = textResource
+                .Resources.GroupBy(tre => tre.Id)
+                .Where(grp => grp.Count() > 1)
+                .Select(grp => grp.Key)
+                .ToArray();
             if (duplicateKeys.Length > 0)
             {
-                throw new ArgumentException($"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
+                throw new ArgumentException(
+                    $"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}"
+                );
             }
 
             // updating application metadata with appTitle.
-            TextResourceElement appTitleResourceElement = textResource.Resources.FirstOrDefault(tre => tre.Id == "appName" || tre.Id == "ServiceName");
+            TextResourceElement appTitleResourceElement = textResource.Resources.FirstOrDefault(tre =>
+                tre.Id == "appName" || tre.Id == "ServiceName"
+            );
 
             if (appTitleResourceElement != null && !string.IsNullOrEmpty(appTitleResourceElement.Value))
             {
-                await _applicationMetadataService.UpdateAppTitleInAppMetadata(org, repo, "nb", appTitleResourceElement.Value);
+                await _applicationMetadataService.UpdateAppTitleInAppMetadata(
+                    org,
+                    repo,
+                    "nb",
+                    appTitleResourceElement.Value
+                );
             }
             else
             {
@@ -96,9 +123,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnAppGitRepository.SaveText(languageCode, textResource);
         }
 
-        public async Task<TextResource> UpdateTextsForKeys(string org, string repo, string developer, Dictionary<string, string> keysTexts, string languageCode)
+        public async Task<TextResource> UpdateTextsForKeys(
+            string org,
+            string repo,
+            string developer,
+            Dictionary<string, string> keysTexts,
+            string languageCode
+        )
         {
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                repo,
+                developer
+            );
             TextResource textResourceObject = await altinnAppGitRepository.GetText(languageCode);
 
             // handle if file not already exist
@@ -110,22 +147,38 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     throw new ArgumentException("The application name must be a value.");
                 }
 
-                TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
+                TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(textResourceElement =>
+                    textResourceElement.Id == kvp.Key
+                );
                 if (textResourceContainsKey is null)
                 {
-                    textResourceObject.Resources.Insert(0, new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
+                    textResourceObject.Resources.Insert(
+                        0,
+                        new TextResourceElement() { Id = kvp.Key, Value = kvp.Value }
+                    );
                 }
                 else
                 {
-                    int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(textResourceContainsKey);
+                    int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(
+                        textResourceContainsKey
+                    );
                     if (textResourceContainsKey.Variables == null)
                     {
-                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value };
+                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement
+                        {
+                            Id = kvp.Key,
+                            Value = kvp.Value,
+                        };
                     }
                     else
                     {
                         List<TextResourceVariable> variables = textResourceContainsKey.Variables;
-                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement { Id = kvp.Key, Value = kvp.Value, Variables = variables };
+                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement
+                        {
+                            Id = kvp.Key,
+                            Value = kvp.Value,
+                            Variables = variables,
+                        };
                     }
                 }
             }
@@ -135,10 +188,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<string>> UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations)
+        public async Task<List<string>> UpdateRelatedFiles(
+            string org,
+            string app,
+            string developer,
+            List<TextIdMutation> keyMutations
+        )
         {
             // handle if no layout exists
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                app,
+                developer
+            );
             string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
             List<string> updatedFiles = [];
 
@@ -146,7 +208,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 foreach (string layoutSetName in layoutSetNames)
                 {
-                    updatedFiles.AddRange(await UpdateKeysInLayoutsInLayoutSet(org, app, developer, layoutSetName, keyMutations));
+                    updatedFiles.AddRange(
+                        await UpdateKeysInLayoutsInLayoutSet(org, app, developer, layoutSetName, keyMutations)
+                    );
                 }
             }
             else
@@ -166,9 +230,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="developer">Username of developer</param>
         /// <param name="layoutSetName">Name of the layoutset</param>
         /// <param name="keyMutations">A list of the keys that are updated</param>
-        private async Task<List<string>> UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
+        private async Task<List<string>> UpdateKeysInLayoutsInLayoutSet(
+            string org,
+            string app,
+            string developer,
+            string layoutSetName,
+            List<TextIdMutation> keyMutations
+        )
         {
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                app,
+                developer
+            );
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
             List<string> updatedFiles = [];
             foreach (string layoutName in layoutNames)
@@ -228,7 +302,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static bool UpdateSourceKeys(JsonNode source, TextIdMutation mutation)
         {
             JsonElement jsonElement = source["label"].AsValue().GetValue<JsonElement>();
-            if (jsonElement.ValueKind == JsonValueKind.String && jsonElement.GetString() == mutation.OldId && mutation.NewId.HasValue)
+            if (
+                jsonElement.ValueKind == JsonValueKind.String
+                && jsonElement.GetString() == mutation.OldId
+                && mutation.NewId.HasValue
+            )
             {
                 source["label"] = mutation.NewId.Value;
                 return true;
@@ -236,7 +314,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return false;
         }
 
-        private async Task<List<string>> UpdateKeysInOptionLists(string org, string app, string developer, List<TextIdMutation> keyMutations)
+        private async Task<List<string>> UpdateKeysInOptionLists(
+            string org,
+            string app,
+            string developer,
+            List<TextIdMutation> keyMutations
+        )
         {
             string[] optionListIds = _optionsService.GetOptionsListIds(org, app, developer);
             List<string> updatedFiles = [];
@@ -336,7 +419,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// where inline markdown is replaced with the filename.</returns>
         /// <remarks>Autosave in FE results in old md files that never
         /// will be overwritten when client change ID.</remarks>
-        private static (Dictionary<string, string> TextsWithMd, Dictionary<string, string> Texts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
+        private static (Dictionary<string, string> TextsWithMd, Dictionary<string, string> Texts) ExtractMarkdown(
+            string languageCode,
+            Dictionary<string, string> texts
+        )
         {
             Dictionary<string, string> textsWithMarkdown = new();
             foreach (KeyValuePair<string, string> text in texts.Where(text => text.Value.Contains('\n')))

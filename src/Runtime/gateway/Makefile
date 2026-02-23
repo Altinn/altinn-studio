@@ -40,7 +40,9 @@ restore: ## Restore .NET packages and tools
 
 build: ## Build Go and .NET projects
 	@echo "Building Go packages..."
-	@go build ./...
+	@tmp_dir=$$(mktemp -d) && \
+		go build -o "$$tmp_dir" ./... && \
+		rm -rf "$$tmp_dir"
 	@echo "Building .NET solution..."
 	@dotnet build Altinn.Studio.Gateway.slnx
 	@echo "✓ Build successful"

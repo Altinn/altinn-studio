@@ -12,7 +12,10 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static partial class EntityAssertions
 {
-    public static void AssertEqual(DeploymentEntity deploymentEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel dbRecord)
+    public static void AssertEqual(
+        DeploymentEntity deploymentEntity,
+        Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel dbRecord
+    )
     {
         Assert.Equal(dbRecord.App, deploymentEntity.App);
         Assert.Equal(dbRecord.Org, deploymentEntity.Org);
@@ -30,7 +33,11 @@ public static partial class EntityAssertions
         Assert.Equal(buildDbModel.Result, deploymentEntity.Build.Result.ToString());
         Assert.Equal(BuildType.Deployment, buildDbModel.BuildType);
 
-        AssertionUtil.AssertCloseTo(buildDbModel.Started!.Value.UtcDateTime, deploymentEntity.Build.Started!.Value, TimeSpan.FromMilliseconds(100));
+        AssertionUtil.AssertCloseTo(
+            buildDbModel.Started!.Value.UtcDateTime,
+            deploymentEntity.Build.Started!.Value,
+            TimeSpan.FromMilliseconds(100)
+        );
 
         if (!buildDbModel.Finished.HasValue)
         {
@@ -38,7 +45,11 @@ public static partial class EntityAssertions
         }
         else
         {
-            AssertionUtil.AssertCloseTo(buildDbModel.Finished!.Value.UtcDateTime, deploymentEntity.Build.Finished!.Value, TimeSpan.FromMilliseconds(100));
+            AssertionUtil.AssertCloseTo(
+                buildDbModel.Finished!.Value.UtcDateTime,
+                deploymentEntity.Build.Finished!.Value,
+                TimeSpan.FromMilliseconds(100)
+            );
         }
     }
 
