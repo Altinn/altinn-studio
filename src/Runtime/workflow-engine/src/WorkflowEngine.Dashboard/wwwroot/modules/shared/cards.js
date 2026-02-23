@@ -44,7 +44,7 @@ export const buildCardHTML = (wf, isStatic) => {
   const { instance: inst } = wf;
   const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
   const tx = parseTransition(wf);
-  const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
+  const wfLabel = tx ? `${wf.operationId}: ${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
 
   let html = `<div class="card-header">`;
   html += `<span class="seg" onclick="toggleOrgFilter('${esc(inst.org)}')" title="Filter by org">${esc(inst.org)}</span>`;
@@ -87,7 +87,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
   const { instance: inst } = wf;
   const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
   const tx = parseTransition(wf);
-  const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
+  const wfLabel = tx ? `${wf.operationId}: ${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
 
   let html = `<div class="compact-row">`;
   html += `<span class="seg" onclick="toggleOrgFilter('${esc(inst.org)}')" title="Filter by org">${esc(inst.org)}</span>`;

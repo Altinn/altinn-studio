@@ -588,7 +588,7 @@ body{min-height:100vh;padding:0}
 .workflow-card:not(.compact) .card-header{cursor:pointer;margin:-6px -16px 2px;padding:6px 16px;border-radius:8px 8px 4px 4px;transition:background 0.15s}
 .workflow-card:not(.compact) .card-header:hover{background:var(--bg3)}
 .compact-row{display:flex;align-items:center;gap:8px;width:100%}
-.compact-name{color:var(--text-dim);font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0;opacity:0.5}
+.compact-name{color:var(--text-dim);font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0}
 .compact-pipeline{display:flex;align-items:center;gap:3px;margin-left:auto}
 .compact-dot{
   width:10px;height:10px;border-radius:50%;border:1.5px solid var(--border);
