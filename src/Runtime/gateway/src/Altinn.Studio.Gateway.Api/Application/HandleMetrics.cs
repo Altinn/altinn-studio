@@ -55,12 +55,14 @@ internal static class HandleMetrics
         );
 
         var amMetrics = await metricsClient.GetAppMetricsAsync(app, range, cancellationToken);
+        var intervalInMinutes = AzureMonitorClient.GetIntervalInMinutes(range);
 
         var metrics = amMetrics.Select(metric => new AppMetric
         {
             Name = metric.Name,
             Timestamps = metric.Timestamps,
             Counts = metric.Counts,
+            IntervalInMinutes = intervalInMinutes,
         });
 
         return Results.Ok(metrics);
@@ -83,12 +85,14 @@ internal static class HandleMetrics
         var from = now.AddMinutes(-range);
 
         var amFailedRequests = await metricsClient.GetAppFailedRequestsAsync(app, range, cancellationToken);
+        var intervalInMinutes = AzureMonitorClient.GetIntervalInMinutes(range);
 
         var metrics = amFailedRequests.Select(failedRequest => new AppErrorMetric
         {
             Name = failedRequest.Name,
             Timestamps = failedRequest.Timestamps,
             Counts = failedRequest.Counts,
+            IntervalInMinutes = intervalInMinutes,
             LogsUrl = metricsClient.GetLogsUrl(
                 gatewayContext.AzureSubscriptionId,
                 gatewayContext.ServiceOwner,

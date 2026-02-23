@@ -39,10 +39,15 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
 
     internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _operationNames.Keys.ToArray();
 
-    private static string GetInterval(int range)
+    internal static int GetIntervalInMinutes(int range)
     {
         var maxPoints = 12;
-        int target = Math.Max(1, range / maxPoints);
+        return Math.Max(1, range / maxPoints);
+    }
+
+    private static string GetInterval(int range)
+    {
+        int target = GetIntervalInMinutes(range);
         return target >= 60 ? $"{target / 60}h" : $"{target}m";
     }
 

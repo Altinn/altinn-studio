@@ -6,4 +6,5 @@ public class AppErrorMetric
     public required IEnumerable<long> Timestamps { get; set; }
     public required IEnumerable<double> Counts { get; set; }
     public required Uri LogsUrl { get; set; }
+    public required int IntervalInMinutes { get; set; }
 }
