@@ -1,6 +1,4 @@
-/* ============================================================
- *  Section 11: Pipeline rendering (step circles + connectors)
- * ============================================================ */
+/* Pipeline rendering — step circles, connectors, phase labels */
 
 import { parseTransition, stepPhase, stepSubLabel } from '../core/state.js';
 import { esc, escHtml } from '../core/helpers.js';

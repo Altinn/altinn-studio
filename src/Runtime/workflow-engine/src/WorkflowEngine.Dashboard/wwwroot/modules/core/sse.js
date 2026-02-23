@@ -1,13 +1,9 @@
-/* ============================================================
- *  Section 3: SSE connection + org/app fetching + hot-reload
- * ============================================================ */
+/* SSE connection, org/app fetching, hot-reload */
 
 import { dom, engineUrl, state } from './state.js';
 import { esc } from './helpers.js';
 
-/* ============================================================
- *  ORG / APP MANAGEMENT
- * ============================================================ */
+/* ── Org / app management ────────────────────────────────── */
 
 /**
  * Register an org+app pair in the orgsAndApps map.
@@ -158,9 +154,7 @@ export const fetchOrgsAndApps = () => {
   }).catch(() => {});
 };
 
-/* ============================================================
- *  SSE CONNECTION
- * ============================================================ */
+/* ── SSE connection ──────────────────────────────────────── */
 
 let disconnectTimer = 0;
 
@@ -202,9 +196,7 @@ export const connectSSE = (url, onMessage, opts) => {
   };
 };
 
-/* ============================================================
- *  HOT-RELOAD  (SSE from dashboard server on file change)
- * ============================================================ */
+/* ── Hot-reload (SSE from dashboard server on file change) ── */
 
 let hotReloadConnectedOnce = false;
 let hotReloadDisabled = false;

@@ -1,6 +1,4 @@
-/* ============================================================
- *  Section 15: Query (on-demand DB fetch)
- * ============================================================ */
+/* Query tab — on-demand DB fetch with pagination */
 
 import { dom, state, engineUrl } from '../core/state.js';
 import { buildCardHTML, buildCompactCardHTML, setCardFilterData } from '../shared/cards.js';

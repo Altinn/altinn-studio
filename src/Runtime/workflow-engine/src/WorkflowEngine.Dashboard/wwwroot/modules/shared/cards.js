@@ -1,6 +1,4 @@
-/* ============================================================
- *  Section 10: Card rendering (shared by live, recent, query)
- * ============================================================ */
+/* Card rendering — shared by live, recent, and query views */
 
 import { parseTransition, stepSubLabel, state, workflowData } from '../core/state.js';
 import { esc, formatElapsed } from '../core/helpers.js';

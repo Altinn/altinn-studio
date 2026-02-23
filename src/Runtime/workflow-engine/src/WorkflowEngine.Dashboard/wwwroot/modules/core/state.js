@@ -1,6 +1,4 @@
-/* ============================================================
- *  Sections 0, 1, 2: Type definitions, DOM references, State
- * ============================================================ */
+/* Type definitions, DOM references, shared state */
 
 /**
  * @typedef {'Enqueued' | 'Processing' | 'Completed' | 'Failed' | 'Requeued' | 'Canceled'} StepStatus
@@ -88,9 +86,7 @@
  * }} DashboardState
  */
 
-/* ============================================================
- *  1. DOM REFERENCES
- * ============================================================ */
+/* ── DOM references ──────────────────────────────────────── */
 
 export const dom = {
   liveContainer:    /** @type {HTMLElement} */ (document.getElementById('live-workflows')),
@@ -124,9 +120,7 @@ export const dom = {
   themeLabel:       /** @type {HTMLElement} */ (document.getElementById('theme-label')),
 };
 
-/* ============================================================
- *  2. STATE
- * ============================================================ */
+/* ── State ───────────────────────────────────────────────── */
 
 /** Engine API base URL (resolved from /api/config) */
 export let engineUrl = '';

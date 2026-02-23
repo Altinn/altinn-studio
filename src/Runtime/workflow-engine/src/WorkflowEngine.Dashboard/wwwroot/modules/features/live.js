@@ -1,6 +1,4 @@
-/* ============================================================
- *  Section 8: Live workflows (add / update / remove cards)
- * ============================================================ */
+/* Live workflows — add / update / remove inbox cards */
 
 import { dom, state } from '../core/state.js';
 import { cssId } from '../core/helpers.js';

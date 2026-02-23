@@ -1,6 +1,4 @@
-/* ============================================================
- *  URL SYNC — persist tab + filters to query params
- * ============================================================ */
+/* URL sync — persist tab + filters to query params */
 
 import { dom, state } from './state.js';
 import { updateDropdownToggle, rebuildDropdown, refreshAppDropdown, rebuildSelectedOnlyChips, updatePartyGuidLabels } from '../features/filters.js';

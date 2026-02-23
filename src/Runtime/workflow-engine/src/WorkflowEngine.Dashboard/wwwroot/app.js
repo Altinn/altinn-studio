@@ -28,9 +28,7 @@ bindRecentCallbacks({ mergeDiscoveredOrgsAndApps, applyFilter });
 bindFilterCallbacks({ syncUrl, loadQuery });
 bindThemeCallbacks({ syncUrl });
 
-/* ============================================================
- *  4. DASHBOARD UPDATE  (entry point for every SSE message)
- * ============================================================ */
+/* ── Dashboard update (entry point for every SSE message) ── */
 
 /** @param {import('./modules/core/state.js').DashboardPayload} data */
 const updateDashboard = (data) => {
@@ -40,9 +38,7 @@ const updateDashboard = (data) => {
   updateLiveWorkflows(data.workflows);
 };
 
-/* ============================================================
- *  INIT — fetch engine URL from config, then connect SSE
- * ============================================================ */
+/* ── Init ────────────────────────────────────────────────── */
 
 const init = async () => {
   try {

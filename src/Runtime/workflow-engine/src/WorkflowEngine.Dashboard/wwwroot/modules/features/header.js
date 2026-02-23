@@ -1,6 +1,4 @@
-/* ============================================================
- *  Sections 5, 6: Header — status badges + capacity meters
- * ============================================================ */
+/* Header — engine status badges + capacity meters */
 
 import { dom } from '../core/state.js';
 
@@ -22,9 +20,7 @@ export const updateStatusBadges = (s) => {
   dom.engineStatusLabel.className = 'engine-status-label';
 };
 
-/* ============================================================
- *  6. CAPACITY METERS
- * ============================================================ */
+/* ── Capacity meters ─────────────────────────────────────── */
 
 /**
  * @param {string} id

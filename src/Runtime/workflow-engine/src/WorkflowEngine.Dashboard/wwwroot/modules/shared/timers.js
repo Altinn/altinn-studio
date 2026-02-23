@@ -1,6 +1,4 @@
-/* ============================================================
- *  Section 12: Timers (workflow elapsed + step backoff countdowns)
- * ============================================================ */
+/* Timers — workflow elapsed + step backoff countdowns */
 
 import { state } from '../core/state.js';
 import { formatElapsed } from '../core/helpers.js';

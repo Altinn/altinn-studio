@@ -1,6 +1,4 @@
-/* ============================================================
- *  Section 7: Scheduled workflows (count badge + on-demand detail)
- * ============================================================ */
+/* Scheduled workflows — count badge + on-demand detail */
 
 import { dom, state, engineUrl, workflowData, parseTransition } from '../core/state.js';
 import { esc } from '../core/helpers.js';

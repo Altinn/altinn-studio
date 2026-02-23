@@ -1,6 +1,4 @@
-/* ============================================================
- *  Section 16: Step detail modal
- * ============================================================ */
+/* Step detail modal — fetch, render, open/close */
 
 import { dom, engineUrl } from '../core/state.js';
 import { esc, expandJsonStrings, syntaxHighlight } from '../core/helpers.js';

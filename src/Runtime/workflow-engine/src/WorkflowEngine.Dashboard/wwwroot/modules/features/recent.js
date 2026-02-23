@@ -1,6 +1,4 @@
-/* ============================================================
- *  Section 9: Recent workflows (rendered from backend cache)
- * ============================================================ */
+/* Recent workflows — rendered from backend cache */
 
 import { dom, state } from '../core/state.js';
 import { cssId } from '../core/helpers.js';

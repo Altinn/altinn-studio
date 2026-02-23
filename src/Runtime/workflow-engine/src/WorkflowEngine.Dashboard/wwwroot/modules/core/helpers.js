@@ -1,10 +1,4 @@
-/* ============================================================
- *  Sections 17, 18: JSON utilities + Generic helpers
- * ============================================================ */
-
-/* ============================================================
- *  18. GENERIC HELPERS
- * ============================================================ */
+/* Generic helpers + JSON utilities */
 
 /** @param {string} s */
 export const cssId = (s) => s.replace(/[^a-zA-Z0-9-_]/g, '_');
@@ -27,9 +21,7 @@ export const formatElapsed = (seconds) => {
   return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
 };
 
-/* ============================================================
- *  17. JSON UTILITIES  (expand embedded JSON strings + syntax highlighting)
- * ============================================================ */
+/* ── JSON utilities (expand embedded JSON strings + syntax highlighting) ── */
 
 /**
  * @param {unknown} obj

@@ -1,6 +1,4 @@
-/* ============================================================
- *  Sections 13, 13b, 13c, 14: Filtering + compact toggle + tabs
- * ============================================================ */
+/* Filtering, compact view toggle, card expand/collapse, tabs */
 
 import { dom, state, workflowData } from '../core/state.js';
 import { esc, cssId } from '../core/helpers.js';
@@ -23,9 +21,7 @@ export const bindFilterCallbacks = (fns) => {
   _loadQuery = fns.loadQuery;
 };
 
-/* ============================================================
- *  13. FILTERING
- * ============================================================ */
+/* ── Filtering ───────────────────────────────────────────── */
 
 /** @returns {boolean} */
 export const hasActiveFilter = () =>
@@ -315,9 +311,7 @@ for (const bar of document.querySelectorAll('.section-chips')) {
   });
 }
 
-/* ============================================================
- *  13b. COMPACT VIEW TOGGLE
- * ============================================================ */
+/* ── Compact view toggle ─────────────────────────────────── */
 
 /** @param {string} section */
 window.collapseAll = (section) => {
@@ -364,9 +358,7 @@ const rebuildSectionCards = (section) => {
   }
 };
 
-/* ============================================================
- *  13c. COMPACT CARD EXPAND/COLLAPSE (click to toggle)
- * ============================================================ */
+/* ── Compact card expand/collapse (click to toggle) ──────── */
 
 /**
  * @param {HTMLElement} container
@@ -406,9 +398,7 @@ setupCardExpand(dom.recentContainer, 'recent', true);
 setupCardExpand(dom.scheduledContainer, 'scheduled', true, true);
 setupCardExpand(dom.queryContainer, 'query', true);
 
-/* ============================================================
- *  14. TABS
- * ============================================================ */
+/* ── Tabs ────────────────────────────────────────────────── */
 
 /** @param {string} tabName */
 export const switchTab = (tabName) => {
