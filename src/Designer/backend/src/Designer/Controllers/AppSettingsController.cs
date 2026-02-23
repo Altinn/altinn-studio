@@ -16,6 +16,7 @@ namespace Altinn.Studio.Designer.Controllers;
 public class AppSettingsController(IAppSettingsService appSettingsService) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
     public async Task<IActionResult> Get(string org, string app, CancellationToken cancellationToken)
     {
         var setting = await appSettingsService.GetAsync(

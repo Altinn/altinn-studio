@@ -64,7 +64,7 @@ public class ApplicationsController : ControllerBase
         try
         {
             IEnumerable<EnvironmentModel> environments =
-                await _environmentsService.GetOrganizationEnvironments(org);
+                await _environmentsService.GetOrganizationEnvironments(org, ct);
 
             var getDeploymentsTasks = environments.Select(async env =>
             {

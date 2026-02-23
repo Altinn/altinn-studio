@@ -54,6 +54,12 @@ public class AppInactivityUndeployAppJob : IJob
         {
             throw new InvalidOperationException($"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataEnvironmentKey}'.");
         }
+        if (!AppInactivityUndeployJobConstants.IsTargetEnvironment(environment))
+        {
+            throw new InvalidOperationException(
+                $"Unsupported environment '{environment}' for inactivity undeploy."
+            );
+        }
 
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(AppInactivityUndeployAppJob)}.{nameof(Execute)}",

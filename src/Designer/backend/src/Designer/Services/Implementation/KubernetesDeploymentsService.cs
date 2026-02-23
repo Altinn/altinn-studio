@@ -40,7 +40,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         )
         {
             IEnumerable<EnvironmentModel> environments =
-                await _environmentsService.GetOrganizationEnvironments(org);
+                await _environmentsService.GetOrganizationEnvironments(org, ct);
 
             var getDeploymentTasks = environments.Select(async env =>
             {

@@ -40,7 +40,9 @@ namespace Designer.Tests.Services
         {
             // Arrange
             var environments = GetEnvironments("environments.json");
-            _environementsService.Setup(e => e.GetOrganizationEnvironments(org)).ReturnsAsync(environments);
+            _environementsService
+                .Setup(e => e.GetOrganizationEnvironments(org, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(environments);
             var kubernetesDeployments = GetKubernetesDeployments("completedDeployments.json");
             foreach (EnvironmentModel environment in environments)
             {

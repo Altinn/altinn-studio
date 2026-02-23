@@ -103,6 +103,13 @@ public class AppInactivityUndeployJobQueue : IAppInactivityUndeployJobQueue
         Guard.AssertValidAppRepoName(app);
         Guard.AssertArgumentNotNullOrWhiteSpace(environment, nameof(environment));
         Guard.AssertValidEnvironmentName(environment);
+        if (!AppInactivityUndeployJobConstants.IsTargetEnvironment(environment))
+        {
+            throw new ArgumentException(
+                $"Unsupported environment '{environment}' for inactivity undeploy.",
+                nameof(environment)
+            );
+        }
         if (index < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(index), "index must be zero or positive.");

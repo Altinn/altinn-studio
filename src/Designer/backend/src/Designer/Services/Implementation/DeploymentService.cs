@@ -118,8 +118,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 .UpdateApplicationInformationAsync(authenticatedContext.Org, authenticatedContext.Repo, release.TargetCommitish, deployment.EnvName);
 
             // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
-            // cancels the request, but we prefer to atleast attempt the completion once we've started mutating some state
-            // This particular multi-step process can start mutating state by `AddAppToGitOpsRepoIfNotExists`
+            // cancels the request, but we prefer to at least attempt completion once we've started mutating state
+            // This particular multi-step process can start mutating state via `AddAppToGitOpsRepoIfNotExists`
             cancellationToken = CancellationToken.None;
 
             bool shouldPushSyncRootImage = false;
@@ -201,7 +201,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             cancellationToken.ThrowIfCancellationRequested();
             List<DeploymentEntity> deploymentEntities = (await _deploymentRepository.Get(org, app, query)).ToList();
 
-            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
+            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(
+                org,
+                cancellationToken
+            );
             List<string> environmentNames = environments.Select(environment => environment.Name).ToList();
 
             return new SearchResults<DeploymentEntity> { Results = deploymentEntities.Where(item => environmentNames.Contains(item.EnvName)).ToList() };
@@ -247,8 +250,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
-            // cancels the request, but we prefer to atleast attempt the completion once we've started mutating some state
-            // This particular multi-step process starts mutating state by potentially by `ShouldUseGitOpsDecommission` since
+            // cancels the request, but we prefer to at least attempt completion once we've started mutating state
+            // This particular multi-step process can start mutating state via `ShouldUseGitOpsDecommission` since
             // it calls `RemoveAppFromGitOpsRepoIfExists` (which is a bit unexpected)
             cancellationToken = CancellationToken.None;
 

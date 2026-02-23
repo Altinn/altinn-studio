@@ -75,7 +75,11 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
         }
 
         var candidates = new List<InactivityUndeployCandidate>();
-        var environments = await GetTargetEnvironmentsForOrg(options.Org, options.Environment);
+        var environments = await GetTargetEnvironmentsForOrg(
+            options.Org,
+            options.Environment,
+            cancellationToken
+        );
 
         foreach (var environmentName in environments)
         {
@@ -169,7 +173,11 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             .ToHashSet(StringComparer.Ordinal);
     }
 
-    private async Task<List<string>> GetTargetEnvironmentsForOrg(string org, string? envFilter)
+    private async Task<IReadOnlyList<string>> GetTargetEnvironmentsForOrg(
+        string org,
+        string? envFilter,
+        CancellationToken cancellationToken
+    )
     {
         if (!string.IsNullOrWhiteSpace(envFilter))
         {
@@ -178,10 +186,13 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
                 : [];
         }
 
-        var environments = await _environmentsService.GetOrganizationEnvironments(org);
+        var environments = await _environmentsService.GetOrganizationEnvironments(
+            org,
+            cancellationToken
+        );
         return environments
             .Select(e => e.Name)
             .Where(AppInactivityUndeployJobConstants.IsTargetEnvironment)
-            .ToList();
+            .ToArray();
     }
 }

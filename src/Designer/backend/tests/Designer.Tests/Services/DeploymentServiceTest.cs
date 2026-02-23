@@ -247,7 +247,9 @@ namespace Designer.Tests.Services
         {
             // Arrange
             var environments = GetEnvironments("environments.json");
-            _environementsService.Setup(e => e.GetOrganizationEnvironments(org)).ReturnsAsync(environments);
+            _environementsService
+                .Setup(e => e.GetOrganizationEnvironments(org, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(environments);
             var pipelineDeployments = GetDeployments("completedDeployments.json");
             _deploymentRepository.Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(pipelineDeployments);
@@ -932,7 +934,7 @@ namespace Designer.Tests.Services
 
         [Theory]
         [InlineData("ttd", "test-app", "at23")]
-        public async Task UndeployAsync_WithGitOpsFeatureEnabled_AppExistsInGitOps_RuntimeReportsNotDeployed_ShouldStillUseGitOpsManagerAndCleanup(string org, string app, string env)
+        public async Task UndeployAsync_WithGitOpsFeatureEnabled_AppExistsInGitOps_ShouldCleanupGitOpsAndUseGitOpsManagerWithoutConsultingRuntime(string org, string app, string env)
         {
             // Arrange
             _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
@@ -953,11 +955,6 @@ namespace Designer.Tests.Services
             _gitOpsConfigurationManager.Setup(gm => gm.PersistGitOpsConfiguration(
                 It.IsAny<AltinnOrgEditingContext>(),
                 It.IsAny<AltinnEnvironment>()));
-
-            _runtimeGatewayClient.Setup(rgc => rgc.GetAppDeployments(
-                It.IsAny<string>(),
-                It.IsAny<AltinnEnvironment>(),
-                It.IsAny<CancellationToken>())).ReturnsAsync([]);
 
             _deploymentRepository.Setup(r => r.GetLastDeployed(org, app, env))
                 .ReturnsAsync(GetDeployments("createdDeployment.json").First());
