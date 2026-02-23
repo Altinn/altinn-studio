@@ -67,6 +67,21 @@ public class ResourceController : ControllerBase
     }
 
     /// <summary>
+    /// Get the layout-sets
+    /// </summary>
+    /// <param name="org">The application owner short name</param>
+    /// <param name="app">The application name</param>
+    /// <returns>The settings in the form of a string.</returns>
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "application/json")]
+    [HttpGet]
+    [Route("{org}/{app}/api/layoutsets")]
+    public ActionResult GetLayoutSets(string org, string app)
+    {
+        string? layoutSets = _appResourceService.GetLayoutSetsString();
+        return Ok(layoutSets);
+    }
+
+    /// <summary>
     /// Get the footer layout
     /// </summary>
     /// <param name="org">The application owner short name</param>
