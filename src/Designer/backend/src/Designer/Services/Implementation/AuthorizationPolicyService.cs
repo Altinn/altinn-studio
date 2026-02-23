@@ -29,7 +29,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public AuthorizationPolicyService(
             ServiceRepositorySettings repositorySettings,
             IGiteaClient giteaClient,
-            IAltinnAuthorizationPolicyClient authorizationPolicyClient)
+            IAltinnAuthorizationPolicyClient authorizationPolicyClient
+        )
         {
             _giteaClient = giteaClient;
             _authorizationPolicyClient = authorizationPolicyClient;
@@ -42,7 +43,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string app,
             string shortCommitId,
             string envName,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
             FileSystemObject policyFile = await GetAuthorizationPolicyFileFromGitea(org, app, shortCommitId);
@@ -52,7 +54,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await _authorizationPolicyClient.SavePolicy(org, app, policyFileContent, envName);
         }
 
-        private async Task<FileSystemObject> GetAuthorizationPolicyFileFromGitea(string org, string app, string shortCommitId)
+        private async Task<FileSystemObject> GetAuthorizationPolicyFileFromGitea(
+            string org,
+            string app,
+            string shortCommitId
+        )
         {
             string policyFilePath = GetAuthorizationPolicyFilePath();
             return await _giteaClient.GetFileAsync(org, app, policyFilePath, shortCommitId);

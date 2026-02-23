@@ -6,13 +6,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
-
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
@@ -32,7 +30,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
         };
 
         /// <summary>
@@ -46,7 +44,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             HttpClient httpClient,
             IEnvironmentsService environmentsService,
             PlatformSettings options,
-            ILogger<AltinnStorageAppMetadataClient> logger)
+            ILogger<AltinnStorageAppMetadataClient> logger
+        )
         {
             _httpClient = httpClient;
             _environmentsService = environmentsService;
@@ -59,7 +58,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             string org,
             string app,
             ApplicationMetadata applicationMetadata,
-            string envName)
+            string envName
+        )
         {
             string stringContent = JsonSerializer.Serialize(applicationMetadata);
             await UpsertApplicationMetadata(org, app, stringContent, envName);
@@ -70,7 +70,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             string org,
             string app,
             string applicationMetadataJson,
-            string envName)
+            string envName
+        )
         {
             var storageUri = await CreateStorageUri(envName);
             Uri uri = new($"{storageUri}?appId={org}/{app}");
@@ -90,7 +91,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         public async Task<ApplicationMetadata> GetApplicationMetadataAsync(
             AltinnRepoContext altinnRepoContext,
             string envName,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default
+        )
         {
             string rawContent = await GetApplicationMetadataJsonAsync(altinnRepoContext, envName, cancellationToken);
             return JsonSerializer.Deserialize<ApplicationMetadata>(rawContent, s_jsonOptions);
@@ -100,7 +102,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         public async Task<string> GetApplicationMetadataJsonAsync(
             AltinnRepoContext altinnRepoContext,
             string envName,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default
+        )
         {
             Guard.AssertValidEnvironmentName(envName);
 

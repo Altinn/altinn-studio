@@ -30,7 +30,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <param name="templates">List of templates to use in the service creation</param>
         /// <returns>The repository created in gitea</returns>
-        Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig, List<CustomTemplateReference> templates);
+        Task<RepositoryClient.Model.Repository> CreateService(
+            string org,
+            ServiceConfiguration serviceConfig,
+            List<CustomTemplateReference> templates
+        );
 
         /// <summary>
         /// Copies a repository within an organisation
@@ -41,7 +45,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Developer's username</param>
         /// <param name="targetOrg">TThe name of the organization in which the repo will be copied. If not set it defaults to <paramref name="org"/></param>
         /// <returns>The repository created in gitea</returns>
-        Task<RepositoryClient.Model.Repository> CopyRepository(string org, string sourceRepository, string targetRepository, string developer, string targetOrg = null);
+        Task<RepositoryClient.Model.Repository> CopyRepository(
+            string org,
+            string sourceRepository,
+            string targetRepository,
+            string developer,
+            string targetOrg = null
+        );
 
         /// <summary>
         /// Deletes the local repository for the user and makes a new clone of the repo
@@ -93,7 +103,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Lists the ServiceResource files in a repository
         /// </summary>
-        Task<List<ServiceResource>> GetServiceResources(string org, string repository, string path = "", CancellationToken cancellationToken = default);
+        Task<List<ServiceResource>> GetServiceResources(
+            string org,
+            string repository,
+            string path = "",
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// Gets a specific ServiceResource based on the identifier
@@ -103,7 +118,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="identifier">The identifier of the resource</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Returns the ServiceResource object with the corresponding identifier</returns>
-        Task<ServiceResource> GetServiceResourceById(string org, string repository, string identifier, CancellationToken cancellationToken = default);
+        Task<ServiceResource> GetServiceResourceById(
+            string org,
+            string repository,
+            string identifier,
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// Update existing ServiceResource in repository
@@ -131,7 +151,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="env">The environment the resource will be published to</param>
         /// <param name="policy">The policy that goes with the resource</param>
         /// <returns></returns>
-        public Task<ActionResult> PublishResource(string org, string repository, string id, string env, string policy = null);
+        public Task<ActionResult> PublishResource(
+            string org,
+            string repository,
+            string id,
+            string env,
+            string policy = null
+        );
 
         /// <summary>
         /// Returns the path to the app folder

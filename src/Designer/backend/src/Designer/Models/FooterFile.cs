@@ -38,15 +38,17 @@ public enum ComponentType
     Email,
     Link,
     Phone,
-    Text
+    Text,
 }
 
 public enum IconType
 {
     [EnumMember(Value = "information")]
     Information,
+
     [EnumMember(Value = "email")]
     Email,
+
     [EnumMember(Value = "phone")]
-    Phone
+    Phone,
 }

@@ -9,4 +9,3 @@ public interface IMaskinPortenHttpClient
 {
     public Task<IEnumerable<MaskinPortenScope>> GetAvailableScopes(CancellationToken cancellationToken = default);
 }
-

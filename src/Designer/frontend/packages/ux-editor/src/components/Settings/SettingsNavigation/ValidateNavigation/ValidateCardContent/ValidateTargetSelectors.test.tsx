@@ -10,7 +10,7 @@ import {
 } from './ValidateTargetSelectors';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { selectSuggestionOption } from './ValidateNavigationTestUtils';
+import { selectSuggestionOption } from '../utils/ValidateNavigationTestUtils';
 
 describe('TasksSelector and TaskSelector', () => {
   it('should render correct label and call onChange when a task is selected in multiple mode', async () => {

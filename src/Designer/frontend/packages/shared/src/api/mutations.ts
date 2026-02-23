@@ -48,6 +48,7 @@ import {
   optionListIdUpdatePath,
   processEditorPath,
   selectedMaskinportenScopesPath,
+  appSettingsPath,
   createInstancePath,
   dataTypePath,
   optionListPath,
@@ -99,6 +100,7 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeListResponse';
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
+import type { AppSettings } from 'app-shared/types/AppSettings';
 
 const headers = {
   Accept: 'application/json',
@@ -201,6 +203,7 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
+export const updateAppSettings = (org: string, app: string, payload: AppSettings) => put(appSettingsPath(org, app), payload);
 
 // Organisation library
 export const updateSharedResources = async (org: string, payload: UpdateSharedResourcesRequest): Promise<void> => put(orgLibraryUpdatePath(org), payload);

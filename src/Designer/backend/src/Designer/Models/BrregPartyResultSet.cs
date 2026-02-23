@@ -7,6 +7,7 @@ namespace Altinn.Studio.Designer.Models
     {
         [JsonPropertyName("organisasjonsnummer")]
         public required string Organisasjonsnummer { get; set; }
+
         [JsonPropertyName("navn")]
         public string? Navn { get; set; }
     }
@@ -15,6 +16,7 @@ namespace Altinn.Studio.Designer.Models
     {
         [JsonPropertyName("enheter")]
         public List<BrregParty>? Parties { get; set; }
+
         [JsonPropertyName("underenheter")]
         public List<BrregParty>? SubParties { get; set; }
     }

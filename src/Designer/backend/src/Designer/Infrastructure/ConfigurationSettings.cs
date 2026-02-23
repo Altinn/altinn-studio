@@ -17,7 +17,10 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="configuration">The configuration for the project</param>
-        public static IServiceCollection ConfigureNonMarkedSettings(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection ConfigureNonMarkedSettings(
+            this IServiceCollection services,
+            IConfiguration configuration
+        )
         {
             services.RegisterSettings<KeyVaultSettings>(configuration, "kvSetting");
             services.RegisterSettings<AzureDevOpsSettings>(configuration, "Integrations:AzureDevOpsSettings");

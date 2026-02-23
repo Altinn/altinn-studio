@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ValidateCardContent, type ValidateCardContentProps } from './ValidateCardContent';
-import { Scope } from './ValidateNavigationUtils';
+import { Scope } from '../utils/ValidateNavigationUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { selectSuggestionOption } from './ValidateNavigationTestUtils';
+import { selectSuggestionOption } from '../utils/ValidateNavigationTestUtils';
 
 describe('ValidateCardContent', () => {
   it('renders page selector when scope is SelectedPages', () => {

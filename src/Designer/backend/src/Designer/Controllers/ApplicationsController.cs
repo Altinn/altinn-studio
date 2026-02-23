@@ -63,8 +63,10 @@ public class ApplicationsController : ControllerBase
     {
         try
         {
-            IEnumerable<EnvironmentModel> environments =
-                await _environmentsService.GetOrganizationEnvironments(org);
+            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(
+                org,
+                ct
+            );
 
             var getDeploymentsTasks = environments.Select(async env =>
             {
@@ -84,25 +86,29 @@ public class ApplicationsController : ControllerBase
                 }
                 catch (HttpRequestException e)
                 {
-                    _logger.LogError(e, "Could not reach environment {EnvName} for org {Org}.", env.Name, org.WithoutLineBreaks());
+                    _logger.LogError(
+                        e,
+                        "Could not reach environment {EnvName} for org {Org}.",
+                        env.Name,
+                        org.WithoutLineBreaks()
+                    );
                     return (env, new List<AppDeployment>());
                 }
             });
 
-            (EnvironmentModel, List<AppDeployment>)[] deployments = await Task.WhenAll(
-                getDeploymentsTasks
-            );
+            (EnvironmentModel, List<AppDeployment>)[] deployments = await Task.WhenAll(getDeploymentsTasks);
 
             var applications = deployments.ToDictionary(
                 g => g.Item1.Name,
                 g =>
                     g.Item2.Select(deployment => new PublishedApplication()
-                    {
-                        Org = deployment.Org,
-                        App = deployment.App,
-                        Env = g.Item1.Name, // deployment.Env uses prod (not production)
-                        Version = deployment.ImageTag,
-                    }).ToList()
+                        {
+                            Org = deployment.Org,
+                            App = deployment.App,
+                            Env = g.Item1.Name, // deployment.Env uses prod (not production)
+                            Version = deployment.ImageTag,
+                        })
+                        .ToList()
             );
 
             return Ok(applications);
@@ -151,12 +157,15 @@ public class ApplicationsController : ControllerBase
                 runtimeAppDeployment.ImageTag
             );
 
-            var indexFileTask = _giteaClient.GetFileAsync(org, app, $"App/views/Home/Index.cshtml", releaseEntity.TargetCommitish, ct);
-
-            var deploymentEntity = await _deploymentRepository.Get(
+            var indexFileTask = _giteaClient.GetFileAsync(
                 org,
-                runtimeAppDeployment.BuildId
+                app,
+                $"App/views/Home/Index.cshtml",
+                releaseEntity.TargetCommitish,
+                ct
             );
+
+            var deploymentEntity = await _deploymentRepository.Get(org, runtimeAppDeployment.BuildId);
 
             var indexFile = await indexFileTask;
             var applicationMetadata = await applicationMetadataTask;
@@ -166,9 +175,7 @@ public class ApplicationsController : ControllerBase
             {
                 try
                 {
-                    var indexFileContent = Encoding.UTF8.GetString(
-                        Convert.FromBase64String(indexFile.Content)
-                    );
+                    var indexFileContent = Encoding.UTF8.GetString(Convert.FromBase64String(indexFile.Content));
                     if (!string.IsNullOrEmpty(indexFileContent))
                     {
                         AppFrontendVersionHelper.TryGetFrontendVersionFromIndexContent(

@@ -10,12 +10,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetAltinn2LinkServicesTests : ResourceAdminControllerTestsBaseClass<GetAltinn2LinkServicesTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetAltinn2LinkServicesTests
+        : ResourceAdminControllerTestsBaseClass<GetAltinn2LinkServicesTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public GetAltinn2LinkServicesTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetAltinn2LinkServicesTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task GetFilteredLinkServices()
@@ -25,20 +25,28 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri))
             {
                 List<AvailableService> services = new List<AvailableService>();
-                services.Add(new AvailableService()
-                {
-                    ServiceName = "Test",
-                    ExternalServiceCode = "Test",
-                    ExternalServiceEditionCode = 123
-                });
-                services.Add(new AvailableService()
-                {
-                    ServiceName = "Test 2",
-                    ExternalServiceCode = "Test2",
-                    ExternalServiceEditionCode = 123
-                });
-                ResourceRegistryMock.Setup(r => r.GetResourceList(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).ReturnsAsync(new List<ServiceResource>());
-                Altinn2MetadataClientMock.Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(services);
+                services.Add(
+                    new AvailableService()
+                    {
+                        ServiceName = "Test",
+                        ExternalServiceCode = "Test",
+                        ExternalServiceEditionCode = 123,
+                    }
+                );
+                services.Add(
+                    new AvailableService()
+                    {
+                        ServiceName = "Test 2",
+                        ExternalServiceCode = "Test2",
+                        ExternalServiceEditionCode = 123,
+                    }
+                );
+                ResourceRegistryMock
+                    .Setup(r => r.GetResourceList(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .ReturnsAsync(new List<ServiceResource>());
+                Altinn2MetadataClientMock
+                    .Setup(r => r.AvailableServices(It.IsAny<int>(), It.IsAny<string>()))
+                    .ReturnsAsync(services);
 
                 // Act
                 using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);

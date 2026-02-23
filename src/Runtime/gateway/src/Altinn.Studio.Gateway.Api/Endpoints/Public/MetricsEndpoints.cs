@@ -14,6 +14,8 @@ internal static class MetricsEndpoints
 
         metricsApi.MapGet("/app/errors", HandleMetrics.GetAppErrorMetrics).WithName("GetAppErrorMetrics");
 
+        metricsApi.MapGet("/app/activity", HandleMetrics.GetAppActivityMetrics).WithName("GetAppActivityMetrics");
+
         metricsApi.MapGet("/app/health", HandleMetrics.GetAppHealthMetrics).WithName("GetAppHealthMetrics");
 
         return publicApiV1;

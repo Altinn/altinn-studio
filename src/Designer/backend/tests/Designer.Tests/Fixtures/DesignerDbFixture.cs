@@ -14,6 +14,7 @@ public class DesignerDbFixture : IAsyncLifetime
     public string ConnectionString => _postgreSqlContainer.GetConnectionString();
 
     public DesignerdbContext DbContext;
+
     public async Task InitializeAsync()
     {
         _postgreSqlContainer = TestDbProvider.Instance.CreatePostgresContainer();
@@ -24,9 +25,7 @@ public class DesignerDbFixture : IAsyncLifetime
 
     private DbContextOptions<DesignerdbContext> CreatePostgresDbContextOptions()
     {
-        return new DbContextOptionsBuilder<DesignerdbContext>()
-            .UseNpgsql(ConnectionString)
-            .Options;
+        return new DbContextOptionsBuilder<DesignerdbContext>().UseNpgsql(ConnectionString).Options;
     }
 
     public async Task DisposeAsync()

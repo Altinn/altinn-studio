@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { Scope } from './ValidateNavigationUtils';
+import { Scope } from './utils/ValidateNavigationUtils';
 import {
   ValidateNavigationConfig,
   type ValidateNavigationConfigProps,
@@ -56,6 +56,12 @@ const renderValidateNavigationConfig = (props: Partial<ValidateNavigationConfigP
   const defaultProps: ValidateNavigationConfigProps = {
     propertyLabel,
     scope: Scope.AllTasks,
+    onSave: jest.fn(),
+    onDelete: jest.fn(),
+    config: {
+      types: [],
+      pageScope: { value: '', label: '' },
+    },
   };
   return render(<ValidateNavigationConfig {...defaultProps} {...props} />);
 };

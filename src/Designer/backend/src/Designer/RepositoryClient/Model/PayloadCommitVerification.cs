@@ -22,9 +22,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="PayloadCommitVerification"/> class.
         /// </summary>
-        public PayloadCommitVerification()
-        {
-        }
+        public PayloadCommitVerification() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PayloadCommitVerification" /> class.
@@ -33,7 +31,12 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="reason">Reason.</param>
         /// <param name="signature">Signature.</param>
         /// <param name="verified">Verified.</param>
-        public PayloadCommitVerification(string payload = default(string), string reason = default(string), string signature = default(string), bool? verified = default(bool?))
+        public PayloadCommitVerification(
+            string payload = default(string),
+            string reason = default(string),
+            string signature = default(string),
+            bool? verified = default(bool?)
+        )
         {
             this.Payload = payload;
             this.Reason = reason;

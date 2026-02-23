@@ -1,13 +1,13 @@
 import React from 'react';
-import { type ValidateConfigState } from './ValidateNavigationTypes';
+import { type InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { ValidateRuleConfig } from './ValidateRuleConfig';
 import { PagesSelector, TaskSelector, TasksSelector } from './ValidateTargetSelectors';
-import { Scope } from './ValidateNavigationUtils';
+import { Scope } from '../utils/ValidateNavigationUtils';
 
 export type ValidateCardContentProps = {
   scope: Scope;
-  config: ValidateConfigState;
-  onChange: (updates: Partial<ValidateConfigState>) => void;
+  config: InternalConfigState;
+  onChange: (updates: Partial<InternalConfigState>) => void;
 };
 
 export const ValidateCardContent = ({ scope, config, onChange }: ValidateCardContentProps) => {

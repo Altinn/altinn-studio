@@ -26,7 +26,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
         public AltinnAuthenticationClient(
             HttpClient httpClient,
             PlatformSettings options,
-            ILogger<AltinnAuthenticationClient> logger)
+            ILogger<AltinnAuthenticationClient> logger
+        )
         {
             _httpClient = httpClient;
             _platformSettings = options;
@@ -40,15 +41,24 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
 
             if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
             {
-                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
+                _httpClient.DefaultRequestHeaders.Add(
+                    _platformSettings.SubscriptionKeyHeaderName,
+                    _platformSettings.SubscriptionKeyTT02
+                );
             }
             else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
             {
-                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyYT01);
+                _httpClient.DefaultRequestHeaders.Add(
+                    _platformSettings.SubscriptionKeyHeaderName,
+                    _platformSettings.SubscriptionKeyYT01
+                );
             }
             else if (uri.Host.Equals("platform.altinn.no", StringComparison.InvariantCultureIgnoreCase))
             {
-                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyProd);
+                _httpClient.DefaultRequestHeaders.Add(
+                    _platformSettings.SubscriptionKeyHeaderName,
+                    _platformSettings.SubscriptionKeyProd
+                );
             }
 
             /*
@@ -57,7 +67,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
              */
             using HttpRequestMessage message = new HttpRequestMessage
             {
-                RequestUri = new Uri($"{uri.Scheme}://{uri.Host}:{uri.Port}/{_platformSettings.ApiAuthenticationConvertUri}")
+                RequestUri = new Uri(
+                    $"{uri.Scheme}://{uri.Host}:{uri.Port}/{_platformSettings.ApiAuthenticationConvertUri}"
+                ),
             };
 
             using HttpResponseMessage response = await _httpClient.SendAsync(message);

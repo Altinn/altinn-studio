@@ -1,5 +1,6 @@
 export type LayoutSets = {
   sets: LayoutSetConfig[];
+  validationOnNavigation?: ValidationOnNavigation;
 };
 
 export type LayoutSet = {
@@ -12,3 +13,8 @@ export type LayoutSet = {
 export type LayoutSetType = 'subform';
 
 export type LayoutSetConfig = LayoutSet;
+
+export type ValidationOnNavigation = {
+  show: string[];
+  page: string;
+};

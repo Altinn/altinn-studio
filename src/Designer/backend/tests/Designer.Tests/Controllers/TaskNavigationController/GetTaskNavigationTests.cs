@@ -11,9 +11,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TaskNavigationController;
 
-public class GetTaskNavigationTests(WebApplicationFactory<Program> factory) : DesignerEndpointsTestsBase<GetTaskNavigationTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+public class GetTaskNavigationTests(WebApplicationFactory<Program> factory)
+    : DesignerEndpointsTestsBase<GetTaskNavigationTests>(factory),
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/task-navigation";
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/task-navigation";
 
     [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
@@ -28,23 +31,19 @@ public class GetTaskNavigationTests(WebApplicationFactory<Program> factory) : De
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        string expected = JsonSerializer.Serialize(new List<TaskNavigationGroupDto>(){
-            new ()
+        string expected = JsonSerializer.Serialize(
+            new List<TaskNavigationGroupDto>()
             {
-                TaskId = "Task_1",
-                TaskType = "data",
-                Name = "tasks.form"
-            },
-            new ()
-            {
-                TaskId = "Task_Confirm",
-                TaskType = "confirmation"
-            },
-            new ()
-            {
-                TaskType = "receipt"
+                new()
+                {
+                    TaskId = "Task_1",
+                    TaskType = "data",
+                    Name = "tasks.form",
+                },
+                new() { TaskId = "Task_Confirm", TaskType = "confirmation" },
+                new() { TaskType = "receipt" },
             }
-        });
+        );
         string actual = await response.Content.ReadAsStringAsync();
         Assert.Equal(expected, actual);
     }

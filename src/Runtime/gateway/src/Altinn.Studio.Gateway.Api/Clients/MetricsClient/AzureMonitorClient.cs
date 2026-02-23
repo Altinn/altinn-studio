@@ -4,19 +4,23 @@ using Altinn.Studio.Gateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 using Altinn.Studio.Gateway.Api.Settings;
 using Azure;
 using Azure.Core;
+using Azure.Identity;
 using Azure.Monitor.Query.Logs;
 using Azure.Monitor.Query.Logs.Models;
 using Azure.ResourceManager.OperationalInsights;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 
 internal sealed class AzureMonitorClient(
     IOptionsMonitor<GatewayContext> _gatewayContext,
-    LogsQueryClient _logsQueryClient
+    LogsQueryClient _logsQueryClient,
+    ILogger<AzureMonitorClient> _logger
 ) : IMetricsClient
 {
     private const int MaxRange = 10080;
+    private const int MaxActivityWindowDays = 30;
 
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
     {
@@ -98,6 +102,89 @@ internal sealed class AzureMonitorClient(
                     Count = row.Sum(value => value.Count),
                 };
             });
+    }
+
+    public async Task<ActiveAppsResult> GetActiveApps(int windowDays, CancellationToken cancellationToken)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowDays);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(windowDays, MaxActivityWindowDays);
+
+        try
+        {
+            var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
+            var query =
+                $@"
+                AppRequests
+                | where TimeGenerated > ago({windowDays}d)
+                | where Name != 'GET /health'
+                | summarize Count = count() by AppRoleName";
+
+            Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+                logAnalyticsWorkspaceId,
+                query,
+                new LogsQueryTimeRange(TimeSpan.FromDays(windowDays)),
+                cancellationToken: cancellationToken
+            );
+
+            var activeAppRows = response
+                .Value.Table.Rows.Select(row => new
+                {
+                    AppName = row.GetString("AppRoleName") ?? string.Empty,
+                    Count = row.GetDouble("Count") ?? 0,
+                })
+                .Where(static row => row.AppName.Length > 0)
+                .GroupBy(static row => row.AppName, StringComparer.Ordinal)
+                .Select(group => new { AppName = group.Key, Count = group.Sum(row => row.Count) })
+                .ToArray();
+
+            var activeAppRequestCounts = activeAppRows.ToDictionary(
+                static row => row.AppName,
+                static row => row.Count,
+                StringComparer.Ordinal
+            );
+
+            return new ActiveAppsResult { Status = ActivityStatus.Ok, ActiveAppRequestCounts = activeAppRequestCounts };
+        }
+        catch (CredentialUnavailableException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor credentials are unavailable while getting active apps.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Unavailable,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
+        }
+        catch (AuthenticationFailedException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor authentication failed while getting active apps.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Unavailable,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
+        }
+        catch (RequestFailedException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor request failed while getting active apps.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Unavailable,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while getting active apps from Azure Monitor.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Error,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
+        }
     }
 
     public async Task<IEnumerable<AppFailedRequest>> GetAppFailedRequests(

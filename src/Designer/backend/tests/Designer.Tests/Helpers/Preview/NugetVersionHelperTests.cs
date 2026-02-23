@@ -3,7 +3,6 @@ using Xunit;
 
 namespace Designer.Tests.Helpers.Preview
 {
-
     public class NugetVersionHelperTests
     {
         [Fact]

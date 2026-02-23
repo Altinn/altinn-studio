@@ -28,15 +28,19 @@ namespace Designer.Tests.Services
             {
                 new()
                 {
-                    Organization = new Organization { Username = org }, CanCreateOrgRepo = expectedCanCreate
-                }
+                    Organization = new Organization { Username = org },
+                    CanCreateOrgRepo = expectedCanCreate,
+                },
             };
 
             _giteaClientMock.Setup(api => api.GetTeams()).ReturnsAsync(teams);
 
             var userService = new UserService(_giteaClientMock.Object);
 
-            AltinnOrgEditingContext altinnOrgEditingContext = AltinnOrgEditingContext.FromOrgDeveloper(org, "developer");
+            AltinnOrgEditingContext altinnOrgEditingContext = AltinnOrgEditingContext.FromOrgDeveloper(
+                org,
+                "developer"
+            );
             var result = await userService.GetUserOrgPermission(altinnOrgEditingContext);
 
             Assert.NotNull(result);

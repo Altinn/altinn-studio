@@ -92,10 +92,7 @@ public class OrgTextsServiceTests : IDisposable
 
         const string EditedValue = "edited value!";
         const string EditedId = "someId";
-        Dictionary<string, string> newTextIds = new()
-        {
-            { EditedId, EditedValue },
-        };
+        Dictionary<string, string> newTextIds = new() { { EditedId, EditedValue } };
         TextResource expectedTextResources = GetInitialTextResources();
         expectedTextResources.Resources.Find(e => e.Id == EditedId).Value = EditedValue;
 
@@ -124,10 +121,7 @@ public class OrgTextsServiceTests : IDisposable
 
         const string NewId = "someNewId";
         const string NewValue = "someNewValue";
-        Dictionary<string, string> newTextIds = new()
-        {
-            { NewId, NewValue },
-        };
+        Dictionary<string, string> newTextIds = new() { { NewId, NewValue } };
         TextResource expectedTextResources = GetInitialTextResources();
         TextResourceElement expectedResourceElement = new() { Id = NewId, Value = NewValue };
         expectedTextResources.Resources.Add(expectedResourceElement);
@@ -155,13 +149,12 @@ public class OrgTextsServiceTests : IDisposable
 
         const string IdOfItemToUpdate = "TextUsingVariables";
         const string NewValue = "some value with variables number 1 '{0}' and 2 '{1}'";
-        Dictionary<string, string> newTextIds = new()
-        {
-            { IdOfItemToUpdate, NewValue },
-        };
+        Dictionary<string, string> newTextIds = new() { { IdOfItemToUpdate, NewValue } };
         TextResource expectedTextResources = GetInitialTextResources();
         expectedTextResources.Resources.Find(e => e.Id == IdOfItemToUpdate).Value = NewValue;
-        TextResourceElement expectedResourceElement = expectedTextResources.Resources.Find(e => e.Id == IdOfItemToUpdate);
+        TextResourceElement expectedResourceElement = expectedTextResources.Resources.Find(e =>
+            e.Id == IdOfItemToUpdate
+        );
 
         // Act
         await service.UpdateTextsForKeys(TargetOrg, Developer, newTextIds, lang);
@@ -187,10 +180,7 @@ public class OrgTextsServiceTests : IDisposable
 
         const string TextElementId = "someNewId";
         const string TextElementValue = "someNewValue";
-        Dictionary<string, string> keyValuePairToUpdate = new()
-        {
-            { TextElementId, TextElementValue },
-        };
+        Dictionary<string, string> keyValuePairToUpdate = new() { { TextElementId, TextElementValue } };
 
         // Act
         await service.UpdateTextsForKeys(TargetOrg, Developer, keyValuePairToUpdate, lang);
@@ -251,13 +241,14 @@ public class OrgTextsServiceTests : IDisposable
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
     };
 
     private static OrgTextsService GetOrgTextsService()
     {
-        AltinnGitRepositoryFactory altinnGitRepositoryFactory =
-            new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory()
+        );
         OrgTextsService service = new(altinnGitRepositoryFactory);
 
         return service;

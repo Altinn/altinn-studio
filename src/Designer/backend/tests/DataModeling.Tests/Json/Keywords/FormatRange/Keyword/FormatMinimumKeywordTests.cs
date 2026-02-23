@@ -23,7 +23,8 @@ public class FormatMinimumKeywordTests : ValueKeywordTestsBase<FormatMinimumKeyw
         var expectedKeyword = new FormatMinimumKeyword(value);
         object expectedKeywordObject = new FormatMinimumKeyword(value);
 
-        Given.That.KeywordCreatedWithValue(value)
+        Given
+            .That.KeywordCreatedWithValue(value)
             .Then.KeywordShouldEqual(expectedKeyword)
             .And.KeywordShouldEqualObject(expectedKeywordObject)
             .But.KeywordShouldNotEqual(null);

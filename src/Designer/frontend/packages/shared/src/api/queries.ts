@@ -62,6 +62,7 @@ import {
   authStatusAnsattporten,
   availableMaskinportenScopesPath,
   selectedMaskinportenScopesPath,
+  appSettingsPath,
   resourceAccessPackageServicesPath,
   optionListPath,
   optionListReferencesPath,
@@ -127,10 +128,12 @@ import type { FeatureName } from 'app-shared/enums/CanUseFeature';
 import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
 import type { AppValidationResult } from 'app-development/hooks/queries/useAppValidationQuery';
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
+import type { AppSettings } from 'app-shared/types/AppSettings';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
+export const getAppSettings = (org: string, app: string) => get<AppSettings>(appSettingsPath(org, app));
 
 export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));

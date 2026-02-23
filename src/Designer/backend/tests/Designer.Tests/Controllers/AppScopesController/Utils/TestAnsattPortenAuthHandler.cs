@@ -14,11 +14,12 @@ namespace Designer.Tests.Controllers.AppScopesController.Utils;
 
 public class TestAnsattPortenAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    public TestAnsattPortenAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger, UrlEncoder encoder)
-        : base(options, logger, encoder)
-    {
-    }
+    public TestAnsattPortenAuthHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder
+    )
+        : base(options, logger, encoder) { }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -28,11 +29,8 @@ public class TestAnsattPortenAuthHandler : AuthenticationHandler<AuthenticationS
             {
                 type = "ansattporten:altinn:service",
                 resource = "urn:altinn:resource:5613:1",
-                reportees = new[]
-                {
-                    new { ID = "0192:991825827" }
-                }
-            }
+                reportees = new[] { new { ID = "0192:991825827" } },
+            },
         };
 
         var header = new JwtHeader();
@@ -42,7 +40,7 @@ public class TestAnsattPortenAuthHandler : AuthenticationHandler<AuthenticationS
             { "aud", "test" },
             { "sub", "testUser" },
             { "exp", new DateTimeOffset(DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds() },
-            { "authorization_details", JsonSerializer.SerializeToElement(authorizationDetails) }
+            { "authorization_details", JsonSerializer.SerializeToElement(authorizationDetails) },
         };
 
         var token = new JwtSecurityToken(header, payload);
@@ -50,15 +48,14 @@ public class TestAnsattPortenAuthHandler : AuthenticationHandler<AuthenticationS
         var accessToken = handler.WriteToken(token);
 
         var properties = new AuthenticationProperties();
-        properties.StoreTokens(new[]
-        {
-            new AuthenticationToken { Name = "access_token", Value = accessToken }
-        });
+        properties.StoreTokens(
+            new[]
+            {
+                new AuthenticationToken { Name = "access_token", Value = accessToken },
+            }
+        );
 
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.Name, "testUser")
-        };
+        var claims = new[] { new Claim(ClaimTypes.Name, "testUser") };
 
         var identity = new ClaimsIdentity(claims, TestAuthConstants.TestAuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);

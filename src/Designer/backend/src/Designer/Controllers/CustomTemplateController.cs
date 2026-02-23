@@ -28,10 +28,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             List<CustomTemplateDto> templates = await _templateService.GetCustomTemplateList();
 
-            return Ok(new CustomTemplateListDto()
-            {
-                Templates = templates
-            });
+            return Ok(new CustomTemplateListDto() { Templates = templates });
         }
     }
 }

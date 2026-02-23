@@ -10,5 +10,5 @@ public enum TaskType
     Feedback,
     Signing,
     Payment,
-    Pdf
+    Pdf,
 }

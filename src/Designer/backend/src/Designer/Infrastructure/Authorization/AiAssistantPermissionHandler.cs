@@ -16,8 +16,10 @@ public class AiAssistantPermissionHandler : AuthorizationHandler<AiAssistantPerm
         _userOrganizationService = userOrganizationService;
     }
 
-    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
-        AiAssistantPermissionRequirement requirement)
+    protected override async Task HandleRequirementAsync(
+        AuthorizationHandlerContext context,
+        AiAssistantPermissionRequirement requirement
+    )
     {
         if (IsNotAuthenticatedUser(context))
         {

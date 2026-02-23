@@ -31,7 +31,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="generalSettings">General settings for the applicatoin.</param>
         /// <param name="logger">Instance of <see cref="ILogger"/></param>
         /// <param name="httpContextAccessor">Instance of <see cref="IHttpContextAccessor"/></param>
-        public SourceControlLoggingDecorator(ISourceControl decoratedService, GeneralSettings generalSettings, ILogger<SourceControlLoggingDecorator> logger, IHttpContextAccessor httpContextAccessor)
+        public SourceControlLoggingDecorator(
+            ISourceControl decoratedService,
+            GeneralSettings generalSettings,
+            ILogger<SourceControlLoggingDecorator> logger,
+            IHttpContextAccessor httpContextAccessor
+        )
         {
             _decoratedService = decoratedService;
             _generalSettings = generalSettings;
@@ -54,7 +59,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, string destinationPath, string branchName = "")
+        public string CloneRemoteRepository(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            string destinationPath,
+            string branchName = ""
+        )
         {
             try
             {
@@ -62,7 +71,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(CloneRemoteRepository), authenticatedContext.Org, authenticatedContext.Repo, destinationPath, branchName);
+                LogError(
+                    ex,
+                    nameof(CloneRemoteRepository),
+                    authenticatedContext.Org,
+                    authenticatedContext.Repo,
+                    destinationPath,
+                    branchName
+                );
                 throw;
             }
         }
@@ -82,7 +98,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message)
+        public void CommitAndPushChanges(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            string branchName,
+            string localPath,
+            string message
+        )
         {
             try
             {
@@ -110,7 +131,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<bool> CreatePullRequest(AltinnRepoEditingContext editingContext, string target, string source, string title)
+        public Task<bool> CreatePullRequest(
+            AltinnRepoEditingContext editingContext,
+            string target,
+            string source,
+            string title
+        )
         {
             try
             {
@@ -208,7 +234,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo)
+        public void PushChangesForRepository(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            CommitInfo commitInfo
+        )
         {
             try
             {
@@ -362,7 +391,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null)
+        public void CreateLocalBranch(
+            AltinnRepoEditingContext editingContext,
+            string branchName,
+            string commitSha = null
+        )
         {
             try
             {
@@ -418,7 +451,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void DeleteRemoteBranchIfExists(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+        public void DeleteRemoteBranchIfExists(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            string branchName
+        )
         {
             try
             {
@@ -446,7 +482,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public RepoStatus CheckoutBranchWithValidation(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName)
+        public RepoStatus CheckoutBranchWithValidation(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            string branchName
+        )
         {
             try
             {
@@ -454,7 +493,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             catch (Exception ex)
             {
-                LogError(ex, nameof(CheckoutBranchWithValidation), authenticatedContext.Org, authenticatedContext.Repo, authenticatedContext.Developer, branchName);
+                LogError(
+                    ex,
+                    nameof(CheckoutBranchWithValidation),
+                    authenticatedContext.Org,
+                    authenticatedContext.Repo,
+                    authenticatedContext.Developer,
+                    branchName
+                );
                 throw;
             }
         }
@@ -496,7 +542,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             LogError(ex, method, org, repository, repository, string.Empty);
         }
 
-        private void LogError(Exception ex, string method, string org, string repository, string destinationPath, string branch)
+        private void LogError(
+            Exception ex,
+            string method,
+            string org,
+            string repository,
+            string destinationPath,
+            string branch
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
@@ -508,8 +561,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 org.WithoutLineBreaks(),
                 repository.WithoutLineBreaks(),
                 destinationPath.WithoutLineBreaks(),
-                branch.WithoutLineBreaks());
+                branch.WithoutLineBreaks()
+            );
         }
-
     }
 }

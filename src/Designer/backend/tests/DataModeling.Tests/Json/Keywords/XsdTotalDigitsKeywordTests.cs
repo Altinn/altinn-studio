@@ -29,7 +29,8 @@ public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKe
         var expectedKeyword = new XsdTotalDigitsKeyword(value);
         object expectedKeywordObject = new XsdTotalDigitsKeyword(value);
 
-        Given.That.KeywordCreatedWithValue(value)
+        Given
+            .That.KeywordCreatedWithValue(value)
             .Then.KeywordShouldEqual(expectedKeyword)
             .And.KeywordShouldEqualObject(expectedKeywordObject)
             .But.KeywordShouldNotEqual(null);
@@ -59,7 +60,8 @@ public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKe
         Assert.Equal(shouldBeValid, validationResults.IsValid);
     }
 
-    private static string TotalDigitsSchema(uint value) => @$"
+    private static string TotalDigitsSchema(uint value) =>
+        @$"
                 {{
                   ""$id"": ""totaldigits.schema.json"",
                   ""$schema"": ""https://json-schema.org/draft/2020-12/schema"",
@@ -74,7 +76,8 @@ public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKe
                 }}
             ";
 
-    private static string TotalDigitsJson(string value) => @$"{{
+    private static string TotalDigitsJson(string value) =>
+        @$"{{
                 ""digitsExample"": {value}
         }}";
 }

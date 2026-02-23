@@ -33,10 +33,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// </summary>
         public string AuthorizationPolicyTemplate
         {
-            get
-            {
-                return "App/config/authorization/policy.xml";
-            }
+            get { return "App/config/authorization/policy.xml"; }
         }
 
         /// <summary>
@@ -44,10 +41,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// </summary>
         public string TemplatePath
         {
-            get
-            {
-                return TemplateLocation;
-            }
+            get { return TemplateLocation; }
         }
 
         /// <summary>

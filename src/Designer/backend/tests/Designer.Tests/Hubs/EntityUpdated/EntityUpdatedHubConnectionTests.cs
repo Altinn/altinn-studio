@@ -8,13 +8,14 @@ using Xunit;
 
 namespace Designer.Tests.Hubs.EntityUpdated;
 
-public class EntityUpdatedHubConnectionTests : DesignerEndpointsTestsBase<EntityUpdatedHubConnectionTests>, IClassFixture<WebApplicationFactory<Program>>
+public class EntityUpdatedHubConnectionTests
+    : DesignerEndpointsTestsBase<EntityUpdatedHubConnectionTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private HubConnection HubConnection { get; set; }
 
-    public EntityUpdatedHubConnectionTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public EntityUpdatedHubConnectionTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Fact]
     public async Task Connect_Disconnect_Should_WorkAsExpected()
@@ -31,19 +32,23 @@ public class EntityUpdatedHubConnectionTests : DesignerEndpointsTestsBase<Entity
     private async Task ConnectionStarted()
     {
         HubConnection = new HubConnectionBuilder()
-            .WithUrl("ws://localhost/hubs/entity-updated", o =>
-            {
-                o.HttpMessageHandlerFactory = h => GetHandler(HttpClient);
-            }).Build();
+            .WithUrl(
+                "ws://localhost/hubs/entity-updated",
+                o =>
+                {
+                    o.HttpMessageHandlerFactory = h => GetHandler(HttpClient);
+                }
+            )
+            .Build();
 
         await HubConnection.StartAsync();
     }
 
-
     private static HttpMessageHandler GetHandler(HttpClient client)
     {
-        var handlerField = client.GetType().BaseType!.GetField("_handler", BindingFlags.NonPublic | BindingFlags.Instance);
+        var handlerField = client
+            .GetType()
+            .BaseType!.GetField("_handler", BindingFlags.NonPublic | BindingFlags.Instance);
         return handlerField!.GetValue(client) as HttpMessageHandler;
     }
-
 }

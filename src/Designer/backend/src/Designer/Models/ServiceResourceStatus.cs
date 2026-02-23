@@ -10,6 +10,5 @@ namespace Altinn.Studio.Designer.Models
         public string ResourceVersion { get; set; }
 
         public List<ResourceVersionInfo> PublishedVersions { get; set; }
-
     }
 }

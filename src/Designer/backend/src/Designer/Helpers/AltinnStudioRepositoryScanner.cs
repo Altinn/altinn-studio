@@ -31,7 +31,9 @@ public static class AltinnStudioRepositoryScanner
     {
         if (path != null)
         {
-            return path.EnumerateFileSystemInfos(searchPattern, SearchOption.TopDirectoryOnly).Any() ? path.FullName : GetDirectoryPathBySearchPattern(path.Parent, searchPattern);
+            return path.EnumerateFileSystemInfos(searchPattern, SearchOption.TopDirectoryOnly).Any()
+                ? path.FullName
+                : GetDirectoryPathBySearchPattern(path.Parent, searchPattern);
         }
 
         string message = $"Cannot find '{searchPattern}' and resolve the base directory in the directory tree.";

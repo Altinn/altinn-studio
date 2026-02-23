@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -45,9 +46,14 @@ public class EnvironmentsService : IEnvironmentsService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<EnvironmentModel>> GetOrganizationEnvironments(string org)
+    public async Task<IEnumerable<EnvironmentModel>> GetOrganizationEnvironments(
+        string org,
+        CancellationToken cancellationToken = default
+    )
     {
-        var (orgTask, envTask) = (GetAltinnOrgs(), GetEnvironments());
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var (orgTask, envTask) = (GetAltinnOrgs(cancellationToken), GetEnvironments(cancellationToken));
         await Task.WhenAll(orgTask, envTask);
         var (altinnOrgs, environments) = (orgTask.Result, envTask.Result);
 
@@ -100,21 +106,23 @@ public class EnvironmentsService : IEnvironmentsService
 
     public Task<List<EnvironmentModel>> GetEnvironments()
     {
+        return GetEnvironments(CancellationToken.None);
+    }
+
+    private Task<List<EnvironmentModel>> GetEnvironments(CancellationToken cancellationToken)
+    {
         return _cache.GetOrCreateAsync(
             "EnvironmentsService:Environments",
             async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
-                using var response = await _httpClient.GetAsync(_generalSettings.EnvironmentsUrl);
+                using var response = await _httpClient.GetAsync(_generalSettings.EnvironmentsUrl, cancellationToken);
                 response.EnsureSuccessStatusCode();
-                var environmentsModel =
-                    await response.Content.ReadFromJsonAsync<EnvironmentsModel>();
+                var environmentsModel = await response.Content.ReadFromJsonAsync<EnvironmentsModel>(cancellationToken);
 
                 if (environmentsModel == null)
                 {
-                    throw new InvalidOperationException(
-                        "Failed to deserialize response content or content was empty."
-                    );
+                    throw new InvalidOperationException("Failed to deserialize response content or content was empty.");
                 }
 
                 // Pretend that production environment does not exist in dev/staging, there is very limited access anyway
@@ -148,7 +156,12 @@ public class EnvironmentsService : IEnvironmentsService
         // We match the established behavior to ensure consistent authorization across all services
         // See: src/App/backend/src/Altinn.App.Core/Internal/AltinnCdn/AltinnCdnClient.cs:32
         // See: src/Runtime/operator/internal/operatorcontext/operatorcontext.go:88
-        if (org == "ttd" && string.IsNullOrWhiteSpace(orgModel.OrgNr) && orgs.TryGetValue("digdir", out var digdirOrg) && digdirOrg is not null)
+        if (
+            org == "ttd"
+            && string.IsNullOrWhiteSpace(orgModel.OrgNr)
+            && orgs.TryGetValue("digdir", out var digdirOrg)
+            && digdirOrg is not null
+        )
         {
             return digdirOrg.OrgNr;
         }
@@ -156,22 +169,20 @@ public class EnvironmentsService : IEnvironmentsService
         return orgModel.OrgNr;
     }
 
-    private Task<Dictionary<string, AltinnOrgModel>> GetAltinnOrgs()
+    private Task<Dictionary<string, AltinnOrgModel>> GetAltinnOrgs(CancellationToken cancellationToken = default)
     {
         return _cache.GetOrCreateAsync(
             "EnvironmentsService:AltinnOrgs",
             async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
-                using var response = await _httpClient.GetAsync(_generalSettings.OrganizationsUrl);
+                using var response = await _httpClient.GetAsync(_generalSettings.OrganizationsUrl, cancellationToken);
                 response.EnsureSuccessStatusCode();
-                var orgsModel = await response.Content.ReadFromJsonAsync<AltinnOrgsModel>();
+                var orgsModel = await response.Content.ReadFromJsonAsync<AltinnOrgsModel>(cancellationToken);
 
                 if (orgsModel == null)
                 {
-                    throw new InvalidOperationException(
-                        "Failed to deserialize response content or content was empty."
-                    );
+                    throw new InvalidOperationException("Failed to deserialize response content or content was empty.");
                 }
                 return orgsModel.Orgs;
             }

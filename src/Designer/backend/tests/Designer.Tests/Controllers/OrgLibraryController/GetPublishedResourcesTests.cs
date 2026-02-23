@@ -19,7 +19,8 @@ using Xunit;
 namespace Designer.Tests.Controllers.OrgLibraryController;
 
 public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
-    : DesignerEndpointsTestsBase<GetPublishedResourcesTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+    : DesignerEndpointsTestsBase<GetPublishedResourcesTests>(factory),
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<ISharedContentClient> _sharedContentClientMock = new();
     private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
@@ -89,7 +90,9 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
         SetupOrg(orgName);
 
         _sharedContentClientMock
-            .Setup(c => c.GetPublishedResourcesForOrg(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(c =>
+                c.GetPublishedResourcesForOrg(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
             .Throws(new SharedContentRequestException(errorMessage, new Exception("Some inner exception")));
 
         // Act
@@ -103,10 +106,7 @@ public class GetPublishedResourcesTests(WebApplicationFactory<Program> factory)
 
     private void SetupOrg(string orgName)
     {
-        _userOrganizationServiceMock
-            .Setup(s => s.UserIsMemberOfOrganization(orgName))
-            .ReturnsAsync(true)
-            .Verifiable();
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(orgName)).ReturnsAsync(true).Verifiable();
     }
 
     private static string ApiUrl(string orgName, string path) => $"{ApiUrl(orgName)}?path={path}";

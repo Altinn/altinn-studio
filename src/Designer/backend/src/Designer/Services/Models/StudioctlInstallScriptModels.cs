@@ -6,13 +6,13 @@ public enum StudioctlInstallScriptStatus
 {
     Ok = 0,
     NotFound = 1,
-    Unavailable = 2
+    Unavailable = 2,
 }
 
 public enum StudioctlInstallScriptType
 {
     Bash = 0,
-    PowerShell = 1
+    PowerShell = 1,
 }
 
 public sealed class StudioctlInstallScriptResult
@@ -21,7 +21,8 @@ public sealed class StudioctlInstallScriptResult
         StudioctlInstallScriptStatus status,
         byte[] content,
         string fileName,
-        bool isStale)
+        bool isStale
+    )
     {
         Status = status;
         Content = content;

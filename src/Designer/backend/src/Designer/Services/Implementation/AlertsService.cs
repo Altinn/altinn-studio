@@ -22,7 +22,7 @@ internal sealed class AlertsService(
     AlertsSettings alertsSettings,
     GeneralSettings generalSettings,
     ILogger<AlertsService> logger
-    ) : IAlertsService
+) : IAlertsService
 {
     /// <inheritdoc />
     public async Task<IEnumerable<AlertRule>> GetAlertRulesAsync(
@@ -35,9 +35,17 @@ internal sealed class AlertsService(
     }
 
     /// <inheritdoc />
-    public async Task NotifyAlertsUpdatedAsync(string org, AltinnEnvironment environment, Alert alert, CancellationToken cancellationToken)
+    public async Task NotifyAlertsUpdatedAsync(
+        string org,
+        AltinnEnvironment environment,
+        Alert alert,
+        CancellationToken cancellationToken
+    )
     {
-        var apps = alert.Alerts.Where(alertInstance => alertInstance.Status == "firing").Select(alertInstance => alertInstance.App).ToList();
+        var apps = alert
+            .Alerts.Where(alertInstance => alertInstance.Status == "firing")
+            .Select(alertInstance => alertInstance.App)
+            .ToList();
 
         if (apps.Count > 0)
         {
@@ -47,7 +55,15 @@ internal sealed class AlertsService(
         await alertsUpdatedHubContext.Clients.Group(org).AlertsUpdated(new AlertsUpdated(environment.Name));
     }
 
-    private async Task SendToSlackAsync(string org, AltinnEnvironment environment, List<string> apps, string alertName, Uri grafanaUrl, Uri appInsightsUrl, CancellationToken cancellationToken)
+    private async Task SendToSlackAsync(
+        string org,
+        AltinnEnvironment environment,
+        List<string> apps,
+        string alertName,
+        Uri grafanaUrl,
+        Uri appInsightsUrl,
+        CancellationToken cancellationToken
+    )
     {
         string studioEnv = generalSettings.OriginEnvironment;
         string appsFormatted = string.Join(", ", apps.Select(a => $"`{a}`"));
@@ -56,7 +72,7 @@ internal sealed class AlertsService(
         var links = new List<SlackText>
         {
             new() { Type = "mrkdwn", Text = $"<{grafanaUrl}|Grafana>" },
-            new() { Type = "mrkdwn", Text = $"<{appInsightsUrl.OriginalString}|Application Insights>" }
+            new() { Type = "mrkdwn", Text = $"<{appInsightsUrl.OriginalString}|Application Insights>" },
         };
 
         var message = new SlackMessage
@@ -80,16 +96,16 @@ internal sealed class AlertsService(
                         new() { Type = "mrkdwn", Text = $"Studio env: `{studioEnv}`" },
                     },
                 },
-                new SlackBlock
-                {
-                    Type = "context",
-                    Elements = links
-                }
+                new SlackBlock { Type = "context", Elements = links },
             ],
         };
         try
         {
-            await slackClient.SendMessageAsync(alertsSettings.GetSlackWebhookUrl(environment), message, cancellationToken);
+            await slackClient.SendMessageAsync(
+                alertsSettings.GetSlackWebhookUrl(environment),
+                message,
+                cancellationToken
+            );
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

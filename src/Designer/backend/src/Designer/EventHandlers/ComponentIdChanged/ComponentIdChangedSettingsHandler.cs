@@ -14,8 +14,10 @@ public class ComponentIdChangedSettingsHandler : INotificationHandler<ComponentI
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ComponentIdChangedSettingsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
+    public ComponentIdChangedSettingsHandler(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
@@ -26,10 +28,13 @@ public class ComponentIdChangedSettingsHandler : INotificationHandler<ComponentI
         var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
             notification.EditingContext.Org,
             notification.EditingContext.Repo,
-            notification.EditingContext.Developer);
+            notification.EditingContext.Developer
+        );
 
-        JsonNode layoutSettings =
-            await repository.GetLayoutSettingsAndCreateNewIfNotFound(notification.LayoutSetName, cancellationToken);
+        JsonNode layoutSettings = await repository.GetLayoutSettingsAndCreateNewIfNotFound(
+            notification.LayoutSetName,
+            cancellationToken
+        );
 
         bool hasChanges = false;
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
@@ -45,7 +50,8 @@ public class ComponentIdChangedSettingsHandler : INotificationHandler<ComponentI
                 }
 
                 return hasChanges;
-            });
+            }
+        );
     }
 
     /// <summary>

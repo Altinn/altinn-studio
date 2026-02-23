@@ -13,13 +13,15 @@ public class ScribanGitOpsManifestsRenderer : IGitOpsManifestsRenderer
     private const string BaseManifestsPath = "Services/Implementation/GitOps/Templates/base";
     private const string AppManifestsPath = "Services/Implementation/GitOps/Templates/apps";
     private const string EnvironmentOverlaysPath = "Services/Implementation/GitOps/Templates/environment";
+
     public Dictionary<string, string> GetBaseManifests()
     {
         var baseResources = EmbeddedResourceHelper.ListEmbeddedResources(BaseManifestsPath);
         var manifests = new Dictionary<string, string>();
         foreach (string resource in baseResources)
         {
-            manifests[$"./base/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"] = EmbeddedResourceHelper.ReadEmbeddedResourceAsString(resource);
+            manifests[$"./base/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"] =
+                EmbeddedResourceHelper.ReadEmbeddedResourceAsString(resource);
         }
         return manifests;
     }
@@ -27,34 +29,39 @@ public class ScribanGitOpsManifestsRenderer : IGitOpsManifestsRenderer
     public Dictionary<string, string> GetAppManifests(AltinnRepoContext context)
     {
         var appResources = EmbeddedResourceHelper.ListEmbeddedResources(AppManifestsPath);
-        Dictionary<string, string> templateValues = new()
-        {
-            { "org", context.Org }, { "app", context.Repo }
-        };
+        Dictionary<string, string> templateValues = new() { { "org", context.Org }, { "app", context.Repo } };
         var manifests = new Dictionary<string, string>();
         foreach (string resource in appResources)
         {
             string resourceTemplate = EmbeddedResourceHelper.ReadEmbeddedResourceAsString(resource);
             var manifestTemplate = Template.ParseLiquid(resourceTemplate);
 
-            manifests[$"{ManifestsPathHelper.AppManifests.AppDirectoryPath(context.Repo)}/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"] =
-                manifestTemplate.Render(templateValues);
+            manifests[
+                $"{ManifestsPathHelper.AppManifests.AppDirectoryPath(context.Repo)}/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"
+            ] = manifestTemplate.Render(templateValues);
         }
         return manifests;
     }
 
-    public Dictionary<string, string> GetEnvironmentOverlayManifests(AltinnEnvironment environment,
-        HashSet<AltinnRepoName> apps)
+    public Dictionary<string, string> GetEnvironmentOverlayManifests(
+        AltinnEnvironment environment,
+        HashSet<AltinnRepoName> apps
+    )
     {
         var envResources = EmbeddedResourceHelper.ListEmbeddedResources(EnvironmentOverlaysPath);
-        Dictionary<string, object> templateValues = new() { { "environment", environment.Name }, { "apps", apps.Select(a => a.Name) } };
+        Dictionary<string, object> templateValues = new()
+        {
+            { "environment", environment.Name },
+            { "apps", apps.Select(a => a.Name) },
+        };
         var manifests = new Dictionary<string, string>();
         foreach (string resource in envResources)
         {
             string resourceTemplate = EmbeddedResourceHelper.ReadEmbeddedResourceAsString(resource);
             var manifestTemplate = Template.ParseLiquid(resourceTemplate);
-            manifests[$"{ManifestsPathHelper.EnvironmentManifests.DirectoryPath(environment.Name)}/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"] =
-                manifestTemplate.Render(templateValues);
+            manifests[
+                $"{ManifestsPathHelper.EnvironmentManifests.DirectoryPath(environment.Name)}/{EmbeddedResourceHelper.GetFileNameFromResourceName(resource)}"
+            ] = manifestTemplate.Render(templateValues);
         }
         return manifests;
     }

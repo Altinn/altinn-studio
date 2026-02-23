@@ -82,15 +82,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.Email == input.Email ||
-                    (this.Email != null &&
-                    this.Email.Equals(input.Email))) &&
-                (
-                    this.Verified == input.Verified ||
-                    (this.Verified != null &&
-                    this.Verified.Equals(input.Verified)));
+            return (this.Email == input.Email || (this.Email != null && this.Email.Equals(input.Email)))
+                && (this.Verified == input.Verified || (this.Verified != null && this.Verified.Equals(input.Verified)));
         }
 
         /// <summary>

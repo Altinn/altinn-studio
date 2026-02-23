@@ -2,6 +2,7 @@ import React from 'react';
 import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks';
 import { useTranslation } from 'react-i18next';
+import { getRuleEnums, RuleType } from '../utils/ValidateNavigationUtils';
 
 export type ValidateRuleConfigProps = {
   selectedTypes: StudioSuggestionItem[];
@@ -16,16 +17,8 @@ export const ValidateRuleConfig = ({
 }: ValidateRuleConfigProps) => {
   const configEnumValue = useComponentPropertyEnumValue();
   const { t } = useTranslation();
-  const validateTypes = [
-    'Schema',
-    'Component',
-    'Expression',
-    'CustomBackend',
-    'Required',
-    'AllExceptRequired',
-    'All',
-  ];
-  const validateScopes = ['current', 'currentAndPrevious', 'all']; // Temporary hardcoded list of validation types, will extract from schema in next PR
+  const pageScopes = getRuleEnums(RuleType.Page);
+  const validationTypes = getRuleEnums(RuleType.Show);
 
   return (
     <>
@@ -36,7 +29,7 @@ export const ValidateRuleConfig = ({
         onSelectedChange={(selected) => onChange({ types: selected })}
         multiple
       >
-        {validateTypes.map((type) => (
+        {validationTypes.map((type) => (
           <StudioSuggestion.Option key={type} value={type}>
             {configEnumValue(type)}
           </StudioSuggestion.Option>
@@ -49,7 +42,7 @@ export const ValidateRuleConfig = ({
         onSelectedChange={(selectedScope) => onChange({ pageScope: selectedScope })}
         multiple={false}
       >
-        {validateScopes.map((scope) => (
+        {pageScopes.map((scope) => (
           <StudioSuggestion.Option key={scope} value={scope}>
             {configEnumValue(scope)}
           </StudioSuggestion.Option>

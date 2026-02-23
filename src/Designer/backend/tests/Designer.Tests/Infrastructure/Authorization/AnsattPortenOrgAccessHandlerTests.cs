@@ -33,11 +33,7 @@ public class AnsattPortenOrgAccessHandlerTests
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal();
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -52,11 +48,7 @@ public class AnsattPortenOrgAccessHandlerTests
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -72,11 +64,7 @@ public class AnsattPortenOrgAccessHandlerTests
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -93,11 +81,7 @@ public class AnsattPortenOrgAccessHandlerTests
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -111,19 +95,17 @@ public class AnsattPortenOrgAccessHandlerTests
         var reportees = new[] { TestOrgNumber };
         var token = CreateJwtToken(reportees);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var handler = CreateHandler(httpContextMock, envService =>
-        {
-            envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
-                .ReturnsAsync((string?)null);
-        });
+        var handler = CreateHandler(
+            httpContextMock,
+            envService =>
+            {
+                envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier)).ReturnsAsync((string?)null);
+            }
+        );
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -137,19 +119,17 @@ public class AnsattPortenOrgAccessHandlerTests
         var reportees = new[] { TestOrgNumber };
         var token = CreateJwtToken(reportees);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var handler = CreateHandler(httpContextMock, envService =>
-        {
-            envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
-                .ReturnsAsync(TestOrgNumber);
-        });
+        var handler = CreateHandler(
+            httpContextMock,
+            envService =>
+            {
+                envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier)).ReturnsAsync(TestOrgNumber);
+            }
+        );
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -163,19 +143,17 @@ public class AnsattPortenOrgAccessHandlerTests
         var reportees = new[] { OtherOrgNumber };
         var token = CreateJwtToken(reportees);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var handler = CreateHandler(httpContextMock, envService =>
-        {
-            envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
-                .ReturnsAsync(TestOrgNumber);
-        });
+        var handler = CreateHandler(
+            httpContextMock,
+            envService =>
+            {
+                envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier)).ReturnsAsync(TestOrgNumber);
+            }
+        );
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -189,19 +167,17 @@ public class AnsattPortenOrgAccessHandlerTests
         var reportees = new[] { OtherOrgNumber, TestOrgNumber, "123456789" };
         var token = CreateJwtToken(reportees);
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
-        var handler = CreateHandler(httpContextMock, envService =>
-        {
-            envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier))
-                .ReturnsAsync(TestOrgNumber);
-        });
+        var handler = CreateHandler(
+            httpContextMock,
+            envService =>
+            {
+                envService.Setup(x => x.GetAltinnOrgNumber(TestOrgIdentifier)).ReturnsAsync(TestOrgNumber);
+            }
+        );
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -216,19 +192,17 @@ public class AnsattPortenOrgAccessHandlerTests
         var reportees = new[] { TestOrgNumber };
         var token = CreateJwtToken(reportees);
         var httpContextMock = CreateMockHttpContext("ttd", token);
-        var handler = CreateHandler(httpContextMock, envService =>
-        {
-            envService.Setup(x => x.GetAltinnOrgNumber("ttd"))
-                .ReturnsAsync(TestOrgNumber);
-        });
+        var handler = CreateHandler(
+            httpContextMock,
+            envService =>
+            {
+                envService.Setup(x => x.GetAltinnOrgNumber("ttd")).ReturnsAsync(TestOrgNumber);
+            }
+        );
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -245,11 +219,7 @@ public class AnsattPortenOrgAccessHandlerTests
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -266,11 +236,7 @@ public class AnsattPortenOrgAccessHandlerTests
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -287,11 +253,7 @@ public class AnsattPortenOrgAccessHandlerTests
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -308,7 +270,7 @@ public class AnsattPortenOrgAccessHandlerTests
             { "iss", "test" },
             { "aud", "test" },
             { "exp", new DateTimeOffset(DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds() },
-            { "authorization_details", "{invalid json" }
+            { "authorization_details", "{invalid json" },
         };
 
         var token = new JwtSecurityToken(header, payload);
@@ -320,11 +282,7 @@ public class AnsattPortenOrgAccessHandlerTests
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -341,11 +299,7 @@ public class AnsattPortenOrgAccessHandlerTests
 
         var requirement = new AnsattPortenOrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
-        var context = new AuthorizationHandlerContext(
-            new[] { requirement },
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -359,46 +313,51 @@ public class AnsattPortenOrgAccessHandlerTests
 
         if (orgRouteValue != null)
         {
-            httpContext.Request.RouteValues = new RouteValueDictionary
-            {
-                { "org", orgRouteValue }
-            };
+            httpContext.Request.RouteValues = new RouteValueDictionary { { "org", orgRouteValue } };
         }
 
         var authServiceMock = new Mock<IAuthenticationService>();
         if (accessToken != null)
         {
             var tokens = new AuthenticationProperties();
-            tokens.StoreTokens(new[]
-            {
-                new AuthenticationToken { Name = "access_token", Value = accessToken }
-            });
+            tokens.StoreTokens(
+                new[]
+                {
+                    new AuthenticationToken { Name = "access_token", Value = accessToken },
+                }
+            );
 
             var authenticateResult = AuthenticateResult.Success(
                 new AuthenticationTicket(
                     new ClaimsPrincipal(new ClaimsIdentity()),
                     tokens,
-                    AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme));
+                    AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme
+                )
+            );
 
             authServiceMock
-                .Setup(x => x.AuthenticateAsync(
-                    It.IsAny<HttpContext>(),
-                    AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme))
+                .Setup(x =>
+                    x.AuthenticateAsync(
+                        It.IsAny<HttpContext>(),
+                        AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme
+                    )
+                )
                 .ReturnsAsync(authenticateResult);
         }
         else
         {
             authServiceMock
-                .Setup(x => x.AuthenticateAsync(
-                    It.IsAny<HttpContext>(),
-                    AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme))
+                .Setup(x =>
+                    x.AuthenticateAsync(
+                        It.IsAny<HttpContext>(),
+                        AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme
+                    )
+                )
                 .ReturnsAsync(AuthenticateResult.NoResult());
         }
 
         var serviceProviderMock = new Mock<IServiceProvider>();
-        serviceProviderMock
-            .Setup(x => x.GetService(typeof(IAuthenticationService)))
-            .Returns(authServiceMock.Object);
+        serviceProviderMock.Setup(x => x.GetService(typeof(IAuthenticationService))).Returns(authServiceMock.Object);
 
         httpContext.RequestServices = serviceProviderMock.Object;
 
@@ -415,8 +374,8 @@ public class AnsattPortenOrgAccessHandlerTests
                 resource = "urn:altinn:resource:5613:1",
                 reportees = orgNumbers.Length > 0
                     ? Array.ConvertAll(orgNumbers, orgNo => new { ID = $"0192:{orgNo}" })
-                    : Array.Empty<object>()
-            }
+                    : Array.Empty<object>(),
+            },
         };
 
         var header = new JwtHeader();
@@ -425,7 +384,7 @@ public class AnsattPortenOrgAccessHandlerTests
             { "iss", "test" },
             { "aud", "test" },
             { "exp", new DateTimeOffset(DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds() },
-            { "authorization_details", JsonSerializer.SerializeToElement(authorizationDetails) }
+            { "authorization_details", JsonSerializer.SerializeToElement(authorizationDetails) },
         };
 
         var token = new JwtSecurityToken(header, payload);
@@ -441,8 +400,8 @@ public class AnsattPortenOrgAccessHandlerTests
             {
                 type = "ansattporten:altinn:service",
                 resource = "urn:altinn:resource:5613:1",
-                reportees
-            }
+                reportees,
+            },
         };
 
         var header = new JwtHeader();
@@ -451,7 +410,7 @@ public class AnsattPortenOrgAccessHandlerTests
             { "iss", "test" },
             { "aud", "test" },
             { "exp", new DateTimeOffset(DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds() },
-            { "authorization_details", JsonSerializer.SerializeToElement(authorizationDetails) }
+            { "authorization_details", JsonSerializer.SerializeToElement(authorizationDetails) },
         };
 
         var token = new JwtSecurityToken(header, payload);
@@ -462,7 +421,8 @@ public class AnsattPortenOrgAccessHandlerTests
     private static AnsattPortenOrgAccessHandler CreateHandler(
         HttpContext? httpContext,
         Action<Mock<IEnvironmentsService>>? configureEnvironmentsService = null,
-        bool isProduction = true)
+        bool isProduction = true
+    )
     {
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContext);
@@ -471,8 +431,7 @@ public class AnsattPortenOrgAccessHandlerTests
         configureEnvironmentsService?.Invoke(environmentsServiceMock);
 
         var hostEnvironmentMock = new Mock<IHostEnvironment>();
-        hostEnvironmentMock.Setup(x => x.EnvironmentName)
-            .Returns(isProduction ? "Production" : "Development");
+        hostEnvironmentMock.Setup(x => x.EnvironmentName).Returns(isProduction ? "Production" : "Development");
 
         var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
 
@@ -480,6 +439,7 @@ public class AnsattPortenOrgAccessHandlerTests
             httpContextAccessorMock.Object,
             environmentsServiceMock.Object,
             hostEnvironmentMock.Object,
-            loggerMock.Object);
+            loggerMock.Object
+        );
     }
 }

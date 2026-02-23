@@ -31,7 +31,8 @@ namespace Altinn.Studio.Designer.Controllers
         public PipelinesController(
             IReleaseService releaseService,
             IDeploymentService deploymentService,
-            ILogger<PipelinesController> logger)
+            ILogger<PipelinesController> logger
+        )
         {
             _releaseService = releaseService;
             _deploymentService = deploymentService;
@@ -49,7 +50,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("check-release-build-status")]
         public async Task<IActionResult> CheckReleaseStatus([FromBody] AzureDevOpsWebHookEventModel model)
         {
-            _logger.LogInformation("checkreleasebuildstatus was with BuildNumber {BuildNumber} and ResourceOwner {ResourceOwner}", model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
+            _logger.LogInformation(
+                "checkreleasebuildstatus was with BuildNumber {BuildNumber} and ResourceOwner {ResourceOwner}",
+                model?.Resource?.BuildNumber,
+                model?.Resource?.ResourceOwner
+            );
             await _releaseService.UpdateAsync(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
             return Ok();
         }

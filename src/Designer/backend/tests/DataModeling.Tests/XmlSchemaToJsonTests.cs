@@ -21,7 +21,8 @@ namespace DataModeling.Tests
         {
             _testOutputHelper.WriteLine(testCase);
 
-            Given.That.XsdSchemaLoaded(schemaPath)
+            Given
+                .That.XsdSchemaLoaded(schemaPath)
                 .And.JsonSchemaLoaded(expectedPath)
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .Then.LoadedAndConvertedJsonSchemasShouldBeEquivalent();

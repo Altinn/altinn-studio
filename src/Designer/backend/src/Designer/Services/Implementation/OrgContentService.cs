@@ -12,7 +12,6 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// <inheritdoc />
 public class OrgContentService : IOrgContentService
 {
-
     private readonly IGiteaContentLibraryService _giteaContentLibraryService;
 
     public OrgContentService(IGiteaContentLibraryService giteaContentLibraryService)
@@ -27,7 +26,10 @@ public class OrgContentService : IOrgContentService
     }
 
     /// <inheritdoc />
-    public async Task<List<LibraryContentReference>> GetOrgContentReferences(LibraryContentType? contentType, string orgName)
+    public async Task<List<LibraryContentReference>> GetOrgContentReferences(
+        LibraryContentType? contentType,
+        string orgName
+    )
     {
         switch (contentType)
         {
@@ -68,14 +70,20 @@ public class OrgContentService : IOrgContentService
         return CreateContentReferences(LibraryContentType.TextResource, textIds, orgName);
     }
 
-    private static List<LibraryContentReference> CreateContentReferences(LibraryContentType contentType, List<string> contentIds, string orgName)
+    private static List<LibraryContentReference> CreateContentReferences(
+        LibraryContentType contentType,
+        List<string> contentIds,
+        string orgName
+    )
     {
-        return contentIds.Select(contentId => new LibraryContentReference
-        {
-            Id = contentId,
-            Type = contentType,
-            Source = FormatContentSource(orgName)
-        }).ToList();
+        return contentIds
+            .Select(contentId => new LibraryContentReference
+            {
+                Id = contentId,
+                Type = contentType,
+                Source = FormatContentSource(orgName),
+            })
+            .ToList();
     }
 
     private static string FormatContentSource(string orgName) => $"org.{orgName}";

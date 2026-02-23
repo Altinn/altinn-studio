@@ -242,7 +242,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 var itemsKeyword = schema.GetKeywordOrNull<ItemsKeyword>();
                 if (itemsKeyword == null)
                 {
-                    throw new JsonSchemaConvertException("Schema must have an \"items\" keyword when \"type\" is set to array");
+                    throw new JsonSchemaConvertException(
+                        "Schema must have an \"items\" keyword when \"type\" is set to array"
+                    );
                 }
 
                 itemsSchema = itemsKeyword.SingleSchema;
@@ -296,7 +298,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             // If we have 2 or more sub-schema's and one of them has a valid type of null, it should
             // be represented as a nillable element in the XSD.
-            if (typeKeywordSubSchema.TryGetKeyword(out TypeKeyword typeKeyword) && typeKeyword.Type == SchemaValueType.Null)
+            if (
+                typeKeywordSubSchema.TryGetKeyword(out TypeKeyword typeKeyword)
+                && typeKeyword.Type == SchemaValueType.Null
+            )
             {
                 var refKeywordSubSchema = subSchemas.FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
                 valueSchema = refKeywordSubSchema;
@@ -314,7 +319,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         /// <returns>True if the type keyword has Null type in combination with other types; otherwise, false.</returns>
         protected static bool HasTypeKeywordWithNullAndOtherTypes(JsonSchema schema)
         {
-            return schema.TryGetKeyword(out TypeKeyword typeKeywordSingle) && typeKeywordSingle.Type.HasFlag(SchemaValueType.Null) && typeKeywordSingle.Type > SchemaValueType.Null;
+            return schema.TryGetKeyword(out TypeKeyword typeKeywordSingle)
+                && typeKeywordSingle.Type.HasFlag(SchemaValueType.Null)
+                && typeKeywordSingle.Type > SchemaValueType.Null;
         }
 
         /// <summary>
@@ -378,14 +385,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         protected bool IsValidSimpleContentExtension(JsonSchema schema)
         {
             // Exclude schemas with groupings
-            if (schema.HasAnyOfKeywords(
-                typeof(AllOfKeyword),
-                typeof(OneOfKeyword),
-                typeof(AnyOfKeyword),
-                typeof(IfKeyword),
-                typeof(ThenKeyword),
-                typeof(ElseKeyword),
-                typeof(NotKeyword)))
+            if (
+                schema.HasAnyOfKeywords(
+                    typeof(AllOfKeyword),
+                    typeof(OneOfKeyword),
+                    typeof(AnyOfKeyword),
+                    typeof(IfKeyword),
+                    typeof(ThenKeyword),
+                    typeof(ElseKeyword),
+                    typeof(NotKeyword)
+                )
+            )
             {
                 return false;
             }
@@ -430,8 +440,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     typeSchema = FollowReference(reference);
                 }
 
-                return IsValidSimpleTypeOrSimpleTypeRestriction(typeSchema) &&
-                       prop.HasKeyword<XsdAttributeKeyword>(kw => kw.Value);
+                return IsValidSimpleTypeOrSimpleTypeRestriction(typeSchema)
+                    && prop.HasKeyword<XsdAttributeKeyword>(kw => kw.Value);
             });
 
             if (attributePropertiesCount != (properties.Properties.Count - 1))
@@ -492,8 +502,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     break;
                 }
 
-                var baseRefSchema = baseAllOf.Schemas
-                    .SingleOrDefault(s => s.HasKeyword<RefKeyword>())
+                var baseRefSchema = baseAllOf
+                    .Schemas.SingleOrDefault(s => s.HasKeyword<RefKeyword>())
                     ?.GetKeywordOrNull<RefKeyword>();
 
                 if (baseRefSchema == null)
@@ -506,7 +516,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             var hasValueProperty = false;
 
-            foreach (var (propertyName, propertySchema) in propertiesSchemas.SelectMany(ps => ps.GetKeywordOrNull<PropertiesKeyword>().Properties.Select(prop => (prop.Key, prop.Value))))
+            foreach (
+                var (propertyName, propertySchema) in propertiesSchemas.SelectMany(ps =>
+                    ps.GetKeywordOrNull<PropertiesKeyword>().Properties.Select(prop => (prop.Key, prop.Value))
+                )
+            )
             {
                 if (!basePropertyNames.Contains(propertyName))
                 {
@@ -536,7 +550,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     }
                 }
 
-                if (!IsValidSimpleTypeOrSimpleTypeRestriction(propertyTargetSchema) && !IsPlainRestrictionSchema(propertyTargetSchema))
+                if (
+                    !IsValidSimpleTypeOrSimpleTypeRestriction(propertyTargetSchema)
+                    && !IsPlainRestrictionSchema(propertyTargetSchema)
+                )
                 {
                     return false;
                 }
@@ -545,13 +562,19 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             return hasValueProperty;
         }
 
-        private static List<(string PropertyName, JsonSchema PropertySchema)> FindSimpleContentProperties(JsonSchema schema)
+        private static List<(string PropertyName, JsonSchema PropertySchema)> FindSimpleContentProperties(
+            JsonSchema schema
+        )
         {
             var properties = new List<(string PropertyName, JsonSchema PropertySchema)>();
 
             if (HasSingleAllOf(schema))
             {
-                foreach (var propertiesSchema in schema.GetKeywordOrNull<AllOfKeyword>().Schemas.Where(s => s.HasKeyword<PropertiesKeyword>()))
+                foreach (
+                    var propertiesSchema in schema
+                        .GetKeywordOrNull<AllOfKeyword>()
+                        .Schemas.Where(s => s.HasKeyword<PropertiesKeyword>())
+                )
                 {
                     var propertiesKeyword = propertiesSchema.GetKeywordOrNull<PropertiesKeyword>();
                     properties.AddRange(propertiesKeyword.Properties.Select(prop => (prop.Key, prop.Value)));
@@ -602,7 +625,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     // it cannot be serialized as a SimpleContentExtension or SimpleContentRestriction.
                     var refKeyword = refKeywordSubSchema.GetKeywordOrNull<RefKeyword>();
                     var refKeywordPath = JsonPointer.Parse(refKeyword.Reference.ToString());
-                    Metadata.AddIncompatibleTypes(refKeywordPath, new[] { CompatibleXsdType.SimpleContentExtension, CompatibleXsdType.SimpleContentRestriction });
+                    Metadata.AddIncompatibleTypes(
+                        refKeywordPath,
+                        new[] { CompatibleXsdType.SimpleContentExtension, CompatibleXsdType.SimpleContentRestriction }
+                    );
 
                     return true;
                 }
@@ -635,7 +661,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 SchemaValueType.Object or SchemaValueType.Null => false,
                 SchemaValueType.Array => false,
-                SchemaValueType.Boolean or SchemaValueType.String or SchemaValueType.Number or SchemaValueType.Integer => true,
+                SchemaValueType.Boolean
+                or SchemaValueType.String
+                or SchemaValueType.Number
+                or SchemaValueType.Integer => true,
                 _ => false,
             };
         }

@@ -5,7 +5,12 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange.Converter;
 
-public class FormatExclusiveMaximumKeywordJsonConverterConverterTests : ValueKeywordConverterTestBase<FormatExclusiveMaximumKeywordJsonConverterConverterTests, FormatExclusiveMaximumKeyword, string>
+public class FormatExclusiveMaximumKeywordJsonConverterConverterTests
+    : ValueKeywordConverterTestBase<
+        FormatExclusiveMaximumKeywordJsonConverterConverterTests,
+        FormatExclusiveMaximumKeyword,
+        string
+    >
 {
     private const string KeywordPlaceholder = "formatExclusiveMaximum";
 
@@ -15,7 +20,8 @@ public class FormatExclusiveMaximumKeywordJsonConverterConverterTests : ValueKey
     [InlineData("2022-10-17")]
     public void Write_ValidStructure_ShouldWriteToJson(string value)
     {
-        Given.That.KeywordCreatedWithValue(value)
+        Given
+            .That.KeywordCreatedWithValue(value)
             .When.KeywordSerializedAsJson()
             .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":""{value}""}}");
     }
@@ -24,30 +30,27 @@ public class FormatExclusiveMaximumKeywordJsonConverterConverterTests : ValueKey
     [InlineData("2022-10-17")]
     public void Read_ValidJson_FromSchema(string value)
     {
-        var jsonSchema = @$"{{
+        var jsonSchema =
+            @$"{{
                 ""{KeywordPlaceholder}"": ""{value}""
             }}";
 
-        Given.That.JsonSchemaLoaded(jsonSchema)
-            .When.KeywordReadFromSchema()
-            .Then.KeywordShouldNotBeNull();
+        Given.That.JsonSchemaLoaded(jsonSchema).When.KeywordReadFromSchema().Then.KeywordShouldNotBeNull();
 
         Assert.Equal(Keyword.Value, value);
-
-
     }
 
     [Theory]
     [InlineData("2022-10-17")]
     public void Read_InvalidJson_ShouldThrow(string value)
     {
-        var jsonSchema = @$"{{
+        var jsonSchema =
+            @$"{{
                     ""{KeywordPlaceholder}"": {{
                         ""value"": ""{value}""
                 }}";
 
-        var ex = Assert.Throws<JsonException>(() =>
-            Given.That.JsonSchemaLoaded(jsonSchema));
+        var ex = Assert.Throws<JsonException>(() => Given.That.JsonSchemaLoaded(jsonSchema));
 
         Assert.Equal("Expected string", ex.Message);
     }

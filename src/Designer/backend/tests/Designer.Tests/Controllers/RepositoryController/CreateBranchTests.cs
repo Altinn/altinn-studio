@@ -17,18 +17,19 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class CreateBranchTests : DesignerEndpointsTestsBase<CreateBranchTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class CreateBranchTests
+        : DesignerEndpointsTestsBase<CreateBranchTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
         private static string VersionPrefix => "/designer/api/repos";
-        public CreateBranchTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+
+        public CreateBranchTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
+            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton(_sourceControlMock.Object);
         }
@@ -42,17 +43,20 @@ namespace Designer.Tests.Controllers.RepositoryController
             // Arrange
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
             var expectedBranch = new Branch { Name = branchName };
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                repo,
+                "testUser"
+            );
 
-            _sourceControlMock
-                .Setup(x => x.CreateBranch(editingContext, branchName))
-                .ReturnsAsync(expectedBranch);
+            _sourceControlMock.Setup(x => x.CreateBranch(editingContext, branchName)).ReturnsAsync(expectedBranch);
 
             var request = new CreateBranchRequest { BranchName = branchName };
             using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
-                "application/json");
+                "application/json"
+            );
 
             // Act
             using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
@@ -71,7 +75,11 @@ namespace Designer.Tests.Controllers.RepositoryController
         {
             // Arrange
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/branches";
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                repo,
+                "testUser"
+            );
 
             _sourceControlMock
                 .Setup(x => x.CreateBranch(editingContext, branchName))
@@ -81,7 +89,8 @@ namespace Designer.Tests.Controllers.RepositoryController
             using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
-                "application/json");
+                "application/json"
+            );
 
             // Act
             using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);

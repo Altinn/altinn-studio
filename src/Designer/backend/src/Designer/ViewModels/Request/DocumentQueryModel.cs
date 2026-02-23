@@ -26,6 +26,5 @@ namespace Altinn.Studio.Designer.ViewModels.Request
         [EnumDataType(typeof(SortDirection))]
         [JsonConverter(typeof(StringEnumConverter))]
         public SortDirection SortDirection { get; set; }
-
     }
 }

@@ -4,6 +4,9 @@ namespace Altinn.Studio.Designer.Enums;
 
 public enum ImageUrlValidationResult
 {
-    [EnumMember(Value = "NotValidImage")] NotValidImage,
-    [EnumMember(Value = "Ok")] Ok,
+    [EnumMember(Value = "NotValidImage")]
+    NotValidImage,
+
+    [EnumMember(Value = "Ok")]
+    Ok,
 }
