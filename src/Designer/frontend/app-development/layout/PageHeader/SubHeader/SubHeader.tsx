@@ -121,7 +121,7 @@ const ProblemStatusIndicator = () => {
         variant='tertiary'
         icon={icon}
         data-color={dataColor}
-        style={{ lineHeight: 'normal' }}
+        className={classes.validationButton}
       >
         {members.length}
       </StudioDialog.Trigger>
