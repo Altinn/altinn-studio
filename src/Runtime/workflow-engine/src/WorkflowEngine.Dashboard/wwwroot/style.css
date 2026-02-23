@@ -286,6 +286,7 @@ body{min-height:100vh;padding:0}
 }
 .ts-arrow{color:var(--text-dim);font-size:10px;opacity:0.5;margin:0 2px}
 .ts-placeholder{visibility:hidden}
+.hide-timestamps .timestamp,.hide-timestamps .ts-arrow,.hide-timestamps .ts-placeholder{display:none}
 .retry-badge{
   background:var(--orange);color:#000;font-size:11px;font-weight:800;
   padding:2px 7px;border-radius:10px;margin-left:4px;min-width:30px;text-align:center;

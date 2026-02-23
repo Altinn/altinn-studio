@@ -24,6 +24,15 @@ export const formatElapsed = (seconds) => {
 /* ── Timestamp formatting & UTC toggle ─────────────────────────────────── */
 
 /** @returns {boolean} */
+export const showTimestamps = () => localStorage.getItem('showTimestamps') !== 'false';
+
+/** @param {boolean} on */
+export const setShowTimestamps = (on) => {
+  localStorage.setItem('showTimestamps', on ? 'true' : 'false');
+  document.body.classList.toggle('hide-timestamps', !on);
+};
+
+/** @returns {boolean} */
 export const isUtcMode = () => localStorage.getItem('timestampUtc') === 'true';
 
 export const toggleUtcMode = () => {
