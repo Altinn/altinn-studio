@@ -5753,7 +5753,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/{org}/{app}/api/v1/footer": {
