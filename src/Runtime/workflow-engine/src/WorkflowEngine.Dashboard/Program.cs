@@ -54,8 +54,10 @@ static long HashWebRoot(string path)
     long hash = 0;
     foreach (var file in Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories))
     {
-        var info = new FileInfo(file);
-        hash = hash * 31 + (info.LastWriteTimeUtc.Ticks ^ info.Length);
+        using var stream = File.OpenRead(file);
+        int b;
+        while ((b = stream.ReadByte()) != -1)
+            hash = hash * 31 + b;
     }
     return hash;
 }
