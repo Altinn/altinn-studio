@@ -1,0 +1,432 @@
+/* ============================================================
+ *  Sections 13, 13b, 13c, 14: Filtering + compact toggle + tabs
+ * ============================================================ */
+
+import { dom, state, workflowData } from '../core/state.js';
+import { esc, cssId } from '../core/helpers.js';
+import { buildCardHTML, buildCompactCardHTML, setCardFilterData } from '../shared/cards.js';
+import { scrollPipelineToActive } from '../shared/pipeline.js';
+import {
+  addOrgAndApp, rebuildDropdown, updateDropdownToggle, refreshOrgAppDropdowns, refreshAppDropdown, getAppsForSelectedOrgs,
+} from '../core/sse.js';
+import { buildScheduledCardHTML, buildCompactScheduledCardHTML, loadScheduled } from './scheduled.js';
+
+/** Late-bound references */
+/** @type {() => void} */
+let _syncUrl = () => {};
+/** @type {() => Promise<void>} */
+let _loadQuery = async () => {};
+
+/** @param {{ syncUrl: () => void, loadQuery: () => Promise<void> }} fns */
+export const bindFilterCallbacks = (fns) => {
+  _syncUrl = fns.syncUrl;
+  _loadQuery = fns.loadQuery;
+};
+
+/* ============================================================
+ *  13. FILTERING
+ * ============================================================ */
+
+/** @returns {boolean} */
+export const hasActiveFilter = () =>
+  !!(state.liveFilter || state.querySearch || state.sectionStatus.scheduled || state.sectionStatus.live || state.sectionStatus.recent || state.sectionStatus.query || state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size);
+
+export const applyFilter = () => {
+  const lf = state.liveFilter;
+  const of_ = state.orgFilter;
+  const af = state.appFilter;
+  const pf = state.partyFilter;
+  const gf = state.guidFilter;
+  /**
+   * @param {HTMLElement} container
+   * @param {HTMLElement | null} countEl
+   * @param {string} sectionStatus
+   * @param {boolean} [isLiveTab]
+   */
+  const filterContainer = (container, countEl, sectionStatus, isLiveTab) => {
+    const cards = /** @type {HTMLElement[]} */ ([...container.querySelectorAll('.workflow-card')]);
+    let matched = 0;
+    /** @type {Record<string, number>} */
+    const statusCounts = {};
+    for (const card of cards) {
+      const textHidden = isLiveTab && lf && !(card.dataset.filter || '').includes(lf);
+      const statusHidden = sectionStatus && !(card.dataset.status || '').includes(sectionStatus);
+      const orgHidden = of_.size > 0 && !of_.has(card.dataset.org || '');
+      const appHidden = af.size > 0 && !af.has(card.dataset.app || '');
+      const partyHidden = isLiveTab && pf.size > 0 && !pf.has(card.dataset.party || '');
+      const guidHidden = isLiveTab && gf.size > 0 && !gf.has(card.dataset.guid || '');
+      const hidden = textHidden || statusHidden || orgHidden || appHidden || partyHidden || guidHidden;
+      card.classList.toggle('filtered-out', hidden);
+      if (!hidden) matched++;
+      for (const tag of (card.dataset.status || '').toLowerCase().split(' ')) {
+        if (tag) statusCounts[tag] = (statusCounts[tag] || 0) + 1;
+      }
+    }
+    if (countEl) {
+      const hasFilter = (isLiveTab && lf) || sectionStatus || of_.size > 0 || af.size > 0 || (isLiveTab && pf.size > 0) || (isLiveTab && gf.size > 0);
+      countEl.textContent = (hasFilter && cards.length > 0) ? `${matched} / ${cards.length}` : `${cards.length}`;
+    }
+    const section = container.closest('.section')?.querySelector('.section-chips') ||
+                     container.parentElement?.querySelector('.section-chips');
+    if (section && !section.classList.contains('query-toggle')) {
+      for (const chip of section.querySelectorAll('.chip')) {
+        const st = /** @type {HTMLElement} */ (chip).dataset.status || '';
+        const label = /** @type {HTMLElement} */ (chip).dataset.label ||
+                      (/** @type {HTMLElement} */ (chip).dataset.label = (chip.textContent?.trim() || '').replace(/\s*\(.*\)$/, ''));
+        if (!st) {
+          chip.textContent = `${label} (${cards.length})`;
+        } else {
+          chip.textContent = `${label} (${statusCounts[st] || 0})`;
+        }
+      }
+    }
+  };
+  filterContainer(dom.scheduledContainer, null, state.sectionStatus.scheduled, true);
+  filterContainer(dom.liveContainer, null, state.sectionStatus.live, true);
+  filterContainer(dom.recentContainer, null, state.sectionStatus.recent, true);
+  filterContainer(dom.queryContainer, null, state.sectionStatus.query, false);
+};
+
+/** @param {string} value */
+const setLiveFilter = (value) => {
+  state.liveFilter = value.toLowerCase();
+  dom.liveFilterInput.value = value;
+  dom.liveFilterClear.classList.toggle('visible', value.length > 0);
+  applyFilter();
+};
+
+/** @param {string} org */
+export const toggleOrgFilter = (org) => {
+  const v = org.toLowerCase();
+  const sole = state.orgFilter.size === 1 && state.orgFilter.has(v);
+  state.orgFilter.clear();
+  if (!sole) state.orgFilter.add(v);
+  const allOrgs = new Set(state.orgsAndApps.keys());
+  rebuildDropdown(dom.orgList, allOrgs, state.orgFilter);
+  updateDropdownToggle('org');
+  refreshAppDropdown();
+  applyFilter();
+  _syncUrl();
+  if (state.queryLoaded) _loadQuery();
+};
+
+/** @param {string} app */
+export const toggleAppFilter = (app) => {
+  const v = app.toLowerCase();
+  const sole = state.appFilter.size === 1 && state.appFilter.has(v);
+  state.appFilter.clear();
+  if (!sole) state.appFilter.add(v);
+  const availableApps = getAppsForSelectedOrgs();
+  rebuildDropdown(dom.appList, availableApps, state.appFilter);
+  updateDropdownToggle('app');
+  applyFilter();
+  _syncUrl();
+  if (state.queryLoaded) _loadQuery();
+};
+
+/** @param {string} party */
+export const togglePartyFilter = (party) => {
+  const v = party.toLowerCase();
+  const sole = state.partyFilter.size === 1 && state.partyFilter.has(v);
+  state.partyFilter.clear();
+  if (!sole) state.partyFilter.add(v);
+  rebuildSelectedOnlyChips(dom.partyChips, state.partyFilter, 'party-chip');
+  updatePartyGuidLabels();
+  applyFilter();
+  _syncUrl();
+  if (state.queryLoaded) _loadQuery();
+};
+
+/** @param {string} guid */
+export const toggleGuidFilter = (guid) => {
+  const v = guid.toLowerCase();
+  const sole = state.guidFilter.size === 1 && state.guidFilter.has(v);
+  state.guidFilter.clear();
+  if (!sole) state.guidFilter.add(v);
+  rebuildSelectedOnlyChips(dom.guidChips, state.guidFilter, 'guid-chip', v => v.substring(0, 8));
+  updatePartyGuidLabels();
+  applyFilter();
+  _syncUrl();
+  if (state.queryLoaded) _loadQuery();
+};
+
+// Expose for inline onclick
+// @ts-ignore
+window.toggleOrgFilter = toggleOrgFilter;
+// @ts-ignore
+window.toggleAppFilter = toggleAppFilter;
+// @ts-ignore
+window.togglePartyFilter = togglePartyFilter;
+// @ts-ignore
+window.toggleGuidFilter = toggleGuidFilter;
+
+/**
+ * Rebuild chips from selection only (not all visible cards).
+ * @param {HTMLElement} container
+ * @param {Set<string>} filterSet
+ * @param {string} chipClass
+ * @param {(v: string) => string} [labelFn]
+ */
+export const rebuildSelectedOnlyChips = (container, filterSet, chipClass, labelFn) => {
+  const sorted = [...filterSet].sort();
+  const prev = container.dataset.values || '';
+  const next = sorted.join(',');
+  if (prev === next) return;
+  container.dataset.values = next;
+  container.innerHTML = '';
+  for (const v of sorted) {
+    const btn = document.createElement('button');
+    btn.className = `chip ${chipClass} active`;
+    btn.dataset.value = v;
+    btn.textContent = labelFn ? labelFn(v) : v;
+    btn.title = v;
+    container.appendChild(btn);
+  }
+};
+
+export const updatePartyGuidLabels = () => {
+  /** @type {HTMLElement} */ (document.getElementById('label-party')).style.display = state.partyFilter.size > 0 ? '' : 'none';
+  /** @type {HTMLElement} */ (document.getElementById('label-guid')).style.display = state.guidFilter.size > 0 ? '' : 'none';
+};
+
+dom.liveFilterInput.addEventListener('input', () => setLiveFilter(dom.liveFilterInput.value));
+dom.liveFilterClear.addEventListener('click', () => { setLiveFilter(''); dom.liveFilterInput.focus(); });
+
+// Query search — triggers on Enter key
+dom.querySearchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    state.querySearch = dom.querySearchInput.value.trim();
+    _syncUrl();
+    if (state.queryLoaded) _loadQuery();
+  }
+});
+
+/** @param {HTMLElement} container @param {(value: string) => void} toggle */
+const wireChipBar = (container, toggle) => {
+  container.addEventListener('click', (e) => {
+    const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.chip'));
+    if (!chip) return;
+    toggle(chip.dataset.value || '');
+  });
+};
+wireChipBar(dom.partyChips, togglePartyFilter);
+wireChipBar(dom.guidChips, toggleGuidFilter);
+
+// Wire dropdown search inputs
+for (const dd of document.querySelectorAll('.dropdown')) {
+  const searchInput = dd.querySelector('.dropdown-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => filterDropdownList(/** @type {HTMLElement} */ (dd), /** @type {HTMLInputElement} */ (e.target).value));
+    searchInput.addEventListener('click', (e) => e.stopPropagation());
+  }
+  const list = dd.querySelector('.dropdown-list');
+  if (list) {
+    list.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const target = /** @type {HTMLElement} */ (e.target);
+      if (target.classList.contains('dropdown-action')) {
+        const action = target.dataset.action;
+        if (dd.id === 'org-dropdown') {
+          if (action === 'clear') state.orgFilter.clear();
+          else if (action === 'select-all') for (const k of state.orgsAndApps.keys()) state.orgFilter.add(k);
+          refreshOrgAppDropdowns(); refreshAppDropdown(); applyFilter(); _syncUrl(); if (state.queryLoaded) _loadQuery();
+        } else if (dd.id === 'app-dropdown') {
+          const avail = getAppsForSelectedOrgs();
+          if (action === 'clear') state.appFilter.clear();
+          else if (action === 'select-all') for (const a of avail) state.appFilter.add(a);
+          rebuildDropdown(dom.appList, avail, state.appFilter); updateDropdownToggle('app'); applyFilter(); _syncUrl(); if (state.queryLoaded) _loadQuery();
+        }
+        return;
+      }
+      const item = /** @type {HTMLElement | null} */ (target.closest('.dropdown-item'));
+      if (!item) return;
+      const v = item.dataset.value || '';
+      if (dd.id === 'org-dropdown') toggleOrgFilter(v);
+      else if (dd.id === 'app-dropdown') toggleAppFilter(v);
+    });
+  }
+}
+
+/** @param {string} dropdownId */
+window.toggleDropdown = (dropdownId) => {
+  const el = document.getElementById(dropdownId);
+  if (!el) return;
+  if (el.classList.contains('disabled')) return;
+  const wasOpen = el.classList.contains('open');
+  for (const d of document.querySelectorAll('.dropdown.open')) d.classList.remove('open');
+  if (!wasOpen) {
+    el.classList.add('open');
+    const search = el.querySelector('.dropdown-search');
+    if (search) { /** @type {HTMLInputElement} */ (search).value = ''; /** @type {HTMLInputElement} */ (search).focus(); filterDropdownList(el, ''); }
+  }
+};
+
+/** @param {HTMLElement} dropdown @param {string} query */
+const filterDropdownList = (dropdown, query) => {
+  const q = query.toLowerCase();
+  for (const item of dropdown.querySelectorAll('.dropdown-item')) {
+    /** @type {HTMLElement} */ (item).classList.toggle('hidden', q !== '' && !(/** @type {HTMLElement} */ (item).dataset.value || '').includes(q));
+  }
+};
+
+// Close dropdowns on outside click
+document.addEventListener('click', (e) => {
+  const target = /** @type {HTMLElement} */ (e.target);
+  if (!target.closest('.dropdown')) {
+    for (const d of document.querySelectorAll('.dropdown.open')) d.classList.remove('open');
+  }
+});
+
+/** Merge org/app values discovered from SSE into dropdown lists. */
+export const mergeDiscoveredOrgsAndApps = () => {
+  let changed = false;
+  for (const card of /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.workflow-card[data-org]'))) {
+    const o = card.dataset.org;
+    const a = card.dataset.app;
+    if (o && a && addOrgAndApp(o, a)) changed = true;
+  }
+  if (changed) refreshOrgAppDropdowns();
+};
+
+for (const bar of document.querySelectorAll('.section-chips')) {
+  const isQueryToggle = bar.classList.contains('query-toggle');
+  bar.addEventListener('click', (e) => {
+    const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.chip'));
+    if (!chip) return;
+    const section = /** @type {HTMLElement} */ (bar).dataset.section || '';
+
+    if (isQueryToggle) {
+      chip.classList.toggle('active');
+      const activeChips = bar.querySelectorAll('.chip.active');
+      if (activeChips.length === 0) {
+        for (const c of bar.querySelectorAll('.chip')) c.classList.add('active');
+      }
+      const active = [...bar.querySelectorAll('.chip.active')];
+      state.sectionStatus.query = active.length >= 2 ? '' : (/** @type {HTMLElement} */ (active[0]).dataset.status || '');
+    } else {
+      const value = chip.dataset.status || '';
+      state.sectionStatus[section] = value;
+      for (const c of bar.querySelectorAll('.chip')) c.classList.toggle('active', c === chip);
+    }
+
+    applyFilter();
+    _syncUrl();
+    if (section === 'query' && state.queryLoaded) _loadQuery();
+  });
+}
+
+/* ============================================================
+ *  13b. COMPACT VIEW TOGGLE
+ * ============================================================ */
+
+/** @param {string} section */
+window.collapseAll = (section) => {
+  state.compactSections[section] = true;
+  try { localStorage.setItem(`compact:${section}`, '1'); } catch { /* ignore */ }
+  rebuildSectionCards(section);
+  _syncUrl();
+};
+
+/** @param {string} section */
+window.fullAll = (section) => {
+  state.compactSections[section] = false;
+  try { localStorage.setItem(`compact:${section}`, '0'); } catch { /* ignore */ }
+  rebuildSectionCards(section);
+  _syncUrl();
+};
+
+/** @param {string} section */
+const rebuildSectionCards = (section) => {
+  const compact = state.compactSections[section];
+  if (section === 'inbox') {
+    for (const [key, wf] of Object.entries(state.previousWorkflows)) {
+      const card = document.getElementById(`wf-${cssId(key)}`);
+      if (card && !card.dataset.exiting) {
+        card.className = `workflow-card${compact ? ' compact' : ''}`;
+        card.innerHTML = compact ? buildCompactCardHTML(wf) : buildCardHTML(wf);
+        setCardFilterData(card, wf);
+        if (!compact) scrollPipelineToActive(card);
+      }
+    }
+  } else if (section === 'recent') {
+    for (const wf of state.recentWorkflows) {
+      const card = document.getElementById(`wf-recent-${cssId(wf.idempotencyKey)}`);
+      if (card) {
+        card.className = `workflow-card${compact ? ' compact' : ''}`;
+        card.innerHTML = compact ? buildCompactCardHTML(wf, true) : buildCardHTML(wf, true);
+        setCardFilterData(card, wf);
+      }
+    }
+  } else if (section === 'scheduled') {
+    if (!dom.scheduledSection.classList.contains('collapsed')) loadScheduled();
+  } else if (section === 'query') {
+    if (state.queryLoaded) _loadQuery();
+  }
+};
+
+/* ============================================================
+ *  13c. COMPACT CARD EXPAND/COLLAPSE (click to toggle)
+ * ============================================================ */
+
+/**
+ * @param {HTMLElement} container
+ * @param {string} section
+ * @param {boolean} isStatic
+ * @param {boolean} [isScheduled]
+ */
+const setupCardExpand = (container, section, isStatic, isScheduled) => {
+  container.addEventListener('click', (e) => {
+    const target = /** @type {HTMLElement} */ (e.target);
+    if (target.closest('.seg, .compact-dot, .step-circle, .open-btn, a, button, .pipeline, .compact-pipeline')) return;
+
+    const card = /** @type {HTMLElement | null} */ (target.closest('.workflow-card'));
+    if (!card) return;
+
+    const wf = workflowData[card.dataset.wfkey || ''];
+    if (!wf) return;
+
+    const isCompact = card.classList.contains('compact');
+    if (isCompact) {
+      card.className = 'workflow-card';
+      card.style.animation = 'none';
+      card.innerHTML = isScheduled ? buildScheduledCardHTML(wf) : buildCardHTML(wf, isStatic);
+      if (!isStatic) scrollPipelineToActive(card);
+    } else {
+      card.className = 'workflow-card compact';
+      card.style.animation = 'none';
+      card.innerHTML = isScheduled ? buildCompactScheduledCardHTML(wf) : buildCompactCardHTML(wf, isStatic);
+    }
+    setCardFilterData(card, wf);
+    _syncUrl();
+  });
+};
+
+setupCardExpand(dom.liveContainer, 'inbox', false);
+setupCardExpand(dom.recentContainer, 'recent', true);
+setupCardExpand(dom.scheduledContainer, 'scheduled', true, true);
+setupCardExpand(dom.queryContainer, 'query', true);
+
+/* ============================================================
+ *  14. TABS
+ * ============================================================ */
+
+/** @param {string} tabName */
+export const switchTab = (tabName) => {
+  for (const t of document.querySelectorAll('.tab')) {
+    t.classList.toggle('active', t.getAttribute('data-tab') === tabName);
+  }
+  for (const p of document.querySelectorAll('.tab-panel')) {
+    p.classList.toggle('active', p.id === `panel-${tabName}`);
+  }
+  if (tabName === 'query') {
+    state.queryLoaded = true;
+    _loadQuery();
+  }
+  _syncUrl();
+};
+
+// @ts-ignore — exposed for inline onclick
+window.switchTab = switchTab;
+
+// Re-export these from sse.js so url.js can import them from here (avoids deep cross-references)
+export { rebuildDropdown, updateDropdownToggle, refreshAppDropdown } from '../core/sse.js';

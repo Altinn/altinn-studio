@@ -1,6 +1,6 @@
 # Dashboard
 
-Real-time monitoring UI for the workflow engine. Vanilla JS (no build step), JSDoc type-checked by VS Code.
+Real-time monitoring UI for the workflow engine. Vanilla JS ES Modules (no build step), JSDoc type-checked by VS Code.
 
 ## Architecture
 
@@ -13,39 +13,69 @@ Real-time monitoring UI for the workflow engine. Vanilla JS (no build step), JSD
 
 | File | Purpose |
 |------|---------|
-| `wwwroot/app.js` | All application logic (~1960 lines). Numbered sections 0-18 + subsections. |
+| `wwwroot/index.html` | Single-page shell. `<script type="module">` loads app.js. |
 | `wwwroot/style.css` | All styles (~545 lines). Dark theme with CSS custom properties. |
-| `wwwroot/index.html` | Single-page shell (~197 lines). Minimal markup, no dependencies. |
+| `wwwroot/app.js` | Entry point (~60 lines). Imports modules, wires callbacks, runs `init()`. |
+| `wwwroot/modules/core/state.js` | JSDoc types, DOM refs, state objects, BPMN helpers. |
+| `wwwroot/modules/core/helpers.js` | `cssId`, `esc`, `escHtml`, `formatElapsed`, JSON expand/highlight. |
+| `wwwroot/modules/core/sse.js` | `connectSSE()`, org/app fetching, dropdown helpers, hot-reload watcher. |
+| `wwwroot/modules/core/url.js` | `syncUrl()`, `restoreUrl()`, time range state. |
+| `wwwroot/modules/shared/cards.js` | `buildCardHTML()`, `buildCompactCardHTML()`, copy/trace icons. |
+| `wwwroot/modules/shared/pipeline.js` | `buildPipelineHTML()`, step nodes, connectors, scroll. |
+| `wwwroot/modules/shared/timers.js` | `requestAnimationFrame` loop for elapsed/backoff countdowns. |
+| `wwwroot/modules/features/header.js` | `updateStatusBadges()`, `updateCapacity()`. |
+| `wwwroot/modules/features/scheduled.js` | `updateScheduledBadge()`, `loadScheduled()`, scheduled cards. |
+| `wwwroot/modules/features/live.js` | `fingerprint()`, `updateLiveWorkflows()`. |
+| `wwwroot/modules/features/recent.js` | `updateRecentWorkflows()`, glow animations. |
+| `wwwroot/modules/features/filters.js` | All filtering, status chips, dropdowns, compact toggle, tabs. |
+| `wwwroot/modules/features/query.js` | `fetchQuery()`, pagination, auto-refresh, time range. |
+| `wwwroot/modules/features/modal.js` | Step detail modal: fetch, render, open/close. |
+| `wwwroot/modules/features/theme.js` | `getTheme()`, `setTheme()`, `toggleTheme()`. |
 | `Program.cs` | Static file server + `/api/config` + `/api/hot-reload` endpoints. |
 
-## app.js Structure
+## Module Structure
 
-Entire file is wrapped in an IIFE (`(() => { 'use strict'; ... })()`). Sections are numbered in comments (`/* 0. TYPE DEFINITIONS */`, etc.):
+```
+wwwroot/
+  app.js                             — entry point: init(), updateDashboard() hub
+  modules/
+    core/                            — "set and forget" plumbing
+      state.js                       — types, DOM refs, state objects, BPMN helpers
+      helpers.js                     — cssId, esc, escHtml, formatElapsed, JSON utilities
+      sse.js                         — connectSSE(), org/app fetching, hot-reload
+      url.js                         — syncUrl(), restoreUrl(), time range state
+    shared/                          — rendering building blocks used by all features
+      cards.js                       — buildCardHTML(), buildCompactCardHTML()
+      pipeline.js                    — buildPipelineHTML(), step nodes, connectors
+      timers.js                      — requestAnimationFrame timer loop
+    features/                        — one file per visible UI section
+      header.js                      — engine status badges + capacity meters
+      scheduled.js                   — scheduled workflows section
+      live.js                        — inbox (live) workflows section
+      recent.js                      — recent workflows section
+      filters.js                     — all filtering, compact toggle, tabs
+      query.js                       — query tab with pagination
+      modal.js                       — step detail modal
+      theme.js                       — theme toggle (dark/altinn)
+```
 
-0. **Type definitions** — JSDoc typedefs (`Step`, `Workflow`, `DashboardPayload`, `DashboardState`, etc.)
-1. **DOM references** — `dom` object with all getElementById calls
-2. **State** — `state` object (filters, timers, fingerprints, compact sections, org/app map) + `workflowData` lookup
-3. **SSE connection** — `connectSSE()` with auto-reconnect; `addOrgAndApp()`, `refreshOrgAppDropdowns()`, `fetchOrgsAndApps()`
-4. **Dashboard update** — entry point for every SSE message
-5. **Header badges** — engine status icon (running/idle/stopped/unhealthy/disabled/queue-full with cog animation)
-6. **Capacity meters** — inbox/db/http usage bars with low/mid/high color thresholds
-7. **Scheduled workflows** — count badge, on-demand fetch, collapsible section, countdown timers, time-bucket status chips (10s/1m/5m/later)
-8. **Inbox (live) workflows** — add/update/remove cards with fingerprint diffing, exit animations (success/fail)
-9. **Recent workflows** — rendered from backend `RecentWorkflowCache`, glow animations on arrival
-10. **Card rendering** — `buildCardHTML()` + `buildCompactCardHTML()` shared by all views; copy/open/Grafana trace links
-11. **Pipeline rendering** — step circles + animated connectors + step-type badges + compact dot view
-12. **Timers** — `requestAnimationFrame` loop for elapsed/backoff/startAt countdowns
-13. **Filtering** — text search, per-section status chips, org/app searchable dropdowns, party/guid chip bars
-  - 13b. **Compact view toggle** — `collapseAll()`/`fullAll()` per section, persisted to `localStorage`
-  - 13c. **Compact card expand/collapse** — click to toggle individual cards between compact and full view
-14. **Tabs** — live/query tab switching
-15. **Query** — on-demand DB fetch with cursor-based pagination, time range (preset + custom), auto-refresh interval, retried filter, smart GUID fallback
-16. **Step detail modal** — click step circle to fetch full step JSON, error display
-17. **JSON utilities** — expand embedded JSON strings + syntax highlighting
-18. **Generic helpers** — `cssId()`, `esc()`, `escHtml()`
-- **Hot-reload** — `watchForChanges()` listens to `/api/hot-reload` SSE
-- **URL sync** — `syncUrl()`/`restoreUrl()` persist full dashboard state to query params (tab, filters, collapse, compact, expanded cards)
-- **Init** — fetches `/api/config`, restores URL state, connects SSE streams, starts timer loop
+**Folder philosophy:**
+- `core/` — you almost never open these. State management, utilities, SSE plumbing, URL sync.
+- `shared/` — stable building blocks. Card and pipeline renderers. Changes here affect all card views.
+- `features/` — where you work day-to-day. Each file = one visible part of the UI.
+
+## Shared State
+
+- `state.js` exports `state`, `workflowData`, and `dom` as mutable objects
+- All modules `import { state, workflowData, dom } from '../core/state.js'`
+- Since JS objects are references, mutations in any module are visible to all
+
+## Circular Dependencies
+
+Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuery()`, `query.js` calls `applyFilter()`). These are broken with late-bound callbacks:
+- Each module with circular deps exports a `bind*Callbacks()` function
+- `app.js` wires them all up at startup: `bindFilterCallbacks({ syncUrl, loadQuery })`
+- All `bind*` calls happen before `init()`, so callbacks are ready when first used
 
 ## Engine Endpoints Used
 
