@@ -10,7 +10,11 @@ namespace Altinn.Studio.Designer.Models.Dto;
 /// <param name="Files">A list of <see cref="FileMetadata"/>.</param>
 /// <param name="BaseCommitSha">The commit sha the user was checked out on.</param>
 /// <param name="CommitMessage">The commit message.</param>
-public sealed record UpdateSharedResourceRequest(List<FileMetadata> Files, string BaseCommitSha, string? CommitMessage = null)
+public sealed record UpdateSharedResourceRequest(
+    List<FileMetadata> Files,
+    string BaseCommitSha,
+    string? CommitMessage = null
+)
 {
     public bool Equals(UpdateSharedResourceRequest? other)
     {

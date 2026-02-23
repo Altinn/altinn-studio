@@ -22,7 +22,8 @@ public class XsdTextKeywordTests : ValueKeywordTestsBase<XsdTextKeywordTests, Xs
     {
         var expectedKeyword = new XsdTextKeyword(value);
         object expectedKeywordObject = new XsdTextKeyword(value);
-        Given.That.KeywordCreatedWithValue(value)
+        Given
+            .That.KeywordCreatedWithValue(value)
             .Then.KeywordShouldEqual(expectedKeyword)
             .And.KeywordShouldEqualObject(expectedKeywordObject)
             .But.KeywordShouldNotEqual(null);

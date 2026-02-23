@@ -25,10 +25,7 @@ public class AppSettingsController(IAppSettingsService appSettingsService) : Con
             cancellationToken
         );
 
-        return Ok(new AppSettingsResponse
-        {
-            UndeployOnInactivity = setting?.UndeployOnInactivity ?? false
-        });
+        return Ok(new AppSettingsResponse { UndeployOnInactivity = setting?.UndeployOnInactivity ?? false });
     }
 
     [HttpPut]

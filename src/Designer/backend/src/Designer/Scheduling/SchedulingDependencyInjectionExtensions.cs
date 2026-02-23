@@ -9,9 +9,13 @@ namespace Altinn.Studio.Designer.Scheduling;
 
 public static class SchedulingDependencyInjectionExtensions
 {
-    public static IServiceCollection AddQuartzJobScheduling(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddQuartzJobScheduling(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
-        SchedulingSettings schedulingSettings = configuration.GetSection(nameof(SchedulingSettings)).Get<SchedulingSettings>() ?? new SchedulingSettings();
+        SchedulingSettings schedulingSettings =
+            configuration.GetSection(nameof(SchedulingSettings)).Get<SchedulingSettings>() ?? new SchedulingSettings();
         ValidateInactivityUndeployJobTimeouts(schedulingSettings.InactivityUndeployJobTimeouts);
 
         services.AddSingleton(schedulingSettings);
@@ -19,17 +23,27 @@ public static class SchedulingDependencyInjectionExtensions
         services.AddQuartz(configure =>
         {
             configure.AddJob<AppInactivityUndeployJob>(options =>
-                options.WithIdentity(AppInactivityUndeployJobConstants.JobName, AppInactivityUndeployJobConstants.JobGroup));
+                options.WithIdentity(
+                    AppInactivityUndeployJobConstants.JobName,
+                    AppInactivityUndeployJobConstants.JobGroup
+                )
+            );
 
-            configure.AddTrigger(options => options
-                .ForJob(AppInactivityUndeployJobConstants.JobName, AppInactivityUndeployJobConstants.JobGroup)
-                .WithIdentity(AppInactivityUndeployJobConstants.TriggerName, AppInactivityUndeployJobConstants.TriggerGroup)
-                .WithCronSchedule(AppInactivityUndeployJobConstants.CronScheduleNightlyMidnight));
+            configure.AddTrigger(options =>
+                options
+                    .ForJob(AppInactivityUndeployJobConstants.JobName, AppInactivityUndeployJobConstants.JobGroup)
+                    .WithIdentity(
+                        AppInactivityUndeployJobConstants.TriggerName,
+                        AppInactivityUndeployJobConstants.TriggerGroup
+                    )
+                    .WithCronSchedule(AppInactivityUndeployJobConstants.CronScheduleNightlyMidnight)
+            );
 
             if (schedulingSettings.UsePersistentScheduling)
             {
-                PostgreSQLSettings postgresSettings =
-                    configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
+                PostgreSQLSettings postgresSettings = configuration
+                    .GetSection(nameof(PostgreSQLSettings))
+                    .Get<PostgreSQLSettings>();
                 configure.UsePersistentStore(s =>
                 {
                     s.UseSystemTextJsonSerializer();

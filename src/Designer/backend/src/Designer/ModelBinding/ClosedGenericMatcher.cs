@@ -56,9 +56,7 @@ namespace Altinn.Studio.Designer.ModelBinding
 
         private static bool IsGenericInstantiation(Type candidate, Type interfaceType)
         {
-            return
-                candidate.GetTypeInfo().IsGenericType &&
-                candidate.GetGenericTypeDefinition() == interfaceType;
+            return candidate.GetTypeInfo().IsGenericType && candidate.GetGenericTypeDefinition() == interfaceType;
         }
 
         private static Type GetGenericInstantiation(Type queryType, Type interfaceType)

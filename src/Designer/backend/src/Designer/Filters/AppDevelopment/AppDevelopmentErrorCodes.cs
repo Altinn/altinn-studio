@@ -9,4 +9,3 @@ namespace Altinn.Studio.Designer.Filters.AppDevelopment
         public const string ResourcePublishingError = nameof(ResourcePublishingError);
     }
 }
-

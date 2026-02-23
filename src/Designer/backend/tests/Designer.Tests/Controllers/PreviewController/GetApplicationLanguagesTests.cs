@@ -6,12 +6,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetApplicationLanguagesTests : PreviewControllerTestsBase<GetApplicationLanguagesTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetApplicationLanguagesTests
+        : PreviewControllerTestsBase<GetApplicationLanguagesTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public GetApplicationLanguagesTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetApplicationLanguagesTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_ApplicationLanguages_Ok()

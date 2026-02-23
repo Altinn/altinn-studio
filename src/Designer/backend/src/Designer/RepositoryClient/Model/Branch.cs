@@ -22,9 +22,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="Branch"/> class.
         /// </summary>
-        public Branch()
-        {
-        }
+        public Branch() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Branch" /> class.

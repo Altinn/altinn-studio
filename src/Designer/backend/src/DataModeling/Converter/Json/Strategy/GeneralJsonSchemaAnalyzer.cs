@@ -10,9 +10,8 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         /// <summary>
         /// Initializes a new instance of the <see cref="GeneralJsonSchemaAnalyzer"/> class.
         /// </summary>
-        public GeneralJsonSchemaAnalyzer() : base()
-        {
-        }
+        public GeneralJsonSchemaAnalyzer()
+            : base() { }
 
         /// <inheritdoc/>
         public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
@@ -21,8 +20,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             Metadata = new JsonSchemaXsdMetadata
             {
                 SchemaOrigin = "Standard",
-                MessageName = JsonSchema.TryGetKeyword(out XsdRootElementKeyword rootElementKeyword) ? rootElementKeyword.Value : "root",
-                MessageTypeName = string.Empty
+                MessageName = JsonSchema.TryGetKeyword(out XsdRootElementKeyword rootElementKeyword)
+                    ? rootElementKeyword.Value
+                    : "root",
+                MessageTypeName = string.Empty,
             };
 
             DetermineRootModel(JsonSchema);

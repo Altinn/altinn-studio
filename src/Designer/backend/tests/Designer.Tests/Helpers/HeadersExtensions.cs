@@ -16,7 +16,10 @@ public static class HeadersExtensions
 
     public static IEnumerable<string> GetCookies(this HttpResponseMessage response)
     {
-        return response.Headers.TryGetValues(Microsoft.Net.Http.Headers.HeaderNames.SetCookie, out IEnumerable<string> values)
+        return response.Headers.TryGetValues(
+            Microsoft.Net.Http.Headers.HeaderNames.SetCookie,
+            out IEnumerable<string> values
+        )
             ? values
             : new List<string>();
     }
@@ -36,6 +39,4 @@ public static class HeadersExtensions
     {
         request.Headers.Add("X-XSRF-TOKEN", xsrfToken);
     }
-
 }
-

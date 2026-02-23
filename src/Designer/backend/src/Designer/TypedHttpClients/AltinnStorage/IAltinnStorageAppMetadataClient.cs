@@ -31,10 +31,18 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         /// <param name="envName">A name of the platform environment.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>An <see cref="ApplicationMetadata"/> that's currently stored in the storage</returns>
-        Task<ApplicationMetadata> GetApplicationMetadataAsync(AltinnRepoContext altinnRepoContext, string envName, CancellationToken cancellationToken = default);
+        Task<ApplicationMetadata> GetApplicationMetadataAsync(
+            AltinnRepoContext altinnRepoContext,
+            string envName,
+            CancellationToken cancellationToken = default
+        );
 
         /// <inheritdoc cref="GetApplicationMetadataAsync"/>
         /// <returns>A raw (<see cref="string"/>) representation of the <see cref="ApplicationMetadata"/> for an app, as currently stored in the Storage service</returns>
-        Task<string> GetApplicationMetadataJsonAsync(AltinnRepoContext altinnRepoContext, string envName, CancellationToken cancellationToken = default);
+        Task<string> GetApplicationMetadataJsonAsync(
+            AltinnRepoContext altinnRepoContext,
+            string envName,
+            CancellationToken cancellationToken = default
+        );
     }
 }

@@ -70,7 +70,9 @@ namespace Altinn.Studio.Designer.Helpers
         {
             if (!subDirectory.StartsWith(parentDirectory))
             {
-                throw new ArgumentException($"The sub directory '{subDirectory}' must be below the parent directory '{parentDirectory}'.");
+                throw new ArgumentException(
+                    $"The sub directory '{subDirectory}' must be below the parent directory '{parentDirectory}'."
+                );
             }
         }
 
@@ -83,7 +85,9 @@ namespace Altinn.Studio.Designer.Helpers
         {
             if (!filePath.StartsWith(parentDirectory))
             {
-                throw new ArgumentException($"The file '{filePath}' must be below the parent directory '{parentDirectory}'.");
+                throw new ArgumentException(
+                    $"The file '{filePath}' must be below the parent directory '{parentDirectory}'."
+                );
             }
         }
 
@@ -101,7 +105,11 @@ namespace Altinn.Studio.Designer.Helpers
 
         public static void AssertValidEnvironmentName(string environmentName)
         {
-            if (string.IsNullOrWhiteSpace(environmentName) || environmentName.Length > 100 || !AltinnRegexes.AltinnEnvironmentNameRegex().IsMatch(environmentName))
+            if (
+                string.IsNullOrWhiteSpace(environmentName)
+                || environmentName.Length > 100
+                || !AltinnRegexes.AltinnEnvironmentNameRegex().IsMatch(environmentName)
+            )
             {
                 throw new ArgumentException("The environment name is invalid.");
             }
@@ -133,7 +141,6 @@ namespace Altinn.Studio.Designer.Helpers
             }
         }
 
-
         public static void AssertValidRepoBranchName(string branchName)
         {
             if (string.IsNullOrEmpty(branchName) || !AltinnRegexes.AltinnBranchNameRegex().IsMatch(branchName))
@@ -147,7 +154,7 @@ namespace Altinn.Studio.Designer.Helpers
             XmlReaderSettings settings = new XmlReaderSettings
             {
                 ConformanceLevel = ConformanceLevel.Document,
-                Async = true
+                Async = true,
             };
             try
             {
@@ -166,6 +173,5 @@ namespace Altinn.Studio.Designer.Helpers
                 xmlStream.Seek(0, SeekOrigin.Begin);
             }
         }
-
     }
 }

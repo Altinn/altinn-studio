@@ -9,5 +9,6 @@ public interface IStudioctlInstallScriptService
 {
     Task<StudioctlInstallScriptResult> GetInstallScriptAsync(
         StudioctlInstallScriptType scriptType,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 }

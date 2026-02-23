@@ -8,6 +8,7 @@ public class LayoutSetPayload
 {
     [JsonPropertyName("taskType")]
     public TaskType? TaskType { get; set; }
+
     [JsonPropertyName("LayoutSetConfig")]
     public LayoutSetConfig LayoutSetConfig { get; set; }
 }

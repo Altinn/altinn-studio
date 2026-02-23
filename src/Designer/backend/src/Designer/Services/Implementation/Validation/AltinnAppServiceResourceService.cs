@@ -16,23 +16,19 @@ namespace Altinn.Studio.Designer.Services.Implementation.Validation;
 public class AltinnAppServiceResourceService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
     : IAltinnAppServiceResourceService
 {
-    public async Task<ServiceResource> GenerateServiceResourceFromApp(
-        string org,
-        string repo,
-        string developer
-    )
+    public async Task<ServiceResource> GenerateServiceResourceFromApp(string org, string repo, string developer)
     {
-        AltinnAppGitRepository altinnAppGitRepository =
-            altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-        ApplicationMetadata applicationMetadata =
-            await altinnAppGitRepository.GetApplicationMetadata();
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            org,
+            repo,
+            developer
+        );
+        ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         ServiceResource serviceResource = applicationMetadata.ToServiceResource();
         return serviceResource;
     }
 
-    public (bool isValid, ValidationProblemDetails? errors) ValidateServiceResource(
-        ServiceResource serviceResource
-    )
+    public (bool isValid, ValidationProblemDetails? errors) ValidateServiceResource(ServiceResource serviceResource)
     {
         var result = AltinnAppServiceResourceValidator.Validate(serviceResource);
 
@@ -84,11 +80,7 @@ public static class AltinnAppServiceResourceValidator
             }
             else
             {
-                ValidateTranslatedString(
-                    errors,
-                    "access.rightDescription",
-                    resource.RightDescription
-                );
+                ValidateTranslatedString(errors, "access.rightDescription", resource.RightDescription);
             }
         }
 
@@ -138,11 +130,7 @@ public static class AltinnAppServiceResourceValidator
         }
     }
 
-    private static void AddError(
-        Dictionary<string, List<string>> errors,
-        string key,
-        string message
-    )
+    private static void AddError(Dictionary<string, List<string>> errors, string key, string message)
     {
         if (!errors.TryGetValue(key, out var list))
         {
@@ -181,11 +169,7 @@ public static class ApplicationMetadataMapper
         };
     }
 
-    public static ServiceResource WithOrgInformation(
-        this ServiceResource serviceResource,
-        string org,
-        Org orgListOrg
-    )
+    public static ServiceResource WithOrgInformation(this ServiceResource serviceResource, string org, Org orgListOrg)
     {
         serviceResource.HasCompetentAuthority = new()
         {
@@ -196,9 +180,7 @@ public static class ApplicationMetadataMapper
         return serviceResource;
     }
 
-    public static Dictionary<string, string> ToDictionary(
-        this AppMetadataTranslatedString appMetadataTranslatedString
-    )
+    public static Dictionary<string, string> ToDictionary(this AppMetadataTranslatedString appMetadataTranslatedString)
     {
         var dict = new Dictionary<string, string>();
 
@@ -220,9 +202,7 @@ public static class ApplicationMetadataMapper
         return dict;
     }
 
-    public static List<ContactPoint> ToServiceContactPoints(
-        this List<AppMetadataContactPoint> contactPoints
-    )
+    public static List<ContactPoint> ToServiceContactPoints(this List<AppMetadataContactPoint> contactPoints)
     {
         return
         [

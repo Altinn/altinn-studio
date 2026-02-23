@@ -6,14 +6,18 @@ namespace Altinn.Studio.Designer.Helpers;
 
 public static class ApplicationMetadataJsonHelper
 {
-    public static string SetCopyInstanceEnabled(string json, bool enabled, JsonSerializerOptions? serializationOptions = null)
+    public static string SetCopyInstanceEnabled(
+        string json,
+        bool enabled,
+        JsonSerializerOptions? serializationOptions = null
+    )
     {
         var jsonObj = ParseAndEnsureJsonObject(json);
         bool usesPascalCase = UsesPascalCaseProps(jsonObj);
         var keys = new
         {
             CopyInstance = usesPascalCase ? "CopyInstanceSettings" : "copyInstanceSettings",
-            Enabled = usesPascalCase ? "Enabled" : "enabled"
+            Enabled = usesPascalCase ? "Enabled" : "enabled",
         };
 
         if (jsonObj[keys.CopyInstance] is not JsonObject config)
@@ -52,7 +56,9 @@ public static class ApplicationMetadataJsonHelper
         JsonNode? rootNode = JsonNode.Parse(json);
         if (rootNode is not JsonObject jsonObj)
         {
-            throw new InvalidOperationException($"Invalid JSON input: Expected a JSON object, got {rootNode?.GetType().Name}");
+            throw new InvalidOperationException(
+                $"Invalid JSON input: Expected a JSON object, got {rootNode?.GetType().Name}"
+            );
         }
 
         return jsonObj;

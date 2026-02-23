@@ -34,7 +34,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="fullCommitId">Commit Id</param>
         /// <param name="envName">Environment Name</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public Task UpdateApplicationMetadataInStorageAsync(string org, string app, string fullCommitId, string envName, CancellationToken cancellationToken = default);
+        public Task UpdateApplicationMetadataInStorageAsync(
+            string org,
+            string app,
+            string fullCommitId,
+            string envName,
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// Returns the application metadata for an application on a specific commitId

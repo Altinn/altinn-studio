@@ -8,18 +8,21 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class AnonymousTests : PreviewControllerTestsBase<AnonymousTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class AnonymousTests
+        : PreviewControllerTestsBase<AnonymousTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        public AnonymousTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public AnonymousTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_Anonymous_Ok()
         {
             string dataPathWithData = $"{Org}/{AppV4}/api/v1/data/anonymous";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri(
+                $"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet="
+            );
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -27,6 +30,5 @@ namespace Designer.Tests.Controllers.PreviewController
             string responseBody = await response.Content.ReadAsStringAsync();
             Assert.True(JsonUtils.DeepEquals("{}", responseBody));
         }
-
     }
 }

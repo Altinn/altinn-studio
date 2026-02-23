@@ -15,6 +15,7 @@ namespace Altinn.Studio.DataModeling.Validator.Json
                 RootSchema = rootSchema;
                 Issues = new List<JsonSchemaValidationIssue>();
             }
+
             public JsonSchema RootSchema { get; }
             public List<JsonSchemaValidationIssue> Issues { get; }
         }
@@ -26,11 +27,17 @@ namespace Altinn.Studio.DataModeling.Validator.Json
 
             var rootPath = JsonPointer.Parse("#");
 
-            if (schema.HasKeyword<PropertiesKeyword>() && (schema.HasKeyword<OneOfKeyword>() || schema.HasKeyword<AllOfKeyword>()))
+            if (
+                schema.HasKeyword<PropertiesKeyword>()
+                && (schema.HasKeyword<OneOfKeyword>() || schema.HasKeyword<AllOfKeyword>())
+            )
             {
                 validationContext.Issues.Add(
-                    new JsonSchemaValidationIssue(rootPath.ToString(JsonPointerStyle.UriEncoded), JsonSchemaValidationErrorCodes.BothPropertiesAndCompositionSchema)
-                    );
+                    new JsonSchemaValidationIssue(
+                        rootPath.ToString(JsonPointerStyle.UriEncoded),
+                        JsonSchemaValidationErrorCodes.BothPropertiesAndCompositionSchema
+                    )
+                );
             }
 
             foreach (var keyword in schema.Keywords!)
@@ -55,8 +62,11 @@ namespace Altinn.Studio.DataModeling.Validator.Json
             }
         }
 
-
-        private void ValidatePropertiesKeyword(JsonPointer path, PropertiesKeyword propertiesKeyword, ValidationContext validationContext)
+        private void ValidatePropertiesKeyword(
+            JsonPointer path,
+            PropertiesKeyword propertiesKeyword,
+            ValidationContext validationContext
+        )
         {
             foreach ((string name, JsonSchema propertyNode) in propertiesKeyword.Properties)
             {
@@ -64,7 +74,6 @@ namespace Altinn.Studio.DataModeling.Validator.Json
                 ValidateSubSchema(propertyPath, propertyNode, validationContext);
             }
         }
-
 
         private void ValidateSubSchema(JsonPointer path, JsonSchema subSchema, ValidationContext validationContext)
         {
@@ -93,8 +102,11 @@ namespace Altinn.Studio.DataModeling.Validator.Json
             if (!schema.HasKeyword<PropertiesKeyword>())
             {
                 validationContext.Issues.Add(
-                    new JsonSchemaValidationIssue(path.ToString(JsonPointerStyle.UriEncoded), JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties)
-                    );
+                    new JsonSchemaValidationIssue(
+                        path.ToString(JsonPointerStyle.UriEncoded),
+                        JsonSchemaValidationErrorCodes.ObjectNodeWithoutProperties
+                    )
+                );
             }
 
             foreach (var keyword in schema.Keywords!)
@@ -108,11 +120,19 @@ namespace Altinn.Studio.DataModeling.Validator.Json
         {
             if (schema.TryGetKeyword(out ItemsKeyword itemsKeyword) && itemsKeyword.SingleSchema is not null)
             {
-                ValidateSubSchema(path.Combine(JsonPointer.Parse("/items")), itemsKeyword.SingleSchema, validationContext);
+                ValidateSubSchema(
+                    path.Combine(JsonPointer.Parse("/items")),
+                    itemsKeyword.SingleSchema,
+                    validationContext
+                );
             }
         }
 
-        private void ValidateOneOfKeyword(JsonPointer path, OneOfKeyword oneOfKeyword, ValidationContext validationContext)
+        private void ValidateOneOfKeyword(
+            JsonPointer path,
+            OneOfKeyword oneOfKeyword,
+            ValidationContext validationContext
+        )
         {
             int subSchemaIndex = 0;
             foreach (var subSchema in oneOfKeyword.Schemas)
@@ -131,8 +151,11 @@ namespace Altinn.Studio.DataModeling.Validator.Json
             if (refSchema is null)
             {
                 validationContext.Issues.Add(
-                    new JsonSchemaValidationIssue(path.ToString(JsonPointerStyle.UriEncoded), JsonSchemaValidationErrorCodes.InvalidReference)
-                    );
+                    new JsonSchemaValidationIssue(
+                        path.ToString(JsonPointerStyle.UriEncoded),
+                        JsonSchemaValidationErrorCodes.InvalidReference
+                    )
+                );
                 return;
             }
 

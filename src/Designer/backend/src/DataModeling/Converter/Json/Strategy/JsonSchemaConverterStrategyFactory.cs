@@ -40,9 +40,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 JsonElement value = info.Value;
                 if (value.ValueKind == JsonValueKind.Object)
                 {
-                    JsonElement generatorScriptName = value.EnumerateObject().FirstOrDefault(obj => obj.NameEquals("XSLT-skriptnavn")).Value;
-                    if (generatorScriptName.ValueKind == JsonValueKind.String &&
-                        generatorScriptName.ValueEquals("SERES_XSD_GEN"))
+                    JsonElement generatorScriptName = value
+                        .EnumerateObject()
+                        .FirstOrDefault(obj => obj.NameEquals("XSLT-skriptnavn"))
+                        .Value;
+                    if (
+                        generatorScriptName.ValueKind == JsonValueKind.String
+                        && generatorScriptName.ValueEquals("SERES_XSD_GEN")
+                    )
                     {
                         return new SeresJsonSchemaConverterStrategy();
                     }

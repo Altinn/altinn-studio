@@ -26,25 +26,28 @@ public class StudioctlInstallScriptServiceTests
                 return CreateReleaseLookupResponse(
                     """
                     [{ "tag_name": "studioctl/v1.2.3", "draft": false, "prerelease": false }]
-                    """);
+                    """
+                );
             }
 
             Assert.Equal(
                 "/Altinn/altinn-studio/releases/download/studioctl/v1.2.3/install.sh",
-                request.RequestUri?.AbsolutePath);
+                request.RequestUri?.AbsolutePath
+            );
 
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new ByteArrayContent(payload)
-            };
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(payload) };
         });
 
         var service = CreateService(handler);
 
-        StudioctlInstallScriptResult first =
-            await service.GetInstallScriptAsync(StudioctlInstallScriptType.Bash, CancellationToken.None);
-        StudioctlInstallScriptResult second =
-            await service.GetInstallScriptAsync(StudioctlInstallScriptType.Bash, CancellationToken.None);
+        StudioctlInstallScriptResult first = await service.GetInstallScriptAsync(
+            StudioctlInstallScriptType.Bash,
+            CancellationToken.None
+        );
+        StudioctlInstallScriptResult second = await service.GetInstallScriptAsync(
+            StudioctlInstallScriptType.Bash,
+            CancellationToken.None
+        );
 
         Assert.Equal(StudioctlInstallScriptStatus.Ok, first.Status);
         Assert.Equal("install.sh", first.FileName);
@@ -66,16 +69,21 @@ public class StudioctlInstallScriptServiceTests
                       { "tag_name": "v2026.1", "draft": false, "prerelease": false },
                       { "tag_name": "studioctl/v1.2.3-preview.1", "draft": false, "prerelease": true }
                     ]
-                    """);
+                    """
+                );
             }
 
-            throw new InvalidOperationException("Asset download should not be attempted when no stable studioctl release exists.");
+            throw new InvalidOperationException(
+                "Asset download should not be attempted when no stable studioctl release exists."
+            );
         });
 
         var service = CreateService(handler);
 
-        StudioctlInstallScriptResult result =
-            await service.GetInstallScriptAsync(StudioctlInstallScriptType.Bash, CancellationToken.None);
+        StudioctlInstallScriptResult result = await service.GetInstallScriptAsync(
+            StudioctlInstallScriptType.Bash,
+            CancellationToken.None
+        );
 
         Assert.Equal(StudioctlInstallScriptStatus.NotFound, result.Status);
     }
@@ -90,7 +98,8 @@ public class StudioctlInstallScriptServiceTests
                 return CreateReleaseLookupResponse(
                     """
                     [{ "tag_name": "studioctl/v1.2.3", "draft": false, "prerelease": false }]
-                    """);
+                    """
+                );
             }
 
             return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
@@ -98,8 +107,10 @@ public class StudioctlInstallScriptServiceTests
 
         var service = CreateService(handler);
 
-        StudioctlInstallScriptResult result =
-            await service.GetInstallScriptAsync(StudioctlInstallScriptType.PowerShell, CancellationToken.None);
+        StudioctlInstallScriptResult result = await service.GetInstallScriptAsync(
+            StudioctlInstallScriptType.PowerShell,
+            CancellationToken.None
+        );
 
         Assert.Equal(StudioctlInstallScriptStatus.Unavailable, result.Status);
     }
@@ -114,7 +125,8 @@ public class StudioctlInstallScriptServiceTests
                 return CreateReleaseLookupResponse(
                     """
                     [{ "tag_name": "studioctl/v1.2.3", "draft": false, "prerelease": false }]
-                    """);
+                    """
+                );
             }
 
             throw new HttpRequestException("DNS failure");
@@ -122,8 +134,10 @@ public class StudioctlInstallScriptServiceTests
 
         var service = CreateService(handler);
 
-        StudioctlInstallScriptResult result =
-            await service.GetInstallScriptAsync(StudioctlInstallScriptType.PowerShell, CancellationToken.None);
+        StudioctlInstallScriptResult result = await service.GetInstallScriptAsync(
+            StudioctlInstallScriptType.PowerShell,
+            CancellationToken.None
+        );
 
         Assert.Equal(StudioctlInstallScriptStatus.Unavailable, result.Status);
     }
@@ -138,7 +152,8 @@ public class StudioctlInstallScriptServiceTests
                 return CreateReleaseLookupResponse(
                     """
                     [{ "tag_name": "studioctl/v1.2.3", "draft": false, "prerelease": false }]
-                    """);
+                    """
+                );
             }
 
             throw new TaskCanceledException("timeout");
@@ -146,8 +161,10 @@ public class StudioctlInstallScriptServiceTests
 
         var service = CreateService(handler);
 
-        StudioctlInstallScriptResult result =
-            await service.GetInstallScriptAsync(StudioctlInstallScriptType.Bash, CancellationToken.None);
+        StudioctlInstallScriptResult result = await service.GetInstallScriptAsync(
+            StudioctlInstallScriptType.Bash,
+            CancellationToken.None
+        );
 
         Assert.Equal(StudioctlInstallScriptStatus.Unavailable, result.Status);
     }
@@ -163,19 +180,19 @@ public class StudioctlInstallScriptServiceTests
                 return CreateReleaseLookupResponse(
                     """
                     [{ "tag_name": "studioctl/v1.2.3", "draft": false, "prerelease": false }]
-                    """);
+                    """
+                );
             }
 
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new ByteArrayContent(payload)
-            };
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(payload) };
         });
 
         var service = CreateService(handler);
 
-        StudioctlInstallScriptResult result =
-            await service.GetInstallScriptAsync(StudioctlInstallScriptType.Bash, CancellationToken.None);
+        StudioctlInstallScriptResult result = await service.GetInstallScriptAsync(
+            StudioctlInstallScriptType.Bash,
+            CancellationToken.None
+        );
 
         Assert.Equal(StudioctlInstallScriptStatus.Unavailable, result.Status);
     }
@@ -184,23 +201,27 @@ public class StudioctlInstallScriptServiceTests
     public async Task GetInstallScriptAsync_StaleCache_ReturnsCached()
     {
         byte[] payload = Encoding.UTF8.GetBytes("cached");
-        var handler = new TestHttpMessageHandler(_ =>
-            new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
+        var handler = new TestHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
 
         var cache = new MemoryCache(new MemoryCacheOptions());
         cache.Set(
             "studioctl-install-script:" + StudioctlInstallScriptType.Bash,
             new StudioctlInstallScriptService.StudioctlInstallScriptCacheEntry(
                 payload,
-                DateTimeOffset.UtcNow.AddHours(-2)));
+                DateTimeOffset.UtcNow.AddHours(-2)
+            )
+        );
 
         var service = new StudioctlInstallScriptService(
             new TestHttpClientFactory(handler),
             cache,
-            NullLogger<StudioctlInstallScriptService>.Instance);
+            NullLogger<StudioctlInstallScriptService>.Instance
+        );
 
-        StudioctlInstallScriptResult result =
-            await service.GetInstallScriptAsync(StudioctlInstallScriptType.Bash, CancellationToken.None);
+        StudioctlInstallScriptResult result = await service.GetInstallScriptAsync(
+            StudioctlInstallScriptType.Bash,
+            CancellationToken.None
+        );
 
         Assert.Equal(StudioctlInstallScriptStatus.Ok, result.Status);
         Assert.Equal(payload, result.Content);
@@ -221,43 +242,42 @@ public class StudioctlInstallScriptServiceTests
                       { "tag_name": "v2026.4", "draft": false, "prerelease": false },
                       { "tag_name": "studioctl/v1.5.0", "draft": false, "prerelease": false }
                     ]
-                    """);
+                    """
+                );
             }
 
             Assert.Equal(
                 "/Altinn/altinn-studio/releases/download/studioctl/v1.5.0/install.sh",
-                request.RequestUri?.AbsolutePath);
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new ByteArrayContent(payload)
-            };
+                request.RequestUri?.AbsolutePath
+            );
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(payload) };
         });
 
         var service = CreateService(handler);
 
-        StudioctlInstallScriptResult result =
-            await service.GetInstallScriptAsync(StudioctlInstallScriptType.Bash, CancellationToken.None);
+        StudioctlInstallScriptResult result = await service.GetInstallScriptAsync(
+            StudioctlInstallScriptType.Bash,
+            CancellationToken.None
+        );
 
         Assert.Equal(StudioctlInstallScriptStatus.Ok, result.Status);
         Assert.Equal(payload, result.Content);
     }
 
-    private static StudioctlInstallScriptService CreateService(TestHttpMessageHandler handler)
-        => new(
+    private static StudioctlInstallScriptService CreateService(TestHttpMessageHandler handler) =>
+        new(
             new TestHttpClientFactory(handler),
             new MemoryCache(new MemoryCacheOptions()),
-            NullLogger<StudioctlInstallScriptService>.Instance);
+            NullLogger<StudioctlInstallScriptService>.Instance
+        );
 
-    private static bool IsReleaseLookupRequest(HttpRequestMessage request)
-        => request.RequestUri is not null
-            && request.RequestUri.Host == "api.github.com"
-            && request.RequestUri.AbsolutePath == "/repos/Altinn/altinn-studio/releases";
+    private static bool IsReleaseLookupRequest(HttpRequestMessage request) =>
+        request.RequestUri is not null
+        && request.RequestUri.Host == "api.github.com"
+        && request.RequestUri.AbsolutePath == "/repos/Altinn/altinn-studio/releases";
 
-    private static HttpResponseMessage CreateReleaseLookupResponse(string json)
-        => new(HttpStatusCode.OK)
-        {
-            Content = new StringContent(json, Encoding.UTF8, "application/json")
-        };
+    private static HttpResponseMessage CreateReleaseLookupResponse(string json) =>
+        new(HttpStatusCode.OK) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
 
     private sealed class TestHttpClientFactory : IHttpClientFactory
     {
@@ -284,7 +304,8 @@ public class StudioctlInstallScriptServiceTests
 
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken
+        )
         {
             CallCount++;
             return Task.FromResult(_handler(request));

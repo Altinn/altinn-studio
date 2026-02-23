@@ -16,7 +16,7 @@ public static class AppSettingsMapper
             Created = entity.Created,
             CreatedBy = entity.CreatedBy,
             LastModifiedBy = entity.LastModifiedBy,
-            Version = entity.Version
+            Version = entity.Version,
         };
     }
 
@@ -38,7 +38,7 @@ public static class AppSettingsMapper
             Created = dbModel.Created,
             CreatedBy = dbModel.CreatedBy,
             LastModifiedBy = dbModel.LastModifiedBy,
-            Version = dbModel.Version
+            Version = dbModel.Version,
         };
     }
 }

@@ -75,11 +75,7 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
         }
 
         var candidates = new List<InactivityUndeployCandidate>();
-        var environments = await GetTargetEnvironmentsForOrg(
-            options.Org,
-            options.Environment,
-            cancellationToken
-        );
+        var environments = await GetTargetEnvironmentsForOrg(options.Org, options.Environment, cancellationToken);
 
         foreach (var environmentName in environments)
         {
@@ -89,7 +85,9 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             List<AppDeployment> deployments;
             try
             {
-                deployments = (await _runtimeGatewayClient.GetAppDeployments(options.Org, environment, cancellationToken))
+                deployments = (
+                    await _runtimeGatewayClient.GetAppDeployments(options.Org, environment, cancellationToken)
+                )
                     .Where(d => string.IsNullOrWhiteSpace(options.App) || d.App == options.App)
                     .GroupBy(d => d.App, StringComparer.Ordinal)
                     .Select(g => g.First())
@@ -98,7 +96,9 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 activity?.AddException(ex);
-                activity?.AddEvent(CreateSkippedEvaluationEvent(options.Org, environmentName, "deployments_fetch_failed"));
+                activity?.AddEvent(
+                    CreateSkippedEvaluationEvent(options.Org, environmentName, "deployments_fetch_failed")
+                );
                 continue;
             }
 
@@ -110,18 +110,31 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             AppActivityMetricsResponse activityMetrics;
             try
             {
-                activityMetrics = await _runtimeGatewayClient.GetAppActivityMetricsAsync(options.Org, environment, options.WindowDays, cancellationToken);
+                activityMetrics = await _runtimeGatewayClient.GetAppActivityMetricsAsync(
+                    options.Org,
+                    environment,
+                    options.WindowDays,
+                    cancellationToken
+                );
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 activity?.AddException(ex);
-                activity?.AddEvent(CreateSkippedEvaluationEvent(options.Org, environmentName, "activity_metrics_fetch_failed"));
+                activity?.AddEvent(
+                    CreateSkippedEvaluationEvent(options.Org, environmentName, "activity_metrics_fetch_failed")
+                );
                 continue;
             }
 
             if (!string.Equals(activityMetrics.Status, MetricsStatusOk, StringComparison.OrdinalIgnoreCase))
             {
-                activity?.AddEvent(CreateSkippedEvaluationEvent(options.Org, environmentName, $"metrics_status_{activityMetrics.Status}"));
+                activity?.AddEvent(
+                    CreateSkippedEvaluationEvent(
+                        options.Org,
+                        environmentName,
+                        $"metrics_status_{activityMetrics.Status}"
+                    )
+                );
                 continue;
             }
 
@@ -137,12 +150,14 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
                     continue;
                 }
 
-                candidates.Add(new InactivityUndeployCandidate
-                {
-                    Org = deployment.Org,
-                    App = deployment.App,
-                    Environment = environmentName
-                });
+                candidates.Add(
+                    new InactivityUndeployCandidate
+                    {
+                        Org = deployment.Org,
+                        App = deployment.App,
+                        Environment = environmentName,
+                    }
+                );
             }
         }
 
@@ -158,7 +173,7 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
             {
                 { "org", org },
                 { "environment", environment },
-                { "reason", reason }
+                { "reason", reason },
             }
         );
     }
@@ -181,18 +196,10 @@ public class AppInactivityUndeployService : IAppInactivityUndeployService
     {
         if (!string.IsNullOrWhiteSpace(envFilter))
         {
-            return AppInactivityUndeployJobConstants.IsTargetEnvironment(envFilter)
-                ? [envFilter]
-                : [];
+            return AppInactivityUndeployJobConstants.IsTargetEnvironment(envFilter) ? [envFilter] : [];
         }
 
-        var environments = await _environmentsService.GetOrganizationEnvironments(
-            org,
-            cancellationToken
-        );
-        return environments
-            .Select(e => e.Name)
-            .Where(AppInactivityUndeployJobConstants.IsTargetEnvironment)
-            .ToArray();
+        var environments = await _environmentsService.GetOrganizationEnvironments(org, cancellationToken);
+        return environments.Select(e => e.Name).Where(AppInactivityUndeployJobConstants.IsTargetEnvironment).ToArray();
     }
 }

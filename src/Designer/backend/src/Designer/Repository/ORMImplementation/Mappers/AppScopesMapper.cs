@@ -11,7 +11,7 @@ public class AppScopesMapper
     private static readonly JsonSerializerOptions s_jsonOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
+        WriteIndented = false,
     };
 
     public static AppScopesDbModel MapToDbModel(AppScopesEntity appScopes)
@@ -24,7 +24,7 @@ public class AppScopesMapper
             Scopes = JsonSerializer.Serialize(appScopes.Scopes, s_jsonOptions),
             CreatedBy = appScopes.CreatedBy,
             LastModifiedBy = appScopes.LastModifiedBy,
-            Version = appScopes.Version
+            Version = appScopes.Version,
         };
     }
 
@@ -45,7 +45,7 @@ public class AppScopesMapper
             Scopes = JsonSerializer.Deserialize<ISet<MaskinPortenScopeEntity>>(appScopesDbModel.Scopes, s_jsonOptions),
             CreatedBy = appScopesDbModel.CreatedBy,
             LastModifiedBy = appScopesDbModel.LastModifiedBy,
-            Version = appScopesDbModel.Version
+            Version = appScopesDbModel.Version,
         };
     }
 }

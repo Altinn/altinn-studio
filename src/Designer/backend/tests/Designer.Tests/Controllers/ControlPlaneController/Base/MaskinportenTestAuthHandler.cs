@@ -13,10 +13,9 @@ internal sealed class MaskinportenTestAuthHandler : AuthenticationHandler<Maskin
     public MaskinportenTestAuthHandler(
         IOptionsMonitor<MaskinportenTestAuthOptions> options,
         ILoggerFactory logger,
-        UrlEncoder encoder)
-        : base(options, logger, encoder)
-    {
-    }
+        UrlEncoder encoder
+    )
+        : base(options, logger, encoder) { }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -29,7 +28,7 @@ internal sealed class MaskinportenTestAuthHandler : AuthenticationHandler<Maskin
         {
             new Claim("iss", Options.Issuer ?? "https://test.maskinporten.no/"),
             new Claim(MaskinportenConstants.ScopeClaimType, Options.Scope ?? ""),
-            new Claim("consumer", Options.Consumer ?? """{"ID": "test-org"}""")
+            new Claim("consumer", Options.Consumer ?? """{"ID": "test-org"}"""),
         };
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);

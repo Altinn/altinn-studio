@@ -32,7 +32,9 @@ public class AppInactivityUndeployAppJob : IJob
     public async Task Execute(IJobExecutionContext context)
     {
         var timeout = _schedulingSettings.InactivityUndeployJobTimeouts.PerAppJobTimeout;
-        using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken);
+        using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            context.CancellationToken
+        );
         timeoutCancellationTokenSource.CancelAfter(timeout);
         var cancellationToken = timeoutCancellationTokenSource.Token;
 
@@ -42,23 +44,27 @@ public class AppInactivityUndeployAppJob : IJob
 
         if (string.IsNullOrWhiteSpace(org))
         {
-            throw new InvalidOperationException($"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataOrgKey}'.");
+            throw new InvalidOperationException(
+                $"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataOrgKey}'."
+            );
         }
 
         if (string.IsNullOrWhiteSpace(app))
         {
-            throw new InvalidOperationException($"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataAppKey}'.");
+            throw new InvalidOperationException(
+                $"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataAppKey}'."
+            );
         }
 
         if (string.IsNullOrWhiteSpace(environment))
         {
-            throw new InvalidOperationException($"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataEnvironmentKey}'.");
+            throw new InvalidOperationException(
+                $"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataEnvironmentKey}'."
+            );
         }
         if (!AppInactivityUndeployJobConstants.IsTargetEnvironment(environment))
         {
-            throw new InvalidOperationException(
-                $"Unsupported environment '{environment}' for inactivity undeploy."
-            );
+            throw new InvalidOperationException($"Unsupported environment '{environment}' for inactivity undeploy.");
         }
 
         using var activity = ServiceTelemetry.Source.StartActivity(
@@ -80,25 +86,33 @@ public class AppInactivityUndeployAppJob : IJob
                 cancellationToken
             );
             await _deploymentService.UndeploySystemAsync(
-                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, AppInactivityUndeployJobConstants.SystemDeveloper),
+                AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                    org,
+                    app,
+                    AppInactivityUndeployJobConstants.SystemDeveloper
+                ),
                 environment,
                 cancellationToken
             );
         }
         catch (OperationCanceledException ex)
-            when (timeoutCancellationTokenSource.IsCancellationRequested && !context.CancellationToken.IsCancellationRequested)
+            when (timeoutCancellationTokenSource.IsCancellationRequested
+                && !context.CancellationToken.IsCancellationRequested
+            )
         {
             activity?.SetStatus(ActivityStatusCode.Error, "Job timed out.");
-            activity?.AddEvent(new ActivityEvent(
-                "job_timeout",
-                tags: new ActivityTagsCollection
-                {
-                    ["org"] = org,
-                    ["app"] = app,
-                    ["environment"] = environment,
-                    ["timeout.seconds"] = timeout.TotalSeconds
-                }
-            ));
+            activity?.AddEvent(
+                new ActivityEvent(
+                    "job_timeout",
+                    tags: new ActivityTagsCollection
+                    {
+                        ["org"] = org,
+                        ["app"] = app,
+                        ["environment"] = environment,
+                        ["timeout.seconds"] = timeout.TotalSeconds,
+                    }
+                )
+            );
             throw new TimeoutException($"{nameof(AppInactivityUndeployAppJob)} timed out after {timeout}.", ex);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

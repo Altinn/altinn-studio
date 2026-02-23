@@ -11,7 +11,6 @@ namespace DataModeling.Tests
 {
     public class ModelSerializationTests : CsharpModelConversionTestsBase<ModelSerializationTests>
     {
-
         private Type ModelType { get; set; }
 
         private string JsonData { get; set; }
@@ -24,9 +23,14 @@ namespace DataModeling.Tests
 
         [Theory]
         [ClassData(typeof(JsonRoundSerializationTestData))]
-        public void Round_DeserializeAndSerialize_To_ShouldNotChangeJsonData(string xsdSchemaPath, string typeName, string jsonPath)
+        public void Round_DeserializeAndSerialize_To_ShouldNotChangeJsonData(
+            string xsdSchemaPath,
+            string typeName,
+            string jsonPath
+        )
         {
-            Given.That.XsdSchemaLoaded(xsdSchemaPath)
+            Given
+                .That.XsdSchemaLoaded(xsdSchemaPath)
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
@@ -43,9 +47,14 @@ namespace DataModeling.Tests
 
         [Theory]
         [ClassData(typeof(XmlRoundSerializationTestData))]
-        public void Round_DeserializeAndSerialize_To_ShouldNotChangeXmlData(string xsdSchemaPath, string typeName, string jsonPath)
+        public void Round_DeserializeAndSerialize_To_ShouldNotChangeXmlData(
+            string xsdSchemaPath,
+            string typeName,
+            string jsonPath
+        )
         {
-            Given.That.XsdSchemaLoaded(xsdSchemaPath)
+            Given
+                .That.XsdSchemaLoaded(xsdSchemaPath)
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
@@ -62,9 +71,15 @@ namespace DataModeling.Tests
 
         [Theory]
         [ClassData(typeof(JsonAndXmlDeserializationComparisonTestData))]
-        public void XmlAndJsonData_ShouldDeserialize_ToEquivalentModel(string xsdSchemaPath, string typeName, string jsonPath, string xmlPath)
+        public void XmlAndJsonData_ShouldDeserialize_ToEquivalentModel(
+            string xsdSchemaPath,
+            string typeName,
+            string jsonPath,
+            string xmlPath
+        )
         {
-            Given.That.XsdSchemaLoaded(xsdSchemaPath)
+            Given
+                .That.XsdSchemaLoaded(xsdSchemaPath)
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
@@ -79,7 +94,6 @@ namespace DataModeling.Tests
                 .And.JsonDataDeserializedToModelObject()
                 .Then.ModelObjects_ShouldBeEquivalent();
         }
-
 
         private ModelSerializationTests TypeReadFromCompiledAssembly(string typeName)
         {
@@ -142,7 +156,12 @@ namespace DataModeling.Tests
 
         private void ModelObjects_ShouldBeEquivalent()
         {
-            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(DeserializedJsonModelObject), JsonSerializer.Serialize(DeserializedXmlModelObject)));
+            Assert.True(
+                JsonUtils.DeepEquals(
+                    JsonSerializer.Serialize(DeserializedJsonModelObject),
+                    JsonSerializer.Serialize(DeserializedXmlModelObject)
+                )
+            );
         }
     }
 }

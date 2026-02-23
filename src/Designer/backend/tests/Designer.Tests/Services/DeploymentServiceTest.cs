@@ -100,13 +100,7 @@ namespace Designer.Tests.Services
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
 
             _releaseRepository
-                .Setup(r =>
-                    r.GetSucceededReleaseFromDb(
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>()
-                    )
-                )
+                .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(GetReleases("updatedRelease.json").First());
 
             _applicationInformationService
@@ -123,11 +117,7 @@ namespace Designer.Tests.Services
 
             _azureDevOpsBuildClient
                 .Setup(b =>
-                    b.QueueAsync(
-                        It.IsAny<QueueBuildParameters>(),
-                        It.IsAny<int>(),
-                        It.IsAny<CancellationToken>()
-                    )
+                    b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
                 )
                 .ReturnsAsync(GetBuild());
 
@@ -137,10 +127,7 @@ namespace Designer.Tests.Services
             // Setup get deployments
             _deploymentRepository
                 .Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
-                .ReturnsAsync(
-                    GetDeployments("createdDeployment.json")
-                        .Where(d => d.Org == org && d.App == app)
-                );
+                .ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -163,12 +150,7 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
             DeploymentEntity deploymentEntity = await deploymentService.CreateAsync(
@@ -186,12 +168,7 @@ namespace Designer.Tests.Services
             }
 
             _releaseRepository.Verify(
-                r =>
-                    r.GetSucceededReleaseFromDb(
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>()
-                    ),
+                r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
                 Times.Once
             );
             _applicationInformationService.Verify(
@@ -206,12 +183,7 @@ namespace Designer.Tests.Services
                 Times.Once
             );
             _azureDevOpsBuildClient.Verify(
-                b =>
-                    b.QueueAsync(
-                        It.IsAny<QueueBuildParameters>(),
-                        It.IsAny<int>(),
-                        It.IsAny<CancellationToken>()
-                    ),
+                b => b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
                 Times.Once
             );
             _deploymentRepository.Verify(r => r.Create(It.IsAny<DeploymentEntity>()), Times.Once);
@@ -239,18 +211,10 @@ namespace Designer.Tests.Services
             const string App = "test-app";
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
 
-            _featureManager
-                .Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-                .ReturnsAsync(false);
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy)).ReturnsAsync(false);
 
             _releaseRepository
-                .Setup(r =>
-                    r.GetSucceededReleaseFromDb(
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>()
-                    )
-                )
+                .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(GetReleases("updatedRelease.json").First());
 
             _applicationInformationService
@@ -267,11 +231,7 @@ namespace Designer.Tests.Services
 
             _azureDevOpsBuildClient
                 .Setup(b =>
-                    b.QueueAsync(
-                        It.IsAny<QueueBuildParameters>(),
-                        It.IsAny<int>(),
-                        It.IsAny<CancellationToken>()
-                    )
+                    b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
                 )
                 .ReturnsAsync(GetBuild());
 
@@ -280,10 +240,7 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(GetDeployments("createdDeployment.json").First());
             _deploymentRepository
                 .Setup(r => r.Get(Org, App, It.IsAny<DocumentQueryModel>()))
-                .ReturnsAsync(
-                    GetDeployments("createdDeployment.json")
-                        .Where(d => d.Org == Org && d.App == App)
-                );
+                .ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == Org && d.App == App));
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -306,12 +263,7 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    Org,
-                    App,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(Org, App, "testUser", "dummyToken");
             using var activity = new Activity("test-create");
             activity.SetIdFormat(ActivityIdFormat.W3C);
             activity.Start();
@@ -366,10 +318,7 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.Equal(8, results.Results.Count());
-            _deploymentRepository.Verify(
-                r => r.Get(org, app, It.IsAny<DocumentQueryModel>()),
-                Times.Once
-            );
+            _deploymentRepository.Verify(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
         [Theory]
@@ -383,9 +332,7 @@ namespace Designer.Tests.Services
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
 
             // Setup GitOps feature flag enabled
-            _featureManager
-                .Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-                .ReturnsAsync(true);
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy)).ReturnsAsync(true);
 
             // Setup GitOps configuration manager - app does not exist
             _gitOpsConfigurationManager
@@ -417,20 +364,11 @@ namespace Designer.Tests.Services
                 .Returns(Task.CompletedTask);
 
             _gitOpsConfigurationManager.Setup(gm =>
-                gm.PersistGitOpsConfiguration(
-                    It.IsAny<AltinnOrgEditingContext>(),
-                    It.IsAny<AltinnEnvironment>()
-                )
+                gm.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>())
             );
 
             _releaseRepository
-                .Setup(r =>
-                    r.GetSucceededReleaseFromDb(
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>()
-                    )
-                )
+                .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(GetReleases("updatedRelease.json").First());
 
             _applicationInformationService
@@ -447,11 +385,7 @@ namespace Designer.Tests.Services
 
             _azureDevOpsBuildClient
                 .Setup(b =>
-                    b.QueueAsync(
-                        It.IsAny<QueueBuildParameters>(),
-                        It.IsAny<int>(),
-                        It.IsAny<CancellationToken>()
-                    )
+                    b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
                 )
                 .ReturnsAsync(GetBuild());
 
@@ -461,10 +395,7 @@ namespace Designer.Tests.Services
 
             _deploymentRepository
                 .Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
-                .ReturnsAsync(
-                    GetDeployments("createdDeployment.json")
-                        .Where(d => d.Org == org && d.App == app)
-                );
+                .ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -487,21 +418,13 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
             await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
             // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
-            _featureManager.Verify(
-                fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy),
-                Times.Exactly(2)
-            );
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             _gitOpsConfigurationManager.Verify(
                 gm =>
@@ -563,9 +486,7 @@ namespace Designer.Tests.Services
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
 
             // Setup GitOps feature flag enabled
-            _featureManager
-                .Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-                .ReturnsAsync(true);
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy)).ReturnsAsync(true);
 
             // Setup GitOps configuration manager - app already exists
             _gitOpsConfigurationManager
@@ -588,13 +509,7 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(true);
 
             _releaseRepository
-                .Setup(r =>
-                    r.GetSucceededReleaseFromDb(
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>()
-                    )
-                )
+                .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(GetReleases("updatedRelease.json").First());
 
             _applicationInformationService
@@ -611,11 +526,7 @@ namespace Designer.Tests.Services
 
             _azureDevOpsBuildClient
                 .Setup(b =>
-                    b.QueueAsync(
-                        It.IsAny<QueueBuildParameters>(),
-                        It.IsAny<int>(),
-                        It.IsAny<CancellationToken>()
-                    )
+                    b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
                 )
                 .ReturnsAsync(GetBuild());
 
@@ -625,10 +536,7 @@ namespace Designer.Tests.Services
 
             _deploymentRepository
                 .Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
-                .ReturnsAsync(
-                    GetDeployments("createdDeployment.json")
-                        .Where(d => d.Org == org && d.App == app)
-                );
+                .ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -651,21 +559,13 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
             await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
             // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
-            _featureManager.Verify(
-                fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy),
-                Times.Exactly(2)
-            );
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             _gitOpsConfigurationManager.Verify(
                 gm =>
@@ -697,11 +597,7 @@ namespace Designer.Tests.Services
             );
 
             _gitOpsConfigurationManager.Verify(
-                gm =>
-                    gm.PersistGitOpsConfiguration(
-                        It.IsAny<AltinnOrgEditingContext>(),
-                        It.IsAny<AltinnEnvironment>()
-                    ),
+                gm => gm.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>()),
                 Times.Never
             );
 
@@ -729,18 +625,10 @@ namespace Designer.Tests.Services
             DeploymentModel deploymentModel = new() { TagName = "1", EnvName = "at23" };
 
             // Setup GitOps feature flag disabled
-            _featureManager
-                .Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-                .ReturnsAsync(false);
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy)).ReturnsAsync(false);
 
             _releaseRepository
-                .Setup(r =>
-                    r.GetSucceededReleaseFromDb(
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>()
-                    )
-                )
+                .Setup(r => r.GetSucceededReleaseFromDb(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(GetReleases("updatedRelease.json").First());
 
             _applicationInformationService
@@ -757,11 +645,7 @@ namespace Designer.Tests.Services
 
             _azureDevOpsBuildClient
                 .Setup(b =>
-                    b.QueueAsync(
-                        It.IsAny<QueueBuildParameters>(),
-                        It.IsAny<int>(),
-                        It.IsAny<CancellationToken>()
-                    )
+                    b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
                 )
                 .ReturnsAsync(GetBuild());
 
@@ -771,10 +655,7 @@ namespace Designer.Tests.Services
 
             _deploymentRepository
                 .Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
-                .ReturnsAsync(
-                    GetDeployments("createdDeployment.json")
-                        .Where(d => d.Org == org && d.App == app)
-                );
+                .ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
 
             DeploymentService deploymentService = new(
                 GetAzureDevOpsSettings(),
@@ -797,21 +678,13 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
             await deploymentService.CreateAsync(authenticatedContext, deploymentModel);
 
             // Assert - feature flag is checked twice (once for GitOps logic, once for definition selection)
-            _featureManager.Verify(
-                fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy),
-                Times.Exactly(2)
-            );
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Exactly(2));
 
             // Verify NO GitOps methods are called when feature is disabled
             _gitOpsConfigurationManager.Verify(
@@ -843,11 +716,7 @@ namespace Designer.Tests.Services
             );
 
             _gitOpsConfigurationManager.Verify(
-                gm =>
-                    gm.PersistGitOpsConfiguration(
-                        It.IsAny<AltinnOrgEditingContext>(),
-                        It.IsAny<AltinnEnvironment>()
-                    ),
+                gm => gm.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>()),
                 Times.Never
             );
 
@@ -869,15 +738,7 @@ namespace Designer.Tests.Services
             string unitTestFolder = Path.GetDirectoryName(
                 new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath
             );
-            string path = Path.Combine(
-                unitTestFolder,
-                "..",
-                "..",
-                "..",
-                "_TestData",
-                "ReleasesCollection",
-                filename
-            );
+            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "ReleasesCollection", filename);
             if (File.Exists(path))
             {
                 string releases = File.ReadAllText(path);
@@ -892,15 +753,7 @@ namespace Designer.Tests.Services
             string unitTestFolder = Path.GetDirectoryName(
                 new Uri(typeof(DeploymentServiceTest).Assembly.Location).LocalPath
             );
-            string path = Path.Combine(
-                unitTestFolder,
-                "..",
-                "..",
-                "..",
-                "_TestData",
-                "Deployments",
-                filename
-            );
+            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Deployments", filename);
             if (!File.Exists(path))
             {
                 return null;
@@ -930,8 +783,9 @@ namespace Designer.Tests.Services
             if (File.Exists(path))
             {
                 string environments = File.ReadAllText(path);
-                EnvironmentsModel environmentsList =
-                    System.Text.Json.JsonSerializer.Deserialize<EnvironmentsModel>(environments);
+                EnvironmentsModel environmentsList = System.Text.Json.JsonSerializer.Deserialize<EnvironmentsModel>(
+                    environments
+                );
 
                 return environmentsList.Environments;
             }
@@ -958,15 +812,9 @@ namespace Designer.Tests.Services
         )
         {
             // Arrange
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                org,
-                app,
-                "testUser"
-            );
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, "testUser");
 
-            _featureManager
-                .Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-                .ReturnsAsync(false);
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy)).ReturnsAsync(false);
 
             _deploymentRepository
                 .Setup(r => r.GetLastDeployed(org, app, env))
@@ -1008,21 +856,13 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
             await deploymentService.UndeployAsync(authenticatedContext, env);
 
             // Assert
-            _featureManager.Verify(
-                fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy),
-                Times.Once
-            );
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
 
             // Should NOT call any GitOps methods
             _gitOpsConfigurationManager.Verify(
@@ -1077,11 +917,7 @@ namespace Designer.Tests.Services
 
         [Theory]
         [InlineData("ttd", "test-app", "at23")]
-        public async Task UndeployAsync_WithRecentPendingDecommission_ShouldSkip(
-            string org,
-            string app,
-            string env
-        )
+        public async Task UndeployAsync_WithRecentPendingDecommission_ShouldSkip(string org, string app, string env)
         {
             // Arrange
             var now = new DateTimeOffset(2026, 02, 17, 12, 00, 00, TimeSpan.Zero);
@@ -1122,12 +958,7 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
             await deploymentService.UndeployAsync(authenticatedContext, env);
@@ -1168,11 +999,7 @@ namespace Designer.Tests.Services
 
         [Theory]
         [InlineData("ttd", "test-app", "at23")]
-        public async Task UndeployAsync_WithStalePendingDecommission_ShouldProceed(
-            string org,
-            string app,
-            string env
-        )
+        public async Task UndeployAsync_WithStalePendingDecommission_ShouldProceed(string org, string app, string env)
         {
             // Arrange
             var now = new DateTimeOffset(2026, 02, 17, 12, 00, 00, TimeSpan.Zero);
@@ -1192,9 +1019,7 @@ namespace Designer.Tests.Services
                     }
                 );
 
-            _featureManager
-                .Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-                .ReturnsAsync(false);
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy)).ReturnsAsync(false);
 
             _deploymentRepository
                 .Setup(r => r.GetLastDeployed(org, app, env))
@@ -1237,12 +1062,7 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
             await deploymentService.UndeployAsync(authenticatedContext, env);
@@ -1279,15 +1099,9 @@ namespace Designer.Tests.Services
         )
         {
             // Arrange
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                org,
-                app,
-                "testUser"
-            );
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, "testUser");
 
-            _featureManager
-                .Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-                .ReturnsAsync(true);
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy)).ReturnsAsync(true);
 
             _gitOpsConfigurationManager
                 .Setup(gm => gm.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
@@ -1313,10 +1127,7 @@ namespace Designer.Tests.Services
                 .Returns(Task.CompletedTask);
 
             _gitOpsConfigurationManager.Setup(gm =>
-                gm.PersistGitOpsConfiguration(
-                    It.IsAny<AltinnOrgEditingContext>(),
-                    It.IsAny<AltinnEnvironment>()
-                )
+                gm.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>())
             );
 
             _deploymentRepository
@@ -1360,27 +1171,16 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
             await deploymentService.UndeployAsync(authenticatedContext, env);
 
             // Assert
-            _featureManager.Verify(
-                fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy),
-                Times.Once
-            );
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
 
             _gitOpsConfigurationManager.Verify(
-                gm =>
-                    gm.GitOpsConfigurationExistsAsync(
-                        It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org)
-                    ),
+                gm => gm.GitOpsConfigurationExistsAsync(It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org)),
                 Times.Once
             );
 
@@ -1447,9 +1247,7 @@ namespace Designer.Tests.Services
         )
         {
             // Arrange
-            _featureManager
-                .Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-                .ReturnsAsync(true);
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy)).ReturnsAsync(true);
 
             _gitOpsConfigurationManager
                 .Setup(gm => gm.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
@@ -1475,10 +1273,7 @@ namespace Designer.Tests.Services
                 .Returns(Task.CompletedTask);
 
             _gitOpsConfigurationManager.Setup(gm =>
-                gm.PersistGitOpsConfiguration(
-                    It.IsAny<AltinnOrgEditingContext>(),
-                    It.IsAny<AltinnEnvironment>()
-                )
+                gm.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>())
             );
 
             _deploymentRepository
@@ -1522,12 +1317,7 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
             await deploymentService.UndeployAsync(authenticatedContext, env);
@@ -1581,15 +1371,9 @@ namespace Designer.Tests.Services
         )
         {
             // Arrange
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                org,
-                app,
-                "testUser"
-            );
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, "testUser");
 
-            _featureManager
-                .Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-                .ReturnsAsync(true);
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy)).ReturnsAsync(true);
 
             _gitOpsConfigurationManager
                 .Setup(gm => gm.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
@@ -1659,27 +1443,16 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
             await deploymentService.UndeployAsync(authenticatedContext, env);
 
             // Assert
-            _featureManager.Verify(
-                fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy),
-                Times.Once
-            );
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
 
             _gitOpsConfigurationManager.Verify(
-                gm =>
-                    gm.GitOpsConfigurationExistsAsync(
-                        It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org)
-                    ),
+                gm => gm.GitOpsConfigurationExistsAsync(It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org)),
                 Times.Once
             );
 
@@ -1716,11 +1489,7 @@ namespace Designer.Tests.Services
             );
 
             _gitOpsConfigurationManager.Verify(
-                gm =>
-                    gm.PersistGitOpsConfiguration(
-                        It.IsAny<AltinnOrgEditingContext>(),
-                        It.IsAny<AltinnEnvironment>()
-                    ),
+                gm => gm.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>()),
                 Times.Never
             );
 
@@ -1759,15 +1528,9 @@ namespace Designer.Tests.Services
         )
         {
             // Arrange
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                org,
-                app,
-                "testUser"
-            );
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, "testUser");
 
-            _featureManager
-                .Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-                .ReturnsAsync(true);
+            _featureManager.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy)).ReturnsAsync(true);
 
             _gitOpsConfigurationManager
                 .Setup(gm => gm.GitOpsConfigurationExistsAsync(It.IsAny<AltinnOrgEditingContext>()))
@@ -1837,27 +1600,16 @@ namespace Designer.Tests.Services
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    "testUser",
-                    "dummyToken"
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
 
             // Act
             await deploymentService.UndeployAsync(authenticatedContext, env);
 
             // Assert
-            _featureManager.Verify(
-                fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy),
-                Times.Once
-            );
+            _featureManager.Verify(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy), Times.Once);
 
             _gitOpsConfigurationManager.Verify(
-                gm =>
-                    gm.GitOpsConfigurationExistsAsync(
-                        It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org)
-                    ),
+                gm => gm.GitOpsConfigurationExistsAsync(It.Is<AltinnOrgEditingContext>(ctx => ctx.Org == org)),
                 Times.Once
             );
 

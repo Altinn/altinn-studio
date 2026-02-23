@@ -37,7 +37,11 @@ public class InternalsController(
     [HttpGet("sync-gitops/{environment}/push")]
     [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
     [FeatureGate(StudioFeatureFlags.GitOpsDeploy)]
-    public async Task<IActionResult> PublishSyncRoot(string org, string environment, CancellationToken cancellationToken)
+    public async Task<IActionResult> PublishSyncRoot(
+        string org,
+        string environment,
+        CancellationToken cancellationToken
+    )
     {
         if (!await HasInternalDeveloperAccess())
         {
@@ -95,12 +99,14 @@ public class InternalsController(
 
         var queued = await jobQueue.QueuePerOrgEvaluationJobAsync(org, environment, cancellationToken);
 
-        return Accepted(new InactivityUndeployRunQueuedResponse
-        {
-            Org = org,
-            Environment = environment,
-            Queued = queued
-        });
+        return Accepted(
+            new InactivityUndeployRunQueuedResponse
+            {
+                Org = org,
+                Environment = environment,
+                Queued = queued,
+            }
+        );
     }
 
     private Task<bool> HasInternalDeveloperAccess()

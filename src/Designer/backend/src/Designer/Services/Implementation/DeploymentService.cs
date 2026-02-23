@@ -37,9 +37,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class DeploymentService : IDeploymentService
     {
         // Avoid duplicate undeploy runs while still allowing recovery from stale stuck decommissions.
-        private static readonly TimeSpan s_pendingDecommissionSkipThreshold = TimeSpan.FromMinutes(
-            10
-        );
+        private static readonly TimeSpan s_pendingDecommissionSkipThreshold = TimeSpan.FromMinutes(10);
 
         private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
         private readonly IDeploymentRepository _deploymentRepository;
@@ -115,11 +113,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var traceContext = GetCurrentTraceContext();
             DeploymentEntity deploymentEntity = new();
-            deploymentEntity.PopulateBaseProperties(
-                authenticatedContext.Org,
-                authenticatedContext.Repo,
-                _httpContext
-            );
+            deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContext);
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvName = deployment.EnvName;
 
@@ -152,9 +146,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 );
             }
 
-            bool useGitOpsDefinition = await _featureManager.IsEnabledAsync(
-                StudioFeatureFlags.GitOpsDeploy
-            );
+            bool useGitOpsDefinition = await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy);
             Build queuedBuild = await QueueDeploymentBuild(
                 release,
                 deploymentEntity,
@@ -214,27 +206,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 orgContext.Developer
             );
 
-            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(
+            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
+
+            bool appAlreadyExists = await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(
                 orgContext,
+                app,
                 environment
             );
-
-            bool appAlreadyExists =
-                await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(
-                    orgContext,
-                    app,
-                    environment
-                );
 
             if (appAlreadyExists)
             {
                 return false;
             }
 
-            await _gitOpsConfigurationManager.AddAppToGitOpsConfigurationAsync(
-                repoContext,
-                environment
-            );
+            await _gitOpsConfigurationManager.AddAppToGitOpsConfigurationAsync(repoContext, environment);
 
             _gitOpsConfigurationManager.PersistGitOpsConfiguration(orgContext, environment);
             return true;
@@ -250,21 +235,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            List<DeploymentEntity> deploymentEntities = (
-                await _deploymentRepository.Get(org, app, query)
-            ).ToList();
+            List<DeploymentEntity> deploymentEntities = (await _deploymentRepository.Get(org, app, query)).ToList();
 
-            IEnumerable<EnvironmentModel> environments =
-                await _environmentsService.GetOrganizationEnvironments(org, cancellationToken);
-            List<string> environmentNames = environments
-                .Select(environment => environment.Name)
-                .ToList();
+            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(
+                org,
+                cancellationToken
+            );
+            List<string> environmentNames = environments.Select(environment => environment.Name).ToList();
 
             return new SearchResults<DeploymentEntity>
             {
-                Results = deploymentEntities
-                    .Where(item => environmentNames.Contains(item.EnvName))
-                    .ToList(),
+                Results = deploymentEntities.Where(item => environmentNames.Contains(item.EnvName)).ToList(),
             };
         }
 
@@ -318,11 +299,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // it calls `RemoveAppFromGitOpsRepoIfExists` (which is a bit unexpected)
             cancellationToken = CancellationToken.None;
 
-            bool useGitOpsDecommission = await ShouldUseGitOpsDecommission(
-                editingContext,
-                env,
-                cancellationToken
-            );
+            bool useGitOpsDecommission = await ShouldUseGitOpsDecommission(editingContext, env, cancellationToken);
 
             // find the deployed tag
             DeploymentEntity lastDeployed = await _deploymentRepository.GetLastDeployed(
@@ -405,10 +382,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             );
         }
 
-        private async Task<bool> ShouldSkipUndeployAsync(
-            AltinnRepoEditingContext editingContext,
-            string env
-        )
+        private async Task<bool> ShouldSkipUndeployAsync(AltinnRepoEditingContext editingContext, string env)
         {
             var pendingDecommission = await _deploymentRepository.GetPendingDecommission(
                 editingContext.Org,
@@ -420,8 +394,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 DateTime nowUtc = _timeProvider.GetUtcNow().UtcDateTime;
                 DateTime pendingCreatedUtc = NormalizeToUtc(pendingDecommission.Created);
                 TimeSpan pendingAge = nowUtc - pendingCreatedUtc;
-                bool shouldSkip =
-                    pendingAge >= TimeSpan.Zero && pendingAge <= s_pendingDecommissionSkipThreshold;
+                bool shouldSkip = pendingAge >= TimeSpan.Zero && pendingAge <= s_pendingDecommissionSkipThreshold;
 
                 if (shouldSkip)
                 {
@@ -452,8 +425,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             ["environment"] = env,
                             ["build.id"] = pendingDecommission.Build?.Id ?? string.Empty,
                             ["pending.age_seconds"] = pendingAge.TotalSeconds,
-                            ["pending.skip_threshold_seconds"] =
-                                s_pendingDecommissionSkipThreshold.TotalSeconds,
+                            ["pending.skip_threshold_seconds"] = s_pendingDecommissionSkipThreshold.TotalSeconds,
                         }
                     )
                 );
@@ -497,34 +469,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             );
         }
 
-        private async Task<bool> RemoveAppFromGitOpsRepoIfExists(
-            AltinnRepoEditingContext editingContext,
-            string env
-        )
+        private async Task<bool> RemoveAppFromGitOpsRepoIfExists(AltinnRepoEditingContext editingContext, string env)
         {
-            var orgContext = AltinnOrgEditingContext.FromOrgDeveloper(
-                editingContext.Org,
-                editingContext.Developer
-            );
+            var orgContext = AltinnOrgEditingContext.FromOrgDeveloper(editingContext.Org, editingContext.Developer);
 
             if (!await _gitOpsConfigurationManager.GitOpsConfigurationExistsAsync(orgContext))
             {
                 return false;
             }
             var environment = AltinnEnvironment.FromName(env);
-            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(
-                orgContext,
-                environment
-            );
+            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
 
             var appName = AltinnRepoName.FromName(editingContext.Repo);
 
-            bool appExistsInGitOps =
-                await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(
-                    orgContext,
-                    appName,
-                    environment
-                );
+            bool appExistsInGitOps = await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(
+                orgContext,
+                appName,
+                environment
+            );
 
             if (!appExistsInGitOps)
             {
@@ -625,11 +587,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 ? _azureDevOpsSettings.GitOpsManagerDefinitionId
                 : _azureDevOpsSettings.DeployDefinitionId;
 
-            return await _azureDevOpsBuildClient.QueueAsync(
-                queueBuildParameters,
-                definitionId,
-                cancellationToken
-            );
+            return await _azureDevOpsBuildClient.QueueAsync(queueBuildParameters, definitionId, cancellationToken);
         }
 
         private static (string TraceParent, string TraceState) GetCurrentTraceContext()
@@ -648,9 +606,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return (null, null);
             }
 
-            var traceState = string.IsNullOrWhiteSpace(activity.TraceStateString)
-                ? null
-                : activity.TraceStateString;
+            var traceState = string.IsNullOrWhiteSpace(activity.TraceStateString) ? null : activity.TraceStateString;
 
             return (traceParent, traceState);
         }
@@ -762,8 +718,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var queryParams = new Dictionary<string, string>
             {
-                ["var-rg"] =
-                    $"altinnapps-{org}-{(environment.IsProd() ? "prod" : environment.Name)}-rg",
+                ["var-rg"] = $"altinnapps-{org}-{(environment.IsProd() ? "prod" : environment.Name)}-rg",
                 ["var-PodName"] = $"{org}-{app}-deployment-v2",
             };
 

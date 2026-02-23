@@ -16,16 +16,16 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.InternalsController;
 
-public class InactivityUndeployRunTests : DesignerEndpointsTestsBase<InactivityUndeployRunTests>,
-    IClassFixture<WebApplicationFactory<Program>>
+public class InactivityUndeployRunTests
+    : DesignerEndpointsTestsBase<InactivityUndeployRunTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly Mock<IAppInactivityUndeployJobQueue> _jobQueueMock = new();
     private readonly Mock<IDeploymentService> _deploymentServiceMock = new();
     private readonly Mock<IGiteaClient> _giteaClientMock = new();
 
-    public InactivityUndeployRunTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public InactivityUndeployRunTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
@@ -37,27 +37,19 @@ public class InactivityUndeployRunTests : DesignerEndpointsTestsBase<InactivityU
         services.AddSingleton(_deploymentServiceMock.Object);
         _giteaClientMock
             .Setup(c => c.GetTeams())
-            .ReturnsAsync(
-            [
+            .ReturnsAsync([
                 new Team
                 {
                     Name = "Deploy-at22",
-                    Organization = new Organization { Username = "ttd" }
+                    Organization = new Organization { Username = "ttd" },
                 },
                 new Team
                 {
                     Name = "Deploy-at21",
-                    Organization = new Organization { Username = "ttd" }
-                }
-            ]
-        );
-        _giteaClientMock
-            .Setup(c => c.GetUserOrganizations())
-            .ReturnsAsync(
-            [
-                new Organization { Username = "ttd" }
-            ]
-        );
+                    Organization = new Organization { Username = "ttd" },
+                },
+            ]);
+        _giteaClientMock.Setup(c => c.GetUserOrganizations()).ReturnsAsync([new Organization { Username = "ttd" }]);
         services.AddSingleton(_giteaClientMock.Object);
     }
 
@@ -79,7 +71,9 @@ public class InactivityUndeployRunTests : DesignerEndpointsTestsBase<InactivityU
         // Assert
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        var result = await response.Content.ReadFromJsonAsync<InactivityUndeployRunQueuedResponse>(JsonSerializerOptions);
+        var result = await response.Content.ReadFromJsonAsync<InactivityUndeployRunQueuedResponse>(
+            JsonSerializerOptions
+        );
         Assert.NotNull(result);
         Assert.True(result.Queued);
         Assert.Equal(Org, result.Org);
@@ -95,9 +89,7 @@ public class InactivityUndeployRunTests : DesignerEndpointsTestsBase<InactivityU
     public async Task Run_WithUnsupportedEnvironment_ShouldReturnBadRequest()
     {
         // Act
-        using var response = await HttpClient.GetAsync(
-            "/designer/api/v1/ttd/internals/inactivity-undeploy/at21/run"
-        );
+        using var response = await HttpClient.GetAsync("/designer/api/v1/ttd/internals/inactivity-undeploy/at21/run");
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -113,15 +105,9 @@ public class InactivityUndeployRunTests : DesignerEndpointsTestsBase<InactivityU
         _ = HttpClient;
         _giteaClientMock
             .Setup(c => c.GetUserOrganizations())
-            .ReturnsAsync(
-            [
-                new Organization { Username = "other-org" }
-            ]
-        );
+            .ReturnsAsync([new Organization { Username = "other-org" }]);
 
-        using var response = await HttpClient.GetAsync(
-            "/designer/api/v1/ttd/internals/inactivity-undeploy/at22/run"
-        );
+        using var response = await HttpClient.GetAsync("/designer/api/v1/ttd/internals/inactivity-undeploy/at22/run");
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         _jobQueueMock.Verify(

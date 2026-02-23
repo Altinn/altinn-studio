@@ -63,23 +63,17 @@ public class DeploymentPipelinePollingJobTest
 
         fixture
             .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new BuildEntity { Status = BuildStatus.Completed, Result = BuildResult.Succeeded }
-            );
+            .ReturnsAsync(new BuildEntity { Status = BuildStatus.Completed, Result = BuildResult.Succeeded });
 
         fixture
             .MockDeploymentRepository.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(
-                new DeploymentEntity { Build = new BuildEntity { Status = BuildStatus.None } }
-            );
+            .ReturnsAsync(new DeploymentEntity { Build = new BuildEntity { Status = BuildStatus.None } });
 
         // Act
         await fixture.Service.Execute(jobExecutionContext);
 
         // Assert
-        var capturedAppMetadata = JsonConvert.DeserializeObject<ApplicationMetadata>(
-            capturedAppMetadataJson
-        );
+        var capturedAppMetadata = JsonConvert.DeserializeObject<ApplicationMetadata>(capturedAppMetadataJson);
         Assert.NotNull(capturedAppMetadata);
         Assert.False(capturedAppMetadata.CopyInstanceSettings.Enabled);
     }
@@ -96,15 +90,11 @@ public class DeploymentPipelinePollingJobTest
 
         fixture
             .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                new BuildEntity { Status = BuildStatus.Completed, Result = BuildResult.Succeeded }
-            );
+            .ReturnsAsync(new BuildEntity { Status = BuildStatus.Completed, Result = BuildResult.Succeeded });
 
         fixture
             .MockDeploymentRepository.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync(
-                new DeploymentEntity { Build = new BuildEntity { Status = BuildStatus.None } }
-            );
+            .ReturnsAsync(new DeploymentEntity { Build = new BuildEntity { Status = BuildStatus.None } });
 
         // Act
         await fixture.Service.Execute(jobExecutionContext);
@@ -165,7 +155,7 @@ public class DeploymentPipelinePollingJobTest
             [SchedulerConstants.Developer] = "testdeveloper",
             [SchedulerConstants.BuildId] = "12345",
             [SchedulerConstants.PipelineType] = pipelineType.ToString(),
-            [SchedulerConstants.Environment] = "tt02"
+            [SchedulerConstants.Environment] = "tt02",
         };
 
         if (!string.IsNullOrWhiteSpace(traceParent))
@@ -179,9 +169,7 @@ public class DeploymentPipelinePollingJobTest
         }
 
         mockJobDetail.Setup(x => x.Key).Returns(JobKey.Create("testjob"));
-        mockJobDetail
-            .Setup(x => x.JobDataMap)
-            .Returns(jobDataMap);
+        mockJobDetail.Setup(x => x.JobDataMap).Returns(jobDataMap);
 
         mockJobExecutionContext.Setup(x => x.JobDetail).Returns(mockJobDetail.Object);
         mockJobExecutionContext.Setup(x => x.Scheduler).Returns(Mock.Of<IScheduler>());

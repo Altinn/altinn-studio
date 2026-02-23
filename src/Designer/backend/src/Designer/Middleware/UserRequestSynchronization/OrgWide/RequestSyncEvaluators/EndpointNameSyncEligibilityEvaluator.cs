@@ -14,22 +14,23 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.OrgWide.R
 public class EndpointNameSyncEligibilityEvaluator : IOrgWideSyncEligibilityEvaluator
 {
     private const string RemoveControllerSuffix = "Controller";
-    private static string TrimmedControllerName(string controllerName) => controllerName.Replace(RemoveControllerSuffix, string.Empty);
-    private readonly FrozenDictionary<string, FrozenSet<string>> _endpointsWhiteList = new Dictionary<string, FrozenSet<string>>
+
+    private static string TrimmedControllerName(string controllerName) =>
+        controllerName.Replace(RemoveControllerSuffix, string.Empty);
+
+    private readonly FrozenDictionary<string, FrozenSet<string>> _endpointsWhiteList = new Dictionary<
+        string,
+        FrozenSet<string>
+    >
     {
         {
             TrimmedControllerName(nameof(DeploymentsController)),
-            GenerateFrozenSet(
-                nameof(DeploymentsController.Create),
-                nameof(DeploymentsController.Undeploy)
-            )
+            GenerateFrozenSet(nameof(DeploymentsController.Create), nameof(DeploymentsController.Undeploy))
         },
         {
             TrimmedControllerName(nameof(InternalsController)),
-            GenerateFrozenSet(
-                nameof(InternalsController.PublishSyncRoot)
-            )
-        }
+            GenerateFrozenSet(nameof(InternalsController.PublishSyncRoot))
+        },
     }.ToFrozenDictionary();
 
     private static FrozenSet<string> GenerateFrozenSet(params string[] actions)
@@ -51,7 +52,10 @@ public class EndpointNameSyncEligibilityEvaluator : IOrgWideSyncEligibilityEvalu
         string controllerName = controllerActionDescriptor.ControllerName;
         string actionName = controllerActionDescriptor.ActionName;
 
-        if (_endpointsWhiteList.TryGetValue(controllerName, out FrozenSet<string> actionSet) && actionSet.Contains(actionName))
+        if (
+            _endpointsWhiteList.TryGetValue(controllerName, out FrozenSet<string> actionSet)
+            && actionSet.Contains(actionName)
+        )
         {
             return true;
         }

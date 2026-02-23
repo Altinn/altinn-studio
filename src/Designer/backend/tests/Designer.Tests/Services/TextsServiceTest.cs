@@ -22,7 +22,6 @@ namespace Designer.Tests.Services;
 
 public class TextsServiceTest : IDisposable
 {
-
     public string CreatedTestRepoPath { get; set; }
 
     private const string Org = "ttd";
@@ -33,11 +32,16 @@ public class TextsServiceTest : IDisposable
     private const string LayoutName1 = "layoutFile1InSet1";
     private const string LayoutName2 = "layoutFile1InSet2";
 
-    private async Task<(string targetRepository, AltinnGitRepositoryFactory altinnGitRepositoryFactory, TextsService textsService)>
-        SetupRepository()
+    private async Task<(
+        string targetRepository,
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        TextsService textsService
+    )> SetupRepository()
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
-        var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory()
+        );
         var textsService = GetTextsServiceForTest();
         CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(Org, Repository, Developer, targetRepository);
         return (targetRepository, altinnGitRepositoryFactory, textsService);
@@ -48,14 +52,24 @@ public class TextsServiceTest : IDisposable
     {
         (var targetRepository, var altinnGitRepositoryFactory, var textsService) = await SetupRepository();
 
-        List<TextIdMutation> keyMutations = new() { new() { OldId = "some-old-id", NewId = "new-id" } };
+        List<TextIdMutation> keyMutations = new()
+        {
+            new() { OldId = "some-old-id", NewId = "new-id" },
+        };
 
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(LayoutSetName1, LayoutName1);
 
         Assert.NotNull(formLayout);
-        Assert.Equal("new-id", (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString());
+        Assert.Equal(
+            "new-id",
+            (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString()
+        );
     }
 
     [Fact]
@@ -63,31 +77,54 @@ public class TextsServiceTest : IDisposable
     {
         (var targetRepository, var altinnGitRepositoryFactory, var textsService) = await SetupRepository();
 
-        List<TextIdMutation> keyMutations = new() { new() { OldId = "some-old-id", NewId = "new-id" } };
+        List<TextIdMutation> keyMutations = new()
+        {
+            new() { OldId = "some-old-id", NewId = "new-id" },
+        };
 
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         JsonNode formLayout1 = await altinnAppGitRepository.GetLayout(LayoutSetName1, LayoutName1);
         JsonNode formLayout2 = await altinnAppGitRepository.GetLayout(LayoutSetName2, LayoutName2);
 
         Assert.NotNull(formLayout1);
         Assert.NotNull(formLayout2);
-        Assert.Equal("new-id", (formLayout1["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString());
-        Assert.Equal("new-id", (formLayout2["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString());
+        Assert.Equal(
+            "new-id",
+            (formLayout1["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString()
+        );
+        Assert.Equal(
+            "new-id",
+            (formLayout2["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString()
+        );
     }
 
     [Fact]
     public async Task UpdateRelatedFiles_KeyExistInLayout_ShouldFindNewId()
     {
         (var targetRepository, var altinnGitRepositoryFactory, var textsService) = await SetupRepository();
-        List<TextIdMutation> keyMutations = new() { new() { OldId = "some-old-id", NewId = "new-id" } };
+        List<TextIdMutation> keyMutations = new()
+        {
+            new() { OldId = "some-old-id", NewId = "new-id" },
+        };
 
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(LayoutSetName1, LayoutName1);
 
         Assert.NotNull(formLayout);
-        Assert.Equal("new-id", (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString());
+        Assert.Equal(
+            "new-id",
+            (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString()
+        );
     }
 
     [Fact]
@@ -95,13 +132,23 @@ public class TextsServiceTest : IDisposable
     {
         (var targetRepository, var altinnGitRepositoryFactory, var textsService) = await SetupRepository();
 
-        List<TextIdMutation> keyMutations = new() { new() { OldId = "a-key-that-does-not-exist", NewId = "new-id" } };
+        List<TextIdMutation> keyMutations = new()
+        {
+            new() { OldId = "a-key-that-does-not-exist", NewId = "new-id" },
+        };
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(LayoutSetName1, LayoutName1);
 
         Assert.NotNull(formLayout);
-        Assert.Equal("some-old-id", (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString());
+        Assert.Equal(
+            "some-old-id",
+            (formLayout["data"]["layout"] as JsonArray)[0]["textResourceBindings"]["title"].ToString()
+        );
     }
 
     [Fact]
@@ -111,7 +158,11 @@ public class TextsServiceTest : IDisposable
 
         List<TextIdMutation> keyMutations = new() { new() { OldId = "some-old-id" } };
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(LayoutSetName1, LayoutName1);
 
         Assert.NotNull(formLayout);
@@ -123,15 +174,28 @@ public class TextsServiceTest : IDisposable
     {
         (var targetRepository, var altinnGitRepositoryFactory, var textsService) = await SetupRepository();
 
-        List<TextIdMutation> keyMutations = new() { new() { OldId = "id-used-by-options", NewId = "new-id" } };
+        List<TextIdMutation> keyMutations = new()
+        {
+            new() { OldId = "id-used-by-options", NewId = "new-id" },
+        };
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(LayoutSetName1, LayoutName1);
 
         Assert.NotNull(formLayout);
         Assert.Equal("new-id", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["label"].ToString());
-        Assert.Equal("help-text-used-by-options", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["helpText"].ToString());
-        Assert.Equal("description-used-by-options", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["description"].ToString());
+        Assert.Equal(
+            "help-text-used-by-options",
+            (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["helpText"].ToString()
+        );
+        Assert.Equal(
+            "description-used-by-options",
+            (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["description"].ToString()
+        );
     }
 
     [Fact]
@@ -139,13 +203,24 @@ public class TextsServiceTest : IDisposable
     {
         (var targetRepository, var altinnGitRepositoryFactory, var textsService) = await SetupRepository();
 
-        List<TextIdMutation> keyMutations = new() { new() { OldId = "help-text-used-by-options", NewId = "new-id" }, new() { OldId = "description-used-by-options", NewId = "new-id" } };
+        List<TextIdMutation> keyMutations = new()
+        {
+            new() { OldId = "help-text-used-by-options", NewId = "new-id" },
+            new() { OldId = "description-used-by-options", NewId = "new-id" },
+        };
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(LayoutSetName1, LayoutName1);
 
         Assert.NotNull(formLayout);
-        Assert.Equal("id-used-by-options", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["label"].ToString());
+        Assert.Equal(
+            "id-used-by-options",
+            (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["label"].ToString()
+        );
         Assert.Equal("new-id", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["helpText"].ToString());
         Assert.Equal("new-id", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["description"].ToString());
     }
@@ -157,11 +232,18 @@ public class TextsServiceTest : IDisposable
 
         List<TextIdMutation> keyMutations = new() { new() { OldId = "id-used-by-options" } };
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(LayoutSetName1, LayoutName1);
 
         Assert.NotNull(formLayout);
-        Assert.Equal("id-used-by-options", (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["label"].ToString());
+        Assert.Equal(
+            "id-used-by-options",
+            (formLayout["data"]["layout"] as JsonArray)[2]["options"][0]["label"].ToString()
+        );
     }
 
     [Fact]
@@ -169,9 +251,16 @@ public class TextsServiceTest : IDisposable
     {
         (var targetRepository, var altinnGitRepositoryFactory, var textsService) = await SetupRepository();
 
-        List<TextIdMutation> keyMutations = new() { new() { OldId = "label1", NewId = "label1new" } };
+        List<TextIdMutation> keyMutations = new()
+        {
+            new() { OldId = "label1", NewId = "label1new" },
+        };
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         string raw = await altinnAppGitRepository.GetOptionsList("test-options");
         JsonNode optionsList = JsonNode.Parse(raw);
 
@@ -187,7 +276,11 @@ public class TextsServiceTest : IDisposable
 
         List<TextIdMutation> keyMutations = new() { new() { OldId = "label1" } };
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         string raw = await altinnAppGitRepository.GetOptionsList("test-options");
         JsonNode optionsList = JsonNode.Parse(raw);
 
@@ -201,9 +294,16 @@ public class TextsServiceTest : IDisposable
     {
         (var targetRepository, var altinnGitRepositoryFactory, var textsService) = await SetupRepository();
 
-        List<TextIdMutation> keyMutations = new() { new() { OldId = "source-label", NewId = "source-label-new" } };
+        List<TextIdMutation> keyMutations = new()
+        {
+            new() { OldId = "source-label", NewId = "source-label-new" },
+        };
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(LayoutSetName1, LayoutName1);
 
         Assert.NotNull(formLayout);
@@ -217,7 +317,11 @@ public class TextsServiceTest : IDisposable
 
         List<TextIdMutation> keyMutations = new() { new() { OldId = "source-label" } };
         await textsService.UpdateRelatedFiles(Org, targetRepository, Developer, keyMutations);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(Org, targetRepository, Developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            Org,
+            targetRepository,
+            Developer
+        );
         JsonNode formLayout = await altinnAppGitRepository.GetLayout(LayoutSetName1, LayoutName1);
 
         Assert.NotNull(formLayout);
@@ -234,23 +338,42 @@ public class TextsServiceTest : IDisposable
 
     private static TextsService GetTextsServiceForTest()
     {
-        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory()
+        );
         GeneralSettings generalSettings = new()
         {
             TemplateLocation = @"../../../../../../testdata/AppTemplates/AspNet",
             DeploymentLocation = @"../../../../../../testdata/AppTemplates/AspNet/deployment",
-            AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App"
+            AppLocation = @"../../../../../../testdata/AppTemplates/AspNet/App",
         };
-        PlatformSettings platformSettings = new()
-        {
-            AppClusterUrlPattern = "https://{org}.{appPrefix}.{hostName}",
-        };
-        EnvironmentsService environmentsService = new(new HttpClient(), generalSettings, platformSettings, new Mock<IMemoryCache>().Object, new Mock<ILogger<EnvironmentsService>>().Object);
-        AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(new HttpClient(), environmentsService, new PlatformSettings(), new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object);
+        PlatformSettings platformSettings = new() { AppClusterUrlPattern = "https://{org}.{appPrefix}.{hostName}" };
+        EnvironmentsService environmentsService = new(
+            new HttpClient(),
+            generalSettings,
+            platformSettings,
+            new Mock<IMemoryCache>().Object,
+            new Mock<ILogger<EnvironmentsService>>().Object
+        );
+        AltinnStorageAppMetadataClient altinnStorageAppMetadataClient = new(
+            new HttpClient(),
+            environmentsService,
+            new PlatformSettings(),
+            new Mock<ILogger<AltinnStorageAppMetadataClient>>().Object
+        );
         IGiteaClient giteaClientMock = new IGiteaClientMock();
-        ApplicationMetadataService applicationMetadataService = new(new Mock<ILogger<ApplicationMetadataService>>().Object, altinnStorageAppMetadataClient, altinnGitRepositoryFactory, new Mock<IHttpContextAccessor>().Object, giteaClientMock);
+        ApplicationMetadataService applicationMetadataService = new(
+            new Mock<ILogger<ApplicationMetadataService>>().Object,
+            altinnStorageAppMetadataClient,
+            altinnGitRepositoryFactory,
+            new Mock<IHttpContextAccessor>().Object,
+            giteaClientMock
+        );
         Mock<ILogger<GiteaContentLibraryService>> loggerMock = new();
-        OptionsService optionsService = new(altinnGitRepositoryFactory, new GiteaContentLibraryService(giteaClientMock, loggerMock.Object));
+        OptionsService optionsService = new(
+            altinnGitRepositoryFactory,
+            new GiteaContentLibraryService(giteaClientMock, loggerMock.Object)
+        );
         TextsService textsService = new(altinnGitRepositoryFactory, applicationMetadataService, optionsService);
 
         return textsService;

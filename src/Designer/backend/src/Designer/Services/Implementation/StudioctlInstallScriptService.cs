@@ -21,6 +21,7 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
     private static readonly Uri s_releaseApiUrl = new("https://api.github.com/repos/Altinn/altinn-studio/releases");
     private static readonly Uri s_downloadBaseUrl = new("https://github.com/Altinn/altinn-studio/releases/download/");
     private static readonly TimeSpan s_refreshInterval = TimeSpan.FromHours(1);
+
     // Keep stale fallback available for a day while ensuring cache entries eventually expire.
     private static readonly TimeSpan s_cacheEntryLifetime = TimeSpan.FromHours(24);
     private const string CacheKeyPrefix = "studioctl-install-script:";
@@ -40,7 +41,8 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
         IHttpClientFactory httpClientFactory,
         IMemoryCache cache,
         ILogger<StudioctlInstallScriptService> logger,
-        IHostApplicationLifetime? hostLifetime = null)
+        IHostApplicationLifetime? hostLifetime = null
+    )
     {
         _httpClientFactory = httpClientFactory;
         _cache = cache;
@@ -50,7 +52,8 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
 
     public async Task<StudioctlInstallScriptResult> GetInstallScriptAsync(
         StudioctlInstallScriptType scriptType,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         string cacheKey = GetCacheKey(scriptType);
         if (_cache.TryGetValue(cacheKey, out StudioctlInstallScriptCacheEntry? entry) && entry is not null)
@@ -65,25 +68,25 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                 StudioctlInstallScriptStatus.Ok,
                 entry.Content,
                 GetFileName(scriptType),
-                isStale);
+                isStale
+            );
         }
 
         return await FetchWithLockAsync(scriptType, cacheKey, cancellationToken);
     }
 
-    private static string GetFileName(StudioctlInstallScriptType scriptType)
-        => scriptType switch
+    private static string GetFileName(StudioctlInstallScriptType scriptType) =>
+        scriptType switch
         {
             StudioctlInstallScriptType.Bash => "install.sh",
             StudioctlInstallScriptType.PowerShell => "install.ps1",
-            _ => throw new ArgumentOutOfRangeException(nameof(scriptType), scriptType, "Unsupported script type")
+            _ => throw new ArgumentOutOfRangeException(nameof(scriptType), scriptType, "Unsupported script type"),
         };
 
-    private static string GetCacheKey(StudioctlInstallScriptType scriptType)
-        => CacheKeyPrefix + scriptType;
+    private static string GetCacheKey(StudioctlInstallScriptType scriptType) => CacheKeyPrefix + scriptType;
 
-    private static bool IsStale(StudioctlInstallScriptCacheEntry entry)
-        => DateTimeOffset.UtcNow - entry.FetchedAt > s_refreshInterval;
+    private static bool IsStale(StudioctlInstallScriptCacheEntry entry) =>
+        DateTimeOffset.UtcNow - entry.FetchedAt > s_refreshInterval;
 
     private void TriggerRefresh(StudioctlInstallScriptType scriptType, string cacheKey)
     {
@@ -104,7 +107,8 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                     _logger.LogWarning(
                         "Background refresh failed for {ScriptType} with status {Status}",
                         scriptType,
-                        result.Status);
+                        result.Status
+                    );
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -125,7 +129,8 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
     private async Task<StudioctlInstallScriptResult> FetchWithLockAsync(
         StudioctlInstallScriptType scriptType,
         string cacheKey,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         SemaphoreSlim refreshLock = _refreshLocks.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
         bool scheduleRefresh = false;
@@ -142,7 +147,8 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                     StudioctlInstallScriptStatus.Ok,
                     entry.Content,
                     GetFileName(scriptType),
-                    isStale);
+                    isStale
+                );
             }
             else
             {
@@ -165,19 +171,15 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
     private async Task<StudioctlInstallScriptResult> FetchAndCacheAsync(
         StudioctlInstallScriptType scriptType,
         string cacheKey,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         string fileName = GetFileName(scriptType);
         using HttpClient client = _httpClientFactory.CreateClient();
-        ReleaseLookupResult releaseLookup =
-            await ResolveLatestStudioctlReleaseAsync(client, cancellationToken);
+        ReleaseLookupResult releaseLookup = await ResolveLatestStudioctlReleaseAsync(client, cancellationToken);
         if (releaseLookup.Status != StudioctlInstallScriptStatus.Ok || releaseLookup.TagName is null)
         {
-            return new StudioctlInstallScriptResult(
-                releaseLookup.Status,
-                Array.Empty<byte>(),
-                fileName,
-                false);
+            return new StudioctlInstallScriptResult(releaseLookup.Status, Array.Empty<byte>(), fileName, false);
         }
 
         Uri url = new(s_downloadBaseUrl, $"{releaseLookup.TagName}/{fileName}");
@@ -188,14 +190,16 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
             request,
             cancellationToken,
             url,
-            "fetching install script");
+            "fetching install script"
+        );
         if (response is null)
         {
             return new StudioctlInstallScriptResult(
                 StudioctlInstallScriptStatus.Unavailable,
                 Array.Empty<byte>(),
                 fileName,
-                false);
+                false
+            );
         }
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -205,20 +209,19 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                 StudioctlInstallScriptStatus.NotFound,
                 Array.Empty<byte>(),
                 fileName,
-                false);
+                false
+            );
         }
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogWarning(
-                "Failed to fetch install script {Url}. Status: {Status}",
-                url,
-                response.StatusCode);
+            _logger.LogWarning("Failed to fetch install script {Url}. Status: {Status}", url, response.StatusCode);
             return new StudioctlInstallScriptResult(
                 StudioctlInstallScriptStatus.Unavailable,
                 Array.Empty<byte>(),
                 fileName,
-                false);
+                false
+            );
         }
 
         try
@@ -231,12 +234,14 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                 ex,
                 "Install script response exceeded size limit of {MaxBytes} bytes: {Url}",
                 MaxScriptBytes,
-                url);
+                url
+            );
             return new StudioctlInstallScriptResult(
                 StudioctlInstallScriptStatus.Unavailable,
                 Array.Empty<byte>(),
                 fileName,
-                false);
+                false
+            );
         }
 
         byte[] content = await response.Content.ReadAsByteArrayAsync(cancellationToken);
@@ -247,33 +252,28 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                 StudioctlInstallScriptStatus.Unavailable,
                 Array.Empty<byte>(),
                 fileName,
-                false);
+                false
+            );
         }
 
         var entry = new StudioctlInstallScriptCacheEntry(content, DateTimeOffset.UtcNow);
         _cache.Set(
             cacheKey,
             entry,
-            new MemoryCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = s_cacheEntryLifetime
-            });
+            new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = s_cacheEntryLifetime }
+        );
 
-        return new StudioctlInstallScriptResult(
-            StudioctlInstallScriptStatus.Ok,
-            content,
-            fileName,
-            false);
+        return new StudioctlInstallScriptResult(StudioctlInstallScriptStatus.Ok, content, fileName, false);
     }
 
     private async Task<ReleaseLookupResult> ResolveLatestStudioctlReleaseAsync(
         HttpClient client,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         for (int page = 1; page <= ReleaseLookupMaxPages; page++)
         {
-            Uri releasesUrl = new(
-                $"{s_releaseApiUrl}?per_page={ReleaseLookupPageSize}&page={page}");
+            Uri releasesUrl = new($"{s_releaseApiUrl}?per_page={ReleaseLookupPageSize}&page={page}");
 
             using var request = new HttpRequestMessage(HttpMethod.Get, releasesUrl);
             request.Headers.Accept.ParseAdd("application/vnd.github+json");
@@ -284,7 +284,8 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                 request,
                 cancellationToken,
                 releasesUrl,
-                "resolving latest studioctl release from");
+                "resolving latest studioctl release from"
+            );
             if (response is null)
             {
                 return new ReleaseLookupResult(StudioctlInstallScriptStatus.Unavailable, null);
@@ -295,7 +296,8 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                 _logger.LogWarning(
                     "Failed to resolve latest studioctl release from {Url}. Status: {Status}",
                     releasesUrl,
-                    response.StatusCode);
+                    response.StatusCode
+                );
                 return new ReleaseLookupResult(StudioctlInstallScriptStatus.Unavailable, null);
             }
 
@@ -309,7 +311,8 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
                     ex,
                     "Release metadata exceeded size limit of {MaxBytes} bytes: {Url}",
                     MaxReleaseMetadataBytes,
-                    releasesUrl);
+                    releasesUrl
+                );
                 return new ReleaseLookupResult(StudioctlInstallScriptStatus.Unavailable, null);
             }
 
@@ -360,14 +363,12 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
         HttpRequestMessage request,
         CancellationToken cancellationToken,
         Uri url,
-        string operation)
+        string operation
+    )
     {
         try
         {
-            return await client.SendAsync(
-                request,
-                HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken);
+            return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         }
         catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
@@ -417,13 +418,11 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
             return false;
         }
 
-        return IsValidVersionNumber(major)
-            && IsValidVersionNumber(minor)
-            && IsValidVersionNumber(patch);
+        return IsValidVersionNumber(major) && IsValidVersionNumber(minor) && IsValidVersionNumber(patch);
     }
 
-    private static bool IsValidVersionNumber(ReadOnlySpan<char> value)
-        => int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out _);
+    private static bool IsValidVersionNumber(ReadOnlySpan<char> value) =>
+        int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out _);
 
     private sealed record class GitHubRelease
     {

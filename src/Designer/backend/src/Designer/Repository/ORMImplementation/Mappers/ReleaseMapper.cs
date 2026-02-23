@@ -15,7 +15,7 @@ public static class ReleaseMapper
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        Converters = { new JsonStringEnumConverter() }
+        Converters = { new JsonStringEnumConverter() },
     };
 
     public static ReleaseDbModel MapToDbModel(ReleaseEntity releaseEntity)
@@ -29,7 +29,7 @@ public static class ReleaseMapper
             Buildstatus = releaseEntity.Build.Status.ToEnumMemberAttributeValue(),
             Buildresult = releaseEntity.Build.Result.ToEnumMemberAttributeValue(),
             Created = releaseEntity.Created,
-            Entity = JsonSerializer.Serialize(releaseEntity, s_jsonOptions)
+            Entity = JsonSerializer.Serialize(releaseEntity, s_jsonOptions),
         };
     }
 

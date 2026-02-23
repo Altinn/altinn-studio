@@ -32,7 +32,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage response = await _client.GetAsync(_generalSettings.OrganizationsUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
             string orgListString = await response.Content.ReadAsStringAsync(cancellationToken);
-            OrgList orgList = System.Text.Json.JsonSerializer.Deserialize<OrgList>(orgListString, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+            OrgList orgList = System.Text.Json.JsonSerializer.Deserialize<OrgList>(
+                orgListString,
+                new System.Text.Json.JsonSerializerOptions()
+                {
+                    PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                }
+            );
             return orgList;
         }
 

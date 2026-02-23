@@ -17,7 +17,11 @@ public class AppInactivityUndeployJobQueue : IAppInactivityUndeployJobQueue
         _schedulerFactory = schedulerFactory;
     }
 
-    public async Task<bool> QueuePerOrgEvaluationJobAsync(string org, string? environmentFilter, CancellationToken cancellationToken = default)
+    public async Task<bool> QueuePerOrgEvaluationJobAsync(
+        string org,
+        string? environmentFilter,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(AppInactivityUndeployJobQueue)}.{nameof(QueuePerOrgEvaluationJobAsync)}",
@@ -54,7 +58,8 @@ public class AppInactivityUndeployJobQueue : IAppInactivityUndeployJobQueue
 
         await EnsureDurableJobExistsAsync<AppInactivityUndeployPerOrgJob>(scheduler, jobKey, cancellationToken);
 
-        var triggerBuilder = TriggerBuilder.Create()
+        var triggerBuilder = TriggerBuilder
+            .Create()
             .WithIdentity(triggerKey)
             .ForJob(jobKey)
             .StartNow()
@@ -132,7 +137,8 @@ public class AppInactivityUndeployJobQueue : IAppInactivityUndeployJobQueue
 
         await EnsureDurableJobExistsAsync<AppInactivityUndeployAppJob>(scheduler, jobKey, cancellationToken);
 
-        var trigger = TriggerBuilder.Create()
+        var trigger = TriggerBuilder
+            .Create()
             .WithIdentity(triggerKey)
             .ForJob(jobKey)
             .StartAt(scheduledAt)
@@ -159,17 +165,15 @@ public class AppInactivityUndeployJobQueue : IAppInactivityUndeployJobQueue
         IScheduler scheduler,
         JobKey jobKey,
         CancellationToken cancellationToken
-    ) where TJob : IJob
+    )
+        where TJob : IJob
     {
         if (await scheduler.CheckExists(jobKey, cancellationToken))
         {
             return;
         }
 
-        var job = JobBuilder.Create<TJob>()
-            .WithIdentity(jobKey)
-            .StoreDurably()
-            .Build();
+        var job = JobBuilder.Create<TJob>().WithIdentity(jobKey).StoreDurably().Build();
 
         try
         {

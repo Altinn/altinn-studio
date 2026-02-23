@@ -8,12 +8,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetGetLosTermsTests : ResourceAdminControllerTestsBaseClass<GetGetLosTermsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetGetLosTermsTests
+        : ResourceAdminControllerTestsBaseClass<GetGetLosTermsTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public GetGetLosTermsTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetGetLosTermsTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task GetLosTerms()
@@ -25,7 +25,13 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             //Act
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
             string sectorscontent = await res.Content.ReadAsStringAsync();
-            List<LosTerm> losTerms = System.Text.Json.JsonSerializer.Deserialize<List<LosTerm>>(sectorscontent, new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+            List<LosTerm> losTerms = System.Text.Json.JsonSerializer.Deserialize<List<LosTerm>>(
+                sectorscontent,
+                new System.Text.Json.JsonSerializerOptions()
+                {
+                    PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+                }
+            );
 
             //Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);

@@ -32,17 +32,23 @@ public class AppInactivityUndeployPerOrgJob : IJob
     public async Task Execute(IJobExecutionContext context)
     {
         var timeout = _schedulingSettings.InactivityUndeployJobTimeouts.PerOrgJobTimeout;
-        using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken);
+        using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            context.CancellationToken
+        );
         timeoutCancellationTokenSource.CancelAfter(timeout);
         var cancellationToken = timeoutCancellationTokenSource.Token;
 
         var org = context.MergedJobDataMap.GetString(AppInactivityUndeployJobConstants.JobDataOrgKey);
         if (string.IsNullOrWhiteSpace(org))
         {
-            throw new InvalidOperationException($"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataOrgKey}'.");
+            throw new InvalidOperationException(
+                $"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataOrgKey}'."
+            );
         }
 
-        var environmentFilter = context.MergedJobDataMap.GetString(AppInactivityUndeployJobConstants.JobDataEnvironmentFilterKey);
+        var environmentFilter = context.MergedJobDataMap.GetString(
+            AppInactivityUndeployJobConstants.JobDataEnvironmentFilterKey
+        );
         using var activity = ServiceTelemetry.Source.StartActivity(
             $"{nameof(AppInactivityUndeployPerOrgJob)}.{nameof(Execute)}",
             ActivityKind.Internal
@@ -55,11 +61,7 @@ public class AppInactivityUndeployPerOrgJob : IJob
         try
         {
             var candidates = await _inactivityUndeployService.GetAppsForDecommissioningAsync(
-                new InactivityUndeployEvaluationOptions
-                {
-                    Org = org,
-                    Environment = environmentFilter
-                },
+                new InactivityUndeployEvaluationOptions { Org = org, Environment = environmentFilter },
                 cancellationToken
             );
 
@@ -72,21 +74,27 @@ public class AppInactivityUndeployPerOrgJob : IJob
             for (var index = 0; index < orderedCandidates.Length; index++)
             {
                 var candidate = orderedCandidates[index];
-                await _jobQueue.QueuePerAppUndeployJobAsync(candidate.Org, candidate.App, candidate.Environment, index, cancellationToken);
+                await _jobQueue.QueuePerAppUndeployJobAsync(
+                    candidate.Org,
+                    candidate.App,
+                    candidate.Environment,
+                    index,
+                    cancellationToken
+                );
             }
         }
         catch (OperationCanceledException ex)
-            when (timeoutCancellationTokenSource.IsCancellationRequested && !context.CancellationToken.IsCancellationRequested)
+            when (timeoutCancellationTokenSource.IsCancellationRequested
+                && !context.CancellationToken.IsCancellationRequested
+            )
         {
             activity?.SetStatus(ActivityStatusCode.Error, "Job timed out.");
-            activity?.AddEvent(new ActivityEvent(
-                "job_timeout",
-                tags: new ActivityTagsCollection
-                {
-                    ["org"] = org,
-                    ["timeout.seconds"] = timeout.TotalSeconds
-                }
-            ));
+            activity?.AddEvent(
+                new ActivityEvent(
+                    "job_timeout",
+                    tags: new ActivityTagsCollection { ["org"] = org, ["timeout.seconds"] = timeout.TotalSeconds }
+                )
+            );
             throw new TimeoutException($"{nameof(AppInactivityUndeployPerOrgJob)} timed out after {timeout}.", ex);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

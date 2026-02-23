@@ -27,7 +27,7 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
     };
 
     public GiteaContentLibraryService(IGiteaClient giteaClient, ILogger<GiteaContentLibraryService> logger)
@@ -58,7 +58,9 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
     {
         string filePath = CodeListUtils.FilePathWithTextResources(codeListId);
         string decodedString = await GetFileFromGitea(orgName, filePath);
-        return string.IsNullOrEmpty(decodedString) ? [] : JsonSerializer.Deserialize<List<Option>>(decodedString, s_jsonOptions);
+        return string.IsNullOrEmpty(decodedString)
+            ? []
+            : JsonSerializer.Deserialize<List<Option>>(decodedString, s_jsonOptions);
     }
 
     /// <inheritdoc />
@@ -77,7 +79,9 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
         foreach (string languageCode in languageCodes)
         {
             TextResource textResource = await GetTextResource(orgName, languageCode);
-            IEnumerable<string> textResourceElementIds = textResource.Resources.Select(textResourceElement => textResourceElement.Id);
+            IEnumerable<string> textResourceElementIds = textResource.Resources.Select(textResourceElement =>
+                textResourceElement.Id
+            );
             textIds.UnionWith(textResourceElementIds);
         }
 
@@ -132,7 +136,12 @@ public class GiteaContentLibraryService : IGiteaContentLibraryService
         }
         catch (DirectoryNotFoundException ex)
         {
-            _logger.LogWarning("Could not find directory: {DirectoryPath}, class: {ClassName}, message: {Message}", directoryPath, nameof(GiteaContentLibraryService), ex.Message);
+            _logger.LogWarning(
+                "Could not find directory: {DirectoryPath}, class: {ClassName}, message: {Message}",
+                directoryPath,
+                nameof(GiteaContentLibraryService),
+                ex.Message
+            );
             return [];
         }
     }

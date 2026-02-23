@@ -19,11 +19,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <typeparam name="T">Class holding parameters of the build.</typeparam>
         /// <returns>The queued Build.</returns>
-        Task<Build> QueueAsync<T>(
-            T buildParameters,
-            int buildDefinitionId,
-            CancellationToken cancellationToken
-        ) where T : class;
+        Task<Build> QueueAsync<T>(T buildParameters, int buildDefinitionId, CancellationToken cancellationToken)
+            where T : class;
 
         /// <summary>
         /// Gets a build entity by buildId

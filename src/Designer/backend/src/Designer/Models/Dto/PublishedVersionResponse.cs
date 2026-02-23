@@ -1,7 +1,7 @@
-
 using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models.Dto;
+
 /// <summary>
 /// Response model for published version
 /// </summary>

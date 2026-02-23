@@ -27,16 +27,11 @@ internal static class MaskinportenAuthenticationExtensions
         {
             services
                 .AddAuthorizationBuilder()
-                .AddPolicy(
-                    MaskinportenConstants.AuthorizationPolicy,
-                    policy => policy.RequireAssertion(_ => true)
-                );
+                .AddPolicy(MaskinportenConstants.AuthorizationPolicy, policy => policy.RequireAssertion(_ => true));
             return services;
         }
 
-        string[]? metadataAddresses = configuration
-            .GetSection("Maskinporten:MetadataAddresses")
-            .Get<string[]>();
+        string[]? metadataAddresses = configuration.GetSection("Maskinporten:MetadataAddresses").Get<string[]>();
 
         if (metadataAddresses is null || metadataAddresses.Length == 0)
         {
@@ -49,9 +44,7 @@ internal static class MaskinportenAuthenticationExtensions
 
         if (string.IsNullOrEmpty(requiredScope))
         {
-            throw new InvalidOperationException(
-                "Maskinporten:RequiredScope configuration is required"
-            );
+            throw new InvalidOperationException("Maskinporten:RequiredScope configuration is required");
         }
 
         services.AddHttpClient();
@@ -66,10 +59,7 @@ internal static class MaskinportenAuthenticationExtensions
             string schemeName = $"Maskinporten_{i}";
             schemeNames.Add(schemeName);
 
-            bool requireHttpsMetadata = !metadataAddress.StartsWith(
-                "http://",
-                StringComparison.OrdinalIgnoreCase
-            );
+            bool requireHttpsMetadata = !metadataAddress.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
 
             services
                 .AddAuthentication()
@@ -94,11 +84,8 @@ internal static class MaskinportenAuthenticationExtensions
                         var defaultForwardSelector = options.ForwardDefaultSelector;
                         options.ForwardDefaultSelector = context =>
                         {
-                            var issuerCache =
-                                context.RequestServices.GetRequiredService<IssuerSchemeCache>();
-                            string? tokenIssuer = ExtractIssuerFromToken(
-                                context.Request.Headers.Authorization
-                            );
+                            var issuerCache = context.RequestServices.GetRequiredService<IssuerSchemeCache>();
+                            string? tokenIssuer = ExtractIssuerFromToken(context.Request.Headers.Authorization);
                             if (
                                 tokenIssuer is not null
                                 && issuerCache.TryGetScheme(tokenIssuer, out string? targetScheme)
@@ -126,18 +113,13 @@ internal static class MaskinportenAuthenticationExtensions
                     policy.RequireAuthenticatedUser();
                     policy.RequireAssertion(context =>
                     {
-                        var scopeClaim = context.User.FindFirst(
-                            MaskinportenConstants.ScopeClaimType
-                        );
+                        var scopeClaim = context.User.FindFirst(MaskinportenConstants.ScopeClaimType);
                         if (scopeClaim is null)
                         {
                             return false;
                         }
 
-                        string[] scopes = scopeClaim.Value.Split(
-                            ' ',
-                            StringSplitOptions.RemoveEmptyEntries
-                        );
+                        string[] scopes = scopeClaim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                         return scopes.Contains(requiredScope);
                     });
                 }
@@ -152,10 +134,9 @@ internal static class MaskinportenAuthenticationExtensions
         {
             OnAuthenticationFailed = context =>
             {
-                ILogger<JwtBearerHandler> logger =
-                    context.HttpContext.RequestServices.GetRequiredService<
-                        ILogger<JwtBearerHandler>
-                    >();
+                ILogger<JwtBearerHandler> logger = context.HttpContext.RequestServices.GetRequiredService<
+                    ILogger<JwtBearerHandler>
+                >();
 
                 (bool tokenPresent, string? issuer, DateTime? expiresUtc) = ExtractTokenInfo(
                     logger,
@@ -175,16 +156,13 @@ internal static class MaskinportenAuthenticationExtensions
             },
             OnTokenValidated = context =>
             {
-                ILogger<JwtBearerHandler> logger =
-                    context.HttpContext.RequestServices.GetRequiredService<
-                        ILogger<JwtBearerHandler>
-                    >();
+                ILogger<JwtBearerHandler> logger = context.HttpContext.RequestServices.GetRequiredService<
+                    ILogger<JwtBearerHandler>
+                >();
 
                 var claims = context.Principal?.Claims;
                 string? issuer = claims?.FirstOrDefault(c => c.Type == "iss")?.Value;
-                string? scope = claims
-                    ?.FirstOrDefault(c => c.Type == MaskinportenConstants.ScopeClaimType)
-                    ?.Value;
+                string? scope = claims?.FirstOrDefault(c => c.Type == MaskinportenConstants.ScopeClaimType)?.Value;
                 string? consumer = claims?.FirstOrDefault(c => c.Type == "consumer")?.Value;
 
                 logger.LogDebug(
@@ -199,10 +177,9 @@ internal static class MaskinportenAuthenticationExtensions
             },
             OnChallenge = context =>
             {
-                ILogger<JwtBearerHandler> logger =
-                    context.HttpContext.RequestServices.GetRequiredService<
-                        ILogger<JwtBearerHandler>
-                    >();
+                ILogger<JwtBearerHandler> logger = context.HttpContext.RequestServices.GetRequiredService<
+                    ILogger<JwtBearerHandler>
+                >();
 
                 (bool tokenPresent, string? issuer, _) = ExtractTokenInfo(
                     logger,
@@ -222,16 +199,13 @@ internal static class MaskinportenAuthenticationExtensions
             },
             OnForbidden = context =>
             {
-                ILogger<JwtBearerHandler> logger =
-                    context.HttpContext.RequestServices.GetRequiredService<
-                        ILogger<JwtBearerHandler>
-                    >();
+                ILogger<JwtBearerHandler> logger = context.HttpContext.RequestServices.GetRequiredService<
+                    ILogger<JwtBearerHandler>
+                >();
 
                 var claims = context.Principal?.Claims;
                 string? issuer = claims?.FirstOrDefault(c => c.Type == "iss")?.Value;
-                string? scope = claims
-                    ?.FirstOrDefault(c => c.Type == MaskinportenConstants.ScopeClaimType)
-                    ?.Value;
+                string? scope = claims?.FirstOrDefault(c => c.Type == MaskinportenConstants.ScopeClaimType)?.Value;
 
                 logger.LogWarning(
                     "Maskinporten authorization forbidden for scheme {Scheme}. Issuer={Issuer}, Scope={Scope}",
@@ -250,12 +224,8 @@ internal static class MaskinportenAuthenticationExtensions
         StringValues authorizationHeaderValues
     )
     {
-        string headerValue =
-            authorizationHeaderValues.Count == 0 ? "" : authorizationHeaderValues[0] ?? "";
-        if (
-            string.IsNullOrEmpty(headerValue)
-            || !headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-        )
+        string headerValue = authorizationHeaderValues.Count == 0 ? "" : authorizationHeaderValues[0] ?? "";
+        if (string.IsNullOrEmpty(headerValue) || !headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
             return (false, null, null);
         }
@@ -285,12 +255,8 @@ internal static class MaskinportenAuthenticationExtensions
 
     private static string? ExtractIssuerFromToken(StringValues authorizationHeaderValues)
     {
-        string headerValue =
-            authorizationHeaderValues.Count == 0 ? "" : authorizationHeaderValues[0] ?? "";
-        if (
-            string.IsNullOrEmpty(headerValue)
-            || !headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-        )
+        string headerValue = authorizationHeaderValues.Count == 0 ? "" : authorizationHeaderValues[0] ?? "";
+        if (string.IsNullOrEmpty(headerValue) || !headerValue.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
             return null;
         }

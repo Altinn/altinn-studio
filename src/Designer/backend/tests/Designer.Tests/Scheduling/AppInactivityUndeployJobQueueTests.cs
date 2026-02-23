@@ -15,8 +15,8 @@ public class AppInactivityUndeployJobQueueTests
         var schedulerFactory = new Mock<ISchedulerFactory>();
         var service = new AppInactivityUndeployJobQueue(schedulerFactory.Object);
 
-        var exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => service.QueuePerAppUndeployJobAsync("ttd", "apps-test", "prod", 0)
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.QueuePerAppUndeployJobAsync("ttd", "apps-test", "prod", 0)
         );
 
         Assert.Contains("Unsupported environment", exception.Message);

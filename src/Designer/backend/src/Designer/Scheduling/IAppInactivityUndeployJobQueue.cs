@@ -5,7 +5,11 @@ namespace Altinn.Studio.Designer.Scheduling;
 
 public interface IAppInactivityUndeployJobQueue
 {
-    Task<bool> QueuePerOrgEvaluationJobAsync(string org, string? environmentFilter, CancellationToken cancellationToken = default);
+    Task<bool> QueuePerOrgEvaluationJobAsync(
+        string org,
+        string? environmentFilter,
+        CancellationToken cancellationToken = default
+    );
 
     Task<bool> QueuePerAppUndeployJobAsync(
         string org,

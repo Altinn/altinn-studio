@@ -4,7 +4,12 @@ using System.Linq;
 
 namespace Altinn.Studio.Designer.Models.SharedContent;
 
-public sealed record SharedCodeList(IReadOnlyList<Code> Codes, string Version, CodeListSource? Source, IReadOnlyList<string>? TagNames)
+public sealed record SharedCodeList(
+    IReadOnlyList<Code> Codes,
+    string Version,
+    CodeListSource? Source,
+    IReadOnlyList<string>? TagNames
+)
 {
     public bool Equals(SharedCodeList? other)
     {
@@ -23,27 +28,22 @@ public sealed record SharedCodeList(IReadOnlyList<Code> Codes, string Version, C
             return false;
         }
 
-        if ((other.Source is null && Source is not null) ||
-            (other.Source is not null && Source is null))
+        if ((other.Source is null && Source is not null) || (other.Source is not null && Source is null))
         {
             return false;
         }
 
-        if (other.Source is not null && Source is not null &&
-            Equals(other.Source, Source) is false)
+        if (other.Source is not null && Source is not null && Equals(other.Source, Source) is false)
         {
             return false;
         }
 
-
-        if ((other.TagNames is null && TagNames is not null) ||
-            (other.TagNames is not null && TagNames is null))
+        if ((other.TagNames is null && TagNames is not null) || (other.TagNames is not null && TagNames is null))
         {
             return false;
         }
 
-        if (other.TagNames is not null && TagNames is not null &&
-            other.TagNames.SequenceEqual(TagNames) is false)
+        if (other.TagNames is not null && TagNames is not null && other.TagNames.SequenceEqual(TagNames) is false)
         {
             return false;
         }

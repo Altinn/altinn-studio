@@ -116,20 +116,13 @@ public class EnvironmentsService : IEnvironmentsService
             async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
-                using var response = await _httpClient.GetAsync(
-                    _generalSettings.EnvironmentsUrl,
-                    cancellationToken
-                );
+                using var response = await _httpClient.GetAsync(_generalSettings.EnvironmentsUrl, cancellationToken);
                 response.EnsureSuccessStatusCode();
-                var environmentsModel = await response.Content.ReadFromJsonAsync<EnvironmentsModel>(
-                    cancellationToken
-                );
+                var environmentsModel = await response.Content.ReadFromJsonAsync<EnvironmentsModel>(cancellationToken);
 
                 if (environmentsModel == null)
                 {
-                    throw new InvalidOperationException(
-                        "Failed to deserialize response content or content was empty."
-                    );
+                    throw new InvalidOperationException("Failed to deserialize response content or content was empty.");
                 }
 
                 // Pretend that production environment does not exist in dev/staging, there is very limited access anyway
@@ -163,7 +156,12 @@ public class EnvironmentsService : IEnvironmentsService
         // We match the established behavior to ensure consistent authorization across all services
         // See: src/App/backend/src/Altinn.App.Core/Internal/AltinnCdn/AltinnCdnClient.cs:32
         // See: src/Runtime/operator/internal/operatorcontext/operatorcontext.go:88
-        if (org == "ttd" && string.IsNullOrWhiteSpace(orgModel.OrgNr) && orgs.TryGetValue("digdir", out var digdirOrg) && digdirOrg is not null)
+        if (
+            org == "ttd"
+            && string.IsNullOrWhiteSpace(orgModel.OrgNr)
+            && orgs.TryGetValue("digdir", out var digdirOrg)
+            && digdirOrg is not null
+        )
         {
             return digdirOrg.OrgNr;
         }
@@ -171,29 +169,20 @@ public class EnvironmentsService : IEnvironmentsService
         return orgModel.OrgNr;
     }
 
-    private Task<Dictionary<string, AltinnOrgModel>> GetAltinnOrgs(
-        CancellationToken cancellationToken = default
-    )
+    private Task<Dictionary<string, AltinnOrgModel>> GetAltinnOrgs(CancellationToken cancellationToken = default)
     {
         return _cache.GetOrCreateAsync(
             "EnvironmentsService:AltinnOrgs",
             async entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = _cacheDuration;
-                using var response = await _httpClient.GetAsync(
-                    _generalSettings.OrganizationsUrl,
-                    cancellationToken
-                );
+                using var response = await _httpClient.GetAsync(_generalSettings.OrganizationsUrl, cancellationToken);
                 response.EnsureSuccessStatusCode();
-                var orgsModel = await response.Content.ReadFromJsonAsync<AltinnOrgsModel>(
-                    cancellationToken
-                );
+                var orgsModel = await response.Content.ReadFromJsonAsync<AltinnOrgsModel>(cancellationToken);
 
                 if (orgsModel == null)
                 {
-                    throw new InvalidOperationException(
-                        "Failed to deserialize response content or content was empty."
-                    );
+                    throw new InvalidOperationException("Failed to deserialize response content or content was empty.");
                 }
                 return orgsModel.Orgs;
             }

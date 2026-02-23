@@ -15,19 +15,24 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.DataTypesChangeTests;
 
-public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<LayoutSetsFileSyncDataTypesTests>, IClassFixture<WebApplicationFactory<Program>>
+public class LayoutSetsFileSyncDataTypesTests
+    : DesignerEndpointsTestsBase<LayoutSetsFileSyncDataTypesTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/process-modelling/data-types";
 
-    public LayoutSetsFileSyncDataTypesTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public LayoutSetsFileSyncDataTypesTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Theory]
     [InlineData("ttd", "empty-app", "testUser", "App/ui/layout-sets.json")]
-    public async Task ProcessDataTypesChangedNotify_Task1DisconnectedFromDataType_ShouldSyncLayoutSets(string org, string app, string developer,
-        string layoutSetsPath)
+    public async Task ProcessDataTypesChangedNotify_Task1DisconnectedFromDataType_ShouldSyncLayoutSets(
+        string org,
+        string app,
+        string developer,
+        string layoutSetsPath
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -36,26 +41,40 @@ public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<Layou
 
         string url = VersionPrefix(org, targetRepository);
 
-        string dataTypesChangeString = JsonSerializer.Serialize(dataTypesChange,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        string dataTypesChangeString = JsonSerializer.Serialize(
+            dataTypesChange,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json")
+            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json"),
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        string layoutSetsFromRepo =
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
+        string layoutSetsFromRepo = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/ui/layout-sets.json"
+        );
 
-        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(
+            layoutSetsFromRepo,
+            new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
 
         Assert.Null(layoutSets.Sets.Find(set => set.Tasks[0] == dataTypesChange.ConnectedTaskId).DataType);
     }
 
     [Theory]
     [InlineData("ttd", "empty-app", "testUser", "App/ui/layout-sets.json")]
-    public async Task ProcessDataTypesChangedNotify_NewDataTypeForTask5IsMessage_ShouldSyncLayoutSets(string org, string app, string developer, string layoutSetsPath)
+    public async Task ProcessDataTypesChangedNotify_NewDataTypeForTask5IsMessage_ShouldSyncLayoutSets(
+        string org,
+        string app,
+        string developer,
+        string layoutSetsPath
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -63,31 +82,47 @@ public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<Layou
         string dataTypeToConnect = "message";
         string task = "Task_5";
         DataTypesChange dataTypesChange = new DataTypesChange
-        { NewDataTypes = [dataTypeToConnect], ConnectedTaskId = task };
-
+        {
+            NewDataTypes = [dataTypeToConnect],
+            ConnectedTaskId = task,
+        };
 
         string url = VersionPrefix(org, targetRepository);
 
-        string dataTypesChangeString = JsonSerializer.Serialize(dataTypesChange,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        string dataTypesChangeString = JsonSerializer.Serialize(
+            dataTypesChange,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json")
+            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json"),
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        string layoutSetsFromRepo =
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
+        string layoutSetsFromRepo = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/ui/layout-sets.json"
+        );
 
-        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(
+            layoutSetsFromRepo,
+            new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
 
         Assert.Equal(dataTypeToConnect, layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType);
     }
 
     [Theory]
     [InlineData("ttd", "empty-app", "testUser", "App/ui/layout-sets.json")]
-    public async Task ProcessDataTypesChangedNotify_NewDataTypesForTask5IsMessageAndLikert_ShouldSyncLayoutSetsWithMessage(string org, string app, string developer, string layoutSetsPath)
+    public async Task ProcessDataTypesChangedNotify_NewDataTypesForTask5IsMessageAndLikert_ShouldSyncLayoutSetsWithMessage(
+        string org,
+        string app,
+        string developer,
+        string layoutSetsPath
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -96,30 +131,47 @@ public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<Layou
         string dataTypeToConnect2 = "likert";
         string task = "Task_5";
         DataTypesChange dataTypesChange = new DataTypesChange
-        { NewDataTypes = [dataTypeToConnect1, dataTypeToConnect2], ConnectedTaskId = task };
+        {
+            NewDataTypes = [dataTypeToConnect1, dataTypeToConnect2],
+            ConnectedTaskId = task,
+        };
 
         string url = VersionPrefix(org, targetRepository);
 
-        string dataTypesChangeString = JsonSerializer.Serialize(dataTypesChange,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        string dataTypesChangeString = JsonSerializer.Serialize(
+            dataTypesChange,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json")
+            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json"),
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        string layoutSetsFromRepo =
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
+        string layoutSetsFromRepo = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/ui/layout-sets.json"
+        );
 
-        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(
+            layoutSetsFromRepo,
+            new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
 
         Assert.Equal(dataTypeToConnect1, layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType);
     }
 
     [Theory]
     [InlineData("ttd", "empty-app", "testUser", "App/ui/layout-sets.json")]
-    public async Task ProcessDataTypesChangedNotify_NewDataTypesForTask5IsMessageAndDatalist_ShouldSyncLayoutSetsWithExisting(string org, string app, string developer, string layoutSetsPath)
+    public async Task ProcessDataTypesChangedNotify_NewDataTypesForTask5IsMessageAndDatalist_ShouldSyncLayoutSetsWithExisting(
+        string org,
+        string app,
+        string developer,
+        string layoutSetsPath
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -128,30 +180,47 @@ public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<Layou
         string dataTypeToConnect2 = "datalist";
         string task = "Task_5";
         DataTypesChange dataTypesChange = new DataTypesChange
-        { NewDataTypes = [dataTypeToConnect1, dataTypeToConnect2], ConnectedTaskId = task };
+        {
+            NewDataTypes = [dataTypeToConnect1, dataTypeToConnect2],
+            ConnectedTaskId = task,
+        };
 
         string url = VersionPrefix(org, targetRepository);
 
-        string dataTypesChangeString = JsonSerializer.Serialize(dataTypesChange,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        string dataTypesChangeString = JsonSerializer.Serialize(
+            dataTypesChange,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json")
+            Content = new StringContent(dataTypesChangeString, Encoding.UTF8, "application/json"),
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        string layoutSetsFromRepo =
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
+        string layoutSetsFromRepo = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/ui/layout-sets.json"
+        );
 
-        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(
+            layoutSetsFromRepo,
+            new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
 
         Assert.Equal(dataTypeToConnect2, layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType);
     }
 
     [Theory]
     [InlineData("ttd", "app-with-layoutsets", "testUser", "App/ui/layout-sets.json")]
-    public async Task ProcessDataTypeChangedNotify_NewDataTypeForCustomReceipt_ShouldSyncLayoutSets(string org, string app, string developer, string layoutSetsPath)
+    public async Task ProcessDataTypeChangedNotify_NewDataTypeForCustomReceipt_ShouldSyncLayoutSets(
+        string org,
+        string app,
+        string developer,
+        string layoutSetsPath
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -159,23 +228,35 @@ public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<Layou
         string dataTypeToConnect = "message";
         string task = "CustomReceipt";
         DataTypesChange dataTypesChange = new DataTypesChange
-        { NewDataTypes = [dataTypeToConnect], ConnectedTaskId = task };
+        {
+            NewDataTypes = [dataTypeToConnect],
+            ConnectedTaskId = task,
+        };
 
         string url = VersionPrefix(org, targetRepository);
 
-        string dataTypeChangeString = JsonSerializer.Serialize(dataTypesChange,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        string dataTypeChangeString = JsonSerializer.Serialize(
+            dataTypesChange,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(dataTypeChangeString, Encoding.UTF8, "application/json")
+            Content = new StringContent(dataTypeChangeString, Encoding.UTF8, "application/json"),
         };
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-        string layoutSetsFromRepo =
-            TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/ui/layout-sets.json");
+        string layoutSetsFromRepo = TestDataHelper.GetFileFromRepo(
+            org,
+            targetRepository,
+            developer,
+            "App/ui/layout-sets.json"
+        );
 
-        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(layoutSetsFromRepo, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        LayoutSets layoutSets = JsonSerializer.Deserialize<LayoutSets>(
+            layoutSetsFromRepo,
+            new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
 
         Assert.Equal(dataTypeToConnect, layoutSets.Sets.Find(set => set.Tasks[0] == task).DataType);
     }
@@ -192,6 +273,4 @@ public class LayoutSetsFileSyncDataTypesTests : DesignerEndpointsTestsBase<Layou
 
         await File.WriteAllTextAsync(filePath, fileContent);
     }
-
 }
-

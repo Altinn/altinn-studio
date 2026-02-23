@@ -20,23 +20,42 @@ public class RequestSynchronizationMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext httpContext,
+    public async Task InvokeAsync(
+        HttpContext httpContext,
         IRequestSyncEvaluator<AltinnRepoEditingContext> repoUserWideRequestSyncEvaluator,
         IRequestSyncEvaluator<AltinnOrgContext> orgWideRequestSyncEvaluator,
-        ILockService synchronizationLockService)
+        ILockService synchronizationLockService
+    )
     {
         if (orgWideRequestSyncEvaluator.TryEvaluateShouldSyncRequest(httpContext, out AltinnOrgContext orgContext))
         {
-            await using (await synchronizationLockService.AcquireOrgWideLockAsync(orgContext, _waitTimeout, httpContext.RequestAborted))
+            await using (
+                await synchronizationLockService.AcquireOrgWideLockAsync(
+                    orgContext,
+                    _waitTimeout,
+                    httpContext.RequestAborted
+                )
+            )
             {
                 await _next(httpContext);
                 return;
             }
         }
 
-        if (repoUserWideRequestSyncEvaluator.TryEvaluateShouldSyncRequest(httpContext, out AltinnRepoEditingContext editingContext))
+        if (
+            repoUserWideRequestSyncEvaluator.TryEvaluateShouldSyncRequest(
+                httpContext,
+                out AltinnRepoEditingContext editingContext
+            )
+        )
         {
-            await using (await synchronizationLockService.AcquireRepoUserWideLockAsync(editingContext, _waitTimeout, httpContext.RequestAborted))
+            await using (
+                await synchronizationLockService.AcquireRepoUserWideLockAsync(
+                    editingContext,
+                    _waitTimeout,
+                    httpContext.RequestAborted
+                )
+            )
             {
                 await _next(httpContext);
                 return;

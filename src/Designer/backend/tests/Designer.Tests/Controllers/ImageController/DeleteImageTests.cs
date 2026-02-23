@@ -10,7 +10,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ImageController;
 
-public class DeleteImageTests : DesignerEndpointsTestsBase<DeleteImageTests>, IClassFixture<WebApplicationFactory<Program>>
+public class DeleteImageTests
+    : DesignerEndpointsTestsBase<DeleteImageTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private const string VersionPrefix = "designer/api";
     private const string Org = "ttd";
@@ -20,9 +22,8 @@ public class DeleteImageTests : DesignerEndpointsTestsBase<DeleteImageTests>, IC
     private const string ExistingImageInSubSubFolder = "altinn-logo.svg";
     private const string NonExistingImage = "non-existing-image.png";
 
-    public DeleteImageTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public DeleteImageTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Fact]
     public async Task DeleteImage_ReturnsOkAndImageIsDeletedFromRepo()
@@ -30,7 +31,15 @@ public class DeleteImageTests : DesignerEndpointsTestsBase<DeleteImageTests>, IC
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, App, Developer, targetRepository);
 
-        string imagePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), Developer, Org, targetRepository, "App", "wwwroot", ExistingRootImage);
+        string imagePath = Path.Combine(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+            Developer,
+            Org,
+            targetRepository,
+            "App",
+            "wwwroot",
+            ExistingRootImage
+        );
 
         // Check that image exists before deletion
         Assert.True(File.Exists(imagePath), "Image should exist before deletion.");
@@ -51,7 +60,15 @@ public class DeleteImageTests : DesignerEndpointsTestsBase<DeleteImageTests>, IC
 
         string relativeImageFilePath = Path.Combine("images", "images", ExistingImageInSubSubFolder);
 
-        string imagePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), Developer, Org, targetRepository, "App", "wwwroot", relativeImageFilePath);
+        string imagePath = Path.Combine(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+            Developer,
+            Org,
+            targetRepository,
+            "App",
+            "wwwroot",
+            relativeImageFilePath
+        );
 
         // Check that image exists before deletion
         Assert.True(File.Exists(imagePath), "Image should exist before deletion.");
@@ -72,7 +89,15 @@ public class DeleteImageTests : DesignerEndpointsTestsBase<DeleteImageTests>, IC
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, App, Developer, targetRepository);
 
-        string imagePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), Developer, Org, targetRepository, "App", "wwwroot", NonExistingImage);
+        string imagePath = Path.Combine(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory(),
+            Developer,
+            Org,
+            targetRepository,
+            "App",
+            "wwwroot",
+            NonExistingImage
+        );
 
         // Check that image does not exist before deletion
         Assert.False(File.Exists(imagePath), "Image should not exist before deletion.");

@@ -10,21 +10,27 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class InstanceForNextTaskTests(WebApplicationFactory<Program> factory) : PreviewControllerTestsBase<InstanceForNextTaskTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+    public class InstanceForNextTaskTests(WebApplicationFactory<Program> factory)
+        : PreviewControllerTestsBase<InstanceForNextTaskTests>(factory),
+            IClassFixture<WebApplicationFactory<Program>>
     {
         [Fact]
         public async Task Get_InstanceForNextProcess_Ok()
         {
             string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{V3InstanceId}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri(
+                $"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet="
+            );
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            Instance responseInstance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
+            Instance responseInstance = JsonConvert.DeserializeObject<Instance>(
+                responseDocument.RootElement.ToString()
+            );
             Assert.Equal(PartyId + "/" + V3InstanceId, responseInstance.Id);
             Assert.Equal(Org, responseInstance.Org);
         }
@@ -41,7 +47,9 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            Instance responseInstance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
+            Instance responseInstance = JsonConvert.DeserializeObject<Instance>(
+                responseDocument.RootElement.ToString()
+            );
             Assert.Equal(instance.Id, responseInstance.Id);
             Assert.Equal(Org, responseInstance.Org);
             Assert.Equal(TaskId, instance.Process.CurrentTask.ElementId);

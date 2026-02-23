@@ -33,25 +33,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<KubernetesDeployment>> GetAsync(
-            string org,
-            string app,
-            CancellationToken ct
-        )
+        public async Task<List<KubernetesDeployment>> GetAsync(string org, string app, CancellationToken ct)
         {
-            IEnumerable<EnvironmentModel> environments =
-                await _environmentsService.GetOrganizationEnvironments(org, ct);
+            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(
+                org,
+                ct
+            );
 
             var getDeploymentTasks = environments.Select(async env =>
             {
                 try
                 {
-                    var deployment = await _kubernetesWrapperClient.GetDeploymentAsync(
-                        org,
-                        app,
-                        env,
-                        ct
-                    );
+                    var deployment = await _kubernetesWrapperClient.GetDeploymentAsync(org, app, env, ct);
 
                     if (deployment is null)
                     {

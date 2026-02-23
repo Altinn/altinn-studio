@@ -73,14 +73,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 cancellationToken
             );
 
-            Task updateAuthPolicyTask =
-                _authorizationPolicyService.UpdateApplicationAuthorizationPolicyAsync(
-                    org,
-                    app,
-                    shortCommitId,
-                    envName,
-                    cancellationToken
-                );
+            Task updateAuthPolicyTask = _authorizationPolicyService.UpdateApplicationAuthorizationPolicyAsync(
+                org,
+                app,
+                shortCommitId,
+                envName,
+                cancellationToken
+            );
 
             Task updateTextResources = _textResourceService.UpdateTextResourcesAsync(
                 org,
@@ -95,12 +94,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await PublishAltinnAppServiceResource(org, app, shortCommitId, envName);
         }
 
-        private async Task PublishAltinnAppServiceResource(
-            string org,
-            string app,
-            string shortCommitId,
-            string envName
-        )
+        private async Task PublishAltinnAppServiceResource(string org, string app, string shortCommitId, string envName)
         {
             using var activity = ServiceTelemetry.Source.StartActivity(
                 "PublishAltinnAppServiceResource",
@@ -127,25 +121,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     .ToServiceResource()
                     .WithOrgInformation(org, orgListOrg);
 
-                ActionResult publishResponse =
-                    await _resourceRegistryService.PublishServiceResource(serviceResource, envName);
+                ActionResult publishResponse = await _resourceRegistryService.PublishServiceResource(
+                    serviceResource,
+                    envName
+                );
 
-                if (
-                    publishResponse
-                    is ObjectResult { Value: ValidationProblemDetails validationProblemDetails }
-                )
+                if (publishResponse is ObjectResult { Value: ValidationProblemDetails validationProblemDetails })
                 {
                     string errors = string.Join(
                         "; ",
-                        validationProblemDetails.Errors.SelectMany(e =>
-                            e.Value.Select(v => $"{e.Key}: {v}")
-                        )
+                        validationProblemDetails.Errors.SelectMany(e => e.Value.Select(v => $"{e.Key}: {v}"))
                     );
                     activity?.SetTag("publish.result", "validation_error");
-                    activity?.SetStatus(
-                        ActivityStatusCode.Error,
-                        "Validation errors from Resource Registry"
-                    );
+                    activity?.SetStatus(ActivityStatusCode.Error, "Validation errors from Resource Registry");
                     activity?.AddEvent(
                         new ActivityEvent(
                             "validation_problems",
@@ -164,10 +152,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 int? statusCode = (publishResponse as IStatusCodeActionResult)?.StatusCode;
                 activity?.SetTag("publish.result", "unexpected_response");
                 activity?.SetTag("publish.status_code", statusCode);
-                activity?.SetStatus(
-                    ActivityStatusCode.Error,
-                    $"Unexpected response status: {statusCode}"
-                );
+                activity?.SetStatus(ActivityStatusCode.Error, $"Unexpected response status: {statusCode}");
             }
             catch (Exception ex)
             {

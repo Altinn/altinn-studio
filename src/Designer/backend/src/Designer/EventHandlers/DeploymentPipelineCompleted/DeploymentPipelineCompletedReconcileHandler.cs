@@ -20,7 +20,8 @@ public class DeploymentPipelineCompletedReconcileHandler : INotificationHandler<
     public DeploymentPipelineCompletedReconcileHandler(
         IRuntimeGatewayClient runtimeGatewayClient,
         IFeatureManager featureManager,
-        ILogger<DeploymentPipelineCompletedReconcileHandler> logger)
+        ILogger<DeploymentPipelineCompletedReconcileHandler> logger
+    )
     {
         _runtimeGatewayClient = runtimeGatewayClient;
         _featureManager = featureManager;
@@ -48,13 +49,15 @@ public class DeploymentPipelineCompletedReconcileHandler : INotificationHandler<
                 notification.EditingContext.Repo,
                 environment,
                 isUndeploy: notification.PipelineType == PipelineType.Undeploy,
-                cancellationToken);
+                cancellationToken
+            );
 
             _logger.LogInformation(
                 "Triggered reconciliation for {Org}/{App} in {Env}",
                 notification.EditingContext.Org,
                 notification.EditingContext.Repo,
-                notification.Environment);
+                notification.Environment
+            );
         }
         catch (Exception ex)
         {
@@ -63,7 +66,8 @@ public class DeploymentPipelineCompletedReconcileHandler : INotificationHandler<
                 "Failed to trigger reconciliation for {Org}/{App} in {Env}",
                 notification.EditingContext.Org,
                 notification.EditingContext.Repo,
-                notification.Environment);
+                notification.Environment
+            );
         }
     }
 }

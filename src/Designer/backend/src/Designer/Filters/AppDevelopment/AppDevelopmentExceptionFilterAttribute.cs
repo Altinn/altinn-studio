@@ -24,28 +24,62 @@ namespace Altinn.Studio.Designer.Filters.AppDevelopment
             }
             if (context.Exception is NonUniqueLayoutSetIdException or NonUniqueTaskForLayoutSetException)
             {
-                context.Result = new ObjectResult(new { infoMessage = context.Exception.Message }) { StatusCode = (int)HttpStatusCode.OK };
+                context.Result = new ObjectResult(new { infoMessage = context.Exception.Message })
+                {
+                    StatusCode = (int)HttpStatusCode.OK,
+                };
             }
             if (context.Exception is InvalidLayoutSetIdException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.InvalidLayoutSetIdError, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
+                context.Result = new ObjectResult(
+                    ProblemDetailsUtils.GenerateProblemDetails(
+                        context.Exception,
+                        AppDevelopmentErrorCodes.InvalidLayoutSetIdError,
+                        HttpStatusCode.BadRequest
+                    )
+                )
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                };
             }
             if (context.Exception is ConflictingFileNameException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.ConflictingFileNameError, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
+                context.Result = new ObjectResult(
+                    ProblemDetailsUtils.GenerateProblemDetails(
+                        context.Exception,
+                        AppDevelopmentErrorCodes.ConflictingFileNameError,
+                        HttpStatusCode.BadRequest
+                    )
+                )
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                };
             }
             if (context.Exception is InvalidExtensionImageUploadException)
             {
-                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.UploadedImageNotValid, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
+                context.Result = new ObjectResult(
+                    ProblemDetailsUtils.GenerateProblemDetails(
+                        context.Exception,
+                        AppDevelopmentErrorCodes.UploadedImageNotValid,
+                        HttpStatusCode.BadRequest
+                    )
+                )
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                };
             }
             if (context.Exception is ResourceRegistryPublishingException)
             {
-                context.Result =
-                    new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception,
-                        AppDevelopmentErrorCodes.ResourcePublishingError, HttpStatusCode.BadRequest))
-                    {
-                        StatusCode = (int)HttpStatusCode.BadRequest
-                    };
+                context.Result = new ObjectResult(
+                    ProblemDetailsUtils.GenerateProblemDetails(
+                        context.Exception,
+                        AppDevelopmentErrorCodes.ResourcePublishingError,
+                        HttpStatusCode.BadRequest
+                    )
+                )
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                };
             }
         }
     }

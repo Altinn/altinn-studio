@@ -20,11 +20,16 @@ public class AppSettingsRepository : IAppSettingsRepository
         _dbContext = dbContext;
     }
 
-    public async Task<AppSettingsEntity?> GetAsync(AltinnRepoContext context, string? environment = null, CancellationToken cancellationToken = default)
+    public async Task<AppSettingsEntity?> GetAsync(
+        AltinnRepoContext context,
+        string? environment = null,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var dbModel = await _dbContext.AppSettings.AsNoTracking()
+        var dbModel = await _dbContext
+            .AppSettings.AsNoTracking()
             .SingleOrDefaultAsync(
                 a => a.Org == context.Org && a.App == context.Repo && a.Environment == environment,
                 cancellationToken
@@ -40,15 +45,17 @@ public class AppSettingsRepository : IAppSettingsRepository
         return dbModels.Select(AppSettingsMapper.MapToModel).ToList();
     }
 
-    public async Task<AppSettingsEntity> UpsertAsync(AppSettingsEntity entity, CancellationToken cancellationToken = default)
+    public async Task<AppSettingsEntity> UpsertAsync(
+        AppSettingsEntity entity,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        AppSettingsDbModel? existing = await _dbContext.AppSettings
-            .SingleOrDefaultAsync(
-                a => a.Org == entity.Org && a.App == entity.App && a.Environment == entity.Environment,
-                cancellationToken
-            );
+        AppSettingsDbModel? existing = await _dbContext.AppSettings.SingleOrDefaultAsync(
+            a => a.Org == entity.Org && a.App == entity.App && a.Environment == entity.Environment,
+            cancellationToken
+        );
 
         if (existing is null)
         {

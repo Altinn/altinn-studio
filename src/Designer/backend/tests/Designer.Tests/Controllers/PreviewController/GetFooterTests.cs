@@ -12,11 +12,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class GetFooterTests : PreviewControllerTestsBase<GetFooterTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetFooterTests
+        : PreviewControllerTestsBase<GetFooterTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        public GetFooterTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetFooterTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_Footer_Exists_Ok()

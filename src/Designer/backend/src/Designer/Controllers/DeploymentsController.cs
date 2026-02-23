@@ -26,9 +26,7 @@ namespace Altinn.Studio.Designer.Controllers
     [ApiController]
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route(
-        "/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments"
-    )]
+    [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments")]
     public class DeploymentsController : ControllerBase
     {
         private readonly IDeploymentService _deploymentService;
@@ -70,8 +68,11 @@ namespace Altinn.Studio.Designer.Controllers
                 cancellationToken
             );
 
-            List<KubernetesDeployment> kubernetesDeploymentList =
-                await _kubernetesDeploymentsService.GetAsync(org, app, cancellationToken);
+            List<KubernetesDeployment> kubernetesDeploymentList = await _kubernetesDeploymentsService.GetAsync(
+                org,
+                app,
+                cancellationToken
+            );
 
             return new DeploymentsResponse
             {
@@ -94,10 +95,7 @@ namespace Altinn.Studio.Designer.Controllers
             List<string> permittedEnvironments = teams
                 .Where(t =>
                     t.Organization.Username.Equals(org, StringComparison.OrdinalIgnoreCase)
-                    && (
-                        t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase)
-                        || t.Name.Equals("Owners")
-                    )
+                    && (t.Name.StartsWith("Deploy-", StringComparison.OrdinalIgnoreCase) || t.Name.Equals("Owners"))
                 )
                 .Select(t => t.Name.Equals("Owners") ? t.Name : t.Name.Split('-')[1])
                 .ToList();
@@ -129,12 +127,7 @@ namespace Altinn.Studio.Designer.Controllers
             string token = await HttpContext.GetDeveloperAppTokenAsync();
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    developer,
-                    token
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
 
             var createResult = await _deploymentService.CreateAsync(
                 authenticatedContext,
@@ -164,12 +157,7 @@ namespace Altinn.Studio.Designer.Controllers
             string token = await HttpContext.GetDeveloperAppTokenAsync();
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
-                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
-                    org,
-                    app,
-                    developer,
-                    token
-                );
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, developer, token);
             await _deploymentService.UndeployAsync(
                 authenticatedContext,
                 undeployRequest.Environment,

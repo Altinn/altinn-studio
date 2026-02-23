@@ -19,20 +19,21 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class CheckoutBranchTests : DesignerEndpointsTestsBase<CheckoutBranchTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class CheckoutBranchTests
+        : DesignerEndpointsTestsBase<CheckoutBranchTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
         private static string VersionPrefix => "/designer/api/repos";
         private const string TestUser = "testUser";
         private const string TestAuthHandlerTokenValue = "test-access-token-for-git-operations";
-        public CheckoutBranchTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+
+        public CheckoutBranchTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
+            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton(_sourceControlMock.Object);
         }
@@ -48,9 +49,15 @@ namespace Designer.Tests.Controllers.RepositoryController
             var expectedRepoStatus = new RepoStatus
             {
                 RepositoryStatus = RepositoryStatus.Ok,
-                CurrentBranch = branchName
+                CurrentBranch = branchName,
             };
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repo, TestUser, TestAuthHandlerTokenValue);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
+                    org,
+                    repo,
+                    TestUser,
+                    TestAuthHandlerTokenValue
+                );
 
             _sourceControlMock
                 .Setup(x => x.CheckoutBranchWithValidation(authenticatedContext, branchName))
@@ -60,7 +67,8 @@ namespace Designer.Tests.Controllers.RepositoryController
             using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
-                "application/json");
+                "application/json"
+            );
 
             // Act
             using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
@@ -71,22 +79,35 @@ namespace Designer.Tests.Controllers.RepositoryController
             Assert.NotNull(responseContent);
             Assert.Equal(branchName, responseContent.CurrentBranch);
             Assert.Equal(RepositoryStatus.Ok, responseContent.RepositoryStatus);
-            _sourceControlMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, branchName), Times.Once);
+            _sourceControlMock.Verify(
+                x => x.CheckoutBranchWithValidation(authenticatedContext, branchName),
+                Times.Once
+            );
         }
 
         [Theory]
         [InlineData("ttd", "apps-test", "feature/branch-with-changes")]
-        public async Task CheckoutBranch_WithUncommittedChanges_ReturnsConflict(string org, string repo, string targetBranch)
+        public async Task CheckoutBranch_WithUncommittedChanges_ReturnsConflict(
+            string org,
+            string repo,
+            string targetBranch
+        )
         {
             // Arrange
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/checkout";
             string currentBranch = "main";
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repo, TestUser, TestAuthHandlerTokenValue);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
+                    org,
+                    repo,
+                    TestUser,
+                    TestAuthHandlerTokenValue
+                );
 
             var uncommittedFiles = new List<UncommittedFile>
             {
                 new UncommittedFile { FilePath = "src/file1.cs", Status = "Modified" },
-                new UncommittedFile { FilePath = "src/file2.cs", Status = "Added" }
+                new UncommittedFile { FilePath = "src/file2.cs", Status = "Added" },
             };
 
             var errorDetails = new UncommittedChangesError
@@ -94,7 +115,7 @@ namespace Designer.Tests.Controllers.RepositoryController
                 Message = $"You have uncommitted changes in branch '{currentBranch}'",
                 CurrentBranch = currentBranch,
                 TargetBranch = targetBranch,
-                UncommittedFiles = uncommittedFiles
+                UncommittedFiles = uncommittedFiles,
             };
 
             var exception = new UncommittedChangesException(errorDetails);
@@ -107,7 +128,8 @@ namespace Designer.Tests.Controllers.RepositoryController
             using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
-                "application/json");
+                "application/json"
+            );
 
             // Act
             using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
@@ -120,7 +142,10 @@ namespace Designer.Tests.Controllers.RepositoryController
             Assert.Equal(currentBranch, responseContent.CurrentBranch);
             Assert.Equal(targetBranch, responseContent.TargetBranch);
             Assert.Equal(2, responseContent.UncommittedFiles.Count);
-            _sourceControlMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, targetBranch), Times.Once);
+            _sourceControlMock.Verify(
+                x => x.CheckoutBranchWithValidation(authenticatedContext, targetBranch),
+                Times.Once
+            );
         }
 
         [Theory]
@@ -136,14 +161,22 @@ namespace Designer.Tests.Controllers.RepositoryController
             using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
-                "application/json");
+                "application/json"
+            );
 
             // Act
             using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            _sourceControlMock.Verify(x => x.CheckoutBranchWithValidation(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), It.IsAny<string>()), Times.Never);
+            _sourceControlMock.Verify(
+                x =>
+                    x.CheckoutBranchWithValidation(
+                        It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
+                        It.IsAny<string>()
+                    ),
+                Times.Never
+            );
         }
 
         [Fact]
@@ -154,24 +187,39 @@ namespace Designer.Tests.Controllers.RepositoryController
             string repo = "apps-test";
             string branchName = "non-existing-branch";
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/checkout";
-            AltinnAuthenticatedRepoEditingContext authenticatedContext = AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, repo, TestUser, TestAuthHandlerTokenValue);
+            AltinnAuthenticatedRepoEditingContext authenticatedContext =
+                AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(
+                    org,
+                    repo,
+                    TestUser,
+                    TestAuthHandlerTokenValue
+                );
 
             _sourceControlMock
-                .Setup(x => x.CheckoutBranchWithValidation(It.IsAny<AltinnAuthenticatedRepoEditingContext>(), It.IsAny<string>()))
+                .Setup(x =>
+                    x.CheckoutBranchWithValidation(
+                        It.IsAny<AltinnAuthenticatedRepoEditingContext>(),
+                        It.IsAny<string>()
+                    )
+                )
                 .Throws(new LibGit2Sharp.NotFoundException("Branch not found"));
 
             var request = new CheckoutBranchRequest { BranchName = branchName };
             using var content = new StringContent(
                 JsonSerializer.Serialize(request, JsonSerializerOptions),
                 Encoding.UTF8,
-                "application/json");
+                "application/json"
+            );
 
             // Act
             using HttpResponseMessage response = await HttpClient.PostAsync(uri, content);
 
             // Assert
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-            _sourceControlMock.Verify(x => x.CheckoutBranchWithValidation(authenticatedContext, branchName), Times.Once);
+            _sourceControlMock.Verify(
+                x => x.CheckoutBranchWithValidation(authenticatedContext, branchName),
+                Times.Once
+            );
         }
     }
 }

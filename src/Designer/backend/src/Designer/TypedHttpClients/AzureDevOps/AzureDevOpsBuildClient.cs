@@ -25,9 +25,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         /// </summary>
         /// <param name="httpClient">System.Net.Http.HttpClient</param>
         /// <param name="logger">ILogger</param>
-        public AzureDevOpsBuildClient(
-            HttpClient httpClient,
-            ILogger<AzureDevOpsBuildClient> logger)
+        public AzureDevOpsBuildClient(HttpClient httpClient, ILogger<AzureDevOpsBuildClient> logger)
         {
             _httpClient = httpClient;
             _logger = logger;
@@ -37,7 +35,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
             T buildParameters,
             int buildDefinitionId,
             CancellationToken cancellationToken
-        ) where T : class
+        )
+            where T : class
         {
             QueueBuildRequest queueBuildRequest = CreateBuildRequest(buildParameters, buildDefinitionId);
             return await SendRequest(queueBuildRequest, cancellationToken);
@@ -47,27 +46,29 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         public async Task<BuildEntity> Get(string buildId, CancellationToken cancellationToken)
         {
             string requestUri = $"build/builds/{buildId}?api-version=5.1";
-            _logger.LogInformation("Doing a request toward: {HttpClientBaseAddress}{RequestUri}", _httpClient.BaseAddress, requestUri);
+            _logger.LogInformation(
+                "Doing a request toward: {HttpClientBaseAddress}{RequestUri}",
+                _httpClient.BaseAddress,
+                requestUri
+            );
             HttpResponseMessage response = await _httpClient.GetAsync(requestUri, cancellationToken);
             response.EnsureSuccessStatusCode();
             Build build = await response.Content.ReadAsAsync<Build>(cancellationToken);
             return ToBuildEntity(build);
         }
 
-        private static QueueBuildRequest CreateBuildRequest<T>(T buildParameters, int buildDefinitionId) where T : class
+        private static QueueBuildRequest CreateBuildRequest<T>(T buildParameters, int buildDefinitionId)
+            where T : class
         {
             JsonSerializerOptions serializerOptions = new()
             {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             };
 
             return new QueueBuildRequest
             {
-                DefinitionReference = new DefinitionReference
-                {
-                    Id = buildDefinitionId
-                },
-                Parameters = JsonSerializer.Serialize(buildParameters, serializerOptions)
+                DefinitionReference = new DefinitionReference { Id = buildDefinitionId },
+                Parameters = JsonSerializer.Serialize(buildParameters, serializerOptions),
             };
         }
 
@@ -79,20 +80,24 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
             string requestBody = JsonSerializer.Serialize(queueBuildRequest);
             using StringContent httpContent = new(requestBody, Encoding.UTF8, MediaTypeNames.Application.Json);
             string requestUri = "build/builds?api-version=5.1";
-            _logger.LogInformation("Doing a request toward: {HttpClientBaseAddress}{RequestUri}", _httpClient.BaseAddress, requestUri);
+            _logger.LogInformation(
+                "Doing a request toward: {HttpClientBaseAddress}{RequestUri}",
+                _httpClient.BaseAddress,
+                requestUri
+            );
 
             HttpResponseMessage response = await _httpClient.PostAsync(requestUri, httpContent, cancellationToken);
             return await response.Content.ReadAsAsync<Build>(cancellationToken);
         }
 
-        private static BuildEntity ToBuildEntity(Build build)
-            => new()
+        private static BuildEntity ToBuildEntity(Build build) =>
+            new()
             {
                 Id = build.Id.ToString(),
                 Status = build.Status,
                 Result = build.Result,
                 Started = build.StartTime,
-                Finished = build.FinishTime
+                Finished = build.FinishTime,
             };
     }
 }

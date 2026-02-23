@@ -23,25 +23,28 @@ public class StudioctlController : ControllerBase
     }
 
     [HttpGet("install.sh")]
-    public Task<IActionResult> GetInstallSh(CancellationToken cancellationToken)
-        => GetScriptAsync(StudioctlInstallScriptType.Bash, cancellationToken);
+    public Task<IActionResult> GetInstallSh(CancellationToken cancellationToken) =>
+        GetScriptAsync(StudioctlInstallScriptType.Bash, cancellationToken);
 
     [HttpGet("install.ps1")]
-    public Task<IActionResult> GetInstallPs1(CancellationToken cancellationToken)
-        => GetScriptAsync(StudioctlInstallScriptType.PowerShell, cancellationToken);
+    public Task<IActionResult> GetInstallPs1(CancellationToken cancellationToken) =>
+        GetScriptAsync(StudioctlInstallScriptType.PowerShell, cancellationToken);
 
     private async Task<IActionResult> GetScriptAsync(
         StudioctlInstallScriptType scriptType,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        StudioctlInstallScriptResult result =
-            await _installScriptService.GetInstallScriptAsync(scriptType, cancellationToken);
+        StudioctlInstallScriptResult result = await _installScriptService.GetInstallScriptAsync(
+            scriptType,
+            cancellationToken
+        );
 
         return result.Status switch
         {
             StudioctlInstallScriptStatus.Ok => CreateFileResult(result),
             StudioctlInstallScriptStatus.NotFound => NotFound(),
-            _ => StatusCode(StatusCodes.Status503ServiceUnavailable)
+            _ => StatusCode(StatusCodes.Status503ServiceUnavailable),
         };
     }
 

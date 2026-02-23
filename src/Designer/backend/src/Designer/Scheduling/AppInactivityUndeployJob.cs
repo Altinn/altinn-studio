@@ -39,7 +39,9 @@ public class AppInactivityUndeployJob : IJob
         var timeout = _schedulingSettings.InactivityUndeployJobTimeouts.RootJobTimeout;
         activity?.SetTag("timeout.seconds", timeout.TotalSeconds);
 
-        using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken);
+        using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            context.CancellationToken
+        );
         timeoutCancellationTokenSource.CancelAfter(timeout);
         var cancellationToken = timeoutCancellationTokenSource.Token;
 
@@ -55,16 +57,17 @@ public class AppInactivityUndeployJob : IJob
             }
         }
         catch (OperationCanceledException ex)
-            when (timeoutCancellationTokenSource.IsCancellationRequested && !context.CancellationToken.IsCancellationRequested)
+            when (timeoutCancellationTokenSource.IsCancellationRequested
+                && !context.CancellationToken.IsCancellationRequested
+            )
         {
             activity?.SetStatus(ActivityStatusCode.Error, "Job timed out.");
-            activity?.AddEvent(new ActivityEvent(
-                "job_timeout",
-                tags: new ActivityTagsCollection
-                {
-                    ["timeout.seconds"] = timeout.TotalSeconds
-                }
-            ));
+            activity?.AddEvent(
+                new ActivityEvent(
+                    "job_timeout",
+                    tags: new ActivityTagsCollection { ["timeout.seconds"] = timeout.TotalSeconds }
+                )
+            );
             throw new TimeoutException($"{nameof(AppInactivityUndeployJob)} timed out after {timeout}.", ex);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

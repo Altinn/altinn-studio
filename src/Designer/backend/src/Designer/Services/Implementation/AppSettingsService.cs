@@ -20,7 +20,11 @@ public class AppSettingsService : IAppSettingsService
         _timeProvider = timeProvider;
     }
 
-    public Task<AppSettingsEntity?> GetAsync(AltinnRepoContext context, string? environment = null, CancellationToken cancellationToken = default)
+    public Task<AppSettingsEntity?> GetAsync(
+        AltinnRepoContext context,
+        string? environment = null,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         return _repository.GetAsync(context, environment, cancellationToken);
@@ -57,7 +61,7 @@ public class AppSettingsService : IAppSettingsService
             UndeployOnInactivity = undeployOnInactivity,
             Created = _timeProvider.GetUtcNow(),
             CreatedBy = editingContext.Developer,
-            LastModifiedBy = editingContext.Developer
+            LastModifiedBy = editingContext.Developer,
         };
 
         return await _repository.UpsertAsync(entity, cancellationToken);

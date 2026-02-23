@@ -12,19 +12,23 @@ namespace Designer.Tests.Controllers.ApiTests
     {
         protected readonly DesignerDbFixture DesignerDbFixture;
 
-        protected DbDesignerEndpointsTestsBase(WebApplicationFactory<Program> factory,
-            DesignerDbFixture designerDbFixture) : base(factory)
+        protected DbDesignerEndpointsTestsBase(
+            WebApplicationFactory<Program> factory,
+            DesignerDbFixture designerDbFixture
+        )
+            : base(factory)
         {
             DesignerDbFixture = designerDbFixture;
-            JsonConfigOverrides.Add($@"
+            JsonConfigOverrides.Add(
+                $@"
               {{
                     ""PostgreSQLSettings"": {{
                         ""ConnectionString"": ""{DesignerDbFixture.ConnectionString}"",
                         ""DesignerDbPwd"": """"
                     }}
              }}
-            ");
+            "
+            );
         }
-
     }
 }

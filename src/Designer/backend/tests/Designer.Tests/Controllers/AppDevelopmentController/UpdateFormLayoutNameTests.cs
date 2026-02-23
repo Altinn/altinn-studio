@@ -14,28 +14,39 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class UpdateFormLayoutNameTests : DesignerEndpointsTestsBase<UpdateFormLayoutNameTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class UpdateFormLayoutNameTests
+        : DesignerEndpointsTestsBase<UpdateFormLayoutNameTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
-        public UpdateFormLayoutNameTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        private static string VersionPrefix(string org, string repository) =>
+            $"/designer/api/{org}/{repository}/app-development";
+
+        public UpdateFormLayoutNameTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "layoutFile1InSet1", "newLayoutName")]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, "layoutFile1", "newLayoutName")]
-        public async Task UpdateFormLayoutName_Change_FileName_And_ReturnsOk(string org, string app, string developer, string layoutSetName, string layoutName, string newLayoutName)
+        public async Task UpdateFormLayoutName_Change_FileName_And_ReturnsOk(
+            string org,
+            string app,
+            string developer,
+            string layoutSetName,
+            string layoutName,
+            string newLayoutName
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            string url = $"{VersionPrefix(org, targetRepository)}/form-layout-name/{layoutName}?layoutSetName={layoutSetName}";
+            string url =
+                $"{VersionPrefix(org, targetRepository)}/form-layout-name/{layoutName}?layoutSetName={layoutSetName}";
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 // This is something that should be changed in controller. The controller should not expect a string in quotes.
                 // And if endpoint is expecting "application/json" media type, json file should be sent.
-                Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -55,7 +66,13 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "app-without-layoutsets", "testUser", "nonExistingLayoutName", "newLayoutName")]
-        public async Task UpdateFormLayoutName_NonExistingName_ShouldReturnNotFound(string org, string app, string developer, string layoutName, string newLayoutName)
+        public async Task UpdateFormLayoutName_NonExistingName_ShouldReturnNotFound(
+            string org,
+            string app,
+            string developer,
+            string layoutName,
+            string newLayoutName
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -64,7 +81,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -73,7 +90,13 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "testUser", "layout", "Side2", "Side2-new")]
-        public async Task UpdateFormLayoutName_UpdatesAssociatedSummary2Components_ReturnsOk(string org, string developer, string layoutSetName, string layoutName, string newLayoutName)
+        public async Task UpdateFormLayoutName_UpdatesAssociatedSummary2Components_ReturnsOk(
+            string org,
+            string developer,
+            string layoutSetName,
+            string layoutName,
+            string newLayoutName
+        )
         {
             string actualApp = "app-with-summary2-components";
             string app = TestDataHelper.GenerateTestRepoName();
@@ -82,7 +105,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string url = $"{VersionPrefix(org, app)}/form-layout-name/{layoutName}?layoutSetName={layoutSetName}";
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -90,19 +113,22 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             string expectedApp = "app-with-summary2-components-after-updating-references";
 
-            string[] layoutPaths = [
+            string[] layoutPaths =
+            [
                 "layout/layouts/Side1.json",
                 "layout/layouts/Side2.json",
                 "layout2/layouts/Side1.json",
                 "layout2/layouts/Side2.json",
             ];
 
-            layoutPaths.ToList().ForEach(file =>
-            {
-                string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
-                string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
-                Assert.True(JsonUtils.DeepEquals(actual, expected));
-            });
+            layoutPaths
+                .ToList()
+                .ForEach(file =>
+                {
+                    string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
+                    string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
+                    Assert.True(JsonUtils.DeepEquals(actual, expected));
+                });
         }
 
         [Fact]
@@ -115,17 +141,23 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string app = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest("ttd", actualApp, "testUser", app);
 
-
             string url = $"{VersionPrefix("ttd", app)}/form-layout-name/{layoutName}?layoutSetName={layoutSetName}";
             string oldLayoutPath = Path.Join(TestRepoPath, "App", "ui", layoutSetName, "layouts", $"{layoutName}.json");
-            string newLayoutPath = Path.Join(TestRepoPath, "App", "ui", layoutSetName, "layouts", $"{newLayoutName}.json");
+            string newLayoutPath = Path.Join(
+                TestRepoPath,
+                "App",
+                "ui",
+                layoutSetName,
+                "layouts",
+                $"{newLayoutName}.json"
+            );
 
             Directory.CreateDirectory(Path.GetDirectoryName(oldLayoutPath));
             await File.WriteAllTextAsync(oldLayoutPath, "{}");
 
             using var request = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent($"\"{newLayoutName}\"", Encoding.UTF8, MediaTypeNames.Application.Json),
             };
 
             using HttpResponseMessage response = await HttpClient.SendAsync(request);

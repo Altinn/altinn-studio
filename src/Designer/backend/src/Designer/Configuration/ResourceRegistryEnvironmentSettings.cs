@@ -12,6 +12,5 @@ namespace Altinn.Studio.Designer.Configuration
         public string MetadataBaseUrl { get; set; }
 
         public string SblBridgeBaseUrl { get; set; }
-
     }
 }

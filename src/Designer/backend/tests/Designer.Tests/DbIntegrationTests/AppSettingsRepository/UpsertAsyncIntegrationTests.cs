@@ -12,9 +12,8 @@ namespace Designer.Tests.DbIntegrationTests.AppSettingsRepository;
 
 public class UpsertAsyncIntegrationTests : DbIntegrationTestsBase
 {
-    public UpsertAsyncIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public UpsertAsyncIntegrationTests(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     [Fact]
     public async Task UpsertAsync_WhenExistingRowFoundWithDefaultEntityVersion_ShouldUpdateWithoutConcurrencyFailure()
@@ -31,7 +30,7 @@ public class UpsertAsyncIntegrationTests : DbIntegrationTestsBase
             UndeployOnInactivity = false,
             Created = initialCreated,
             CreatedBy = "creator-1",
-            LastModifiedBy = "creator-1"
+            LastModifiedBy = "creator-1",
         };
 
         await DbFixture.DbContext.AppSettings.AddAsync(existing);
@@ -48,11 +47,13 @@ public class UpsertAsyncIntegrationTests : DbIntegrationTestsBase
             Created = DateTimeOffset.UnixEpoch.AddDays(2),
             CreatedBy = "creator-2",
             LastModifiedBy = "developer-2",
-            Version = 0
+            Version = 0,
         };
 
         var result = await repository.UpsertAsync(upsertEntity);
-        var dbRecord = await DbFixture.DbContext.AppSettings.AsNoTracking().SingleAsync(a => a.Org == org && a.App == app && a.Environment == null);
+        var dbRecord = await DbFixture
+            .DbContext.AppSettings.AsNoTracking()
+            .SingleAsync(a => a.Org == org && a.App == app && a.Environment == null);
 
         Assert.True(result.Version > 0);
         Assert.True(result.UndeployOnInactivity);

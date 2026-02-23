@@ -44,8 +44,6 @@ public static class AppInactivityUndeployJobConstants
 
     public static string BuildPerOrgIdentitySuffix(string org, string? environmentFilter)
     {
-        return string.IsNullOrWhiteSpace(environmentFilter)
-            ? org
-            : $"{org}-{environmentFilter.ToLowerInvariant()}";
+        return string.IsNullOrWhiteSpace(environmentFilter) ? org : $"{org}-{environmentFilter.ToLowerInvariant()}";
     }
 }

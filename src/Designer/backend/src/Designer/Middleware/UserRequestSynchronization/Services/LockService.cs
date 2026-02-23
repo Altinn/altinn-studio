@@ -9,9 +9,7 @@ using Medallion.Threading;
 
 namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 
-public sealed class LockService(
-    IDistributedLockProvider distributedLockProvider
-) : ILockService
+public sealed class LockService(IDistributedLockProvider distributedLockProvider) : ILockService
 {
     public ValueTask<IDistributedSynchronizationHandle> AcquireOrgWideLockAsync(
         AltinnOrgContext context,
