@@ -171,36 +171,6 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public string? GetLayoutSettingsString()
-    {
-        using var activity = _telemetry?.StartGetLayoutSettingsStringActivity();
-        string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
-        string? filedata = null;
-        if (File.Exists(filename))
-        {
-            filedata = File.ReadAllText(filename, Encoding.UTF8);
-        }
-
-        return filedata;
-    }
-
-    /// <inheritdoc />
-    public LayoutSettings GetLayoutSettings()
-    {
-        using var activity = _telemetry?.StartGetLayoutSettingsActivity();
-        string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
-        if (File.Exists(filename))
-        {
-            var filedata = File.ReadAllText(filename, Encoding.UTF8);
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            LayoutSettings layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(filedata)!;
-            return layoutSettings;
-        }
-
-        throw new FileNotFoundException($"Could not find layoutsettings file: {filename}");
-    }
-
-    /// <inheritdoc />
     public string GetClassRefForLogicDataType(string dataType)
     {
         using var activity = _telemetry?.StartGetClassRefActivity();
@@ -215,38 +185,6 @@ public class AppResourcesSI : IAppResources
         }
 
         return classRef;
-    }
-
-    /// <inheritdoc />
-    [Obsolete("Use GetLayoutsForSet or GetLayoutModelForTask instead")]
-    public string GetLayouts()
-    {
-        using var activity = _telemetry?.StartGetLayoutsActivity();
-        Dictionary<string, object> layouts = new Dictionary<string, object>();
-
-        // Get FormLayout.json if it exists and return it (for backwards compatibility)
-        string fileName = Path.Join(_settings.AppBasePath, _settings.UiFolder, "FormLayout.json");
-        if (File.Exists(fileName))
-        {
-            string fileData = File.ReadAllText(fileName, Encoding.UTF8);
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            layouts.Add("FormLayout", JsonConvert.DeserializeObject<object>(fileData)!);
-            return JsonConvert.SerializeObject(layouts);
-        }
-
-        string layoutsPath = Path.Join(_settings.AppBasePath, _settings.UiFolder, "layouts");
-        if (Directory.Exists(layoutsPath))
-        {
-            foreach (string file in Directory.GetFiles(layoutsPath))
-            {
-                string data = File.ReadAllText(file, Encoding.UTF8);
-                string name = Path.GetFileNameWithoutExtension(file);
-                // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-                layouts.Add(name, JsonConvert.DeserializeObject<object>(data)!);
-            }
-        }
-
-        return JsonConvert.SerializeObject(layouts);
     }
 
     /// <inheritdoc />
