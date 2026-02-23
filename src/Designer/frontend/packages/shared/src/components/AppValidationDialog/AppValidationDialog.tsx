@@ -73,16 +73,22 @@ const AltinnAppServiceResourceValidation = ({ validationResult }: { validationRe
   };
 
   return (
-    <div className={classes.validationContainer}>
-      <StudioErrorSummary.Heading>
+    <div>
+      <StudioHeading className={classes.validationHeader}>
         {t('app_validation.app_metadata.errors_need_fixing')}
-      </StudioErrorSummary.Heading>
+      </StudioHeading>
       <StudioAlert data-color='warning'>
-        <StudioHeading>{t('app_validation.app_metadata.warnings')}</StudioHeading>
+        <StudioHeading className={classes.validationHeader}>
+          {t('app_validation.app_metadata.warnings')}
+        </StudioHeading>
         <StudioErrorSummary.List>
           {errorItems.map(({ errorKey, search, fullHref, errorMessage }) => (
             <StudioErrorSummary.Item key={errorKey}>
-              <StudioLink href={fullHref} onClick={handleErrorLinkClick(search)}>
+              <StudioLink
+                className={classes.validationLink}
+                href={fullHref}
+                onClick={handleErrorLinkClick(search)}
+              >
                 {errorMessage}
               </StudioLink>
             </StudioErrorSummary.Item>

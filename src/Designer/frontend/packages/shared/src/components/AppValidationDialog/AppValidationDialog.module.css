@@ -1,7 +1,7 @@
-.validationContainer h2 {
+.validationHeader {
   padding-bottom: var(--ds-size-3);
 }
 
-.validationContainer a {
+.validationLink {
   text-decoration: underline;
 }
