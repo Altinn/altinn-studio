@@ -10,7 +10,7 @@
   --font-ui:var(--font);
   --header-bg:var(--bg2);--seg-bg:rgba(255,255,255,0.04);--seg-hover-bg:rgba(255,255,255,0.1);
   --shadow-card:none;--shadow-popup:0 8px 24px rgba(0,0,0,0.5);--overlay-bg:rgba(0,0,0,0.7);
-  --phase-border:rgba(255,255,255,0.08);
+  --phase-border:var(--border);
 }
 html{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
 body{min-height:100vh;padding:0}
@@ -258,7 +258,7 @@ body{min-height:100vh;padding:0}
 .grafana-btn svg{width:12px;height:12px}
 .workflow-card:hover .open-btn{opacity:0.7}
 .workflow-card:hover .open-btn:hover{opacity:1}
-.wf-name{color:var(--text-dim);font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0;opacity:0.5}
+.wf-name{color:var(--text-dim);font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0}
 .elapsed{font-variant-numeric:tabular-nums;color:var(--text-dim);font-size:11px;font-weight:600;min-width:52px;text-align:right}
 .retry-badge{
   background:var(--orange);color:#000;font-size:11px;font-weight:800;
@@ -281,7 +281,7 @@ body{min-height:100vh;padding:0}
 
 /* ── Step pipeline ────────────────────────────────────────── */
 .pipeline{display:flex;align-items:flex-start;gap:0;margin-top:12px;overflow-x:auto;overflow-y:visible;padding:6px 0 8px 0}
-.step-node{display:flex;flex-direction:column;align-items:center;position:relative;min-width:110px;max-width:110px}
+.step-node{display:flex;flex-direction:column;align-items:center;position:relative;min-width:120px}
 .step-circle{
   width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:14px;font-weight:700;border:2px solid var(--border);background:var(--bg);
@@ -297,10 +297,10 @@ body{min-height:100vh;padding:0}
 .step-circle.Requeued{border-color:var(--orange);color:var(--orange);animation:bounce 1s ease infinite}
 .step-circle.Failed{border-color:var(--red);color:var(--red);animation:shake 0.5s ease}
 .step-circle.Canceled{border-color:var(--gray);color:var(--gray);opacity:0.5}
-.step-circle[onclick]:hover{transform:scale(1.15);filter:brightness(1.3)}
+.step-circle[onclick]:hover{transform:scale(1.15)}
 .step-label-wrap{margin-top:8px;width:100%;min-height:28px}
-.step-label{font-size:11px;color:var(--text-dim);text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.step-sublabel{font-size:10px;color:var(--text-dim);opacity:0.6;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.step-label{font-size:12px;color:var(--text-dim);text-align:center;white-space:nowrap}
+.step-sublabel{font-size:11px;color:var(--text-dim);opacity:0.6;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .step-connector{width:56px;height:2px;position:relative;overflow:visible;flex-shrink:0;margin-top:16px}
 .step-connector svg{display:block;width:56px;height:6px;overflow:visible}
 .step-connector line{stroke:var(--border);stroke-width:2;stroke-dasharray:6,4}
@@ -321,7 +321,7 @@ body{min-height:100vh;padding:0}
 
 /* ── Step command-type badges ─────────────────────────────── */
 .step-type{
-  font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
   padding:2px 6px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);
   color:var(--text-dim);
 }
@@ -333,7 +333,7 @@ body{min-height:100vh;padding:0}
 .step-type.Delegate{color:var(--green);border-color:rgba(var(--green-rgb),0.3)}
 
 /* ── Step phase bracket indicators (flat, on step-nodes) ──── */
-.pipeline-grouped{padding-top:26px}
+.pipeline-grouped{padding-top:30px}
 /* Bracket line segment on each step in a phase group */
 .step-node[data-phase]::before{
   content:'';position:absolute;top:-8px;
@@ -353,9 +353,9 @@ body{min-height:100vh;padding:0}
 }
 /* Phase label above middle step of each group */
 .phase-label{
-  position:absolute;top:-22px;left:50%;transform:translateX(-50%);
-  font-size:10px;font-weight:600;letter-spacing:0.3px;
-  color:var(--text-dim);opacity:0.4;white-space:nowrap;pointer-events:none;
+  position:absolute;top:-25px;left:50%;transform:translateX(-50%);
+  font-size:11px;font-weight:600;letter-spacing:0.3px;
+  color:var(--text-dim);white-space:nowrap;pointer-events:none;
 }
 .phase-label-offset{
   left:calc(50% + 83px);
@@ -640,7 +640,7 @@ body{min-height:100vh;padding:0}
   --shadow-card:0 1px 3px rgba(0,0,0,0.06);
   --shadow-popup:0 4px 12px rgba(0,0,0,0.12);
   --overlay-bg:rgba(0,0,0,0.3);
-  --phase-border:rgba(0,0,0,0.08);
+  --phase-border:var(--border);
 }
 /* Header: dark navy, white text */
 [data-theme="altinn"] .header{color:#fff}
