@@ -75,10 +75,12 @@ public class ResourceController : ControllerBase
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "application/json")]
     [HttpGet]
     [Route("{org}/{app}/api/layoutsets")]
+    [Obsolete("Layout-sets no longer exist, folders are named the same as taskIds")]
     public ActionResult GetLayoutSets(string org, string app)
     {
-        string? layoutSets = _appResourceService.GetLayoutSetsString();
-        return Ok(layoutSets);
+        return BadRequest(
+            "Layout-sets no longer exist, folders are named the same as taskIds now, there are no mapping between layoutsets and taskIds. The default data type can now be read from layoutsettings."
+        );
     }
 
     /// <summary>
