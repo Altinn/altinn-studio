@@ -55,13 +55,15 @@ export const convertToExternalConfig = (
 });
 
 export const getValuesToDisplay = (config: InternalConfigState) => {
-  return {
-    tasks: config?.tasks?.map((task) => task.label).join(', '),
+  const values = {
+    tasks: config?.tasks?.map((task) => task.label)?.join(', '),
     task: config?.task?.label,
-    pages: config?.pages?.map((page) => page.label).join(', '),
-    types: config?.types?.map((type) => type.label).join(', '),
+    pages: config?.pages?.map((page) => page.label)?.join(', '),
+    types: config?.types?.map((type) => type.label)?.join(', '),
     pageScope: config?.pageScope?.label,
   };
+
+  return Object.fromEntries(Object.entries(values).filter(([, v]) => v != null));
 };
 
 export const withUniqueIds = (configs: ExternalConfigState[]): ExternalConfigWithId[] =>
