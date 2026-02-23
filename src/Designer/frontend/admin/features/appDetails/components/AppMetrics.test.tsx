@@ -200,11 +200,15 @@ describe('AppMetrics', () => {
       const mockData = [
         {
           name: 'failed_process_next_requests',
-          dataPoints: [],
+          timestamps: [],
+          counts: [],
+          intervalInMinutes: 5,
         },
         {
           name: 'failed_instance_creation_requests',
-          dataPoints: [],
+          timestamps: [],
+          counts: [],
+          intervalInMinutes: 5,
         },
       ];
 
@@ -224,7 +228,9 @@ describe('AppMetrics', () => {
       const mockData = [
         {
           name: 'failed_instance_creation_requests',
-          dataPoints: [],
+          timestamps: [],
+          counts: [],
+          intervalInMinutes: 5,
         },
       ];
 
@@ -246,7 +252,9 @@ describe('AppMetrics', () => {
       const mockData = [
         {
           name: 'failed_process_next_requests',
-          dataPoints: [{ count: 5, dateTimeOffset: '2024-01-01T00:00:00Z' }],
+          timestamps: [1704067200000],
+          counts: [5],
+          intervalInMinutes: 5,
         },
       ];
 
@@ -308,11 +316,15 @@ describe('AppMetrics', () => {
       const mockData = [
         {
           name: 'altinn_app_lib_processes_started',
-          dataPoints: [],
+          timestamps: [],
+          counts: [],
+          intervalInMinutes: 5,
         },
         {
           name: 'altinn_app_lib_processes_ended',
-          dataPoints: [],
+          timestamps: [],
+          counts: [],
+          intervalInMinutes: 5,
         },
       ];
 
