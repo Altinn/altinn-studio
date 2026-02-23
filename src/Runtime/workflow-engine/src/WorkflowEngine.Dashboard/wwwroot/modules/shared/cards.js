@@ -1,7 +1,7 @@
 /* Card rendering — shared by live, recent, and query views */
 
 import { parseTransition, stepSubLabel, state, workflowData } from '../core/state.js';
-import { esc, formatElapsed } from '../core/helpers.js';
+import { esc, formatElapsed, fmtTime } from '../core/helpers.js';
 import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
 
 /** @param {string} guid */
@@ -36,6 +36,43 @@ window.copyGuid = async (e, guid) => {
 };
 
 /**
+ * Build the inline timestamps + elapsed block (createdAt → removedAt  elapsed).
+ * @param {import('../core/state.js').Workflow} wf
+ * @param {boolean} [isStatic]
+ * @returns {string}
+ */
+const buildTimestampsHTML = (wf, isStatic) => {
+  let html = '';
+  const startTs = fmtTime(wf.createdAt);
+  if (startTs) {
+    html += `<span class="timestamp" data-iso="${esc(wf.createdAt)}">${esc(startTs)}</span>`;
+  }
+  const endIso = wf.removedAt || wf.steps.at(-1)?.updatedAt;
+  if (endIso && (isStatic || wf.removedAt)) {
+    const endTs = fmtTime(endIso);
+    if (endTs) {
+      html += `<span class="ts-arrow">\u2192</span>`;
+      html += `<span class="timestamp" data-iso="${esc(endIso)}">${esc(endTs)}</span>`;
+    }
+  } else if (startTs) {
+    html += `<span class="ts-arrow ts-placeholder">\u2192</span>`;
+    html += `<span class="timestamp ts-placeholder">&nbsp;</span>`;
+  }
+  if (!isStatic) {
+    html += `<span class="elapsed" data-timer="${esc(wf.idempotencyKey)}">0.0s</span>`;
+  } else {
+    const durStart = wf.executionStartedAt || wf.createdAt;
+    const durEnd = wf.removedAt || wf.steps.at(-1)?.updatedAt;
+    if (durStart && durEnd) {
+      const dur = (new Date(durEnd) - new Date(durStart)) / 1000;
+      const label = dur < 1 ? `${(dur * 1000).toFixed(0)}ms` : formatElapsed(dur);
+      html += `<span class="elapsed">${label}</span>`;
+    }
+  }
+  return html;
+};
+
+/**
  * @param {import('../core/state.js').Workflow} wf
  * @param {boolean} [isStatic]
  * @returns {string}
@@ -58,16 +95,7 @@ export const buildCardHTML = (wf, isStatic) => {
   html += `<span class="header-spacer"></span>`;
   if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
   html += `<span class="status-pill ${wf.status}"${isStatic ? ' style="animation:none"' : ''}>${wf.status}</span>`;
-  if (!isStatic) {
-    html += `<span class="elapsed" data-timer="${esc(wf.idempotencyKey)}">0.0s</span>`;
-  } else if (wf.executionStartedAt) {
-    const end = wf.removedAt || wf.steps.at(-1)?.updatedAt;
-    if (end) {
-      const dur = (new Date(end) - new Date(wf.executionStartedAt)) / 1000;
-      const label = dur < 1 ? `${(dur * 1000).toFixed(0)}ms` : formatElapsed(dur);
-      html += `<span class="elapsed">${label}</span>`;
-    }
-  }
+  html += buildTimestampsHTML(wf, isStatic);
   html += copyIconHTML(inst.instanceGuid);
   html += openIconHTML(inst);
   if (wf.traceId) html += traceIconHTML(wf.traceId);
@@ -109,18 +137,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
 
   if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
   html += `<span class="status-pill ${wf.status} compact-pill">${wf.status}</span>`;
-
-  if (!isStatic) {
-    html += `<span class="elapsed" data-timer="${esc(wf.idempotencyKey)}">0.0s</span>`;
-  } else if (wf.executionStartedAt) {
-    const end = wf.removedAt || wf.steps.at(-1)?.updatedAt;
-    if (end) {
-      const dur = (new Date(end) - new Date(wf.executionStartedAt)) / 1000;
-      const label = dur < 1 ? `${(dur * 1000).toFixed(0)}ms` : formatElapsed(dur);
-      html += `<span class="elapsed">${label}</span>`;
-    }
-  }
-
+  html += buildTimestampsHTML(wf, isStatic);
   html += copyIconHTML(inst.instanceGuid);
   html += openIconHTML(inst);
   if (wf.traceId) html += traceIconHTML(wf.traceId);

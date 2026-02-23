@@ -21,6 +21,43 @@ export const formatElapsed = (seconds) => {
   return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
 };
 
+/* ── Timestamp formatting & UTC toggle ─────────────────────────────────── */
+
+/** @returns {boolean} */
+export const isUtcMode = () => localStorage.getItem('timestampUtc') === 'true';
+
+export const toggleUtcMode = () => {
+  localStorage.setItem('timestampUtc', isUtcMode() ? 'false' : 'true');
+  refreshTimestamps();
+};
+
+/**
+ * Format an ISO timestamp to locale-friendly string, respecting UTC preference.
+ * @param {string|null|undefined} v
+ * @returns {string|null}
+ */
+export const fmtTime = (v) => {
+  if (!v) return null;
+  try {
+    const d = new Date(v);
+    const utc = isUtcMode();
+    /** @type {Intl.DateTimeFormatOptions} */
+    const opts = { dateStyle: 'short', timeStyle: 'medium' };
+    if (utc) opts.timeZone = 'UTC';
+    const s = d.toLocaleString(undefined, opts);
+    const ms = String(d.getMilliseconds()).padStart(3, '0');
+    return utc ? `${s}.${ms} UTC` : `${s}.${ms}`;
+  } catch { return v; }
+};
+
+/** Re-render all visible timestamps from their data-iso attribute. */
+export const refreshTimestamps = () => {
+  for (const el of document.querySelectorAll('[data-iso]')) {
+    const iso = el.getAttribute('data-iso');
+    if (iso) el.textContent = fmtTime(iso) || '';
+  }
+};
+
 /* ── JSON utilities (expand embedded JSON strings + syntax highlighting) ── */
 
 /**

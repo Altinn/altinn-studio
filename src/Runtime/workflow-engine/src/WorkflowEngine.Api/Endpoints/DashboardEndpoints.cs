@@ -310,6 +310,7 @@ internal static class DashboardEndpoints
                                     backoffUntil = s.BackoffUntil,
                                     createdAt = s.CreatedAt,
                                     executionStartedAt = s.ExecutionStartedAt,
+                                    updatedAt = s.UpdatedAt,
                                 }),
                         }),
                     };

@@ -1,7 +1,7 @@
 /* Step detail modal — fetch, render, open/close */
 
 import { dom, engineUrl } from '../core/state.js';
-import { esc, expandJsonStrings, syntaxHighlight } from '../core/helpers.js';
+import { esc, expandJsonStrings, syntaxHighlight, fmtTime } from '../core/helpers.js';
 
 /** Format an ISO duration / TimeSpan string to a human-friendly label */
 const fmtDuration = (/** @type {string|null|undefined} */ v) => {
@@ -26,15 +26,6 @@ const fmtDuration = (/** @type {string|null|undefined} */ v) => {
     return parts.join(' ') || '0s';
   }
   return v;
-};
-
-/** Format an ISO timestamp to a locale-friendly string */
-const fmtTime = (/** @type {string|null|undefined} */ v) => {
-  if (!v) return null;
-  try {
-    const d = new Date(v);
-    return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' });
-  } catch { return v; }
 };
 
 /** Format a relative time ago string */
@@ -70,7 +61,7 @@ const buildStepDetailHTML = (data) => {
     const abs = fmtTime(raw);
     const rel = fmtAgo(raw);
     const suffix = rel ? `<span class="detail-ago">${esc(rel)}</span>` : '';
-    return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${esc(abs || '')}${suffix}</span></div>`;
+    return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value"><span class="timestamp" data-iso="${esc(raw)}">${esc(abs || '')}</span>${suffix}</span></div>`;
   };
 
   const status = /** @type {string} */ (data.status) || '';

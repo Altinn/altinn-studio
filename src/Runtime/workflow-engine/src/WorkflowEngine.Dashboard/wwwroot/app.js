@@ -17,6 +17,7 @@ import { bindThemeCallbacks } from './modules/features/theme.js';
 
 // Side-effect imports: these modules register window.* handlers and DOM listeners on load
 import './modules/features/modal.js';
+import './modules/features/settings.js';
 
 /* ── Wire up late-bound callbacks to break circular dependencies ── */
 

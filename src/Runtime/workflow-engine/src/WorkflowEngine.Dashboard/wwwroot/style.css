@@ -44,6 +44,24 @@ body{min-height:100vh;padding:0}
 .sse-dot.connected{background:var(--green);box-shadow:0 0 6px var(--green)}
 .sse-dot.disconnected{background:var(--red);box-shadow:0 0 6px var(--red)}
 
+/* ── Settings button ─────────────────────────────────────── */
+.settings-btn{
+  background:none;border:1px solid var(--border);border-radius:16px;
+  color:var(--text-dim);padding:4px 10px;cursor:pointer;transition:all 0.2s;
+  display:inline-flex;align-items:center;margin-left:8px;
+}
+.settings-btn:hover{color:var(--text-bright);border-color:var(--text-dim)}
+
+/* ── Settings modal ──────────────────────────────────────── */
+.settings-modal{max-width:400px}
+.settings-group{display:flex;flex-direction:column;gap:12px}
+.settings-toggle{
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  font-size:13px;color:var(--text);user-select:none;
+}
+.settings-toggle input{accent-color:var(--cyan);width:16px;height:16px;cursor:pointer}
+.settings-toggle:hover{color:var(--text-bright)}
+
 /* ── Header meters (inline capacity bars) ────────────────── */
 .header-meters{display:flex;gap:12px;align-items:center;margin-left:auto}
 .meter{display:flex;align-items:center;gap:6px}
@@ -65,6 +83,7 @@ body{min-height:100vh;padding:0}
   display:flex;align-items:center;gap:8px;padding:8px 24px;border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap;
 }
 .filter-bar-chips{display:flex;align-items:center;gap:8px}
+.filter-bar-spacer{margin-left:auto}
 .filter-search{position:relative}
 .filter-search input{
   width:220px;background:var(--bg3);color:var(--text);border:1px solid var(--border);
@@ -260,6 +279,13 @@ body{min-height:100vh;padding:0}
 .workflow-card:hover .open-btn:hover{opacity:1}
 .wf-name{color:var(--text-dim);font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0}
 .elapsed{font-variant-numeric:tabular-nums;color:var(--text-dim);font-size:11px;font-weight:600;min-width:52px;text-align:right}
+
+/* ── Card timestamps (inline in header) ──────────────────── */
+.timestamp{
+  color:var(--text-dim);font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.ts-arrow{color:var(--text-dim);font-size:10px;opacity:0.5;margin:0 2px}
+.ts-placeholder{visibility:hidden}
 .retry-badge{
   background:var(--orange);color:#000;font-size:11px;font-weight:800;
   padding:2px 7px;border-radius:10px;margin-left:4px;min-width:30px;text-align:center;
@@ -619,7 +645,7 @@ body{min-height:100vh;padding:0}
   color:var(--text-dim);font-family:var(--font-ui);font-size:11px;font-weight:600;
   padding:4px 12px;cursor:pointer;transition:all 0.2s;
   display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
-  letter-spacing:0.5px;margin-left:16px;
+  letter-spacing:0.5px;
 }
 .theme-toggle:hover{color:var(--text-bright);border-color:var(--text-dim)}
 .theme-toggle svg{width:14px;height:14px;flex-shrink:0}
@@ -653,9 +679,6 @@ body{min-height:100vh;padding:0}
 [data-theme="altinn"] .meter-label{color:rgba(255,255,255,0.7)}
 [data-theme="altinn"] .meter-bar{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.15)}
 [data-theme="altinn"] .meter-value{color:#fff;text-shadow:none}
-/* Theme toggle in header */
-[data-theme="altinn"] .theme-toggle{color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.25)}
-[data-theme="altinn"] .theme-toggle:hover{color:#fff;border-color:rgba(255,255,255,0.5)}
 /* Cards: subtle shadow instead of border glow */
 [data-theme="altinn"] .workflow-card{box-shadow:var(--shadow-card);border-color:var(--border)}
 [data-theme="altinn"] .workflow-card:not(.compact) .card-header:hover{background:var(--bg3)}
