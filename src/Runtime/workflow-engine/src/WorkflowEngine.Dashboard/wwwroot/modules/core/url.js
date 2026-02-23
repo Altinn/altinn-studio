@@ -106,16 +106,18 @@ export const restoreUrl = () => {
     document.getElementById('live-section')?.classList.remove('collapsed');
     document.getElementById('recent-section')?.classList.remove('collapsed');
     for (const s of Object.keys(state.compactSections)) state.compactSections[s] = s === 'query';
-    state.sectionStatus = { live: '', recent: '', query: '' };
+    state.sectionStatus = { live: '', recent: '', query: 'failed' };
     queryTimeRange = 0;
     customTimeRange = null;
     const rc = /** @type {HTMLInputElement | null} */ (document.getElementById('retried-check'));
     if (rc) rc.checked = false;
+    for (const s of ['enqueued', 'processing', 'requeued', 'completed', 'failed', 'canceled']) {
+      const el = /** @type {HTMLInputElement | null} */ (document.getElementById(`${s}-check`));
+      if (el) el.checked = s === 'failed';
+    }
     for (const bar of document.querySelectorAll('.section-chips')) {
-      const isToggle = bar.classList.contains('query-toggle');
       for (const c of bar.querySelectorAll('.chip')) {
-        if (isToggle) c.classList.add('active');
-        else c.classList.toggle('active', (/** @type {HTMLElement} */ (c).dataset.status || '') === '');
+        c.classList.toggle('active', (/** @type {HTMLElement} */ (c).dataset.status || '') === '');
       }
     }
   }
@@ -130,12 +132,15 @@ export const restoreUrl = () => {
     const v = p.get(key);
     if (v) {
       state.sectionStatus[section] = v;
-      const bar = document.querySelector(`.section-chips[data-section="${section}"]`);
-      if (bar) {
-        const isToggle = bar.classList.contains('query-toggle');
-        if (isToggle) {
-          for (const c of bar.querySelectorAll('.chip')) c.classList.toggle('active', (c.dataset.status || '') === v);
-        } else {
+      if (section === 'query') {
+        const active = new Set(v.split(',').map(s => s.trim()).filter(Boolean));
+        for (const s of ['enqueued', 'processing', 'requeued', 'completed', 'failed', 'canceled']) {
+          const el = /** @type {HTMLInputElement | null} */ (document.getElementById(`${s}-check`));
+          if (el) el.checked = active.has(s);
+        }
+      } else {
+        const bar = document.querySelector(`.section-chips[data-section="${section}"]`);
+        if (bar) {
           for (const c of bar.querySelectorAll('.chip')) c.classList.toggle('active', (c.dataset.status || '') === v);
         }
       }

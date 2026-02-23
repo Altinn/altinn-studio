@@ -44,7 +44,7 @@ const fetchQuery = async (opts) => {
   const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(searchTerm);
   const retried = /** @type {HTMLInputElement} */ (document.getElementById('retried-check')).checked;
 
-  const dbStatus = isGuid ? '' : (hs === 'failed' ? 'failed' : hs === 'completed' ? 'completed' : '');
+  const dbStatus = isGuid ? '' : (hs || '');
   const effectiveCustom = isGuid ? null : customTimeRange;
   const effectiveTimeRange = isGuid ? 0 : queryTimeRange;
   const effectiveRetried = isGuid ? false : retried;
@@ -88,22 +88,14 @@ const fetchQuery = async (opts) => {
       const fallback = fallbackBody.workflows;
       if (fallback.length > 0) {
         const actualStatus = fallback.length === 1 ? fallback[0].status?.toLowerCase() : '';
-        const targetChip = actualStatus === 'completed' ? 'completed'
-                         : actualStatus === 'failed' ? 'failed'
-                         : '';
-        state.sectionStatus.query = targetChip;
-        const bar = document.querySelector('.section-chips[data-section="query"]');
-        if (bar) {
-          for (const c of bar.querySelectorAll('.chip')) {
-            const match = (/** @type {HTMLElement} */ (c).dataset.status || '') === targetChip;
-            c.classList.toggle('active', match);
-            if (match) {
-              c.classList.remove('chip-flash');
-              void /** @type {HTMLElement} */ (c).offsetWidth;
-              c.classList.add('chip-flash');
-              setTimeout(() => c.classList.remove('chip-flash'), 1500);
-            }
+        if (actualStatus && queryStatusIds.includes(actualStatus)) {
+          for (const s of queryStatusIds) {
+            const el = /** @type {HTMLInputElement | null} */ (document.getElementById(`${s}-check`));
+            if (el) el.checked = s === actualStatus;
           }
+          state.sectionStatus.query = actualStatus;
+        } else {
+          state.sectionStatus.query = '';
         }
         syncUrl();
         workflows = fallback;
@@ -200,6 +192,15 @@ window.applyCustomTimeRange = () => {
   }
   dropdown?.classList.remove('open');
   updateTimeLabel();
+  syncUrl();
+  if (state.queryLoaded) loadQuery();
+};
+
+// Query status checkboxes
+const queryStatusIds = ['enqueued', 'processing', 'requeued', 'completed', 'failed', 'canceled'];
+window.toggleQueryStatus = () => {
+  const checked = queryStatusIds.filter(s => /** @type {HTMLInputElement} */ (document.getElementById(`${s}-check`))?.checked);
+  state.sectionStatus.query = checked.length === queryStatusIds.length || checked.length === 0 ? '' : checked.join(',');
   syncUrl();
   if (state.queryLoaded) loadQuery();
 };

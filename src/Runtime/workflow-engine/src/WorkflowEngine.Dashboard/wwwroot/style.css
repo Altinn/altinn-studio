@@ -193,12 +193,12 @@ body{min-height:100vh;padding:0}
   letter-spacing:0.5px;user-select:none;transition:color 0.15s;
 }
 .retried-toggle:hover{color:var(--text)}
-.retried-toggle input{accent-color:var(--cyan);width:13px;height:13px;cursor:pointer}
+.retried-toggle input{accent-color:var(--cyan);width:13px;height:13px;cursor:pointer;margin:0}
+.retried-toggle span{position:relative;top:1px}
 .retried-toggle:has(input:checked) span{color:var(--cyan)}
 .chip[data-status="failed"].active{color:var(--red);border-color:var(--red);background:rgba(var(--red-rgb),0.08)}
 .chip[data-status="processing"].active{color:var(--green);border-color:var(--green);background:rgba(var(--green-rgb),0.08)}
 .chip[data-status="completed"].active{color:var(--green);border-color:var(--green);background:rgba(var(--green-rgb),0.08)}
-.query-toggle .chip.active{color:var(--cyan);border-color:var(--cyan);background:rgba(var(--cyan-rgb),0.08)}
 .chip[data-status="10s"].active{color:var(--red);border-color:var(--red);background:rgba(var(--red-rgb),0.08)}
 .chip[data-status="1m"].active{color:var(--orange);border-color:var(--orange);background:rgba(var(--orange-rgb),0.08)}
 .chip[data-status="5m"].active{color:var(--green);border-color:var(--green);background:rgba(var(--green-rgb),0.08)}
@@ -215,8 +215,7 @@ body{min-height:100vh;padding:0}
 .section.collapsed .section-title:hover{opacity:1}
 .section.collapsed .section-body{display:none}
 /* ── Query pager ─────────────────────────────────────────── */
-#panel-query .section-title{position:relative}
-.query-pager{display:inline-flex;align-items:center;gap:4px;position:absolute;left:50%;transform:translateX(-50%)}
+.query-pager{display:inline-flex;align-items:center;gap:4px;margin-left:4px;padding-left:12px;border-left:1px solid var(--border)}
 .pager-info{
   font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;
   color:var(--text-dim);white-space:nowrap;letter-spacing:0.3px;padding:0 4px;
@@ -731,3 +730,55 @@ body{min-height:100vh;padding:0}
   100%{transform:scale(1);box-shadow:none;filter:none}
 }
 [data-theme="altinn"] .chip-flash{animation-name:altinn-chip-glow}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media(max-width:1100px){
+  /* Header meters: shrink bars */
+  .meter-bar{width:80px}
+}
+@media(max-width:1200px){
+  /* Header: stack title and meters */
+  .header{flex-wrap:wrap;gap:8px;padding:12px 16px}
+  .header-meters{margin-left:0;width:100%;justify-content:flex-start}
+  /* Sections: reduce padding */
+  .section{padding:16px}
+  .section.collapsed{padding:16px}
+  /* Query section-title: allow wrapping */
+  #panel-query .section-title{flex-wrap:wrap;gap:6px 8px}
+  /* Hide chip separators when wrapping to avoid orphan pipes */
+  #panel-query .section-title > .chip-sep{display:none}
+  /* Retried toggle: don't break text */
+  .retried-toggle{white-space:nowrap}
+  /* Compact cards: hide timestamps, keep essential info */
+  .compact-row .timestamp,.compact-row .ts-arrow{display:none}
+  /* Full card header: allow wrapping */
+  .card-header{flex-wrap:wrap}
+  /* Pipelines: tighter step nodes */
+  .step-node{min-width:90px}
+  .step-connector{width:36px}
+  .step-connector svg{width:36px}
+}
+@media(max-width:600px){
+  .header{padding:10px 12px}
+  .section{padding:12px}
+  .section.collapsed{padding:12px}
+  .header h1{font-size:16px;letter-spacing:2px}
+  .meter-bar{width:60px;height:16px}
+  .meter-value{font-size:10px}
+  .meter-label{font-size:9px}
+  /* Compact cards: also hide GUID seg */
+  .compact-row .seg.guid{display:none}
+  .compact-row .seg.guid + .seg-sep{display:none}
+  /* Tab padding */
+  .tab{padding:10px 14px;font-size:12px;letter-spacing:1px}
+  /* Filter bar */
+  .filter-bar{padding:8px 12px}
+  .live-filter-row{padding:8px 12px}
+  /* Query search input narrower */
+  .query-search input{width:120px}
+  /* Step pipeline: even tighter */
+  .step-node{min-width:70px}
+  .step-connector{width:24px}
+  .step-connector svg{width:24px}
+  .step-label{font-size:10px}
+}

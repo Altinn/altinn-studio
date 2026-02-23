@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
@@ -248,17 +249,30 @@ internal static class DashboardEndpoints
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
                     var maxResults = Math.Min(limit ?? 100, 200);
 
-                    var statuses = (status?.ToUpperInvariant()) switch
-                    {
-                        "FAILED" => new[] { PersistentItemStatus.Failed },
-                        "COMPLETED" => new[] { PersistentItemStatus.Completed },
-                        _ => new[]
+                    var statuses = string.IsNullOrWhiteSpace(status)
+                        ? new[]
                         {
                             PersistentItemStatus.Completed,
                             PersistentItemStatus.Failed,
                             PersistentItemStatus.Requeued,
-                        },
-                    };
+                        }
+                        : status
+                            .Split(',')
+                            .Select(s =>
+                                s.Trim().ToUpperInvariant() switch
+                                {
+                                    "COMPLETED" => (PersistentItemStatus?)PersistentItemStatus.Completed,
+                                    "FAILED" => (PersistentItemStatus?)PersistentItemStatus.Failed,
+                                    "REQUEUED" => (PersistentItemStatus?)PersistentItemStatus.Requeued,
+                                    "ENQUEUED" => (PersistentItemStatus?)PersistentItemStatus.Enqueued,
+                                    "PROCESSING" => (PersistentItemStatus?)PersistentItemStatus.Processing,
+                                    "CANCELED" => (PersistentItemStatus?)PersistentItemStatus.Canceled,
+                                    _ => null,
+                                }
+                            )
+                            .Where(s => s != null)
+                            .Select(s => s!.Value)
+                            .ToArray();
 
                     var retriedOnly = retried == true;
 

@@ -179,7 +179,7 @@ export const applyFilter = () => {
     const statusCounts = {};
     for (const card of cards) {
       const textHidden = isLiveTab && lf && !(card.dataset.filter || '').includes(lf);
-      const statusHidden = sectionStatus && !(card.dataset.status || '').includes(sectionStatus);
+      const statusHidden = sectionStatus && !sectionStatus.split(',').includes(card.dataset.status || '');
       const orgHidden = of_.size > 0 && !of_.has(card.dataset.org || '');
       const appHidden = af.size > 0 && !af.has(card.dataset.app || '');
       const partyHidden = isLiveTab && pf.size > 0 && !pf.has(card.dataset.party || '');
@@ -197,7 +197,7 @@ export const applyFilter = () => {
     }
     const section = container.closest('.section')?.querySelector('.section-chips') ||
                      container.parentElement?.querySelector('.section-chips');
-    if (section && !section.classList.contains('query-toggle')) {
+    if (section) {
       for (const chip of section.querySelectorAll('.chip')) {
         const st = /** @type {HTMLElement} */ (chip).dataset.status || '';
         const label = /** @type {HTMLElement} */ (chip).dataset.label ||
@@ -418,29 +418,15 @@ export const mergeDiscoveredOrgsAndApps = () => {
 };
 
 for (const bar of document.querySelectorAll('.section-chips')) {
-  const isQueryToggle = bar.classList.contains('query-toggle');
   bar.addEventListener('click', (e) => {
     const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.chip'));
     if (!chip) return;
     const section = /** @type {HTMLElement} */ (bar).dataset.section || '';
-
-    if (isQueryToggle) {
-      chip.classList.toggle('active');
-      const activeChips = bar.querySelectorAll('.chip.active');
-      if (activeChips.length === 0) {
-        for (const c of bar.querySelectorAll('.chip')) c.classList.add('active');
-      }
-      const active = [...bar.querySelectorAll('.chip.active')];
-      state.sectionStatus.query = active.length >= 2 ? '' : (/** @type {HTMLElement} */ (active[0]).dataset.status || '');
-    } else {
-      const value = chip.dataset.status || '';
-      state.sectionStatus[section] = value;
-      for (const c of bar.querySelectorAll('.chip')) c.classList.toggle('active', c === chip);
-    }
-
+    const value = chip.dataset.status || '';
+    state.sectionStatus[section] = value;
+    for (const c of bar.querySelectorAll('.chip')) c.classList.toggle('active', c === chip);
     applyFilter();
     _syncUrl();
-    if (section === 'query' && state.queryLoaded) _loadQuery();
   });
 }
 
