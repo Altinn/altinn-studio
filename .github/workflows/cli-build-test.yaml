@@ -32,7 +32,7 @@ jobs:
           global-json-file: src/cli/global.json
 
       - name: Setup Go
-        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: 'src/cli/go.mod'
           cache-dependency-path: src/cli/go.sum
