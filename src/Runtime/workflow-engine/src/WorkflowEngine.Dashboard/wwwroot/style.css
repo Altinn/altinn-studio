@@ -325,8 +325,8 @@ body{min-height:100vh;padding:0}
   padding:2px 6px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);
   color:var(--text-dim);
 }
-.step-type.AppCommand{color:var(--cyan);border-color:rgba(var(--cyan-rgb),0.3)}
-.step-type.Webhook{color:var(--amber);border-color:rgba(var(--amber-rgb),0.3)}
+.step-type.app{color:var(--cyan);border-color:rgba(var(--cyan-rgb),0.3)}
+.step-type.webhook{color:var(--amber);border-color:rgba(var(--amber-rgb),0.3)}
 .step-type.Noop{color:var(--gray);border-color:rgba(var(--gray-rgb),0.3)}
 .step-type.Throw{color:var(--red);border-color:rgba(var(--red-rgb),0.3)}
 .step-type.Timeout{color:var(--amber);border-color:rgba(var(--amber-rgb),0.3)}

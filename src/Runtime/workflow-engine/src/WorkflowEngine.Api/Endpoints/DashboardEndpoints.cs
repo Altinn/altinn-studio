@@ -8,6 +8,11 @@ namespace WorkflowEngine.Api.Endpoints;
 
 internal static class DashboardEndpoints
 {
+    internal static string CommandTypeDiscriminator(Command cmd) =>
+        cmd is Command.AppCommand ? "app"
+        : cmd is Command.Webhook ? "webhook"
+        : cmd.GetType().Name;
+
     private static readonly JsonSerializerOptions JsonCompact = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -60,7 +65,7 @@ internal static class DashboardEndpoints
                                 {
                                     idempotencyKey = s.IdempotencyKey,
                                     operationId = s.OperationId,
-                                    commandType = s.Command.GetType().Name,
+                                    commandType = CommandTypeDiscriminator(s.Command),
                                     commandDetail = s.Command.OperationId,
                                     commandPayload = (s.Command as Command.AppCommand)?.Payload,
                                     status = s.Status.ToString(),
@@ -296,7 +301,7 @@ internal static class DashboardEndpoints
                                 {
                                     idempotencyKey = s.IdempotencyKey,
                                     operationId = s.OperationId,
-                                    commandType = s.Command.GetType().Name,
+                                    commandType = CommandTypeDiscriminator(s.Command),
                                     commandDetail = s.Command.OperationId,
                                     commandPayload = (s.Command as Command.AppCommand)?.Payload,
                                     status = s.Status.ToString(),
@@ -342,7 +347,7 @@ internal static class DashboardEndpoints
                             {
                                 idempotencyKey = s.IdempotencyKey,
                                 operationId = s.OperationId,
-                                commandType = s.Command.GetType().Name,
+                                commandType = CommandTypeDiscriminator(s.Command),
                                 commandDetail = s.Command.OperationId,
                                 commandPayload = (s.Command as Command.AppCommand)?.Payload,
                                 status = s.Status.ToString(),
@@ -393,6 +398,12 @@ internal static class DashboardEndpoints
                                 updatedAt = cs.UpdatedAt,
                                 backoffUntil = cs.BackoffUntil,
                                 traceId = cached.TraceId,
+                                command = new
+                                {
+                                    type = cs.CommandType,
+                                    operationId = cs.CommandDetail,
+                                    payload = cs.CommandPayload,
+                                },
                             },
                             JsonIndented
                         );

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Api;
@@ -31,7 +32,7 @@ internal sealed class RecentWorkflowCache
                 {
                     IdempotencyKey = s.IdempotencyKey,
                     OperationId = s.OperationId,
-                    CommandType = s.Command.GetType().Name,
+                    CommandType = DashboardEndpoints.CommandTypeDiscriminator(s.Command),
                     CommandDetail = s.Command.OperationId,
                     CommandPayload = (s.Command as Command.AppCommand)?.Payload,
                     LastError = s.LastError,
