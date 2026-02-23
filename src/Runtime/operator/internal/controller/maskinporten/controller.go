@@ -127,9 +127,10 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 		// Check if this is a missing secret error (expected/recoverable condition)
 		var missingSecretErr *maskinporten.MissingSecretError
 		if errors.As(err, &missingSecretErr) {
-			logger.Info("App secret not found yet, will retry later", "app", req.AppId)
+			requeueAfter, age := r.getMissingSecretRequeueAfter(configValue, req.Instance)
+			logger.Info("App secret not found yet, will retry later", "app", req.AppId, "age", age, "requeueAfter", requeueAfter)
 			// Requeue with a delay without logging as error
-			return ctrl.Result{RequeueAfter: r.getRequeueAfter(configValue)}, nil
+			return ctrl.Result{RequeueAfter: requeueAfter}, nil
 		}
 		r.updateStatusWithError(ctx, err, "fetchCurrentState failed", instance, nil)
 		return ctrl.Result{}, err
@@ -186,8 +187,63 @@ func (r *MaskinportenClientReconciler) getRequeueAfter(configValue *config.Confi
 	return r.randomizeDuration(configValue.MaskinportenController.RequeueAfter, 10.0)
 }
 
+func (r *MaskinportenClientReconciler) getMissingSecretRequeueAfter(
+	configValue *config.Config,
+	instance *resourcesv1alpha1.MaskinportenClient,
+) (time.Duration, time.Duration) {
+	const minimumRetry = time.Second
+
+	age := time.Duration(0)
+	if instance != nil {
+		createdAt := instance.GetCreationTimestamp().Time
+		if !createdAt.IsZero() {
+			now := time.Now()
+			if r.runtime != nil && r.runtime.GetClock() != nil {
+				now = r.runtime.GetClock().Now()
+			}
+			if now.After(createdAt) {
+				age = now.Sub(createdAt)
+			}
+		}
+	}
+
+	base := getMissingSecretBaseRequeueAfter(age, configValue.MaskinportenController.RequeueAfter)
+	requeue := r.randomizeDuration(base, 20.0)
+	if requeue < minimumRetry {
+		requeue = minimumRetry
+	}
+	max := configValue.MaskinportenController.RequeueAfter
+	if requeue > max {
+		requeue = max
+	}
+	return requeue, age
+}
+
+func getMissingSecretBaseRequeueAfter(age time.Duration, configuredRequeueAfter time.Duration) time.Duration {
+	const minimumRetry = time.Second
+	const fastRetryWindow = 5 * time.Second
+	// Keep very new resources on fast retries; then grow proportionally with age.
+	base := minimumRetry
+	if age > fastRetryWindow {
+		base = age * 2
+	}
+	if base < minimumRetry {
+		base = minimumRetry
+	}
+	if configuredRequeueAfter < base {
+		return configuredRequeueAfter
+	}
+	return base
+}
+
 func (r *MaskinportenClientReconciler) randomizeDuration(d time.Duration, perc float64) time.Duration {
+	if r.random == nil {
+		return d
+	}
 	max := int64(float64(d) * (perc / 100.0))
+	if max <= 0 {
+		return d
+	}
 	min := -max
 	return d + time.Duration(r.random.Int64N(max-min)+min)
 }
