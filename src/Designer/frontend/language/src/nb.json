@@ -1610,7 +1610,7 @@
   "ux_editor.component_help_text.Panel": "Bruk denne komponenten til å vise brukerne en melding med viktig informasjon.",
   "ux_editor.component_help_text.Paragraph": "Bruk Avsnitt til å sette opp tekstblokker i appen. Hver avsnitt har en ledetekst, som du kan bruke til å lage gode mellomtitler.",
   "ux_editor.component_help_text.PaymentDetails": "Viser en beskrivelse, antall og pris for det som betales.",
-  "ux_editor.component_help_text.PersonLookup": "Med Finn person kan brukerne søke etter person i folkeregisteret.",
+  "ux_editor.component_help_text.PersonLookup": "Med Finn person kan brukerne søke etter en person i folkeregisteret.",
   "ux_editor.component_help_text.PrintButton": "Knapp for å starte utskrift av siden fra nettleseren.",
   "ux_editor.component_help_text.RadioButtons": "Bruk radioknapper når du vil at brukerne bare skal velge ett av alternativene.",
   "ux_editor.component_help_text.RepeatingGroup": "Gir mulighet til å repetere felter som oppfattes som en gruppe, for eksempel feltene for navn, telefonnummer og adresse.",
