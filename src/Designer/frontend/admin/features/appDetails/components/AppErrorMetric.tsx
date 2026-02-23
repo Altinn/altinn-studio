@@ -13,7 +13,7 @@ type AppErrorMetricProps = {
 
 export const AppErrorMetric = ({ metric, range }: AppErrorMetricProps) => {
   const { t } = useTranslation();
-  const options = getChartOptions(range);
+  const options = getChartOptions(metric.intervalInMinutes, range);
   const count = metric.counts.reduce((sum, item) => sum + item, 0);
   const isError = count > 0;
 

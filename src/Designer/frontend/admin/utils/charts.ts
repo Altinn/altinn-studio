@@ -1,27 +1,22 @@
 import type { ChartDataset, ChartOptions } from 'chart.js';
+import { nb } from 'date-fns/locale';
 
-export const getChartOptions = (range: number): ChartOptions<'bar'> => {
-  const intervalMs = (range / 12) * 60 * 1000;
-  const max = Math.floor(Date.now() / intervalMs) * intervalMs;
-  const min = max - range * 60 * 1000;
+export const getChartOptions = (
+  intervalInMinutes: number,
+  rangeInMinutes: number,
+): ChartOptions<'bar'> => {
+  const minuteInMs = 60 * 1000;
+  const intervalInMs = intervalInMinutes * minuteInMs;
+  const rangeInMs = rangeInMinutes * minuteInMs;
+  const now = Date.now();
+  const max = (now / intervalInMs) * intervalInMs;
+  const min = max - rangeInMs;
   return {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false,
-      },
-      tooltip: {
-        callbacks: {
-          title: (items) => {
-            return new Date(items[0].parsed.x).toLocaleString([], {
-              month: 'short',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            });
-          },
-        },
       },
     },
     scales: {
@@ -34,6 +29,19 @@ export const getChartOptions = (range: number): ChartOptions<'bar'> => {
         type: 'time',
         min: min,
         max: max,
+        adapters: {
+          date: {
+            locale: nb,
+          },
+        },
+        time: {
+          tooltipFormat: 'dd.MM.yyyy HH:mm',
+          displayFormats: {
+            minute: 'HH:mm',
+            hour: 'HH:mm',
+            day: 'dd.MM',
+          },
+        },
       },
       y: {
         beginAtZero: true,
@@ -41,6 +49,11 @@ export const getChartOptions = (range: number): ChartOptions<'bar'> => {
           stepSize: 1,
           font: {
             size: 10,
+          },
+        },
+        adapters: {
+          date: {
+            locale: nb,
           },
         },
       },

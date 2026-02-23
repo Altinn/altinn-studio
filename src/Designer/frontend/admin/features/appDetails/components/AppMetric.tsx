@@ -13,7 +13,7 @@ type AppMetricProps = {
 
 export const AppMetric = ({ range, metric }: AppMetricProps) => {
   const { t } = useTranslation();
-  const options = getChartOptions(range);
+  const options = getChartOptions(metric.intervalInMinutes, range);
   const count = metric.counts.reduce((sum, item) => sum + item, 0);
 
   const metricsChartData = getChartData(metric.timestamps, metric.counts, {
