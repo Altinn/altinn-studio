@@ -2,49 +2,63 @@ import type { TimeScaleOptions } from 'chart.js';
 import { getChartOptions, getChartData } from './charts';
 
 describe('getChartOptions', () => {
-  it('uses minute unit when range is below threshold', () => {
-    const options = getChartOptions(100);
-
-    const xScale = options.scales?.x as TimeScaleOptions;
-
-    expect(xScale?.time?.unit).toBe('minute');
+  beforeEach(() => {
+    jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
   });
 
-  it('uses hour unit when range is equal or above threshold', () => {
-    const options = getChartOptions(1140);
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('sets min and max based on interval and range', () => {
+    const intervalInMinutes = 5;
+    const rangeInMinutes = 60;
+    const options = getChartOptions(intervalInMinutes, rangeInMinutes);
 
     const xScale = options.scales?.x as TimeScaleOptions;
 
-    expect(xScale?.time?.unit).toBe('hour');
+    const minuteInMs = 60 * 1000;
+    const intervalInMs = intervalInMinutes * minuteInMs;
+    const now = 1_700_000_000_000;
+    const expectedMax = (now / intervalInMs) * intervalInMs;
+    const expectedMin = expectedMax - rangeInMinutes * minuteInMs;
+
+    expect(xScale?.min).toBe(expectedMin);
+    expect(xScale?.max).toBe(expectedMax);
+  });
+
+  it('sets tooltipFormat and displayFormats', () => {
+    const options = getChartOptions(5, 60);
+
+    const xScale = options.scales?.x as TimeScaleOptions;
+
+    expect(xScale?.time?.tooltipFormat).toBe('dd.MM.yyyy HH:mm');
+    expect(xScale?.time?.displayFormats).toEqual({
+      minute: 'HH:mm',
+      hour: 'HH:mm',
+      day: 'dd.MM',
+    });
   });
 });
 
 describe('getChartData', () => {
-  const dataPoints = [
-    {
-      dateTimeOffset: '2023-01-01T10:00:00Z',
-      count: 5,
-    },
-    {
-      dateTimeOffset: '2023-01-01T10:01:00Z',
-      count: 8,
-    },
-  ];
+  const timestamps = [1_700_000_000_000, 1_700_000_060_000];
+  const counts = [5, 8];
 
-  it('maps labels from dateTimeOffset', () => {
-    const chartData = getChartData(dataPoints, {});
+  it('maps labels from timestamps', () => {
+    const chartData = getChartData(timestamps, counts, {});
 
-    expect(chartData.labels).toEqual(['2023-01-01T10:00:00Z', '2023-01-01T10:01:00Z']);
+    expect(chartData.labels).toEqual(timestamps);
   });
 
-  it('maps dataset data from count', () => {
-    const chartData = getChartData(dataPoints, {});
+  it('maps dataset data from counts', () => {
+    const chartData = getChartData(timestamps, counts, {});
 
-    expect(chartData.datasets[0].data).toEqual([5, 8]);
+    expect(chartData.datasets[0].data).toEqual(counts);
   });
 
   it('applies dataset options overrides', () => {
-    const chartData = getChartData(dataPoints, {
+    const chartData = getChartData(timestamps, counts, {
       borderColor: 'red',
       label: 'Test Dataset',
     });
