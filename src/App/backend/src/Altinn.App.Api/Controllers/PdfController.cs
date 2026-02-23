@@ -134,10 +134,12 @@ public class PdfController : ControllerBase
             );
         }
 
-        string? layoutSettingsFileContent =
-            layoutSet == null
-                ? _resources.GetLayoutSettingsString()
-                : _resources.GetLayoutSettingsStringForSet(layoutSet.Id);
+        if (layoutSet is null)
+        {
+            throw new InvalidOperationException($"No layout set found for data type {dataElement.DataType}");
+        }
+
+        string? layoutSettingsFileContent = _resources.GetLayoutSettingsStringForSet(layoutSet.Id);
 
         LayoutSettings? layoutSettings = null;
         if (!string.IsNullOrEmpty(layoutSettingsFileContent))
