@@ -1,4 +1,4 @@
-import type { ChartDataset, ChartOptions } from 'chart.js';
+import type { ChartOptions } from 'chart.js';
 import { nb } from 'date-fns/locale';
 
 export const getChartOptions = (
@@ -58,23 +58,5 @@ export const getChartOptions = (
         },
       },
     },
-  };
-};
-
-export const getChartData = (
-  timestamps: number[],
-  counts: number[],
-  options: Partial<ChartDataset<'bar'>>,
-) => {
-  return {
-    labels: timestamps,
-    datasets: [
-      {
-        data: counts,
-        borderWidth: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
-        ...options,
-      },
-    ],
   };
 };

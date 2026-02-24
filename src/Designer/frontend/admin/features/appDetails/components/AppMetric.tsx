@@ -4,7 +4,7 @@ import type { AppMetric as Metric } from 'admin/types/metrics/AppMetric';
 
 import { Bar } from 'react-chartjs-2';
 import { Alert } from 'admin/components/Alert/Alert';
-import { getChartData, getChartOptions } from 'admin/utils/charts';
+import { getChartOptions } from 'admin/utils/charts';
 
 type AppMetricProps = {
   range: number;
@@ -16,10 +16,16 @@ export const AppMetric = ({ range, metric }: AppMetricProps) => {
   const options = getChartOptions(metric.intervalInMinutes, range);
   const count = metric.counts.reduce((sum, item) => sum + item, 0);
 
-  const metricsChartData = getChartData(metric.timestamps, metric.counts, {
-    borderColor: '#0860a3',
-    backgroundColor: '#0860a3',
-  });
+  const metricsChartData = {
+    labels: metric.timestamps,
+    datasets: [
+      {
+        data: metric.counts,
+        borderColor: '#0860a3',
+        backgroundColor: '#0860a3',
+      },
+    ],
+  };
 
   return (
     <Alert color={'info'} title={t(`admin.metrics.${metric.name}`)} count={count.toString()}>
