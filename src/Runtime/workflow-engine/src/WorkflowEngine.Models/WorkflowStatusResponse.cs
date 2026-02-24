@@ -22,7 +22,7 @@ public sealed record WorkflowStatusResponse
     /// <summary>
     /// The time the workflow was created.
     /// </summary>
-    [JsonPropertyName("operationId")]
+    [JsonPropertyName("createdAt")]
     public required DateTimeOffset CreatedAt { get; init; }
 
     /// <summary>

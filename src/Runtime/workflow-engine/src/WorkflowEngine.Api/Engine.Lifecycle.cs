@@ -124,18 +124,18 @@ internal partial class Engine
             Status &= ~EngineHealthStatus.QueueFull;
     }
 
-    private void ReleaseQueueSlot()
+    private void ReleaseQueueSlot(ActivityContext? parentContext = null)
     {
-        using var activity = Metrics.Source.StartActivity("Engine.ReleaseQueueSlot");
+        using var activity = Metrics.Source.StartActivity("Engine.ReleaseQueueSlot", parentContext: parentContext);
 
         _inboxCapacityLimit.Release();
 
         UpdateQueueHealthStatus();
     }
 
-    private void ReleaseQueueSlots(int count)
+    private void ReleaseQueueSlots(int count, ActivityContext? parentContext = null)
     {
-        using var activity = Metrics.Source.StartActivity("Engine.ReleaseQueueSlot");
+        using var activity = Metrics.Source.StartActivity("Engine.ReleaseQueueSlot", parentContext: parentContext);
 
         for (int i = 0; i < count; i++)
             _inboxCapacityLimit.Release();
@@ -173,7 +173,7 @@ internal partial class Engine
         }
 
         UpdateWorkflowStatusAndTracker(workflow, workflow.Status);
-        ReleaseQueueSlot();
+        ReleaseQueueSlot(workflow.EngineActivity?.Context);
 
         if (workflow.OverallStatus().IsSuccessful())
             Metrics.WorkflowsSucceeded.Add(1);

@@ -65,26 +65,24 @@ public class StepTests
         var retryStrategy = RetryStrategy.Exponential(baseInterval: TimeSpan.FromSeconds(2));
         var createdAt = DateTimeOffset.UtcNow;
 
-        var parentRequest = new WorkflowEnqueueRequestOld(
-            "next",
-            new InstanceInformation
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
                 App = "test-app",
                 InstanceOwnerPartyId = 12345,
                 InstanceGuid = Guid.NewGuid(),
             },
-            actor,
-            createdAt,
-            null,
-            [],
-            WorkflowType.Generic
+            Actor: actor,
+            CreatedAt: createdAt,
+            TraceContext: null,
+            InstanceLockKey: null
         );
 
         var stepRequest = new StepRequest { Command = command, RetryStrategy = retryStrategy };
 
         // Act
-        var step = Step.FromRequest(parentRequest, stepRequest, createdAt, index: 2);
+        var step = Step.FromRequest(stepRequest, metadata, index: 2);
 
         // Assert
         Assert.Equal(0, step.DatabaseId);
@@ -98,59 +96,55 @@ public class StepTests
     }
 
     [Fact]
-    public void FromRequest_UsesParentActorNotStepSpecificActor()
+    public void FromRequest_UsesMetadataActor()
     {
         // Arrange
-        var parentActor = new Actor { UserIdOrOrgNumber = "parent-user" };
-        var parentRequest = new WorkflowEnqueueRequestOld(
-            "op-1",
-            new InstanceInformation
+        var actor = new Actor { UserIdOrOrgNumber = "metadata-user" };
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
                 App = "app",
                 InstanceOwnerPartyId = 1,
                 InstanceGuid = Guid.NewGuid(),
             },
-            parentActor,
-            DateTimeOffset.UtcNow,
-            null,
-            [],
-            WorkflowType.Generic
+            Actor: actor,
+            CreatedAt: DateTimeOffset.UtcNow,
+            TraceContext: null,
+            InstanceLockKey: null
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
 
         // Act
-        var step = Step.FromRequest(parentRequest, stepRequest, DateTimeOffset.UtcNow, index: 0);
+        var step = Step.FromRequest(stepRequest, metadata, index: 0);
 
         // Assert
-        Assert.Same(parentActor, step.Actor);
+        Assert.Same(actor, step.Actor);
     }
 
     [Fact]
     public void FromRequest_DefaultsOptionalFieldsCorrectly()
     {
         // Arrange
-        var parentRequest = new WorkflowEnqueueRequestOld(
-            "op-1",
-            new InstanceInformation
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
                 App = "app",
                 InstanceOwnerPartyId = 1,
                 InstanceGuid = Guid.NewGuid(),
             },
-            new Actor { UserIdOrOrgNumber = "user-1" },
-            DateTimeOffset.UtcNow,
-            null,
-            [],
-            WorkflowType.Generic
+            Actor: new Actor { UserIdOrOrgNumber = "user-1" },
+            CreatedAt: DateTimeOffset.UtcNow,
+            TraceContext: null,
+            InstanceLockKey: null
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
 
         // Act
-        var step = Step.FromRequest(parentRequest, stepRequest, DateTimeOffset.UtcNow, index: 0);
+        var step = Step.FromRequest(stepRequest, metadata, index: 0);
 
         // Assert
         Assert.Null(step.RetryStrategy);

@@ -41,7 +41,7 @@ internal partial class Engine
         IReadOnlyList<WorkflowRequest> sortedRequests;
         try
         {
-            sortedRequests = WorkflowGraphUtils.ValidateAndSortGraph(request.Workflows);
+            sortedRequests = ValidationUtils.ValidateAndSortWorkflowGraph(request.Workflows);
         }
         catch (ArgumentException ex)
         {

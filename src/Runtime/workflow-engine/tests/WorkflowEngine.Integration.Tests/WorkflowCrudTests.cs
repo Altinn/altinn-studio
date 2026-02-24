@@ -17,15 +17,15 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-        var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var (request, metadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
 
-        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+        var workflow = await repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
 
         Assert.NotEqual(0, workflow.DatabaseId);
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Status);
         Assert.Equal(request.OperationId, workflow.OperationId);
         Assert.Equal(WorkflowType.Generic, workflow.Type);
-        Assert.Equal(request.InstanceInformation.InstanceGuid, workflow.InstanceInformation.InstanceGuid);
+        Assert.Equal(metadata.InstanceInformation.InstanceGuid, workflow.InstanceInformation.InstanceGuid);
 
         var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
         Assert.NotNull(dbWorkflow);
@@ -33,14 +33,14 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Equal(PersistentItemStatus.Enqueued, dbWorkflow.Status);
         Assert.Equal(request.OperationId, dbWorkflow.OperationId);
         Assert.Equal(WorkflowType.Generic, dbWorkflow.Type);
-        Assert.Equal(request.InstanceInformation.Org, dbWorkflow.InstanceInformation.Org);
-        Assert.Equal(request.InstanceInformation.App, dbWorkflow.InstanceInformation.App);
+        Assert.Equal(metadata.InstanceInformation.Org, dbWorkflow.InstanceInformation.Org);
+        Assert.Equal(metadata.InstanceInformation.App, dbWorkflow.InstanceInformation.App);
         Assert.Equal(
-            request.InstanceInformation.InstanceOwnerPartyId,
+            metadata.InstanceInformation.InstanceOwnerPartyId,
             dbWorkflow.InstanceInformation.InstanceOwnerPartyId
         );
-        Assert.Equal(request.InstanceInformation.InstanceGuid, dbWorkflow.InstanceInformation.InstanceGuid);
-        Assert.Equal(request.Actor.UserIdOrOrgNumber, dbWorkflow.Actor.UserIdOrOrgNumber);
+        Assert.Equal(metadata.InstanceInformation.InstanceGuid, dbWorkflow.InstanceInformation.InstanceGuid);
+        Assert.Equal(metadata.Actor.UserIdOrOrgNumber, dbWorkflow.Actor.UserIdOrOrgNumber);
         Assert.Equal("next", dbWorkflow.OperationId);
     }
 
@@ -49,28 +49,34 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-        var request = new WorkflowEnqueueRequestOld(
-            OperationId: "next",
-            InstanceInformation: new InstanceInformation
-            {
-                Org = "ttd",
-                App = "test-app",
-                InstanceOwnerPartyId = 50001234,
-                InstanceGuid = Guid.NewGuid(),
-            },
-            Actor: new Actor { UserIdOrOrgNumber = "12345" },
-            CreatedAt: DateTimeOffset.UtcNow,
-            StartAt: null,
-            Steps:
+        var instanceGuid = Guid.NewGuid();
+        var request = new WorkflowRequest
+        {
+            Ref = "test-workflow",
+            OperationId = "next",
+            Type = WorkflowType.Generic,
+            Steps =
             [
                 new StepRequest { Command = new Command.AppCommand("step-one") },
                 new StepRequest { Command = new Command.AppCommand("step-two") },
                 new StepRequest { Command = new Command.AppCommand("step-three") },
             ],
-            Type: WorkflowType.Generic
+        };
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: new InstanceInformation
+            {
+                Org = "ttd",
+                App = "test-app",
+                InstanceOwnerPartyId = 50001234,
+                InstanceGuid = instanceGuid,
+            },
+            Actor: new Actor { UserIdOrOrgNumber = "12345" },
+            CreatedAt: DateTimeOffset.UtcNow,
+            TraceContext: null,
+            InstanceLockKey: null
         );
 
-        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+        var workflow = await repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
 
         Assert.Equal(3, workflow.Steps.Count);
         for (int i = 0; i < workflow.Steps.Count; i++)
@@ -110,14 +116,15 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
 
-        var requestA = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
-        var workflowA = await repo.AddWorkflow(requestA, TestContext.Current.CancellationToken);
+        var (requestA, metadataA) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflowA = await repo.AddWorkflow(requestA, metadataA, TestContext.Current.CancellationToken);
 
-        var requestB = WorkflowTestHelper.CreateRequest(
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        var workflowB = await repo.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
 
         Assert.NotNull(workflowB.Dependencies);
         Assert.Single(workflowB.Dependencies);
@@ -139,10 +146,157 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-        var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, dependencies: [999999L]);
+        var (request, metadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, dependencies: [999999L]);
 
         await Assert.ThrowsAsync<EngineDbException>(() =>
-            repo.AddWorkflow(request, TestContext.Current.CancellationToken)
+            repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task AddWorkflow_WithLinks_PersistsLinks()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        var (requestA, metadataA) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflowA = await repo.AddWorkflow(requestA, metadataA, TestContext.Current.CancellationToken);
+
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
+            type: WorkflowType.Generic,
+            links: [workflowA.DatabaseId]
+        );
+        var workflowB = await repo.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
+
+        Assert.NotNull(workflowB.Links);
+        Assert.Single(workflowB.Links);
+        Assert.Equal(workflowA.DatabaseId, workflowB.Links.First().DatabaseId);
+
+        var dbWorkflowB = await fixture.GetWorkflow(workflowB.DatabaseId);
+        Assert.NotNull(dbWorkflowB);
+        Assert.NotNull(dbWorkflowB.Links);
+        Assert.Single(dbWorkflowB.Links);
+        Assert.Equal(workflowA.DatabaseId, dbWorkflowB.Links.First().DatabaseId);
+    }
+
+    [Fact]
+    public async Task AddWorkflow_WithCrossInstanceLink_Throws()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        var (requestA, metadataA) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflowA = await repo.AddWorkflow(requestA, metadataA, TestContext.Current.CancellationToken);
+
+        // B is on a different instance and tries to link to A
+        await using var context2 = fixture.CreateDbContext();
+        var repo2 = fixture.CreateRepository(context2);
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            type: WorkflowType.Generic,
+            links: [workflowA.DatabaseId]
+        );
+
+        await Assert.ThrowsAsync<EngineDbException>(() =>
+            repo2.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task AddWorkflowBatch_WithInBatchRefLink_PersistsLinks()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        var instanceGuid = Guid.NewGuid();
+        var (_, metadata) = WorkflowTestHelper.CreateRequest(instanceGuid: instanceGuid, type: WorkflowType.Generic);
+
+        // A and B in the same batch; B links to A using a within-batch ref string
+        var requests = new List<WorkflowRequest>
+        {
+            new()
+            {
+                Ref = "wf-a",
+                OperationId = "op-a",
+                Type = WorkflowType.Generic,
+                Steps = [new StepRequest { Command = new Command.AppCommand("step-a") }],
+            },
+            new()
+            {
+                Ref = "wf-b",
+                OperationId = "op-b",
+                Type = WorkflowType.Generic,
+                Steps = [new StepRequest { Command = new Command.AppCommand("step-b") }],
+                Links = [(WorkflowRef)"wf-a"],
+            },
+        };
+
+        var results = await repo.AddWorkflowBatch(requests, metadata, TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, results.Count);
+        var wfA = results.Single(w => w.OperationId == "op-a");
+        var wfB = results.Single(w => w.OperationId == "op-b");
+
+        var dbWfB = await fixture.GetWorkflow(wfB.DatabaseId);
+        Assert.NotNull(dbWfB);
+        Assert.NotNull(dbWfB.Links);
+        Assert.Single(dbWfB.Links);
+        Assert.Equal(wfA.DatabaseId, dbWfB.Links.First().DatabaseId);
+    }
+
+    [Fact]
+    public async Task AddWorkflowBatch_WithCrossInstanceDependency_Throws()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        // A inserted on one instance
+        var (requestA, metadataA) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflowA = await repo.AddWorkflow(requestA, metadataA, TestContext.Current.CancellationToken);
+
+        // Batch on a different instance tries to depend on A via external ID
+        await using var context2 = fixture.CreateDbContext();
+        var repo2 = fixture.CreateRepository(context2);
+        var (_, metadataB) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var batchRequest = new WorkflowRequest
+        {
+            Ref = "wf-b",
+            OperationId = "op-b",
+            Type = WorkflowType.Generic,
+            Steps = [new StepRequest { Command = new Command.AppCommand("step-b") }],
+            DependsOn = [(WorkflowRef)workflowA.DatabaseId],
+        };
+
+        await Assert.ThrowsAsync<EngineDbException>(() =>
+            repo2.AddWorkflowBatch([batchRequest], metadataB, TestContext.Current.CancellationToken)
+        );
+    }
+
+    [Fact]
+    public async Task AddWorkflowBatch_WithCrossInstanceLink_Throws()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        // A inserted on one instance
+        var (requestA, metadataA) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflowA = await repo.AddWorkflow(requestA, metadataA, TestContext.Current.CancellationToken);
+
+        // Batch on a different instance tries to link to A via external ID
+        await using var context2 = fixture.CreateDbContext();
+        var repo2 = fixture.CreateRepository(context2);
+        var (_, metadataB) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var batchRequest = new WorkflowRequest
+        {
+            Ref = "wf-b",
+            OperationId = "op-b",
+            Type = WorkflowType.Generic,
+            Steps = [new StepRequest { Command = new Command.AppCommand("step-b") }],
+            Links = [(WorkflowRef)workflowA.DatabaseId],
+        };
+
+        await Assert.ThrowsAsync<EngineDbException>(() =>
+            repo2.AddWorkflowBatch([batchRequest], metadataB, TestContext.Current.CancellationToken)
         );
     }
 
@@ -269,8 +423,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-        var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
-        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+        var (request, metadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflow = await repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
 
         workflow.Status = PersistentItemStatus.Processing;
         await repo.UpdateWorkflow(workflow, cancellationToken: TestContext.Current.CancellationToken);
@@ -289,8 +443,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-        var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
-        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+        var (request, metadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflow = await repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
 
         var status = await repo.GetWorkflowStatus(workflow.DatabaseId, TestContext.Current.CancellationToken);
 
@@ -318,8 +472,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-        var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
-        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+        var (request, metadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflow = await repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
         var step = workflow.Steps[0];
 
         step.Status = PersistentItemStatus.Processing;
@@ -340,8 +494,18 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-        var request = new WorkflowEnqueueRequestOld(
-            OperationId: "next",
+        var request = new WorkflowRequest
+        {
+            Ref = "test-workflow",
+            OperationId = "next",
+            Type = WorkflowType.Generic,
+            Steps =
+            [
+                new StepRequest { Command = new Command.AppCommand("step-one") },
+                new StepRequest { Command = new Command.AppCommand("step-two") },
+            ],
+        };
+        var metadata = new WorkflowRequestMetadata(
             InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
@@ -351,15 +515,10 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             },
             Actor: new Actor { UserIdOrOrgNumber = "12345" },
             CreatedAt: DateTimeOffset.UtcNow,
-            StartAt: null,
-            Steps:
-            [
-                new StepRequest { Command = new Command.AppCommand("step-one") },
-                new StepRequest { Command = new Command.AppCommand("step-two") },
-            ],
-            Type: WorkflowType.Generic
+            TraceContext: null,
+            InstanceLockKey: null
         );
-        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+        var workflow = await repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
         var step0 = workflow.Steps[0];
         var step1 = workflow.Steps[1];
 
@@ -396,9 +555,9 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
         var startAt = DateTimeOffset.UtcNow.AddHours(1);
-        var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, startAt: startAt);
+        var (request, metadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, startAt: startAt);
 
-        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+        var workflow = await repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
 
         Assert.NotNull(workflow.StartAt);
         Assert.Equal(startAt.ToUnixTimeSeconds(), workflow.StartAt.Value.ToUnixTimeSeconds());
@@ -414,8 +573,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-        var request = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
-        var workflow = await repo.AddWorkflow(request, TestContext.Current.CancellationToken);
+        var (request, metadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflow = await repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
         var step = workflow.Steps[0];
         step.Status = PersistentItemStatus.Requeued;
         await repo.UpdateStep(step, cancellationToken: TestContext.Current.CancellationToken);
@@ -434,13 +593,21 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
-        var futureRequest = WorkflowTestHelper.CreateRequest(
+        var (futureRequest, futureMetadata) = WorkflowTestHelper.CreateRequest(
             type: WorkflowType.Generic,
             startAt: DateTimeOffset.UtcNow.AddHours(1)
         );
-        var futureWorkflow = await repo.AddWorkflow(futureRequest, TestContext.Current.CancellationToken);
-        var immediateRequest = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
-        var immediateWorkflow = await repo.AddWorkflow(immediateRequest, TestContext.Current.CancellationToken);
+        var futureWorkflow = await repo.AddWorkflow(
+            futureRequest,
+            futureMetadata,
+            TestContext.Current.CancellationToken
+        );
+        var (immediateRequest, immediateMetadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var immediateWorkflow = await repo.AddWorkflow(
+            immediateRequest,
+            immediateMetadata,
+            TestContext.Current.CancellationToken
+        );
 
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository(queryContext);
@@ -459,15 +626,16 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var repo = fixture.CreateRepository(context);
 
         // A: Enqueued (non-terminal) — its dependents should appear as scheduled
-        var requestA = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
-        var workflowA = await repo.AddWorkflow(requestA, TestContext.Current.CancellationToken);
+        var (requestA, metadataA) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflowA = await repo.AddWorkflow(requestA, metadataA, TestContext.Current.CancellationToken);
 
         // B: depends on A (blocked by non-terminal dependency)
-        var requestB = WorkflowTestHelper.CreateRequest(
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        var workflowB = await repo.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
 
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository(queryContext);
@@ -494,11 +662,12 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         // B: depends on A (dependency is terminal, no future StartAt)
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-        var requestB = WorkflowTestHelper.CreateRequest(
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await repo2.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        var workflowB = await repo2.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
 
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository(queryContext);
@@ -600,28 +769,30 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var repo = fixture.CreateRepository(context);
 
         // Can start immediately (no scheduling, no dependencies)
-        var parent = await repo.AddWorkflow(
-            WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic),
-            TestContext.Current.CancellationToken
-        );
+        var (parentRequest, parentMetadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var parent = await repo.AddWorkflow(parentRequest, parentMetadata, TestContext.Current.CancellationToken);
 
         // Have to wait for either dependencies, start time, or both
-        await repo.AddWorkflow(
-            WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, startAt: DateTimeOffset.UtcNow.AddHours(1)),
-            TestContext.Current.CancellationToken
+        var (futureReq, futureMeta) = WorkflowTestHelper.CreateRequest(
+            type: WorkflowType.Generic,
+            startAt: DateTimeOffset.UtcNow.AddHours(1)
         );
-        await repo.AddWorkflow(
-            WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic, dependencies: [parent.DatabaseId]),
-            TestContext.Current.CancellationToken
+        await repo.AddWorkflow(futureReq, futureMeta, TestContext.Current.CancellationToken);
+
+        var (depReq, depMeta) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: parent.InstanceInformation.InstanceGuid,
+            type: WorkflowType.Generic,
+            dependencies: [parent.DatabaseId]
         );
-        await repo.AddWorkflow(
-            WorkflowTestHelper.CreateRequest(
-                type: WorkflowType.Generic,
-                startAt: DateTimeOffset.UtcNow.AddHours(2),
-                dependencies: [parent.DatabaseId]
-            ),
-            TestContext.Current.CancellationToken
+        await repo.AddWorkflow(depReq, depMeta, TestContext.Current.CancellationToken);
+
+        var (bothReq, bothMeta) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: parent.InstanceInformation.InstanceGuid,
+            type: WorkflowType.Generic,
+            startAt: DateTimeOffset.UtcNow.AddHours(2),
+            dependencies: [parent.DatabaseId]
         );
+        await repo.AddWorkflow(bothReq, bothMeta, TestContext.Current.CancellationToken);
 
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository(queryContext);

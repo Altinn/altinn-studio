@@ -106,6 +106,7 @@ public sealed record StepStatusResponse
         /// An optional payload for the command.
         /// </summary>
         [JsonPropertyName("payload")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Payload { get; init; }
     }
 }

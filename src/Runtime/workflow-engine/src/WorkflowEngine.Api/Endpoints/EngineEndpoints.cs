@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using WorkflowEngine.Api.Authentication.ApiKey;
+using WorkflowEngine.Api.Utils;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
@@ -13,7 +14,7 @@ internal static class EngineEndpoints
 {
     public static WebApplication MapEngineEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1/workflow/{org}/{app}/{instanceOwnerPartyId:int}/{instanceGuid:guid}")
+        var group = app.MapGroup("/api/v1/workflows/{org}/{app}/{instanceOwnerPartyId:int}/{instanceGuid:guid}")
             .RequireApiKeyAuthorization()
             .WithTags("Workflows");
 
@@ -49,6 +50,12 @@ internal static class EngineRequestHandlers
     )
     {
         Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, ("endpoint", "enqueue"));
+
+        if (ValidationUtils.HasAppCommandSteps(request.Workflows) && string.IsNullOrWhiteSpace(request.LockToken))
+            return TypedResults.Problem(
+                detail: "A LockToken is required when any workflow step uses an AppCommand.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
 
         var metadata = new WorkflowRequestMetadata(
             instanceParams,

@@ -61,10 +61,6 @@ public static class WorkflowExtensions
             if (workflow.StartAt > now)
                 return false;
 
-            // TODO: This should check Engine._statusTrackers set instead directly checking linked statuses
-            if (workflow.Dependencies?.Any(x => x.Status != PersistentItemStatus.Completed) is true)
-                return false;
-
             return workflow.OrderedIncompleteSteps().FirstOrDefault()?.IsReadyForExecution(now) ?? true;
         }
 

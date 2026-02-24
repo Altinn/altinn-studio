@@ -206,6 +206,39 @@ internal partial class Engine : IEngine, IDisposable
             return;
         }
 
+        // Fetch dependency statuses
+
+        if (workflow.Dependencies is not null)
+        {
+            List<PersistentItemStatus>? dependencyStatuses = null;
+            lock (_statusTrackersLock)
+            {
+                dependencyStatuses = workflow
+                    .Dependencies.Select(x =>
+                    {
+                        _statusTrackers.TryGetValue(x, out var value);
+                        return value?.Status ?? PersistentItemStatus.Enqueued;
+                    })
+                    .ToList();
+            }
+
+            // We have any failed dependencies (fail)
+            if (dependencyStatuses.Any(x => x.IsDone() && !x.IsSuccessful()))
+            {
+                StartProcessWorkflowActivityOnce(workflow);
+                workflow.Status = PersistentItemStatus.DependencyFailed;
+                FinalizeWorkflowProcessing(workflow);
+
+                return;
+            }
+
+            // We have pending dependencies (wait)
+            if (dependencyStatuses.Any(x => !x.IsDone()))
+            {
+                return;
+            }
+        }
+
         StartProcessWorkflowActivityOnce(workflow);
 
         try
@@ -322,8 +355,13 @@ internal partial class Engine : IEngine, IDisposable
         }
 
         // Workflow is done (success or permanent failure)
-        StopActivity(workflow);
+        FinalizeWorkflowProcessing(workflow);
+    }
+
+    private void FinalizeWorkflowProcessing(Workflow workflow)
+    {
         RemoveWorkflowAndReleaseQueueSlot(workflow);
+        StopActivity(workflow);
         _logger.WorkflowCompleted(workflow);
     }
 

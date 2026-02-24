@@ -7,10 +7,11 @@ namespace WorkflowEngine.Integration.Tests.Helpers;
 
 internal static class WorkflowTestHelper
 {
-    public static WorkflowEnqueueRequestOld CreateRequest(
+    public static (WorkflowRequest Request, WorkflowRequestMetadata Metadata) CreateRequest(
         Guid? instanceGuid = null,
         WorkflowType type = WorkflowType.AppProcessChange,
         IEnumerable<long>? dependencies = null,
+        IEnumerable<long>? links = null,
         string org = "ttd",
         string app = "test-app",
         int instanceOwnerPartyId = 50001234,
@@ -19,8 +20,18 @@ internal static class WorkflowTestHelper
     {
         instanceGuid ??= Guid.NewGuid();
 
-        return new WorkflowEnqueueRequestOld(
-            OperationId: "next",
+        var request = new WorkflowRequest
+        {
+            Ref = "test-workflow",
+            OperationId = "next",
+            Type = type,
+            Steps = [new StepRequest { Command = new Command.AppCommand("test-step") }],
+            StartAt = startAt,
+            DependsOn = dependencies?.Select(id => (WorkflowRef)id).ToList(),
+            Links = links?.Select(id => (WorkflowRef)id).ToList(),
+        };
+
+        var metadata = new WorkflowRequestMetadata(
             InstanceInformation: new InstanceInformation
             {
                 Org = org,
@@ -30,11 +41,11 @@ internal static class WorkflowTestHelper
             },
             Actor: new Actor { UserIdOrOrgNumber = "12345" },
             CreatedAt: DateTimeOffset.UtcNow,
-            StartAt: startAt,
-            Steps: [new StepRequest { Command = new Command.AppCommand("test-step") }],
-            Type: type,
-            Dependencies: dependencies
+            TraceContext: null,
+            InstanceLockKey: null
         );
+
+        return (request, metadata);
     }
 
     public static async Task<Workflow> InsertAndSetStatus(
@@ -47,9 +58,13 @@ internal static class WorkflowTestHelper
     )
     {
         // Insert as Generic to bypass constraint checks
-        var request = CreateRequest(instanceGuid: instanceGuid, type: WorkflowType.Generic, dependencies: dependencies);
+        var (request, metadata) = CreateRequest(
+            instanceGuid: instanceGuid,
+            type: WorkflowType.Generic,
+            dependencies: dependencies
+        );
 
-        var workflow = await repository.AddWorkflow(request);
+        var workflow = await repository.AddWorkflow(request, metadata);
 
         // Update status and type directly via raw SQL
         var typeInt = (int)finalType;

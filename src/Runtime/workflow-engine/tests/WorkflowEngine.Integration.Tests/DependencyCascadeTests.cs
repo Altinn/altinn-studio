@@ -37,11 +37,12 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         // B: enqueued, depends on A
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-        var requestB = WorkflowTestHelper.CreateRequest(
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await repo2.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        var workflowB = await repo2.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
 
         var affected = await RunCascade();
 
@@ -68,18 +69,20 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         );
 
         // B: enqueued, depends on A
-        var requestB = WorkflowTestHelper.CreateRequest(
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        var workflowB = await repo.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
 
         // C: enqueued, depends on B
-        var requestC = WorkflowTestHelper.CreateRequest(
+        var (requestC, metadataC) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowB.DatabaseId]
         );
-        var workflowC = await repo.AddWorkflow(requestC, TestContext.Current.CancellationToken);
+        var workflowC = await repo.AddWorkflow(requestC, metadataC, TestContext.Current.CancellationToken);
 
         var affected = await RunCascade();
 
@@ -112,11 +115,12 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         );
 
         // B: enqueued, depends on A
-        var requestB = WorkflowTestHelper.CreateRequest(
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        var workflowB = await repo.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
 
         var affected = await RunCascade();
 
@@ -145,11 +149,12 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         );
 
         // B: enqueued, depends on A
-        var requestB = WorkflowTestHelper.CreateRequest(
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        var workflowB = await repo.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
 
         var affected = await RunCascade();
 
@@ -178,11 +183,12 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         );
 
         // B: already completed, depends on A
-        var requestB = WorkflowTestHelper.CreateRequest(
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        var workflowB = await repo.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
 
         // Mark B as Completed
         workflowB.Status = PersistentItemStatus.Completed;
@@ -213,11 +219,12 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
             PersistentItemStatus.Failed,
             finalType: WorkflowType.Generic
         );
-        var requestB1 = WorkflowTestHelper.CreateRequest(
+        var (requestB1, metadataB1) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA1.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA1.DatabaseId]
         );
-        var workflowB1 = await repo.AddWorkflow(requestB1, TestContext.Current.CancellationToken);
+        var workflowB1 = await repo.AddWorkflow(requestB1, metadataB1, TestContext.Current.CancellationToken);
 
         // Chain 2: A2 (canceled) -> B2 (enqueued)
         var workflowA2 = await WorkflowTestHelper.InsertAndSetStatus(
@@ -226,11 +233,12 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
             PersistentItemStatus.Canceled,
             finalType: WorkflowType.Generic
         );
-        var requestB2 = WorkflowTestHelper.CreateRequest(
+        var (requestB2, metadataB2) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA2.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA2.DatabaseId]
         );
-        var workflowB2 = await repo.AddWorkflow(requestB2, TestContext.Current.CancellationToken);
+        var workflowB2 = await repo.AddWorkflow(requestB2, metadataB2, TestContext.Current.CancellationToken);
 
         var affected = await RunCascade();
 
@@ -263,11 +271,12 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         );
 
         // B: enqueued, depends on A
-        var requestB = WorkflowTestHelper.CreateRequest(
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
         );
-        await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        await repo.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
 
         // First cascade
         var affected1 = await RunCascade();
@@ -293,11 +302,12 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         );
 
         // B: Processing, depends on A
-        var requestB = WorkflowTestHelper.CreateRequest(
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        var workflowB = await repo.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
         workflowB.Status = PersistentItemStatus.Processing;
         await repo.UpdateWorkflow(workflowB, cancellationToken: TestContext.Current.CancellationToken);
 
@@ -328,11 +338,12 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         );
 
         // B: Enqueued, depends on A
-        var requestB = WorkflowTestHelper.CreateRequest(
+        var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
+            instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             type: WorkflowType.Generic,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await repo.AddWorkflow(requestB, TestContext.Current.CancellationToken);
+        var workflowB = await repo.AddWorkflow(requestB, metadataB, TestContext.Current.CancellationToken);
 
         var affected = await RunCascade();
 
@@ -364,11 +375,11 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         // Q: Enqueued, depends on P (fills the pending slot)
         await using var context2 = fixture.CreateDbContext();
         var repo2 = fixture.CreateRepository(context2);
-        var requestQ = WorkflowTestHelper.CreateRequest(
+        var (requestQ, metadataQ) = WorkflowTestHelper.CreateRequest(
             instanceGuid: instanceGuid,
             dependencies: [workflowP.DatabaseId]
         );
-        var workflowQ = await repo2.AddWorkflow(requestQ, TestContext.Current.CancellationToken);
+        var workflowQ = await repo2.AddWorkflow(requestQ, metadataQ, TestContext.Current.CancellationToken);
 
         // P fails; cascade marks Q as DependencyFailed, freeing both slots
         workflowP.Status = PersistentItemStatus.Failed;
@@ -382,8 +393,8 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         // Now both slots are free — a new AppProcessChange should be accepted
         await using var context3 = fixture.CreateDbContext();
         var repo3 = fixture.CreateRepository(context3);
-        var requestR = WorkflowTestHelper.CreateRequest(instanceGuid: instanceGuid);
-        var workflowR = await repo3.AddWorkflow(requestR, TestContext.Current.CancellationToken);
+        var (requestR, metadataR) = WorkflowTestHelper.CreateRequest(instanceGuid: instanceGuid);
+        var workflowR = await repo3.AddWorkflow(requestR, metadataR, TestContext.Current.CancellationToken);
 
         Assert.NotEqual(0, workflowR.DatabaseId);
 
@@ -414,11 +425,12 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
         var dependents = new List<Workflow>();
         for (int i = 0; i < 3; i++)
         {
-            var req = WorkflowTestHelper.CreateRequest(
+            var (req, metadata) = WorkflowTestHelper.CreateRequest(
+                instanceGuid: workflowA.InstanceInformation.InstanceGuid,
                 type: WorkflowType.Generic,
                 dependencies: [workflowA.DatabaseId]
             );
-            dependents.Add(await repo.AddWorkflow(req, TestContext.Current.CancellationToken));
+            dependents.Add(await repo.AddWorkflow(req, metadata, TestContext.Current.CancellationToken));
         }
 
         var affected = await RunCascade();

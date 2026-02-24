@@ -293,11 +293,18 @@ internal partial class EnginePgRepository : IEngineRepository
                     request.DependsOn,
                     refToEntity,
                     "dependency",
+                    metadata.InstanceInformation.InstanceGuid,
                     cancellationToken
                 );
 
                 // Resolve Links: same pattern
-                var allLinkEntities = await ResolveWorkflowRefs(request.Links, refToEntity, "link", cancellationToken);
+                var allLinkEntities = await ResolveWorkflowRefs(
+                    request.Links,
+                    refToEntity,
+                    "link",
+                    metadata.InstanceInformation.InstanceGuid,
+                    cancellationToken
+                );
 
                 // Insert the entity
                 var (_, entity) = await InsertWorkflowEntity(

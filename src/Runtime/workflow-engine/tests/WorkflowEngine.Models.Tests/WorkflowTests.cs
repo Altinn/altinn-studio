@@ -76,29 +76,33 @@ public class WorkflowTests
             InstanceGuid = Guid.NewGuid(),
         };
         var retryStrategy = RetryStrategy.Exponential(baseInterval: TimeSpan.FromSeconds(1));
-        var steps = new[]
-        {
-            new StepRequest { Command = new Command.AppCommand("step-1") },
-            new StepRequest { Command = new Command.AppCommand("step-2"), RetryStrategy = retryStrategy },
-        };
         var createdAt = DateTimeOffset.UtcNow;
         var startAt = createdAt.AddMinutes(10);
         var traceContext = "trace-context-123";
 
-        var request = new WorkflowEnqueueRequestOld(
-            "next",
-            instanceInfo,
-            actor,
-            createdAt,
-            startAt,
-            steps,
-            WorkflowType.AppProcessChange,
-            traceContext,
-            "lock-key-1"
+        var workflowRequest = new WorkflowRequest
+        {
+            Ref = "wf-1",
+            OperationId = "next",
+            Type = WorkflowType.AppProcessChange,
+            StartAt = startAt,
+            Steps =
+            [
+                new StepRequest { Command = new Command.AppCommand("step-1") },
+                new StepRequest { Command = new Command.AppCommand("step-2"), RetryStrategy = retryStrategy },
+            ],
+        };
+
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: instanceInfo,
+            Actor: actor,
+            CreatedAt: createdAt,
+            TraceContext: traceContext,
+            InstanceLockKey: "lock-key-1"
         );
 
         // Act
-        var workflow = Workflow.FromRequest(request, dependencies: null);
+        var workflow = Workflow.FromRequest(workflowRequest, metadata, dependencies: null, links: null);
 
         // Assert — Workflow fields
         Assert.Equal("next", workflow.OperationId);
@@ -111,13 +115,14 @@ public class WorkflowTests
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Status);
         Assert.Equal(WorkflowType.AppProcessChange, workflow.Type);
         Assert.Null(workflow.Dependencies);
+        Assert.Null(workflow.Links);
 
         // Assert — Steps are created with correct count and ordering
         Assert.Equal(2, workflow.Steps.Count);
         Assert.Equal(0, workflow.Steps[0].ProcessingOrder);
         Assert.Equal(1, workflow.Steps[1].ProcessingOrder);
 
-        // Assert — Step fields are mapped from parent request
+        // Assert — Step fields are mapped from metadata
         Assert.Equal("step-1", workflow.Steps[0].OperationId);
         Assert.Equal("step-2", workflow.Steps[1].OperationId);
         Assert.Same(actor, workflow.Steps[0].Actor);
@@ -128,24 +133,30 @@ public class WorkflowTests
     public void FromRequest_MapsNullOptionalFields()
     {
         // Arrange
-        var request = new WorkflowEnqueueRequestOld(
-            "op-1",
-            new InstanceInformation
+        var workflowRequest = new WorkflowRequest
+        {
+            Ref = "wf-1",
+            OperationId = "op-1",
+            Type = WorkflowType.Generic,
+            Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
+        };
+
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
                 App = "app",
                 InstanceOwnerPartyId = 1,
                 InstanceGuid = Guid.NewGuid(),
             },
-            new Actor { UserIdOrOrgNumber = "user-1" },
-            DateTimeOffset.UtcNow,
-            null, // StartAt
-            [new StepRequest { Command = new Command.Debug.Noop() }],
-            WorkflowType.Generic
+            Actor: new Actor { UserIdOrOrgNumber = "user-1" },
+            CreatedAt: DateTimeOffset.UtcNow,
+            TraceContext: null,
+            InstanceLockKey: null
         );
 
         // Act
-        var workflow = Workflow.FromRequest(request, dependencies: null);
+        var workflow = Workflow.FromRequest(workflowRequest, metadata, dependencies: null, links: null);
 
         // Assert
         Assert.Null(workflow.StartAt);
@@ -153,5 +164,56 @@ public class WorkflowTests
         Assert.Null(workflow.InstanceLockKey);
         Assert.Equal(WorkflowType.Generic, workflow.Type);
         Assert.Null(workflow.Dependencies);
+        Assert.Null(workflow.Links);
+    }
+
+    [Fact]
+    public void FromRequest_WithDependenciesAndLinks_MapsCorrectly()
+    {
+        // Arrange
+        var dependency = new Workflow
+        {
+            DatabaseId = 10,
+            OperationId = "dep-op",
+            Actor = _randomActor,
+            InstanceInformation = _randomInstance,
+            Steps = [],
+        };
+        var link = new Workflow
+        {
+            DatabaseId = 20,
+            OperationId = "link-op",
+            Actor = _randomActor,
+            InstanceInformation = _randomInstance,
+            Steps = [],
+        };
+
+        var workflowRequest = new WorkflowRequest
+        {
+            Ref = "wf-1",
+            OperationId = "op-1",
+            Type = WorkflowType.Generic,
+            Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
+        };
+
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: _randomInstance,
+            Actor: _randomActor,
+            CreatedAt: DateTimeOffset.UtcNow,
+            TraceContext: null,
+            InstanceLockKey: null
+        );
+
+        // Act
+        var workflow = Workflow.FromRequest(workflowRequest, metadata, dependencies: [dependency], links: [link]);
+
+        // Assert
+        Assert.NotNull(workflow.Dependencies);
+        Assert.Single(workflow.Dependencies);
+        Assert.Equal(10, workflow.Dependencies.First().DatabaseId);
+
+        Assert.NotNull(workflow.Links);
+        Assert.Single(workflow.Links);
+        Assert.Equal(20, workflow.Links.First().DatabaseId);
     }
 }

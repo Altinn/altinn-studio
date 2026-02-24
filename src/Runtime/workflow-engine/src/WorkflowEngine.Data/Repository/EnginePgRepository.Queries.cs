@@ -85,7 +85,7 @@ internal static class EnginePgRepositoryQueries
             if (links)
                 entityQuery = entityQuery.Include(j => j.Links);
 
-            return entityQuery;
+            return entityQuery.AsSplitQuery();
         }
     }
 

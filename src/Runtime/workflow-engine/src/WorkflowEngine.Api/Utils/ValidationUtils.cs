@@ -1,22 +1,27 @@
+using System.Text.Json;
 using WorkflowEngine.Models;
+using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Api.Utils;
 
 /// <summary>
-/// Workflow graph utilities.
+/// Workflow and step request validation utilities.
 /// </summary>
-internal static class WorkflowGraphUtils
+internal static class ValidationUtils
 {
     /// <summary>
-    /// Validates and a collection of workflow requests using Kahn's algorithm.
+    /// Validates and sorts a collection of workflow requests using Kahn's algorithm.
     /// Returns the requests in topological order (dependencies first).
     /// </summary>
     /// <exception cref="ArgumentException">
     /// Thrown when refs are not unique, a <c>DependsOn</c> ref is not present in the batch,
     /// a workflow references itself, or a dependency cycle is detected.
     /// </exception>
-    public static IReadOnlyList<WorkflowRequest> ValidateAndSortGraph(IReadOnlyList<WorkflowRequest> requests)
+    public static IReadOnlyList<WorkflowRequest> ValidateAndSortWorkflowGraph(IReadOnlyList<WorkflowRequest> requests)
     {
+        using var activity = Metrics.Source.StartActivity("ValidationUtils.ValidateAndSortWorkflowGraph");
+
         // Build ref -> index map and validate uniqueness
         var refToIndex = new Dictionary<string, int>(requests.Count);
         for (int i = 0; i < requests.Count; i++)
@@ -25,7 +30,7 @@ internal static class WorkflowGraphUtils
             if (!refToIndex.TryAdd(req.Ref, i))
                 throw new ArgumentException($"Duplicate ref '{req.Ref}' in batch.");
 
-            if (!IsValidWorkflow(req))
+            if (!IsValidWorkflowRequest(req))
                 throw new ArgumentException($"Workflow '{req.Ref}' is invalid.");
         }
 
@@ -101,8 +106,54 @@ internal static class WorkflowGraphUtils
     /// <summary>
     /// Basic validation for a workflow request.
     /// </summary>
-    public static bool IsValidWorkflow(WorkflowRequest request)
+    public static bool IsValidWorkflowRequest(WorkflowRequest request)
     {
-        return request.Steps.Any();
+        if (string.IsNullOrWhiteSpace(request.Ref))
+            return false;
+
+        if (string.IsNullOrWhiteSpace(request.OperationId))
+            return false;
+
+        if (!IsValidJsonOrNull(request.Metadata))
+            return false;
+
+        return request.Steps.Any() && request.Steps.All(IsValidStepRequest);
+    }
+
+    /// <summary>
+    /// Basic validation for a step request.
+    /// </summary>
+    public static bool IsValidStepRequest(StepRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Command.OperationId))
+            return false;
+
+        if (!IsValidJsonOrNull(request.Metadata))
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Returns true if any workflow in the batch contains at least one <see cref="Command.AppCommand"/> step,
+    /// which requires a <c>LockToken</c> to be present on the enqueue request.
+    /// </summary>
+    public static bool HasAppCommandSteps(IEnumerable<WorkflowRequest> requests) =>
+        requests.Any(w => w.Steps.Any(s => s.Command is Command.AppCommand));
+
+    private static bool IsValidJsonOrNull(string? json)
+    {
+        if (json is null)
+            return true;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
     }
 }

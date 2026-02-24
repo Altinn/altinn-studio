@@ -104,12 +104,15 @@ internal partial class EnginePgRepository
 
         try
         {
+            var instanceGuid = metadata.InstanceInformation.InstanceGuid;
+
             // Resolve and validate dependencies
             List<WorkflowEntity>? dependencyEntities = preFetchedDependencies?.ToList();
             if (dependencyEntities is null && request.DependsOn?.Any() is true)
             {
+                var depIds = request.DependsOn.Where(r => r.IsId).Select(r => r.Id).ToList();
                 dependencyEntities = await _context
-                    .Workflows.Where(x => request.DependsOn.Contains(x.Id))
+                    .Workflows.Where(x => depIds.Contains(x.Id) && x.InstanceGuid == instanceGuid)
                     .ToListAsync(cancellationToken);
 
                 if (dependencyEntities.Count != request.DependsOn.Count())
@@ -122,8 +125,9 @@ internal partial class EnginePgRepository
             List<WorkflowEntity>? linkEntities = preFetchedLinks?.ToList();
             if (linkEntities is null && request.Links?.Any() is true)
             {
+                var linkIds = request.Links.Where(r => r.IsId).Select(r => r.Id).ToList();
                 linkEntities = await _context
-                    .Workflows.Where(x => request.Links.Contains(x.Id))
+                    .Workflows.Where(x => linkIds.Contains(x.Id) && x.InstanceGuid == instanceGuid)
                     .ToListAsync(cancellationToken);
 
                 if (linkEntities.Count != request.Links.Count())
@@ -164,6 +168,7 @@ internal partial class EnginePgRepository
         IEnumerable<WorkflowRef>? refs,
         Dictionary<string, WorkflowEntity> refToEntity,
         string roleLabel,
+        Guid instanceGuid,
         CancellationToken cancellationToken
     )
     {
@@ -180,7 +185,7 @@ internal partial class EnginePgRepository
         if (externalIds.Count > 0)
         {
             var fetched = await _context
-                .Workflows.Where(x => externalIds.Contains(x.Id))
+                .Workflows.Where(x => externalIds.Contains(x.Id) && x.InstanceGuid == instanceGuid)
                 .ToListAsync(cancellationToken);
 
             if (fetched.Count != externalIds.Count)
@@ -203,6 +208,7 @@ internal partial class EnginePgRepository
         return result.Count > 0 ? result : null;
     }
 
+    // TODO: If using this, we must also invalidate in-memory representations of the same records
     internal async Task<int> CascadeDependencyFailures(CancellationToken cancellationToken) =>
         await _context
             .Database.SqlQueryRaw<int>("SELECT cascade_dependency_failures() AS \"Value\"")
