@@ -1,10 +1,11 @@
 import { RepositoryType } from 'app-shared/types/global';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { FeatureFlag, retrieveFeatureFlags } from '@studio/feature-flags';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { type HeaderMenuGroup } from 'app-development/types/HeaderMenu/HeaderMenuGroup';
 import {
   BookIcon,
+  ChatIcon,
   DatabaseIcon,
   Density3Icon,
   PencilIcon,
@@ -65,6 +66,15 @@ export const topBarMenuItem: HeaderMenuItem[] = [
     group: HeaderMenuGroupKey.Tools,
     isBeta: true,
   },
+  {
+    key: HeaderMenuItemKey.AiAssistant,
+    link: RoutePaths.AiAssistant,
+    icon: ChatIcon,
+    repositoryTypes: [RepositoryType.App],
+    group: HeaderMenuGroupKey.Tools,
+    featureFlagName: FeatureFlag.AiAssistant,
+    isBeta: true,
+  },
 ];
 
 export const getFilteredTopBarMenu = (repositoryType: RepositoryType): HeaderMenuItem[] => {
@@ -85,7 +95,7 @@ export const getTopBarMenuItems = (
 export const filterRoutesByFeatureFlag = (menuItem: HeaderMenuItem): boolean => {
   if (!menuItem.featureFlagName) return true;
 
-  return menuItem.featureFlagName && shouldDisplayFeature(menuItem.featureFlagName);
+  return retrieveFeatureFlags().includes(menuItem.featureFlagName);
 };
 
 const filterRoutesByDataModel = (menuItem: HeaderMenuItem) => {

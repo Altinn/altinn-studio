@@ -13,10 +13,12 @@ import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { DatabaseIcon } from '@studio/icons';
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
-import { typedLocalStorage } from '@studio/pure-functions';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { retrieveFeatureFlags, FeatureFlag } from '@studio/feature-flags';
 
-jest.mock('app-shared/utils/featureToggleUtils');
+jest.mock('@studio/feature-flags', () => ({
+  ...jest.requireActual('@studio/feature-flags'),
+  retrieveFeatureFlags: jest.fn().mockReturnValue([]),
+}));
 
 describe('headerMenuUtils', () => {
   describe('getFilteredTopBarMenu', () => {
@@ -45,8 +47,8 @@ describe('headerMenuUtils', () => {
       expect(getFilteredTopBarMenu(RepositoryType.Unknown)).toEqual(expected);
     });
 
-    it('should return menu items including items hidden behind feature flag, if the flag i activated', () => {
-      typedLocalStorage.setItem('featureFlags', []); // Add the flags in the array when you want to test it
+    it('should return menu items including items hidden behind feature flag, if the flag is activated', () => {
+      (retrieveFeatureFlags as jest.Mock).mockReturnValue(Object.values(FeatureFlag));
       expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(topBarMenuItem.length);
     });
   });
@@ -108,7 +110,7 @@ describe('headerMenuUtils', () => {
     });
 
     it('should return true if feature flag is active', () => {
-      (shouldDisplayFeature as jest.Mock).mockReturnValue(true);
+      (retrieveFeatureFlags as jest.Mock).mockReturnValue([FeatureFlag.ShouldOverrideAppLibCheck]);
 
       const menuItem: HeaderMenuItem = {
         key: HeaderMenuItemKey.DataModel,
@@ -123,7 +125,7 @@ describe('headerMenuUtils', () => {
     });
 
     it('should return false if feature flag is not active', () => {
-      (shouldDisplayFeature as jest.Mock).mockReturnValue(false);
+      (retrieveFeatureFlags as jest.Mock).mockReturnValue([]);
 
       const menuItem: HeaderMenuItem = {
         key: HeaderMenuItemKey.DataModel,

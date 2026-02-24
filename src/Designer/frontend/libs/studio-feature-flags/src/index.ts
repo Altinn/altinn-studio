@@ -4,3 +4,4 @@ export * from './FeatureFlagsContext';
 export * from './FeatureFlagsProvider';
 export * from './useFeatureFlag';
 export * from './useFeatureToggle';
+export * from './utils';
