@@ -1,0 +1,14 @@
+{
+  "partyId": "512001",
+  "partyUuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "partyTypeName": 1,
+  "orgNumber": "",
+  "ssn": "01899699001",
+  "unitType": null,
+  "name": "MultiParty Prompt",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

@@ -244,7 +244,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}")]
     public class HomeController : Microsoft.AspNetCore.Mvc.Controller
     {
-        public HomeController(System.IServiceProvider serviceProvider, Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> appSettings, Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.HomeController> logger) { }
+        public HomeController(System.IServiceProvider serviceProvider, Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env, Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.AppSettings> appSettings, Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Models.AppIdentifier appId, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.HomeController> logger) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.Route("")]
         [Microsoft.AspNetCore.Mvc.Route("instance-selection")]
@@ -253,12 +253,12 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.Route("party-selection")]
         [Microsoft.AspNetCore.Mvc.Route("party-selection/{errorCode}")]
         [Microsoft.AspNetCore.Mvc.Route("{pageName:int}")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Index([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromQuery] bool dontChooseReportee, [Microsoft.AspNetCore.Mvc.FromQuery] string? returnUrl, [Microsoft.AspNetCore.Mvc.FromQuery] string? lang = null) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> Index([Microsoft.AspNetCore.Mvc.FromQuery] bool dontChooseReportee, [Microsoft.AspNetCore.Mvc.FromQuery] string? returnUrl, [Microsoft.AspNetCore.Mvc.FromQuery] string? lang = null) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "text/html", new string[0])]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 400, "text/plain", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("set-query-params")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> SetQueryParams(string org, string app) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> SetQueryParams() { }
         public class QueryParamInit : System.IEquatable<Altinn.App.Api.Controllers.HomeController.QueryParamInit>
         {
             public QueryParamInit(string DataModelName, string AppId, System.Collections.Generic.Dictionary<string, string> PrefillFields) { }
