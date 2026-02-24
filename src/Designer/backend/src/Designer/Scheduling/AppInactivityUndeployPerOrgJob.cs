@@ -31,35 +31,32 @@ public class AppInactivityUndeployPerOrgJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
+        using var activity = ServiceTelemetry.Source.StartActivity(
+            $"{nameof(AppInactivityUndeployPerOrgJob)}.{nameof(Execute)}",
+            ActivityKind.Internal
+        );
+        activity?.SetAlwaysSample();
+
         var timeout = _schedulingSettings.InactivityUndeployJobTimeouts.PerOrgJobTimeout;
         using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             context.CancellationToken
         );
         timeoutCancellationTokenSource.CancelAfter(timeout);
         var cancellationToken = timeoutCancellationTokenSource.Token;
-
-        var org = context.MergedJobDataMap.GetString(AppInactivityUndeployJobConstants.JobDataOrgKey);
-        if (string.IsNullOrWhiteSpace(org))
-        {
-            throw new InvalidOperationException(
-                $"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataOrgKey}'."
-            );
-        }
-
-        var environmentFilter = context.MergedJobDataMap.GetString(
-            AppInactivityUndeployJobConstants.JobDataEnvironmentFilterKey
-        );
-        using var activity = ServiceTelemetry.Source.StartActivity(
-            $"{nameof(AppInactivityUndeployPerOrgJob)}.{nameof(Execute)}",
-            ActivityKind.Internal
-        );
-        activity?.SetAlwaysSample();
-        activity?.SetTag("org", org);
-        activity?.SetTag("environment.filter", environmentFilter);
         activity?.SetTag("timeout.seconds", timeout.TotalSeconds);
+
+        string? org = null;
+        string? environmentFilter = null;
 
         try
         {
+            org = context.MergedJobDataMap.GetRequiredString(AppInactivityUndeployJobConstants.JobDataOrgKey);
+            environmentFilter = context.MergedJobDataMap.GetOptionalString(
+                AppInactivityUndeployJobConstants.JobDataEnvironmentFilterKey
+            );
+            activity?.SetTag("org", org);
+            activity?.SetTag("environment.filter", environmentFilter);
+
             var candidates = await _inactivityUndeployService.GetAppsForDecommissioningAsync(
                 new InactivityUndeployEvaluationOptions { Org = org, Environment = environmentFilter },
                 cancellationToken
@@ -89,6 +86,7 @@ public class AppInactivityUndeployPerOrgJob : IJob
             )
         {
             activity?.SetStatus(ActivityStatusCode.Error, "Job timed out.");
+            activity?.AddException(ex);
             activity?.AddEvent(
                 new ActivityEvent(
                     "job_timeout",

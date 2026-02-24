@@ -31,54 +31,42 @@ public class AppInactivityUndeployAppJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
+        using var activity = ServiceTelemetry.Source.StartActivity(
+            $"{nameof(AppInactivityUndeployAppJob)}.{nameof(Execute)}",
+            ActivityKind.Internal
+        );
+        activity?.SetAlwaysSample();
+
         var timeout = _schedulingSettings.InactivityUndeployJobTimeouts.PerAppJobTimeout;
         using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             context.CancellationToken
         );
         timeoutCancellationTokenSource.CancelAfter(timeout);
         var cancellationToken = timeoutCancellationTokenSource.Token;
-
-        var org = context.MergedJobDataMap.GetString(AppInactivityUndeployJobConstants.JobDataOrgKey);
-        var app = context.MergedJobDataMap.GetString(AppInactivityUndeployJobConstants.JobDataAppKey);
-        var environment = context.MergedJobDataMap.GetString(AppInactivityUndeployJobConstants.JobDataEnvironmentKey);
-
-        if (string.IsNullOrWhiteSpace(org))
-        {
-            throw new InvalidOperationException(
-                $"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataOrgKey}'."
-            );
-        }
-
-        if (string.IsNullOrWhiteSpace(app))
-        {
-            throw new InvalidOperationException(
-                $"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataAppKey}'."
-            );
-        }
-
-        if (string.IsNullOrWhiteSpace(environment))
-        {
-            throw new InvalidOperationException(
-                $"Missing required Quartz job data key '{AppInactivityUndeployJobConstants.JobDataEnvironmentKey}'."
-            );
-        }
-        if (!AppInactivityUndeployJobConstants.IsTargetEnvironment(environment))
-        {
-            throw new InvalidOperationException($"Unsupported environment '{environment}' for inactivity undeploy.");
-        }
-
-        using var activity = ServiceTelemetry.Source.StartActivity(
-            $"{nameof(AppInactivityUndeployAppJob)}.{nameof(Execute)}",
-            ActivityKind.Internal
-        );
-        activity?.SetTag("org", org);
-        activity?.SetTag("app", app);
-        activity?.SetTag("environment", environment);
         activity?.SetTag("timeout.seconds", timeout.TotalSeconds);
-        activity?.SetAlwaysSample();
+
+        string? org = null;
+        string? app = null;
+        string? environment = null;
 
         try
         {
+            org = context.MergedJobDataMap.GetRequiredString(AppInactivityUndeployJobConstants.JobDataOrgKey);
+            app = context.MergedJobDataMap.GetRequiredString(AppInactivityUndeployJobConstants.JobDataAppKey);
+            environment = context.MergedJobDataMap.GetRequiredString(
+                AppInactivityUndeployJobConstants.JobDataEnvironmentKey
+            );
+            if (!AppInactivityUndeployJobConstants.IsTargetEnvironment(environment))
+            {
+                throw new InvalidOperationException(
+                    $"Unsupported environment '{environment}' for inactivity undeploy."
+                );
+            }
+
+            activity?.SetTag("org", org);
+            activity?.SetTag("app", app);
+            activity?.SetTag("environment", environment);
+
             var orgContext = AltinnOrgContext.FromOrg(org);
             await using var _ = await _synchronizationLockService.AcquireOrgWideLockAsync(
                 orgContext,
@@ -101,6 +89,7 @@ public class AppInactivityUndeployAppJob : IJob
             )
         {
             activity?.SetStatus(ActivityStatusCode.Error, "Job timed out.");
+            activity?.AddException(ex);
             activity?.AddEvent(
                 new ActivityEvent(
                     "job_timeout",
