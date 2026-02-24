@@ -182,29 +182,6 @@ export const isRuleDuplicateInScope = ({
   });
 };
 
-// const configTypesValue = newConfig.types.map((type) => type.value);
-
-// const areStringArraysEqualUnordered = (existingTypes: string[], currentTypes: string[]) => {
-//   if (existingTypes.length !== currentTypes.length) return false;
-
-//   const setA = new Set(existingTypes);
-//   return currentTypes.every((value) => setA.has(value));
-// };
-
-// const existingConfigsForScope = existingConfigs.filter((existingConfig) => {
-//   if (scope === Scope.SelectedPages) return existingConfig.task?.value === newConfig.task?.value;
-//   return true;
-// });
-
-// return existingConfigsForScope.some((existingConfig) => {
-//   const existingTypesValue = existingConfig.types.map((type) => type.value);
-
-//   return (
-//     areStringArraysEqualUnordered(existingTypesValue, configTypesValue) &&
-//     existingConfig.pageScope.value === newConfig.pageScope.value
-//   );
-// });
-
 const arraysEqualUnordered = (existingTypes: string[], newTypes: string[]) => {
   if (existingTypes.length !== newTypes.length) return false;
   const setA = new Set(existingTypes);

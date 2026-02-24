@@ -6,9 +6,11 @@ import {
   getCardLabel,
   getDefaultConfig,
   getValuesToDisplay,
+  isRuleDuplicateInScope,
   Scope,
   validateForm,
 } from './ValidateNavigationUtils';
+import type { InternalConfigState } from './ValidateNavigationTypes';
 
 describe('getDefaultConfig', () => {
   it('should return default config for AllTasks scope', () => {
@@ -246,5 +248,58 @@ describe('validateForm', () => {
     expect(validateForm({ scope: Scope.SelectedPages, config: originConfig, newConfig })).toBe(
       true,
     );
+  });
+});
+
+describe('isRuleDuplicateInScope', () => {
+  const option = (value: string) => ({
+    value,
+    label: value,
+  });
+
+  const createConfig = (overrides?: Partial<InternalConfigState>): InternalConfigState => ({
+    types: [option('type1')],
+    pageScope: option('current'),
+    task: option('task1'),
+    pages: [option('page1')],
+    ...overrides,
+  });
+
+  it('should return false if existingConfigs is undefined', () => {
+    const result = isRuleDuplicateInScope({
+      scope: Scope.AllTasks,
+      newConfig: createConfig(),
+    });
+    expect(result).toBe(false);
+  });
+
+  it('should return false if form is not valid', () => {
+    const result = isRuleDuplicateInScope({
+      scope: Scope.AllTasks,
+      newConfig: createConfig(),
+      existingConfigs: [createConfig()],
+      isFormValid: false,
+    });
+    expect(result).toBe(false);
+  });
+
+  it('should return true if there is a duplicate rule in scope', () => {
+    const result = isRuleDuplicateInScope({
+      scope: Scope.SelectedPages,
+      newConfig: createConfig(),
+      existingConfigs: [createConfig()],
+      isFormValid: true,
+    });
+    expect(result).toBe(true);
+  });
+
+  it('should return false if there is no duplicate rule in scope', () => {
+    const result = isRuleDuplicateInScope({
+      scope: Scope.SelectedPages,
+      newConfig: createConfig(),
+      existingConfigs: [createConfig({ task: option('task2') })],
+      isFormValid: true,
+    });
+    expect(result).toBe(false);
   });
 });
