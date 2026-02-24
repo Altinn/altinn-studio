@@ -93,6 +93,14 @@ describe('PagesSelector', () => {
     expect(screen.getByText(emptyText)).toBeInTheDocument();
   });
 
+  it('should inform user that no pages are available when task is defined, but no pages available', () => {
+    renderPagesSelector({ taskName: layoutSet1NameMock });
+    const emptyText = textMock(
+      'ux_editor.settings.navigation_validation_specific_page_no_pages_available',
+    );
+    expect(screen.getByText(emptyText)).toBeInTheDocument();
+  });
+
   it('should call onChange when a page is selected', async () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], layouts); // mock form layouts query to return two pages (Side1 and Side2)
@@ -103,14 +111,6 @@ describe('PagesSelector', () => {
     const selectorLabel = textMock('ux_editor.settings.navigation_validation_specific_page_label');
     await selectSuggestionOption({ user, selectorLabel, optionLabel: 'Side1' });
     expect(mockOnChange).toHaveBeenCalledWith([{ label: 'Side1', value: 'Side1' }]);
-  });
-
-  it('should inform user that no pages are available when selected task has rules in all pages', () => {
-    renderPagesSelector({ taskName: layoutSet1NameMock });
-    const emptyText = textMock(
-      'ux_editor.settings.navigation_validation_specific_page_no_pages_available',
-    );
-    expect(screen.getByText(emptyText)).toBeInTheDocument();
   });
 
   const renderPagesSelector = (
