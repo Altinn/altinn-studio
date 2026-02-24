@@ -47,13 +47,13 @@ internal sealed class AzureMonitorClient(
     internal static int GetBucketSize(int range)
     {
         var maxPoints = 12;
-        return Math.Max(1, range / maxPoints);
+        return (int)Math.Max(1, Math.Ceiling((double)range / maxPoints));
     }
 
     private static string GetInterval(int range)
     {
         var bucketSize = GetBucketSize(range);
-        return bucketSize >= 60 ? $"{bucketSize / 60}h" : $"{bucketSize}m";
+        return $"{bucketSize}m";
     }
 
     private ResourceIdentifier GetApplicationLogAnalyticsWorkspaceId()
@@ -216,6 +216,8 @@ internal sealed class AzureMonitorClient(
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
                 | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval});";
+
+        System.Console.WriteLine($"Logs query for failed requests:\n{query}");
 
         Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
