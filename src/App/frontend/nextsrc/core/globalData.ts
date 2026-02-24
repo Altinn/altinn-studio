@@ -66,6 +66,10 @@ export class GlobalData {
     return GlobalData.typedWindow.altinnAppGlobalData.textResources;
   }
 
+  public static get footer(): IFooterLayout {
+    return GlobalData.typedWindow.altinnAppGlobalData.footer;
+  }
+
   public static get orgName(): OrgName | undefined {
     return GlobalData.typedWindow.altinnAppGlobalData.orgName;
   }

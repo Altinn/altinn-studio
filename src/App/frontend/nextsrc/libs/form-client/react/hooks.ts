@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { useStore } from 'zustand';
 
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
-import { resolveTextResource } from 'nextsrc/libs/form-client/stores/textResourceStore';
+import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 
 import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
 import type { ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
@@ -24,16 +24,8 @@ export function useFormData(): FormDataNode {
 }
 
 export function useTextResource(key: string | undefined): string {
-  const client = useFormClient();
-  const resources = useStore(client.textResourceStore, (state) => state.resources);
-  const formData = useStore(client.formDataStore, (state) => state.data);
-
-  return useMemo(() => {
-    if (!key) {
-      return '';
-    }
-    return resolveTextResource(key, resources, client.textResourceDataSources);
-  }, [key, resources, formData, client]);
+  const { langAsString } = useLanguage();
+  return langAsString(key);
 }
 
 export function useFieldValidations(path: string): FieldValidation[] {

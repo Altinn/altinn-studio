@@ -9,23 +9,9 @@ import { Button } from 'nextsrc/core/components/Button/Button';
 import { Pagination } from 'nextsrc/core/components/Pagination/Pagination';
 import { GlobalData } from 'nextsrc/core/globalData';
 import classes from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage.module.css';
+import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { routeBuilders } from 'nextsrc/routesBuilder';
 import { useIsMobileOrTablet } from 'nextsrc/utils/useDeviceWidths';
-
-// TODO: Replace with i18n system when language support is added to nextsrc
-const texts = {
-  header: 'Du har allerede startet å fylle ut dette skjemaet.',
-  description:
-    'Du har allerede startet å fylle ut dette skjemaet. Velg under om du vil fortsette der du slapp, eller om du vil starte på nytt.',
-  leftOf: 'Fortsett der du slapp',
-  lastChanged: 'Sist endret',
-  changedBy: 'Endret av',
-  continueHere: 'Fortsett her',
-  newInstance: 'Start på nytt',
-  previous: 'Forrige',
-  next: 'Neste',
-  rowsPerPage: 'Rader per side',
-} as const;
 
 function getDateDisplayString(timeStamp: string): string {
   let date = new Date(timeStamp);
@@ -74,6 +60,7 @@ function handleOpenInstance(
 }
 
 export const InstanceSelectionPage = () => {
+  const { langAsString } = useLanguage();
   const partyId = GlobalData.selectedParty?.partyId;
 
   if (!partyId) {
@@ -141,9 +128,9 @@ export const InstanceSelectionPage = () => {
         level={2}
         data-size='md'
       >
-        {texts.header}
+        {langAsString('instance_selection.header')}
       </Heading>
-      <Paragraph className={classes.descriptionParagraph}>{texts.description}</Paragraph>
+      <Paragraph className={classes.descriptionParagraph}>{langAsString('instance_selection.description')}</Paragraph>
       {mobileView && (
         <>
           <Heading
@@ -151,7 +138,7 @@ export const InstanceSelectionPage = () => {
             level={3}
             className={classes.leftOffHeading}
           >
-            {texts.leftOf}
+            {langAsString('instance_selection.left_of')}
           </Heading>
           <Table className={classes.table}>
             <Table.Body>
@@ -159,12 +146,12 @@ export const InstanceSelectionPage = () => {
                 <Table.Row key={instance.id}>
                   <Table.Cell className={classes.mobileTableCell}>
                     <div>
-                      <b>{texts.lastChanged}:</b>
+                      <b>{langAsString('instance_selection.last_changed')}:</b>
                       <br />
                       <span>{getDateDisplayString(instance.lastChanged)}</span>
                     </div>
                     <div>
-                      <b>{texts.changedBy}:</b>
+                      <b>{langAsString('instance_selection.changed_by')}:</b>
                       <br />
                       <span>{instance.lastChangedBy}</span>
                     </div>
@@ -177,7 +164,7 @@ export const InstanceSelectionPage = () => {
                         icon={true}
                         onClick={(ev) => handleOpenInstance(instance.id, ev, navigate)}
                         onMouseDown={(ev) => handleOpenInstance(instance.id, ev, navigate)}
-                        aria-label={texts.continueHere}
+                        aria-label={langAsString('instance_selection.continue')}
                       >
                         <PencilIcon fontSize='1rem' />
                       </Button>
@@ -194,11 +181,11 @@ export const InstanceSelectionPage = () => {
                     <div className={classes.paginationWrapper}>
                       <Pagination
                         id='instance-selection'
-                        nextLabel={texts.next}
-                        nextLabelAriaLabel={texts.next}
-                        previousLabel={texts.previous}
-                        previousLabelAriaLabel={texts.previous}
-                        rowsPerPageText={texts.rowsPerPage}
+                        nextLabel={langAsString('general.next')}
+                        nextLabelAriaLabel={langAsString('general.next')}
+                        previousLabel={langAsString('general.previous')}
+                        previousLabelAriaLabel={langAsString('general.previous')}
+                        rowsPerPageText={langAsString('general.rows_per_page')}
                         size='sm'
                         numberOfRows={instances.length}
                         showRowsPerPageDropdown={true}
@@ -221,8 +208,8 @@ export const InstanceSelectionPage = () => {
           <Table className={classes.table}>
             <Table.Head>
               <Table.Row>
-                <Table.HeaderCell>{texts.lastChanged}</Table.HeaderCell>
-                <Table.HeaderCell>{texts.changedBy}</Table.HeaderCell>
+                <Table.HeaderCell>{langAsString('instance_selection.last_changed')}</Table.HeaderCell>
+                <Table.HeaderCell>{langAsString('instance_selection.changed_by')}</Table.HeaderCell>
                 <Table.HeaderCell />
               </Table.Row>
             </Table.Head>
@@ -238,7 +225,7 @@ export const InstanceSelectionPage = () => {
                         color='second'
                         onClick={(ev) => handleOpenInstance(instance.id, ev, navigate)}
                       >
-                        {texts.continueHere}
+                        {langAsString('instance_selection.continue')}
                         <PencilIcon
                           fontSize='1rem'
                           aria-hidden
@@ -256,11 +243,11 @@ export const InstanceSelectionPage = () => {
                     <div className={classes.paginationWrapper}>
                       <Pagination
                         id='instance-selection'
-                        nextLabel={texts.next}
-                        nextLabelAriaLabel={texts.next}
-                        previousLabel={texts.previous}
-                        previousLabelAriaLabel={texts.previous}
-                        rowsPerPageText={texts.rowsPerPage}
+                        nextLabel={langAsString('general.next')}
+                        nextLabelAriaLabel={langAsString('general.next')}
+                        previousLabel={langAsString('general.previous')}
+                        previousLabelAriaLabel={langAsString('general.previous')}
+                        rowsPerPageText={langAsString('general.rows_per_page')}
                         size='sm'
                         numberOfRows={instances.length}
                         showRowsPerPageDropdown={true}
@@ -286,7 +273,7 @@ export const InstanceSelectionPage = () => {
           onClick={() => createInstance.mutate()}
           disabled={createInstance.isPending}
         >
-          {createInstance.isPending ? 'Oppretter...' : texts.newInstance}
+          {createInstance.isPending ? 'Oppretter...' : langAsString('instance_selection.new_instance')}
         </Button>
       </div>
     </div>

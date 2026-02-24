@@ -9,83 +9,60 @@ import { partiesAllowedToInstantiateHierarchicalQuery, PartiesApi } from 'nextsr
 import { Button } from 'nextsrc/core/components/Button/Button';
 import { GlobalData } from 'nextsrc/core/globalData';
 import classes from 'nextsrc/features/instantiate/pages/party-selection/PartySelectionPage.module.css';
+import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 
 import { PartyType } from 'src/types/shared';
 import type { IParty } from 'src/types/shared';
 
-// TODO: Replace with i18n system when language support is added to nextsrc
-const texts = {
-  header: 'Hvem vil du sende inn for?',
-  searchPlaceholder: 'Søk etter aktør',
-  subheader: 'Dine aktører som kan starte tjenesten:',
-  showDeleted: 'Vis slettede',
-  showSubUnits: 'Vis underenheter',
-  unitDeleted: 'slettet',
-  unitOrgNumber: 'org.nr.',
-  unitPersonalNumber: 'personnr.',
-  unitTypeSubunit: 'underenhet',
-  unitTypeSubunitPlural: 'underenheter',
-  loadMore: 'Last flere',
-  whySeeingThis: 'Hvorfor ser jeg dette?',
-  seeingThisPreference:
-    'Du kan endre profilinnstillingene dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema.',
-  seeingThisOverride: 'Denne appen er satt opp til å alltid spørre om aktør.',
-  invalidSelectionNonExisting:
-    'Du har startet tjenesten med en aktør som enten ikke finnes eller som du ikke har tilgang på. Velg ny aktør under for å fortsette.',
-  bindingWord: 'eller',
-  unitTypePrivatePerson: 'privatperson',
-  unitTypeCompany: 'virksomhet',
-  unitTypeBankruptcyState: 'konkursbo',
-} as const;
-
-function getAppOwner(): string {
-  const textResource = GlobalData.textResources?.resources.find((r) => r.id === 'appOwner');
-  if (textResource?.value) {
-    return textResource.value;
+function getAppOwner(langAsString: (key: string) => string): string {
+  const resolved = langAsString('appOwner');
+  if (resolved !== 'appOwner') {
+    return resolved;
   }
   return GlobalData.orgName?.nb ?? GlobalData.org;
 }
 
-function getAppName(): string {
-  const textResource = GlobalData.textResources?.resources.find((r) => r.id === 'appName');
-  if (textResource?.value) {
-    return textResource.value;
+function getAppName(langAsString: (key: string) => string): string {
+  const resolved = langAsString('appName');
+  if (resolved !== 'appName') {
+    return resolved;
   }
-  const oldTextResource = GlobalData.textResources?.resources.find((r) => r.id === 'ServiceName');
-  if (oldTextResource?.value) {
-    return oldTextResource.value;
+  const serviceName = langAsString('ServiceName');
+  if (serviceName !== 'ServiceName') {
+    return serviceName;
   }
   return GlobalData.app;
 }
 
-function getPartyTypesString(): string {
+function getPartyTypesString(langAsString: (key: string) => string): string {
   const { partyTypesAllowed } = GlobalData.applicationMetadata ?? {};
   const allDisallowed = partyTypesAllowed ? Object.values(partyTypesAllowed).every((value) => !value) : true;
   const partyTypes: string[] = [];
 
   if (allDisallowed || partyTypesAllowed?.person) {
-    partyTypes.push(texts.unitTypePrivatePerson);
+    partyTypes.push(langAsString('party_selection.unit_type_private_person'));
   }
   if (allDisallowed || partyTypesAllowed?.organisation) {
-    partyTypes.push(texts.unitTypeCompany);
+    partyTypes.push(langAsString('party_selection.unit_type_company'));
   }
   if (allDisallowed || partyTypesAllowed?.subUnit) {
-    partyTypes.push(texts.unitTypeSubunit);
+    partyTypes.push(langAsString('party_selection.unit_type_subunit'));
   }
   if (allDisallowed || partyTypesAllowed?.bankruptcyEstate) {
-    partyTypes.push(texts.unitTypeBankruptcyState);
+    partyTypes.push(langAsString('party_selection.unit_type_bankruptcy_state'));
   }
 
   if (partyTypes.length === 1) {
     return partyTypes[0];
   }
 
+  const bindingWord = langAsString('party_selection.binding_word');
   let result = '';
   for (let i = 0; i < partyTypes.length; i++) {
     if (i === 0) {
       result += partyTypes[i];
     } else if (i === partyTypes.length - 1) {
-      result += ` ${texts.bindingWord} ${partyTypes[i]}`;
+      result += ` ${bindingWord} ${partyTypes[i]}`;
     } else {
       result += `, ${partyTypes[i]} `;
     }
@@ -94,6 +71,7 @@ function getPartyTypesString(): string {
 }
 
 export const PartySelectionPage = () => {
+  const { langAsString } = useLanguage();
   const { errorCode } = useParams<{ errorCode?: string }>();
   const navigate = useNavigate();
   const { data: parties = [], isLoading } = useQuery(partiesAllowedToInstantiateHierarchicalQuery);
@@ -125,11 +103,15 @@ export const PartySelectionPage = () => {
   const hasMoreParties = filteredParties.length > numberOfPartiesShown;
   const partiesSubset = filteredParties.slice(0, numberOfPartiesShown);
 
+  const header = langAsString('party_selection.header');
+  const appName = getAppName(langAsString);
+  const appOwner = getAppOwner(langAsString);
+
   if (parties.length === 0) {
     return (
       <div className={classes.container}>
         <InstantiateHeader />
-        <title>{`${texts.header} - ${getAppName()} - ${getAppOwner()}`}</title>
+        <title>{`${header} - ${appName} - ${appOwner}`}</title>
         <span data-testid='StatusCode'>403</span>
       </div>
     );
@@ -140,17 +122,17 @@ export const PartySelectionPage = () => {
       {!isLoading && <div id='finishedLoading' />}
 
       <InstantiateHeader />
-      <title>{`${texts.header} - ${getAppName()} - ${getAppOwner()}`}</title>
+      <title>{`${header} - ${appName} - ${appOwner}`}</title>
       <Heading
         level={1}
         className={classes.title}
       >
-        {texts.header}
+        {header}
       </Heading>
-      {errorCode === '403' && <ErrorMessage />}
+      {errorCode === '403' && <ErrorMessage langAsString={langAsString} />}
       <div className={classes.searchFieldContainer}>
         <input
-          placeholder={texts.searchPlaceholder}
+          placeholder={langAsString('party_selection.search_placeholder')}
           onChange={(e) => setFilterString(e.target.value)}
           value={filterString}
           inputMode='search'
@@ -158,21 +140,21 @@ export const PartySelectionPage = () => {
       </div>
       <div>
         <div className={classes.subTitleContainer}>
-          <Paragraph className={classes.subTitle}>{texts.subheader}</Paragraph>
+          <Paragraph className={classes.subTitle}>{langAsString('party_selection.subheader')}</Paragraph>
           <div className={classes.checkboxContainer}>
             <Checkbox
               data-size='sm'
               value='showDeleted'
               checked={showDeleted}
               onChange={() => setShowDeleted(!showDeleted)}
-              label={texts.showDeleted}
+              label={langAsString('party_selection.show_deleted')}
             />
             <Checkbox
               data-size='sm'
               value='showSubUnits'
               checked={showSubUnits}
               onChange={() => setShowSubUnits(!showSubUnits)}
-              label={texts.showSubUnits}
+              label={langAsString('party_selection.show_sub_unit')}
             />
           </div>
         </div>
@@ -194,7 +176,7 @@ export const PartySelectionPage = () => {
                 fontSize='1rem'
                 aria-hidden
               />
-              {texts.loadMore}
+              {langAsString('party_selection.load_more')}
             </Button>
           </div>
         )}
@@ -205,10 +187,12 @@ export const PartySelectionPage = () => {
               data-size='md'
               className={classes.explainedHeading}
             >
-              {texts.whySeeingThis}
+              {langAsString('party_selection.why_seeing_this')}
             </Heading>
             <Paragraph>
-              {appPromptForPartyOverride === 'always' ? texts.seeingThisOverride : texts.seeingThisPreference}
+              {appPromptForPartyOverride === 'always'
+                ? langAsString('party_selection.seeing_this_override')
+                : langAsString('party_selection.seeing_this_preference')}
             </Paragraph>
           </div>
         )}
@@ -242,7 +226,7 @@ function InstantiateHeader() {
   );
 }
 
-function ErrorMessage() {
+function ErrorMessage({ langAsString }: { langAsString: (key: string, params?: (string | number)[]) => string }) {
   const selectedParty = GlobalData.selectedParty;
   const partyName = selectedParty?.name ? capitalize(selectedParty.name) : '';
 
@@ -252,8 +236,11 @@ function ErrorMessage() {
       id='party-selection-error'
     >
       {!selectedParty
-        ? texts.invalidSelectionNonExisting
-        : `Du har startet tjenesten som ${partyName}. Denne tjenesten er kun tilgjengelig for ${getPartyTypesString()}. Velg ny aktør under.`}
+        ? langAsString('party_selection.invalid_selection_non_existing_party')
+        : langAsString('party_selection.invalid_selection_existing_party', [
+            partyName,
+            getPartyTypesString(langAsString),
+          ])}
     </Paragraph>
   );
 }
@@ -272,6 +259,7 @@ interface AltinnPartyProps {
 }
 
 function AltinnParty({ party, onSelectParty, showSubUnits }: AltinnPartyProps) {
+  const { langAsString } = useLanguage();
   const [subUnitsExpanded, setSubUnitsExpanded] = useState(false);
   const isOrg = party.partyTypeName === PartyType.Organisation;
 
@@ -314,10 +302,12 @@ function AltinnParty({ party, onSelectParty, showSubUnits }: AltinnPartyProps) {
           />
         )}
         <Paragraph className={classes.partyName}>
-          {party.name + (party.isDeleted ? ` (${texts.unitDeleted}) ` : '')}
+          {party.name + (party.isDeleted ? ` (${langAsString('party_selection.unit_deleted')}) ` : '')}
         </Paragraph>
         <Paragraph className={classes.partyInfo}>
-          {isOrg ? `${texts.unitOrgNumber} ${party.orgNumber}` : `${texts.unitPersonalNumber} ${party.ssn}`}
+          {isOrg
+            ? `${langAsString('party_selection.unit_org_number')} ${party.orgNumber}`
+            : `${langAsString('party_selection.unit_personal_number')} ${party.ssn}`}
         </Paragraph>
       </div>
       {showSubUnits && party.childParties && party.childParties.length > 0 && (
@@ -340,6 +330,7 @@ interface SubUnitsProps {
 }
 
 function SubUnits({ party, expanded, onToggle, onSelectParty }: SubUnitsProps) {
+  const { langAsString } = useLanguage();
   const childParties = party.childParties ?? [];
 
   function onKeyPress(event: React.KeyboardEvent) {
@@ -370,7 +361,11 @@ function SubUnits({ party, expanded, onToggle, onSelectParty }: SubUnitsProps) {
           <Paragraph>
             {childParties.length}
             &nbsp;
-            <span>{childParties.length === 1 ? texts.unitTypeSubunit : texts.unitTypeSubunitPlural}</span>
+            <span>
+              {childParties.length === 1
+                ? langAsString('party_selection.unit_type_subunit')
+                : langAsString('party_selection.unit_type_subunit_plural')}
+            </span>
           </Paragraph>
         </div>
       </div>
@@ -399,7 +394,7 @@ function SubUnits({ party, expanded, onToggle, onSelectParty }: SubUnitsProps) {
               <div className={classes.subUnitTextWrapper}>
                 <Paragraph className={classes.partyName}>{childParty.name}</Paragraph>
                 <Paragraph className={classes.partyInfo}>
-                  &nbsp;{texts.unitOrgNumber}&nbsp;{childParty.orgNumber}
+                  &nbsp;{langAsString('party_selection.unit_org_number')}&nbsp;{childParty.orgNumber}
                 </Paragraph>
               </div>
             </div>
