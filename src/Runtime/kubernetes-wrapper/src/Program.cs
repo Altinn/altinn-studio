@@ -1,4 +1,5 @@
 using System.Reflection;
+using Altinn.Studio.KubernetesWrapper.Configuration;
 using Altinn.Studio.KubernetesWrapper.Hosting;
 using Altinn.Studio.KubernetesWrapper.Services.Implementation;
 using Altinn.Studio.KubernetesWrapper.Services.Interfaces;
@@ -7,7 +8,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
-RegisterServices(builder.Services);
+RegisterServices(builder.Services, builder.Configuration);
 builder.AddOpenTelemetry();
 
 var app = builder.Build();
@@ -40,8 +41,24 @@ static void ConfigureApp(WebApplication app)
     app.MapControllers();
 }
 
-static void RegisterServices(IServiceCollection services)
+static void RegisterServices(IServiceCollection services, IConfiguration configuration)
 {
+    services
+        .AddOptions<GeneralSettings>()
+        .Bind(configuration.GetSection(GeneralSettings.SectionName))
+        .Validate(
+            options => options.CacheTtlSeconds > 0,
+            $"{GeneralSettings.SectionName}:CacheTtlSeconds must be greater than zero."
+        )
+        .Validate(
+            options =>
+                options.KubernetesRequestTimeoutSeconds
+                    is > 0
+                        and <= GeneralSettings.MaxKubernetesRequestTimeoutSeconds,
+            $"{GeneralSettings.SectionName}:KubernetesRequestTimeoutSeconds must be between 1 and {GeneralSettings.MaxKubernetesRequestTimeoutSeconds}."
+        )
+        .ValidateOnStart();
+
     services.AddCors(options =>
     {
         options.AddDefaultPolicy(builder =>
