@@ -18,24 +18,6 @@ public interface IEngineRepository
     Task<IReadOnlyList<Workflow>> GetScheduledWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all completed workflows.
-    /// </summary>
-    Task<IReadOnlyList<Workflow>> GetCompletedWorkflows(
-        string? search = null,
-        int? take = null,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
-    /// Gets all failed workflows.
-    /// </summary>
-    Task<IReadOnlyList<Workflow>> GetFailedWorkflows(
-        string? search = null,
-        int? take = null,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
     /// Gets finished workflows filtered by the specified statuses.
     /// </summary>
     Task<IReadOnlyList<Workflow>> GetFinishedWorkflows(
