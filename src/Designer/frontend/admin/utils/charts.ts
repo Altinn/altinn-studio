@@ -12,7 +12,7 @@ const isSameDay = (startDate: Date, endDate: Date): boolean =>
   startDate.getMonth() === endDate.getMonth() &&
   startDate.getDate() === endDate.getDate();
 
-export const formatTooltipTitle = (startMs: number, bucketSizeInMs: number): string[] => {
+const formatTooltipTitle = (startMs: number, bucketSizeInMs: number): string[] => {
   const startDate = new Date(startMs);
   const endDate = new Date(startMs + bucketSizeInMs);
   const dateHeader = isSameDay(startDate, endDate)
