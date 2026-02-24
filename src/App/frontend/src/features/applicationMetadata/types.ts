@@ -17,7 +17,6 @@ export interface ApplicationMetadata {
   features?: Partial<IBackendFeaturesState>;
   promptForParty?: 'always' | 'never';
   externalApiIds?: string[];
-
   onEntry: IOnEntry;
   altinnNugetVersion?: string;
   logo?: ILogoOptions;

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import userEvent from '@testing-library/user-event';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { TaskCardEditing, type TaskCardEditingProps } from './TaskCardEditing';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -137,7 +137,7 @@ describe('taskCard', () => {
       },
       expect.anything(),
     );
-    expect(onClose).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
   });
 
   it('should be able to update layoutSetId with enter-key', async () => {
@@ -158,7 +158,7 @@ describe('taskCard', () => {
       },
       expect.anything(),
     );
-    expect(onClose).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
   });
 
   it('should call updateProcessDataTypesMutation when datamodel id is changed', async () => {
