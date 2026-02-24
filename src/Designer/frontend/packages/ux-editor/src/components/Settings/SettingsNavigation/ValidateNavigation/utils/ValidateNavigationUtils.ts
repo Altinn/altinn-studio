@@ -112,7 +112,6 @@ export const getAvailablePages = (
   const pagesWithRules = externalConfig?.flatMap((config) => config.pages || []) || [];
 
   return allPages.filter((page) => {
-    if (!pagesWithRules) return true;
     return !pagesWithRules.includes(page) || selectedPages?.includes(page);
   });
 };
