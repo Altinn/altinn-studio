@@ -43,6 +43,7 @@
  *   executionStartedAt: string | null,
  *   removedAt:      string | null,
  *   startAt:        string | null,
+ *   hasState:       boolean | undefined,
  *   steps:          Step[],
  * }} Workflow
  */
@@ -115,6 +116,9 @@ export const dom = {
   modal:            /** @type {HTMLElement} */ (document.getElementById('step-modal')),
   modalTitle:       /** @type {HTMLElement} */ (document.getElementById('modal-title')),
   modalBody:        /** @type {HTMLElement} */ (document.getElementById('modal-body')),
+  stateModal:       /** @type {HTMLElement} */ (document.getElementById('state-modal')),
+  stateBody:        /** @type {HTMLElement} */ (document.getElementById('state-body')),
+  stateUpdated:     /** @type {HTMLElement} */ (document.getElementById('state-updated')),
   themeToggle:      /** @type {HTMLElement} */ (document.getElementById('theme-toggle')),
   themeIcon:        /** @type {HTMLElement} */ (document.getElementById('theme-icon')),
   themeLabel:       /** @type {HTMLElement} */ (document.getElementById('theme-label')),

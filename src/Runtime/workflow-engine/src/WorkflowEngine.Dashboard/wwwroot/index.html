@@ -231,6 +231,20 @@ No active workflows
   </div>
 </div>
 
+<div class="modal-overlay" id="state-modal" onclick="if(event.target===this)closeStateModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Workflow State</h2>
+      <span id="state-updated" class="state-updated"></span>
+      <span class="header-spacer"></span>
+      <button class="modal-close" onclick="closeStateModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="state-body">
+      <div class="modal-loading">Loading...</div>
+    </div>
+  </div>
+</div>
+
 <script type="module" src="/app.js"></script>
 </body>
 </html>

@@ -18,6 +18,7 @@ import { bindThemeCallbacks } from './modules/features/theme.js';
 
 // Side-effect imports: these modules register window.* handlers and DOM listeners on load
 import './modules/features/modal.js';
+import './modules/features/state-modal.js';
 import './modules/features/settings.js';
 
 /* ── Wire up late-bound callbacks to break circular dependencies ── */
@@ -29,6 +30,22 @@ bindLiveCallbacks({ mergeDiscoveredOrgsAndApps, applyFilter });
 bindRecentCallbacks({ mergeDiscoveredOrgsAndApps, applyFilter });
 bindFilterCallbacks({ syncUrl, loadQuery });
 bindThemeCallbacks({ syncUrl });
+
+/* ── Global handlers ─────────────────────────────────────── */
+
+/** Copy the text content of the sibling <pre> inside a .pre-wrap */
+window.copyPre = async (e) => {
+  e.stopPropagation();
+  const wrap = /** @type {HTMLElement} */ (e.currentTarget).closest('.pre-wrap');
+  const pre = wrap?.querySelector('pre');
+  if (!pre) return;
+  try {
+    await navigator.clipboard.writeText(pre.textContent || '');
+    const btn = /** @type {HTMLElement} */ (e.currentTarget);
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1200);
+  } catch { /* ignore */ }
+};
 
 /* ── Dashboard update (entry point for every SSE message) ── */
 

@@ -315,6 +315,35 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
+        app.MapGet(
+                "/dashboard/state",
+                async (
+                    IEngine engine,
+                    IServiceProvider sp,
+                    string wf,
+                    DateTimeOffset? createdAt,
+                    CancellationToken ct
+                ) =>
+                {
+                    // Try inbox first (has full Workflow with State)
+                    Workflow? workflow = engine.GetAllInboxWorkflows().FirstOrDefault(w => w.IdempotencyKey == wf);
+
+                    // Fall back to DB (recent cache only has DTOs without state)
+                    if (workflow is null && createdAt.HasValue)
+                    {
+                        using IServiceScope scope = sp.CreateScope();
+                        var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                        workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
+                    }
+
+                    if (workflow is null)
+                        return Results.NotFound();
+
+                    return Results.Json(new { state = workflow.State, updatedAt = workflow.UpdatedAt }, _jsonIndented);
+                }
+            )
+            .ExcludeFromDescription();
+
         return app;
     }
 }

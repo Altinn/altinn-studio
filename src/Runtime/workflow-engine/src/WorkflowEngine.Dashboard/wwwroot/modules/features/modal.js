@@ -80,7 +80,7 @@ const buildStepDetailHTML = (data) => {
     const payload = cmd.payload;
     if (payload != null) {
       html += '<div class="detail-section-sub">Payload</div>';
-      html += `<pre>${syntaxHighlight(expandJsonStrings(payload))}</pre>`;
+      html += `<div class="pre-wrap"><pre>${syntaxHighlight(expandJsonStrings(payload))}</pre><a class="pre-copy" onclick="copyPre(event)" title="Copy">&#10697;</a></div>`;
     }
   }
 

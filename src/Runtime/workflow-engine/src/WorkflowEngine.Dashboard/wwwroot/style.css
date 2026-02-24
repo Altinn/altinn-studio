@@ -556,6 +556,20 @@ body{min-height:100vh;padding:0}
   background:rgba(var(--cyan-rgb),0.08);border-color:var(--cyan);
 }
 
+/* ── State modal ─────────────────────────────────────────── */
+.state-btn{font-weight:700;font-size:13px;font-family:monospace}
+.state-updated{font-size:11px;color:var(--text-dim);margin-left:12px;white-space:nowrap}
+.pre-wrap{position:relative}
+.pre-wrap pre{margin:0}
+.pre-copy{
+  position:absolute;top:8px;right:8px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:4px;
+  color:var(--text-dim);font-size:14px;cursor:pointer;padding:2px 6px;
+  line-height:1;
+}
+.pre-copy:hover{color:var(--text-bright);border-color:var(--text-dim)}
+.pre-copy.copied{color:var(--green);border-color:var(--green)}
+
 /* ── Animations ───────────────────────────────────────────── */
 @keyframes pulse-glow{
   0%,100%{box-shadow:0 0 8px rgba(var(--amber-rgb),0.3)}

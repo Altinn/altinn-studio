@@ -31,6 +31,7 @@ internal sealed record DashboardWorkflowDto(
     DateTimeOffset? UpdatedAt,
     DateTimeOffset? StartAt,
     DateTimeOffset? RemovedAt,
+    bool HasState,
     IReadOnlyList<DashboardStepDto> Steps
 );
 
@@ -73,6 +74,7 @@ internal static class DashboardMapper
             workflow.UpdatedAt,
             workflow.StartAt,
             null,
+            workflow.State is not null,
             workflow.Steps.OrderBy(s => s.ProcessingOrder).Select(MapStep).ToList()
         );
 }
