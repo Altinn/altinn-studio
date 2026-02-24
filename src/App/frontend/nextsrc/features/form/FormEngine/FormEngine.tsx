@@ -63,20 +63,10 @@ const ButtonComponent = (props: CompButtonExternal) => {
 };
 
 const ButtonGroupComponent = (props: OverriddenButtonGroupWithChildComponents) => {
-  const resolvedTitle = GlobalData.textResources?.resources.find(
-    (resource) => resource.id === props.textResourceBindings?.title,
-  );
-
   if (props.children.some((child) => !['Button', 'CustomButton'].includes(child.type))) {
     throw new Error(`Only Button or CustomButton in Button group, got: ${props.type}`);
   }
-  return (
-    <div style={{ border: '1px solid blue' }}>
-      {props.children.map((button) => (
-        <React.Fragment key={button.id}>{renderComponent(button)}</React.Fragment>
-      ))}
-    </div>
-  );
+  return props.children.map((button) => <React.Fragment key={button.id}>{renderComponent(button)}</React.Fragment>);
 };
 
 type Override<T, K extends keyof T, NewType> = Omit<T, K> & {

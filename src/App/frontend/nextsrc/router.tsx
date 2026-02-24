@@ -24,7 +24,7 @@ export const router = createBrowserRouter(
       element: <AppLayout />,
       HydrateFallback: () => null,
       children: [
-        { path: routes.root, element: <></>, loader: entryRedirectLoader(), errorElement: <ErrorPage /> },
+        { path: routes.root, loader: entryRedirectLoader(), errorElement: <ErrorPage /> },
         { path: routes.instance, element: <InstancePage />, loader: instanceLoader },
         {
           path: routes.instanceSelection,
