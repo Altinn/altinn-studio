@@ -1,61 +1,75 @@
-import dot from 'dot-object';
 import { moveChildren } from 'nextsrc/libs/form-client/moveChildren';
-import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
-import type { ResolvedLayoutCollection, ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
+import { createFormDataStore } from 'nextsrc/libs/form-client/stores/formDataStore';
+import { createTextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
+import { createValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
 
+import type { StoreApi } from 'zustand';
+import type { FormDataNode } from 'nextsrc/core/apiClient/dataApi';
+import type { ResolvedLayoutCollection, ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
+import type { FormDataStore, FormDataStoreOptions } from 'nextsrc/libs/form-client/stores/formDataStore';
+import type { TextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
+import type { ValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
+import type { IApplicationSettings } from 'src/types/shared';
+import type { IRawTextResource } from 'src/features/language/textResources';
 import type { ILayoutCollection } from 'src/layout/layout';
 
-type Listener = () => void;
+export interface FormClientConfig {
+  textResources?: IRawTextResource[];
+  language?: string;
+  applicationSettings?: IApplicationSettings | null;
+  instanceDataSources?: Record<string, string> | null;
+  formDataOptions?: FormDataStoreOptions;
+}
 
 export class FormClient {
-  private layoutCollection: ResolvedLayoutCollection;
-  private formData: FormDataNode;
-  private listeners = new Map<string, Set<Listener>>();
+  public readonly formDataStore: StoreApi<FormDataStore>;
+  public readonly textResourceStore: StoreApi<TextResourceStore>;
+  public readonly validationStore: StoreApi<ValidationStore>;
 
-  public setFormData(formData: FormDataNode) {
-    this.formData = formData;
+  private layoutCollection: ResolvedLayoutCollection = {};
+  private applicationSettings: IApplicationSettings | null;
+  private instanceDataSources: Record<string, string> | null;
+
+  constructor(config: FormClientConfig = {}) {
+    this.applicationSettings = config.applicationSettings ?? null;
+    this.instanceDataSources = config.instanceDataSources ?? null;
+
+    this.formDataStore = createFormDataStore(null, config.formDataOptions);
+    this.textResourceStore = createTextResourceStore({
+      resources: config.textResources,
+      language: config.language,
+    });
+    this.validationStore = createValidationStore();
   }
 
-  public setLayoutCollection(layoutCollection: ILayoutCollection) {
+  get textResourceDataSources() {
+    return {
+      formDataGetter: (path: string) => this.formDataStore.getState().getValue(path),
+      applicationSettings: this.applicationSettings,
+      instanceDataSources: this.instanceDataSources,
+      customTextParameters: null,
+    };
+  }
+
+  setFormData(data: FormDataNode) {
+    this.formDataStore.getState().setData(data);
+  }
+
+  setLayoutCollection(layoutCollection: ILayoutCollection) {
     this.layoutCollection = Object.fromEntries(
       Object.entries(layoutCollection).map(([key, layout]) => [key, moveChildren(layout)]),
     );
-  }
-
-  getValue(path: string): FormDataPrimitive {
-    if (typeof this.formData !== 'object' || this.formData === null || Array.isArray(this.formData)) {
-      return null;
-    }
-    return (dot.pick(path, this.formData) as FormDataPrimitive) ?? null;
-  }
-
-  getFormData(): FormDataNode {
-    return this.formData;
-  }
-
-  setValue(path: string, value: FormDataPrimitive): void {
-    if (typeof this.formData !== 'object' || this.formData === null || Array.isArray(this.formData)) {
-      return;
-    }
-    dot.str(path, value, this.formData);
-    this.formData = { ...this.formData };
-    this.notify(path);
   }
 
   getFormLayout(layoutName: string): ResolvedLayoutFile {
     return this.layoutCollection[layoutName];
   }
 
-  subscribe(formId: string, listener: Listener) {
-    if (!this.listeners.has(formId)) {
-      this.listeners.set(formId, new Set());
-    }
-    this.listeners.get(formId)!.add(listener);
-    return () => this.listeners.get(formId)?.delete(listener);
+  setApplicationSettings(settings: IApplicationSettings | null) {
+    this.applicationSettings = settings;
   }
 
-  private notify(formId: string) {
-    this.listeners.get(formId)?.forEach((fn) => fn());
-    this.listeners.get('*')?.forEach((fn) => fn());
+  setInstanceDataSources(sources: Record<string, string> | null) {
+    this.instanceDataSources = sources;
   }
 }

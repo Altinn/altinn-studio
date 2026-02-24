@@ -7,14 +7,20 @@ import '@digdir/designsystemet-theme';
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { GlobalData } from 'nextsrc/core/globalData';
 import { FormClient } from 'nextsrc/libs/form-client/form-client';
-import { FormClientProvider } from 'nextsrc/libs/form-client/form-context';
+import { FormClientProvider } from 'nextsrc/libs/form-client/react/provider';
 import { queryClient } from 'nextsrc/QueryClient';
 import { router } from 'nextsrc/router';
 
 import 'src/index.css';
 
-export const formClient = new FormClient();
+export const formClient = new FormClient({
+  textResources: GlobalData.textResources?.resources,
+  language: GlobalData.textResources?.language,
+  applicationSettings: GlobalData.frontendSettings ?? null,
+});
+
 const root = document.getElementById('root');
 if (root) {
   createRoot(root).render(

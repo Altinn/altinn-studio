@@ -58,6 +58,10 @@ export class GlobalData {
     return GlobalData.layoutSets?.sets.find((layoutSet) => layoutSet.tasks?.includes(taskId));
   }
 
+  public static get frontendSettings(): IApplicationSettings {
+    return GlobalData.typedWindow.altinnAppGlobalData.frontendSettings;
+  }
+
   public static get textResources(): ITextResourceResult | undefined {
     return GlobalData.typedWindow.altinnAppGlobalData.textResources;
   }
