@@ -13,10 +13,10 @@ import (
 	"strings"
 	"testing"
 
+	"altinn.studio/devenv/pkg/runtimes/kind"
 	"altinn.studio/pdf3/internal/assert"
 	ptesting "altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
-	"altinn.studio/runtime-fixture/pkg/runtimes/kind"
 )
 
 var IsCI bool = os.Getenv("CI") != ""

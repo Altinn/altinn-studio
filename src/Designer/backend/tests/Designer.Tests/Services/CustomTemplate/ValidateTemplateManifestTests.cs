@@ -13,7 +13,6 @@ public class ValidateCustomTemplateTest
     public async Task ValidateManifestJsonAsync_ValidManifest_ReturnsNoErrors()
     {
         var validManifest = @"{
-        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
@@ -25,6 +24,7 @@ public class ValidateCustomTemplateTest
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(validManifest);
         Assert.Empty(errors);
+    }
     }
 
     [Fact]
@@ -40,7 +40,6 @@ public class ValidateCustomTemplateTest
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(missingSchemaManifest);
         Assert.Contains(errors, e => e.Kind == ValidationErrorKind.PropertyRequired && e.Property.Equals("schemaVersion"));
     }
-
     [Theory]
     [InlineData("/absolute/path")]
     [InlineData("../../other/app/templates")]
@@ -48,8 +47,8 @@ public class ValidateCustomTemplateTest
     [InlineData("/tmp/file.txt")]
     public async Task ValidateManifestJsonAsync_InvalidRemoveEntries_ReturnsError(string remove)
     {
+    {
         var invalidRemoveManifest = $@"{{
-        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
@@ -65,8 +64,8 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_UnknownProperty_ReturnsError()
     {
+    {
         var unknownPropertyManifest = @"{
-        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
@@ -90,8 +89,8 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_MissingName_ReturnsError()
     {
+    {
         var missingNbName = @"{
-        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""description"": ""This is a valid description for the template."",
@@ -106,8 +105,8 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_MissingDescription_ReturnsError()
     {
+    {
         var missingNbDescription = @"{
-        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",

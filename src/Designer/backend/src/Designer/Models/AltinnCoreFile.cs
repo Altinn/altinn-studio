@@ -70,7 +70,7 @@ namespace Altinn.Studio.Designer.Models
                 FileType = fileInfo.Extension,
                 Directory = fileInfo.DirectoryName,
                 RepositoryRelativeUrl = GetRepositoryRelativeUrl(filePath, repositoryRootDirectory),
-                LastChanged = fileInfo.LastWriteTime
+                LastChanged = fileInfo.LastWriteTime,
             };
         }
 

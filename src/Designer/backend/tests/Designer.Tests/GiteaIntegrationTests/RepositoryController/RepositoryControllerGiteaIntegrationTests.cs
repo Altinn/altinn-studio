@@ -17,16 +17,20 @@ using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
 {
-    public class RepositoryControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<RepositoryControllerGiteaIntegrationTests>
+    public class RepositoryControllerGiteaIntegrationTests
+        : GiteaIntegrationTestsBase<RepositoryControllerGiteaIntegrationTests>
     {
-
         // Gitea needs some time to process changes to the repo, so we need to retry a few times
-        private readonly AsyncRetryPolicy<HttpResponseMessage> _giteaRetryPolicy = Policy.HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
+        private readonly AsyncRetryPolicy<HttpResponseMessage> _giteaRetryPolicy = Policy
+            .HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
             .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
 
-        public RepositoryControllerGiteaIntegrationTests(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider) : base(factory, giteaFixture, sharedDesignerHttpClientProvider)
-        {
-        }
+        public RepositoryControllerGiteaIntegrationTests(
+            GiteaWebAppApplicationFactoryFixture<Program> factory,
+            GiteaFixture giteaFixture,
+            SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider
+        )
+            : base(factory, giteaFixture, sharedDesignerHttpClientProvider) { }
 
         [Theory]
         [InlineData(GiteaConstants.TestOrgUsername)]
@@ -50,16 +54,27 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             // Add a file to local repo and try to push with designer
             await File.WriteAllTextAsync($"{CreatedFolderPath}/test.txt", "I am a new file");
 
-            using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
+            using var commitAndPushContent = new StringContent(
+                GetCommitInfoJson("test commit", org, targetRepo),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push",
+                commitAndPushContent
+            );
             Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
 
             // Check if file is pushed to gitea
-            var giteaFileResponse = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test.txt");
+            var giteaFileResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
+                $"repos/{org}/{targetRepo}/contents/test.txt"
+            );
             Assert.Equal(HttpStatusCode.OK, giteaFileResponse.StatusCode);
 
             // Check contents with designer endpoint
-            using HttpResponseMessage contentsResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/contents?path=test.txt");
+            using HttpResponseMessage contentsResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/contents?path=test.txt"
+            );
             Assert.Equal(HttpStatusCode.OK, contentsResponse.StatusCode);
         }
 
@@ -72,15 +87,27 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
 
             // Try combination of commit and push endpoints separately
             await File.WriteAllTextAsync($"{CreatedFolderPath}/test3.txt", "I am a new file");
-            using var commitContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage commitResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit", commitContent);
+            using var commitContent = new StringContent(
+                GetCommitInfoJson("test commit", org, targetRepo),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage commitResponse = await HttpClient.PostAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/commit",
+                commitContent
+            );
             Assert.Equal(HttpStatusCode.OK, commitResponse.StatusCode);
 
-            using HttpResponseMessage pushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/push", null);
+            using HttpResponseMessage pushResponse = await HttpClient.PostAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/push",
+                null
+            );
             Assert.Equal(HttpStatusCode.OK, pushResponse.StatusCode);
 
             // Check if file is pushed to gitea
-            var giteaFileResponse2 = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test3.txt");
+            var giteaFileResponse2 = await GiteaFixture.GiteaClient.Value.GetAsync(
+                $"repos/{org}/{targetRepo}/contents/test3.txt"
+            );
             Assert.Equal(HttpStatusCode.OK, giteaFileResponse2.StatusCode);
         }
 
@@ -92,12 +119,21 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             await CreateAppUsingDesigner(org, targetRepo);
 
             // Create a file in gitea
-            using var createFileContent = new StringContent(GenerateCommitJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync($"repos/{org}/{targetRepo}/contents/test2.txt", createFileContent);
+            using var createFileContent = new StringContent(
+                GenerateCommitJsonPayload("I am a new file created in gitea", "test commit"),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync(
+                $"repos/{org}/{targetRepo}/contents/test2.txt",
+                createFileContent
+            );
             Assert.Equal(HttpStatusCode.Created, createFileResponse.StatusCode);
 
             // Try pull file with designer endpoint
-            using HttpResponseMessage pullResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/pull");
+            using HttpResponseMessage pullResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/pull"
+            );
             Assert.Equal(HttpStatusCode.OK, pullResponse.StatusCode);
 
             // Check if file exists locally
@@ -112,13 +148,17 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             await CreateAppUsingDesigner(org, targetRepo);
 
             // Call metadata endpoint
-            using HttpResponseMessage metadataResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/metadata");
+            using HttpResponseMessage metadataResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/metadata"
+            );
             Assert.Equal(HttpStatusCode.OK, metadataResponse.StatusCode);
             var deserializedRepositoryModel = await metadataResponse.Content.ReadAsAsync<Repository>();
             Assert.Equal(targetRepo, deserializedRepositoryModel.Name);
 
             // Call status endpoint
-            using HttpResponseMessage statusResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/status");
+            using HttpResponseMessage statusResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/status"
+            );
             Assert.Equal(HttpStatusCode.OK, statusResponse.StatusCode);
             var deserializedRepoStatusModel = await statusResponse.Content.ReadAsAsync<RepoStatus>();
             Assert.Equal(RepositoryStatus.Ok, deserializedRepoStatusModel.RepositoryStatus);
@@ -129,7 +169,9 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
         public async Task RepoStatus_ShouldReturn404NotFoundWhenInvalidRepo(string org)
         {
             // Call status endpoint
-            using HttpResponseMessage statusResponse = await HttpClient.GetAsync($"designer/api/repos/repo/{org}/123/status");
+            using HttpResponseMessage statusResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/123/status"
+            );
             Assert.Equal(HttpStatusCode.NotFound, statusResponse.StatusCode);
         }
 
@@ -158,7 +200,9 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             await CreateAppUsingDesigner(org, targetRepo);
 
             // Call branch endpoint
-            using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () => await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches/branch?branch=master"));
+            using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () =>
+                await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches/branch?branch=master")
+            );
             var deserializedBranchModel = await branchResponse.Content.ReadAsAsync<Branch>();
             Assert.Equal(HttpStatusCode.OK, branchResponse.StatusCode);
             Assert.Equal("master", deserializedBranchModel.Name);
@@ -173,7 +217,9 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             await CreateAppUsingDesigner(org, targetRepo);
 
             // Call branch endpoint
-            using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () => await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches"));
+            using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () =>
+                await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches")
+            );
             var deserializedBranchModel = await branchResponse.Content.ReadAsAsync<Branch[]>();
             Assert.Equal(HttpStatusCode.OK, branchResponse.StatusCode);
             Assert.NotEmpty(deserializedBranchModel);
@@ -188,14 +234,31 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
             await CreateAppUsingDesigner(org, targetRepo);
 
             // Create a file in gitea
-            using var createFileContent = new StringContent(GenerateCommitJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync($"repos/{org}/{targetRepo}/contents/fileAlreadyInRepository.txt", createFileContent);
+            using var createFileContent = new StringContent(
+                GenerateCommitJsonPayload("I am a new file created in gitea", "test commit"),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync(
+                $"repos/{org}/{targetRepo}/contents/fileAlreadyInRepository.txt",
+                createFileContent
+            );
             Assert.Equal(HttpStatusCode.Created, createFileResponse.StatusCode);
 
             // Add a file to local repo and try to push with designer
-            await File.WriteAllTextAsync($"{CreatedFolderPath}/fileAlreadyInRepository.txt", "I am a new file from studio.");
-            using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
+            await File.WriteAllTextAsync(
+                $"{CreatedFolderPath}/fileAlreadyInRepository.txt",
+                "I am a new file from studio."
+            );
+            using var commitAndPushContent = new StringContent(
+                GetCommitInfoJson("test commit", org, targetRepo),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push",
+                commitAndPushContent
+            );
             Assert.Equal(HttpStatusCode.Conflict, commitAndPushResponse.StatusCode);
         }
     }

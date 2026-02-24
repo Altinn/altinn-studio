@@ -9,10 +9,15 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static class DeployEventDesignerDbFixtureExtensions
 {
-    public static async Task PrepareDeployEventInDatabase(this DesignerDbFixture dbFixture, string org, string buildId, DeployEvent deployEvent)
+    public static async Task PrepareDeployEventInDatabase(
+        this DesignerDbFixture dbFixture,
+        string org,
+        string buildId,
+        DeployEvent deployEvent
+    )
     {
-        long deploymentSequenceNo = await dbFixture.DbContext.Deployments
-            .Include(d => d.Build)
+        long deploymentSequenceNo = await dbFixture
+            .DbContext.Deployments.Include(d => d.Build)
             .AsNoTracking()
             .Where(d => d.Org == org && d.Build.ExternalId == buildId)
             .Select(d => d.Sequenceno)
@@ -25,7 +30,7 @@ public static class DeployEventDesignerDbFixtureExtensions
             Message = deployEvent.Message,
             Timestamp = deployEvent.Timestamp,
             Created = deployEvent.Created,
-            Origin = deployEvent.Origin.ToString()
+            Origin = deployEvent.Origin.ToString(),
         };
 
         await dbFixture.DbContext.DeployEvents.AddAsync(dbModel);

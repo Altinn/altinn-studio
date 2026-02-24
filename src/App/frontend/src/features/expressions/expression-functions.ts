@@ -23,7 +23,7 @@ import type {
 } from 'src/features/expressions/types';
 import type { ValidationContext } from 'src/features/expressions/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { IAuthContext, IInstanceDataSources } from 'src/types/shared';
+import type { IInstanceDataSources } from 'src/types/shared';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type ArgsToActual<T extends readonly AnyExprArg[]> = {
@@ -407,22 +407,20 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     return (this.dataSources.applicationSettings && this.dataSources.applicationSettings[key]) || null;
   },
   authContext(key) {
-    const authContextKeys: { [key in keyof IAuthContext]: true } = {
-      read: true,
-      write: true,
-      instantiate: true,
-      confirm: true,
-      sign: true,
-      reject: true,
-      complete: true,
-    };
-
-    if (key === null || authContextKeys[key] !== true) {
-      throw new ExprRuntimeError(this.expr, this.path, `Unknown auth context property ${key}`);
+    if (key === null) {
+      throw new ExprRuntimeError(this.expr, this.path, `Auth context key cannot be null`);
     }
 
     const authContext = buildAuthContext(this.dataSources.process?.currentTask);
-    return Boolean(authContext?.[key]);
+    const hasAction = authContext?.[key];
+    if (hasAction === undefined) {
+      throw new ExprRuntimeError(
+        this.expr,
+        this.path,
+        `Unknown Auth context property ${key} for task ${this.dataSources.process?.currentTask?.elementId} (allowed keys are {${Object.keys(authContext).join(', ')}})`,
+      );
+    }
+    return Boolean(hasAction);
   },
   component(id) {
     if (id === null) {

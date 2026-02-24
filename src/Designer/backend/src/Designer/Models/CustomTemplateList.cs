@@ -33,7 +33,6 @@ namespace Altinn.Studio.Designer.Models
             }
 
             if (string.IsNullOrWhiteSpace(Name))
-
             {
                 return false;
             }

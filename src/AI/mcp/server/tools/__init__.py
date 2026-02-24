@@ -101,8 +101,8 @@ Remember: This server specializes in Norwegian government applications using the
 # Global MCP instance - will be initialized by main.py after parsing arguments
 mcp = None
 
-def initialize_mcp(port: int = 8069):
-    """Initialize the MCP server with the specified port."""
+def initialize_mcp():
+    """Initialize the MCP server."""
     global mcp
     if mcp is not None:
         return mcp  # Already initialized
@@ -110,8 +110,6 @@ def initialize_mcp(port: int = 8069):
     mcp = FastMCP(
         name="altinity_mcp_server",
         instructions=ALTINITY_INSTRUCTIONS,
-        host="0.0.0.0",
-        port=port,
         version="1.0.5"
     )
     return mcp

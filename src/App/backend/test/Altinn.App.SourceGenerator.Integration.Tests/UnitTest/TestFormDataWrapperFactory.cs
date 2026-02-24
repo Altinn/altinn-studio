@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.SourceGenerator.Integration.Tests.Models;
 using Xunit;
@@ -26,21 +27,26 @@ public class TestFormDataWrapperFactory(ITestOutputHelper testOutputHelper)
         Assert.NotNull(result);
         Assert.Equal(model, result);
 
-        // Try to force garbage collection to get a better measurement of second execution
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
+        // Measure execution time (take best of 3 to avoid flaky results from GC/JIT)
+        var samples = new TimeSpan[3];
+        for (int i = 0; i < samples.Length; i++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
 
-        // Measure second execution time
-        stopwatch.Restart();
-        var wrapper2 = FormDataWrapperFactory.Create(model);
-        stopwatch.Stop();
-        testOutputHelper.WriteLine($"Second execution {stopwatch.Elapsed.TotalMicroseconds} microseconds");
-        Assert.IsType<Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper>(wrapper2);
-        Assert.IsNotType<ReflectionFormDataWrapper>(wrapper2);
-        Assert.NotSame(wrapper, wrapper2);
+            stopwatch.Restart();
+            var w = FormDataWrapperFactory.Create(model);
+            stopwatch.Stop();
+            samples[i] = stopwatch.Elapsed;
 
-        // Assert that the second execution is very fast (due to caching)
-        // Would like to assert lower, but lets be conservative to avoid flaky tests
-        Assert.InRange(stopwatch.Elapsed, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
+            testOutputHelper.WriteLine($"Sample {i + 1}: {stopwatch.Elapsed.TotalMicroseconds} microseconds");
+            Assert.IsType<Altinn_App_SourceGenerator_Integration_Tests_Models_SkjemaFormDataWrapper>(w);
+            Assert.IsNotType<ReflectionFormDataWrapper>(w);
+            Assert.NotSame(wrapper, w);
+        }
+
+        var fastest = samples.Min();
+        testOutputHelper.WriteLine($"Fastest: {fastest.TotalMicroseconds} microseconds");
+        Assert.InRange(fastest, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
     }
 }

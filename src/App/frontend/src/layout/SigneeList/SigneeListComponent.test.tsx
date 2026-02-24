@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
@@ -16,7 +16,7 @@ import { ProcessTaskType } from 'src/types';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 jest.mock('src/utils/layout/useNodeItem');
-jest.mock('react-router-dom');
+jest.mock('react-router');
 jest.mock('src/features/language/useLanguage');
 jest.mock('src/features/language/Lang');
 jest.mock('src/features/instance/useProcessQuery');

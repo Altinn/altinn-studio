@@ -64,9 +64,9 @@ def main() -> None:
     # Determine the port to use
     port = args.port if args.port else 8069
 
-    # Initialize MCP with the correct port BEFORE importing tools
+    # Initialize MCP BEFORE importing tools
     from server.tools import initialize_mcp, register_all_tools
-    mcp = initialize_mcp(port)
+    mcp = initialize_mcp()
     
     # Now register all the tools with the initialized MCP instance
     register_all_tools()
@@ -106,7 +106,10 @@ def main() -> None:
     else:
         print(f"Starting Altinity MCP server on port {port} using transport {transport}", file=sys.stderr, flush=True)
     
-    mcp.run(transport=transport)
+    if transport == "stdio":
+        mcp.run(transport=transport)
+    else:
+        mcp.run(transport=transport, host="0.0.0.0", port=port)
 
 
 if __name__ == "__main__":

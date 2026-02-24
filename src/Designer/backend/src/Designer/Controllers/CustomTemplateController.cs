@@ -29,10 +29,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             List<CustomTemplateListObject> templates = await _templateService.GetCustomTemplateList();
 
-            return Ok(new CustomTemplateList()
-            {
-                Templates = templates
-            });
+            return Ok(new CustomTemplateList() { Templates = templates });
         }
 
         [HttpGet("{owner}/{id}")]
