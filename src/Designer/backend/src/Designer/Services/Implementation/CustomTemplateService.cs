@@ -54,7 +54,7 @@ public class CustomTemplateService : ICustomTemplateService
     /// <inheritdoc />
     public async Task<List<CustomTemplateListObject>> GetCustomTemplateList()
     {
-        List<string> organizations = (await _giteaClient.GetUserOrganizations() ?? []).Select(o => o.Username).ToList();
+        List<string> organizations = [.. (await _giteaClient.GetUserOrganizations() ?? []).Select(o => o.Username)];
 
         List<Task<List<CustomTemplateListObject>>> tasks = organizations
             .Where(org => org != _templateSettings.DefaultTemplateOrganization)
