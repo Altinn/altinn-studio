@@ -249,10 +249,11 @@ describe('AppMetrics', () => {
     it('should render a danger alert when errors', () => {
       const queryClient = createQueryClientMock();
 
+      const timestampTest = Date.UTC(2024, 0, 1);
       const mockData = [
         {
           name: 'failed_process_next_requests',
-          timestamps: [1704067200000],
+          timestamps: [timestampTest],
           counts: [5],
           bucketSize: 5,
         },

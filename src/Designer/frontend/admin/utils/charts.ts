@@ -38,7 +38,7 @@ export const getChartOptions = (bucketSize: number, range: number): ChartOptions
       tooltip: {
         callbacks: {
           title: (items) => {
-            if (!items.length) return '';
+            if (!items.length) return;
             return formatTooltipTitle(items[0].parsed.x, bucketSizeInMs);
           },
         },
@@ -73,11 +73,6 @@ export const getChartOptions = (bucketSize: number, range: number): ChartOptions
           stepSize: 1,
           font: {
             size: 10,
-          },
-        },
-        adapters: {
-          date: {
-            locale: nb,
           },
         },
       },
