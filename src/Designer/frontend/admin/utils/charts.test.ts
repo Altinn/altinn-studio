@@ -38,7 +38,7 @@ describe('getChartOptions', () => {
       expect(timeRange).toMatch(/\d{2}:\d{2} – \d{2}:\d{2}/);
     });
 
-    it('returns empty string when no items', () => {
+    it('returns undefined when no items', () => {
       const options = getChartOptions(5, 60);
       const title = options.plugins?.tooltip?.callbacks?.title;
       const result = title?.call({} as TooltipCallbacks<'bar'>, []);
