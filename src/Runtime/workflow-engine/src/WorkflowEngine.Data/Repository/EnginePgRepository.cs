@@ -639,30 +639,8 @@ internal static class EnginePgRepositoryQueries
                 .Where(x => x.StartAt != null && x.StartAt > DateTime.UtcNow)
                 .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
 
-        public IQueryable<WorkflowEntity> GetFailedWorkflows(string? search = null, int? take = null)
-        {
-            var query = dbContext.Workflows.Include(j => j.Steps).Where(x => _failedItemStatuses.Contains(x.Status));
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var s = search.ToLower();
-                query = query.Where(x =>
-                    x.InstanceGuid.ToString().Contains(s)
-                    || x.InstanceOrg.ToLower().Contains(s)
-                    || x.InstanceApp.ToLower().Contains(s)
-                    || x.OperationId.ToLower().Contains(s)
-                    || x.InstanceOwnerPartyId.ToString().Contains(s)
-                    || x.Steps.Any(st => st.OperationId.ToLower().Contains(s))
-                );
-            }
-
-            query = query.OrderByDescending(x => x.UpdatedAt);
-
-            if (take.HasValue)
-                query = query.Take(take.Value);
-
-            return query;
-        }
+        public IQueryable<WorkflowEntity> GetFailedWorkflows() =>
+            dbContext.Workflows.Where(x => _failedItemStatuses.Contains(x.Status));
 
         public IQueryable<WorkflowEntity> GetFinishedWorkflows(
             IReadOnlyList<PersistentItemStatus> statuses,
