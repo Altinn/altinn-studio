@@ -4072,6 +4072,8 @@ namespace Altinn.App.Core.Models
         public Altinn.App.Core.Models.Logo? Logo { get; set; }
         [Newtonsoft.Json.JsonProperty(PropertyName="onEntry")]
         public new Altinn.App.Core.Models.OnEntry? OnEntry { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName="promptForParty")]
+        public string? PromptForParty { get; set; }
         [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.Dictionary<string, object>? UnmappedProperties { get; set; }
     }

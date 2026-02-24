@@ -4,7 +4,15 @@ import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-
 
 import type { IProcess, ITask } from 'src/types/shared';
 
-export type CyUser = 'default' | 'manager' | 'accountant' | 'auditor' | 'selfIdentified';
+export type CyUser =
+  | 'default'
+  | 'manager'
+  | 'accountant'
+  | 'auditor'
+  | 'selfIdentified'
+  | 'multiPartyPrompt'
+  | 'multiPartyPrompt2'
+  | 'doNotPromptParty';
 
 type UserInfo = {
   firstName: string;
@@ -49,6 +57,27 @@ export const cyUserCredentials: { [K in CyUser]: UserInfo } = {
     userName: Cypress.env('selfIdentifiedUserName'),
     userPassword: Cypress.env('selfIdentifiedUserPwd'),
     localPartyId: Cypress.env('selfIdentifiedPartyId'),
+  },
+  multiPartyPrompt: {
+    firstName: Cypress.env('multiPartyPromptFirstName'),
+    displayName: Cypress.env('multiPartyPromptFullName'),
+    userName: Cypress.env('multiPartyPromptUserName'),
+    userPassword: Cypress.env('multiPartyPromptUserPwd'),
+    localPartyId: Cypress.env('multiPartyPromptPartyId'),
+  },
+  multiPartyPrompt2: {
+    firstName: Cypress.env('multiPartyPrompt2FirstName'),
+    displayName: Cypress.env('multiPartyPrompt2FullName'),
+    userName: Cypress.env('multiPartyPrompt2UserName'),
+    userPassword: Cypress.env('multiPartyPrompt2UserPwd'),
+    localPartyId: Cypress.env('multiPartyPrompt2PartyId'),
+  },
+  doNotPromptParty: {
+    firstName: Cypress.env('doNotPromptPartyFirstName'),
+    displayName: Cypress.env('doNotPromptPartyFullName'),
+    userName: Cypress.env('doNotPromptPartyUserName'),
+    userPassword: Cypress.env('doNotPromptPartyUserPwd'),
+    localPartyId: Cypress.env('doNotPromptPartyPartyId'),
   },
 };
 

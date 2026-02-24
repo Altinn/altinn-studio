@@ -2494,24 +2494,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2531,6 +2513,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2551,24 +2549,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2588,6 +2568,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2608,24 +2604,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2645,6 +2623,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2665,24 +2659,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2702,6 +2678,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2730,24 +2722,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2767,6 +2741,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2795,24 +2785,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2832,6 +2804,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2868,24 +2856,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2905,6 +2875,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -7632,6 +7618,10 @@
             "$ref": "#/components/schemas/Logo"
           },
           "altinnNugetVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "promptForParty": {
             "type": "string",
             "nullable": true
           },
