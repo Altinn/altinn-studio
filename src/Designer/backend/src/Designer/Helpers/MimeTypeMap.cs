@@ -10,7 +10,9 @@ namespace Altinn.Studio.Designer.Helpers
     /// </summary>
     public static class MimeTypeMap
     {
-        private static readonly Lazy<IDictionary<string, string>> s_mappings = new Lazy<IDictionary<string, string>>(BuildMappings);
+        private static readonly Lazy<IDictionary<string, string>> s_mappings = new Lazy<IDictionary<string, string>>(
+            BuildMappings
+        );
 
         private static IDictionary<string, string> BuildMappings()
         {
@@ -646,7 +648,7 @@ namespace Altinn.Studio.Designer.Helpers
                 { "application/x-x509-ca-cert", ".cer" },
                 { "application/x-zip-compressed", ".zip" },
                 { "application/xhtml+xml", ".xhtml" },
-                { "application/xml", ".xml" },  // anomoly, .xml -> text/xml, but application/xml -> many thingss, but all are xml, so safest is .xml
+                { "application/xml", ".xml" }, // anomoly, .xml -> text/xml, but application/xml -> many thingss, but all are xml, so safest is .xml
                 { "audio/aac", ".AAC" },
                 { "audio/aiff", ".aiff" },
                 { "audio/basic", ".snd" },

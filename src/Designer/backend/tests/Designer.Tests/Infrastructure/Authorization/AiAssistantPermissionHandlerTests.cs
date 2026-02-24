@@ -24,11 +24,7 @@ public class AiAssistantPermissionHandlerTests
         var requirement = new AiAssistantPermissionRequirement();
 
         var user = new ClaimsPrincipal();
-        var context = new AuthorizationHandlerContext(
-            [requirement],
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext([requirement], user, resource: null);
 
         await handler.HandleAsync(context);
         Assert.False(context.HasSucceeded);
@@ -39,19 +35,14 @@ public class AiAssistantPermissionHandlerTests
     public async Task HandleRequirementAsync_ShouldSucceed_WhenUserIsMemberOfAllowedOrganization()
     {
         var giteaMock = new Mock<IGiteaClient>();
-        giteaMock.Setup(g => g.GetUserOrganizations())
-            .ReturnsAsync([new Organization { Username = AllowedOrg }]);
+        giteaMock.Setup(g => g.GetUserOrganizations()).ReturnsAsync([new Organization { Username = AllowedOrg }]);
 
         var userOrganizationService = new UserOrganizationService(giteaMock.Object);
         var handler = new AiAssistantPermissionHandler(userOrganizationService);
         var requirement = new AiAssistantPermissionRequirement();
 
         var user = new ClaimsPrincipal(new ClaimsIdentity([], "TestUserLogin"));
-        var context = new AuthorizationHandlerContext(
-            [requirement],
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext([requirement], user, resource: null);
 
         await handler.HandleAsync(context);
 
@@ -63,19 +54,14 @@ public class AiAssistantPermissionHandlerTests
     public async Task HandleRequirementAsync_ShouldFail_WhenUserIsNotMemberOfAllowedOrganization()
     {
         var giteaMock = new Mock<IGiteaClient>();
-        giteaMock.Setup(g => g.GetUserOrganizations())
-            .ReturnsAsync([new Organization { Username = "other-org" }]);
+        giteaMock.Setup(g => g.GetUserOrganizations()).ReturnsAsync([new Organization { Username = "other-org" }]);
 
         var userOrganizationService = new UserOrganizationService(giteaMock.Object);
         var handler = new AiAssistantPermissionHandler(userOrganizationService);
         var requirement = new AiAssistantPermissionRequirement();
 
         var user = new ClaimsPrincipal(new ClaimsIdentity([], "TestUserLogin"));
-        var context = new AuthorizationHandlerContext(
-            [requirement],
-            user,
-            resource: null
-        );
+        var context = new AuthorizationHandlerContext([requirement], user, resource: null);
 
         await handler.HandleAsync(context);
         Assert.False(context.HasSucceeded);

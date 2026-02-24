@@ -4,18 +4,23 @@ using Altinn.Studio.Gateway.Api.Clients.MetricsClient.Contracts.AzureMonitor;
 using Altinn.Studio.Gateway.Api.Settings;
 using Azure;
 using Azure.Core;
+using Azure.Identity;
 using Azure.Monitor.Query.Logs;
 using Azure.Monitor.Query.Logs.Models;
 using Azure.ResourceManager.OperationalInsights;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 
-internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQueryClient logsQueryClient)
-    : IMetricsClient
+internal sealed class AzureMonitorClient(
+    IOptionsMonitor<GatewayContext> _gatewayContext,
+    LogsQueryClient _logsQueryClient,
+    ILogger<AzureMonitorClient> _logger
+) : IMetricsClient
 {
-    private ResourceIdentifier? _workspaceId;
-
     private const int MaxRange = 10080;
+    private const int MaxActivityWindowDays = 30;
 
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
     {
@@ -44,21 +49,22 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
         return range < 360 ? "5m" : "1h";
     }
 
-    private async Task<ResourceIdentifier> GetApplicationLogAnalyticsWorkspaceIdAsync()
+    private ResourceIdentifier GetApplicationLogAnalyticsWorkspaceId()
     {
-        return _workspaceId ??= OperationalInsightsWorkspaceResource.CreateResourceIdentifier(
+        var gatewayContext = _gatewayContext.CurrentValue;
+        return OperationalInsightsWorkspaceResource.CreateResourceIdentifier(
             gatewayContext.AzureSubscriptionId,
             $"monitor-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-rg",
             $"application-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-law"
         );
     }
 
-    public async Task<IEnumerable<FailedRequest>> GetFailedRequestsAsync(int range, CancellationToken cancellationToken)
+    public async Task<IEnumerable<FailedRequest>> GetFailedRequests(int range, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
+        var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
         var query =
             $@"
@@ -69,7 +75,7 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
                 | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
                 | summarize Count = count() by AppRoleName, OperationName";
 
-        Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
             query,
             new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
@@ -98,7 +104,90 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
             });
     }
 
-    public async Task<IEnumerable<AppFailedRequest>> GetAppFailedRequestsAsync(
+    public async Task<ActiveAppsResult> GetActiveApps(int windowDays, CancellationToken cancellationToken)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowDays);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(windowDays, MaxActivityWindowDays);
+
+        try
+        {
+            var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
+            var query =
+                $@"
+                AppRequests
+                | where TimeGenerated > ago({windowDays}d)
+                | where Name != 'GET /health'
+                | summarize Count = count() by AppRoleName";
+
+            Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+                logAnalyticsWorkspaceId,
+                query,
+                new LogsQueryTimeRange(TimeSpan.FromDays(windowDays)),
+                cancellationToken: cancellationToken
+            );
+
+            var activeAppRows = response
+                .Value.Table.Rows.Select(row => new
+                {
+                    AppName = row.GetString("AppRoleName") ?? string.Empty,
+                    Count = row.GetDouble("Count") ?? 0,
+                })
+                .Where(static row => row.AppName.Length > 0)
+                .GroupBy(static row => row.AppName, StringComparer.Ordinal)
+                .Select(group => new { AppName = group.Key, Count = group.Sum(row => row.Count) })
+                .ToArray();
+
+            var activeAppRequestCounts = activeAppRows.ToDictionary(
+                static row => row.AppName,
+                static row => row.Count,
+                StringComparer.Ordinal
+            );
+
+            return new ActiveAppsResult { Status = ActivityStatus.Ok, ActiveAppRequestCounts = activeAppRequestCounts };
+        }
+        catch (CredentialUnavailableException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor credentials are unavailable while getting active apps.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Unavailable,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
+        }
+        catch (AuthenticationFailedException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor authentication failed while getting active apps.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Unavailable,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
+        }
+        catch (RequestFailedException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor request failed while getting active apps.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Unavailable,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while getting active apps from Azure Monitor.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Error,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
+        }
+    }
+
+    public async Task<IEnumerable<AppFailedRequest>> GetAppFailedRequests(
         string app,
         int range,
         CancellationToken cancellationToken
@@ -107,7 +196,7 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
+        var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
         var interval = GetInterval(range);
 
@@ -122,7 +211,7 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
                 | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-        Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
             query,
             new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
@@ -155,18 +244,14 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
         );
     }
 
-    public async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
-        string app,
-        int range,
-        CancellationToken cancellationToken
-    )
+    public async Task<IEnumerable<AppMetric>> GetAppMetrics(string app, int range, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
         List<string> names = ["altinn_app_lib_processes_started", "altinn_app_lib_processes_ended"];
 
-        var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
+        var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
         var interval = GetInterval(range);
 
@@ -178,7 +263,7 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
                 | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-        Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
             query,
             new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),

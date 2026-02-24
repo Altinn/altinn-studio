@@ -48,7 +48,7 @@ describe('AppValidationDialog', () => {
 
   it('renders dialog with heading and updated-at paragraph', () => {
     renderAppValidationDialog({});
-    expect(screen.getByText('Valideringsfeil')).toBeInTheDocument();
+    expect(screen.getByText(/app_validation\.heading/)).toBeInTheDocument();
     expect(screen.getByText(/general\.updatedAt/)).toBeInTheDocument();
   });
 

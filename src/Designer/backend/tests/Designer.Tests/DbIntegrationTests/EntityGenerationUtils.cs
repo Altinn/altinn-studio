@@ -8,7 +8,12 @@ public static partial class EntityGenerationUtils
 {
     public static partial class Build
     {
-        public static BuildEntity GenerateBuildEntity(string buildId = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded, DateTime? finished = null)
+        public static BuildEntity GenerateBuildEntity(
+            string buildId = null,
+            BuildStatus buildStatus = BuildStatus.Completed,
+            BuildResult buildResult = BuildResult.Succeeded,
+            DateTime? finished = null
+        )
         {
             return new BuildEntity
             {
@@ -16,9 +21,8 @@ public static partial class EntityGenerationUtils
                 Status = buildStatus,
                 Result = buildResult,
                 Started = DateTime.UtcNow,
-                Finished = finished
+                Finished = finished,
             };
         }
     }
-
 }

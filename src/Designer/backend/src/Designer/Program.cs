@@ -75,7 +75,11 @@ void SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment 
     logger.LogInformation("// Program.cs // SetConfigurationProviders // Attempting to configure providers");
     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
     config.SetBasePath(basePath);
-    config.AddJsonFile(basePath + "app/altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
+    config.AddJsonFile(
+        basePath + "app/altinn-appsettings/altinn-appsettings-secret.json",
+        optional: true,
+        reloadOnChange: true
+    );
     string envName = hostingEnvironment.EnvironmentName;
 
     if (basePath == "/")
@@ -84,7 +88,11 @@ void SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment 
     }
     else
     {
-        config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
+        config.AddJsonFile(
+            Directory.GetCurrentDirectory() + "/appsettings.json",
+            optional: false,
+            reloadOnChange: true
+        );
     }
 
     config.AddEnvironmentVariables();
@@ -111,7 +119,11 @@ void SetConfigurationProviders(ConfigurationManager config, IWebHostEnvironment 
 
     if (hostingEnvironment.IsDevelopment() && !Directory.GetCurrentDirectory().Contains("app"))
     {
-        config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
+        config.AddJsonFile(
+            Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json",
+            optional: true,
+            reloadOnChange: true
+        );
         Assembly assembly = Assembly.Load(new AssemblyName(hostingEnvironment.ApplicationName));
         if (assembly != null)
         {
@@ -139,14 +151,19 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         options.AllowSynchronousIO = true;
     });
 
-    services.ConfigureResourceRegistryIntegrationSettings(configuration.GetSection("ResourceRegistryIntegrationSettings"));
+    services.ConfigureResourceRegistryIntegrationSettings(
+        configuration.GetSection("ResourceRegistryIntegrationSettings")
+    );
     services.ConfigureMaskinportenIntegrationSettings(configuration.GetSection("MaskinportenClientSettings"));
 
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     services.Configure<AltinitySettings>(configuration.GetSection("AltinitySettings"));
     services.AddSingleton<IAltinityWebSocketService, AltinityWebSocketService>();
     var maskinPortenClientName = "MaskinportenClient";
-    services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
+    services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(
+        maskinPortenClientName,
+        configuration.GetSection("MaskinportenClientSettings")
+    );
     services.AddHttpClient<IResourceRegistry, ResourceRegistryService>();
 
     var maskinportenSettings = new MaskinportenClientSettings();
@@ -207,8 +224,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-8.0
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
-            options.ForwardedHeaders =
-                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
@@ -238,18 +254,16 @@ void Configure(IConfiguration configuration)
     }
 
     app.UseDefaultFiles();
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        OnPrepareResponse = context =>
+    app.UseStaticFiles(
+        new StaticFileOptions
         {
-            ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
-            headers.CacheControl = new CacheControlHeaderValue
+            OnPrepareResponse = context =>
             {
-                Public = true,
-                MaxAge = TimeSpan.FromMinutes(60),
-            };
+                ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
+                headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromMinutes(60) };
+            },
         }
-    });
+    );
 
     app.MapOpenApi("/designer/openapi/{documentName}/openapi.json");
 
@@ -282,11 +296,16 @@ void CreateDirectory(IConfiguration configuration)
 
     // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
     // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-    var repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings:RepositoryLocation") ??
-                                                       configuration["ServiceRepositorySettings:RepositoryLocation"];
+    var repoLocation =
+        Environment.GetEnvironmentVariable("ServiceRepositorySettings:RepositoryLocation")
+        ?? configuration["ServiceRepositorySettings:RepositoryLocation"];
     if (string.IsNullOrWhiteSpace(repoLocation))
     {
-        repoLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "altinn", "repos");
+        repoLocation = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "altinn",
+            "repos"
+        );
         configuration.GetSection("ServiceRepositorySettings")["RepositoryLocation"] = repoLocation;
     }
 

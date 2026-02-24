@@ -47,10 +47,7 @@ class AppResourcesService : IAppResourcesService
     )
     {
         var appClusterUri = await _environmentsService.GetAppClusterUri(org, env);
-        using var response = await _httpClient.GetAsync(
-            $"{appClusterUri}/{org}/{app}/api/v1/applicationmetadata",
-            ct
-        );
+        using var response = await _httpClient.GetAsync($"{appClusterUri}/{org}/{app}/api/v1/applicationmetadata", ct);
 
         response.EnsureSuccessStatusCode();
 
@@ -65,10 +62,7 @@ class AppResourcesService : IAppResourcesService
     )
     {
         var appClusterUri = await _environmentsService.GetAppClusterUri(org, env);
-        using var response = await _httpClient.GetAsync(
-            $"{appClusterUri}/{org}/{app}/api/v1/meta/process",
-            ct
-        );
+        using var response = await _httpClient.GetAsync($"{appClusterUri}/{org}/{app}/api/v1/meta/process", ct);
 
         response.EnsureSuccessStatusCode();
         string responseString = await response.Content.ReadAsStringAsync(ct);
@@ -76,20 +70,13 @@ class AppResourcesService : IAppResourcesService
 
         var processMetadata = new List<ProcessTaskMetadata>();
 
-        foreach (
-            var taskElement in processXml.XPathSelectElements(
-                ".//bpmn:task | .//bpmn:serviceTask",
-                _xmlNs
-            )
-        )
+        foreach (var taskElement in processXml.XPathSelectElements(".//bpmn:task | .//bpmn:serviceTask", _xmlNs))
         {
             var processTaskMetadata = new ProcessTaskMetadata()
             {
                 Id =
                     (string)taskElement.Attribute("id")
-                    ?? throw new InvalidOperationException(
-                        $"Missing process task id in app {org}/{env}/{app}."
-                    ),
+                    ?? throw new InvalidOperationException($"Missing process task id in app {org}/{env}/{app}."),
                 Name = (string)taskElement.Attribute("name"),
             };
             processMetadata.Add(processTaskMetadata);
@@ -98,9 +85,7 @@ class AppResourcesService : IAppResourcesService
             {
                 foreach (var element in taskElement.XPathSelectElements($".//altinn:{tag}", _xmlNs))
                 {
-                    processTaskMetadata.DataTypeTags.Add(
-                        new() { DataTypeId = element.Value, Tag = tag }
-                    );
+                    processTaskMetadata.DataTypeTags.Add(new() { DataTypeId = element.Value, Tag = tag });
                 }
             }
         }

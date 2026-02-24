@@ -21,7 +21,11 @@ public class DeploymentPipelineCompletedStatisticsHandler : INotificationHandler
     private readonly IKafkaProducer _kafkaProducer;
     private readonly IWebHostEnvironment _hostingEnvironment;
 
-    public DeploymentPipelineCompletedStatisticsHandler(IDeploymentRepository deploymentRepository, IWebHostEnvironment hostingEnvironment, IKafkaProducer kafkaProducer)
+    public DeploymentPipelineCompletedStatisticsHandler(
+        IDeploymentRepository deploymentRepository,
+        IWebHostEnvironment hostingEnvironment,
+        IKafkaProducer kafkaProducer
+    )
     {
         _deploymentRepository = deploymentRepository;
         _hostingEnvironment = hostingEnvironment;
@@ -46,12 +50,14 @@ public class DeploymentPipelineCompletedStatisticsHandler : INotificationHandler
             App = notification.EditingContext.Repo,
             AdditionalData = new Dictionary<string, string>
             {
-                { "studioEnvironment", _hostingEnvironment.EnvironmentName }
-            }
+                { "studioEnvironment", _hostingEnvironment.EnvironmentName },
+            },
         };
     }
 
-    private async Task<StudioStatisticsEvent> CalculateStudioStatisticsEvent(Events.DeploymentPipelineCompleted notification)
+    private async Task<StudioStatisticsEvent> CalculateStudioStatisticsEvent(
+        Events.DeploymentPipelineCompleted notification
+    )
     {
         if (notification.PipelineType != PipelineType.Deploy && notification.PipelineType != PipelineType.Undeploy)
         {
@@ -60,7 +66,9 @@ public class DeploymentPipelineCompletedStatisticsHandler : INotificationHandler
 
         if (notification.PipelineType == PipelineType.Undeploy)
         {
-            return notification.Succeeded ? StudioStatisticsEvent.AppDecommissioned : StudioStatisticsEvent.AppDecommissionFailed;
+            return notification.Succeeded
+                ? StudioStatisticsEvent.AppDecommissioned
+                : StudioStatisticsEvent.AppDecommissionFailed;
         }
 
         bool isUpdate = await IsAppUpdated(notification);
@@ -82,15 +90,16 @@ public class DeploymentPipelineCompletedStatisticsHandler : INotificationHandler
     private async Task<bool> IsAppUpdated(Events.DeploymentPipelineCompleted notification)
     {
         // if the current deployment is successful it will be contained in the list of successful deployments
-        var deploymentsInEnvironment = (await _deploymentRepository.GetSucceeded(
-            notification.EditingContext.Org,
-            notification.EditingContext.Repo,
-            notification.Environment,
-            new DocumentQueryModel { SortDirection = SortDirection.Descending }
-        )).ToList();
+        var deploymentsInEnvironment = (
+            await _deploymentRepository.GetSucceeded(
+                notification.EditingContext.Org,
+                notification.EditingContext.Repo,
+                notification.Environment,
+                new DocumentQueryModel { SortDirection = SortDirection.Descending }
+            )
+        ).ToList();
 
-        return (notification.Succeeded && deploymentsInEnvironment.Count > 1) ||
-                        (!notification.Succeeded && deploymentsInEnvironment.Count > 0);
+        return (notification.Succeeded && deploymentsInEnvironment.Count > 1)
+            || (!notification.Succeeded && deploymentsInEnvironment.Count > 0);
     }
-
 }

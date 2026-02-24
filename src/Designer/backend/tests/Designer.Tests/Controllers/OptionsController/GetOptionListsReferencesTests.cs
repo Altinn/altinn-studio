@@ -12,15 +12,16 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OptionsController;
 
-public class GetOptionListsReferencesTests : DesignerEndpointsTestsBase<GetOptionListsReferencesTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetOptionListsReferencesTests
+    : DesignerEndpointsTestsBase<GetOptionListsReferencesTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     const string RepoWithUsedOptions = "app-with-options";
     const string RepoWithUnusedOptions = "app-with-layoutsets";
     const string RepoWithoutOptions = "empty-app";
 
-    public GetOptionListsReferencesTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public GetOptionListsReferencesTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Fact]
     public async Task GetOptionListsReferences_Returns200OK_WithValidOptionsReferences()
@@ -36,7 +37,8 @@ public class GetOptionListsReferencesTests : DesignerEndpointsTestsBase<GetOptio
         {
             new OptionListReference
             {
-                OptionListId = "test-options", OptionListIdSources =
+                OptionListId = "test-options",
+                OptionListIdSources =
                 [
                     new OptionListIdSource
                     {
@@ -44,7 +46,7 @@ public class GetOptionListsReferencesTests : DesignerEndpointsTestsBase<GetOptio
                         LayoutName = "layoutWithOneOptionListIdRef",
                         LayoutSetId = "layoutSet1",
                         TaskId = "Task_1",
-                        TaskType = "data"
+                        TaskType = "data",
                     },
                     new OptionListIdSource
                     {
@@ -52,7 +54,7 @@ public class GetOptionListsReferencesTests : DesignerEndpointsTestsBase<GetOptio
                         LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
                         LayoutSetId = "layoutSet1",
                         TaskId = "Task_1",
-                        TaskType = "data"
+                        TaskType = "data",
                     },
                     new OptionListIdSource
                     {
@@ -60,13 +62,14 @@ public class GetOptionListsReferencesTests : DesignerEndpointsTestsBase<GetOptio
                         LayoutName = "layoutWithTwoOptionListIdRefs",
                         LayoutSetId = "layoutSet2",
                         TaskId = "Task_2",
-                        TaskType = "data"
-                    }
-                ]
+                        TaskType = "data",
+                    },
+                ],
             },
             new()
             {
-                OptionListId = "other-options", OptionListIdSources =
+                OptionListId = "other-options",
+                OptionListIdSources =
                 [
                     new OptionListIdSource
                     {
@@ -74,10 +77,10 @@ public class GetOptionListsReferencesTests : DesignerEndpointsTestsBase<GetOptio
                         LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs",
                         LayoutSetId = "layoutSet1",
                         TaskId = "Task_1",
-                        TaskType = "data"
-                    }
-                ]
-            }
+                        TaskType = "data",
+                    },
+                ],
+            },
         };
 
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);

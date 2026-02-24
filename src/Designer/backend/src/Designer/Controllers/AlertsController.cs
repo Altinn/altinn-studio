@@ -26,7 +26,11 @@ public class AlertsController(IAlertsService alertsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        IEnumerable<AlertRule> alertRules = await _alertsService.GetAlertRulesAsync(org, environment, cancellationToken);
+        IEnumerable<AlertRule> alertRules = await _alertsService.GetAlertRulesAsync(
+            org,
+            environment,
+            cancellationToken
+        );
         return Ok(alertRules);
     }
 
