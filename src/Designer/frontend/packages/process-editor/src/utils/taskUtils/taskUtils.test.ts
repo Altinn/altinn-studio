@@ -29,8 +29,15 @@ describe('taskUtils', () => {
 
   it.each([
     {
-      input: getMockBpmnElementForSigningTask({ signatureDataType: 'user-controlled-signatures' }),
+      input: getMockBpmnElementForSigningTask({
+        signatureDataType: 'user-controlled-signatures',
+        signeeStatesDataTypeId: 'some-data-type',
+      }),
       output: true,
+    },
+    {
+      input: getMockBpmnElementForSigningTask({ signatureDataType: 'user-controlled-signatures' }),
+      output: false,
     },
     {
       input: getMockBpmnElementForSigningTask({ signatureDataType: '' }),
