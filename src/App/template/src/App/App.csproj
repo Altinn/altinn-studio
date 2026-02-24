@@ -5,10 +5,10 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="8.9.2">
+    <PackageReference Include="Altinn.App.Api" Version="8.10.0">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
-    <PackageReference Include="Altinn.App.Core" Version="8.9.2" />
+    <PackageReference Include="Altinn.App.Core" Version="8.10.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\css\" />

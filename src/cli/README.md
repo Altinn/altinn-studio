@@ -1,51 +1,62 @@
-# altinn-studio-cli
+# studioctl
 
-Command line tool for app development
+`studioctl` is the CLI for local development of Altinn Studio apps.
 
-## Requirements
+Designer is the easiest path for app development in Altinn Studio, but some work still requires local code changes.
+Historically, that local setup has required manual cloning, separate localtest setup, and container tooling details.
+`studioctl` is intended to remove that friction and give app developers one entrypoint.
 
-- .NET 8
+## Goals
 
-## Local installation
+- Keep local development closer to the Designer developer experience
+- Hide Docker/Podman and localtest setup details as much as possible
+- Reduce copy/paste setup guides and environment-specific manual steps
 
-### Install from NuGet
+## Quick start (app developers)
 
-To install the tool from NuGet, run the following command:
+Install `studioctl`:
 
-```
-dotnet tool install --global Altinn.Studio.Cli
-```
-
-If you already have the tool installed, you can reinstall it by running:
-
-```
-dotnet tool update --global Altinn.Studio.Cli
+```sh
+curl -sSL https://altinn.studio/designer/api/v1/studioctl/install.sh | sh
 ```
 
-### Install from source
+Log in, clone, start localtest, and run the app:
 
-To install the tool from source, run the following command:
-
-```
-make install-locally
-```
-
-If you already have the tool installed, you can reinstall it by running:
-
-```
-make reinstall-locally
+```sh
+studioctl auth login --env dev
+studioctl app clone --env dev <org>/<repo>
+cd <repo>
+studioctl env up
+studioctl run
 ```
 
-## Upgrading apps
+`studioctl auth login` uses a PAT with `read:user` and `repo` scopes.
+`studioctl run` wraps `dotnet run --project <app>/App` and auto-detects the app directory.
 
-To upgrade an app backend from v7 to v8, navigate to the apps root folder and run the following command:
+## Core commands
 
+- `studioctl auth login`: login with PAT for `prod`, `dev`, or `staging`
+- `studioctl app clone`: clone `org/repo` from the selected Altinn Studio environment
+- `studioctl env up`: start localtest
+- `studioctl env down`: stop localtest
+- `studioctl env status`: show runtime/container status
+- `studioctl env logs`: stream logs from localtest containers
+- `studioctl run`: run app natively using `dotnet run`
+- `studioctl doctor --checks`: diagnose prerequisites and environment issues
+
+## Install from source (for contributors)
+
+```sh
+cd src/cli
+make user-install
 ```
-altinn-studio upgrade backend
-```
 
-Similarly, to upgrade an app from using frontend v3 to v4, run:
+Development loop:
 
-```
-altinn-studio upgrade frontend
+```sh
+make build
+make lint-fix
+make fmt
+make lint
+make test
 ```

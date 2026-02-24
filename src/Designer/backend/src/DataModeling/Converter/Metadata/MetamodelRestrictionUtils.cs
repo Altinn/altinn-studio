@@ -15,21 +15,18 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata;
 /// </summary>
 public static class MetamodelRestrictionUtils
 {
-    private static IEnumerable<Type> SupportedStringRestrictions => new List<Type>
-    {
-        typeof(MaxLengthKeyword),
-        typeof(PatternKeyword),
-        typeof(MinLengthKeyword),
-    };
+    private static IEnumerable<Type> SupportedStringRestrictions =>
+        new List<Type> { typeof(MaxLengthKeyword), typeof(PatternKeyword), typeof(MinLengthKeyword) };
 
-    private static IEnumerable<Type> SupportedNumberRestrictions => new List<Type>
-    {
-        typeof(MaximumKeyword),
-        typeof(MinimumKeyword),
-        typeof(ExclusiveMaximumKeyword),
-        typeof(ExclusiveMinimumKeyword),
-        typeof(XsdTotalDigitsKeyword)
-    };
+    private static IEnumerable<Type> SupportedNumberRestrictions =>
+        new List<Type>
+        {
+            typeof(MaximumKeyword),
+            typeof(MinimumKeyword),
+            typeof(ExclusiveMaximumKeyword),
+            typeof(ExclusiveMinimumKeyword),
+            typeof(XsdTotalDigitsKeyword),
+        };
 
     private static IEnumerable<Type> AllSupportedRestrictions =>
         SupportedNumberRestrictions.Union(SupportedStringRestrictions);
@@ -50,7 +47,11 @@ public static class MetamodelRestrictionUtils
     /// <param name="xsdValueType">A <see cref="BaseValueType"/></param>
     /// <param name="subSchema">A <see cref="JsonSchema"/> holding restrictions in json schema</param>
     /// <param name="restrictions">Restrictions dictionary</param>
-    public static void EnrichRestrictions(BaseValueType? xsdValueType, JsonSchema subSchema, Dictionary<string, Restriction> restrictions)
+    public static void EnrichRestrictions(
+        BaseValueType? xsdValueType,
+        JsonSchema subSchema,
+        Dictionary<string, Restriction> restrictions
+    )
     {
         if (xsdValueType == null)
         {
@@ -118,7 +119,10 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static void AddNestedStringRestrictions(AllOfKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
+    private static void AddNestedStringRestrictions(
+        AllOfKeyword allOfKeyword,
+        IDictionary<string, Restriction> restrictions
+    )
     {
         foreach (var restrictionKeywordType in SupportedStringRestrictions)
         {
@@ -170,7 +174,10 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static void AddNestedNumberRestrictions(AllOfKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
+    private static void AddNestedNumberRestrictions(
+        AllOfKeyword allOfKeyword,
+        IDictionary<string, Restriction> restrictions
+    )
     {
         foreach (var restrictionKeywordType in SupportedNumberRestrictions)
         {
@@ -181,11 +188,15 @@ public static class MetamodelRestrictionUtils
         }
     }
 
-    private static bool TryGetKeywordFromSubSchemas(this AllOfKeyword allOfKeyword, Type type, out IJsonSchemaKeyword keyword)
+    private static bool TryGetKeywordFromSubSchemas(
+        this AllOfKeyword allOfKeyword,
+        Type type,
+        out IJsonSchemaKeyword keyword
+    )
     {
         keyword = default;
-        return allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword(type))
-            ?.TryGetKeywordByType(type, out keyword) ?? false;
+        return allOfKeyword.Schemas.FirstOrDefault(s => s.HasKeyword(type))?.TryGetKeywordByType(type, out keyword)
+            ?? false;
     }
 
     /// <summary>
@@ -211,8 +222,7 @@ public static class MetamodelRestrictionUtils
             ExclusiveMaximumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
             ExclusiveMinimumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
             XsdTotalDigitsKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
-            _ => throw new Exception("Not supported keyword type")
-
+            _ => throw new Exception("Not supported keyword type"),
         };
         restrictions.TryAdd(keyword.Keyword(), new Restriction { Value = valueString });
     }

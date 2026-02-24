@@ -33,14 +33,30 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>The list of task navigation groups.</returns>
         [HttpGet]
         [UseSystemTextJson]
-        public async Task<ActionResult<IEnumerable<TaskNavigationGroupDto>>> GetTaskNavigation(string org, string app, CancellationToken cancellationToken)
+        public async Task<ActionResult<IEnumerable<TaskNavigationGroupDto>>> GetTaskNavigation(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            IEnumerable<TaskNavigationGroup> taskNavigationGroupList = await taskNavigationService.GetTaskNavigation(editingContext, cancellationToken);
-            IEnumerable<App.Core.Internal.Process.Elements.ProcessTask> tasks = taskNavigationService.GetTasks(editingContext, cancellationToken);
-            IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDto = taskNavigationGroupList.Select(taskNavigationGroup => taskNavigationGroup.ToDto((taskId) => tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType));
+            IEnumerable<TaskNavigationGroup> taskNavigationGroupList = await taskNavigationService.GetTaskNavigation(
+                editingContext,
+                cancellationToken
+            );
+            IEnumerable<App.Core.Internal.Process.Elements.ProcessTask> tasks = taskNavigationService.GetTasks(
+                editingContext,
+                cancellationToken
+            );
+            IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDto = taskNavigationGroupList.Select(
+                taskNavigationGroup =>
+                    taskNavigationGroup.ToDto(
+                        (taskId) =>
+                            tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType
+                    )
+            );
 
             return Ok(taskNavigationGroupDto);
         }
@@ -54,14 +70,23 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         [HttpPost]
         [UseSystemTextJson]
-        public async Task<IActionResult> UpdateTaskNavigation(string org, string app, [FromBody] IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateTaskNavigation(
+            string org,
+            string app,
+            [FromBody] IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList,
+            CancellationToken cancellationToken
+        )
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-                await taskNavigationService.UpdateTaskNavigation(editingContext, taskNavigationGroupDtoList.Select(taskNavigationGroupDto => taskNavigationGroupDto.ToDomain()), cancellationToken);
+                await taskNavigationService.UpdateTaskNavigation(
+                    editingContext,
+                    taskNavigationGroupDtoList.Select(taskNavigationGroupDto => taskNavigationGroupDto.ToDomain()),
+                    cancellationToken
+                );
 
                 return NoContent();
             }

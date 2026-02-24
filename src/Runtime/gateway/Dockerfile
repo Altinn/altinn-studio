@@ -6,16 +6,16 @@ RUN apt-get update && apt-get install -y clang zlib1g-dev && rm -rf /var/lib/apt
 WORKDIR /build
 
 # Copy project files and package management
-COPY Directory.Packages.props .
-COPY src/Altinn.Studio.Gateway.Api/Altinn.Studio.Gateway.Api.csproj Altinn.Studio.Gateway.Api/
-COPY src/Altinn.Studio.Gateway.Contracts/Altinn.Studio.Gateway.Contracts.csproj Altinn.Studio.Gateway.Contracts/
+COPY Runtime/gateway/Directory.Packages.props .
+COPY Runtime/gateway/src/Altinn.Studio.Gateway.Api/Altinn.Studio.Gateway.Api.csproj Altinn.Studio.Gateway.Api/
+COPY Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/Altinn.Studio.Gateway.Contracts.csproj Altinn.Studio.Gateway.Contracts/
 
 # Restore dependencies
 RUN dotnet restore Altinn.Studio.Gateway.Api/Altinn.Studio.Gateway.Api.csproj
 
 # Copy source code
-COPY src/Altinn.Studio.Gateway.Api/ Altinn.Studio.Gateway.Api/
-COPY src/Altinn.Studio.Gateway.Contracts/ Altinn.Studio.Gateway.Contracts/
+COPY Runtime/gateway/src/Altinn.Studio.Gateway.Api/ Altinn.Studio.Gateway.Api/
+COPY Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/ Altinn.Studio.Gateway.Contracts/
 
 # Build and publish native AOT
 WORKDIR /build/Altinn.Studio.Gateway.Api

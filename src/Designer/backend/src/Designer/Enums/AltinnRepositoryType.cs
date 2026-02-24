@@ -7,6 +7,6 @@ namespace Altinn.Studio.Designer.Enums
     {
         Unknown = 0,
         App = 1,
-        Datamodels = 2
+        Datamodels = 2,
     }
 }

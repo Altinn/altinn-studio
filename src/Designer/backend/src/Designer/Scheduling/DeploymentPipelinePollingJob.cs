@@ -32,7 +32,16 @@ public class DeploymentPipelinePollingJob : IJob
     private readonly ILogger<DeploymentPipelinePollingJob> _logger;
     private readonly TimeProvider _timeProvider;
 
-    public DeploymentPipelinePollingJob(IAzureDevOpsBuildClient azureDevOpsBuildClient, IDeploymentRepository deploymentRepository, IDeployEventRepository deployEventRepository, IAltinnStorageAppMetadataClient altinnStorageAppMetadataClient, IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext, IPublisher mediatr, ILogger<DeploymentPipelinePollingJob> logger, TimeProvider timeProvider)
+    public DeploymentPipelinePollingJob(
+        IAzureDevOpsBuildClient azureDevOpsBuildClient,
+        IDeploymentRepository deploymentRepository,
+        IDeployEventRepository deployEventRepository,
+        IAltinnStorageAppMetadataClient altinnStorageAppMetadataClient,
+        IHubContext<EntityUpdatedHub, IEntityUpdateClient> entityUpdatedHubContext,
+        IPublisher mediatr,
+        ILogger<DeploymentPipelinePollingJob> logger,
+        TimeProvider timeProvider
+    )
     {
         _azureDevOpsBuildClient = azureDevOpsBuildClient;
         _deploymentRepository = deploymentRepository;
@@ -44,7 +53,6 @@ public class DeploymentPipelinePollingJob : IJob
         _timeProvider = timeProvider;
     }
 
-
     public async Task Execute(IJobExecutionContext context)
     {
         using var activity = TryStartTraceActivity(context);
@@ -53,14 +61,23 @@ public class DeploymentPipelinePollingJob : IJob
         {
             string org = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Org);
             string app = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.App);
-            string developer = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Developer);
+            string developer = context.JobDetail.JobDataMap.GetString(
+                DeploymentPipelinePollingJobConstants.Arguments.Developer
+            );
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            string buildId = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.BuildId);
-            PipelineType type = Enum.Parse<PipelineType>(context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType)!, true);
-            string environment = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Environment);
+            string buildId = context.JobDetail.JobDataMap.GetString(
+                DeploymentPipelinePollingJobConstants.Arguments.BuildId
+            );
+            PipelineType type = Enum.Parse<PipelineType>(
+                context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType)!,
+                true
+            );
+            string environment = context.JobDetail.JobDataMap.GetString(
+                DeploymentPipelinePollingJobConstants.Arguments.Environment
+            );
             Guard.ArgumentNotNull(buildId, nameof(buildId));
 
-            var build = await _azureDevOpsBuildClient.Get(buildId);
+            var build = await _azureDevOpsBuildClient.Get(buildId, context.CancellationToken);
 
             var deploymentEntity = await _deploymentRepository.Get(editingContext.Org, buildId);
 
@@ -74,7 +91,12 @@ public class DeploymentPipelinePollingJob : IJob
             deploymentEntity.Build.Finished = build.Finished;
             deploymentEntity.Build.Result = build.Result;
 
-            if (build.Status == BuildStatus.Completed && deploymentEntity.Events.All(e => e.EventType != DeployEventType.PipelineSucceeded && e.EventType != DeployEventType.PipelineFailed))
+            if (
+                build.Status == BuildStatus.Completed
+                && deploymentEntity.Events.All(e =>
+                    e.EventType != DeployEventType.PipelineSucceeded && e.EventType != DeployEventType.PipelineFailed
+                )
+            )
             {
                 await AddDeployEventIfNotExist(build.Status, build, org, buildId);
             }
@@ -87,7 +109,8 @@ public class DeploymentPipelinePollingJob : IJob
                 {
                     await UpdateMetadataInStorage(editingContext, environment);
                 }
-                await _entityUpdatedHubContext.Clients.Group(editingContext.Developer)
+                await _entityUpdatedHubContext
+                    .Clients.Group(editingContext.Developer)
                     .EntityUpdated(new EntityUpdated(EntityConstants.Deployment));
 
                 await PublishCompletedEvent(editingContext, type, environment, build.Result == BuildResult.Succeeded);
@@ -158,45 +181,61 @@ public class DeploymentPipelinePollingJob : IJob
 
     private async Task AddDeployEventIfNotExist(BuildStatus buildStatus, BuildEntity build, string org, string buildId)
     {
-        var eventType = build.Result == BuildResult.Succeeded
-            ? DeployEventType.PipelineSucceeded
-            : DeployEventType.PipelineFailed;
+        var eventType =
+            build.Result == BuildResult.Succeeded ? DeployEventType.PipelineSucceeded : DeployEventType.PipelineFailed;
 
-        await _deployEventRepository.AddAsync(org, buildId, new DeployEvent
-        {
-            EventType = eventType,
-            Message = $"Pipeline {buildId} {build.Result.ToEnumMemberAttributeValue()}",
-            Timestamp = _timeProvider.GetUtcNow(),
-            Origin = DeployEventOrigin.PollingJob
-        });
+        await _deployEventRepository.AddAsync(
+            org,
+            buildId,
+            new DeployEvent
+            {
+                EventType = eventType,
+                Message = $"Pipeline {buildId} {build.Result.ToEnumMemberAttributeValue()}",
+                Timestamp = _timeProvider.GetUtcNow(),
+                Origin = DeployEventOrigin.PollingJob,
+            }
+        );
     }
 
-    private async Task PublishCompletedEvent(AltinnRepoEditingContext editingContext, PipelineType type,
-        string environment, bool succeeded)
+    private async Task PublishCompletedEvent(
+        AltinnRepoEditingContext editingContext,
+        PipelineType type,
+        string environment,
+        bool succeeded
+    )
     {
         try
         {
-            await _mediatr.Publish(new DeploymentPipelineCompleted
-            {
-                EditingContext = editingContext,
-                PipelineType = type,
-                Environment = environment,
-                Succeeded = succeeded
-            });
+            await _mediatr.Publish(
+                new DeploymentPipelineCompleted
+                {
+                    EditingContext = editingContext,
+                    PipelineType = type,
+                    Environment = environment,
+                    Succeeded = succeeded,
+                }
+            );
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error publishing DeploymentPipelineCompleted event");
             throw;
         }
-
     }
 
     private async Task UpdateMetadataInStorage(AltinnRepoEditingContext editingContext, string environment)
     {
-        string appMetadataJson = await _altinnStorageAppMetadataClient.GetApplicationMetadataJsonAsync(editingContext, environment);
+        string appMetadataJson = await _altinnStorageAppMetadataClient.GetApplicationMetadataJsonAsync(
+            editingContext,
+            environment
+        );
         appMetadataJson = Helpers.ApplicationMetadataJsonHelper.SetCopyInstanceEnabled(appMetadataJson, enabled: false);
-        await _altinnStorageAppMetadataClient.UpsertApplicationMetadata(editingContext.Org, editingContext.Repo, appMetadataJson, environment);
+        await _altinnStorageAppMetadataClient.UpsertApplicationMetadata(
+            editingContext.Org,
+            editingContext.Repo,
+            appMetadataJson,
+            environment
+        );
     }
 
     private static void CancelJob(IJobExecutionContext context)

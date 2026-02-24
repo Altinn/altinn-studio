@@ -23,8 +23,11 @@ namespace Altinn.Studio.Designer.Controllers.Preview;
 [ApiController]
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[Route("{org:regex(^(?!designer|editor|dashboard|preview|admin|resourceadm|info))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances")]
-public class InstancesController(IHttpContextAccessor httpContextAccessor,
+[Route(
+    "{org:regex(^(?!designer|editor|dashboard|preview|admin|resourceadm|info))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances"
+)]
+public class InstancesController(
+    IHttpContextAccessor httpContextAccessor,
     IPreviewService previewService,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
     IInstanceService instanceService,
@@ -39,7 +42,11 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
         string org = context.RouteData.Values["org"] as string;
         string app = context.RouteData.Values["app"] as string;
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            org,
+            app,
+            developer
+        );
         if (!altinnAppGitRepository.AppUsesLayoutSets())
         {
             RouteValueDictionary routeData = context.RouteData.Values;
@@ -47,7 +54,10 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
             {
                 routeData[queryParam.Key] = queryParam.Value.ToString();
             }
-            context.Result = base.RedirectToActionPreserveMethod(controllerName: "OldInstances", routeValues: routeData);
+            context.Result = base.RedirectToActionPreserveMethod(
+                controllerName: "OldInstances",
+                routeValues: routeData
+            );
         }
         base.OnActionExecuting(context);
     }
@@ -58,11 +68,12 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     [HttpGet("{partyId}/{instanceGuid}")]
     [UseSystemTextJson]
     public ActionResult<Instance> GetInstance(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] int partyId,
-            [FromRoute] Guid instanceGuid,
-            CancellationToken cancellationToken)
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken
+    )
     {
         Instance instanceData = instanceService.GetInstance(instanceGuid);
         return Ok(instanceData);
@@ -80,8 +91,17 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
         [FromQuery] string language = null
     )
     {
-        ApplicationMetadata applicationMetadata = await applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
-        Instance instance = instanceService.CreateInstance(org, app, instanceOwnerPartyId, taskId, applicationMetadata.DataTypes);
+        ApplicationMetadata applicationMetadata = await applicationMetadataService.GetApplicationMetadataFromRepository(
+            org,
+            app
+        );
+        Instance instance = instanceService.CreateInstance(
+            org,
+            app,
+            instanceOwnerPartyId,
+            taskId,
+            applicationMetadata.DataTypes
+        );
         return Ok(instance);
     }
 
@@ -91,9 +111,9 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     /// <returns>A list of a single mocked instance</returns>
     [HttpGet("{partyId}/active")]
     public ActionResult<List<Instance>> ActiveInstances(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] int partyId
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId
     )
     {
         // Simulate never having any active instances
@@ -117,20 +137,28 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     /// <returns>The processState</returns>
     [HttpGet("{partyId}/{instanceGuid}/process")]
     public async Task<ActionResult<AppProcessState>> Process(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] int partyId,
-            [FromRoute] Guid instanceGuid,
-            CancellationToken cancellationToken)
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken
+    )
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
         Instance instance = instanceService.GetInstance(instanceGuid);
         List<string> tasks = await previewService.GetTasksForAllLayoutSets(org, app, developer, cancellationToken);
         AppProcessState processState = new(instance.Process)
         {
-            ProcessTasks = tasks != null
-                ? new List<AppProcessTaskTypeInfo>(tasks?.ConvertAll(task => new AppProcessTaskTypeInfo { ElementId = task, AltinnTaskType = "data" }))
-                : null
+            ProcessTasks =
+                tasks != null
+                    ? new List<AppProcessTaskTypeInfo>(
+                        tasks?.ConvertAll(task => new AppProcessTaskTypeInfo
+                        {
+                            ElementId = task,
+                            AltinnTaskType = "data",
+                        })
+                    )
+                    : null,
         };
 
         return Ok(processState);
@@ -142,11 +170,11 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     /// <returns>The processState object on the global mockInstance object</returns>
     [HttpGet("{partyId}/{instanceGuid}/process/next")]
     public ActionResult ProcessNext(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] int partyId,
-            [FromRoute] Guid instanceGuid,
-            CancellationToken cancellationToken
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid,
+        CancellationToken cancellationToken
     )
     {
         Instance instance = instanceService.GetInstance(instanceGuid);
@@ -159,12 +187,12 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     /// <returns>Process object where ended is set</returns>
     [HttpPut("{partyId}/{instanceGuid}/process/next")]
     public ActionResult UpdateProcessNext(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] int partyId,
-            [FromRoute] Guid instanceGuid,
-            [FromQuery] string lang,
-            CancellationToken cancellationToken
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int partyId,
+        [FromRoute] Guid instanceGuid,
+        [FromQuery] string lang,
+        CancellationToken cancellationToken
     )
     {
         Instance instance = instanceService.GetInstance(instanceGuid);
@@ -176,19 +204,23 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     /// </summary>
     [HttpGet("{partyId}/{instanceGuid}/options/{optionListId}")]
     public async Task<ActionResult<string>> GetOptionsForInstance(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] string optionListId,
-            [FromQuery] string language,
-            [FromQuery] string source,
-            CancellationToken cancellationToken
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] string optionListId,
+        [FromQuery] string language,
+        [FromQuery] string source,
+        CancellationToken cancellationToken
     )
     {
         try
         {
             // TODO: Need code to get dynamic options list based on language and source?
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                app,
+                developer
+            );
             string options = await altinnAppGitRepository.GetOptionsList(optionListId, cancellationToken);
             return Ok(options);
         }
@@ -204,12 +236,12 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     /// </summary>
     [HttpGet("{partyId}/{instanceGuid}/datalists/{dataListId}")]
     public ActionResult<List<string>> GetDataListsForInstance(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] string dataListId,
-            [FromQuery] string language,
-            [FromQuery] string size,
-            CancellationToken cancellationToken
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] string dataListId,
+        [FromQuery] string language,
+        [FromQuery] string size,
+        CancellationToken cancellationToken
     )
     {
         // TODO: Should look into whether we can get some actual data here, or if we can make an "informed" mock based on the setup.
@@ -222,11 +254,11 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     /// </summary>
     [HttpPost("{partyId}/{instanceGuid}/pages/order")]
     public IActionResult UpdateAttachmentWithTag(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromQuery] string currentPage,
-            [FromQuery] string layoutSetId,
-            [FromQuery] string dataTypeId
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromQuery] string currentPage,
+        [FromQuery] string layoutSetId,
+        [FromQuery] string dataTypeId
     )
     {
         return Ok();

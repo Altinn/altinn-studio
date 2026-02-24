@@ -10,8 +10,7 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     /// <summary>
     /// Authorization Handler for OrganizationAdminPermissionRequirement
     /// </summary>
-    public class OrganizationPermissionHandler
-        : AuthorizationHandler<OrganizationPermissionRequirement>
+    public class OrganizationPermissionHandler : AuthorizationHandler<OrganizationPermissionRequirement>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserOrganizationService _userOrganizationService;

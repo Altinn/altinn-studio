@@ -29,9 +29,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// Initializes a new instance of the <see cref="CreateKeyOption" /> class.
         /// </summary>
         [JsonConstructor]
-        protected CreateKeyOption()
-        {
-        }
+        protected CreateKeyOption() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateKeyOption" /> class.
@@ -39,7 +37,11 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <param name="key">An armored SSH key to add (required).</param>
         /// <param name="readOnly">Describe if the key has only read access or read/write.</param>
         /// <param name="title">Title of the key to add (required).</param>
-        public CreateKeyOption(string key = default(string), bool? readOnly = default(bool?), string title = default(string))
+        public CreateKeyOption(
+            string key = default(string),
+            bool? readOnly = default(bool?),
+            string title = default(string)
+        )
         {
             // to ensure "Key" is required (not null)
             if (key == null)
@@ -112,19 +114,12 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.Key == input.Key ||
-                    (this.Key != null &&
-                    this.Key.Equals(input.Key))) &&
-                (
-                    this.IsReadOnly == input.IsReadOnly ||
-                    (this.IsReadOnly != null &&
-                    this.IsReadOnly.Equals(input.IsReadOnly))) &&
-                (
-                    this.Title == input.Title ||
-                    (this.Title != null &&
-                    this.Title.Equals(input.Title)));
+            return (this.Key == input.Key || (this.Key != null && this.Key.Equals(input.Key)))
+                && (
+                    this.IsReadOnly == input.IsReadOnly
+                    || (this.IsReadOnly != null && this.IsReadOnly.Equals(input.IsReadOnly))
+                )
+                && (this.Title == input.Title || (this.Title != null && this.Title.Equals(input.Title)));
         }
 
         /// <summary>

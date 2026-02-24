@@ -92,14 +92,14 @@ runs:
 
     - name: Download the built frontend
       if: ${{ inputs.run-frontend == 'true' }}
-      uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+      uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
       with:
         name: app-frontend-dist
         path: src/App/frontend/dist
 
     - name: Setup Node.js
       if: ${{ inputs.run-frontend == 'true' }}
-      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
       with:
         node-version: '22'
         cache: 'yarn'

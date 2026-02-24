@@ -12,14 +12,17 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static class DeploymentEntityDesignerDbFixtureExtensions
 {
-    private readonly static JsonSerializerOptions s_jsonOptions = new()
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        Converters = { new JsonStringEnumConverter() }
+        Converters = { new JsonStringEnumConverter() },
     };
 
-    public static async Task PrepareEntityInDatabase(this DesignerDbFixture dbFixture, DeploymentEntity deploymentEntity)
+    public static async Task PrepareEntityInDatabase(
+        this DesignerDbFixture dbFixture,
+        DeploymentEntity deploymentEntity
+    )
     {
         var dbObject = MapToDbObject(deploymentEntity);
 
@@ -29,7 +32,10 @@ public static class DeploymentEntityDesignerDbFixtureExtensions
         dbFixture.DbContext.Entry(dbObject.Build).State = EntityState.Detached;
     }
 
-    public static async Task PrepareEntitiesInDatabase(this DesignerDbFixture dbFixture, IEnumerable<DeploymentEntity> deploymentEntities)
+    public static async Task PrepareEntitiesInDatabase(
+        this DesignerDbFixture dbFixture,
+        IEnumerable<DeploymentEntity> deploymentEntities
+    )
     {
         var dbObjects = deploymentEntities.Select(MapToDbObject).ToList();
 
@@ -42,7 +48,9 @@ public static class DeploymentEntityDesignerDbFixtureExtensions
         }
     }
 
-    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel MapToDbObject(DeploymentEntity entity) =>
+    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel MapToDbObject(
+        DeploymentEntity entity
+    ) =>
         new()
         {
             Buildid = entity.Build.Id,
@@ -55,16 +63,19 @@ public static class DeploymentEntityDesignerDbFixtureExtensions
             Entity = JsonSerializer.Serialize(entity, s_jsonOptions),
             EnvName = entity.EnvName,
             Build = MapBuildToDbModel(entity.Build),
-            DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)(int)entity.DeploymentType
+            DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)
+                (int)entity.DeploymentType,
         };
 
-    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel MapBuildToDbModel(BuildEntity buildEntity) =>
+    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel MapBuildToDbModel(
+        BuildEntity buildEntity
+    ) =>
         new()
         {
             ExternalId = buildEntity.Id,
             Status = buildEntity.Status.ToString(),
             Result = buildEntity.Result.ToString(),
             Started = buildEntity.Started?.ToUniversalTime(),
-            Finished = buildEntity.Finished?.ToUniversalTime()
+            Finished = buildEntity.Finished?.ToUniversalTime(),
         };
 }

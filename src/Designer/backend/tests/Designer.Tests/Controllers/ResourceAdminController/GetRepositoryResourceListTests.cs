@@ -10,12 +10,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public class GetRepositoryResourceListTests : ResourceAdminControllerTestsBaseClass<GetRepositoryResourceListTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetRepositoryResourceListTests
+        : ResourceAdminControllerTestsBaseClass<GetRepositoryResourceListTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public GetRepositoryResourceListTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetRepositoryResourceListTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task GetResourceList_OK()
@@ -24,27 +24,43 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             string uri = $"{VersionPrefix}/ttd/resources/resourcelist";
 
             RepositoryMock
-                .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
-                .Returns(Task.FromResult(new List<ServiceResource>
-                {
-                    new ServiceResource
-                    {
-                        Identifier = "testresource",
-                        Title = new Dictionary<string, string>(),
-                        Description = new Dictionary<string, string>(),
-                        RightDescription = new Dictionary<string, string>(),
-                        Homepage = "test.no",
-                        Status = string.Empty,
-                        IsPartOf = string.Empty,
-                        ThematicArea = string.Empty,
-                        ResourceReferences = GetTestResourceReferences(),
-                        Delegable = true,
-                        Visible = true,
-                        HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
-                        Keywords = GetTestKeywords(),
-                        ResourceType = ResourceType.Default,
-                    }
-                }));
+                .Setup(r =>
+                    r.GetServiceResources(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<System.Threading.CancellationToken>()
+                    )
+                )
+                .Returns(
+                    Task.FromResult(
+                        new List<ServiceResource>
+                        {
+                            new ServiceResource
+                            {
+                                Identifier = "testresource",
+                                Title = new Dictionary<string, string>(),
+                                Description = new Dictionary<string, string>(),
+                                RightDescription = new Dictionary<string, string>(),
+                                Homepage = "test.no",
+                                Status = string.Empty,
+                                IsPartOf = string.Empty,
+                                ThematicArea = string.Empty,
+                                ResourceReferences = GetTestResourceReferences(),
+                                Delegable = true,
+                                Visible = true,
+                                HasCompetentAuthority = new CompetentAuthority
+                                {
+                                    Organization = "ttd",
+                                    Orgcode = "test",
+                                    Name = new Dictionary<string, string>(),
+                                },
+                                Keywords = GetTestKeywords(),
+                                ResourceType = ResourceType.Default,
+                            },
+                        }
+                    )
+                );
 
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
@@ -63,7 +79,14 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
             RepositoryMock
-                .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.Threading.CancellationToken>()))
+                .Setup(r =>
+                    r.GetServiceResources(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<System.Threading.CancellationToken>()
+                    )
+                )
                 .Returns(Task.FromResult(new List<ServiceResource>()));
 
             // Act

@@ -1,0 +1,28 @@
+name: Deployer - Check
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'deployer/**'
+      - '.github/workflows/deployer-check.yaml'
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Run make check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: deployer
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+
+      - name: Run checks
+        run: make check

@@ -32,21 +32,9 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         List<Option> expectedCodeList = new()
         {
-            new Option
-            {
-                Label = "En",
-                Value = 1.05
-            },
-            new Option
-            {
-                Label = "To",
-                Value = 2.01
-            },
-            new Option
-            {
-                Label = "Tre",
-                Value = 3.1
-            }
+            new Option { Label = "En", Value = 1.05 },
+            new Option { Label = "To", Value = 2.01 },
+            new Option { Label = "Tre", Value = 3.1 },
         };
 
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -76,16 +64,8 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         List<Option> newCodeList = new()
         {
-            new Option
-            {
-                Label = "label1",
-                Value = "value1"
-            },
-            new Option
-            {
-                Label = "label2",
-                Value = "value2"
-            }
+            new Option { Label = "label1", Value = "value1" },
+            new Option { Label = "label2", Value = "value2" },
         };
 
         const string CodeListId = "newCodeList";
@@ -117,11 +97,7 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         List<Option> newCodeList = new()
         {
-            new Option
-            {
-                Label = "someLabel",
-                Value = "Updated value"
-            }
+            new Option { Label = "someLabel", Value = "Updated value" },
         };
         const string CodeListId = "codeListTrailingComma";
         TargetOrg = TestDataHelper.GenerateTestOrgName();
@@ -174,16 +150,13 @@ public class OrgCodeListServiceTests : IDisposable
         // Arrange
         const string CodeListId = "newCodeList";
         const string FileName = $"{CodeListId}.json";
-        const string JsonCodeList = @"[
+        const string JsonCodeList =
+            @"[
             {""label"": ""someLabel"",""value"": ""someValue"" },
         ]";
         List<Option> expectedCodeList = new()
         {
-            new Option
-            {
-                Label = "someLabel",
-                Value = "someValue"
-            }
+            new Option { Label = "someLabel", Value = "someValue" },
         };
         byte[] codeListBytes = Encoding.UTF8.GetBytes(JsonCodeList);
         var stream = new MemoryStream(codeListBytes);
@@ -240,7 +213,9 @@ public class OrgCodeListServiceTests : IDisposable
         var service = GetOrgCodeListService();
 
         // Act and assert
-        await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () => await service.DeleteCodeList(TargetOrg, Developer, CodeListId));
+        await Assert.ThrowsAsync<LibGit2Sharp.NotFoundException>(async () =>
+            await service.DeleteCodeList(TargetOrg, Developer, CodeListId)
+        );
     }
 
     [Fact]
@@ -331,7 +306,10 @@ public class OrgCodeListServiceTests : IDisposable
         string result = await service.PublishCodeList(OrgName, req, CancellationToken.None);
 
         // Assert
-        sharedContentClientMock.Verify(c => c.PublishCodeList(OrgName, CodeListId, codeList, It.IsAny<CancellationToken>()), Times.Once);
+        sharedContentClientMock.Verify(
+            c => c.PublishCodeList(OrgName, CodeListId, codeList, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
         Assert.Equal("1", result);
     }
 
@@ -339,29 +317,25 @@ public class OrgCodeListServiceTests : IDisposable
     {
         Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
         Dictionary<string, string> description = new() { { "nb", "Dette er en tekst" }, { "en", "This is a text" } };
-        Dictionary<string, string> helpText = new() { { "nb", "Velg dette valget for å få en tekst" }, { "en", "Choose this option to get a text" } };
+        Dictionary<string, string> helpText = new()
+        {
+            { "nb", "Velg dette valget for å få en tekst" },
+            { "en", "Choose this option to get a text" },
+        };
         List<Code> listOfCodes =
         [
-            new(
-                Value: "value1",
-                Label: label,
-                Description: description,
-                HelpText: helpText,
-                Tags: ["test-data"]
-            )
+            new(Value: "value1", Label: label, Description: description, HelpText: helpText, Tags: ["test-data"]),
         ];
         CodeListSource source = new(Name: "test-data-files");
-        CodeList codeList = new(
-            Source: source,
-            Codes: listOfCodes,
-            TagNames: ["test-data-category"]
-        );
+        CodeList codeList = new(Source: source, Codes: listOfCodes, TagNames: ["test-data-category"]);
         return codeList;
     }
 
     private OrgCodeListService GetOrgCodeListService(Mock<ISharedContentClient>? mock = null)
     {
-        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory()
+        );
         Mock<ISharedContentClient> contentClientMock = mock ?? new Mock<ISharedContentClient>();
         return new OrgCodeListService(altinnGitRepositoryFactory, contentClientMock.Object);
     }
