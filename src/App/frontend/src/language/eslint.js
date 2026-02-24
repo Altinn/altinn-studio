@@ -39,6 +39,7 @@ const functionCalls = [
   'langAsStringUsingPathInDataModel',
   'langAsNonProcessedString',
   'langAsNonProcessedStringUsingPathInDataModel',
+  't',
 ];
 
 module.exports = {
