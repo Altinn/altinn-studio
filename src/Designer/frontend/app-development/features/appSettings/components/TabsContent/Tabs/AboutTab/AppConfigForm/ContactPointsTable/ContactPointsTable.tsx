@@ -46,10 +46,9 @@ export const ContactPointsTable = ({
   const [showValidationButtonFocus, setShowValidationButtonFocus] = useState(false);
 
   useLayoutEffect(() => {
-    const timeouts: number[] = [];
-    if (!isFocusTarget) return () => timeouts.forEach(window.clearTimeout);
+    if (!isFocusTarget) return;
     const target = addButtonRef.current ?? contactSectionRef.current;
-    if (!target) return () => timeouts.forEach(window.clearTimeout);
+    if (!target) return;
     if (target === addButtonRef.current) setShowValidationButtonFocus(true);
 
     const scrollAndFocus = () => {
