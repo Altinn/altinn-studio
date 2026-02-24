@@ -39,7 +39,7 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
 
     internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _operationNames.Keys.ToArray();
 
-    internal static int GetIntervalInMinutes(int range)
+    internal static int GetBucketSize(int range)
     {
         var maxPoints = 12;
         return Math.Max(1, range / maxPoints);
@@ -47,8 +47,8 @@ internal sealed class AzureMonitorClient(GatewayContext gatewayContext, LogsQuer
 
     private static string GetInterval(int range)
     {
-        int target = GetIntervalInMinutes(range);
-        return target >= 60 ? $"{target / 60}h" : $"{target}m";
+        var bucketSize = GetBucketSize(range);
+        return bucketSize >= 60 ? $"{bucketSize / 60}h" : $"{bucketSize}m";
     }
 
     private async Task<ResourceIdentifier> GetApplicationLogAnalyticsWorkspaceIdAsync()
