@@ -25,7 +25,6 @@ public class ValidateCustomTemplateTest
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(validManifest);
         Assert.Empty(errors);
     }
-    }
 
     [Fact]
     public async Task ValidateManifestJsonAsync_MissingSchemaVersion_ReturnsErrors()
@@ -47,7 +46,6 @@ public class ValidateCustomTemplateTest
     [InlineData("/tmp/file.txt")]
     public async Task ValidateManifestJsonAsync_InvalidRemoveEntries_ReturnsError(string remove)
     {
-    {
         var invalidRemoveManifest = $@"{{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
@@ -63,7 +61,6 @@ public class ValidateCustomTemplateTest
 
     [Fact]
     public async Task ValidateManifestJsonAsync_UnknownProperty_ReturnsError()
-    {
     {
         var unknownPropertyManifest = @"{
         ""id"": ""template-12345"",
@@ -89,7 +86,6 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_MissingName_ReturnsError()
     {
-    {
         var missingNbName = @"{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
@@ -104,7 +100,6 @@ public class ValidateCustomTemplateTest
 
     [Fact]
     public async Task ValidateManifestJsonAsync_MissingDescription_ReturnsError()
-    {
     {
         var missingNbDescription = @"{
         ""id"": ""template-12345"",
