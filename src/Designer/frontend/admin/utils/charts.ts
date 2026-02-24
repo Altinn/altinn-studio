@@ -1,16 +1,13 @@
 import type { ChartOptions } from 'chart.js';
 import { nb } from 'date-fns/locale';
 
-export const getChartOptions = (
-  intervalInMinutes: number,
-  rangeInMinutes: number,
-): ChartOptions<'bar'> => {
+export const getChartOptions = (bucketSize: number, range: number): ChartOptions<'bar'> => {
   const minuteInMs = 60 * 1000;
-  const intervalInMs = intervalInMinutes * minuteInMs;
-  const rangeInMs = rangeInMinutes * minuteInMs;
+  const bucketSizeInMs = bucketSize * minuteInMs;
+  const rangeInMs = range * minuteInMs;
   const now = Date.now();
-  const max = Math.ceil(now / intervalInMs) * intervalInMs;
-  const min = Math.floor((now - rangeInMs) / intervalInMs) * intervalInMs;
+  const max = Math.ceil(now / bucketSizeInMs) * bucketSizeInMs;
+  const min = Math.floor((now - rangeInMs) / bucketSizeInMs) * bucketSizeInMs;
   return {
     responsive: true,
     maintainAspectRatio: false,

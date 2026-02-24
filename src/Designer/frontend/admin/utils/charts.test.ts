@@ -10,10 +10,10 @@ describe('getChartOptions', () => {
     jest.restoreAllMocks();
   });
 
-  it('sets min and max based on interval and range', () => {
-    const intervalInMinutes = 5;
-    const rangeInMinutes = 60;
-    const options = getChartOptions(intervalInMinutes, rangeInMinutes);
+  it('sets min and max based on bucket size and range', () => {
+    const bucketSize = 5;
+    const range = 60;
+    const options = getChartOptions(bucketSize, range);
 
     const xScale = options.scales?.x as TimeScaleOptions;
 

@@ -202,13 +202,13 @@ describe('AppMetrics', () => {
           name: 'failed_process_next_requests',
           timestamps: [],
           counts: [],
-          intervalInMinutes: 5,
+          bucketSize: 5,
         },
         {
           name: 'failed_instance_creation_requests',
           timestamps: [],
           counts: [],
-          intervalInMinutes: 5,
+          bucketSize: 5,
         },
       ];
 
@@ -230,7 +230,7 @@ describe('AppMetrics', () => {
           name: 'failed_instance_creation_requests',
           timestamps: [],
           counts: [],
-          intervalInMinutes: 5,
+          bucketSize: 5,
         },
       ];
 
@@ -254,7 +254,7 @@ describe('AppMetrics', () => {
           name: 'failed_process_next_requests',
           timestamps: [1704067200000],
           counts: [5],
-          intervalInMinutes: 5,
+          bucketSize: 5,
         },
       ];
 
@@ -318,13 +318,13 @@ describe('AppMetrics', () => {
           name: 'altinn_app_lib_processes_started',
           timestamps: [],
           counts: [],
-          intervalInMinutes: 5,
+          bucketSize: 5,
         },
         {
           name: 'altinn_app_lib_processes_ended',
           timestamps: [],
           counts: [],
-          intervalInMinutes: 5,
+          bucketSize: 5,
         },
       ];
 
