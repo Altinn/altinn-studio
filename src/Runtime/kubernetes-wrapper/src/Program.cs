@@ -3,6 +3,7 @@ using Altinn.Studio.KubernetesWrapper.Configuration;
 using Altinn.Studio.KubernetesWrapper.Hosting;
 using Altinn.Studio.KubernetesWrapper.Services.Implementation;
 using Altinn.Studio.KubernetesWrapper.Services.Interfaces;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -36,6 +37,14 @@ static void ConfigureApp(WebApplication app)
         c.SwaggerEndpoint("/kuberneteswrapper/swagger/v1/swagger.json", "Altinn Platform kuberneteswrapper API");
         c.RoutePrefix = "kuberneteswrapper/swagger";
     });
+
+    app.Use(
+        static (context, next) =>
+        {
+            EnrichHttpRequestMetrics(context);
+            return next();
+        }
+    );
 
     app.UseCors();
     app.MapControllers();
@@ -92,4 +101,31 @@ static void IncludeXmlComments(SwaggerGenOptions swaggerGenOptions)
     {
         swaggerGenOptions.IncludeXmlComments(xmlPath);
     }
+}
+
+static void EnrichHttpRequestMetrics(HttpContext context)
+{
+    if (!context.Request.Path.StartsWithSegments("/api/v1", StringComparison.OrdinalIgnoreCase))
+    {
+        return;
+    }
+
+    IHttpMetricsTagsFeature? tagsFeature = context.Features.Get<IHttpMetricsTagsFeature>();
+    if (tagsFeature is null)
+    {
+        return;
+    }
+
+    bool hasLabelSelector = !string.IsNullOrWhiteSpace(context.Request.Query["labelSelector"]);
+    bool hasFieldSelector = !string.IsNullOrWhiteSpace(context.Request.Query["fieldSelector"]);
+
+    string selectorMode = (hasLabelSelector, hasFieldSelector) switch
+    {
+        (false, false) => "none",
+        (true, false) => "label",
+        (false, true) => "field",
+        _ => "both",
+    };
+
+    tagsFeature.Tags.Add(new("kubernetes_wrapper.selector_mode", selectorMode));
 }
