@@ -141,7 +141,7 @@ internal sealed class KubernetesApiWrapper : IKubernetesApiWrapper, IDisposable
 
     private async Task<IReadOnlyList<DeployedResource>> GetCachedDeployments(CancellationToken cancellationToken)
     {
-        if (TryGetCacheValue(_deploymentsCache, out IReadOnlyList<DeployedResource>? cachedValue))
+        if (TryGetCacheValue(Volatile.Read(ref _deploymentsCache), out IReadOnlyList<DeployedResource>? cachedValue))
         {
             return cachedValue;
         }
@@ -149,7 +149,7 @@ internal sealed class KubernetesApiWrapper : IKubernetesApiWrapper, IDisposable
         await _deploymentsCacheLock.WaitAsync(cancellationToken);
         try
         {
-            if (TryGetCacheValue(_deploymentsCache, out cachedValue))
+            if (TryGetCacheValue(Volatile.Read(ref _deploymentsCache), out cachedValue))
             {
                 return cachedValue;
             }
@@ -160,7 +160,10 @@ internal sealed class KubernetesApiWrapper : IKubernetesApiWrapper, IDisposable
                 cancellationToken: CancellationToken.None
             );
             IReadOnlyList<DeployedResource> mappedDeployments = MapDeployments(deployments.Items);
-            _deploymentsCache = new CacheEntry(mappedDeployments, DateTimeOffset.UtcNow.Add(_cacheTtl));
+            Volatile.Write(
+                ref _deploymentsCache,
+                new CacheEntry(mappedDeployments, DateTimeOffset.UtcNow.Add(_cacheTtl))
+            );
             return mappedDeployments;
         }
         finally
@@ -171,7 +174,7 @@ internal sealed class KubernetesApiWrapper : IKubernetesApiWrapper, IDisposable
 
     private async Task<IReadOnlyList<DeployedResource>> GetCachedDaemonSets(CancellationToken cancellationToken)
     {
-        if (TryGetCacheValue(_daemonSetsCache, out IReadOnlyList<DeployedResource>? cachedValue))
+        if (TryGetCacheValue(Volatile.Read(ref _daemonSetsCache), out IReadOnlyList<DeployedResource>? cachedValue))
         {
             return cachedValue;
         }
@@ -179,7 +182,7 @@ internal sealed class KubernetesApiWrapper : IKubernetesApiWrapper, IDisposable
         await _daemonSetsCacheLock.WaitAsync(cancellationToken);
         try
         {
-            if (TryGetCacheValue(_daemonSetsCache, out cachedValue))
+            if (TryGetCacheValue(Volatile.Read(ref _daemonSetsCache), out cachedValue))
             {
                 return cachedValue;
             }
@@ -190,7 +193,10 @@ internal sealed class KubernetesApiWrapper : IKubernetesApiWrapper, IDisposable
                 cancellationToken: CancellationToken.None
             );
             IReadOnlyList<DeployedResource> mappedDaemonSets = MapDaemonSets(daemonSets.Items);
-            _daemonSetsCache = new CacheEntry(mappedDaemonSets, DateTimeOffset.UtcNow.Add(_cacheTtl));
+            Volatile.Write(
+                ref _daemonSetsCache,
+                new CacheEntry(mappedDaemonSets, DateTimeOffset.UtcNow.Add(_cacheTtl))
+            );
             return mappedDaemonSets;
         }
         finally
