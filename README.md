@@ -35,7 +35,7 @@ See deployment for notes on how to deploy the project on a live system.
 
 Add the following entries to your hosts file (`/etc/hosts` on Linux/MacOS, `C:\Windows\System32\drivers\etc\hosts` on Windows):
 
-```
+```plaintext
 127.0.0.1 studio.localhost
 127.0.0.1 host.docker.internal
 ```
@@ -81,7 +81,7 @@ The solution is now available locally at [studio.localhost][15].
 
 When logging in, use the default username `localgiteaadmin`. You can find the randomly generated password in the `.env` file, under the `GITEA_ADMIN_PASS` variable.
 
-If you make changes and want to rebuild a specific project using docker compose this can be done from `src/Designer` using
+If you make changes and want to rebuild a specific project using docker compose, this can be done from `src/Designer` using
 
 ```bash
 docker compose up -d --build <container>
@@ -93,7 +93,7 @@ Example
 docker compose up -d --build studio_designer
 ```
 
-If using `yarn setup`, the `.env`-file is generated and put at root, otherwise you will need to place it there yourself.
+If using `yarn setup`, the `.env`-file is generated and put at root. Otherwise, you will need to place it there yourself.
 
 #### Development variables
 
