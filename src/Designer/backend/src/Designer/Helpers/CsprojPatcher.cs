@@ -17,15 +17,15 @@ public static class CsprojPatcher
         string csprojPath,
         List<(string Include, string Version)> packageReferences)
     {
-        if (packageReferences == null || !packageReferences.Any())
+        if (packageReferences is null || packageReferences.Count is 0)
         {
             return false;
         }
 
         // Preserve whitespace as much as possible.
-        var doc = XDocument.Load(csprojPath, LoadOptions.None);
+        XDocument doc = XDocument.Load(csprojPath, LoadOptions.None);
 
-        var project = doc.Root;
+        XElement? project = doc.Root;
         if (project == null || project.Name.LocalName != "Project")
         {
             throw new InvalidOperationException("Not a valid SDK-style .csproj (missing <Project> root).");
@@ -38,11 +38,11 @@ public static class CsprojPatcher
 
         foreach (var packageRef in packageReferences)
         {
-            var existing = project
+            XElement? existing = project
                 .Descendants(N("PackageReference"))
                 .FirstOrDefault(pr =>
                 {
-                    var inc = (string?)pr.Attribute("Include");
+                    string? inc = (string?)pr.Attribute("Include");
                     return string.Equals(inc, packageRef.Include, StringComparison.OrdinalIgnoreCase);
                 });
 
@@ -52,11 +52,11 @@ public static class CsprojPatcher
             }
             else
             {
-                var newRef = new XElement(N("PackageReference"));
+                XElement? newRef = new XElement(N("PackageReference"));
                 newRef.SetAttributeValue("Include", packageRef.Include);
                 newRef.SetAttributeValue("Version", packageRef.Version);
 
-                var itemGroupWithPackages = project
+                XElement? itemGroupWithPackages = project
                     .Elements(N("ItemGroup"))
                     .FirstOrDefault(ig => ig.Elements(N("PackageReference")).Any());
 
@@ -66,7 +66,7 @@ public static class CsprojPatcher
                 }
                 else
                 {
-                    var newItemGroup = new XElement(N("ItemGroup"));
+                    XElement? newItemGroup = new XElement(N("ItemGroup"));
                     newItemGroup.Add(newRef);
                     project.Add(newItemGroup);
                 }
