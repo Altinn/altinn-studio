@@ -16,15 +16,13 @@ public class AddAsyncTests : DbIntegrationTestsBase
 {
     private readonly FakeTimeProvider _timeProvider = new();
 
-    public AddAsyncTests(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public AddAsyncTests(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     private static Mock<IFeatureManager> CreateFeatureManagerMock(bool gitOpsEnabled)
     {
         var mock = new Mock<IFeatureManager>();
-        mock.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-            .ReturnsAsync(gitOpsEnabled);
+        mock.Setup(fm => fm.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy)).ReturnsAsync(gitOpsEnabled);
         return mock;
     }
 
@@ -37,28 +35,32 @@ public class AddAsyncTests : DbIntegrationTestsBase
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var featureManager = CreateFeatureManagerMock(gitOpsEnabled: true);
-        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object, _timeProvider);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(
+            DbFixture.DbContext,
+            featureManager.Object,
+            _timeProvider
+        );
         var deployEvent = new DeployEvent
         {
             EventType = DeployEventType.PipelineScheduled,
             Message = "Pipeline scheduled by user",
             Timestamp = _timeProvider.GetUtcNow(),
-            Origin = DeployEventOrigin.Internal
+            Origin = DeployEventOrigin.Internal,
         };
 
         // Act
         await repository.AddAsync(org, deploymentEntity.Build.Id, deployEvent);
 
         // Assert
-        var deploymentSequenceNo = await DbFixture.DbContext.Deployments
-            .Include(d => d.Build)
+        var deploymentSequenceNo = await DbFixture
+            .DbContext.Deployments.Include(d => d.Build)
             .AsNoTracking()
             .Where(d => d.Org == org && d.Build.ExternalId == deploymentEntity.Build.Id)
             .Select(d => d.Sequenceno)
             .SingleAsync();
 
-        var dbEvent = await DbFixture.DbContext.DeployEvents
-            .AsNoTracking()
+        var dbEvent = await DbFixture
+            .DbContext.DeployEvents.AsNoTracking()
             .FirstOrDefaultAsync(e => e.DeploymentSequenceNo == deploymentSequenceNo);
 
         Assert.NotNull(dbEvent);
@@ -75,21 +77,25 @@ public class AddAsyncTests : DbIntegrationTestsBase
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var featureManager = CreateFeatureManagerMock(gitOpsEnabled: true);
-        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object, _timeProvider);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(
+            DbFixture.DbContext,
+            featureManager.Object,
+            _timeProvider
+        );
         var deployEvent = new DeployEvent
         {
             EventType = DeployEventType.PipelineScheduled,
             Message = "Pipeline scheduled",
             Timestamp = _timeProvider.GetUtcNow(),
-            Origin = DeployEventOrigin.Internal
+            Origin = DeployEventOrigin.Internal,
         };
 
         // Act
         await repository.AddAsync(org, deploymentEntity.Build.Id, deployEvent);
 
         // Assert
-        var deployment = await DbFixture.DbContext.Deployments
-            .Include(d => d.Build)
+        var deployment = await DbFixture
+            .DbContext.Deployments.Include(d => d.Build)
             .Include(d => d.Events)
             .AsNoTracking()
             .FirstOrDefaultAsync(d => d.Org == org && d.Build.ExternalId == deploymentEntity.Build.Id);
@@ -108,13 +114,35 @@ public class AddAsyncTests : DbIntegrationTestsBase
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var featureManager = CreateFeatureManagerMock(gitOpsEnabled: true);
-        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object, _timeProvider);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(
+            DbFixture.DbContext,
+            featureManager.Object,
+            _timeProvider
+        );
 
         var events = new[]
         {
-            new DeployEvent { EventType = DeployEventType.PipelineScheduled, Message = "Scheduled", Timestamp = _timeProvider.GetUtcNow(), Origin = DeployEventOrigin.Internal },
-            new DeployEvent { EventType = DeployEventType.PipelineSucceeded, Message = "Succeeded", Timestamp = _timeProvider.GetUtcNow().AddSeconds(1), Origin = DeployEventOrigin.PollingJob },
-            new DeployEvent { EventType = DeployEventType.InstallSucceeded, Message = "Installed", Timestamp = _timeProvider.GetUtcNow().AddSeconds(2), Origin = DeployEventOrigin.Webhook }
+            new DeployEvent
+            {
+                EventType = DeployEventType.PipelineScheduled,
+                Message = "Scheduled",
+                Timestamp = _timeProvider.GetUtcNow(),
+                Origin = DeployEventOrigin.Internal,
+            },
+            new DeployEvent
+            {
+                EventType = DeployEventType.PipelineSucceeded,
+                Message = "Succeeded",
+                Timestamp = _timeProvider.GetUtcNow().AddSeconds(1),
+                Origin = DeployEventOrigin.PollingJob,
+            },
+            new DeployEvent
+            {
+                EventType = DeployEventType.InstallSucceeded,
+                Message = "Installed",
+                Timestamp = _timeProvider.GetUtcNow().AddSeconds(2),
+                Origin = DeployEventOrigin.Webhook,
+            },
         };
 
         // Act
@@ -124,8 +152,8 @@ public class AddAsyncTests : DbIntegrationTestsBase
         }
 
         // Assert
-        var deployment = await DbFixture.DbContext.Deployments
-            .Include(d => d.Build)
+        var deployment = await DbFixture
+            .DbContext.Deployments.Include(d => d.Build)
             .Include(d => d.Events)
             .AsNoTracking()
             .FirstOrDefaultAsync(d => d.Org == org && d.Build.ExternalId == deploymentEntity.Build.Id);
@@ -140,18 +168,23 @@ public class AddAsyncTests : DbIntegrationTestsBase
     {
         // Arrange
         var featureManager = CreateFeatureManagerMock(gitOpsEnabled: true);
-        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object, _timeProvider);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(
+            DbFixture.DbContext,
+            featureManager.Object,
+            _timeProvider
+        );
         var deployEvent = new DeployEvent
         {
             EventType = DeployEventType.PipelineScheduled,
             Message = "Test",
             Timestamp = _timeProvider.GetUtcNow(),
-            Origin = DeployEventOrigin.Internal
+            Origin = DeployEventOrigin.Internal,
         };
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            repository.AddAsync(org, "non-existent-build-id", deployEvent));
+            repository.AddAsync(org, "non-existent-build-id", deployEvent)
+        );
     }
 
     [Theory]
@@ -163,21 +196,25 @@ public class AddAsyncTests : DbIntegrationTestsBase
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var featureManager = CreateFeatureManagerMock(gitOpsEnabled: false);
-        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(DbFixture.DbContext, featureManager.Object, _timeProvider);
+        var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.DeployEventRepository(
+            DbFixture.DbContext,
+            featureManager.Object,
+            _timeProvider
+        );
         var deployEvent = new DeployEvent
         {
             EventType = DeployEventType.PipelineScheduled,
             Message = "Pipeline scheduled",
             Timestamp = _timeProvider.GetUtcNow(),
-            Origin = DeployEventOrigin.Internal
+            Origin = DeployEventOrigin.Internal,
         };
 
         // Act
         await repository.AddAsync(org, deploymentEntity.Build.Id, deployEvent);
 
         // Assert
-        var deployment = await DbFixture.DbContext.Deployments
-            .Include(d => d.Build)
+        var deployment = await DbFixture
+            .DbContext.Deployments.Include(d => d.Build)
             .Include(d => d.Events)
             .AsNoTracking()
             .FirstOrDefaultAsync(d => d.Org == org && d.Build.ExternalId == deploymentEntity.Build.Id);

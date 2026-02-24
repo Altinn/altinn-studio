@@ -9,11 +9,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.Preview;
 
-public class InstancesControllerTests(
-        WebApplicationFactory<Program> factory
-) : PreviewControllerTestsBase<DataControllerTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+public class InstancesControllerTests(WebApplicationFactory<Program> factory)
+    : PreviewControllerTestsBase<DataControllerTests>(factory),
+        IClassFixture<WebApplicationFactory<Program>>
 {
-
     [Fact]
     public async Task Post_ReturnsCreated()
     {

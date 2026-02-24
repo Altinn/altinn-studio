@@ -1,0 +1,7 @@
+.validationHeader {
+  padding-bottom: var(--ds-size-3);
+}
+
+.validationLink {
+  text-decoration: underline;
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMatch, useNavigate } from 'react-router-dom';
+import { useMatch, useNavigate } from 'react-router';
 
 import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@navikt/aksel-icons';

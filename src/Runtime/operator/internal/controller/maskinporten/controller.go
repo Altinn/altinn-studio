@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"reflect"
+	"strings"
 	"time"
 
 	goruntime "runtime"
@@ -126,9 +127,10 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 		// Check if this is a missing secret error (expected/recoverable condition)
 		var missingSecretErr *maskinporten.MissingSecretError
 		if errors.As(err, &missingSecretErr) {
-			logger.Info("App secret not found yet, will retry later", "app", req.AppId)
+			requeueAfter, age := r.getMissingSecretRequeueAfter(configValue, req.Instance)
+			logger.Info("App secret not found yet, will retry later", "app", req.AppId, "age", age, "requeueAfter", requeueAfter)
 			// Requeue with a delay without logging as error
-			return ctrl.Result{RequeueAfter: r.getRequeueAfter(configValue)}, nil
+			return ctrl.Result{RequeueAfter: requeueAfter}, nil
 		}
 		r.updateStatusWithError(ctx, err, "fetchCurrentState failed", instance, nil)
 		return ctrl.Result{}, err
@@ -185,8 +187,63 @@ func (r *MaskinportenClientReconciler) getRequeueAfter(configValue *config.Confi
 	return r.randomizeDuration(configValue.MaskinportenController.RequeueAfter, 10.0)
 }
 
+func (r *MaskinportenClientReconciler) getMissingSecretRequeueAfter(
+	configValue *config.Config,
+	instance *resourcesv1alpha1.MaskinportenClient,
+) (time.Duration, time.Duration) {
+	const minimumRetry = time.Second
+
+	age := time.Duration(0)
+	if instance != nil {
+		createdAt := instance.GetCreationTimestamp().Time
+		if !createdAt.IsZero() {
+			now := time.Now()
+			if r.runtime != nil && r.runtime.GetClock() != nil {
+				now = r.runtime.GetClock().Now()
+			}
+			if now.After(createdAt) {
+				age = now.Sub(createdAt)
+			}
+		}
+	}
+
+	base := getMissingSecretBaseRequeueAfter(age, configValue.MaskinportenController.RequeueAfter)
+	requeue := r.randomizeDuration(base, 20.0)
+	if requeue < minimumRetry {
+		requeue = minimumRetry
+	}
+	max := configValue.MaskinportenController.RequeueAfter
+	if requeue > max {
+		requeue = max
+	}
+	return requeue, age
+}
+
+func getMissingSecretBaseRequeueAfter(age time.Duration, configuredRequeueAfter time.Duration) time.Duration {
+	const minimumRetry = time.Second
+	const fastRetryWindow = 5 * time.Second
+	// Keep very new resources on fast retries; then grow proportionally with age.
+	base := minimumRetry
+	if age > fastRetryWindow {
+		base = age * 2
+	}
+	if base < minimumRetry {
+		base = minimumRetry
+	}
+	if configuredRequeueAfter < base {
+		return configuredRequeueAfter
+	}
+	return base
+}
+
 func (r *MaskinportenClientReconciler) randomizeDuration(d time.Duration, perc float64) time.Duration {
+	if r.random == nil {
+		return d
+	}
 	max := int64(float64(d) * (perc / 100.0))
+	if max <= 0 {
+		return d
+	}
 	min := -max
 	return d + time.Duration(r.random.Int64N(max-min)+min)
 }
@@ -199,6 +256,7 @@ func (r *MaskinportenClientReconciler) updateSecretWithRetry(
 	ctx context.Context,
 	secret *corev1.Secret,
 	updateFn func(*corev1.Secret) error,
+	ignoreNotFound bool,
 ) error {
 	logger := log.FromContext(ctx)
 	for attempt := range maxSecretUpdateRetries {
@@ -210,6 +268,10 @@ func (r *MaskinportenClientReconciler) updateSecretWithRetry(
 		if err == nil {
 			return nil
 		}
+		if ignoreNotFound && apierrors.IsNotFound(err) {
+			logger.Info("secret already deleted, skipping update", "secretName", secret.Name)
+			return nil
+		}
 		if !apierrors.IsConflict(err) {
 			return err
 		}
@@ -218,6 +280,10 @@ func (r *MaskinportenClientReconciler) updateSecretWithRetry(
 			"secretName", secret.Name,
 		)
 		if err := r.Get(ctx, client.ObjectKeyFromObject(secret), secret); err != nil {
+			if ignoreNotFound && apierrors.IsNotFound(err) {
+				logger.Info("secret already deleted while refreshing, skipping update", "secretName", secret.Name)
+				return nil
+			}
 			return fmt.Errorf("refresh secret: %w", err)
 		}
 	}
@@ -283,7 +349,8 @@ func (r *MaskinportenClientReconciler) updateStatus(
 			}
 		case *maskinporten.DeleteClientInApiCommandResult:
 			if result.Err == nil {
-				instance.Status.ClientId = ""
+				// Keep ClientId during deletion retries so we can continue proving API absence
+				// if RemoveFinalizer fails after client deletion.
 				apimeta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
 					Type:               maskinporten.ConditionTypeClientRegistered,
 					Status:             metav1.ConditionFalse,
@@ -553,6 +620,7 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 	var mpClient *maskinporten.ClientResponse
 	var jwks *crypto.Jwks
 	var secretStateContent *maskinporten.SecretStateContent
+	statusClientId := strings.TrimSpace(req.Instance.Status.ClientId)
 
 	if secret != nil {
 		secretStateContent, err = maskinporten.DeserializeSecretStateContent(secret)
@@ -575,25 +643,47 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 			}
 		}
 	} else {
+		if req.Kind == RequestDeleteKind && statusClientId != "" {
+			mpClient, jwks, err = apiClient.GetClient(ctx, statusClientId)
+			if err != nil {
+				if errors.Is(err, maskinporten.ErrClientNotFound) {
+					logger.Info("Client from status not found in Maskinporten API during deletion, continuing...", "clientId", statusClientId)
+				} else {
+					return nil, fmt.Errorf("fetchCurrentState: error getting client from status: %w", err)
+				}
+			}
+		}
+
 		// If the secret state isn't updated, we still try to find a matching client in the API
 		// In a previous iteration, we may have succeeded in creating the client in the API,
 		// but failed to update the secret state content.
-
-		allClients, err := apiClient.GetAllClients(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetchCurrentState: error getting all clients: %w", err)
-		}
-
-		clientName := maskinporten.GetFullClientName(r.runtime.GetOperatorContext(), req.AppId)
-		for _, c := range allClients {
-			if c.ClientName != nil && *c.ClientName == clientName {
-				logger.Info("Found preexisting matching client in Maskinporten API", "clientId", c.ClientId)
-				mpClient, jwks, err = apiClient.GetClient(ctx, c.ClientId)
-				if err != nil {
-					return nil, fmt.Errorf("fetchCurrentState: error getting client: %w", err)
-				}
-				break
+		if mpClient == nil {
+			allClients, err := apiClient.GetAllClients(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("fetchCurrentState: error getting all clients: %w", err)
 			}
+
+			clientName := maskinporten.GetFullClientName(r.runtime.GetOperatorContext(), req.AppId)
+			for _, c := range allClients {
+				if c.ClientName != nil && *c.ClientName == clientName {
+					logger.Info("Found preexisting matching client in Maskinporten API", "clientId", c.ClientId)
+					mpClient, jwks, err = apiClient.GetClient(ctx, c.ClientId)
+					if err != nil {
+						return nil, fmt.Errorf("fetchCurrentState: error getting client: %w", err)
+					}
+					break
+				}
+			}
+		}
+	}
+
+	if req.Kind == RequestDeleteKind && mpClient == nil {
+		if shouldRequireClientIdentityForDeletion(req.Instance) && !hasAuthoritativeClientIdentity(secretStateContent, statusClientId) {
+			return nil, fmt.Errorf(
+				"fetchCurrentState: refusing deletion of %s/%s without client identity; both secret and status are missing clientId",
+				req.Namespace,
+				req.Name,
+			)
 		}
 	}
 
@@ -603,6 +693,15 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 	}
 
 	return clientState, nil
+}
+
+func hasAuthoritativeClientIdentity(secretStateContent *maskinporten.SecretStateContent, statusClientId string) bool {
+	return (secretStateContent != nil && strings.TrimSpace(secretStateContent.ClientId) != "") || strings.TrimSpace(statusClientId) != ""
+}
+
+func shouldRequireClientIdentityForDeletion(instance *resourcesv1alpha1.MaskinportenClient) bool {
+	condition := apimeta.FindStatusCondition(instance.Status.Conditions, maskinporten.ConditionTypeClientRegistered)
+	return condition != nil && condition.Status == metav1.ConditionTrue
 }
 
 func (r *MaskinportenClientReconciler) reconcile(
@@ -695,7 +794,7 @@ func (r *MaskinportenClientReconciler) reconcile(
 			)
 			err := r.updateSecretWithRetry(ctx, currentState.Secret.Manifest, func(s *corev1.Secret) error {
 				return data.SecretContent.SerializeTo(s)
-			})
+			}, false)
 			if err != nil {
 				builders[i].WithUpdateSecretContentResult(&maskinporten.UpdateSecretContentCommandResult{Err: err})
 				firstErr = err
@@ -734,7 +833,7 @@ func (r *MaskinportenClientReconciler) reconcile(
 			err := r.updateSecretWithRetry(ctx, currentState.Secret.Manifest, func(s *corev1.Secret) error {
 				maskinporten.DeleteSecretStateContent(s)
 				return nil
-			})
+			}, true)
 			if err != nil {
 				builders[i].WithDeleteSecretContentResult(&maskinporten.DeleteSecretContentCommandResult{Err: err})
 				firstErr = err

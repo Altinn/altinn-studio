@@ -11,7 +11,8 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_ValidManifest_ReturnsNoErrors()
     {
-        var validManifest = @"{
+        var validManifest =
+            @"{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
@@ -22,6 +23,7 @@ public class ValidateCustomTemplateTest
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(validManifest);
         Assert.Empty(errors);
     }
+
     [Theory]
     [InlineData("/absolute/path")]
     [InlineData("../../other/app/templates")]
@@ -29,7 +31,8 @@ public class ValidateCustomTemplateTest
     [InlineData("/tmp/file.txt")]
     public async Task ValidateManifestJsonAsync_InvalidRemoveEntries_ReturnsError(string remove)
     {
-        var invalidRemoveManifest = $@"{{
+        var invalidRemoveManifest =
+            $@"{{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
@@ -45,7 +48,8 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_UnknownProperty_ReturnsError()
     {
-        var unknownPropertyManifest = @"{
+        var unknownPropertyManifest =
+            @"{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
@@ -69,7 +73,8 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_MissingName_ReturnsError()
     {
-        var missingNbName = @"{
+        var missingNbName =
+            @"{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""description"": ""This is a valid description for the template."",
@@ -84,7 +89,8 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_MissingDescription_ReturnsError()
     {
-        var missingNbDescription = @"{
+        var missingNbDescription =
+            @"{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigation } from 'react-router-dom';
+import { useNavigation } from 'react-router';
 
 import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';

@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 
@@ -141,6 +142,9 @@ internal static class MaskinportenAuthenticationExtensions
                             var logger = context.HttpContext.RequestServices.GetRequiredService<
                                 ILogger<JwtBearerHandler>
                             >();
+                            var requiredScope = context
+                                .HttpContext.RequestServices.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>()
+                                .CurrentValue.RequiredScope;
 
                             var claims = context.Principal?.Claims;
                             var issuer = claims?.FirstOrDefault(c => c.Type == "iss")?.Value;
@@ -151,7 +155,7 @@ internal static class MaskinportenAuthenticationExtensions
                                 schemeName,
                                 issuer,
                                 scope,
-                                settings.RequiredScope
+                                requiredScope
                             );
 
                             return Task.CompletedTask;
@@ -178,7 +182,14 @@ internal static class MaskinportenAuthenticationExtensions
                             return false;
 
                         var scopes = scopeClaim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                        return scopes.Contains(settings.RequiredScope);
+                        var requiredScope = context.Resource switch
+                        {
+                            HttpContext httpContext => httpContext
+                                .RequestServices.GetRequiredService<IOptionsMonitor<MaskinportenSettings>>()
+                                .CurrentValue.RequiredScope,
+                            _ => settings.RequiredScope,
+                        };
+                        return scopes.Contains(requiredScope);
                     });
                 }
             );

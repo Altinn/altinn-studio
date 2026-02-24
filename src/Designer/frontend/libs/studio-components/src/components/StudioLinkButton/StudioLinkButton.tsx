@@ -27,6 +27,7 @@ function StudioLinkButton(
   ref?: Ref<HTMLAnchorElement>,
 ): ReactElement {
   const className = cn(classes.linkButton, givenClass, {
+    [classes.primary]: variant === 'primary' || variant === undefined,
     [classes.disabled]: disabled,
     [classes.secondary]: variant === 'secondary',
     [classes.secondaryAndTertiary]: variant === 'secondary' || variant === 'tertiary',

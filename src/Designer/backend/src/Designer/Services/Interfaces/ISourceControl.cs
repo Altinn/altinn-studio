@@ -25,7 +25,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="destinationPath">Path of destination folder</param>
         /// <param name="branchName">The name of the branch to clone</param>
         /// <returns>Path of the cloned repository</returns>
-        string CloneRemoteRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, string destinationPath, string branchName = "");
+        string CloneRemoteRepository(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            string destinationPath,
+            string branchName = ""
+        );
 
         /// <summary>
         /// Stores a App token for user
@@ -46,7 +50,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
         /// <param name="commitInfo">the commit information for the app</param>
-        void PushChangesForRepository(AltinnAuthenticatedRepoEditingContext authenticatedContext, CommitInfo commitInfo);
+        void PushChangesForRepository(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            CommitInfo commitInfo
+        );
 
         /// <summary>
         /// Commits all changes in repo and pushes them to the provided branch
@@ -55,7 +62,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="branchName">The name of the branch to push changes to</param>
         /// <param name="localPath">Path to local clone of repository</param>
         /// <param name="message">Commit message</param>
-        void CommitAndPushChanges(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName, string localPath, string message);
+        void CommitAndPushChanges(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            string branchName,
+            string localPath,
+            string message
+        );
 
         /// <summary>
         /// Pull remote changes
@@ -146,7 +158,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="target">The name of the base ref</param>
         /// <param name="source">The name of the head ref</param>
         /// <param name="title">The pull request title</param>
-        Task<bool> CreatePullRequest(AltinnRepoEditingContext editingContext, string target, string source, string title);
+        Task<bool> CreatePullRequest(
+            AltinnRepoEditingContext editingContext,
+            string target,
+            string source,
+            string title
+        );
 
         /// <summary>
         /// Deletes the provided repository. Both local clone and remote repo.
@@ -211,7 +228,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="branchName">The name of the branch to checkout</param>
         /// <returns>The updated repository status, or null if there are uncommitted changes</returns>
         /// <exception cref="Exceptions.UncommittedChangesException">Thrown when there are uncommitted changes</exception>
-        RepoStatus CheckoutBranchWithValidation(AltinnAuthenticatedRepoEditingContext authenticatedContext, string branchName);
+        RepoStatus CheckoutBranchWithValidation(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            string branchName
+        );
 
         /// <summary>
         /// Discards all local changes in the repository (hard reset + clean untracked files)

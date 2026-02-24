@@ -18,9 +18,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="SearchResults"/> class.
         /// </summary>
-        public SearchResults()
-        {
-        }
+        public SearchResults() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SearchResults" /> class.
@@ -93,15 +91,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.Data == other.Data ||
-                    (this.Data != null &&
-                    this.Data.SequenceEqual(other.Data))) &&
-                (
-                    this.Ok == other.Ok ||
-                    (this.Ok != null &&
-                    this.Ok.Equals(other.Ok)));
+            return (this.Data == other.Data || (this.Data != null && this.Data.SequenceEqual(other.Data)))
+                && (this.Ok == other.Ok || (this.Ok != null && this.Ok.Equals(other.Ok)));
         }
 
         /// <summary>

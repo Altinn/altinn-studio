@@ -15,30 +15,52 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// </summary>
     public class TaskNavigationService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : ITaskNavigationService
     {
-        public async Task<IEnumerable<TaskNavigationGroup>> GetTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
+        public async Task<IEnumerable<TaskNavigationGroup>> GetTaskNavigation(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            CancellationToken cancellationToken
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
 
             LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
 
             return layoutSetsFile.UiSettings?.TaskNavigation ?? [];
         }
 
-        public IEnumerable<ProcessTask> GetTasks(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
+        public IEnumerable<ProcessTask> GetTasks(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            CancellationToken cancellationToken
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
 
             Definitions definitions = altinnAppGitRepository.GetProcessDefinitions();
             return definitions.Process.Tasks;
         }
 
-        public async Task UpdateTaskNavigation(AltinnRepoEditingContext altinnRepoEditingContext, IEnumerable<TaskNavigationGroup> taskNavigationGroupList, CancellationToken cancellationToken)
+        public async Task UpdateTaskNavigation(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            IEnumerable<TaskNavigationGroup> taskNavigationGroupList,
+            CancellationToken cancellationToken
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
 
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
 

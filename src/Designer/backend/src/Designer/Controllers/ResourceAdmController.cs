@@ -15,6 +15,5 @@ namespace Altinn.Studio.Designer.Controllers
         {
             _sourceControl = sourceControl;
         }
-
     }
 }

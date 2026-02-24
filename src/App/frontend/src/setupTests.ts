@@ -112,10 +112,16 @@ jest.mock('axios');
 if (!globalThis.Request) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (globalThis as any).Request = class Request {
-    constructor(
-      public url: string,
-      public options?: unknown,
-    ) {}
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    signal?: AbortSignal;
+    constructor(url: string, init?: { method?: string; signal?: AbortSignal }) {
+      this.url = url;
+      this.method = init?.method ?? 'GET';
+      this.headers = {};
+      this.signal = init?.signal;
+    }
   };
 }
 

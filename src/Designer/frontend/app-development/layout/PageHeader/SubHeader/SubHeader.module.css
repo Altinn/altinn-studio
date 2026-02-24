@@ -3,3 +3,7 @@
   gap: var(--fds-spacing-2);
   align-items: center;
 }
+
+.validationButton {
+  lineheight: 'normal';
+}

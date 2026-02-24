@@ -1,4 +1,4 @@
-import { matchPath, useLocation } from 'react-router-dom';
+import { matchPath, useLocation } from 'react-router';
 
 import { useAsRef } from 'src/hooks/useAsRef';
 import type { SearchParams } from 'src/core/routing/types';

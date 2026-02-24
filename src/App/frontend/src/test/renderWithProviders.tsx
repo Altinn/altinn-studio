@@ -1,5 +1,5 @@
 import React from 'react';
-import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router-dom';
+import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes, useLocation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { jest } from '@jest/globals';
@@ -199,7 +199,7 @@ function NotFound() {
 
 function DefaultRouter({ children }: PropsWithChildren) {
   return (
-    <MemoryRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+    <MemoryRouter>
       <Routes>
         <Route
           path='/'
@@ -242,7 +242,6 @@ export function InstanceRouter({
     {
       basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
-      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -251,12 +250,7 @@ export function InstanceRouter({
     routerRef.current = router;
   }
 
-  return (
-    <RouterProvider
-      router={router}
-      future={{ v7_startTransition: true }}
-    />
-  );
+  return <RouterProvider router={router} />;
 }
 
 export function StatelessRouter({
@@ -281,7 +275,6 @@ export function StatelessRouter({
     {
       basename: '/ttd/test',
       initialEntries: [query ? `${path}?${query}` : path],
-      future: { v7_relativeSplatPath: true },
     },
   );
 
@@ -290,12 +283,7 @@ export function StatelessRouter({
     routerRef.current = router;
   }
 
-  return (
-    <RouterProvider
-      router={router}
-      future={{ v7_startTransition: true }}
-    />
-  );
+  return <RouterProvider router={router} />;
 }
 
 interface ProvidersProps extends PropsWithChildren {
