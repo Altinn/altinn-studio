@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Utils;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.EntityUpdate;
 using Altinn.Studio.Designer.Models;
@@ -55,27 +54,25 @@ public class DeploymentPipelinePollingJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        using var activity = TryStartTraceActivity(context);
+        Activity activity = null;
 
         try
         {
-            string org = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.Org);
-            string app = context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.App);
-            string developer = context.JobDetail.JobDataMap.GetString(
-                DeploymentPipelinePollingJobConstants.Arguments.Developer
-            );
+            activity = TryStartTraceActivity(context);
+            var jobDataMap = context.JobDetail.JobDataMap;
+
+            string org = jobDataMap.GetRequiredString(DeploymentPipelinePollingJobConstants.Arguments.Org);
+            string app = jobDataMap.GetRequiredString(DeploymentPipelinePollingJobConstants.Arguments.App);
+            string developer = jobDataMap.GetRequiredString(DeploymentPipelinePollingJobConstants.Arguments.Developer);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            string buildId = context.JobDetail.JobDataMap.GetString(
-                DeploymentPipelinePollingJobConstants.Arguments.BuildId
-            );
+            string buildId = jobDataMap.GetRequiredString(DeploymentPipelinePollingJobConstants.Arguments.BuildId);
             PipelineType type = Enum.Parse<PipelineType>(
-                context.JobDetail.JobDataMap.GetString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType)!,
+                jobDataMap.GetRequiredString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType),
                 true
             );
-            string environment = context.JobDetail.JobDataMap.GetString(
+            string environment = jobDataMap.GetRequiredString(
                 DeploymentPipelinePollingJobConstants.Arguments.Environment
             );
-            Guard.ArgumentNotNull(buildId, nameof(buildId));
 
             var build = await _azureDevOpsBuildClient.Get(buildId, context.CancellationToken);
 
@@ -118,27 +115,31 @@ public class DeploymentPipelinePollingJob : IJob
                 CancelJob(context);
             }
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             activity?.SetStatus(ActivityStatusCode.Error);
             activity?.AddException(ex);
             throw;
+        }
+        finally
+        {
+            activity?.Dispose();
         }
     }
 
     private Activity TryStartTraceActivity(IJobExecutionContext context)
     {
         var jobDataMap = context.JobDetail.JobDataMap;
-        string traceParent = GetOptionalString(jobDataMap, DeploymentPipelinePollingJobConstants.Arguments.TraceParent);
+        string traceParent = jobDataMap.GetOptionalString(DeploymentPipelinePollingJobConstants.Arguments.TraceParent);
         if (string.IsNullOrWhiteSpace(traceParent))
         {
             return null;
         }
 
-        string traceState = GetOptionalString(jobDataMap, DeploymentPipelinePollingJobConstants.Arguments.TraceState);
+        string traceState = jobDataMap.GetOptionalString(DeploymentPipelinePollingJobConstants.Arguments.TraceState);
         if (!ActivityContext.TryParse(traceParent, traceState, out var parentContext))
         {
-            string buildId = GetOptionalString(jobDataMap, DeploymentPipelinePollingJobConstants.Arguments.BuildId);
+            string buildId = jobDataMap.GetOptionalString(DeploymentPipelinePollingJobConstants.Arguments.BuildId);
             _logger.LogWarning("Invalid trace context in polling job for build {BuildId}", buildId ?? "<unknown>");
             return null;
         }
@@ -157,26 +158,6 @@ public class DeploymentPipelinePollingJob : IJob
         );
         activity.SetAlwaysSample();
         return activity;
-    }
-
-    private static string GetOptionalString(JobDataMap jobDataMap, string key)
-    {
-        if (jobDataMap is null)
-        {
-            throw new ArgumentNullException(nameof(jobDataMap));
-        }
-
-        if (string.IsNullOrWhiteSpace(key))
-        {
-            throw new ArgumentException("Value cannot be null or whitespace.", nameof(key));
-        }
-
-        if (!jobDataMap.TryGetValue(key, out var value) || value is null)
-        {
-            return null;
-        }
-
-        return value as string ?? value.ToString();
     }
 
     private async Task AddDeployEventIfNotExist(BuildStatus buildStatus, BuildEntity build, string org, string buildId)
