@@ -1,11 +1,17 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
-using Microsoft.Extensions.Logging;
+using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -15,53 +21,77 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class KubernetesDeploymentsService : IKubernetesDeploymentsService
     {
         private readonly IEnvironmentsService _environmentsService;
-        private readonly IKubernetesWrapperClient _kubernetesWrapperClient;
-        private readonly ILogger<KubernetesDeploymentsService> _logger;
+        private readonly IRuntimeGatewayClient _runtimeGatewayClient;
 
         /// <summary>
         /// Constructor
         /// </summary>
         public KubernetesDeploymentsService(
             IEnvironmentsService environmentsService,
-            IKubernetesWrapperClient kubernetesWrapperClient,
-            ILogger<KubernetesDeploymentsService> logger
+            IRuntimeGatewayClient runtimeGatewayClient
         )
         {
             _environmentsService = environmentsService;
-            _kubernetesWrapperClient = kubernetesWrapperClient;
-            _logger = logger;
+            _runtimeGatewayClient = runtimeGatewayClient;
         }
 
         /// <inheritdoc/>
         public async Task<List<KubernetesDeployment>> GetAsync(string org, string app, CancellationToken ct)
         {
-            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(
-                org,
-                ct
+            using var activity = ServiceTelemetry.Source.StartActivity(
+                $"{nameof(KubernetesDeploymentsService)}.{nameof(GetAsync)}",
+                ActivityKind.Internal
             );
+            activity?.SetTag("org", org);
+            activity?.SetTag("app", app);
+
+            EnvironmentModel[] environments = (
+                await _environmentsService.GetOrganizationEnvironments(org, ct)
+            ).ToArray();
+            activity?.SetTag("environment.count", environments.Length);
 
             var getDeploymentTasks = environments.Select(async env =>
             {
+                using var envActivity = ServiceTelemetry.Source.StartActivity(
+                    $"{nameof(KubernetesDeploymentsService)}.{nameof(GetAsync)}.Environment",
+                    ActivityKind.Internal
+                );
+                envActivity?.SetTag("environment", env.Name);
+
                 try
                 {
-                    var deployment = await _kubernetesWrapperClient.GetDeploymentAsync(org, app, env, ct);
-
-                    if (deployment is null)
+                    var appDeployment = await _runtimeGatewayClient.GetAppDeployment(
+                        org,
+                        app,
+                        AltinnEnvironment.FromName(env.Name),
+                        ct
+                    );
+                    if (appDeployment is null)
                     {
                         return null;
                     }
 
-                    deployment.EnvName = env.Name;
-                    return deployment;
+                    return new KubernetesDeployment
+                    {
+                        EnvName = env.Name,
+                        Version = appDeployment.ImageTag,
+                        Release = $"{org}-{app}",
+                    };
                 }
-                catch (KubernetesWrapperResponseException e)
+                catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
                 {
-                    _logger.LogError(e, $"Could not reach environment {env.Name} for org {org}.");
+                    return null;
+                }
+                catch (Exception e) when (e is not OperationCanceledException)
+                {
+                    envActivity?.SetStatus(ActivityStatusCode.Error);
+                    envActivity?.AddException(e);
                     return null;
                 }
             });
 
             KubernetesDeployment?[] kubernetesDeployments = await Task.WhenAll(getDeploymentTasks);
+            activity?.SetTag("deployment.count", kubernetesDeployments.Count(deployment => deployment is not null));
             return kubernetesDeployments.OfType<KubernetesDeployment>().ToList();
         }
     }
