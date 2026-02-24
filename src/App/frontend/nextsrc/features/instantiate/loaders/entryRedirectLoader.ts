@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios';
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
@@ -21,7 +22,10 @@ export const entryRedirectLoader = () => async (_: LoaderFunctionArgs) => {
 
   const entryType = GlobalData.applicationMetadata.onEntry?.show;
   if (entryType === 'new-instance') {
-    const instance = await createNewInstance();
+    const instance = await createNewInstanceOrRedirect();
+    if (instance instanceof Response) {
+      return instance;
+    }
     const [instanceOwnerPartyId, instanceGuid] = instance.id.split('/');
     return redirect(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
   }
@@ -30,7 +34,10 @@ export const entryRedirectLoader = () => async (_: LoaderFunctionArgs) => {
     const activeInstances = await queryClient.ensureQueryData(activeInstancesQuery(GlobalData.selectedParty.partyId));
 
     if (activeInstances.length === 0) {
-      const instance = await createNewInstance();
+      const instance = await createNewInstanceOrRedirect();
+      if (instance instanceof Response) {
+        return instance;
+      }
       const [instanceOwnerPartyId, instanceGuid] = instance.id.split('/');
       return redirect(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
     }
@@ -44,6 +51,17 @@ export const entryRedirectLoader = () => async (_: LoaderFunctionArgs) => {
 
   throw new Error();
 };
+
+async function createNewInstanceOrRedirect(): Promise<IInstance | Response> {
+  try {
+    return await createNewInstance();
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 403) {
+      return redirect(routeBuilders.partySelection({ errorCode: '403' }));
+    }
+    throw error;
+  }
+}
 
 async function createNewInstance(): Promise<IInstance> {
   const party = GlobalData.selectedParty;

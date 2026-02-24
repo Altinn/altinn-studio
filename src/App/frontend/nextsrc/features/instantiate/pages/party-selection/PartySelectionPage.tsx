@@ -141,15 +141,13 @@ export const PartySelectionPage = () => {
 
       <InstantiateHeader />
       <title>{`${texts.header} - ${getAppName()} - ${getAppOwner()}`}</title>
-      <div style={{ display: 'flex', flexDirection: 'row' }}>
-        <Heading
-          level={1}
-          className={classes.title}
-        >
-          {texts.header}
-        </Heading>
-        {errorCode === '403' && <ErrorMessage />}
-      </div>
+      <Heading
+        level={1}
+        className={classes.title}
+      >
+        {texts.header}
+      </Heading>
+      {errorCode === '403' && <ErrorMessage />}
       <div className={classes.searchFieldContainer}>
         <input
           placeholder={texts.searchPlaceholder}
