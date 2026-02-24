@@ -19,6 +19,21 @@ builder.UseProblemDetailsForBadRequests();
 builder.UseCaseInsensitiveCamelCaseJson();
 
 // Services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "Dashboard",
+        policy =>
+        {
+            var origins =
+                builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ??
+                [
+                    "http://localhost:8090",
+                ];
+            policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
+        }
+    );
+});
 builder.Services.AddWorkflowEngineHost();
 builder.Services.AddTelemetry();
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
@@ -51,5 +66,10 @@ if (!builder.Environment.IsDevelopment())
 // Endpoints
 app.MapHealthEndpoints();
 app.MapEngineEndpoints();
+if (!app.Environment.IsProduction())
+{
+    app.UseCors("Dashboard");
+    app.MapDashboardEndpoints();
+}
 
 await app.RunAsync();

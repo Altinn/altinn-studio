@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workflow Engine Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/style.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+
+<div class="header">
+  <h1>
+    <svg class="engine-icon" id="engine-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97s-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.49.49 0 0 0 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1s.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.58 1.69-.98l2.49 1.01c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66z"/></svg>
+    <a href="/" class="title-link">WORKFLOW ENGINE</a>
+    <span class="engine-status-label" id="engine-status-label">Disconnected</span>
+  </h1>
+  <div class="header-meters">
+    <div class="meter">
+      <span class="meter-label">Inbox</span>
+      <div class="meter-bar"><div class="meter-fill low" id="meter-inbox" style="width:0%"></div><span class="meter-value" id="meter-inbox-val">0 / 0</span></div>
+    </div>
+    <div class="meter">
+      <span class="meter-label">DB</span>
+      <div class="meter-bar"><div class="meter-fill low" id="meter-db" style="width:0%"></div><span class="meter-value" id="meter-db-val">0 / 0</span></div>
+    </div>
+    <div class="meter">
+      <span class="meter-label">HTTP</span>
+      <div class="meter-bar"><div class="meter-fill low" id="meter-http" style="width:0%"></div><span class="meter-value" id="meter-http-val">0 / 0</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <div class="dropdown" id="org-dropdown">
+    <button class="dropdown-toggle" onclick="toggleDropdown('org-dropdown')">
+      <span class="dropdown-label">Org</span>
+      <span class="dropdown-selected" id="org-selected"></span>
+      <svg class="dropdown-arrow" width="8" height="8" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="dropdown-panel">
+      <input type="text" class="dropdown-search" placeholder="Search orgs..." autocomplete="off" spellcheck="false">
+      <div class="dropdown-list" id="org-list"></div>
+    </div>
+  </div>
+  <div class="dropdown disabled" id="app-dropdown">
+    <button class="dropdown-toggle" onclick="toggleDropdown('app-dropdown')">
+      <span class="dropdown-label">App</span>
+      <span class="dropdown-selected" id="app-selected"></span>
+      <svg class="dropdown-arrow" width="8" height="8" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="dropdown-panel">
+      <input type="text" class="dropdown-search" placeholder="Search apps..." autocomplete="off" spellcheck="false">
+      <div class="dropdown-list" id="app-list"></div>
+    </div>
+  </div>
+  <div class="filter-bar-chips">
+    <span class="chip-label" id="label-party" style="display:none">Party</span>
+    <div class="status-chips" id="party-chips"></div>
+    <span class="chip-label" id="label-guid" style="display:none">Instance</span>
+    <div class="status-chips" id="guid-chips"></div>
+  </div>
+  <span class="filter-bar-spacer"></span>
+  <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Switch theme">
+    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <span id="theme-label">Altinn</span>
+  </button>
+  <button class="settings-btn" onclick="openSettings()" title="Settings">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" data-tab="live" onclick="switchTab('live')"><span class="sse-dot disconnected" id="sse-dot"></span>Live</div>
+  <div class="tab" data-tab="query" onclick="switchTab('query')">Query</div>
+</div>
+
+<div class="tab-panel active" id="panel-live">
+  <div class="live-filter-row">
+    <div class="filter-search">
+      <input type="text" id="live-filter-input" placeholder="Filter..." autocomplete="off" spellcheck="false">
+      <button class="filter-clear" id="live-filter-clear" title="Clear filter">&times;</button>
+    </div>
+  </div>
+  <div class="section collapsed" id="scheduled-section">
+    <div class="section-title collapsible" onclick="toggleSection('scheduled-section')"><span class="chevron">&#9656;</span>SCHEDULED
+      <span class="section-chips" data-section="scheduled" onclick="event.stopPropagation()">
+        <button class="chip active" data-status="">All</button>
+        <button class="chip" data-status="10s">10s</button>
+        <button class="chip" data-status="1m">1m</button>
+        <button class="chip" data-status="5m">5m</button>
+        <button class="chip" data-status="later">Later</button>
+      </span>
+      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('scheduled')">Compact</button><button onclick="fullAll('scheduled')">Full</button></span>
+    </div>
+    <div class="section-body" id="scheduled-workflows"></div>
+  </div>
+
+  <div class="section" id="live-section">
+    <div class="section-title collapsible" onclick="toggleSection('live-section')"><span class="chevron">&#9656;</span>INBOX
+      <span class="section-chips" data-section="live" onclick="event.stopPropagation()">
+        <button class="chip active" data-status="">All</button>
+        <button class="chip" data-status="processing">Processing</button>
+        <button class="chip" data-status="retrying">Retrying</button>
+      </span>
+      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('inbox')">Compact</button><button onclick="fullAll('inbox')">Full</button></span>
+    </div>
+    <div class="section-body">
+      <div id="live-workflows"></div>
+      <div class="empty-state" id="live-empty">
+No active workflows
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="recent-section">
+    <div class="section-title collapsible" onclick="toggleSection('recent-section')"><span class="chevron">&#9656;</span>RECENT
+      <span class="section-chips" data-section="recent" onclick="event.stopPropagation()">
+        <button class="chip active" data-status="">All</button>
+        <button class="chip" data-status="completed">Completed</button>
+        <button class="chip" data-status="failed">Failed</button>
+      </span>
+      <span class="view-toggle" onclick="event.stopPropagation()"><button onclick="collapseAll('recent')">Compact</button><button onclick="fullAll('recent')">Full</button></span>
+    </div>
+    <div class="section-body">
+      <div id="recent-workflows"></div>
+      <div class="empty-state" id="recent-empty">No recent workflows</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-panel" id="panel-query">
+  <div class="section">
+    <div class="section-title">
+      <label class="retried-toggle" title="Show enqueued workflows"><input type="checkbox" id="enqueued-check" onchange="toggleQueryStatus()"><span>Enqueued</span></label>
+      <label class="retried-toggle" title="Show processing workflows"><input type="checkbox" id="processing-check" onchange="toggleQueryStatus()"><span>Processing</span></label>
+      <label class="retried-toggle" title="Show requeued workflows"><input type="checkbox" id="requeued-check" onchange="toggleQueryStatus()"><span>Requeued</span></label>
+      <div class="chip-sep"></div>
+      <label class="retried-toggle" title="Show completed workflows"><input type="checkbox" id="completed-check" onchange="toggleQueryStatus()"><span>Completed</span></label>
+      <label class="retried-toggle" title="Show failed workflows"><input type="checkbox" id="failed-check" checked onchange="toggleQueryStatus()"><span>Failed</span></label>
+      <label class="retried-toggle" title="Show canceled workflows"><input type="checkbox" id="canceled-check" onchange="toggleQueryStatus()"><span>Canceled</span></label>
+      <div class="chip-sep"></div>
+      <div class="time-range-group">
+        <button class="time-range-btn" id="time-range-btn" onclick="toggleTimeDropdown()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="time-range-label">All time</span>
+          <svg width="8" height="8" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="time-dropdown" id="time-dropdown">
+          <div class="time-option active" data-minutes="0">All time</div>
+          <div class="time-option" data-minutes="5">Last 5 minutes</div>
+          <div class="time-option" data-minutes="15">Last 15 minutes</div>
+          <div class="time-option" data-minutes="30">Last 30 minutes</div>
+          <div class="time-option" data-minutes="60">Last 1 hour</div>
+          <div class="time-option" data-minutes="360">Last 6 hours</div>
+          <div class="time-option" data-minutes="1440">Last 24 hours</div>
+          <div class="time-option" data-minutes="10080">Last 7 days</div>
+          <div class="time-sep"></div>
+          <div class="time-option" data-minutes="custom">Custom range</div>
+          <div class="time-custom" id="time-custom" style="display:none">
+            <label>From<input type="datetime-local" id="time-from"></label>
+            <label>To<input type="datetime-local" id="time-to"></label>
+            <button class="time-apply" onclick="applyCustomTimeRange()">Apply</button>
+          </div>
+        </div>
+      </div>
+      <div class="chip-sep"></div>
+      <label class="retried-toggle" title="Only show workflows where steps were retried"><input type="checkbox" id="retried-check" onchange="toggleRetried()"><span>Has retries</span></label>
+      <div class="chip-sep"></div>
+      <div class="query-search">
+        <input type="text" id="query-search-input" placeholder="Search..." autocomplete="off" spellcheck="false">
+      </div>
+      <div class="chip-sep"></div>
+      <div class="refresh-group">
+        <button class="tab-reload" id="query-load" onclick="loadQuery()" title="Reload"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg></button>
+        <button class="refresh-dropdown-btn" id="refresh-dropdown-btn" onclick="toggleRefreshDropdown()" title="Auto-refresh interval"><span id="refresh-interval-label"></span><svg width="8" height="8" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="refresh-dropdown" id="refresh-dropdown">
+          <div class="refresh-option active" data-interval="0">Off</div>
+          <div class="refresh-option" data-interval="5">5s</div>
+          <div class="refresh-option" data-interval="10">10s</div>
+          <div class="refresh-option" data-interval="30">30s</div>
+          <div class="refresh-option" data-interval="60">1m</div>
+          <div class="refresh-option" data-interval="300">5m</div>
+        </div>
+      </div>
+      <div class="query-pager" id="query-pager" style="display:none">
+        <button class="pager-btn" id="pager-prev" onclick="queryPrev()" title="Previous page" disabled><svg width="10" height="10" viewBox="0 0 10 10"><path d="M7 1L3 5l4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <span class="pager-info" id="pager-info"></span>
+        <button class="pager-btn" id="pager-next" onclick="queryNext()" title="Next page"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <span class="view-toggle"><button onclick="collapseAll('query')">Compact</button><button onclick="fullAll('query')">Full</button></span>
+    </div>
+    <div id="query-workflows"></div>
+    <div class="empty-state" id="query-empty">Click Load to query</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="settings-modal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal settings-modal">
+    <div class="modal-header">
+      <h2>Settings</h2>
+      <button class="modal-close" onclick="closeSettings()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-group">
+        <label class="settings-toggle">
+          <input type="checkbox" id="setting-timestamps" checked>
+          <span>Show timestamps</span>
+        </label>
+        <label class="settings-toggle">
+          <input type="checkbox" id="setting-utc">
+          <span>Show timestamps in UTC</span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="step-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Step Details</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <div class="modal-loading">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>

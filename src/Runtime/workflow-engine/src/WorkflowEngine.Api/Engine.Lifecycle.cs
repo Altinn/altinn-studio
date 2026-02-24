@@ -126,6 +126,9 @@ internal partial class Engine
     {
         _logger.ReleasingQueueSlot();
 
+        // Capture final state before removal (for dashboard "recent" section)
+        _recentWorkflows.Add(workflow);
+
         lock (_activeSetLock)
         {
             var removed = _inbox.TryRemove(workflow.IdempotencyKey, out _) && _activeSet.Remove(workflow);

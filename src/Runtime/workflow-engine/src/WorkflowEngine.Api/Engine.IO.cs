@@ -127,6 +127,8 @@ internal partial class Engine
         return _inbox.Values.FirstOrDefault(w => w.InstanceInformation == instanceInformation);
     }
 
+    public IReadOnlyList<Workflow> GetAllInboxWorkflows() => _inbox.Values.ToList();
+
     // TODO: We probably want a background process to periodically pull from the database, so we can catch scheduled tasks and other things we've been ignoring
     private async Task PopulateWorkflowsFromDb(CancellationToken cancellationToken)
     {
