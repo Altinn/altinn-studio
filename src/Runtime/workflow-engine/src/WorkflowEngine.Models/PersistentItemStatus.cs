@@ -1,5 +1,9 @@
+using System.Text.Json.Serialization;
+using WorkflowEngine.Resilience.JsonConverters;
+
 namespace WorkflowEngine.Models;
 
+[JsonConverter(typeof(FlexibleEnumConverter<PersistentItemStatus>))]
 public enum PersistentItemStatus
 {
     /// <summary>
