@@ -7,16 +7,17 @@ export const useUpdateLayoutSetIdMutation = (org: string, app: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       layoutSetIdToUpdate,
       newLayoutSetId,
     }: {
       layoutSetIdToUpdate: string;
       newLayoutSetId: string;
-    }) => updateLayoutSetId(org, app, layoutSetIdToUpdate, newLayoutSetId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
-      queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
+    }) => {
+      const result = await updateLayoutSetId(org, app, layoutSetIdToUpdate, newLayoutSetId);
+      await queryClient.refetchQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
+      return result;
     },
   });
 };
