@@ -5,10 +5,11 @@
 
 import { engineUrl, setEngineUrl } from './modules/core/state.js';
 import { connectSSE, watchForChanges } from './modules/core/sse.js';
-import { syncUrl, restoreUrl, bindUrlCallbacks } from './modules/core/url.js';
+import { syncUrl, restoreUrl, bindUrlCallbacks } from './modules/features/url.js';
 import { updateTimers } from './modules/shared/timers.js';
+import { bindSectionCallbacks } from './modules/shared/section.js';
 import { updateStatusBadges, updateCapacity } from './modules/features/header.js';
-import { updateScheduledBadge, bindScheduledCallbacks } from './modules/features/scheduled.js';
+import { updateScheduledBadge, loadScheduled, bindScheduledCallbacks } from './modules/features/scheduled.js';
 import { updateLiveWorkflows, bindLiveCallbacks } from './modules/features/live.js';
 import { updateRecentWorkflows, bindRecentCallbacks } from './modules/features/recent.js';
 import { applyFilter, mergeDiscoveredOrgsAndApps, switchTab, fetchOrgsAndApps, bindFilterCallbacks } from './modules/features/filters.js';
@@ -22,7 +23,8 @@ import './modules/features/settings.js';
 /* ── Wire up late-bound callbacks to break circular dependencies ── */
 
 bindUrlCallbacks({ switchTab, loadQuery, applyFilter });
-bindScheduledCallbacks({ applyFilter, syncUrl });
+bindSectionCallbacks({ loadScheduled, loadQuery, syncUrl });
+bindScheduledCallbacks({ applyFilter });
 bindLiveCallbacks({ mergeDiscoveredOrgsAndApps, applyFilter });
 bindRecentCallbacks({ mergeDiscoveredOrgsAndApps, applyFilter });
 bindFilterCallbacks({ syncUrl, loadQuery });

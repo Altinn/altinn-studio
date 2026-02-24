@@ -1,8 +1,9 @@
 /* URL sync — persist tab + filters to query params */
 
-import { dom, state } from './state.js';
-import { updateDropdownToggle, rebuildDropdown, refreshAppDropdown, rebuildSelectedOnlyChips, updatePartyGuidLabels } from '../features/filters.js';
-import { getTheme, setTheme, updateThemeToggle } from '../features/theme.js';
+import { dom, state } from '../core/state.js';
+import { updateDropdownToggle } from '../shared/dropdown.js';
+import { rebuildSelectedOnlyChips, updatePartyGuidLabels } from '../shared/chips.js';
+import { getTheme, setTheme, updateThemeToggle } from './theme.js';
 
 /** Late-bound references set from app.js to break circular dependency */
 /** @type {() => void} */

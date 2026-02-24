@@ -17,17 +17,20 @@ Real-time monitoring UI for the workflow engine. Vanilla JS ES Modules (no build
 | `wwwroot/style.css` | All styles (~545 lines). Dark theme with CSS custom properties. |
 | `wwwroot/app.js` | Entry point (~60 lines). Imports modules, wires callbacks, runs `init()`. |
 | `wwwroot/modules/core/state.js` | JSDoc types, DOM refs, state objects, BPMN helpers. |
-| `wwwroot/modules/core/helpers.js` | `cssId`, `esc`, `escHtml`, `formatElapsed`, JSON expand/highlight. |
+| `wwwroot/modules/core/helpers.js` | `cssId`, `esc`, `escHtml`, `formatElapsed`, `fmtDuration`, `fmtAgo`, JSON utilities. |
 | `wwwroot/modules/core/sse.js` | `connectSSE()`, hot-reload watcher. Pure SSE plumbing. |
-| `wwwroot/modules/core/url.js` | `syncUrl()`, `restoreUrl()`, time range state. |
-| `wwwroot/modules/shared/cards.js` | `buildCardHTML()`, `buildCompactCardHTML()`, copy/trace icons. |
+| `wwwroot/modules/shared/dropdown.js` | Searchable multi-select dropdown: `rebuildDropdown()`, `toggleDropdown()`, search/close wiring. |
+| `wwwroot/modules/shared/chips.js` | Selection chip bars: `rebuildSelectedOnlyChips()`, `wireChipBar()`, party/guid labels. |
+| `wwwroot/modules/shared/cards.js` | All card renderers: `buildCardHTML()`, `buildCompactCardHTML()`, `buildScheduledCardHTML()`, copy/trace icons. |
 | `wwwroot/modules/shared/pipeline.js` | `buildPipelineHTML()`, step nodes, connectors, scroll. |
+| `wwwroot/modules/shared/section.js` | Section collapse/expand, compact/full toggle, card expand/collapse. |
 | `wwwroot/modules/shared/timers.js` | `requestAnimationFrame` loop for elapsed/backoff countdowns. |
 | `wwwroot/modules/features/header.js` | `updateStatusBadges()`, `updateCapacity()`. |
-| `wwwroot/modules/features/scheduled.js` | `updateScheduledBadge()`, `loadScheduled()`, scheduled cards. |
+| `wwwroot/modules/features/scheduled.js` | `updateScheduledBadge()`, `loadScheduled()`. |
 | `wwwroot/modules/features/live.js` | `fingerprint()`, `updateLiveWorkflows()`. |
 | `wwwroot/modules/features/recent.js` | `updateRecentWorkflows()`, glow animations. |
-| `wwwroot/modules/features/filters.js` | All filtering, org/app dropdowns, status chips, compact toggle, tabs. |
+| `wwwroot/modules/features/filters.js` | Filter state, org/app dropdowns, status chips, tabs (~220 lines). |
+| `wwwroot/modules/features/url.js` | `syncUrl()`, `restoreUrl()`, time range state. |
 | `wwwroot/modules/features/query.js` | `fetchQuery()`, pagination, auto-refresh, time range. |
 | `wwwroot/modules/features/modal.js` | Step detail modal: fetch, render, open/close. |
 | `wwwroot/modules/features/theme.js` | `getTheme()`, `setTheme()`, `toggleTheme()`. |
@@ -39,29 +42,34 @@ Real-time monitoring UI for the workflow engine. Vanilla JS ES Modules (no build
 wwwroot/
   app.js                             — entry point: init(), updateDashboard() hub
   modules/
-    core/                            — "set and forget" plumbing
+    core/                            — "set and forget" plumbing (no imports from shared/ or features/)
       state.js                       — types, DOM refs, state objects, BPMN helpers
-      helpers.js                     — cssId, esc, escHtml, formatElapsed, JSON utilities
+      helpers.js                     — cssId, esc, escHtml, formatElapsed, fmtDuration, fmtAgo, JSON utilities
       sse.js                         — connectSSE(), hot-reload watcher
-      url.js                         — syncUrl(), restoreUrl(), time range state
-    shared/                          — rendering building blocks used by all features
-      cards.js                       — buildCardHTML(), buildCompactCardHTML()
+    shared/                          — reusable UI building blocks (imports from core/ only)
+      dropdown.js                    — searchable multi-select dropdown component
+      chips.js                       — selection-only chip bars (party/guid)
+      cards.js                       — all card renderers incl. scheduled
       pipeline.js                    — buildPipelineHTML(), step nodes, connectors
+      section.js                     — collapse/expand, compact/full, card expand
       timers.js                      — requestAnimationFrame timer loop
-    features/                        — one file per visible UI section
+    features/                        — one file per visible UI section (imports from core/ and shared/)
       header.js                      — engine status badges + capacity meters
-      scheduled.js                   — scheduled workflows section
+      scheduled.js                   — scheduled workflows fetch + badge
       live.js                        — inbox (live) workflows section
       recent.js                      — recent workflows section
-      filters.js                     — all filtering, org/app dropdowns, compact toggle, tabs
+      filters.js                     — filter state, org/app dropdowns, status chips, tabs
+      url.js                         — syncUrl(), restoreUrl(), time range state
       query.js                       — query tab with pagination
       modal.js                       — step detail modal
       theme.js                       — theme toggle (dark/altinn)
 ```
 
+**Layer rule:** `core/ ← shared/ ← features/` (no backward imports).
+
 **Folder philosophy:**
-- `core/` — you almost never open these. State management, utilities, SSE plumbing, URL sync.
-- `shared/` — stable building blocks. Card and pipeline renderers. Changes here affect all card views.
+- `core/` — you almost never open these. State management, utilities, SSE plumbing.
+- `shared/` — stable building blocks. Card/pipeline renderers, dropdown/chip components. Changes here affect all views.
 - `features/` — where you work day-to-day. Each file = one visible part of the UI.
 
 ## Shared State

@@ -2,7 +2,7 @@
 
 import { dom, state, engineUrl } from '../core/state.js';
 import { buildCardHTML, buildCompactCardHTML, setCardFilterData } from '../shared/cards.js';
-import { syncUrl, customTimeRange, queryTimeRange, setCustomTimeRange, setQueryTimeRange, updateTimeLabel, toLocalDatetime } from '../core/url.js';
+import { syncUrl, customTimeRange, queryTimeRange, setCustomTimeRange, setQueryTimeRange, updateTimeLabel, toLocalDatetime } from './url.js';
 import { applyFilter } from './filters.js';
 
 const QUERY_PAGE = 100;

@@ -1,10 +1,9 @@
-/* Filtering, org/app dropdowns, compact view toggle, card expand/collapse, tabs */
+/* Filtering, org/app dropdowns, status chips, tabs */
 
-import { dom, state, workflowData, engineUrl } from '../core/state.js';
-import { esc, cssId } from '../core/helpers.js';
-import { buildCardHTML, buildCompactCardHTML, setCardFilterData } from '../shared/cards.js';
-import { scrollPipelineToActive } from '../shared/pipeline.js';
-import { buildScheduledCardHTML, buildCompactScheduledCardHTML, loadScheduled } from './scheduled.js';
+import { dom, state, engineUrl } from '../core/state.js';
+import { esc } from '../core/helpers.js';
+import { rebuildDropdown, updateDropdownToggle } from '../shared/dropdown.js';
+import { rebuildSelectedOnlyChips, wireChipBar, updatePartyGuidLabels } from '../shared/chips.js';
 
 /** Late-bound references */
 /** @type {() => void} */
@@ -45,59 +44,6 @@ export const getAppsForSelectedOrgs = () => {
     if (apps) for (const a of apps) result.add(a);
   }
   return result;
-};
-
-/**
- * Rebuild dropdown list items.
- * @param {HTMLElement} listEl
- * @param {Set<string>} allValues
- * @param {Set<string>} filterSet
- */
-export const rebuildDropdown = (listEl, allValues, filterSet) => {
-  const sorted = [...allValues].sort();
-  listEl.innerHTML = '';
-  if (sorted.length > 0) {
-    const row = document.createElement('div');
-    row.className = 'dropdown-actions';
-    const selAll = document.createElement('span');
-    selAll.className = 'dropdown-action';
-    selAll.textContent = 'Select all';
-    selAll.dataset.action = 'select-all';
-    if (filterSet.size === sorted.length) selAll.classList.add('dim');
-    const clearAll = document.createElement('span');
-    clearAll.className = 'dropdown-action';
-    clearAll.textContent = 'Clear all';
-    clearAll.dataset.action = 'clear';
-    if (filterSet.size === 0) clearAll.classList.add('dim');
-    row.appendChild(selAll);
-    row.appendChild(clearAll);
-    listEl.appendChild(row);
-  }
-  for (const v of sorted) {
-    const item = document.createElement('div');
-    item.className = `dropdown-item${filterSet.has(v) ? ' selected' : ''}`;
-    item.dataset.value = v;
-    item.textContent = v;
-    listEl.appendChild(item);
-  }
-};
-
-/**
- * Update the toggle button to show selected chips.
- * @param {'org' | 'app'} which
- */
-export const updateDropdownToggle = (which) => {
-  const filterSet = which === 'org' ? state.orgFilter : state.appFilter;
-  const selectedEl = which === 'org' ? dom.orgSelected : dom.appSelected;
-  const dropdown = which === 'org' ? dom.orgDropdown : dom.appDropdown;
-
-  if (filterSet.size === 0) {
-    selectedEl.innerHTML = '';
-    dropdown.classList.remove('has-selection');
-  } else {
-    selectedEl.innerHTML = [...filterSet].sort().map(v => `<span class="mini-chip">${esc(v)}</span>`).join('');
-    dropdown.classList.add('has-selection');
-  }
 };
 
 /** Rebuild the app dropdown based on current org selection. */
@@ -289,35 +235,6 @@ window.togglePartyFilter = togglePartyFilter;
 // @ts-ignore
 window.toggleGuidFilter = toggleGuidFilter;
 
-/**
- * Rebuild chips from selection only (not all visible cards).
- * @param {HTMLElement} container
- * @param {Set<string>} filterSet
- * @param {string} chipClass
- * @param {(v: string) => string} [labelFn]
- */
-export const rebuildSelectedOnlyChips = (container, filterSet, chipClass, labelFn) => {
-  const sorted = [...filterSet].sort();
-  const prev = container.dataset.values || '';
-  const next = sorted.join(',');
-  if (prev === next) return;
-  container.dataset.values = next;
-  container.innerHTML = '';
-  for (const v of sorted) {
-    const btn = document.createElement('button');
-    btn.className = `chip ${chipClass} active`;
-    btn.dataset.value = v;
-    btn.textContent = labelFn ? labelFn(v) : v;
-    btn.title = v;
-    container.appendChild(btn);
-  }
-};
-
-export const updatePartyGuidLabels = () => {
-  /** @type {HTMLElement} */ (document.getElementById('label-party')).style.display = state.partyFilter.size > 0 ? '' : 'none';
-  /** @type {HTMLElement} */ (document.getElementById('label-guid')).style.display = state.guidFilter.size > 0 ? '' : 'none';
-};
-
 dom.liveFilterInput.addEventListener('input', () => setLiveFilter(dom.liveFilterInput.value));
 dom.liveFilterClear.addEventListener('click', () => { setLiveFilter(''); dom.liveFilterInput.focus(); });
 
@@ -330,24 +247,11 @@ dom.querySearchInput.addEventListener('keydown', (e) => {
   }
 });
 
-/** @param {HTMLElement} container @param {(value: string) => void} toggle */
-const wireChipBar = (container, toggle) => {
-  container.addEventListener('click', (e) => {
-    const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.chip'));
-    if (!chip) return;
-    toggle(chip.dataset.value || '');
-  });
-};
 wireChipBar(dom.partyChips, togglePartyFilter);
 wireChipBar(dom.guidChips, toggleGuidFilter);
 
-// Wire dropdown search inputs
+// Wire org/app-specific list click handlers
 for (const dd of document.querySelectorAll('.dropdown')) {
-  const searchInput = dd.querySelector('.dropdown-search');
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => filterDropdownList(/** @type {HTMLElement} */ (dd), /** @type {HTMLInputElement} */ (e.target).value));
-    searchInput.addEventListener('click', (e) => e.stopPropagation());
-  }
   const list = dd.querySelector('.dropdown-list');
   if (list) {
     list.addEventListener('click', (e) => {
@@ -376,36 +280,6 @@ for (const dd of document.querySelectorAll('.dropdown')) {
   }
 }
 
-/** @param {string} dropdownId */
-window.toggleDropdown = (dropdownId) => {
-  const el = document.getElementById(dropdownId);
-  if (!el) return;
-  if (el.classList.contains('disabled')) return;
-  const wasOpen = el.classList.contains('open');
-  for (const d of document.querySelectorAll('.dropdown.open')) d.classList.remove('open');
-  if (!wasOpen) {
-    el.classList.add('open');
-    const search = el.querySelector('.dropdown-search');
-    if (search) { /** @type {HTMLInputElement} */ (search).value = ''; /** @type {HTMLInputElement} */ (search).focus(); filterDropdownList(el, ''); }
-  }
-};
-
-/** @param {HTMLElement} dropdown @param {string} query */
-const filterDropdownList = (dropdown, query) => {
-  const q = query.toLowerCase();
-  for (const item of dropdown.querySelectorAll('.dropdown-item')) {
-    /** @type {HTMLElement} */ (item).classList.toggle('hidden', q !== '' && !(/** @type {HTMLElement} */ (item).dataset.value || '').includes(q));
-  }
-};
-
-// Close dropdowns on outside click
-document.addEventListener('click', (e) => {
-  const target = /** @type {HTMLElement} */ (e.target);
-  if (!target.closest('.dropdown')) {
-    for (const d of document.querySelectorAll('.dropdown.open')) d.classList.remove('open');
-  }
-});
-
 /** Merge org/app values discovered from SSE into dropdown lists. */
 export const mergeDiscoveredOrgsAndApps = () => {
   let changed = false;
@@ -429,93 +303,6 @@ for (const bar of document.querySelectorAll('.section-chips')) {
     _syncUrl();
   });
 }
-
-/* ── Compact view toggle ─────────────────────────────────── */
-
-/** @param {string} section */
-window.collapseAll = (section) => {
-  state.compactSections[section] = true;
-  try { localStorage.setItem(`compact:${section}`, '1'); } catch { /* ignore */ }
-  rebuildSectionCards(section);
-  _syncUrl();
-};
-
-/** @param {string} section */
-window.fullAll = (section) => {
-  state.compactSections[section] = false;
-  try { localStorage.setItem(`compact:${section}`, '0'); } catch { /* ignore */ }
-  rebuildSectionCards(section);
-  _syncUrl();
-};
-
-/** @param {string} section */
-const rebuildSectionCards = (section) => {
-  const compact = state.compactSections[section];
-  if (section === 'inbox') {
-    for (const [key, wf] of Object.entries(state.previousWorkflows)) {
-      const card = document.getElementById(`wf-${cssId(key)}`);
-      if (card && !card.dataset.exiting) {
-        card.className = `workflow-card${compact ? ' compact' : ''}`;
-        card.innerHTML = compact ? buildCompactCardHTML(wf) : buildCardHTML(wf);
-        setCardFilterData(card, wf);
-        if (!compact) scrollPipelineToActive(card);
-      }
-    }
-  } else if (section === 'recent') {
-    for (const wf of state.recentWorkflows) {
-      const card = document.getElementById(`wf-recent-${cssId(wf.idempotencyKey)}`);
-      if (card) {
-        card.className = `workflow-card${compact ? ' compact' : ''}`;
-        card.innerHTML = compact ? buildCompactCardHTML(wf, true) : buildCardHTML(wf, true);
-        setCardFilterData(card, wf);
-      }
-    }
-  } else if (section === 'scheduled') {
-    if (!dom.scheduledSection.classList.contains('collapsed')) loadScheduled();
-  } else if (section === 'query') {
-    if (state.queryLoaded) _loadQuery();
-  }
-};
-
-/* ── Compact card expand/collapse (click to toggle) ──────── */
-
-/**
- * @param {HTMLElement} container
- * @param {string} section
- * @param {boolean} isStatic
- * @param {boolean} [isScheduled]
- */
-const setupCardExpand = (container, section, isStatic, isScheduled) => {
-  container.addEventListener('click', (e) => {
-    const target = /** @type {HTMLElement} */ (e.target);
-    if (target.closest('.seg, .compact-dot, .step-circle, .open-btn, a, button, .pipeline, .compact-pipeline')) return;
-
-    const card = /** @type {HTMLElement | null} */ (target.closest('.workflow-card'));
-    if (!card) return;
-
-    const wf = workflowData[card.dataset.wfkey || ''];
-    if (!wf) return;
-
-    const isCompact = card.classList.contains('compact');
-    if (isCompact) {
-      card.className = 'workflow-card';
-      card.style.animation = 'none';
-      card.innerHTML = isScheduled ? buildScheduledCardHTML(wf) : buildCardHTML(wf, isStatic);
-      if (!isStatic) scrollPipelineToActive(card);
-    } else {
-      card.className = 'workflow-card compact';
-      card.style.animation = 'none';
-      card.innerHTML = isScheduled ? buildCompactScheduledCardHTML(wf) : buildCompactCardHTML(wf, isStatic);
-    }
-    setCardFilterData(card, wf);
-    _syncUrl();
-  });
-};
-
-setupCardExpand(dom.liveContainer, 'inbox', false);
-setupCardExpand(dom.recentContainer, 'recent', true);
-setupCardExpand(dom.scheduledContainer, 'scheduled', true, true);
-setupCardExpand(dom.queryContainer, 'query', true);
 
 /* ── Tabs ────────────────────────────────────────────────── */
 

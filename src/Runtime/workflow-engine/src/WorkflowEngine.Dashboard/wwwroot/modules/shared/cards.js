@@ -72,6 +72,33 @@ const buildTimestampsHTML = (wf, isStatic) => {
   return html;
 };
 
+/* ── Segment rows (org/app/party/guid) ───────────────────── */
+
+/**
+ * Build the org/app/party/guid segment row.
+ * @param {import('../core/state.js').InstanceInfo} inst
+ * @param {boolean} interactive - true adds onclick filter handlers
+ * @returns {string}
+ */
+const buildSegmentsHTML = (inst, interactive) => {
+  if (interactive) {
+    return `<span class="seg" onclick="toggleOrgFilter('${esc(inst.org)}')" title="Filter by org">${esc(inst.org)}</span>`
+      + `<span class="seg-sep">/</span>`
+      + `<span class="seg" onclick="toggleAppFilter('${esc(inst.app)}')" title="Filter by app">${esc(inst.app)}</span>`
+      + `<span class="seg-sep">/</span>`
+      + `<span class="seg" onclick="togglePartyFilter('${inst.instanceOwnerPartyId}')" title="Filter by party">${inst.instanceOwnerPartyId}</span>`
+      + `<span class="seg-sep">/</span>`
+      + `<span class="seg guid" onclick="toggleGuidFilter('${esc(inst.instanceGuid)}')" title="Filter by instance">${esc(inst.instanceGuid)}</span>`;
+  }
+  return `<span class="seg">${esc(inst.org)}</span>`
+    + `<span class="seg-sep">/</span>`
+    + `<span class="seg">${esc(inst.app)}</span>`
+    + `<span class="seg-sep">/</span>`
+    + `<span class="seg">${inst.instanceOwnerPartyId}</span>`
+    + `<span class="seg-sep">/</span>`
+    + `<span class="seg guid">${esc(inst.instanceGuid)}</span>`;
+};
+
 /**
  * @param {import('../core/state.js').Workflow} wf
  * @param {boolean} [isStatic]
@@ -84,13 +111,7 @@ export const buildCardHTML = (wf, isStatic) => {
   const wfLabel = tx ? `${wf.operationId}: ${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
 
   let html = `<div class="card-header">`;
-  html += `<span class="seg" onclick="toggleOrgFilter('${esc(inst.org)}')" title="Filter by org">${esc(inst.org)}</span>`;
-  html += `<span class="seg-sep">/</span>`;
-  html += `<span class="seg" onclick="toggleAppFilter('${esc(inst.app)}')" title="Filter by app">${esc(inst.app)}</span>`;
-  html += `<span class="seg-sep">/</span>`;
-  html += `<span class="seg" onclick="togglePartyFilter('${inst.instanceOwnerPartyId}')" title="Filter by party">${inst.instanceOwnerPartyId}</span>`;
-  html += `<span class="seg-sep">/</span>`;
-  html += `<span class="seg guid" onclick="toggleGuidFilter('${esc(inst.instanceGuid)}')" title="Filter by instance">${esc(inst.instanceGuid)}</span>`;
+  html += buildSegmentsHTML(inst, true);
   html += `<span class="wf-name">${esc(wfLabel)}</span>`;
   html += `<span class="header-spacer"></span>`;
   if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
@@ -118,13 +139,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
   const wfLabel = tx ? `${wf.operationId}: ${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
 
   let html = `<div class="compact-row">`;
-  html += `<span class="seg" onclick="toggleOrgFilter('${esc(inst.org)}')" title="Filter by org">${esc(inst.org)}</span>`;
-  html += `<span class="seg-sep">/</span>`;
-  html += `<span class="seg" onclick="toggleAppFilter('${esc(inst.app)}')" title="Filter by app">${esc(inst.app)}</span>`;
-  html += `<span class="seg-sep">/</span>`;
-  html += `<span class="seg" onclick="togglePartyFilter('${inst.instanceOwnerPartyId}')" title="Filter by party">${inst.instanceOwnerPartyId}</span>`;
-  html += `<span class="seg-sep">/</span>`;
-  html += `<span class="seg guid" onclick="toggleGuidFilter('${esc(inst.instanceGuid)}')" title="Filter by instance">${esc(inst.instanceGuid)}</span>`;
+  html += buildSegmentsHTML(inst, true);
   html += `<span class="compact-name">${esc(wfLabel)}</span>`;
 
   html += `<div class="compact-pipeline">`;
@@ -141,6 +156,58 @@ export const buildCompactCardHTML = (wf, isStatic) => {
   html += copyIconHTML(inst.instanceGuid);
   html += openIconHTML(inst);
   if (wf.traceId) html += traceIconHTML(wf.traceId);
+  html += `</div>`;
+  return html;
+};
+
+/* ── Scheduled card variants ──────────────────────────────── */
+
+/**
+ * @param {import('../core/state.js').Workflow} wf
+ * @returns {string}
+ */
+export const buildScheduledCardHTML = (wf) => {
+  const { instance: inst } = wf;
+  const tx = parseTransition(wf);
+  const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
+  let html = `<div class="card-header">`;
+  html += buildSegmentsHTML(inst, false);
+  html += `<span class="wf-name">${esc(wfLabel)}</span>`;
+  html += `<span class="header-spacer"></span>`;
+  if (wf.startAt) {
+    html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
+  }
+  html += `<span class="status-pill scheduled" style="animation:none">Scheduled</span>`;
+  html += copyIconHTML(inst.instanceGuid);
+  html += openIconHTML(inst);
+  html += `</div>`;
+  html += buildPipelineHTML(wf, true);
+  return html;
+};
+
+/**
+ * Compact scheduled card variant.
+ * @param {import('../core/state.js').Workflow} wf
+ * @returns {string}
+ */
+export const buildCompactScheduledCardHTML = (wf) => {
+  const { instance: inst } = wf;
+  const tx = parseTransition(wf);
+  const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
+  let html = `<div class="compact-row">`;
+  html += buildSegmentsHTML(inst, false);
+  html += `<span class="compact-name">${esc(wfLabel)}</span>`;
+  html += `<div class="compact-pipeline">`;
+  for (const step of wf.steps) {
+    html += `<span class="compact-dot ${step.status}" title="${esc(step.commandDetail)} (${step.status})"></span>`;
+  }
+  html += `</div>`;
+  if (wf.startAt) {
+    html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
+  }
+  html += `<span class="status-pill scheduled compact-pill" style="animation:none">Scheduled</span>`;
+  html += copyIconHTML(inst.instanceGuid);
+  html += openIconHTML(inst);
   html += `</div>`;
   return html;
 };

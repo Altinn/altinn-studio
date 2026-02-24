@@ -1,47 +1,7 @@
 /* Step detail modal — fetch, render, open/close */
 
 import { dom, engineUrl } from '../core/state.js';
-import { esc, expandJsonStrings, syntaxHighlight, fmtTime } from '../core/helpers.js';
-
-/** Format an ISO duration / TimeSpan string to a human-friendly label */
-const fmtDuration = (/** @type {string|null|undefined} */ v) => {
-  if (!v) return null;
-  const iso = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?$/i.exec(v);
-  if (iso) {
-    const h = parseInt(iso[1] || '0'), m = parseInt(iso[2] || '0'), s = parseFloat(iso[3] || '0');
-    const parts = [];
-    if (h) parts.push(`${h}h`);
-    if (m) parts.push(`${m}m`);
-    if (s) parts.push(`${s}s`);
-    return parts.join(' ') || '0s';
-  }
-  const dotnet = /^(?:(\d+)\.)?(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/.exec(v);
-  if (dotnet) {
-    const d = parseInt(dotnet[1] || '0'), h = parseInt(dotnet[2]), m = parseInt(dotnet[3]), s = parseInt(dotnet[4]);
-    const parts = [];
-    if (d) parts.push(`${d}d`);
-    if (h) parts.push(`${h}h`);
-    if (m) parts.push(`${m}m`);
-    if (s) parts.push(`${s}s`);
-    return parts.join(' ') || '0s';
-  }
-  return v;
-};
-
-/** Format a relative time ago string */
-const fmtAgo = (/** @type {string|null|undefined} */ v) => {
-  if (!v) return '';
-  const ms = Date.now() - new Date(v).getTime();
-  if (ms < 0) return '';
-  const s = Math.floor(ms / 1000);
-  if (s < 60) return `${s}s ago`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ${m % 60}m ago`;
-  const d = Math.floor(h / 24);
-  return `${d}d ${h % 24}h ago`;
-};
+import { esc, expandJsonStrings, syntaxHighlight, fmtTime, fmtDuration, fmtAgo } from '../core/helpers.js';
 
 /**
  * Build structured HTML for a step detail modal.
