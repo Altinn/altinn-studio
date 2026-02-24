@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Extensions;
@@ -119,6 +120,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 workflow.InstanceLockKey
                 ?? throw new InvalidOperationException("Missing InstanceLockKey for app callback payload"),
             Payload = command.Payload,
+            State = workflow.State,
         };
         var endpoint = command.CommandKey.ToUri(UriKind.Relative);
         using var jsonPayload = JsonContent.Create(payload);
@@ -127,11 +129,21 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
         using var response = await httpClient.PostAsync(endpoint, jsonPayload, cancellationToken);
 
-        return response.IsSuccessStatusCode
-            ? ExecutionResult.Success()
-            : ExecutionResult.RetryableError(
-                $"AppCommand execution failed with status code {response.StatusCode}: {await response.GetContentOrDefault("<no body content>", cancellationToken)}"
-            );
+        if (response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (body.Length > 0)
+            {
+                var callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(body);
+                if (callbackResponse?.State is not null)
+                    workflow.State = callbackResponse.State;
+            }
+            return ExecutionResult.Success();
+        }
+
+        return ExecutionResult.RetryableError(
+            $"AppCommand execution failed with status code {response.StatusCode}: {await response.GetContentOrDefault("<no body content>", cancellationToken)}"
+        );
     }
 
     private static async Task<ExecutionResult> Timeout(

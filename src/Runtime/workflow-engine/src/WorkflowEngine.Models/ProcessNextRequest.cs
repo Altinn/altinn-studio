@@ -39,6 +39,12 @@ public sealed record ProcessNextRequest
     public DateTimeOffset? StartAt { get; init; }
 
     /// <summary>
+    /// Opaque state passed through from the app. The engine never inspects this.
+    /// </summary>
+    [JsonPropertyName("state")]
+    public string? State { get; init; }
+
+    /// <summary>
     /// Workflow steps associated with this request.
     /// </summary>
     [JsonPropertyName("steps")]
@@ -64,6 +70,7 @@ public sealed record ProcessNextRequest
             StartAt,
             Steps,
             traceContext,
-            LockToken
+            LockToken,
+            State
         );
 };

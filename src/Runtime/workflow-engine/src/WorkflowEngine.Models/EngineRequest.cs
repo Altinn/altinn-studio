@@ -21,7 +21,8 @@ public record EngineRequest(
     DateTimeOffset? StartAt,
     IEnumerable<StepRequest> Steps,
     string? TraceContext = null,
-    string? InstanceLockKey = null
+    string? InstanceLockKey = null,
+    string? State = null
 )
 {
     /// <summary>

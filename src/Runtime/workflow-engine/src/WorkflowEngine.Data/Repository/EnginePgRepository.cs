@@ -492,6 +492,7 @@ internal sealed class EnginePgRepository : IEngineRepository
                     workflowEntry.Property(e => e.Status).IsModified = true;
                     workflowEntry.Property(e => e.UpdatedAt).IsModified = true;
                     workflowEntry.Property(e => e.EngineTraceId).IsModified = true;
+                    workflowEntry.Property(e => e.State).IsModified = true;
 
                     foreach (var step in steps)
                     {
