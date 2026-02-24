@@ -119,17 +119,17 @@ export const getAvailablePages = (
 type ValidateFormProps = {
   scope: Scope;
   config: InternalConfigState;
-  currentConfig: InternalConfigState;
+  newConfig: InternalConfigState;
 };
 
-export const validateForm = ({ scope, config, currentConfig }: ValidateFormProps): boolean => {
-  const noChangesMade = !currentConfig || JSON.stringify(config) === JSON.stringify(currentConfig);
+export const validateForm = ({ scope, config, newConfig }: ValidateFormProps): boolean => {
+  const noChangesMade = !newConfig || JSON.stringify(config) === JSON.stringify(newConfig);
   if (noChangesMade) {
     return false;
   }
 
-  const hasTypes = currentConfig.types?.length > 0;
-  const hasPageScope = Boolean(currentConfig.pageScope?.value);
+  const hasTypes = newConfig.types?.length > 0;
+  const hasPageScope = Boolean(newConfig.pageScope?.value);
 
   if (!hasTypes || !hasPageScope) {
     return false;
@@ -139,10 +139,74 @@ export const validateForm = ({ scope, config, currentConfig }: ValidateFormProps
     case Scope.AllTasks:
       return true;
     case Scope.SelectedTasks:
-      return currentConfig.tasks?.length > 0;
+      return newConfig.tasks?.length > 0;
     case Scope.SelectedPages:
-      return Boolean(currentConfig.task?.value) && currentConfig.pages?.length > 0;
+      return Boolean(newConfig.task?.value) && newConfig.pages?.length > 0;
     default:
       return false;
   }
+};
+
+type IsRuleDuplicateInScope = {
+  scope: Scope;
+  newConfig: InternalConfigState;
+  existingConfigs?: InternalConfigState[];
+  isFormValid?: boolean;
+};
+
+export const isRuleDuplicateInScope = ({
+  scope,
+  newConfig,
+  existingConfigs,
+  isFormValid,
+}: IsRuleDuplicateInScope): boolean => {
+  if (!existingConfigs || !isFormValid) return false;
+
+  const newConfigTypeValues = newConfig.types.map((type) => type.value);
+  const newPageScopeValue = newConfig.pageScope.value;
+  const newTaskValue = newConfig.task?.value;
+
+  return existingConfigs.some((existingConfig) => {
+    const existingTypeValues = existingConfig.types.map((type) => type.value);
+    const existingPageScopeValue = existingConfig.pageScope.value;
+    const existingTaskValue = existingConfig.task?.value;
+
+    if (scope === Scope.SelectedPages && existingTaskValue !== newTaskValue) {
+      return false;
+    }
+
+    const typesMatch = arraysEqualUnordered(existingTypeValues, newConfigTypeValues);
+    const pageScopeMatches = existingPageScopeValue === newPageScopeValue;
+
+    return typesMatch && pageScopeMatches;
+  });
+};
+
+// const configTypesValue = newConfig.types.map((type) => type.value);
+
+// const areStringArraysEqualUnordered = (existingTypes: string[], currentTypes: string[]) => {
+//   if (existingTypes.length !== currentTypes.length) return false;
+
+//   const setA = new Set(existingTypes);
+//   return currentTypes.every((value) => setA.has(value));
+// };
+
+// const existingConfigsForScope = existingConfigs.filter((existingConfig) => {
+//   if (scope === Scope.SelectedPages) return existingConfig.task?.value === newConfig.task?.value;
+//   return true;
+// });
+
+// return existingConfigsForScope.some((existingConfig) => {
+//   const existingTypesValue = existingConfig.types.map((type) => type.value);
+
+//   return (
+//     areStringArraysEqualUnordered(existingTypesValue, configTypesValue) &&
+//     existingConfig.pageScope.value === newConfig.pageScope.value
+//   );
+// });
+
+const arraysEqualUnordered = (existingTypes: string[], newTypes: string[]) => {
+  if (existingTypes.length !== newTypes.length) return false;
+  const setA = new Set(existingTypes);
+  return newTypes.every((value) => setA.has(value));
 };
