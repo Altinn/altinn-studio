@@ -43,9 +43,7 @@ internal partial class EnginePgRepository
         try
         {
             var instanceGuid = metadata.InstanceInformation.InstanceGuid;
-            var workflowType = (int)request.Type;
-
-            var lockKey = GetAdvisoryLockKey(instanceGuid, workflowType);
+            var lockKey = GetAdvisoryLockKey(instanceGuid, request.Type);
             await using var dbLock = await AdvisoryLockScope.Acquire(
                 lockKey,
                 _context.Database.GetDbConnection(),
@@ -59,16 +57,12 @@ internal partial class EnginePgRepository
             await _context.SaveChangesAsync(cancellationToken);
 
             // Check the active workflow constraint via stored function
-            var workflowId = entity.Id;
-            var violation = await _context
-                .Database.SqlQueryRaw<ConstraintCheckResult>(
-                    "SELECT rejection_reason AS \"RejectionReason\", blocking_workflow_id AS \"BlockingWorkflowId\" "
-                        + "FROM check_active_workflow_constraint({0}, {1}, {2})",
-                    workflowId,
-                    workflowType,
-                    instanceGuid
-                )
-                .SingleOrDefaultAsync(cancellationToken);
+            var violation = await CheckActiveWorkflowConstraint(
+                workflowId: entity.Id,
+                workflowType: request.Type,
+                instanceGuid,
+                cancellationToken
+            );
 
             if (violation is not null)
             {
@@ -91,7 +85,7 @@ internal partial class EnginePgRepository
             throw;
         }
 
-        static long GetAdvisoryLockKey(Guid instanceGuid, int workflowType)
+        static long GetAdvisoryLockKey(Guid instanceGuid, WorkflowType workflowType)
         {
             long guidHash = instanceGuid.GetHashCode();
             return (guidHash << 32) | (uint)workflowType;
@@ -209,5 +203,26 @@ internal partial class EnginePgRepository
         return result.Count > 0 ? result : null;
     }
 
-    private sealed record ConstraintCheckResult(string RejectionReason, long BlockingWorkflowId);
+    internal async Task<int> CascadeDependencyFailures(CancellationToken cancellationToken) =>
+        await _context
+            .Database.SqlQueryRaw<int>("SELECT cascade_dependency_failures() AS \"Value\"")
+            .SingleAsync(cancellationToken);
+
+    internal async Task<ConstraintCheckResult?> CheckActiveWorkflowConstraint(
+        long workflowId,
+        WorkflowType workflowType,
+        Guid instanceGuid,
+        CancellationToken cancellationToken
+    ) =>
+        await _context
+            .Database.SqlQueryRaw<ConstraintCheckResult>(
+                "SELECT rejection_reason AS \"RejectionReason\", blocking_workflow_id AS \"BlockingWorkflowId\" "
+                    + "FROM check_active_workflow_constraint({0}, {1}, {2})",
+                workflowId,
+                (int)workflowType,
+                instanceGuid
+            )
+            .SingleOrDefaultAsync(cancellationToken);
+
+    internal sealed record ConstraintCheckResult(string RejectionReason, long BlockingWorkflowId);
 }

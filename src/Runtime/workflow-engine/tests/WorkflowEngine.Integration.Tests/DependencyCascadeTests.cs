@@ -15,12 +15,9 @@ public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLife
     private async Task<int> RunCascade()
     {
         await using var context = fixture.CreateDbContext();
-        // The function returns an integer; use ExecuteSqlRaw + query to get the result
-        var result = await context
-            .Database.SqlQueryRaw<int>("SELECT cascade_dependency_failures() AS \"Value\"")
-            .FirstAsync();
+        var repository = fixture.CreateRepository(context);
 
-        return result;
+        return await repository.CascadeDependencyFailures(TestContext.Current.CancellationToken);
     }
 
     [Fact]
