@@ -8,7 +8,6 @@ using Azure.Identity;
 using Azure.Monitor.Query.Logs;
 using Azure.Monitor.Query.Logs.Models;
 using Azure.ResourceManager.OperationalInsights;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Clients.MetricsClient;
@@ -215,9 +214,8 @@ internal sealed class AzureMonitorClient(
                 | where toint(ResultCode) >= 500
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
-                | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval});";
-
-        System.Console.WriteLine($"Logs query for failed requests:\n{query}");
+                | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
+                | order by DateTimeOffset desc";
 
         Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
@@ -266,7 +264,8 @@ internal sealed class AzureMonitorClient(
                 AppMetrics
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where Name in ('{string.Join("','", names)}')
-                | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval});";
+                | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
+                | order by DateTimeOffset desc";
 
         Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
