@@ -47,10 +47,17 @@ export const entryRedirectLoader = () => async (_: LoaderFunctionArgs) => {
 
 async function createNewInstance(): Promise<IInstance> {
   const party = GlobalData.selectedParty;
-  if (!party) {
+
+  const currentPartyIdFromCookie = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith('AltinnPartyId='))
+    ?.split('=')[1];
+
+  const currentPartyId = currentPartyIdFromCookie ?? party?.partyId;
+  if (!currentPartyId) {
     throw new Response('User profile not available', { status: ServerStatusCodes.Unauthorized });
   }
-  return await InstanceApi.create(party.partyId);
+  return await InstanceApi.create(Number.parseInt(`${currentPartyId}`));
 }
 
 // FIXME: Placeholder

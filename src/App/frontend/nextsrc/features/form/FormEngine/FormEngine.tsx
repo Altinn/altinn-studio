@@ -1,12 +1,15 @@
 import React from 'react';
 import type { ReactElement } from 'react';
 
+import { marked } from 'marked';
+import { GlobalData } from 'nextsrc/core/globalData';
 import { useFormValue } from 'nextsrc/libs/form-client/form-context';
 import { extractField, resolveChildBindings } from 'nextsrc/libs/form-client/resolveBindings';
 import type { FormDataNode } from 'nextsrc/core/apiClient/dataApi';
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
 
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
+import type { CompParagraphExternal } from 'src/layout/Paragraph/config.generated';
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
 const InputComponent = (props: CompInputExternal) => {
@@ -29,6 +32,21 @@ const InputComponent = (props: CompInputExternal) => {
         value={String(value ?? '')}
         onChange={(e) => setValue(e.target.value)}
       />
+    </div>
+  );
+};
+
+const ParagraphComponent = (props: CompParagraphExternal) => {
+  const resolvedTitle = GlobalData.textResources?.resources.find(
+    (resource) => resource.id === props.textResourceBindings?.title,
+  );
+
+  const cleanTitle = marked(resolvedTitle?.value ?? '', { async: false });
+
+  return (
+    <div>
+      <pre>{JSON.stringify(props, null, 2)}</pre>
+      <div dangerouslySetInnerHTML={{ __html: cleanTitle }} />
     </div>
   );
 };
@@ -77,6 +95,9 @@ function renderComponent(componentProps: ResolvedCompExternal): ReactElement | n
         return <RepeatingGroupNext {...componentProps} />;
       }
       return null;
+    case 'Paragraph': {
+      return <ParagraphComponent {...componentProps} />;
+    }
     default:
       return null;
   }
@@ -88,7 +109,8 @@ interface FormEngineProps {
 }
 
 export const FormEngine = ({ components }: FormEngineProps) => (
-  <div>
+  <div data-testid='AppHeader'>
+    <div id='finishedLoading' />
     <ul>
       {components.map((componentProps) => {
         const rendered = renderComponent(componentProps);

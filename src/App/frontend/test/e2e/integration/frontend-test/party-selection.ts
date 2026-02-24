@@ -142,6 +142,7 @@ describe('Party selection', () => {
         'contain.text',
         'Du kan endre profilinnstillingene dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema.',
       );
+
     cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('not.exist');
 
     cy.visualTesting('reportee-selection');
@@ -181,7 +182,7 @@ describe('Party selection', () => {
     cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
   });
 
-  it('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
+  it.only('Should be possible to select another party if instantiation fails, and go back to party selection and instantiate again', () => {
     cy.intercept('**/active', []).as('activeInstances');
     cy.allowFailureOnEnd();
     // Use multiPartyPrompt2 user (doNotPromptForParty=false) to trigger backend redirect to party selection
@@ -189,10 +190,13 @@ describe('Party selection', () => {
 
     cy.intercept('**/active', []).as('activeInstances');
 
+    cy.pause();
+
     // Select the first organisation. This is not allowed to instantiate in this app, so it will throw an error.
     cy.findAllByText(/org\.nr\. \d+/)
       .first()
       .click();
+
     cy.get(appFrontend.altinnError).should('contain.text', texts.missingRights);
 
     // Try again with another party

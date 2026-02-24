@@ -163,6 +163,9 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         data-componentbaseid={baseComponentId}
         data-componentid={nodeId}
         data-componenttype={component.type}
+        data-has-preselected-option={
+          'preselectedOptionIndex' in component && component.preselectedOptionIndex !== undefined ? '' : undefined
+        }
         ref={containerDivRef}
         item
         container
