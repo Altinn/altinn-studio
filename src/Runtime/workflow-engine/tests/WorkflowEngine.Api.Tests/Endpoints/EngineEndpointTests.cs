@@ -321,7 +321,7 @@ public class EngineEndpointTests
             .ReturnsAsync([workflow]);
 
         // Act
-        var result = await EngineRequestHandlers.ListWorkflows(
+        var result = await EngineRequestHandlers.ListActiveWorkflows(
             _defaultRouteParams,
             repositoryMock.Object,
             CancellationToken.None
@@ -344,7 +344,7 @@ public class EngineEndpointTests
             .ReturnsAsync([]);
 
         // Act
-        var result = await EngineRequestHandlers.ListWorkflows(
+        var result = await EngineRequestHandlers.ListActiveWorkflows(
             _defaultRouteParams,
             repositoryMock.Object,
             CancellationToken.None

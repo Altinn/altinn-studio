@@ -23,14 +23,16 @@ internal static class EngineEndpoints
             .WithDescription("Enqueues one or more workflows, resolving their dependency graph");
 
         group
-            .MapGet("", EngineRequestHandlers.ListWorkflows)
+            .MapGet("", EngineRequestHandlers.ListActiveWorkflows)
             .WithName("ListActiveWorkflows")
             .WithDescription("Lists all active workflows for the given instance");
 
         group
             .MapGet("/{workflowId:long}", EngineRequestHandlers.GetWorkflow)
             .WithName("GetWorkflow")
-            .WithDescription("Gets full status for a single workflow by database ID");
+            .WithDescription("Gets details of a single workflow by database ID");
+
+        // TODO: Probably need a historical endpoint for workflows here
 
         return app;
     }
@@ -75,7 +77,7 @@ internal static class EngineRequestHandlers
         };
     }
 
-    public static async Task<Results<Ok<WorkflowListResponse>, NoContent>> ListWorkflows(
+    public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
         [AsParameters] InstanceRouteParams instanceParams,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
@@ -88,17 +90,12 @@ internal static class EngineRequestHandlers
         if (workflows.Count == 0)
             return TypedResults.NoContent();
 
-        var response = new WorkflowListResponse
-        {
-            Workflows = workflows.Select(WorkflowStatusResponse.FromWorkflow).ToList(),
-        };
-
-        return TypedResults.Ok(response);
+        return TypedResults.Ok(workflows.Select(WorkflowStatusResponse.FromWorkflow));
     }
 
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
         [AsParameters] InstanceRouteParams instanceParams,
-        long workflowId,
+        [FromRoute] long workflowId,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
