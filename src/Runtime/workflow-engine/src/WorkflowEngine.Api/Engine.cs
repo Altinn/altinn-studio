@@ -26,7 +26,7 @@ internal interface IEngine
     bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation);
     Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation);
     IReadOnlyList<Workflow> GetAllInboxWorkflows();
-    IReadOnlyList<CachedWorkflow> GetRecentWorkflows(int count);
+    IReadOnlyList<DashboardWorkflowDto> GetRecentWorkflows(int count);
 }
 
 internal partial class Engine : IEngine, IDisposable
@@ -60,7 +60,7 @@ internal partial class Engine : IEngine, IDisposable
     public int InboxCapacityLimit => _settings.QueueCapacity;
     public bool CanAcceptNewWork => _inboxCapacityLimit.CurrentCount > 0;
 
-    public IReadOnlyList<CachedWorkflow> GetRecentWorkflows(int count) => _recentWorkflows.GetRecent(count);
+    public IReadOnlyList<DashboardWorkflowDto> GetRecentWorkflows(int count) => _recentWorkflows.GetRecent(count);
 
     public Engine(IServiceProvider serviceProvider)
     {

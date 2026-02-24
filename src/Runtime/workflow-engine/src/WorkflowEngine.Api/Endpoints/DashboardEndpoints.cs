@@ -1,5 +1,5 @@
-using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -9,21 +9,18 @@ namespace WorkflowEngine.Api.Endpoints;
 
 internal static class DashboardEndpoints
 {
-    internal static string CommandTypeDiscriminator(Command cmd) =>
-        cmd is Command.AppCommand ? "app"
-        : cmd is Command.Webhook ? "webhook"
-        : cmd.GetType().Name;
-
-    private static readonly JsonSerializerOptions JsonCompact = new()
+    private static readonly JsonSerializerOptions _jsonCompact = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
-    private static readonly JsonSerializerOptions JsonIndented = new()
+    private static readonly JsonSerializerOptions _jsonIndented = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     public static WebApplication MapDashboardEndpoints(this WebApplication app)
@@ -43,42 +40,6 @@ internal static class DashboardEndpoints
                     ctx.Response.Headers.CacheControl = "no-cache";
                     ctx.Response.Headers.Connection = "keep-alive";
 
-                    object MapWorkflow(Workflow w) =>
-                        new
-                        {
-                            idempotencyKey = w.IdempotencyKey,
-                            operationId = w.OperationId,
-                            status = w.Status.ToString(),
-                            traceId = w.EngineTraceId ?? w.EngineActivity?.TraceId.ToString(),
-
-                            instance = new
-                            {
-                                org = w.InstanceInformation.Org,
-                                app = w.InstanceInformation.App,
-                                instanceOwnerPartyId = w.InstanceInformation.InstanceOwnerPartyId,
-                                instanceGuid = w.InstanceInformation.InstanceGuid,
-                            },
-                            createdAt = w.CreatedAt,
-                            executionStartedAt = w.ExecutionStartedAt,
-                            steps = w
-                                .Steps.OrderBy(s => s.ProcessingOrder)
-                                .Select(s => new
-                                {
-                                    idempotencyKey = s.IdempotencyKey,
-                                    operationId = s.OperationId,
-                                    commandType = CommandTypeDiscriminator(s.Command),
-                                    commandDetail = s.Command.OperationId,
-                                    commandPayload = (s.Command as Command.AppCommand)?.Payload,
-                                    status = s.Status.ToString(),
-                                    processingOrder = s.ProcessingOrder,
-                                    retryCount = s.RequeueCount,
-                                    backoffUntil = s.BackoffUntil,
-                                    createdAt = s.CreatedAt,
-                                    executionStartedAt = s.ExecutionStartedAt,
-                                    updatedAt = s.UpdatedAt,
-                                }),
-                        };
-
                     var scheduledCount = 0;
                     var iteration = 0;
 
@@ -88,7 +49,7 @@ internal static class DashboardEndpoints
                         {
                             try
                             {
-                                using var scope = sp.CreateScope();
+                                using IServiceScope scope = sp.CreateScope();
                                 var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
                                 scheduledCount = await repo.CountScheduledWorkflows(ct);
                             }
@@ -98,11 +59,11 @@ internal static class DashboardEndpoints
                         }
                         iteration++;
 
-                        var status = engine.Status;
-                        var dbSlot = limiter.DbSlotStatus;
-                        var httpSlot = limiter.HttpSlotStatus;
-                        var engineSettings = settings.Value;
-                        var workflows = engine.GetAllInboxWorkflows();
+                        EngineHealthStatus status = engine.Status;
+                        ConcurrencyLimiter.SlotStatus dbSlot = limiter.DbSlotStatus;
+                        ConcurrencyLimiter.SlotStatus httpSlot = limiter.HttpSlotStatus;
+                        EngineSettings engineSettings = settings.Value;
+                        IReadOnlyList<Workflow> workflows = engine.GetAllInboxWorkflows();
 
                         var payload = new
                         {
@@ -137,10 +98,10 @@ internal static class DashboardEndpoints
                                 },
                             },
                             scheduledCount,
-                            workflows = workflows.Select(MapWorkflow),
+                            workflows = workflows.Select(DashboardMapper.MapWorkflow),
                         };
 
-                        var json = JsonSerializer.Serialize(payload, JsonCompact);
+                        string json = JsonSerializer.Serialize(payload, _jsonCompact);
                         await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
                         await ctx.Response.Body.FlushAsync(ct);
 
@@ -162,49 +123,14 @@ internal static class DashboardEndpoints
 
                     while (!ct.IsCancellationRequested)
                     {
-                        var recent = engine.GetRecentWorkflows(100);
-                        var fingerprint = string.Join(",", recent.Select(r => r.IdempotencyKey));
+                        IReadOnlyList<DashboardWorkflowDto> recent = engine.GetRecentWorkflows(100);
+                        string fingerprint = string.Join(",", recent.Select(r => r.IdempotencyKey));
 
                         if (fingerprint != previousFingerprint)
                         {
                             previousFingerprint = fingerprint;
 
-                            var payload = recent.Select(r => new
-                            {
-                                r.IdempotencyKey,
-                                r.OperationId,
-                                r.Status,
-                                r.TraceId,
-
-                                instance = new
-                                {
-                                    org = r.InstanceInformation.Org,
-                                    app = r.InstanceInformation.App,
-                                    instanceOwnerPartyId = r.InstanceInformation.InstanceOwnerPartyId,
-                                    instanceGuid = r.InstanceInformation.InstanceGuid,
-                                },
-                                r.CreatedAt,
-                                r.ExecutionStartedAt,
-                                r.RemovedAt,
-                                steps = r.Steps.Select(s => new
-                                {
-                                    s.IdempotencyKey,
-                                    s.OperationId,
-                                    s.CommandType,
-                                    s.CommandDetail,
-                                    s.CommandPayload,
-                                    s.LastError,
-                                    s.Status,
-                                    s.ProcessingOrder,
-                                    s.RetryCount,
-                                    s.BackoffUntil,
-                                    s.CreatedAt,
-                                    s.ExecutionStartedAt,
-                                    s.UpdatedAt,
-                                }),
-                            });
-
-                            var json = JsonSerializer.Serialize(payload, JsonCompact);
+                            string json = JsonSerializer.Serialize(recent, _jsonCompact);
                             await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
                             await ctx.Response.Body.FlushAsync(ct);
                         }
@@ -219,11 +145,11 @@ internal static class DashboardEndpoints
                 "/dashboard/orgs-and-apps",
                 async (IServiceProvider sp, CancellationToken ct) =>
                 {
-                    using var scope = sp.CreateScope();
+                    using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    var pairs = await repo.GetDistinctOrgsAndApps(ct);
+                    IReadOnlyList<(string Org, string App)> pairs = await repo.GetDistinctOrgsAndApps(ct);
                     var result = pairs.Select(p => new { org = p.Org, app = p.App });
-                    return Results.Json(result, JsonCompact);
+                    return Results.Json(result, _jsonCompact);
                 }
             )
             .ExcludeFromDescription();
@@ -245,27 +171,22 @@ internal static class DashboardEndpoints
                     CancellationToken ct
                 ) =>
                 {
-                    using var scope = sp.CreateScope();
+                    using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    var maxResults = Math.Min(limit ?? 100, 200);
+                    int maxResults = Math.Min(limit ?? 100, 200);
 
-                    var statuses = string.IsNullOrWhiteSpace(status)
-                        ? new[]
-                        {
-                            PersistentItemStatus.Completed,
-                            PersistentItemStatus.Failed,
-                            PersistentItemStatus.Requeued,
-                        }
+                    PersistentItemStatus[] statuses = string.IsNullOrWhiteSpace(status)
+                        ? [PersistentItemStatus.Completed, PersistentItemStatus.Failed, PersistentItemStatus.Requeued]
                         : status
                             .Split(',')
                             .Select(s =>
                                 s.Trim().ToUpperInvariant() switch
                                 {
-                                    "COMPLETED" => (PersistentItemStatus?)PersistentItemStatus.Completed,
-                                    "FAILED" => (PersistentItemStatus?)PersistentItemStatus.Failed,
-                                    "REQUEUED" => (PersistentItemStatus?)PersistentItemStatus.Requeued,
-                                    "ENQUEUED" => (PersistentItemStatus?)PersistentItemStatus.Enqueued,
-                                    "PROCESSING" => (PersistentItemStatus?)PersistentItemStatus.Processing,
+                                    "COMPLETED" => PersistentItemStatus.Completed,
+                                    "FAILED" => PersistentItemStatus.Failed,
+                                    "REQUEUED" => PersistentItemStatus.Requeued,
+                                    "ENQUEUED" => PersistentItemStatus.Enqueued,
+                                    "PROCESSING" => PersistentItemStatus.Processing,
                                     "CANCELED" => (PersistentItemStatus?)PersistentItemStatus.Canceled,
                                     _ => null,
                                 }
@@ -274,9 +195,9 @@ internal static class DashboardEndpoints
                             .Select(s => s!.Value)
                             .ToArray();
 
-                    var retriedOnly = retried == true;
+                    bool retriedOnly = retried == true;
 
-                    var (workflows, totalCount) = await repo.GetFinishedWorkflowsWithCount(
+                    (IReadOnlyList<Workflow> workflows, int totalCount) = await repo.GetFinishedWorkflowsWithCount(
                         statuses: statuses,
                         search: search,
                         take: maxResults,
@@ -290,46 +211,9 @@ internal static class DashboardEndpoints
                         cancellationToken: ct
                     );
 
-                    var result = new
-                    {
-                        totalCount,
-                        workflows = workflows.Select(w => new
-                        {
-                            idempotencyKey = w.IdempotencyKey,
-                            operationId = w.OperationId,
-                            status = w.Status.ToString(),
-                            traceId = w.EngineTraceId ?? w.EngineActivity?.TraceId.ToString(),
-                            instance = new
-                            {
-                                org = w.InstanceInformation.Org,
-                                app = w.InstanceInformation.App,
-                                instanceOwnerPartyId = w.InstanceInformation.InstanceOwnerPartyId,
-                                instanceGuid = w.InstanceInformation.InstanceGuid,
-                            },
-                            createdAt = w.CreatedAt,
-                            updatedAt = w.UpdatedAt,
-                            executionStartedAt = w.ExecutionStartedAt,
-                            steps = w
-                                .Steps.OrderBy(s => s.ProcessingOrder)
-                                .Select(s => new
-                                {
-                                    idempotencyKey = s.IdempotencyKey,
-                                    operationId = s.OperationId,
-                                    commandType = CommandTypeDiscriminator(s.Command),
-                                    commandDetail = s.Command.OperationId,
-                                    commandPayload = (s.Command as Command.AppCommand)?.Payload,
-                                    status = s.Status.ToString(),
-                                    processingOrder = s.ProcessingOrder,
-                                    retryCount = s.RequeueCount,
-                                    backoffUntil = s.BackoffUntil,
-                                    createdAt = s.CreatedAt,
-                                    executionStartedAt = s.ExecutionStartedAt,
-                                    updatedAt = s.UpdatedAt,
-                                }),
-                        }),
-                    };
+                    var result = new { totalCount, workflows = workflows.Select(DashboardMapper.MapWorkflow) };
 
-                    return Results.Json(result, JsonCompact);
+                    return Results.Json(result, _jsonCompact);
                 }
             )
             .ExcludeFromDescription();
@@ -338,39 +222,10 @@ internal static class DashboardEndpoints
                 "/dashboard/scheduled",
                 async (IServiceProvider sp, CancellationToken ct) =>
                 {
-                    using var scope = sp.CreateScope();
+                    using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    var workflows = await repo.GetScheduledWorkflows(ct);
-
-                    var result = workflows.Select(w => new
-                    {
-                        idempotencyKey = w.IdempotencyKey,
-                        operationId = w.OperationId,
-                        status = w.Status.ToString(),
-                        startAt = w.StartAt,
-                        instance = new
-                        {
-                            org = w.InstanceInformation.Org,
-                            app = w.InstanceInformation.App,
-                            instanceOwnerPartyId = w.InstanceInformation.InstanceOwnerPartyId,
-                            instanceGuid = w.InstanceInformation.InstanceGuid,
-                        },
-                        createdAt = w.CreatedAt,
-                        steps = w
-                            .Steps.OrderBy(s => s.ProcessingOrder)
-                            .Select(s => new
-                            {
-                                idempotencyKey = s.IdempotencyKey,
-                                operationId = s.OperationId,
-                                commandType = CommandTypeDiscriminator(s.Command),
-                                commandDetail = s.Command.OperationId,
-                                commandPayload = (s.Command as Command.AppCommand)?.Payload,
-                                status = s.Status.ToString(),
-                                processingOrder = s.ProcessingOrder,
-                            }),
-                    });
-
-                    return Results.Json(result, JsonCompact);
+                    IReadOnlyList<Workflow> workflows = await repo.GetScheduledWorkflows(ct);
+                    return Results.Json(workflows.Select(DashboardMapper.MapWorkflow), _jsonCompact);
                 }
             )
             .ExcludeFromDescription();
@@ -387,32 +242,32 @@ internal static class DashboardEndpoints
                 ) =>
                 {
                     // Try inbox first (live workflows)
-                    var workflow = engine.GetAllInboxWorkflows().FirstOrDefault(w => w.IdempotencyKey == wf);
+                    Workflow? workflow = engine.GetAllInboxWorkflows().FirstOrDefault(w => w.IdempotencyKey == wf);
 
                     // Try recent cache (has lastError still in memory)
-                    var cached = workflow is null
+                    DashboardWorkflowDto? cached = workflow is null
                         ? engine.GetRecentWorkflows(100).FirstOrDefault(c => c.IdempotencyKey == wf)
                         : null;
                     if (cached is not null)
                     {
-                        var cs = cached.Steps.FirstOrDefault(s => s.IdempotencyKey == step);
+                        DashboardStepDto? cs = cached.Steps.FirstOrDefault(s => s.IdempotencyKey == step);
                         if (cs is null)
                             return Results.NotFound();
 
                         return Results.Json(
                             new
                             {
-                                idempotencyKey = cs.IdempotencyKey,
-                                operationId = cs.OperationId,
-                                status = cs.Status,
-                                processingOrder = cs.ProcessingOrder,
-                                retryCount = cs.RetryCount,
-                                lastError = cs.LastError,
-                                createdAt = cs.CreatedAt,
-                                executionStartedAt = cs.ExecutionStartedAt,
-                                updatedAt = cs.UpdatedAt,
-                                backoffUntil = cs.BackoffUntil,
-                                traceId = cached.TraceId,
+                                cs.IdempotencyKey,
+                                cs.OperationId,
+                                cs.Status,
+                                cs.ProcessingOrder,
+                                cs.RetryCount,
+                                cs.LastError,
+                                cs.CreatedAt,
+                                cs.ExecutionStartedAt,
+                                cs.UpdatedAt,
+                                cs.BackoffUntil,
+                                cached.TraceId,
                                 command = new
                                 {
                                     type = cs.CommandType,
@@ -420,19 +275,19 @@ internal static class DashboardEndpoints
                                     payload = cs.CommandPayload,
                                 },
                             },
-                            JsonIndented
+                            _jsonIndented
                         );
                     }
 
                     // Fall back to DB by idempotency key + createdAt
                     if (workflow is null && createdAt.HasValue)
                     {
-                        using var scope = sp.CreateScope();
+                        using IServiceScope scope = sp.CreateScope();
                         var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
                         workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
                     }
 
-                    var s = workflow?.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
+                    Step? s = workflow?.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
 
                     if (s is null || workflow is null)
                         return Results.NotFound();
@@ -455,7 +310,7 @@ internal static class DashboardEndpoints
                         traceId = workflow.EngineTraceId ?? workflow.EngineActivity?.TraceId.ToString(),
                     };
 
-                    return Results.Json(result, JsonIndented);
+                    return Results.Json(result, _jsonIndented);
                 }
             )
             .ExcludeFromDescription();

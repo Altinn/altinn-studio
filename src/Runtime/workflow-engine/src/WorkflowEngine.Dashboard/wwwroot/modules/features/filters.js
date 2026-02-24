@@ -125,7 +125,8 @@ export const applyFilter = () => {
     const statusCounts = {};
     for (const card of cards) {
       const textHidden = isLiveTab && lf && !(card.dataset.filter || '').includes(lf);
-      const statusHidden = sectionStatus && !sectionStatus.split(',').includes(card.dataset.status || '');
+      const cardTags = (card.dataset.status || '').split(' ');
+      const statusHidden = sectionStatus && !sectionStatus.split(',').some(s => cardTags.includes(s));
       const orgHidden = of_.size > 0 && !of_.has(card.dataset.org || '');
       const appHidden = af.size > 0 && !af.has(card.dataset.app || '');
       const partyHidden = isLiveTab && pf.size > 0 && !pf.has(card.dataset.party || '');
