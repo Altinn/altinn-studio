@@ -86,7 +86,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     minutes: 'MM',
     seconds: 'SS',
     period: 'AM',
-  };
+  } as const;
 
   const scrollToSelectedOptions = () => {
     requestAnimationFrame(() => {
@@ -600,7 +600,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
                 role='group'
                 aria-label='Seconds selection'
               >
-                <div className={styles.dropdownLabel}>Sekunder</div>
+                <div className={styles.dropdownLabel}>{segmentLabels.seconds}</div>
                 <div
                   className={`${styles.dropdownList} ${
                     dropdownFocus.isActive && dropdownFocus.column === 2 ? styles.dropdownListFocused : ''
@@ -657,7 +657,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
                 role='group'
                 aria-label='AM/PM selection'
               >
-                <div className={styles.dropdownLabel}>AM/PM</div>
+                <div className={styles.dropdownLabel}>{segmentLabels.period}</div>
                 <div
                   className={`${styles.dropdownList} ${
                     dropdownFocus.isActive && dropdownFocus.column === (includesSeconds ? 3 : 2)

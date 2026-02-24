@@ -31,10 +31,10 @@ export const DisplayNumber = ({ value, formatting, iconUrl, iconAltText, labelId
 };
 
 const isPatternFormat = (numberFormat: NumericFormatProps | PatternFormatProps): numberFormat is PatternFormatProps =>
-  (numberFormat as PatternFormatProps).format !== undefined;
+  'format' in numberFormat && numberFormat.format !== undefined;
 
 const isNumericFormat = (numberFormat: NumericFormatProps | PatternFormatProps): numberFormat is NumericFormatProps =>
-  (numberFormat as PatternFormatProps).format === undefined;
+  !('format' in numberFormat) || numberFormat.format === undefined;
 
 const formatNumericText = (text: string, format?: NumericFormatProps | PatternFormatProps) => {
   if (format && isNumericFormat(format)) {

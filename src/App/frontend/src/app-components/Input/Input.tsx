@@ -20,8 +20,8 @@ export const useCharacterLimit = (maxLength: number | undefined): FieldCounterPr
 
   return {
     limit: maxLength,
-    under: t('input.remaining_characters'),
-    over: t('input.exceeded_max_limit'),
+    under: t('input_components.remaining_characters'),
+    over: t('input_components.exceeded_max_limit'),
   };
 };
 
@@ -45,7 +45,6 @@ export type InputProps = {
   InputHTMLAttributes<HTMLInputElement>,
   | 'value'
   | 'className'
-  | 'aria-label'
   | 'aria-describedby'
   | 'onChange'
   | 'autoComplete'

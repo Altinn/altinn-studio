@@ -171,13 +171,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function AppLayout() {
   return (
-    <AppComponentsBridge>
-      <NavigationEffectProvider>
-        <ErrorBoundary>
-          <ViewportWrapper>
-            <UiConfigProvider>
-              <InstantiationUrlReset />
-              <GlobalFormDataReadersProvider>
+    <NavigationEffectProvider>
+      <ErrorBoundary>
+        <ViewportWrapper>
+          <UiConfigProvider>
+            <InstantiationUrlReset />
+            <GlobalFormDataReadersProvider>
+              <AppComponentsBridge>
                 <PartyProvider>
                   <KeepAliveProvider>
                     <Outlet />
@@ -190,12 +190,12 @@ function AppLayout() {
                   </KeepAliveProvider>
                 </PartyProvider>
                 <PartyPrefetcher />
-              </GlobalFormDataReadersProvider>
-            </UiConfigProvider>
-          </ViewportWrapper>
-        </ErrorBoundary>
-      </NavigationEffectProvider>
-    </AppComponentsBridge>
+              </AppComponentsBridge>
+            </GlobalFormDataReadersProvider>
+          </UiConfigProvider>
+        </ViewportWrapper>
+      </ErrorBoundary>
+    </NavigationEffectProvider>
   );
 }
 

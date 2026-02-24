@@ -15,7 +15,7 @@ export function HelpTextContainer({ id, helpText, title }: IHelpTextContainerPro
   return (
     <HelpText
       id={id ? `${id}-helptext` : undefined}
-      title={title ? `${langAsString('helptext.button_title_prefix')} ${title}` : 'helptext.button_title'}
+      title={title ? `${langAsString('helptext.button_title_prefix')} ${title}` : langAsString('helptext.button_title')}
       className={classes.helpTextContainer}
     >
       {helpText}

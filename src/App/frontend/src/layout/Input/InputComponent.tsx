@@ -4,7 +4,7 @@ import { FormattedInput } from 'src/app-components/Input/FormattedInput';
 import { Input } from 'src/app-components/Input/Input';
 import { NumericInput } from 'src/app-components/Input/NumericInput';
 import { Label } from 'src/app-components/Label/Label';
-import { getDescriptionId } from 'src/components/label/Label';
+import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
@@ -101,10 +101,11 @@ function getMobileKeyboardProps(
   return { inputMode: 'text', pattern: undefined };
 }
 
-export const InputVariant = ({
+const InputVariant = ({
   baseComponentId,
   overrideDisplay,
-}: Pick<PropsFromGenericComponent<'Input'>, 'baseComponentId' | 'overrideDisplay'>) => {
+  labelId,
+}: Pick<PropsFromGenericComponent<'Input'>, 'baseComponentId' | 'overrideDisplay'> & { labelId: string }) => {
   const {
     id,
     readOnly,
@@ -143,9 +144,13 @@ export const InputVariant = ({
     hasValidations,
   });
 
+  const labelProps = textResourceBindings?.title
+    ? { 'aria-label': textResourceBindings?.title }
+    : { 'aria-labelledby': labelId };
+
   const inputProps: InputProps = {
     id,
-    'aria-label': textResourceBindings?.title ?? '',
+    ...labelProps,
     'aria-describedby': inputDescribedBy,
     autoComplete: autocomplete,
     className: formatting?.align ? classes[`text-align-${formatting.align}`] : '',
@@ -258,8 +263,11 @@ export const InputComponent: React.FunctionComponent<PropsFromGenericComponent<'
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ baseComponentId, overrideDisplay });
 
+  const labelId = getLabelId(id);
+
   return (
     <Label
+      id={labelId}
       htmlFor={id}
       label={labelText}
       grid={grid?.labelGrid}
@@ -273,6 +281,7 @@ export const InputComponent: React.FunctionComponent<PropsFromGenericComponent<'
         <InputVariant
           baseComponentId={baseComponentId}
           overrideDisplay={overrideDisplay}
+          labelId={labelId}
         />
       </ComponentStructureWrapper>
     </Label>
