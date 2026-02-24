@@ -115,3 +115,34 @@ export const getAvailablePages = (
     return !pagesWithRules.includes(page) || selectedPages?.includes(page);
   });
 };
+
+type ValidateFormProps = {
+  scope: Scope;
+  config: InternalConfigState;
+  currentConfig: InternalConfigState;
+};
+
+export const validateForm = ({ scope, config, currentConfig }: ValidateFormProps): boolean => {
+  const noChangesMade = !currentConfig || JSON.stringify(config) === JSON.stringify(currentConfig);
+  if (noChangesMade) {
+    return false;
+  }
+
+  const hasTypes = currentConfig.types?.length > 0;
+  const hasPageScope = Boolean(currentConfig.pageScope?.value);
+
+  if (!hasTypes || !hasPageScope) {
+    return false;
+  }
+
+  switch (scope) {
+    case Scope.AllTasks:
+      return true;
+    case Scope.SelectedTasks:
+      return currentConfig.tasks?.length > 0;
+    case Scope.SelectedPages:
+      return Boolean(currentConfig.task?.value) && currentConfig.pages?.length > 0;
+    default:
+      return false;
+  }
+};

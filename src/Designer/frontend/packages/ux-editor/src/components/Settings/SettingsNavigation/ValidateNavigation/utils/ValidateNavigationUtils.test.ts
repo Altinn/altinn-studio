@@ -7,6 +7,7 @@ import {
   getDefaultConfig,
   getValuesToDisplay,
   Scope,
+  validateForm,
 } from './ValidateNavigationUtils';
 
 describe('getDefaultConfig', () => {
@@ -171,5 +172,79 @@ describe('getAvailablePages', () => {
 
     const availablePages = getAvailablePages(formLayouts, externalConfigAllPages);
     expect(availablePages).toEqual([]);
+  });
+});
+
+describe('validateForm', () => {
+  it('should return false if no changes made to config', () => {
+    const config = {
+      types: [{ value: 'type1', label: 'Type 1' }],
+      pageScope: { value: 'current', label: 'Current Page' },
+    };
+    expect(validateForm({ scope: Scope.AllTasks, config, currentConfig: config })).toBe(false);
+  });
+
+  it('should return false if required fields are missing', () => {
+    const config = {
+      types: [],
+      pageScope: { value: '', label: '' },
+    };
+    expect(validateForm({ scope: Scope.AllTasks, config, currentConfig: null })).toBe(false);
+
+    const configWithTypes = {
+      types: [{ value: 'type1', label: 'Type 1' }],
+      pageScope: { value: '', label: '' },
+    };
+    expect(
+      validateForm({ scope: Scope.AllTasks, config: configWithTypes, currentConfig: null }),
+    ).toBe(false);
+  });
+
+  it('should return true if changes made and required fields are filled for all tasks scope', () => {
+    const currentConfig = {
+      types: [{ value: 'type1', label: 'Type 1' }],
+      pageScope: { value: 'current', label: 'Current Page' },
+    };
+    const originConfig = {
+      types: [{ value: 'type2', label: 'Type 2' }],
+      pageScope: { value: 'current', label: 'Current Page' },
+    };
+    expect(validateForm({ scope: Scope.AllTasks, config: originConfig, currentConfig })).toBe(true);
+  });
+
+  it('should return true if changes made and required fields are filled for SelectedTasks scope', () => {
+    const currentConfig = {
+      types: [{ value: 'type1', label: 'Type 1' }],
+      pageScope: { value: 'current', label: 'Current Page' },
+      tasks: [{ value: 'task1', label: 'Task 1' }],
+    };
+    const originConfig = {
+      types: [{ value: 'type1', label: 'Type 1' }],
+      pageScope: { value: 'current', label: 'Current Page' },
+      tasks: [{ value: 'task2', label: 'Task 2' }],
+    };
+    expect(validateForm({ scope: Scope.SelectedTasks, config: originConfig, currentConfig })).toBe(
+      true,
+    );
+  });
+
+  it('should return true if changes made and required fields are filled for SelectedPages scope', () => {
+    const currentConfig = {
+      types: [{ value: 'type1', label: 'Type 1' }],
+      pageScope: { value: 'current', label: 'Current Page' },
+      task: { value: 'task1', label: 'Task 1' },
+      pages: [{ value: 'page1', label: 'Page 1' }],
+    };
+
+    const originConfig = {
+      types: [{ value: 'type1', label: 'Type 1' }],
+      pageScope: { value: 'current', label: 'Current Page' },
+      task: { value: 'task1', label: 'Task 1' },
+      pages: [{ value: 'page2', label: 'Page 2' }],
+    };
+
+    expect(validateForm({ scope: Scope.SelectedPages, config: originConfig, currentConfig })).toBe(
+      true,
+    );
   });
 });
