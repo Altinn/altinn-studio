@@ -86,7 +86,7 @@ export const PagesSelector = ({ selectedPages, taskName, onChange }: PagesSelect
   const availablePages = getAvailablePages(
     formLayouts,
     dummyDataPages,
-    selectedPages.map((p) => p.value),
+    selectedPages?.map((p) => p.value),
   ); // dummyDataPages is just to simulate the rules that are already set, in real implementation this will be replaced with fetched query data
 
   const noAvailablePages = taskName && availablePages.length === 0;
