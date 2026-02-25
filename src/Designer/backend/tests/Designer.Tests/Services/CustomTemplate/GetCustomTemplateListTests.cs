@@ -392,30 +392,29 @@ public class GetCustomTemplateListTests : IDisposable
     public async Task GetCustomTemplateList_UserHasNoOrgs_OnlyAlsTemplatesRetrieved()
     {
         // Arrange
-        _giteaClientMock
-            .Setup(x => x.GetUserOrganizations())
-            .ReturnsAsync([]);
+        _giteaClientMock.Setup(x => x.GetUserOrganizations()).ReturnsAsync([]);
 
         _giteaClientMock
-           .Setup(x => x.GetLatestCommitOnBranch("als", "als-content", null, default))
-           .ReturnsAsync("abc123def456");
+            .Setup(x => x.GetLatestCommitOnBranch("als", "als-content", null, default))
+            .ReturnsAsync("abc123def456");
 
         _giteaClientMock
             .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
-            .ReturnsAsync((new FileSystemObject
-            {
-                Content = Convert.ToBase64String(Encoding.UTF8.GetBytes("[]"))
-            }, null));
+            .ReturnsAsync(
+                (new FileSystemObject { Content = Convert.ToBase64String(Encoding.UTF8.GetBytes("[]")) }, null)
+            );
 
         var sut = CreateService();
 
-        // Act 
+        // Act
         await sut.GetCustomTemplateList();
 
         // Assert
-        _giteaClientMock.Verify(x => x.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), null, default), Times.Once);
+        _giteaClientMock.Verify(
+            x => x.GetLatestCommitOnBranch(It.IsAny<string>(), It.IsAny<string>(), null, default),
+            Times.Once
+        );
     }
-
 
     private CustomTemplateService CreateService()
     {

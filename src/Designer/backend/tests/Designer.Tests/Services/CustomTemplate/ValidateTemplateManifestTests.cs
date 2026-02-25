@@ -12,7 +12,9 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_ValidManifest_ReturnsNoErrors()
     {
-        var validManifest = @"{
+        var validManifest =
+            @"{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
@@ -29,7 +31,8 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_MissingSchemaVersion_ReturnsErrors()
     {
-        var missingSchemaManifest = @"{
+        var missingSchemaManifest =
+            @"{
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
@@ -37,8 +40,12 @@ public class ValidateCustomTemplateTest
         }";
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(missingSchemaManifest);
-        Assert.Contains(errors, e => e.Kind == ValidationErrorKind.PropertyRequired && e.Property.Equals("schemaVersion"));
+        Assert.Contains(
+            errors,
+            e => e.Kind == ValidationErrorKind.PropertyRequired && e.Property.Equals("schemaVersion")
+        );
     }
+
     [Theory]
     [InlineData("/absolute/path")]
     [InlineData("../../other/app/templates")]
@@ -46,7 +53,9 @@ public class ValidateCustomTemplateTest
     [InlineData("/tmp/file.txt")]
     public async Task ValidateManifestJsonAsync_InvalidRemoveEntries_ReturnsError(string remove)
     {
-        var invalidRemoveManifest = $@"{{
+        var invalidRemoveManifest =
+            $@"{{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
@@ -62,7 +71,9 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_UnknownProperty_ReturnsError()
     {
-        var unknownPropertyManifest = @"{
+        var unknownPropertyManifest =
+            @"{
+        ""schemaVersion"": ""0.1"", 
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
@@ -86,7 +97,9 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_MissingName_ReturnsError()
     {
-        var missingNbName = @"{
+        var missingNbName =
+            @"{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""description"": ""This is a valid description for the template."",
@@ -101,7 +114,9 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_MissingDescription_ReturnsError()
     {
-        var missingNbDescription = @"{
+        var missingNbDescription =
+            @"{
+        ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
         ""name"": ""Test Template"",
@@ -117,11 +132,12 @@ public class ValidateCustomTemplateTest
     [InlineData("../../other/App.csproj")]
     [InlineData("C:/Users/App.csproj")]
     [InlineData("\\\\server\\\\share")]
-    [InlineData("App/project.txt")]  // Not a .csproj file
-    [InlineData("App\\\\App.csproj")]  // Backslashes not allowed
+    [InlineData("App/project.txt")] // Not a .csproj file
+    [InlineData("App\\\\App.csproj")] // Backslashes not allowed
     public async Task ValidateManifestJsonAsync_InvalidPackageReferenceProject_ReturnsError(string project)
     {
-        var invalidProjectManifest = $@"{{
+        var invalidProjectManifest =
+            $@"{{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
@@ -135,18 +151,22 @@ public class ValidateCustomTemplateTest
         }}";
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(invalidProjectManifest);
-        Assert.Contains(errors, e => e.Path.Contains("packageReferences[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid);
+        Assert.Contains(
+            errors,
+            e => e.Path.Contains("packageReferences[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid
+        );
     }
 
     [Theory]
     [InlineData("")]
     [InlineData("-InvalidStart")]
     [InlineData(".InvalidStart")]
-    [InlineData("Invalid Package")]  // Space not allowed
-    [InlineData("Invalid/Package")]  // Slash not allowed
+    [InlineData("Invalid Package")] // Space not allowed
+    [InlineData("Invalid/Package")] // Slash not allowed
     public async Task ValidateManifestJsonAsync_InvalidPackageReferenceInclude_ReturnsError(string include)
     {
-        var invalidIncludeManifest = $@"{{
+        var invalidIncludeManifest =
+            $@"{{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
@@ -167,10 +187,11 @@ public class ValidateCustomTemplateTest
     [InlineData("")]
     [InlineData("not-a-version")]
     [InlineData("1.2.3.4.5")]
-    [InlineData("v1.2.3")]  // 'v' prefix not allowed
+    [InlineData("v1.2.3")] // 'v' prefix not allowed
     public async Task ValidateManifestJsonAsync_InvalidPackageReferenceVersion_ReturnsError(string version)
     {
-        var invalidVersionManifest = $@"{{
+        var invalidVersionManifest =
+            $@"{{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
@@ -191,17 +212,20 @@ public class ValidateCustomTemplateTest
     [InlineData("project")]
     [InlineData("include")]
     [InlineData("version")]
-    public async Task ValidateManifestJsonAsync_MissingRequiredPackageReferenceProperty_ReturnsError(string missingProperty)
+    public async Task ValidateManifestJsonAsync_MissingRequiredPackageReferenceProperty_ReturnsError(
+        string missingProperty
+    )
     {
         var properties = new System.Collections.Generic.Dictionary<string, string>
         {
             { "project", "App/*.csproj" },
             { "include", "MyPackage" },
-            { "version", "1.0.0" }
+            { "version", "1.0.0" },
         };
         properties.Remove(missingProperty);
 
-        var manifest = $@"{{
+        var manifest =
+            $@"{{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
@@ -213,13 +237,17 @@ public class ValidateCustomTemplateTest
         }}";
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(manifest);
-        Assert.Contains(errors, e => e.Path.Contains("packageReferences[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid);
+        Assert.Contains(
+            errors,
+            e => e.Path.Contains("packageReferences[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid
+        );
     }
 
     [Fact]
     public async Task ValidateManifestJsonAsync_PackageReferenceWithUnknownProperty_ReturnsError()
     {
-        var unknownPropertyManifest = @"{
+        var unknownPropertyManifest =
+            @"{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
@@ -234,7 +262,10 @@ public class ValidateCustomTemplateTest
         }";
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(unknownPropertyManifest);
-        Assert.Contains(errors, e => e.Path.Contains("packageReferences[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid);
+        Assert.Contains(
+            errors,
+            e => e.Path.Contains("packageReferences[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid
+        );
     }
 
     [Theory]
@@ -246,7 +277,8 @@ public class ValidateCustomTemplateTest
     [InlineData("1.*")]
     public async Task ValidateManifestJsonAsync_ValidPackageReferenceVersions_ReturnsNoErrors(string version)
     {
-        var validVersionManifest = $@"{{
+        var validVersionManifest =
+            $@"{{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
@@ -266,7 +298,8 @@ public class ValidateCustomTemplateTest
     [Fact]
     public async Task ValidateManifestJsonAsync_InvalidNextStep_MissingLinkRef_ReturnsErrors()
     {
-        var invalidNextLinkManifest = @"{
+        var invalidNextLinkManifest =
+            @"{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
@@ -276,13 +309,17 @@ public class ValidateCustomTemplateTest
         }";
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(invalidNextLinkManifest);
-        Assert.Contains(errors, e => e.Path.Contains("nextSteps[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid);
+        Assert.Contains(
+            errors,
+            e => e.Path.Contains("nextSteps[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid
+        );
     }
 
     [Fact]
     public async Task ValidateManifestJsonAsync_InvalidNextStep_MissingLinkLabel_ReturnsErrors()
     {
-        var invalidNextLinkManifest = @"{
+        var invalidNextLinkManifest =
+            @"{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
@@ -292,7 +329,10 @@ public class ValidateCustomTemplateTest
         }";
 
         var errors = await CustomTemplateService.ValidateManifestJsonAsync(invalidNextLinkManifest);
-        Assert.Contains(errors, e => e.Path.Contains("nextSteps[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid);
+        Assert.Contains(
+            errors,
+            e => e.Path.Contains("nextSteps[0]") && e.Kind == ValidationErrorKind.ArrayItemNotValid
+        );
     }
 
     [Theory]
@@ -305,7 +345,8 @@ public class ValidateCustomTemplateTest
     [InlineData("dokumentasjon")]
     public async Task ValidateManifestJsonAsync_ValidNextStepTypes_ReturnsNoErrors(string nextStepType)
     {
-        var validManifest = $@"{{
+        var validManifest =
+            $@"{{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",
@@ -336,7 +377,8 @@ public class ValidateCustomTemplateTest
     [InlineData("unknown")]
     public async Task ValidateManifestJsonAsync_InvalidNextStepTypes_ReturnsErrors(string nextStepType)
     {
-        var invalidManifest = $@"{{
+        var invalidManifest =
+            $@"{{
         ""schemaVersion"": ""0.1"",
         ""id"": ""template-12345"",
         ""owner"": ""altinn"",

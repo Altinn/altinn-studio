@@ -141,22 +141,29 @@ namespace Designer.Tests.Controllers.RepositoryController
         [Fact]
         public async Task CreateApp_TemplateExceptionThrown_BadRequestReturned()
         {
-
             // Arrange
             string uri = $"{VersionPrefix}/create-app";
-            var content = new StringContent(JsonSerializer.Serialize(new CreateAppRequest
-            {
-                Org = "ttd",
-                Repository = "test",
-                Template = new CustomTemplateReference
-                {
-                    Owner = "ttd",
-                    Id = "custom-template"
-                }
-            }), System.Text.Encoding.UTF8, "application/json");
+            var content = new StringContent(
+                JsonSerializer.Serialize(
+                    new CreateAppRequest
+                    {
+                        Org = "ttd",
+                        Repository = "test",
+                        Template = new CustomTemplateReference { Owner = "ttd", Id = "custom-template" },
+                    }
+                ),
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
 
             _repositoryMock
-                .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>(), It.Is<List<CustomTemplateReference>>(l => l.Count == 1 && l[0].Id == "custom-template")))
+                .Setup(r =>
+                    r.CreateService(
+                        It.IsAny<string>(),
+                        It.IsAny<ServiceConfiguration>(),
+                        It.Is<List<CustomTemplateReference>>(l => l.Count == 1 && l[0].Id == "custom-template")
+                    )
+                )
                 .ThrowsAsync(CustomTemplateException.ValidationFailed("Template validation failed", []));
 
             using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);

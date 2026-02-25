@@ -26,13 +26,21 @@ public class CustomTemplateControllerTests
         // Arrange
         var templates = new List<CustomTemplateListObject>
         {
-            new() { Id = "template1", Owner = "als", Name = "Template 1" },
-            new() { Id = "template2", Owner = "als", Name = "Template 2" }
+            new()
+            {
+                Id = "template1",
+                Owner = "als",
+                Name = "Template 1",
+            },
+            new()
+            {
+                Id = "template2",
+                Owner = "als",
+                Name = "Template 2",
+            },
         };
 
-        _templateServiceMock
-            .Setup(x => x.GetCustomTemplateList())
-            .ReturnsAsync(templates);
+        _templateServiceMock.Setup(x => x.GetCustomTemplateList()).ReturnsAsync(templates);
 
         var controller = CreateController();
 
@@ -57,12 +65,10 @@ public class CustomTemplateControllerTests
             Id = templateId,
             Owner = owner,
             Name = "Test Template",
-            Description = "A test template"
+            Description = "A test template",
         };
 
-        _templateServiceMock
-            .Setup(x => x.GetCustomTemplateById(owner, templateId))
-            .ReturnsAsync(template);
+        _templateServiceMock.Setup(x => x.GetCustomTemplateById(owner, templateId)).ReturnsAsync(template);
 
         var controller = CreateController();
 
@@ -145,12 +151,10 @@ public class CustomTemplateControllerTests
             Id = templateId,
             Owner = owner,
             Name = "Specific Template",
-            Description = "Template with specific owner"
+            Description = "Template with specific owner",
         };
 
-        _templateServiceMock
-            .Setup(x => x.GetCustomTemplateById(owner, templateId))
-            .ReturnsAsync(template);
+        _templateServiceMock.Setup(x => x.GetCustomTemplateById(owner, templateId)).ReturnsAsync(template);
 
         var controller = CreateController();
 
@@ -158,9 +162,7 @@ public class CustomTemplateControllerTests
         await controller.GetCustomTemplateById(owner, templateId);
 
         // Assert
-        _templateServiceMock.Verify(
-            x => x.GetCustomTemplateById(owner, templateId),
-            Times.Once);
+        _templateServiceMock.Verify(x => x.GetCustomTemplateById(owner, templateId), Times.Once);
     }
 
     [Fact]
@@ -179,7 +181,12 @@ public class CustomTemplateControllerTests
             Remove = new List<string> { "file.txt" },
             PackageReferences = new List<PackageReference>
             {
-                new() { Include = "Newtonsoft.Json", Version = "13.0.1", Project = "App.csproj" }
+                new()
+                {
+                    Include = "Newtonsoft.Json",
+                    Version = "13.0.1",
+                    Project = "App.csproj",
+                },
             },
             NextSteps = new List<NextStep>
             {
@@ -187,14 +194,12 @@ public class CustomTemplateControllerTests
                 {
                     Title = "Configure",
                     Description = "Configuration step",
-                    Type = NextStepType.Configuration
-                }
-            }
+                    Type = NextStepType.Configuration,
+                },
+            },
         };
 
-        _templateServiceMock
-            .Setup(x => x.GetCustomTemplateById(owner, templateId))
-            .ReturnsAsync(template);
+        _templateServiceMock.Setup(x => x.GetCustomTemplateById(owner, templateId)).ReturnsAsync(template);
 
         var controller = CreateController();
 

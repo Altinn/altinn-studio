@@ -138,7 +138,6 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
         var template = new CustomTemplateModel
         {
-
             Id = templateId,
             Owner = templateOwner,
             Name = "Simple Template",
@@ -427,22 +426,27 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             Description = "A simple template with package references.",
             PackageReferences = new List<PackageReference>
             {
-                new ()
+                new()
                 {
                     Project = "App/App.csproj",
                     Include = "Newtonsoft.Json",
-                    Version = "13.0.1"
-                }
-            }
+                    Version = "13.0.1",
+                },
+            },
         };
 
         string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
-        CreateFileInRepo(targetRepoPath, projectFilePath, "<Project>\r\n  <ItemGroup>\r\n    <Compile Include=\"helloworld.cs\" />\r\n  </ItemGroup>\r\n</Project>");
+        CreateFileInRepo(
+            targetRepoPath,
+            projectFilePath,
+            "<Project>\r\n  <ItemGroup>\r\n    <Compile Include=\"helloworld.cs\" />\r\n  </ItemGroup>\r\n</Project>"
+        );
 
-        SetupTemplateCache(templateOwner, templateId, new Dictionary<string, string>
-        {
-            { "newfile.txt", "new content" }
-        });
+        SetupTemplateCache(
+            templateOwner,
+            templateId,
+            new Dictionary<string, string> { { "newfile.txt", "new content" } }
+        );
 
         MockTemplateJsonFile(templateOwner, templateId, template);
 
@@ -450,7 +454,6 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
         // Act
         await sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
-
 
         // Assert
         Assert.True(File.Exists(Path.Combine(targetRepoPath, projectFilePath)));
@@ -477,13 +480,13 @@ public class ApplyTemplateToRepositoryTests : IDisposable
             Description = "A simple template with package references.",
             PackageReferences = new List<PackageReference>
             {
-                new ()
+                new()
                 {
                     Project = "App/App.csproj",
                     Include = "Newtonsoft.Json",
-                    Version = "10.0.0"
-                }
-            }
+                    Version = "10.0.0",
+                },
+            },
         };
 
         string targetRepoPath = CreateTargetRepository(targetOrg, targetRepo, developer);
@@ -495,12 +498,14 @@ public class ApplyTemplateToRepositoryTests : IDisposable
                 <ItemGroup>
                     <PackageReference Include=""Newtonsoft.Json"" Version=""13.0.1""/>
                 </ItemGroup>
-            </Project>");
+            </Project>"
+        );
 
-        SetupTemplateCache(templateOwner, templateId, new Dictionary<string, string>
-        {
-            { "newfile.txt", "new content" }
-        });
+        SetupTemplateCache(
+            templateOwner,
+            templateId,
+            new Dictionary<string, string> { { "newfile.txt", "new content" } }
+        );
 
         MockTemplateJsonFile(templateOwner, templateId, template);
 
@@ -508,7 +513,6 @@ public class ApplyTemplateToRepositoryTests : IDisposable
 
         // Act
         await sut.ApplyTemplateToRepository(templateOwner, templateId, targetOrg, targetRepo, developer);
-
 
         // Assert
         Assert.True(File.Exists(Path.Combine(targetRepoPath, projectFilePath)));
