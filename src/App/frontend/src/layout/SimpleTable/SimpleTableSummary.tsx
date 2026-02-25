@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { AppTable } from 'src/app-components/Table/Table';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -58,9 +59,9 @@ export function SimpleTableSummary({ targetBaseComponentId }: Summary2Props) {
         schema={schema}
         caption={title && <Caption title={<Lang id={title} />} />}
         data={Array.isArray(data) ? data : emptyArray}
-        columns={columns}
+        columns={columns.map((column) => ({ ...column, header: translationKey(column.header) }))}
         mobile={isMobile}
-        emptyText='general.empty_table'
+        emptyText={translationKey('general.empty_table')}
       />
     </SummaryFlex>
   );

@@ -4,6 +4,7 @@ import cn from 'classnames';
 
 import { DisplayText } from 'src/app-components/Text/DisplayText';
 import classes from 'src/app-components/Text/Text.module.css';
+import { translationKey } from 'src/AppComponentsBridge';
 import { getLabelId } from 'src/components/label/Label';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -33,7 +34,7 @@ export const TextComponent = ({ baseComponentId }: PropsFromGenericComponent<'Te
       <DisplayText
         value={value}
         iconUrl={icon}
-        iconAltText={textResourceBindings.title}
+        iconAltText={translationKey(textResourceBindings.title)}
         labelId={getLabelId(id)}
       />
     </ComponentStructureWrapper>

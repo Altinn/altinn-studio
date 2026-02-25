@@ -9,3 +9,5 @@ export interface IGridStyling {
   lg?: IGridSize;
   xl?: IGridSize;
 }
+
+export type TranslationKey = string & { __brand: 'TranslationKey' };

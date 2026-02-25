@@ -11,11 +11,12 @@ import {
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import { useIsMini, useIsMobile, useIsTablet } from 'src/app-components/hooks/useDeviceWidths';
 import classes from 'src/app-components/Pagination/Pagination.module.css';
+import type { TranslationKey } from 'src/app-components/types';
 
 type PaginationProps = {
   id: string;
-  nextLabel: string;
-  previousLabel: string;
+  nextLabel: TranslationKey;
+  previousLabel: TranslationKey;
   size: NonNullable<Parameters<typeof DesignSystemPagination>[0]['data-size']>;
   compact?: boolean;
   hideLabels?: boolean;
@@ -23,7 +24,7 @@ type PaginationProps = {
   currentPage: number;
   numberOfRows: number;
   pageSize: number;
-  rowsPerPageText: string;
+  rowsPerPageText: TranslationKey;
   rowsPerPageOptions?: number[];
   onPageSizeChange: (value: number) => void;
   setCurrentPage: (pageNumber: number) => void;
@@ -66,7 +67,7 @@ export const Pagination = ({
     onChange,
     showPages,
   });
-  const t = useTranslation();
+  const { translate } = useTranslation();
 
   return (
     <>
@@ -88,7 +89,7 @@ export const Pagination = ({
               </Select.Option>
             ))}
           </Select>
-          <Label htmlFor={`paginationRowsPerPageDropdown-${id}`}>{t(rowsPerPageText)}</Label>
+          <Label htmlFor={`paginationRowsPerPageDropdown-${id}`}>{translate(rowsPerPageText)}</Label>
         </Field>
       )}
       <DesignSystemPagination
@@ -100,7 +101,7 @@ export const Pagination = ({
         <DesignSystemPagination.List>
           <DesignSystemPagination.Item>
             <DesignSystemPagination.Button {...prevButtonProps}>
-              {!hideLabels && !isMobile && t(previousLabel)}
+              {!hideLabels && !isMobile && translate(previousLabel)}
             </DesignSystemPagination.Button>
           </DesignSystemPagination.Item>
           {pages.map(({ page, itemKey, buttonProps }) => (
@@ -108,7 +109,7 @@ export const Pagination = ({
               {typeof page === 'number' && (
                 <DesignSystemPagination.Button
                   aria-current={currentPage === page}
-                  aria-label={t('general.page_number', [page])}
+                  aria-label={translate('general.page_number', [page])}
                   {...buttonProps}
                 >
                   {page}
@@ -118,7 +119,7 @@ export const Pagination = ({
           ))}
           <DesignSystemPagination.Item>
             <DesignSystemPagination.Button {...nextButtonProps}>
-              {!hideLabels && !isMobile && t(nextLabel)}
+              {!hideLabels && !isMobile && translate(nextLabel)}
             </DesignSystemPagination.Button>
           </DesignSystemPagination.Item>
         </DesignSystemPagination.List>

@@ -16,6 +16,7 @@ import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthW
 import { useIsMobile } from 'src/app-components/hooks/useDeviceWidths';
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import classes from 'src/app-components/Panel/Panel.module.css';
+import type { TranslationKey } from 'src/app-components/types';
 
 export type PanelVariant = (typeof PANEL_VARIANT)[keyof typeof PANEL_VARIANT];
 
@@ -23,7 +24,7 @@ export type PanelProps = PropsWithChildren<{
   variant: PanelVariant;
   showIcon?: boolean;
   forceMobileLayout?: boolean;
-  title?: string;
+  title?: TranslationKey;
   style?: React.CSSProperties;
   className?: string;
   fullWidth?: boolean;
@@ -83,7 +84,7 @@ export const Panel: React.FC<PanelProps> = ({
   className,
   children,
 }) => {
-  const t = useTranslation();
+  const { TranslateComponent } = useTranslation();
   const isMobile = useIsMobile();
   const isMobileLayout = forceMobileLayout || isMobile;
 
@@ -125,7 +126,7 @@ export const Panel: React.FC<PanelProps> = ({
                 data-size={isMobileLayout ? 'xs' : 'sm'}
                 className={classes.panelHeader}
               >
-                {t(title)}
+                <TranslateComponent tKey={title} />
               </Heading>
             )}
             <div>{children}</div>

@@ -5,6 +5,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { AppTable } from 'src/app-components/Table/Table';
 import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
+import { TranslationKey } from 'src/app-components/types';
 
 const data = [
   { id: 1, name: 'Alice', date: '05.10.2023', amount: 100 },
@@ -12,9 +13,9 @@ const data = [
 ];
 
 const columns = [
-  { header: 'Name', accessors: ['name'] },
-  { header: 'Date', accessors: ['date'] },
-  { header: 'Amount', accessors: ['amount'] },
+  { header: 'Name' as TranslationKey, accessors: ['name'] },
+  { header: 'Date' as TranslationKey, accessors: ['date'] },
+  { header: 'Amount' as TranslationKey, accessors: ['amount'] },
 ];
 
 const actionButtons = [
@@ -100,7 +101,7 @@ describe('AppTable Component', () => {
     const columnsWithRenderCell = [
       ...columns,
       {
-        header: 'Custom',
+        header: 'Custom' as TranslationKey,
         accessors: ['name', 'amount'],
         renderCell: (values) => `Name: ${values[0]}, Amount: ${values[1]}`,
       },

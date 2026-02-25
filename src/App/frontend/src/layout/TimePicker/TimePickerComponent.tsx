@@ -3,6 +3,7 @@ import React from 'react';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Label } from 'src/app-components/Label/Label';
 import { TimePicker as TimePickerControl } from 'src/app-components/TimePicker/TimePicker';
+import { translationKey } from 'src/AppComponentsBridge';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useLabel } from 'src/utils/layout/useLabel';
@@ -26,10 +27,10 @@ export function TimePickerComponent({ baseComponentId, overrideDisplay }: PropsF
 
   // Create translated labels for segments
   const segmentLabels = {
-    hours: 'timepicker.hours',
-    minutes: 'timepicker.minutes',
-    seconds: 'timepicker.seconds',
-    amPm: 'timepicker.am_pm',
+    hours: translationKey('timepicker.hours'),
+    minutes: translationKey('timepicker.minutes'),
+    seconds: translationKey('timepicker.seconds'),
+    amPm: translationKey('timepicker.am_pm'),
   };
 
   const handleTimeChange = (timeString: string) => {

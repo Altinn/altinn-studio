@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 
 import { HelpText } from 'src/app-components/HelpText/HelpText';
 import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
+import { TranslationKey } from 'src/app-components/types';
 import type { HelpTextProps } from 'src/app-components/HelpText/HelpText';
 
 const render = (props: Partial<HelpTextProps> = {}) => {
@@ -13,7 +14,7 @@ const render = (props: Partial<HelpTextProps> = {}) => {
   };
   renderWithAppComponentsProvider(
     <HelpText
-      title='Helptext for test'
+      title={'Helptext for test' as TranslationKey}
       {...allProps}
     >
       Help

@@ -10,6 +10,7 @@ import {
 
 import { Button } from 'src/app-components/Button/Button';
 import { Input } from 'src/app-components/Input/Input';
+import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/features/devtools/components/DevToolsLogs/DevToolsLogs.module.css';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 
@@ -71,10 +72,10 @@ export const DevToolsLogs = () => {
         </Button>
         <div className={classes.filterField}>
           <Input
-            aria-label='Filtrer logger'
+            aria-label={translationKey('devtools.filter_logs')}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            placeholder='Filtrer logger'
+            placeholder={translationKey('devtools.filter_logs')}
           />
         </div>
 

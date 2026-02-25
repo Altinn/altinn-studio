@@ -6,6 +6,7 @@ import type { ButtonProps as DesignSystemButtonProps } from '@digdir/designsyste
 
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
+import type { TranslationKey } from 'src/app-components/types';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | undefined;
 export type ButtonColor = 'first' | 'second' | 'success' | 'danger' | undefined;
@@ -18,7 +19,9 @@ export type ButtonProps = {
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   textAlign?: TextAlign;
-} & Omit<DesignSystemButtonProps, 'variant' | 'color' | 'size'>;
+  title?: TranslationKey;
+  'aria-label'?: TranslationKey;
+} & Omit<DesignSystemButtonProps, 'variant' | 'color' | 'size' | 'title' | 'aria-label'>;
 
 type DSButtonColor = 'accent' | 'neutral' | 'success' | 'danger' | 'brand1' | 'brand2' | 'brand3' | undefined;
 
@@ -44,11 +47,12 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
     fullWidth,
     style,
     textAlign,
+    'aria-label': ariaLabel,
     ...rest
   },
   ref,
 ) {
-  const t = useTranslation();
+  const { translate } = useTranslation();
   const expandedStyle = { ...style, justifyContent: textAlign ? textAlign : undefined };
   return (
     <DesignSystemButton
@@ -60,6 +64,7 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
       data-fullwidth={fullWidth ? true : undefined}
       ref={ref}
       style={expandedStyle}
+      aria-label={ariaLabel ? translate(ariaLabel) : undefined}
     >
       {isLoading ? (
         <>
@@ -67,7 +72,7 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
             aria-hidden='true'
             data-color={color}
             data-size={size === 'lg' ? 'sm' : 'xs'}
-            aria-label={t('general.loading')}
+            aria-label={translate('general.loading')}
           />
           {children}
         </>

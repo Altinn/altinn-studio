@@ -5,14 +5,17 @@ import { screen } from '@testing-library/react';
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
 import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
+import { TranslationKey } from 'src/app-components/types';
 import type { PanelVariant } from 'src/app-components/Panel/Panel';
 
 describe('Panel', () => {
+  const panelTitle = 'Panel Title' as TranslationKey;
+
   it('should show title and content', () => {
     renderWithAppComponentsProvider(
       <Panel
         variant={PANEL_VARIANT.Info}
-        title='Panel Title'
+        title={panelTitle}
       >
         Panel Content
       </Panel>,
@@ -25,7 +28,7 @@ describe('Panel', () => {
     renderWithAppComponentsProvider(
       <Panel
         variant={PANEL_VARIANT.Info}
-        title='Panel Title'
+        title={panelTitle}
       >
         Panel Content
       </Panel>,
@@ -37,7 +40,7 @@ describe('Panel', () => {
     renderWithAppComponentsProvider(
       <Panel
         variant={PANEL_VARIANT.Info}
-        title='Panel Title'
+        title={panelTitle}
         showIcon={false}
       >
         Panel Content
@@ -52,7 +55,7 @@ describe('Panel', () => {
       renderWithAppComponentsProvider(
         <Panel
           variant={variant}
-          title='Panel Title'
+          title={panelTitle}
           showIcon
         >
           Panel Content

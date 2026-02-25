@@ -4,12 +4,12 @@ import { Heading } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { translationKey } from 'src/AppComponentsBridge';
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/features/navigation/AppNavigation.module.css';
 import { PageGroup } from 'src/features/navigation/components/PageGroup';
 import { TaskGroup } from 'src/features/navigation/components/TaskGroup';
@@ -97,7 +97,6 @@ export function AppNavigationHeading({
   showClose,
   onClose,
 }: { showClose?: undefined; onClose?: undefined } | { showClose: boolean; onClose: () => void }) {
-  const { langAsString } = useLanguage();
   return (
     <div
       id={appNavigationHeadingId}
@@ -117,7 +116,7 @@ export function AppNavigationHeading({
           size='sm'
           icon
           onClick={onClose}
-          aria-label={langAsString('general.close')}
+          aria-label={translationKey('general.close')}
           className={classes.closeButton}
         >
           <XMarkIcon aria-hidden />

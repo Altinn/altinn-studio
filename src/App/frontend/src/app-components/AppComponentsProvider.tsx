@@ -1,18 +1,34 @@
 import React, { createContext, useContext } from 'react';
+import type { PropsWithChildren } from 'react';
 
 // Minimal interface — only what app-components actually need
-type TranslateFn = (key: string, params?: (string | number | undefined)[]) => string;
+type TranslationParams = (string | number | undefined)[];
+type TranslateFn = (key: string, params?: TranslationParams) => string;
+type TranslateComponent = (args: {
+  tKey: string;
+  params?: TranslationParams;
+}) => string | React.JSX.Element | React.JSX.Element[] | null;
 
-const AppComponentsContext = createContext<TranslateFn | null>(null);
+type AppComponentsContextProps = {
+  translate: TranslateFn;
+  TranslateComponent: TranslateComponent;
+};
+const AppComponentsContext = createContext<AppComponentsContextProps | null>(null);
 
-export function AppComponentsProvider({ t, children }: { t: TranslateFn; children: React.ReactNode }) {
-  return <AppComponentsContext.Provider value={t}>{children}</AppComponentsContext.Provider>;
+export function AppComponentsProvider({
+  translate,
+  TranslateComponent,
+  children,
+}: PropsWithChildren<AppComponentsContextProps>) {
+  return (
+    <AppComponentsContext.Provider value={{ translate, TranslateComponent }}>{children}</AppComponentsContext.Provider>
+  );
 }
 
-export function useTranslation(): TranslateFn {
-  const t = useContext(AppComponentsContext);
-  if (!t) {
+export function useTranslation(): AppComponentsContextProps {
+  const context = useContext(AppComponentsContext);
+  if (!context) {
     throw new Error('AppComponentsProvider missing');
   }
-  return t;
+  return context;
 }
