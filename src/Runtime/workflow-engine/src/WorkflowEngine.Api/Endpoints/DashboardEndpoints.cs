@@ -431,11 +431,11 @@ internal static class DashboardEndpoints
             .Append('|')
             .Append(scheduledCount);
 
-        foreach (var wf in workflows)
+        foreach (var wf in workflows.OrderBy(w => w.IdempotencyKey, StringComparer.Ordinal))
         {
             sb.Append('|').Append(wf.IdempotencyKey).Append(':').Append((int)wf.Status);
 
-            foreach (var step in wf.Steps)
+            foreach (var step in wf.Steps.OrderBy(s => s.ProcessingOrder))
             {
                 sb.Append(':')
                     .Append((int)step.Status)
