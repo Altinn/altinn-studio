@@ -2,16 +2,16 @@ import { moveChildren } from 'nextsrc/libs/form-client/moveChildren';
 import { createFormDataStore } from 'nextsrc/libs/form-client/stores/formDataStore';
 import { createTextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
 import { createValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
-
-import type { StoreApi } from 'zustand';
 import type { FormDataNode } from 'nextsrc/core/apiClient/dataApi';
 import type { ResolvedLayoutCollection, ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
 import type { FormDataStore, FormDataStoreOptions } from 'nextsrc/libs/form-client/stores/formDataStore';
 import type { TextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
 import type { ValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
-import type { IApplicationSettings } from 'src/types/shared';
+import type { StoreApi } from 'zustand';
+
 import type { IRawTextResource } from 'src/features/language/textResources';
 import type { ILayoutCollection } from 'src/layout/layout';
+import type { IApplicationSettings } from 'src/types/shared';
 
 export interface FormClientConfig {
   textResources?: IRawTextResource[];
@@ -27,6 +27,7 @@ export class FormClient {
   public readonly validationStore: StoreApi<ValidationStore>;
 
   private layoutCollection: ResolvedLayoutCollection = {};
+  private cachedLayoutNames: string[] = [];
   private applicationSettings: IApplicationSettings | null;
   private instanceDataSources: Record<string, string> | null;
 
@@ -59,10 +60,15 @@ export class FormClient {
     this.layoutCollection = Object.fromEntries(
       Object.entries(layoutCollection).map(([key, layout]) => [key, moveChildren(layout)]),
     );
+    this.cachedLayoutNames = Object.keys(this.layoutCollection);
   }
 
   getFormLayout(layoutName: string): ResolvedLayoutFile {
     return this.layoutCollection[layoutName];
+  }
+
+  getLayoutNames(): string[] {
+    return this.cachedLayoutNames;
   }
 
   setApplicationSettings(settings: IApplicationSettings | null) {

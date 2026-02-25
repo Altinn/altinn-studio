@@ -1,25 +1,41 @@
 import React from 'react';
 
-import { useFormValue } from 'nextsrc/libs/form-client/react/hooks';
-import { extractField, resolveChildBindings } from 'nextsrc/libs/form-client/resolveBindings';
-
+import { FormEngine } from 'nextsrc/features/form/FormEngine/FormEngine';
+import { useGroupArray, usePushArrayItem } from 'nextsrc/libs/form-client/react/hooks';
+import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 import type { ComponentProps } from 'nextsrc/features/form/components/index';
+
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
-export const RepeatingGroup = ({ component, renderChildren }: ComponentProps) => {
+export const RepeatingGroup = ({ component, parentBinding, itemIndex }: ComponentProps) => {
   const props = component as unknown as CompRepeatingGroupExternal;
   const groupField = extractField(props.dataModelBindings.group);
-  const { value } = useFormValue(groupField);
+  const rows = useGroupArray(groupField, parentBinding, itemIndex);
+  const pushItem = usePushArrayItem(groupField, parentBinding, itemIndex);
 
-  if (!Array.isArray(value)) {
-    return <div />;
-  }
+  // Resolve the full path for this group so nested children get the right parentBinding
+  const resolvedGroupPath =
+    parentBinding !== undefined && itemIndex !== undefined
+      ? `${parentBinding}[${itemIndex}].${groupField.split('.').pop()}`
+      : groupField;
 
   return (
     <div style={{ border: '1px solid blue' }}>
-      {value.map((_, idx) => (
-        <div key={idx}>{renderChildren(resolveChildBindings(component.children ?? [], groupField, idx))}</div>
+      {rows.map((_, idx) => (
+        <div key={idx}>
+          <FormEngine
+            components={component.children ?? []}
+            parentBinding={resolvedGroupPath}
+            itemIndex={idx}
+          />
+        </div>
       ))}
+      <button
+        type='button'
+        onClick={() => pushItem({})}
+      >
+        Add
+      </button>
     </div>
   );
 };

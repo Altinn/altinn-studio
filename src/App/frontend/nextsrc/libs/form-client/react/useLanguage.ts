@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { useStore } from 'zustand';
 
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { resolveTextResource } from 'nextsrc/libs/form-client/stores/textResourceStore';
+import { useStore } from 'zustand';
+
 import { getLanguageFromCode } from 'src/language/languages';
 
 export interface UseLanguageResult {

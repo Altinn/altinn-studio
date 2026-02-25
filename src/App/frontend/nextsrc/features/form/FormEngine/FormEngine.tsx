@@ -1,26 +1,73 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 
-import { Button, ButtonGroup, Input, Paragraph, RepeatingGroup } from 'nextsrc/features/form/components';
+import {
+  Accordion,
+  AccordionGroup,
+  Alert,
+  Button,
+  ButtonGroup,
+  Checkboxes,
+  Datepicker,
+  Divider,
+  Dropdown,
+  Group,
+  Header,
+  Image,
+  Input,
+  Link,
+  MultipleSelect,
+  NavigationBar,
+  Number,
+  Panel,
+  Paragraph,
+  RadioButtons,
+  RepeatingGroup,
+  TextArea,
+} from 'nextsrc/features/form/components';
 import { evaluateBoolean } from 'nextsrc/libs/form-client/expressions/evaluate';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import type { ComponentMap } from 'nextsrc/features/form/components';
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
 
 export const defaultComponentMap: ComponentMap = {
-  Input,
-  Paragraph,
+  Accordion,
+  AccordionGroup,
+  Alert,
   Button,
   ButtonGroup,
+  Checkboxes,
+  Datepicker,
+  Divider,
+  Dropdown,
+  Group,
+  Header,
+  Image,
+  Input,
+  Link,
+  MultipleSelect,
+  NavigationBar,
+  Number,
+  Panel,
+  Paragraph,
+  RadioButtons,
   RepeatingGroup,
+  TextArea,
 };
 
 interface FormEngineProps {
   components: ResolvedCompExternal[];
   componentMap?: ComponentMap;
+  parentBinding?: string;
+  itemIndex?: number;
 }
 
-export const FormEngine = ({ components, componentMap = defaultComponentMap }: FormEngineProps) => {
+export const FormEngine = ({
+  components,
+  componentMap = defaultComponentMap,
+  parentBinding,
+  itemIndex,
+}: FormEngineProps) => {
   const client = useFormClient();
 
   const expressionDataSources = {
@@ -53,6 +100,8 @@ export const FormEngine = ({ components, componentMap = defaultComponentMap }: F
         <Component
           component={component}
           renderChildren={renderChildren}
+          parentBinding={parentBinding}
+          itemIndex={itemIndex}
         />
       </li>
     );
