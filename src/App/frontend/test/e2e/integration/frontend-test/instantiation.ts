@@ -13,15 +13,22 @@ describe('Instantiation', () => {
   // See ttd/frontend-test/App/logic/Instantiation/InstantiationValidator.cs
   const invalidParty =
     Cypress.env('type') === 'localtest'
-      ? /950474084/ // Localtest: Oslos Vakreste borettslag
+      ? /01899699001/ // Localtest: Person party for user 2001 (MultiParty Prompt, SSN 01899699001)
       : /310732001/; // TT02: Søvnig Impulsiv Tiger AS
 
+  beforeEach(() => {
+    // Clear party cookie from previous tests to avoid cross-test state pollution
+    cy.clearCookie('AltinnPartyId');
+  });
+
   it('should show an error message when going directly to instantiation', () => {
-    cyMockResponses({
-      doNotPromptForParty: false,
-      onEntryShow: 'new-instance',
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.applicationMetadata.onEntry = { show: 'new-instance' };
     });
-    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'manager' });
+
+    // User 2001 (multiPartyPrompt) has doNotPromptForParty=false in localtest,
+    // so the backend redirects to party selection where we can pick the invalid party
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
     cy.findByRole('button', { name: invalidParty }).click();
 
     cy.findByText('Du kan ikke starte denne tjenesten').should('be.visible');
@@ -37,7 +44,7 @@ describe('Instantiation', () => {
         { id: 'def456', lastChanged: '2023-01-02T00:00:00.000Z', lastChangedBy: 'user' },
       ],
     });
-    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'manager' });
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'multiPartyPrompt' });
     cy.findByRole('button', { name: invalidParty }).click();
 
     cy.findByText('Du har allerede startet å fylle ut dette skjemaet.').should('be.visible');
@@ -58,6 +65,9 @@ describe('Instantiation', () => {
 
   it('should show custom error message from instantiation validator when directly instantiating', () => {
     cy.allowFailureOnEnd();
+    // Mock active instances to prevent instance-selection redirect from accumulated test data
+    cy.intercept('**/active', []).as('activeInstances');
+
     cy.intercept('GET', '**/api/v1/applicationmetadata', (req) => {
       req.on('response', (res) => {
         const body = res.body as ApplicationMetadata;
@@ -66,6 +76,7 @@ describe('Instantiation', () => {
     });
 
     interceptAltinnAppGlobalData((globalData) => {
+      globalData.applicationMetadata.onEntry = { show: 'new-instance' };
       globalData.textResources?.resources.push({
         id: 'custom_error_too_long',
         value: 'Verdien kan ikke være lengre enn {0}, den er nå {1}',

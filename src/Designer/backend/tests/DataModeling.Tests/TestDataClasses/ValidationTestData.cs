@@ -28,7 +28,6 @@ public class ValidationTestData : IEnumerable<object[]>
         // yield return ["Model/XmlSchema/XsAll/midlertidigbrukstillatelse/v4/midlertidigbrukstillatelse.xsd"];
         yield return ["Model/XmlSchema/XsAll/planvarsel/v2/planvarsel.xsd"];
 
-
         // Can generate non valid date string from regex
         // yield return new object[] { "Model/XmlSchema/Gitea/hi-algeskjema.xsd" };
         // yield return new object[] { "Model/XmlSchema/Gitea/udir-invitasjon-vfkl.xsd" };

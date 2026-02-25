@@ -13,6 +13,6 @@ namespace Altinn.Studio.Designer.ViewModels.Request.Enums
         /// <summary>
         /// Descending direction
         /// </summary>
-        Descending
+        Descending,
     }
 }

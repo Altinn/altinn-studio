@@ -8,9 +8,7 @@ using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-internal sealed class MetricsService(
-    IRuntimeGatewayClient runtimeGatewayClient
-    ) : IMetricsService
+internal sealed class MetricsService(IRuntimeGatewayClient runtimeGatewayClient) : IMetricsService
 {
     /// <inheritdoc />
     public async Task<IEnumerable<ErrorMetric>> GetErrorMetricsAsync(

@@ -12,11 +12,11 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static class ReleaseEntityDesignerDbFixtureExtensions
 {
-    private readonly static JsonSerializerOptions s_jsonOptions = new()
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        Converters = { new JsonStringEnumConverter() }
+        Converters = { new JsonStringEnumConverter() },
     };
 
     public static async Task PrepareEntityInDatabase(this DesignerDbFixture dbFixture, ReleaseEntity releaseEntity)
@@ -28,7 +28,10 @@ public static class ReleaseEntityDesignerDbFixtureExtensions
         dbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
     }
 
-    public static async Task PrepareEntitiesInDatabase(this DesignerDbFixture dbFixture, IEnumerable<ReleaseEntity> releaseEntities)
+    public static async Task PrepareEntitiesInDatabase(
+        this DesignerDbFixture dbFixture,
+        IEnumerable<ReleaseEntity> releaseEntities
+    )
     {
         var dbObjects = releaseEntities.Select(MapToDbObject).ToList();
 
@@ -40,7 +43,9 @@ public static class ReleaseEntityDesignerDbFixtureExtensions
         }
     }
 
-    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.ReleaseDbModel MapToDbObject(ReleaseEntity entity) =>
+    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.ReleaseDbModel MapToDbObject(
+        ReleaseEntity entity
+    ) =>
         new()
         {
             Buildid = entity.Build.Id,
@@ -50,6 +55,6 @@ public static class ReleaseEntityDesignerDbFixtureExtensions
             Buildstatus = entity.Build.Status.ToEnumMemberAttributeValue(),
             Buildresult = entity.Build.Result.ToEnumMemberAttributeValue(),
             Created = entity.Created,
-            Entity = JsonSerializer.Serialize(entity, s_jsonOptions)
+            Entity = JsonSerializer.Serialize(entity, s_jsonOptions),
         };
 }

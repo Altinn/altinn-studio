@@ -5,13 +5,12 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp;
 
 public class CsharpCompilationException : Exception
 {
-
     public List<string> CustomErrorMessages { get; }
 
     /// <inheritdoc/>
-    public CsharpCompilationException(string message, List<string> customErrorMessages) : base(message + "\n\n" + string.Join("\n", customErrorMessages))
+    public CsharpCompilationException(string message, List<string> customErrorMessages)
+        : base(message + "\n\n" + string.Join("\n", customErrorMessages))
     {
         CustomErrorMessages = customErrorMessages;
     }
-
 }
