@@ -1836,7 +1836,7 @@
   "ux_editor.component_properties.show": "Vis",
   "ux_editor.component_properties.showAddButton": "Vis Legg til-knapp",
   "ux_editor.component_properties.showAsCard": "Vis som kort",
-  "ux_editor.component_properties.showBackButton": "Vis Tilbake-knapp",
+  "ux_editor.component_properties.showBackButton": "Vis Forrige-knapp",
   "ux_editor.component_properties.showDeleteButton": "Vis Slett-knapp",
   "ux_editor.component_properties.showIcon": "Vis ikon",
   "ux_editor.component_properties.showLabelsInTable": "Alternativene skal alltid vises i tabeller",

@@ -5,6 +5,7 @@ import {
   getCardLabel,
   getDefaultConfig,
   getValuesToDisplay,
+  validateForm,
 } from './utils/ValidateNavigationUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './ValidateNavigationConfig.module.css';
@@ -63,6 +64,7 @@ const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: Valida
   const [currentConfig, setCurrentConfig] = useState<InternalConfigState>(
     config || getDefaultConfig(scope),
   );
+  const isFormValid = validateForm({ scope, config, currentConfig });
 
   const update = (updates: Partial<InternalConfigState>) => {
     setCurrentConfig((prev) => ({ ...prev, ...updates }));
@@ -98,6 +100,7 @@ const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: Valida
         cancelLabel={t('general.cancel')}
         onSave={handleSaveAndClose}
         onCancel={handleCancel}
+        isDisabled={!isFormValid}
       />
     </StudioConfigCard>
   );
