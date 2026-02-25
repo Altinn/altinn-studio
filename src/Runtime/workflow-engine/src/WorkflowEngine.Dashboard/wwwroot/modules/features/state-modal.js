@@ -75,10 +75,13 @@ const fetchAndRender = async (wfKey, createdAt) => {
     let url = `${engineUrl}/dashboard/state?wf=${encodeURIComponent(wfKey)}`;
     if (createdAt) url += `&createdAt=${encodeURIComponent(createdAt)}`;
     const res = await fetch(url);
+    if (_openWfKey !== wfKey) return; // modal changed while fetching
     if (!res.ok) throw new Error('State not found');
     const data = await res.json();
+    if (_openWfKey !== wfKey) return;
     dom.stateBody.innerHTML = buildStateTrailHTML(data);
   } catch (err) {
+    if (_openWfKey !== wfKey) return;
     dom.stateBody.innerHTML = `<div class="modal-loading">${esc(/** @type {Error} */ (err).message)}</div>`;
   }
 };

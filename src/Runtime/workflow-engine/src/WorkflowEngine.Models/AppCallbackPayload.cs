@@ -33,7 +33,7 @@ public sealed record AppCallbackPayload
     public string? Payload { get; init; }
 
     /// <summary>
-    /// Opaque state passed through from the app. The engine never inspects this.
+    /// Opaque state sent to the app. The engine never inspects this.
     /// </summary>
     [JsonPropertyName("state")]
     public string? State { get; init; }

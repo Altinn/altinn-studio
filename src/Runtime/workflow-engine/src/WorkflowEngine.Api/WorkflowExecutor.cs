@@ -143,9 +143,16 @@ internal class WorkflowExecutor : IWorkflowExecutor
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
             if (body.Length > 0)
             {
-                var callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(body);
-                if (callbackResponse?.State is not null)
-                    step.StateOut = callbackResponse.State;
+                try
+                {
+                    var callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(body);
+                    if (callbackResponse?.State is not null)
+                        step.StateOut = callbackResponse.State;
+                }
+                catch (JsonException ex)
+                {
+                    return ExecutionResult.CriticalError($"App returned invalid response body: {ex.Message}", ex);
+                }
             }
             return ExecutionResult.Success();
         }

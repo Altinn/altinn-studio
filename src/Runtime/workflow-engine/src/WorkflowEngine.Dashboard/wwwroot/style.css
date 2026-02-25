@@ -520,7 +520,6 @@ body{min-height:100vh;padding:0}
 }
 .modal-close:hover{color:var(--text-bright)}
 /* ── Modal tabs (Details / Payload / State) ──────────────── */
-/* ── Modal tabs (Details / Payload / State) ──────────────── */
 .modal-tabs{
   display:flex;gap:0;border-bottom:1px solid var(--border);
   flex-shrink:0;padding:0 20px;background:var(--bg2);
