@@ -1,24 +1,16 @@
 import React from 'react';
-import { useLoaderData, useParams } from 'react-router';
+import { useParams } from 'react-router';
 
-import { FormEngine } from 'nextsrc/libs/form-engine/FormEngine';
 import { useFormData, useLayout } from 'nextsrc/libs/form-client/react/hooks';
-import type { pageLoader } from 'nextsrc/features/form/pages/page/pageLoader';
+import { FormEngine } from 'nextsrc/libs/form-engine/FormEngine';
 
 export const Page = () => {
   const { pageId } = useParams<{ pageId: string }>();
 
   const layout = useLayout(pageId ?? '');
-
-  const { dataElement } = useLoaderData() as Awaited<ReturnType<typeof pageLoader>>;
-
   const formData = useFormData();
 
   if (!pageId) {
-    return undefined;
-  }
-
-  if (!dataElement) {
     return undefined;
   }
 

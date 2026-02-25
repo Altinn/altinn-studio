@@ -6,6 +6,7 @@ import { GlobalData } from 'nextsrc/core/globalData';
 import { Page } from 'nextsrc/features/form/pages/page/page';
 import { pageLoader } from 'nextsrc/features/form/pages/page/pageLoader';
 import { Task } from 'nextsrc/features/form/pages/task/task';
+import { TaskIndex } from 'nextsrc/features/form/pages/task/TaskIndex';
 import { taskLoader } from 'nextsrc/features/form/pages/task/taskLoader';
 import { entryRedirectLoader } from 'nextsrc/features/instantiate/loaders/entryRedirectLoader';
 import { ErrorPage } from 'nextsrc/features/instantiate/pages/error/ErrorPage';
@@ -40,8 +41,18 @@ export const router = createBrowserRouter(
           errorElement: <ErrorPage />,
         },
         { path: routes.stateless, element: <StatelessPage />, errorElement: <ErrorPage /> },
-        { path: routes.task, element: <Task />, loader: taskLoader, errorElement: <ErrorPage /> },
-        { path: routes.page, element: <Page />, loader: pageLoader, errorElement: <ErrorPage /> },
+        {
+          id: 'task',
+          path: routes.task,
+          element: <Task />,
+          loader: taskLoader,
+          errorElement: <ErrorPage />,
+          shouldRevalidate: ({ currentParams, nextParams }) => currentParams.taskId !== nextParams.taskId,
+          children: [
+            { index: true, element: <TaskIndex /> },
+            { path: ':pageId', element: <Page />, loader: pageLoader, errorElement: <ErrorPage /> },
+          ],
+        },
       ],
     },
   ],
