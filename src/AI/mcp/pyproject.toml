@@ -12,7 +12,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "mcp==1.12.4",
+    "mcp==1.23.0",
     "fastmcp>=2.0.0",
     "pydantic==2.11.10",
     "pydantic-core==2.33.2",
