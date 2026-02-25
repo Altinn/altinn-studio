@@ -263,16 +263,69 @@ internal static class DashboardEndpoints
                     CancellationToken ct
                 ) =>
                 {
-                    // Try inbox first (live workflows)
+                    // Try inbox first (live workflows), then DB
                     Workflow? workflow = engine.GetAllInboxWorkflows().FirstOrDefault(w => w.IdempotencyKey == wf);
 
-                    // Try recent cache (has lastError still in memory)
-                    DashboardWorkflowDto? cached = workflow is null
-                        ? engine.GetRecentWorkflows(100).FirstOrDefault(c => c.IdempotencyKey == wf)
-                        : null;
-                    if (cached is not null)
+                    if (workflow is null && createdAt.HasValue)
                     {
-                        DashboardStepDto? cs = cached.Steps.FirstOrDefault(s => s.IdempotencyKey == step);
+                        using IServiceScope scope = sp.CreateScope();
+                        var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                        workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
+                    }
+
+                    if (workflow is not null)
+                    {
+                        Step? s = workflow.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
+                        if (s is null)
+                            return Results.NotFound();
+
+                        // Merge lastError from recent cache if the DB doesn't have it
+                        DashboardWorkflowDto? cached = s.LastError is null
+                            ? engine.GetRecentWorkflows(100).FirstOrDefault(c => c.IdempotencyKey == wf)
+                            : null;
+                        string? lastError =
+                            s.LastError ?? cached?.Steps.FirstOrDefault(cs => cs.IdempotencyKey == step)?.LastError;
+
+                        var stateIn =
+                            s.ProcessingOrder == 0
+                                ? workflow.InitialState
+                                : workflow
+                                    .Steps.Where(st => st.ProcessingOrder < s.ProcessingOrder)
+                                    .OrderByDescending(st => st.ProcessingOrder)
+                                    .Select(st => st.StateOut)
+                                    .FirstOrDefault(st => st is not null);
+
+                        return Results.Json(
+                            new
+                            {
+                                idempotencyKey = s.IdempotencyKey,
+                                operationId = s.OperationId,
+                                status = s.Status.ToString(),
+                                processingOrder = s.ProcessingOrder,
+                                retryCount = s.RequeueCount,
+                                lastError,
+                                createdAt = s.CreatedAt,
+                                executionStartedAt = s.ExecutionStartedAt,
+                                updatedAt = s.UpdatedAt,
+                                backoffUntil = s.BackoffUntil,
+                                actor = s.Actor,
+                                command = s.Command,
+                                retryStrategy = s.RetryStrategy,
+                                traceId = workflow.EngineTraceId ?? workflow.EngineActivity?.TraceId.ToString(),
+                                stateIn,
+                                stateOut = s.StateOut,
+                            },
+                            _jsonIndented
+                        );
+                    }
+
+                    // Fall back to recent cache only (has lastError but no state)
+                    DashboardWorkflowDto? recentCached = engine
+                        .GetRecentWorkflows(100)
+                        .FirstOrDefault(c => c.IdempotencyKey == wf);
+                    if (recentCached is not null)
+                    {
+                        DashboardStepDto? cs = recentCached.Steps.FirstOrDefault(s => s.IdempotencyKey == step);
                         if (cs is null)
                             return Results.NotFound();
 
@@ -289,19 +342,39 @@ internal static class DashboardEndpoints
                                 cs.ExecutionStartedAt,
                                 cs.UpdatedAt,
                                 cs.BackoffUntil,
-                                cached.TraceId,
+                                recentCached.TraceId,
                                 command = new
                                 {
                                     type = cs.CommandType,
                                     operationId = cs.CommandDetail,
                                     payload = cs.CommandPayload,
                                 },
+                                stateIn = (string?)null,
+                                stateOut = (string?)null,
                             },
                             _jsonIndented
                         );
                     }
 
-                    // Fall back to DB by idempotency key + createdAt
+                    return Results.NotFound();
+                }
+            )
+            .ExcludeFromDescription();
+
+        app.MapGet(
+                "/dashboard/state",
+                async (
+                    IEngine engine,
+                    IServiceProvider sp,
+                    string wf,
+                    DateTimeOffset? createdAt,
+                    CancellationToken ct
+                ) =>
+                {
+                    // Try inbox first (has full Workflow with state)
+                    Workflow? workflow = engine.GetAllInboxWorkflows().FirstOrDefault(w => w.IdempotencyKey == wf);
+
+                    // Fall back to DB (recent cache only has DTOs without state)
                     if (workflow is null && createdAt.HasValue)
                     {
                         using IServiceScope scope = sp.CreateScope();
@@ -309,30 +382,28 @@ internal static class DashboardEndpoints
                         workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
                     }
 
-                    Step? s = workflow?.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
-
-                    if (s is null || workflow is null)
+                    if (workflow is null)
                         return Results.NotFound();
 
-                    var result = new
-                    {
-                        idempotencyKey = s.IdempotencyKey,
-                        operationId = s.OperationId,
-                        status = s.Status.ToString(),
-                        processingOrder = s.ProcessingOrder,
-                        retryCount = s.RequeueCount,
-                        lastError = s.LastError,
-                        createdAt = s.CreatedAt,
-                        executionStartedAt = s.ExecutionStartedAt,
-                        updatedAt = s.UpdatedAt,
-                        backoffUntil = s.BackoffUntil,
-                        actor = s.Actor,
-                        command = s.Command,
-                        retryStrategy = s.RetryStrategy,
-                        traceId = workflow.EngineTraceId ?? workflow.EngineActivity?.TraceId.ToString(),
-                    };
+                    var steps = workflow
+                        .Steps.OrderBy(s => s.ProcessingOrder)
+                        .Select(s => new
+                        {
+                            s.OperationId,
+                            s.ProcessingOrder,
+                            s.StateOut,
+                        })
+                        .ToList();
 
-                    return Results.Json(result, _jsonIndented);
+                    return Results.Json(
+                        new
+                        {
+                            initialState = workflow.InitialState,
+                            steps,
+                            updatedAt = workflow.UpdatedAt,
+                        },
+                        _jsonIndented
+                    );
                 }
             )
             .ExcludeFromDescription();

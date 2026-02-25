@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Extensions;
@@ -111,6 +112,15 @@ internal class WorkflowExecutor : IWorkflowExecutor
         using var httpClient = GetAuthorizedAppClient(workflow.InstanceInformation);
         httpClient.Timeout = command.MaxExecutionTime ?? _engineSettings.DefaultStepCommandTimeout;
 
+        var stateIn =
+            step.ProcessingOrder == 0
+                ? workflow.InitialState
+                : workflow
+                    .Steps.Where(s => s.ProcessingOrder < step.ProcessingOrder)
+                    .OrderByDescending(s => s.ProcessingOrder)
+                    .Select(s => s.StateOut)
+                    .FirstOrDefault(s => s is not null);
+
         var payload = new AppCallbackPayload
         {
             CommandKey = command.CommandKey,
@@ -119,6 +129,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 workflow.InstanceLockKey
                 ?? throw new InvalidOperationException("Missing InstanceLockKey for app callback payload"),
             Payload = command.Payload,
+            State = stateIn,
         };
         var endpoint = command.CommandKey.ToUri(UriKind.Relative);
         using var jsonPayload = JsonContent.Create(payload);
@@ -127,11 +138,28 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
         using var response = await httpClient.PostAsync(endpoint, jsonPayload, cancellationToken);
 
-        return response.IsSuccessStatusCode
-            ? ExecutionResult.Success()
-            : ExecutionResult.RetryableError(
-                $"AppCommand execution failed with status code {response.StatusCode}: {await response.GetContentOrDefault("<no body content>", cancellationToken)}"
-            );
+        if (response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (body.Length > 0)
+            {
+                try
+                {
+                    var callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(body);
+                    if (callbackResponse?.State is not null)
+                        step.StateOut = callbackResponse.State;
+                }
+                catch (JsonException ex)
+                {
+                    return ExecutionResult.CriticalError($"App returned invalid response body: {ex.Message}", ex);
+                }
+            }
+            return ExecutionResult.Success();
+        }
+
+        return ExecutionResult.RetryableError(
+            $"AppCommand execution failed with status code {response.StatusCode}: {await response.GetContentOrDefault("<no body content>", cancellationToken)}"
+        );
     }
 
     private static async Task<ExecutionResult> Timeout(
