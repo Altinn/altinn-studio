@@ -3,7 +3,7 @@ import React from 'react';
 import { Button as DsButton } from '@digdir/designsystemet-react';
 import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompButtonExternal } from 'src/layout/Button/config.generated';
 
 export const Button = ({ component }: ComponentProps) => {

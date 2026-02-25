@@ -4,9 +4,9 @@ import cn from 'classnames';
 import { useNavigate, useParams } from 'react-router';
 import { useLayoutNames } from 'nextsrc/libs/form-client/react/hooks';
 
-import classes from 'nextsrc/features/form/components/NavigationBar.module.css';
+import classes from 'nextsrc/libs/form-engine/components/NavigationBar.module.css';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 export const NavigationBar = (_props: ComponentProps) => {
   const { pageId } = useParams<{ pageId: string }>();

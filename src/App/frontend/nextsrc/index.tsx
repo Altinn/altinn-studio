@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
+import { scan } from 'react-scan';
 import { RouterProvider } from 'react-router';
 
 import '@digdir/designsystemet-css';
@@ -21,14 +22,22 @@ export const formClient = new FormClient({
   applicationSettings: GlobalData.frontendSettings ?? null,
 });
 
-const root = document.getElementById('root');
-if (root) {
-  createRoot(root).render(
+function App() {
+  useEffect(() => {
+    scan({ enabled: true });
+  }, []);
+
+  return (
     <FormClientProvider client={formClient}>
       <QueryClientProvider client={queryClient}>
         <ReactQueryDevtools initialIsOpen={false} />
         <RouterProvider router={router} />
       </QueryClientProvider>
-    </FormClientProvider>,
+    </FormClientProvider>
   );
+}
+
+const root = document.getElementById('root');
+if (root) {
+  createRoot(root).render(<App />);
 }

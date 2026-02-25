@@ -2,7 +2,7 @@ import React from 'react';
 
 import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompNumberExternal } from 'src/layout/Number/config.generated';
 
 export const Number = ({ component }: ComponentProps) => {

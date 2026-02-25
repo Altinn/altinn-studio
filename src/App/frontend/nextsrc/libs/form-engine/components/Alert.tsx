@@ -3,7 +3,7 @@ import React from 'react';
 import { Alert as DsAlert } from '@digdir/designsystemet-react';
 import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompAlertExternal } from 'src/layout/Alert/config.generated';
 
 const severityToColor: Record<string, 'info' | 'warning' | 'danger' | 'success'> = {

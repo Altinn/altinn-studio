@@ -1,7 +1,7 @@
 import { createStore } from 'zustand/vanilla';
 
-import type { IApplicationSettings, ITextResource, IVariable } from 'src/types/shared';
 import type { IRawTextResource, TextResourceMap } from 'src/features/language/textResources';
+import type { IApplicationSettings, IVariable } from 'src/types/shared';
 
 export interface TextResourceDataSources {
   formDataGetter: (path: string) => string | number | boolean | null;
@@ -57,11 +57,7 @@ export function resolveTextResource(
   return resolveTextResource(value, resources, dataSources, visited);
 }
 
-function replaceVariables(
-  text: string,
-  variables: IVariable[],
-  dataSources: TextResourceDataSources,
-): string {
+function replaceVariables(text: string, variables: IVariable[], dataSources: TextResourceDataSources): string {
   const { formDataGetter, instanceDataSources, applicationSettings, customTextParameters } = dataSources;
   let out = text;
 
@@ -79,7 +75,11 @@ function replaceVariables(
         value = instanceDataSources[variable.key];
       }
     } else if (variable.dataSource === 'applicationSettings') {
-      if (applicationSettings && variable.key in applicationSettings && applicationSettings[variable.key] !== undefined) {
+      if (
+        applicationSettings &&
+        variable.key in applicationSettings &&
+        applicationSettings[variable.key] !== undefined
+      ) {
         value = applicationSettings[variable.key]!;
       }
     } else if (variable.dataSource === 'customTextParameters') {

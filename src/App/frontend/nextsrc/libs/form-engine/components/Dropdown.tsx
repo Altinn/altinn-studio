@@ -1,38 +1,30 @@
 import React from 'react';
 
+import { Select } from '@digdir/designsystemet-react';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 
-import { useOptions } from 'nextsrc/features/form/components/useOptions';
+import { useOptions } from 'nextsrc/libs/form-engine/components/useOptions';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
-import type { CompMultipleSelectExternal } from 'src/layout/MultipleSelect/config.generated';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
+import type { CompDropdownExternal } from 'src/layout/Dropdown/config.generated';
 
-export const MultipleSelect = ({ component, parentBinding, itemIndex }: ComponentProps) => {
-  const props = component as unknown as CompMultipleSelectExternal;
+export const Dropdown = ({ component, parentBinding, itemIndex }: ComponentProps) => {
+  const props = component as unknown as CompDropdownExternal;
   const simpleBinding = extractField(props.dataModelBindings?.simpleBinding);
   const { value, setValue } = useBoundValue(simpleBinding, parentBinding, itemIndex);
   const titleKey = typeof props.textResourceBindings?.title === 'string' ? props.textResourceBindings.title : undefined;
   const title = useTextResource(titleKey);
   const options = useOptions(props);
 
-  const selected = String(value ?? '')
-    .split(',')
-    .filter(Boolean);
-
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const values = Array.from(e.target.selectedOptions, (opt) => opt.value);
-    setValue(values.join(','));
-  };
-
   return (
     <div>
       {title && <label>{title}</label>}
-      <select
-        multiple
-        value={selected}
-        onChange={handleChange}
+      <Select
+        value={String(value ?? '')}
+        onChange={(e) => setValue(e.target.value)}
       >
+        <option value='' />
         {options.map((opt) => (
           <option
             key={String(opt.value)}
@@ -41,7 +33,7 @@ export const MultipleSelect = ({ component, parentBinding, itemIndex }: Componen
             {opt.label}
           </option>
         ))}
-      </select>
+      </Select>
     </div>
   );
 };

@@ -4,9 +4,9 @@ import { Fieldset, Radio } from '@digdir/designsystemet-react';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 
-import { useOptions } from 'nextsrc/features/form/components/useOptions';
+import { useOptions } from 'nextsrc/libs/form-engine/components/useOptions';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompRadioButtonsExternal } from 'src/layout/RadioButtons/config.generated';
 
 export const RadioButtons = ({ component, parentBinding, itemIndex }: ComponentProps) => {

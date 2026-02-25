@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLoaderData, useParams } from 'react-router';
 
-import { FormEngine } from 'nextsrc/features/form/FormEngine/FormEngine';
+import { FormEngine } from 'nextsrc/libs/form-engine/FormEngine';
 import { useFormData, useLayout } from 'nextsrc/libs/form-client/react/hooks';
 import type { pageLoader } from 'nextsrc/features/form/pages/page/pageLoader';
 

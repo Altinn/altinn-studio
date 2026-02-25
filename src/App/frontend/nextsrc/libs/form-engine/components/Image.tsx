@@ -2,7 +2,7 @@ import React from 'react';
 
 import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompImageExternal } from 'src/layout/Image/config.generated';
 
 export const Image = ({ component }: ComponentProps) => {

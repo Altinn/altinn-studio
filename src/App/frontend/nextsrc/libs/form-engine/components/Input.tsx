@@ -3,7 +3,7 @@ import React from 'react';
 import { useBoundValue } from 'nextsrc/libs/form-client/react/hooks';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
 
 export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) => {

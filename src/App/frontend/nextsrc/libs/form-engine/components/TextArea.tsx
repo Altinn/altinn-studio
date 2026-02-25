@@ -4,7 +4,7 @@ import { Textarea as DsTextarea } from '@digdir/designsystemet-react';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompTextAreaExternal } from 'src/layout/TextArea/config.generated';
 
 export const TextArea = ({ component, parentBinding, itemIndex }: ComponentProps) => {

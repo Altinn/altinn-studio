@@ -3,7 +3,7 @@ import React from 'react';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompDatepickerExternal } from 'src/layout/Datepicker/config.generated';
 
 export const Datepicker = ({ component, parentBinding, itemIndex }: ComponentProps) => {

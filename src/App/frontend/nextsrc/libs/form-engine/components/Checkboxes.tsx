@@ -4,9 +4,9 @@ import { Checkbox, Fieldset } from '@digdir/designsystemet-react';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 
-import { useOptions } from 'nextsrc/features/form/components/useOptions';
+import { useOptions } from 'nextsrc/libs/form-engine/components/useOptions';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
 
 export const Checkboxes = ({ component, parentBinding, itemIndex }: ComponentProps) => {

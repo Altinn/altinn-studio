@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { FormEngine } from 'nextsrc/features/form/FormEngine/FormEngine';
+import { FormEngine } from 'nextsrc/libs/form-engine/FormEngine';
 import { useGroupArray, usePushArrayItem } from 'nextsrc/libs/form-client/react/hooks';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 

@@ -3,7 +3,7 @@ import React from 'react';
 import { marked } from 'marked';
 import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompParagraphExternal } from 'src/layout/Paragraph/config.generated';
 
 export const Paragraph = ({ component }: ComponentProps) => {

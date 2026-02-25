@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { ComponentProps } from 'nextsrc/features/form/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 export const ButtonGroup = ({ component, renderChildren }: ComponentProps) => {
   const children = component.children ?? [];
