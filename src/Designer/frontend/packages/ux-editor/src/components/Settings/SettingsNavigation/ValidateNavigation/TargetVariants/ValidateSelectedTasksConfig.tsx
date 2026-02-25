@@ -1,28 +1,20 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import { Scope, convertToExternalConfig, withUniqueIds } from '../utils/ValidateNavigationUtils';
+import {
+  Scope,
+  convertToExternalConfig,
+  dummyDataTasks,
+  withUniqueIds,
+} from '../utils/ValidateNavigationUtils';
 import type { ExternalConfigWithId, InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 
 export const ValidateSelectedTasksConfig = () => {
   const { t } = useTranslation();
 
-  const dummyData = [
-    {
-      show: ['Schema', 'Component'],
-      page: 'current',
-      tasks: ['oppgave1', 'oppgave2'],
-    },
-    {
-      show: ['Schema'],
-      page: 'currentAndPrevious',
-      tasks: ['oppgave3'],
-    },
-  ];
-
   const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigWithId[]>( // This is just to simulate the save functionality, in real implementation this would be handled differently
-    withUniqueIds(dummyData),
+    withUniqueIds(dummyDataTasks),
   );
 
   const internalConfigs = useConvertToInternalConfig(tempExtConfigs)?.map((conf, i) => ({

@@ -1,5 +1,8 @@
+import { layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import {
   convertToExternalConfig,
+  getAvailablePages,
+  getAvailableTasks,
   getCardLabel,
   getDefaultConfig,
   getValuesToDisplay,
@@ -102,5 +105,71 @@ describe('getValuesToDisplay', () => {
       types: 'Type 1, Type 2',
       pageScope: 'Current Page',
     });
+  });
+});
+
+describe('getAvailableTasks', () => {
+  const tasks = [
+    { id: 'task1', name: 'Task 1' },
+    { id: 'task2', name: 'Task 2' },
+  ];
+
+  it('should return all tasks if no tasksWithRules or selectedTasks provided', () => {
+    const availableTasks = getAvailableTasks(tasks);
+    expect(availableTasks).toEqual(['task1', 'task2']);
+  });
+
+  it('should return only tasks that are not in tasksWithRules unless they are selected', () => {
+    const extendedTasks = [...tasks, { id: 'task3', name: 'Task 3' }];
+    const tasksWithRules = ['task1', 'task2'];
+    const selectedTasks = ['task2'];
+    const availableTasks = getAvailableTasks(extendedTasks, tasksWithRules, selectedTasks);
+    expect(availableTasks).toEqual(['task2', 'task3']);
+  });
+
+  it('should return empty array if all tasks are in tasksWithRules and none are selected', () => {
+    const tasksWithRules = ['task1', 'task2'];
+    const availableTasks = getAvailableTasks(tasks, tasksWithRules);
+    expect(availableTasks).toEqual([]);
+  });
+});
+
+describe('getAvailablePages', () => {
+  const formLayouts = {
+    page1: layoutMock,
+    page2: layoutMock,
+  };
+
+  const externalConfig = [
+    {
+      pages: ['page1'],
+      show: ['Schema'],
+      page: 'current',
+    },
+  ];
+
+  it('should return all pages if no externalConfig', () => {
+    const availablePages = getAvailablePages(formLayouts);
+    expect(availablePages).toEqual(['page1', 'page2']);
+  });
+
+  it('should return only pages that are not in externalConfig unless they are selected', () => {
+    const selectedPages = ['page2'];
+    const availablePages = getAvailablePages(formLayouts, externalConfig, selectedPages);
+    expect(availablePages).toEqual(['page2']);
+  });
+
+  it('should return empty array if all pages are in externalConfig and none are selected', () => {
+    const externalConfigAllPages = [
+      ...externalConfig,
+      {
+        pages: ['page2'],
+        show: ['Schema'],
+        page: 'current',
+      },
+    ];
+
+    const availablePages = getAvailablePages(formLayouts, externalConfigAllPages);
+    expect(availablePages).toEqual([]);
   });
 });
