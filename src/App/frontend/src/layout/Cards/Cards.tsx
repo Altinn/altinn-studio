@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 
 import { AppCard } from 'src/app-components/Card/Card';
 import { Flex } from 'src/app-components/Flex/Flex';
+import { translationKey } from 'src/AppComponentsBridge';
 import { CardProvider } from 'src/layout/Cards/CardContext';
 import classes from 'src/layout/Cards/Cards.module.css';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -44,9 +45,9 @@ export const Cards = ({ baseComponentId }: PropsFromGenericComponent<'Cards'>) =
         {cards.map((card, idx) => (
           <AppCard
             key={idx}
-            title={card.title}
-            description={card.description}
-            footer={card.footer}
+            title={translationKey(card.title)}
+            description={translationKey(card.description)}
+            footer={translationKey(card.footer)}
             variant={colorVariantMap[color]}
             mediaPosition={mediaPosition}
             media={

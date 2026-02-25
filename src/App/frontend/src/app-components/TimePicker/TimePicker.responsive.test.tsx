@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 
 import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
 import { TimePicker } from 'src/app-components/TimePicker/TimePicker';
+import { TranslationKey } from 'src/app-components/types';
 
 describe('TimePicker - Responsive & Accessibility', () => {
   const defaultProps = {
@@ -116,8 +117,8 @@ describe('TimePicker - Responsive & Accessibility', () => {
         <TimePicker
           {...defaultProps}
           labels={{
-            hours: 'Timer',
-            minutes: 'Minutter',
+            hours: 'Timer' as TranslationKey,
+            minutes: 'Minutter' as TranslationKey,
           }}
         />,
       );

@@ -6,6 +6,7 @@ import { pick } from 'dot-object';
 
 import { FieldRenderer } from 'src/app-components/DynamicForm/DynamicForm';
 import { AppTable } from 'src/app-components/Table/Table';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -145,8 +146,8 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
         schema={schema}
         mobile={isMobile}
         actionButtons={actionButtons}
-        actionButtonHeader='general.action'
-        emptyText='general.empty_table'
+        actionButtonHeader={translationKey('general.action')}
+        emptyText={translationKey('general.empty_table')}
         caption={
           title && (
             <Caption
@@ -211,6 +212,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
 
           return {
             ...config,
+            header: translationKey(config.header),
             renderCell,
           };
         })}

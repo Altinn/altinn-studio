@@ -7,6 +7,7 @@ import type { JSONSchema7, JSONSchema7Definition } from 'json-schema';
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import { DatePickerControl } from 'src/app-components/Datepicker/Datepicker';
 import { getDateFormat } from 'src/app-components/Datepicker/utils/dateHelpers';
+import type { TranslationKey } from 'src/app-components/types';
 
 export type FormDataValue = string | number | boolean | null | FormDataValue[] | { [key: string]: FormDataValue };
 
@@ -20,8 +21,8 @@ export interface DynamicFormProps {
   initialData?: FormDataObject;
   locale?: string;
   DropdownCaption: typeof MonthCaption;
-  buttonAriaLabel: string;
-  calendarIconTitle: string;
+  buttonAriaLabel: TranslationKey;
+  calendarIconTitle: TranslationKey;
   getDatepickerFormat: (unicodeFormat: string) => string;
 }
 
@@ -36,7 +37,7 @@ export function DynamicForm({
   getDatepickerFormat,
 }: DynamicFormProps) {
   const [formData, setFormData] = useState<FormDataObject>(initialData || {});
-  const t = useTranslation();
+  const { translate } = useTranslation();
 
   useEffect(() => {
     if (initialData) {
@@ -61,8 +62,8 @@ export function DynamicForm({
           schema={schema}
           renderFields={renderFields}
           locale={locale}
-          buttonAriaLabel={t(buttonAriaLabel)}
-          calendarIconTitle={t(calendarIconTitle)}
+          buttonAriaLabel={translate(buttonAriaLabel)}
+          calendarIconTitle={translate(calendarIconTitle)}
           DropdownCaption={DropdownCaption}
           getDatepickerFormat={getDatepickerFormat}
         />

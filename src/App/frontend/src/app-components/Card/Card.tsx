@@ -4,11 +4,12 @@ import { Card, Heading, Paragraph } from '@digdir/designsystemet-react';
 
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import classes from 'src/app-components/Card/Card.module.css';
+import type { TranslationKey } from 'src/app-components/types';
 
 type AppCardProps = {
-  title?: string;
-  description?: string;
-  footer?: string;
+  title?: TranslationKey;
+  description?: TranslationKey;
+  footer?: TranslationKey;
   media?: React.ReactNode;
   mediaPosition?: 'top' | 'bottom';
   color?: Parameters<typeof Card>[0]['color'];
@@ -30,7 +31,7 @@ export function AppCard({
   className,
   ref,
 }: AppCardProps) {
-  const t = useTranslation();
+  const { TranslateComponent } = useTranslation();
 
   return (
     <Card
@@ -41,14 +42,24 @@ export function AppCard({
     >
       {media && mediaPosition === 'top' && <Card.Block className={classes.mediaCard}>{media}</Card.Block>}
       <Card.Block>
-        {title && <Heading data-size='md'>{t(title)}</Heading>}
-        {description && <Paragraph>{t(description)}</Paragraph>}
+        {title && (
+          <Heading data-size='md'>
+            <TranslateComponent tKey={title} />
+          </Heading>
+        )}
+        {description && (
+          <Paragraph>
+            <TranslateComponent tKey={description} />
+          </Paragraph>
+        )}
 
         {children}
       </Card.Block>
       {footer && (
         <Card.Block>
-          <Paragraph data-size='sm'>{t(footer)}</Paragraph>
+          <Paragraph data-size='sm'>
+            <TranslateComponent tKey={footer} />
+          </Paragraph>
         </Card.Block>
       )}
       {media && mediaPosition === 'bottom' && <Card.Block className={classes.mediaCard}>{media}</Card.Block>}

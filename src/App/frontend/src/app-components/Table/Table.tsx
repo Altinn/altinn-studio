@@ -11,9 +11,10 @@ import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import utilClasses from 'src/app-components/style/utils.module.css';
 import classes from 'src/app-components/Table/Table.module.css';
 import type { FormDataValue } from 'src/app-components/DynamicForm/DynamicForm';
+import type { TranslationKey } from 'src/app-components/types';
 
 interface Column<T> {
-  header: string | null;
+  header: TranslationKey | null;
   ariaLabel?: string;
   accessors: string[];
   renderCell?: (values: FormDataValue[], rowData: T, rowIndex: number) => React.ReactNode;
@@ -34,13 +35,13 @@ interface DataTableProps<T> {
   columns: Column<T>[];
   caption?: React.ReactNode;
   actionButtons?: TableActionButton<T>[];
-  actionButtonHeader?: string;
+  actionButtonHeader?: TranslationKey;
   mobile?: boolean;
   size?: 'sm' | 'md' | 'lg';
   zebra?: boolean;
   stickyHeader?: boolean;
   isLoading?: boolean;
-  emptyText: string | undefined;
+  emptyText: TranslationKey | undefined;
   tableClassName?: string;
   headerClassName?: string;
 }
@@ -86,7 +87,7 @@ export function AppTable<T>({
   isLoading = false,
   emptyText,
 }: DataTableProps<T>) {
-  const t = useTranslation();
+  const { translate: t } = useTranslation();
   function translate(key: string | null) {
     if (!key) {
       return '';
@@ -110,7 +111,7 @@ export function AppTable<T>({
               style={stickyHeader ? { zIndex: 2 } : {}}
               className={headerClassName}
               key={index}
-              aria-label={col.ariaLabel ? t(col.ariaLabel) : undefined}
+              aria-label={col.ariaLabel ? translate(col.ariaLabel) : undefined}
             >
               {translate(col.header)}
             </Table.HeaderCell>

@@ -4,6 +4,7 @@ import { Link } from '@digdir/designsystemet-react';
 import { pick } from 'dot-object';
 
 import { AppTable } from 'src/app-components/Table/Table';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { Lang } from 'src/features/language/Lang';
@@ -65,7 +66,7 @@ export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
       }
       data={dataToDisplay}
       stickyHeader={true}
-      emptyText='general.empty_table'
+      emptyText={translationKey('general.empty_table')}
       columns={columns.map((config) => {
         const { component } = config;
         let renderCell;
@@ -89,11 +90,12 @@ export function ApiTable({ baseComponentId, externalApi }: ApiTableProps) {
 
         return {
           ...config,
+          header: translationKey(config.header),
           renderCell,
         };
       })}
       mobile={isMobile}
-      actionButtonHeader='general.action'
+      actionButtonHeader={translationKey('general.action')}
     />
   );
 }

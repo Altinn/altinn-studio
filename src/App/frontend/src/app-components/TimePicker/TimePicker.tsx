@@ -37,7 +37,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   readOnly = false,
   labels = {},
 }) => {
-  const t = useTranslation();
+  const { translate } = useTranslation();
   const timeValue = parseTimeString(value, format);
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -75,10 +75,10 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   };
 
   const segmentLabels = {
-    hours: labels.hours ? t(labels.hours) : 'Hours',
-    minutes: labels.minutes ? t(labels.minutes) : 'Minutes',
-    seconds: labels.seconds ? t(labels.seconds) : 'Seconds',
-    period: labels.amPm ? t(labels.amPm) : 'AM/PM',
+    hours: labels.hours ? translate(labels.hours) : 'Hours',
+    minutes: labels.minutes ? translate(labels.minutes) : 'Minutes',
+    seconds: labels.seconds ? translate(labels.seconds) : 'Seconds',
+    period: labels.amPm ? translate(labels.amPm) : 'AM/PM',
   };
 
   const segmentPlaceholders = {

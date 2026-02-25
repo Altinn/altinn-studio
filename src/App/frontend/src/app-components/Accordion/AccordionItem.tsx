@@ -5,9 +5,10 @@ import cn from 'classnames';
 
 import classes from 'src/app-components/Accordion/AccordionItem.module.css';
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
+import type { TranslationKey } from 'src/app-components/types';
 
 interface AccordionProps {
-  title: string;
+  title: TranslationKey;
   children: React.ReactNode;
   className?: string;
   open?: boolean;
@@ -24,7 +25,7 @@ export const AccordionItem = ({
   onToggle,
 }: AccordionProps): React.JSX.Element => {
   const [isOpen, setOpen] = React.useState(defaultOpen);
-  const t = useTranslation();
+  const { TranslateComponent } = useTranslation();
 
   const isControlled = open !== undefined;
   const currentOpen = isControlled ? open : isOpen;
@@ -43,7 +44,9 @@ export const AccordionItem = ({
       onToggle={handleToggle}
       className={cn(className, classes.accordion)}
     >
-      <Details.Summary>{t(title)}</Details.Summary>
+      <Details.Summary>
+        <TranslateComponent tKey={title} />
+      </Details.Summary>
       <Details.Content>{children}</Details.Content>
     </Details>
   );

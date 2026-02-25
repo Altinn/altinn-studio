@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Label } from 'src/app-components/Label/Label';
 import { TextArea } from 'src/app-components/TextArea/TextArea';
+import { translationKey } from 'src/AppComponentsBridge';
 import { getDescriptionId } from 'src/components/label/Label';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -76,7 +77,9 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
           error={!isValid}
           dataTestId={id}
           ariaDescribedBy={textAreaDescribedBy}
-          ariaLabel={overrideDisplay?.renderedInTable === true ? textResourceBindings?.title : undefined}
+          ariaLabel={
+            overrideDisplay?.renderedInTable === true ? translationKey(textResourceBindings?.title) : undefined
+          }
           autoComplete={autocomplete}
           style={{ minHeight: '150px', height: '150px', width: '100%' }}
         />

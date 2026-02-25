@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DynamicForm } from 'src/app-components/DynamicForm/DynamicForm';
+import { translationKey } from 'src/AppComponentsBridge';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
@@ -98,8 +99,8 @@ export function AddToListModal({
           getDatepickerFormat={getDatepickerFormat}
           initialData={tempFormData}
           DropdownCaption={DropdownCaption}
-          buttonAriaLabel='date_picker.aria_label_icon'
-          calendarIconTitle='date_picker.aria_label_icon'
+          buttonAriaLabel={translationKey('date_picker.aria_label_icon')}
+          calendarIconTitle={translationKey('date_picker.aria_label_icon')}
         />
       </Dialog.Block>
       <Dialog.Block>

@@ -7,6 +7,7 @@ import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/features/devtools/components/OpenDevToolsButton/OpenDevToolsButton.module.css';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
+import type { TranslationKey } from 'src/app-components/types';
 
 interface IOpenDevToolsButtonProps {
   isHidden: boolean;
@@ -52,7 +53,7 @@ export const OpenDevToolsButton = ({ isHidden, onClick }: IOpenDevToolsButtonPro
           variant='secondary'
           color='second'
           onClick={onClick}
-          aria-label='åpne utviklerverkøy'
+          aria-label={'åpne utviklerverkøy' as TranslationKey}
           icon={true}
         >
           <CodeIcon

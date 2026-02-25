@@ -4,6 +4,7 @@ import { Field, Textarea } from '@digdir/designsystemet-react';
 import type { FieldCounterProps } from '@digdir/designsystemet-react';
 
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
+import type { TranslationKey } from 'src/app-components/types';
 
 export interface TextAreaWithLabelProps {
   id: string;
@@ -15,7 +16,7 @@ export interface TextAreaWithLabelProps {
   error?: boolean;
   dataTestId?: string;
   ariaDescribedBy?: string;
-  ariaLabel?: string;
+  ariaLabel?: TranslationKey;
   autoComplete?: string;
   style?: React.CSSProperties;
 }
@@ -33,7 +34,7 @@ export const TextArea: React.FC<TextAreaWithLabelProps> = ({
   autoComplete,
   style,
 }) => {
-  const t = useTranslation();
+  const { translate } = useTranslation();
   return (
     <Field>
       <Textarea
@@ -44,7 +45,7 @@ export const TextArea: React.FC<TextAreaWithLabelProps> = ({
         value={value}
         data-testid={dataTestId}
         aria-describedby={ariaDescribedBy}
-        aria-label={ariaLabel ? t(ariaLabel) : undefined}
+        aria-label={ariaLabel ? translate(ariaLabel) : undefined}
         autoComplete={autoComplete}
         style={style}
       />

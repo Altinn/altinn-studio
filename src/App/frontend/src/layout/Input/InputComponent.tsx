@@ -4,6 +4,7 @@ import { FormattedInput } from 'src/app-components/Input/FormattedInput';
 import { Input } from 'src/app-components/Input/Input';
 import { NumericInput } from 'src/app-components/Input/NumericInput';
 import { Label } from 'src/app-components/Label/Label';
+import { translationKey } from 'src/AppComponentsBridge';
 import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -145,7 +146,7 @@ const InputVariant = ({
   });
 
   const labelProps = textResourceBindings?.title
-    ? { 'aria-label': textResourceBindings?.title }
+    ? { 'aria-label': translationKey(textResourceBindings?.title) }
     : { 'aria-labelledby': labelId };
 
   const inputProps: InputProps = {
@@ -159,8 +160,8 @@ const InputVariant = ({
     required,
     onBlur: () => debounce('blur'),
     error: !useIsValid(baseComponentId),
-    prefix: textResourceBindings?.prefix,
-    suffix: textResourceBindings?.suffix,
+    prefix: translationKey(textResourceBindings?.prefix),
+    suffix: translationKey(textResourceBindings?.suffix),
     style: { width: '100%' },
     inputMode,
     pattern,
@@ -201,6 +202,8 @@ const InputVariant = ({
         <NumericInput
           {...inputProps}
           {...variant.format}
+          prefix={translationKey(variant.format.prefix)}
+          suffix={translationKey(variant.format.suffix)}
           value={formValue}
           type='text'
           onBlur={() => {
