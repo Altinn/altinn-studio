@@ -26,13 +26,6 @@ spec:
               name: http
               protocol: TCP
           env:
-            - name: POD_UID
-              valueFrom:
-                fieldRef:
-                  apiVersion: v1
-                  fieldPath: metadata.uid
-            - name: OTEL_RESOURCE_ATTRIBUTES
-              value: "k8s.pod.uid=$(POD_UID)"
             - name: AZURE_ENDPOINT
               value: "https://hackathons-resource.openai.azure.com/"
             - name: GITEA_URL

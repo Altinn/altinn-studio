@@ -6,7 +6,7 @@ usage() {
 Usage: install.sh [options]
 
 Options:
-  --version VERSION      GitHub release tag or name (default: latest)
+  --version VERSION      GitHub release tag or name (default: script release tag)
   --repo OWNER/REPO      GitHub repo (default: Altinn/altinn-studio)
   --asset NAME           Override asset name
   --install-dir DIR      Install target directory (passes --path)
@@ -23,17 +23,23 @@ Environment variables (overridden by flags):
   STUDIOCTL_SKIP_CHECKSUM=1
 
 Examples:
-  curl -sSL https://github.com/Altinn/altinn-studio/releases/latest/download/install.sh | sh
-  curl -sSL .../install.sh | sh -s -- --version v0.1.0
+  curl -sSL https://altinn.studio/designer/api/v1/studioctl/install.sh | sh
+  curl -sSL .../install.sh | sh -s -- --version studioctl/v0.1.0
 
 Notes:
   - If stdin is not a TTY and --install-dir is not set, installs to ~/.local/bin.
+  - Released scripts are pinned to a specific studioctl tag in this monorepo.
   - Binary integrity is verified via SHA256 checksum before execution.
 USAGE
 }
 
 REPO=${STUDIOCTL_REPO:-Altinn/altinn-studio}
-VERSION=${STUDIOCTL_VERSION:-latest}
+DEFAULT_VERSION="__STUDIOCTL_DEFAULT_VERSION__"
+# Keep source-tree script usable before release stamping.
+if [ "$DEFAULT_VERSION" = "__STUDIOCTL_DEFAULT_VERSION__" ]; then
+	DEFAULT_VERSION="latest"
+fi
+VERSION=${STUDIOCTL_VERSION:-$DEFAULT_VERSION}
 ASSET=${STUDIOCTL_ASSET:-}
 INSTALL_DIR=${STUDIOCTL_INSTALL_DIR:-}
 SKIP_RESOURCES=${STUDIOCTL_SKIP_RESOURCES:-0}
