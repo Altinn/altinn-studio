@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kuberneteswrapper-base-path
+  annotations:
+    traefik.ingress.kubernetes.io/rule-type: PathPrefixStrip
+    traefik.frontend.priority: "500"
+spec:
+  rules:
+    - host: dev.altinn.studio
+      http:
+        paths:
+          - path: /kuberneteswrapper/
+            pathType: Prefix
+            backend:
+              service:
+                name: kuberneteswrapper
+                port:
+                  number: 3000

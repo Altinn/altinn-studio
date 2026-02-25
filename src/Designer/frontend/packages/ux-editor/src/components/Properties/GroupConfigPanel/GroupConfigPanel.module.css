@@ -22,10 +22,6 @@
   padding-inline: var(--ds-size-5);
 }
 
-.alertMessage {
-  margin-top: var(--ds-size-5);
-}
-
 .radio {
   width: 80%;
   align-items: center;

@@ -5,5 +5,13 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Design", "CA1816: Call GC.SuppressFinalize correctly", Justification = "Used as after each test in xUnit")]
-[assembly: SuppressMessage("Design", "CA2007: Do not directly await a Task", Justification = "Tests are not performance critical")]
+[assembly: SuppressMessage(
+    "Design",
+    "CA1816: Call GC.SuppressFinalize correctly",
+    Justification = "Used as after each test in xUnit"
+)]
+[assembly: SuppressMessage(
+    "Design",
+    "CA2007: Do not directly await a Task",
+    Justification = "Tests are not performance critical"
+)]

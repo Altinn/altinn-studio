@@ -49,7 +49,11 @@ public sealed class XsdRestrictionsKeyword : IJsonSchemaKeyword, IEquatable<XsdR
         Restrictions = restrictions as List<(string, JsonElement)> ?? restrictions.ToList();
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -90,7 +94,11 @@ public sealed class XsdRestrictionsKeyword : IJsonSchemaKeyword, IEquatable<XsdR
         /// <summary>
         /// Read @xsdRestrictions keyword from json schema
         /// </summary>
-        public override XsdRestrictionsKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdRestrictionsKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             JsonDocument document = JsonDocument.ParseValue(ref reader);
 

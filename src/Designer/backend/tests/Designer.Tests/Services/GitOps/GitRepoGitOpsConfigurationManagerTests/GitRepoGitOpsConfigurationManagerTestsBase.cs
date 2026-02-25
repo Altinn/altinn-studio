@@ -19,10 +19,16 @@ using Xunit;
 
 namespace Designer.Tests.Services.GitOps.GitRepoGitOpsConfigurationManagerTests;
 
-public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>, IAsyncLifetime where T : GitRepoGitOpsConfigurationManagerTestsBase<T>
+public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>, IAsyncLifetime
+    where T : GitRepoGitOpsConfigurationManagerTestsBase<T>
 {
     protected IAltinnGitRepositoryFactory AltinnGitRepositoryFactory { get; private set; }
-    protected AltinnGitRepository AltinnGitRepository => AltinnGitRepositoryFactory.GetAltinnGitRepository(OrgEditingContext.Org, TestRepoName, OrgEditingContext.Developer);
+    protected AltinnGitRepository AltinnGitRepository =>
+        AltinnGitRepositoryFactory.GetAltinnGitRepository(
+            OrgEditingContext.Org,
+            TestRepoName,
+            OrgEditingContext.Developer
+        );
     protected GitRepoGitOpsConfigurationManager GitOpsConfigurationManager { get; private set; }
     protected ScribanGitOpsManifestsRenderer ScribanGitOpsManifestsRenderer { get; private set; }
     protected Mock<ILogger<GitRepoGitOpsConfigurationManager>> MockLogger { get; private set; }
@@ -34,11 +40,17 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
         // test data are configured for ttd org and testUser.
         OrgEditingContext = AltinnOrgEditingContext.FromOrgDeveloper("ttd", "testUser");
     }
+
     public async Task InitializeAsync()
     {
         string testRepoPath = TestDataHelper.GetTestDataRepositoriesRootDirectory();
         TestRepoName = TestDataHelper.GenerateTestRepoName($"-{OrgEditingContext.Org}");
-        await TestDataHelper.CopyRepositoryForTest(OrgEditingContext.Org, "ttd-gitops", OrgEditingContext.Developer, TestRepoName);
+        await TestDataHelper.CopyRepositoryForTest(
+            OrgEditingContext.Org,
+            "ttd-gitops",
+            OrgEditingContext.Developer,
+            TestRepoName
+        );
         AltinnGitRepositoryFactory = new AltinnGitRepositoryFactory(testRepoPath);
         ScribanGitOpsManifestsRenderer = new ScribanGitOpsManifestsRenderer();
         MockLogger = new Mock<ILogger<GitRepoGitOpsConfigurationManager>>();
@@ -52,20 +64,18 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
             {
                 GitOpsOrg = OrgEditingContext.Org,
                 GitOpsRepoNameFormat = TestRepoName.Replace($"-{OrgEditingContext.Org}", "-{0}"),
-                BotPersonalAccessToken = "test-bot-token"
+                BotPersonalAccessToken = "test-bot-token",
             },
-            new ServiceRepositorySettings
-            {
-                RepositoryLocation = testRepoPath
-            },
-            MockLogger.Object);
-
+            new ServiceRepositorySettings { RepositoryLocation = testRepoPath },
+            MockLogger.Object
+        );
     }
 
     protected async Task AppDirectoryExists(string app)
     {
-        var appManifests =
-            ScribanGitOpsManifestsRenderer.GetAppManifests(AltinnRepoContext.FromOrgRepo(OrgEditingContext.Org, app));
+        var appManifests = ScribanGitOpsManifestsRenderer.GetAppManifests(
+            AltinnRepoContext.FromOrgRepo(OrgEditingContext.Org, app)
+        );
         await WriteManifestsToRepository(appManifests);
     }
 
@@ -82,9 +92,10 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
     protected async Task EnvironmentManifestsExistsWithResourceApps(string environment, params string[] apps)
     {
         var appsSet = apps.Select(AltinnRepoName.FromName).ToHashSet();
-        var manifests =
-            ScribanGitOpsManifestsRenderer.GetEnvironmentOverlayManifests(AltinnEnvironment.FromName(environment),
-                appsSet);
+        var manifests = ScribanGitOpsManifestsRenderer.GetEnvironmentOverlayManifests(
+            AltinnEnvironment.FromName(environment),
+            appsSet
+        );
         await WriteManifestsToRepository(manifests);
     }
 
@@ -111,17 +122,18 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
 
     protected async Task EnvironmentKustomizationManifestShouldContainApp(string environment, string app)
     {
-        string envManifest =
-            await AltinnGitRepository.ReadTextByRelativePathAsync(
-                ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment));
+        string envManifest = await AltinnGitRepository.ReadTextByRelativePathAsync(
+            ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment)
+        );
 
         AssertTextContainsTerm(envManifest, ManifestsPathHelper.EnvironmentManifests.KustomizationAppResource(app));
     }
+
     protected async Task EnvironmentKustomizationManifestShouldContainApps(string environment, params string[] apps)
     {
-        string envManifest =
-            await AltinnGitRepository.ReadTextByRelativePathAsync(
-                ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment));
+        string envManifest = await AltinnGitRepository.ReadTextByRelativePathAsync(
+            ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment)
+        );
         // Consequence is that we're
         foreach (string app in apps)
         {
@@ -131,9 +143,9 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
 
     protected async Task EnvironmentKustomizationManifestShouldContainBaseResource(string environment)
     {
-        string envManifest =
-            await AltinnGitRepository.ReadTextByRelativePathAsync(
-                ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment));
+        string envManifest = await AltinnGitRepository.ReadTextByRelativePathAsync(
+            ManifestsPathHelper.EnvironmentManifests.KustomizationPath(environment)
+        );
 
         AssertTextContainsTerm(envManifest, "../base");
     }
@@ -150,4 +162,3 @@ public class GitRepoGitOpsConfigurationManagerTestsBase<T> : FluentTestsBase<T>,
         return Task.CompletedTask;
     }
 }
-

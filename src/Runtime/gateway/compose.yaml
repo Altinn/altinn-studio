@@ -2,7 +2,7 @@ services:
   gateway:
     build:
       context: ../
-      dockerfile: StudioGateway/Dockerfile
+      dockerfile: gateway/Dockerfile
     ports:
       - "8080:8080"
     restart: unless-stopped

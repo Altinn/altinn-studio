@@ -25,7 +25,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         public AltinnStorageTextResourceClient(
             HttpClient httpClient,
             IEnvironmentsService environmentsService,
-            PlatformSettings options)
+            PlatformSettings options
+        )
         {
             _httpClient = httpClient;
             _environmentsService = environmentsService;

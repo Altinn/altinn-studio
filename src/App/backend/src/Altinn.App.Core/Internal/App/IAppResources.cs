@@ -79,25 +79,6 @@ public interface IAppResources
     string GetClassRefForLogicDataType(string dataType);
 
     /// <summary>
-    /// Gets the layouts for the app.
-    /// </summary>
-    /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
-    [Obsolete("Use GetLayoutsForSet or GetLayoutModelForTask instead")]
-    string GetLayouts();
-
-    /// <summary>
-    /// Gets the the layouts settings
-    /// </summary>
-    /// <returns>The layout settings as a JSON string</returns>
-    string? GetLayoutSettingsString();
-
-    /// <summary>
-    /// Gets the layout settings
-    /// </summary>
-    /// <returns>The layout settings</returns>
-    LayoutSettings GetLayoutSettings();
-
-    /// <summary>
     /// Gets the the layout sets
     /// </summary>
     /// <returns>The layout sets</returns>

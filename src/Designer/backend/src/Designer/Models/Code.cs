@@ -10,7 +10,8 @@ public sealed record Code(
     Dictionary<string, string> Label,
     Dictionary<string, string>? Description,
     Dictionary<string, string>? HelpText,
-    List<string>? Tags)
+    List<string>? Tags
+)
 {
     public bool Equals(Code? other)
     {

@@ -4,7 +4,7 @@ resources:
   - altinn-designer.yaml
   - altinn-repositories.yaml
   - altinn-loadbalancer.yaml
-  - kuberneteswrapper.yaml
+  - kubernetes-wrapper.yaml
   - gitea-runners.yaml
   - altinn-mcp-server.yaml
   - lhci.yaml
