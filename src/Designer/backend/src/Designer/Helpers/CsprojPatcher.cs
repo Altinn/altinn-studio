@@ -15,7 +15,8 @@ public static class CsprojPatcher
     /// <returns>true if the file was modified; otherwise false.</returns>
     public static bool UpsertPackageReferences(
         string csprojPath,
-        List<(string Include, string Version)> packageReferences)
+        List<(string Include, string Version)> packageReferences
+    )
     {
         if (packageReferences is null || packageReferences.Count is 0)
         {

@@ -33,7 +33,8 @@ namespace Altinn.Studio.Designer.Infrastructure
                     options.Filters.Add(typeof(OptionsExceptionFilterAttribute));
                 })
                 .AddNewtonsoftJson(options =>
-                    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()))
+                    options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter())
+                )
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.Converters.Add(new NextStepTypeJsonConverter());

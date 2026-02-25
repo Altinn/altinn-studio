@@ -8,7 +8,7 @@ public enum CustomTemplateErrorCode
 {
     NotFound,
     DeserializationFailed,
-    ValidationFailed
+    ValidationFailed,
 }
 
 public class CustomTemplateException : Exception
@@ -17,7 +17,12 @@ public class CustomTemplateException : Exception
 
     public string? Detail { get; init; }
 
-    public CustomTemplateException(CustomTemplateErrorCode code, string message, string? detail = null, Exception? innerException = null)
+    public CustomTemplateException(
+        CustomTemplateErrorCode code,
+        string message,
+        string? detail = null,
+        Exception? innerException = null
+    )
         : base(message, innerException)
     {
         Code = code;

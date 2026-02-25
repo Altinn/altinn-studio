@@ -252,11 +252,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (CustomTemplateException ex)
             {
-                return BadRequest(new
-                {
-                    error = nameof(CustomTemplateException),
-                    message = ex.Message
-                });
+                return BadRequest(new { error = nameof(CustomTemplateException), message = ex.Message });
             }
         }
 

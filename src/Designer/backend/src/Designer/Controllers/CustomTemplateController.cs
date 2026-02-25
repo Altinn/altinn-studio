@@ -42,20 +42,22 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (CustomTemplateException ex) when (ex.Code == CustomTemplateErrorCode.NotFound)
             {
-                return NotFound(new
-                {
-                    error = ex.Code,
-                    message = ex.Message
-                });
+                return NotFound(new { error = ex.Code, message = ex.Message });
             }
-            catch (CustomTemplateException ex) when (ex.Code == CustomTemplateErrorCode.DeserializationFailed || ex.Code == CustomTemplateErrorCode.ValidationFailed)
+            catch (CustomTemplateException ex)
+                when (ex.Code == CustomTemplateErrorCode.DeserializationFailed
+                    || ex.Code == CustomTemplateErrorCode.ValidationFailed
+                )
             {
-                return StatusCode(500, new
-                {
-                    error = ex.Code,
-                    message = ex.Message,
-                    detail = ex.Detail
-                });
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        error = ex.Code,
+                        message = ex.Message,
+                        detail = ex.Detail,
+                    }
+                );
             }
         }
     }

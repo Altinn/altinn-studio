@@ -13,13 +13,11 @@ public class NextStepTypeJsonConverter : JsonConverter<NextStepType>
     {
         { "configuration", NextStepType.Configuration },
         { "konfigurasjon", NextStepType.Configuration },
-
         { "code-change", NextStepType.CodeChange },
         { "codechange", NextStepType.CodeChange },
         { "kodeendring", NextStepType.CodeChange },
-
         { "documentation", NextStepType.Documentation },
-        { "dokumentasjon", NextStepType.Documentation }
+        { "dokumentasjon", NextStepType.Documentation },
     };
 
     // Map enum values to preferred string (English)
@@ -27,7 +25,7 @@ public class NextStepTypeJsonConverter : JsonConverter<NextStepType>
     {
         { NextStepType.Configuration, "configuration" },
         { NextStepType.CodeChange, "codechange" },
-        { NextStepType.Documentation, "documentation" }
+        { NextStepType.Documentation, "documentation" },
     };
 
     public override NextStepType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

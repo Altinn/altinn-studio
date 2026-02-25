@@ -36,7 +36,7 @@ public class CustomTemplateService : ICustomTemplateService
     internal static readonly JsonSerializerOptions JsonOptions = new()
     {
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new NextStepTypeJsonConverter() }
+        Converters = { new NextStepTypeJsonConverter() },
     };
 
     public CustomTemplateService(
@@ -66,9 +66,7 @@ public class CustomTemplateService : ICustomTemplateService
 
         List<CustomTemplateListObject>[] results = await Task.WhenAll(tasks);
 
-        return results
-        .SelectMany(result => result.Where(t => t.IsListable()))
-        .ToList();
+        return results.SelectMany(result => result.Where(t => t.IsListable())).ToList();
     }
 
     /// <inheritdoc />
@@ -152,7 +150,10 @@ public class CustomTemplateService : ICustomTemplateService
 
             if (!cacheValid)
             {
-                _logger.LogInformation("// CustomTemplateService // GetTemplateManifestForOrg // Template manifest missing for {templateOwner}. Downloading from API...", templateOwner);
+                _logger.LogInformation(
+                    "// CustomTemplateService // GetTemplateManifestForOrg // Template manifest missing for {templateOwner}. Downloading from API...",
+                    templateOwner
+                );
                 await DownloadTemplateManifestToCache(
                     templateOwner,
                     templateRepo,
@@ -162,13 +163,17 @@ public class CustomTemplateService : ICustomTemplateService
             }
             else
             {
-                _logger.LogInformation("// CustomTemplateService // GetTemplateManifestForOrg // Template manifest hit for {templateOwner}. Using cached file.", templateOwner);
+                _logger.LogInformation(
+                    "// CustomTemplateService // GetTemplateManifestForOrg // Template manifest hit for {templateOwner}. Using cached file.",
+                    templateOwner
+                );
             }
 
             if (File.Exists(templateManifestCachePath))
             {
                 string cachedTemplateList = await File.ReadAllTextAsync(templateManifestCachePath);
-                List<CustomTemplateListObject> templates = JsonSerializer.Deserialize<List<CustomTemplateListObject>>(cachedTemplateList) ?? [];
+                List<CustomTemplateListObject> templates =
+                    JsonSerializer.Deserialize<List<CustomTemplateListObject>>(cachedTemplateList) ?? [];
                 return templates;
             }
 
@@ -330,7 +335,10 @@ public class CustomTemplateService : ICustomTemplateService
 
         if (!cacheValid)
         {
-            _logger.LogInformation("// CustomTemplateService // CopyTemplateContentToRepository // Template cache miss for {TemplateId}. Downloading from API...", templateId);
+            _logger.LogInformation(
+                "// CustomTemplateService // CopyTemplateContentToRepository // Template cache miss for {TemplateId}. Downloading from API...",
+                templateId
+            );
             await DownloadTemplateToCache(
                 templateOwner,
                 templateRepo,
@@ -342,13 +350,24 @@ public class CustomTemplateService : ICustomTemplateService
         }
         else
         {
-            _logger.LogInformation("// CustomTemplateService // CopyTemplateContentToRepository // Template cache hit for {TemplateId}. Using cached files.", templateId);
+            _logger.LogInformation(
+                "// CustomTemplateService // CopyTemplateContentToRepository // Template cache hit for {TemplateId}. Using cached files.",
+                templateId
+            );
         }
 
-        await DirectoryHelper.CopyDirectoryAsync(cacheTemplateContentPath, _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer));
+        await DirectoryHelper.CopyDirectoryAsync(
+            cacheTemplateContentPath,
+            _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer)
+        );
     }
 
-    private void ApplyPackageReferences(string targetOrg, string targetRepo, string developer, List<PackageReference> packageReferences)
+    private void ApplyPackageReferences(
+        string targetOrg,
+        string targetRepo,
+        string developer,
+        List<PackageReference> packageReferences
+    )
     {
         if (packageReferences == null || !packageReferences.Any())
         {
@@ -356,28 +375,33 @@ public class CustomTemplateService : ICustomTemplateService
         }
 
         // Group package references by their project file pattern
-        var groupedByProject = packageReferences
-            .GroupBy(pr => pr.Project, StringComparer.OrdinalIgnoreCase);
+        var groupedByProject = packageReferences.GroupBy(pr => pr.Project, StringComparer.OrdinalIgnoreCase);
 
         foreach (IGrouping<string, PackageReference> projectGroup in groupedByProject)
         {
             string projectPattern = projectGroup.Key;
             var projectFiles = DirectoryHelper.ResolveFilesFromPattern(
                 _serviceRepoSettings.GetServicePath(targetOrg, targetRepo, developer),
-                projectPattern);
+                projectPattern
+            );
 
             if (!projectFiles.Any())
             {
-                throw CustomTemplateException.NotFound($"Project file pattern '{projectPattern}' in package reference '{projectGroup.First().Include}' did not match any files in target repository.");
+                throw CustomTemplateException.NotFound(
+                    $"Project file pattern '{projectPattern}' in package reference '{projectGroup.First().Include}' did not match any files in target repository."
+                );
             }
             else if (projectFiles.Count() > 1)
             {
-                throw CustomTemplateException.NotFound($"Project file pattern '{projectPattern}' in package reference '{projectGroup.First().Include}' matched multiple files in target repository.");
+                throw CustomTemplateException.NotFound(
+                    $"Project file pattern '{projectPattern}' in package reference '{projectGroup.First().Include}' matched multiple files in target repository."
+                );
             }
 
             CsprojPatcher.UpsertPackageReferences(
                 projectFiles.First(),
-                projectGroup.Select(pr => (pr.Include, pr.Version)).ToList());
+                projectGroup.Select(pr => (pr.Include, pr.Version)).ToList()
+            );
         }
     }
 
@@ -499,7 +523,10 @@ public class CustomTemplateService : ICustomTemplateService
 
         if (contentFiles.Count == 0)
         {
-            _logger.LogWarning("// CustomTemplateService // DownloadTemplateToCache // No content found for template '{TemplateId}'", templateId);
+            _logger.LogWarning(
+                "// CustomTemplateService // DownloadTemplateToCache // No content found for template '{TemplateId}'",
+                templateId
+            );
         }
 
         // Clear old cache content
@@ -564,8 +591,8 @@ public class CustomTemplateService : ICustomTemplateService
         _logger.LogInformation(
             "// CustomTemplateService // DownloadTemplateToCache // Cached {FileCount} files for template {TemplateId} (commit: {CommitSha})",
             contentFiles.Count,
-
-            templateId, commitSha[..7]
+            templateId,
+            commitSha[..7]
         );
     }
 

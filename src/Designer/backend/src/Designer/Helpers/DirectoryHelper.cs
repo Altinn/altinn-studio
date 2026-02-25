@@ -50,9 +50,7 @@ namespace Altinn.Studio.Designer.Helpers
             var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
             matcher.AddInclude(pattern);
 
-            var result = matcher.Execute(
-                new DirectoryInfoWrapper(new DirectoryInfo(baseDirectory))
-            );
+            var result = matcher.Execute(new DirectoryInfoWrapper(new DirectoryInfo(baseDirectory)));
 
             return result.Files.Select(f => Path.Combine(baseDirectory, f.Path));
         }
