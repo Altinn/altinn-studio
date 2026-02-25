@@ -64,14 +64,15 @@ public class RetryStrategyExtensionsTests
     [Fact]
     public void CanRetry_WithIteration_ReturnsFalse_WhenMaxRetriesExceeded()
     {
-        // Arrange — MaxRetries > iteration returns false (inverted logic)
+        // Arrange
         var strategy = RetryStrategy.Constant(TimeSpan.FromSeconds(1), maxRetries: 3);
 
-        // Act & Assert — test actual behavior of the implementation
-        Assert.False(strategy.CanRetry(1)); // MaxRetries(3) > 1 → false
-        Assert.False(strategy.CanRetry(2)); // MaxRetries(3) > 2 → false
-        Assert.True(strategy.CanRetry(3)); // MaxRetries(3) > 3 → false, so returns true
-        Assert.True(strategy.CanRetry(4)); // MaxRetries(3) > 4 → false, so returns true
+        // Act & Assert
+        Assert.True(strategy.CanRetry(1));
+        Assert.True(strategy.CanRetry(2));
+        Assert.True(strategy.CanRetry(3));
+        Assert.False(strategy.CanRetry(4));
+        Assert.False(strategy.CanRetry(100));
     }
 
     [Fact]

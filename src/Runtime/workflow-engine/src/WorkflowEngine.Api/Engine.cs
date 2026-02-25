@@ -206,8 +206,7 @@ internal partial class Engine : IEngine, IDisposable
             return;
         }
 
-        // Fetch dependency statuses
-
+        // Deal with dependencies
         if (workflow.Dependencies is not null)
         {
             List<PersistentItemStatus>? dependencyStatuses = null;
@@ -227,6 +226,7 @@ internal partial class Engine : IEngine, IDisposable
             {
                 StartProcessWorkflowActivityOnce(workflow);
                 workflow.Status = PersistentItemStatus.DependencyFailed;
+                await UpdateWorkflowInDb(workflow, cancellationToken); // TODO: This will hold the thread instead of the established `DatabaseTask` concept (not immediately compatible)?
                 FinalizeWorkflowProcessing(workflow);
 
                 return;

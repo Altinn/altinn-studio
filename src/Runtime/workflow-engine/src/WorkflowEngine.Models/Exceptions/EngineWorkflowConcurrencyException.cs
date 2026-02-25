@@ -1,12 +1,15 @@
 namespace WorkflowEngine.Models.Exceptions;
 
-public sealed class ActiveWorkflowConstraintException(
-    WorkflowType type,
+// CA1032: Implement standard exception constructors
+#pragma warning disable CA1032
+
+public sealed class EngineWorkflowConcurrencyException(
+    WorkflowType workflowType,
     string rejectionReason,
     long blockingWorkflowId
-) : EngineException(FormatMessage(type, rejectionReason, blockingWorkflowId))
+) : EngineException(FormatMessage(workflowType, rejectionReason, blockingWorkflowId))
 {
-    public WorkflowType Type { get; } = type;
+    public WorkflowType WorkflowType { get; } = workflowType;
     public string RejectionReason { get; } = rejectionReason;
     public long BlockingWorkflowId { get; } = blockingWorkflowId;
 

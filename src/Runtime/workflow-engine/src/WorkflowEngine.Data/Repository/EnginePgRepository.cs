@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Telemetry;
@@ -317,6 +318,26 @@ internal partial class EnginePgRepository : IEngineRepository
 
                 // Flush to get the DB-assigned ID before inserting dependent items
                 await _context.SaveChangesAsync(cancellationToken);
+
+                // Enforce the concurrency constraint for SingleActive workflows
+                if (request.Type.GetConcurrencyPolicy() == ConcurrencyPolicy.SingleActive)
+                {
+                    var violation = await CheckActiveWorkflowConstraint(
+                        workflowId: entity.Id,
+                        workflowType: request.Type,
+                        metadata.InstanceInformation.InstanceGuid,
+                        cancellationToken
+                    );
+                    if (violation is not null)
+                    {
+                        await transaction.RollbackAsync(cancellationToken);
+                        throw new EngineWorkflowConcurrencyException(
+                            request.Type,
+                            violation.RejectionReason,
+                            violation.BlockingWorkflowId
+                        );
+                    }
+                }
 
                 refToEntity[request.Ref] = entity;
                 results.Add(entity.ToDomainModel());

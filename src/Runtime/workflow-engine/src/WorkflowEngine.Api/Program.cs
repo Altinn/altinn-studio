@@ -53,3 +53,6 @@ app.MapHealthEndpoints();
 app.MapEngineEndpoints();
 
 await app.RunAsync();
+
+// Exposed for WebApplicationFactory in end-to-end tests
+public partial class Program { }

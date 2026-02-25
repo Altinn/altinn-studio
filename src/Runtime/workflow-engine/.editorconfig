@@ -146,6 +146,7 @@ dotnet_diagnostic.CA1515.severity = none
 dotnet_diagnostic.CA1711.severity = none
 # NX0001: Instance of NullForgiving operator without justification
 dotnet_diagnostic.NX0001.severity = none
+dotnet_diagnostic.NX0002.severity = none
 
 ## JSON and YAML ##
 

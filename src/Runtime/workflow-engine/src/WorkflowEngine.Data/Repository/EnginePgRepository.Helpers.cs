@@ -67,7 +67,7 @@ internal partial class EnginePgRepository
             if (violation is not null)
             {
                 await transaction.RollbackAsync(cancellationToken);
-                throw new ActiveWorkflowConstraintException(
+                throw new EngineWorkflowConcurrencyException(
                     request.Type,
                     violation.RejectionReason,
                     violation.BlockingWorkflowId

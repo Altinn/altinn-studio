@@ -30,7 +30,7 @@ public sealed record WorkflowStatusResponse
     /// </summary>
     [JsonPropertyName("updatedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? UpdatedAt { get; internal set; }
+    public DateTimeOffset? UpdatedAt { get; init; }
 
     /// <summary>
     /// Optional start time for when the workflow should be executed.

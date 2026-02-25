@@ -71,6 +71,12 @@ internal partial class Engine
         {
             workflows = await repository.AddWorkflowBatch(sortedRequests, metadata, cancellationToken);
         }
+        catch (EngineWorkflowConcurrencyException ex)
+        {
+            ReleaseQueueSlots(sortedRequests.Count);
+            activity?.Errored(ex);
+            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.ConcurrencyViolation, ex.Message);
+        }
         catch (Exception ex)
         {
             ReleaseQueueSlots(sortedRequests.Count);
