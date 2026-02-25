@@ -471,11 +471,16 @@ func (g *fakeGit) WorkingTreeClean(_ context.Context) (bool, error) {
 type fakeGH struct {
 	tag             string
 	target          string
+	prBase          string
+	prTitle         string
+	prBody          string
+	prLabel         string
 	assets          []string
 	assetCount      int
 	prerelease      bool
 	hasReleaseNotes bool
 	called          bool
+	prCreated       bool
 }
 
 func (g *fakeGH) CreateRelease(_ context.Context, opts internal.Options) error {
@@ -494,8 +499,13 @@ func (g *fakeGH) CreateRelease(_ context.Context, opts internal.Options) error {
 	return nil
 }
 
-func (g *fakeGH) CreatePR(_ context.Context, _ internal.PullRequestOptions) error {
-	return nil
+func (g *fakeGH) CreatePR(_ context.Context, opts internal.PullRequestOptions) (string, error) {
+	g.prCreated = true
+	g.prBase = opts.Base
+	g.prTitle = opts.Title
+	g.prBody = opts.Body
+	g.prLabel = opts.Label
+	return "https://example.test/pr/1", nil
 }
 
 func (g *fakeGH) SetWorkdir(_ string) {}
