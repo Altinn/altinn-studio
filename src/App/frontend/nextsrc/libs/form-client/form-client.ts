@@ -4,7 +4,7 @@ import { createTextResourceStore } from 'nextsrc/libs/form-client/stores/textRes
 import { createValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
 import type { FormDataNode } from 'nextsrc/core/apiClient/dataApi';
 import type { ResolvedLayoutCollection, ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
-import type { FormDataStore, FormDataStoreOptions } from 'nextsrc/libs/form-client/stores/formDataStore';
+import type { FormDataStore } from 'nextsrc/libs/form-client/stores/formDataStore';
 import type { TextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
 import type { ValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
 import type { StoreApi } from 'zustand';
@@ -13,12 +13,20 @@ import type { IRawTextResource } from 'src/features/language/textResources';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IApplicationSettings } from 'src/types/shared';
 
+export interface FormDataChangeEvent {
+  path: string;
+  value: FormDataNode;
+  previousValue: FormDataNode;
+}
+
+export type FormDataChangeCallback = (event: FormDataChangeEvent) => void;
+export type Unsubscribe = () => void;
+
 export interface FormClientConfig {
   textResources?: IRawTextResource[];
   language?: string;
   applicationSettings?: IApplicationSettings | null;
   instanceDataSources?: Record<string, string> | null;
-  formDataOptions?: FormDataStoreOptions;
 }
 
 export class FormClient {
@@ -30,17 +38,31 @@ export class FormClient {
   private cachedLayoutNames: string[] = [];
   private applicationSettings: IApplicationSettings | null;
   private instanceDataSources: Record<string, string> | null;
+  private formDataChangeCallbacks = new Set<FormDataChangeCallback>();
 
   constructor(config: FormClientConfig = {}) {
     this.applicationSettings = config.applicationSettings ?? null;
     this.instanceDataSources = config.instanceDataSources ?? null;
 
-    this.formDataStore = createFormDataStore(null, config.formDataOptions);
+    this.formDataStore = createFormDataStore(null, {
+      onChange: (path, value, previousValue) => {
+        for (const cb of this.formDataChangeCallbacks) {
+          cb({ path, value, previousValue });
+        }
+      },
+    });
     this.textResourceStore = createTextResourceStore({
       resources: config.textResources,
       language: config.language,
     });
     this.validationStore = createValidationStore();
+  }
+
+  onFormDataChange(callback: FormDataChangeCallback): Unsubscribe {
+    this.formDataChangeCallbacks.add(callback);
+    return () => {
+      this.formDataChangeCallbacks.delete(callback);
+    };
   }
 
   get textResourceDataSources() {

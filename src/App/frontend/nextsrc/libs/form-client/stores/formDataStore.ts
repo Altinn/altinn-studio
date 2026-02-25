@@ -19,7 +19,7 @@ interface FormDataActions {
 export type FormDataStore = FormDataState & FormDataActions;
 
 export interface FormDataStoreOptions {
-  onChange?: (path: string, value: FormDataPrimitive) => void;
+  onChange?: (path: string, value: FormDataNode, previousValue: FormDataNode) => void;
 }
 
 function resolvePath(simpleBinding: string, parentBinding?: string, itemIndex?: number): string {
@@ -42,6 +42,10 @@ export function createFormDataStore(initial?: FormDataNode, options?: FormDataSt
       return (dot.pick(path, data) as FormDataPrimitive) ?? null;
     },
     setValue: (path, value) => {
+      const previousValue = get().getValue(path);
+      if (previousValue === value) {
+        return;
+      }
       set((state) => {
         if (typeof state.data !== 'object' || state.data === null || Array.isArray(state.data)) {
           return state;
@@ -50,7 +54,7 @@ export function createFormDataStore(initial?: FormDataNode, options?: FormDataSt
         dot.set(path, value, copy);
         return { data: copy };
       });
-      options?.onChange?.(path, value);
+      options?.onChange?.(path, value, previousValue);
     },
     getBoundValue: (simpleBinding, parentBinding?, itemIndex?) => {
       const { data } = get();
@@ -62,19 +66,19 @@ export function createFormDataStore(initial?: FormDataNode, options?: FormDataSt
     },
     setBoundValue: (simpleBinding, value, parentBinding?, itemIndex?) => {
       const path = resolvePath(simpleBinding, parentBinding, itemIndex);
+      const previousValue = get().getBoundValue(simpleBinding, parentBinding, itemIndex);
+      if (previousValue === value) {
+        return;
+      }
       set((state) => {
         if (typeof state.data !== 'object' || state.data === null || Array.isArray(state.data)) {
-          return state;
-        }
-        const currentVal = dot.pick(path, state.data) as FormDataPrimitive;
-        if (currentVal === value) {
           return state;
         }
         const copy = { ...state.data };
         dot.set(path, value, copy);
         return { data: copy };
       });
-      options?.onChange?.(path, value);
+      options?.onChange?.(path, value, previousValue);
     },
     getArray: (path, parentBinding?, itemIndex?) => {
       const { data } = get();
@@ -87,6 +91,7 @@ export function createFormDataStore(initial?: FormDataNode, options?: FormDataSt
     },
     pushArrayItem: (path, item, parentBinding?, itemIndex?) => {
       const resolvedPath = resolvePath(path, parentBinding, itemIndex);
+      const previousArray = get().getArray(path, parentBinding, itemIndex);
       set((state) => {
         if (typeof state.data !== 'object' || state.data === null || Array.isArray(state.data)) {
           return state;
@@ -97,6 +102,8 @@ export function createFormDataStore(initial?: FormDataNode, options?: FormDataSt
         dot.set(resolvedPath, arr, copy);
         return { data: copy };
       });
+      const newArray = get().getArray(path, parentBinding, itemIndex);
+      options?.onChange?.(resolvedPath, newArray, previousArray);
     },
   }));
 }

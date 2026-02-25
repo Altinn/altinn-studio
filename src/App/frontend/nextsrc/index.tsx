@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { scan } from 'react-scan';
 import { RouterProvider } from 'react-router';
+import { scan } from 'react-scan';
 
 import '@digdir/designsystemet-css';
 import '@digdir/designsystemet-theme';
@@ -20,6 +20,10 @@ export const formClient = new FormClient({
   textResources: GlobalData.textResources?.resources,
   language: GlobalData.textResources?.language,
   applicationSettings: GlobalData.frontendSettings ?? null,
+});
+
+formClient.onFormDataChange((event) => {
+  console.log('[form-data-change]', event.path, event.previousValue, '->', event.value);
 });
 
 function App() {
