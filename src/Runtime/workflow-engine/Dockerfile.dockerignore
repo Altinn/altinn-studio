@@ -1,0 +1,6 @@
+# Keep src/ build context minimal for workflow-engine image.
+**
+!common/**
+!Runtime/workflow-engine/**
+**/bin
+**/obj
