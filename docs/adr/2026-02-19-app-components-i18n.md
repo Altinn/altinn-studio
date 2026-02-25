@@ -1,12 +1,12 @@
 # Internationalization in app-components
 
-- Status: Proposed
+- Status: Accepted
 - Deciders: Team
 - Date: 19.02.2026
 
 ## Result
 
-A1: A scoped context internal to `src/app-components/` exposes a minimal translation function. The wider app wires it up once via a bridge component placed inside `TextResourcesProvider`.
+A1: A scoped context internal to `src/app-components/` exposes a minimal translation function and a translation React Component. The wider app wires them up once via a bridge component placed inside `GlobalFormDataReadersProvider`.
 
 ## Problem context
 
