@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioConfigCard, StudioProperty } from '@studio/components';
+import { StudioConfigCard, StudioLabel, StudioProperty } from '@studio/components';
 import {
   type Scope,
   getCardLabel,
@@ -13,7 +13,6 @@ import { ValidateCardContent } from './ValidateCardContent/ValidateCardContent';
 import type { InternalConfigState } from './utils/ValidateNavigationTypes';
 
 export type ValidateNavigationConfigProps = {
-  propertyLabel: string;
   scope: Scope;
   config?: InternalConfigState;
   onSave: (config: InternalConfigState) => void;
@@ -21,19 +20,23 @@ export type ValidateNavigationConfigProps = {
 };
 
 export const ValidateNavigationConfig = ({
-  propertyLabel,
   scope,
   config,
   onSave,
   onDelete,
 }: ValidateNavigationConfigProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
+  const { t } = useTranslation();
+
+  const getButtonLabel = (currentConfig: InternalConfigState) => {
+    return !currentConfig && t('ux_editor.settings.navigation_validation_button_rule_undefined');
+  };
 
   if (!isEditMode) {
     return (
       <StudioProperty.Button
         onClick={() => setIsEditMode(true)}
-        property={propertyLabel}
+        property={getButtonLabel(config)}
         value={config && <DisplayValues {...config} />}
         className={classes.configWrapper}
       />
@@ -108,11 +111,17 @@ const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: Valida
 
 const DisplayValues = (config: InternalConfigState) => {
   const valueToDisplay = getValuesToDisplay(config);
+  const { t } = useTranslation();
+  const translateKeyToDisplay = (key: string) => {
+    return t(`ux_editor.settings.navigation_validation_view_mode_label_${key}`);
+  };
 
   return (
     <div>
       {Object.entries(valueToDisplay).map(([key, value]) => (
-        <div key={key}> {value}</div>
+        <div key={key}>
+          <StudioLabel>{translateKeyToDisplay(key)}:</StudioLabel> {value}
+        </div>
       ))}
     </div>
   );

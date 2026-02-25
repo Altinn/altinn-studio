@@ -25,7 +25,6 @@ export const ValidateAllTasksConfig = () => {
 
   return (
     <ValidateNavigationConfig
-      propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
       scope={Scope.AllTasks}
       config={config}
       onSave={handleSave}
