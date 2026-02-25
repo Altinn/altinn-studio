@@ -20,6 +20,7 @@ const syntheticReleaseBypassChangelog = `# Changelog
 ## [1.0.0] - 2025-01-01
 
 ### Added
+
 - Initial release
 `
 
@@ -45,6 +46,7 @@ func TestRunValidation(t *testing.T) {
 ## [1.0.0] - 2025-01-01
 
 ### Added
+
 - Initial
 `)
 		base := revParseHead(t, repo)
@@ -54,11 +56,13 @@ func TestRunValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Fixed
+
 - Validation entry
 
 ## [1.0.0] - 2025-01-01
 
 ### Added
+
 - Initial
 `)
 		runGitCmd(t, repo, "add", ".")
@@ -82,11 +86,13 @@ func TestRunValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Existing
 
 ## [1.0.0] - 2025-01-01
 
 ### Added
+
 - Initial
 `)
 		base := revParseHead(t, repo)
@@ -96,11 +102,13 @@ func TestRunValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Existing
 
 ## [1.0.0] - 2025-01-01
 
 ### Added
+
 - Initial (edited below unreleased)
 `)
 		runGitCmd(t, repo, "add", ".")
@@ -127,6 +135,7 @@ func TestRunValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Promote me
 `)
 		base := revParseHead(t, repo)
@@ -138,6 +147,7 @@ func TestRunValidation(t *testing.T) {
 ## [1.0.0] - 2025-01-01
 
 ### Added
+
 - Promote me
 `)
 		runGitCmd(t, repo, "add", ".")
@@ -161,6 +171,7 @@ func TestRunValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Promote me
 `)
 		base := revParseHead(t, repo)
@@ -172,6 +183,7 @@ func TestRunValidation(t *testing.T) {
 ## [1.0.0] - 2025-01-01
 
 ### Added
+
 - Unrelated release entry
 `)
 		runGitCmd(t, repo, "add", ".")
@@ -203,11 +215,13 @@ func TestRunValidation(t *testing.T) {
 ## [1.1.0] - 2025-02-01
 
 ### Added
+
 - Fake release
 
 ## [1.0.0] - 2025-01-01
 
 ### Added
+
 - Initial release
 `)
 		runGitCmd(t, repo, "add", ".")
@@ -234,6 +248,7 @@ func TestRunValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Existing
 `)
 		base := revParseHead(t, repo)
@@ -262,6 +277,7 @@ func TestRunValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Existing
 `)
 		base := revParseHead(t, repo)
@@ -294,6 +310,7 @@ func TestRunValidationWithDeps_ValidationErrors(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Existing
 `)
 	t.Chdir(repo)

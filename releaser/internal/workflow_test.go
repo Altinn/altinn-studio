@@ -125,6 +125,7 @@ func TestWorkflow_Run_StableChecksOutReleaseBranch(t *testing.T) {
 ## [v1.2.3] - 2025-01-01
 
 ### Added
+
 - Test entry
 `)
 
@@ -176,6 +177,7 @@ func TestWorkflow_Run_CleansOutputDirBeforeCollectingAssets(t *testing.T) {
 ## [v1.2.3] - 2025-01-01
 
 ### Added
+
 - Test entry
 `)
 
@@ -228,6 +230,7 @@ func TestWorkflow_Run_DirtyWorkingTree(t *testing.T) {
 ## [v1.2.3] - 2025-01-01
 
 ### Added
+
 - Test entry
 `)
 
