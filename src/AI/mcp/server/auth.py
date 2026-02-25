@@ -22,7 +22,7 @@ def get_request_token(headers: dict) -> Optional[str]:
         Authorization: Bearer ghp_abc123 -> Returns: ghp_abc123
         Authorization: token ghp_abc123 -> Returns: ghp_abc123
     """
-    auth_header = headers.get("authorization", headers.get("Authorization", ""))
+    auth_header = headers.get("authorization", "")
 
     # Support Bearer token (OAuth 2.0 standard)
     if auth_header.startswith("Bearer "):
@@ -78,3 +78,18 @@ def get_gitea_token_with_fallback(headers: Optional[dict] = None) -> str:
         "1. Include 'Authorization: Bearer <token>' header in your request (multi-tenant), or\n"
         "2. Set GITEA_API_KEY in .env file (single-tenant/local dev)"
     )
+
+
+def get_gitea_token_or_none(headers: Optional[dict] = None) -> Optional[str]:
+    """Get Gitea API token without raising an error if not found.
+
+    Args:
+        headers: Optional HTTP headers dictionary
+
+    Returns:
+        The token string or None if not available
+    """
+    try:
+        return get_gitea_token_with_fallback(headers)
+    except ValueError:
+        return None

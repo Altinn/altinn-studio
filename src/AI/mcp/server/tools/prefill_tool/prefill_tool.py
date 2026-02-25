@@ -54,15 +54,45 @@ def _format_schema(schema: Dict[str, Any]) -> str:
 @register_tool(
     name="prefill_tool",
     description="""
-This tool provides documentation on implementing data prefill (prepopulating form fields with data from external sources) functionality in Altinn applications.
-Use this tool when you need to implement form prefilling functionality, understand data sources for prefill, or configuring prefill settings.
+Returns static documentation on data prefill functionality in Altinn applications.
 
-It is crucial to consider the different data sources and which one is the correct one in the prefill context. 
-For example, the userProfile data source refers to the user submitting the form, but also contains information about the represented person or organization. 
+## Purpose
+Understand how to pre-populate form fields with data from external sources.
 
-Prefill configurations must match the data structure defined with the datamodel_tool.
+## No Parameters Required
+Returns comprehensive static documentation + schema reference - call ONCE per session.
 
-No query parameter is needed as this tool returns static documentation that covers all aspects of Altinn prefill functionality.
+## Documentation Covers
+- Prefill configuration file format (prefill.json)
+- Available data sources:
+  - `userProfile`: Current user's profile data
+  - `party`: Party (person/organization) data
+  - `instanceOwner`: Instance owner information
+  - `register`: Data from national registers
+- Field mapping syntax
+- Conditional prefill logic
+
+## File Location
+Prefill configuration: `App/config/prefill/prefill.json`
+
+## Data Source Considerations
+⚠️ `userProfile` refers to the SUBMITTING user, which may differ from the subject of the form
+⚠️ When representing an organization, party data contains org info, not user info
+⚠️ Prefill fields must match your datamodel structure
+
+## When to Use
+✅ To understand prefill configuration options
+✅ When implementing automatic form field population
+✅ To learn about available data sources
+✅ When debugging prefill issues
+
+## When NOT to Use
+❌ To understand datamodel structure (use `datamodel_tool` instead)
+❌ Multiple times in same session (returns identical static content)
+
+## Related Tools
+- `datamodel_tool`: Prefill fields must match datamodel structure
+- `layout_components_tool`: Components receive prefilled data via dataModelBindings
 """,
     title="Prefill Tool",
     annotations=ToolAnnotations(

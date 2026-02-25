@@ -1,0 +1,48 @@
+name: Releaser - Build and test
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - "releaser/**"
+      - ".github/workflows/releaser-build-test.yml"
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build, lint and unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: releaser
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6
+        with:
+          go-version-file: releaser/go.mod
+          cache-dependency-path: releaser/go.sum
+
+      - name: Build
+        run: make build
+
+      - name: Lint
+        run: make lint
+
+      - name: Run unit tests
+        run: make test
+
+      - name: Run e2e tests
+        run: make test-e2e
+
+      - name: Upload e2e test logs
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: releaser-e2e-test-logs
+          path: releaser/test/e2e/_logs/
+          if-no-files-found: ignore
