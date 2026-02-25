@@ -17,7 +17,8 @@ internal sealed record DashboardStepDto(
     DateTimeOffset? BackoffUntil,
     DateTimeOffset CreatedAt,
     DateTimeOffset? ExecutionStartedAt,
-    DateTimeOffset? UpdatedAt
+    DateTimeOffset? UpdatedAt,
+    bool StateChanged
 );
 
 internal sealed record DashboardWorkflowDto(
@@ -45,7 +46,7 @@ internal static class DashboardMapper
     internal static DashboardInstanceDto MapInstance(InstanceInformation info) =>
         new(info.Org, info.App, info.InstanceOwnerPartyId, info.InstanceGuid);
 
-    internal static DashboardStepDto MapStep(Step step) =>
+    internal static DashboardStepDto MapStep(Step step, bool stateChanged) =>
         new(
             step.IdempotencyKey,
             step.OperationId,
@@ -59,11 +60,25 @@ internal static class DashboardMapper
             step.BackoffUntil,
             step.CreatedAt,
             step.ExecutionStartedAt,
-            step.UpdatedAt
+            step.UpdatedAt,
+            stateChanged
         );
 
-    internal static DashboardWorkflowDto MapWorkflow(Workflow workflow) =>
-        new(
+    internal static DashboardWorkflowDto MapWorkflow(Workflow workflow)
+    {
+        List<Step> ordered = workflow.Steps.OrderBy(s => s.ProcessingOrder).ToList();
+        var mapped = new List<DashboardStepDto>(ordered.Count);
+        string? prevState = workflow.InitialState;
+
+        foreach (Step step in ordered)
+        {
+            bool changed = step.StateOut is not null && step.StateOut != prevState;
+            mapped.Add(MapStep(step, changed));
+            if (step.StateOut is not null)
+                prevState = step.StateOut;
+        }
+
+        return new(
             workflow.IdempotencyKey,
             workflow.OperationId,
             workflow.Status.ToString(),
@@ -74,7 +89,8 @@ internal static class DashboardMapper
             workflow.UpdatedAt,
             workflow.StartAt,
             null,
-            workflow.InitialState is not null || workflow.Steps.Any(s => s.StateOut is not null),
-            workflow.Steps.OrderBy(s => s.ProcessingOrder).Select(MapStep).ToList()
+            workflow.InitialState is not null || ordered.Any(s => s.StateOut is not null),
+            mapped
         );
+    }
 }

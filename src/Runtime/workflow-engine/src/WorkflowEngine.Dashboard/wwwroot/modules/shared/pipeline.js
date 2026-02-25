@@ -59,6 +59,13 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     + ` onclick="openStepModal('${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','${esc(wf.createdAt)}')">`
     + `${stepIcon(step.status)}</div>`;
 
+  if (step.stateChanged) {
+    html += `<div class="step-state-badge"`
+      + ` title="State mutated"`
+      + ` onclick="openStepModal('${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','${esc(wf.createdAt)}','state')">`
+      + `</div>`;
+  }
+
   const sub = stepSubLabel(step);
   html += `<div class="step-label-wrap">`;
   html += `<div class="step-label" title="${esc(step.commandDetail)}">${esc(step.commandDetail)}</div>`;

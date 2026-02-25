@@ -280,7 +280,7 @@ window.switchStateView = (/** @type {HTMLElement} */ btn, /** @type {string} */ 
   }
 };
 
-window.openStepModal = async (wfKey, stepKey, stepName, createdAt) => {
+window.openStepModal = async (wfKey, stepKey, stepName, createdAt, initialTab) => {
   dom.modalTitle.textContent = stepName || 'Step Details';
   dom.modalTabs.innerHTML = '';
   dom.modalTabs.style.display = 'none';
@@ -303,6 +303,11 @@ window.openStepModal = async (wfKey, stepKey, stepName, createdAt) => {
       } catch { /* ignore */ }
     }
     renderStepDetail(data);
+    // Auto-switch to requested tab (e.g. 'state' from pipeline badge)
+    if (initialTab) {
+      const tabBtn = dom.modalTabs.querySelector(`.modal-tab[onclick*="'${initialTab}'"]`);
+      if (tabBtn) tabBtn.click();
+    }
   } catch (err) {
     dom.modalBody.innerHTML = `<div class="modal-loading">${esc(/** @type {Error} */ (err).message)}</div>`;
   }

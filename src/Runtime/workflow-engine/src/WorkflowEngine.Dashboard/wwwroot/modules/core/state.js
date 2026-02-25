@@ -19,6 +19,7 @@
  *   createdAt:      string,
  *   executionStartedAt: string | null,
  *   updatedAt:      string | null,
+ *   stateChanged:   boolean,
  * }} Step
  */
 

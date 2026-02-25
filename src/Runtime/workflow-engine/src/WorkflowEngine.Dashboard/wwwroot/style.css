@@ -324,6 +324,14 @@ body{min-height:100vh;padding:0}
 .step-circle.Failed{border-color:var(--red);color:var(--red);animation:shake 0.5s ease}
 .step-circle.Canceled{border-color:var(--gray);color:var(--gray);opacity:0.5}
 .step-circle[onclick]:hover{transform:scale(1.15)}
+.step-state-badge{
+  position:absolute;top:-1px;left:calc(50% + 18px);
+  width:8px;height:8px;border-radius:50%;
+  background:var(--orange);cursor:pointer;
+  user-select:none;z-index:2;
+  opacity:0.9;transition:opacity 0.15s,transform 0.15s;
+}
+.step-state-badge:hover{opacity:1;transform:scale(1.4)}
 .step-label-wrap{margin-top:8px;width:100%;min-height:28px}
 .step-label{font-size:12px;color:var(--text-dim);text-align:center;white-space:nowrap}
 .step-sublabel{font-size:11px;color:var(--text-dim);opacity:0.6;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
