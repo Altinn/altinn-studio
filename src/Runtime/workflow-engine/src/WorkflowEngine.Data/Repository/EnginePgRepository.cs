@@ -492,7 +492,6 @@ internal sealed class EnginePgRepository : IEngineRepository
                     workflowEntry.Property(e => e.Status).IsModified = true;
                     workflowEntry.Property(e => e.UpdatedAt).IsModified = true;
                     workflowEntry.Property(e => e.EngineTraceId).IsModified = true;
-                    workflowEntry.Property(e => e.State).IsModified = true;
 
                     foreach (var step in steps)
                     {
@@ -503,6 +502,7 @@ internal sealed class EnginePgRepository : IEngineRepository
                         stepEntry.Property(e => e.BackoffUntil).IsModified = true;
                         stepEntry.Property(e => e.RequeueCount).IsModified = true;
                         stepEntry.Property(e => e.UpdatedAt).IsModified = true;
+                        stepEntry.Property(e => e.StateOut).IsModified = true;
                     }
 
                     await _context.SaveChangesAsync(ct);

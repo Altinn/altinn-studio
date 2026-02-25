@@ -112,6 +112,15 @@ internal class WorkflowExecutor : IWorkflowExecutor
         using var httpClient = GetAuthorizedAppClient(workflow.InstanceInformation);
         httpClient.Timeout = command.MaxExecutionTime ?? _engineSettings.DefaultStepCommandTimeout;
 
+        var stateIn =
+            step.ProcessingOrder == 0
+                ? workflow.InitialState
+                : workflow
+                    .Steps.Where(s => s.ProcessingOrder < step.ProcessingOrder)
+                    .OrderByDescending(s => s.ProcessingOrder)
+                    .Select(s => s.StateOut)
+                    .FirstOrDefault(s => s is not null);
+
         var payload = new AppCallbackPayload
         {
             CommandKey = command.CommandKey,
@@ -120,7 +129,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 workflow.InstanceLockKey
                 ?? throw new InvalidOperationException("Missing InstanceLockKey for app callback payload"),
             Payload = command.Payload,
-            State = workflow.State,
+            State = stateIn,
         };
         var endpoint = command.CommandKey.ToUri(UriKind.Relative);
         using var jsonPayload = JsonContent.Create(payload);
@@ -136,7 +145,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
             {
                 var callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(body);
                 if (callbackResponse?.State is not null)
-                    workflow.State = callbackResponse.State;
+                    step.StateOut = callbackResponse.State;
             }
             return ExecutionResult.Success();
         }

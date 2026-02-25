@@ -498,7 +498,7 @@ body{min-height:100vh;padding:0}
 .modal-overlay.open{display:flex}
 .modal{
   background:var(--bg2);border:1px solid var(--border);border-radius:12px;
-  max-width:900px;width:90%;max-height:80vh;display:flex;flex-direction:column;
+  max-width:1200px;width:94%;max-height:85vh;display:flex;flex-direction:column;
   box-shadow:var(--shadow-popup);
 }
 .modal-header{
@@ -511,11 +511,35 @@ body{min-height:100vh;padding:0}
   padding:4px 8px;border-radius:4px;transition:color 0.2s;
 }
 .modal-close:hover{color:var(--text-bright)}
+/* ── Modal tabs (Details / Payload / State) ──────────────── */
+/* ── Modal tabs (Details / Payload / State) ──────────────── */
+.modal-tabs{
+  display:flex;gap:0;border-bottom:1px solid var(--border);
+  flex-shrink:0;padding:0 20px;background:var(--bg2);
+}
+.modal-tab{
+  background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--text-dim);font-family:var(--font);font-size:12px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;cursor:pointer;
+  padding:8px 18px;transition:all 0.15s;margin-bottom:-1px;
+}
+.modal-tab:hover{color:var(--text)}
+.modal-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.modal-tab-panel{display:none}
+.modal-tab-panel.active{display:block}
+.modal-subtabs{
+  display:flex;gap:0;padding:6px 20px;border-bottom:1px solid var(--border);
+  flex-shrink:0;background:var(--bg2);
+}
+
 .modal-body{padding:20px;overflow-y:auto;flex:1}
 .modal-body pre{
   background:var(--bg);border:1px solid var(--border);border-radius:8px;
   padding:16px;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--text);
   white-space:pre-wrap;word-break:break-word;
+}
+.modal-body pre.diff-cell{
+  border:none;border-radius:0;padding:0 16px;font-size:12px;line-height:1.3;
 }
 .modal-body .json-key{color:var(--cyan)}
 .modal-body .json-string{color:var(--green)}
@@ -555,6 +579,76 @@ body{min-height:100vh;padding:0}
 .modal-grafana-link:hover{
   background:rgba(var(--cyan-rgb),0.08);border-color:var(--cyan);
 }
+
+/* ── State tabs (diff / in / out toggle) ─────────────────── */
+.state-tabs{display:flex;gap:0;margin:8px 0}
+.state-tab{
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--text-dim);font-family:var(--font);font-size:11px;font-weight:600;
+  letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;
+  padding:4px 14px;transition:all 0.15s;
+}
+.state-tab:first-child{border-radius:4px 0 0 4px}
+.state-tab:last-child{border-radius:0 4px 4px 0;margin-left:-1px}
+.state-tab:not(:first-child):not(:last-child){margin-left:-1px}
+.state-tab:hover{color:var(--text);border-color:var(--text-dim);z-index:1;position:relative}
+.state-tab.active{color:var(--cyan);border-color:var(--cyan);background:rgba(var(--cyan-rgb),0.08);z-index:2;position:relative}
+.state-view{display:none}
+.state-view.active{display:block}
+
+/* ── Diff view (side-by-side) ─────────────────────────────── */
+.diff-block{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.diff-header{display:flex}
+.diff-header .diff-col-header{flex:1;min-width:0;padding-left:48px}
+.diff-col-header{
+  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text-dim);padding:6px 16px;border-bottom:1px solid var(--border);
+  background:var(--bg2);
+}
+.diff-header .diff-col-header:first-child{border-right:1px solid var(--border)}
+.diff-row{display:flex}
+.diff-ln{
+  width:32px;flex-shrink:0;
+  font-size:11px;line-height:1.3;font-family:var(--font-mono,'Consolas','Monaco',monospace);
+  color:var(--text-dim);opacity:0.5;text-align:right;
+  padding:0 6px 0 0;user-select:none;align-self:flex-start;
+}
+.diff-gutter{
+  width:3px;flex-shrink:0;
+  background:var(--border);
+}
+.diff-cell{
+  flex:1;min-width:0;
+  margin:0;padding:0 12px;font-size:12px;line-height:1.3;
+  background:var(--bg);color:var(--text);white-space:pre-wrap;word-break:break-word;
+  border:none;border-radius:0;font-family:var(--font-mono,'Consolas','Monaco',monospace);
+}
+pre.diff-add{background:rgba(var(--green-rgb),0.12);color:var(--green)}
+pre.diff-remove{background:rgba(var(--red-rgb),0.12);color:var(--red)}
+.diff-unchanged{font-size:12px;color:var(--text-dim);font-style:italic;padding:8px 0}
+
+/* ── State button ────────────────────────────────────────── */
+.state-btn{font-size:11px;font-weight:700;font-family:var(--font);letter-spacing:0}
+
+/* ── State trail entries ─────────────────────────────────── */
+.state-entry{margin-bottom:16px}
+.state-entry:last-child{margin-bottom:0}
+.state-entry-label{
+  font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text-dim);margin-bottom:6px;
+}
+.state-entry-empty{font-size:12px;color:var(--text-dim);font-style:italic}
+
+/* ── Pre-wrap with copy button ───────────────────────────── */
+.pre-wrap{position:relative}
+.pre-copy{
+  position:absolute;top:8px;right:8px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:4px;
+  color:var(--text-dim);font-size:14px;cursor:pointer;
+  padding:2px 6px;transition:all 0.15s;line-height:1;
+}
+.pre-copy:hover{color:var(--cyan);border-color:rgba(var(--cyan-rgb),0.4)}
+.pre-copy.copied{color:var(--green);border-color:var(--green)}
 
 /* ── Animations ───────────────────────────────────────────── */
 @keyframes pulse-glow{

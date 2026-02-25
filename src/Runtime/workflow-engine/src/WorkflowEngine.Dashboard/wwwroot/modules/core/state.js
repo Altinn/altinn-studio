@@ -43,6 +43,7 @@
  *   executionStartedAt: string | null,
  *   removedAt:      string | null,
  *   startAt:        string | null,
+ *   hasState:       boolean,
  *   steps:          Step[],
  * }} Workflow
  */
@@ -114,7 +115,12 @@ export const dom = {
   engineStatusLabel:/** @type {HTMLElement} */ (document.getElementById('engine-status-label')),
   modal:            /** @type {HTMLElement} */ (document.getElementById('step-modal')),
   modalTitle:       /** @type {HTMLElement} */ (document.getElementById('modal-title')),
+  modalTabs:        /** @type {HTMLElement} */ (document.getElementById('modal-tabs')),
+  modalSubtabs:     /** @type {HTMLElement} */ (document.getElementById('modal-subtabs')),
   modalBody:        /** @type {HTMLElement} */ (document.getElementById('modal-body')),
+  stateModal:       /** @type {HTMLElement} */ (document.getElementById('state-modal')),
+  stateTitle:       /** @type {HTMLElement} */ (document.getElementById('state-title')),
+  stateBody:        /** @type {HTMLElement} */ (document.getElementById('state-body')),
   themeToggle:      /** @type {HTMLElement} */ (document.getElementById('theme-toggle')),
   themeIcon:        /** @type {HTMLElement} */ (document.getElementById('theme-icon')),
   themeLabel:       /** @type {HTMLElement} */ (document.getElementById('theme-label')),

@@ -219,12 +219,26 @@ No active workflows
   </div>
 </div>
 
+<div class="modal-overlay" id="state-modal" onclick="if(event.target===this)closeStateModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="state-title">State Trail</h2>
+      <button class="modal-close" onclick="closeStateModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="state-body">
+      <div class="modal-loading">Loading...</div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="step-modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-header">
       <h2 id="modal-title">Step Details</h2>
       <button class="modal-close" onclick="closeModal()">&times;</button>
     </div>
+    <div class="modal-tabs" id="modal-tabs" style="display:none"></div>
+    <div class="modal-subtabs" id="modal-subtabs" style="display:none"></div>
     <div class="modal-body" id="modal-body">
       <div class="modal-loading">Loading...</div>
     </div>

@@ -51,7 +51,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [MaxLength(100)]
     public string? EngineTraceId { get; set; }
 
-    public string? State { get; set; }
+    public string? InitialState { get; set; }
 
     public ICollection<StepEntity> Steps { get; set; } = [];
 
@@ -74,7 +74,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             InstanceGuid = workflow.InstanceInformation.InstanceGuid,
             TraceContext = workflow.DistributedTraceContext,
             EngineTraceId = workflow.EngineTraceId,
-            State = workflow.State,
+            InitialState = workflow.InitialState,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
         };
 
@@ -99,7 +99,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             },
             DistributedTraceContext = TraceContext,
             EngineTraceId = EngineTraceId,
-            State = State,
+            InitialState = InitialState,
             Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(t => t.ToDomainModel(TraceContext)).ToList(),
         };
 }

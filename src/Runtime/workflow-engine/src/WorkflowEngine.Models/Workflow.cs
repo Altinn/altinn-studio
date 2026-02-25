@@ -7,7 +7,7 @@ public sealed record Workflow : PersistentItem
     public required InstanceInformation InstanceInformation { get; init; }
     public DateTimeOffset? StartAt { get; init; }
     public required IReadOnlyList<Step> Steps { get; init; }
-    public string? State { get; set; }
+    public string? InitialState { get; init; }
 
     internal Task? DatabaseTask { get; set; }
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
@@ -23,7 +23,7 @@ public sealed record Workflow : PersistentItem
             StartAt = engineRequest.StartAt,
             DistributedTraceContext = engineRequest.TraceContext,
             OperationId = engineRequest.OperationId,
-            State = engineRequest.State,
+            InitialState = engineRequest.State,
             Steps = engineRequest
                 .Steps.Select((step, i) => Step.FromRequest(engineRequest, step, engineRequest.CreatedAt, i))
                 .ToList(),
