@@ -106,6 +106,20 @@ export const runtimeGatewayDeploymentsRoute = async (req, res) => {
   );
 };
 
+export const runtimeGatewayCompatibilityDeploymentsRoute = async (req, res) => {
+  const { org, env } = req.params;
+  const release = req.query.labelSelector?.slice('release='.length);
+
+  const deployments = deploys
+    .filter((deploy) => deploy.envName === env && deploy.org === org)
+    .map((deploy) => ({
+      version: deploy.tagName,
+      release: `${deploy.org}-${deploy.app}`,
+    }));
+
+  res.json(deployments.filter((deploy) => !release || deploy.release === release));
+};
+
 export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
   const { org, env, app, origin } = req.params;
 

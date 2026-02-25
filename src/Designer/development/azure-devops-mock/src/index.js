@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import {
   buildRoute,
   buildsRoute,
+  runtimeGatewayCompatibilityDeploymentsRoute,
   runtimeGatewayDeploymentsRoute,
   runtimeGatewayDeploymentDetailsRoute,
 } from './routes/builds.js';
@@ -31,6 +32,10 @@ app.get('/environments.json', environmentsRoute);
 app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/origin/:origin/apps',
   runtimeGatewayDeploymentsRoute,
+);
+app.get(
+  '/apps/:org/:env/runtime/gateway/api/v1/deployments',
+  runtimeGatewayCompatibilityDeploymentsRoute,
 );
 app.get(
   '/apps/:org/:env/runtime/gateway/api/v1/deploy/apps/:app/:origin',

@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
@@ -60,27 +58,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 try
                 {
-                    var appDeployment = await _runtimeGatewayClient.GetAppDeployment(
+                    var deployments = await _runtimeGatewayClient.GetKubernetesDeploymentsAsync(
                         org,
-                        app,
                         AltinnEnvironment.FromName(env.Name),
+                        labelSelector: $"release={org}-{app}",
                         ct
                     );
-                    if (appDeployment is null)
+                    var deployment = deployments.FirstOrDefault();
+                    if (deployment is null)
                     {
+                        envActivity?.SetTag("deployment.found", false);
                         return null;
                     }
 
-                    return new KubernetesDeployment
-                    {
-                        EnvName = env.Name,
-                        Version = appDeployment.ImageTag,
-                        Release = $"{org}-{app}",
-                    };
-                }
-                catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
+                    envActivity?.SetTag("deployment.found", true);
+                    deployment.EnvName = env.Name;
+                    return deployment;
                 }
                 catch (Exception e) when (e is not OperationCanceledException)
                 {

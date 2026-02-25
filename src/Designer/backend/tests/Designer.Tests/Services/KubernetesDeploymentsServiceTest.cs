@@ -12,7 +12,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
-using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -34,14 +33,14 @@ namespace Designer.Tests.Services
             _runtimeGatewayClient = new Mock<IRuntimeGatewayClient>();
             _runtimeGatewayClient
                 .Setup(req =>
-                    req.GetAppDeployment(
+                    req.GetKubernetesDeploymentsAsync(
                         "ttd",
-                        It.IsAny<string>(),
                         It.IsAny<AltinnEnvironment>(),
+                        It.IsAny<string>(),
                         It.IsAny<CancellationToken>()
                     )
                 )
-                .ReturnsAsync(new AppDeployment("ttd", "at22", "app", "dev", "1", "latest"));
+                .ReturnsAsync([new KubernetesDeployment { Release = "ttd-app", Version = "latest" }]);
         }
 
         [Theory]
@@ -58,23 +57,20 @@ namespace Designer.Tests.Services
             {
                 _runtimeGatewayClient
                     .Setup(req =>
-                        req.GetAppDeployment(
+                        req.GetKubernetesDeploymentsAsync(
                             org,
-                            app,
                             It.Is<AltinnEnvironment>(env => env.Name == environment.Name),
+                            It.Is<string>(selector => selector == $"release={org}-{app}"),
                             It.IsAny<CancellationToken>()
                         )
                     )
                     .ReturnsAsync(
-                        CreateAppDeployment(
-                            org,
-                            app,
-                            environment.Name,
-                            kubernetesDeployments
-                                .FirstOrDefault(deployment => deployment.EnvName == environment.Name)
-                                ?.Version
-                                ?? "latest"
-                        )
+                        CreateDeploymentsResponse(kubernetesDeployments, environment.Name)
+                            .Select(d =>
+                            {
+                                d.Release = $"{org}-{app}";
+                                return d;
+                            })
                     );
             }
 
@@ -91,7 +87,7 @@ namespace Designer.Tests.Services
             );
 
             // Assert
-            Assert.Equal(4, kubernetesDeploymentList.Count);
+            Assert.Equal(2, kubernetesDeploymentList.Count);
             Assert.All(
                 kubernetesDeploymentList,
                 deployment =>
@@ -113,20 +109,20 @@ namespace Designer.Tests.Services
                 .ReturnsAsync(environments);
             _runtimeGatewayClient
                 .Setup(req =>
-                    req.GetAppDeployment(
+                    req.GetKubernetesDeploymentsAsync(
                         org,
-                        app,
                         It.Is<AltinnEnvironment>(env => env.Name == environments[0].Name),
+                        It.Is<string>(selector => selector == $"release={org}-{app}"),
                         It.IsAny<CancellationToken>()
                     )
                 )
-                .ReturnsAsync(CreateAppDeployment(org, app, environments[0].Name, "123"));
+                .ReturnsAsync([new KubernetesDeployment { Release = $"{org}-{app}", Version = "123" }]);
             _runtimeGatewayClient
                 .Setup(req =>
-                    req.GetAppDeployment(
+                    req.GetKubernetesDeploymentsAsync(
                         org,
-                        app,
                         It.Is<AltinnEnvironment>(env => env.Name == environments[1].Name),
+                        It.Is<string>(selector => selector == $"release={org}-{app}"),
                         It.IsAny<CancellationToken>()
                     )
                 )
@@ -202,7 +198,13 @@ namespace Designer.Tests.Services
             return JsonConvert.DeserializeObject<List<KubernetesDeployment>>(deployments);
         }
 
-        private static AppDeployment CreateAppDeployment(string org, string app, string env, string imageTag) =>
-            new(org, env, app, "dev", "1", imageTag);
+        private static IEnumerable<KubernetesDeployment> CreateDeploymentsResponse(
+            IEnumerable<KubernetesDeployment> deployments,
+            string envName
+        )
+        {
+            var deployment = deployments.FirstOrDefault(d => d.EnvName == envName);
+            return deployment is null ? [] : [deployment];
+        }
     }
 }
