@@ -79,15 +79,75 @@ public interface IAppResources
     string GetClassRefForLogicDataType(string dataType);
 
     /// <summary>
-    /// Gets the UI configuration, which specifies which sub-folders are in the ui/ directory and their Settings.json
+    /// Gets the the layout sets
     /// </summary>
-    UiConfiguration? GetUiConfiguration();
+    /// <returns>The layout sets</returns>
+    [Obsolete(
+        "There is no mapping between task and layout folder anymore, all folders are named the same as the task ID.",
+        error: true
+    )]
+    string? GetLayoutSetsString();
+
+    /// <summary>
+    /// Get the layout set definition. Return null if no layout sets exists
+    /// </summary>
+    [Obsolete(
+        "There is no mapping between task and layout folder anymore, all folders are named the same as the task ID.",
+        error: true
+    )]
+    object? GetLayoutSets();
 
     /// <summary>
     /// Gets the footer layout
     /// </summary>
     /// <returns>The footer layout</returns>
     Task<string?> GetFooter();
+
+    /// <summary>
+    /// Get the layout set definition for a given task. Return null if no layout sets exists
+    /// </summary>
+    [Obsolete("Use GetLayoutsInFolder or GetLayoutSettingsForFolder instead", error: true)]
+    LayoutSet? GetLayoutSetForTask(string taskId);
+
+    /// <summary>
+    /// Gets the layouts for av given layoutset
+    /// </summary>
+    /// <param name="layoutSetId">The layot set id</param>
+    /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
+    [Obsolete("Use GetLayoutsInFolder instead", error: true)]
+    string GetLayoutsForSet(string layoutSetId);
+
+    /// <summary>
+    /// Gets the full layout model for the task
+    /// </summary>
+    [Obsolete("Use GetLayoutModelForFolder instead", error: true)]
+    LayoutModel? GetLayoutModelForTask(string taskId);
+
+    /// <summary>
+    /// Gets the full layout model for the optional set
+    /// </summary>
+    [Obsolete("Use GetLayoutModelForFolder instead", error: true)]
+    LayoutModel GetLayoutModel(string? layoutSetId = null);
+
+    /// <summary>
+    /// Gets the the layouts settings for a layoutset
+    /// </summary>
+    /// <param name="layoutSetId">The layot set id</param>
+    /// <returns>The layout settings as a JSON string</returns>
+    [Obsolete("Use GetLayoutSettingsForFolder instead", error: true)]
+    string? GetLayoutSettingsStringForSet(string layoutSetId);
+
+    /// <summary>
+    /// Gets the the layouts settings for a layoutset
+    /// </summary>
+    /// <returns>The layout settings</returns>
+    [Obsolete("Use GetLayoutSettingsForFolder instead", error: true)]
+    LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
+
+    /// <summary>
+    /// Gets the UI configuration, which specifies which sub-folders are in the ui/ directory and their Settings.json
+    /// </summary>
+    UiConfiguration? GetUiConfiguration();
 
     /// <summary>
     /// Gets the layouts in a given subfolder in ui/

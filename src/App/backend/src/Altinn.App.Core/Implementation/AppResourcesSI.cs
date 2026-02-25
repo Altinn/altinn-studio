@@ -189,6 +189,72 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
+    [Obsolete(
+        "There is no mapping between task and layout folder anymore, all folders are named the same as the task ID.",
+        error: true
+    )]
+    public string? GetLayoutSetsString()
+    {
+        throw new NotImplementedException(
+            "Obsolete. There is no mapping between task and layout folder anymore, all folders are named the same as the task ID."
+        );
+    }
+
+    /// <inheritdoc />
+    [Obsolete(
+        "There is no mapping between task and layout folder anymore, all folders are named the same as the task ID.",
+        error: true
+    )]
+    public object? GetLayoutSets()
+    {
+        throw new NotImplementedException(
+            "Obsolete. There is no mapping between task and layout folder anymore, all folders are named the same as the task ID."
+        );
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use GetLayoutsInFolder or GetLayoutSettingsForFolder instead", error: true)]
+    public LayoutSet? GetLayoutSetForTask(string taskId)
+    {
+        throw new NotImplementedException("Obsolete. Use GetLayoutsInFolder or GetLayoutSettingsForFolder instead.");
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use GetLayoutsInFolder instead", error: true)]
+    public string GetLayoutsForSet(string layoutSetId)
+    {
+        throw new NotImplementedException("Obsolete. Use GetLayoutsInFolder instead.");
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use GetLayoutModelForFolder instead", error: true)]
+    public LayoutModel GetLayoutModel(string? layoutSetId = null)
+    {
+        throw new NotImplementedException("Obsolete. Use GetLayoutModelForFolder instead.");
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use GetLayoutModelForFolder instead", error: true)]
+    public LayoutModel? GetLayoutModelForTask(string taskId)
+    {
+        throw new NotImplementedException("Obsolete. Use GetLayoutModelForFolder instead.");
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use GetLayoutSettingsForFolder instead", error: true)]
+    public string? GetLayoutSettingsStringForSet(string layoutSetId)
+    {
+        throw new NotImplementedException("Obsolete. Use GetLayoutSettingsForFolder instead.");
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use GetLayoutSettingsForFolder instead", error: true)]
+    public LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId)
+    {
+        throw new NotImplementedException("Obsolete. Use GetLayoutSettingsForFolder instead.");
+    }
+
+    /// <inheritdoc />
     public string GetLayoutsInFolder(string folderId)
     {
         using var activity = _telemetry?.StartGetLayoutsForSetActivity();
@@ -243,11 +309,10 @@ public class AppResourcesSI : IAppResources
             return null;
         }
 
-        foreach (var folderPath in Directory.GetDirectories(uiRoot))
+        foreach (var folderId in Directory.GetDirectories(uiRoot).Select(Path.GetFileName))
         {
-            var folderId = Path.GetFileName(folderPath);
-            var settings = GetUiFolderSettings(folderId);
-            if (settings is null)
+            var settings = folderId is null ? null : GetUiFolderSettings(folderId);
+            if (settings is null || folderId is null)
             {
                 continue;
             }
