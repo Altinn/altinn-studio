@@ -1,6 +1,6 @@
 import type { StudioSuggestionItem } from '@studio/components';
 
-export type ValidateConfigState = {
+export type InternalConfigState = {
   types: StudioSuggestionItem[];
   pageScope: StudioSuggestionItem;
   pages?: StudioSuggestionItem[];
@@ -11,4 +11,9 @@ export type ValidateConfigState = {
 export type ExternalConfigState = {
   show: string[];
   page: string;
-}; // Will be used to store config in the layout.json in next PR, can be adapted as needed
+  tasks?: string[];
+  task?: string;
+  pages?: string[];
+};
+
+export type ExternalConfigWithId = ExternalConfigState & { id: string };

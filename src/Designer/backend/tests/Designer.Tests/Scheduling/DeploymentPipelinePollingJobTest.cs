@@ -103,6 +103,28 @@ public class DeploymentPipelinePollingJobTest
         fixture.MockAzureDevOpsBuildClient.Verify(x => x.Get("12345", It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task Execute_WithInvalidTraceParent_DoesNotThrow()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var jobExecutionContext = JobExecutionContextFactory(PipelineType.Deploy, traceParent: "invalid");
+
+        fixture
+            .MockAzureDevOpsBuildClient.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new BuildEntity { Status = BuildStatus.Completed, Result = BuildResult.Succeeded });
+
+        fixture
+            .MockDeploymentRepository.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(new DeploymentEntity { Build = new BuildEntity { Status = BuildStatus.None } });
+
+        // Act
+        await fixture.Service.Execute(jobExecutionContext);
+
+        // Assert
+        fixture.MockAzureDevOpsBuildClient.Verify(x => x.Get("12345", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private sealed record Fixture(
         DeploymentPipelinePollingJob DeploymentPipelinePollingJob,
         Mock<IAltinnStorageAppMetadataClient> MockStorageAppMetadataClient,
