@@ -12,6 +12,7 @@ import (
 var logger = log.NewComponent("config")
 
 const (
+	// EnvironmentLocaltest identifies localtest execution mode.
 	EnvironmentLocaltest = "localtest"
 )
 
@@ -64,6 +65,26 @@ func ReadConfig() *Config {
 		QueueSize:              queueSize,
 		BrowserRestartInterval: browserRestartInterval,
 	}
+}
+
+// ShouldConfigureOTel reports whether PDF3 should initialize OpenTelemetry exporters.
+// In localtest, exporters are opt-in to avoid noisy connection errors in default setup.
+func ShouldConfigureOTel(environment string) bool {
+	if environment != EnvironmentLocaltest {
+		return true
+	}
+
+	for _, key := range []string{
+		"OTEL_EXPORTER_OTLP_ENDPOINT",
+		"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+		"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+	} {
+		if val := os.Getenv(key); val != "" {
+			return true
+		}
+	}
+
+	return false
 }
 
 // HostParameters contains timeout values for runtime.NewHost

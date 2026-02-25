@@ -35,13 +35,24 @@ func main() {
 
 	baseLogger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
 
-	otelShutdown, err := telemetry.ConfigureOTel(context.Background())
-	if err != nil {
-		baseLogger.Error("Failed to initialize telemetry", "error", err)
-		os.Exit(1)
+	cfg := config.ReadConfig()
+	telemetryEnabled := config.ShouldConfigureOTel(cfg.Environment)
+	otelShutdown := func(context.Context) error { return nil }
+	if telemetryEnabled {
+		configuredShutdown, err := telemetry.ConfigureOTel(context.Background())
+		if err != nil {
+			baseLogger.Error("Failed to initialize telemetry", "error", err)
+			os.Exit(1)
+		}
+		otelShutdown = configuredShutdown
+	} else {
+		baseLogger.Info(
+			"Telemetry exporter disabled for localtest",
+			"environment", cfg.Environment,
+			"enable_with", "OTEL_EXPORTER_OTLP_ENDPOINT",
+		)
 	}
 
-	cfg := config.ReadConfig()
 	hostParams := config.ResolveHostParametersForEnvironment(cfg.Environment)
 
 	host := iruntime.NewHost(
@@ -109,7 +120,10 @@ func main() {
 	// The localtest harness will run on all dev machines
 	// We can avoid some overhead by just running the single container
 	if cfg.Environment == config.EnvironmentLocaltest {
-		http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", generateLocalPdfHandler(logger, gen)))
+		http.Handle(
+			"/pdf",
+			telemetry.WrapHandler("POST /pdf", generateLocalPdfHandler(logger, gen)),
+		)
 	} else {
 		http.Handle("/generate", telemetry.WrapHandler("POST /generate", generatePdfHandler(logger, gen)))
 	}
@@ -145,22 +159,27 @@ func main() {
 		logger.Info("Gracefully shut down HTTP server")
 	}
 
-	logger.Info("Shutting down telemetry")
-	telemetryShutdownTimeout := config.ResolveTelemetryShutdownTimeoutForEnvironment(cfg.Environment)
-	if telemetryShutdownTimeout == 0 {
-		logger.Info("Skipping graceful telemetry flush", "environment", cfg.Environment)
-	} else {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), telemetryShutdownTimeout)
-		defer cancel()
-		if err := otelShutdown(shutdownCtx); err != nil {
-			logger.Warn("Failed to gracefully shut down telemetry", "error", err)
+	if telemetryEnabled {
+		logger.Info("Shutting down telemetry")
+		telemetryShutdownTimeout := config.ResolveTelemetryShutdownTimeoutForEnvironment(cfg.Environment)
+		if telemetryShutdownTimeout == 0 {
+			logger.Info("Skipping graceful telemetry flush", "environment", cfg.Environment)
+		} else {
+			shutdownCtx, cancel := context.WithTimeout(context.Background(), telemetryShutdownTimeout)
+			defer cancel()
+			if err := otelShutdown(shutdownCtx); err != nil {
+				logger.Warn("Failed to gracefully shut down telemetry", "error", err)
+			}
 		}
 	}
 
 	logger.Info("Server shut down gracefully")
 }
 
-func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
+func generateLocalPdfHandler(
+	logger *slog.Logger,
+	gen types.PdfGenerator,
+) http.HandlerFunc {
 	assert.That(!iruntime.IsTestInternalsMode, "Localtest env should not run internals test mode")
 
 	return func(w http.ResponseWriter, r *http.Request) {
