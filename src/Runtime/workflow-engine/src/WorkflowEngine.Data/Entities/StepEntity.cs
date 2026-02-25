@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using WorkflowEngine.Data.Abstractions;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
@@ -63,8 +64,9 @@ internal sealed class StepEntity : IHasCommonMetadata
             RequeueCount = step.RequeueCount,
             ActorUserIdOrOrgNumber = step.Actor.UserIdOrOrgNumber,
             ActorLanguage = step.Actor.Language,
-            CommandJson = JsonSerializer.Serialize(step.Command),
-            RetryStrategyJson = step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy) : null,
+            CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
+            RetryStrategyJson =
+                step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
             MetadataJson = step?.Metadata,
         };
     }
@@ -72,10 +74,12 @@ internal sealed class StepEntity : IHasCommonMetadata
     public Step ToDomainModel()
     {
         var command =
-            JsonSerializer.Deserialize<Command>(CommandJson)
+            JsonSerializer.Deserialize<Command>(CommandJson, JsonOptions.Default)
             ?? throw new InvalidOperationException("Failed to deserialize CommandJson");
         var retryStrategy =
-            RetryStrategyJson != null ? JsonSerializer.Deserialize<RetryStrategy>(RetryStrategyJson) : null;
+            RetryStrategyJson != null
+                ? JsonSerializer.Deserialize<RetryStrategy>(RetryStrategyJson, JsonOptions.Default)
+                : null;
 
         return new Step
         {
