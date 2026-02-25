@@ -26,8 +26,6 @@ export function AppComponentsBridge({ children }: PropsWithChildren) {
   );
 }
 
-export function translationKey<K extends LooseAutocomplete<keyof FixedLanguageList> | undefined>(
-  key: K,
-): TranslationKey {
-  return key as TranslationKey;
+export function translationKey<K extends LooseAutocomplete<keyof FixedLanguageList> | undefined>(key: K) {
+  return key as unknown as K extends undefined ? undefined : TranslationKey;
 }
