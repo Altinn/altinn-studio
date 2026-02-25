@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-preview.1] - 2026-02-25
+
 ### Added
 
 - Initial implementation of studioctl CLI tool (#17841)
