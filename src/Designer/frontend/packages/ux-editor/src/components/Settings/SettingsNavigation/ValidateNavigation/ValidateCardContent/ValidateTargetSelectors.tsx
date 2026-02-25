@@ -1,11 +1,28 @@
 import React from 'react';
 import { StudioSuggestion, type StudioSuggestionItem } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
+import {
+  dummyDataPages,
+  dummyDataTasks,
+  getAvailablePages,
+  getAvailableTasks,
+} from '../utils/ValidateNavigationUtils';
 
-const tasks = ['Oppgave 1', 'Oppgave 2', 'Oppgave 3']; // Temporary mock list of tasks, extract from layout sets on next PR
+type RenderTaskOptionsProps = {
+  tasksWithRules?: string[];
+  selectedTasks?: string[];
+};
 
-const renderTaskOptions = () => {
-  return tasks.map((task) => (
+const RenderTaskOptions = ({ tasksWithRules, selectedTasks }: RenderTaskOptionsProps) => {
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: layoutSetsSchema } = useLayoutSetsQuery(org, app);
+  const layoutSets = layoutSetsSchema?.sets || [];
+  const availableTasks = getAvailableTasks(layoutSets, tasksWithRules, selectedTasks);
+
+  return availableTasks.map((task) => (
     <StudioSuggestion.Option key={task} value={task}>
       {task}
     </StudioSuggestion.Option>
@@ -28,7 +45,7 @@ export const TaskSelector = ({ selectedTask, onChange }: TaskSelectorProps) => {
       onSelectedChange={onChange}
       multiple={false}
     >
-      {renderTaskOptions()}
+      <RenderTaskOptions />
     </StudioSuggestion>
   );
 };
@@ -40,6 +57,9 @@ export type TasksSelectorProps = {
 
 export const TasksSelector = ({ selectedTasks, onChange }: TasksSelectorProps) => {
   const { t } = useTranslation();
+  const tasksWithRules = dummyDataTasks.map((config) => config.tasks).flat(); // this will be replaced with fetched query data in real implementation
+  const selectedTasksValues = selectedTasks.map((task) => task.value);
+
   return (
     <StudioSuggestion
       selected={selectedTasks}
@@ -48,7 +68,7 @@ export const TasksSelector = ({ selectedTasks, onChange }: TasksSelectorProps) =
       onSelectedChange={onChange}
       multiple
     >
-      {renderTaskOptions()}
+      <RenderTaskOptions tasksWithRules={tasksWithRules} selectedTasks={selectedTasksValues} />
     </StudioSuggestion>
   );
 };
@@ -61,24 +81,32 @@ export type PagesSelectorProps = {
 
 export const PagesSelector = ({ selectedPages, taskName, onChange }: PagesSelectorProps) => {
   const { t } = useTranslation();
-  const hasSelectedTask = Boolean(taskName);
-  const pages = ['Side 1', 'Side 2', 'Side 3']; // Temporary mock list of pages, extract from selected task on next PR
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, taskName);
+  const availablePages = getAvailablePages(
+    formLayouts,
+    dummyDataPages,
+    selectedPages?.map((p) => p.value),
+  ); // dummyDataPages is just to simulate the rules that are already set, in real implementation this will be replaced with fetched query data
+
+  const noAvailablePages = taskName && availablePages.length === 0;
+  const emptyText = noAvailablePages
+    ? t('ux_editor.settings.navigation_validation_specific_page_no_pages_available')
+    : t('ux_editor.settings.navigation_validation_specific_page_no_task_selected');
 
   return (
     <StudioSuggestion
       selected={selectedPages}
       label={t('ux_editor.settings.navigation_validation_specific_page_label')}
-      emptyText={t('ux_editor.settings.navigation_validation_specific_page_no_pages')}
+      emptyText={emptyText}
       onSelectedChange={onChange}
       multiple
     >
-      {hasSelectedTask
-        ? pages.map((page) => (
-            <StudioSuggestion.Option key={page} value={page}>
-              {page}
-            </StudioSuggestion.Option>
-          ))
-        : null}
+      {availablePages?.map((page) => (
+        <StudioSuggestion.Option key={page} value={page}>
+          {page}
+        </StudioSuggestion.Option>
+      ))}
     </StudioSuggestion>
   );
 };
