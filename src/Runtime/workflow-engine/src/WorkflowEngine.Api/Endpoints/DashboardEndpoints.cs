@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
@@ -42,10 +44,13 @@ internal static class DashboardEndpoints
 
                     var scheduledCount = 0;
                     var iteration = 0;
+                    string? previousFingerprint = null;
+                    var lastSendTime = Stopwatch.GetTimestamp();
+                    long minSendIntervalTicks = Stopwatch.Frequency / 20; // 50ms
 
                     while (!ct.IsCancellationRequested)
                     {
-                        if (iteration % 100 == 0) // refresh every ~5s
+                        if (iteration % 300 == 0) // refresh every ~5s
                         {
                             try
                             {
@@ -62,50 +67,67 @@ internal static class DashboardEndpoints
                         EngineHealthStatus status = engine.Status;
                         ConcurrencyLimiter.SlotStatus dbSlot = limiter.DbSlotStatus;
                         ConcurrencyLimiter.SlotStatus httpSlot = limiter.HttpSlotStatus;
-                        EngineSettings engineSettings = settings.Value;
+                        int inboxCount = engine.InboxCount;
                         IReadOnlyList<Workflow> workflows = engine.GetAllInboxWorkflows();
 
-                        var payload = new
-                        {
-                            timestamp = DateTimeOffset.UtcNow,
-                            engineStatus = new
-                            {
-                                running = status.HasFlag(EngineHealthStatus.Running),
-                                healthy = status.HasFlag(EngineHealthStatus.Healthy),
-                                idle = status.HasFlag(EngineHealthStatus.Idle),
-                                disabled = status.HasFlag(EngineHealthStatus.Disabled),
-                                queueFull = status.HasFlag(EngineHealthStatus.QueueFull),
-                            },
-                            capacity = new
-                            {
-                                inbox = new
-                                {
-                                    used = engine.InboxCount,
-                                    available = engineSettings.QueueCapacity - engine.InboxCount,
-                                    total = engineSettings.QueueCapacity,
-                                },
-                                db = new
-                                {
-                                    used = dbSlot.Used,
-                                    available = dbSlot.Available,
-                                    total = dbSlot.Total,
-                                },
-                                http = new
-                                {
-                                    used = httpSlot.Used,
-                                    available = httpSlot.Available,
-                                    total = httpSlot.Total,
-                                },
-                            },
+                        string fingerprint = BuildStreamFingerprint(
+                            status,
+                            inboxCount,
+                            dbSlot,
+                            httpSlot,
                             scheduledCount,
-                            workflows = workflows.Select(DashboardMapper.MapWorkflow),
-                        };
+                            workflows
+                        );
 
-                        string json = JsonSerializer.Serialize(payload, _jsonCompact);
-                        await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
-                        await ctx.Response.Body.FlushAsync(ct);
+                        long elapsed = Stopwatch.GetTimestamp() - lastSendTime;
+                        if (fingerprint != previousFingerprint && elapsed >= minSendIntervalTicks)
+                        {
+                            previousFingerprint = fingerprint;
+                            lastSendTime = Stopwatch.GetTimestamp();
+                            EngineSettings engineSettings = settings.Value;
 
-                        await Task.Delay(50, ct);
+                            var payload = new
+                            {
+                                timestamp = DateTimeOffset.UtcNow,
+                                engineStatus = new
+                                {
+                                    running = status.HasFlag(EngineHealthStatus.Running),
+                                    healthy = status.HasFlag(EngineHealthStatus.Healthy),
+                                    idle = status.HasFlag(EngineHealthStatus.Idle),
+                                    disabled = status.HasFlag(EngineHealthStatus.Disabled),
+                                    queueFull = status.HasFlag(EngineHealthStatus.QueueFull),
+                                },
+                                capacity = new
+                                {
+                                    inbox = new
+                                    {
+                                        used = inboxCount,
+                                        available = engineSettings.QueueCapacity - inboxCount,
+                                        total = engineSettings.QueueCapacity,
+                                    },
+                                    db = new
+                                    {
+                                        used = dbSlot.Used,
+                                        available = dbSlot.Available,
+                                        total = dbSlot.Total,
+                                    },
+                                    http = new
+                                    {
+                                        used = httpSlot.Used,
+                                        available = httpSlot.Available,
+                                        total = httpSlot.Total,
+                                    },
+                                },
+                                scheduledCount,
+                                workflows = workflows.Select(DashboardMapper.MapWorkflow),
+                            };
+
+                            string json = JsonSerializer.Serialize(payload, _jsonCompact);
+                            await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
+                            await ctx.Response.Body.FlushAsync(ct);
+                        }
+
+                        await Task.Delay(16, ct);
                     }
                 }
             )
@@ -387,5 +409,43 @@ internal static class DashboardEndpoints
             .ExcludeFromDescription();
 
         return app;
+    }
+
+    private static string BuildStreamFingerprint(
+        EngineHealthStatus status,
+        int inboxCount,
+        ConcurrencyLimiter.SlotStatus dbSlot,
+        ConcurrencyLimiter.SlotStatus httpSlot,
+        int scheduledCount,
+        IReadOnlyList<Workflow> workflows
+    )
+    {
+        var sb = new StringBuilder();
+        sb.Append((int)status)
+            .Append('|')
+            .Append(inboxCount)
+            .Append('|')
+            .Append(dbSlot.Used)
+            .Append('|')
+            .Append(httpSlot.Used)
+            .Append('|')
+            .Append(scheduledCount);
+
+        foreach (var wf in workflows.OrderBy(w => w.IdempotencyKey, StringComparer.Ordinal))
+        {
+            sb.Append('|').Append(wf.IdempotencyKey).Append(':').Append((int)wf.Status);
+
+            foreach (var step in wf.Steps.OrderBy(s => s.ProcessingOrder))
+            {
+                sb.Append(':')
+                    .Append((int)step.Status)
+                    .Append(':')
+                    .Append(step.RequeueCount)
+                    .Append(':')
+                    .Append(step.BackoffUntil?.Ticks ?? 0);
+            }
+        }
+
+        return sb.ToString();
     }
 }
