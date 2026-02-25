@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import classes from './ValidateNavigationConfig.module.css';
 import { ValidateCardContent } from './ValidateCardContent/ValidateCardContent';
 import type { InternalConfigState } from './utils/ValidateNavigationTypes';
+import cn from 'classnames';
 
 export type ValidateNavigationConfigProps = {
   scope: Scope;
@@ -38,7 +39,7 @@ export const ValidateNavigationConfig = ({
         onClick={() => setIsEditMode(true)}
         property={getButtonLabel(config)}
         value={config && <DisplayValues {...config} />}
-        className={classes.configWrapper}
+        className={cn(classes.configWrapper, { [classes.configDefined]: config })}
       />
     );
   }

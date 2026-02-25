@@ -2,3 +2,11 @@
   margin: var(--ds-size-1) 0;
   max-width: 100%;
 }
+
+.configDefined {
+  background-color: var(--ds-color-background-tinted);
+}
+
+.configDefined:hover {
+  background-color: var(--ds-color-surface-tinted);
+}
