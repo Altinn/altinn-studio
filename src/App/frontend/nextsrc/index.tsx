@@ -8,7 +8,9 @@ import '@digdir/designsystemet-theme';
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { ErrorBoundary } from 'nextsrc/core/ErrorBoundary';
 import { GlobalData } from 'nextsrc/core/globalData';
+import { RootErrorFallback } from 'nextsrc/core/RootErrorFallback';
 import { FormClient } from 'nextsrc/libs/form-client/form-client';
 import { FormClientProvider } from 'nextsrc/libs/form-client/react/provider';
 import { queryClient } from 'nextsrc/QueryClient';
@@ -32,12 +34,21 @@ function App() {
   }, []);
 
   return (
-    <FormClientProvider client={formClient}>
-      <QueryClientProvider client={queryClient}>
-        <ReactQueryDevtools initialIsOpen={false} />
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    </FormClientProvider>
+    <ErrorBoundary
+      fallback={(error, reset) => (
+        <RootErrorFallback
+          error={error}
+          reset={reset}
+        />
+      )}
+    >
+      <FormClientProvider client={formClient}>
+        <QueryClientProvider client={queryClient}>
+          <ReactQueryDevtools initialIsOpen={false} />
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </FormClientProvider>
+    </ErrorBoundary>
   );
 }
 

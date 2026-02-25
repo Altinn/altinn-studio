@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 
+import { ComponentErrorBoundary } from 'nextsrc/libs/form-engine/ComponentErrorBoundary';
 import { Accordion } from 'nextsrc/libs/form-engine/components/Accordion';
 import { AccordionGroup } from 'nextsrc/libs/form-engine/components/AccordionGroup';
 import { Alert } from 'nextsrc/libs/form-engine/components/Alert';
@@ -94,13 +95,14 @@ export const FormEngine = ({
     }
 
     return (
-      <Component
-        key={component.id}
-        component={component}
-        renderChildren={renderChildren}
-        parentBinding={parentBinding}
-        itemIndex={itemIndex}
-      />
+      <ComponentErrorBoundary key={component.id} componentId={component.id} componentType={component.type}>
+        <Component
+          component={component}
+          renderChildren={renderChildren}
+          parentBinding={parentBinding}
+          itemIndex={itemIndex}
+        />
+      </ComponentErrorBoundary>
     );
   }
 

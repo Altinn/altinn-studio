@@ -59,7 +59,7 @@ npx cypress open --env environment=docker
 |-------|------|--------|-------|
 | 0.1 | Move FormEngine to `libs/form-engine` | Done | |
 | 0.2 | Define change notification API on FormClient | Done | |
-| 0.3 | Error boundaries and error handling | Not started | |
+| 0.3 | Error boundaries and error handling | Done | |
 | 0.4 | Loading states | Not started | |
 | 0.5 | Auth and session keep-alive | Not started | |
 | 0.6 | Migrate options fetching to TanStack Query | Not started | |

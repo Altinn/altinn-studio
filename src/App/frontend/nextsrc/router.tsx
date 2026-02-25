@@ -23,9 +23,10 @@ export const router = createBrowserRouter(
     {
       element: <AppLayout />,
       HydrateFallback: () => null,
+      errorElement: <ErrorPage />,
       children: [
         { path: routes.root, loader: entryRedirectLoader(), errorElement: <ErrorPage /> },
-        { path: routes.instance, element: <InstancePage />, loader: instanceLoader },
+        { path: routes.instance, element: <InstancePage />, loader: instanceLoader, errorElement: <ErrorPage /> },
         {
           path: routes.instanceSelection,
           element: <InstanceSelectionPage />,
@@ -38,9 +39,9 @@ export const router = createBrowserRouter(
           loader: partySelectionLoader,
           errorElement: <ErrorPage />,
         },
-        { path: routes.stateless, element: <StatelessPage /> },
-        { path: routes.task, element: <Task />, loader: taskLoader },
-        { path: routes.page, element: <Page />, loader: pageLoader },
+        { path: routes.stateless, element: <StatelessPage />, errorElement: <ErrorPage /> },
+        { path: routes.task, element: <Task />, loader: taskLoader, errorElement: <ErrorPage /> },
+        { path: routes.page, element: <Page />, loader: pageLoader, errorElement: <ErrorPage /> },
       ],
     },
   ],
