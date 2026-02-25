@@ -11,16 +11,16 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0" />
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.2" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.1.3" />
 
     <!-- Static analysis, formatting -->
-    <PackageVersion Include="CSharpier.MsBuild" Version="1.2.5" />
+    <PackageVersion Include="CSharpier.MsBuild" Version="1.2.6" />
     <PackageVersion Include="Nullable.Extended.Analyzer" Version="1.15.6581" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.16.1.129956" />
 
     <!-- Testing -->
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.12" />
-    <PackageVersion Include="TUnit" Version="1.13.11" />
-    <PackageVersion Include="Verify.TUnit" Version="31.12.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.13" />
+    <PackageVersion Include="TUnit" Version="1.13.70" />
+    <PackageVersion Include="Verify.TUnit" Version="31.12.5" />
   </ItemGroup>
 </Project>

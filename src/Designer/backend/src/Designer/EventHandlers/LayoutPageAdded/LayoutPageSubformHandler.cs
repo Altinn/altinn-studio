@@ -9,15 +9,12 @@ using MediatR;
 namespace Altinn.Studio.Designer.EventHandlers.LayoutPageAdded;
 
 public class SubformCreatedHandler(
-        IAppDevelopmentService appDevelopmentService,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor
+    IAppDevelopmentService appDevelopmentService,
+    IFileSyncHandlerExecutor fileSyncHandlerExecutor
 ) : INotificationHandler<LayoutPageAddedEvent>
 {
-    public async Task Handle(
-            LayoutPageAddedEvent notification,
-            CancellationToken cancellationToken)
+    public async Task Handle(LayoutPageAddedEvent notification, CancellationToken cancellationToken)
     {
-
         await fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
             SyncErrorCodes.LayoutSetSubFormButtonSyncError,
@@ -32,16 +29,19 @@ public class SubformCreatedHandler(
                     {
                         id = $"CloseSubformButton-{randomId}",
                         type = "CustomButton",
-                        actions = new[] {
-                            new {
-                                type = "ClientAction",
-                                id = "closeSubform"
-                            }},
+                        actions = new[] { new { type = "ClientAction", id = "closeSubform" } },
                     };
-                    await appDevelopmentService.AddComponentToLayout(notification.EditingContext, notification.LayoutSetConfig.Id, notification.LayoutName, buttonComponent, cancellationToken);
+                    await appDevelopmentService.AddComponentToLayout(
+                        notification.EditingContext,
+                        notification.LayoutSetConfig.Id,
+                        notification.LayoutName,
+                        buttonComponent,
+                        cancellationToken
+                    );
                     return true;
                 }
                 return false;
-            });
+            }
+        );
     }
 }

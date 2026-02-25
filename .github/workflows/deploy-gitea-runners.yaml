@@ -28,9 +28,9 @@ jobs:
     uses: ./.github/workflows/template-short-sha.yaml
 
   construct-environments-array:
-    uses: ./.github/workflows/template-construct-environments.yaml
+    uses: ./.github/workflows/template-studio-construct-environments.yaml
     with:
-      environments: ${{ github.event.inputs.environments || 'dev,staging,prod' }}
+      inputs: ${{ toJSON(github.event.inputs) }}
 
   determine-tag:
     needs: get-short-sha
@@ -80,7 +80,7 @@ jobs:
     needs: [get-short-sha, docker-build-push, helm-push, determine-tag, construct-environments-array]
     strategy:
       matrix:
-        environment: ${{ fromJSON(needs.construct-environments-array.outputs.environmentsjson) }}
+        include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
     uses: ./.github/workflows/template-flux-config-push.yaml
     with:
       tag: ${{ needs.determine-tag.outputs.tag }}
@@ -97,4 +97,3 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
       trace-connection-string: ${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}
       trace-repo-token: ${{ secrets.GITHUB_TOKEN }}
-

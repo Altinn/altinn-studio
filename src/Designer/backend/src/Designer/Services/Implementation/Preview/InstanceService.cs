@@ -8,15 +8,9 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Preview;
 
-public class InstanceService(
-        IDistributedCache distributedCache,
-        IDataService dataService
-) : IInstanceService
+public class InstanceService(IDistributedCache distributedCache, IDataService dataService) : IInstanceService
 {
-    readonly DistributedCacheEntryOptions _cacheOptions = new()
-    {
-        SlidingExpiration = TimeSpan.FromMinutes(30),
-    };
+    readonly DistributedCacheEntryOptions _cacheOptions = new() { SlidingExpiration = TimeSpan.FromMinutes(30) };
 
     public Instance CreateInstance(string org, string app, int partyId, string taskId, List<DataType> dataTypes)
     {
@@ -30,12 +24,8 @@ public class InstanceService(
             Org = org,
             Process = new ProcessState
             {
-                CurrentTask = new ProcessElementInfo
-                {
-                    AltinnTaskType = "data",
-                    ElementId = taskId
-                }
-            }
+                CurrentTask = new ProcessElementInfo { AltinnTaskType = "data", ElementId = taskId },
+            },
         };
         dataTypes.ForEach(dataType =>
         {

@@ -6,9 +6,9 @@ __metadata:
   cacheKey: 10
 
 "@types/k6@npm:^1.3.1":
-  version: 1.4.0
-  resolution: "@types/k6@npm:1.4.0"
-  checksum: 10/8a65066d2b69d298e447444931acf0f2bf28617cca7cd4a0e85acaf7f541a75950634289f8c7ca7130818d936bb842904aafcd4f76cbe9698b270e603cb19feb
+  version: 1.6.0
+  resolution: "@types/k6@npm:1.6.0"
+  checksum: 10/c9b25f165a2235844d8e922007457e59338728f973dda27e194053e18ed989b12de3952d0a1c184865b6de2fb409da768fa06f44e50ce1b8b0f48de09eee75b6
   languageName: node
   linkType: hard
 

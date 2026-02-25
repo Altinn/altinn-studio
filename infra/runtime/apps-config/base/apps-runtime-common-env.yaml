@@ -16,5 +16,3 @@ metadata:
   name: apps-runtime-common-secrets-env
   namespace: default
 type: Opaque
-stringData:
-  ApplicationInsights__ConnectionString: ""

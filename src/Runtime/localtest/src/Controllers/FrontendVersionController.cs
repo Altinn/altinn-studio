@@ -13,7 +13,8 @@ namespace LocalTest.Controllers;
 public class FrontendVersionController : Controller
 {
     /// <summary>
-    ///  See src\development\loadbalancer\nginx.conf
+    /// Cookie name used to override frontend URL for local development.
+    /// When set, the ProxyMiddleware will substitute altinn-app-frontend URLs.
     /// </summary>
     public static readonly string FRONTEND_URL_COOKIE_NAME = "frontendVersion";
 

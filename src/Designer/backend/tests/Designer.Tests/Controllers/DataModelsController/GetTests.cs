@@ -14,10 +14,11 @@ namespace Designer.Tests.Controllers.DataModelsController;
 
 public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    public GetTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/datamodels";
+
+    public GetTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Theory]
     [InlineData("App/models/HvemErHvem_SERES.schema.json", "ttd", "hvem-er-hvem")]
@@ -42,21 +43,27 @@ public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebA
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         DataType dataTypeResponse = await response.Content.ReadFromJsonAsync<DataType>();
         Assert.NotNull(dataTypeResponse);
-        Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(dataTypeResponse, JsonSerializerOptions),
-            JsonSerializer.Serialize(new DataType
-            {
-                Id = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES",
-                AllowedContentTypes = new List<string> { "application/xml" },
-                AppLogic = new ApplicationLogic
-                {
-                    AutoCreate = true,
-                    ClassRef = "Altinn.App.Models.HvemErHvem_M"
-                },
-                TaskId = "Task_1",
-                MaxCount = 1,
-                MinCount = 1
-            }, JsonSerializerOptions)
-            ));
+        Assert.True(
+            JsonUtils.DeepEquals(
+                JsonSerializer.Serialize(dataTypeResponse, JsonSerializerOptions),
+                JsonSerializer.Serialize(
+                    new DataType
+                    {
+                        Id = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES",
+                        AllowedContentTypes = new List<string> { "application/xml" },
+                        AppLogic = new ApplicationLogic
+                        {
+                            AutoCreate = true,
+                            ClassRef = "Altinn.App.Models.HvemErHvem_M",
+                        },
+                        TaskId = "Task_1",
+                        MaxCount = 1,
+                        MinCount = 1,
+                    },
+                    JsonSerializerOptions
+                )
+            )
+        );
     }
 
     [Theory]

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,9 +8,7 @@ using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-internal sealed class MetricsService(
-    IRuntimeGatewayClient runtimeGatewayClient
-    ) : IMetricsService
+internal sealed class MetricsService(IRuntimeGatewayClient runtimeGatewayClient) : IMetricsService
 {
     /// <inheritdoc />
     public async Task<IEnumerable<ErrorMetric>> GetErrorMetricsAsync(
@@ -46,20 +43,6 @@ internal sealed class MetricsService(
     )
     {
         return await runtimeGatewayClient.GetAppErrorMetricsAsync(org, environment, app, range, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public async Task<Uri?> GetAppErrorMetricsLogsAsync(
-        string org,
-        AltinnEnvironment environment,
-        IReadOnlyCollection<string> apps,
-        string metric,
-        DateTimeOffset from,
-        DateTimeOffset to,
-        CancellationToken cancellationToken
-    )
-    {
-        return await runtimeGatewayClient.GetAppErrorMetricsLogsAsync(org, environment, apps, metric, from, to, cancellationToken);
     }
 
     /// <inheritdoc />

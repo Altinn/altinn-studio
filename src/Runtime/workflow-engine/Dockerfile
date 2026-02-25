@@ -9,9 +9,9 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /build
 
 COPY common/ common/
-COPY workflow-engine/ app/
+COPY Runtime/workflow-engine/ Runtime/workflow-engine/
 
-WORKDIR /build/app/src/WorkflowEngine.Api
+WORKDIR /build/Runtime/workflow-engine/src/WorkflowEngine.Api
 RUN dotnet restore "WorkflowEngine.Api.csproj"
 RUN dotnet build "WorkflowEngine.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
