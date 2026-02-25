@@ -109,6 +109,45 @@ export const fmtAgo = (/** @type {string|null|undefined} */ v) => {
   return `${d}d ${h % 24}h ago`;
 };
 
+/* ── Line-based diff (LCS) ───────────────────────────────────────────────── */
+
+/**
+ * Compute a unified diff between two strings, split by lines.
+ * @param {string} oldText
+ * @param {string} newText
+ * @returns {{ type: ' '|'+'|'-', line: string }[]}
+ */
+export const lineDiff = (oldText, newText) => {
+  const a = oldText.split('\n');
+  const b = newText.split('\n');
+  const m = a.length, n = b.length;
+
+  // LCS table
+  /** @type {number[][]} */
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+
+  // Backtrack
+  /** @type {{ type: ' '|'+'|'-', line: string }[]} */
+  const result = [];
+  let i = m, j = n;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
+      result.unshift({ type: ' ', line: a[i - 1] });
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      result.unshift({ type: '+', line: b[j - 1] });
+      j--;
+    } else {
+      result.unshift({ type: '-', line: a[i - 1] });
+      i--;
+    }
+  }
+  return result;
+};
+
 /* ── JSON utilities (expand embedded JSON strings + syntax highlighting) ── */
 
 /**

@@ -502,6 +502,7 @@ internal sealed class EnginePgRepository : IEngineRepository
                         stepEntry.Property(e => e.BackoffUntil).IsModified = true;
                         stepEntry.Property(e => e.RequeueCount).IsModified = true;
                         stepEntry.Property(e => e.UpdatedAt).IsModified = true;
+                        stepEntry.Property(e => e.StateOut).IsModified = true;
                     }
 
                     await _context.SaveChangesAsync(ct);

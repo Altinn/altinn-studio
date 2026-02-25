@@ -24,6 +24,10 @@ export const traceLink = (traceId, title, extraClass) => {
 /** @param {string} traceId @returns {string} */
 export const traceIconHTML = (traceId) => traceLink(traceId, 'Engine trace in Grafana');
 
+/** @param {import('../core/state.js').Workflow} wf @returns {string} */
+export const stateIconHTML = (wf) =>
+  `<a class="open-btn state-btn" onclick="openStateModal('${esc(wf.idempotencyKey)}','${esc(wf.createdAt)}')" title="View state trail">&#123;&#125;</a>`;
+
 /** @param {Event} e @param {string} guid */
 window.copyGuid = async (e, guid) => {
   e.stopPropagation();
@@ -119,6 +123,7 @@ export const buildCardHTML = (wf, isStatic) => {
   html += buildTimestampsHTML(wf, isStatic);
   html += copyIconHTML(inst.instanceGuid);
   html += openIconHTML(inst);
+  if (wf.hasState) html += stateIconHTML(wf);
   if (wf.traceId) html += traceIconHTML(wf.traceId);
   html += `</div>`;
 
@@ -155,6 +160,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
   html += buildTimestampsHTML(wf, isStatic);
   html += copyIconHTML(inst.instanceGuid);
   html += openIconHTML(inst);
+  if (wf.hasState) html += stateIconHTML(wf);
   if (wf.traceId) html += traceIconHTML(wf.traceId);
   html += `</div>`;
   return html;

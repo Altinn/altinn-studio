@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkflowEngine.Data.Context;
@@ -11,9 +12,11 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    partial class EngineDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224222744_State")]
+    partial class State
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,9 +74,6 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("RetryStrategyJson")
                         .HasColumnType("jsonb");
 
-                    b.Property<string>("StateOut")
-                        .HasColumnType("text");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -126,9 +126,6 @@ namespace WorkflowEngine.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<string>("InitialState")
-                        .HasColumnType("text");
-
                     b.Property<string>("InstanceApp")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -156,6 +153,9 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.Property<DateTimeOffset?>("StartAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("State")
+                        .HasColumnType("text");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
