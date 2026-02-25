@@ -414,7 +414,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             );
 
             LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-            return layoutSetsFile?.ValidationOnNavigation;
+            return layoutSetsFile.ValidationOnNavigation ?? new ValidationOnNavigation();
         }
 
         /// <inheritdoc />
