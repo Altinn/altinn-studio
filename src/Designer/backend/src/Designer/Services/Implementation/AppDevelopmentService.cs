@@ -401,6 +401,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSetsModel;
         }
 
+        public async Task<ValidationOnNavigation> GetValidationOnNavigationLayoutSets(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            CancellationToken cancellationToken
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
+
+            LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            return layoutSetsFile?.ValidationOnNavigation;
+        }
+
         /// <inheritdoc />
         public async Task<LayoutSetConfig> GetLayoutSetConfig(
             AltinnRepoEditingContext altinnRepoEditingContext,
