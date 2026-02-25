@@ -14,6 +14,8 @@ var logger = log.NewComponent("config")
 const (
 	// EnvironmentLocaltest identifies localtest execution mode.
 	EnvironmentLocaltest = "localtest"
+	// LocaltestPublicBaseURLEnv provides the canonical public base URL used for localtest URL rewriting.
+	LocaltestPublicBaseURLEnv = "PDF3_LOCALTEST_PUBLIC_BASE_URL"
 )
 
 type Config struct {
@@ -21,6 +23,7 @@ type Config struct {
 
 	QueueSize              int
 	BrowserRestartInterval time.Duration
+	LocaltestPublicBaseURL string
 }
 
 func ReadConfig() *Config {
@@ -64,6 +67,7 @@ func ReadConfig() *Config {
 		Environment:            environment,
 		QueueSize:              queueSize,
 		BrowserRestartInterval: browserRestartInterval,
+		LocaltestPublicBaseURL: os.Getenv(LocaltestPublicBaseURLEnv),
 	}
 }
 

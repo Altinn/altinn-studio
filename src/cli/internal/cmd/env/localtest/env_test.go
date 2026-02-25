@@ -20,32 +20,37 @@ func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		states      map[string]types.ContainerState
-		wantRunning bool
+		states         map[string]types.ContainerState
+		wantRunning    bool
+		wantAnyRunning bool
 	}{
 		"all core containers running": {
 			states: map[string]types.ContainerState{
 				localtest.ContainerLocaltest: {Status: "running", Running: true},
 				localtest.ContainerPDF3:      {Status: "running", Running: true},
 			},
-			wantRunning: true,
+			wantRunning:    true,
+			wantAnyRunning: true,
 		},
 		"one running one exited": {
 			states: map[string]types.ContainerState{
 				localtest.ContainerLocaltest: {Status: "running", Running: true},
 				localtest.ContainerPDF3:      {Status: "exited", Running: false},
 			},
-			wantRunning: false,
+			wantRunning:    false,
+			wantAnyRunning: true,
 		},
 		"one running one missing": {
 			states: map[string]types.ContainerState{
 				localtest.ContainerLocaltest: {Status: "running", Running: true},
 			},
-			wantRunning: false,
+			wantRunning:    false,
+			wantAnyRunning: true,
 		},
 		"none running": {
-			states:      map[string]types.ContainerState{},
-			wantRunning: false,
+			states:         map[string]types.ContainerState{},
+			wantRunning:    false,
+			wantAnyRunning: false,
 		},
 	}
 
@@ -69,6 +74,9 @@ func TestStatus_RunningRequiresAllCoreContainers(t *testing.T) {
 			}
 			if status.Running != tt.wantRunning {
 				t.Fatalf("Status().Running = %v, want %v", status.Running, tt.wantRunning)
+			}
+			if status.AnyRunning != tt.wantAnyRunning {
+				t.Fatalf("Status().AnyRunning = %v, want %v", status.AnyRunning, tt.wantAnyRunning)
 			}
 		})
 	}
