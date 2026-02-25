@@ -16,7 +16,7 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 import { type NavigationMenuSmallGroup } from 'app-development/types/HeaderMenu/NavigationMenuSmallGroup';
 
-export const topBarMenuItem: HeaderMenuItem[] = [
+export const topBarMenuItems: HeaderMenuItem[] = [
   {
     key: HeaderMenuItemKey.About,
     link: RoutePaths.Overview,
@@ -78,7 +78,7 @@ export const topBarMenuItem: HeaderMenuItem[] = [
 ];
 
 export const getFilteredTopBarMenu = (repositoryType: RepositoryType): HeaderMenuItem[] => {
-  return topBarMenuItem
+  return topBarMenuItems
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
     .filter(filterRoutesByFeatureFlag)
     .filter(filterRoutesByDataModel);

@@ -5,5 +5,5 @@ export {
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
   getFilteredMenuListForOverviewPage,
-  topBarMenuItem,
+  topBarMenuItems,
 } from './headerMenuUtils';

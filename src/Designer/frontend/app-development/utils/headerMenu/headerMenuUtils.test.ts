@@ -6,7 +6,7 @@ import {
   getTopBarMenuItems,
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
-  topBarMenuItem,
+  topBarMenuItems,
 } from './headerMenuUtils';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
@@ -17,13 +17,17 @@ import { retrieveFeatureFlags, FeatureFlag } from '@studio/feature-flags';
 
 jest.mock('@studio/feature-flags', () => ({
   ...jest.requireActual('@studio/feature-flags'),
-  retrieveFeatureFlags: jest.fn().mockReturnValue([]),
+  retrieveFeatureFlags: jest.fn(),
 }));
 
 describe('headerMenuUtils', () => {
+  beforeEach(() => {
+    (retrieveFeatureFlags as jest.Mock).mockReturnValue([]);
+  });
+
   describe('getFilteredTopBarMenu', () => {
     it('should return all items when provided repository type is "App" which is not hidden behind feature-flags', () => {
-      const menuLength = topBarMenuItem.filter((menuItem) => !menuItem.featureFlagName).length;
+      const menuLength = topBarMenuItems.filter((menuItem) => !menuItem.featureFlagName).length;
       expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(menuLength);
     });
 
@@ -49,7 +53,7 @@ describe('headerMenuUtils', () => {
 
     it('should return menu items including items hidden behind feature flag, if the flag is activated', () => {
       (retrieveFeatureFlags as jest.Mock).mockReturnValue(Object.values(FeatureFlag));
-      expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(topBarMenuItem.length);
+      expect(getFilteredTopBarMenu(RepositoryType.App)).toHaveLength(topBarMenuItems.length);
     });
   });
 
@@ -72,7 +76,7 @@ describe('headerMenuUtils', () => {
 
   describe('groupMenuItemsByGroup', () => {
     it('should group items by their group key', () => {
-      const groupedItems = groupMenuItemsByGroup(topBarMenuItem);
+      const groupedItems = groupMenuItemsByGroup(topBarMenuItems);
       expect(groupedItems.length).toBeGreaterThan(0);
 
       groupedItems.forEach((group) => {
@@ -87,7 +91,7 @@ describe('headerMenuUtils', () => {
     it('should correctly map header menu group to navigation menu group', () => {
       const group = {
         groupName: HeaderMenuGroupKey.Tools,
-        menuItems: [topBarMenuItem.find((item) => item.key === HeaderMenuItemKey.Create)!],
+        menuItems: [topBarMenuItems.find((item) => item.key === HeaderMenuItemKey.Create)!],
       };
       const mappedGroup = mapHeaderMenuGroupToNavigationMenu(group);
       expect(mappedGroup.name).toBe(HeaderMenuGroupKey.Tools);

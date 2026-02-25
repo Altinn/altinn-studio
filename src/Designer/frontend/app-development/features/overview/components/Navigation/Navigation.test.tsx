@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { Navigation } from './Navigation';
 import {
   getFilteredMenuListForOverviewPage,
-  topBarMenuItem,
+  topBarMenuItems,
 } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/testUtils';
@@ -41,7 +41,7 @@ describe('Navigation', () => {
 
   it('only renders menu items that are hidden by featureFlags if the feature flag is toggled on', async () => {
     // ensure any feature flags are toggled on
-    typedLocalStorage.setItem('featureFlags', getFeatureFlags(topBarMenuItem));
+    typedLocalStorage.setItem('featureFlags', getFeatureFlags(topBarMenuItems));
     renderWithProviders(<Navigation />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
     });
@@ -52,7 +52,7 @@ describe('Navigation', () => {
   });
 
   it('renders menu items that are tagged as beta, with isBeta class', () => {
-    const betaItems = topBarMenuItem.filter((item) => !!item.isBeta);
+    const betaItems = topBarMenuItems.filter((item) => !!item.isBeta);
 
     // ensure any feature flags are toggled on
     typedLocalStorage.setItem('featureFlags', getFeatureFlags(betaItems));
