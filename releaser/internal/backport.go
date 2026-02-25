@@ -456,7 +456,13 @@ func printBackportDryRun(log Logger, cfg *backportConfig, entries []changelog.En
 	logChangelogEntries(log, entries)
 	log.Info("Would create commit: Backport %s: %s", cfg.shortSHA, cfg.commitMsg)
 	log.Info("Would push to origin/%s", cfg.backportBranch)
-	log.Info("Would create PR: chore: backport %s to %s (label: %s)", cfg.shortSHA, cfg.releaseBranch, backportLabel)
+	log.Info(
+		"Would create PR: chore: backport %s to v%d.%d (label: %s)",
+		cfg.shortSHA,
+		cfg.major,
+		cfg.minor,
+		backportLabel,
+	)
 }
 
 func logChangelogEntries(log Logger, entries []changelog.Entry) {
