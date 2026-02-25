@@ -15,7 +15,7 @@ import type { TranslationKey } from 'src/app-components/types';
 
 interface Column<T> {
   header: TranslationKey | null;
-  ariaLabel?: string;
+  ariaLabel?: TranslationKey;
   accessors: string[];
   renderCell?: (values: FormDataValue[], rowData: T, rowIndex: number) => React.ReactNode;
   enableInlineEditing?: boolean;
@@ -23,7 +23,7 @@ interface Column<T> {
 
 export interface TableActionButton<T = unknown> {
   onClick: (rowIdx: number, rowData: T) => void;
-  buttonText: React.ReactNode;
+  buttonText: TranslationKey;
   icon: React.ReactNode;
   color?: 'first' | 'second' | 'success' | 'danger';
   variant?: 'tertiary' | 'primary' | 'secondary';
@@ -87,8 +87,8 @@ export function AppTable<T>({
   isLoading = false,
   emptyText,
 }: DataTableProps<T>) {
-  const { translate: t } = useTranslation();
-  function translate(key: string | null) {
+  const { translate: t, TranslateComponent } = useTranslation();
+  function translate(key: TranslationKey | null) {
     if (!key) {
       return '';
     }
@@ -210,7 +210,7 @@ export function AppTable<T>({
                         variant={button.variant ? button.variant : defaultButtonVariant}
                         color={button.color ? button.color : 'second'}
                       >
-                        {button.buttonText}
+                        <TranslateComponent tKey={button.buttonText} />
                         {button.icon}
                       </Button>
                     ))}

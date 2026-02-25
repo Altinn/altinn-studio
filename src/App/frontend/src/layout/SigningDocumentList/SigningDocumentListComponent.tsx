@@ -72,7 +72,7 @@ export function SigningDocumentListComponent({
         },
         {
           header: null,
-          ariaLabel: 'signing_document_list.download',
+          ariaLabel: translationKey('signing_document_list.download'),
           accessors: [],
           renderCell: (_, rowData) => (
             <Link

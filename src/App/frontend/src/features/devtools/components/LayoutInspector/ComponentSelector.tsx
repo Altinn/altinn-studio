@@ -129,7 +129,7 @@ export function ComponentSelector({ type }: ComponentSelectorProps) {
 
   return (
     <Button
-      title={type === 'node' ? ('Velg en komponent' as TranslationKey) : ('Velg en layout-komponent' as TranslationKey)} // FIXME: should these actually have translation keys?
+      title={type === 'node' ? ('Velg en komponent' as TranslationKey) : ('Velg en layout-komponent' as TranslationKey)}
       onClick={toggle}
       variant={active ? 'primary' : 'tertiary'}
       color='second'

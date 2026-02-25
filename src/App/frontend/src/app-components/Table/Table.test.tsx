@@ -21,12 +21,12 @@ const columns = [
 const actionButtons = [
   {
     onClick: jest.fn(),
-    buttonText: 'Edit',
+    buttonText: 'Edit' as TranslationKey,
     icon: null,
   },
   {
     onClick: jest.fn(),
-    buttonText: 'Delete',
+    buttonText: 'Delete' as TranslationKey,
     icon: null,
   },
 ];
@@ -123,7 +123,7 @@ describe('AppTable Component', () => {
     const actionButtonsMock = [
       {
         onClick: onClickMock,
-        buttonText: 'Edit',
+        buttonText: 'Edit' as TranslationKey,
         icon: null,
       },
     ];

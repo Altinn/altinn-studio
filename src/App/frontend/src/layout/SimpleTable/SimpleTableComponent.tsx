@@ -66,7 +66,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
           callback: (_) => true,
         });
       },
-      buttonText: <Lang id='general.delete' />,
+      buttonText: translationKey('general.delete'),
       icon: <TrashIcon />,
       color: 'danger',
     });
@@ -78,7 +78,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
         setEditItemIndex(idx);
         setShowEdit(true);
       },
-      buttonText: <Lang id='general.edit' />,
+      buttonText: translationKey('general.edit'),
       icon: <PencilIcon />,
       variant: 'tertiary',
       color: 'second',
