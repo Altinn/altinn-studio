@@ -77,7 +77,7 @@ public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
         );
         await _dbSemaphore.WaitAsync(cancellationToken);
 
-        return new SemaphoreReleaser(_dbSemaphore);
+        return new SemaphoreReleaser(_dbSemaphore, "ReleaseDbSlot", parentContext);
     }
 
     /// <inheritdoc/>
@@ -92,7 +92,7 @@ public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
         );
         await _httpSemaphore.WaitAsync(cancellationToken);
 
-        return new SemaphoreReleaser(_httpSemaphore);
+        return new SemaphoreReleaser(_httpSemaphore, "ReleaseHttpSlot", parentContext);
     }
 
     public void Dispose()
@@ -101,9 +101,17 @@ public sealed class ConcurrencyLimiter : IDisposable, IConcurrencyLimiter
         _httpSemaphore.Dispose();
     }
 
-    private sealed class SemaphoreReleaser(SemaphoreSlim semaphore) : IDisposable
+    private sealed class SemaphoreReleaser(SemaphoreSlim semaphore, string activityStub, ActivityContext? parentContext)
+        : IDisposable
     {
-        public void Dispose() => semaphore.Release();
+        public void Dispose()
+        {
+            using var activity = Metrics.Source.StartActivity(
+                $"ConcurrencyLimiter.{activityStub}",
+                parentContext: parentContext
+            );
+            semaphore.Release();
+        }
     }
 
     public sealed record SlotStatus(int Available, int Used, int Total);
