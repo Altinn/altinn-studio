@@ -35,6 +35,6 @@ runners:
     - name: pat
       replicas: 1
       registrationTokenSecretName: altinn-gitea-runner-pat-secret
-    - name: dbik
+    - name: dibk
       replicas: 1
-      registrationTokenSecretName: altinn-gitea-runner-dbik-secret
+      registrationTokenSecretName: altinn-gitea-runner-dibk-secret
