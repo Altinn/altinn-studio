@@ -309,10 +309,10 @@ public class AppResourcesSI : IAppResources
             return null;
         }
 
-        foreach (var folderId in Directory.GetDirectories(uiRoot).Select(Path.GetFileName))
+        foreach (var folderId in Directory.GetDirectories(uiRoot).Select(Path.GetFileName).WhereNotNull())
         {
-            var settings = folderId is null ? null : GetUiFolderSettings(folderId);
-            if (settings is null || folderId is null)
+            var settings = GetUiFolderSettings(folderId);
+            if (settings is null)
             {
                 continue;
             }
