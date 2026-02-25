@@ -51,13 +51,13 @@ internal sealed class GrafanaAnnotations
 
     [JsonPropertyName("summary")]
     public string? Summary { get; set; }
+
+    [JsonPropertyName("ruleId")]
+    public string? RuleId { get; set; }
 }
 
 internal sealed class GrafanaLabels
 {
-    [JsonPropertyName("RuleId")]
-    public string? RuleId { get; set; }
-
     [JsonPropertyName("Type")]
     public string? Type { get; set; }
 }

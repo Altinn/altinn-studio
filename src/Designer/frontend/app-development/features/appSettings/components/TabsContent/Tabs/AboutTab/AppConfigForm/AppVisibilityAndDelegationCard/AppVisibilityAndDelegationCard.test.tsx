@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
@@ -21,7 +22,11 @@ const renderAppVisibilityAndDelegationCard = (
     onChangeDescription: jest.fn(),
   };
 
-  return render(<AppVisibilityAndDelegationCard {...defaultProps} {...props} />);
+  return render(
+    <MemoryRouter initialEntries={['/']}>
+      <AppVisibilityAndDelegationCard {...defaultProps} {...props} />
+    </MemoryRouter>,
+  );
 };
 
 describe('AppVisibilityAndDelegationCard', () => {

@@ -25,7 +25,6 @@ using Moq.Protected;
 using VerifyXunit;
 using Xunit;
 
-
 namespace Designer.Tests.Clients;
 
 public class AzureSharedContentClientTests
@@ -36,7 +35,7 @@ public class AzureSharedContentClientTests
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        AllowTrailingCommas = true
+        AllowTrailingCommas = true,
     };
 
     [Fact]
@@ -187,7 +186,9 @@ public class AzureSharedContentClientTests
         AzureSharedContentClient client = GetClientForTest();
 
         // Act & Assert
-        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.ThrowIfUnhealthy(mock.Object));
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await client.ThrowIfUnhealthy(mock.Object)
+        );
         Assert.Equal($"Request failed, class: {nameof(AzureSharedContentClient)}", exception.Message);
         mock.Verify();
     }
@@ -198,8 +199,9 @@ public class AzureSharedContentClientTests
         // Arrange
         Mock<BlobClient> blobClientMock = new();
         Mock<BlobContainerClient> containerClientMock = new();
-        blobClientMock
-            .Setup(c => c.UploadAsync(It.IsAny<BinaryData>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()));
+        blobClientMock.Setup(c =>
+            c.UploadAsync(It.IsAny<BinaryData>(), It.IsAny<bool>(), It.IsAny<CancellationToken>())
+        );
         containerClientMock.Setup(c => c.GetBlobClient(It.IsAny<string>())).Returns(blobClientMock.Object);
         AzureSharedContentClient client = GetClientForTest();
         string content = "content";
@@ -209,8 +211,10 @@ public class AzureSharedContentClientTests
         await client.UploadBlobs(containerClientMock.Object);
 
         // Assert
-        blobClientMock
-            .Verify(c => c.UploadAsync(It.Is<BinaryData>(bd => bd.ToString() == content), true, It.IsAny<CancellationToken>()), Times.Once);
+        blobClientMock.Verify(
+            c => c.UploadAsync(It.Is<BinaryData>(bd => bd.ToString() == content), true, It.IsAny<CancellationToken>()),
+            Times.Once
+        );
         containerClientMock.Verify(c => c.GetBlobClient("ttd/code_lists/someCodeList/1.json"), Times.Once);
     }
 
@@ -229,12 +233,14 @@ public class AzureSharedContentClientTests
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
-                )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
-            });
+            )
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json),
+                }
+            );
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
@@ -261,11 +267,7 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = null
-            });
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = null });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
@@ -292,10 +294,7 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.NotFound
-            });
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
@@ -322,16 +321,14 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.BadRequest,
-                Content = null
-            });
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.BadRequest, Content = null });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act & Assert
-        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.PrepareVersionIndexFile(prefix));
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await client.PrepareVersionIndexFile(prefix)
+        );
         Assert.Equal($"Request failed, class: {nameof(AzureSharedContentClient)}", exception.Message);
         mockHandler.VerifyAll();
     }
@@ -355,11 +352,13 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
-            });
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json),
+                }
+            );
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
@@ -390,10 +389,7 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.NotFound
-            });
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
@@ -422,15 +418,14 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.BadRequest
-            });
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.BadRequest });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act & Assert
-        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.PrepareResourceIndexFile(prefix, resourceId));
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await client.PrepareResourceIndexFile(prefix, resourceId)
+        );
         Assert.Equal($"Request failed, class: {nameof(AzureSharedContentClient)}", exception.Message);
         mockHandler.VerifyAll();
     }
@@ -454,11 +449,13 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
-            });
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json),
+                }
+            );
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
@@ -489,10 +486,7 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.NotFound
-            });
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
@@ -521,15 +515,14 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.BadRequest
-            });
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.BadRequest });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act & Assert
-        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.PrepareResourceTypeIndexFile(prefix, resourceType));
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await client.PrepareResourceTypeIndexFile(prefix, resourceType)
+        );
         Assert.Equal($"Request failed, class: {nameof(AzureSharedContentClient)}", exception.Message);
         mockHandler.VerifyAll();
     }
@@ -552,11 +545,13 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json)
-            });
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(content, Encoding.UTF8, MediaTypeNames.Application.Json),
+                }
+            );
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
@@ -586,10 +581,7 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.NotFound
-            });
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
@@ -617,15 +609,14 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.BadRequest
-            });
+            .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.BadRequest });
         HttpClient httpClient = new(mockHandler.Object);
         AzureSharedContentClient client = GetClientForTest(httpClient);
 
         // Act & Assert
-        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.PrepareOrganisationIndexFile(organizationName));
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await client.PrepareOrganisationIndexFile(organizationName)
+        );
         Assert.Equal($"Request failed, class: {nameof(AzureSharedContentClient)}", exception.Message);
         mockHandler.VerifyAll();
     }
@@ -658,26 +649,34 @@ public class AzureSharedContentClientTests
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(orgContent, Encoding.UTF8, MediaTypeNames.Application.Json)
-            })
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(resourceTypeContent, Encoding.UTF8, MediaTypeNames.Application.Json)
-            })
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(resourceContent, Encoding.UTF8, MediaTypeNames.Application.Json)
-            })
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(versionContent, Encoding.UTF8, MediaTypeNames.Application.Json)
-            });
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(orgContent, Encoding.UTF8, MediaTypeNames.Application.Json),
+                }
+            )
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(resourceTypeContent, Encoding.UTF8, MediaTypeNames.Application.Json),
+                }
+            )
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(resourceContent, Encoding.UTF8, MediaTypeNames.Application.Json),
+                }
+            )
+            .ReturnsAsync(
+                new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(versionContent, Encoding.UTF8, MediaTypeNames.Application.Json),
+                }
+            );
 
         HttpClient httpClient = new(mockHandler.Object);
 
@@ -690,17 +689,13 @@ public class AzureSharedContentClientTests
             .Setup(c => c.UploadAsync(It.IsAny<BinaryData>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Mock.Of<Azure.Response<Azure.Storage.Blobs.Models.BlobContentInfo>>());
 
-        containerClientMock
-            .Setup(c => c.GetBlobClient(It.IsAny<string>()))
-            .Returns(blobClientMock.Object);
+        containerClientMock.Setup(c => c.GetBlobClient(It.IsAny<string>())).Returns(blobClientMock.Object);
 
         containerClientMock
             .Setup(c => c.ExistsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Azure.Response.FromValue(true, Mock.Of<Azure.Response>()));
 
-        factoryMock
-            .Setup(f => f.GetContainerClient())
-            .Returns(containerClientMock.Object);
+        factoryMock.Setup(f => f.GetContainerClient()).Returns(containerClientMock.Object);
 
         AzureSharedContentClient client = GetClientForTest(httpClient, factoryMock.Object);
 
@@ -723,15 +718,14 @@ public class AzureSharedContentClientTests
         string blobName2 = "blob2";
         string blobsPrefix = $"{orgName}/";
 
-        List<BlobItem> blobItemsMock = [
+        List<BlobItem> blobItemsMock =
+        [
             BlobsModelFactory.BlobItem($"{orgName}/{blobName1}"),
-            BlobsModelFactory.BlobItem($"{orgName}/{blobName2}")
+            BlobsModelFactory.BlobItem($"{orgName}/{blobName2}"),
         ];
 
         Mock<BlobContainerClient> containerClientMock = new();
-        containerClientMock
-            .SetupGetBlobsAsync(blobsPrefix)
-            .ReturnsPageableFrom(blobItemsMock);
+        containerClientMock.SetupGetBlobsAsync(blobsPrefix).ReturnsPageableFrom(blobItemsMock);
         AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
 
         // Act
@@ -753,15 +747,14 @@ public class AzureSharedContentClientTests
         string blobName2 = "blob2";
         string blobsPrefix = $"{orgName}/{path}";
 
-        List<BlobItem> blobItemsMock = [
+        List<BlobItem> blobItemsMock =
+        [
             BlobsModelFactory.BlobItem($"{orgName}/{path}/{blobName1}"),
-            BlobsModelFactory.BlobItem($"{orgName}/{path}/{blobName2}")
+            BlobsModelFactory.BlobItem($"{orgName}/{path}/{blobName2}"),
         ];
 
         Mock<BlobContainerClient> containerClientMock = new();
-        containerClientMock
-            .SetupGetBlobsAsync(blobsPrefix)
-            .ReturnsPageableFrom(blobItemsMock);
+        containerClientMock.SetupGetBlobsAsync(blobsPrefix).ReturnsPageableFrom(blobItemsMock);
         AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
 
         // Act
@@ -781,14 +774,12 @@ public class AzureSharedContentClientTests
         string errorMessage = "Lorem ipsum dolor sit amet.";
 
         Mock<BlobContainerClient> containerClientMock = new();
-        containerClientMock
-            .SetupGetBlobsAsync(orgName + "/")
-            .Throws(() => new RequestFailedException(errorMessage));
+        containerClientMock.SetupGetBlobsAsync(orgName + "/").Throws(() => new RequestFailedException(errorMessage));
         AzureSharedContentClient client = AzureClientWithContainerClient(containerClientMock);
 
         // Act and assert
-        SharedContentRequestException exception = await Assert.ThrowsAsync<SharedContentRequestException>(
-            async () => await client.GetPublishedResourcesForOrg(orgName)
+        SharedContentRequestException exception = await Assert.ThrowsAsync<SharedContentRequestException>(async () =>
+            await client.GetPublishedResourcesForOrg(orgName)
         );
         Assert.NotNull(exception.InnerException);
         Assert.IsType<RequestFailedException>(exception.InnerException);
@@ -799,30 +790,31 @@ public class AzureSharedContentClientTests
     {
         Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
         Dictionary<string, string> description = new() { { "nb", "Dette er en tekst" }, { "en", "This is a text" } };
-        Dictionary<string, string> helpText = new() { { "nb", "Velg dette valget for å få en tekst" }, { "en", "Choose this option to get a text" } };
+        Dictionary<string, string> helpText = new()
+        {
+            { "nb", "Velg dette valget for å få en tekst" },
+            { "en", "Choose this option to get a text" },
+        };
         List<Code> listOfCodes =
         [
-            new(
-                Value: "value1",
-                Label: label,
-                Description: description,
-                HelpText: helpText,
-                Tags: ["test-data"]
-            )
+            new(Value: "value1", Label: label, Description: description, HelpText: helpText, Tags: ["test-data"]),
         ];
         CodeListSource source = new(Name: "test-data-files");
-        return new CodeList(
-            Source: source,
-            Codes: listOfCodes,
-            TagNames: ["test-data-category"]
-        );
+        return new CodeList(Source: source, Codes: listOfCodes, TagNames: ["test-data-category"]);
     }
 
-    private static AzureSharedContentClient GetClientForTest(HttpClient? httpClient = null, IBlobContainerClientFactory? blobContainerClientFactory = null)
+    private static AzureSharedContentClient GetClientForTest(
+        HttpClient? httpClient = null,
+        IBlobContainerClientFactory? blobContainerClientFactory = null
+    )
     {
         Mock<HttpClient> httpClientMock = new();
         Mock<ILogger<AzureSharedContentClient>> logger = new();
-        SharedContentClientSettings settings = new() { StorageAccountUrl = "http://test.no", StorageContainerName = "storageAccountName" };
+        SharedContentClientSettings settings = new()
+        {
+            StorageAccountUrl = "http://test.no",
+            StorageContainerName = "storageAccountName",
+        };
 
         if (blobContainerClientFactory == null)
         {
@@ -832,15 +824,20 @@ public class AzureSharedContentClientTests
             blobContainerClientFactory = factoryMock.Object;
         }
 
-        return new AzureSharedContentClient(httpClient ?? httpClientMock.Object, logger.Object, settings, blobContainerClientFactory);
+        return new AzureSharedContentClient(
+            httpClient ?? httpClientMock.Object,
+            logger.Object,
+            settings,
+            blobContainerClientFactory
+        );
     }
 
-    private static AzureSharedContentClient AzureClientWithContainerClient(Mock<BlobContainerClient> containerClientMock)
+    private static AzureSharedContentClient AzureClientWithContainerClient(
+        Mock<BlobContainerClient> containerClientMock
+    )
     {
         Mock<IBlobContainerClientFactory> factoryMock = new();
-        factoryMock
-            .Setup(f => f.GetContainerClient())
-            .Returns(containerClientMock.Object);
+        factoryMock.Setup(f => f.GetContainerClient()).Returns(containerClientMock.Object);
         return GetClientForTest(null, factoryMock.Object);
     }
 }
@@ -852,13 +849,8 @@ internal static class ContainerClientMockExtensions
         string prefix
     )
     {
-        return containerClientMock.Setup(
-            c => c.GetBlobsAsync(
-                It.IsAny<BlobTraits>(),
-                It.IsAny<BlobStates>(),
-                prefix,
-                It.IsAny<CancellationToken>()
-            )
+        return containerClientMock.Setup(c =>
+            c.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), prefix, It.IsAny<CancellationToken>())
         );
     }
 
@@ -867,20 +859,21 @@ internal static class ContainerClientMockExtensions
         List<BlobItem> blobItems
     )
     {
-        setup.Returns(() => AsyncPageable<BlobItem>.FromPages(
-            [Page<BlobItem>.FromValues(blobItems, null, Mock.Of<Response>())]
-        ));
+        setup.Returns(() =>
+            AsyncPageable<BlobItem>.FromPages([Page<BlobItem>.FromValues(blobItems, null, Mock.Of<Response>())])
+        );
     }
 
     public static void VerifyGetBlobsAsyncWasCalledOnce(this Mock<BlobContainerClient> containerClientMock)
     {
         containerClientMock.Verify(
-            c => c.GetBlobsAsync(
-                It.IsAny<BlobTraits>(),
-                It.IsAny<BlobStates>(),
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()
-            ),
+            c =>
+                c.GetBlobsAsync(
+                    It.IsAny<BlobTraits>(),
+                    It.IsAny<BlobStates>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -890,13 +883,6 @@ internal static class ContainerClientMockExtensions
         string expectedPrefix
     )
     {
-        containerClientMock.Verify(
-            c => c.GetBlobsAsync(
-                BlobTraits.None,
-                BlobStates.None,
-                expectedPrefix,
-                default
-            )
-        );
+        containerClientMock.Verify(c => c.GetBlobsAsync(BlobTraits.None, BlobStates.None, expectedPrefix, default));
     }
 }

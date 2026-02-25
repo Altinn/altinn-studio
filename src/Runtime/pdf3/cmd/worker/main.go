@@ -108,7 +108,7 @@ func main() {
 
 	// The localtest harness will run on all dev machines
 	// We can avoid some overhead by just running the single container
-	if cfg.Environment == "localtest" {
+	if cfg.Environment == config.EnvironmentLocaltest {
 		http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", generateLocalPdfHandler(logger, gen)))
 	} else {
 		http.Handle("/generate", telemetry.WrapHandler("POST /generate", generatePdfHandler(logger, gen)))
@@ -146,10 +146,15 @@ func main() {
 	}
 
 	logger.Info("Shutting down telemetry")
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := otelShutdown(shutdownCtx); err != nil {
-		logger.Warn("Failed to gracefully shut down telemetry", "error", err)
+	telemetryShutdownTimeout := config.ResolveTelemetryShutdownTimeoutForEnvironment(cfg.Environment)
+	if telemetryShutdownTimeout == 0 {
+		logger.Info("Skipping graceful telemetry flush", "environment", cfg.Environment)
+	} else {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), telemetryShutdownTimeout)
+		defer cancel()
+		if err := otelShutdown(shutdownCtx); err != nil {
+			logger.Warn("Failed to gracefully shut down telemetry", "error", err)
+		}
 	}
 
 	logger.Info("Server shut down gracefully")
@@ -468,6 +473,12 @@ func setWorkerSpanAttrs(span trace.Span) {
 
 func recordPDFError(span trace.Span, pdfErr *types.PDFError) {
 	if pdfErr == nil || !span.IsRecording() {
+		return
+	}
+	// Queue-full 429s are expected; proxy retries handle them.
+	// Record as an event, not an error, to avoid false error noise.
+	if pdfErr.Is(types.ErrQueueFull) {
+		span.AddEvent("pdf.queue.full")
 		return
 	}
 	span.RecordError(pdfErr)

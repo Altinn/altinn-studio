@@ -143,9 +143,9 @@ func NewClientState(
 	if crd == nil {
 		return nil, fmt.Errorf("tried to hydrate client state without CRD")
 	}
-	// Secret may be nil if the app hasn't been deployed yet or secret was deleted
-	// This is a recoverable condition - we'll wait for the secret to be created
-	if secret == nil {
+	// During normal reconcile we require the app secret.
+	// During deletion, Flux prune may remove the secret before finalizer cleanup runs.
+	if secret == nil && crd.DeletionTimestamp == nil {
 		return nil, &MissingSecretError{AppName: crd.Name}
 	}
 	if api == nil && apiJwks != nil {

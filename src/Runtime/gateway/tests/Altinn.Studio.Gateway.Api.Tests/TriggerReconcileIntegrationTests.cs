@@ -17,6 +17,8 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
     private const string SyncrootOciRepoName = "apps-syncroot-repo";
     private const string SyncrootKustomizationName = "syncroot-apps-kustomization";
     private const string ReconcileAnnotation = "reconcile.fluxcd.io/requestedAt";
+    private static readonly TimeSpan ResourceStateTimeout = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan ResourcePollInterval = TimeSpan.FromMilliseconds(200);
 
     private readonly IKubernetes _k8sClient;
     private readonly HttpClient _httpClient;
@@ -72,72 +74,32 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
         return obj;
     }
 
-    private async Task DeleteTestApp()
+    private async Task DeleteTestApp(CancellationToken ct)
     {
-        try
-        {
-            await _k8sClient.CustomObjects.DeleteNamespacedCustomObjectAsync(
-                group: FluxApi.OciRepoGroup,
-                version: FluxApi.V1,
-                namespaceParameter: TestNamespace,
-                plural: FluxApi.OciRepoPlural,
-                name: TestAppName
-            );
-        }
-        catch (k8s.Autorest.HttpOperationException ex)
-            when (ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            // Object already gone, do nothing
-        }
-        try
-        {
-            await _k8sClient.CustomObjects.DeleteNamespacedCustomObjectAsync(
-                group: FluxApi.KustomizationGroup,
-                version: FluxApi.V1,
-                namespaceParameter: TestNamespace,
-                plural: FluxApi.KustomizationPlural,
-                name: TestAppName
-            );
-        }
-        catch (k8s.Autorest.HttpOperationException ex)
-            when (ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
-        {
-            // Object already gone, do nothing
-        }
+        await DeleteCustomObjectIfExistsAsync(FluxApi.OciRepoGroup, FluxApi.OciRepoPlural, TestAppName, ct);
+        await DeleteCustomObjectIfExistsAsync(FluxApi.KustomizationGroup, FluxApi.KustomizationPlural, TestAppName, ct);
+
+        // Deletion is asynchronous in Kubernetes; wait until resources are actually gone before reconcile calls.
+        await WaitForCustomObjectDeletedAsync(FluxApi.OciRepoGroup, FluxApi.OciRepoPlural, TestAppName, ct);
+        await WaitForCustomObjectDeletedAsync(FluxApi.KustomizationGroup, FluxApi.KustomizationPlural, TestAppName, ct);
     }
 
-    private async Task RestoreTestApp()
+    private async Task RestoreTestApp(CancellationToken ct = default)
     {
-        try
-        {
-            await _k8sClient.CustomObjects.CreateNamespacedCustomObjectAsync(
-                TestAppOciRepo,
-                group: FluxApi.OciRepoGroup,
-                version: FluxApi.V1,
-                namespaceParameter: TestNamespace,
-                plural: FluxApi.OciRepoPlural
-            );
-        }
-        catch (k8s.Autorest.HttpOperationException ex)
-            when (ex.Response.StatusCode == System.Net.HttpStatusCode.Conflict)
-        {
-            // Already exists, do nothing
-        }
-        try
-        {
-            await _k8sClient.CustomObjects.CreateNamespacedCustomObjectAsync(
-                TestAppKustomization,
-                group: FluxApi.KustomizationGroup,
-                version: FluxApi.V1,
-                namespaceParameter: TestNamespace,
-                plural: FluxApi.KustomizationPlural
-            );
-        }
-        catch (k8s.Autorest.HttpOperationException ex)
-            when (ex.Response.StatusCode == System.Net.HttpStatusCode.Conflict)
-        {
-            // Already exists, do nothing
-        }
+        await CreateOrWaitForCustomObjectActiveAsync(
+            TestAppOciRepo,
+            FluxApi.OciRepoGroup,
+            FluxApi.OciRepoPlural,
+            TestAppName,
+            ct
+        );
+        await CreateOrWaitForCustomObjectActiveAsync(
+            TestAppKustomization,
+            FluxApi.KustomizationGroup,
+            FluxApi.KustomizationPlural,
+            TestAppName,
+            ct
+        );
     }
 
     public async ValueTask DisposeAsync()
@@ -185,14 +147,15 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
     [InlineData(false, true)]
     public async Task TriggerReconcile_NewAppOrUndeploy_TriggersSyncrootReconciliation(bool isNewApp, bool isUndeploy)
     {
+        var ct = TestContext.Current.CancellationToken;
+
         try
         {
             if (isNewApp)
             {
-                await DeleteTestApp();
+                await DeleteTestApp(ct);
             }
 
-            var ct = TestContext.Current.CancellationToken;
             var originEnvironment = "local";
 
             var token = FakeMaskinportenTokenGenerator.GenerateValidToken();
@@ -224,7 +187,7 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
         }
         finally
         {
-            await RestoreTestApp();
+            await RestoreTestApp(ct);
         }
     }
 
@@ -292,5 +255,122 @@ public sealed class TriggerReconcileIntegrationTests : IAsyncLifetime
         }
 
         return null;
+    }
+
+    private async Task DeleteCustomObjectIfExistsAsync(string group, string plural, string name, CancellationToken ct)
+    {
+        try
+        {
+            await _k8sClient.CustomObjects.DeleteNamespacedCustomObjectAsync(
+                group: group,
+                version: FluxApi.V1,
+                namespaceParameter: TestNamespace,
+                plural: plural,
+                name: name,
+                cancellationToken: ct
+            );
+        }
+        catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+        {
+            // Object already gone.
+        }
+    }
+
+    private async Task WaitForCustomObjectDeletedAsync(string group, string plural, string name, CancellationToken ct)
+    {
+        var deadline = TimeProvider.System.GetUtcNow() + ResourceStateTimeout;
+        while (TimeProvider.System.GetUtcNow() < deadline)
+        {
+            try
+            {
+                await _k8sClient.CustomObjects.GetNamespacedCustomObjectAsync(
+                    group: group,
+                    version: FluxApi.V1,
+                    namespaceParameter: TestNamespace,
+                    plural: plural,
+                    name: name,
+                    cancellationToken: ct
+                );
+            }
+            catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return;
+            }
+
+            await Task.Delay(ResourcePollInterval, ct);
+        }
+
+        throw new TimeoutException($"Timed out waiting for {group}/{plural}/{name} to be deleted.");
+    }
+
+    private async Task CreateOrWaitForCustomObjectActiveAsync(
+        JsonObject? customObject,
+        string group,
+        string plural,
+        string name,
+        CancellationToken ct
+    )
+    {
+        ArgumentNullException.ThrowIfNull(customObject);
+
+        var deadline = TimeProvider.System.GetUtcNow() + ResourceStateTimeout;
+        while (TimeProvider.System.GetUtcNow() < deadline)
+        {
+            try
+            {
+                await _k8sClient.CustomObjects.CreateNamespacedCustomObjectAsync(
+                    customObject,
+                    group: group,
+                    version: FluxApi.V1,
+                    namespaceParameter: TestNamespace,
+                    plural: plural,
+                    cancellationToken: ct
+                );
+            }
+            catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == HttpStatusCode.Conflict)
+            {
+                // Resource may still be terminating after a delete in another test.
+            }
+
+            if (await IsCustomObjectActiveAsync(group, plural, name, ct))
+            {
+                return;
+            }
+
+            await Task.Delay(ResourcePollInterval, ct);
+        }
+
+        throw new TimeoutException($"Timed out waiting for {group}/{plural}/{name} to become active.");
+    }
+
+    private async Task<bool> IsCustomObjectActiveAsync(string group, string plural, string name, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _k8sClient.CustomObjects.GetNamespacedCustomObjectAsync(
+                group: group,
+                version: FluxApi.V1,
+                namespaceParameter: TestNamespace,
+                plural: plural,
+                name: name,
+                cancellationToken: ct
+            );
+
+            if (
+                result is JsonElement element
+                && element.TryGetProperty("metadata", out var metadata)
+                && metadata.TryGetProperty("deletionTimestamp", out var deletionTimestamp)
+                && deletionTimestamp.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined
+            )
+            {
+                return false;
+            }
+
+            return true;
+        }
+        catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
     }
 }

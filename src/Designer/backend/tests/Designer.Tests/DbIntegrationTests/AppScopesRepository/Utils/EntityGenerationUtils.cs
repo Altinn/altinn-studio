@@ -9,7 +9,12 @@ public static partial class EntityGenerationUtils
 {
     public static class AppScopes
     {
-        public static AppScopesEntity GenerateAppScopesEntity(string org, string app = null, int numberOfScopes = 3, string developer = "testUser")
+        public static AppScopesEntity GenerateAppScopesEntity(
+            string org,
+            string app = null,
+            int numberOfScopes = 3,
+            string developer = "testUser"
+        )
         {
             return new AppScopesEntity
             {
@@ -23,15 +28,9 @@ public static partial class EntityGenerationUtils
         }
 
         public static MaskinPortenScopeEntity GenerateMaskinPortenScopeEntity() =>
-            new()
-            {
-                Scope = Guid.NewGuid().ToString(),
-                Description = Guid.NewGuid().ToString(),
-            };
+            new() { Scope = Guid.NewGuid().ToString(), Description = Guid.NewGuid().ToString() };
 
         public static ISet<MaskinPortenScopeEntity> GenerateMaskinPortenScopeEntities(int count) =>
-            Enumerable.Range(0, count)
-                .Select(x => GenerateMaskinPortenScopeEntity()).ToHashSet();
+            Enumerable.Range(0, count).Select(x => GenerateMaskinPortenScopeEntity()).ToHashSet();
     }
-
 }
