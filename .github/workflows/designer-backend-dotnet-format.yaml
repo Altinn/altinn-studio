@@ -12,16 +12,17 @@ jobs:
   dotnet-format-check:
     name: Format check
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/Designer/backend
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Setup .NET
         uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
         with:
           dotnet-version: |
             9.0.x
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: FormatCheck
-        run: |
-           dotnet format backend/Designer.sln --verify-no-changes
-        working-directory: src/Designer
+      - name: Restore tools
+        run: dotnet tool restore
+      - name: Run csharpier
+        run: dotnet csharpier check .

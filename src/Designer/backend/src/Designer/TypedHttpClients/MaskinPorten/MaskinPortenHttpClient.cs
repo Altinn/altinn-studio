@@ -13,9 +13,11 @@ public class MaskinPortenHttpClient : IMaskinPortenHttpClient
 {
     internal const string HttpClientName = "MaskinPortenHttpClient";
     internal const string PublicHttpClientName = "MaskinPortenPublicHttpClient";
-    private const string AccessibleForAllScopesPath = "/api/v1/scopes/all?accessible_for_all=true&integration_type=maskinporten";
+    private const string AccessibleForAllScopesPath =
+        "/api/v1/scopes/all?accessible_for_all=true&integration_type=maskinporten";
     private const string AccessScopesPath = "/api/v1/scopes/access/all";
     private static readonly TimeSpan s_accessibleForAllCacheDuration = TimeSpan.FromHours(1);
+
     // Refresh before expiry so users get cached data while revalidation happens in the background.
     private static readonly TimeSpan s_accessibleForAllRefreshWindow = TimeSpan.FromMinutes(10);
 
@@ -46,7 +48,8 @@ public class MaskinPortenHttpClient : IMaskinPortenHttpClient
         var allScopes = await allScopesTask;
         using HttpResponseMessage accessScopesResponse = await accessScopesTask;
         accessScopesResponse.EnsureSuccessStatusCode();
-        var accessScopes = await accessScopesResponse.Content.ReadFromJsonAsync<MaskinPortenScope[]>(cancellationToken) ?? [];
+        var accessScopes =
+            await accessScopesResponse.Content.ReadFromJsonAsync<MaskinPortenScope[]>(cancellationToken) ?? [];
 
         return FilterAndDedupe(allScopes, accessScopes);
     }
@@ -152,29 +155,30 @@ public class MaskinPortenHttpClient : IMaskinPortenHttpClient
         return await response.Content.ReadFromJsonAsync<MaskinPortenScope[]>(cancellationToken) ?? [];
     }
 
-    private IEnumerable<MaskinPortenScope> FilterAndDedupe(MaskinPortenScope[] allScopes, MaskinPortenScope[] accessScopes)
+    private IEnumerable<MaskinPortenScope> FilterAndDedupe(
+        MaskinPortenScope[] allScopes,
+        MaskinPortenScope[] accessScopes
+    )
     {
-        var combined = allScopes.Concat(accessScopes)
+        var combined = allScopes
+            .Concat(accessScopes)
             .Where(s => s.AllowedIntegrationTypes != null && s.AllowedIntegrationTypes.Contains("maskinporten"))
             .ToArray();
 
-        var grouped = combined
-            .GroupBy(s => s.Scope)
-            .ToArray();
+        var grouped = combined.GroupBy(s => s.Scope).ToArray();
 
         var duplicates = grouped.Where(g => g.Count() > 1).ToArray();
         if (duplicates.Any())
         {
-            _logger.LogDebug("Found {Count} duplicate scopes. First occurrence wins. Examples: {Scopes}",
+            _logger.LogDebug(
+                "Found {Count} duplicate scopes. First occurrence wins. Examples: {Scopes}",
                 duplicates.Length,
-                string.Join(", ", duplicates.Take(3).Select(g => g.Key)));
+                string.Join(", ", duplicates.Take(3).Select(g => g.Key))
+            );
         }
 
         return grouped.Select(g => g.First()).ToArray();
     }
 
-    private sealed record AccessibleForAllScopesCacheEntry(
-        MaskinPortenScope[] Scopes,
-        DateTimeOffset ExpiresAtUtc
-    );
+    private sealed record AccessibleForAllScopesCacheEntry(MaskinPortenScope[] Scopes, DateTimeOffset ExpiresAtUtc);
 }

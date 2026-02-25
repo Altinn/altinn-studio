@@ -25,6 +25,7 @@ namespace Altinn.Studio.Gateway.Api;
 [JsonSerializable(typeof(IEnumerable<ErrorMetric>))]
 [JsonSerializable(typeof(IEnumerable<AppMetric>))]
 [JsonSerializable(typeof(IEnumerable<AppErrorMetric>))]
+[JsonSerializable(typeof(AppActivityMetricsResponse))]
 [JsonSerializable(typeof(List<AppHealthMetric>))]
 [JsonSerializable(typeof(TriggerReconcileRequest))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext { }

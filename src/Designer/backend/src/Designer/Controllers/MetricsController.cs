@@ -26,7 +26,12 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        IEnumerable<ErrorMetric> metrics = await _metricsService.GetErrorMetricsAsync(org, environment, range, cancellationToken);
+        IEnumerable<ErrorMetric> metrics = await _metricsService.GetErrorMetricsAsync(
+            org,
+            environment,
+            range,
+            cancellationToken
+        );
         return Ok(metrics);
     }
 
@@ -40,7 +45,13 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        IEnumerable<AppMetric> metrics = await _metricsService.GetAppMetricsAsync(org, environment, app, range, cancellationToken);
+        IEnumerable<AppMetric> metrics = await _metricsService.GetAppMetricsAsync(
+            org,
+            environment,
+            app,
+            range,
+            cancellationToken
+        );
         return Ok(metrics);
     }
 
@@ -54,7 +65,13 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        IEnumerable<AppErrorMetric> metrics = await _metricsService.GetAppErrorMetricsAsync(org, environment, app, range, cancellationToken);
+        IEnumerable<AppErrorMetric> metrics = await _metricsService.GetAppErrorMetricsAsync(
+            org,
+            environment,
+            app,
+            range,
+            cancellationToken
+        );
         return Ok(metrics);
     }
 
@@ -67,7 +84,12 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        IEnumerable<AppHealthMetric> metrics = await _metricsService.GetAppHealthMetricsAsync(org, environment, app, cancellationToken);
+        IEnumerable<AppHealthMetric> metrics = await _metricsService.GetAppHealthMetricsAsync(
+            org,
+            environment,
+            app,
+            cancellationToken
+        );
         return Ok(metrics);
     }
 }

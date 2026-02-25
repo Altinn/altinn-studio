@@ -15,8 +15,10 @@ public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandl
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ProcessTaskIdChangedApplicationMetadataHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
+    public ProcessTaskIdChangedApplicationMetadataHandler(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
@@ -34,7 +36,8 @@ public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandl
                 var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     notification.EditingContext.Org,
                     notification.EditingContext.Repo,
-                    notification.EditingContext.Developer);
+                    notification.EditingContext.Developer
+                );
 
                 var applicationMetadata = await repository.GetApplicationMetadata(cancellationToken);
 
@@ -45,7 +48,8 @@ public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandl
                 }
 
                 return hasChanges;
-            });
+            }
+        );
     }
 
     /// <summary>
@@ -56,8 +60,7 @@ public class ProcessTaskIdChangedApplicationMetadataHandler : INotificationHandl
     private static bool TryChangeTaskIds(Application applicationMetadata, string oldId, string newId)
     {
         bool hasChanges = false;
-        foreach (DataType applicationMetadataDataType in applicationMetadata.DataTypes.Where(x =>
-                     x.TaskId == oldId))
+        foreach (DataType applicationMetadataDataType in applicationMetadata.DataTypes.Where(x => x.TaskId == oldId))
         {
             applicationMetadataDataType.TaskId = newId;
             hasChanges = true;

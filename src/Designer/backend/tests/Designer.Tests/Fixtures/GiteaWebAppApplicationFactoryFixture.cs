@@ -5,7 +5,8 @@ using Microsoft.Extensions.Hosting;
 namespace Designer.Tests.Fixtures;
 
 // Class will actually spin up a web host which will be used for integration tests.
-public class GiteaWebAppApplicationFactoryFixture<TEntryPoint> : WebApplicationFactory<TEntryPoint> where TEntryPoint : class
+public class GiteaWebAppApplicationFactoryFixture<TEntryPoint> : WebApplicationFactory<TEntryPoint>
+    where TEntryPoint : class
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -23,5 +24,4 @@ public class GiteaWebAppApplicationFactoryFixture<TEntryPoint> : WebApplicationF
 
         return dummyHost;
     }
-
 }

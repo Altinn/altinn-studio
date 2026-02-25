@@ -9,12 +9,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class LanguageTests : PreviewControllerTestsBase<LanguageTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class LanguageTests
+        : PreviewControllerTestsBase<LanguageTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public LanguageTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public LanguageTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_Text_Ok()

@@ -29,7 +29,8 @@ public class XsdMaxOccursKeywordTests : ValueKeywordTestsBase<XsdMaxOccursKeywor
         var expectedKeyword = new XsdMaxOccursKeyword(value);
         object expectedKeywordObject = new XsdMaxOccursKeyword(value);
 
-        Given.That.KeywordCreatedWithValue(value)
+        Given
+            .That.KeywordCreatedWithValue(value)
             .Then.KeywordShouldEqual(expectedKeyword)
             .And.KeywordShouldEqualObject(expectedKeywordObject)
             .But.KeywordShouldNotEqual(null);

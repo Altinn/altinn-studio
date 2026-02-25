@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,8 +11,10 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.LayoutPageAdded;
 
-public class LayoutPageAddedHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-    IFileSyncHandlerExecutor fileSyncHandlerExecutor) : INotificationHandler<LayoutPageAddedEvent>
+public class LayoutPageAddedHandler(
+    IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+    IFileSyncHandlerExecutor fileSyncHandlerExecutor
+) : INotificationHandler<LayoutPageAddedEvent>
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
@@ -29,7 +30,8 @@ public class LayoutPageAddedHandler(IAltinnGitRepositoryFactory altinnGitReposit
                 AltinnAppGitRepository repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     notification.EditingContext.Org,
                     notification.EditingContext.Repo,
-                    notification.EditingContext.Developer);
+                    notification.EditingContext.Developer
+                );
                 if (!repository.AppUsesLayoutSets())
                 {
                     return false;
@@ -46,7 +48,8 @@ public class LayoutPageAddedHandler(IAltinnGitRepositoryFactory altinnGitReposit
                     return true;
                 }
                 return false;
-            });
+            }
+        );
     }
 
     /// <summary>

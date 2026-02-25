@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest,windows-latest,ubuntu-latest]
-    name: Run dotnet build and test
+    name: Build and test
     runs-on: ${{ matrix.os}}
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
@@ -31,12 +31,23 @@ jobs:
         with:
           global-json-file: src/cli/global.json
 
+      - name: Setup Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: 'src/cli/go.mod'
+          cache-dependency-path: src/cli/go.sum
+
       - name: Build
         working-directory: src/cli
         run: |
-          dotnet build -v m
+          make build
+
+      - name: Lint
+        working-directory: src/cli
+        run: |
+          make lint
 
       - name: Test
         working-directory: src/cli
         run: |
-          dotnet test -v m
+          make test

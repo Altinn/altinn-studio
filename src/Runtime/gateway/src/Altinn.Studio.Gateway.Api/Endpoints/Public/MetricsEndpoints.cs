@@ -1,36 +1,23 @@
 using Altinn.Studio.Gateway.Api.Application;
-using Altinn.Studio.Gateway.Api.Hosting;
 
 namespace Altinn.Studio.Gateway.Api.Endpoints.Public;
 
 internal static class MetricsEndpoints
 {
-    public static WebApplication MapMetricsEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapMetricsEndpoints(this RouteGroupBuilder publicApiV1)
     {
-        app.MapGet("/runtime/gateway/api/v1/metrics/errors", HandleMetrics.GetErrorMetricsAsync)
-            .RequirePublicPort()
-            .RequireAuthorization("MaskinportenScope")
-            .WithName("GetErrorMetrics")
-            .WithTags("Metrics");
+        var metricsApi = publicApiV1.MapGroup("/metrics").RequireAuthorization("MaskinportenScope").WithTags("Metrics");
 
-        app.MapGet("/runtime/gateway/api/v1/metrics/app", HandleMetrics.GetAppMetricsAsync)
-            .RequirePublicPort()
-            .RequireAuthorization("MaskinportenScope")
-            .WithName("GetAppMetrics")
-            .WithTags("Metrics");
+        metricsApi.MapGet("/errors", HandleMetrics.GetErrorMetrics).WithName("GetErrorMetrics");
 
-        app.MapGet("/runtime/gateway/api/v1/metrics/app/errors", HandleMetrics.GetAppErrorMetricsAsync)
-            .RequirePublicPort()
-            .RequireAuthorization("MaskinportenScope")
-            .WithName("GetAppErrorMetrics")
-            .WithTags("Metrics");
+        metricsApi.MapGet("/app", HandleMetrics.GetAppMetrics).WithName("GetAppMetrics");
 
-        app.MapGet("/runtime/gateway/api/v1/metrics/app/health", HandleMetrics.GetAppHealthMetricsAsync)
-            .RequirePublicPort()
-            .RequireAuthorization("MaskinportenScope")
-            .WithName("GetAppHealthMetrics")
-            .WithTags("Metrics");
+        metricsApi.MapGet("/app/errors", HandleMetrics.GetAppErrorMetrics).WithName("GetAppErrorMetrics");
 
-        return app;
+        metricsApi.MapGet("/app/activity", HandleMetrics.GetAppActivityMetrics).WithName("GetAppActivityMetrics");
+
+        metricsApi.MapGet("/app/health", HandleMetrics.GetAppHealthMetrics).WithName("GetAppHealthMetrics");
+
+        return publicApiV1;
     }
 }

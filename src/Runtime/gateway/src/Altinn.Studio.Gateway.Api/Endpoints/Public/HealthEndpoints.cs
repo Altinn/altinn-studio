@@ -1,19 +1,17 @@
-using Altinn.Studio.Gateway.Api.Hosting;
-
 namespace Altinn.Studio.Gateway.Api.Endpoints.Public;
 
 internal sealed record HealthResponse(string Status);
 
 internal static class HealthEndpoints
 {
-    public static WebApplication MapHealthEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapHealthEndpoints(this RouteGroupBuilder publicApiV1)
     {
-        app.MapGet("/runtime/gateway/api/v1/health", () => Results.Ok(new HealthResponse("healthy")))
-            .RequirePublicPort()
+        publicApiV1
+            .MapGet("/health", () => Results.Ok(new HealthResponse("healthy")))
             .RequireAuthorization("MaskinportenScope")
             .WithName("RuntimeHealth")
             .WithTags("Health");
 
-        return app;
+        return publicApiV1;
     }
 }
