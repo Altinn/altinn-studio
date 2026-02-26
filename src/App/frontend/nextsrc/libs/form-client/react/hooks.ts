@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/shallow';
 
 import { evaluateBoolean } from 'nextsrc/libs/form-client/expressions/evaluate';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
+import { expressionValidationPath } from 'nextsrc/libs/form-client/react/useExpressionValidation';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 
 import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
@@ -137,15 +138,17 @@ const emptyValidations: FieldValidation[] = [];
 export function useFieldValidations(path: string): FieldValidation[] {
   const client = useFormClient();
   const reqPath = requiredValidationPath(path);
+  const exprPath = expressionValidationPath(path);
   return useStore(
     client.validationStore,
     useShallow((state) => {
       const backend = state.fieldValidations[path];
       const required = state.fieldValidations[reqPath];
-      if (!backend && !required) {
+      const expression = state.fieldValidations[exprPath];
+      if (!backend && !required && !expression) {
         return emptyValidations;
       }
-      return [...(backend ?? []), ...(required ?? [])];
+      return [...(backend ?? []), ...(required ?? []), ...(expression ?? [])];
     }),
   );
 }

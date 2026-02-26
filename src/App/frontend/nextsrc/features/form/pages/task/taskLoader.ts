@@ -19,11 +19,12 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs) => {
     throw new Error(`No layout set found for task: ${taskId}`);
   }
 
-  const [layoutSettings, layout, instance, dataModelSchema] = await Promise.all([
+  const [layoutSettings, layout, instance, dataModelSchema, validationConfig] = await Promise.all([
     LayoutApi.getLayoutSettings(layoutSet.id),
     LayoutApi.getLayout(layoutSet.id),
     InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid }),
     LayoutApi.getDataModelSchema(layoutSet.dataType),
+    LayoutApi.getValidationConfig(layoutSet.dataType),
   ]);
 
   if (!layoutSettings) {
@@ -46,6 +47,7 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs) => {
 
   formClient.setDataModelSchema(dataModelSchema);
   formClient.setLayoutCollection(layout);
+  formClient.setExpressionValidationConfig(validationConfig);
 
   if ('order' in layoutSettings.pages) {
     formClient.setPageOrder(layoutSettings.pages.order);

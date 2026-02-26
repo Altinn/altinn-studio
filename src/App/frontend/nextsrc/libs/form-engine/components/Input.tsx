@@ -26,8 +26,6 @@ export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) =
 
   return (
     <div>
-      {required && <h1>REQUIRED</h1>}
-
       {title && (
         <label>
           {title}

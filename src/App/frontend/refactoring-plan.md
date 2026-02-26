@@ -68,7 +68,7 @@ npx cypress open --env environment=docker
 | 1.3 | Stateless form data | Not started | |
 | 2.1 | Backend validation integration | Done | Validation issues parsed from save response into validationStore |
 | 2.2 | Schema validation (client-side) | Partial | Schema loading + type coercion done; validation display pending |
-| 2.3 | Expression-based validation | Not started | |
+| 2.3 | Expression-based validation | Done | argv, text, nested dataModel in expressions; validation config API, resolution, evaluation hook |
 | 2.4 | Validation display and visibility | Done | ComponentValidations component; added to Input, TextArea, Dropdown, Datepicker, Checkboxes, RadioButtons |
 | 2.5 | Required field validation | Done | useRequiredValidation hook + required indicators on 6 components |
 | 3.1 | Page navigation within a task | Done | NavigationButtons component with validation-blocked navigation |

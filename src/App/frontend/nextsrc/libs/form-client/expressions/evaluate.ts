@@ -4,6 +4,8 @@ export interface ExpressionDataSources {
   formDataGetter: (path: string) => FormDataPrimitive;
   instanceDataSources: Record<string, string> | null;
   frontendSettings: Record<string, string | undefined> | null;
+  textResourceResolver?: (key: string) => string;
+  positionalArguments?: unknown[];
 }
 
 type Expression = unknown;
@@ -52,8 +54,21 @@ export function evaluateExpression(expr: Expression, dataSources: ExpressionData
           : null;
     }
 
+    case 'argv': {
+      const index = toNumber(args[0]);
+      if (index === null || !dataSources.positionalArguments) {
+        return null;
+      }
+      return dataSources.positionalArguments[index] ?? null;
+    }
+
+    case 'text': {
+      const key = String(evaluateExpression(args[0], dataSources) ?? '');
+      return dataSources.textResourceResolver?.(key) ?? key;
+    }
+
     case 'dataModel':
-      return dataSources.formDataGetter(String(args[0] ?? ''));
+      return dataSources.formDataGetter(String(evaluateExpression(args[0], dataSources) ?? ''));
 
     case 'instanceContext': {
       const key = String(args[0] ?? '');
@@ -174,6 +189,17 @@ export function evaluateBoolean(expr: Expression, dataSources: ExpressionDataSou
     return result;
   }
   return defaultValue;
+}
+
+export function evaluateString(expr: Expression, dataSources: ExpressionDataSources): string {
+  if (typeof expr === 'string') {
+    return expr;
+  }
+  if (!Array.isArray(expr)) {
+    return String(expr ?? '');
+  }
+  const result = evaluateExpression(expr, dataSources);
+  return String(result ?? '');
 }
 
 function toNumber(value: unknown): number | null {

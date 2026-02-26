@@ -1,4 +1,5 @@
 import { convertData } from 'nextsrc/libs/form-client/convertData';
+import { resolveExpressionValidationConfig } from 'nextsrc/libs/form-client/expressionValidation';
 import { moveChildren } from 'nextsrc/libs/form-client/moveChildren';
 import { lookupSchemaForPath } from 'nextsrc/libs/form-client/schemaLookup';
 import { createFormDataStore } from 'nextsrc/libs/form-client/stores/formDataStore';
@@ -6,6 +7,10 @@ import { createTextResourceStore } from 'nextsrc/libs/form-client/stores/textRes
 import { createValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
 
 import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
+import type {
+  ExpressionValidationConfig,
+  ResolvedExpressionValidations,
+} from 'nextsrc/libs/form-client/expressionValidation';
 import type { ResolvedLayoutCollection, ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
 import type { FormDataStore } from 'nextsrc/libs/form-client/stores/formDataStore';
 import type { TextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
@@ -45,6 +50,7 @@ export class FormClient {
   private instanceDataSources: Record<string, string> | null;
   private formDataChangeCallbacks = new Set<FormDataChangeCallback>();
   private dataModelSchema: JSONSchema7 | null = null;
+  private expressionValidations: ResolvedExpressionValidations = {};
 
   constructor(config: FormClientConfig = {}) {
     this.applicationSettings = config.applicationSettings ?? null;
@@ -118,6 +124,14 @@ export class FormClient {
 
   setInstanceDataSources(sources: Record<string, string> | null) {
     this.instanceDataSources = sources;
+  }
+
+  setExpressionValidationConfig(config: ExpressionValidationConfig | null) {
+    this.expressionValidations = config ? resolveExpressionValidationConfig(config) : {};
+  }
+
+  getExpressionValidations(): ResolvedExpressionValidations {
+    return this.expressionValidations;
   }
 
   private coerceValue(path: string, value: FormDataPrimitive): { value: FormDataPrimitive; error: boolean } {
