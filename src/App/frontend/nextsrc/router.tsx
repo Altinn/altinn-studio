@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Outlet } from 'react-router';
 
 import { AppLayout } from 'nextsrc/core/app-layout/app-layout';
 import { GlobalData } from 'nextsrc/core/globalData';
@@ -22,11 +22,12 @@ import { routes } from 'nextsrc/routesBuilder';
 export const router = createBrowserRouter(
   [
     {
+      path: '/',
       element: <AppLayout />,
       HydrateFallback: () => null,
       errorElement: <ErrorPage />,
       children: [
-        { path: routes.root, loader: entryRedirectLoader(), errorElement: <ErrorPage /> },
+        { path: routes.root, element: <Outlet />, loader: entryRedirectLoader(), errorElement: <ErrorPage /> },
         { path: routes.instance, element: <InstancePage />, loader: instanceLoader, errorElement: <ErrorPage /> },
         {
           path: routes.instanceSelection,

@@ -34,7 +34,7 @@ export const NavigationBar = (_props: ComponentProps) => {
 
   return (
     <nav data-testid='NavigationBar'>
-      <ul className={classes.menu}>
+      <ul id='navigation-menu' className={classes.menu}>
         {pageOrder.map((name, index) => (
           <NavButton
             key={name}

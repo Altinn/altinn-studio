@@ -33,6 +33,7 @@ export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) =
         </label>
       )}
       <input
+        id={props.id}
         type='text'
         required={required}
         value={String(value ?? '')}

@@ -29,6 +29,7 @@ import { Panel } from 'nextsrc/libs/form-engine/components/Panel';
 import { Paragraph } from 'nextsrc/libs/form-engine/components/Paragraph';
 import { RadioButtons } from 'nextsrc/libs/form-engine/components/RadioButtons';
 import { RepeatingGroup } from 'nextsrc/libs/form-engine/components/RepeatingGroup';
+import { Summary2 } from 'nextsrc/libs/form-engine/components/Summary2';
 import { TextArea } from 'nextsrc/libs/form-engine/components/TextArea';
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
 import type { ComponentMap } from 'nextsrc/libs/form-engine/components';
@@ -56,6 +57,7 @@ export const defaultComponentMap: ComponentMap = {
   Paragraph,
   RadioButtons,
   RepeatingGroup,
+  Summary2,
   TextArea,
 };
 
