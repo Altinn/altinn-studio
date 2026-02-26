@@ -111,15 +111,20 @@ type scaleBaseline struct {
 type InactivityScalerReconciler struct {
 	logger       logr.Logger
 	k8sClient    client.Client
+	k8sReader    client.Reader
 	runtime      rt.Runtime
 	pollInterval time.Duration
 	location     *time.Location
 }
 
-func NewReconciler(runtime rt.Runtime, k8sClient client.Client) *InactivityScalerReconciler {
+func NewReconciler(runtime rt.Runtime, k8sClient client.Client, k8sReader client.Reader) *InactivityScalerReconciler {
+	if k8sReader == nil {
+		k8sReader = k8sClient
+	}
 	return &InactivityScalerReconciler{
 		logger:       log.FromContext(context.Background()).WithName("inactivityscaler"),
 		k8sClient:    k8sClient,
+		k8sReader:    k8sReader,
 		runtime:      runtime,
 		pollInterval: defaultPollInterval,
 		location:     osloLocation,
@@ -141,6 +146,7 @@ func NewReconcilerForTesting(
 	return &InactivityScalerReconciler{
 		logger:       log.FromContext(context.Background()).WithName("inactivityscaler"),
 		k8sClient:    k8sClient,
+		k8sReader:    k8sClient,
 		runtime:      runtime,
 		pollInterval: pollInterval,
 		location:     location,
@@ -205,11 +211,12 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 	}
 
 	now := r.runtime.GetClock().Now().In(r.location)
-	state := resolveClusterState(opCtx.ServiceOwner.Id, opCtx.Environment, now, len(appDeployments))
+	state, stateForced := r.resolveClusterStateWithOverride(ctx, opCtx.ServiceOwner.Id, opCtx.Environment, now, len(appDeployments))
 	span.SetAttributes(
 		attribute.String("serviceOwner", opCtx.ServiceOwner.Id),
 		attribute.String("environment", opCtx.Environment),
 		attribute.String("state", string(state)),
+		attribute.Bool("stateForced", stateForced),
 		attribute.Int("appDeployments", len(appDeployments)),
 		attribute.Int("appHPAs", len(appHpas)),
 	)
@@ -220,6 +227,7 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 		"environment", opCtx.Environment,
 		"appDeployments", len(appDeployments),
 		"appHPAs", len(appHpas),
+		"stateForced", stateForced,
 		"time", now.Format(time.RFC3339),
 	)
 

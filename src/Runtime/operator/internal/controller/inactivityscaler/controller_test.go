@@ -15,6 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
@@ -33,6 +34,7 @@ func newFakeClientWithInterceptors(interceptorFuncs interceptor.Funcs, initObjs 
 	scheme := k8sruntime.NewScheme()
 	_ = appsv1.AddToScheme(scheme)
 	_ = autoscalingv2.AddToScheme(scheme)
+	_ = corev1.AddToScheme(scheme)
 	return fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithInterceptorFuncs(interceptorFuncs).
@@ -85,6 +87,11 @@ type stateCase struct {
 	AppCount     int    `json:"appCount"`
 	State        string `json:"state"`
 }
+
+const (
+	testKindDeployment = "Deployment"
+	testKindHPA        = "HorizontalPodAutoscaler"
+)
 
 func TestResolveClusterState(t *testing.T) {
 	cases := []stateCase{}
@@ -163,6 +170,90 @@ func TestResolveClusterState(t *testing.T) {
 		t.Fatalf("marshal snapshot: %v", err)
 	}
 	snaps.MatchJSON(t, payload)
+}
+
+func TestSyncAll_ForcedStateOverride(t *testing.T) {
+	g := NewWithT(t)
+
+	h := newHarness(t, "ttd", "at22", time.Date(2026, 2, 23, 12, 0, 0, 0, osloLocation),
+		newOverrideConfigMap(string(stateTTDOffhours)),
+		newAppDeployment("app-a", 2),
+		newAppHpa("ttd", "app-a", 2),
+		newGatewayDeployment(),
+		newPdf3Hpa(pdf3ProxyHpaName),
+		newPdf3Hpa(pdf3WorkerHpaName),
+	)
+
+	err := h.reconciler.SyncAll(h.ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	objects := collectSnapshots(t, h.k8sClient, "ttd")
+	g.Expect(objects).To(HaveLen(5))
+	for i := range objects {
+		obj := objects[i]
+		g.Expect(obj.Managed).To(Equal("true"))
+		g.Expect(obj.Reconcile).To(Equal(reconcileDisabledValue))
+		if obj.Kind == testKindDeployment {
+			g.Expect(obj.Replicas).NotTo(BeNil())
+			g.Expect(*obj.Replicas).To(Equal(scaleDownReplicaOne))
+		} else {
+			g.Expect(obj.MinReplicas).NotTo(BeNil())
+			g.Expect(*obj.MinReplicas).To(Equal(scaleDownReplicaOne))
+		}
+	}
+}
+
+func TestSyncAll_InvalidForcedStateOverrideFallsBackToComputedState(t *testing.T) {
+	g := NewWithT(t)
+
+	h := newHarness(t, "nav", "tt02", time.Date(2026, 2, 23, 12, 0, 0, 0, osloLocation),
+		newOverrideConfigMap("not-a-state"),
+		newGatewayDeployment(),
+		newPdf3Hpa(pdf3ProxyHpaName),
+		newPdf3Hpa(pdf3WorkerHpaName),
+	)
+	err := h.reconciler.SyncAll(h.ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	assertNoAppsComputedStateApplied(g, h)
+}
+
+func TestSyncAll_ForcedStateReadFailureFallsBackToComputedState(t *testing.T) {
+	g := NewWithT(t)
+
+	k8sClient := newFakeClientWithInterceptors(
+		interceptor.Funcs{
+			Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+				if key.Namespace == forceStateConfigMapNamespace && key.Name == forceStateConfigMapName {
+					return errors.New("simulated configmap read failure")
+				}
+				return c.Get(ctx, key, obj, opts...)
+			},
+		},
+		newGatewayDeployment(),
+		newPdf3Hpa(pdf3ProxyHpaName),
+		newPdf3Hpa(pdf3WorkerHpaName),
+	)
+	h := newHarnessWithClient(t, "nav", "tt02", time.Date(2026, 2, 23, 12, 0, 0, 0, osloLocation), k8sClient)
+
+	err := h.reconciler.SyncAll(h.ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	assertNoAppsComputedStateApplied(g, h)
+}
+
+func assertNoAppsComputedStateApplied(g *WithT, h *testHarness) {
+	gateway := &appsv1.Deployment{}
+	err := h.k8sClient.Get(h.ctx, client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace}, gateway)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(gateway.Spec.Replicas).NotTo(BeNil())
+	g.Expect(*gateway.Spec.Replicas).To(Equal(scaleDownReplicaOne))
+
+	for _, name := range []string{pdf3ProxyHpaName, pdf3WorkerHpaName} {
+		hpa := &autoscalingv2.HorizontalPodAutoscaler{}
+		err = h.k8sClient.Get(h.ctx, client.ObjectKey{Name: name, Namespace: runtimePdf3Namespace}, hpa)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(hpa.Spec.MinReplicas).NotTo(BeNil())
+		g.Expect(*hpa.Spec.MinReplicas).To(Equal(scaleDownReplicaZero))
+	}
 }
 
 type resourceSnapshot struct {
@@ -281,6 +372,7 @@ func TestSyncAll_ProdNoop(t *testing.T) {
 	g := NewWithT(t)
 
 	h := newHarness(t, "nav", "prod", time.Date(2026, 2, 23, 3, 0, 0, 0, osloLocation),
+		newOverrideConfigMap("not-a-state"),
 		newGatewayDeployment(),
 		newPdf3Hpa(pdf3ProxyHpaName),
 		newPdf3Hpa(pdf3WorkerHpaName),
@@ -311,7 +403,7 @@ func collectSnapshots(t *testing.T, k8sClient client.Client, serviceOwner string
 		d := &deployments.Items[i]
 		appDeploymentNames[d.Name] = struct{}{}
 		result = append(result, resourceSnapshot{
-			Kind:      "Deployment",
+			Kind:      testKindDeployment,
 			Namespace: d.Namespace,
 			Name:      d.Name,
 			Replicas:  d.Spec.Replicas,
@@ -327,14 +419,14 @@ func collectSnapshots(t *testing.T, k8sClient client.Client, serviceOwner string
 	}
 	for i := range appHpas.Items {
 		hpa := &appHpas.Items[i]
-		if hpa.Spec.ScaleTargetRef.Kind != "Deployment" {
+		if hpa.Spec.ScaleTargetRef.Kind != testKindDeployment {
 			continue
 		}
 		if _, ok := appDeploymentNames[hpa.Spec.ScaleTargetRef.Name]; !ok {
 			continue
 		}
 		result = append(result, resourceSnapshot{
-			Kind:        "HorizontalPodAutoscaler",
+			Kind:        testKindHPA,
 			Namespace:   hpa.Namespace,
 			Name:        hpa.Name,
 			MinReplicas: hpa.Spec.MinReplicas,
@@ -347,7 +439,7 @@ func collectSnapshots(t *testing.T, k8sClient client.Client, serviceOwner string
 	gateway := &appsv1.Deployment{}
 	if err := k8sClient.Get(ctx, client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace}, gateway); err == nil {
 		result = append(result, resourceSnapshot{
-			Kind:      "Deployment",
+			Kind:      testKindDeployment,
 			Namespace: gateway.Namespace,
 			Name:      gateway.Name,
 			Replicas:  gateway.Spec.Replicas,
@@ -361,7 +453,7 @@ func collectSnapshots(t *testing.T, k8sClient client.Client, serviceOwner string
 		hpa := &autoscalingv2.HorizontalPodAutoscaler{}
 		if err := k8sClient.Get(ctx, client.ObjectKey{Name: hpaName, Namespace: runtimePdf3Namespace}, hpa); err == nil {
 			result = append(result, resourceSnapshot{
-				Kind:        "HorizontalPodAutoscaler",
+				Kind:        testKindHPA,
 				Namespace:   hpa.Namespace,
 				Name:        hpa.Name,
 				MinReplicas: hpa.Spec.MinReplicas,
@@ -437,7 +529,7 @@ func newAppHpa(serviceOwner, appName string, minReplicas int32) *autoscalingv2.H
 		},
 		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
 			ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
-				Kind: "Deployment",
+				Kind: testKindDeployment,
 				Name: release + "-deployment-v2",
 			},
 			MinReplicas: ptr.To(minReplicas),
@@ -462,5 +554,17 @@ func newPdf3Hpa(name string) *autoscalingv2.HorizontalPodAutoscaler {
 			Namespace: runtimePdf3Namespace,
 		},
 		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{MinReplicas: ptr.To(int32(3))},
+	}
+}
+
+func newOverrideConfigMap(state string) *corev1.ConfigMap {
+	return &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      forceStateConfigMapName,
+			Namespace: forceStateConfigMapNamespace,
+		},
+		Data: map[string]string{
+			forceStateConfigMapStateKey: state,
+		},
 	}
 }

@@ -199,7 +199,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	inactivityScalerController := inactivityscaler.NewReconciler(rt, mgr.GetClient())
+	inactivityScalerController := inactivityscaler.NewReconciler(rt, mgr.GetClient(), mgr.GetAPIReader())
 	if err = mgr.Add(inactivityScalerController); err != nil {
 		setupLog.Error(err, "unable to add InactivityScaler controller to manager")
 		span.End()
