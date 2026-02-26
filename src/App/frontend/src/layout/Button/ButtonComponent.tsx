@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from 'src/app-components/Button/Button';
 import { useAttachmentState } from 'src/features/attachments/hooks';
 import { useSetReturnToView } from 'src/features/form/layout/PageNavigationContext';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiConfig } from 'src/features/form/ui';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { useProcessQuery, useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -13,7 +13,6 @@ import { getComponentFromMode } from 'src/layout/Button/getComponentFromMode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { alignStyle } from 'src/layout/RepeatingGroup/Container/RepeatingGroupContainer';
 import { ProcessTaskType } from 'src/types';
-import { behavesLikeDataTask } from 'src/utils/formLayout';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CompInternal } from 'src/layout/layout';
@@ -56,10 +55,10 @@ export const ButtonComponent = ({ baseComponentId, ...componentProps }: PropsFro
   }
 
   function submitTask() {
-    const layoutSets = getLayoutSets();
+    const uiFolders = getUiConfig().folders;
 
     setReturnToView?.(undefined);
-    if (currentTaskType === ProcessTaskType.Data || behavesLikeDataTask(currentTask?.elementId, layoutSets)) {
+    if (currentTaskType === ProcessTaskType.Data || (currentTask?.elementId && currentTask?.elementId in uiFolders)) {
       processNext();
     } else if (currentTaskType === ProcessTaskType.Confirm) {
       processConfirm();

@@ -5,10 +5,10 @@ const appFrontend = new AppFrontend();
 
 function interceptLanguageFeatures({ lang }: { lang?: string | null }) {
   interceptAltinnAppGlobalData((globalData) => {
-    if (lang !== undefined && globalData.userProfile) {
-      globalData.userProfile.profileSettingPreference.language = lang;
+    if (lang !== undefined) {
+      globalData.userProfile!.profileSettingPreference.language = lang;
     }
-    globalData.layoutSets.uiSettings.showLanguageSelector = true;
+    globalData.ui.settings!.showLanguageSelector = true;
   });
 }
 
@@ -38,6 +38,8 @@ describe('Language', () => {
 
   it('should be possible to change language with arrow keys and space', () => {
     cy.goto('changename');
+    cy.waitForLoad();
+    cy.findByRole('textbox', { name: 'Nytt mellomnavn' }).should('exist');
     cy.get(appFrontend.languageSelector).click();
     cy.press('Tab');
     cy.focused().should('contain.text', 'Norsk bokmål');
