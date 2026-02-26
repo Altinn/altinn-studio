@@ -6,8 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace WorkflowEngine.EndToEndTests.Fixtures;
 
 /// <summary>
-/// Inner WebApplicationFactory that wires test-specific configuration into
-/// the running ASP.NET Core application.
+/// Inner WebApplicationFactory that wires test-specific configuration into the running ASP.NET Core application.
 /// </summary>
 internal sealed class EngineWebApplicationFactory : WebApplicationFactory<Program>
 {

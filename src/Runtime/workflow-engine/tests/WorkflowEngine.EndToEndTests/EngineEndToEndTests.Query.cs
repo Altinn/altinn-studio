@@ -52,7 +52,9 @@ public partial class EngineEndToEndTests
 
         await AssertDbWorkflowCount(1);
 
-        var parsedResult = await _client.AssertSuccessAndDeserialize<WorkflowStatusResponse>(resultForCorrectInstance);
+        var parsedResult = await Fixtures.EngineApiClient.AssertSuccessAndDeserialize<WorkflowStatusResponse>(
+            resultForCorrectInstance
+        );
         Assert.Equal(workflowId, parsedResult.DatabaseId);
     }
 

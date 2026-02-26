@@ -23,17 +23,17 @@ public sealed class EngineAppFixture : IAsyncLifetime
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18").Build();
     private EngineWebApplicationFactory _factory = null!;
 
-    private string GetAppCommandEndpoint() =>
+    private string _appCommandEndpoint =>
         $"http://localhost:{WireMock.Port}/{{Org}}/{{App}}/instances/{{InstanceOwnerPartyId}}/{{InstanceGuid}}/workflow-engine-callbacks";
 
+    /// <summary>
+    /// Constructs a new <see cref="EngineDbContext"/> for the test database.
+    /// </summary>
     internal EngineDbContext GetDbContext()
     {
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(_postgres.GetConnectionString()).Options;
-
         return new EngineDbContext(options);
     }
-
-    // ── Public surface ────────────────────────────────────────────────────────
 
     /// <summary>
     /// The live WireMock server, used to register stubs and inspect calls.
@@ -50,8 +50,9 @@ public sealed class EngineAppFixture : IAsyncLifetime
     /// </summary>
     public IServiceProvider Services => _factory.Services;
 
-    // ── IAsyncLifetime ────────────────────────────────────────────────────────
-
+    /// <summary>
+    /// Called when fixture is created.
+    /// </summary>
     public async ValueTask InitializeAsync()
     {
         await _postgres.StartAsync();
@@ -62,10 +63,13 @@ public sealed class EngineAppFixture : IAsyncLifetime
         SetupDefaultStub();
 
         // Accessing Server triggers ConfigureWebHost -> app startup.
-        _factory = new EngineWebApplicationFactory(_postgres.GetConnectionString(), GetAppCommandEndpoint());
+        _factory = new EngineWebApplicationFactory(_postgres.GetConnectionString(), _appCommandEndpoint);
         _ = _factory.Server;
     }
 
+    /// <summary>
+    /// Called when fixture is disposed.
+    /// </summary>
     public async ValueTask DisposeAsync()
     {
         WireMock.Dispose();
@@ -73,11 +77,9 @@ public sealed class EngineAppFixture : IAsyncLifetime
         await _postgres.DisposeAsync();
     }
 
-    // ── Per-test helpers ──────────────────────────────────────────────────────
-
     /// <summary>
     /// Resets both WireMock (back to the default catch-all 200 stub) and the database
-    /// (all workflow and step rows truncated).  Call at the start of every test.
+    /// (all workflow and step rows truncated).  Called at the start of every test.
     /// </summary>
     public async Task ResetAsync()
     {
@@ -95,9 +97,8 @@ public sealed class EngineAppFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// Polls until no steps remain in an active state (Enqueued, Processing, or Requeued),
-    /// or until <paramref name="timeout"/> elapses. Active steps indicate the engine still
-    /// holds DB transactions that would deadlock a concurrent TRUNCATE.
+    /// Polls until no workflows remain in an active state or until <paramref name="timeout"/> elapses.
+    /// Active workflows indicate the engine still holds DB transactions that would deadlock a concurrent TRUNCATE.
     /// </summary>
     private async Task WaitForDbIdle(TimeSpan? timeout = null)
     {
@@ -122,12 +123,4 @@ public sealed class EngineAppFixture : IAsyncLifetime
     /// </summary>
     public void SetupDefaultStub() =>
         WireMock.Given(Request.Create().UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200));
-}
-
-// ── xUnit collection ──────────────────────────────────────────────────────────
-
-[CollectionDefinition(Name)]
-public class EngineAppCollection : ICollectionFixture<EngineAppFixture>
-{
-    public const string Name = "WorkflowEngineApp";
 }

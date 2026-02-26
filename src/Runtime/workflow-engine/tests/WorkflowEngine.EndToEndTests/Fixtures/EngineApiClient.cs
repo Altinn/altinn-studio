@@ -14,9 +14,9 @@ namespace WorkflowEngine.EndToEndTests.Fixtures;
 /// </summary>
 internal sealed class EngineApiClient(HttpClient client) : IDisposable
 {
-    // ── Enqueue ───────────────────────────────────────────────────────────────
-
-    /// <summary>Enqueues a batch and asserts a 2xx response. Throws on failure.</summary>
+    /// <summary>
+    /// Enqueues a batch and asserts a 2xx response. Throws on failure.
+    /// </summary>
     public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
         string org,
         string app,
@@ -25,11 +25,13 @@ internal sealed class EngineApiClient(HttpClient client) : IDisposable
         WorkflowEnqueueRequest request
     )
     {
-        using var response = await client.PostAsJsonAsync(InstancePath(org, app, partyId, instanceGuid), request);
+        using var response = await client.PostAsJsonAsync(GetInstancePath(org, app, partyId, instanceGuid), request);
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
     }
 
-    /// <summary>Enqueues a batch and asserts a 2xx response. Throws on failure.</summary>
+    /// <summary>
+    /// Enqueues a batch and asserts a 2xx response. Throws on failure.
+    /// </summary>
     public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
         string org,
         string app,
@@ -39,30 +41,39 @@ internal sealed class EngineApiClient(HttpClient client) : IDisposable
     )
     {
         using var content = new StringContent(jsonRequest, new UTF8Encoding(), "application/json");
-        using var response = await client.PostAsync(InstancePath(org, app, partyId, instanceGuid), content);
+        using var response = await client.PostAsync(GetInstancePath(org, app, partyId, instanceGuid), content);
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
     }
 
-    /// <summary>Enqueues a batch and returns the raw <see cref="HttpResponseMessage"/>.</summary>
+    /// <summary>
+    /// Enqueues a batch and returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
     public Task<HttpResponseMessage> EnqueueRaw(
         string org,
         string app,
         string partyId,
         Guid instanceGuid,
         WorkflowEnqueueRequest request
-    ) => client.PostAsJsonAsync(InstancePath(org, app, partyId, instanceGuid), request);
+    ) => client.PostAsJsonAsync(GetInstancePath(org, app, partyId, instanceGuid), request);
 
-    // ── Queries ───────────────────────────────────────────────────────────────
-
+    /// <summary>
+    /// Gets a workflow status and returns the raw <see cref="HttpResponseMessage"/>.
+    /// </summary>
     public async Task<HttpResponseMessage> GetWorkflowRaw(
         string org,
         string app,
         string partyId,
         Guid instanceGuid,
         long workflowId
-    ) => await client.GetAsync($"{InstancePath(org, app, partyId, instanceGuid)}/{workflowId}", CancellationToken.None);
+    ) =>
+        await client.GetAsync(
+            $"{GetInstancePath(org, app, partyId, instanceGuid)}/{workflowId}",
+            CancellationToken.None
+        );
 
-    /// <summary>Returns <c>null</c> on 404.</summary>
+    /// <summary>
+    /// Gets a workflow status and returns either a parsed result or <c>null</c> on 404.
+    /// </summary>
     public async Task<WorkflowStatusResponse?> GetWorkflow(
         string org,
         string app,
@@ -89,7 +100,9 @@ internal sealed class EngineApiClient(HttpClient client) : IDisposable
         return await AssertSuccessAndDeserialize<WorkflowStatusResponse>(response);
     }
 
-    /// <summary>Returns an empty list on 204 No Content.</summary>
+    /// <summary>
+    /// Lists active workflows and returns either a parsed result or an empty list on 204 No Content.
+    /// </summary>
     public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(
         string org,
         string app,
@@ -97,15 +110,13 @@ internal sealed class EngineApiClient(HttpClient client) : IDisposable
         Guid instanceGuid
     )
     {
-        using var response = await client.GetAsync(InstancePath(org, app, partyId, instanceGuid));
+        using var response = await client.GetAsync(GetInstancePath(org, app, partyId, instanceGuid));
 
         if (response.StatusCode == HttpStatusCode.NoContent)
             return [];
 
         return await AssertSuccessAndDeserialize<List<WorkflowStatusResponse>>(response);
     }
-
-    // ── Polling ───────────────────────────────────────────────────────────────
 
     /// <summary>
     /// Polls <see cref="GetWorkflow"/> every 100 ms until the workflow reaches
@@ -137,7 +148,7 @@ internal sealed class EngineApiClient(HttpClient client) : IDisposable
 
     /// <summary>
     /// Waits for all workflows in <paramref name="workflowIds"/> to reach
-    /// <paramref name="expectedStatus"/> concurrently.
+    /// <paramref name="expectedStatus"/> concurrently or the <paramref name="timeout"/> expires.
     /// </summary>
     public async Task<List<WorkflowStatusResponse>> WaitForAllStatus(
         string org,
@@ -155,14 +166,10 @@ internal sealed class EngineApiClient(HttpClient client) : IDisposable
         return [.. await Task.WhenAll(tasks)];
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private static string InstancePath(string org, string app, string partyId, Guid instanceGuid) =>
+    private static string GetInstancePath(string org, string app, string partyId, Guid instanceGuid) =>
         $"{EngineAppFixture.ApiBasePath}/{org}/{app}/{partyId}/{instanceGuid}";
 
-    public void Dispose() => client.Dispose();
-
-    internal async Task<T> AssertSuccessAndDeserialize<T>(HttpResponseMessage response)
+    public static async Task<T> AssertSuccessAndDeserialize<T>(HttpResponseMessage response)
     {
         if (!response.IsSuccessStatusCode)
             throw new HttpRequestException(
@@ -174,4 +181,6 @@ internal sealed class EngineApiClient(HttpClient client) : IDisposable
 
         return content;
     }
+
+    public void Dispose() => client.Dispose();
 }

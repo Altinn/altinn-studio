@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 namespace WorkflowEngine.EndToEndTests.Fixtures;
 
 /// <summary>
-/// Returns the full exception type, message and stack trace as the response body so tests
+/// Returns the full exception type, message, and stack trace as the response body so tests
 /// can surface the root cause without modifying production exception-handling middleware.
 /// </summary>
 internal sealed class DiagnosticExceptionHandler : IExceptionHandler
