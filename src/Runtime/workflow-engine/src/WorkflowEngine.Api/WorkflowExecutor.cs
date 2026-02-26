@@ -1,12 +1,14 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience;
+using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -157,9 +159,8 @@ internal class WorkflowExecutor : IWorkflowExecutor
             return ExecutionResult.Success();
         }
 
-        return ExecutionResult.RetryableError(
-            $"AppCommand execution failed with status code {response.StatusCode}: {await response.GetContentOrDefault("<no body content>", cancellationToken)}"
-        );
+        string errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+        return ClassifyHttpError(response, errorBody, "AppCommand execution failed", ResolveRetryStrategy(step));
     }
 
     private static async Task<ExecutionResult> Timeout(
@@ -221,11 +222,16 @@ internal class WorkflowExecutor : IWorkflowExecutor
             response = await httpClient.GetAsync(command.Uri.ToUri(UriKind.Absolute), cancellationToken);
         }
 
-        var result = response.IsSuccessStatusCode
-            ? ExecutionResult.Success()
-            : ExecutionResult.RetryableError(
-                $"Webhook execution failed: {await response.Content.ReadAsStringAsync(cancellationToken)}"
-            );
+        ExecutionResult result;
+        if (response.IsSuccessStatusCode)
+        {
+            result = ExecutionResult.Success();
+        }
+        else
+        {
+            string errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            result = ClassifyHttpError(response, errorBody, "Webhook execution failed", ResolveRetryStrategy(step));
+        }
         response.Dispose();
 
         return result;
@@ -256,6 +262,68 @@ internal class WorkflowExecutor : IWorkflowExecutor
             _logger.LogDelegateExecutionOfStepStepFailedMessage(step, ex.Message, ex);
             return ExecutionResult.RetryableError(ex.Message);
         }
+    }
+
+    private RetryStrategy ResolveRetryStrategy(Step step) =>
+        step.RetryStrategy ?? _engineSettings.DefaultStepRetryStrategy;
+
+    private static ExecutionResult ClassifyHttpError(
+        HttpResponseMessage response,
+        string body,
+        string errorPrefix,
+        RetryStrategy strategy
+    )
+    {
+        var statusCode = (int)response.StatusCode;
+        ProblemDetails? problem = null;
+
+        // Try to parse as Problem Details (RFC 9457)
+        if (body.Length > 0)
+        {
+            try
+            {
+                problem = JsonSerializer.Deserialize<ProblemDetails>(body);
+            }
+            catch (JsonException)
+            {
+                // Body isn't valid JSON — fall through with problem = null
+            }
+        }
+
+        string errorDetail = FormatErrorDetail(problem, body);
+
+        // Gate 1: App response signal via Problem Details extension (highest priority)
+        if (
+            problem?.Extensions.TryGetValue("nonRetryable", out object? value) == true
+            && value is JsonElement { ValueKind: JsonValueKind.True }
+        )
+        {
+            return ExecutionResult.CriticalError(
+                $"[non-retryable: app response] {errorPrefix} with status code {statusCode}: {errorDetail}"
+            );
+        }
+
+        // Gate 2: Status code in non-retryable list
+        if (strategy.NonRetryableHttpStatusCodes?.Contains(statusCode) == true)
+        {
+            return ExecutionResult.CriticalError(
+                $"[non-retryable: status code {statusCode}] {errorPrefix}: {errorDetail}"
+            );
+        }
+
+        // Default: retryable
+        return ExecutionResult.RetryableError($"{errorPrefix} with status code {response.StatusCode}: {errorDetail}");
+    }
+
+    private static string FormatErrorDetail(ProblemDetails? problem, string body)
+    {
+        if (problem?.Detail is not null)
+            return problem.Title is not null ? $"{problem.Title}: {problem.Detail}" : problem.Detail;
+
+        if (problem?.Title is not null)
+            return problem.Title;
+
+        return body.Length > 0 ? body : "<no body content>";
     }
 
     internal HttpClient GetAuthorizedAppClient(InstanceInformation instanceInformation)
