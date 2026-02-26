@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
 import {
   Scope,
@@ -11,8 +10,6 @@ import type { ExternalConfigWithId, InternalConfigState } from '../utils/Validat
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 
 export const ValidateSelectedTasksConfig = () => {
-  const { t } = useTranslation();
-
   const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigWithId[]>( // This is just to simulate the save functionality, in real implementation this would be handled differently
     withUniqueIds(dummyDataTasks),
   );

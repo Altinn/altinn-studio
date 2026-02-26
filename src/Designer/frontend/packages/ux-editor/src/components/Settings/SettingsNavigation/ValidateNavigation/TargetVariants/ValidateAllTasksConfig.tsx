@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
 import { convertToExternalConfig, Scope } from '../utils/ValidateNavigationUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -8,7 +7,6 @@ import type { InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 
 export const ValidateAllTasksConfig = () => {
-  const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSetsSchema } = useLayoutSetsQuery(org, app);
   const configData = layoutSetsSchema?.validationOnNavigation;
