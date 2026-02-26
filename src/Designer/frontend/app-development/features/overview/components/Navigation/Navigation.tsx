@@ -1,11 +1,10 @@
 import React from 'react';
 import classes from './Navigation.module.css';
 import { useTranslation } from 'react-i18next';
-import { Heading } from '@digdir/designsystemet-react';
 import { getFilteredMenuListForOverviewPage } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { Link } from 'react-router-dom';
 import cn from 'classnames';
-import { studioBetaTagClasses } from '@studio/components-legacy';
+import { studioBetaTagClasses, StudioHeading } from '@studio/components';
 import { useFeatureFlagsContext } from '@studio/feature-flags';
 
 export const Navigation = () => {
@@ -16,9 +15,9 @@ export const Navigation = () => {
 
   return (
     <div className={classes.navigation}>
-      <Heading level={2} size='xxsmall'>
+      <StudioHeading level={2} data-size='xs'>
         {t('overview.navigation_title')}
-      </Heading>
+      </StudioHeading>
       <div className={classes.links}>
         {menuItems.map((menuItem) => {
           return (
