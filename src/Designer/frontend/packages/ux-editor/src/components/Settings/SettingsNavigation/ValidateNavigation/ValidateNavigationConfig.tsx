@@ -38,6 +38,7 @@ export const ValidateNavigationConfig = ({
       <StudioProperty.Button
         onClick={() => setIsEditMode(true)}
         property={getButtonLabel(config)}
+        title={config && t('ux_editor.settings.navigation_validation_button_rule_defined')}
         value={config && <DisplayValues {...config} />}
         className={cn(classes.configWrapper, { [classes.configDefined]: config })}
       />

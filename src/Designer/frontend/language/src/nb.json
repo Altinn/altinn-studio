@@ -2335,6 +2335,7 @@
   "ux_editor.settings.navigation_validation_all_tasks_card_label": "Velg valideringsregel for alle oppgaver",
   "ux_editor.settings.navigation_validation_all_tasks_description": "På øverste nivå så setter du regler for navigeringen på tvers av alle oppgaver i hele appen. Du kan derfor kun lage en regel på dette nivået.",
   "ux_editor.settings.navigation_validation_all_tasks_header": "Validering i alle oppgaver",
+  "ux_editor.settings.navigation_validation_button_rule_defined": "Rediger validering",
   "ux_editor.settings.navigation_validation_button_rule_undefined": "Opprett validering",
   "ux_editor.settings.navigation_validation_description": "Du kan sette valideringer i navigasjonen på alle 3 nivåene. Velger du å sette på et lavere nivå vil den overstyre valideringer satt på høyere nivå.",
   "ux_editor.settings.navigation_validation_header": "Validering i navigasjon",
