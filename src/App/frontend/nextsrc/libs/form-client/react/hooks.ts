@@ -1,7 +1,8 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/shallow';
 
+import { evaluateBoolean } from 'nextsrc/libs/form-client/expressions/evaluate';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 
@@ -71,9 +72,25 @@ export function useTextResource(key: string | undefined): string {
   return langAsString(key);
 }
 
+export function useIsRequired(requiredExpr: unknown): boolean {
+  const client = useFormClient();
+  const formData = useStore(client.formDataStore, (state) => state.data);
+
+  return useMemo(() => {
+    const dataSources = {
+      formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
+      instanceDataSources: client.textResourceDataSources.instanceDataSources,
+      frontendSettings: client.textResourceDataSources.applicationSettings,
+    };
+    return evaluateBoolean(requiredExpr, dataSources, false);
+  }, [requiredExpr, client, formData]);
+}
+
+const emptyValidations: FieldValidation[] = [];
+
 export function useFieldValidations(path: string): FieldValidation[] {
   const client = useFormClient();
-  return useStore(client.validationStore, (state) => state.fieldValidations[path] ?? []);
+  return useStore(client.validationStore, (state) => state.fieldValidations[path] ?? emptyValidations);
 }
 
 export function useLayout(layoutId: string): ResolvedLayoutFile {
@@ -88,6 +105,19 @@ export function useLayout(layoutId: string): ResolvedLayoutFile {
   );
 
   return useSyncExternalStore(subscribe, () => client.getFormLayout(layoutId));
+}
+
+export function usePageOrder(): string[] {
+  const client = useFormClient();
+
+  const subscribe = useCallback(
+    (_cb: () => void) => {
+      return () => {};
+    },
+    [client],
+  );
+
+  return useSyncExternalStore(subscribe, () => client.getPageOrder());
 }
 
 export function useLayoutNames(): string[] {

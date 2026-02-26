@@ -40,6 +40,7 @@ export class FormClient {
 
   private layoutCollection: ResolvedLayoutCollection = {};
   private cachedLayoutNames: string[] = [];
+  private pageOrder: string[] = [];
   private applicationSettings: IApplicationSettings | null;
   private instanceDataSources: Record<string, string> | null;
   private formDataChangeCallbacks = new Set<FormDataChangeCallback>();
@@ -101,6 +102,14 @@ export class FormClient {
 
   getLayoutNames(): string[] {
     return this.cachedLayoutNames;
+  }
+
+  setPageOrder(order: string[]) {
+    this.pageOrder = order;
+  }
+
+  getPageOrder(): string[] {
+    return this.pageOrder;
   }
 
   setApplicationSettings(settings: IApplicationSettings | null) {

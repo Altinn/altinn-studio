@@ -15,8 +15,18 @@ export interface MultiPatchRequest {
   ignoredValidators: string[];
 }
 
+export interface BackendValidationIssue {
+  code?: string;
+  description?: string;
+  field?: string;
+  dataElementId?: string;
+  severity: number; // 1=Error, 2=Warning, 3=Info
+  source: string;
+  customTextKey?: string;
+}
+
 export interface MultiPatchResponse {
-  validationIssues: unknown[];
+  validationIssues: Record<string, BackendValidationIssue[]>;
   newDataModels: Array<{
     dataElementId: string;
     data: Record<string, FormDataNode>;

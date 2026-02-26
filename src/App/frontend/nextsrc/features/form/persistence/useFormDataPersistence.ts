@@ -5,9 +5,21 @@ import { compare } from 'fast-json-patch';
 import { DataApi } from 'nextsrc/core/apiClient/dataApi';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 
-import type { FormDataNode } from 'nextsrc/core/apiClient/dataApi';
+import type { BackendValidationIssue, FormDataNode } from 'nextsrc/core/apiClient/dataApi';
+import type { FieldValidation } from 'nextsrc/libs/form-client/stores/validationStore';
 
 const DEBOUNCE_TIMEOUT = 400;
+
+function mapSeverity(severity: number): FieldValidation['severity'] {
+  switch (severity) {
+    case 1:
+      return 'error';
+    case 2:
+      return 'warning';
+    default:
+      return 'info';
+  }
+}
 
 interface UseFormDataPersistenceOptions {
   instanceOwnerPartyId: string;
@@ -56,6 +68,7 @@ export function useFormDataPersistence({
     }
 
     isSavingRef.current = true;
+    document.body.setAttribute('data-unsaved-changes', 'true');
 
     try {
       const response = await DataApi.patchFormData({
@@ -78,6 +91,33 @@ export function useFormDataPersistence({
         // No server data returned — assume our current data is the saved state
         lastSavedDataRef.current = structuredClone(currentData) as Record<string, FormDataNode>;
       }
+
+      // Feed validation issues into the validation store
+      const validationState = client.validationStore.getState();
+      validationState.clearAll();
+
+      const issuesBySource = response.validationIssues;
+      if (issuesBySource && typeof issuesBySource === 'object') {
+        const fieldMap = new Map<string, FieldValidation[]>();
+
+        for (const issues of Object.values(issuesBySource)) {
+          for (const issue of issues as BackendValidationIssue[]) {
+            if (!issue.field) {
+              continue;
+            }
+            const existing = fieldMap.get(issue.field) ?? [];
+            existing.push({
+              severity: mapSeverity(issue.severity),
+              message: issue.customTextKey ?? issue.description ?? issue.code ?? 'Validation error',
+            });
+            fieldMap.set(issue.field, existing);
+          }
+        }
+
+        for (const [field, validations] of fieldMap) {
+          validationState.setFieldValidations(field, validations);
+        }
+      }
     } catch (error) {
       // On error, keep lastSavedData unchanged so next save retries the full diff
       console.error('[useFormDataPersistence] Save failed:', error);
@@ -88,6 +128,8 @@ export function useFormDataPersistence({
       if (pendingSaveRef.current) {
         pendingSaveRef.current = false;
         save();
+      } else {
+        document.body.removeAttribute('data-unsaved-changes');
       }
     }
   }, [client, instanceOwnerPartyId, instanceGuid, dataElementId]);
@@ -100,6 +142,7 @@ export function useFormDataPersistence({
       }
 
       // Start a new debounce timer
+      document.body.setAttribute('data-unsaved-changes', 'true');
       debounceTimerRef.current = setTimeout(() => {
         debounceTimerRef.current = null;
         save();

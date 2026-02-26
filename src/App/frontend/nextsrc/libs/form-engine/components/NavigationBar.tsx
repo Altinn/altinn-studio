@@ -14,7 +14,7 @@ export const NavigationBar = (_props: ComponentProps) => {
   const layoutNames = useLayoutNames();
 
   return (
-    <nav>
+    <nav data-testid='NavigationBar'>
       <ul className={classes.menu}>
         {layoutNames.map((name, index) => (
           <li

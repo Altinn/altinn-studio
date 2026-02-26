@@ -1,6 +1,10 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 
+import { useStore } from 'zustand';
+
+import { evaluateBoolean } from 'nextsrc/libs/form-client/expressions/evaluate';
+import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { ComponentErrorBoundary } from 'nextsrc/libs/form-engine/ComponentErrorBoundary';
 import { Accordion } from 'nextsrc/libs/form-engine/components/Accordion';
 import { AccordionGroup } from 'nextsrc/libs/form-engine/components/AccordionGroup';
@@ -18,16 +22,15 @@ import { Input } from 'nextsrc/libs/form-engine/components/Input';
 import { Link } from 'nextsrc/libs/form-engine/components/Link';
 import { MultipleSelect } from 'nextsrc/libs/form-engine/components/MultipleSelect';
 import { NavigationBar } from 'nextsrc/libs/form-engine/components/NavigationBar';
+import { NavigationButtons } from 'nextsrc/libs/form-engine/components/NavigationButtons';
 import { Number } from 'nextsrc/libs/form-engine/components/Number';
 import { Panel } from 'nextsrc/libs/form-engine/components/Panel';
 import { Paragraph } from 'nextsrc/libs/form-engine/components/Paragraph';
 import { RadioButtons } from 'nextsrc/libs/form-engine/components/RadioButtons';
 import { RepeatingGroup } from 'nextsrc/libs/form-engine/components/RepeatingGroup';
 import { TextArea } from 'nextsrc/libs/form-engine/components/TextArea';
-import { evaluateBoolean } from 'nextsrc/libs/form-client/expressions/evaluate';
-import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
-import type { ComponentMap } from 'nextsrc/libs/form-engine/components';
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
+import type { ComponentMap } from 'nextsrc/libs/form-engine/components';
 
 export const defaultComponentMap: ComponentMap = {
   Accordion,
@@ -46,6 +49,7 @@ export const defaultComponentMap: ComponentMap = {
   Link,
   MultipleSelect,
   NavigationBar,
+  NavigationButtons,
   Number,
   Panel,
   Paragraph,
@@ -69,8 +73,17 @@ export const FormEngine = ({
 }: FormEngineProps) => {
   const client = useFormClient();
 
+  // Subscribe to form data so we re-render when data changes (needed for expression evaluation like hidden)
+  const _formData = useStore(client.formDataStore, (s) => s.data);
+
+  console.log('[FormEngine] render, formData:', _formData);
+
   const expressionDataSources = {
-    formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
+    formDataGetter: (path: string) => {
+      const val = client.formDataStore.getState().getValue(path);
+      console.log(`[FormEngine] formDataGetter("${path}") =>`, val);
+      return val;
+    },
     instanceDataSources: client.textResourceDataSources.instanceDataSources,
     frontendSettings: client.textResourceDataSources.applicationSettings,
   };
@@ -81,6 +94,12 @@ export const FormEngine = ({
 
   function renderComponent(component: ResolvedCompExternal): ReactNode {
     const isHidden = evaluateBoolean(component.hidden, expressionDataSources, false);
+
+    console.log('isHidden', isHidden);
+    console.log('component.hidden', component.hidden);
+
+    console.log('expressionDataSources', expressionDataSources);
+
     if (isHidden) {
       return null;
     }
@@ -95,7 +114,11 @@ export const FormEngine = ({
     }
 
     return (
-      <ComponentErrorBoundary key={component.id} componentId={component.id} componentType={component.type}>
+      <ComponentErrorBoundary
+        key={component.id}
+        componentId={component.id}
+        componentType={component.type}
+      >
         <Component
           component={component}
           renderChildren={renderChildren}

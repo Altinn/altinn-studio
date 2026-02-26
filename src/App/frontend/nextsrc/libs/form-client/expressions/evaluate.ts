@@ -65,16 +65,104 @@ export function evaluateExpression(expr: Expression, dataSources: ExpressionData
       return dataSources.frontendSettings?.[key] ?? null;
     }
 
+    case 'component': {
+      const componentPath = String(evaluateExpression(args[0], dataSources) ?? '');
+      return dataSources.formDataGetter(componentPath);
+    }
+
+    case 'concat': {
+      return args.map((a) => String(evaluateExpression(a, dataSources) ?? '')).join('');
+    }
+
+    case 'contains': {
+      const str = String(evaluateExpression(args[0], dataSources) ?? '');
+      const search = String(evaluateExpression(args[1], dataSources) ?? '');
+      return str.includes(search);
+    }
+
+    case 'notContains': {
+      const str = String(evaluateExpression(args[0], dataSources) ?? '');
+      const search = String(evaluateExpression(args[1], dataSources) ?? '');
+      return !str.includes(search);
+    }
+
+    case 'endsWith': {
+      const str = String(evaluateExpression(args[0], dataSources) ?? '');
+      const suffix = String(evaluateExpression(args[1], dataSources) ?? '');
+      return str.endsWith(suffix);
+    }
+
+    case 'startsWith': {
+      const str = String(evaluateExpression(args[0], dataSources) ?? '');
+      const prefix = String(evaluateExpression(args[1], dataSources) ?? '');
+      return str.startsWith(prefix);
+    }
+
+    case 'stringLength': {
+      const str = String(evaluateExpression(args[0], dataSources) ?? '');
+      return str.length;
+    }
+
+    case 'lowerCase': {
+      const str = String(evaluateExpression(args[0], dataSources) ?? '');
+      return str.toLowerCase();
+    }
+
+    case 'upperCase': {
+      const str = String(evaluateExpression(args[0], dataSources) ?? '');
+      return str.toUpperCase();
+    }
+
+    case 'greaterThan': {
+      const a = toNumber(evaluateExpression(args[0], dataSources));
+      const b = toNumber(evaluateExpression(args[1], dataSources));
+      return a !== null && b !== null && a > b;
+    }
+
+    case 'lessThan': {
+      const a = toNumber(evaluateExpression(args[0], dataSources));
+      const b = toNumber(evaluateExpression(args[1], dataSources));
+      return a !== null && b !== null && a < b;
+    }
+
+    case 'greaterThanEq': {
+      const a = toNumber(evaluateExpression(args[0], dataSources));
+      const b = toNumber(evaluateExpression(args[1], dataSources));
+      return a !== null && b !== null && a >= b;
+    }
+
+    case 'lessThanEq': {
+      const a = toNumber(evaluateExpression(args[0], dataSources));
+      const b = toNumber(evaluateExpression(args[1], dataSources));
+      return a !== null && b !== null && a <= b;
+    }
+
+    case 'round': {
+      const val = toNumber(evaluateExpression(args[0], dataSources));
+      if (val === null) {
+        return null;
+      }
+      const decimals = toNumber(evaluateExpression(args[1], dataSources)) ?? 0;
+      const factor = Math.pow(10, decimals);
+      return Math.round(val * factor) / factor;
+    }
+
+    case 'floor': {
+      const val = toNumber(evaluateExpression(args[0], dataSources));
+      return val !== null ? Math.floor(val) : null;
+    }
+
+    case 'ceil': {
+      const val = toNumber(evaluateExpression(args[0], dataSources));
+      return val !== null ? Math.ceil(val) : null;
+    }
+
     default:
       return null;
   }
 }
 
-export function evaluateBoolean(
-  expr: Expression,
-  dataSources: ExpressionDataSources,
-  defaultValue: boolean,
-): boolean {
+export function evaluateBoolean(expr: Expression, dataSources: ExpressionDataSources, defaultValue: boolean): boolean {
   if (typeof expr === 'boolean') {
     return expr;
   }
@@ -86,6 +174,20 @@ export function evaluateBoolean(
     return result;
   }
   return defaultValue;
+}
+
+function toNumber(value: unknown): number | null {
+  if (typeof value === 'number') {
+    return isNaN(value) ? null : value;
+  }
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? null : parsed;
+  }
+  if (typeof value === 'boolean') {
+    return value ? 1 : 0;
+  }
+  return null;
 }
 
 function toBoolean(value: unknown): boolean {

@@ -47,6 +47,10 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs) => {
   formClient.setDataModelSchema(dataModelSchema);
   formClient.setLayoutCollection(layout);
 
+  if ('order' in layoutSettings.pages) {
+    formClient.setPageOrder(layoutSettings.pages.order);
+  }
+
   const dataElement = await DataApi.getDataObject({ instanceOwnerPartyId, instanceGuid, dataObjectGuid });
   formClient.setFormData(dataElement);
 

@@ -3,6 +3,7 @@ import React from 'react';
 import { Select } from '@digdir/designsystemet-react';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
+import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
 
 import { useOptions } from 'nextsrc/libs/form-engine/components/useOptions';
 
@@ -34,6 +35,7 @@ export const Dropdown = ({ component, parentBinding, itemIndex }: ComponentProps
           </option>
         ))}
       </Select>
+      <ComponentValidations bindingPath={simpleBinding} />
     </div>
   );
 };

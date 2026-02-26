@@ -3,6 +3,7 @@ import React from 'react';
 import { Fieldset, Radio } from '@digdir/designsystemet-react';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
+import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
 
 import { useOptions } from 'nextsrc/libs/form-engine/components/useOptions';
 
@@ -29,6 +30,7 @@ export const RadioButtons = ({ component, parentBinding, itemIndex }: ComponentP
           onChange={() => setValue(String(opt.value))}
         />
       ))}
+      <ComponentValidations bindingPath={simpleBinding} />
     </Fieldset>
   );
 };
