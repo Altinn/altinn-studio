@@ -106,7 +106,11 @@ public static class CsprojPatcher
         return SetVersionAttribute(packageReference, desiredVersion);
     }
 
-    private static bool UpdateVersionAttribute(XElement packageReference, XName versionElementName, XAttribute versionAttr, string desiredVersion)
+    private static bool UpdateVersionAttribute(
+        XElement packageReference,
+        XName versionElementName,
+        XAttribute versionAttr,
+        string desiredVersion)
     {
         bool changed = false;
 
@@ -116,7 +120,7 @@ public static class CsprojPatcher
             changed = true;
         }
 
-        var versionChild = packageReference.Elements(versionElementName).FirstOrDefault();
+        XElement? versionChild = packageReference.Elements(versionElementName).FirstOrDefault();
         if (versionChild != null)
         {
             versionChild.Remove();
