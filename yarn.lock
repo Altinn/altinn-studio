@@ -2498,6 +2498,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@storybook/builder-vite@npm:10.2.10":
+  version: 10.2.10
+  resolution: "@storybook/builder-vite@npm:10.2.10"
+  dependencies:
+    "@storybook/csf-plugin": "npm:10.2.10"
+    ts-dedent: "npm:^2.0.0"
+  peerDependencies:
+    storybook: ^10.2.10
+    vite: ^5.0.0 || ^6.0.0 || ^7.0.0
+  checksum: 10/ff795c831c19d52bfedc280aabf150f25fb69838bf229111208fab05737047ba936790042238ebf209ec46bcca6ae0a0a217821afd22afca8612f8e4929e0991
+  languageName: node
+  linkType: hard
+
 "@storybook/builder-vite@npm:9.1.19":
   version: 9.1.19
   resolution: "@storybook/builder-vite@npm:9.1.19"
@@ -2508,6 +2521,30 @@ __metadata:
     storybook: ^9.1.19
     vite: ^5.0.0 || ^6.0.0 || ^7.0.0
   checksum: 10/e918ce5937c459c4d926eb2780405873cebb096f324f65899042397578d5c8b85c338e9235c16e197a24740a870f5281f3646e48830aff9c9f955f37e19ea5f2
+  languageName: node
+  linkType: hard
+
+"@storybook/csf-plugin@npm:10.2.10":
+  version: 10.2.10
+  resolution: "@storybook/csf-plugin@npm:10.2.10"
+  dependencies:
+    unplugin: "npm:^2.3.5"
+  peerDependencies:
+    esbuild: "*"
+    rollup: "*"
+    storybook: ^10.2.10
+    vite: "*"
+    webpack: "*"
+  peerDependenciesMeta:
+    esbuild:
+      optional: true
+    rollup:
+      optional: true
+    vite:
+      optional: true
+    webpack:
+      optional: true
+  checksum: 10/600f9f5b47c269cc24e283f5f94c2e7b7c6649fe653028d4a91c04a9b4e9ef2444c41ac2b094052672d1ba47453d1755940d28f375c699523d3972d9d5d3d4d9
   languageName: node
   linkType: hard
 
@@ -2620,7 +2657,7 @@ __metadata:
     "@chromatic-com/storybook": "npm:^5.0.0"
     "@storybook/addon-docs": "npm:9.1.19"
     "@storybook/addon-links": "npm:9.1.19"
-    "@storybook/builder-vite": "npm:9.1.19"
+    "@storybook/builder-vite": "npm:10.2.10"
     "@storybook/react-vite": "npm:9.1.19"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
@@ -2653,7 +2690,7 @@ __metadata:
     "@digdir/designsystemet-theme": "npm:1.11.0"
     "@storybook/addon-docs": "npm:9.1.19"
     "@storybook/addon-links": "npm:9.1.19"
-    "@storybook/builder-vite": "npm:9.1.19"
+    "@storybook/builder-vite": "npm:10.2.10"
     "@storybook/react-vite": "npm:9.1.19"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
@@ -4008,6 +4045,15 @@ __metadata:
   bin:
     acorn: bin/acorn
   checksum: 10/77f2de5051a631cf1729c090e5759148459cdb76b5f5c70f890503d629cf5052357b0ce783c0f976dd8a93c5150f59f6d18df1def3f502396a20f81282482fa4
+  languageName: node
+  linkType: hard
+
+"acorn@npm:^8.15.0":
+  version: 8.16.0
+  resolution: "acorn@npm:8.16.0"
+  bin:
+    acorn: bin/acorn
+  checksum: 10/690c673bb4d61b38ef82795fab58526471ad7f7e67c0e40c4ff1e10ecd80ce5312554ef633c9995bfc4e6d170cef165711f9ca9e49040b62c0c66fbf2dd3df2b
   languageName: node
   linkType: hard
 
@@ -13241,6 +13287,18 @@ __metadata:
     acorn: "npm:^8.14.0"
     webpack-virtual-modules: "npm:^0.6.2"
   checksum: 10/4b46d7d2a63d334a45111ba57a266b3f8993ef12a72b77d7b31ffc455e8a9bef9c0e37ea463eb409dbf7ccec0b9868aeb845dd42c690d9288e4b8ac2d90fbefd
+  languageName: node
+  linkType: hard
+
+"unplugin@npm:^2.3.5":
+  version: 2.3.11
+  resolution: "unplugin@npm:2.3.11"
+  dependencies:
+    "@jridgewell/remapping": "npm:^2.3.5"
+    acorn: "npm:^8.15.0"
+    picomatch: "npm:^4.0.3"
+    webpack-virtual-modules: "npm:^0.6.2"
+  checksum: 10/7b4adbfaac8894e8491c452c0b67c612b57e103761e842d9013ebea89a4ae92a78df4ec0aa30e5e3eaaefd47dd287973d5a662271624b7346a15d9236d257f9d
   languageName: node
   linkType: hard
 

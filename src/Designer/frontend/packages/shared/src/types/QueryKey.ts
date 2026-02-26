@@ -21,6 +21,7 @@ export enum QueryKey {
   FetchBpmn = 'FetchBpmn',
   FormComponent = 'FormComponent',
   FormLayoutSettings = 'FormLayoutSettings',
+  ValidationOnNavigationLayoutSettings = 'ValidationOnNavigationLayoutSettings',
   FormLayouts = 'FormLayouts',
   FrontEndSettings = 'FrontEndSettings',
   ImageFileNames = 'ImageFileNames',
@@ -65,6 +66,7 @@ export enum QueryKey {
   DataType = 'DataType',
   Pages = 'Pages',
   TaskNavigationGroup = 'TaskNavigationGroup',
+  ValidationOnNavigationLayoutSets = 'ValidationOnNavigationLayoutSets',
 
   // Admin
   ErrorMetrics = 'ErrorMetrics',

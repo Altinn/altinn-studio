@@ -6,9 +6,11 @@ import {
   getCardLabel,
   getDefaultConfig,
   getValuesToDisplay,
+  isRuleDuplicateInScope,
   Scope,
   validateForm,
 } from './ValidateNavigationUtils';
+import type { InternalConfigState } from './ValidateNavigationTypes';
 
 describe('getDefaultConfig', () => {
   it('should return default config for AllTasks scope', () => {
@@ -181,7 +183,7 @@ describe('validateForm', () => {
       types: [{ value: 'type1', label: 'Type 1' }],
       pageScope: { value: 'current', label: 'Current Page' },
     };
-    expect(validateForm({ scope: Scope.AllTasks, config, currentConfig: config })).toBe(false);
+    expect(validateForm({ scope: Scope.AllTasks, config, newConfig: config })).toBe(false);
   });
 
   it('should return false if required fields are missing', () => {
@@ -189,19 +191,19 @@ describe('validateForm', () => {
       types: [],
       pageScope: { value: '', label: '' },
     };
-    expect(validateForm({ scope: Scope.AllTasks, config, currentConfig: null })).toBe(false);
+    expect(validateForm({ scope: Scope.AllTasks, config, newConfig: null })).toBe(false);
 
     const configWithTypes = {
       types: [{ value: 'type1', label: 'Type 1' }],
       pageScope: { value: '', label: '' },
     };
-    expect(
-      validateForm({ scope: Scope.AllTasks, config: configWithTypes, currentConfig: null }),
-    ).toBe(false);
+    expect(validateForm({ scope: Scope.AllTasks, config: configWithTypes, newConfig: null })).toBe(
+      false,
+    );
   });
 
   it('should return true if changes made and required fields are filled for all tasks scope', () => {
-    const currentConfig = {
+    const newConfig = {
       types: [{ value: 'type1', label: 'Type 1' }],
       pageScope: { value: 'current', label: 'Current Page' },
     };
@@ -209,11 +211,11 @@ describe('validateForm', () => {
       types: [{ value: 'type2', label: 'Type 2' }],
       pageScope: { value: 'current', label: 'Current Page' },
     };
-    expect(validateForm({ scope: Scope.AllTasks, config: originConfig, currentConfig })).toBe(true);
+    expect(validateForm({ scope: Scope.AllTasks, config: originConfig, newConfig })).toBe(true);
   });
 
   it('should return true if changes made and required fields are filled for SelectedTasks scope', () => {
-    const currentConfig = {
+    const newConfig = {
       types: [{ value: 'type1', label: 'Type 1' }],
       pageScope: { value: 'current', label: 'Current Page' },
       tasks: [{ value: 'task1', label: 'Task 1' }],
@@ -223,13 +225,13 @@ describe('validateForm', () => {
       pageScope: { value: 'current', label: 'Current Page' },
       tasks: [{ value: 'task2', label: 'Task 2' }],
     };
-    expect(validateForm({ scope: Scope.SelectedTasks, config: originConfig, currentConfig })).toBe(
+    expect(validateForm({ scope: Scope.SelectedTasks, config: originConfig, newConfig })).toBe(
       true,
     );
   });
 
   it('should return true if changes made and required fields are filled for SelectedPages scope', () => {
-    const currentConfig = {
+    const newConfig = {
       types: [{ value: 'type1', label: 'Type 1' }],
       pageScope: { value: 'current', label: 'Current Page' },
       task: { value: 'task1', label: 'Task 1' },
@@ -243,8 +245,61 @@ describe('validateForm', () => {
       pages: [{ value: 'page2', label: 'Page 2' }],
     };
 
-    expect(validateForm({ scope: Scope.SelectedPages, config: originConfig, currentConfig })).toBe(
+    expect(validateForm({ scope: Scope.SelectedPages, config: originConfig, newConfig })).toBe(
       true,
     );
+  });
+});
+
+describe('isRuleDuplicateInScope', () => {
+  const option = (value: string) => ({
+    value,
+    label: value,
+  });
+
+  const createConfig = (overrides?: Partial<InternalConfigState>): InternalConfigState => ({
+    types: [option('type1')],
+    pageScope: option('current'),
+    task: option('task1'),
+    pages: [option('page1')],
+    ...overrides,
+  });
+
+  it('should return false if existingConfigs is undefined', () => {
+    const result = isRuleDuplicateInScope({
+      scope: Scope.AllTasks,
+      newConfig: createConfig(),
+    });
+    expect(result).toBe(false);
+  });
+
+  it('should return false if form is not valid', () => {
+    const result = isRuleDuplicateInScope({
+      scope: Scope.AllTasks,
+      newConfig: createConfig(),
+      existingConfigs: [createConfig()],
+      isFormValid: false,
+    });
+    expect(result).toBe(false);
+  });
+
+  it('should return true if there is a duplicate rule in scope', () => {
+    const result = isRuleDuplicateInScope({
+      scope: Scope.SelectedPages,
+      newConfig: createConfig(),
+      existingConfigs: [createConfig()],
+      isFormValid: true,
+    });
+    expect(result).toBe(true);
+  });
+
+  it('should return false if there is no duplicate rule in scope', () => {
+    const result = isRuleDuplicateInScope({
+      scope: Scope.SelectedPages,
+      newConfig: createConfig(),
+      existingConfigs: [createConfig({ task: option('task2') })],
+      isFormValid: true,
+    });
+    expect(result).toBe(false);
   });
 });

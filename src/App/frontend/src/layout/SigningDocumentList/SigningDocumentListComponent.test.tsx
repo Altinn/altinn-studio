@@ -2,15 +2,20 @@ import React from 'react';
 
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
-import { render } from '@testing-library/react';
+import { render as renderRtl } from '@testing-library/react';
 import { randomUUID } from 'crypto';
 
+import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import { ITextResourceBindings } from 'src/layout/layout';
 import { type SigningDocument, useDocumentList } from 'src/layout/SigningDocumentList/api';
 import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/SigningDocumentListComponent';
 import { ProcessTaskType } from 'src/types';
+
+function render(ui: React.ReactNode) {
+  return renderRtl(<AppComponentsBridge>{ui}</AppComponentsBridge>);
+}
 
 const mockDocumentList: SigningDocument[] = [
   {

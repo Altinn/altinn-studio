@@ -17,10 +17,12 @@ var backportBranchVersionPattern = regexp.MustCompile(`^v(\d+)\.(\d+)$`)
 
 // BackportRequest describes the inputs for a backport operation.
 type BackportRequest struct {
+	Prompter      ConfirmationPrompter
 	Component     string // Component name (e.g., "studioctl")
 	Commit        string
 	Branch        string
 	ChangelogPath string // Optional: override component's default changelog path
+	Open          bool
 	DryRun        bool
 }
 
@@ -33,6 +35,7 @@ type backportConfig struct {
 	shortSHA       string
 	major          int
 	minor          int
+	openPR         bool
 	dryRun         bool
 }
 
@@ -77,6 +80,10 @@ func RunBackportWithDeps(ctx context.Context, req BackportRequest, git *GitCLI, 
 	if err != nil {
 		return err
 	}
+	current, err := git.CurrentBranch(ctx)
+	if err != nil {
+		return fmt.Errorf("get current branch: %w", err)
+	}
 
 	log.Step("Extracting changelog entries")
 	entries, commitMsg, err := extractEntriesFromCommit(ctx, git, cfg.commit, clPath)
@@ -87,17 +94,24 @@ func RunBackportWithDeps(ctx context.Context, req BackportRequest, git *GitCLI, 
 	log.Info("Found %d changelog entries", len(entries))
 
 	logBackportState(log, cfg, repoRoot)
+	log.Detail("Current branch", current)
 
 	if cfg.dryRun {
 		printBackportDryRun(log, cfg, entries)
 		return nil
 	}
 
-	if err := ensureWorkingTreeClean(ctx, git, log); err != nil {
+	if err = ensureWorkingTreeClean(ctx, git, log); err != nil {
+		return err
+	}
+	if err = confirmNonMainBranch(req.Prompter, current, "backport",
+		"Will create and switch to "+cfg.backportBranch+" from latest origin/"+cfg.releaseBranch+".",
+		"This changes your current branch context; cancel if you do not want to branch right now.",
+	); err != nil {
 		return err
 	}
 
-	if err := executeBackport(
+	prURL, err := executeBackport(
 		ctx,
 		git,
 		gh,
@@ -106,14 +120,34 @@ func RunBackportWithDeps(ctx context.Context, req BackportRequest, git *GitCLI, 
 		clPath,
 		cfg,
 		entries,
-	); err != nil {
+	)
+	if err != nil {
 		return err
 	}
+	logBackportPR(ctx, log, cfg.openPR, prURL)
 
 	log.Success("Backport complete")
 	log.Info("Commit %s (%s) has been backported to %s", cfg.shortSHA, cfg.commitMsg, cfg.releaseBranch)
 	logBackportNextSteps(ctx, git, log, cfg, clPath)
 	return nil
+}
+
+func logBackportPR(ctx context.Context, log Logger, openPR bool, prURL string) {
+	if prURL == "" {
+		log.Error("PR created, but URL could not be determined")
+	} else {
+		log.Info("PR: %s", prURL)
+	}
+	if !openPR {
+		return
+	}
+	if prURL == "" {
+		log.Error("Could not open PR in browser: PR URL is unavailable")
+		return
+	}
+	if err := OpenBrowser(ctx, prURL); err != nil {
+		log.Error("Could not open PR in browser: %v", err)
+	}
 }
 
 func logBackportNextSteps(
@@ -183,6 +217,7 @@ func parseBackportConfig(req BackportRequest, comp *Component) (*backportConfig,
 		shortSHA:       shortSHA,
 		major:          major,
 		minor:          minor,
+		openPR:         req.Open,
 		dryRun:         req.DryRun,
 	}, nil
 }
@@ -260,19 +295,19 @@ func executeBackport(
 	clPath string,
 	cfg *backportConfig,
 	entries []changelog.Entry,
-) error {
+) (string, error) {
 	if err := prepareBackportBranch(ctx, git, cfg.releaseBranch, cfg.backportBranch); err != nil {
-		return err
+		return "", err
 	}
 	if err := applyBackportChanges(ctx, git, log, repoRoot, clPath, cfg.commit, entries); err != nil {
-		return err
+		return "", err
 	}
 	logChangelogEntries(log, entries)
 	if err := commitBackport(ctx, git, cfg.shortSHA, cfg.commitMsg, cfg.commit, clPath); err != nil {
-		return err
+		return "", err
 	}
 	if err := pushBackportBranch(ctx, git, cfg.backportBranch); err != nil {
-		return err
+		return "", err
 	}
 	return createBackportPR(ctx, gh, cfg)
 }
@@ -281,13 +316,7 @@ func prepareBackportBranch(ctx context.Context, git *GitCLI, releaseBranch, back
 	if err := git.RunWrite(ctx, "fetch", "origin", releaseBranch); err != nil {
 		return fmt.Errorf("fetch release branch: %w", err)
 	}
-	if err := git.RunWrite(ctx, "checkout", releaseBranch); err != nil {
-		return fmt.Errorf("checkout release branch: %w", err)
-	}
-	if err := git.RunWrite(ctx, "pull", "origin", releaseBranch); err != nil {
-		return fmt.Errorf("pull release branch: %w", err)
-	}
-	if err := git.RunWrite(ctx, "checkout", "-b", backportBranch); err != nil {
+	if err := git.RunWrite(ctx, "checkout", "-b", backportBranch, "origin/"+releaseBranch); err != nil {
 		return fmt.Errorf("create backport branch: %w", err)
 	}
 	return nil
@@ -399,23 +428,24 @@ func pushBackportBranch(ctx context.Context, git *GitCLI, backportBranch string)
 	return nil
 }
 
-func createBackportPR(ctx context.Context, gh GitHubRunner, cfg *backportConfig) error {
-	prTitle := fmt.Sprintf("Backport %s to v%d.%d", cfg.shortSHA, cfg.major, cfg.minor)
+func createBackportPR(ctx context.Context, gh GitHubRunner, cfg *backportConfig) (string, error) {
+	prTitle := fmt.Sprintf("chore: backport %s to v%d.%d", cfg.shortSHA, cfg.major, cfg.minor)
 	prBody := fmt.Sprintf(
 		"Backport of %s.\n\nOriginal commit: %s\n\nOriginal message: %s\n",
 		cfg.shortSHA,
 		cfg.commit,
 		cfg.commitMsg,
 	)
-	if err := gh.CreatePR(ctx, PullRequestOptions{
+	prURL, err := gh.CreatePR(ctx, PullRequestOptions{
 		Title: prTitle,
 		Body:  prBody,
 		Label: backportLabel,
 		Base:  cfg.releaseBranch,
-	}); err != nil {
-		return fmt.Errorf("create PR: %w", err)
+	})
+	if err != nil {
+		return "", fmt.Errorf("create PR: %w", err)
 	}
-	return nil
+	return prURL, nil
 }
 
 func printBackportDryRun(log Logger, cfg *backportConfig, entries []changelog.Entry) {
@@ -426,7 +456,13 @@ func printBackportDryRun(log Logger, cfg *backportConfig, entries []changelog.En
 	logChangelogEntries(log, entries)
 	log.Info("Would create commit: Backport %s: %s", cfg.shortSHA, cfg.commitMsg)
 	log.Info("Would push to origin/%s", cfg.backportBranch)
-	log.Info("Would create PR: Backport %s to %s (label: %s)", cfg.shortSHA, cfg.releaseBranch, backportLabel)
+	log.Info(
+		"Would create PR: chore: backport %s to v%d.%d (label: %s)",
+		cfg.shortSHA,
+		cfg.major,
+		cfg.minor,
+		backportLabel,
+	)
 }
 
 func logChangelogEntries(log Logger, entries []changelog.Entry) {
