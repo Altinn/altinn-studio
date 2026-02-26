@@ -1,8 +1,8 @@
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
-import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
 import { routeBuilders } from 'nextsrc/routesBuilder';
+import { InstanceApi } from 'nextsrc/core/api-client/instance.api';
 
 export const instanceLoader = async ({
   params,

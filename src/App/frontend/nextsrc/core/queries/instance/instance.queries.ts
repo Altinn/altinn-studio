@@ -1,5 +1,5 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
-import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
+import { InstanceApi } from 'nextsrc/core/api-client/instance.api';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId } from 'nextsrc/core/queries/instance/utils';
 

@@ -1,10 +1,10 @@
 import { redirect } from 'react-router';
 import type { ActionFunctionArgs } from 'react-router-dom';
 
-import { PartiesApi } from 'nextsrc/core/apiClient/partiesApi';
 import { invalidatePartyQueries } from 'nextsrc/core/queries/parties';
 import { routeBuilders } from 'nextsrc/routesBuilder';
 import type { QueryClient } from '@tanstack/react-query';
+import { PartiesApi } from 'nextsrc/core/api-client/parties.api';
 
 export const partySelectionAction =
   (queryClient: QueryClient) =>

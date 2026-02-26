@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { PartiesApi } from 'nextsrc/core/apiClient/partiesApi';
+import { PartiesApi } from 'nextsrc/core/api-client/parties.api';
 
 export const partyQueryKeys = {
   all: ['parties'] as const,

@@ -1,10 +1,10 @@
 import type { LoaderFunctionArgs } from 'react-router';
 
-import { DataApi } from 'nextsrc/core/apiClient/dataApi';
-import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
-import { LayoutApi } from 'nextsrc/core/apiClient/layoutApi';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { formClient } from 'nextsrc/index';
+import { DataApi } from 'nextsrc/core/api-client/data.api';
+import { LayoutApi } from 'nextsrc/core/api-client/layout.api';
+import { InstanceApi } from 'nextsrc/core/api-client/instance.api';
 
 export const pageLoader = async ({
   params,

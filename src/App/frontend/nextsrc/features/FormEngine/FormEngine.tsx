@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { renderComponent } from 'nextsrc/features/FormEngine/layout-components';
-import type { FormDataNode } from 'nextsrc/core/apiClient/dataApi';
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
+import { FormDataNode } from 'nextsrc/core/api-client/data.api';
 
 interface FormEngineProps {
   components: ResolvedCompExternal[];
