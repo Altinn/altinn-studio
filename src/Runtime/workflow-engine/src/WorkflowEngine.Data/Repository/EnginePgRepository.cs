@@ -375,7 +375,7 @@ internal partial class EnginePgRepository : IEngineRepository
             _logger.FetchingWorkflowsForInstance(instanceGuid);
 
             var result = await _context
-                .GetActiveWorkflowsForInstance(instanceGuid)
+                .GetActiveWorkflows(instanceFilter: instanceGuid)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 
