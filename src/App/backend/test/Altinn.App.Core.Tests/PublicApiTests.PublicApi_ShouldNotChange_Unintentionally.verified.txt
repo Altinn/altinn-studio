@@ -2340,9 +2340,27 @@ namespace Altinn.App.Core.Implementation
         public string? GetApplicationXACMLPolicy() { }
         public string GetClassRefForLogicDataType(string dataType) { }
         public System.Threading.Tasks.Task<string?> GetFooter() { }
+        [System.Obsolete("Use GetLayoutModelForFolder instead", true)]
+        public Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null) { }
         public Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForFolder(string folder) { }
+        [System.Obsolete("Use GetLayoutModelForFolder instead", true)]
+        public Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForTask(string taskId) { }
+        [System.Obsolete("Use GetLayoutsInFolder or GetLayoutSettingsForFolder instead", true)]
+        public Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId) { }
+        [System.Obsolete("There is no mapping between task and layout folder anymore, all folders are named" +
+            " the same as the task ID.", true)]
+        public object? GetLayoutSets() { }
+        [System.Obsolete("There is no mapping between task and layout folder anymore, all folders are named" +
+            " the same as the task ID.", true)]
+        public string? GetLayoutSetsString() { }
         public Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForFolder(string? folder) { }
+        [System.Obsolete("Use GetLayoutSettingsForFolder instead", true)]
+        public Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId) { }
         public string? GetLayoutSettingsStringForFolder(string folder) { }
+        [System.Obsolete("Use GetLayoutSettingsForFolder instead", true)]
+        public string? GetLayoutSettingsStringForSet(string layoutSetId) { }
+        [System.Obsolete("Use GetLayoutsInFolder instead", true)]
+        public string GetLayoutsForSet(string layoutSetId) { }
         public string GetLayoutsInFolder(string folderId) { }
         public string GetModelJsonSchema(string modelId) { }
         public string? GetPrefillJson(string dataModelName = "ServiceModel") { }
@@ -2869,9 +2887,27 @@ namespace Altinn.App.Core.Internal.App
         string? GetApplicationXACMLPolicy();
         string GetClassRefForLogicDataType(string dataType);
         System.Threading.Tasks.Task<string?> GetFooter();
+        [System.Obsolete("Use GetLayoutModelForFolder instead", true)]
+        Altinn.App.Core.Models.Layout.LayoutModel GetLayoutModel(string? layoutSetId = null);
         Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForFolder(string folder);
+        [System.Obsolete("Use GetLayoutModelForFolder instead", true)]
+        Altinn.App.Core.Models.Layout.LayoutModel? GetLayoutModelForTask(string taskId);
+        [System.Obsolete("Use GetLayoutsInFolder or GetLayoutSettingsForFolder instead", true)]
+        Altinn.App.Core.Models.LayoutSet? GetLayoutSetForTask(string taskId);
+        [System.Obsolete("There is no mapping between task and layout folder anymore, all folders are named" +
+            " the same as the task ID.", true)]
+        object? GetLayoutSets();
+        [System.Obsolete("There is no mapping between task and layout folder anymore, all folders are named" +
+            " the same as the task ID.", true)]
+        string? GetLayoutSetsString();
         Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForFolder(string? folder);
+        [System.Obsolete("Use GetLayoutSettingsForFolder instead", true)]
+        Altinn.App.Core.Models.LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
         string? GetLayoutSettingsStringForFolder(string folder);
+        [System.Obsolete("Use GetLayoutSettingsForFolder instead", true)]
+        string? GetLayoutSettingsStringForSet(string layoutSetId);
+        [System.Obsolete("Use GetLayoutsInFolder instead", true)]
+        string GetLayoutsForSet(string layoutSetId);
         string GetLayoutsInFolder(string folderId);
         string GetModelJsonSchema(string modelId);
         string? GetPrefillJson(string dataModelName = "ServiceModel");
