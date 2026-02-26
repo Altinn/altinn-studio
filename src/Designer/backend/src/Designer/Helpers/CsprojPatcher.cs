@@ -91,43 +91,54 @@ public static class CsprojPatcher
     /// </summary>
     private static bool EnsureVersion(XElement packageReference, XName versionElementName, string desiredVersion)
     {
-        bool changed = false;
-
-        // Case 1: Version attribute exists
         var versionAttr = packageReference.Attribute("Version");
         if (versionAttr != null)
         {
-            if (!string.Equals(versionAttr.Value, desiredVersion, StringComparison.Ordinal))
-            {
-                versionAttr.Value = desiredVersion;
-                changed = true;
-            }
-
-            // If there's also a <Version> child (uncommon but possible), remove it to avoid ambiguity
-            var versionChild = packageReference.Elements(versionElementName).FirstOrDefault();
-            if (versionChild != null)
-            {
-                versionChild.Remove();
-                changed = true;
-            }
-
-            return changed;
+            return UpdateVersionAttribute(packageReference, versionElementName, versionAttr, desiredVersion);
         }
 
-        // Case 2: <Version> child exists
-        var child = packageReference.Elements(versionElementName).FirstOrDefault();
-        if (child != null)
+        var versionChild = packageReference.Elements(versionElementName).FirstOrDefault();
+        if (versionChild != null)
         {
-            if (!string.Equals(child.Value, desiredVersion, StringComparison.Ordinal))
-            {
-                child.Value = desiredVersion;
-                changed = true;
-            }
-
-            return changed;
+            return UpdateVersionElement(versionChild, desiredVersion);
         }
 
-        // Case 3: no version specified -> set attribute
+        return SetVersionAttribute(packageReference, desiredVersion);
+    }
+
+    private static bool UpdateVersionAttribute(XElement packageReference, XName versionElementName, XAttribute versionAttr, string desiredVersion)
+    {
+        bool changed = false;
+
+        if (!string.Equals(versionAttr.Value, desiredVersion, StringComparison.Ordinal))
+        {
+            versionAttr.Value = desiredVersion;
+            changed = true;
+        }
+
+        var versionChild = packageReference.Elements(versionElementName).FirstOrDefault();
+        if (versionChild != null)
+        {
+            versionChild.Remove();
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private static bool UpdateVersionElement(XElement versionElement, string desiredVersion)
+    {
+        if (!string.Equals(versionElement.Value, desiredVersion, StringComparison.Ordinal))
+        {
+            versionElement.Value = desiredVersion;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool SetVersionAttribute(XElement packageReference, string desiredVersion)
+    {
         packageReference.SetAttributeValue("Version", desiredVersion);
         return true;
     }
