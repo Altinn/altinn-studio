@@ -34,17 +34,27 @@ export const Task = () => {
   }
 };
 
-function DataTask({ loaderData }: { loaderData: DataTaskLoaderData }) {
+/**
+ * Isolates hooks that subscribe to the entire form data store (expression
+ * validation, schema validation, persistence) into a renderless component.
+ * This prevents their re-renders from cascading into the Outlet/Page tree
+ * and re-rendering every form component on every keystroke.
+ */
+function DataTaskSideEffects({ loaderData }: { loaderData: DataTaskLoaderData }) {
   const { instanceOwnerPartyId, instanceGuid, dataElementId } = loaderData;
-
   useFormDataPersistence({ instanceOwnerPartyId, instanceGuid, dataElementId });
   useExpressionValidation();
   useSchemaValidation();
+  return null;
+}
 
+function DataTask({ loaderData }: { loaderData: DataTaskLoaderData }) {
+  const { instanceOwnerPartyId, instanceGuid } = loaderData;
   const { submit, isSubmitting } = useProcessNext({ instanceOwnerPartyId, instanceGuid });
 
   return (
     <ProcessActionsProvider value={{ submit, isSubmitting }}>
+      <DataTaskSideEffects loaderData={loaderData} />
       <Outlet />
     </ProcessActionsProvider>
   );

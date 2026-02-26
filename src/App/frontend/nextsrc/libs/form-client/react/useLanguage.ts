@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { resolveTextResource } from 'nextsrc/libs/form-client/stores/textResourceStore';
@@ -14,12 +14,13 @@ export function useLanguage(): UseLanguageResult {
   const client = useFormClient();
   const resources = useStore(client.textResourceStore, (state) => state.resources);
   const language = useStore(client.textResourceStore, (state) => state.language);
-  const formData = useStore(client.formDataStore, (state) => state.data);
 
-  return useMemo(() => {
-    const systemLanguage = getLanguageFromCode(language);
-
-    function langAsString(key: string | undefined, params?: (string | number)[]): string {
+  // Read form data lazily inside langAsString instead of subscribing to it.
+  // Text resources that use dataModel variables will resolve with the current
+  // value at call time. This avoids re-rendering every component on every
+  // form data change.
+  const langAsString = useCallback(
+    (key: string | undefined, params?: (string | number)[]): string => {
       if (!key) {
         return '';
       }
@@ -29,16 +30,18 @@ export function useLanguage(): UseLanguageResult {
         return appResolved;
       }
 
+      const systemLanguage = getLanguageFromCode(language);
       const systemValue = (systemLanguage as Record<string, string>)[key];
       if (typeof systemValue === 'string') {
         return params ? replaceParameters(systemValue, params) : systemValue;
       }
 
       return key;
-    }
+    },
+    [resources, language, client],
+  );
 
-    return { langAsString };
-  }, [resources, language, formData, client]);
+  return { langAsString };
 }
 
 function replaceParameters(text: string, params: (string | number)[]): string {

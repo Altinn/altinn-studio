@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
 import { useStore } from 'zustand';
 
 import { evaluateBoolean } from 'nextsrc/libs/form-client/expressions/evaluate';
-import type { ExpressionDataSources } from 'nextsrc/libs/form-client/expressions/evaluate';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { ComponentErrorBoundary } from 'nextsrc/libs/form-engine/ComponentErrorBoundary';
 import { Accordion } from 'nextsrc/libs/form-engine/components/Accordion/Accordion';
@@ -133,19 +132,47 @@ interface ComponentRendererProps {
   itemIndex?: number;
 }
 
-const ComponentRenderer = ({ component, componentMap, parentBinding, itemIndex }: ComponentRendererProps) => {
+const ComponentRenderer = memo(function ComponentRenderer({
+  component,
+  componentMap,
+  parentBinding,
+  itemIndex,
+}: ComponentRendererProps) {
   const client = useFormClient();
 
-  // Subscribe to form data so hidden expressions re-evaluate on every data change
-  useStore(client.formDataStore, (s) => s.data);
+  // Evaluate hidden expression inside a Zustand selector so this component
+  // only re-renders when the boolean result actually changes, not on every
+  // form data update.
+  const isHidden = useStore(client.formDataStore, () => {
+    if (!component.hidden) {
+      return false;
+    }
+    return evaluateBoolean(
+      component.hidden,
+      {
+        formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
+        instanceDataSources: client.textResourceDataSources.instanceDataSources,
+        frontendSettings: client.textResourceDataSources.applicationSettings,
+      },
+      false,
+    );
+  });
 
-  const expressionDataSources: ExpressionDataSources = {
-    formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
-    instanceDataSources: client.textResourceDataSources.instanceDataSources,
-    frontendSettings: client.textResourceDataSources.applicationSettings,
-  };
+  // Stabilize renderChildren so child components don't lose memo benefits
+  const renderChildren = useCallback(
+    (children: ResolvedCompExternal[]): ReactNode =>
+      children.map((child) => (
+        <ComponentRenderer
+          key={child.id}
+          component={child}
+          componentMap={componentMap}
+          parentBinding={parentBinding}
+          itemIndex={itemIndex}
+        />
+      )),
+    [componentMap, parentBinding, itemIndex],
+  );
 
-  const isHidden = evaluateBoolean(component.hidden, expressionDataSources, false);
   if (isHidden) {
     return null;
   }
@@ -153,18 +180,6 @@ const ComponentRenderer = ({ component, componentMap, parentBinding, itemIndex }
   const Component = componentMap[component.type];
   if (!Component) {
     return <div>Component not implemented: {component.type} ID: {component.id}</div>;
-  }
-
-  function renderChildren(children: ResolvedCompExternal[]): ReactNode {
-    return children.map((child) => (
-      <ComponentRenderer
-        key={child.id}
-        component={child}
-        componentMap={componentMap}
-        parentBinding={parentBinding}
-        itemIndex={itemIndex}
-      />
-    ));
   }
 
   return (
@@ -177,4 +192,4 @@ const ComponentRenderer = ({ component, componentMap, parentBinding, itemIndex }
       />
     </ComponentErrorBoundary>
   );
-};
+});

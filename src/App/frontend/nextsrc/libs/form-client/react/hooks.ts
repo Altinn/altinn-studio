@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/shallow';
 
@@ -88,16 +88,18 @@ export function useTextResource(key: string | undefined): string {
 
 export function useIsRequired(requiredExpr: unknown): boolean {
   const client = useFormClient();
-  const formData = useStore(client.formDataStore, (state) => state.data);
 
-  return useMemo(() => {
+  // Evaluate required expression inside a Zustand selector so the component
+  // only re-renders when the boolean result actually changes, not on every
+  // form data update.
+  return useStore(client.formDataStore, () => {
     const dataSources = {
       formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
       instanceDataSources: client.textResourceDataSources.instanceDataSources,
       frontendSettings: client.textResourceDataSources.applicationSettings,
     };
     return evaluateBoolean(requiredExpr, dataSources, false);
-  }, [requiredExpr, client, formData]);
+  });
 }
 
 const REQUIRED_VALIDATION_KEY = '__required';
@@ -198,31 +200,31 @@ export function useRawPageOrder(): string[] {
 /**
  * Returns the page order filtered by hidden expressions.
  * Pages where `data.hidden` evaluates to `true` are excluded.
- * Re-evaluates when form data changes.
+ * Re-evaluates when form data changes, but only triggers a re-render
+ * when the resulting page list actually changes.
  */
 export function usePageOrder(): string[] {
   const client = useFormClient();
   const rawOrder = useRawPageOrder();
 
-  // Subscribe to form data so hidden expressions re-evaluate on data changes
-  const formData = useStore(client.formDataStore, (state) => state.data);
+  return useStore(
+    client.formDataStore,
+    useShallow(() => {
+      const dataSources = {
+        formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
+        instanceDataSources: client.textResourceDataSources.instanceDataSources,
+        frontendSettings: client.textResourceDataSources.applicationSettings,
+      };
 
-  return useMemo(() => {
-    const dataSources = {
-      formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
-      instanceDataSources: client.textResourceDataSources.instanceDataSources,
-      frontendSettings: client.textResourceDataSources.applicationSettings,
-    };
-
-    return rawOrder.filter((pageId) => {
-      const layout = client.getFormLayout(pageId);
-      if (!layout) {
-        return true;
-      }
-      const isHidden = evaluateBoolean(layout.data.hidden, dataSources, false);
-      return !isHidden;
-    });
-  }, [rawOrder, formData, client]);
+      return rawOrder.filter((pageId) => {
+        const layout = client.getFormLayout(pageId);
+        if (!layout) {
+          return true;
+        }
+        return !evaluateBoolean(layout.data.hidden, dataSources, false);
+      });
+    }),
+  );
 }
 
 export function useLayoutNames(): string[] {
