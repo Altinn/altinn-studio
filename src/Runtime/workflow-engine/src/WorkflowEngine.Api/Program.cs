@@ -14,10 +14,13 @@ builder.UseCommonHostingConfiguration();
 builder.UseProblemDetailsForBadRequests();
 builder.UseCaseInsensitiveCamelCaseJson();
 
+builder.Configuration.AddEnvironmentVariables();
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 // Services
 builder.Services.AddWorkflowEngineHost();
-builder.Services.AddTelemetry(enableSensitiveDataLogging: isDev);
 builder.Services.AddApiKeyAuthentication();
+builder.Services.AddTelemetry(emitQueryParameters: isDev);
 builder.Services.AddDbRepository(enableSensitiveDataLogging: isDev);
 builder.Services.AddEngineHealthChecks();
 builder.Services.AddHttpContextAccessor();
