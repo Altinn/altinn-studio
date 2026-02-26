@@ -64,6 +64,18 @@ export function usePushArrayItem(
   );
 }
 
+export function useRemoveArrayItem(
+  binding: string,
+  parentBinding?: string,
+  itemIndex?: number,
+): (index: number) => void {
+  const client = useFormClient();
+  return useCallback(
+    (index: number) => client.formDataStore.getState().removeArrayItem(binding, index, parentBinding, itemIndex),
+    [client, binding, parentBinding, itemIndex],
+  );
+}
+
 export function useFormData(): FormDataNode {
   const client = useFormClient();
   return useStore(client.formDataStore, (state) => state.data);

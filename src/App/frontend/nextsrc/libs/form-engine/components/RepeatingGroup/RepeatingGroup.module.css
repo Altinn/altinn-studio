@@ -1,0 +1,26 @@
+.editContainer {
+  padding: var(--ds-spacing-4, 1rem);
+  border-top: 1px solid var(--ds-color-border-subtle, #e0e0e0);
+  background-color: var(--ds-color-surface-subtle, #f5f5f5);
+}
+
+.actionCell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.actionButtons {
+  display: flex;
+  gap: var(--ds-spacing-2, 0.5rem);
+  justify-content: flex-end;
+}
+
+.addButton {
+  margin-top: var(--ds-spacing-4, 1rem);
+}
+
+.paginationContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--ds-spacing-4, 1rem);
+}

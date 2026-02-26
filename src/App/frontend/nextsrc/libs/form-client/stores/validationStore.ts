@@ -13,6 +13,7 @@ interface ValidationActions {
   setFieldValidations: (path: string, validations: FieldValidation[]) => void;
   clearField: (path: string) => void;
   clearAll: () => void;
+  clearByPathPrefix: (prefix: string) => void;
   clearBackend: () => void;
   getFieldValidations: (path: string) => FieldValidation[];
   hasErrors: (path?: string) => boolean;
@@ -33,6 +34,16 @@ export function createValidationStore() {
         return { fieldValidations: rest };
       }),
     clearAll: () => set({ fieldValidations: {} }),
+    clearByPathPrefix: (prefix) =>
+      set((state) => {
+        const kept: Record<string, FieldValidation[]> = {};
+        for (const [key, value] of Object.entries(state.fieldValidations)) {
+          if (!key.startsWith(prefix)) {
+            kept[key] = value;
+          }
+        }
+        return { fieldValidations: kept };
+      }),
     clearBackend: () =>
       set((state) => {
         const kept: Record<string, FieldValidation[]> = {};

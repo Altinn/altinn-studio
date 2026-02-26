@@ -68,7 +68,7 @@ All 10 migrated. Shared `findComponentById` utility extracted to `utils/findComp
 ## Existing 24 Components — Upgrade Gaps
 
 **High priority (significant missing functionality):**
-- **RepeatingGroup** — Missing: edit mode, delete, pagination, validation display, table headers
+- **RepeatingGroup** — ✅ Done: edit mode (showTable), delete rows, pagination, validation cleanup, table headers, CSS module. Remaining: hideTable/showAll/onlyTable modes, multi-page editing, per-row expression evaluation, row UUIDs, alertOnDelete, maxCount/minCount, attachment cleanup
 - **Summary2** — Only handles `target.type === 'component'` with `simpleBinding`. Missing: page/layoutSet targets, multi-binding, option-value display, group/repeating group summary, per-component summary renderers
 
 **Medium priority (missing common features):** ✅ DONE
@@ -92,8 +92,8 @@ All 10 migrated. Shared `findComponentById` utility extracted to `utils/findComp
 **Batch 1.5 — Medium priority component upgrades (5 components):** ✅ DONE
 Input, TextArea, Datepicker, Paragraph, Panel — upgraded with common features, restructured into per-component folders
 
-**Batch 2 — RepeatingGroup upgrade:** ← NEXT
-Bring RepeatingGroup to feature parity: edit mode, delete rows, pagination, validation display, table headers
+**Batch 2 — RepeatingGroup upgrade:** ✅ DONE
+Added: `removeArrayItem` store method + `useRemoveArrayItem` hook, `clearByPathPrefix` validation cleanup, table layout with column headers from child titles, inline edit mode (showTable), delete with validation cleanup, pagination, CSS module, `useRowCellValue` display hook
 
 **Batch 3 — Tier 2 smallest first:**
 TimePicker, Address, Grid, Cards, OrganisationLookup, PersonLookup

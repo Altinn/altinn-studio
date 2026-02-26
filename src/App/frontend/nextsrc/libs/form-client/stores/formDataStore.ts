@@ -15,6 +15,7 @@ interface FormDataActions {
   setBoundValue: (simpleBinding: string, value: FormDataPrimitive, parentBinding?: string, itemIndex?: number) => void;
   getArray: (path: string, parentBinding?: string, itemIndex?: number) => FormDataNode[];
   pushArrayItem: (path: string, item: FormDataNode, parentBinding?: string, itemIndex?: number) => void;
+  removeArrayItem: (path: string, index: number, parentBinding?: string, itemIndex?: number) => void;
 }
 
 export type FormDataStore = FormDataState & FormDataActions;
@@ -117,6 +118,25 @@ export function createFormDataStore(initial?: FormDataNode, options?: FormDataSt
         }
         const current = dot.pick(resolvedPath, state.data);
         const arr = Array.isArray(current) ? [...current, item] : [item];
+        const copy = { ...state.data };
+        dot.set(resolvedPath, arr, copy);
+        return { data: copy };
+      });
+      const newArray = get().getArray(path, parentBinding, itemIndex);
+      options?.onChange?.(resolvedPath, newArray, previousArray);
+    },
+    removeArrayItem: (path, index, parentBinding?, itemIndex?) => {
+      const resolvedPath = resolvePath(path, parentBinding, itemIndex);
+      const previousArray = get().getArray(path, parentBinding, itemIndex);
+      set((state) => {
+        if (typeof state.data !== 'object' || state.data === null || Array.isArray(state.data)) {
+          return state;
+        }
+        const current = dot.pick(resolvedPath, state.data);
+        if (!Array.isArray(current) || index < 0 || index >= current.length) {
+          return state;
+        }
+        const arr = [...current.slice(0, index), ...current.slice(index + 1)];
         const copy = { ...state.data };
         dot.set(resolvedPath, arr, copy);
         return { data: copy };
