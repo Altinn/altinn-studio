@@ -360,7 +360,6 @@ namespace Altinn.Studio.Designer.Controllers
             }
         }
 
-        //En separat DELETE ville vært nødvendig hvis POST kun la til/oppdaterte én enkelt regel om gangen, uten å berøre de andre. Men siden POST her alltid sender hele tilstanden, er DELETE overflødig.
         /// <summary>
         /// Updates validation on navigation settings for multiple layout sets based on grouped configurations
         /// </summary>
@@ -413,7 +412,8 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     LayoutSettings layoutSettings = await _layoutService.GetLayoutSettings(
                         editingContext,
-                        layoutSet.Id
+                        layoutSet.Id,
+                        cancellationToken
                     );
                     layoutSettings.Pages ??= new Pages();
 
