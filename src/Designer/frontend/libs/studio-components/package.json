@@ -26,7 +26,7 @@
     "@chromatic-com/storybook": "^5.0.0",
     "@storybook/addon-docs": "9.1.19",
     "@storybook/addon-links": "9.1.19",
-    "@storybook/builder-vite": "9.1.19",
+    "@storybook/builder-vite": "10.2.10",
     "@storybook/react-vite": "9.1.19",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
