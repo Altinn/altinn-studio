@@ -2,6 +2,7 @@ import { convertData } from 'nextsrc/libs/form-client/convertData';
 import { resolveExpressionValidationConfig } from 'nextsrc/libs/form-client/expressionValidation';
 import { moveChildren } from 'nextsrc/libs/form-client/moveChildren';
 import { lookupSchemaForPath } from 'nextsrc/libs/form-client/schemaLookup';
+import { createSchemaValidator } from 'nextsrc/libs/form-client/schemaValidation';
 import { createFormDataStore } from 'nextsrc/libs/form-client/stores/formDataStore';
 import { createTextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
 import { createValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
@@ -15,6 +16,7 @@ import type { ResolvedLayoutCollection, ResolvedLayoutFile } from 'nextsrc/libs/
 import type { FormDataStore } from 'nextsrc/libs/form-client/stores/formDataStore';
 import type { TextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
 import type { ValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
+import type Ajv from 'ajv';
 import type { JSONSchema7 } from 'json-schema';
 import type { StoreApi } from 'zustand';
 
@@ -50,6 +52,7 @@ export class FormClient {
   private instanceDataSources: Record<string, string> | null;
   private formDataChangeCallbacks = new Set<FormDataChangeCallback>();
   private dataModelSchema: JSONSchema7 | null = null;
+  private schemaValidator: Ajv | null = null;
   private expressionValidations: ResolvedExpressionValidations = {};
 
   constructor(config: FormClientConfig = {}) {
@@ -93,6 +96,11 @@ export class FormClient {
 
   setDataModelSchema(schema: JSONSchema7) {
     this.dataModelSchema = schema;
+    this.schemaValidator = createSchemaValidator(schema);
+  }
+
+  getSchemaValidator(): Ajv | null {
+    return this.schemaValidator;
   }
 
   setLayoutCollection(layoutCollection: ILayoutCollection) {
