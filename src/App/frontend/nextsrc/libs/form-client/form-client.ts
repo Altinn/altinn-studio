@@ -1,6 +1,6 @@
 import dot from 'dot-object';
-import { FormDataNode, FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 import { moveChildren } from 'nextsrc/libs/form-client/moveChildren';
+import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 import type { ResolvedLayoutCollection, ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
 
 import type { ILayoutCollection } from 'src/layout/layout';

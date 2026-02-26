@@ -1,9 +1,9 @@
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
+import { LayoutApi } from 'nextsrc/core/api-client/layout.api';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { isPagesSettingsWithGroups, isPagesSettingsWithOrder } from 'nextsrc/core/typeguards';
-import { LayoutApi } from 'nextsrc/core/api-client/layout.api';
 
 export const taskLoader = async ({ params }: LoaderFunctionArgs<{ taskId: string }>) => {
   const { taskId } = params;
