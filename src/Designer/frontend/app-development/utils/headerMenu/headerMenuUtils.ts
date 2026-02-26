@@ -1,5 +1,5 @@
 import { RepositoryType } from 'app-shared/types/global';
-import { FeatureFlag, retrieveFeatureFlags } from '@studio/feature-flags';
+import { FeatureFlag } from '@studio/feature-flags';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { type HeaderMenuGroup } from 'app-development/types/HeaderMenu/HeaderMenuGroup';
@@ -77,25 +77,35 @@ export const topBarMenuItems: HeaderMenuItem[] = [
   },
 ];
 
-export const getFilteredTopBarMenu = (repositoryType: RepositoryType): HeaderMenuItem[] => {
+export const getFilteredTopBarMenu = (
+  repositoryType: RepositoryType,
+  activeFeatureFlags: FeatureFlag[],
+): HeaderMenuItem[] => {
   return topBarMenuItems
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
-    .filter(filterRoutesByFeatureFlag)
+    .filter((menuItem) => filterRoutesByFeatureFlag(menuItem, activeFeatureFlags))
     .filter(filterRoutesByDataModel);
 };
 
 export const getTopBarMenuItems = (
   repositoryType: RepositoryType,
   repoOwnerIsOrg: boolean,
+  activeFeatureFlags: FeatureFlag[],
 ): HeaderMenuItem[] => {
-  const filteredMenuItems: HeaderMenuItem[] = getFilteredTopBarMenu(repositoryType);
+  const filteredMenuItems: HeaderMenuItem[] = getFilteredTopBarMenu(
+    repositoryType,
+    activeFeatureFlags,
+  );
   return filterOutDeployItem(filteredMenuItems, repoOwnerIsOrg, repositoryType);
 };
 
-export const filterRoutesByFeatureFlag = (menuItem: HeaderMenuItem): boolean => {
+export const filterRoutesByFeatureFlag = (
+  menuItem: HeaderMenuItem,
+  activeFeatureFlags: FeatureFlag[],
+): boolean => {
   if (!menuItem.featureFlagName) return true;
 
-  return retrieveFeatureFlags().includes(menuItem.featureFlagName);
+  return activeFeatureFlags.includes(menuItem.featureFlagName);
 };
 
 const filterRoutesByDataModel = (menuItem: HeaderMenuItem) => {
@@ -146,8 +156,10 @@ export const mapHeaderMenuGroupToNavigationMenu = (
   })),
 });
 
-export const getFilteredMenuListForOverviewPage = (): HeaderMenuItem[] => {
-  return getFilteredTopBarMenu(RepositoryType.App).filter(
+export const getFilteredMenuListForOverviewPage = (
+  activeFeatureFlags: FeatureFlag[],
+): HeaderMenuItem[] => {
+  return getFilteredTopBarMenu(RepositoryType.App, activeFeatureFlags).filter(
     (item) => item.key !== HeaderMenuItemKey.About && item.key !== HeaderMenuItemKey.Deploy,
   );
 };

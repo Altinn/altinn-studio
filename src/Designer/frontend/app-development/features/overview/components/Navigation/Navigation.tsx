@@ -6,11 +6,13 @@ import { getFilteredMenuListForOverviewPage } from 'app-development/utils/header
 import { Link } from 'react-router-dom';
 import cn from 'classnames';
 import { studioBetaTagClasses } from '@studio/components-legacy';
+import { useFeatureFlagsContext } from '@studio/feature-flags';
 
 export const Navigation = () => {
   const { t } = useTranslation();
+  const { flags } = useFeatureFlagsContext();
 
-  const menuItems = getFilteredMenuListForOverviewPage();
+  const menuItems = getFilteredMenuListForOverviewPage(flags);
 
   return (
     <div className={classes.navigation}>

@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { useSearchParams } from 'react-router-dom';
+import { useFeatureFlagsContext } from '@studio/feature-flags';
 
 export type PageHeaderContextProps = {
   user: User;
@@ -41,8 +42,9 @@ export const PageHeaderContextProvider = ({
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
 
+  const { flags } = useFeatureFlagsContext();
   const repoType = getRepositoryType(org, app);
-  const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg);
+  const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg, flags);
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl(), openInNewTab: true },
