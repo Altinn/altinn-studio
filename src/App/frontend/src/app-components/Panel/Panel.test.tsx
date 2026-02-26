@@ -5,8 +5,8 @@ import { screen } from '@testing-library/react';
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
 import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
-import { TranslationKey } from 'src/app-components/types';
 import type { PanelVariant } from 'src/app-components/Panel/Panel';
+import type { TranslationKey } from 'src/app-components/types';
 
 describe('Panel', () => {
   const panelTitle = 'Panel Title' as TranslationKey;

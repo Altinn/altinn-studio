@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 
 import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
 import { TimePicker } from 'src/app-components/TimePicker/TimePicker';
-import { TranslationKey } from 'src/app-components/types';
+import type { TranslationKey } from 'src/app-components/types';
 
 describe('TimePicker - Responsive & Accessibility', () => {
   const defaultProps = {

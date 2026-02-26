@@ -5,7 +5,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { AppTable } from 'src/app-components/Table/Table';
 import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
-import { TranslationKey } from 'src/app-components/types';
+import type { TranslationKey } from 'src/app-components/types';
 
 const data = [
   { id: 1, name: 'Alice', date: '05.10.2023', amount: 100 },
