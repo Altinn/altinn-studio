@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { Alert, ValidationMessage } from '@digdir/designsystemet-react';
+import { ValidationMessage } from '@digdir/designsystemet-react';
 
+import { Alert } from 'src/app-components/Alert/Alert';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/validation/ComponentValidations.module.css';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';

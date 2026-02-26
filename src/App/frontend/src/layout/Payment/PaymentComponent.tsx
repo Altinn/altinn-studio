@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { Alert } from '@digdir/designsystemet-react';
-
+import { Alert } from 'src/app-components/Alert/Alert';
 import { Button } from 'src/app-components/Button/Button';
 import { useProcessNext } from 'src/features/instance/useProcessNext';
 import { Lang } from 'src/features/language/Lang';

@@ -228,4 +228,23 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/app-components/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@digdir/designsystemet-react',
+              importNames: ['Alert'],
+              message:
+                "Import DS components via src/app-components/ instead of directly from '@digdir/designsystemet-react'.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

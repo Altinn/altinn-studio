@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { Alert as AlertDesignSystem } from '@digdir/designsystemet-react';
-
+import { Alert } from 'src/app-components/Alert/Alert';
 import styles from 'src/layout/Alert/Alert.module.css';
 import type { AlertSeverity } from 'src/layout/Alert/config.generated';
 
@@ -21,7 +20,7 @@ export type AlertBaseComponentProps = {
 };
 
 export const AlertBaseComponent = ({ title, children, useAsAlert, severity, ariaLabel }: AlertBaseComponentProps) => (
-  <AlertDesignSystem
+  <Alert
     className={styles.container}
     data-color={severity}
     role={useAsAlert ? 'alert' : undefined}
@@ -30,5 +29,5 @@ export const AlertBaseComponent = ({ title, children, useAsAlert, severity, aria
   >
     {title && <span className={styles.title}>{title}</span>}
     <div className={styles.body}>{children}</div>
-  </AlertDesignSystem>
+  </Alert>
 );
