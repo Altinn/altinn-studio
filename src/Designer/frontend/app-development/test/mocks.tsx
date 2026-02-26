@@ -4,7 +4,7 @@ import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
-import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { FeatureFlagsContextProvider, type FeatureFlag } from '@studio/feature-flags';
 
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
@@ -19,10 +19,11 @@ export const renderWithProviders =
     previewContextProps: Partial<PreviewContextProps> = {},
     path?: string,
     pathTemplate?: string,
+    featureFlags: FeatureFlag[] = [],
   ) =>
   (component: ReactNode) => {
     const Wrapper = ({ children }: { children: ReactNode }) => (
-      <FeatureFlagsProvider>
+      <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
         <TestAppRouter initialPath={path} pathTemplate={pathTemplate}>
           <ServicesContextProvider
             {...queriesMock}
@@ -39,7 +40,7 @@ export const renderWithProviders =
             </PreviewConnectionContextProvider>
           </ServicesContextProvider>
         </TestAppRouter>
-      </FeatureFlagsProvider>
+      </FeatureFlagsContextProvider>
     );
 
     const renderResult = render(<Wrapper>{component}</Wrapper>);
@@ -49,11 +50,15 @@ export const renderWithProviders =
   };
 
 export const renderHookWithProviders =
-  (queries: Partial<ServicesContextProps> = {}, queryClient?: QueryClient) =>
+  (
+    queries: Partial<ServicesContextProps> = {},
+    queryClient?: QueryClient,
+    featureFlags: FeatureFlag[] = [],
+  ) =>
   (hook: () => any) => {
     const renderHookResult = renderHook(hook, {
       wrapper: ({ children }) => (
-        <FeatureFlagsProvider>
+        <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
           <TestAppRouter>
             <ServicesContextProvider
               {...queriesMock}
@@ -64,7 +69,7 @@ export const renderHookWithProviders =
               <PreviewConnectionContextProvider>{children}</PreviewConnectionContextProvider>
             </ServicesContextProvider>
           </TestAppRouter>
-        </FeatureFlagsProvider>
+        </FeatureFlagsContextProvider>
       ),
     });
     return { renderHookResult };
