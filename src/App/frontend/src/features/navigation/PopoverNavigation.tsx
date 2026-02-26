@@ -4,7 +4,6 @@ import type { CSSProperties } from 'react';
 import { Dialog, Dropdown } from '@digdir/designsystemet-react';
 import { BulletListIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
-import type { Button } from '@digdir/designsystemet-react';
 
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { Lang } from 'src/features/language/Lang';
@@ -12,6 +11,7 @@ import { AppNavigation, AppNavigationHeading } from 'src/features/navigation/App
 import classes from 'src/features/navigation/PopoverNavigation.module.css';
 import { SIDEBAR_BREAKPOINT, useHasGroupedNavigation } from 'src/features/navigation/utils';
 import { useBrowserWidth, useIsMobile } from 'src/hooks/useDeviceWidths';
+import type { Button } from 'src/app-components/Button/Button';
 
 export function PopoverNavigation(props: Parameters<typeof Button>[0]) {
   const hasGroupedNavigation = useHasGroupedNavigation();

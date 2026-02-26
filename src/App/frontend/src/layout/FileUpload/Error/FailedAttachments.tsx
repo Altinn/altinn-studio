@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 import { isAxiosError } from 'axios';
 
 import { Alert } from 'src/app-components/Alert/Alert';
+import { Button } from 'src/app-components/Button/Button';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { type IFailedAttachment, isDataPostError } from 'src/features/attachments';
 import { useDeleteFailedAttachment, useFailedAttachmentsFor } from 'src/features/attachments/hooks';
