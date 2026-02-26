@@ -3,6 +3,7 @@ import React from 'react';
 import { pick } from 'dot-object';
 
 import { AppTable } from 'src/app-components/Table/Table';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { Lang } from 'src/features/language/Lang';
@@ -54,12 +55,9 @@ export function ApiTableSummary({ targetBaseComponentId }: Summary2Props) {
       <AppTable
         caption={title && <Caption title={<Lang id={title} />} />}
         data={dataToDisplay}
-        columns={columns.map((config) => ({
-          ...config,
-          header: <Lang id={config.header} />,
-        }))}
+        columns={columns.map((column) => ({ ...column, header: translationKey(column.header) }))}
         mobile={isMobile}
-        emptyText={<Lang id='general.empty_table' />}
+        emptyText={translationKey('general.empty_table')}
       />
     </SummaryFlex>
   );

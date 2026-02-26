@@ -19,23 +19,28 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+
 - New feature X
 
 ### Fixed
+
 - Bug in Y
 
 ## [1.2.0] - 2024-01-15
 
 ### Added
+
 - Feature A
 - Feature B
 
 ### Changed
+
 - Updated C
 
 ## [1.1.0] - 2024-01-01
 
 ### Added
+
 - Initial feature
 `
 
@@ -46,6 +51,7 @@ const emptyUnreleasedChangelog = `# Changelog
 ## [1.0.0] - 2024-01-01
 
 ### Added
+
 - Initial release
 `
 
@@ -54,6 +60,7 @@ const noUnreleasedChangelog = `# Changelog
 ## [1.0.0] - 2024-01-01
 
 ### Added
+
 - Initial release
 `
 
@@ -62,6 +69,7 @@ const unreleasedOnlyChangelog = `# Changelog
 ## [Unreleased]
 
 ### Added
+
 - New feature
 `
 
@@ -78,10 +86,12 @@ func TestExtractNotes(t *testing.T) {
 			content: sampleChangelog,
 			version: "1.2.0",
 			want: `### Added
+
 - Feature A
 - Feature B
 
 ### Changed
+
 - Updated C`,
 		},
 		{
@@ -89,10 +99,12 @@ func TestExtractNotes(t *testing.T) {
 			content: sampleChangelog,
 			version: "v1.2.0",
 			want: `### Added
+
 - Feature A
 - Feature B
 
 ### Changed
+
 - Updated C`,
 		},
 		{
@@ -100,10 +112,12 @@ func TestExtractNotes(t *testing.T) {
 			content: sampleChangelog,
 			version: "studioctl/v1.2.0",
 			want: `### Added
+
 - Feature A
 - Feature B
 
 ### Changed
+
 - Updated C`,
 		},
 		{
@@ -111,10 +125,12 @@ func TestExtractNotes(t *testing.T) {
 			content: sampleChangelog,
 			version: "fileanalyzers/v1.2.0",
 			want: `### Added
+
 - Feature A
 - Feature B
 
 ### Changed
+
 - Updated C`,
 		},
 		{
@@ -122,6 +138,7 @@ func TestExtractNotes(t *testing.T) {
 			content: sampleChangelog,
 			version: "1.1.0",
 			want: `### Added
+
 - Initial feature`,
 		},
 		{
@@ -169,6 +186,33 @@ func TestExtractNotes(t *testing.T) {
 	}
 }
 
+func TestParse_CompactCategorySpacing(t *testing.T) {
+	content := `# Changelog
+
+## [Unreleased]
+
+### Added
+- Compact spacing entry
+`
+
+	cl, err := changelog.Parse(content)
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	if cl.Unreleased == nil {
+		t.Fatal("Parse() unreleased section = nil, want non-nil")
+	}
+	if len(cl.Unreleased.Categories) != 1 {
+		t.Fatalf("Parse() categories len = %d, want 1", len(cl.Unreleased.Categories))
+	}
+	if got := cl.Unreleased.Categories[0].Entries; len(got) != 1 || got[0] != "Compact spacing entry" {
+		t.Fatalf("Parse() entries = %v, want [Compact spacing entry]", got)
+	}
+	if !strings.Contains(cl.String(), "### Added\n\n- Compact spacing entry") {
+		t.Fatalf("String() did not normalize compact spacing:\n%s", cl.String())
+	}
+}
+
 func TestPromote(t *testing.T) {
 	fixedDate := time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)
 
@@ -186,8 +230,8 @@ func TestPromote(t *testing.T) {
 			version: "1.3.0",
 			contains: []string{
 				"## [Unreleased]\n\n## [1.3.0] - 2024-02-01",
-				"### Added\n- New feature X",
-				"### Fixed\n- Bug in Y",
+				"### Added\n\n- New feature X",
+				"### Fixed\n\n- Bug in Y",
 			},
 		},
 		{
@@ -239,18 +283,20 @@ func TestPromote(t *testing.T) {
 ## [1.0.0-preview.2] - 2024-01-02
 
 ### Fixed
+
 - Critical bugfix
 
 ## [1.0.0-preview.1] - 2024-01-01
 
 ### Added
+
 - First stable feature
 `,
 			version: "1.0.0",
 			contains: []string{
 				"## [1.0.0] - 2024-02-01",
-				"### Added\n- First stable feature",
-				"### Fixed\n- Critical bugfix",
+				"### Added\n\n- First stable feature",
+				"### Fixed\n\n- Critical bugfix",
 			},
 		},
 		{
@@ -260,22 +306,25 @@ func TestPromote(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Final release polish
 
 ## [1.1.0-preview.2] - 2024-01-02
 
 ### Added
+
 - Feature B
 
 ## [1.1.0-preview.1] - 2024-01-01
 
 ### Added
+
 - Feature A
 `,
 			version: "1.1.0",
 			contains: []string{
 				"## [1.1.0] - 2024-02-01",
-				"### Added\n- Feature A\n- Feature B\n- Final release polish",
+				"### Added\n\n- Feature A\n- Feature B\n- Final release polish",
 			},
 		},
 		{
@@ -308,7 +357,7 @@ func TestPromote(t *testing.T) {
 			version: "1.0.0",
 			contains: []string{
 				"## [Unreleased]\n\n## [1.0.0] - 2024-02-01",
-				"### Added\n- New feature",
+				"### Added\n\n- New feature",
 			},
 		},
 	}
@@ -362,21 +411,25 @@ func TestPromote_MaintainsSemverOrder(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Upcoming
 
 ## [2.0.0] - 2024-01-10
 
 ### Added
+
 - A
 
 ## [1.5.0] - 2024-01-09
 
 ### Added
+
 - B
 
 ## [1.1.0] - 2024-01-08
 
 ### Added
+
 - C
 `,
 			version:      "1.6.0",
@@ -389,16 +442,19 @@ func TestPromote_MaintainsSemverOrder(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Upcoming
 
 ## [2.0.0] - 2024-01-10
 
 ### Added
+
 - A
 
 ## [1.5.0] - 2024-01-09
 
 ### Added
+
 - B
 `,
 			version:      "1.4.9",
@@ -411,21 +467,25 @@ func TestPromote_MaintainsSemverOrder(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Upcoming
 
 ## [1.2.0] - 2024-01-10
 
 ### Added
+
 - Stable
 
 ## [1.2.0-preview.2] - 2024-01-09
 
 ### Added
+
 - Preview
 
 ## [1.1.9] - 2024-01-08
 
 ### Added
+
 - Older
 `,
 			version:      "1.2.0-preview.10",
@@ -438,21 +498,25 @@ func TestPromote_MaintainsSemverOrder(t *testing.T) {
 ## [Unreleased]
 
 ### Fixed
+
 - Bugfix
 
 ## [1.1.0-preview.2] - 2024-01-10
 
 ### Added
+
 - Preview 2
 
 ## [1.1.0-preview.1] - 2024-01-09
 
 ### Added
+
 - Preview 1
 
 ## [1.0.0] - 2024-01-08
 
 ### Added
+
 - Stable
 `,
 			version:      "1.0.1",
@@ -536,9 +600,11 @@ index abc123..def456 100644
  ## [Unreleased]
 
 +### Fixed
++
 +- Fix memory leak in connection pool
 +
  ### Added
+ 
  - Existing feature
 
 `
@@ -552,9 +618,11 @@ index abc123..def456 100644
  ## [Unreleased]
 
 +### Added
++
 +- New command for backporting
 +
 +### Fixed
++
 +- Fix memory leak in connection pool
 +- Fix race condition in scheduler
 +
@@ -593,8 +661,10 @@ index 1111111..2222222 100644
  ## [Unreleased]
 
  ### Added
++
 +- Backport entry
  ### Fixed
+ 
  - Existing fix
 diff --git a/other.go b/other.go
 index aaa..bbb 100644
@@ -687,7 +757,7 @@ func TestInsertEntries(t *testing.T) {
 				{Category: "Fixed", Text: "New bugfix"},
 			},
 			contains: []string{
-				"### Fixed\n- New bugfix\n- Bug in Y",
+				"### Fixed\n\n- New bugfix\n- Bug in Y",
 			},
 		},
 		{
@@ -698,7 +768,7 @@ func TestInsertEntries(t *testing.T) {
 			},
 			contains: []string{
 				"## [Unreleased]",
-				"### Fixed\n- A bugfix",
+				"### Fixed\n\n- A bugfix",
 			},
 		},
 		{
@@ -709,7 +779,7 @@ func TestInsertEntries(t *testing.T) {
 				{Category: "Fixed", Text: "Bugfix two"},
 			},
 			contains: []string{
-				"### Fixed\n- Bugfix one\n- Bugfix two",
+				"### Fixed\n\n- Bugfix one\n- Bugfix two",
 			},
 		},
 		{
@@ -720,8 +790,8 @@ func TestInsertEntries(t *testing.T) {
 				{Category: "Fixed", Text: "Bugfix"},
 			},
 			contains: []string{
-				"### Added\n- New feature",
-				"### Fixed\n- Bugfix",
+				"### Added\n\n- New feature",
+				"### Fixed\n\n- Bugfix",
 			},
 		},
 		{
@@ -732,7 +802,7 @@ func TestInsertEntries(t *testing.T) {
 			},
 			contains: []string{
 				"## [Unreleased]",
-				"### Changed\n- Backport change",
+				"### Changed\n\n- Backport change",
 			},
 		},
 		{
@@ -823,6 +893,7 @@ func TestParse_InvalidCategory(t *testing.T) {
 ## [Unreleased]
 
 ### Invalid
+
 - Some entry`,
 			wantCategory:  "Invalid",
 			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
@@ -834,6 +905,7 @@ func TestParse_InvalidCategory(t *testing.T) {
 ## [1.0.0] - 2024-01-01
 
 ### Breaking
+
 - Breaking change`,
 			wantCategory:  "Breaking",
 			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
@@ -845,6 +917,7 @@ func TestParse_InvalidCategory(t *testing.T) {
 ## [Unreleased]
 
 ### Adedd
+
 - Feature`,
 			wantCategory:  "Adedd",
 			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
@@ -856,6 +929,7 @@ func TestParse_InvalidCategory(t *testing.T) {
 ## [Unreleased]
 
 ### added
+
 - Feature`,
 			wantCategory:  "added",
 			wantValidList: "Added, Changed, Fixed, Removed, Security, Deprecated",
@@ -897,12 +971,15 @@ func TestParse_CategoryOrder(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - New feature
 
 ### Changed
+
 - Updated something
 
 ### Fixed
+
 - Bug fix`,
 			wantErr: false,
 		},
@@ -913,12 +990,15 @@ func TestParse_CategoryOrder(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - New feature
 
 ### Fixed
+
 - Bug fix
 
 ### Changed
+
 - Updated something`,
 			wantErr:      true,
 			wantErrType:  changelog.ErrCategoryOrder,
@@ -931,12 +1011,15 @@ func TestParse_CategoryOrder(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - New feature
 
 ### Removed
+
 - Removed feature
 
 ### Fixed
+
 - Bug fix`,
 			wantErr:      true,
 			wantErrType:  changelog.ErrCategoryOrder,
@@ -949,6 +1032,7 @@ func TestParse_CategoryOrder(t *testing.T) {
 ## [Unreleased]
 
 ### Fixed
+
 - Bug fix`,
 			wantErr: false,
 		},
@@ -959,12 +1043,15 @@ func TestParse_CategoryOrder(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - New feature
 
 ### Fixed
+
 - Bug fix
 
 ### Security
+
 - Security fix`,
 			wantErr: false,
 		},
@@ -975,9 +1062,11 @@ func TestParse_CategoryOrder(t *testing.T) {
 ## [1.0.0] - 2024-01-01
 
 ### Fixed
+
 - Bug fix
 
 ### Added
+
 - New feature`,
 			wantErr:      true,
 			wantErrType:  changelog.ErrCategoryOrder,
@@ -1019,21 +1108,25 @@ func TestParse_VersionSectionValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - New feature
 
 ## [1.2.0] - 2024-01-02
 
 ### Added
+
 - Stable release
 
 ## [1.2.0-preview.1] - 2024-01-01
 
 ### Added
+
 - Preview release
 
 ## [1.1.0] - 2023-12-01
 
 ### Added
+
 - Older release`,
 		},
 		{
@@ -1043,21 +1136,25 @@ func TestParse_VersionSectionValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - New feature
 
 ## [1.3.0-preview.1] - 2024-01-03
 
 ### Added
+
 - Active preview
 
 ## [1.2.0] - 2024-01-02
 
 ### Added
+
 - Latest stable
 
 ## [1.2.0-preview.2] - 2024-01-01
 
 ### Added
+
 - Historical preview`,
 		},
 		{
@@ -1067,16 +1164,19 @@ func TestParse_VersionSectionValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - New feature
 
 ## [1.2.0] - 2024-01-02
 
 ### Added
+
 - Stable release
 
 ## [1.2.0] - 2024-01-01
 
 ### Fixed
+
 - Duplicate section`,
 			wantErr:     true,
 			wantErrType: changelog.ErrDuplicateVersion,
@@ -1088,16 +1188,19 @@ func TestParse_VersionSectionValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - New feature
 
 ## [1.1.0] - 2024-01-02
 
 ### Added
+
 - Older release
 
 ## [1.2.0] - 2024-01-01
 
 ### Added
+
 - Newer release`,
 			wantErr:     true,
 			wantErrType: changelog.ErrVersionOrder,
@@ -1109,16 +1212,19 @@ func TestParse_VersionSectionValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - New feature
 
 ## [1.2.0-preview.1] - 2024-01-02
 
 ### Added
+
 - Preview release
 
 ## [1.2.0] - 2024-01-01
 
 ### Added
+
 - Stable release`,
 			wantErr:     true,
 			wantErrType: changelog.ErrVersionOrder,
@@ -1130,21 +1236,25 @@ func TestParse_VersionSectionValidation(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - New feature
 
 ## [1.3.0-preview.1] - 2024-01-03
 
 ### Added
+
 - Preview line A
 
 ## [1.2.0-preview.4] - 2024-01-02
 
 ### Added
+
 - Preview line B
 
 ## [1.1.0] - 2024-01-01
 
 ### Added
+
 - Stable release`,
 			wantErr:     true,
 			wantErrType: changelog.ErrPrereleaseConflict,

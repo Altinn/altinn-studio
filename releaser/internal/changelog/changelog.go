@@ -841,6 +841,9 @@ func (s *Section) String() string {
 		b.WriteString("### ")
 		b.WriteString(cat.Name)
 		b.WriteString("\n")
+		if len(cat.Entries) > 0 {
+			b.WriteString("\n")
+		}
 		for _, entry := range cat.Entries {
 			b.WriteString("- ")
 			b.WriteString(entry)
