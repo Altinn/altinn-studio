@@ -60,10 +60,10 @@ npx cypress open --env environment=docker
 | 0.1 | Move FormEngine to `libs/form-engine` | Done | |
 | 0.2 | Define change notification API on FormClient | Done | |
 | 0.3 | Error boundaries and error handling | Done | |
-| 0.4 | Loading states | Not started | |
-| 0.5 | Auth and session keep-alive | Not started | |
-| 0.6 | Migrate options fetching to TanStack Query | Not started | |
-| 1.1 | App shell persistence layer | Not started | |
+| 0.4 | Loading states | Deferred | Nice-to-have, not blocking |
+| 0.5 | Auth and session keep-alive | Deferred | Not blocking main lifecycle |
+| 0.6 | Migrate options fetching to TanStack Query | Deferred | Not blocking main lifecycle |
+| 1.1 | App shell persistence layer | Done | |
 | 1.2 | Dirty tracking and unsaved changes warning | Not started | |
 | 1.3 | Stateless form data | Not started | |
 | 2.1 | Backend validation integration | Not started | |

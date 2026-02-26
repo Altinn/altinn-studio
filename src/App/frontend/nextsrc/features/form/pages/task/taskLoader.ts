@@ -48,5 +48,13 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs) => {
   const dataElement = await DataApi.getDataObject({ instanceOwnerPartyId, instanceGuid, dataObjectGuid });
   formClient.setFormData(dataElement);
 
-  return { layoutSettings, layout, instance, dataElement };
+  return {
+    layoutSettings,
+    layout,
+    instance,
+    dataElement,
+    instanceOwnerPartyId,
+    instanceGuid,
+    dataElementId: dataObjectGuid,
+  };
 };
