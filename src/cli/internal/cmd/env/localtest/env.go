@@ -143,6 +143,7 @@ func (e *Env) Status(ctx context.Context) (*Status, error) {
 		state, err := e.client.ContainerState(ctx, name)
 		if err != nil {
 			if errors.Is(err, containertypes.ErrContainerNotFound) {
+				status.Containers = append(status.Containers, newContainerStatus(name, "not found"))
 				continue
 			}
 			return nil, fmt.Errorf("get state for container %q: %w", name, err)
@@ -156,6 +157,7 @@ func (e *Env) Status(ctx context.Context) (*Status, error) {
 		}
 	}
 	status.Running = runningCoreContainers == len(containers)
+	status.AnyRunning = runningCoreContainers > 0
 
 	return &status, nil
 }

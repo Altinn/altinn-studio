@@ -306,5 +306,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
             List<Reference> referencesToUpdate,
             CancellationToken cancellationToken
         );
+
+        /// <summary>
+        /// Gets the validation on navigation configuration from layout-sets.json.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<ValidationOnNavigation> GetValidationOnNavigationLayoutSets(
+            AltinnRepoEditingContext context,
+            CancellationToken cancellationToken
+        );
     }
 }

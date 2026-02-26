@@ -43,6 +43,7 @@ export const ValidateSelectedPagesConfig = () => {
           propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
           scope={Scope.SelectedPages}
           config={conf}
+          existingConfigs={internalConfigs}
           onSave={(newConf) => handleSave(newConf, conf.id)}
           onDelete={() => handleDelete(conf.id)}
         />
@@ -50,6 +51,7 @@ export const ValidateSelectedPagesConfig = () => {
       <ValidateNavigationConfig
         propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
         scope={Scope.SelectedPages}
+        existingConfigs={internalConfigs}
         onSave={(newConf) => handleSave(newConf)}
       />
     </>

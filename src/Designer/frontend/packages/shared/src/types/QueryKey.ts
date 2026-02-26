@@ -65,6 +65,7 @@ export enum QueryKey {
   DataType = 'DataType',
   Pages = 'Pages',
   TaskNavigationGroup = 'TaskNavigationGroup',
+  ValidationOnNavigationLayoutSets = 'ValidationOnNavigationLayoutSets',
 
   // Admin
   ErrorMetrics = 'ErrorMetrics',
