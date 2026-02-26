@@ -1,5 +1,6 @@
 import dot from 'dot-object';
 import { createStore } from 'zustand/vanilla';
+
 import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
 
 interface FormDataState {
@@ -20,6 +21,7 @@ export type FormDataStore = FormDataState & FormDataActions;
 
 export interface FormDataStoreOptions {
   onChange?: (path: string, value: FormDataNode, previousValue: FormDataNode) => void;
+  coerceValue?: (path: string, value: FormDataPrimitive) => { value: FormDataPrimitive; error: boolean };
 }
 
 function resolvePath(simpleBinding: string, parentBinding?: string, itemIndex?: number): string {
@@ -42,6 +44,14 @@ export function createFormDataStore(initial?: FormDataNode, options?: FormDataSt
       return (dot.pick(path, data) as FormDataPrimitive) ?? null;
     },
     setValue: (path, value) => {
+      const coerced = options?.coerceValue?.(path, value);
+      if (coerced) {
+        if (coerced.error) {
+          return; // Invalid value — don't update store
+        }
+        value = coerced.value;
+      }
+
       const previousValue = get().getValue(path);
       if (previousValue === value) {
         return;
@@ -66,6 +76,15 @@ export function createFormDataStore(initial?: FormDataNode, options?: FormDataSt
     },
     setBoundValue: (simpleBinding, value, parentBinding?, itemIndex?) => {
       const path = resolvePath(simpleBinding, parentBinding, itemIndex);
+
+      const coerced = options?.coerceValue?.(path, value);
+      if (coerced) {
+        if (coerced.error) {
+          return; // Invalid value — don't update store
+        }
+        value = coerced.value;
+      }
+
       const previousValue = get().getBoundValue(simpleBinding, parentBinding, itemIndex);
       if (previousValue === value) {
         return;

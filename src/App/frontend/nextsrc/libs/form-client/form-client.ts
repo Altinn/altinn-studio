@@ -1,12 +1,16 @@
+import { convertData } from 'nextsrc/libs/form-client/convertData';
 import { moveChildren } from 'nextsrc/libs/form-client/moveChildren';
+import { lookupSchemaForPath } from 'nextsrc/libs/form-client/schemaLookup';
 import { createFormDataStore } from 'nextsrc/libs/form-client/stores/formDataStore';
 import { createTextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
 import { createValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
-import type { FormDataNode } from 'nextsrc/core/apiClient/dataApi';
+
+import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
 import type { ResolvedLayoutCollection, ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
 import type { FormDataStore } from 'nextsrc/libs/form-client/stores/formDataStore';
 import type { TextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
 import type { ValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
+import type { JSONSchema7 } from 'json-schema';
 import type { StoreApi } from 'zustand';
 
 import type { IRawTextResource } from 'src/features/language/textResources';
@@ -39,6 +43,7 @@ export class FormClient {
   private applicationSettings: IApplicationSettings | null;
   private instanceDataSources: Record<string, string> | null;
   private formDataChangeCallbacks = new Set<FormDataChangeCallback>();
+  private dataModelSchema: JSONSchema7 | null = null;
 
   constructor(config: FormClientConfig = {}) {
     this.applicationSettings = config.applicationSettings ?? null;
@@ -50,6 +55,7 @@ export class FormClient {
           cb({ path, value, previousValue });
         }
       },
+      coerceValue: (path, value) => this.coerceValue(path, value),
     });
     this.textResourceStore = createTextResourceStore({
       resources: config.textResources,
@@ -78,6 +84,10 @@ export class FormClient {
     this.formDataStore.getState().setData(data);
   }
 
+  setDataModelSchema(schema: JSONSchema7) {
+    this.dataModelSchema = schema;
+  }
+
   setLayoutCollection(layoutCollection: ILayoutCollection) {
     this.layoutCollection = Object.fromEntries(
       Object.entries(layoutCollection).map(([key, layout]) => [key, moveChildren(layout)]),
@@ -99,5 +109,21 @@ export class FormClient {
 
   setInstanceDataSources(sources: Record<string, string> | null) {
     this.instanceDataSources = sources;
+  }
+
+  private coerceValue(path: string, value: FormDataPrimitive): { value: FormDataPrimitive; error: boolean } {
+    if (!this.dataModelSchema) {
+      // No schema loaded yet — pass through without coercion
+      return { value, error: false };
+    }
+
+    const fieldSchema = lookupSchemaForPath(this.dataModelSchema, path);
+    if (!fieldSchema) {
+      // Path not found in schema — pass through
+      return { value, error: false };
+    }
+
+    const result = convertData(value, fieldSchema);
+    return { value: result.value as FormDataPrimitive, error: result.error };
   }
 }

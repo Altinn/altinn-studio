@@ -19,17 +19,16 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs) => {
     throw new Error(`No layout set found for task: ${taskId}`);
   }
 
-  const [layoutSettings, layout, instance] = await Promise.all([
+  const [layoutSettings, layout, instance, dataModelSchema] = await Promise.all([
     LayoutApi.getLayoutSettings(layoutSet.id),
     LayoutApi.getLayout(layoutSet.id),
     InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid }),
+    LayoutApi.getDataModelSchema(layoutSet.dataType),
   ]);
 
   if (!layoutSettings) {
     throw new Error('layoutSettings is undefined');
   }
-
-  formClient.setLayoutCollection(layout);
 
   if (instance.data.length < 1) {
     throw new Error('No data element found on instance');
@@ -44,6 +43,9 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs) => {
   if (!dataObjectGuid) {
     throw new Error('Data element has no ID');
   }
+
+  formClient.setDataModelSchema(dataModelSchema);
+  formClient.setLayoutCollection(layout);
 
   const dataElement = await DataApi.getDataObject({ instanceOwnerPartyId, instanceGuid, dataObjectGuid });
   formClient.setFormData(dataElement);

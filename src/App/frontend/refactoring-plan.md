@@ -67,7 +67,7 @@ npx cypress open --env environment=docker
 | 1.2 | Dirty tracking and unsaved changes warning | Not started | |
 | 1.3 | Stateless form data | Not started | |
 | 2.1 | Backend validation integration | Not started | |
-| 2.2 | Schema validation (client-side) | Not started | |
+| 2.2 | Schema validation (client-side) | Partial | Schema loading + type coercion done; validation display pending |
 | 2.3 | Expression-based validation | Not started | |
 | 2.4 | Validation display and visibility | Not started | |
 | 2.5 | Required field validation | Not started | |
