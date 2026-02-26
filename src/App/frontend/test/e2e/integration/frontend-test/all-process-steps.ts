@@ -130,19 +130,13 @@ function testReceiptSubStatus() {
 
 function interceptAndAddCustomReceipt() {
   interceptAltinnAppGlobalData((globalData) => {
-    globalData.layoutSets.sets = [
-      ...globalData.layoutSets.sets,
-      {
-        id: 'custom-receipt',
-        dataType: 'likert',
-        tasks: ['CustomReceipt'],
-      },
-    ];
+    globalData.ui.folders.CustomReceipt = {
+      defaultDataType: 'likert', // TODO: Make it possible to remove this (https://github.com/Altinn/altinn-studio/issues/16621)
+      pages: { order: ['receipt', 'another'] },
+    };
   });
 
-  cy.intercept('**/layoutsettings/custom-receipt**', { pages: { order: ['receipt', 'another'] } }).as('LayoutSettings');
-
-  cy.intercept('**/layouts/custom-receipt', (req) => {
+  cy.intercept('**/layouts/CustomReceipt', (req) => {
     req.on('response', (res) => {
       // Layouts are returned as text/plain for some reason
       const layouts = JSON.parse(res.body) as ILayoutCollection;

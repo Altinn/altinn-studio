@@ -14,25 +14,33 @@ namespace Designer.Tests.DbIntegrationTests.ReleaseEntityRepository;
 
 public class GetTopAndSortedIntegrationTests : ReleaseEntityIntegrationTestsBase
 {
-    public GetTopAndSortedIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public GetTopAndSortedIntegrationTests(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     [Theory]
     [MemberData(nameof(TopAndSortTestData))]
-    public async Task Get_ShouldReturnCorrectRecordsFromDatabase(string org, string app, int top, SortDirection sortDirection)
+    public async Task Get_ShouldReturnCorrectRecordsFromDatabase(
+        string org,
+        string app,
+        int top,
+        SortDirection sortDirection
+    )
     {
         int allEntitiesCount = 10;
-        var releaseEntities = EntityGenerationUtils.Release.GenerateReleaseEntities(org, app, allEntitiesCount).ToList();
+        var releaseEntities = EntityGenerationUtils
+            .Release.GenerateReleaseEntities(org, app, allEntitiesCount)
+            .ToList();
         await PrepareEntitiesInDatabase(releaseEntities);
 
         var repository = new ReleaseRepository(DbFixture.DbContext);
         var query = new DocumentQueryModel { Top = top, SortDirection = sortDirection };
         var result = (await repository.Get(org, app, query)).ToList();
 
-        var expectedEntities = (sortDirection == SortDirection.Ascending
+        var expectedEntities = (
+            sortDirection == SortDirection.Ascending
                 ? releaseEntities.OrderBy(d => d.Created)
-                : releaseEntities.OrderByDescending(d => d.Created))
+                : releaseEntities.OrderByDescending(d => d.Created)
+        )
             .Take(top)
             .ToList();
 
@@ -42,31 +50,31 @@ public class GetTopAndSortedIntegrationTests : ReleaseEntityIntegrationTestsBase
 
     [Theory]
     [MemberData(nameof(SortTestData))]
-    public async Task Get_Without_TopDefined_ShouldReturnAllRecordsForGivenApp(string org, string app,
-        SortDirection sortDirection)
+    public async Task Get_Without_TopDefined_ShouldReturnAllRecordsForGivenApp(
+        string org,
+        string app,
+        SortDirection sortDirection
+    )
     {
         int allEntitiesCount = 10;
-        var releaseEntities = EntityGenerationUtils.Release.GenerateReleaseEntities(org, app, allEntitiesCount).ToList();
+        var releaseEntities = EntityGenerationUtils
+            .Release.GenerateReleaseEntities(org, app, allEntitiesCount)
+            .ToList();
         await PrepareEntitiesInDatabase(releaseEntities);
 
         var repository = new ReleaseRepository(DbFixture.DbContext);
-        var query = new DocumentQueryModel
-        {
-            Top = null,
-            SortDirection = sortDirection
-        };
+        var query = new DocumentQueryModel { Top = null, SortDirection = sortDirection };
         var result = (await repository.Get(org, app, query)).ToList();
 
-        var expectedEntities = (sortDirection == SortDirection.Ascending
+        var expectedEntities = (
+            sortDirection == SortDirection.Ascending
                 ? releaseEntities.OrderBy(r => r.Created)
-                : releaseEntities.OrderByDescending(r => r.Created))
-            .ToList();
+                : releaseEntities.OrderByDescending(r => r.Created)
+        ).ToList();
 
         Assert.Equal(allEntitiesCount, result.Count);
         AssertionUtil.AssertEqualTo(expectedEntities, result);
-
     }
-
 
     public static IEnumerable<object[]> TopAndSortTestData()
     {

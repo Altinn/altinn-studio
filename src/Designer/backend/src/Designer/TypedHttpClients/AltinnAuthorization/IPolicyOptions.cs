@@ -12,6 +12,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 
         public Task<List<SubjectOption>> GetSubjectOptions(CancellationToken cancellationToken = default);
 
-        public Task<List<AccessPackageAreaGroup>> GetAccessPackageOptions(CancellationToken cancellationToken = default);
+        public Task<List<AccessPackageAreaGroup>> GetAccessPackageOptions(
+            CancellationToken cancellationToken = default
+        );
     }
 }

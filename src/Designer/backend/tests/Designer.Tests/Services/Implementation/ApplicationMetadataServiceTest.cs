@@ -31,7 +31,7 @@ public class ApplicationMetadataServiceTest
         string? capturedAppMetadataJson = null;
         var jsonSerializerOptions = new JsonSerializerOptions
         {
-            PropertyNamingPolicy = usePascalCasePropertyNames ? JsonNamingPolicy.CamelCase : null
+            PropertyNamingPolicy = usePascalCasePropertyNames ? JsonNamingPolicy.CamelCase : null,
         };
 
         fixture
@@ -104,12 +104,7 @@ public class ApplicationMetadataServiceTest
                 mockGiteaClient.Object
             );
 
-            return new Fixture(
-                service,
-                mockStorageAppMetadataClient,
-                mockAltinnGitRepositoryFactory,
-                mockGiteaClient
-            );
+            return new Fixture(service, mockStorageAppMetadataClient, mockAltinnGitRepositoryFactory, mockGiteaClient);
         }
     }
 
@@ -126,7 +121,7 @@ public class ApplicationMetadataServiceTest
         {
             Content = base64String,
             Encoding = "base64",
-            Type = "file"
+            Type = "file",
         };
     }
 }

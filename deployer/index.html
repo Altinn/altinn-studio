@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Deployer - Altinn Studio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Deployer</h1>
+    <button id="refresh-btn" title="Force refresh">Refresh from GH</button>
+    <span id="last-updated"></span>
+    <span id="loading" class="hidden">Loading...</span>
+    <div class="legend">
+      <span class="legend-label">Current:</span>
+      <span class="legend-item"><span class="legend-dot dot-success"></span>Deployed</span>
+      <span class="legend-item"><span class="legend-dot dot-failure"></span>Failed</span>
+      <span class="legend-sep"></span>
+      <span class="legend-label">Next:</span>
+      <span class="legend-item"><span class="legend-dot dot-in_progress"></span>Deploying</span>
+      <span class="legend-item"><span class="legend-dot dot-waiting"></span>Awaiting approval</span>
+      <span class="legend-item"><span class="legend-dot dot-queued"></span>Queued</span>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>Runtime <span class="subtitle">data plane</span></h2>
+      <div class="pipeline-grid" id="runtime-grid"></div>
+    </section>
+    <section>
+      <h2>Studio <span class="subtitle">control plane</span></h2>
+      <div class="pipeline-grid" id="studio-grid"></div>
+    </section>
+  </main>
+  <div id="approve-bar" class="approve-bar hidden">
+    <span id="approve-count"></span>
+    <button id="approve-bar-btn">Approve</button>
+    <button id="approve-clear">Clear</button>
+  </div>
+
+  <div id="confirm-modal" class="modal hidden">
+    <div class="modal-box">
+      <h3>Approve deployments</h3>
+      <ul id="confirm-list"></ul>
+      <div class="modal-footer">
+        <button id="confirm-ok">Approve</button>
+        <button id="confirm-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

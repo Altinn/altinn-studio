@@ -1,18 +1,10 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router';
 
-import { Loader } from 'src/core/loading/Loader';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
-import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
-import {
-  useHasSelectedParty,
-  useSelectedParty,
-  useSelectedPartyIsValid,
-  useValidParties,
-} from 'src/features/party/PartiesProvider';
-import { useProfile } from 'src/features/profile/ProfileProvider';
+import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 import type { ShowTypes } from 'src/features/applicationMetadata/types';
 
@@ -41,13 +33,8 @@ const ShowOrInstantiate: React.FC<{ show: ShowTypes }> = ({ show }) => {
 export const Entrypoint = () => {
   const {
     onEntry: { show },
-    promptForParty,
   } = getApplicationMetadata();
   const isStateless = useIsStateless();
-  const profile = useProfile();
-  const validParties = useValidParties();
-  const partyIsValid = useSelectedPartyIsValid();
-  const userHasSelectedParty = useHasSelectedParty();
   const allowAnonymous = useIsAllowAnonymous(true);
   const party = useSelectedParty();
 
@@ -62,44 +49,9 @@ export const Entrypoint = () => {
     );
   }
 
-  if (!profile) {
-    return <Loader reason='loading-profile' />;
-  }
-
-  if (!partyIsValid) {
-    return (
-      <Navigate
-        to='/party-selection/403'
-        replace={true}
-      />
-    );
-  }
-
-  if (!validParties?.length) {
-    return <NoValidPartiesError />;
-  }
-
-  if (validParties.length === 1 || userHasSelectedParty) {
-    return <ShowOrInstantiate show={show} />;
-  }
-
-  if (promptForParty === 'always') {
-    return (
-      <Navigate
-        to='/party-selection/explained'
-        replace={true}
-      />
-    );
-  }
-
-  if (promptForParty === 'never' || profile?.profileSettingPreference.doNotPromptForParty) {
-    return <ShowOrInstantiate show={show} />;
-  }
-
-  return (
-    <Navigate
-      to='/party-selection/explained'
-      replace={true}
-    />
-  );
+  // Party selection redirects are now handled by the backend (HomeController).
+  // If we reach this point, the backend has already validated that:
+  // - The selected party is valid
+  // - No party selection prompt is needed
+  return <ShowOrInstantiate show={show} />;
 };

@@ -14,7 +14,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
     /// <summary>
     /// Authorization Handler for GiteaResourceAccessListPermissionRequirement
     /// </summary>
-    public class GiteaResourceAccessListPermissionHandler : AuthorizationHandler<GiteaResourceAccessListPermissionRequirement>
+    public class GiteaResourceAccessListPermissionHandler
+        : AuthorizationHandler<GiteaResourceAccessListPermissionRequirement>
     {
         private readonly IGiteaClient _giteaClient;
         private readonly HttpContext _httpContext;
@@ -26,7 +27,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         public GiteaResourceAccessListPermissionHandler(
             IGiteaClient giteaClient,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor
+        )
         {
             _httpContext = httpContextAccessor.HttpContext;
             _giteaClient = giteaClient;
@@ -35,7 +37,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
         /// <inheritdoc/>
         protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
-            GiteaResourceAccessListPermissionRequirement requirement)
+            GiteaResourceAccessListPermissionRequirement requirement
+        )
         {
             if (_httpContext == null)
             {
@@ -54,8 +57,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
             List<Team> teams = await _giteaClient.GetTeams();
 
             bool isTeamMember = teams.Any(t =>
-                t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase) &&
-                t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
+                t.Organization.Username.Equals(org, System.StringComparison.OrdinalIgnoreCase)
+                && t.Name.Equals(matchTeam, System.StringComparison.OrdinalIgnoreCase)
             );
 
             if (isTeamMember)

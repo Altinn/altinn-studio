@@ -16,7 +16,6 @@ import { Link } from 'react-router-dom';
 import { useQueryParamState } from 'admin/hooks/useQueryParamState';
 import { useErrorMetricsQuery } from 'admin/hooks/queries/useErrorMetricsQuery';
 import { TimeRangeSelect } from 'admin/components/TimeRangeSelect/TimeRangeSelect';
-import { appErrorMetricsLogsPath } from 'admin/utils/apiPaths';
 import { Alert } from 'admin/components/Alert/Alert';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/layout/PageLayout';
@@ -197,20 +196,13 @@ const AppsTableContent = ({
                         <Alert
                           key={metric.name}
                           color='danger'
-                          data-size='xs'
                           title={
                             <>
                               <span className={classes.count}>{metric.count.toString()}</span>
                               {t(`admin.metrics.${metric.name}`)}
                             </>
                           }
-                          url={appErrorMetricsLogsPath(
-                            org,
-                            environment,
-                            [app.app],
-                            metric.name,
-                            range!,
-                          )}
+                          url={metric.logsUrl}
                           className={classes.errorMetric}
                         ></Alert>
                       );

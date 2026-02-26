@@ -6,12 +6,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { getLayoutSets } from 'src/features/form/layoutSets';
+import { getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { Lang } from 'src/features/language/Lang';
-import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
 import { fetchInstanceData } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IRawTextResource } from 'src/features/language/textResources';
@@ -53,18 +50,16 @@ async function render(props: TestProps) {
   });
   const instanceId = instanceData.id;
 
-  jest.mocked(getApplicationMetadata).mockImplementation(() =>
-    getApplicationMetadataMock((a) => {
-      a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
-      a.dataTypes.push(...generateDataTypes());
-    }),
-  );
-  jest
-    .mocked(getLayoutSets)
-    .mockReturnValue(getLayoutSetsMock().sets.map((set) => ({ ...set, dataType: props.defaultDataModel })));
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
+    a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
+    a.dataTypes.push(...generateDataTypes());
+  });
+  window.altinnAppGlobalData.ui = getUiConfigMock((obj) => {
+    obj.folders.Task_1.defaultDataType = props.defaultDataModel;
+  });
+  window.altinnAppGlobalData.textResources!.resources = props.textResources;
 
   jest.mocked(fetchInstanceData).mockImplementationOnce(async () => instanceData);
-  jest.mocked(useTextResources).mockImplementation(() => resourcesAsMap(props.textResources));
 
   function generateDataElements(instanceId: string): IData[] {
     return dataModelNames.map((name) => {

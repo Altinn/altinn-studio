@@ -9,12 +9,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class PostAttachmentTests : PreviewControllerTestsBase<PostAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class PostAttachmentTests
+        : PreviewControllerTestsBase<PostAttachmentTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public PostAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public PostAttachmentTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Post_Attachment_Ok()

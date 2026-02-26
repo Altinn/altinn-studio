@@ -42,6 +42,7 @@ export function nn() {
     'date_picker.aria_label_year_dropdown': 'Vel år',
     'date_picker.aria_label_month_dropdown': 'Vel månad',
     'date_picker.format_text': 'Til dømes {0}',
+    'devtools.filter_logs': 'Filtrer loggar',
     'time_picker.invalid_time_message': 'Ugyldig tidsformat. Bruk formatet {0}.',
     'time_picker.min_time_exceeded': 'Tida du har vald er før tidlegaste tillaten tid ({0}).',
     'time_picker.max_time_exceeded': 'Tida du har vald er etter seinaste tillaten tid ({0}).',
@@ -408,7 +409,8 @@ export function nn() {
     'config_error.component_has_errors': 'Ein feil oppstod for <code>{0}</code>:',
     'config_error.component_has_errors_after':
       'Medan du har feil i konfigurasjonen kan me ikkje vise komponenten i skjemaet. Rett opp i feila og prøv igjen.',
-    'config_error.subform_no_datatype_layoutset': 'Datatype-spesifikasjon ikkje funnen i layout-sets.json.',
+    'config_error.subform_no_datatype_layoutset':
+      'Datatype-spesifikasjon ikkje funnen i App/ui/{folderId}/Settings.json.',
     'config_error.subform_no_datatype_appmetadata': "Datatype '{0}' vart ikkje funnen i applicationmetadata.json.",
     'config_error.subform_misconfigured_add_button':
       "Datatype '{0}' er markert som 'disallowUserCreate=true', men underskjema-komponenten er konfigurert med 'showAddButton=true'. Dette er ei motseiing, Sidan brukaren aldri vil få lov til å utføre handlingane bak legg-til knappen.",

@@ -5,7 +5,7 @@ interface TaskOverridesContext {
   taskId?: string;
   dataModelType?: string;
   dataModelElementId?: string;
-  layoutSetId?: string;
+  uiFolder?: string;
 }
 
 const Context = createContext<TaskOverridesContext>({});
@@ -21,7 +21,7 @@ export function TaskOverrides({ children, ...overrides }: Props) {
         taskId: overrides.taskId ?? parentContext.taskId,
         dataModelType: overrides.dataModelType ?? parentContext.dataModelType,
         dataModelElementId: overrides.dataModelElementId ?? parentContext.dataModelElementId,
-        layoutSetId: overrides.layoutSetId ?? parentContext.layoutSetId,
+        uiFolder: overrides.uiFolder ?? parentContext.uiFolder,
       }}
     >
       {children}

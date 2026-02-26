@@ -8,18 +8,19 @@ using Azure.Identity;
 using Azure.Monitor.Query.Logs;
 using Azure.Monitor.Query.Logs.Models;
 using Azure.ResourceManager.OperationalInsights;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Clients.MetricsClient;
 
 internal sealed class AzureMonitorClient(
-    GatewayContext gatewayContext,
-    LogsQueryClient logsQueryClient,
-    ILogger<AzureMonitorClient> logger
+    IOptionsMonitor<GatewayContext> _gatewayContext,
+    LogsQueryClient _logsQueryClient,
+    ILogger<AzureMonitorClient> _logger
 ) : IMetricsClient
 {
-    private ResourceIdentifier? _workspaceId;
-
     private const int MaxRange = 10080;
+    private const int MaxActivityWindowDays = 30;
 
     private static readonly IDictionary<string, string[]> _operationNames = new Dictionary<string, string[]>
     {
@@ -48,26 +49,25 @@ internal sealed class AzureMonitorClient(
         return range < 360 ? "5m" : "1h";
     }
 
-    private async Task<ResourceIdentifier> GetApplicationLogAnalyticsWorkspaceIdAsync()
+    private ResourceIdentifier GetApplicationLogAnalyticsWorkspaceId()
     {
-        return _workspaceId ??= OperationalInsightsWorkspaceResource.CreateResourceIdentifier(
+        var gatewayContext = _gatewayContext.CurrentValue;
+        return OperationalInsightsWorkspaceResource.CreateResourceIdentifier(
             gatewayContext.AzureSubscriptionId,
             $"monitor-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-rg",
             $"application-{gatewayContext.ServiceOwner}-{gatewayContext.Environment}-law"
         );
     }
 
-    public async Task<IEnumerable<FailedRequest>> GetFailedRequestsAsync(int range, CancellationToken cancellationToken)
+    public async Task<IEnumerable<FailedRequest>> GetFailedRequests(int range, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        try
-        {
-            var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
+        var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
-            var query =
-                $@"
+        var query =
+            $@"
                 AppRequests
                 | where Success == false
                 | where ClientType != 'Browser'
@@ -75,43 +75,119 @@ internal sealed class AzureMonitorClient(
                 | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
                 | summarize Count = count() by AppRoleName, OperationName";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+            logAnalyticsWorkspaceId,
+            query,
+            new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
+            cancellationToken: cancellationToken
+        );
+
+        return response
+            .Value.Table.Rows.Select(row =>
+            {
+                return new
+                {
+                    AppName = row.GetString("AppRoleName"),
+                    Name = _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key,
+                    Count = row.GetDouble("Count") ?? 0,
+                };
+            })
+            .GroupBy(row => new { row.AppName, row.Name })
+            .Select(row =>
+            {
+                return new FailedRequest
+                {
+                    Name = row.Key.Name,
+                    AppName = row.Key.AppName,
+                    Count = row.Sum(value => value.Count),
+                };
+            });
+    }
+
+    public async Task<ActiveAppsResult> GetActiveApps(int windowDays, CancellationToken cancellationToken)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(windowDays);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(windowDays, MaxActivityWindowDays);
+
+        try
+        {
+            var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
+            var query =
+                $@"
+                AppRequests
+                | where TimeGenerated > ago({windowDays}d)
+                | where Name != 'GET /health'
+                | summarize Count = count() by AppRoleName";
+
+            Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
                 logAnalyticsWorkspaceId,
                 query,
-                new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
+                new LogsQueryTimeRange(TimeSpan.FromDays(windowDays)),
                 cancellationToken: cancellationToken
             );
 
-            return response
-                .Value.Table.Rows.Select(row =>
+            var activeAppRows = response
+                .Value.Table.Rows.Select(row => new
                 {
-                    return new
-                    {
-                        AppName = row.GetString("AppRoleName"),
-                        Name = _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key,
-                        Count = row.GetDouble("Count") ?? 0,
-                    };
+                    AppName = row.GetString("AppRoleName") ?? string.Empty,
+                    Count = row.GetDouble("Count") ?? 0,
                 })
-                .GroupBy(row => new { row.AppName, row.Name })
-                .Select(row =>
-                {
-                    return new FailedRequest
-                    {
-                        Name = row.Key.Name,
-                        AppName = row.Key.AppName,
-                        Count = row.Sum(value => value.Count),
-                    };
-                });
+                .Where(static row => row.AppName.Length > 0)
+                .GroupBy(static row => row.AppName, StringComparer.Ordinal)
+                .Select(group => new { AppName = group.Key, Count = group.Sum(row => row.Count) })
+                .ToArray();
+
+            var activeAppRequestCounts = activeAppRows.ToDictionary(
+                static row => row.AppName,
+                static row => row.Count,
+                StringComparer.Ordinal
+            );
+
+            return new ActiveAppsResult { Status = ActivityStatus.Ok, ActiveAppRequestCounts = activeAppRequestCounts };
         }
-        // This is a temporary code until access to Azure Monitor is resolved (https://github.com/Altinn/altinn-platform/issues/2758)
         catch (CredentialUnavailableException ex)
         {
-            logger.LogError(ex, "Failed to fetch failed requests: Azure Monitor credentials unavailable");
-            return [];
+            _logger.LogWarning(ex, "Azure Monitor credentials are unavailable while getting active apps.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Unavailable,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
+        }
+        catch (AuthenticationFailedException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor authentication failed while getting active apps.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Unavailable,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
+        }
+        catch (RequestFailedException ex)
+        {
+            _logger.LogWarning(ex, "Azure Monitor request failed while getting active apps.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Unavailable,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while getting active apps from Azure Monitor.");
+            return new ActiveAppsResult
+            {
+                Status = ActivityStatus.Error,
+                ActiveAppRequestCounts = new Dictionary<string, double>(),
+            };
         }
     }
 
-    public async Task<IEnumerable<AppFailedRequest>> GetAppFailedRequestsAsync(
+    public async Task<IEnumerable<AppFailedRequest>> GetAppFailedRequests(
         string app,
         int range,
         CancellationToken cancellationToken
@@ -120,14 +196,12 @@ internal sealed class AzureMonitorClient(
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
-        try
-        {
-            var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
+        var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
-            var interval = GetInterval(range);
+        var interval = GetInterval(range);
 
-            var query =
-                $@"
+        var query =
+            $@"
                 AppRequests
                 | where Success == false
                 | where ClientType != 'Browser'
@@ -137,148 +211,105 @@ internal sealed class AzureMonitorClient(
                 | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
-                logAnalyticsWorkspaceId,
-                query,
-                new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
-                cancellationToken: cancellationToken
-            );
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+            logAnalyticsWorkspaceId,
+            query,
+            new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
+            cancellationToken: cancellationToken
+        );
 
-            var metrics = response
-                .Value.Table.Rows.Select(row =>
+        var metrics = response
+            .Value.Table.Rows.Select(row =>
+            {
+                return new
                 {
-                    return new
-                    {
-                        Name = _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key,
-                        DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
-                        Count = row.GetDouble("Count") ?? 0,
-                    };
-                })
-                .GroupBy(row => row.Name)
-                .Select(row =>
+                    Name = _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key,
+                    DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
+                    Count = row.GetDouble("Count") ?? 0,
+                };
+            })
+            .GroupBy(row => row.Name)
+            .Select(row =>
+            {
+                return new AppFailedRequest
                 {
-                    return new AppFailedRequest
-                    {
-                        Name = row.Key,
-                        DataPoints = row.Select(e => new DataPoint
-                        {
-                            DateTimeOffset = e.DateTimeOffset,
-                            Count = e.Count,
-                        }),
-                    };
-                });
+                    Name = row.Key,
+                    DataPoints = row.Select(e => new DataPoint { DateTimeOffset = e.DateTimeOffset, Count = e.Count }),
+                };
+            });
 
-            return _operationNames.Select(name =>
-                metrics.FirstOrDefault(metric => metric.Name == name.Key)
-                ?? new AppFailedRequest { Name = name.Key, DataPoints = [] }
-            );
-        }
-        // This is a temporary code until access to Azure Monitor is resolved (https://github.com/Altinn/altinn-platform/issues/2758)
-        catch (CredentialUnavailableException ex)
-        {
-            logger.LogError(
-                ex,
-                "Failed to fetch failed requests for app {App}: Azure Monitor credentials unavailable",
-                app
-            );
-            return _operationNames.Select(name => new AppFailedRequest { Name = name.Key, DataPoints = [] });
-        }
+        return _operationNames.Select(name =>
+            metrics.FirstOrDefault(metric => metric.Name == name.Key)
+            ?? new AppFailedRequest { Name = name.Key, DataPoints = [] }
+        );
     }
 
-    public async Task<IEnumerable<AppMetric>> GetAppMetricsAsync(
-        string app,
-        int range,
-        CancellationToken cancellationToken
-    )
+    public async Task<IEnumerable<AppMetric>> GetAppMetrics(string app, int range, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(range);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(range, MaxRange);
 
         List<string> names = ["altinn_app_lib_processes_started", "altinn_app_lib_processes_ended"];
 
-        try
-        {
-            var logAnalyticsWorkspaceId = await GetApplicationLogAnalyticsWorkspaceIdAsync();
+        var logAnalyticsWorkspaceId = GetApplicationLogAnalyticsWorkspaceId();
 
-            var interval = GetInterval(range);
+        var interval = GetInterval(range);
 
-            var query =
-                $@"
+        var query =
+            $@"
                 AppMetrics
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where Name in ('{string.Join("','", names)}')
                 | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
                 | order by DateTimeOffset desc;";
 
-            Response<LogsQueryResult> response = await logsQueryClient.QueryResourceAsync(
-                logAnalyticsWorkspaceId,
-                query,
-                new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
-                cancellationToken: cancellationToken
-            );
+        Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
+            logAnalyticsWorkspaceId,
+            query,
+            new LogsQueryTimeRange(TimeSpan.FromMinutes(range)),
+            cancellationToken: cancellationToken
+        );
 
-            var metrics = response
-                .Value.Table.Rows.Select(row =>
+        var metrics = response
+            .Value.Table.Rows.Select(row =>
+            {
+                return new
                 {
-                    return new
-                    {
-                        Name = row.GetString("Name"),
-                        DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
-                        Count = row.GetDouble("Count") ?? 0,
-                    };
-                })
-                .GroupBy(row => row.Name)
-                .Select(row =>
+                    Name = row.GetString("Name"),
+                    DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
+                    Count = row.GetDouble("Count") ?? 0,
+                };
+            })
+            .GroupBy(row => row.Name)
+            .Select(row =>
+            {
+                return new AppMetric
                 {
-                    return new AppMetric
-                    {
-                        Name = row.Key,
-                        DataPoints = row.Select(e => new DataPoint
-                        {
-                            DateTimeOffset = e.DateTimeOffset,
-                            Count = e.Count,
-                        }),
-                    };
-                });
+                    Name = row.Key,
+                    DataPoints = row.Select(e => new DataPoint { DateTimeOffset = e.DateTimeOffset, Count = e.Count }),
+                };
+            });
 
-            return names.Select(name =>
-                metrics.FirstOrDefault(metric => metric.Name == name) ?? new AppMetric { Name = name, DataPoints = [] }
-            );
-        }
-        // This is a temporary code until access to Azure Monitor is resolved (https://github.com/Altinn/altinn-platform/issues/2758)
-        catch (CredentialUnavailableException ex)
-        {
-            logger.LogError(
-                ex,
-                "Failed to fetch app metrics for app {App}: Azure Monitor credentials unavailable",
-                app
-            );
-            return names.Select(name => new AppMetric { Name = name, DataPoints = [] });
-        }
+        return names.Select(name =>
+            metrics.FirstOrDefault(metric => metric.Name == name) ?? new AppMetric { Name = name, DataPoints = [] }
+        );
     }
 
-    public Uri? GetLogsUrl(
+    public Uri GetLogsUrl(
         string subscriptionId,
         string org,
         string env,
         IReadOnlyCollection<string> apps,
-        string? metricName,
+        string metricName,
         DateTimeOffset from,
         DateTimeOffset to
     )
     {
-        if (metricName is null || !_operationNames.TryGetValue(metricName, out var operationNames))
-        {
-            return null;
-        }
-
-        var normalizedApps = apps.Where(appName => !string.IsNullOrWhiteSpace(appName))
-            .Select(appName => appName.Trim())
-            .ToList();
-        if (normalizedApps.Count == 0)
-        {
-            return null;
-        }
+        if (!_operationNames.TryGetValue(metricName, out var operationNames))
+            throw new ArgumentException(
+                $"Unknown metricName '{metricName}'. Valid values: {string.Join(", ", OperationNameKeys)}",
+                nameof(metricName)
+            );
 
         string jsonPath = Path.Combine(AppContext.BaseDirectory, "Clients", "MetricsClient", "logsQueryTemplate.json");
         var fromUtc = from.ToUniversalTime();
@@ -289,12 +320,9 @@ internal sealed class AzureMonitorClient(
             .Replace("{from}", fromUtc.ToString("O", CultureInfo.InvariantCulture))
             .Replace("{to}", toUtc.ToString("O", CultureInfo.InvariantCulture))
             .Replace("{durationMs}", durationMs.ToString(CultureInfo.InvariantCulture))
-            .Replace("{app_Names}", string.Join(", ", normalizedApps.Select(n => $"'{n.Replace("'", "''")}'")))
+            .Replace("{app_Names}", string.Join(", ", apps.Select(n => $"'{n.Replace("'", "''")}'")))
             .Replace("{operation_Names}", string.Join(", ", operationNames.Select(n => $"'{n}'")))
-            .Replace(
-                "\"{appNames}\"",
-                string.Join(", ", normalizedApps.Select(name => $"\"{JsonEncodedText.Encode(name)}\""))
-            )
+            .Replace("\"{appNames}\"", string.Join(", ", apps.Select(name => $"\"{JsonEncodedText.Encode(name)}\"")))
             .Replace("\"{operationNames}\"", string.Join(",", operationNames.Select(n => $"\"{n}\"")));
         var minifiedJson = System.Text.Json.Nodes.JsonNode.Parse(json)?.ToJsonString() ?? string.Empty;
 

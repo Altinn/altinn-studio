@@ -6,7 +6,6 @@ import { screen } from '@testing-library/react';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
@@ -89,11 +88,9 @@ const buildInstance = (hasPdf = true) =>
   });
 
 const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender = {}) => {
-  jest.mocked(getApplicationMetadata).mockImplementation(() =>
-    getApplicationMetadataMock((a) => {
-      a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
-    }),
-  );
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
+    a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
+  });
   jest.mocked(fetchProcessState).mockImplementation(async () =>
     getProcessDataMock((p) => {
       p.currentTask = undefined;

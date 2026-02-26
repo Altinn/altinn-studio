@@ -4,7 +4,11 @@ using System.Linq;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public sealed record UpdateCodeListRequest(List<CodeListWrapper> CodeListWrappers, string BaseCommitSha, string? CommitMessage = null)
+public sealed record UpdateCodeListRequest(
+    List<CodeListWrapper> CodeListWrappers,
+    string BaseCommitSha,
+    string? CommitMessage = null
+)
 {
     public bool Equals(UpdateCodeListRequest? other)
     {

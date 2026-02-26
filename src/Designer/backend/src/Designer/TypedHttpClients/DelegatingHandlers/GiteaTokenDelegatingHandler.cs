@@ -19,8 +19,10 @@ public class GiteaTokenDelegatingHandler : DelegatingHandler
         _httpContextAccessor = httpContextAccessor;
     }
 
-
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken
+    )
     {
         string initToken = await _httpContextAccessor.HttpContext!.GetDeveloperAppTokenAsync();
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("token", initToken);
