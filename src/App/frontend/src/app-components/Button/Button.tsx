@@ -47,6 +47,7 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
     fullWidth,
     style,
     textAlign,
+    title,
     'aria-label': ariaLabel,
     ...rest
   },
@@ -57,6 +58,7 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
   return (
     <DesignSystemButton
       {...rest}
+      title={title ? translate(title) : undefined}
       disabled={disabled || isLoading}
       variant={variant}
       data-color={mapColorNames(color)}
