@@ -1,0 +1,21 @@
+.addressComponent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 18px;
+}
+
+.zipRow {
+  display: flex;
+  gap: 18px;
+}
+
+.zipCode {
+  flex-grow: 0;
+  max-width: 90px;
+}
+
+.postPlace {
+  flex-grow: 4;
+  max-width: 300px;
+}

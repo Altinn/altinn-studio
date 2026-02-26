@@ -6,9 +6,11 @@ nextsrc has 34 of ~60 layout components implemented. We need to migrate all rema
 
 ## Current nextsrc Infrastructure
 
-**Available:** `useBoundValue`, `useTextResource`, `useLanguage`, `useOptions`, `useFieldValidations`, `useRequiredValidation`, `useProcessActions`, `useFormClient`, `usePageOrder`, `useGroupArray`, `usePushArrayItem`, `useLayout`, expression evaluation, ComponentValidations, 3 Zustand stores, CSS Modules, `@digdir/designsystemet-react`, `date-fns`, `@tanstack/react-query`
+**Available:** `useBoundValue`, `useTextResource`, `useLanguage`, `useOptions`, `useFieldValidations`, `useRequiredValidation`, `useProcessActions`, `useFormClient`, `usePageOrder`, `useGroupArray`, `usePushArrayItem`, `useLayout`, expression evaluation, ComponentValidations, 3 Zustand stores, CSS Modules, `@digdir/designsystemet-react`, `date-fns`, `@tanstack/react-query`, `useIsMobile`, `useMultiBinding`
 
-**NOT available:** File upload/attachments, payment, signing, subforms, map/Leaflet integration, PDF mode detection, `useIsMobile()`, multi-field binding helper, layout lookup/node tree, `useAlertOnChange`, `usePostPlace` (postal code lookup)
+**NOT available:** File upload/attachments, payment, signing, subforms, map/Leaflet integration, PDF mode detection, layout lookup/node tree, `useAlertOnChange`
+
+**Added in Batch 3:** `lookupApi` (org/person lookup API client), `lookupValidation` (org number + SSN checksum validators), `usePostPlace` (postal code → place name lookup via TanStack Query)
 
 ---
 
@@ -35,15 +37,15 @@ All 10 migrated. Shared `findComponentById` utility extracted to `utils/findComp
 
 | Component | Minor addition needed |
 |-----------|----------------------|
-| **TimePicker** | Simple `<input type="time">` + port `useTimePickerValidation` (~30 lines) |
-| **Address** | Call `useBoundValue` 5× for multi-field. Add `usePostPlace(zipCode)` hook (GET to postal API, ~20 lines). Copy `AddressComponent.module.css` |
-| **Grid** | Add `useIsMobile()` hook (~10 lines, `window.matchMedia`). Copy `Grid.module.css` |
-| **Cards** | Add small `CardContext` provider. Copy `Cards.module.css` |
+| **TimePicker** | ✅ Done — native `<input type="time">`, Textfield, min/max/step support |
+| **Address** | ✅ Done — 5× `useBoundValue`, `usePostPlace` auto-fill, simplified mode, CSS module |
+| **Grid** | ✅ Done — Table layout with text/label/component cells, mobile fieldset fallback, CSS module |
+| **Cards** | ✅ Done — CSS Grid, `findComponentById` for media + children, `langAsString` for text |
 | **Likert** | Add `useIsMobileOrTablet()`. Migrate with LikertItem. Uses existing `useGroupArray` + `useOptions`. Copy CSS |
 | **LikertItem** | Tightly coupled to Likert — migrate together. Copy `LikertItemComponent.module.css` |
-| **Custom** | Web component bridge. Adapt multi-binding to multiple `useBoundValue` calls |
-| **OrganisationLookup** | Port TanStack Query lookup (GET to `/api/v1/lookup/organisation/{orgNr}`). Multi-binding. Copy CSS |
-| **PersonLookup** | Same pattern as OrganisationLookup (POST to `/api/v1/lookup/person`). Copy CSS |
+| **Custom** | ✅ Done — Web component bridge, `useMultiBinding` for dynamic bindings, dataChanged events |
+| **OrganisationLookup** | ✅ Done — TanStack Query lookup, `checkValidOrgNr`, Fieldset + grid layout, CSS module |
+| **PersonLookup** | ✅ Done — TanStack Query lookup, `checkValidSsn`, 5-field binding, error handling (403/429), CSS module |
 | **List** | Add `useDataListQuery` fetch wrapper. Add `useIsMobile`. Copy `ListComponent.module.css` |
 | **SimpleTable** | Add `useRemoveArrayItem` to formDataStore. Port table rendering |
 | **AddToList** | Expose schema lookup as hook. Uses existing `usePushArrayItem` |
@@ -95,11 +97,13 @@ Input, TextArea, Datepicker, Paragraph, Panel — upgraded with common features,
 **Batch 2 — RepeatingGroup upgrade:** ✅ DONE
 Added: `removeArrayItem` store method + `useRemoveArrayItem` hook, `clearByPathPrefix` validation cleanup, table layout with column headers from child titles, inline edit mode (showTable), delete with validation cleanup, pagination, CSS module, `useRowCellValue` display hook
 
-**Batch 3 — Tier 2 smallest first:**
-TimePicker, Address, Grid, Cards, OrganisationLookup, PersonLookup
+**Batch 3 — Tier 2 smallest first (5 components):** ✅ DONE
+TimePicker, Address, Cards, OrganisationLookup, PersonLookup — Grid deferred to Batch 4
+Added shared infrastructure: `lookupApi.ts`, `lookupValidation.ts`, `usePostPlace.ts`
 
-**Batch 4 — Tier 2 medium complexity:**
-Likert + LikertItem, Custom, List, SimpleTable, AddToList, InstantiationButton, CustomButton
+**Batch 4 — Tier 2 medium complexity:** ✅ DONE (Grid + Custom)
+Grid, Custom — migrated. Added shared infrastructure: `useMultiBinding` (dynamic data model bindings), `useIsMobile` (responsive breakpoint).
+Deferred: Likert + LikertItem (needs complete rethink), List (needs dataListApi), CustomButton + InstantiationButton (heavy infrastructure: data locking, server actions, authorization), SimpleTable + AddToList (removed from batch)
 
 **Batch 5 — Tier 3 by subsystem (separate phases):**
 Instance context → Attachments → Signing → Payment → Subforms → Map

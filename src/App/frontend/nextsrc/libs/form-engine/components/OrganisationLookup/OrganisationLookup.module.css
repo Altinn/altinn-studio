@@ -1,0 +1,59 @@
+/* breakpoints-xs */
+@media only screen and (min-width: 0) {
+  .componentWrapper {
+    grid-template-areas:
+      'orgnrLabel'
+      'orgnr'
+      'orgname'
+      'submit'
+      'apiError';
+  }
+  .submit {
+    margin-top: var(--ds-size-6);
+  }
+}
+
+/* breakpoints-md */
+@media only screen and (min-width: 840px) {
+  .componentWrapper {
+    grid-template-columns: auto min-content;
+    grid-template-rows: repeat(4, min-content);
+    grid-template-areas:
+      'orgnrLabel .'
+      'orgnr submit'
+      'orgname .'
+      'apiError .';
+    column-gap: var(--ds-size-6);
+  }
+  .submit {
+    margin-top: 0;
+  }
+}
+
+.componentWrapper {
+  display: grid;
+  align-items: start;
+
+  .orgnrLabel {
+    grid-area: orgnrLabel;
+  }
+
+  .orgnr {
+    grid-area: orgnr;
+  }
+
+  .orgname {
+    padding-top: var(--ds-size-2);
+    grid-area: orgname;
+  }
+
+  .submit {
+    grid-area: submit;
+    white-space: nowrap;
+  }
+
+  .apiError {
+    grid-area: apiError;
+    padding-top: var(--ds-size-2);
+  }
+}
