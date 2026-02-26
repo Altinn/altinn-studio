@@ -38,11 +38,11 @@ export const PageHeaderContextProvider = ({
 }: Partial<PageHeaderContextProviderProps>): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
+  const { flags } = useFeatureFlagsContext();
   const { mutate: logout } = useLogoutMutation();
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
 
-  const { flags } = useFeatureFlagsContext();
   const repoType = getRepositoryType(org, app);
   const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg, flags);
 

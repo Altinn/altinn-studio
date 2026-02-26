@@ -83,8 +83,7 @@ export const getFilteredTopBarMenu = (
 ): HeaderMenuItem[] => {
   return topBarMenuItems
     .filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType))
-    .filter((menuItem) => filterRoutesByFeatureFlag(menuItem, activeFeatureFlags))
-    .filter(filterRoutesByDataModel);
+    .filter((menuItem) => isMenuItemEnabledByFeatureFlag(menuItem, activeFeatureFlags));
 };
 
 export const getTopBarMenuItems = (
@@ -99,20 +98,13 @@ export const getTopBarMenuItems = (
   return filterOutDeployItem(filteredMenuItems, repoOwnerIsOrg, repositoryType);
 };
 
-export const filterRoutesByFeatureFlag = (
+export const isMenuItemEnabledByFeatureFlag = (
   menuItem: HeaderMenuItem,
   activeFeatureFlags: FeatureFlag[],
 ): boolean => {
   if (!menuItem.featureFlagName) return true;
 
   return activeFeatureFlags.includes(menuItem.featureFlagName);
-};
-
-const filterRoutesByDataModel = (menuItem: HeaderMenuItem) => {
-  if (menuItem.repositoryTypes.includes(RepositoryType.DataModels)) {
-    return menuItem.key === HeaderMenuItemKey.DataModel;
-  }
-  return true;
 };
 
 const filterOutDeployItem = (

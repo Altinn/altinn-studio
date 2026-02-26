@@ -1,5 +1,5 @@
 export {
-  filterRoutesByFeatureFlag,
+  isMenuItemEnabledByFeatureFlag,
   getFilteredTopBarMenu,
   getTopBarMenuItems,
   groupMenuItemsByGroup,

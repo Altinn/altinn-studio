@@ -1,6 +1,6 @@
 import { RepositoryType } from 'app-shared/types/global';
 import {
-  filterRoutesByFeatureFlag,
+  isMenuItemEnabledByFeatureFlag,
   getFilteredMenuListForOverviewPage,
   getFilteredTopBarMenu,
   getTopBarMenuItems,
@@ -92,7 +92,7 @@ describe('headerMenuUtils', () => {
     });
   });
 
-  describe('filterRoutesByFeatureFlag', () => {
+  describe('isMenuItemEnabledByFeatureFlag', () => {
     it('should return true if menuItem does not have a featureFlagName', () => {
       const menuItem: HeaderMenuItem = {
         key: HeaderMenuItemKey.DataModel,
@@ -102,7 +102,7 @@ describe('headerMenuUtils', () => {
         group: HeaderMenuGroupKey.Tools,
       };
 
-      expect(filterRoutesByFeatureFlag(menuItem, [])).toBe(true);
+      expect(isMenuItemEnabledByFeatureFlag(menuItem, [])).toBe(true);
     });
 
     it('should return true if feature flag is active', () => {
@@ -115,9 +115,9 @@ describe('headerMenuUtils', () => {
         featureFlagName: FeatureFlag.ShouldOverrideAppLibCheck,
       };
 
-      expect(filterRoutesByFeatureFlag(menuItem, [FeatureFlag.ShouldOverrideAppLibCheck])).toBe(
-        true,
-      );
+      expect(
+        isMenuItemEnabledByFeatureFlag(menuItem, [FeatureFlag.ShouldOverrideAppLibCheck]),
+      ).toBe(true);
     });
 
     it('should return false if feature flag is not active', () => {
@@ -130,7 +130,7 @@ describe('headerMenuUtils', () => {
         featureFlagName: FeatureFlag.ShouldOverrideAppLibCheck,
       };
 
-      expect(filterRoutesByFeatureFlag(menuItem, [])).toBe(false);
+      expect(isMenuItemEnabledByFeatureFlag(menuItem, [])).toBe(false);
     });
   });
 
