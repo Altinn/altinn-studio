@@ -8,6 +8,12 @@
 
 A1: Layered (Technical Separation) — API clients and query definitions live in `core/`, UI components in `features/`, and routes in `routes/`.
 
+Details:
+
+- Technical implementations and technology should not bleed out to consumers. E.g. TanStack Query implementations should not bleed out to UI components.
+- Layout Components belong (for now) in the `features/FormEngine/` feature folder.
+- App Components belong in the `libs/` folder.
+
 ## Problem context
 
 The existing `src/` codebase has grown organically and accumulated several structural problems:
@@ -37,7 +43,7 @@ A clean-slate `nextsrc/` directory lets us establish correct patterns without be
 ### A1: Layered (Technical Separation)
 
 ```
-nextsrc/
+src/
   core/
     api/
       instance.api.ts
@@ -86,7 +92,7 @@ nextsrc/
       queries/
         instance.queries.ts
       components/
-        InstancePage.tsx
+        InstanceList.tsx
       types.ts
       index.ts
     party-selection/
