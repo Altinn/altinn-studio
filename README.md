@@ -6,7 +6,7 @@ Altinn Studio is the next generation Altinn application development solution. To
 **Altinn Platform**, this is a complete application development and hosting platform (Altinn 3).
 
 Read the [Altinn Studio documentation][1] to [get started][2].
-We've also created a [introductory course for app development][3] that you can follow at your own pace.
+We've also created an [introductory course for app development][3] that you can follow at your own pace.
 
 > **Note** Developing apps?
 > If you just want to quickly perform tests of your app on your development machine you can follow the instructions on
@@ -21,7 +21,7 @@ See deployment for notes on how to deploy the project on a live system.
 ### Prerequisites
 
 1. Newest [.NET 9 SDK][5]
-2. [Node.js][6] (Latest LTS version, v20.\*)
+2. [Node.js][6] (Latest LTS version)
 3. Newest [Git][7]
 4. A code editor - we like [Visual Studio Code][8]
    - Also install [recommended extensions][9] (e.g. [C# Dev Kit][10])
@@ -31,7 +31,14 @@ See deployment for notes on how to deploy the project on a live system.
    Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows
    container mode all files are automatically shared by Windows.
 
-_NOTE: If you want to use Safari on MacOS add `127.0.0.1 studio.localhost` to `/private/etc/hosts`_
+### Hosts file
+
+Add the following entries to your hosts file (`/etc/hosts` on Linux/MacOS, `C:\Windows\System32\drivers\etc\hosts` on Windows):
+
+```plaintext
+127.0.0.1 studio.localhost
+127.0.0.1 host.docker.internal
+```
 
 ### Running the solution locally
 
@@ -67,45 +74,60 @@ The development environment consist of several services defined in [compose.yaml
 Run all parts of the solution in containers (Make sure docker is running), with docker compose as follows:
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
-The solution is now available locally at [studio.localhost][15]. (Just create a new user for testing. No email
-verification required). If you make changes and want to rebuild a specific project using docker-compose this can be done using
+The solution is now available locally at [studio.localhost][15].
+
+When logging in, use the default username `localgiteaadmin`. You can find the randomly generated password in the `.env` file, under the `GITEA_ADMIN_PASS` variable.
+
+If you make changes and want to rebuild a specific project using docker compose, this can be done from `src/Designer` using
 
 ```bash
-docker-compose up -d --build <container>
+docker compose up -d --build <container>
 ```
 
 Example
 
 ```bash
-docker-compose up -d --build studio_designer
+docker compose up -d --build studio_designer
 ```
 
-If using the script, the `.env`-file is generated and put at root, otherwise you will need to place it there yourself.
-When starting `docker-compose` the solution should be running as it would in production. But you probably want to change
-parts of the solution. The load balancer is configured to route the traffic to the right place according to your
-particular use case. This is done by placing a `.env`-file in the same folder as compose.yaml. The load balancer
-is configured with the following variables.
+If using `yarn setup`, the `.env`-file is generated and put at root. Otherwise, you will need to place it there yourself.
+
+#### Development variables
+
+When starting `docker compose` the solution should be running as it would in production. But you probably want to
+develop parts of the solution without rebuilding containers. The load balancer is configured to route traffic to your local
+dev servers instead of the Docker containers when the corresponding variable is set to `1`. This is done by editing the
+`.env`-file in the same folder as compose.yaml. After changing these variables, rebuild the load balancer from `src/Designer`:
+
+```bash
+docker compose up -d --build studio_loadbalancer
+```
+
+The available variables are:
 
 ```dotenv
+DEVELOP_APP_DEVELOPMENT=0
+DEVELOP_RESOURCE_ADMIN=0
 DEVELOP_BACKEND=0
 DEVELOP_DASHBOARD=0
-DEVELOP_APP_DEVELOPMENT=0
+DEVELOP_PREVIEW=0
+DEVELOP_ADMIN=0
 DEVELOP_STUDIO_ROOT=0
 ```
 
 ## Developing Backend
 
-Navigate to the designer backend folder `cd backend/src/Designer`. The first time running, or after any package changes,
+Navigate to the designer backend folder `cd src/Designer/backend/src/Designer`. The first time running, or after any package changes,
 get the latest packages.
 
 The backend uses the OIDC login flow with Gitea as the identity provider. The client ID and client secret are required in the configuration.
 
 When running the backend locally, the .env file will be used to fetch the client ID and secret if they are not already set in the configuration.
 
-If the setup script is run, an OAuth2 application will be created in Gitea, and the CLIENT_ID and CLIENT_SECRET values will be set in the .env file. Alternatively, you can set up the OAuth2 application yourself in Gitea and manually set the client ID and client secret values in the configuration.
+If `yarn setup` is run, an OAuth2 application will be created in Gitea, and the CLIENT_ID and CLIENT_SECRET values will be set in the .env file. Alternatively, you can set up the OAuth2 application yourself in Gitea and manually set the client ID and client secret values in the configuration.
 
 ## Developing Frontend
 
@@ -130,7 +152,7 @@ More about developing frontend [can be found here](frontend/README.md).
 
 ## End-to-end tests
 
-Altinn Studio has two sets of automated end-to-end tests; regression tests and usecase tests. [The regression tests][17] are created with Playwright and run on every pull request. [The usecase tests][18] are created with Cypress and run periodically.
+Altinn Studio has two sets of automated end-to-end tests; regression tests and usecase tests. [The regression tests][16] are created with Playwright and run on every pull request. [The usecase tests][17] are created with Cypress and run periodically.
 
 For more information about testing, please refer to the following resources: [Playwright](frontend/testing/playwright/README.md) and [Cypress](frontend/testing/cypress/README.md).
 
@@ -140,11 +162,11 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 ## Built With
 
-- [React][19] - The front-end framework
-- [.NET Core][20]/[C#][21] - The back-end framework
-- [yarn][22] - Package management
-- [Docker][23] - Container platform
-- [Kubernetes][24] - Container orchestration
+- [React][18] - The front-end framework
+- [.NET Core][19]/[C#][20] - The back-end framework
+- [yarn][21] - Package management
+- [Docker][22] - Container platform
+- [Kubernetes][23] - Container orchestration
 
 ## Status for container scans
 
@@ -157,9 +179,9 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## Authors
 
-- **Altinn Studio development team** - If you want to get in touch, just [create a new issue][25].
+- **Altinn Studio development team** - If you want to get in touch, just [create a new issue][24].
 
-See also the [list of contributors][26] who participated in this project.
+See also the [list of contributors][25] who participated in this project.
 
 ## License
 
@@ -180,14 +202,13 @@ This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](L
 [13]: https://github.com/Altinn/altinn-studio
 [14]: https://gitea.io/
 [15]: http://studio.localhost
-[16]: https://github.com/Altinn/app-template-dotnet
-[17]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/playwright
-[18]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/cypress
-[19]: https://reactjs.org/
-[20]: https://docs.microsoft.com/en-us/dotnet/core/
-[21]: https://docs.microsoft.com/en-us/dotnet/csharp/
-[22]: https://yarnpkg.com/
-[23]: https://www.docker.com/
-[24]: https://kubernetes.io/
-[25]: https://github.com/Altinn/altinn-studio/issues/new/choose
-[26]: https://github.com/Altinn/altinn-studio/graphs/contributors
+[16]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/playwright
+[17]: https://github.com/Altinn/altinn-studio/tree/main/frontend/testing/cypress
+[18]: https://reactjs.org/
+[19]: https://docs.microsoft.com/en-us/dotnet/core/
+[20]: https://docs.microsoft.com/en-us/dotnet/csharp/
+[21]: https://yarnpkg.com/
+[22]: https://www.docker.com/
+[23]: https://kubernetes.io/
+[24]: https://github.com/Altinn/altinn-studio/issues/new/choose
+[25]: https://github.com/Altinn/altinn-studio/graphs/contributors

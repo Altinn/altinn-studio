@@ -22,3 +22,10 @@
 .addButton {
   padding-inline: var(--ds-size-18);
 }
+
+.validationFocusedButton,
+.validationFocusedButton:focus,
+.validationFocusedButton:focus-visible {
+  outline: 2px solid var(--ds-color-neutral-text-default) !important;
+  outline-offset: 2px;
+}

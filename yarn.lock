@@ -2498,6 +2498,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@storybook/builder-vite@npm:10.2.10":
+  version: 10.2.10
+  resolution: "@storybook/builder-vite@npm:10.2.10"
+  dependencies:
+    "@storybook/csf-plugin": "npm:10.2.10"
+    ts-dedent: "npm:^2.0.0"
+  peerDependencies:
+    storybook: ^10.2.10
+    vite: ^5.0.0 || ^6.0.0 || ^7.0.0
+  checksum: 10/ff795c831c19d52bfedc280aabf150f25fb69838bf229111208fab05737047ba936790042238ebf209ec46bcca6ae0a0a217821afd22afca8612f8e4929e0991
+  languageName: node
+  linkType: hard
+
 "@storybook/builder-vite@npm:9.1.19":
   version: 9.1.19
   resolution: "@storybook/builder-vite@npm:9.1.19"
@@ -2508,6 +2521,30 @@ __metadata:
     storybook: ^9.1.19
     vite: ^5.0.0 || ^6.0.0 || ^7.0.0
   checksum: 10/e918ce5937c459c4d926eb2780405873cebb096f324f65899042397578d5c8b85c338e9235c16e197a24740a870f5281f3646e48830aff9c9f955f37e19ea5f2
+  languageName: node
+  linkType: hard
+
+"@storybook/csf-plugin@npm:10.2.10":
+  version: 10.2.10
+  resolution: "@storybook/csf-plugin@npm:10.2.10"
+  dependencies:
+    unplugin: "npm:^2.3.5"
+  peerDependencies:
+    esbuild: "*"
+    rollup: "*"
+    storybook: ^10.2.10
+    vite: "*"
+    webpack: "*"
+  peerDependenciesMeta:
+    esbuild:
+      optional: true
+    rollup:
+      optional: true
+    vite:
+      optional: true
+    webpack:
+      optional: true
+  checksum: 10/600f9f5b47c269cc24e283f5f94c2e7b7c6649fe653028d4a91c04a9b4e9ef2444c41ac2b094052672d1ba47453d1755940d28f375c699523d3972d9d5d3d4d9
   languageName: node
   linkType: hard
 
@@ -2620,7 +2657,7 @@ __metadata:
     "@chromatic-com/storybook": "npm:^5.0.0"
     "@storybook/addon-docs": "npm:9.1.19"
     "@storybook/addon-links": "npm:9.1.19"
-    "@storybook/builder-vite": "npm:9.1.19"
+    "@storybook/builder-vite": "npm:10.2.10"
     "@storybook/react-vite": "npm:9.1.19"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
@@ -2653,7 +2690,7 @@ __metadata:
     "@digdir/designsystemet-theme": "npm:1.11.0"
     "@storybook/addon-docs": "npm:9.1.19"
     "@storybook/addon-links": "npm:9.1.19"
-    "@storybook/builder-vite": "npm:9.1.19"
+    "@storybook/builder-vite": "npm:10.2.10"
     "@storybook/react-vite": "npm:9.1.19"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
@@ -3045,10 +3082,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:5.90.16":
-  version: 5.90.16
-  resolution: "@tanstack/query-core@npm:5.90.16"
-  checksum: 10/25720ff6aa5888550351d92620ca62b6882e80da0fd0428be01c2c6cf4772e6678d7850b88f81916b3ab3fb49dad3b697a3ac84e9e6a90da482ef980c30b7566
+"@tanstack/query-core@npm:5.90.20":
+  version: 5.90.20
+  resolution: "@tanstack/query-core@npm:5.90.20"
+  checksum: 10/25e38f4382442bc15e0f6cce8d787e9df8d8822c61d3f3e9427e89e01b1e2506f848292e086dae29aeb55f8ce71b097c34221f3c5eda37fb4a688b5ceca5d1b3
   languageName: node
   linkType: hard
 
@@ -3071,14 +3108,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:5.90.16":
-  version: 5.90.16
-  resolution: "@tanstack/react-query@npm:5.90.16"
+"@tanstack/react-query@npm:5.90.21":
+  version: 5.90.21
+  resolution: "@tanstack/react-query@npm:5.90.21"
   dependencies:
-    "@tanstack/query-core": "npm:5.90.16"
+    "@tanstack/query-core": "npm:5.90.20"
   peerDependencies:
     react: ^18 || ^19
-  checksum: 10/7cd8fa3da43f99ecb52f1ef16fb3fe177957e3bc71d0f367f2e55b9f7bce19984f2d9ff367c909ec10a49ed4d66fc26bb1f3a0088340dfab746be63a51b5bb94
+  checksum: 10/5bb4b6be7ac34a7423aca60484f1e35a0c7f8b2f86ef6656a3b6757943417561a50d9a159e2bff9d97a57a82ecec920df067b507c2ec6488beb286635b25e518
   languageName: node
   linkType: hard
 
@@ -4011,6 +4048,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"acorn@npm:^8.15.0":
+  version: 8.16.0
+  resolution: "acorn@npm:8.16.0"
+  bin:
+    acorn: bin/acorn
+  checksum: 10/690c673bb4d61b38ef82795fab58526471ad7f7e67c0e40c4ff1e10ecd80ce5312554ef633c9995bfc4e6d170cef165711f9ca9e49040b62c0c66fbf2dd3df2b
+  languageName: node
+  linkType: hard
+
 "admin@workspace:src/Designer/frontend/admin":
   version: 0.0.0-use.local
   resolution: "admin@workspace:src/Designer/frontend/admin"
@@ -4596,7 +4642,7 @@ __metadata:
     cors: "npm:2.8.6"
     express: "npm:4.22.1"
     morgan: "npm:1.10.1"
-    nodemon: "npm:3.1.13"
+    nodemon: "npm:3.1.14"
     p-queue: "npm:8.1.1"
     uuid: "npm:13.0.0"
   languageName: unknown
@@ -10095,9 +10141,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemon@npm:3.1.13":
-  version: 3.1.13
-  resolution: "nodemon@npm:3.1.13"
+"nodemon@npm:3.1.14":
+  version: 3.1.14
+  resolution: "nodemon@npm:3.1.14"
   dependencies:
     chokidar: "npm:^3.5.2"
     debug: "npm:^4"
@@ -10111,7 +10157,7 @@ __metadata:
     undefsafe: "npm:^2.0.5"
   bin:
     nodemon: bin/nodemon.js
-  checksum: 10/dd949d99706e498e3cff8c2b57d0cb9a108b6f57f2940a752541a2f9bca06c3a2a62dcaa6c84e4d45a0eaafeb4bbc5042c83ed197b47dc8821374286c0d57fd7
+  checksum: 10/187aa93fc461bb001bac5de63df49a38a7b1cb3c60a5fd6a3b0f2b15da68fe5adfd0f91244be2fd1f57263cbd351e3113cb04c4edf4af23699dd95b2782fbf9b
   languageName: node
   linkType: hard
 
@@ -12486,7 +12532,7 @@ __metadata:
     "@rollup/plugin-alias": "npm:^5.1.1"
     "@swc/core": "npm:1.15.11"
     "@swc/jest": "npm:0.2.39"
-    "@tanstack/react-query": "npm:5.90.16"
+    "@tanstack/react-query": "npm:5.90.21"
     "@tanstack/react-query-devtools": "npm:5.91.3"
     "@testing-library/dom": "npm:10.4.1"
     "@testing-library/jest-dom": "npm:6.9.1"
@@ -13241,6 +13287,18 @@ __metadata:
     acorn: "npm:^8.14.0"
     webpack-virtual-modules: "npm:^0.6.2"
   checksum: 10/4b46d7d2a63d334a45111ba57a266b3f8993ef12a72b77d7b31ffc455e8a9bef9c0e37ea463eb409dbf7ccec0b9868aeb845dd42c690d9288e4b8ac2d90fbefd
+  languageName: node
+  linkType: hard
+
+"unplugin@npm:^2.3.5":
+  version: 2.3.11
+  resolution: "unplugin@npm:2.3.11"
+  dependencies:
+    "@jridgewell/remapping": "npm:^2.3.5"
+    acorn: "npm:^8.15.0"
+    picomatch: "npm:^4.0.3"
+    webpack-virtual-modules: "npm:^0.6.2"
+  checksum: 10/7b4adbfaac8894e8491c452c0b67c612b57e103761e842d9013ebea89a4ae92a78df4ec0aa30e5e3eaaefd47dd287973d5a662271624b7346a15d9236d257f9d
   languageName: node
   linkType: hard
 

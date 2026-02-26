@@ -2,7 +2,7 @@ import { useRef } from 'react';
 
 import { renderHook } from '@testing-library/react';
 
-import { RefsUtils } from 'src/utils/refs/mergeRefs';
+import { RefsUtils } from 'src/app-components/Dropzone/utils';
 
 describe('RefsUtils.merge', () => {
   it('should set callback ref', () => {

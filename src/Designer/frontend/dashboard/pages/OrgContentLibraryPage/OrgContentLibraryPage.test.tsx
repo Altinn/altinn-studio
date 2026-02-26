@@ -1,7 +1,7 @@
 import React from 'react';
 import { OrgContentLibraryPage } from './OrgContentLibraryPage';
 import type { RenderResult } from '@testing-library/react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, act } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ProviderData } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
@@ -377,7 +377,7 @@ describe('OrgContentLibraryPage', () => {
       ],
     };
 
-    retrievePagesConfig().codeLists.onPublish(libraryCodeListData);
+    act(() => retrievePagesConfig().codeLists.onPublish(libraryCodeListData));
 
     await waitFor(expect(publishCodeList).toHaveBeenCalled);
     expect(publishCodeList).toHaveBeenCalledTimes(1);
