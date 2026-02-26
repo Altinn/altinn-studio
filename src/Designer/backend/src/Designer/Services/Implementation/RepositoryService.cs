@@ -39,6 +39,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         // Using Norwegian name of initial page to be consistent
         // with automatic naming from frontend when adding new page
         private const string InitialLayout = "Side1";
+        private const bool DefaultUndeployOnInactivity = true;
 
         private readonly string _resourceIdentifierRegex = "^[a-z0-9_æøå-]*$";
 
@@ -51,6 +52,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IApplicationMetadataService _applicationMetadataService;
         private readonly ITextsService _textsService;
+        private readonly IAppSettingsService _appSettingsService;
         private readonly IResourceRegistry _resourceRegistryService;
         private readonly ICustomTemplateService _templateService;
         private readonly IAuthorizationPolicyService _authorizationPolicyService;
@@ -72,6 +74,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="altinnGitRepositoryFactory">Factory class that knows how to create types of <see cref="AltinnGitRepository"/></param>
         /// <param name="applicationMetadataService">The service for handling the application metadata file</param>
         /// <param name="textsService">The service for handling texts</param>
+        /// <param name="appSettingsService">The service for handling app settings</param>
         /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
         /// <param name="templateService">The service for handling custom templates</param>
         /// <param name="authorizationPolicyService">The service for policy files</param>
@@ -85,6 +88,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IApplicationMetadataService applicationMetadataService,
             ITextsService textsService,
+            IAppSettingsService appSettingsService,
             IResourceRegistry resourceRegistryService,
             ICustomTemplateService templateService,
             IAuthorizationPolicyService authorizationPolicyService
@@ -99,6 +103,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationMetadataService = applicationMetadataService;
             _textsService = textsService;
+            _appSettingsService = appSettingsService;
             _resourceRegistryService = resourceRegistryService;
             _templateService = templateService;
             _authorizationPolicyService = authorizationPolicyService;
@@ -307,6 +312,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         Message = "App created",
                     };
                     _sourceControl.PushChangesForRepository(authenticatedContext, commitInfo);
+                    await _appSettingsService.UpsertAsync(
+                        AltinnRepoEditingContext.FromOrgRepoDeveloper(org, serviceConfig.RepositoryName, developer),
+                        DefaultUndeployOnInactivity
+                    );
                 }
                 catch (Exception)
                 {

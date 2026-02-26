@@ -13,6 +13,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository.Models.AppSettings;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -136,6 +137,67 @@ namespace Designer.Tests.Services
                 Thread.Sleep(400);
                 Directory.Delete(repositoryDirectory, true);
                 Directory.Delete(repositoryRemoteDirectory, true);
+            }
+        }
+
+        [Fact]
+        public async Task CreateRepository_DoesNotExists_ShouldEnableUndeployOnInactivityByDefault()
+        {
+            string org = "ttd";
+            string repositoryName = TestDataHelper.GenerateTestRepoName();
+            string developer = "testUser";
+
+            var repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repositoryName, developer);
+            var repositoryRemoteDirectory = TestDataHelper.GetTestDataRemoteRepository(org, repositoryName);
+
+            Mock<IAppSettingsService> appSettingsServiceMock = new();
+            appSettingsServiceMock
+                .Setup(m =>
+                    m.UpsertAsync(
+                        It.IsAny<AltinnRepoEditingContext>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(
+                    new AppSettingsEntity
+                    {
+                        Org = org,
+                        App = repositoryName,
+                        Environment = null,
+                        UndeployOnInactivity = true,
+                    }
+                );
+
+            var repositoryService = GetServiceForTest(developer, appSettingsServiceMock: appSettingsServiceMock.Object);
+
+            try
+            {
+                await repositoryService.CreateService(
+                    org,
+                    new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName },
+                    []
+                );
+
+                appSettingsServiceMock.Verify(
+                    m =>
+                        m.UpsertAsync(
+                            It.Is<AltinnRepoEditingContext>(c =>
+                                c.Org == org && c.Repo == repositoryName && c.Developer == developer
+                            ),
+                            true,
+                            null,
+                            It.IsAny<CancellationToken>()
+                        ),
+                    Times.Once
+                );
+            }
+            finally
+            {
+                Thread.Sleep(400);
+                TestDataHelper.DeleteDirectory(repositoryDirectory);
+                TestDataHelper.DeleteDirectory(repositoryRemoteDirectory);
             }
         }
 
@@ -609,7 +671,8 @@ namespace Designer.Tests.Services
         private static RepositoryService GetServiceForTest(
             string developer,
             ISourceControl sourceControlMock = null,
-            ICustomTemplateService customTemplateServiceMock = null
+            ICustomTemplateService customTemplateServiceMock = null,
+            IAppSettingsService appSettingsServiceMock = null
         )
         {
             HttpContext ctx = GetHttpContextForTestUser(developer);
@@ -619,6 +682,7 @@ namespace Designer.Tests.Services
 
             sourceControlMock ??= new ISourceControlMock();
             customTemplateServiceMock ??= new Mock<ICustomTemplateService>().Object;
+            appSettingsServiceMock ??= new Mock<IAppSettingsService>().Object;
             string unitTestFolder = Path.GetDirectoryName(
                 new Uri(typeof(RepositoryServiceTests).Assembly.Location).LocalPath
             );
@@ -688,6 +752,7 @@ namespace Designer.Tests.Services
                 altinnGitRepositoryFactory,
                 applicationInformationService,
                 textsService,
+                appSettingsServiceMock,
                 resourceRegistryService,
                 customTemplateServiceMock,
                 authorizationPolicyServiceMock
