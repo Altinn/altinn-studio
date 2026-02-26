@@ -2,7 +2,7 @@
 
 ## Context
 
-nextsrc has 24 of ~60 layout components implemented. We need to migrate all remaining components, including styling and summary renderers. This plan categorizes every unmigrated component by readiness and identifies infrastructure gaps.
+nextsrc has 34 of ~60 layout components implemented. We need to migrate all remaining components, including styling and summary renderers. This plan categorizes every unmigrated component by readiness and identifies infrastructure gaps.
 
 ## Current nextsrc Infrastructure
 
@@ -12,22 +12,22 @@ nextsrc has 24 of ~60 layout components implemented. We need to migrate all rema
 
 ---
 
-## Tier 1 — Migrate Now (10 components, zero new infrastructure)
+## Tier 1 — ✅ DONE (10 components, zero new infrastructure)
 
-| Component | What it does | Key hooks needed | CSS to copy |
-|-----------|-------------|-----------------|-------------|
-| **Text** | Display-only text with value + title | `useTextResource` | None |
-| **Date** | Display-only formatted date | `useTextResource`, `date-fns` | None |
-| **Option** | Display single option value label | `useOptions`, `useTextResource` | `Option.module.css` |
-| **PrintButton** | Calls `window.print()` | `useTextResource` | None |
-| **IFrame** | Sandboxed iframe with HTML content | `useLanguage` | None |
-| **Audio** | HTML `<audio>` with language-keyed src | `useLanguage`, textResourceStore language | None |
-| **Video** | HTML `<video>` with language-keyed src | `useLanguage`, textResourceStore language | None |
-| **ActionButton** | Process action button | `useProcessActions`, `useTextResource` | None |
-| **Summary** (v1) | Legacy summary — looks up component, shows its value | `useFormClient` (reuse Summary2 pattern) | `SummaryComponent.module.css` |
-| **Tabs** | Tabbed container | `useLanguage`, `renderChildren`, designsystemet Tabs | `Tabs.module.css` |
+All 10 migrated. Shared `findComponentById` utility extracted to `utils/findComponent.ts`.
 
-**Pattern:** Each follows the Input.tsx pattern — cast to generated type, use hooks, render with designsystemet or HTML.
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Text** | ✅ Done | Display-only, `useTextResource` + `useLanguage` |
+| **Date** | ✅ Done | `date-fns` parseISO/format, custom format support |
+| **Option** | ✅ Done | `useOptions` + Option.module.css |
+| **PrintButton** | ✅ Done | Designsystemet Button, `window.print()` |
+| **IFrame** | ✅ Done | Sandboxed iframe, inline `getSandboxProperties`, auto-resize |
+| **Audio** | ✅ Done | `<audio controls>`, language-keyed src |
+| **Video** | ✅ Done | `<video controls>`, language-keyed src |
+| **ActionButton** | ✅ Done | `useProcessActions().submit()` |
+| **Summary** (v1) | ✅ Done | Reuses shared `findComponentById`, Summary.module.css |
+| **Tabs** | ✅ Done | Designsystemet Tabs, resolves children via `findComponentById`, Tabs.module.css |
 
 ---
 
@@ -87,10 +87,9 @@ nextsrc has 24 of ~60 layout components implemented. We need to migrate all rema
 
 ## Recommended Migration Order
 
-**Batch 1 — Tier 1 quick wins (10 components):** ← NEXT
-Text, Date, Option, PrintButton, IFrame, Audio, Video, ActionButton, Summary v1, Tabs
+**Batch 1 — Tier 1 quick wins (10 components):** ✅ DONE
 
-**Batch 2 — RepeatingGroup upgrade:** ← AFTER BATCH 1
+**Batch 2 — RepeatingGroup upgrade:** ← NEXT
 Bring RepeatingGroup to feature parity: edit mode, delete rows, pagination, validation display, table headers
 
 **Batch 3 — Tier 2 smallest first:**

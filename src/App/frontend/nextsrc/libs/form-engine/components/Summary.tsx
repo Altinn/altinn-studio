@@ -5,23 +5,19 @@ import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { useStore } from 'zustand';
 import { findComponentById, getSimpleBinding, getTitleKey } from 'nextsrc/libs/form-engine/utils/findComponent';
+import classes from 'nextsrc/libs/form-engine/components/Summary.module.css';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
-import type { CompSummary2External } from 'src/layout/Summary2/config.generated';
+import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
 
-export const Summary2 = ({ component }: ComponentProps) => {
-  const props = component as unknown as CompSummary2External;
+export const Summary = ({ component }: ComponentProps) => {
+  const props = component as CompSummaryExternal;
   const client = useFormClient();
   const { langAsString } = useLanguage();
 
-  const target = props.target;
-  if (!target || target.type === 'layoutSet' || target.type === 'page') {
-    return <div>Summary2: target type &quot;{target?.type ?? 'none'}&quot; not yet supported</div>;
-  }
-
-  const targetComponent = findComponentById(client, target.id);
+  const targetComponent = findComponentById(client, props.componentRef);
   if (!targetComponent) {
-    return <div>Summary2: target component &quot;{target.id}&quot; not found</div>;
+    return <div>Summary: target component &quot;{props.componentRef}&quot; not found</div>;
   }
 
   const bindingPath = getSimpleBinding(targetComponent);
@@ -30,7 +26,8 @@ export const Summary2 = ({ component }: ComponentProps) => {
 
   if (!bindingPath) {
     return (
-      <div data-testid='summary-single-value-component'>
+      <div className={classes.border}>
+        {title && <label>{title}</label>}
         <Paragraph asChild>
           <span>{langAsString('general.empty_summary')}</span>
         </Paragraph>
@@ -38,36 +35,17 @@ export const Summary2 = ({ component }: ComponentProps) => {
     );
   }
 
-  return (
-    <SingleValueDisplay
-      bindingPath={bindingPath}
-      title={title}
-      isCompact={props.isCompact}
-    />
-  );
+  return <SummaryValue bindingPath={bindingPath} title={title} />;
 };
 
-function SingleValueDisplay({
-  bindingPath,
-  title,
-  isCompact,
-}: {
-  bindingPath: string;
-  title?: string;
-  isCompact?: boolean;
-}) {
+function SummaryValue({ bindingPath, title }: { bindingPath: string; title?: string }) {
   const client = useFormClient();
   const value = useStore(client.formDataStore, (state) => state.getValue(bindingPath));
   const displayValue = value != null ? String(value) : '';
 
   return (
-    <div data-testid='summary-single-value-component'>
-      {title && (
-        <label>
-          {title}
-          {isCompact && ':'}
-        </label>
-      )}
+    <div className={classes.border}>
+      {title && <label>{title}</label>}
       <Paragraph asChild>
         <span>{displayValue}</span>
       </Paragraph>
