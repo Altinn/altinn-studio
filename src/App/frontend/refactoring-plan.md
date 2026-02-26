@@ -81,7 +81,7 @@ npx cypress open --env environment=docker
 | 4.4 | Container/layout components | Not started | |
 | 4.5 | Media components | Not started | |
 | 4.6 | Action components | Not started | |
-| 5.1 | Summary components | Not started | |
+| 5.1 | Summary components | Partial | Basic Summary2 for single-component targets with simpleBinding; needs per-component summary renderers and page/layoutSet targets |
 | 5.2 | Advanced expression functions | Partial | 15+ functions added (concat, contains, comparisons, string ops, round/floor/ceil, component) |
 | 5.3 | Multiple data models | Not started | |
 | 5.4 | Options with mapping and source | Not started | |
@@ -446,6 +446,14 @@ This separation means the form library can be used in other apps (e.g., Altinn S
 - `Summary2` -- newer format with more flexibility
 - Lives in form-engine, uses form-client to resolve values
 - **Reference**: `src/layout/Summary/`, `src/layout/Summary2/`
+- **Current state**: Basic Summary2 handles single-component targets with `simpleBinding`
+- **Remaining work**:
+  - Per-component summary renderers: In legacy, each component type (Input, TextArea, Dropdown, Checkboxes, etc.) implements its own `renderSummary2()` method with component-specific display logic (e.g. Dropdown shows selected label, Checkboxes shows comma-separated labels, etc.). Each nextsrc component needs equivalent summary rendering support.
+  - Support `target.type === 'page'` (render all components on a page)
+  - Support `target.type === 'layoutSet'` (render all pages)
+  - Support `overrides`, `hideEmptyFields`, `showPageInAccordion`
+  - Edit button navigation back to source component
+  - Validation error display in summary
 
 ### 5.2 - Advanced expression functions (form-client library)
 - **Arithmetic**: add, subtract, multiply, divide
@@ -683,7 +691,7 @@ Phases 4 and 5 can largely proceed in parallel once Phases 1-3 are solid.
 | InstantiationButton | TODO | 4.6 | form-engine |
 | AddToList | TODO | 4.6 | form-engine |
 | Summary | TODO | 5.1 | form-engine |
-| Summary2 | TODO | 5.1 | form-engine |
+| Summary2 | Partial | 5.1 | form-engine |
 | Payment | TODO | 6.1 | form-engine |
 | PaymentDetails | TODO | 6.1 | form-engine |
 | SigningActions | TODO | 6.2 | form-engine |
