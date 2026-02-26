@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useStore } from 'zustand';
 
 import { evaluateBoolean } from 'nextsrc/libs/form-client/expressions/evaluate';
+import type { ExpressionDataSources } from 'nextsrc/libs/form-client/expressions/evaluate';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { ComponentErrorBoundary } from 'nextsrc/libs/form-engine/ComponentErrorBoundary';
 import { Accordion } from 'nextsrc/libs/form-engine/components/Accordion';
@@ -71,68 +72,73 @@ export const FormEngine = ({
   parentBinding,
   itemIndex,
 }: FormEngineProps) => {
+  return (
+    <div data-testid='AppHeader'>
+      <div id='finishedLoading' />
+      <div>
+        {components.map((component) => (
+          <ComponentRenderer
+            key={component.id}
+            component={component}
+            componentMap={componentMap}
+            parentBinding={parentBinding}
+            itemIndex={itemIndex}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+interface ComponentRendererProps {
+  component: ResolvedCompExternal;
+  componentMap: ComponentMap;
+  parentBinding?: string;
+  itemIndex?: number;
+}
+
+const ComponentRenderer = ({ component, componentMap, parentBinding, itemIndex }: ComponentRendererProps) => {
   const client = useFormClient();
 
-  // Subscribe to form data so we re-render when data changes (needed for expression evaluation like hidden)
-  const _formData = useStore(client.formDataStore, (s) => s.data);
+  // Subscribe to form data so hidden expressions re-evaluate on every data change
+  useStore(client.formDataStore, (s) => s.data);
 
-  console.log('[FormEngine] render, formData:', _formData);
-
-  const expressionDataSources = {
-    formDataGetter: (path: string) => {
-      const val = client.formDataStore.getState().getValue(path);
-      console.log(`[FormEngine] formDataGetter("${path}") =>`, val);
-      return val;
-    },
+  const expressionDataSources: ExpressionDataSources = {
+    formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
     instanceDataSources: client.textResourceDataSources.instanceDataSources,
     frontendSettings: client.textResourceDataSources.applicationSettings,
   };
 
-  function renderChildren(children: ResolvedCompExternal[]): ReactNode {
-    return children.map((child) => renderComponent(child));
+  const isHidden = evaluateBoolean(component.hidden, expressionDataSources, false);
+  if (isHidden) {
+    return null;
   }
 
-  function renderComponent(component: ResolvedCompExternal): ReactNode {
-    const isHidden = evaluateBoolean(component.hidden, expressionDataSources, false);
+  const Component = componentMap[component.type];
+  if (!Component) {
+    return <div>Component not implemented: {component.type} ID: {component.id}</div>;
+  }
 
-    console.log('isHidden', isHidden);
-    console.log('component.hidden', component.hidden);
-
-    console.log('expressionDataSources', expressionDataSources);
-
-    if (isHidden) {
-      return null;
-    }
-
-    const Component = componentMap[component.type];
-    if (!Component) {
-      return (
-        <div key={component.id}>
-          Component not implemented: {component.type} ID: {component.id}
-        </div>
-      );
-    }
-
-    return (
-      <ComponentErrorBoundary
-        key={component.id}
-        componentId={component.id}
-        componentType={component.type}
-      >
-        <Component
-          component={component}
-          renderChildren={renderChildren}
-          parentBinding={parentBinding}
-          itemIndex={itemIndex}
-        />
-      </ComponentErrorBoundary>
-    );
+  function renderChildren(children: ResolvedCompExternal[]): ReactNode {
+    return children.map((child) => (
+      <ComponentRenderer
+        key={child.id}
+        component={child}
+        componentMap={componentMap}
+        parentBinding={parentBinding}
+        itemIndex={itemIndex}
+      />
+    ));
   }
 
   return (
-    <div data-testid='AppHeader'>
-      <div id='finishedLoading' />
-      <div>{components.map((component) => renderComponent(component))}</div>
-    </div>
+    <ComponentErrorBoundary componentId={component.id} componentType={component.type}>
+      <Component
+        component={component}
+        renderChildren={renderChildren}
+        parentBinding={parentBinding}
+        itemIndex={itemIndex}
+      />
+    </ComponentErrorBoundary>
   );
 };

@@ -101,6 +101,9 @@ export function useFormDataPersistence({
         const fieldMap = new Map<string, FieldValidation[]>();
 
         for (const issues of Object.values(issuesBySource)) {
+          if (!Array.isArray(issues)) {
+            continue;
+          }
           for (const issue of issues as BackendValidationIssue[]) {
             if (!issue.field) {
               continue;
