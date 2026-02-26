@@ -10,5 +10,5 @@
 }
 
 .configDefined div {
-  padding: var(--ds-size-1);
+  margin-bottom: var(--ds-size-1);
 }
