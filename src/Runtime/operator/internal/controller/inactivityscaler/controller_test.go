@@ -192,11 +192,12 @@ func TestSyncAll_ForcedStateOverride(t *testing.T) {
 	for i := range objects {
 		obj := objects[i]
 		g.Expect(obj.Managed).To(Equal("true"))
-		g.Expect(obj.Reconcile).To(Equal(reconcileDisabledValue))
 		if obj.Kind == testKindDeployment {
+			g.Expect(obj.Reconcile).To(BeEmpty())
 			g.Expect(obj.Replicas).NotTo(BeNil())
 			g.Expect(*obj.Replicas).To(Equal(scaleDownReplicaOne))
 		} else {
+			g.Expect(obj.Reconcile).To(Equal(reconcileDisabledValue))
 			g.Expect(obj.MinReplicas).NotTo(BeNil())
 			g.Expect(*obj.MinReplicas).To(Equal(scaleDownReplicaOne))
 		}
@@ -364,24 +365,6 @@ func TestSyncAll_RetriesOnConflict(t *testing.T) {
 	g.Expect(conflictInjected).To(BeTrue())
 
 	payload, err := json.Marshal(collectSnapshots(t, h.k8sClient, "ttd"))
-	g.Expect(err).NotTo(HaveOccurred())
-	snaps.MatchJSON(t, payload)
-}
-
-func TestSyncAll_ProdNoop(t *testing.T) {
-	g := NewWithT(t)
-
-	h := newHarness(t, "nav", "prod", time.Date(2026, 2, 23, 3, 0, 0, 0, osloLocation),
-		newOverrideConfigMap("not-a-state"),
-		newGatewayDeployment(),
-		newPdf3Hpa(pdf3ProxyHpaName),
-		newPdf3Hpa(pdf3WorkerHpaName),
-	)
-
-	err := h.reconciler.SyncAll(h.ctx)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	payload, err := json.Marshal(collectSnapshots(t, h.k8sClient, "nav"))
 	g.Expect(err).NotTo(HaveOccurred())
 	snaps.MatchJSON(t, payload)
 }

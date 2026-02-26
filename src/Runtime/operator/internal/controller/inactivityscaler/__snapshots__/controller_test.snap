@@ -77,7 +77,6 @@
    "managed": "true",
    "name": "ttd-app-a-deployment-v2",
    "namespace": "default",
-   "reconcile": "disabled",
    "replicas": 1
   },
   {
@@ -94,7 +93,6 @@
    "managed": "true",
    "name": "ttd-app-b-deployment-v2",
    "namespace": "default",
-   "reconcile": "disabled",
    "replicas": 1
   },
   {
@@ -111,7 +109,6 @@
    "managed": "true",
    "name": "gateway",
    "namespace": "runtime-gateway",
-   "reconcile": "disabled",
    "replicas": 1
   },
   {
@@ -223,7 +220,6 @@
   "managed": "true",
   "name": "gateway",
   "namespace": "runtime-gateway",
-  "reconcile": "disabled",
   "replicas": 1
  },
  {
@@ -279,7 +275,6 @@
   "managed": "true",
   "name": "gateway",
   "namespace": "runtime-gateway",
-  "reconcile": "disabled",
   "replicas": 1
  },
  {
@@ -335,7 +330,6 @@
   "managed": "true",
   "name": "ttd-conflict-app-deployment-v2",
   "namespace": "default",
-  "reconcile": "disabled",
   "replicas": 1
  },
  {
@@ -352,7 +346,6 @@
   "managed": "true",
   "name": "gateway",
   "namespace": "runtime-gateway",
-  "reconcile": "disabled",
   "replicas": 1
  },
  {

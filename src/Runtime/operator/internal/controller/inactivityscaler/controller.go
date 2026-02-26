@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/operatorcontext"
 	rt "altinn.studio/operator/internal/runtime"
 	"github.com/go-logr/logr"
@@ -186,16 +187,11 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 	defer span.End()
 
 	opCtx := r.runtime.GetOperatorContext()
-	if opCtx.Environment == operatorcontext.EnvironmentProd {
-		span.SetAttributes(
-			attribute.String("serviceOwner", opCtx.ServiceOwner.Id),
-			attribute.String("environment", opCtx.Environment),
-			attribute.Bool("skipped", true),
-			attribute.String("skipReason", "prod"),
-		)
-		span.SetStatus(codes.Ok, "skipped in prod")
-		return nil
-	}
+	assert.That(
+		opCtx.Environment != operatorcontext.EnvironmentProd,
+		"inactivityscaler must not run in prod; gate controller registration in main",
+		"environment", opCtx.Environment,
+	)
 	appDeployments, err := r.listAppDeployments(ctx, opCtx.ServiceOwner.Id)
 	if err != nil {
 		span.RecordError(err)
@@ -460,6 +456,8 @@ func applyDeploymentState(deployment *appsv1.Deployment, shouldScale bool, targe
 		return false, err
 	}
 
+	// NOTE: We dont add flux ignore annotations here because
+	// that would block app deployments to work (new app versions = new app image)
 	if shouldScale {
 		if !hasBaseline {
 			baseline = scaleBaseline{Replicas: optionalInt32FromPointer(deployment.Spec.Replicas)}
@@ -470,7 +468,6 @@ func applyDeploymentState(deployment *appsv1.Deployment, shouldScale bool, targe
 			}
 		}
 		changed = setManagedByScaler(deployment, true) || changed
-		changed = setReconcileDisabled(deployment, true) || changed
 		if deployment.Spec.Replicas == nil || *deployment.Spec.Replicas != target {
 			deployment.Spec.Replicas = ptr.To(target)
 			changed = true
@@ -491,7 +488,6 @@ func applyDeploymentState(deployment *appsv1.Deployment, shouldScale bool, targe
 		changed = removeScaleBaseline(deployment) || changed
 	}
 	changed = setManagedByScaler(deployment, false) || changed
-	changed = setReconcileDisabled(deployment, false) || changed
 	return changed, nil
 }
 
