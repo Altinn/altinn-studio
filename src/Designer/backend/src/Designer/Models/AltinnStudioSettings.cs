@@ -41,8 +41,10 @@ public class ImportMetadata
 {
     [JsonPropertyName("importDate")]
     public string ImportDate { get; set; }
+
     [JsonPropertyName("importSource")]
     public string ImportSource { get; set; }
+
     [JsonPropertyName("version")]
     public string Version { get; set; }
 }

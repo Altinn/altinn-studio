@@ -12,14 +12,16 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RepoUserW
 /// </summary>
 public static class DistributedLockProviderExtensions
 {
-    private static string GenerateKey(AltinnRepoEditingContext editingContext)
-        => $"{editingContext.Org}_{editingContext.Repo}_{editingContext.Developer}".ToLower();
+    private static string GenerateKey(AltinnRepoEditingContext editingContext) =>
+        $"{editingContext.Org}_{editingContext.Repo}_{editingContext.Developer}".ToLower();
 
     /// <summary>
     /// Constructs an <see cref="IDistributedLock"/> instance with the given <paramref name="editingContext"/>.
     /// </summary>
-    public static IDistributedLock CreateLock(this IDistributedLockProvider distributedLockProvider,
-        AltinnRepoEditingContext editingContext)
+    public static IDistributedLock CreateLock(
+        this IDistributedLockProvider distributedLockProvider,
+        AltinnRepoEditingContext editingContext
+    )
     {
         string key = GenerateKey(editingContext);
         return distributedLockProvider.CreateLock(key);
@@ -29,8 +31,13 @@ public static class DistributedLockProviderExtensions
     /// Equivalent to calling <see cref="DistributedLockProviderExtensions.CreateLock(IDistributedLockProvider,AltinnRepoEditingContext)" /> and then
     /// <see cref="IDistributedLock.AcquireAsync(TimeSpan?, CancellationToken)" />.
     /// </summary>
-    public static ValueTask<IDistributedSynchronizationHandle> AcquireLockAsync(this IDistributedLockProvider provider, AltinnRepoEditingContext editingContext, TimeSpan? timeout = null, CancellationToken cancellationToken = default) =>
-        (provider ?? throw new ArgumentNullException(nameof(provider))).CreateLock(editingContext).AcquireAsync(timeout, cancellationToken);
-
-
+    public static ValueTask<IDistributedSynchronizationHandle> AcquireLockAsync(
+        this IDistributedLockProvider provider,
+        AltinnRepoEditingContext editingContext,
+        TimeSpan? timeout = null,
+        CancellationToken cancellationToken = default
+    ) =>
+        (provider ?? throw new ArgumentNullException(nameof(provider)))
+            .CreateLock(editingContext)
+            .AcquireAsync(timeout, cancellationToken);
 }

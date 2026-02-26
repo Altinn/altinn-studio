@@ -24,7 +24,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new GiteaPushPermissionRequirement());
-                    });
+                    }
+                );
 
                 options.AddPolicy(
                     AltinnPolicy.MustHaveGiteaDeployPermission,
@@ -32,7 +33,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new GiteaDeployPermissionRequirement());
-                    });
+                    }
+                );
 
                 options.AddPolicy(
                     AltinnPolicy.MustHaveGiteaPublishResourcePermission,
@@ -40,7 +42,8 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new GiteaPublishResourcePermissionRequirement());
-                    });
+                    }
+                );
 
                 options.AddPolicy(
                     AltinnPolicy.MustHaveGiteaResourceAccessListPermission,
@@ -48,35 +51,44 @@ namespace Altinn.Studio.Designer.Infrastructure.Authorization
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new GiteaResourceAccessListPermissionRequirement());
-                    });
+                    }
+                );
 
-                options.AddPolicy(AltinnPolicy.MustBelongToOrganization,
+                options.AddPolicy(
+                    AltinnPolicy.MustBelongToOrganization,
                     policy =>
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new BelongsToOrganizationRequirement());
-                    });
+                    }
+                );
 
-                options.AddPolicy(AltinnPolicy.MustHaveOrganizationPermission,
+                options.AddPolicy(
+                    AltinnPolicy.MustHaveOrganizationPermission,
                     policy =>
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new OrganizationPermissionRequirement());
-                    });
+                    }
+                );
 
-                options.AddPolicy(AltinnPolicy.MustHaveAdminPermission,
+                options.AddPolicy(
+                    AltinnPolicy.MustHaveAdminPermission,
                     policy =>
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new AdminPermissionRequirement());
-                    });
+                    }
+                );
 
-                options.AddPolicy(AltinnPolicy.MustHaveAiAssistantPermission,
+                options.AddPolicy(
+                    AltinnPolicy.MustHaveAiAssistantPermission,
                     policy =>
                     {
                         policy.RequireAuthenticatedUser();
                         policy.Requirements.Add(new AiAssistantPermissionRequirement());
-                    });
+                    }
+                );
             });
 
             services.AddScoped<IAuthorizationHandler, GiteaPushPermissionHandler>();

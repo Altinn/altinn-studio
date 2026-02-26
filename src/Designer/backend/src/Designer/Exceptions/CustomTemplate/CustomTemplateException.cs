@@ -16,11 +16,13 @@ public class CustomTemplateException : Exception
         Detail = detail;
     }
 
-    public static CustomTemplateException NotFound(string message) =>
-        new("NotFound", message);
+    public static CustomTemplateException NotFound(string message) => new("NotFound", message);
 
-    public static CustomTemplateException DeserializationFailed(string message, string? detail = null, Exception? innerException = null) =>
-        new("DeserializationFailed", message, detail, innerException);
+    public static CustomTemplateException DeserializationFailed(
+        string message,
+        string? detail = null,
+        Exception? innerException = null
+    ) => new("DeserializationFailed", message, detail, innerException);
 
     public static CustomTemplateException ValidationFailed(string message, ICollection<ValidationError> errors) =>
         new("ValidationFailed", message, string.Join("; ", errors));

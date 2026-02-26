@@ -1,0 +1,40 @@
+[
+  {
+    "partyId": "512002",
+    "partyUuid": "b2c3d4e5-f6a7-8901-bcde-fa2345678901",
+    "partyTypeName": 1,
+    "ssn": "12889898001",
+    "name": "Kari Nordvik",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  },
+  {
+    "partyId": "500000",
+    "partyUuid": "77cab4d6-84bb-4eb2-91bd-710415a72d8a",
+    "partyTypeName": 2,
+    "orgNumber": "897069650",
+    "unitType": "AS",
+    "name": "DDG Fitness AS",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  },
+  {
+    "partyId": "500700",
+    "partyUuid": "117e86a4-117f-41b0-8f2d-c383e2a69f9e",
+    "partyTypeName": 2,
+    "orgNumber": "950474084",
+    "unitType": "BRL",
+    "name": "Oslos Vakreste Borettslag",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  }
+]

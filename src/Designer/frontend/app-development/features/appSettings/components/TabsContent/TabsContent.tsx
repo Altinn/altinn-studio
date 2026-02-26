@@ -6,6 +6,7 @@ import { SetupTab } from './Tabs/SetupTab';
 import { AboutTab } from './Tabs/AboutTab';
 import { MaskinportenTab } from './Tabs/MaskinportenTab';
 import { AccessControlTab } from './Tabs/AccessControlTab';
+import { RunTab } from './Tabs/RunTab';
 import { useCurrentSettingsTab } from '../../hooks/useCurrentSettingsTab';
 
 export function TabsContent(): ReactElement {
@@ -23,6 +24,9 @@ export function TabsContent(): ReactElement {
     }
     case 'access_control': {
       return <AccessControlTab />;
+    }
+    case 'run': {
+      return <RunTab />;
     }
     case 'maskinporten': {
       return shouldDisplayFeature(FeatureFlag.Maskinporten) ? <MaskinportenTab /> : null;

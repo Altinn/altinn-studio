@@ -51,14 +51,51 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
         /// Copied from https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/IO/Path.Windows.cs
         /// To be OS independent windows chars are used, as unix chars is only a subset of windows chars
         /// </summary>
-        public static char[] GetInvalidFileNameChars() => new char[]
-        {
-            '\"', '<', '>', '|', '\0',
-            (char)1, (char)2, (char)3, (char)4, (char)5, (char)6, (char)7, (char)8, (char)9, (char)10,
-            (char)11, (char)12, (char)13, (char)14, (char)15, (char)16, (char)17, (char)18, (char)19, (char)20,
-            (char)21, (char)22, (char)23, (char)24, (char)25, (char)26, (char)27, (char)28, (char)29, (char)30,
-            (char)31, ':', '*', '?', '\\', '/'
-        };
+        public static char[] GetInvalidFileNameChars() =>
+            new char[]
+            {
+                '\"',
+                '<',
+                '>',
+                '|',
+                '\0',
+                (char)1,
+                (char)2,
+                (char)3,
+                (char)4,
+                (char)5,
+                (char)6,
+                (char)7,
+                (char)8,
+                (char)9,
+                (char)10,
+                (char)11,
+                (char)12,
+                (char)13,
+                (char)14,
+                (char)15,
+                (char)16,
+                (char)17,
+                (char)18,
+                (char)19,
+                (char)20,
+                (char)21,
+                (char)22,
+                (char)23,
+                (char)24,
+                (char)25,
+                (char)26,
+                (char)27,
+                (char)28,
+                (char)29,
+                (char)30,
+                (char)31,
+                ':',
+                '*',
+                '?',
+                '\\',
+                '/',
+            };
 
         public static string WithoutLeadingSlash(this string input)
         {
@@ -67,9 +104,7 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
 
         public static string WithoutPrefix(this string input, string prefix)
         {
-            return input.StartsWith(prefix, StringComparison.Ordinal)
-                ? input.Substring(prefix.Length)
-                : input;
+            return input.StartsWith(prefix, StringComparison.Ordinal) ? input.Substring(prefix.Length) : input;
         }
 
         public static string WithoutLineBreaks(this string input)
@@ -92,7 +127,10 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
         {
             if (segment.Contains("..") || segment.Contains('/') || segment.Contains('\\'))
             {
-                throw new ArgumentException($"'{variableName}' contains invalid path traversal or separator characters.", variableName);
+                throw new ArgumentException(
+                    $"'{variableName}' contains invalid path traversal or separator characters.",
+                    variableName
+                );
             }
         }
 
@@ -103,7 +141,10 @@ namespace Altinn.Studio.Designer.Helpers.Extensions
                 bool isValidChar = char.IsLetterOrDigit(ch) || ch == '-' || ch == '_';
                 if (isValidChar is false)
                 {
-                    throw new ArgumentException($"'{variableName}' contains invalid character '{ch}'. Only letters, numbers, dash '-' and underscore '_' are allowed.", variableName);
+                    throw new ArgumentException(
+                        $"'{variableName}' contains invalid character '{ch}'. Only letters, numbers, dash '-' and underscore '_' are allowed.",
+                        variableName
+                    );
                 }
             }
         }

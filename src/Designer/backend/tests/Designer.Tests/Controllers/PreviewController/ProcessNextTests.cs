@@ -11,21 +11,26 @@ using Xunit;
 namespace Designer.Tests.Controllers.PreviewController
 {
     public class ProcessNextTests(WebApplicationFactory<Program> factory)
-        : PreviewControllerTestsBase<ProcessNextTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+        : PreviewControllerTestsBase<ProcessNextTests>(factory),
+            IClassFixture<WebApplicationFactory<Program>>
     {
         [Fact]
         public async Task Get_ProcessNext_Ok()
         {
             string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{V3InstanceId}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri(
+                $"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet="
+            );
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
+            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(
+                responseDocument.RootElement.ToString()
+            );
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
             Assert.Equal(TaskId, processState.CurrentTask.ElementId);
         }
@@ -42,7 +47,9 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
+            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(
+                responseDocument.RootElement.ToString()
+            );
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
             Assert.Equal(TaskId, processState.CurrentTask.ElementId);
         }

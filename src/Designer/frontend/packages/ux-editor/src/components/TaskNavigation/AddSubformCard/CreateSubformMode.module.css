@@ -9,14 +9,12 @@
 .subformTabs {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-3);
-  border: 1px solid #bcbfc5;
-  border-radius: var(--fds-border_radius-medium);
-  padding: var(--fds-spacing-1) var(--fds-spacing-6);
+  gap: var(--ds-size-2);
+  padding-inline: var(--ds-size-1);
 }
 
 .tabContent {
-  padding: var(--fds-spacing-2) 0;
+  padding: var(--ds-size-2) 0;
 }
 
 .tabContent select {

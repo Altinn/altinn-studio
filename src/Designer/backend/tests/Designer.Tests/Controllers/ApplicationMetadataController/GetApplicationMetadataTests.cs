@@ -11,16 +11,24 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class GetApplicationMetadataTests : DesignerEndpointsTestsBase<GetApplicationMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetApplicationMetadataTests
+        : DesignerEndpointsTestsBase<GetApplicationMetadataTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
-        public GetApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        private static string VersionPrefix(string org, string repository) =>
+            $"/designer/api/{org}/{repository}/metadata";
+
+        public GetApplicationMetadataTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Theory]
         [InlineData("ttd", "hvem-er-hvem", "testUser", "App/config/applicationmetadata.json")]
-        public async Task GetApplicationMetadata_ShouldReturnOK(string org, string app, string developer, string metadataPath)
+        public async Task GetApplicationMetadata_ShouldReturnOK(
+            string org,
+            string app,
+            string developer,
+            string metadataPath
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -35,7 +43,10 @@ namespace Designer.Tests.Controllers.ApplicationMetadataController
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             string responseContent = await response.Content.ReadAsStringAsync();
-            string expectedJson = JsonSerializer.Serialize(JsonSerializer.Deserialize<ApplicationMetadata>(metadataFile, JsonSerializerOptions), JsonSerializerOptions);
+            string expectedJson = JsonSerializer.Serialize(
+                JsonSerializer.Deserialize<ApplicationMetadata>(metadataFile, JsonSerializerOptions),
+                JsonSerializerOptions
+            );
             Assert.True(JsonUtils.DeepEquals(expectedJson, responseContent));
         }
     }

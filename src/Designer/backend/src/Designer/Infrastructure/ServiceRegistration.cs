@@ -42,7 +42,10 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="configuration">The configuration for the project</param>
-        public static IServiceCollection RegisterServiceImplementations(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection RegisterServiceImplementations(
+            this IServiceCollection services,
+            IConfiguration configuration
+        )
         {
             services.AddTransient<IRepository, RepositoryService>();
             services.AddTransient<ISchemaModelService, SchemaModelService>();
@@ -56,7 +59,9 @@ namespace Altinn.Studio.Designer.Infrastructure
 
             services.AddDbContext<DesignerdbContext>(options =>
             {
-                PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
+                PostgreSQLSettings postgresSettings = configuration
+                    .GetSection(nameof(PostgreSQLSettings))
+                    .Get<PostgreSQLSettings>();
                 options.UseNpgsql(postgresSettings.FormattedConnectionString());
             });
 
@@ -64,6 +69,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IDeploymentRepository, DeploymentRepository>();
             services.AddScoped<IDeployEventRepository, DeployEventRepository>();
             services.AddScoped<IAppScopesRepository, AppScopesRepository>();
+            services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
             services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
@@ -72,6 +78,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
             services.AddTransient<IAppScopesService, AppScopesService>();
+            services.AddTransient<IAppSettingsService, AppSettingsService>();
+            services.AddTransient<IAppInactivityUndeployService, AppInactivityUndeployService>();
             services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
             services.AddTransient<IAppResourcesService, AppResourcesService>();
             services.AddTransient<IAlertsService, AlertsService>();
@@ -88,6 +96,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IOrgCodeListService, OrgCodeListService>();
             services.AddTransient<IOrgContentService, OrgContentService>();
             services.AddTransient<IEnvironmentsService, EnvironmentsService>();
+            services.AddSingleton<IStudioctlInstallScriptService, StudioctlInstallScriptService>();
             services.AddHttpClient<IOrgService, OrgService>();
             services.AddHttpClient<ImageClient>();
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
@@ -114,7 +123,10 @@ namespace Altinn.Studio.Designer.Infrastructure
             return services;
         }
 
-        public static IServiceCollection RegisterDatamodeling(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection RegisterDatamodeling(
+            this IServiceCollection services,
+            IConfiguration configuration
+        )
         {
             services.AddTransient<IXmlSchemaToJsonSchemaConverter, XmlSchemaToJsonSchemaConverter>();
             services.AddTransient<IJsonSchemaToXmlSchemaConverter, JsonSchemaToXmlSchemaConverter>();

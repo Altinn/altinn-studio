@@ -22,7 +22,11 @@ namespace Altinn.AccessManagement.Tests.Utils
         /// <param name="expected">A collection of expected instances</param>
         /// <param name="actual">The collection of actual instances</param>
         /// <param name="assertMethod">The assertion method to be used</param>
-        public static void AssertCollections<T>(ICollection<T> expected, ICollection<T> actual, Action<T, T> assertMethod)
+        public static void AssertCollections<T>(
+            ICollection<T> expected,
+            ICollection<T> actual,
+            Action<T, T> assertMethod
+        )
         {
             if (expected == null)
             {
@@ -100,30 +104,47 @@ namespace Altinn.AccessManagement.Tests.Utils
         public static void AssertEqual(XacmlContextRequest expected, XacmlContextRequest actual)
         {
             Assert.Equal(expected.Attributes.Count, actual.Attributes.Count);
-            Assert.Equal(expected.GetResourceAttributes().Attributes.Count, actual.GetResourceAttributes().Attributes.Count);
-            Assert.Equal(expected.GetSubjectAttributes().Attributes.Count, actual.GetSubjectAttributes().Attributes.Count);
+            Assert.Equal(
+                expected.GetResourceAttributes().Attributes.Count,
+                actual.GetResourceAttributes().Attributes.Count
+            );
+            Assert.Equal(
+                expected.GetSubjectAttributes().Attributes.Count,
+                actual.GetSubjectAttributes().Attributes.Count
+            );
             AssertEqual(expected.Attributes, actual.Attributes);
         }
-
 
         public static void AssertXacmlPolicy(XacmlPolicy expected, XacmlPolicy actual)
         {
             Assert.Equal(expected.Description, actual.Description);
             Assert.Equal(expected.RuleCombiningAlgId, actual.RuleCombiningAlgId);
             AssertCollections(expected.Rules, actual.Rules, AssertXacmlRulesEqual);
-            AssertCollections(expected.ObligationExpressions, actual.ObligationExpressions, AsssertXacmlObligationExpressionsEqual);
+            AssertCollections(
+                expected.ObligationExpressions,
+                actual.ObligationExpressions,
+                AsssertXacmlObligationExpressionsEqual
+            );
         }
 
-
-        public static void AsssertXacmlObligationExpressionsEqual(XacmlObligationExpression expected, XacmlObligationExpression actual)
+        public static void AsssertXacmlObligationExpressionsEqual(
+            XacmlObligationExpression expected,
+            XacmlObligationExpression actual
+        )
         {
             Assert.Equal(expected.ObligationId, actual.ObligationId);
             Assert.Equal(expected.FulfillOn, actual.FulfillOn);
-            AssertCollections(expected.AttributeAssignmentExpressions, actual.AttributeAssignmentExpressions, AssertXacmlAttritubeAssignmentExpressionEqual);
+            AssertCollections(
+                expected.AttributeAssignmentExpressions,
+                actual.AttributeAssignmentExpressions,
+                AssertXacmlAttritubeAssignmentExpressionEqual
+            );
         }
 
-
-        public static void AssertXacmlAttritubeAssignmentExpressionEqual(XacmlAttributeAssignmentExpression expected, XacmlAttributeAssignmentExpression actual)
+        public static void AssertXacmlAttritubeAssignmentExpressionEqual(
+            XacmlAttributeAssignmentExpression expected,
+            XacmlAttributeAssignmentExpression actual
+        )
         {
             Assert.Equal(expected.Issuer, actual.Issuer);
             Assert.Equal(expected.Category, actual.Category);
@@ -143,7 +164,6 @@ namespace Altinn.AccessManagement.Tests.Utils
             AssertXacmlTargetEqual(expected.Target, actual.Target);
         }
 
-
         public static void AssertXacmlTargetEqual(XacmlTarget expected, XacmlTarget actual)
         {
             AssertCollections(expected.AnyOf, actual.AnyOf, AssertXacmlAnyof);
@@ -157,17 +177,18 @@ namespace Altinn.AccessManagement.Tests.Utils
         public static void AssertXacmlAllof(XacmlAllOf expected, XacmlAllOf actual)
         {
             AssertCollections(expected.Matches, actual.Matches, AssertXacmlMatch);
-
         }
 
         public static void AssertXacmlMatch(XacmlMatch expected, XacmlMatch actual)
         {
             Assert.Equal(expected.MatchId, actual.MatchId);
             AssertXacmlAttriuteDesignator(expected.AttributeDesignator, actual.AttributeDesignator);
-
         }
 
-        public static void AssertXacmlAttriuteDesignator(XacmlAttributeDesignator expected, XacmlAttributeDesignator actual)
+        public static void AssertXacmlAttriuteDesignator(
+            XacmlAttributeDesignator expected,
+            XacmlAttributeDesignator actual
+        )
         {
             Assert.Equal(expected.Category, actual.Category);
             Assert.Equal(expected.DataType, actual.DataType);
@@ -175,13 +196,15 @@ namespace Altinn.AccessManagement.Tests.Utils
             Assert.Equal(expected.MustBePresent, actual.MustBePresent);
         }
 
-
         /// <summary>
         /// Assert that two <see cref="ValidationProblemDetails"/> have the same property in the same positions.
         /// </summary>
         /// <param name="expected">An instance with the expected values.</param>
         /// <param name="actual">The instance to verify.</param>
-        public static void AssertValidationProblemDetailsEqual(ValidationProblemDetails expected, ValidationProblemDetails actual)
+        public static void AssertValidationProblemDetailsEqual(
+            ValidationProblemDetails expected,
+            ValidationProblemDetails actual
+        )
         {
             Assert.NotNull(actual);
             Assert.NotNull(expected);
@@ -202,10 +225,14 @@ namespace Altinn.AccessManagement.Tests.Utils
         {
             JsonSerializerOptions options = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             };
-            Assert.True(JsonUtils.DeepEquals(JsonSerializer.Serialize(expected, options),
-                JsonSerializer.Serialize(actual, options)));
+            Assert.True(
+                JsonUtils.DeepEquals(
+                    JsonSerializer.Serialize(expected, options),
+                    JsonSerializer.Serialize(actual, options)
+                )
+            );
         }
 
         public static void AssertCloseTo(DateTimeOffset expected, DateTimeOffset actual, TimeSpan tolerance)
@@ -228,7 +255,10 @@ namespace Altinn.AccessManagement.Tests.Utils
             AssertEqual(expected.Category, actual.Category);
         }
 
-        private static void AssertEqual(List<XacmlJsonObligationOrAdvice> expected, List<XacmlJsonObligationOrAdvice> actual)
+        private static void AssertEqual(
+            List<XacmlJsonObligationOrAdvice> expected,
+            List<XacmlJsonObligationOrAdvice> actual
+        )
         {
             if (expected == null)
             {
@@ -348,7 +378,10 @@ namespace Altinn.AccessManagement.Tests.Utils
             }
         }
 
-        private static void AssertEqual(ICollection<XacmlContextAttributes> expected, ICollection<XacmlContextAttributes> actual)
+        private static void AssertEqual(
+            ICollection<XacmlContextAttributes> expected,
+            ICollection<XacmlContextAttributes> actual
+        )
         {
             if (expected == null)
             {
@@ -390,7 +423,10 @@ namespace Altinn.AccessManagement.Tests.Utils
             AssertEqual(expected.AttributeValues, actual.AttributeValues);
         }
 
-        private static void AssertEqual(ICollection<XacmlAttributeValue> expected, ICollection<XacmlAttributeValue> actual)
+        private static void AssertEqual(
+            ICollection<XacmlAttributeValue> expected,
+            ICollection<XacmlAttributeValue> actual
+        )
         {
             List<XacmlAttributeValue> expectedList = expected.ToList();
             List<XacmlAttributeValue> actualList = actual.ToList();
@@ -414,6 +450,5 @@ namespace Altinn.AccessManagement.Tests.Utils
             Assert.Equal(expected.AttributeId, actual.AttributeId);
             Assert.Equal(expected.DataType, actual.DataType);
         }
-
     }
 }

@@ -11,13 +11,15 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class SaveLayoutSettingsTests : DesignerEndpointsTestsBase<SaveLayoutSettingsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class SaveLayoutSettingsTests
+        : DesignerEndpointsTestsBase<SaveLayoutSettingsTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-        private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
+        private static string VersionPrefix(string org, string repository) =>
+            $"/designer/api/{org}/{repository}/app-development";
 
-        public SaveLayoutSettingsTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public SaveLayoutSettingsTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         /// It's not working if the ui directory is not present in the repo.
         [Theory]
@@ -28,7 +30,13 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/group/Settings.json")]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/likert/Settings.json")]
         [InlineData("ttd", "app-without-layoutsets", "testUser", null, "TestData/App/ui/message/Settings.json")]
-        public async Task SaveLayoutSettings_ReturnsOk(string org, string app, string developer, string layoutSetName, string layoutSettingsPath)
+        public async Task SaveLayoutSettings_ReturnsOk(
+            string org,
+            string app,
+            string developer,
+            string layoutSetName,
+            string layoutSettingsPath
+        )
         {
             string targetRepository = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, app, developer, targetRepository);
@@ -39,7 +47,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
             {
-                Content = new StringContent(layoutSettings, Encoding.UTF8, MediaTypeNames.Application.Json)
+                Content = new StringContent(layoutSettings, Encoding.UTF8, MediaTypeNames.Application.Json),
             };
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);

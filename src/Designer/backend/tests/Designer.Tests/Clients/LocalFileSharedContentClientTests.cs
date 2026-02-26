@@ -14,7 +14,11 @@ namespace Designer.Tests.Clients;
 
 public class LocalFileSharedContentClientTests
 {
-    private readonly string _basePath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "altinn", "published_resources");
+    private readonly string _basePath = Path.Join(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "altinn",
+        "published_resources"
+    );
 
     [Fact]
     public void CombineWithDelimiter()
@@ -184,23 +188,17 @@ public class LocalFileSharedContentClientTests
     {
         Dictionary<string, string> label = new() { { "nb", "tekst" }, { "en", "text" } };
         Dictionary<string, string> description = new() { { "nb", "Dette er en tekst" }, { "en", "This is a text" } };
-        Dictionary<string, string> helpText = new() { { "nb", "Velg dette valget for å få en tekst" }, { "en", "Choose this option to get a text" } };
+        Dictionary<string, string> helpText = new()
+        {
+            { "nb", "Velg dette valget for å få en tekst" },
+            { "en", "Choose this option to get a text" },
+        };
         List<Code> listOfCodes =
         [
-            new(
-                Value: "value1",
-                Label: label,
-                Description: description,
-                HelpText: helpText,
-                Tags: ["test-data"]
-            )
+            new(Value: "value1", Label: label, Description: description, HelpText: helpText, Tags: ["test-data"]),
         ];
         CodeListSource source = new(Name: "test-data-files");
-        return new CodeList(
-            Source: source,
-            Codes: listOfCodes,
-            TagNames: ["test-data-category"]
-        );
+        return new CodeList(Source: source, Codes: listOfCodes, TagNames: ["test-data-category"]);
     }
 
     private static LocalFileSharedContentClient GetClientForTest()

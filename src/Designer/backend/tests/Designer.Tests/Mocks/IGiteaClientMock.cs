@@ -15,15 +15,14 @@ namespace Designer.Tests.Mocks
 {
     public class IGiteaClientMock : IGiteaClient
     {
-        private string _unitTestFolder = Path.GetDirectoryName(new Uri(typeof(IGiteaClientMock).Assembly.Location).LocalPath);
+        private string _unitTestFolder = Path.GetDirectoryName(
+            new Uri(typeof(IGiteaClientMock).Assembly.Location).LocalPath
+        );
 
         public Task<Repository> CreateRepository(string org, CreateRepoOption options)
         {
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, options.Name);
-            Repository repo = new Repository
-            {
-                Name = options.Name
-            };
+            Repository repo = new Repository { Name = options.Name };
 
             if (Directory.Exists(remotePath))
             {
@@ -57,19 +56,13 @@ namespace Designer.Tests.Mocks
                 new Branch
                 {
                     Name = "master",
-                    Commit = new PayloadCommit
-                    {
-                        Id = "1234567890abcdef1234567890abcdef12345678"
-                    }
+                    Commit = new PayloadCommit { Id = "1234567890abcdef1234567890abcdef12345678" },
                 },
                 new Branch
                 {
                     Name = "develop",
-                    Commit = new PayloadCommit
-                    {
-                        Id = "abcdef1234567890abcdef1234567890abcdef12"
-                    }
-                }
+                    Commit = new PayloadCommit { Id = "abcdef1234567890abcdef1234567890abcdef12" },
+                },
             ];
             return Task.FromResult(branches);
         }
@@ -79,11 +72,29 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(new User());
         }
 
-        public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string reference = null, CancellationToken cancellationToken = default)
+        public Task<List<FileSystemObject>> GetDirectoryAsync(
+            string org,
+            string app,
+            string directoryPath,
+            string reference = null,
+            CancellationToken cancellationToken = default
+        )
         {
             List<FileSystemObject> fileSystemObjects = [];
             reference ??= string.Empty;
-            string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, directoryPath.Replace('/', Path.DirectorySeparatorChar), reference, "directoryList.json");
+            string path = Path.Combine(
+                _unitTestFolder,
+                "..",
+                "..",
+                "..",
+                "_TestData",
+                "FileSystemObjects",
+                org,
+                app,
+                directoryPath.Replace('/', Path.DirectorySeparatorChar),
+                reference,
+                "directoryList.json"
+            );
 
             if (File.Exists(path))
             {
@@ -104,7 +115,17 @@ namespace Designer.Tests.Mocks
                 filePath = GetTextsResourcePath(filePath, shortCommitId);
             }
 
-            string path = Path.Combine(_unitTestFolder, "..", "..", "..", "_TestData", "FileSystemObjects", org, app, filePath.Replace('/', Path.DirectorySeparatorChar));
+            string path = Path.Combine(
+                _unitTestFolder,
+                "..",
+                "..",
+                "..",
+                "_TestData",
+                "FileSystemObjects",
+                org,
+                app,
+                filePath.Replace('/', Path.DirectorySeparatorChar)
+            );
 
             if (File.Exists(path))
             {
@@ -116,7 +137,13 @@ namespace Designer.Tests.Mocks
             return Task.FromResult(fileSystemObject);
         }
 
-        public Task<FileSystemObject> GetFileAsync(string org, string app, string filePath, string reference = null, CancellationToken cancellationToken = default)
+        public Task<FileSystemObject> GetFileAsync(
+            string org,
+            string app,
+            string filePath,
+            string reference = null,
+            CancellationToken cancellationToken = default
+        )
         {
             return GetFileAsync(org, app, filePath, reference);
         }
@@ -129,10 +156,7 @@ namespace Designer.Tests.Mocks
 
             if (Directory.Exists(remotePath))
             {
-                returnRepository = new Repository
-                {
-                    FullName = repository
-                };
+                returnRepository = new Repository { FullName = repository };
             }
 
             return Task.FromResult(returnRepository);
@@ -148,12 +172,36 @@ namespace Designer.Tests.Mocks
         {
             List<Team> teamWithDeployAccess = new()
             {
-                new Team { Name = "Deploy-TestEnv", Organization = new Organization { Username = "ttd" } },
-                new Team { Name = "Deploy-at22", Organization = new Organization { Username = "ttd" } },
-                new Team { Name = "Deploy-tt02", Organization = new Organization { Username = "ttd" } },
-                new Team { Name = "Resources-Publish-TestEnv", Organization = new Organization { Username = "ttd" } },
-                new Team { Name = "Resources-Publish-TT02", Organization = new Organization { Username = "ttd" } },
-                new Team { Name = "AccessLists-TestEnv", Organization = new Organization { Username = "ttd" } }
+                new Team
+                {
+                    Name = "Deploy-TestEnv",
+                    Organization = new Organization { Username = "ttd" },
+                },
+                new Team
+                {
+                    Name = "Deploy-at22",
+                    Organization = new Organization { Username = "ttd" },
+                },
+                new Team
+                {
+                    Name = "Deploy-tt02",
+                    Organization = new Organization { Username = "ttd" },
+                },
+                new Team
+                {
+                    Name = "Resources-Publish-TestEnv",
+                    Organization = new Organization { Username = "ttd" },
+                },
+                new Team
+                {
+                    Name = "Resources-Publish-TT02",
+                    Organization = new Organization { Username = "ttd" },
+                },
+                new Team
+                {
+                    Name = "AccessLists-TestEnv",
+                    Organization = new Organization { Username = "ttd" },
+                },
             };
             return Task.FromResult(teamWithDeployAccess);
         }
@@ -163,7 +211,7 @@ namespace Designer.Tests.Mocks
             var organizations = new List<Organization>
             {
                 new Organization { Username = "Org1", Id = 1 }, // Example items
-                new Organization { Username = "Org2", Id = 2 }
+                new Organization { Username = "Org2", Id = 2 },
             };
 
             return Task.FromResult(organizations);
@@ -181,7 +229,11 @@ namespace Designer.Tests.Mocks
             return $"{string.Join("/", pathArray.Take(pathArray.Length - 1))}/{shortCommitId}/{pathArray.Last()}";
         }
 
-        public async Task<bool> CreatePullRequest(string org, string app, CreatePullRequestOption createPullRequestOption)
+        public async Task<bool> CreatePullRequest(
+            string org,
+            string app,
+            CreatePullRequestOption createPullRequestOption
+        )
         {
             return await Task.FromResult(true);
         }
@@ -194,7 +246,10 @@ namespace Designer.Tests.Mocks
 
         public async Task<IList<Repository>> GetOrgRepos(string org)
         {
-            return org == "ttd" ? await Task.FromResult(new List<Repository> { new Repository() { FullName = "ttd-resources" } }).ConfigureAwait(false) : new List<Repository>();
+            return org == "ttd"
+                ? await Task.FromResult(new List<Repository> { new Repository() { FullName = "ttd-resources" } })
+                    .ConfigureAwait(false)
+                : new List<Repository>();
         }
 
         public async Task<IList<Repository>> GetStarred()
@@ -217,22 +272,52 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource, CancellationToken cancellation)
+        public Task<ListviewServiceResource> MapServiceResourceToListViewResource(
+            string org,
+            string repo,
+            ServiceResource serviceResource,
+            CancellationToken cancellation
+        )
         {
-            return Task.FromResult(new ListviewServiceResource { CreatedBy = "testUser", Identifier = serviceResource.Identifier, Title = new Dictionary<string, string> { { "test", "test" } }, LastChanged = DateTime.Now, HasPolicy = true });
+            return Task.FromResult(
+                new ListviewServiceResource
+                {
+                    CreatedBy = "testUser",
+                    Identifier = serviceResource.Identifier,
+                    Title = new Dictionary<string, string> { { "test", "test" } },
+                    LastChanged = DateTime.Now,
+                    HasPolicy = true,
+                }
+            );
         }
 
-        public Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(string org, string repository, string reference = null, CancellationToken cancellationToken = default)
+        public Task<List<FileSystemObject>> GetCodeListDirectoryContentAsync(
+            string org,
+            string repository,
+            string reference = null,
+            CancellationToken cancellationToken = default
+        )
         {
             return Task.FromResult(new List<FileSystemObject>());
         }
 
-        public Task<string> GetLatestCommitOnBranch(string org, string repository, string branchName = null, CancellationToken cancellationToken = default)
+        public Task<string> GetLatestCommitOnBranch(
+            string org,
+            string repository,
+            string branchName = null,
+            CancellationToken cancellationToken = default
+        )
         {
             return Task.FromResult("baseCommitSha");
         }
 
-        public Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(string org, string app, string filePath, string reference, CancellationToken cancellationToken = default)
+        public Task<(FileSystemObject, ProblemDetails)> GetFileAndErrorAsync(
+            string org,
+            string app,
+            string filePath,
+            string reference,
+            CancellationToken cancellationToken = default
+        )
         {
             Task<FileSystemObject> file = GetFileAsync(org, app, filePath, reference, cancellationToken);
             return Task.FromResult((file.Result, null as ProblemDetails));
