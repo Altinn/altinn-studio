@@ -25,7 +25,7 @@ Context: on `main`
 
 ### Stabilization
 
-Example: `v1.0.0-preview.1` ->  `v1.0.0`
+Example: `v1.0.0-preview.1` -> `v1.0.0`
 Context: on `main`
 
 1. Stabilize a release line:
@@ -36,7 +36,7 @@ Context: on `main`
 
 ### Patching, bugfixing
 
-Example: `v1.0.0` ->  `v1.0.1`
+Example: `v1.0.0` -> `v1.0.1`
 Context: on `main`
 
 1. For fixes after stabilization, backport from `main`:
