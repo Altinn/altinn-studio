@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://altinncdn.no/schemas/json/layout/layout-sets.schema.v1.json",
+  "title": "Altinn layout sets",
+  "description": "Schema that describes the different layout sets for an Altinn application and when to use them",
+  "$ref": "#/definitions/ILayoutSets",
+  "definitions": {}
+}
