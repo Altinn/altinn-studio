@@ -8,11 +8,13 @@ import { GlobalData } from 'nextsrc/core/globalData';
 import { formClient } from 'nextsrc/index';
 import { routeBuilders } from 'nextsrc/routesBuilder';
 
+import type { ILayoutSettings } from 'src/layout/common.generated';
+
 export type TaskLoaderData = DataTaskLoaderData | NonDataTaskLoaderData;
 
 export interface DataTaskLoaderData {
   taskType: 'data';
-  layoutSettings: Awaited<ReturnType<typeof LayoutApi.getLayoutSettings>>;
+  layoutSettings: ILayoutSettings;
   layout: Awaited<ReturnType<typeof LayoutApi.getLayout>>;
   instance: Awaited<ReturnType<typeof InstanceApi.getInstance>>;
   dataElement: Awaited<ReturnType<typeof DataApi.getDataObject>>;
@@ -50,22 +52,23 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs): Promise<TaskLo
     return { taskType: altinnTaskType, instanceOwnerPartyId, instanceGuid };
   }
 
-  const layoutSet = GlobalData.layoutSetByTaskId(taskId);
-
-  if (!layoutSet?.id) {
-    throw new Error(`No layout set found for task: ${taskId}`);
-  }
-
-  const [layoutSettings, layout, dataModelSchema, validationConfig] = await Promise.all([
-    LayoutApi.getLayoutSettings(layoutSet.id),
-    LayoutApi.getLayout(layoutSet.id),
-    LayoutApi.getDataModelSchema(layoutSet.dataType),
-    LayoutApi.getValidationConfig(layoutSet.dataType),
-  ]);
+  const layoutSettings = GlobalData.ui.folders[taskId];
 
   if (!layoutSettings) {
-    throw new Error('layoutSettings is undefined');
+    throw new Error(`No UI folder found for task: ${taskId}`);
   }
+
+  const dataType = layoutSettings.defaultDataType;
+
+  if (!dataType) {
+    throw new Error(`No defaultDataType configured for task: ${taskId}`);
+  }
+
+  const [layout, dataModelSchema, validationConfig] = await Promise.all([
+    LayoutApi.getLayout(taskId),
+    LayoutApi.getDataModelSchema(dataType),
+    LayoutApi.getValidationConfig(dataType),
+  ]);
 
   if (instance.data.length < 1) {
     throw new Error('No data element found on instance');

@@ -2,9 +2,9 @@ import React from 'react';
 import { useParams } from 'react-router';
 
 import { AppTable } from 'src/app-components/Table/Table';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useSigneeList } from 'src/layout/SigneeList/api';
 import classes from 'src/layout/SigneeList/SigneeListComponent.module.css';
 import { SigneeListError } from 'src/layout/SigneeList/SigneeListError';
@@ -14,7 +14,6 @@ import type { PropsFromGenericComponent } from 'src/layout';
 
 export function SigneeListComponent({ baseComponentId }: PropsFromGenericComponent<'SigneeList'>) {
   const { instanceOwnerPartyId, instanceGuid, taskId } = useParams();
-  const { langAsString } = useLanguage();
 
   const { textResourceBindings } = useItemWhenType(baseComponentId, 'SigneeList');
 
@@ -29,7 +28,7 @@ export function SigneeListComponent({ baseComponentId }: PropsFromGenericCompone
       size='md'
       data={data ?? []}
       isLoading={isLoading}
-      emptyText={<Lang id='signee_list.no_signees' />}
+      emptyText={translationKey('signee_list.no_signees')}
       headerClassName={classes.header}
       tableClassName={classes.table}
       caption={
@@ -44,17 +43,17 @@ export function SigneeListComponent({ baseComponentId }: PropsFromGenericCompone
       }
       columns={[
         {
-          header: langAsString('signee_list.header_name'),
+          header: translationKey('signee_list.header_name'),
           accessors: ['name'],
           renderCell: (value) => value.toString(),
         },
         {
-          header: langAsString('signee_list.header_on_behalf_of'),
+          header: translationKey('signee_list.header_on_behalf_of'),
           accessors: ['organization'],
           renderCell: (value) => value.toString(),
         },
         {
-          header: langAsString('signee_list.header_status'),
+          header: translationKey('signee_list.header_status'),
           accessors: [],
           renderCell: (_, rowData) => <SigneeStateTag state={rowData} />,
         },

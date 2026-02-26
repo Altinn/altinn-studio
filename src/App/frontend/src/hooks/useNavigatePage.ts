@@ -6,8 +6,8 @@ import { SearchParams } from 'src/core/routing/types';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
-import { getLayoutSets } from 'src/features/form/layoutSets';
-import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
+import { getUiConfig } from 'src/features/form/ui';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
@@ -16,7 +16,6 @@ import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 import { ProcessTaskType } from 'src/types';
-import { behavesLikeDataTask } from 'src/utils/formLayout';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { NavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import type { NodeRefValidation } from 'src/features/validation';
@@ -153,7 +152,7 @@ export function useNavigateToTask() {
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
   const queryKeysRef = useAsRef(useLocation().search);
-  const layoutSets = getLayoutSets();
+  const uiFolders = getUiConfig().folders;
 
   return useCallback(
     (newTaskId: string, options?: NavigateOptions & { runEffect?: boolean }) => {
@@ -165,9 +164,7 @@ export function useNavigateToTask() {
       let realTaskId = newTaskId;
       if (newTaskId === TaskKeys.ProcessEnd || newTaskId === TaskKeys.CustomReceipt) {
         // Go to the correct receipt, no matter what we're actually given
-        realTaskId = behavesLikeDataTask(TaskKeys.CustomReceipt, layoutSets)
-          ? TaskKeys.CustomReceipt
-          : TaskKeys.ProcessEnd;
+        realTaskId = TaskKeys.CustomReceipt in uiFolders ? TaskKeys.CustomReceipt : TaskKeys.ProcessEnd;
       }
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${realTaskId}${queryKeysRef.current}`;
       navigate(
@@ -177,7 +174,7 @@ export function useNavigateToTask() {
         runEffect ? { callback: () => focusMainContent(options), targetLocation: url, matchStart: true } : undefined,
       );
     },
-    [navParams, navigate, queryKeysRef, layoutSets],
+    [navParams, navigate, queryKeysRef, uiFolders],
   );
 }
 

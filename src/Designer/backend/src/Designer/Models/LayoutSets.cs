@@ -16,6 +16,10 @@ public class LayoutSets : Altinn.App.Core.Models.LayoutSets
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public UiSettings? UiSettings { get; set; }
 
+    [JsonPropertyName("validationOnNavigation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ValidationOnNavigation? ValidationOnNavigation { get; set; }
+
     [JsonExtensionData]
     public IDictionary<string, object?>? UnknownProperties { get; set; }
 }

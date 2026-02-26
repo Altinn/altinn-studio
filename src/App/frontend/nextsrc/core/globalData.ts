@@ -1,6 +1,6 @@
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IFooterLayout } from 'src/features/footer/types';
-import type { ILayoutSet, ILayoutSets } from 'src/features/form/layoutSets/types';
+import type { UiConfig } from 'src/features/form/ui/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IAppLanguage, IApplicationSettings, IParty, IProfile } from 'src/types/shared';
 
@@ -13,7 +13,7 @@ interface OrgName {
 type AltinnAppGlobalData = {
   applicationMetadata: ApplicationMetadata;
   footer: IFooterLayout;
-  layoutSets: ILayoutSets;
+  ui: UiConfig;
   frontendSettings: IApplicationSettings;
   availableLanguages: IAppLanguage[];
   userProfile?: IProfile;
@@ -50,12 +50,8 @@ export class GlobalData {
     return GlobalData.typedWindow.altinnAppGlobalData.selectedParty;
   }
 
-  public static get layoutSets(): ILayoutSets | undefined {
-    return GlobalData.typedWindow.altinnAppGlobalData.layoutSets;
-  }
-
-  public static layoutSetByTaskId(taskId: string): ILayoutSet | undefined {
-    return GlobalData.layoutSets?.sets.find((layoutSet) => layoutSet.tasks?.includes(taskId));
+  public static get ui(): UiConfig {
+    return GlobalData.typedWindow.altinnAppGlobalData.ui;
   }
 
   public static get frontendSettings(): IApplicationSettings {
