@@ -110,7 +110,8 @@ public static class CsprojPatcher
         XElement packageReference,
         XName versionElementName,
         XAttribute versionAttr,
-        string desiredVersion)
+        string desiredVersion
+    )
     {
         bool changed = false;
 
