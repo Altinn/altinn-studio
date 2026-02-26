@@ -4,7 +4,7 @@ import type { CSSProperties, ElementType, PropsWithChildren } from 'react';
 import cn from 'classnames';
 
 import classes from 'src/app-components/Flex/Flex.module.css';
-import type { IGridStyling } from 'src/layout/common.generated';
+import type { IGridStyling } from 'src/app-components/types';
 
 type Spacing = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 

@@ -20,7 +20,7 @@ type GitHubRunner interface {
 	// CreateRelease creates a GitHub release.
 	CreateRelease(ctx context.Context, opts Options) error
 	// CreatePR creates a GitHub pull request.
-	CreatePR(ctx context.Context, opts PullRequestOptions) error
+	CreatePR(ctx context.Context, opts PullRequestOptions) (string, error)
 	// SetWorkdir sets the working directory for gh commands.
 	SetWorkdir(dir string)
 }
@@ -113,7 +113,7 @@ func (g *GitHubCLI) CreateRelease(ctx context.Context, opts Options) error {
 }
 
 // CreatePR creates a GitHub pull request using the gh CLI.
-func (g *GitHubCLI) CreatePR(ctx context.Context, opts PullRequestOptions) error {
+func (g *GitHubCLI) CreatePR(ctx context.Context, opts PullRequestOptions) (string, error) {
 	args := []string{"pr", "create"}
 
 	if opts.Title != "" {
@@ -129,7 +129,27 @@ func (g *GitHubCLI) CreatePR(ctx context.Context, opts PullRequestOptions) error
 		args = append(args, "--base", opts.Base)
 	}
 
-	return g.runWrite(ctx, args...)
+	output, err := g.runWriteOutput(ctx, args...)
+	if err != nil {
+		return "", err
+	}
+
+	if g.dryRun {
+		return "", nil
+	}
+
+	prURL := extractPRURL(output)
+	if prURL != "" {
+		return prURL, nil
+	}
+
+	fallbackURL, fallbackErr := g.runRead(ctx, "pr", "view", "--json", "url", "--jq", ".url")
+	if fallbackErr == nil {
+		prURL = strings.TrimSpace(fallbackURL)
+	} else {
+		g.log.Error("Could not determine PR URL from gh output: %v", fallbackErr)
+	}
+	return prURL, nil
 }
 
 // SetWorkdir sets the working directory for gh commands.
@@ -138,9 +158,14 @@ func (g *GitHubCLI) SetWorkdir(dir string) {
 }
 
 func (g *GitHubCLI) runWrite(ctx context.Context, args ...string) error {
+	_, err := g.runWriteOutput(ctx, args...)
+	return err
+}
+
+func (g *GitHubCLI) runWriteOutput(ctx context.Context, args ...string) (string, error) {
 	if g.dryRun {
 		g.log.Command("gh", append([]string{"(dry-run)"}, args...))
-		return nil
+		return "", nil
 	}
 
 	g.log.Command("gh", args)
@@ -155,8 +180,36 @@ func (g *GitHubCLI) runWrite(ctx context.Context, args ...string) error {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("%w: %s: %s", ErrGHCommandFailed, strings.Join(args, " "), stderr.String())
+		return "", fmt.Errorf("%w: %s: %s", ErrGHCommandFailed, strings.Join(args, " "), stderr.String())
 	}
 
-	return nil
+	return strings.TrimSpace(stdout.String()), nil
+}
+
+func (g *GitHubCLI) runRead(ctx context.Context, args ...string) (string, error) {
+	g.log.Command("gh", args)
+
+	cmd := exec.CommandContext(ctx, "gh", args...)
+	if g.workdir != "" {
+		cmd.Dir = g.workdir
+	}
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("%w: %s: %s", ErrGHCommandFailed, strings.Join(args, " "), stderr.String())
+	}
+
+	return strings.TrimSpace(stdout.String()), nil
+}
+
+func extractPRURL(output string) string {
+	for token := range strings.FieldsSeq(output) {
+		if strings.HasPrefix(token, "https://") || strings.HasPrefix(token, "http://") {
+			return strings.TrimRight(token, ".,);")
+		}
+	}
+	return ""
 }

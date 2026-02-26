@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
 import { TimeSegment } from 'src/app-components/TimePicker/TimeSegment/TimeSegment';
 import { TimeSegmentProps } from 'src/app-components/TimePicker/types';
 
@@ -24,7 +25,7 @@ describe('TimeSegment Component', () => {
 
   describe('Rendering', () => {
     it('should render with formatted value', () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           value={9}
@@ -35,7 +36,7 @@ describe('TimeSegment Component', () => {
     });
 
     it('should render period segment with AM/PM', () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           type='period'
@@ -47,7 +48,7 @@ describe('TimeSegment Component', () => {
     });
 
     it('should render with placeholder', () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           placeholder='HH'
@@ -58,7 +59,7 @@ describe('TimeSegment Component', () => {
     });
 
     it('should render as disabled when disabled prop is true', () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           disabled
@@ -69,7 +70,7 @@ describe('TimeSegment Component', () => {
     });
 
     it('should render as readonly when readOnly prop is true', () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           readOnly
@@ -83,7 +84,7 @@ describe('TimeSegment Component', () => {
   describe('User Input', () => {
     it('should accept valid numeric input', async () => {
       const onValueChange = jest.fn();
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           onValueChange={onValueChange}
@@ -99,7 +100,7 @@ describe('TimeSegment Component', () => {
 
     it('should accept two-digit input', async () => {
       const onValueChange = jest.fn();
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           onValueChange={onValueChange}
@@ -115,7 +116,7 @@ describe('TimeSegment Component', () => {
 
     it('should reject invalid input', async () => {
       const onValueChange = jest.fn();
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           onValueChange={onValueChange}
@@ -133,7 +134,7 @@ describe('TimeSegment Component', () => {
 
     it('should accept period input', async () => {
       const onValueChange = jest.fn();
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           type='period'
@@ -156,7 +157,7 @@ describe('TimeSegment Component', () => {
   describe('Keyboard Navigation', () => {
     it('should call onNavigate with right on ArrowRight', async () => {
       const onNavigate = jest.fn();
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           onNavigate={onNavigate}
@@ -172,7 +173,7 @@ describe('TimeSegment Component', () => {
 
     it('should call onNavigate with left on ArrowLeft', async () => {
       const onNavigate = jest.fn();
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           onNavigate={onNavigate}
@@ -188,7 +189,7 @@ describe('TimeSegment Component', () => {
 
     it('should increment value on ArrowUp', async () => {
       const onValueChange = jest.fn();
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           value={8}
@@ -205,7 +206,7 @@ describe('TimeSegment Component', () => {
 
     it('should decrement value on ArrowDown', async () => {
       const onValueChange = jest.fn();
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           value={8}
@@ -222,7 +223,7 @@ describe('TimeSegment Component', () => {
 
     it('should toggle period on ArrowUp/Down', async () => {
       const onValueChange = jest.fn();
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           type='period'
@@ -239,7 +240,7 @@ describe('TimeSegment Component', () => {
       jest.clearAllMocks();
 
       // Simulate component with PM value for ArrowDown test
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           type='period'
@@ -257,7 +258,7 @@ describe('TimeSegment Component', () => {
 
   describe('Focus Behavior', () => {
     it('should handle focus events', async () => {
-      render(
+      renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           value={12}
@@ -274,7 +275,7 @@ describe('TimeSegment Component', () => {
 
     it('should auto-pad single digit on blur', async () => {
       const onValueChange = jest.fn();
-      const { rerender } = render(
+      const { rerender } = renderWithAppComponentsProvider(
         <TimeSegment
           {...defaultProps}
           value={3}
@@ -302,7 +303,7 @@ describe('TimeSegment Component', () => {
 
     describe('Value Synchronization', () => {
       it('should update display when value prop changes', () => {
-        const { rerender } = render(
+        const { rerender } = renderWithAppComponentsProvider(
           <TimeSegment
             {...defaultProps}
             value={8}
@@ -321,7 +322,7 @@ describe('TimeSegment Component', () => {
       });
 
       it('should format value based on segment type', () => {
-        render(
+        renderWithAppComponentsProvider(
           <TimeSegment
             {...defaultProps}
             type='minutes'
@@ -333,7 +334,7 @@ describe('TimeSegment Component', () => {
       });
 
       it('should handle 24-hour format', () => {
-        render(
+        renderWithAppComponentsProvider(
           <TimeSegment
             {...defaultProps}
             format='HH:mm'

@@ -39,12 +39,14 @@ export const ValidateSelectedPagesConfig = () => {
           key={conf.id}
           scope={Scope.SelectedPages}
           config={conf}
+          existingConfigs={internalConfigs}
           onSave={(newConf) => handleSave(newConf, conf.id)}
           onDelete={() => handleDelete(conf.id)}
         />
       ))}
       <ValidateNavigationConfig
         scope={Scope.SelectedPages}
+        existingConfigs={internalConfigs}
         onSave={(newConf) => handleSave(newConf)}
       />
     </>

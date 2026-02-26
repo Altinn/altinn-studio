@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { StudioConfigCard, StudioLabel, StudioProperty } from '@studio/components';
+import { StudioAlert, StudioLabel, StudioConfigCard, StudioProperty } from '@studio/components';
 import {
   type Scope,
+  isRuleDuplicateInScope,
   getCardLabel,
   getDefaultConfig,
   getValuesToDisplay,
@@ -16,6 +17,7 @@ import cn from 'classnames';
 export type ValidateNavigationConfigProps = {
   scope: Scope;
   config?: InternalConfigState;
+  existingConfigs?: InternalConfigState[];
   onSave: (config: InternalConfigState) => void;
   onDelete?: () => void;
 };
@@ -23,6 +25,7 @@ export type ValidateNavigationConfigProps = {
 export const ValidateNavigationConfig = ({
   scope,
   config,
+  existingConfigs,
   onSave,
   onDelete,
 }: ValidateNavigationConfigProps) => {
@@ -49,6 +52,7 @@ export const ValidateNavigationConfig = ({
     <ValidateCard
       scope={scope}
       config={config}
+      existingConfigs={existingConfigs}
       setIsEditMode={setIsEditMode}
       onSave={onSave}
       onDelete={onDelete}
@@ -59,20 +63,34 @@ export const ValidateNavigationConfig = ({
 type ValidateCardProps = {
   scope: Scope;
   config?: InternalConfigState;
+  existingConfigs?: InternalConfigState[];
   setIsEditMode: (isEditMode: boolean) => void;
   onSave: (config: InternalConfigState) => void;
   onDelete?: () => void;
 };
 
-const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: ValidateCardProps) => {
+const ValidateCard = ({
+  scope,
+  config,
+  existingConfigs,
+  setIsEditMode,
+  onSave,
+  onDelete,
+}: ValidateCardProps) => {
   const { t } = useTranslation();
-  const [currentConfig, setCurrentConfig] = useState<InternalConfigState>(
+  const [newConfig, setNewConfig] = useState<InternalConfigState>(
     config || getDefaultConfig(scope),
   );
-  const isFormValid = validateForm({ scope, config, currentConfig });
+  const isFormValid = validateForm({ scope, config, newConfig });
+  const isRuleDuplicate = isRuleDuplicateInScope({
+    scope,
+    newConfig,
+    existingConfigs,
+    isFormValid,
+  });
 
   const update = (updates: Partial<InternalConfigState>) => {
-    setCurrentConfig((prev) => ({ ...prev, ...updates }));
+    setNewConfig((prev) => ({ ...prev, ...updates }));
   };
 
   const handleDelete = () => {
@@ -81,7 +99,7 @@ const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: Valida
   };
 
   const handleSaveAndClose = () => {
-    onSave(currentConfig);
+    onSave(newConfig);
     setIsEditMode(false);
   };
 
@@ -98,7 +116,12 @@ const ValidateCard = ({ scope, config, setIsEditMode, onSave, onDelete }: Valida
         isDeleteDisabled={!config}
       />
       <StudioConfigCard.Body>
-        <ValidateCardContent scope={scope} config={currentConfig} onChange={update} />
+        <ValidateCardContent scope={scope} newConfig={newConfig} onChange={update} />
+        {isRuleDuplicate && (
+          <StudioAlert data-color='info'>
+            {t('ux_editor.settings.navigation_validation_alert_message')}
+          </StudioAlert>
+        )}
       </StudioConfigCard.Body>
       <StudioConfigCard.Footer
         saveLabel={t('general.save')}

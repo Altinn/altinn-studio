@@ -25,4 +25,3 @@ make test      # 6. Unit tests
 - Handle errors
 - Avoid nolint, the bar should be high
 - Respect fieldalignment lints (`make lint-fix` auto-corrects struct field ordering)
-

@@ -40,6 +40,7 @@ export function en() {
     'date_picker.aria_label_year_dropdown': 'Select year',
     'date_picker.aria_label_month_dropdown': 'Select month',
     'date_picker.format_text': 'For example {0}',
+    'devtools.filter_logs': 'Filter logs',
     'time_picker.invalid_time_message': 'Invalid time format. Use format {0}.',
     'time_picker.min_time_exceeded': 'The time you selected is before the earliest allowed time ({0}).',
     'time_picker.max_time_exceeded': 'The time you selected is after the latest allowed time ({0}).',
@@ -406,7 +407,8 @@ export function en() {
     'config_error.component_has_errors': 'An error occurred for <code>{0}</code>:',
     'config_error.component_has_errors_after':
       'As long as the component has configuration errors, we cannot show it in the form. Fix the errors and try again.',
-    'config_error.subform_no_datatype_layoutset': 'Data type specification not found in layout-sets.json',
+    'config_error.subform_no_datatype_layoutset':
+      'Data type specification not found in App/ui/{folderId}/Settings.json',
     'config_error.subform_no_datatype_appmetadata': "Data type '{0}' was not found in applicationmetadata.json",
     'config_error.subform_misconfigured_add_button':
       "Data type '{0}' is marked as 'disallowUserCreate=true', but the subform component is configured with 'showAddButton=true'. This is a contradiction, as the user will never be permitted to perform the add-button operation.",

@@ -41,12 +41,14 @@ export const ValidateSelectedTasksConfig = () => {
             key={conf.id}
             scope={Scope.SelectedTasks}
             config={conf}
+            existingConfigs={internalConfigs}
             onSave={(newConf) => handleSave(newConf, conf.id)}
             onDelete={() => handleDelete(conf.id)}
           />
         ))}
       <ValidateNavigationConfig
         scope={Scope.SelectedTasks}
+        existingConfigs={internalConfigs}
         onSave={(newConf) => handleSave(newConf)}
       />
     </>

@@ -1,4 +1,5 @@
 #nullable disable
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 
@@ -16,7 +17,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         );
         public Task UpdatePageOrder(AltinnRepoEditingContext editingContext, string layoutSetId, Pages pages);
 
-        public Task<LayoutSettings> GetLayoutSettings(AltinnRepoEditingContext editingContext, string layoutSetId);
+        public Task<LayoutSettings> GetLayoutSettings(
+            AltinnRepoEditingContext editingContext,
+            string layoutSetId,
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// This method should not be used if an explicit way
