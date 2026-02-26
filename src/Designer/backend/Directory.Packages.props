@@ -88,7 +88,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="9.10.0" />
     <PackageVersion Include="Testcontainers" Version="4.10.0" />
-    <PackageVersion Include="Testcontainers.PostgreSql" Version="3.10.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.10.0" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.13" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="9.0.13" />
     <PackageVersion Include="WireMock.Net" Version="1.25.0" />
