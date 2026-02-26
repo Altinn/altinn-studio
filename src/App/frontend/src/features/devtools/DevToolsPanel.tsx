@@ -5,6 +5,7 @@ import type { ErrorInfo, PropsWithChildren } from 'react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/features/devtools/DevTools.module.css';
 import { DevToolsControls } from 'src/features/devtools/DevToolsControls';
 
@@ -81,7 +82,7 @@ export const DevToolsPanel = ({ isOpen, close }: IDevToolsPanelProps) => {
                   onClick={close}
                   variant='tertiary'
                   color='second'
-                  aria-label='close'
+                  aria-label={translationKey('general.close')}
                   icon={true}
                 >
                   <XMarkIcon
