@@ -1,19 +1,21 @@
 import React from 'react';
 
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
+import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
 import type { PanelVariant } from 'src/app-components/Panel/Panel';
-
-const MockLang = ({ text }: { text: string }) => text;
+import type { TranslationKey } from 'src/app-components/types';
 
 describe('Panel', () => {
+  const panelTitle = 'Panel Title' as TranslationKey;
+
   it('should show title and content', () => {
-    render(
+    renderWithAppComponentsProvider(
       <Panel
         variant={PANEL_VARIANT.Info}
-        title={<MockLang text='Panel Title' />}
+        title={panelTitle}
       >
         Panel Content
       </Panel>,
@@ -23,10 +25,10 @@ describe('Panel', () => {
   });
 
   it('should not show icon when showIcon is not set', () => {
-    render(
+    renderWithAppComponentsProvider(
       <Panel
         variant={PANEL_VARIANT.Info}
-        title={<MockLang text='Panel Title' />}
+        title={panelTitle}
       >
         Panel Content
       </Panel>,
@@ -35,10 +37,10 @@ describe('Panel', () => {
   });
 
   it('should not show icon when showIcon is false', () => {
-    render(
+    renderWithAppComponentsProvider(
       <Panel
         variant={PANEL_VARIANT.Info}
-        title={<MockLang text='Panel Title' />}
+        title={panelTitle}
         showIcon={false}
       >
         Panel Content
@@ -50,10 +52,10 @@ describe('Panel', () => {
   it.each<PanelVariant>(['info', 'warning', 'error', 'success'])(
     'should apply relevant icon based on variant when showIcon is true',
     (variant) => {
-      render(
+      renderWithAppComponentsProvider(
         <Panel
           variant={variant}
-          title={<MockLang text='Panel Title' />}
+          title={panelTitle}
           showIcon
         >
           Panel Content

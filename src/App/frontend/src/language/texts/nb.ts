@@ -42,6 +42,7 @@ export function nb() {
     'date_picker.aria_label_year_dropdown': 'Velg år',
     'date_picker.aria_label_month_dropdown': 'Velg måned',
     'date_picker.format_text': 'For eksempel {0}',
+    'devtools.filter_logs': 'Filtrer logger',
     'time_picker.invalid_time_message': 'Ugyldig tidsformat. Bruk formatet {0}.',
     'time_picker.min_time_exceeded': 'Tiden du har valgt er før tidligst tillatte tid ({0}).',
     'time_picker.max_time_exceeded': 'Tiden du har valgt er etter seneste tillatte tid ({0}).',

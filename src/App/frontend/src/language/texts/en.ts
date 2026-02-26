@@ -40,6 +40,7 @@ export function en() {
     'date_picker.aria_label_year_dropdown': 'Select year',
     'date_picker.aria_label_month_dropdown': 'Select month',
     'date_picker.format_text': 'For example {0}',
+    'devtools.filter_logs': 'Filter logs',
     'time_picker.invalid_time_message': 'Invalid time format. Use format {0}.',
     'time_picker.min_time_exceeded': 'The time you selected is before the earliest allowed time ({0}).',
     'time_picker.max_time_exceeded': 'The time you selected is after the latest allowed time ({0}).',

@@ -6,6 +6,7 @@ import { PencilIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Pagination } from 'src/app-components/Pagination/Pagination';
+import { translationKey } from 'src/AppComponentsBridge';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
@@ -121,7 +122,7 @@ function InstanceSelection() {
                     icon={true}
                     onClick={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
                     onMouseDown={(ev) => openInstance(instance.id, ev, navigate, setNavigationEffect)}
-                    aria-label={`${langAsString('instance_selection.continue')}`}
+                    aria-label={translationKey('instance_selection.continue')}
                   >
                     <PencilIcon fontSize='1rem' />
                   </Button>
@@ -137,11 +138,9 @@ function InstanceSelection() {
                 <div className={classes.paginationWrapperMobile}>
                   <Pagination
                     id='instance-selection'
-                    nextLabel={langAsString('list_component.nextPage')}
-                    nextLabelAriaLabel={langAsString('list_component.nextPageAriaLabel')}
-                    previousLabel={langAsString('list_component.previousPage')}
-                    previousLabelAriaLabel={langAsString('list_component.previousPageAriaLabel')}
-                    rowsPerPageText={langAsString('list_component.rowsPerPage')}
+                    nextLabel={translationKey('list_component.nextPage')}
+                    previousLabel={translationKey('list_component.previousPage')}
+                    rowsPerPageText={translationKey('list_component.rowsPerPage')}
                     size='sm'
                     numberOfRows={instances.length}
                     showRowsPerPageDropdown={true}
@@ -207,11 +206,9 @@ function InstanceSelection() {
                 <div className={classes.paginationWrapper}>
                   <Pagination
                     id='instance-selection'
-                    nextLabel={langAsString('list_component.nextPage')}
-                    nextLabelAriaLabel={langAsString('list_component.nextPageAriaLabel')}
-                    previousLabel={langAsString('list_component.previousPage')}
-                    previousLabelAriaLabel={langAsString('list_component.previousPageAriaLabel')}
-                    rowsPerPageText={langAsString('list_component.rowsPerPage')}
+                    nextLabel={translationKey('list_component.nextPage')}
+                    previousLabel={translationKey('list_component.previousPage')}
+                    rowsPerPageText={translationKey('list_component.rowsPerPage')}
                     size='sm'
                     hideLabels={false}
                     currentPage={currentPage}
