@@ -7,11 +7,7 @@ using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-var dbConnectionString =
-    builder.Configuration.GetConnectionString("WorkflowEngine")
-    ?? throw new EngineConfigurationException(
-        "Database connection string 'WorkflowEngine' is required, but has not been configured."
-    );
+bool isDev = builder.Environment.IsDevelopment();
 
 // Hosting config
 builder.UseCommonHostingConfiguration();
@@ -20,18 +16,23 @@ builder.UseCaseInsensitiveCamelCaseJson();
 
 // Services
 builder.Services.AddWorkflowEngineHost();
-builder.Services.AddTelemetry();
-builder.Services.AddOpenApi(options => options.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
+builder.Services.AddTelemetry(enableSensitiveDataLogging: isDev);
 builder.Services.AddApiKeyAuthentication();
-builder.Services.AddDbRepository(dbConnectionString, enableSensitiveDataLogging: builder.Environment.IsDevelopment());
+builder.Services.AddDbRepository(enableSensitiveDataLogging: isDev);
 builder.Services.AddEngineHealthChecks();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddOpenApi(options => options.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
 
 var app = builder.Build();
 
+var dbConnectionString =
+    app.Configuration.GetConnectionString("WorkflowEngine")
+    ?? throw new EngineConfigurationException(
+        "Database connection string 'WorkflowEngine' is required, but has not been configured."
+    );
+
 // Reset stale database connections in development (e.g. from ungraceful shutdowns during load testing)
-if (builder.Environment.IsDevelopment())
-    await app.ResetDatabaseConnections(dbConnectionString);
+await app.ResetDatabaseConnectionsInDev(dbConnectionString);
 
 // Apply database migrations
 await app.ApplyDatabaseMigrations(dbConnectionString);
@@ -45,7 +46,7 @@ app.UseSwaggerUI(options =>
 
 // Middleware
 app.UseExceptionHandler();
-if (!builder.Environment.IsDevelopment())
+if (!isDev)
     app.UseHttpsRedirection();
 
 // Endpoints

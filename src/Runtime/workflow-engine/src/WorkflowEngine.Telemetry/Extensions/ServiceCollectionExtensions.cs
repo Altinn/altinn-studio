@@ -11,8 +11,14 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddTelemetry()
+        public IServiceCollection AddTelemetry(bool enableSensitiveDataLogging = false)
         {
+            if (enableSensitiveDataLogging)
+                Environment.SetEnvironmentVariable(
+                    "OTEL_DOTNET_EXPERIMENTAL_EFCORE_ENABLE_TRACE_DB_QUERY_PARAMETERS",
+                    "true"
+                );
+
             services
                 .AddOpenTelemetry()
                 .ConfigureResource(r =>

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
@@ -10,14 +11,6 @@ namespace WorkflowEngine.Data.Repository;
 
 internal static class EnginePgRepositoryQueries
 {
-    private static List<PersistentItemStatus> _incompleteItemStatuses =>
-        [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued];
-
-    private static List<PersistentItemStatus> _successItemStatuses => [PersistentItemStatus.Completed];
-
-    private static List<PersistentItemStatus> _failedItemStatuses =>
-        [PersistentItemStatus.Canceled, PersistentItemStatus.Failed, PersistentItemStatus.DependencyFailed];
-
     extension(EngineDbContext dbContext)
     {
         public IQueryable<WorkflowEntity> GetActiveWorkflows(
@@ -28,9 +21,9 @@ internal static class EnginePgRepositoryQueries
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: includeDependencies, links: includeLinks)
                 .MaybeFilterByInstanceGuid(instanceFilter)
-                .Where(wf => _incompleteItemStatuses.Contains(wf.Status))
+                .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
-                .Where(wf => wf.Steps.Any(step => _incompleteItemStatuses.Contains(step.Status)));
+                .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Incomplete.Contains(step.Status)));
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows(
             bool includeLinks = true,
@@ -39,9 +32,12 @@ internal static class EnginePgRepositoryQueries
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: true, links: includeLinks)
                 .MaybeFilterByInstanceGuid(instanceFilter)
-                .Where(wf => _incompleteItemStatuses.Contains(wf.Status))
-                .Where(wf => wf.StartAt > DateTime.UtcNow)
-                .Where(wf => wf.Steps.Any(step => _incompleteItemStatuses.Contains(step.Status)));
+                .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
+                .Where(wf =>
+                    wf.StartAt > DateTime.UtcNow
+                    || wf.Dependencies.Any(dep => PersistentItemStatusMap.Incomplete.Contains(dep.Status))
+                )
+                .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Incomplete.Contains(step.Status)));
 
         public IQueryable<WorkflowEntity> GetFailedWorkflows(
             bool includeSteps = true,
@@ -56,7 +52,7 @@ internal static class EnginePgRepositoryQueries
                     links: includeLinks
                 )
                 .MaybeFilterByInstanceGuid(instanceFilter)
-                .Where(wf => _failedItemStatuses.Contains(wf.Status));
+                .Where(wf => PersistentItemStatusMap.Failed.Contains(wf.Status));
 
         public IQueryable<WorkflowEntity> GetSuccessfulWorkflows(
             bool includeSteps = true,
@@ -71,7 +67,7 @@ internal static class EnginePgRepositoryQueries
                     links: includeLinks
                 )
                 .MaybeFilterByInstanceGuid(instanceFilter)
-                .Where(wf => _successItemStatuses.Contains(wf.Status));
+                .Where(wf => PersistentItemStatusMap.Successful.Contains(wf.Status));
 
         public IQueryable<WorkflowEntity> GetWorkflowById(
             long workflowId,

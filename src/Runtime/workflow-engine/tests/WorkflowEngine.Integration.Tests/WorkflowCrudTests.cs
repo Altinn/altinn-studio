@@ -1,5 +1,4 @@
 using WorkflowEngine.Integration.Tests.Fixtures;
-using WorkflowEngine.Integration.Tests.Helpers;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 
@@ -363,7 +362,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetFailedWorkflows_ReturnsFailedAndRequeued()
+    public async Task GetFailedWorkflows_ReturnsFailed()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository(context);
@@ -397,10 +396,10 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             instanceGuid: instanceGuid,
             finalType: WorkflowType.Generic
         );
-        var enqueued = await WorkflowTestHelper.InsertAndSetStatus(
+        var canceled = await WorkflowTestHelper.InsertAndSetStatus(
             repo,
             context,
-            PersistentItemStatus.Enqueued,
+            PersistentItemStatus.Canceled,
             instanceGuid: instanceGuid,
             finalType: WorkflowType.Generic
         );
@@ -411,11 +410,11 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var results = await queryRepo.GetFailedWorkflows(TestContext.Current.CancellationToken);
 
         Assert.Equal(3, results.Count);
-        Assert.Contains(results, w => w.DatabaseId == requeued.DatabaseId);
+        Assert.Contains(results, w => w.DatabaseId == canceled.DatabaseId);
         Assert.Contains(results, w => w.DatabaseId == failed.DatabaseId);
         Assert.Contains(results, w => w.DatabaseId == dependencyFailed.DatabaseId);
         Assert.DoesNotContain(results, w => w.DatabaseId == completed.DatabaseId);
-        Assert.DoesNotContain(results, w => w.DatabaseId == enqueued.DatabaseId);
+        Assert.DoesNotContain(results, w => w.DatabaseId == requeued.DatabaseId);
     }
 
     [Fact]
@@ -759,7 +758,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
 
         var count = await queryRepo.CountFailedWorkflows(TestContext.Current.CancellationToken);
 
-        Assert.Equal(3, count);
+        Assert.Equal(2, count);
     }
 
     [Fact]

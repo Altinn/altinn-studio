@@ -1,7 +1,6 @@
 using System.Text.Json;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
-using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Api.Utils;
 

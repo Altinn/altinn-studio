@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using WorkflowEngine.Models;
 
 // CA2234: Pass System.Uri objects instead of strings
@@ -13,15 +14,13 @@ namespace WorkflowEngine.EndToEndTests.Fixtures;
 /// </summary>
 internal sealed class EngineApiClient(HttpClient client) : IDisposable
 {
-    private const string BasePath = "/api/v1/workflows";
-
     // ── Enqueue ───────────────────────────────────────────────────────────────
 
     /// <summary>Enqueues a batch and asserts a 2xx response. Throws on failure.</summary>
     public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
         string org,
         string app,
-        int partyId,
+        string partyId,
         Guid instanceGuid,
         WorkflowEnqueueRequest request
     )
@@ -30,30 +29,49 @@ internal sealed class EngineApiClient(HttpClient client) : IDisposable
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
     }
 
+    /// <summary>Enqueues a batch and asserts a 2xx response. Throws on failure.</summary>
+    public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
+        string org,
+        string app,
+        string partyId,
+        Guid instanceGuid,
+        string jsonRequest
+    )
+    {
+        using var content = new StringContent(jsonRequest, new UTF8Encoding(), "application/json");
+        using var response = await client.PostAsync(InstancePath(org, app, partyId, instanceGuid), content);
+        return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
+    }
+
     /// <summary>Enqueues a batch and returns the raw <see cref="HttpResponseMessage"/>.</summary>
     public Task<HttpResponseMessage> EnqueueRaw(
         string org,
         string app,
-        int partyId,
+        string partyId,
         Guid instanceGuid,
         WorkflowEnqueueRequest request
     ) => client.PostAsJsonAsync(InstancePath(org, app, partyId, instanceGuid), request);
 
     // ── Queries ───────────────────────────────────────────────────────────────
 
+    public async Task<HttpResponseMessage> GetWorkflowRaw(
+        string org,
+        string app,
+        string partyId,
+        Guid instanceGuid,
+        long workflowId
+    ) => await client.GetAsync($"{InstancePath(org, app, partyId, instanceGuid)}/{workflowId}", CancellationToken.None);
+
     /// <summary>Returns <c>null</c> on 404.</summary>
     public async Task<WorkflowStatusResponse?> GetWorkflow(
         string org,
         string app,
-        int partyId,
+        string partyId,
         Guid instanceGuid,
         long workflowId
     )
     {
-        using var response = await client.GetAsync(
-            $"{InstancePath(org, app, partyId, instanceGuid)}/{workflowId}",
-            CancellationToken.None
-        );
+        using var response = await GetWorkflowRaw(org, app, partyId, instanceGuid, workflowId);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
@@ -75,7 +93,7 @@ internal sealed class EngineApiClient(HttpClient client) : IDisposable
     public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(
         string org,
         string app,
-        int partyId,
+        string partyId,
         Guid instanceGuid
     )
     {
@@ -96,18 +114,14 @@ internal sealed class EngineApiClient(HttpClient client) : IDisposable
     public async Task<WorkflowStatusResponse> WaitForStatus(
         string org,
         string app,
-        int partyId,
+        string partyId,
         Guid instanceGuid,
         long workflowId,
         PersistentItemStatus expectedStatus,
-        TimeSpan? timeout = null,
-        CancellationToken cancellationToken = default
+        TimeSpan? timeout = null
     )
     {
-        timeout ??= TimeSpan.FromSeconds(15);
-
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(timeout.Value);
+        using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(15));
 
         while (true)
         {
@@ -128,28 +142,27 @@ internal sealed class EngineApiClient(HttpClient client) : IDisposable
     public async Task<List<WorkflowStatusResponse>> WaitForAllStatus(
         string org,
         string app,
-        int partyId,
+        string partyId,
         Guid instanceGuid,
         IEnumerable<long> workflowIds,
         PersistentItemStatus expectedStatus,
-        TimeSpan? timeout = null,
-        CancellationToken cancellationToken = default
+        TimeSpan? timeout = null
     )
     {
         var tasks = workflowIds.Select(id =>
-            WaitForStatus(org, app, partyId, instanceGuid, id, expectedStatus, timeout, cancellationToken)
+            WaitForStatus(org, app, partyId, instanceGuid, id, expectedStatus, timeout)
         );
         return [.. await Task.WhenAll(tasks)];
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static string InstancePath(string org, string app, int partyId, Guid instanceGuid) =>
-        $"{BasePath}/{org}/{app}/{partyId}/{instanceGuid}";
+    private static string InstancePath(string org, string app, string partyId, Guid instanceGuid) =>
+        $"{EngineAppFixture.ApiBasePath}/{org}/{app}/{partyId}/{instanceGuid}";
 
     public void Dispose() => client.Dispose();
 
-    private static async Task<T> AssertSuccessAndDeserialize<T>(HttpResponseMessage response)
+    internal async Task<T> AssertSuccessAndDeserialize<T>(HttpResponseMessage response)
     {
         if (!response.IsSuccessStatusCode)
             throw new HttpRequestException(

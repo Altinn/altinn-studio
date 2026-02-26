@@ -12,13 +12,16 @@ internal static class HostExtensions
         /// Terminates all existing connections to the database.
         /// Only intended for development use, to clear stale connections from ungraceful shutdowns.
         /// </summary>
-        public async Task ResetDatabaseConnections(
+        public async Task ResetDatabaseConnectionsInDev(
             string dbConnectionString,
             CancellationToken cancellationToken = default
         )
         {
-            _ = host.Services.GetService<TracerProvider>();
+            var env = host.Services.GetRequiredService<IHostEnvironment>();
+            if (!env.IsDevelopment())
+                return;
 
+            host.ForceInitializeTracerProvider();
             using var activity = Metrics.Source.StartActivity("Engine.ResetDatabaseConnections");
 
             using var scope = host.Services.CreateScope();
@@ -35,15 +38,17 @@ internal static class HostExtensions
             CancellationToken cancellationToken = default
         )
         {
-            // Force-initialize the TracerProvider singleton so its ActivityListener is registered.
-            // Without this, StartActivity returns null because the host hasn't started yet.
-            _ = host.Services.GetService<TracerProvider>();
-
+            host.ForceInitializeTracerProvider();
             using var activity = Metrics.Source.StartActivity("Engine.ApplyDatabaseMigrations");
 
             using var scope = host.Services.CreateScope();
             var migrationService = scope.ServiceProvider.GetRequiredService<DbMigrationService>();
             await migrationService.Migrate(dbConnectionString, cancellationToken);
+        }
+
+        private void ForceInitializeTracerProvider()
+        {
+            _ = host.Services.GetService<TracerProvider>();
         }
     }
 }

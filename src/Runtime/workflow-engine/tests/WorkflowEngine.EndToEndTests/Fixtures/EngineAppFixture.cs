@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Testcontainers.PostgreSql;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WireMock.Server;
 using WorkflowEngine.Data.Context;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
 
 namespace WorkflowEngine.EndToEndTests.Fixtures;
@@ -16,10 +18,7 @@ namespace WorkflowEngine.EndToEndTests.Fixtures;
 /// </summary>
 public sealed class EngineAppFixture : IAsyncLifetime
 {
-    /// <summary>
-    /// An API key that is injected into the application's ApiSettings so every
-    /// <see cref="CreateEngineClient"/> call is pre-authorized.
-    /// </summary>
+    public const string ApiBasePath = "/api/v1/workflows";
     public const string TestApiKey = "e2e-test-api-key-00000001";
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18").Build();
     private EngineWebApplicationFactory _factory = null!;
@@ -27,16 +26,29 @@ public sealed class EngineAppFixture : IAsyncLifetime
     private string GetAppCommandEndpoint() =>
         $"http://localhost:{WireMock.Port}/{{Org}}/{{App}}/instances/{{InstanceOwnerPartyId}}/{{InstanceGuid}}/workflow-engine-callbacks";
 
-    private DbContextOptions<EngineDbContext> GetContextOptions() =>
-        new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(_postgres.GetConnectionString()).Options;
+    internal EngineDbContext GetDbContext()
+    {
+        var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(_postgres.GetConnectionString()).Options;
+
+        return new EngineDbContext(options);
+    }
 
     // ── Public surface ────────────────────────────────────────────────────────
 
-    /// <summary>The live WireMock server (use to register stubs and inspect calls).</summary>
+    /// <summary>
+    /// The live WireMock server, used to register stubs and inspect calls.
+    /// </summary>
     public WireMockServer WireMock { get; private set; } = null!;
 
-    /// <summary>Creates an <see cref="HttpClient"/> pre-populated with the test API key.</summary>
+    /// <summary>
+    /// Creates an <see cref="HttpClient"/> pre-populated with the test API key and pointing to the locally running engine.
+    /// </summary>
     public HttpClient CreateEngineClient() => _factory.CreateEngineClient();
+
+    /// <summary>
+    /// Provides access to the engine's service provider.
+    /// </summary>
+    public IServiceProvider Services => _factory.Services;
 
     // ── IAsyncLifetime ────────────────────────────────────────────────────────
 
@@ -49,7 +61,7 @@ public sealed class EngineAppFixture : IAsyncLifetime
         WireMock = WireMockServer.Start();
         SetupDefaultStub();
 
-        // Accessing Server triggers ConfigureWebHost → app startup.
+        // Accessing Server triggers ConfigureWebHost -> app startup.
         _factory = new EngineWebApplicationFactory(_postgres.GetConnectionString(), GetAppCommandEndpoint());
         _ = _factory.Server;
     }
@@ -74,12 +86,11 @@ public sealed class EngineAppFixture : IAsyncLifetime
         WireMock.Reset();
         SetupDefaultStub();
 
-        await using var context = new EngineDbContext(GetContextOptions());
-
         // Wait for the engine background service to drain in-flight work so the TRUNCATE does
         // not race with an active DB transaction, which would cause a deadlock.
-        await WaitForEngineToQuiesce(context);
+        await WaitForDbIdle();
 
+        await using var context = GetDbContext();
         await context.Database.ExecuteSqlRawAsync("""TRUNCATE "Workflows", "Steps" CASCADE""");
     }
 
@@ -88,24 +99,19 @@ public sealed class EngineAppFixture : IAsyncLifetime
     /// or until <paramref name="timeout"/> elapses. Active steps indicate the engine still
     /// holds DB transactions that would deadlock a concurrent TRUNCATE.
     /// </summary>
-    private static async Task WaitForEngineToQuiesce(EngineDbContext context, TimeSpan? timeout = null)
+    private async Task WaitForDbIdle(TimeSpan? timeout = null)
     {
-        timeout ??= TimeSpan.FromSeconds(5);
-        var deadline = DateTimeOffset.UtcNow.Add(timeout.Value);
+        using var cts = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(10));
 
-        while (DateTimeOffset.UtcNow < deadline)
+        while (!cts.IsCancellationRequested)
         {
-            // Enqueued=0, Processing=1, Requeued=2
-            var activeStepCount = await context
-                .Database.SqlQueryRaw<int>(
-                    """SELECT COUNT(*)::int AS "Value" FROM "Steps" WHERE "Status" IN (0, 1, 2)"""
-                )
-                .SingleAsync();
+            var repo = Services.GetRequiredService<IEngineRepository>();
+            var activeWorkflows = await repo.CountActiveWorkflows(cts.Token);
 
-            if (activeStepCount == 0)
+            if (activeWorkflows == 0)
                 return;
 
-            await Task.Delay(100);
+            await Task.Delay(100, cts.Token);
         }
     }
 
