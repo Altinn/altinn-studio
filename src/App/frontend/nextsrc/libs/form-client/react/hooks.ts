@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/shallow';
 
@@ -86,11 +86,68 @@ export function useIsRequired(requiredExpr: unknown): boolean {
   }, [requiredExpr, client, formData]);
 }
 
+const REQUIRED_VALIDATION_KEY = '__required';
+
+function requiredValidationPath(bindingPath: string): string {
+  return `${bindingPath}:${REQUIRED_VALIDATION_KEY}`;
+}
+
+/**
+ * Validates that a required field is not empty.
+ * Writes/clears a validation entry in the validation store as a side-effect.
+ */
+export function useRequiredValidation(
+  requiredExpr: unknown,
+  bindingPath: string | undefined,
+  value: FormDataPrimitive,
+  title?: string,
+): boolean {
+  const client = useFormClient();
+  const required = useIsRequired(requiredExpr);
+  const { langAsString } = useLanguage();
+
+  const isEmpty = value === undefined || value === null || String(value).trim() === '';
+  const hasError = required && isEmpty;
+  const validationPath = bindingPath ? requiredValidationPath(bindingPath) : undefined;
+
+  useEffect(() => {
+    if (!bindingPath || !validationPath) {
+      return;
+    }
+
+    const store = client.validationStore.getState();
+    if (hasError) {
+      const fieldName = title || bindingPath;
+      const message = langAsString('form_filler.error_required')?.replace('{0}', fieldName) ?? `${fieldName} is required`;
+      store.setFieldValidations(validationPath, [{ severity: 'error', message }]);
+    } else {
+      store.clearField(validationPath);
+    }
+
+    return () => {
+      client.validationStore.getState().clearField(validationPath);
+    };
+  }, [client, bindingPath, validationPath, hasError, title, langAsString]);
+
+  return required;
+}
+
 const emptyValidations: FieldValidation[] = [];
 
 export function useFieldValidations(path: string): FieldValidation[] {
   const client = useFormClient();
-  return useStore(client.validationStore, (state) => state.fieldValidations[path] ?? emptyValidations);
+  const reqPath = requiredValidationPath(path);
+  return useStore(
+    client.validationStore,
+    useShallow((state) => {
+      const backend = state.fieldValidations[path];
+      const required = state.fieldValidations[reqPath];
+      if (!backend && !required) {
+        return emptyValidations;
+      }
+      return [...(backend ?? []), ...(required ?? [])];
+    }),
+  );
 }
 
 export function useLayout(layoutId: string): ResolvedLayoutFile {

@@ -25,7 +25,7 @@
       },
       {
         "id": "InputPage-Input",
-        "required": false,
+        "required": true,
         "type": "Input",
         "textResourceBindings": {
           "title": "InputPage.Input.title"

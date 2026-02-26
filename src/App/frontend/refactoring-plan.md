@@ -66,13 +66,13 @@ npx cypress open --env environment=docker
 | 1.1 | App shell persistence layer | Done | |
 | 1.2 | Dirty tracking and unsaved changes warning | Not started | |
 | 1.3 | Stateless form data | Not started | |
-| 2.1 | Backend validation integration | Not started | |
+| 2.1 | Backend validation integration | Done | Validation issues parsed from save response into validationStore |
 | 2.2 | Schema validation (client-side) | Partial | Schema loading + type coercion done; validation display pending |
 | 2.3 | Expression-based validation | Not started | |
-| 2.4 | Validation display and visibility | Not started | |
-| 2.5 | Required field validation | Not started | |
-| 3.1 | Page navigation within a task | Not started | |
-| 3.2 | Layout settings integration | Not started | |
+| 2.4 | Validation display and visibility | Done | ComponentValidations component; added to Input, TextArea, Dropdown, Datepicker, Checkboxes, RadioButtons |
+| 2.5 | Required field validation | Done | useRequiredValidation hook + required indicators on 6 components |
+| 3.1 | Page navigation within a task | Done | NavigationButtons component with validation-blocked navigation |
+| 3.2 | Layout settings integration | Done | Page order from layoutSettings fed into FormClient |
 | 3.3 | Process management | Not started | |
 | 3.4 | Confirmation and receipt pages | Not started | |
 | 4.1 | Text/date components | Not started | |
@@ -82,7 +82,7 @@ npx cypress open --env environment=docker
 | 4.5 | Media components | Not started | |
 | 4.6 | Action components | Not started | |
 | 5.1 | Summary components | Not started | |
-| 5.2 | Advanced expression functions | Not started | |
+| 5.2 | Advanced expression functions | Partial | 15+ functions added (concat, contains, comparisons, string ops, round/floor/ceil, component) |
 | 5.3 | Multiple data models | Not started | |
 | 5.4 | Options with mapping and source | Not started | |
 | 5.5 | Language switching | Not started | |
@@ -659,7 +659,7 @@ Phases 4 and 5 can largely proceed in parallel once Phases 1-3 are solid.
 | Accordion | Done | - | form-engine |
 | AccordionGroup | Done | - | form-engine |
 | NavigationBar | Done | - | form-engine |
-| NavigationButtons | TODO | 3.1 | form-engine |
+| NavigationButtons | Done | 3.1 | form-engine |
 | Text | TODO | 4.1 | form-engine |
 | TimePicker | TODO | 4.1 | form-engine |
 | Address | TODO | 4.1 | form-engine |
