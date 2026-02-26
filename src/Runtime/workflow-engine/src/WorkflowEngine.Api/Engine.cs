@@ -22,6 +22,11 @@ internal interface IEngine
     Task Start(CancellationToken cancellationToken = default);
     Task Stop();
     Task<EngineResponse> EnqueueWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default);
+    Task<EngineResponse> RetryWorkflow(
+        string idempotencyKey,
+        DateTimeOffset createdAt,
+        CancellationToken cancellationToken = default
+    );
     bool HasDuplicateWorkflow(string jobIdentifier);
     bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation);
     Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation);

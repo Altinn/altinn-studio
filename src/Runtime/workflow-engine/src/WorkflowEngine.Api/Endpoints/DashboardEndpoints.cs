@@ -361,6 +361,33 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
+        app.MapPost(
+                "/dashboard/retry",
+                async (IEngine engine, string wf, DateTimeOffset createdAt, CancellationToken ct) =>
+                {
+                    EngineResponse result = await engine.RetryWorkflow(wf, createdAt, ct);
+                    return result switch
+                    {
+                        EngineResponse.Accepted => Results.Ok(),
+                        EngineResponse.Rejected { Reason: EngineResponse.Rejection.NotFound } r => Results.Problem(
+                            r.Message,
+                            statusCode: 404
+                        ),
+                        EngineResponse.Rejected { Reason: EngineResponse.Rejection.AtCapacity } r => Results.Problem(
+                            r.Message,
+                            statusCode: 429
+                        ),
+                        EngineResponse.Rejected { Reason: EngineResponse.Rejection.Unavailable } r => Results.Problem(
+                            r.Message,
+                            statusCode: 503
+                        ),
+                        EngineResponse.Rejected r => Results.Problem(r.Message, statusCode: 409),
+                        _ => Results.Problem("Unexpected error", statusCode: 500),
+                    };
+                }
+            )
+            .ExcludeFromDescription();
+
         app.MapGet(
                 "/dashboard/state",
                 async (

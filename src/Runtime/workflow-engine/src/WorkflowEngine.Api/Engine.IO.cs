@@ -96,6 +96,105 @@ internal partial class Engine
         return EngineResponse.Accept();
     }
 
+    public async Task<EngineResponse> RetryWorkflow(
+        string idempotencyKey,
+        DateTimeOffset createdAt,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity(
+            "Engine.RetryWorkflow",
+            tags: [("request.idempotency.key", idempotencyKey)]
+        );
+
+        if (!CanAcceptNewWork)
+        {
+            activity?.Errored(errorMessage: "At capacity");
+            return EngineResponse.Reject(EngineResponse.Rejection.AtCapacity);
+        }
+
+        if (_mainLoopTask is null)
+        {
+            activity?.Errored(errorMessage: "Workflow engine not started");
+            return EngineResponse.Reject(EngineResponse.Rejection.Unavailable, "Workflow engine is not running");
+        }
+
+        if (HasDuplicateWorkflow(idempotencyKey))
+        {
+            activity?.Errored(errorMessage: "Workflow already in inbox");
+            return EngineResponse.Reject(EngineResponse.Rejection.Duplicate, "Workflow is already in the inbox");
+        }
+
+        Workflow? workflow;
+        using (var scope = _serviceProvider.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+            workflow = await repository.GetWorkflow(idempotencyKey, createdAt, cancellationToken);
+        }
+
+        if (workflow is null)
+        {
+            activity?.Errored(errorMessage: "Workflow not found");
+            return EngineResponse.Reject(EngineResponse.Rejection.NotFound, "Workflow not found");
+        }
+
+        if (workflow.Status != PersistentItemStatus.Failed)
+        {
+            activity?.Errored(errorMessage: $"Workflow status is {workflow.Status}, expected Failed");
+            return EngineResponse.Reject(
+                EngineResponse.Rejection.Invalid,
+                $"Workflow status is {workflow.Status}, expected Failed"
+            );
+        }
+
+        if (HasQueuedWorkflowForInstance(workflow.InstanceInformation))
+        {
+            activity?.Errored(errorMessage: "Instance already has an active workflow");
+            return EngineResponse.Reject(
+                EngineResponse.Rejection.Duplicate,
+                "Another workflow for this instance is already processing"
+            );
+        }
+
+        // Reset all incomplete steps to Enqueued
+        var stepsToReset = new List<Step>();
+        foreach (Step step in workflow.Steps)
+        {
+            if (step.Status == PersistentItemStatus.Completed)
+                continue;
+
+            step.Status = PersistentItemStatus.Enqueued;
+            step.BackoffUntil = null;
+            step.LastError = null;
+            step.RequeueCount = 0;
+            step.HasPendingChanges = true;
+            stepsToReset.Add(step);
+        }
+
+        workflow.Status = PersistentItemStatus.Enqueued;
+        workflow.ExecutionStartedAt = null;
+
+        using (var scope = _serviceProvider.CreateScope())
+        {
+            var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+            await repository.BatchUpdateWorkflowAndSteps(
+                workflow,
+                stepsToReset,
+                updateWorkflowTimestamp: true,
+                updateStepTimestamps: true,
+                cancellationToken: cancellationToken
+            );
+        }
+
+        await AcquireQueueSlot(cancellationToken);
+        _inbox[idempotencyKey] = workflow;
+        _newWorkSignal.TrySetResult();
+
+        Metrics.WorkflowRequestsAccepted.Add(1);
+
+        return EngineResponse.Accept();
+    }
+
     public bool HasDuplicateWorkflow(string jobIdentifier)
     {
         bool isDupe = _inbox.ContainsKey(jobIdentifier);

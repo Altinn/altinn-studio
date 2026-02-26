@@ -1,6 +1,6 @@
 /* Card rendering — shared by live, recent, and query views */
 
-import { parseTransition, stepSubLabel, state, workflowData } from '../core/state.js';
+import { parseTransition, stepSubLabel, state, workflowData, engineUrl } from '../core/state.js';
 import { esc, formatElapsed, fmtTime } from '../core/helpers.js';
 import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
 
@@ -37,6 +37,44 @@ window.copyGuid = async (e, guid) => {
     btn.classList.add('copied');
     setTimeout(() => btn.classList.remove('copied'), 1200);
   } catch { /* ignore */ }
+};
+
+/** @param {import('../core/state.js').Workflow} wf @returns {string} */
+export const retryIconHTML = (wf) => {
+  if (wf.status !== 'Failed') return '';
+  return `<a class="open-btn retry-action-btn" onclick="retryWorkflow(event,'${esc(wf.idempotencyKey)}','${esc(wf.createdAt)}')" title="Retry workflow">&#8635;</a>`;
+};
+
+/** @param {Event} e @param {string} idempotencyKey @param {string} createdAt */
+window.retryWorkflow = async (e, idempotencyKey, createdAt) => {
+  e.stopPropagation();
+  const btn = /** @type {HTMLElement} */ (e.currentTarget);
+  if (btn.classList.contains('retrying')) return;
+  btn.classList.add('retrying');
+  btn.innerHTML = '&#8987;';
+  try {
+    const url = `${engineUrl}/dashboard/retry?wf=${encodeURIComponent(idempotencyKey)}&createdAt=${encodeURIComponent(createdAt)}`;
+    const resp = await fetch(url, { method: 'POST' });
+    if (resp.ok) {
+      btn.classList.remove('retrying');
+      btn.classList.add('retried');
+      btn.innerHTML = '&#10003;';
+      setTimeout(() => { btn.classList.remove('retried'); btn.innerHTML = '&#8635;'; }, 2000);
+    } else {
+      const err = await resp.text();
+      btn.classList.remove('retrying');
+      btn.classList.add('retry-failed');
+      btn.innerHTML = '&#10007;';
+      btn.title = `Retry failed: ${err}`;
+      setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#8635;'; btn.title = 'Retry workflow'; }, 3000);
+    }
+  } catch (ex) {
+    btn.classList.remove('retrying');
+    btn.classList.add('retry-failed');
+    btn.innerHTML = '&#10007;';
+    btn.title = `Retry error: ${ex.message}`;
+    setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#8635;'; btn.title = 'Retry workflow'; }, 3000);
+  }
 };
 
 /**
@@ -125,6 +163,7 @@ export const buildCardHTML = (wf, isStatic) => {
   html += openIconHTML(inst);
   if (wf.hasState) html += stateIconHTML(wf);
   if (wf.traceId) html += traceIconHTML(wf.traceId);
+  html += retryIconHTML(wf);
   html += `</div>`;
 
   html += buildPipelineHTML(wf, isStatic);
@@ -162,6 +201,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
   html += openIconHTML(inst);
   if (wf.hasState) html += stateIconHTML(wf);
   if (wf.traceId) html += traceIconHTML(wf.traceId);
+  html += retryIconHTML(wf);
   html += `</div>`;
   return html;
 };

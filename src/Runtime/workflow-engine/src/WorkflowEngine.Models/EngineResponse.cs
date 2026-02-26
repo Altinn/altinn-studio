@@ -30,5 +30,6 @@ public abstract record EngineResponse
         Duplicate,
         Unavailable,
         AtCapacity,
+        NotFound,
     }
 }
