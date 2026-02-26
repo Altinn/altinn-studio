@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { Checkbox, EXPERIMENTAL_Suggestion as Suggestion, Fieldset, Tabs } from '@digdir/designsystemet-react';
+import { EXPERIMENTAL_Suggestion as Suggestion, Fieldset, Tabs } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { Checkbox } from 'src/app-components/Checkbox/Checkbox';
 import classes from 'src/features/devtools/components/ExpressionPlayground/ExpressionPlayground.module.css';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';

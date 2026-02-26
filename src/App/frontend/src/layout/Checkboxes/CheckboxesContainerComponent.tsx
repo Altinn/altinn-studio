@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Fieldset, useCheckboxGroup } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { useCheckboxGroup } from 'src/app-components/Checkbox/Checkbox';
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { LabelContent } from 'src/components/label/LabelContent';

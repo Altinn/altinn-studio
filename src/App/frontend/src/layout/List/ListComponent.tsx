@@ -1,17 +1,10 @@
 import React, { useState } from 'react';
 import type { AriaAttributes } from 'react';
 
-import {
-  Checkbox,
-  Fieldset,
-  Heading,
-  Radio,
-  Table,
-  useCheckboxGroup,
-  useRadioGroup,
-} from '@digdir/designsystemet-react';
+import { Fieldset, Heading, Radio, Table, useRadioGroup } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { Checkbox, useCheckboxGroup } from 'src/app-components/Checkbox/Checkbox';
 import { Pagination as CustomPagination } from 'src/app-components/Pagination/Pagination';
 import { translationKey } from 'src/AppComponentsBridge';
 import { Description } from 'src/components/form/Description';

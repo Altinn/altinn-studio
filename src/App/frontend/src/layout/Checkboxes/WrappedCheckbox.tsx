@@ -1,9 +1,8 @@
 import React, { forwardRef, useEffect, useState } from 'react';
 
-import { Checkbox } from '@digdir/designsystemet-react';
 import cn from 'classnames';
-import type { CheckboxProps } from '@digdir/designsystemet-react';
 
+import { Checkbox, type CheckboxProps } from 'src/app-components/Checkbox/Checkbox';
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { HelpText } from 'src/app-components/HelpText/HelpText';
 import { translationKey } from 'src/AppComponentsBridge';

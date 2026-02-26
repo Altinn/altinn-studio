@@ -238,7 +238,7 @@ export default tseslint.config(
           paths: [
             {
               name: '@digdir/designsystemet-react',
-              importNames: ['Alert'],
+              importNames: ['Alert', 'Checkbox', 'useCheckboxGroup', 'CheckboxProps'],
               message:
                 "Import DS components via src/app-components/ instead of directly from '@digdir/designsystemet-react'.",
             },
