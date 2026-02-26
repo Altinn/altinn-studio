@@ -8,6 +8,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { FeatureFlagsProvider } from '@studio/feature-flags';
 import { AppDevelopmentContextProvider } from '../contexts/AppDevelopmentContext';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
@@ -22,20 +23,22 @@ export const renderWithProviders = (
 ) => {
   function Wrapper({ children }: React.PropsWithChildren<unknown>) {
     return (
-      <MemoryRouter basename={APP_DEVELOPMENT_BASENAME} initialEntries={[startUrl]}>
-        <ServicesContextProvider
-          {...queriesMock}
-          {...queries}
-          client={queryClient}
-          clientConfig={queryClientConfigMock}
-        >
-          <AppDevelopmentContextProvider>
-            <Routes>
-              <Route path='/:org/:app/*' element={children} />
-            </Routes>
-          </AppDevelopmentContextProvider>
-        </ServicesContextProvider>
-      </MemoryRouter>
+      <FeatureFlagsProvider>
+        <MemoryRouter basename={APP_DEVELOPMENT_BASENAME} initialEntries={[startUrl]}>
+          <ServicesContextProvider
+            {...queriesMock}
+            {...queries}
+            client={queryClient}
+            clientConfig={queryClientConfigMock}
+          >
+            <AppDevelopmentContextProvider>
+              <Routes>
+                <Route path='/:org/:app/*' element={children} />
+              </Routes>
+            </AppDevelopmentContextProvider>
+          </ServicesContextProvider>
+        </MemoryRouter>
+      </FeatureFlagsProvider>
     );
   }
 
