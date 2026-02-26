@@ -247,6 +247,9 @@ func assertNoAppsComputedStateApplied(g *WithT, h *testHarness) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(gateway.Spec.Replicas).NotTo(BeNil())
 	g.Expect(*gateway.Spec.Replicas).To(Equal(scaleDownReplicaOne))
+	g.Expect(annotation(gateway, reconcileAnnotationKey)).To(BeEmpty())
+	g.Expect(annotation(gateway, scalerManagedAnnotationKey)).To(Equal("true"))
+	g.Expect(annotation(gateway, scalerBaselineAnnotationKey)).NotTo(BeEmpty())
 
 	for _, name := range []string{pdf3ProxyHpaName, pdf3WorkerHpaName} {
 		hpa := &autoscalingv2.HorizontalPodAutoscaler{}
@@ -254,6 +257,31 @@ func assertNoAppsComputedStateApplied(g *WithT, h *testHarness) {
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(hpa.Spec.MinReplicas).NotTo(BeNil())
 		g.Expect(*hpa.Spec.MinReplicas).To(Equal(scaleDownReplicaZero))
+		g.Expect(annotation(hpa, reconcileAnnotationKey)).To(Equal(reconcileDisabledValue))
+		g.Expect(annotation(hpa, scalerManagedAnnotationKey)).To(Equal("true"))
+		g.Expect(annotation(hpa, scalerBaselineAnnotationKey)).NotTo(BeEmpty())
+	}
+}
+
+func assertGatewayAndPdf3RestoredToBaseline(g *WithT, h *testHarness) {
+	gateway := &appsv1.Deployment{}
+	err := h.k8sClient.Get(h.ctx, client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace}, gateway)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(gateway.Spec.Replicas).NotTo(BeNil())
+	g.Expect(*gateway.Spec.Replicas).To(Equal(int32(2)))
+	g.Expect(annotation(gateway, reconcileAnnotationKey)).To(BeEmpty())
+	g.Expect(annotation(gateway, scalerManagedAnnotationKey)).To(BeEmpty())
+	g.Expect(annotation(gateway, scalerBaselineAnnotationKey)).To(BeEmpty())
+
+	for _, name := range []string{pdf3ProxyHpaName, pdf3WorkerHpaName} {
+		hpa := &autoscalingv2.HorizontalPodAutoscaler{}
+		err = h.k8sClient.Get(h.ctx, client.ObjectKey{Name: name, Namespace: runtimePdf3Namespace}, hpa)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(hpa.Spec.MinReplicas).NotTo(BeNil())
+		g.Expect(*hpa.Spec.MinReplicas).To(Equal(int32(3)))
+		g.Expect(annotation(hpa, reconcileAnnotationKey)).To(BeEmpty())
+		g.Expect(annotation(hpa, scalerManagedAnnotationKey)).To(BeEmpty())
+		g.Expect(annotation(hpa, scalerBaselineAnnotationKey)).To(BeEmpty())
 	}
 }
 
@@ -315,6 +343,58 @@ func TestSyncAll_NonTtdNoApps(t *testing.T) {
 	payload, err := json.Marshal(collectSnapshots(t, h.k8sClient, "nav"))
 	g.Expect(err).NotTo(HaveOccurred())
 	snaps.MatchJSON(t, payload)
+}
+
+func TestSyncAll_NonTtdNoAppsToAppsTransitionRestoresGatewayAndPdf3(t *testing.T) {
+	g := NewWithT(t)
+
+	h := newHarness(t, "nav", "tt02", time.Date(2026, 2, 23, 12, 0, 0, 0, osloLocation),
+		newGatewayDeployment(),
+		newPdf3Hpa(pdf3ProxyHpaName),
+		newPdf3Hpa(pdf3WorkerHpaName),
+	)
+
+	err := h.reconciler.SyncAll(h.ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	assertNoAppsComputedStateApplied(g, h)
+
+	navApp := newAppDeploymentForOwner("nav", "app-a", 2)
+	navHpa := newAppHpa("nav", "app-a", 2)
+	err = h.k8sClient.Create(h.ctx, navApp)
+	g.Expect(err).NotTo(HaveOccurred())
+	err = h.k8sClient.Create(h.ctx, navHpa)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	err = h.reconciler.SyncAll(h.ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	assertGatewayAndPdf3RestoredToBaseline(g, h)
+}
+
+func TestSyncAll_NonTtdAppsToNoAppsTransitionScalesGatewayAndPdf3(t *testing.T) {
+	g := NewWithT(t)
+
+	navApp := newAppDeploymentForOwner("nav", "app-b", 2)
+	navHpa := newAppHpa("nav", "app-b", 3)
+	h := newHarness(t, "nav", "tt02", time.Date(2026, 2, 23, 12, 0, 0, 0, osloLocation),
+		navApp,
+		navHpa,
+		newGatewayDeployment(),
+		newPdf3Hpa(pdf3ProxyHpaName),
+		newPdf3Hpa(pdf3WorkerHpaName),
+	)
+
+	err := h.reconciler.SyncAll(h.ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	assertGatewayAndPdf3RestoredToBaseline(g, h)
+
+	err = h.k8sClient.Delete(h.ctx, navApp)
+	g.Expect(err).NotTo(HaveOccurred())
+	err = h.k8sClient.Delete(h.ctx, navHpa)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	err = h.reconciler.SyncAll(h.ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	assertNoAppsComputedStateApplied(g, h)
 }
 
 func TestSyncAll_TtdOffhoursNoApps(t *testing.T) {
@@ -480,7 +560,11 @@ func decodeBaseline(t *testing.T, obj client.Object) *scaleBaseline {
 }
 
 func newAppDeployment(appName string, replicas int32) *appsv1.Deployment {
-	release := "ttd-" + appName
+	return newAppDeploymentForOwner("ttd", appName, replicas)
+}
+
+func newAppDeploymentForOwner(serviceOwner, appName string, replicas int32) *appsv1.Deployment {
+	release := serviceOwner + "-" + appName
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      release + "-deployment-v2",
