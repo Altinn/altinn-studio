@@ -5,7 +5,7 @@ import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { useStore } from 'zustand';
 import { findComponentById, getSimpleBinding, getTitleKey } from 'nextsrc/libs/form-engine/utils/findComponent';
-import classes from 'nextsrc/libs/form-engine/components/Summary.module.css';
+import classes from 'nextsrc/libs/form-engine/components/Summary/Summary.module.css';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';

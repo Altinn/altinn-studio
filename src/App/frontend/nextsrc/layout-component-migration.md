@@ -71,12 +71,12 @@ All 10 migrated. Shared `findComponentById` utility extracted to `utils/findComp
 - **RepeatingGroup** — Missing: edit mode, delete, pagination, validation display, table headers
 - **Summary2** — Only handles `target.type === 'component'` with `simpleBinding`. Missing: page/layoutSet targets, multi-binding, option-value display, group/repeating group summary, per-component summary renderers
 
-**Medium priority (missing common features):**
-- **Input** — Missing: readOnly, formatting (number/currency), maxLength, autocomplete, prefix/suffix, description/help
-- **TextArea** — Missing: readOnly, maxLength, auto-resize, description/help
-- **Datepicker** — Missing: min/maxDate, readOnly, locale formatting, calendar popup
-- **Paragraph** — Missing: HTML content rendering from text resources
-- **Panel** — Using inline styles, should use designsystemet Panel with variant/showIcon
+**Medium priority (missing common features):** ✅ DONE
+- **Input** — ✅ Added: readOnly, formatting (number/currency via react-number-format), maxLength, autocomplete, prefix/suffix, description. Uses Textfield from designsystemet. Remaining: inputMode/pattern mobile keyboard, saveWhileTyping debounce, paste workaround, local state for trailing zeros
+- **TextArea** — ✅ Added: readOnly, maxLength counter, autocomplete, description. Switched to Textfield multiline from designsystemet
+- **Datepicker** — ✅ Added: readOnly, min/maxDate with keyword support (today/yesterday/tomorrow/oneYearAgo/oneYearFromNow). Remaining: calendar popup (react-day-picker), custom date format display
+- **Paragraph** — ✅ Added: help text toggle via `<details>/<summary>` element
+- **Panel** — ✅ Rewritten: variant support (info/warning/error/success), showIcon with @navikt/aksel-icons, proper CSS module with variant colors, markdown body via marked, Heading from designsystemet. Remaining: mobile layout, FullWidthWrapper
 
 **Low priority (minor polish):**
 - Dropdown, RadioButtons, Checkboxes, MultipleSelect — Missing: readOnly, description per option
@@ -88,6 +88,9 @@ All 10 migrated. Shared `findComponentById` utility extracted to `utils/findComp
 ## Recommended Migration Order
 
 **Batch 1 — Tier 1 quick wins (10 components):** ✅ DONE
+
+**Batch 1.5 — Medium priority component upgrades (5 components):** ✅ DONE
+Input, TextArea, Datepicker, Paragraph, Panel — upgraded with common features, restructured into per-component folders
 
 **Batch 2 — RepeatingGroup upgrade:** ← NEXT
 Bring RepeatingGroup to feature parity: edit mode, delete rows, pagination, validation display, table headers

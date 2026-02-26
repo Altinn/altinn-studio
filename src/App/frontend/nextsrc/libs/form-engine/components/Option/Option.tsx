@@ -3,7 +3,7 @@ import React from 'react';
 import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { useOptions } from 'nextsrc/libs/form-engine/components/useOptions';
-import classes from 'nextsrc/libs/form-engine/components/Option.module.css';
+import classes from 'nextsrc/libs/form-engine/components/Option/Option.module.css';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 import type { CompOptionExternal } from 'src/layout/Option/config.generated';

@@ -4,7 +4,7 @@ import { Tabs as DesignsystemetTabs } from '@digdir/designsystemet-react';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { findComponentById } from 'nextsrc/libs/form-engine/utils/findComponent';
-import classes from 'nextsrc/libs/form-engine/components/Tabs.module.css';
+import classes from 'nextsrc/libs/form-engine/components/Tabs/Tabs.module.css';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 import type { CompTabsExternal } from 'src/layout/Tabs/config.generated';

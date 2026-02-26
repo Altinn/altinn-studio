@@ -12,5 +12,19 @@ export const Paragraph = ({ component }: ComponentProps) => {
   const title = useTextResource(titleKey);
   const html = marked(title, { async: false });
 
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+  const helpKey = typeof props.textResourceBindings?.help === 'string' ? props.textResourceBindings.help : undefined;
+  const helpText = useTextResource(helpKey);
+  const helpHtml = helpText ? marked(helpText, { async: false }) : '';
+
+  return (
+    <div>
+      <div dangerouslySetInnerHTML={{ __html: html }} />
+      {helpText && (
+        <details>
+          <summary>Hjelp</summary>
+          <div dangerouslySetInnerHTML={{ __html: helpHtml }} />
+        </details>
+      )}
+    </div>
+  );
 };
