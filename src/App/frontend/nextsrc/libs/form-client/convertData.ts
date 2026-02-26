@@ -20,7 +20,10 @@ export function convertData(value: string | number | boolean | null, schema: JSO
   return convertToType(value, schema);
 }
 
-function convertToType(value: string | number | boolean | null, schema: JSONSchema7 | JSONSchema7Definition): ConvertResult {
+function convertToType(
+  value: string | number | boolean | null,
+  schema: JSONSchema7 | JSONSchema7Definition,
+): ConvertResult {
   if (typeof schema === 'boolean') {
     return { value: undefined, error: true };
   }
@@ -41,13 +44,21 @@ function convertToType(value: string | number | boolean | null, schema: JSONSche
   }
 
   if (schema.type && typeof schema.type === 'string' && (VALID_TYPES as readonly string[]).includes(schema.type)) {
-    return convertToScalar(value, schema.type as ValidType, schema['@xsdType' as keyof JSONSchema7] as string | undefined);
+    return convertToScalar(
+      value,
+      schema.type as ValidType,
+      schema['@xsdType' as keyof JSONSchema7] as string | undefined,
+    );
   }
 
   return { value: undefined, error: true };
 }
 
-function convertToScalar(value: string | number | boolean | null, targetType: ValidType, xsdType?: string): ConvertResult {
+function convertToScalar(
+  value: string | number | boolean | null,
+  targetType: ValidType,
+  xsdType?: string,
+): ConvertResult {
   const sVal = String(value);
 
   if (targetType === 'string') {

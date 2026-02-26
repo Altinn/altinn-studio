@@ -3,6 +3,7 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useStore } from 'zustand';
 
+import { useProcessActions } from 'nextsrc/features/process/ProcessActionsContext';
 import { usePageOrder } from 'nextsrc/libs/form-client/react/hooks';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 
@@ -14,6 +15,7 @@ export const NavigationButtons = (_props: ComponentProps) => {
   const pageOrder = usePageOrder();
   const client = useFormClient();
   const hasErrors = useStore(client.validationStore, (state) => state.hasErrors());
+  const processActions = useProcessActions();
 
   const currentIndex = pageId ? pageOrder.indexOf(pageId) : -1;
   const isFirst = currentIndex <= 0;
@@ -34,6 +36,13 @@ export const NavigationButtons = (_props: ComponentProps) => {
     }
   };
 
+  const handleSubmit = () => {
+    if (hasErrors) {
+      return;
+    }
+    processActions?.submit();
+  };
+
   return (
     <div data-testid='NavigationButtons'>
       {!isFirst && (
@@ -45,7 +54,16 @@ export const NavigationButtons = (_props: ComponentProps) => {
           Back
         </button>
       )}
-      {!isLast && (
+      {isLast ? (
+        <button
+          type='button'
+          data-testid='NavigationButtons-submit'
+          onClick={handleSubmit}
+          disabled={processActions?.isSubmitting}
+        >
+          {processActions?.isSubmitting ? 'Sender inn...' : 'Send inn'}
+        </button>
+      ) : (
         <button
           type='button'
           data-testid='NavigationButtons-next'

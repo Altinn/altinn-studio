@@ -3,10 +3,16 @@ import { Navigate, useRouteLoaderData } from 'react-router';
 
 import { isPagesSettingsWithGroups, isPagesSettingsWithOrder } from 'nextsrc/core/typeguards';
 
-import type { taskLoader } from 'nextsrc/features/form/pages/task/taskLoader';
+import type { TaskLoaderData } from 'nextsrc/features/form/pages/task/taskLoader';
 
 export const TaskIndex = () => {
-  const { layoutSettings } = useRouteLoaderData('task') as Awaited<ReturnType<typeof taskLoader>>;
+  const loaderData = useRouteLoaderData('task') as TaskLoaderData;
+
+  if (loaderData.taskType !== 'data' || !('layoutSettings' in loaderData)) {
+    throw new Error('TaskIndex requires a data task');
+  }
+
+  const { layoutSettings } = loaderData;
 
   if (isPagesSettingsWithOrder(layoutSettings.pages)) {
     return <Navigate to={layoutSettings.pages.order[0]} replace />;

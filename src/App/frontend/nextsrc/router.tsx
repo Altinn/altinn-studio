@@ -16,6 +16,7 @@ import { instanceSelectionLoader } from 'nextsrc/features/instantiate/pages/inst
 import { InstanceSelectionPage } from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage';
 import { partySelectionLoader } from 'nextsrc/features/instantiate/pages/party-selection/partySelectionLoader';
 import { PartySelectionPage } from 'nextsrc/features/instantiate/pages/party-selection/PartySelectionPage';
+import { ProcessEndPage } from 'nextsrc/features/process/pages/ProcessEndPage';
 import { StatelessPage } from 'nextsrc/features/instantiate/pages/stateless/StatelessPage';
 import { routes } from 'nextsrc/routesBuilder';
 
@@ -29,6 +30,7 @@ export const router = createBrowserRouter(
       children: [
         { path: routes.root, element: <Outlet />, loader: entryRedirectLoader(), errorElement: <ErrorPage /> },
         { path: routes.instance, element: <InstancePage />, loader: instanceLoader, errorElement: <ErrorPage /> },
+        { path: routes.processEnd, element: <ProcessEndPage />, errorElement: <ErrorPage /> },
         {
           path: routes.instanceSelection,
           element: <InstanceSelectionPage />,

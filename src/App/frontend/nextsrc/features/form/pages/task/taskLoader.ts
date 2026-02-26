@@ -1,3 +1,4 @@
+import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
 import { DataApi } from 'nextsrc/core/apiClient/dataApi';
@@ -5,12 +6,48 @@ import { InstanceApi } from 'nextsrc/core/apiClient/instanceApi';
 import { LayoutApi } from 'nextsrc/core/apiClient/layoutApi';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { formClient } from 'nextsrc/index';
+import { routeBuilders } from 'nextsrc/routesBuilder';
 
-export const taskLoader = async ({ params }: LoaderFunctionArgs) => {
+export type TaskLoaderData = DataTaskLoaderData | NonDataTaskLoaderData;
+
+export interface DataTaskLoaderData {
+  taskType: 'data';
+  layoutSettings: Awaited<ReturnType<typeof LayoutApi.getLayoutSettings>>;
+  layout: Awaited<ReturnType<typeof LayoutApi.getLayout>>;
+  instance: Awaited<ReturnType<typeof InstanceApi.getInstance>>;
+  dataElement: Awaited<ReturnType<typeof DataApi.getDataObject>>;
+  instanceOwnerPartyId: string;
+  instanceGuid: string;
+  dataElementId: string;
+}
+
+export function isDataTask(data: TaskLoaderData): data is DataTaskLoaderData {
+  return data.taskType === 'data';
+}
+
+export interface NonDataTaskLoaderData {
+  taskType: string;
+  instanceOwnerPartyId: string;
+  instanceGuid: string;
+}
+
+export const taskLoader = async ({ params }: LoaderFunctionArgs): Promise<TaskLoaderData> => {
   const { taskId, instanceOwnerPartyId, instanceGuid } = params;
 
   if (!taskId || !instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Route params missing: taskId, instanceOwnerPartyId, or instanceGuid');
+  }
+
+  const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
+
+  if (instance.process.ended || !instance.process.currentTask) {
+    throw redirect(routeBuilders.processEnd({ instanceOwnerPartyId, instanceGuid }));
+  }
+
+  const altinnTaskType = instance.process.currentTask.altinnTaskType;
+
+  if (altinnTaskType !== 'data') {
+    return { taskType: altinnTaskType, instanceOwnerPartyId, instanceGuid };
   }
 
   const layoutSet = GlobalData.layoutSetByTaskId(taskId);
@@ -19,10 +56,9 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs) => {
     throw new Error(`No layout set found for task: ${taskId}`);
   }
 
-  const [layoutSettings, layout, instance, dataModelSchema, validationConfig] = await Promise.all([
+  const [layoutSettings, layout, dataModelSchema, validationConfig] = await Promise.all([
     LayoutApi.getLayoutSettings(layoutSet.id),
     LayoutApi.getLayout(layoutSet.id),
-    InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid }),
     LayoutApi.getDataModelSchema(layoutSet.dataType),
     LayoutApi.getValidationConfig(layoutSet.dataType),
   ]);
@@ -57,6 +93,7 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs) => {
   formClient.setFormData(dataElement);
 
   return {
+    taskType: 'data',
     layoutSettings,
     layout,
     instance,

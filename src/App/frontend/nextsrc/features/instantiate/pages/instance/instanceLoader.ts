@@ -15,11 +15,11 @@ export const instanceLoader = async ({
 
   const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
 
-  const taskId = instance.process.currentTask?.elementId;
-
-  if (!taskId) {
-    throw new Error('taskId missing');
+  if (instance.process.ended || !instance.process.currentTask) {
+    return redirect(routeBuilders.processEnd({ instanceOwnerPartyId, instanceGuid }));
   }
+
+  const taskId = instance.process.currentTask.elementId;
 
   return redirect(routeBuilders.task({ instanceGuid, instanceOwnerPartyId, taskId }));
 };
