@@ -16,6 +16,10 @@ public class LayoutSets : Altinn.App.Core.Models.LayoutSets
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public UiSettings? UiSettings { get; set; }
 
+    [JsonPropertyName("validationOnNavigation")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ValidationOnNavigation? ValidationOnNavigation { get; set; }
+
     [JsonExtensionData]
     public IDictionary<string, object?>? UnknownProperties { get; set; }
 }
@@ -74,4 +78,15 @@ public enum TaskNavigationReceiptType
 {
     [JsonStringEnumMemberName("receipt")]
     Receipt,
+}
+
+public class ValidationOnNavigation
+{
+    [JsonPropertyName("show")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? Show { get; set; }
+
+    [JsonPropertyName("page")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Page { get; set; }
 }
