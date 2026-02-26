@@ -1,7 +1,5 @@
-import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { cyMockResponses, CyPartyMocks } from 'test/e2e/pageobjects/party-mocks';
-import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 const appFrontend = new AppFrontend();
 
@@ -33,26 +31,14 @@ describe('Party selection', () => {
   });
 
   it('Should skip party selection if you can only represent one person', () => {
-    cyMockResponses({
-      preSelectedParty: CyPartyMocks.ExamplePerson1.partyId,
-      allowedToInstantiate: [CyPartyMocks.ExamplePerson1],
-    });
+    cy.intercept('**/active', []).as('noActiveInstances');
+    // User 'default' (12345) has only one party - backend skips party selection
+    cy.startAppInstance(appFrontend.apps.frontendTest, { cyUser: 'default' });
 
-    interceptAltinnAppGlobalData((globalData) => {
-      globalData.selectedParty = CyPartyMocks.ExamplePerson1;
-    });
-
-    cy.intercept(
-      'POST',
-      `/ttd/${appFrontend.apps.frontendTest}/instances?instanceOwnerPartyId=${CyPartyMocks.ExamplePerson1.partyId}*`,
-    ).as('loadInstance');
-    cy.startAppInstance(appFrontend.apps.frontendTest);
+    // Should skip party selection and go straight to app
+    cy.get(appFrontend.appHeader).should('be.visible');
     cy.get(appFrontend.partySelection.party).should('not.exist');
-    cy.wait('@loadInstance');
-
-    // This fails in the end because the partyId does not exist, but we still proved
-    // that party selection did not appear (even though @loadInstance fails with a 404)
-    cy.allowFailureOnEnd();
+    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
   });
 
   it('Should show party selection with a warning when you cannot use the preselected party', () => {
@@ -142,6 +128,7 @@ describe('Party selection', () => {
         'contain.text',
         'Du kan endre profilinnstillingene dine for å ikke bli spurt om aktør hver gang du starter utfylling av et nytt skjema.',
       );
+
     cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('not.exist');
 
     cy.visualTesting('reportee-selection');
@@ -190,19 +177,13 @@ describe('Party selection', () => {
     cy.intercept('**/active', []).as('activeInstances');
 
     // Select the first organisation. This is not allowed to instantiate in this app, so it will throw an error.
+    // The 403 error redirects back to party selection with an error message.
     cy.findAllByText(/org\.nr\. \d+/)
       .first()
       .click();
-    cy.get(appFrontend.altinnError).should('contain.text', texts.missingRights);
 
-    // Try again with another party
-    cy.findByRole('link', { name: 'skift aktør her' }).click();
+    cy.get(appFrontend.partySelection.error).should('be.visible');
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-
-    /** We need to wait for the instantiation to be cleared before we can instantiate again.
-     * @see InstantiateContainer */
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(500);
 
     // The person on the other hand is allowed to instantiate
     cy.findAllByText(/personnr\. \d+/)
@@ -211,23 +192,21 @@ describe('Party selection', () => {
 
     cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
 
-    // To make sure this instance is different from the next, we navigate to the next process step in this one
-    cy.findByRole('button', { name: 'Send inn' }).click();
-    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible');
-    cy.waitUntilSaved();
+    // Save the first instance URL so we can verify the second instantiation creates a different instance
+    cy.location('pathname').then((firstInstancePath) => {
+      // Navigate directly to /party-selection to test that instantiation once more works
+      cy.window().then((win) => {
+        win.location.pathname = `/ttd/${appFrontend.apps.frontendTest}/party-selection`;
+      });
+      cy.get(appFrontend.partySelection.appHeader).should('be.visible');
 
-    // Navigate directly to /#/party-selection to test that instantiation once more works
-    cy.window().then((win) => {
-      win.location.pathname = `/ttd/${appFrontend.apps.frontendTest}/party-selection`;
+      cy.findAllByText(/personnr\. \d+/)
+        .first()
+        .click();
+      cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
+
+      // Verify we landed on a different instance
+      cy.location('pathname').should('not.eq', firstInstancePath);
     });
-    cy.get(appFrontend.partySelection.appHeader).should('be.visible');
-
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(500);
-
-    cy.findAllByText(/personnr\. \d+/)
-      .first()
-      .click();
-    cy.findByRole('heading', { name: 'Appen for test av app frontend' }).should('be.visible');
   });
 });

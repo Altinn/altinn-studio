@@ -249,54 +249,36 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
   cy.get('[data-is-loading=true]').should('not.exist');
 
   if (viewport) {
-    cy.get(`html.viewport-is-${viewport}`).should('be.visible');
+    cy.get(`div.viewport-is-${viewport}`).should('be.visible');
   }
 
   // Work around slow state updates in Dropdown (possibly in combination with preselectedOptionIndex)
-  cy.window().then((win) => {
-    const layoutCache = win.queryClient.getQueriesData({
-      queryKey: ['formLayouts'],
-    })?.[0]?.[1] as LayoutContextValue | undefined;
-    const layouts = layoutCache?.layouts;
-    cy.waitUntil(() => {
-      const allDropdowns = win.document.querySelectorAll('[data-componenttype="Dropdown"]');
-      const asArray = Array.from(allDropdowns);
-      for (const dropdown of asArray) {
-        const inputInside = dropdown.querySelector('input');
-        if (!inputInside) {
-          return cy.wrap(false);
-        }
-        const baseId = dropdown.getAttribute('data-componentbaseid');
-
-        cy.getCurrentPageId().then((currentPageId) => {
-          const currentPage = layouts?.[currentPageId];
-          const componentDef = currentPage?.find((c) => c.id === baseId);
-          if (!componentDef) {
-            // throw new Error(`Could not find component definition for dropdown with id ${baseId}`);
-          }
-          if (
-            componentDef?.type === 'Dropdown' &&
-            componentDef?.preselectedOptionIndex !== undefined &&
-            !inputInside.value
-          ) {
-            return cy.wrap(false);
-          }
-
-          const activeDescendant = dropdown.getAttribute('aria-activedescendant');
-          if (!activeDescendant) {
-            return cy.wrap(true);
-          }
-          const activeDescendantElement = win.document.getElementById(activeDescendant);
-          if ((activeDescendant && !inputInside.value) || !activeDescendantElement) {
-            // Dropdown has selected value, but this has not yet been reflected in the input field value.
-            // We should wait until this has happened.
-            return cy.wrap(false);
-          }
-        });
+  cy.waitUntil(() => {
+    const allDropdowns = Cypress.$('[data-componenttype="Dropdown"]');
+    for (const dropdown of allDropdowns) {
+      const inputInside = dropdown.querySelector('input');
+      if (!inputInside) {
+        return cy.wrap(false);
       }
 
-      return cy.wrap(true);
-    });
+      const hasPreselected = dropdown.hasAttribute('data-has-preselected-option');
+      if (hasPreselected && !inputInside.value) {
+        return cy.wrap(false);
+      }
+
+      const activeDescendant = dropdown.getAttribute('aria-activedescendant');
+      if (!activeDescendant) {
+        continue;
+      }
+      const activeDescendantElement = Cypress.$(`#${activeDescendant}`)[0];
+      if ((activeDescendant && !inputInside.value) || !activeDescendantElement) {
+        // Dropdown has selected value, but this has not yet been reflected in the input field value.
+        // We should wait until this has happened.
+        return cy.wrap(false);
+      }
+    }
+
+    return cy.wrap(true);
   });
 });
 
@@ -344,7 +326,7 @@ Cypress.Commands.add('visualTesting', (name, _options) => {
       cy.viewport(innerWidth, innerHeight);
       const targetViewport =
         innerWidth < breakpoints.mobile ? 'mobile' : innerWidth < breakpoints.tablet ? 'tablet' : 'desktop';
-      cy.get(`html.viewport-is-${targetViewport}`).should('be.visible');
+      cy.get(`div.viewport-is-${targetViewport}`).should('be.visible');
     });
   });
 
