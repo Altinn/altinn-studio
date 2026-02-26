@@ -87,3 +87,54 @@ func TestWorkflowCommandRequiresCI(t *testing.T) {
 		t.Fatalf("runWorkflow() error = %v, want %v", err, errWorkflowRequiresCI)
 	}
 }
+
+func TestShouldPromptPrepare(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		dryRun      bool
+		assumeYes   bool
+		interactive bool
+		want        bool
+	}{
+		{
+			name:        "interactive default prompts",
+			dryRun:      false,
+			assumeYes:   false,
+			interactive: true,
+			want:        true,
+		},
+		{
+			name:        "dry run does not prompt",
+			dryRun:      true,
+			assumeYes:   false,
+			interactive: true,
+			want:        false,
+		},
+		{
+			name:        "yes flag does not prompt",
+			dryRun:      false,
+			assumeYes:   true,
+			interactive: true,
+			want:        false,
+		},
+		{
+			name:        "non interactive does not prompt",
+			dryRun:      false,
+			assumeYes:   false,
+			interactive: false,
+			want:        false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got := shouldPromptPrepare(tc.dryRun, tc.assumeYes, tc.interactive)
+			if got != tc.want {
+				t.Fatalf("shouldPromptPrepare() = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}

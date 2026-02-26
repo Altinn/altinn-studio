@@ -909,13 +909,13 @@ func (g *fakeGH) CreateRelease(_ context.Context, opts internal.Options) error {
 	return nil
 }
 
-func (g *fakeGH) CreatePR(_ context.Context, opts internal.PullRequestOptions) error {
+func (g *fakeGH) CreatePR(_ context.Context, opts internal.PullRequestOptions) (string, error) {
 	g.prCreated = true
 	g.prBase = opts.Base
 	if g.log != nil {
 		g.log.Info("gh pr create: title=%s base=%s", opts.Title, g.prBase)
 	}
-	return nil
+	return "https://example.test/pr/1", nil
 }
 
 func (g *fakeGH) SetWorkdir(_ string) {}

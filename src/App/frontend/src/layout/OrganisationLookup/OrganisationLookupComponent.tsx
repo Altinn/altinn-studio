@@ -9,6 +9,7 @@ import { Button } from 'src/app-components/Button/Button';
 import { NumericInput } from 'src/app-components/Input/NumericInput';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { Label } from 'src/app-components/Label/Label';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Description } from 'src/components/form/Description';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { getDescriptionId } from 'src/components/label/Label';
@@ -153,7 +154,7 @@ export function OrganisationLookupComponent({
             <NumericInput
               id={`${id}_orgnr`}
               aria-describedby={hasSuccessfullyFetched ? getDescriptionId(`${id}_orgnr`) : undefined}
-              aria-label={langAsString('organisation_lookup.orgnr_label')}
+              aria-label={translationKey('organisation_lookup.orgnr_label')}
               value={hasSuccessfullyFetched ? organisation_lookup_orgnr : tempOrgNr}
               required={required}
               readOnly={hasSuccessfullyFetched || isFetching}

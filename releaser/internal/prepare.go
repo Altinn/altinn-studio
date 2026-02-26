@@ -27,9 +27,11 @@ type releasePrepConfig struct {
 
 // PrepareRequest describes the inputs for a release prepare operation.
 type PrepareRequest struct {
-	Component     string // Component name (e.g., "studioctl")
-	Version       string // Version string (e.g., "v1.0.0")
-	ChangelogPath string // Optional: override component's default changelog path
+	Prompter      ConfirmationPrompter
+	Component     string
+	Version       string
+	ChangelogPath string
+	Open          bool
 	DryRun        bool
 }
 
@@ -98,8 +100,18 @@ func RunPrepareWithDeps(ctx context.Context, req PrepareRequest, git *GitCLI, gh
 	if err := ensureWorkingTreeClean(ctx, git, log); err != nil {
 		return err
 	}
+	remoteBase := "origin/" + cfg.baseBranch
+	if cfg.createReleaseBranch {
+		remoteBase = "origin/" + mainBranch
+	}
+	if err := confirmNonMainBranch(req.Prompter, current, "prepare",
+		"Will create and switch to new working branches from latest "+remoteBase+".",
+		"This changes your current branch context; cancel if you do not want to branch right now.",
+	); err != nil {
+		return err
+	}
 
-	return executeReleasePrepare(ctx, git, gh, log, repoRoot, clPath, cfg)
+	return executeReleasePrepare(ctx, git, gh, log, repoRoot, clPath, cfg, req.Prompter, req.Open)
 }
 
 func prepareReleasePrepConfig(
@@ -149,6 +161,10 @@ func prepareReleasePrepConfig(
 		return nil, fmt.Errorf("promote changelog: %w", err)
 	}
 	promoted := promotedCl.String()
+	prBody, err := buildPreparePRBody(verStr, promotedCl)
+	if err != nil {
+		return nil, fmt.Errorf("build PR body: %w", err)
+	}
 
 	return &releasePrepConfig{
 		component:           comp,
@@ -157,10 +173,9 @@ func prepareReleasePrepConfig(
 		baseBranch:          baseBranch,
 		createReleaseBranch: createReleaseBranch,
 		releaseBranch:       tag.ReleaseBranch(),
-		prTitle:             "Release " + comp.ReleaseTitle(verStr),
-		prBody: "Changelog promotion for " + comp.ReleaseTitle(verStr) +
-			".\n\nMerging this PR will automatically trigger the release workflow.",
-		promoted: promoted,
+		prTitle:             "chore: release " + comp.ReleaseTitle(verStr),
+		prBody:              prBody,
+		promoted:            promoted,
 	}, nil
 }
 
@@ -197,6 +212,40 @@ func determineBranchStrategy(ctx context.Context, git *GitCLI, tag *Tag) (string
 	}
 }
 
+func buildPreparePRBody(version string, promotedCl *changelog.Changelog) (string, error) {
+	if promotedCl == nil {
+		return "", errChangelogNil
+	}
+
+	section := promotedCl.GetVersion(version)
+	if section == nil {
+		return "", fmt.Errorf("%w: %s", changelog.ErrVersionNotFound, version)
+	}
+
+	var b strings.Builder
+	b.WriteString("## Description\n\n")
+	b.WriteString("Prepare release ")
+	b.WriteString(version)
+	b.WriteString("\n\n")
+
+	entryCount := 0
+	for _, category := range section.Categories {
+		for _, entry := range category.Entries {
+			b.WriteString("- [")
+			b.WriteString(category.Name)
+			b.WriteString("] ")
+			b.WriteString(entry)
+			b.WriteString("\n")
+			entryCount++
+		}
+	}
+	if entryCount == 0 {
+		b.WriteString("- No changelog entries found\n")
+	}
+
+	return strings.TrimRight(b.String(), "\n"), nil
+}
+
 func printReleasePrepDryRun(log Logger, cfg *releasePrepConfig) {
 	log.Info("=== DRY RUN ===")
 	if cfg.createReleaseBranch {
@@ -225,14 +274,27 @@ func executeReleasePrepare(
 	repoRoot string,
 	clPath string,
 	cfg *releasePrepConfig,
+	prompter ConfirmationPrompter,
+	openPR bool,
 ) error {
-	if err := setupBaseBranch(ctx, git, log, cfg); err != nil {
-		return err
+	prepBaseRef, setupErr := setupBaseBranch(ctx, git, log, cfg, prompter)
+	if setupErr != nil {
+		return setupErr
 	}
 
 	log.Step("Creating prep branch")
-	if err := git.RunWrite(ctx, "checkout", "-b", cfg.branchName); err != nil {
+	if err := git.RunWrite(ctx, "checkout", "-b", cfg.branchName, prepBaseRef); err != nil {
 		return fmt.Errorf("create prep branch: %w", err)
+	}
+
+	commitMsg := "Release " + cfg.component.ReleaseTitle(cfg.version.String())
+	if err := confirmMutatingAction(prompter, "promote changelog and create commit",
+		"Branch: "+cfg.branchName,
+		"File: "+clPath,
+		"Version: "+cfg.version.String(),
+		"Commit message: "+commitMsg,
+	); err != nil {
+		return err
 	}
 
 	log.Step("Updating changelog")
@@ -246,9 +308,14 @@ func executeReleasePrepare(
 	if err := git.RunWrite(ctx, "add", clPath); err != nil {
 		return fmt.Errorf("git add: %w", err)
 	}
-	commitMsg := "Release " + cfg.component.ReleaseTitle(cfg.version.String())
 	if err := git.RunWrite(ctx, "commit", "-m", commitMsg); err != nil {
 		return fmt.Errorf("git commit: %w", err)
+	}
+
+	if err := confirmMutatingAction(prompter, "push prep branch",
+		"Push: "+cfg.branchName+" -> origin/"+cfg.branchName,
+	); err != nil {
+		return err
 	}
 
 	log.Step("Pushing prep branch")
@@ -256,15 +323,17 @@ func executeReleasePrepare(
 		return fmt.Errorf("git push: %w", err)
 	}
 
-	log.Step("Creating release PR")
-	if err := gh.CreatePR(ctx, PullRequestOptions{
-		Title: cfg.prTitle,
-		Body:  cfg.prBody,
-		Label: cfg.component.ReleaseLabel(),
-		Base:  cfg.baseBranch,
-	}); err != nil {
-		return fmt.Errorf("create PR: %w", err)
+	prDetails := buildPreparePRPromptDetails(cfg)
+	if err := confirmMutatingAction(prompter, "create GitHub PR", prDetails...); err != nil {
+		return err
 	}
+
+	log.Step("Creating release PR")
+	prURL, createErr := createPreparePR(ctx, gh, cfg)
+	if createErr != nil {
+		return createErr
+	}
+	handlePreparePRResult(ctx, log, openPR, prURL)
 
 	log.Success("Release PR created successfully")
 	log.Info("Target branch: %s", cfg.baseBranch)
@@ -272,34 +341,80 @@ func executeReleasePrepare(
 	return nil
 }
 
-func setupBaseBranch(ctx context.Context, git *GitCLI, log Logger, cfg *releasePrepConfig) error {
-	if cfg.createReleaseBranch {
-		if err := checkoutBranch(ctx, git, log, mainBranch); err != nil {
-			return err
-		}
-		log.Info("Creating release branch %s from %s...", cfg.releaseBranch, mainBranch)
-		if err := git.RunWrite(ctx, "checkout", "-b", cfg.releaseBranch); err != nil {
-			return fmt.Errorf("create release branch: %w", err)
-		}
-		if err := git.RunWrite(ctx, "push", "-u", "origin", cfg.releaseBranch); err != nil {
-			return fmt.Errorf("push release branch: %w", err)
-		}
-		return nil
+func handlePreparePRResult(ctx context.Context, log Logger, openPR bool, prURL string) {
+	if prURL == "" {
+		log.Error("PR created, but URL could not be determined")
+	} else {
+		log.Info("PR: %s", prURL)
 	}
-
-	return checkoutBranch(ctx, git, log, cfg.baseBranch)
+	if !openPR {
+		return
+	}
+	if prURL == "" {
+		log.Error("Could not open PR in browser: PR URL is unavailable")
+		return
+	}
+	if openErr := OpenBrowser(ctx, prURL); openErr != nil {
+		log.Error("Could not open PR in browser: %v", openErr)
+	}
 }
 
-func checkoutBranch(ctx context.Context, git *GitCLI, log Logger, branch string) error {
-	log.Info("Checking out %s...", branch)
-	if err := git.RunWrite(ctx, "fetch", "origin", branch); err != nil {
-		return fmt.Errorf("fetch branch: %w", err)
+func createPreparePR(ctx context.Context, gh GitHubRunner, cfg *releasePrepConfig) (string, error) {
+	// Keep PR creation as a separate step so execution flow stays simple and lint-compliant.
+	prURL, err := gh.CreatePR(ctx, PullRequestOptions{
+		Title: cfg.prTitle,
+		Body:  cfg.prBody,
+		Label: cfg.component.ReleaseLabel(),
+		Base:  cfg.baseBranch,
+	})
+	if err != nil {
+		return "", fmt.Errorf("create PR: %w", err)
 	}
-	if err := git.RunWrite(ctx, "checkout", branch); err != nil {
-		return fmt.Errorf("checkout branch: %w", err)
+	return prURL, nil
+}
+
+func setupBaseBranch(
+	ctx context.Context,
+	git *GitCLI,
+	log Logger,
+	cfg *releasePrepConfig,
+	prompter ConfirmationPrompter,
+) (string, error) {
+	if !cfg.createReleaseBranch {
+		if err := git.RunWrite(ctx, "fetch", "origin", cfg.baseBranch); err != nil {
+			return "", fmt.Errorf("fetch base branch: %w", err)
+		}
+		return "origin/" + cfg.baseBranch, nil
 	}
-	if err := git.RunWrite(ctx, "pull", "origin", branch); err != nil {
-		return fmt.Errorf("pull branch: %w", err)
+
+	if err := git.RunWrite(ctx, "fetch", "origin", mainBranch); err != nil {
+		return "", fmt.Errorf("fetch main branch: %w", err)
 	}
-	return nil
+	if err := confirmMutatingAction(prompter, "create and push release branch",
+		"Source branch: "+mainBranch,
+		"New branch: "+cfg.releaseBranch,
+		"Push: "+cfg.releaseBranch+" -> origin/"+cfg.releaseBranch,
+	); err != nil {
+		return "", err
+	}
+	log.Info("Creating release branch %s from origin/%s...", cfg.releaseBranch, mainBranch)
+	if err := git.RunWrite(ctx, "checkout", "-b", cfg.releaseBranch, "origin/"+mainBranch); err != nil {
+		return "", fmt.Errorf("create release branch: %w", err)
+	}
+	if err := git.RunWrite(ctx, "push", "-u", "origin", cfg.releaseBranch); err != nil {
+		return "", fmt.Errorf("push release branch: %w", err)
+	}
+	return cfg.releaseBranch, nil
+}
+
+func buildPreparePRPromptDetails(cfg *releasePrepConfig) []string {
+	bodyLines := strings.Split(cfg.prBody, "\n")
+	prDetails := make([]string, 0, 4+len(bodyLines))
+	prDetails = append(prDetails,
+		"Base branch: "+cfg.baseBranch,
+		"Title: "+cfg.prTitle,
+		"Label: "+cfg.component.ReleaseLabel(),
+		"Body:",
+	)
+	return append(prDetails, bodyLines...)
 }

@@ -46,7 +46,7 @@ describe('Dynamics', () => {
   });
 
   it('Remove validation message when field disappears', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'newFirstName') {
         component.hidden = ['equals', 'hideFirstName', ['component', 'newLastName']];
       }
@@ -67,7 +67,7 @@ describe('Dynamics', () => {
 
   it('Page interdependent dynamics with component lookups', () => {
     cy.interceptLayout(
-      'changename',
+      'Task_2',
       (component) => {
         if (component.id === 'newLastName') {
           // Hide the field using dynamics from the summary page
@@ -125,7 +125,7 @@ describe('Dynamics', () => {
   });
 
   it('Interdependent dynamics with component lookups', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       // When three fields depend on each other in a chain, we need to run the expressions multiple times in order
       // for the last field to be shown in some cases. This is because the component lookup returns null when the
       // field is hidden, and the expression is not run again when the field is shown again.

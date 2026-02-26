@@ -72,11 +72,13 @@ func TestRunWorkflow_SelectsLatestPrereleaseForMain(t *testing.T) {
 ## [1.2.0-preview.2] - 2025-01-02
 
 ### Added
+
 - Latest preview notes
 
 ## [1.2.0-preview.1] - 2025-01-01
 
 ### Added
+
 - Old preview notes
 `)
 	t.Chdir(repo)
@@ -110,16 +112,19 @@ func TestRunWorkflow_SelectsLatestStableForReleaseLine(t *testing.T) {
 ## [1.1.0] - 2025-01-03
 
 ### Added
+
 - Other line
 
 ## [1.0.2] - 2025-01-02
 
 ### Fixed
+
 - Latest patch notes
 
 ## [1.0.1] - 2025-01-01
 
 ### Fixed
+
 - Old patch notes
 `)
 	createReleaseBranch(t, repo, "release/studioctl/v1.0")
@@ -152,6 +157,7 @@ func TestRunWorkflow_NoReleasedVersions(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Pending only
 `)
 	t.Chdir(repo)
@@ -178,6 +184,7 @@ func TestRunWorkflow_NoMatchingReleaseLine(t *testing.T) {
 ## [1.0.1] - 2025-01-01
 
 ### Fixed
+
 - Existing line
 `)
 	createReleaseBranch(t, repo, "release/studioctl/v2.0")

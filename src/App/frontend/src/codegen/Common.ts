@@ -832,41 +832,19 @@ const common = {
       new CG.prop('$schema', new CG.str().optional()),
       new CG.prop('pages', CG.common('IPagesSettings')),
       new CG.prop('components', CG.common('IComponentsSettings').optional()),
+      new CG.prop(
+        'defaultDataType',
+        new CG.str()
+          .optional()
+          .setTitle('Default data model')
+          .setDescription(
+            'The default data model type to be used for bindings not specifying a dataType in these layouts',
+          ),
+      ),
     )
       .setTitle('Layout settings')
       .setDescription('Settings regarding layout pages and components'),
 
-  // Layout sets:
-  ILayoutSetsFromSchema: () =>
-    new CG.obj(
-      new CG.prop('$schema', new CG.str().optional()),
-      new CG.prop(
-        'sets',
-        new CG.arr(CG.common('ILayoutSetFromSchema'))
-          .setTitle('Layout sets')
-          .setDescription('List of layout sets for different data types'),
-      ),
-      new CG.prop('uiSettings', CG.common('GlobalPageSettingsFromSchema').optional()),
-    )
-      .setTitle('Layout sets')
-      .setDescription('Settings regarding layout pages and components'),
-  ILayoutSetFromSchema: () =>
-    new CG.obj(
-      new CG.prop(
-        'id',
-        new CG.str().setTitle('ID').setDescription('The layout-set ID. Must be unique within a given application.'),
-      ),
-      new CG.prop('dataType', new CG.str().setTitle('Data type').setDescription('The datatype to use this layout.')),
-      new CG.prop(
-        'tasks',
-        new CG.arr(new CG.str())
-          .optional()
-          .setTitle('Tasks')
-          .setDescription('An array specifying which task to use a layout-set'),
-      ),
-    )
-      .setTitle('Layout Set')
-      .setDescription('Settings regarding a layout-set'),
   PatternFormatProps: () =>
     new CG.obj(
       new CG.prop('format', new CG.expr(ExprVal.String)),
