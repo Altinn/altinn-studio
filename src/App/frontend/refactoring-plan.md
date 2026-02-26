@@ -73,7 +73,7 @@ npx cypress open --env environment=docker
 | 2.5 | Required field validation | Done | useRequiredValidation hook + required indicators on 6 components |
 | 3.1 | Page navigation within a task | Done | NavigationButtons component with validation-blocked navigation |
 | 3.2 | Layout settings integration | Done | Page order from layoutSettings, expression-based page hiding filters hidden pages from nav/order |
-| 3.3 | Process management | Not started | |
+| 3.3 | Process management | Done | ProcessApi client, task-type routing in loaders, ProcessActionsContext bridge, useProcessNext hook with save-flush, submit wired into NavigationButtons and Button |
 | 3.4 | Confirmation and receipt pages | Not started | |
 | 4.1 | Text/date components | Not started | |
 | 4.2 | File handling components | Not started | |
