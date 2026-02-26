@@ -8,7 +8,7 @@ import {
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-development/test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
-import { FeatureFlagsContextProvider, type FeatureFlag } from '@studio/feature-flags';
+import { type FeatureFlag } from '@studio/feature-flags';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 
 describe('Navigation', () => {
@@ -68,12 +68,8 @@ const getFeatureFlags = (menuItems: HeaderMenuItem[]): FeatureFlag[] => {
 };
 
 const renderNavigation = (featureFlags: FeatureFlag[] = []) => {
-  renderWithProviders(
-    <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
-      <Navigation />
-    </FeatureFlagsContextProvider>,
-    {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
-    },
-  );
+  renderWithProviders(<Navigation />, {
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+    featureFlags,
+  });
 };

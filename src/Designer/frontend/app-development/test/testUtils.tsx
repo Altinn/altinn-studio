@@ -8,22 +8,29 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { FeatureFlagsProvider } from '@studio/feature-flags';
+import { FeatureFlagsContextProvider, type FeatureFlag } from '@studio/feature-flags';
 import { AppDevelopmentContextProvider } from '../contexts/AppDevelopmentContext';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   startUrl?: string;
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
+  featureFlags?: FeatureFlag[];
 }
 
 export const renderWithProviders = (
   component: any,
-  { queries = {}, queryClient, startUrl = undefined, ...renderOptions }: ExtendedRenderOptions = {},
+  {
+    queries = {},
+    queryClient,
+    startUrl = undefined,
+    featureFlags = [],
+    ...renderOptions
+  }: ExtendedRenderOptions = {},
 ) => {
   function Wrapper({ children }: React.PropsWithChildren<unknown>) {
     return (
-      <FeatureFlagsProvider>
+      <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
         <MemoryRouter basename={APP_DEVELOPMENT_BASENAME} initialEntries={[startUrl]}>
           <ServicesContextProvider
             {...queriesMock}
@@ -38,7 +45,7 @@ export const renderWithProviders = (
             </AppDevelopmentContextProvider>
           </ServicesContextProvider>
         </MemoryRouter>
-      </FeatureFlagsProvider>
+      </FeatureFlagsContextProvider>
     );
   }
 
