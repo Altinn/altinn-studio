@@ -30,7 +30,6 @@ internal sealed class MimeTypeValidator : IFileValidator
         {
             ValidationIssue error = new()
             {
-                Source = "File",
                 Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                 Severity = ValidationIssueSeverity.Error,
                 Description =

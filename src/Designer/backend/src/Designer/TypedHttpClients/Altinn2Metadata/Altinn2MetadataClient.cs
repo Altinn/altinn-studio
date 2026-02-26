@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable disable
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -18,29 +19,43 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
         private readonly HttpClient _httpClient;
 
         private readonly ResourceRegistryIntegrationSettings _rrs;
+
         public Altinn2MetadataClient(HttpClient httpClient, IOptions<ResourceRegistryIntegrationSettings> rrs)
         {
             _httpClient = httpClient;
             _rrs = rrs.Value;
         }
 
-        public async Task<ServiceResource> GetServiceResourceFromService(string serviceCode, int serviceEditionCode, string environment)
+        public async Task<ServiceResource> GetServiceResourceFromService(
+            string serviceCode,
+            int serviceEditionCode,
+            string environment
+        )
         {
             string bridgeBaseUrl = GetSblBridgeUrl(environment);
-            string url = $"{bridgeBaseUrl}metadata/api/resourceregisterresource?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
+            string url =
+                $"{bridgeBaseUrl}metadata/api/resourceregisterresource?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
             string contentString = await response.Content.ReadAsStringAsync();
-            ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(contentString);
+            ServiceResource serviceResource = System.Text.Json.JsonSerializer.Deserialize<ServiceResource>(
+                contentString
+            );
             return serviceResource;
         }
 
-        public async Task<XacmlPolicy> GetXacmlPolicy(string serviceCode, int serviceEditionCode, string identifier, string environment)
+        public async Task<XacmlPolicy> GetXacmlPolicy(
+            string serviceCode,
+            int serviceEditionCode,
+            string identifier,
+            string environment
+        )
         {
             string bridgeBaseUrl = GetSblBridgeUrl(environment);
-            string url = $"{bridgeBaseUrl}authorization/api/resourcepolicyfile?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&identifier={identifier}";
+            string url =
+                $"{bridgeBaseUrl}authorization/api/resourcepolicyfile?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}&identifier={identifier}";
 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -59,7 +74,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
         {
             List<AvailableService> availableServices = null;
             string bridgeBaseUrl = GetSblBridgeUrl(environment);
-            string availabbleServicePath = $"{bridgeBaseUrl}metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
+            string availabbleServicePath =
+                $"{bridgeBaseUrl}metadata/api/availableServices?languageID={languageId}&appTypesToInclude=0&includeExpired=false";
 
             HttpResponseMessage response = await _httpClient.GetAsync(availabbleServicePath);
 
@@ -68,7 +84,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata
             string availableServiceString = await response.Content.ReadAsStringAsync();
             if (!string.IsNullOrEmpty(availableServiceString))
             {
-                availableServices = System.Text.Json.JsonSerializer.Deserialize<List<AvailableService>>(availableServiceString, new System.Text.Json.JsonSerializerOptions());
+                availableServices = System.Text.Json.JsonSerializer.Deserialize<List<AvailableService>>(
+                    availableServiceString,
+                    new System.Text.Json.JsonSerializerOptions()
+                );
             }
 
             return availableServices;

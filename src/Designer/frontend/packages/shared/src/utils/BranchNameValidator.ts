@@ -1,4 +1,4 @@
-import { GIT_BRANCH_VALIDATION } from 'app-shared/constants';
+import { GIT_BRANCH_VALIDATION } from 'app-shared/constants/gitBranchValidation';
 
 export interface ValidationResult {
   isValid: boolean;

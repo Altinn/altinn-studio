@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import type { PropsWithChildren, RefObject } from 'react';
 
 import deepEqual from 'fast-deep-equal';
@@ -11,8 +11,8 @@ import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStorePlugin';
 import { UpdateAttachmentsForCypress } from 'src/features/attachments/UpdateAttachmentsForCypress';
-import { HiddenComponentsProvider } from 'src/features/form/dynamics/HiddenComponentsProvider';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
 import {
   LoadingBlockerWaitForValidation,
@@ -20,7 +20,8 @@ import {
   Validation,
 } from 'src/features/validation/validationContext';
 import { ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
-import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
+import { useNavigationParam } from 'src/hooks/navigation';
+import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { GeneratorGlobalProvider, GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useRegistry } from 'src/utils/layout/generator/GeneratorStages';
@@ -86,14 +87,11 @@ export type NodesContext = {
   hasErrors: boolean;
   pagesData: PagesData;
   nodeData: { [key: string]: NodeData };
-  hiddenViaRules: { [key: string]: true | undefined };
-  hiddenViaRulesRan: boolean;
   layouts: ILayouts | undefined; // Used to detect if the layouts have changed
   addNodes: (requests: AddNodeRequest[]) => void;
   removeNodes: (requests: RemoveNodeRequest[]) => void;
   setNodeProps: (requests: SetNodePropRequest[]) => void;
   addError: (error: string, id: string, type: 'node' | 'page') => void;
-  markHiddenViaRule: (hiddenFields: { [nodeId: string]: true }) => void;
 
   addPage: (pageKey: string) => void;
 
@@ -122,8 +120,6 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
       pages: {},
     },
     nodeData: {},
-    hiddenViaRules: {},
-    hiddenViaRulesRan: false,
     validationsProcessedLast,
   };
 
@@ -132,15 +128,6 @@ export function createNodesDataStore({ validationsProcessedLast, ...props }: Cre
     ...props,
 
     layouts: undefined,
-
-    markHiddenViaRule: (newState) =>
-      set((state) => {
-        if (deepEqual(state.hiddenViaRules, newState)) {
-          return { hiddenViaRulesRan: true };
-        }
-
-        return { hiddenViaRules: newState, hiddenViaRulesRan: true };
-      }),
 
     addNodes: (requests) =>
       set((state) => {
@@ -267,18 +254,16 @@ export const NodesProvider = ({ children, ...props }: NodesProviderProps) => {
           </GeneratorData.Provider>
         </GeneratorValidationProvider>
         {window.Cypress && <UpdateAttachmentsForCypress />}
-        <HiddenComponentsProvider />
-        <BlockUntilRulesRan>
-          <ProvideWaitForValidation />
-          <ExpressionValidation />
-          <LoadingBlockerWaitForValidation>{children}</LoadingBlockerWaitForValidation>
-        </BlockUntilRulesRan>
+        <ProvideWaitForValidation />
+        <ExpressionValidation />
+        <LoadingBlockerWaitForValidation>{children}</LoadingBlockerWaitForValidation>
       </ProvideGlobalContext>
     </Store.Provider>
   );
 };
 
 function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ registry: RefObject<Registry> }>) {
+  const isInTaskTransition = useIsInTaskTransition();
   const latestLayouts = useLayouts();
   const layouts = Store.useSelector((s) => s.layouts);
   const reset = Store.useSelector((s) => s.reset);
@@ -314,7 +299,7 @@ function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ regist
     [registry],
   );
 
-  if (layouts !== latestLayouts) {
+  if (layouts !== latestLayouts || isInTaskTransition) {
     // You changed the layouts, possibly by using devtools. Hold on while we re-generate!
     return <NodesLoader />;
   }
@@ -331,6 +316,22 @@ function ProvideGlobalContext({ children, registry }: PropsWithChildren<{ regist
       {children}
     </GeneratorGlobalProvider>
   );
+}
+
+/**
+ * When navigating to process/next, the taskId transitions to a new one. Layouts will be updated as well, but that
+ * takes time. This hook returns true when in such a transition
+ */
+function useIsInTaskTransition() {
+  const currentTask = useProcessQuery().data?.currentTask?.elementId;
+  const taskIdFromUrl = useNavigationParam('taskId');
+
+  if ([TaskKeys.ProcessEnd, TaskKeys.CustomReceipt].includes(taskIdFromUrl as TaskKeys) && !currentTask) {
+    // Receipt indicates that the process ended - it cannot be compared directly with the taskId
+    return false;
+  }
+
+  return currentTask !== taskIdFromUrl;
 }
 
 function AutoCommit({ registry }: { registry: RefObject<Registry> }) {
@@ -364,41 +365,8 @@ function AutoCommit({ registry }: { registry: RefObject<Registry> }) {
   return null;
 }
 
-function BlockUntilRulesRan({ children }: PropsWithChildren) {
-  const hasBeenReady = useRef(false);
-  const ready = Store.useSelector((state) => {
-    if (state.hiddenViaRulesRan) {
-      hasBeenReady.current = true;
-      return true;
-    }
-    return hasBeenReady.current;
-  });
-
-  if (!ready) {
-    return <NodesLoader />;
-  }
-
-  return children;
-}
-
 function NodesLoader() {
   return <Loader reason='nodes' />;
-}
-
-export function useIsHiddenByRules(nodeId: string) {
-  return Store.useSelector((s) => s.hiddenViaRules[nodeId] ?? false);
-}
-
-export function useIsHiddenByRulesMulti(baseIds: string[]) {
-  const idMutator = useComponentIdMutator();
-  return Store.useShallowSelector((s) => {
-    const hidden: { [baseId: string]: boolean | undefined } = {};
-    for (const baseId of baseIds) {
-      const nodeId = idMutator(baseId);
-      hidden[baseId] = s.hiddenViaRules[nodeId] ?? false;
-    }
-    return hidden;
-  });
 }
 
 /**
@@ -501,7 +469,6 @@ export const NodesInternal = {
   useStore: () => Store.useStore(),
   useAddPage: () => Store.useStaticSelector((s) => s.addPage),
   useAddError: () => Store.useStaticSelector((s) => s.addError),
-  useMarkHiddenViaRule: () => Store.useStaticSelector((s) => s.markHiddenViaRule),
 
   ...(Object.values(StorePlugins)
     .map((plugin) => plugin.extraHooks(Store))

@@ -1,4 +1,3 @@
-#nullable enable
 using System.Collections.Generic;
 
 namespace Altinn.Studio.Designer.Models
@@ -22,6 +21,11 @@ namespace Altinn.Studio.Designer.Models
         /// If template is used for a power of attorney (POA) or consent
         /// </summary>
         public bool IsPoa { get; set; }
+
+        /// <summary>
+        /// If template is active and can be set in consent resource
+        /// </summary>
+        public bool IsActive { get; set; }
 
         /// <summary>
         /// If custom message is set when sending consent request

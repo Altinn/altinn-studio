@@ -11,11 +11,19 @@ import type {
   ConsentMetadata,
   AccessList,
 } from 'app-shared/types/ResourceAdm';
-import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import type { Policy, PolicyRule, PolicySubject } from '@altinn/policy-editor/types';
-import { emptyPolicyRule, organizationSubject } from '@altinn/policy-editor/utils';
 import type { TFunction } from 'i18next';
+import {
+  emptyPolicyRule,
+  organizationSubject,
+  policySubjectOrg,
+} from '@altinn/policy-editor/utils';
+import {
+  ACCESS_LIST_SUBJECT_SOURCE,
+  CONSENT_ACTION,
+  REQUEST_CONSENT_ACTION,
+} from '@altinn/policy-editor/constants';
 
 /**
  * The map of resource type
@@ -126,17 +134,31 @@ export const mapKeywordStringToKeywordTypeArray = (keywrodString: string): Resou
     .map((val) => ({ language: 'nb', word: val.trim() }));
 };
 
-export const getResourceIdentifierErrorMessage = (identifier: string, isConflict?: boolean) => {
-  const hasAppPrefix = isAppPrefix(identifier);
-  const hasSePrefix = isSePrefix(identifier);
-  if (hasAppPrefix) {
-    return 'resourceadm.dashboard_resource_id_cannot_be_app';
-  } else if (hasSePrefix) {
-    return 'resourceadm.dashboard_resource_id_cannot_be_se';
-  } else if (isConflict) {
+export const getResourceIdentifierErrorMessage = (
+  identifier: string,
+  org: string,
+  isConflict?: boolean,
+) => {
+  if (isConflict) {
     return 'resourceadm.dashboard_resource_name_and_id_error';
+  } else if (!hasOrgPrefixInIdentifier(identifier, org)) {
+    return 'resourceadm.dashboard_resource_id_must_start_with_org';
   }
   return '';
+};
+
+export const getValidIdentifierPrefixes = (org: string): string[] => {
+  if (org === 'skd') {
+    return ['skd-', 'skd_', 'ske-', 'ske_'];
+  }
+  if (org === 'digdir') {
+    return ['digdir-', 'digdir_', 'altinn-', 'altinn_'];
+  }
+  return [`${org}-`, `${org}_`];
+};
+
+export const hasOrgPrefixInIdentifier = (identifier: string, org: string): boolean => {
+  return getValidIdentifierPrefixes(org).some((prefix) => identifier.startsWith(prefix));
 };
 
 /**
@@ -368,7 +390,8 @@ export const validateResource = (
       links.forEach((link) => {
         const urlMatch = link.match(/\[[^\]]+\]\(([^)]+)\)/);
         const linkUrl = urlMatch?.[1];
-        const isLinkUrlValid = !!linkUrl && /^https?:\/\//.test(linkUrl);
+        const isLinkUrlValid =
+          !!linkUrl && (/^https?:\/\//.test(linkUrl) || /^{[a-z]+}/.test(linkUrl));
         if (!isLinkUrlValid) {
           errors.push({
             field: 'consentText',
@@ -393,7 +416,7 @@ export const validateResource = (
     });
   }
   resourceData.contactPoints?.map((x, index) => {
-    if (x.category === '' && x.email === '' && x.telephone === '' && x.contactPage === '') {
+    if (!x.category && !x.email && !x.telephone && !x.contactPage) {
       errors.push({
         field: 'contactPoints',
         index: index,
@@ -498,14 +521,14 @@ const getUnknownMetadataValues = (
 const getConsentResourceDefaultRules = (resourceId: string): PolicyRule[] => {
   const requestConsentRule = {
     ...emptyPolicyRule,
-    subject: [organizationSubject.subjectId],
-    actions: ['requestconsent'],
+    subject: [organizationSubject.urn],
+    actions: [REQUEST_CONSENT_ACTION],
     ruleId: '1',
     resources: [[`urn:altinn:resource:${resourceId}`]],
   };
   const acceptConsentRule = {
     ...emptyPolicyRule,
-    actions: ['consent'],
+    actions: [CONSENT_ACTION],
     ruleId: '2',
     resources: [[`urn:altinn:resource:${resourceId}`]],
   };
@@ -517,9 +540,11 @@ const hasPolicyAction = (rule: PolicyRule, targetAction: string): boolean => {
   return rule.actions.some((action) => action === targetAction);
 };
 const hasConsentRules = (policyData: Policy): boolean => {
-  const hasAcceptConsentAction = policyData.rules.some((rule) => hasPolicyAction(rule, 'consent'));
+  const hasAcceptConsentAction = policyData.rules.some((rule) =>
+    hasPolicyAction(rule, CONSENT_ACTION),
+  );
   const hasRequestConsentAction = policyData.rules.some((rule) =>
-    hasPolicyAction(rule, 'requestconsent'),
+    hasPolicyAction(rule, REQUEST_CONSENT_ACTION),
   );
 
   return hasAcceptConsentAction && hasRequestConsentAction;
@@ -540,29 +565,45 @@ export const getResourcePolicyRules = (
     return {
       ...policyData,
       rules: policyData.rules.filter(
-        (rule) => !hasPolicyAction(rule, 'consent') && !hasPolicyAction(rule, 'requestconsent'),
+        (rule) =>
+          !hasPolicyAction(rule, CONSENT_ACTION) && !hasPolicyAction(rule, REQUEST_CONSENT_ACTION),
       ),
     };
   }
   return policyData;
 };
 
+export const createAccessListSubject = (accessList: AccessList, org: string): PolicySubject => {
+  const urn = `${ACCESS_LIST_SUBJECT_SOURCE}:${org}:${accessList.identifier}`;
+  return {
+    id: accessList.identifier,
+    description: accessList.description,
+    legacyUrn: urn,
+    urn: urn,
+    name: accessList.name,
+    legacyRoleCode: accessList.identifier,
+    provider: {
+      id: '',
+      code: 'sys-accesslist',
+      name: '',
+    },
+  };
+};
+
 export const getResourceSubjects = (
   accessLists: AccessList[],
   subjectData: PolicySubject[],
   org: string,
-  isConsentResource: boolean,
+  resourceType: ResourceTypeOption,
 ) => {
-  if (isConsentResource) {
+  if (resourceType === 'Consent') {
     const accessListSubjects: PolicySubject[] = (accessLists ?? []).map((accessList) => {
-      return {
-        subjectId: `${accessList.identifier}`,
-        subjectSource: `altinn:access-list:${org}`,
-        subjectTitle: accessList.name,
-        subjectDescription: accessList.description,
-      };
+      return createAccessListSubject(accessList, org);
     });
     return [...subjectData, ...accessListSubjects, organizationSubject];
+  }
+  if (resourceType === 'CorrespondenceService') {
+    return [...subjectData, policySubjectOrg];
   }
   return subjectData;
 };

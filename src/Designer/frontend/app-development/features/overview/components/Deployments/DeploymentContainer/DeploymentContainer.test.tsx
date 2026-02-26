@@ -27,7 +27,7 @@ describe('DeploymentContainer', () => {
       getOrgList: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
     });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('overview.deployments_loading')),
+      screen.queryByText(textMock('overview.deployments_loading')),
     );
 
     expect(screen.getByText(textMock('overview.deployments_error'))).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('DeploymentContainer', () => {
       ),
     });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('overview.deployments_loading')),
+      screen.queryByText(textMock('overview.deployments_loading')),
     );
 
     expect(screen.getByText(textMock('overview.activity'))).toBeInTheDocument();

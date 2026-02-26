@@ -59,7 +59,7 @@ public class AppResourcesSI : IAppResources
     {
         using var activity = _telemetry?.StartGetTextActivity();
         return ReadFileContentsFromLegalPath(
-            _settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder,
+            Path.Join(_settings.AppBasePath, _settings.ConfigurationFolder, _settings.TextFolder),
             textResource
         );
     }
@@ -68,7 +68,7 @@ public class AppResourcesSI : IAppResources
     public async Task<TextResource?> GetTexts(string org, string app, string language)
     {
         using var activity = _telemetry?.StartGetTextsActivity();
-        string pathTextsFolder = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder;
+        string pathTextsFolder = Path.Join(_settings.AppBasePath, _settings.ConfigurationFolder, _settings.TextFolder);
         string fullFileName = Path.Join(pathTextsFolder, $"resource.{language}.json");
 
         PathHelper.EnsureLegalPath(pathTextsFolder, fullFileName);
@@ -144,8 +144,8 @@ public class AppResourcesSI : IAppResources
     public string GetModelJsonSchema(string modelId)
     {
         using var activity = _telemetry?.StartGetModelJsonSchemaActivity();
-        string legalPath = $"{_settings.AppBasePath}{_settings.ModelsFolder}";
-        string filename = $"{legalPath}{modelId}.{_settings.JsonSchemaFileName}";
+        string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
+        string filename = Path.Join(legalPath, $"{modelId}.{_settings.JsonSchemaFileName}");
         PathHelper.EnsureLegalPath(legalPath, filename);
 
         string filedata = File.ReadAllText(filename, Encoding.UTF8);
@@ -157,8 +157,8 @@ public class AppResourcesSI : IAppResources
     public string? GetPrefillJson(string dataModelName = "ServiceModel")
     {
         using var activity = _telemetry?.StartGetPrefillJsonActivity();
-        string legalPath = _settings.AppBasePath + _settings.ModelsFolder;
-        string filename = legalPath + dataModelName + ".prefill.json";
+        string legalPath = Path.Join(_settings.AppBasePath, _settings.ModelsFolder);
+        string filename = Path.Join(legalPath, dataModelName + ".prefill.json");
         PathHelper.EnsureLegalPath(legalPath, filename);
 
         string? filedata = null;
@@ -168,36 +168,6 @@ public class AppResourcesSI : IAppResources
         }
 
         return filedata;
-    }
-
-    /// <inheritdoc />
-    public string? GetLayoutSettingsString()
-    {
-        using var activity = _telemetry?.StartGetLayoutSettingsStringActivity();
-        string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
-        string? filedata = null;
-        if (File.Exists(filename))
-        {
-            filedata = File.ReadAllText(filename, Encoding.UTF8);
-        }
-
-        return filedata;
-    }
-
-    /// <inheritdoc />
-    public LayoutSettings GetLayoutSettings()
-    {
-        using var activity = _telemetry?.StartGetLayoutSettingsActivity();
-        string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
-        if (File.Exists(filename))
-        {
-            var filedata = File.ReadAllText(filename, Encoding.UTF8);
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            LayoutSettings layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(filedata)!;
-            return layoutSettings;
-        }
-
-        throw new FileNotFoundException($"Could not find layoutsettings file: {filename}");
     }
 
     /// <inheritdoc />
@@ -218,38 +188,7 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public string GetLayouts()
-    {
-        using var activity = _telemetry?.StartGetLayoutsActivity();
-        Dictionary<string, object> layouts = new Dictionary<string, object>();
-
-        // Get FormLayout.json if it exists and return it (for backwards compatibility)
-        string fileName = _settings.AppBasePath + _settings.UiFolder + "FormLayout.json";
-        if (File.Exists(fileName))
-        {
-            string fileData = File.ReadAllText(fileName, Encoding.UTF8);
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            layouts.Add("FormLayout", JsonConvert.DeserializeObject<object>(fileData)!);
-            return JsonConvert.SerializeObject(layouts);
-        }
-
-        string layoutsPath = _settings.AppBasePath + _settings.UiFolder + "layouts/";
-        if (Directory.Exists(layoutsPath))
-        {
-            foreach (string file in Directory.GetFiles(layoutsPath))
-            {
-                string data = File.ReadAllText(file, Encoding.UTF8);
-                string name = file.Replace(layoutsPath, string.Empty).Replace(".json", string.Empty);
-                // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-                layouts.Add(name, JsonConvert.DeserializeObject<object>(data)!);
-            }
-        }
-
-        return JsonConvert.SerializeObject(layouts);
-    }
-
-    /// <inheritdoc />
-    public string GetLayoutSets()
+    public string? GetLayoutSetsString()
     {
         using var activity = _telemetry?.StartGetLayoutSetsActivity();
         string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.LayoutSetsFileName);
@@ -264,10 +203,10 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public LayoutSets? GetLayoutSet()
+    public LayoutSets? GetLayoutSets()
     {
         using var activity = _telemetry?.StartGetLayoutSetActivity();
-        string? layoutSetsString = GetLayoutSets();
+        string? layoutSetsString = GetLayoutSetsString();
         if (layoutSetsString is not null)
         {
             return System.Text.Json.JsonSerializer.Deserialize<LayoutSets>(layoutSetsString, _jsonSerializerOptions);
@@ -280,7 +219,7 @@ public class AppResourcesSI : IAppResources
     public LayoutSet? GetLayoutSetForTask(string taskId)
     {
         using var activity = _telemetry?.StartGetLayoutSetsForTaskActivity();
-        var sets = GetLayoutSet();
+        var sets = GetLayoutSets();
         return sets?.Sets?.Find(s => s?.Tasks?.Contains(taskId) is true);
     }
 
@@ -290,7 +229,7 @@ public class AppResourcesSI : IAppResources
         using var activity = _telemetry?.StartGetLayoutsForSetActivity();
         Dictionary<string, object> layouts = new Dictionary<string, object>();
 
-        string layoutsPath = _settings.AppBasePath + _settings.UiFolder + layoutSetId + "/layouts/";
+        string layoutsPath = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSetId, "layouts");
 
         PathHelper.EnsureLegalPath(Path.Join(_settings.AppBasePath, _settings.UiFolder), layoutsPath);
 
@@ -299,7 +238,7 @@ public class AppResourcesSI : IAppResources
             foreach (string file in Directory.GetFiles(layoutsPath))
             {
                 string data = File.ReadAllText(file, Encoding.UTF8);
-                string name = file.Replace(layoutsPath, string.Empty).Replace(".json", string.Empty);
+                string name = Path.GetFileNameWithoutExtension(file);
                 // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
                 layouts.Add(name, JsonConvert.DeserializeObject<object>(data)!);
             }
@@ -312,7 +251,7 @@ public class AppResourcesSI : IAppResources
     [Obsolete("Use GetLayoutModelForTask instead")]
     public LayoutModel GetLayoutModel(string? layoutSetId = null)
     {
-        var sets = GetLayoutSet();
+        var sets = GetLayoutSets();
         if (sets is null)
         {
             throw new InvalidOperationException("No layout set found");
@@ -331,7 +270,7 @@ public class AppResourcesSI : IAppResources
     public LayoutModel? GetLayoutModelForTask(string taskId)
     {
         using var activity = _telemetry?.StartGetLayoutModelActivity();
-        var layoutSets = GetLayoutSet();
+        var layoutSets = GetLayoutSets();
         if (layoutSets is null)
         {
             return null;
@@ -372,16 +311,14 @@ public class AppResourcesSI : IAppResources
         string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSet.Id, "layouts");
         foreach (var page in order)
         {
-            var pageBytes = File.ReadAllBytes(Path.Join(folder, page + ".json"));
-            // Set the PageName using AsyncLocal before deserializing.
-            PageComponentConverter.SetAsyncLocalPageName(layoutSet.Id, page);
-            pages.Add(
-                System.Text.Json.JsonSerializer.Deserialize<PageComponent>(
-                    pageBytes.RemoveBom(),
-                    _jsonSerializerOptions
-                )
-                ?? throw new InvalidDataException(page + ".json is \"null\"")
+            var pagePath = Path.Join(folder, page + ".json");
+            PathHelper.EnsureLegalPath(folder, pagePath);
+            var pageBytes = File.ReadAllBytes(pagePath);
+            using var document = JsonDocument.Parse(
+                pageBytes,
+                new JsonDocumentOptions() { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip }
             );
+            pages.Add(PageComponent.Parse(document.RootElement, page, layoutSet.Id));
         }
 
         // First look at the specified data type, but
@@ -439,46 +376,9 @@ public class AppResourcesSI : IAppResources
         return null;
     }
 
-    /// <inheritdoc />
-    public byte[] GetRuleConfigurationForSet(string id)
-    {
-        using var activity = _telemetry?.StartGetRuleConfigurationForSetActivity();
-        string legalPath = Path.Join(_settings.AppBasePath, _settings.UiFolder);
-        string filename = Path.Join(legalPath, id, _settings.RuleConfigurationJSONFileName);
-
-        PathHelper.EnsureLegalPath(legalPath, filename);
-
-        return ReadFileByte(filename);
-    }
-
-    /// <inheritdoc />
-    public byte[] GetRuleHandlerForSet(string id)
-    {
-        using var activity = _telemetry?.StartGetRuleHandlerForSetActivity();
-        string legalPath = Path.Join(_settings.AppBasePath, _settings.UiFolder);
-        string filename = Path.Join(legalPath, id, _settings.RuleHandlerFileName);
-
-        PathHelper.EnsureLegalPath(legalPath, filename);
-
-        return ReadFileByte(filename);
-    }
-
-    private static byte[] ReadFileByte(string fileName)
-    {
-        byte[]? filedata = null;
-        if (File.Exists(fileName))
-        {
-            filedata = File.ReadAllBytes(fileName);
-        }
-
-#nullable disable
-        return filedata;
-#nullable restore
-    }
-
     private static byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)
     {
-        var fullFileName = legalPath + filePath;
+        var fullFileName = Path.Join(legalPath, filePath);
         if (!PathHelper.ValidateLegalFilePath(legalPath, fullFileName))
         {
             throw new ArgumentException("Invalid argument", nameof(filePath));

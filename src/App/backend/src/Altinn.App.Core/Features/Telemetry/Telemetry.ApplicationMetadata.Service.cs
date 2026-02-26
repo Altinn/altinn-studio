@@ -38,12 +38,6 @@ partial class Telemetry
 
     internal Activity? StartGetTextsActivity() => ActivitySource.StartActivity($"{Prefix}.GetTexts");
 
-    internal Activity? StartGetRuleConfigurationForSetActivity() =>
-        ActivitySource.StartActivity($"{Prefix}.GetRuleConfigurationForSet");
-
-    internal Activity? StartGetRuleHandlerForSetActivity() =>
-        ActivitySource.StartActivity($"{Prefix}.GetRuleHandlerForSet");
-
     internal Activity? StartGetFooterActivity() => ActivitySource.StartActivity($"{Prefix}.GetFooter");
 
     internal Activity? StartGetValidationConfigurationActivity() =>

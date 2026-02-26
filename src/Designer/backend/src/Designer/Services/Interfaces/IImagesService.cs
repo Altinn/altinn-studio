@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -10,7 +11,11 @@ public interface IImagesService
 {
     FileStreamResult GetImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageFilePath);
     List<string> GetAllImageFileNames(AltinnRepoEditingContext altinnRepoEditingContext);
-    Task UploadImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageName, Stream imageStream, bool overrideExisting);
+    Task UploadImage(
+        AltinnRepoEditingContext altinnRepoEditingContext,
+        string imageName,
+        Stream imageStream,
+        bool overrideExisting
+    );
     Task DeleteImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageFilePath);
-
 }

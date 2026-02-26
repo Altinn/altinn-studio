@@ -77,7 +77,7 @@ internal sealed class PaymentProcessTask : IProcessTask
         if (paymentStatus != PaymentStatus.Paid)
             throw new PaymentException("The payment is not completed.");
 
-        Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, false, CancellationToken.None);
+        await using Stream pdfStream = await _pdfService.GeneratePdf(instance, taskId, false, CancellationToken.None);
 
         ValidAltinnPaymentConfiguration validatedPaymentConfiguration = paymentConfiguration.Validate();
 

@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<korrespondansepart xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/arkivmelding/opprett/v1">
+  <korrespondansepartID>123</korrespondansepartID>
+  <korrespondanseparttype>
+    <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">EA</kode>
+    <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Avsender</beskrivelse>
+  </korrespondanseparttype>
+  <korrespondansepartNavn>party-name-person</korrespondansepartNavn>
+  <telefonnummer>phone</telefonnummer>
+</korrespondansepart>

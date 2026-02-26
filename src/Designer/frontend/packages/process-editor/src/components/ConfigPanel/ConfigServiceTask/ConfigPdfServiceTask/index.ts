@@ -1,0 +1,1 @@
+export { ConfigPdfServiceTask } from './ConfigPdfServiceTask';

@@ -2,9 +2,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from '../../contexts/ServicesContext';
 import { QueryKey } from '../../types/QueryKey';
 import type { CodeListsResponse } from '../../types/api/CodeListsResponse';
-import type { CodeListData } from '../../types/CodeListData';
+import type { CodeListDataWithTextResources } from '../../types/CodeListDataWithTextResources';
 
-type CreateOrgCodeListMutationArgs = Pick<CodeListData, 'title' | 'data'>;
+type CreateOrgCodeListMutationArgs = Pick<CodeListDataWithTextResources, 'title' | 'data'>;
 
 export const useCreateOrgCodeListMutation = (org: string) => {
   const queryClient = useQueryClient();

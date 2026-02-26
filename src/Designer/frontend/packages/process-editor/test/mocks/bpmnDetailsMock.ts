@@ -81,17 +81,14 @@ export const getMockBpmnElementForTask = (taskType: BpmnTaskType) => {
           },
         },
       };
-    case 'userControlledSigning':
+    case 'pdf':
       return {
         businessObject: {
           extensionElements: {
             values: [
               {
-                actions: signingActions,
-                signatureConfig: {
-                  signatureDataType: 'userControlledSigningInformation-1234',
-                  dataTypesToSign: [],
-                },
+                taskType: 'pdf',
+                pdfConfig: {},
               },
             ],
           },

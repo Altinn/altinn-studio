@@ -14,8 +14,8 @@ public class InfraController : ControllerBase
     private readonly GeneralSettings _generalSettings;
 
     public InfraController(
-        ILogger<InfraController> logger, 
-        IHttpClientFactory httpClientFactory, 
+        ILogger<InfraController> logger,
+        IHttpClientFactory httpClientFactory,
         IOptions<LocalPlatformSettings> localPlatformSettings,
         IOptions<GeneralSettings> generalSettings
     )
@@ -37,14 +37,23 @@ public class InfraController : ControllerBase
             var baseUrl = _localPlatformSettings.LocalGrafanaUrl ?? $"{_generalSettings.BaseUrl}/grafana";
             var url = $"{baseUrl}/api/health";
             var response = await client.GetAsync(url, cancellationToken);
-            if (response.IsSuccessStatusCode)
-            {
-                return Ok();
-            }
-            else
-            {
-                throw new Exception("Unexpected status code: " + response.StatusCode);
-            }
+
+            return response.IsSuccessStatusCode
+                ? Ok()
+                : throw new Exception("Unexpected status code: " + response.StatusCode);
+        }
+        catch (HttpRequestException ex)
+            when (ex.InnerException?.Message.Contains(
+                    "name does not resolve",
+                    StringComparison.OrdinalIgnoreCase
+                ) is true
+            )
+        {
+            return StatusCode(StatusCodes.Status204NoContent);
+        }
+        catch (TaskCanceledException)
+        {
+            return StatusCode(StatusCodes.Status204NoContent);
         }
         catch (Exception ex)
         {

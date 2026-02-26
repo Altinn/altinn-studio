@@ -144,7 +144,7 @@ export class ExportUtils {
       const optionListData = this.optionListDataList.find(
         (optionListData) => optionListData.title === component.optionsId,
       );
-      return optionListData.data;
+      return optionListData?.data;
     }
     return undefined;
   };

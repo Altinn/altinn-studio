@@ -13,7 +13,17 @@ spec:
     metadata:
       labels:
         run: altinn-designer
+        {{- if .Values.serviceAccount.useWorkloadIdentity }}
+        azure.workload.identity/use: "true"
+        {{- end }}
+      {{- if .Values.serviceAccount.useWorkloadIdentity }}
+      annotations:
+        azure.workload.identity/use: "true"
+      {{- end }}
     spec:
+      {{- if .Values.serviceAccount.enabled }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           lifecycle:
@@ -23,6 +33,13 @@ spec:
           ports:
             - containerPort: {{ .Values.image.containerPort }}
           env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.uid
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.uid=$(POD_UID)"
             {{- if not (hasKey .Values.environmentVariables .Values.environment) }}
               {{ fail "the chosen environment does not exist" }}
             {{- end }}

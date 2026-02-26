@@ -1,0 +1,12 @@
+
+[controller Operator should generate token using reconciled credentials - 1]
+{
+ "claims": {
+  "client_id": "<sanitized-client-id>",
+  "scopes": [
+   "altinn:serviceowner/instances.read"
+  ]
+ },
+ "success": true
+}
+---

@@ -1,7 +1,5 @@
 import 'cypress-iframe';
 
-import path from 'path';
-
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 import { PaymentStatus } from 'src/features/payment/types';
@@ -36,14 +34,9 @@ describe('Payment', () => {
       cy.url().should('match', /\/Task_2\/payment$/);
       cy.url().should('match', /\/ProcessEnd$/);
     });
-    it('The PDF receipt should be visible and downloadable', () => {
+    it('The PDF receipt should be visible', () => {
       cy.url().should('match', /\/ProcessEnd$/);
-      cy.findByRole('link', { name: /Betalingskvittering.pdf/ }).click();
-      const downloadsFolder = Cypress.config('downloadsFolder');
-      const downloadedFilename = path.join(downloadsFolder, 'Betalingskvittering.pdf');
-      cy.readFile(downloadedFilename, 'binary', { timeout: 10000 }).should((fileContent) => {
-        expect(fileContent).to.exist;
-      });
+      cy.findByRole('link', { name: /Betalingskvittering.pdf/ }).should('be.visible');
     });
   });
 

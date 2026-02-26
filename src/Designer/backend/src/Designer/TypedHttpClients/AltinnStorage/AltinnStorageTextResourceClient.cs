@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Net.Http;
 using System.Text;
@@ -24,7 +25,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         public AltinnStorageTextResourceClient(
             HttpClient httpClient,
             IEnvironmentsService environmentsService,
-            PlatformSettings options)
+            PlatformSettings options
+        )
         {
             _httpClient = httpClient;
             _environmentsService = environmentsService;

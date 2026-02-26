@@ -71,7 +71,7 @@ export interface WorkflowRequest {
 
 export interface ParsedIntent {
   suggestions?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface AgentResponse {

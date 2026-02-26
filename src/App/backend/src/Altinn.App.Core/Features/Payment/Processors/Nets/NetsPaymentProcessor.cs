@@ -46,7 +46,7 @@ internal class NetsPaymentProcessor : IPaymentProcessor
     {
         var instanceIdentifier = new InstanceIdentifier(instance);
         string baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
-        var altinnAppUrl = $"{baseUrl}#/instance/{instanceIdentifier}";
+        var altinnAppUrl = $"{baseUrl}instance/{instanceIdentifier}";
 
         if (_settings.MerchantHandlesConsumerData == true && orderDetails.Payer is null)
         {

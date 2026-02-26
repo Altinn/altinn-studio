@@ -12,6 +12,7 @@ import {
 } from '../../../../../../test/mocks/bpmnContextMock';
 import { type LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 
 const invalidFormatLayoutSetName: string = 'Receipt/';
 const emptyLayoutSetName: string = '';
@@ -104,11 +105,11 @@ describe('CustomReceipt', () => {
     await user.click(propertyButton);
 
     const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+      name: /process_editor\.configuration_panel_set_data_model_label/,
     });
-    await user.click(combobox);
     const newOption: string = mockAllDataModelIds[1];
-    const option = screen.getByRole('option', { name: newOption });
+    await user.type(combobox, newOption);
+    const option = await screen.findByRole('option', { name: newOption, hidden: true });
     await user.click(option);
 
     expect(mockBpmnApiContextValue.mutateDataTypes).toHaveBeenCalledTimes(1);
@@ -171,12 +172,14 @@ describe('CustomReceipt', () => {
 
 const renderCustomReceipt = (bpmnApiContextProps: Partial<BpmnApiContextProps> = {}) => {
   return render(
-    <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
-      <BpmnContext.Provider value={mockBpmnContextValue}>
-        <BpmnConfigPanelFormContextProvider>
-          <CustomReceipt />
-        </BpmnConfigPanelFormContextProvider>
-      </BpmnContext.Provider>
-    </BpmnApiContext.Provider>,
+    <TestAppRouter>
+      <BpmnApiContext.Provider value={{ ...defaultBpmnContextProps, ...bpmnApiContextProps }}>
+        <BpmnContext.Provider value={mockBpmnContextValue}>
+          <BpmnConfigPanelFormContextProvider>
+            <CustomReceipt />
+          </BpmnConfigPanelFormContextProvider>
+        </BpmnContext.Provider>
+      </BpmnApiContext.Provider>
+    </TestAppRouter>,
   );
 };

@@ -53,12 +53,12 @@ internal sealed class SigningService(
     private readonly ISigningCallToActionService _signingCallToActionService = signingCallToActionService;
     private const string ApplicationJsonContentType = "application/json";
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task<List<SigneeContext>> InitializeSignees(
         IInstanceDataMutator instanceDataMutator,
         List<SigneeContext> signeeContexts,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken ct = default
     )
     {
         using Activity? activity = telemetry?.StartAssignSigneesActivity();
@@ -157,11 +157,11 @@ internal sealed class SigningService(
         return signeeContexts;
     }
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task<List<SigneeContext>> GetSigneeContexts(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken ct = default
     )
     {
         using Activity? activity = telemetry?.StartReadSigneesActivity();
@@ -171,8 +171,6 @@ internal sealed class SigningService(
             ct
         );
 
-        var taskId = instanceDataAccessor.Instance.Process.CurrentTask.ElementId;
-
         List<SignDocument> signDocuments = await _signDocumentManager.GetSignDocuments(
             instanceDataAccessor,
             signatureConfiguration,
@@ -180,7 +178,7 @@ internal sealed class SigningService(
         );
 
         signeeContexts = await _signDocumentManager.SynchronizeSigneeContextsWithSignDocuments(
-            taskId,
+            instanceDataAccessor.TaskId ?? instanceDataAccessor.Instance.Process.CurrentTask.ElementId,
             signeeContexts,
             signDocuments,
             ct
@@ -189,12 +187,12 @@ internal sealed class SigningService(
         return signeeContexts;
     }
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task<List<OrganizationSignee>> GetAuthorizedOrganizationSignees(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,
         int userId,
-        CancellationToken ct
+        CancellationToken ct = default
     )
     {
         using var activity = telemetry?.StartReadAuthorizedSigneesActivity();
@@ -217,11 +215,11 @@ internal sealed class SigningService(
         return authorizedOrganizations;
     }
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task AbortRuntimeDelegatedSigning(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
-        CancellationToken ct
+        CancellationToken ct = default
     )
     {
         string taskId = instanceDataMutator.Instance.Process.CurrentTask.ElementId;
@@ -232,7 +230,11 @@ internal sealed class SigningService(
         RemoveSigneeState(instanceDataMutator, signatureConfiguration.SigneeStatesDataTypeId);
         RemoveAllSignatures(instanceDataMutator, signatureConfiguration.SignatureDataType);
 
-        List<SigneeContext> signeeContexts = await GetSigneeContexts(instanceDataMutator, signatureConfiguration, ct);
+        List<SigneeContext> signeeContexts = await GetSigneeContexts(
+            instanceDataMutator,
+            signatureConfiguration,
+            ct: ct
+        );
         List<SigneeContext> signeeContextsWithDelegation =
         [
             .. signeeContexts.Where(x => x.SigneeState.IsAccessDelegated),
@@ -298,9 +300,7 @@ internal sealed class SigningService(
         Party serviceOwnerParty;
         try
         {
-            ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-            AltinnCdnOrgs altinnCdnOrgs = await _altinnCdnClient.GetOrgs(ct);
-            AltinnCdnOrgDetails? serviceOwnerDetails = altinnCdnOrgs.Orgs?.GetValueOrDefault(applicationMetadata.Org);
+            AltinnCdnOrgDetails? serviceOwnerDetails = await _altinnCdnClient.GetOrgDetails(ct);
             PartyLookup partyLookup = new() { OrgNo = serviceOwnerDetails?.Orgnr };
             serviceOwnerParty = await altinnPartyClient.LookupParty(partyLookup);
 

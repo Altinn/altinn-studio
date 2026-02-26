@@ -1,3 +1,4 @@
+#nullable disable
 using System.ComponentModel.DataAnnotations;
 using Altinn.Studio.Designer.ViewModels.Request.Enums;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +26,5 @@ namespace Altinn.Studio.Designer.ViewModels.Request
         [EnumDataType(typeof(SortDirection))]
         [JsonConverter(typeof(StringEnumConverter))]
         public SortDirection SortDirection { get; set; }
-
     }
 }

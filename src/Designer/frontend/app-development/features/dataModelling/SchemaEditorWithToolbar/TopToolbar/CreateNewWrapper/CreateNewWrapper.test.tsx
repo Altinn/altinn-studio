@@ -35,19 +35,6 @@ describe('CreateNewWrapper', () => {
     expect(mockSetIsCreateNewOpen).toHaveBeenCalledWith(true);
   });
 
-  it('should close the popup when clicking "new" button', async () => {
-    const user = userEvent.setup();
-    renderCreateNewWrapper({ isCreateNewOpen: true });
-
-    expect(queryInputField()).toBeInTheDocument();
-    expect(queryConfirmButton()).toBeInTheDocument();
-
-    await user.click(getNewButton());
-
-    expect(mockSetIsCreateNewOpen).toHaveBeenCalledTimes(1);
-    expect(mockSetIsCreateNewOpen).toHaveBeenCalledWith(false);
-  });
-
   it('should disable confirm button and show an error text when validation fails', async () => {
     const user = userEvent.setup();
     const newModelName = '_InvalidName';

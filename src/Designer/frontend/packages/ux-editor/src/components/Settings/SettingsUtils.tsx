@@ -10,7 +10,7 @@ import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 import type { LayoutSetModel } from 'app-shared/types/api/dto/LayoutSetModel';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import { generateRandomId } from 'app-shared/utils/generateRandomId';
-import { generateId } from '../TextResource/TextResource';
+import { generateTextResourceId } from '../../utils/generateId';
 
 export const taskNavigationType = (taskType?: string) => {
   if (!taskType) return 'ux_editor.task_table_type.unknown';
@@ -113,11 +113,9 @@ export const isDefaultReceiptTask = (
 };
 
 export const createNewTextResourceId = (task: TaskNavigationGroup): string => {
-  const generateIdOptions = {
+  return generateTextResourceId({
     layoutId: task.taskType,
     componentId: task?.taskId ?? task.taskType,
-    textResourceKey: generateRandomId(6),
-  };
-
-  return generateId(generateIdOptions);
+    textKey: generateRandomId(6),
+  });
 };

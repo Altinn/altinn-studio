@@ -3,6 +3,7 @@ import React from 'react';
 import { isAxiosError } from 'axios';
 import { ZodError } from 'zod';
 
+import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { problemDetailsSchema } from 'src/layout/SigneeList/SigneeListError';
@@ -17,7 +18,7 @@ export function SigningDocumentListError({ error }: { error: Error }) {
     );
 
     return (
-      <div>
+      <FatalError>
         <Lang id='signing_document_list.parse_error' />
         <br />
         <Lang
@@ -28,7 +29,7 @@ export function SigningDocumentListError({ error }: { error: Error }) {
             { key: 'general.customer_service_slack' },
           ]}
         />
-      </div>
+      </FatalError>
     );
   }
 
@@ -38,9 +39,17 @@ export function SigningDocumentListError({ error }: { error: Error }) {
     if (parsed.success) {
       window.logErrorOnce(langAsString(error.message));
       window.logErrorOnce(parsed);
-      return <Lang id='signing_document_list.api_error_display' />;
+      return (
+        <FatalError>
+          <Lang id='signing_document_list.api_error_display' />
+        </FatalError>
+      );
     }
   }
 
-  return <Lang id='signing_document_list.unknown_api_error' />;
+  return (
+    <FatalError>
+      <Lang id='signing_document_list.unknown_api_error' />
+    </FatalError>
+  );
 }

@@ -30,12 +30,18 @@ public interface IFormDataValidator
     /// </summary>
     string ValidationSource => $"{this.GetType().FullName}-{DataType}";
 
-    /// <summary>
-    /// If you override this to return true, the validator will only run on process/next, and not continuously.
-    /// <see cref="HasRelevantChanges"/> will never get called
-    /// <see cref="IValidator.NoIncrementalValidation"/>
-    /// </summary>
+    /// <inheritdoc cref="IValidator.NoIncrementalValidation"/>
+    /// <remarks>
+    /// <see cref="IFormDataValidator"/> will run on incremental changes using <see cref="HasRelevantChanges"/>.
+    /// </remarks>
     bool NoIncrementalValidation => false;
+
+    /// <inheritdoc cref="IValidator.ShouldRunAfterRemovingHiddenData"/>
+    /// <remarks>
+    /// Defaults to full data. When <c>true</c>, the pipeline provides a cleaned data accessor to
+    /// both <see cref="ValidateFormData"/> and <see cref="HasRelevantChanges"/> for consistent visibility.
+    /// </remarks>
+    bool ShouldRunAfterRemovingHiddenData => false;
 
     /// <summary>
     /// The actual validation function

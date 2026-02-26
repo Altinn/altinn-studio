@@ -15,7 +15,7 @@ export type StudioDecimalInputProps = Override<
     description?: string;
     onChange: (value: number | null) => void;
     onBlurNumber?: (value: number | null) => void;
-    value?: number;
+    value?: number | null;
     validationErrorMessage?: string;
   },
   StudioTextfieldProps

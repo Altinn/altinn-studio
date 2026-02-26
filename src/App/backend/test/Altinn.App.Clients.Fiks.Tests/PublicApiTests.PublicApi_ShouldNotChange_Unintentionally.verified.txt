@@ -1,0 +1,342 @@
+﻿[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/Altinn/app-lib-dotnet")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v8.0", FrameworkDisplayName=".NET 8.0")]
+namespace Altinn.App.Clients.Fiks.Configuration
+{
+    public interface IFiksArkivSetupBuilder : Altinn.App.Clients.Fiks.Configuration.IFiksSetupBuilder<Altinn.App.Clients.Fiks.Configuration.IFiksArkivSetupBuilder>
+    {
+        Altinn.App.Clients.Fiks.Configuration.IFiksArkivSetupBuilder WithFiksArkivConfig(System.Action<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivSettings> configureOptions);
+        Altinn.App.Clients.Fiks.Configuration.IFiksArkivSetupBuilder WithFiksArkivConfig(string configSectionPath);
+        Altinn.App.Clients.Fiks.Configuration.IFiksArkivSetupBuilder WithPayloadGenerator<TMessageHandler>()
+            where TMessageHandler : Altinn.App.Clients.Fiks.FiksArkiv.IFiksArkivPayloadGenerator;
+        Altinn.App.Clients.Fiks.Configuration.IFiksArkivSetupBuilder WithResponseHandler<TMessageHandler>()
+            where TMessageHandler : Altinn.App.Clients.Fiks.FiksArkiv.IFiksArkivResponseHandler;
+    }
+    public interface IFiksIOSetupBuilder : Altinn.App.Clients.Fiks.Configuration.IFiksSetupBuilder<Altinn.App.Clients.Fiks.Configuration.IFiksIOSetupBuilder> { }
+    public interface IFiksSetupBuilder<out T>
+    {
+        Microsoft.Extensions.DependencyInjection.IServiceCollection CompleteSetup();
+        T WithFiksIOConfig(System.Action<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOSettings> configureOptions);
+        T WithFiksIOConfig(string configSectionPath);
+        T WithMaskinportenConfig(System.Action<Altinn.App.Core.Features.Maskinporten.Models.MaskinportenSettings> configureOptions);
+        T WithMaskinportenConfig(string configSectionPath);
+        T WithResiliencePipeline(System.Action<Polly.ResiliencePipelineBuilder<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponse>, Polly.DependencyInjection.AddResiliencePipelineContext<string>> configure);
+    }
+}
+namespace Altinn.App.Clients.Fiks.Constants
+{
+    public static class FiksArkivConstants
+    {
+        public static class Filenames
+        {
+            public const string ArchiveRecord = "arkivmelding.xml";
+        }
+        public static class MessageTypes
+        {
+            public const string ArchiveRecordCreationReceipt = "no.ks.fiks.arkiv.v1.arkivering.arkivmelding.opprett.kvittering";
+            public const string CreateArchiveRecord = "no.ks.fiks.arkiv.v1.arkivering.arkivmelding.opprett";
+        }
+    }
+    public static class FiksIOConstants
+    {
+        public const string UserDefinedResiliencePipelineId = "FiksIOResiliencePipeline";
+    }
+}
+namespace Altinn.App.Clients.Fiks.Exceptions
+{
+    public class FiksArkivConfigurationException : Altinn.App.Clients.Fiks.Exceptions.FiksArkivException { }
+    public class FiksArkivException : Altinn.App.Core.Exceptions.AltinnException { }
+    public class FiksIOConfigurationException : Altinn.App.Clients.Fiks.Exceptions.FiksIOException { }
+    public class FiksIOException : Altinn.App.Core.Exceptions.AltinnException { }
+}
+namespace Altinn.App.Clients.Fiks.Extensions
+{
+    public static class ServiceCollectionExtensions
+    {
+        public static Altinn.App.Clients.Fiks.Configuration.IFiksArkivSetupBuilder AddFiksArkiv(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Altinn.App.Clients.Fiks.Configuration.IFiksIOSetupBuilder AddFiksIOClient(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureFiksArkiv(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivSettings> configureOptions) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureFiksArkiv(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string configSectionPath) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureFiksIOClient(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOSettings> configureOptions) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureFiksIOClient(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string configSectionPath) { }
+    }
+}
+namespace Altinn.App.Clients.Fiks.FiksArkiv
+{
+    public interface IFiksArkivConfigResolver
+    {
+        System.Collections.Generic.IReadOnlyList<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataTypeSettings> AttachmentSettings { get; }
+        Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataTypeSettings PrimaryDocumentSettings { get; }
+        System.Threading.Tasks.Task<string> GetApplicationTitle(System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDocumentMetadata?> GetArchiveDocumentMetadata(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Threading.CancellationToken cancellationToken = default);
+        string GetCorrelationId(Altinn.Platform.Storage.Interface.Models.Instance instance);
+        System.Threading.Tasks.Task<KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding.Klassifikasjon> GetInstanceOwnerClassification(Altinn.App.Core.Features.Auth.Authenticated auth, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding.Korrespondansepart?> GetInstanceOwnerParty(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipient> GetRecipient(Altinn.Platform.Storage.Interface.Models.Instance instance, System.Threading.CancellationToken cancellationToken = default);
+        KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding.Korrespondansepart GetRecipientParty(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipient recipient);
+        System.Threading.Tasks.Task<KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding.Korrespondansepart> GetServiceOwnerParty(System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IFiksArkivHost
+    {
+        System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponse> GenerateAndSendMessage(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance, string messageType, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task ValidateConfiguration(System.Collections.Generic.IReadOnlyList<Altinn.Platform.Storage.Interface.Models.DataType> configuredDataTypes, System.Collections.Generic.IReadOnlyList<Altinn.App.Core.Internal.Process.Elements.ProcessTask> configuredProcessTasks);
+    }
+    public interface IFiksArkivPayloadGenerator
+    {
+        System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessagePayload>> GeneratePayload(string taskId, Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipient recipient, string messageType, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IFiksArkivResponseHandler
+    {
+        System.Threading.Tasks.Task HandleError(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOReceivedMessage message, System.Collections.Generic.IReadOnlyList<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessagePayload>? payloads, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task HandleSuccess(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOReceivedMessage message, System.Collections.Generic.IReadOnlyList<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessagePayload>? payloads, System.Threading.CancellationToken cancellationToken = default);
+    }
+}
+namespace Altinn.App.Clients.Fiks.FiksArkiv.Models
+{
+    public sealed class FiksArkivBindableValue<T> : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivBindableValue<T>>
+    {
+        public FiksArkivBindableValue() { }
+        [System.Text.Json.Serialization.JsonPropertyName("dataModelBinding")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataModelBinding? DataModelBinding { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public T Value { get; set; }
+    }
+    public sealed class FiksArkivDataModelBinding : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataModelBinding>
+    {
+        public FiksArkivDataModelBinding() { }
+        [System.Text.Json.Serialization.JsonPropertyName("dataType")]
+        public required string DataType { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("field")]
+        public required string Field { get; set; }
+        public static Altinn.App.Core.Models.Layout.ModelBinding op_Implicit(Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataModelBinding modelBinding) { }
+    }
+    public sealed class FiksArkivDataTypeSettings : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataTypeSettings>
+    {
+        public FiksArkivDataTypeSettings() { }
+        [System.Text.Json.Serialization.JsonPropertyName("dataType")]
+        public required string DataType { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("filename")]
+        public string? Filename { get; set; }
+        public string GetFilenameOrDefault(string defaultExtension = "xml") { }
+    }
+    public sealed class FiksArkivDocumentMetadata : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDocumentMetadata>
+    {
+        public FiksArkivDocumentMetadata(string? SystemId, string? RuleId, string? CaseFileId, string? CaseFileTitle, string? JournalEntryTitle) { }
+        public string? CaseFileId { get; init; }
+        public string? CaseFileTitle { get; init; }
+        public string? JournalEntryTitle { get; init; }
+        public string? RuleId { get; init; }
+        public string? SystemId { get; init; }
+    }
+    public sealed class FiksArkivDocumentSettings : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDocumentSettings>
+    {
+        public FiksArkivDocumentSettings() { }
+        [System.Text.Json.Serialization.JsonPropertyName("attachments")]
+        public System.Collections.Generic.IReadOnlyList<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataTypeSettings>? Attachments { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("primaryDocument")]
+        public required Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataTypeSettings PrimaryDocument { get; set; }
+    }
+    public sealed class FiksArkivErrorHandlingSettings : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivErrorHandlingSettings>
+    {
+        public FiksArkivErrorHandlingSettings() { }
+        [System.Text.Json.Serialization.JsonPropertyName("action")]
+        public string? Action { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("moveToNextTask")]
+        public bool MoveToNextTask { get; set; }
+    }
+    public sealed class FiksArkivMetadataSettings : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivMetadataSettings>
+    {
+        public FiksArkivMetadataSettings() { }
+        [System.Text.Json.Serialization.JsonPropertyName("caseFileId")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivBindableValue<string>? CaseFileId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("caseFileTitle")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivBindableValue<string>? CaseFileTitle { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("journalEntryTitle")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivBindableValue<string>? JournalEntryTitle { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("ruleId")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivBindableValue<string>? RuleId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("systemId")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivBindableValue<string>? SystemId { get; set; }
+    }
+    public sealed class FiksArkivReceiptSettings : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceiptSettings>
+    {
+        public FiksArkivReceiptSettings() { }
+        [System.Text.Json.Serialization.JsonPropertyName("archiveRecord")]
+        public required Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataTypeSettings ArchiveRecord { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("confirmationRecord")]
+        public required Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDataTypeSettings ConfirmationRecord { get; set; }
+    }
+    public abstract class FiksArkivReceivedMessagePayload : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessagePayload>
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("content")]
+        public string Content { get; }
+        [System.Text.Json.Serialization.JsonPropertyName("filename")]
+        public string Filename { get; }
+        public static Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessagePayload Create(string filename, string payload, object? deserializedPayload) { }
+        public sealed class Error : Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessagePayload, System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessagePayload.Error>
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("details")]
+            public System.Collections.Generic.IReadOnlyList<KS.Fiks.Arkiv.Models.V1.Feilmelding.FeilmeldingBase> Details { get; }
+        }
+        public sealed class Receipt : Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessagePayload, System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessagePayload.Receipt>
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("details")]
+            public KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmeldingkvittering.ArkivmeldingKvittering Details { get; }
+        }
+        public sealed class Unknown : Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessagePayload, System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceivedMessagePayload.Unknown> { }
+    }
+    public sealed class FiksArkivRecipient : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipient>
+    {
+        public FiksArkivRecipient(System.Guid AccountId, string Identifier, string Name, string? OrgNumber) { }
+        public System.Guid AccountId { get; init; }
+        public string Identifier { get; init; }
+        public string Name { get; init; }
+        public string? OrgNumber { get; init; }
+    }
+    public sealed class FiksArkivRecipientSettings : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipientSettings>
+    {
+        public FiksArkivRecipientSettings() { }
+        [System.Text.Json.Serialization.JsonPropertyName("fiksAccount")]
+        public required Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivBindableValue<System.Guid?> FiksAccount { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("identifier")]
+        public required Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivBindableValue<string> Identifier { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public required Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivBindableValue<string> Name { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("organizationNumber")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivBindableValue<string>? OrganizationNumber { get; set; }
+    }
+    public sealed class FiksArkivSettings : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivSettings>
+    {
+        public FiksArkivSettings() { }
+        [System.Text.Json.Serialization.JsonPropertyName("documents")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivDocumentSettings? Documents { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("errorHandling")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivErrorHandlingSettings? ErrorHandling { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("metadata")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivMetadataSettings? Metadata { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("receipt")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivReceiptSettings? Receipt { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("recipient")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivRecipientSettings? Recipient { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("successHandling")]
+        public Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivSuccessHandlingSettings? SuccessHandling { get; set; }
+    }
+    public sealed class FiksArkivSuccessHandlingSettings : System.IEquatable<Altinn.App.Clients.Fiks.FiksArkiv.Models.FiksArkivSuccessHandlingSettings>
+    {
+        public FiksArkivSuccessHandlingSettings() { }
+        [System.Text.Json.Serialization.JsonPropertyName("action")]
+        public string? Action { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("markInstanceComplete")]
+        public bool MarkInstanceComplete { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("moveToNextTask")]
+        public bool MoveToNextTask { get; set; }
+    }
+}
+namespace Altinn.App.Clients.Fiks.FiksIO
+{
+    public interface IFiksIOClient : System.IAsyncDisposable
+    {
+        Altinn.App.Clients.Fiks.FiksIO.Models.IFiksIOAccountSettings AccountSettings { get; }
+        System.Threading.Tasks.Task<bool> IsHealthy();
+        System.Threading.Tasks.Task OnMessageReceived(System.Func<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOReceivedMessage, System.Threading.Tasks.Task> listener);
+        System.Threading.Tasks.Task Reconnect();
+        System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponse> SendMessage(Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageRequest request, System.Threading.CancellationToken cancellationToken = default);
+    }
+}
+namespace Altinn.App.Clients.Fiks.FiksIO.Models
+{
+    public sealed class FiksIOMessagePayload : System.IEquatable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessagePayload>
+    {
+        public FiksIOMessagePayload(string filename, System.IO.Stream data) { }
+        public FiksIOMessagePayload(string filename, System.ReadOnlyMemory<byte> data) { }
+        public System.IO.Stream Data { get; }
+        public string Filename { get; }
+        public string GetDotlessFileExtension(bool upperCase = true) { }
+    }
+    public sealed class FiksIOMessageRequest : System.IEquatable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageRequest>
+    {
+        public FiksIOMessageRequest(System.Guid Recipient, string MessageType, System.Guid SendersReference, System.Collections.Generic.IEnumerable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessagePayload> Payload, System.Guid? InReplyToMessage = default, string? CorrelationId = null, System.TimeSpan? MessageLifetime = default, System.Collections.Generic.Dictionary<string, string>? Headers = null) { }
+        public string? CorrelationId { get; init; }
+        public System.Collections.Generic.Dictionary<string, string>? Headers { get; init; }
+        public System.Guid? InReplyToMessage { get; init; }
+        public System.TimeSpan? MessageLifetime { get; init; }
+        public string MessageType { get; init; }
+        public System.Collections.Generic.IEnumerable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessagePayload> Payload { get; init; }
+        public System.Guid Recipient { get; init; }
+        public System.Guid SendersReference { get; init; }
+    }
+    public sealed class FiksIOMessageResponder : System.IEquatable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponder>
+    {
+        public System.Threading.Tasks.Task Ack() { }
+        public System.Threading.Tasks.Task Nack() { }
+        public System.Threading.Tasks.Task NackWithRequeue() { }
+        public System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponse> Respond(string messageType, System.Guid? sendersReference = default, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponse> Respond(string messageType, System.Collections.Generic.IEnumerable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessagePayload> payload, System.Guid? sendersReference = default, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public sealed class FiksIOMessageResponse : System.IEquatable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponse>
+    {
+        public string? CorrelationId { get; }
+        public System.Collections.Generic.Dictionary<string, string> Headers { get; }
+        public System.Guid? InReplyToMessage { get; }
+        public System.Guid MessageId { get; }
+        public System.TimeSpan MessageLifetime { get; }
+        public string MessageType { get; }
+        public bool ReSent { get; }
+        public System.Guid Recipient { get; }
+        public System.Guid Sender { get; }
+        public System.Guid? SendersReference { get; }
+    }
+    public sealed class FiksIOReceivedMessage : System.IEquatable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOReceivedMessage>
+    {
+        public bool IsErrorResponse { get; }
+        public bool IsReceiptResponse { get; }
+        public Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOReceivedMessageContent Message { get; init; }
+        public Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOMessageResponder Responder { get; init; }
+    }
+    public sealed class FiksIOReceivedMessageContent : System.IEquatable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOReceivedMessageContent>
+    {
+        public string? CorrelationId { get; }
+        public bool HasPayload { get; }
+        public System.Collections.Generic.Dictionary<string, string> Headers { get; }
+        public System.Guid? InReplyToMessage { get; }
+        public bool IsReSent { get; }
+        public System.Guid MessageId { get; }
+        public System.TimeSpan MessageLifetime { get; }
+        public string MessageType { get; }
+        public System.Guid Recipient { get; }
+        public System.Guid Sender { get; }
+        public System.Guid? SendersReference { get; }
+        [return: System.Runtime.CompilerServices.TupleElementNames(new string[] {
+                "Filename",
+                "Content"})]
+        public System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<System.ValueTuple<string, string>>?> GetDecryptedPayloads() { }
+        public System.Threading.Tasks.Task<System.IO.Stream> GetDecryptedStream() { }
+        public System.Threading.Tasks.Task<System.IO.Stream> GetEncryptedStream() { }
+        public System.Threading.Tasks.Task WriteDecryptedZip(string outPath) { }
+        public System.Threading.Tasks.Task WriteEncryptedZip(string outPath) { }
+    }
+    public sealed class FiksIOSettings : Altinn.App.Clients.Fiks.FiksIO.Models.IFiksIOAccountSettings, System.IEquatable<Altinn.App.Clients.Fiks.FiksIO.Models.FiksIOSettings>
+    {
+        public FiksIOSettings() { }
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.Text.Json.Serialization.JsonPropertyName("accountId")]
+        public required System.Guid AccountId { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.Text.Json.Serialization.JsonPropertyName("accountPrivateKeyBase64")]
+        public required string AccountPrivateKeyBase64 { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("amqpHost")]
+        public string? AmqpHost { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("apiHost")]
+        public string? ApiHost { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.Text.Json.Serialization.JsonPropertyName("integrationId")]
+        public required System.Guid IntegrationId { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.Text.Json.Serialization.JsonPropertyName("integrationPassword")]
+        public required string IntegrationPassword { get; set; }
+    }
+    public interface IFiksIOAccountSettings
+    {
+        System.Guid AccountId { get; }
+        System.Guid IntegrationId { get; }
+    }
+}

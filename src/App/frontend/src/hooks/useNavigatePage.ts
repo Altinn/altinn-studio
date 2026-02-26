@@ -1,22 +1,18 @@
 import { useCallback, useEffect, useMemo } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import type { NavigateOptions } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import type { NavigateOptions } from 'react-router';
 
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { SearchParams } from 'src/core/routing/types';
+import { useIsStateless } from 'src/features/applicationMetadata';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
-import {
-  SearchParams,
-  useAllNavigationParams,
-  useAllNavigationParamsAsRef,
-  useNavigationParam,
-} from 'src/hooks/navigation';
+import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useLocalStorageState } from 'src/hooks/useLocalStorageState';
 import { ProcessTaskType } from 'src/types';
@@ -38,7 +34,7 @@ export enum TaskKeys {
 }
 
 /**
- * Navigation function for react-router-dom
+ * Navigation function for react-router
  * Makes sure to clear returnToView and summaryNodeOfOrigin on navigation
  * Takes an optional callback
  */
@@ -111,7 +107,7 @@ export const useStartUrl = (forcedTaskId?: string) => {
     useAllNavigationParams();
   const isSubformPage = !!mainPageKey;
   const taskType = useGetTaskTypeById()(taskId);
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStateless();
 
   return useMemo(() => {
     const firstPage = order?.[0];
@@ -157,7 +153,7 @@ export function useNavigateToTask() {
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
   const queryKeysRef = useAsRef(useLocation().search);
-  const layoutSets = useLayoutSets();
+  const layoutSets = getLayoutSets();
 
   return useCallback(
     (newTaskId: string, options?: NavigateOptions & { runEffect?: boolean }) => {
@@ -206,7 +202,7 @@ export function useIsValidTaskId() {
 }
 
 export function useNavigatePage() {
-  const isStatelessApp = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStateless();
   const navigate = useOurNavigate();
   const navParams = useAllNavigationParamsAsRef();
   const getTaskType = useGetTaskTypeById();
@@ -238,10 +234,10 @@ export function useNavigatePage() {
    */
   useEffect(() => {
     const currentPageId = navParams.current.pageKey ?? '';
-    if (isStatelessApp && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
+    if (isStateless && orderRef.current[0] !== undefined && (!currentPageId || !isValidPageId(currentPageId))) {
       navigate(`/${orderRef.current[0]}?${searchParamsRef.current}`, { replace: true });
     }
-  }, [isStatelessApp, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
+  }, [isStateless, orderRef, navigate, isValidPageId, navParams, searchParamsRef]);
 
   const waitForSave = FD.useWaitForSave();
   const maybeSaveOnPageChange = useCallback(async () => {
@@ -269,7 +265,7 @@ export function useNavigatePage() {
       }
 
       const searchParams = options?.searchParams ? `?${options.searchParams.toString()}` : '';
-      if (isStatelessApp) {
+      if (isStateless) {
         const url = `/${page}${searchParams}`;
         return navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
       }
@@ -285,7 +281,7 @@ export function useNavigatePage() {
       const url = `/instance/${instanceOwnerPartyId}/${instanceGuid}/${taskId}/${page}${searchParams}`;
       navigate(url, options, { replace }, { targetLocation: url, callback: () => focusMainContent(options) });
     },
-    [orderRef, isStatelessApp, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
+    [orderRef, isStateless, navParams, navigate, maybeSaveOnPageChange, refetchInitialValidations],
   );
 
   const [_, setVisitedPages] = useVisitedPages();

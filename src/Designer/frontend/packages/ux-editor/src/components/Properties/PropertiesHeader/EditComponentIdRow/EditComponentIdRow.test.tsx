@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { EditComponentIdRow, type EditComponentIdRowProps } from './EditComponentIdRow';
 import userEvent from '@testing-library/user-event';
@@ -69,8 +69,15 @@ describe('EditComponentIdRow', () => {
     const textField = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_component_change_id'),
     });
-    await user.click(document.body);
-    expect(textField).not.toBeInTheDocument();
+    await user.click(textField);
+    await user.tab();
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('textbox', {
+          name: textMock('ux_editor.modal_properties_component_change_id'),
+        }),
+      ).not.toBeInTheDocument();
+    });
   });
 
   it('should call onChange when user change the input in text filed.', async () => {

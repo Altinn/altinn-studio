@@ -28,7 +28,11 @@ JSON array of tool plans:
 
 ```json
 [
-  { "tool": "altinn_route", "user_goal": "user question here", "objective": "Get planning context" },
+  {
+    "tool": "altinn_route",
+    "user_goal": "user question here",
+    "objective": "Get planning context"
+  },
   { "tool": "altinn_policy_docs", "objective": "Get authorization details" }
 ]
 ```

@@ -22,18 +22,34 @@
     DataElementId: SubForm1_Guid,
     Field: Address,
     Code: required,
-    Description: Address is required in component with id subFormLayout.SubPage.Address for binding simpleBinding,
     Source: Required,
-    NoIncrementalUpdates: false
+    NoIncrementalUpdates: false,
+    CustomTextKey: backend.validation_errors.required,
+    CustomTextParameters: {
+      bindingName: simpleBinding,
+      componentId: Address,
+      field: Address,
+      layoutId: subFormLayout,
+      pageId: SubPage,
+      pageName: SubPage
+    }
   },
   {
     Severity: Error,
     DataElementId: SubForm1_Guid,
     Field: Name,
     Code: required,
-    Description: Name is required in component with id subFormLayout.SubPage.Name for binding simpleBinding,
     Source: Required,
-    NoIncrementalUpdates: false
+    NoIncrementalUpdates: false,
+    CustomTextKey: backend.validation_errors.required,
+    CustomTextParameters: {
+      bindingName: simpleBinding,
+      componentId: Name,
+      field: Name,
+      layoutId: subFormLayout,
+      pageId: SubPage,
+      pageName: SubPage
+    }
   },
   {
     Severity: Error,
@@ -49,18 +65,34 @@
     DataElementId: SubForm1_Guid,
     Field: Phone,
     Code: required,
-    Description: Phone is required in component with id subFormLayout.SubPage.Phone for binding simpleBinding,
     Source: Required,
-    NoIncrementalUpdates: false
+    NoIncrementalUpdates: false,
+    CustomTextKey: backend.validation_errors.required,
+    CustomTextParameters: {
+      bindingName: simpleBinding,
+      componentId: Phone,
+      field: Phone,
+      layoutId: subFormLayout,
+      pageId: SubPage,
+      pageName: SubPage
+    }
   },
   {
     Severity: Error,
     DataElementId: SubForm2_Guid,
     Field: Email,
     Code: required,
-    Description: Email is required in component with id subFormLayout.SubPage.Email for binding simpleBinding,
     Source: Required,
-    NoIncrementalUpdates: false
+    NoIncrementalUpdates: false,
+    CustomTextKey: backend.validation_errors.required,
+    CustomTextParameters: {
+      bindingName: simpleBinding,
+      componentId: Email,
+      field: Email,
+      layoutId: subFormLayout,
+      pageId: SubPage,
+      pageName: SubPage
+    }
   },
   {
     Severity: Error,
@@ -85,18 +117,34 @@
     DataElementId: SubForm3_Guid,
     Field: Address,
     Code: required,
-    Description: Address is required in component with id subFormLayout.SubPage.Address for binding simpleBinding,
     Source: Required,
-    NoIncrementalUpdates: false
+    NoIncrementalUpdates: false,
+    CustomTextKey: backend.validation_errors.required,
+    CustomTextParameters: {
+      bindingName: simpleBinding,
+      componentId: Address,
+      field: Address,
+      layoutId: subFormLayout,
+      pageId: SubPage,
+      pageName: SubPage
+    }
   },
   {
     Severity: Error,
     DataElementId: SubForm3_Guid,
     Field: Name,
     Code: required,
-    Description: Name is required in component with id subFormLayout.SubPage.Name for binding simpleBinding,
     Source: Required,
-    NoIncrementalUpdates: false
+    NoIncrementalUpdates: false,
+    CustomTextKey: backend.validation_errors.required,
+    CustomTextParameters: {
+      bindingName: simpleBinding,
+      componentId: Name,
+      field: Name,
+      layoutId: subFormLayout,
+      pageId: SubPage,
+      pageName: SubPage
+    }
   },
   {
     Severity: Error,
@@ -112,8 +160,16 @@
     DataElementId: SubForm3_Guid,
     Field: Phone,
     Code: required,
-    Description: Phone is required in component with id subFormLayout.SubPage.Phone for binding simpleBinding,
     Source: Required,
-    NoIncrementalUpdates: false
+    NoIncrementalUpdates: false,
+    CustomTextKey: backend.validation_errors.required,
+    CustomTextParameters: {
+      bindingName: simpleBinding,
+      componentId: Phone,
+      field: Phone,
+      layoutId: subFormLayout,
+      pageId: SubPage,
+      pageName: SubPage
+    }
   }
 ]

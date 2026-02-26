@@ -10,6 +10,7 @@ import { useAppPolicyMutation } from 'app-development/hooks/mutations';
 import userEvent from '@testing-library/user-event';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { Policy, PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import { INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE } from '@altinn/policy-editor/constants';
 
 export const mockPolicy: Policy = {
   rules: [{ ruleId: '1', description: '', subject: [], actions: [], resources: [[]] }],
@@ -25,22 +26,43 @@ const mockActions: PolicyAction[] = [
 
 const mockSubjects: PolicySubject[] = [
   {
-    subjectId: 's1',
-    subjectTitle: 'Subject 1',
-    subjectSource: 'sub1',
-    subjectDescription: 'The first subject',
+    id: 'd41d67f2-15b0-4c82-95db-b8d5baaa14a4',
+    name: 'Subject 1',
+    description: 'The first subject',
+    urn: 'urn:altinn:rolecode:s1',
+    legacyRoleCode: 'VARA',
+    legacyUrn: 'urn:altinn:rolecode:s1',
+    provider: {
+      id: '0195ea92-2080-758b-89db-7735c4f68320',
+      name: 'Altinn 2',
+      code: 'sys-altinn2',
+    },
   },
   {
-    subjectId: 's2',
-    subjectTitle: 'Subject 2',
-    subjectSource: 'sub2',
-    subjectDescription: 'The second subject',
+    id: '1f8a2518-9494-468a-80a0-7405f0daf9e9',
+    name: 'Subject 2',
+    description: 'The second subject',
+    urn: 'urn:altinn:rolecode:s2',
+    legacyRoleCode: 'OBS',
+    legacyUrn: 'urn:altinn:rolecode:s2',
+    provider: {
+      id: '0195ea92-2080-758b-89db-7735c4f68320',
+      name: 'Altinn 2',
+      code: 'sys-altinn2',
+    },
   },
   {
-    subjectId: '[org]',
-    subjectSource: '[org]',
-    subjectTitle: '[org]',
-    subjectDescription: '[org]',
+    id: '[org]',
+    name: 'Tjenesteeier',
+    description: '[org]',
+    legacyRoleCode: '[org]',
+    urn: 'urn:altinn:org:[org]',
+    legacyUrn: 'urn:altinn:org:[org]',
+    provider: {
+      code: INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE,
+      id: '',
+      name: 'Intern',
+    },
   },
 ];
 
@@ -74,7 +96,7 @@ describe('PolicyTab', () => {
   });
 
   it('fetches subjects on mount', () => {
-    const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve({}));
+    const getPolicySubjects = jest.fn().mockImplementation(() => Promise.resolve(null));
     renderPolicyTab({ getPolicySubjects });
     expect(getPolicySubjects).toHaveBeenCalledTimes(1);
   });

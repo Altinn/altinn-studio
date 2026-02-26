@@ -44,9 +44,9 @@ namespace LocalTest.Configuration
         }
 
         public string LocalFrontendHostname { get; set; } = "localhost";
-        
+
         public string LocalFrontendProtocol { get; set; } = "http";
-        
+
         /// <summary>
         /// Url for the local app when LocalAppMode == http
         /// <summary>
@@ -73,6 +73,8 @@ namespace LocalTest.Configuration
 
         public string PartyListFolder { get; set; } = "partylist/";
 
+        public string InstanceLockFolder { get; set; } = "instancelocks/";
+
         public string ResourceRegistryFolder { get; set; } = "authorization/resources/";
 
         public string RolesFolder { get; set; } = "roles/";
@@ -84,5 +86,9 @@ namespace LocalTest.Configuration
         public string InstanceDelegationsDataFolder { get; set; } = "instanceDelegations";
 
         public string LocalGrafanaUrl { get; set; }
+
+        public string LocalPdfServiceUrl { get; set; }
+
+        public string LocalReceiptUrl { get; set; }
     }
 }

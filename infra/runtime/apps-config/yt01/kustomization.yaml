@@ -1,0 +1,53 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+patches:
+  - target:
+      kind: ConfigMap
+      name: apps-runtime-common-config-env
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: apps-runtime-common-config-env
+      data:
+        PlatformSettings__ApiStorageEndpoint: https://platform.yt01.altinn.cloud/storage/api/v1/
+        PlatformSettings__ApiRegisterEndpoint: https://platform.yt01.altinn.cloud/register/api/v1/
+        PlatformSettings__ApiProfileEndpoint: https://platform.yt01.altinn.cloud/profile/api/v1/
+        PlatformSettings__ApiAuthenticationEndpoint: https://platform.yt01.altinn.cloud/authentication/api/v1/
+        PlatformSettings__ApiAuthorizationEndpoint: https://platform.yt01.altinn.cloud/authorization/api/v1/
+        PlatformSettings__ApiEventsEndpoint: https://platform.yt01.altinn.cloud/events/api/v1/
+        PlatformSettings__ApiNotificationEndpoint: https://platform.yt01.altinn.cloud/notifications/api/v1/
+        PlatformSettings__ApiAccessManagementEndpoint: https://platform.yt01.altinn.cloud/accessmanagement/api/v1/
+        PlatformSettings__ApiCorrespondenceEndpoint: https://platform.yt01.altinn.cloud/correspondence/api/v1/
+        GeneralSettings__HostName: yt01.altinn.cloud
+        AppSettings__OpenIdWellKnownEndpoint: https://platform.yt01.altinn.cloud/authentication/api/v1/openid/
+        ASPNETCORE_ENVIRONMENT: Staging
+  - target:
+      kind: ConfigMap
+      name: apps-runtime-common-config
+    patch: |-
+      - op: add
+        path: /data/runtime-overrides.json
+        value: |-
+          {
+            "PlatformSettings": {
+              "ApiStorageEndpoint": "https://platform.yt01.altinn.cloud/storage/api/v1/",
+              "ApiRegisterEndpoint": "https://platform.yt01.altinn.cloud/register/api/v1/",
+              "ApiProfileEndpoint": "https://platform.yt01.altinn.cloud/profile/api/v1/",
+              "ApiAuthenticationEndpoint": "https://platform.yt01.altinn.cloud/authentication/api/v1/",
+              "ApiAuthorizationEndpoint": "https://platform.yt01.altinn.cloud/authorization/api/v1/",
+              "ApiEventsEndpoint": "https://platform.yt01.altinn.cloud/events/api/v1/",
+              "ApiNotificationEndpoint": "https://platform.yt01.altinn.cloud/notifications/api/v1/",
+              "ApiAccessManagementEndpoint": "https://platform.yt01.altinn.cloud/accessmanagement/api/v1/",
+              "ApiCorrespondenceEndpoint": "https://platform.yt01.altinn.cloud/correspondence/api/v1/"
+            },
+            "GeneralSettings": {
+              "HostName": "yt01.altinn.cloud"
+            },
+            "AppSettings": {
+              "OpenIdWellKnownEndpoint": "https://platform.yt01.altinn.cloud/authentication/api/v1/openid/"
+            },
+            "ASPNETCORE_ENVIRONMENT": "Staging"
+          }

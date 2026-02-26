@@ -1,0 +1,56 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "AccordionPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "Accordion-Example",
+        "type": "Accordion",
+        "textResourceBindings": {
+          "title": "Sample Accordion Title"
+        },
+        "children": ["paragraph-example", "button-example", "AccordionPage-Input"]
+      },
+      {
+        "id": "paragraph-example",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "This is a sample paragraph inside the accordion."
+        }
+      },
+
+
+      {
+        "id": "AccordionPage-Input",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Accordion Test"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "shortAnswerInput"
+        }
+      },
+      
+      {
+        "id": "AccordionPage-Summary2",
+        "type": "Summary2",
+        "target": {
+          "type": "component",
+          "id": "Accordion-Example"
+        }
+      },
+      {
+        "id": "AccordionLookupPage-NavigationButtons",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        }
+      }
+    ]
+  }
+}

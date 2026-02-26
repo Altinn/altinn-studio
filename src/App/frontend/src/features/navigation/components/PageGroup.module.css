@@ -14,7 +14,7 @@
 
 .group-button {
   font-family: var(--font-family);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: normal;
   color: var(--ds-color-neutral-text-default);
   background-color: transparent;
@@ -55,7 +55,7 @@
   margin-top: 6px;
   margin-right: -4px; /* The icon has some internal padding, this makes the edge line up better */
   color: var(--ds-color-neutral-text-default);
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .group-chevron-open {
@@ -66,7 +66,7 @@
   width: 28px;
   height: 28px;
   box-sizing: border-box;
-  font-size: 20px;
+  font-size: 1.25rem;
   border-width: 2px;
   border-style: solid;
   border-radius: var(--ds-border-radius-md);
@@ -76,7 +76,7 @@
 }
 
 .group-symbol-single {
-  font-size: 18px;
+  font-size: 1.15rem;
   border-radius: 50%;
   width: 24px;
   height: 24px;

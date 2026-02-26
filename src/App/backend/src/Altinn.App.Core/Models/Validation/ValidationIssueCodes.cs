@@ -70,5 +70,10 @@ public static class ValidationIssueCodes
         /// Gets a value that represents a validation issue where the data element does not contain all required signatures.
         /// </summary>
         public static string MissingSignatures => nameof(MissingSignatures);
+
+        /// <summary>
+        /// Gets a value that represents a validation issue where a signature hash does not match the expected hash.
+        /// </summary>
+        public static string InvalidSignatureHash => nameof(InvalidSignatureHash);
     }
 }

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -7,7 +8,8 @@ namespace Altinn.Studio.Designer.Helpers;
 
 public static class AppFrontendVersionHelper
 {
-    private const string SemanticVersionRegex = @"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$";
+    private const string SemanticVersionRegex =
+        @"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$";
     private const string ExtendedVersion = @"^(\d+)(\.\d+)?$";
 
     // allow overwriting altinn-app-frontend version with a meta tag
@@ -20,9 +22,14 @@ public static class AppFrontendVersionHelper
 
     public static bool TryGetFrontendVersionFromIndexFile(string filePath, out string version)
     {
+        string fileContent = File.ReadAllText(filePath);
+        return TryGetFrontendVersionFromIndexContent(fileContent, out version);
+    }
+
+    public static bool TryGetFrontendVersionFromIndexContent(string fileContent, out string version)
+    {
         version = null;
 
-        string fileContent = File.ReadAllText(filePath);
         var htmlDoc = new HtmlDocument();
         htmlDoc.LoadHtml(fileContent);
 
@@ -34,8 +41,8 @@ public static class AppFrontendVersionHelper
         }
 
         var scriptTag = htmlDoc.DocumentNode.SelectSingleNode(
-            "//script[contains(@src, 'https://altinncdn.no/toolkits/altinn-app-frontend') and contains(@src, 'altinn-app-frontend.js')]");
-
+            "//script[contains(@src, 'https://altinncdn.no/toolkits/altinn-app-frontend') and contains(@src, 'altinn-app-frontend.js')]"
+        );
 
         string srcAttribute = scriptTag?.GetAttributeValue("src", null);
 
@@ -67,6 +74,5 @@ public static class AppFrontendVersionHelper
 
         version = foundVersion;
         return true;
-
     }
 }

@@ -332,6 +332,7 @@ public sealed class SigningServiceTests : IDisposable
         var cachedInstanceMutator = new Mock<IInstanceDataMutator>();
 
         cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
+        cachedInstanceMutator.Setup(x => x.TaskId).Returns(instance.Process.CurrentTask.ElementId);
 
         var signeeStateDataElementIdentifier = new DataElementIdentifier(signeeStateDataElement.Id);
         var signeeContexts = new List<SigneeContext>()
@@ -420,6 +421,7 @@ public sealed class SigningServiceTests : IDisposable
 
         // Assert
         cachedInstanceMutator.Verify(x => x.Instance);
+        cachedInstanceMutator.Verify(x => x.TaskId);
 
         // Verify that the data elements are removed
         cachedInstanceMutator.Verify(x => x.RemoveDataElement(signeeStateDataElement), Times.Once);
@@ -480,6 +482,7 @@ public sealed class SigningServiceTests : IDisposable
             Data = [],
         };
         cachedInstanceMutator.Setup(x => x.Instance).Returns(instance);
+        cachedInstanceMutator.Setup(x => x.TaskId).Returns(instance.Process.CurrentTask.ElementId);
 
         _signDocumentManager
             .Setup(x =>
@@ -510,6 +513,7 @@ public sealed class SigningServiceTests : IDisposable
         );
 
         cachedInstanceMutator.Verify(x => x.Instance);
+        cachedInstanceMutator.Verify(x => x.TaskId);
         cachedInstanceMutator.VerifyNoOtherCalls();
     }
 
@@ -667,29 +671,21 @@ public sealed class SigningServiceTests : IDisposable
     public async Task GetServiceOwnerParty_OrgTtd_ReturnsDigdir()
     {
         // Arrange
-        var orgs = new Dictionary<string, AltinnCdnOrgDetails>
+        var orgDetails = new AltinnCdnOrgDetails
         {
+            Name = new AltinnCdnOrgName
             {
-                "ttd",
-                new AltinnCdnOrgDetails
-                {
-                    Name = new AltinnCdnOrgName
-                    {
-                        Nb = "Digitaliseringsdirektoratet",
-                        Nn = "Digitaliseringsdirektoratet",
-                        En = "Norwegian Digitalisation Agency",
-                    },
-                    Logo = "https://altinncdn.no/orgs/digdir/digdir.png",
-                    Orgnr = "991825827",
-                    Homepage = "https://www.digdir.no/",
-                    Environments = ["tt02", "production"],
-                }
+                Nb = "Digitaliseringsdirektoratet",
+                Nn = "Digitaliseringsdirektoratet",
+                En = "Norwegian Digitalisation Agency",
             },
+            Logo = "https://altinncdn.no/orgs/digdir/digdir.png",
+            Orgnr = "991825827",
+            Homepage = "https://www.digdir.no/",
+            Environments = ["tt02", "production"],
         };
 
-        var altinnCdnOrgs = new AltinnCdnOrgs { Orgs = orgs };
-
-        _altinnCdnClient.Setup(x => x.GetOrgs(It.IsAny<CancellationToken>())).Returns(Task.FromResult(altinnCdnOrgs));
+        _altinnCdnClient.Setup(x => x.GetOrgDetails(It.IsAny<CancellationToken>())).ReturnsAsync(orgDetails);
 
         _appMetadata
             .Setup(x => x.GetApplicationMetadata())
@@ -763,22 +759,20 @@ public sealed class SigningServiceTests : IDisposable
                     CancellationToken.None
                 )
             )
-            .ReturnsAsync(
-                [
-                    new SigneeContext
+            .ReturnsAsync([
+                new SigneeContext
+                {
+                    TaskId = "Task_1",
+                    SignDocument = signDocument,
+                    SigneeState = new SigneeState { IsAccessDelegated = true },
+                    Signee = new PersonSignee
                     {
-                        TaskId = "Task_1",
-                        SignDocument = signDocument,
-                        SigneeState = new SigneeState { IsAccessDelegated = true },
-                        Signee = new PersonSignee
-                        {
-                            FullName = "Test Person",
-                            Party = new Party(),
-                            SocialSecurityNumber = "12345678910",
-                        },
+                        FullName = "Test Person",
+                        Party = new Party(),
+                        SocialSecurityNumber = "12345678910",
                     },
-                ]
-            );
+                },
+            ]);
 
         // Setup to throw exception during party lookup
         _altinnPartyClient.Reset();

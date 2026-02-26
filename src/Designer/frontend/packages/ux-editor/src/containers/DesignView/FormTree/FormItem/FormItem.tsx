@@ -2,14 +2,14 @@ import React, { type ReactElement } from 'react';
 import type { IInternalLayout } from '../../../../types/global';
 import { getChildIds, getItem, isContainer } from '../../../../utils/formLayoutUtils';
 import { renderItemList, renderItemListWithAddItemButton } from '../renderItemList';
-import { StudioDragAndDropTree } from '@studio/components-legacy';
+import { StudioDragAndDropTree } from '@studio/components';
 import { FormItemTitle } from './FormItemTitle';
 import { formItemConfigs } from '../../../../data/formItemConfig';
 import { useTranslation } from 'react-i18next';
 import { UnknownReferencedItem } from '../UnknownReferencedItem';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
 import { useComponentTitle } from '@altinn/ux-editor/hooks';
-import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
+import { useFeatureFlag, FeatureFlag } from '@studio/feature-flags';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { WithHoverAddButton } from '../../../../components/WithHoverAddButton/WithHoverAddButton';
 
@@ -19,6 +19,7 @@ export type FormItemProps = {
   saveAtIndexPosition: number;
   duplicateComponents?: string[];
   containerId?: string;
+  isLastChild?: boolean;
 };
 
 export const FormItem = ({
@@ -27,14 +28,14 @@ export const FormItem = ({
   saveAtIndexPosition,
   duplicateComponents,
   containerId,
+  isLastChild,
 }: FormItemProps): ReactElement => {
   const { t } = useTranslation();
+  const shouldRenderWithHoverAddButton = useFeatureFlag(FeatureFlag.AddComponentModal);
   const formItem = getItem(layout, id);
   if (!formItem) {
     return <UnknownReferencedItem id={id} layout={layout} />;
   }
-
-  const shouldRenderWithHoverAddButton = shouldDisplayFeature(FeatureFlag.AddComponentModal);
 
   if (shouldRenderWithHoverAddButton) {
     return (
@@ -43,6 +44,7 @@ export const FormItem = ({
         saveAtIndexPosition={saveAtIndexPosition}
         containerId={containerId || BASE_CONTAINER_ID}
         title={t('ux_editor.add_item.new_component')}
+        isLastChild={isLastChild}
       >
         <Item duplicateComponents={duplicateComponents} layout={layout} id={id} />
       </WithHoverAddButton>
@@ -60,6 +62,7 @@ type ItemProps = {
 const Item = ({ id, layout, duplicateComponents }: ItemProps): ReactElement => {
   const { t } = useTranslation();
   const componentTitle = useComponentTitle();
+  const isAddComponentModalEnabled = useFeatureFlag(FeatureFlag.AddComponentModal);
 
   const formItem = getItem(layout, id);
 
@@ -76,9 +79,7 @@ const Item = ({ id, layout, duplicateComponents }: ItemProps): ReactElement => {
   );
 
   const shouldDisplayAddButton =
-    isContainer(layout, id) &&
-    !getChildIds(layout, id).length &&
-    shouldDisplayFeature(FeatureFlag.AddComponentModal);
+    isContainer(layout, id) && !getChildIds(layout, id).length && isAddComponentModalEnabled;
   return (
     <StudioDragAndDropTree.Item
       icon={Icon && <Icon />}
@@ -90,7 +91,7 @@ const Item = ({ id, layout, duplicateComponents }: ItemProps): ReactElement => {
     >
       {shouldDisplayAddButton
         ? renderItemListWithAddItemButton(layout, duplicateComponents, id)
-        : renderItemList(layout, duplicateComponents, id)}
+        : renderItemList(layout, duplicateComponents, id, false)}
     </StudioDragAndDropTree.Item>
   );
 };

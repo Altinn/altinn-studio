@@ -3,14 +3,19 @@ import { useCallback, useMemo } from 'react';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { getComponentDef } from 'src/layout';
+import { CompCategory } from 'src/layout/common';
 import { useComponentIdMutator } from 'src/utils/layout/DataModelLocation';
 import { useIsHiddenMulti } from 'src/utils/layout/hidden';
 import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IDataModelReference } from 'src/layout/common.generated';
+import type { CompExternal } from 'src/layout/layout';
 import type { GroupExpressions } from 'src/layout/RepeatingGroup/types';
 import type { BaseRow } from 'src/utils/layout/types';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
@@ -58,6 +63,35 @@ function evalBool({ expr, defaultValue = false, dataSources, groupBinding, rowIn
     field: `${groupBinding.field}[${rowIndex}]`,
   };
   return evalExpr(expr, { ...dataSources, currentDataModelPath }, { returnType: ExprVal.Boolean, defaultValue });
+}
+
+/**
+ * Helper function to check if a child component is editable in a repeating group
+ */
+function isChildEditableCheck(
+  childBaseComponentId: string,
+  layoutLookups: LayoutLookups,
+  parentComponent: CompExternal<'RepeatingGroup'>,
+  rowWithExpressions: RepGroupRowWithExpressions | undefined,
+): boolean {
+  const childComponent = layoutLookups.getComponent(childBaseComponentId);
+
+  const def = getComponentDef(childComponent.type);
+  if (def.category !== CompCategory.Form) {
+    return false; // Must be a form component
+  }
+
+  const columnSettings = parentComponent.tableColumns?.[childBaseComponentId];
+  const hiddenInTable = columnSettings?.hidden === true;
+  const editInTable = columnSettings?.editInTable ?? false;
+  const showInExpandedEdit = columnSettings?.showInExpandedEdit ?? true;
+  const editButtonVisible = rowWithExpressions?.edit?.editButton !== false;
+
+  if (editButtonVisible) {
+    return showInExpandedEdit;
+  }
+
+  return editInTable && !hiddenInTable;
 }
 
 export const RepGroupHooks = {
@@ -227,5 +261,15 @@ export const RepGroupHooks = {
       multiPageIndex,
       hidden: hidden[baseId] ?? false,
     }));
+  },
+
+  useEditableChildren(baseComponentId: string, rowWithExpressions: RepGroupRowWithExpressions | undefined): string[] {
+    const childrenBaseIds = RepGroupHooks.useChildIds(baseComponentId);
+    const layoutLookups = useLayoutLookups();
+    const component = layoutLookups.getComponent(baseComponentId, 'RepeatingGroup');
+
+    return childrenBaseIds.filter((childId) =>
+      isChildEditableCheck(childId, layoutLookups, component, rowWithExpressions),
+    );
   },
 };

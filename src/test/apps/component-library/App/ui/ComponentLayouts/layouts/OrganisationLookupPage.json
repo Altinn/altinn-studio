@@ -1,0 +1,51 @@
+{
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+    "data": {
+        "hidden": false,
+        "layout": [
+            {
+                "id": "OrganisationLookupPage-NavigationBar",
+                "type": "NavigationBar"
+            },
+            {
+                "id": "organisationLookup",
+                "type": "OrganisationLookup",
+                "dataModelBindings": {
+                    "organisation_lookup_orgnr": "street",
+                    "organisation_lookup_name": "co"
+                },
+                "textResourceBindings": {
+                    "title": "Legg til virksomhet",
+                    "description": "Her legger du inn organisasjonsnummer",
+                    "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
+                },
+                "required": true
+            },
+            {
+                "id": "OrganisationLookup-Header-Summary2",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "Header.Summary2"
+                },
+                "size": "h3"
+            },
+            {
+                "id": "organisation-lookup-summary-on-organisation-lookup-page",
+                "type": "Summary2",
+                "target": {
+                    "type": "component",
+                    "id": "organisationLookup"
+                }
+            },
+            {
+                "id": "OrganisationLookupPage-NavigationButtons",
+                "type": "NavigationButtons",
+                "showBackButton": true,
+                "textResourceBindings": {
+                    "next": "Neste",
+                    "back": "Forrige"
+                }
+            }
+        ]
+    }
+}

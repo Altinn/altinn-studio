@@ -262,7 +262,9 @@ describe('ComponentConfigPanel', () => {
 
   describe('formItem is selected', () => {
     it('Renders properties accordions when formItem is selected', () => {
-      editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
+      editFormComponentSpy.mockReturnValue(
+        <input data-testid={editFormComponentTestId} aria-label='test input'></input>,
+      );
       renderComponentConfig();
       expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
       expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
@@ -284,7 +286,9 @@ describe('ComponentConfigPanel', () => {
     });
 
     it('render properties accordions for a subform component when it is linked to a subform layoutSet', () => {
-      editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
+      editFormComponentSpy.mockReturnValue(
+        <input data-testid={editFormComponentTestId} aria-label='test input'></input>,
+      );
       renderComponentConfig({
         formItem: { ...componentMocks[ComponentType.Subform], layoutSet: layoutSetName },
         formItemId: componentMocks[ComponentType.Subform].id,
@@ -341,6 +345,7 @@ const renderComponentConfig = (
     componentSchemaMocks[formItemContextProps.formItem?.type],
   );
   queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
+  queryClientMock.setQueryData([QueryKey.ImageFileNames, org, app], []);
 
   return renderWithProviders(getComponent(formItemContextProps), {
     queryClient: queryClientMock,

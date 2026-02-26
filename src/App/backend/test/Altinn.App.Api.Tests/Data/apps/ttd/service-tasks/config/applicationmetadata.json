@@ -1,0 +1,54 @@
+{
+    "id": "ttd/service-tasks",
+    "org": "ttd",
+    "title": {
+        "nb": "service-tasks"
+    },
+    "dataTypes": [
+        {
+            "id": "ref-data-as-pdf",
+            "allowedContentTypes": [
+                "application/pdf"
+            ],
+            "maxCount": 0,
+            "minCount": 0,
+            "enablePdfCreation": true,
+            "enableFileScan": false,
+            "validationErrorOnPendingFileScan": false,
+            "enabledFileAnalysers": [],
+            "enabledFileValidators": []
+        },
+        {
+            "id": "Model",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "appLogic": {
+                "autoCreate": true,
+                "classRef": "Altinn.App.Models.model.Model",
+                "allowAnonymousOnStateless": false,
+                "autoDeleteOnProcessEnd": false
+            },
+            "taskId": "Task_1",
+            "maxCount": 1,
+            "minCount": 1,
+            "enablePdfCreation": false,
+            "enableFileScan": false,
+            "validationErrorOnPendingFileScan": false,
+            "enabledFileAnalysers": [],
+            "enabledFileValidators": []
+        }
+    ],
+    "partyTypesAllowed": {
+        "bankruptcyEstate": false,
+        "organisation": false,
+        "person": false,
+        "subUnit": false
+    },
+    "autoDeleteOnProcessEnd": false,
+    "disallowUserInstantiation": false,
+    "created": "2024-07-05T08:18:03.6221823Z",
+    "createdBy": "bjorntore",
+    "lastChanged": "2024-07-05T08:18:03.6221831Z",
+    "lastChangedBy": "bjorntore"
+}

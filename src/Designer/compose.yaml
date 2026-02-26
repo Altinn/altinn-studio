@@ -28,7 +28,7 @@ services:
     environment:
       - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
       - DEVELOP_RESOURCE_ADMIN=${DEVELOP_RESOURCE_ADMIN:-0}
-      - DEVELOP_ADMIN_FRONTEND=${DEVELOP_ADMIN_FRONTEND:-0}
+      - DEVELOP_ADMIN=${DEVELOP_ADMIN:-0}
       - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
       - DEVELOP_PREVIEW=${DEVELOP_PREVIEW:-0}
@@ -56,6 +56,7 @@ services:
       - 'designer-git-data:/AltinnCore/Repos'
       - 'keys:/mnt/keys'
     environment:
+      - OTEL_SERVICE_NAME=studio-designer
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:6000
       - GeneralSettings:AltinnStudioEndpoint=http://studio.localhost/
@@ -86,6 +87,7 @@ services:
       - OidcLoginSettings:CookieExpiryTimeInMinutes=59
       - OidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
+      - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
       - AnsattPortenLoginSettings:ClientId=${ANSATTPORTEN_CLIENTID:-}
       - AnsattPortenLoginSettings:ClientSecret=${ANSATTPORTEN_CLIENTSECRET:-}
       - RedisCacheSettings:UseRedisCache=true
@@ -93,8 +95,7 @@ services:
       - RedisCacheSettings:InstanceName=designer
       - SchedulingSettings:UsePersistentScheduling=true
       - SchedulingSettings:AddHostedService=true
-      - AltinitySettings:AgentUrl=http://host.docker.internal:8071
-      - AltinitySettings:TimeoutSeconds=300
+      - GitOpsSettings:BotPersonalAccessToken=${GITOPS_BOT_PERSONAL_ACCESS_TOKEN:-}
     ports:
       - '6000:6000'
     depends_on:
@@ -176,7 +177,7 @@ services:
 
   studio_db:
     container_name: studio-db
-    image: postgres:alpine
+    image: postgres:16-alpine
     restart: always
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

@@ -1,0 +1,283 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "navbar6",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "priorityTitle",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "priorityTitle"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "hasPreInvestigation",
+        "type": "RadioButtons",
+        "options": [
+          {
+            "value": true,
+            "label": "yes"
+          },
+          {
+            "value": false,
+            "label": "no"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "PreInvestigation.HF_HasPriority"
+        },
+        "textResourceBindings": {
+          "description": "hasPreInvestigation"
+        }
+      },
+      {
+        "id": "preliminarySearch",
+        "type": "RadioButtons",
+        "options": [
+          {
+            "value": true,
+            "label": "yes"
+          },
+          {
+            "value": false,
+            "label": "no"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "PreInvestigation.HF_HasEarlierInvestigation"
+        },
+        "textResourceBindings": {
+          "title": "preApplication",
+          "description": "preApplicationInfo"
+        }, 
+        "hidden": [
+          "notEquals",[
+            "dataModel",
+            "PreInvestigation.HF_HasPriority"
+          ], true
+        ]
+      },
+      {
+        "id": "preliminary",
+        "type": "Group",
+        "children": [
+          "investigationYear",
+          "investigationNumber"
+        ], 
+        "hidden": [
+          "notEquals",[
+            "dataModel",
+            "PreInvestigation.HF_HasEarlierInvestigation"
+          ], true
+        ]
+      },
+      {
+        "id": "investigationYear",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "investigationYear"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PreInvestigation.Year"
+        },
+        "grid": {
+          "md": 5,
+          "xs": 12
+        }
+      },
+      {
+        "id": "investigationNumber",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "investigationNumber"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PreInvestigation.Number"
+        },
+        "grid": {
+          "md": 7,
+          "xs": 12
+        }
+      },
+      {
+        "id": "priorityGroup",
+        "type": "Group",
+        "groupingIndicator": "indented",
+        "children": [
+          "priorityReason",
+          "priorityQualification"
+        ], 
+        "hidden": [
+          "notEquals",[
+            "dataModel",
+            "PreInvestigation.HF_HasPriority"
+          ], true
+        ]
+      },
+      {
+        "id": "priorityReason",
+        "type": "RadioButtons",
+        "dataModelBindings": {
+          "simpleBinding": "PreInvestigation.PriorityReason"
+        },
+        "optionsId": "priorityReason",
+        "layout": "column",
+        "textResourceBindings": {
+          "title": "priorityReason"
+        }
+      },
+      {
+        "id": "priorityQualification",
+        "type": "Alert",
+        "textResourceBindings": {
+          "body": "earlierAppInfo"
+        },
+        "severity": "info",
+        "hidden": [
+          "notEquals",
+          [
+            "component",
+            "priorityReason"
+          ],
+          "earlierApplicant"
+        ]
+      },
+      {
+        "id": "priorityInformation",
+        "type": "Group",
+        "children": [
+          "priorityEarlierApplication"
+        ], 
+        "hidden": [
+          "notEquals",[
+            "dataModel",
+            "PreInvestigation.HF_HasPriority"
+          ], true
+        ]
+      },
+      {
+        "id": "caseAppInfo",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "caseAppInfo"
+        },
+        "hidden": true
+      },
+      {
+        "id": "nationalAppInfo",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "nationalAppInfo"
+        },
+        "hidden": true
+      },
+      {
+        "id": "priorityEarlierApplication",
+        "type": "RepeatingGroup",
+        "children": [
+          "priorityDate",
+          "countryCode",
+          "registrationNumber",
+          "niceClassificationNumbers"
+        ],
+        "dataModelBindings": {
+          "group": "PreInvestigation.Priority.PriorityProperties"
+        },
+        "edit": {
+          "openByDefault": "first"
+        },
+        "maxCount": 99,
+        "textResourceBindings": {
+          "title": "priorityDeclaration",
+          "description": "prioritetyDeclarationInfo"
+        },
+        "hidden": 
+          [
+            "notEquals",
+            [
+              "dataModel",
+              "PreInvestigation.PriorityReason"
+            ],
+            "earlierApplicant"
+          ]
+      },
+      {
+        "id": "priorityDate",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "priorityDate"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PreInvestigation.Priority.PriorityProperties.Date"
+        },
+        "grid": {
+          "md": 3,
+          "xs": 12
+        }
+      },
+      {
+        "id": "countryCode",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "countryCode"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PreInvestigation.Priority.PriorityProperties.CountryCode"
+        },
+        "grid": {
+          "md": 9,
+          "xs": 12,
+          "innerGrid": {
+            "md": 2
+          }
+        }
+      },
+      {
+        "id": "registrationNumber",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "registrationNumber"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PreInvestigation.Priority.PriorityProperties.RegistrationNumber"
+        },
+        "grid": {
+          "md": 5,
+          "xs": 12
+        }
+      },
+      {
+        "id": "niceClassificationNumbers",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "GoodsAndServicesNiceClassificationNumber"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PreInvestigation.Priority.PriorityProperties.NiceClassification"
+        },
+        "grid": {
+          "md": 7,
+          "xs": 12
+        }
+      },
+      {
+        "id": "navButtons6",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next"
+        },
+        "showBackButton": true,
+        "validateOnNext": {
+          "page": "current",
+          "show": [
+            "All"
+          ]
+        }
+      }
+    ]
+  }
+}

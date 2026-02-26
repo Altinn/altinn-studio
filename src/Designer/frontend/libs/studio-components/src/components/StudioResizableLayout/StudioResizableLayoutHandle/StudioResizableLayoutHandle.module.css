@@ -1,0 +1,34 @@
+.resizeHandle {
+  flex: 0 0 1px;
+  position: relative;
+  background-color: var(--ds-color-border-default);
+}
+
+.resizeHandle:after {
+  z-index: 1;
+  content: '';
+  position: absolute;
+}
+
+.resizeHandleH {
+  cursor: col-resize;
+}
+
+.resizeHandleH:after {
+  inset: 0 -5px 0 0;
+}
+
+.resizeHandleV {
+  cursor: row-resize;
+}
+
+.resizeHandleV:after {
+  inset: 0 0 -5px 0;
+}
+
+.hideLeftSide {
+}
+
+.hideLeftSide:after {
+  left: 0px;
+}

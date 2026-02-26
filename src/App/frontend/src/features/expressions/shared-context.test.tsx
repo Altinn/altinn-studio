@@ -4,9 +4,10 @@ import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { getSharedTests } from 'src/features/expressions/shared';
-import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
@@ -92,7 +93,12 @@ describe('Expressions shared context tests', () => {
                 : undefined;
 
         const applicationMetadata = getApplicationMetadataMock(instance ? {} : { onEntry: { show: 'stateless' } });
-        jest.mocked(fetchApplicationMetadata).mockImplementation(async () => applicationMetadata);
+        jest.mocked(getApplicationMetadata).mockImplementation(() => applicationMetadata);
+
+        // Set up applicationSettings in window global (useApplicationSettings reads from here)
+        if (frontendSettings) {
+          window.altinnAppGlobalData.frontendSettings = getApplicationSettingsMock(frontendSettings);
+        }
 
         if (instanceDataElements) {
           for (const element of instanceDataElements) {

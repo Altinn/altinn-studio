@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable disable
+using System.Collections.Generic;
 using Altinn.ResourceRegistry.Core.Models;
 
 namespace Altinn.Studio.Designer.Models

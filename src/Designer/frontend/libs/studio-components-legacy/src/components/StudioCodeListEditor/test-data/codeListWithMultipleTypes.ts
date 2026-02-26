@@ -1,5 +1,5 @@
 import type { CodeListItem } from '../types/CodeListItem';
-import type { CodeList } from '../types/CodeList';
+import type { CodeListWithTextResources } from '../types/CodeListWithTextResources';
 import { codeListWithStrings } from './codeListWithStrings';
 
 const item1: CodeListItem = {
@@ -17,4 +17,4 @@ const item3: CodeListItem = {
   value: 'test-value',
 };
 
-export const codeListWithMultipleTypes: CodeList = [item1, item2, item3];
+export const codeListWithMultipleTypes: CodeListWithTextResources = [item1, item2, item3];

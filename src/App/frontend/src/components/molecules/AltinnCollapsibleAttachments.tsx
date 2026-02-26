@@ -10,7 +10,7 @@ import type { IDisplayAttachment } from 'src/types/shared';
 
 interface IAltinnCollapsibleAttachmentsProps {
   attachments: IDisplayAttachment[] | undefined;
-  title: React.ReactNode | undefined;
+  title: React.ReactElement;
   showLinks: boolean | undefined;
   showDescription: boolean;
 }

@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import * as useNavigatePageModule from 'src/hooks/useNavigatePage';
+import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { RepeatingGroupProvider } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -18,7 +19,7 @@ describe('RepeatingGroupTableSummary', () => {
     jest.restoreAllMocks();
   });
 
-  const layoutWithHidden = (hidden: NodeId[]): ILayoutCollection => ({
+  const layoutWithHidden = (hidden: NodeId[], editButton?: boolean): ILayoutCollection => ({
     FormPage1: {
       data: {
         layout: [
@@ -32,6 +33,11 @@ describe('RepeatingGroupTableSummary', () => {
             children: ['input1', 'input2', 'input3'],
             maxCount: 3,
             hidden: hidden.includes('repeating-group'),
+            ...(editButton !== undefined && {
+              edit: {
+                editButton,
+              },
+            }),
           },
           {
             id: 'input1',
@@ -140,6 +146,16 @@ describe('RepeatingGroupTableSummary', () => {
     );
   });
 
+  test('should not render edit button when edit.editButton is false', async () => {
+    await render({ layout: layoutWithHidden([], false) });
+    expect(screen.queryByRole('button', { name: /endre/i })).not.toBeInTheDocument();
+  });
+
+  test('should render edit button when edit.editButton is true', async () => {
+    await render({ layout: layoutWithHidden([], true) });
+    expect(screen.getByRole('button', { name: /endre/i })).toBeInTheDocument();
+  });
+
   type IRenderProps = {
     navigate?: jest.Mock;
     layout?: ILayoutCollection;
@@ -165,7 +181,7 @@ describe('RepeatingGroupTableSummary', () => {
         fetchLayoutSettings: async () => ({
           pages: {
             order: ['FormPage1', 'FormPage2'],
-          },
+          } as unknown as IPagesSettingsWithOrder,
         }),
       },
     });

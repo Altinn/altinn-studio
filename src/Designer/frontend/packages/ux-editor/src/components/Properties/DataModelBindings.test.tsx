@@ -295,6 +295,11 @@ describe('DataModelBindings', () => {
     const option = screen.getByRole('option', { name: defaultModel });
     await user.selectOptions(dataModelFieldSelector, option);
 
+    const saveButton = screen.getByRole('button', {
+      name: textMock('right_menu.data_model_bindings_save_button'),
+    });
+    await user.click(saveButton);
+
     expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
     expect(formItemContextProviderMock.debounceSave).toHaveBeenCalledTimes(1);
   });

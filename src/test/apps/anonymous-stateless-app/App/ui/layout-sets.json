@@ -1,0 +1,8 @@
+{
+  "sets": [
+    {
+      "id": "stateless",
+      "dataType": "default"      
+    }
+  ]
+}

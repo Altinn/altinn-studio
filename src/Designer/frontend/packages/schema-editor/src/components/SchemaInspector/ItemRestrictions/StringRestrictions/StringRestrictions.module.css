@@ -51,11 +51,6 @@
   content: '\f040';
 }
 
-.regexTestFieldContainer input {
-  background-color: transparent;
-  z-index: 1;
-}
-
 .regexTestStyleField {
   color: transparent;
   left: 14px;

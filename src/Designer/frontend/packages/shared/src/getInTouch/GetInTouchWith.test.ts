@@ -17,7 +17,7 @@ describe('GetInTouchWith', () => {
     const contactByGitHubIssue = new GetInTouchWith(new GitHubIssueContactProvider());
 
     expect(contactByEmail.url('serviceDesk')).toBe('mailto:servicedesk@altinn.no');
-    expect(contactBySlack.url('altinn')).toBe('https://altinn.slack.com');
+    expect(contactBySlack.url('altinn')).toBe('https://digdir-samarbeid.slack.com');
     expect(contactByGitHubIssue.url('bugReport')).toBe(
       'https://github.com/Altinn/altinn-studio/issues/new?labels=kind/bug,status/triage&template=bug_report.yml',
     );

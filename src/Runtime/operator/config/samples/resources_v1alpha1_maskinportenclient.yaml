@@ -1,0 +1,8 @@
+apiVersion: resources.altinn.studio/v1alpha1
+kind: MaskinportenClient
+metadata:
+  labels:
+    app: ttd-localtestapp-deployment
+  name: ttd-localtestapp
+spec:
+  scopes: ["altinn:serviceowner/instances.read", "altinn:serviceowner/instances.write"]

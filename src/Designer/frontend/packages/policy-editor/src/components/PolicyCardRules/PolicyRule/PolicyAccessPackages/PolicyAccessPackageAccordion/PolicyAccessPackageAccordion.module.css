@@ -1,3 +1,7 @@
-.accessPackageAccordion {
-  background-color: var(--fds-colors-blue-100);
+.accessPackagePersonAccordion {
+  background-color: var(--ds-color-success-surface-tinted);
+}
+
+.accessPackageOrgAccordion {
+  background-color: var(--ds-color-accent-surface-tinted);
 }

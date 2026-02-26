@@ -206,7 +206,7 @@ function canClaimChild(childId: string, parentId: string, lookup: PlainLayoutLoo
   }
   const otherClaims: string[] = [];
   for (const otherParentId in claims) {
-    if (claims[otherParentId]?.[childId]) {
+    if (claims[otherParentId]?.has(childId) && otherParentId !== parentId) {
       otherClaims.push(otherParentId);
     }
   }

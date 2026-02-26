@@ -1,0 +1,10 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.id {
+  align-items: center;
+  display: flex;
+  gap: var(--fds-spacing-1);
+}

@@ -1,4 +1,4 @@
-import type { CodeListData } from '@studio/content-library';
+import type { CodeListDataWithTextResources } from '@studio/content-library';
 import { mapToCodeListDataList } from './mapToCodeListDataList';
 import type { OptionListData } from 'app-shared/types/OptionList';
 
@@ -15,7 +15,7 @@ describe('mapToCodeListDataList', () => {
         hasError: false,
       },
     ];
-    const result: CodeListData[] = mapToCodeListDataList(optionListDataList);
+    const result: CodeListDataWithTextResources[] = mapToCodeListDataList(optionListDataList);
     expect(result).toEqual([
       {
         title: optionListId,
@@ -37,13 +37,13 @@ describe('mapToCodeListDataList', () => {
         hasError: true,
       },
     ];
-    const result: CodeListData[] = mapToCodeListDataList(optionListDataList);
+    const result: CodeListDataWithTextResources[] = mapToCodeListDataList(optionListDataList);
     expect(result).toEqual([{ title: optionListId, data: null, hasError: true }]);
   });
 
   it('returns a result with empty code list data array when the input option list data is empty', () => {
     const optionListDataList: OptionListData[] = [];
-    const result: CodeListData[] = mapToCodeListDataList(optionListDataList);
+    const result: CodeListDataWithTextResources[] = mapToCodeListDataList(optionListDataList);
     expect(result).toEqual([]);
   });
 });

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
@@ -27,7 +28,6 @@ namespace Altinn.Studio.Designer.Repository
         /// </summary>
         Task<DeploymentEntity> Get(string org, string buildId);
 
-
         /// <summary>
         /// Gets the last deployed entity on environment
         /// </summary>
@@ -36,11 +36,22 @@ namespace Altinn.Studio.Designer.Repository
         /// <summary>
         /// Get all deployments for an app in an environment
         /// </summary>
-        Task<IEnumerable<DeploymentEntity>> GetSucceeded(string org, string app, string environment, DocumentQueryModel query);
+        Task<IEnumerable<DeploymentEntity>> GetSucceeded(
+            string org,
+            string app,
+            string environment,
+            DocumentQueryModel query
+        );
 
         /// <summary>
         /// Calls a function to update deployment entity
         /// </summary>
         Task Update(DeploymentEntity deploymentEntity);
+
+        /// <summary>
+        /// Gets a pending decommission deployment for an app in an environment.
+        /// A pending decommission is one that doesn't have a final event yet.
+        /// </summary>
+        Task<DeploymentEntity> GetPendingDecommission(string org, string app, string environment);
     }
 }

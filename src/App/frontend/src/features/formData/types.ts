@@ -1,9 +1,5 @@
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
-import type {
-  BackendValidationIssueGroups,
-  BackendValidationIssuesWithSource,
-  BuiltInValidationIssueSources,
-} from 'src/features/validation';
+import type { BackendValidationIssuesWithSource, BuiltInValidationIssueSources } from 'src/features/validation';
 import type { IInstance } from 'src/types/shared';
 
 /**
@@ -37,17 +33,6 @@ export type DebounceReason =
  * which objects are which within it.
  */
 export const ALTINN_ROW_ID = 'altinnRowId';
-
-export interface IDataModelPatchRequest {
-  patch: JsonPatch;
-  ignoredValidators: BuiltInValidationIssueSources[];
-}
-
-export interface IDataModelPatchResponse {
-  validationIssues: BackendValidationIssueGroups;
-  newDataModel: object;
-  instance?: IInstance;
-}
 
 export interface IDataModelMultiPatchRequest {
   patches: IPatchListItem[];

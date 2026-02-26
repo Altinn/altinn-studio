@@ -1,7 +1,6 @@
 import React, { type ReactElement, useState } from 'react';
 import classes from './DeployPopover.module.css';
-import { StudioSpinner } from '@studio/components-legacy';
-import { StudioButton, StudioParagraph, StudioPopover } from '@studio/components';
+import { StudioButton, StudioParagraph, StudioPopover, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 export type DeployPopoverProps = {
@@ -82,11 +81,5 @@ export const DeployPopover = ({
 
 const PopoverSpinner = () => {
   const { t } = useTranslation();
-  return (
-    <StudioSpinner
-      variant='interaction'
-      size='xsmall'
-      spinnerTitle={t('app_deployment.deploy_loading')}
-    />
-  );
+  return <StudioSpinner spinnerTitle={t('app_deployment.deploy_loading')} aria-hidden />;
 };

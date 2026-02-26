@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
@@ -35,7 +36,7 @@ namespace LocalTest.Services.Storage.Implementation
             throw new NotImplementedException();
         }
 
-        public async Task<Application> FindOne(string appId, string org)
+        public async Task<Application> FindOne(string appId, string org, CancellationToken cancellationToken = default)
         {
             var applications = await _localApp.GetApplications();
             if (applications.ContainsKey(appId))

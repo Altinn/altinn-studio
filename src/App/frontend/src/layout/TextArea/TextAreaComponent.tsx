@@ -7,8 +7,9 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
+import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { useCharacterLimit } from 'src/utils/inputUtils';
+import { buildAriaDescribedBy, useCharacterLimit } from 'src/utils/inputUtils';
 import { useLabel } from 'src/utils/layout/useLabel';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -41,6 +42,20 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
     useLabel({ baseComponentId, overrideDisplay });
 
+  const descriptionId = getDescriptionId(id);
+  const validationsId = `${baseComponentId}-validations`;
+  const validations = useUnifiedValidationsForNode(baseComponentId);
+  const hasValidations = validations.length > 0;
+
+  const textAreaDescribedBy = buildAriaDescribedBy({
+    renderedInTable: overrideDisplay?.renderedInTable,
+    hasTitle: !!textResourceBindings?.title,
+    descriptionId,
+    hasDescription: !!textResourceBindings?.description,
+    validationsId,
+    hasValidations,
+  });
+
   return (
     <Label
       htmlFor={id}
@@ -62,13 +77,7 @@ export function TextAreaComponent({ baseComponentId, overrideDisplay }: ITextAre
           characterLimit={!readOnly ? characterLimit : undefined}
           error={!isValid}
           dataTestId={id}
-          ariaDescribedBy={
-            overrideDisplay?.renderedInTable !== true &&
-            textResourceBindings?.title &&
-            textResourceBindings?.description
-              ? getDescriptionId(id)
-              : undefined
-          }
+          ariaDescribedBy={textAreaDescribedBy}
           ariaLabel={overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined}
           autoComplete={autocomplete}
           style={{ minHeight: '150px', height: '150px', width: '100%' }}

@@ -1,4 +1,5 @@
-import { SearchParams, useQueryKey } from 'src/hooks/navigation';
+import { SearchParams } from 'src/core/routing/types';
+import { useQueryKey } from 'src/hooks/navigation';
 
 /**
  * Hook checking whether we are in PDF generation mode

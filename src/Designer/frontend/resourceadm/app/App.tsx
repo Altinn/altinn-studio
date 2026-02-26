@@ -14,6 +14,7 @@ import { ErrorPage } from '../pages/ErrorPage';
 import { RedirectPage } from '../pages/RedirectPage';
 import { ListAdminPage } from '../pages/ListAdminPage';
 import { AccessListPage } from '../pages/AccessListPage';
+import { FeatureFlagsProvider } from '@studio/feature-flags';
 
 export const App = (): React.JSX.Element => {
   const { data: user, isError: isUserError } = useUserQuery();
@@ -46,24 +47,26 @@ export const App = (): React.JSX.Element => {
 
   if (componentIsReady) {
     return (
-      <div className={classes.root}>
-        <Routes>
-          <Route element={<PageLayout />}>
-            <Route path={basePath} element={<ResourceDashboardPage />} />
-            <Route path={`${basePath}/accesslists/:env?`} element={<ListAdminPage />} />
-            <Route
-              path={`${basePath}/accesslists/:env/:accessListId`}
-              element={<AccessListPage />}
-            />
-            <Route
-              path={`${basePath}/resource/:resourceId/:pageType/:env?/:accessListId?`}
-              element={<ResourcePage />}
-            />
-            <Route path='/' element={<ErrorPage />} />
-            <Route path='/:org' element={<RedirectPage />} />
-          </Route>
-        </Routes>
-      </div>
+      <FeatureFlagsProvider>
+        <div className={classes.root}>
+          <Routes>
+            <Route element={<PageLayout />}>
+              <Route path={basePath} element={<ResourceDashboardPage />} />
+              <Route path={`${basePath}/accesslists/:env?`} element={<ListAdminPage />} />
+              <Route
+                path={`${basePath}/accesslists/:env/:accessListId`}
+                element={<AccessListPage />}
+              />
+              <Route
+                path={`${basePath}/resource/:resourceId/:pageType/:env?/:accessListId?`}
+                element={<ResourcePage />}
+              />
+              <Route path='/' element={<ErrorPage />} />
+              <Route path='/:org' element={<RedirectPage />} />
+            </Route>
+          </Routes>
+        </div>
+      </FeatureFlagsProvider>
     );
   }
   return (

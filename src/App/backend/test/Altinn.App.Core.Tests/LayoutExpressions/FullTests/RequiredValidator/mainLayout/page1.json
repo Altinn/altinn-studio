@@ -1,0 +1,205 @@
+{
+    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+    "data": {
+        "hidden": [
+            "dataModel",
+            "HidePage"
+        ],
+        "layout": [
+            {
+                "id": "subPage",
+                "type": "Subform",
+                "layoutSet": "subLayout",
+                "tableColumns": [
+                    {
+                        "headerContent": "blah",
+                        "cellContent": {
+                            "value": [
+                                "dataModel",
+                                "Group.GroupNumber"
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "sub-server-validated-hidden",
+                "type": "Input",
+                "required": false,
+                "hidden": true,
+                "dataModelBindings": {
+                    "simpleBinding": "ServerValidatedHidden"
+                }
+            },
+            {
+                "id": "input-hidden-required",
+                "type": "Input",
+                "required": true,
+                "hidden": true,
+                "dataModelBindings": {
+                    "simpleBinding": "HiddenRequired"
+                }
+            },
+            {
+                "id": "input-hidden-not-required",
+                "type": "Input",
+                "required": false,
+                "hidden": true,
+                "dataModelBindings": {
+                    "simpleBinding": "HiddenNotRequired"
+                }
+            },
+            {
+                "id": "input-visible-required",
+                "type": "Input",
+                "required": true,
+                "hidden": false,
+                "dataModelBindings": {
+                    "simpleBinding": "VisibleRequired"
+                }
+            },
+            {
+                "id": "input-visible-not-required",
+                "type": "Input",
+                "required": false,
+                "hidden": false,
+                "dataModelBindings": {
+                    "simpleBinding": "VisibleNotRequired"
+                }
+            },
+            {
+                "id": "group1",
+                "type": "RepeatingGroup",
+                "hiddenRow": [
+                    "or",
+                    [
+                        "equals",
+                        [
+                            "dataModel",
+                            "Group.GroupNumber"
+                        ],
+                        -1
+                    ],
+                    [
+                        "equals",
+                        [
+                            "dataModel",
+                            "Group.GroupNumber"
+                        ],
+                        0
+                    ],
+                    [
+                        "equals",
+                        [
+                            "dataModel",
+                            "Group.GroupNumber"
+                        ],
+                        2
+                    ]
+                ],
+                "dataModelBindings": {
+                    "group": "Group"
+                },
+                "children": [
+                    "input-group1-visible-required",
+                    "input-group1-visible-not-required",
+                    "input-group1-hidden-required",
+                    "input-group1-hidden-not-required"
+                ]
+            },
+            {
+                "id": "input-group1-visible-required",
+                "type": "Input",
+                "required": true,
+                "hidden": false,
+                "dataModelBindings": {
+                    "simpleBinding": "Group.VisibleRequired"
+                }
+            },
+            {
+                "id": "input-group1-visible-not-required",
+                "type": "Input",
+                "required": false,
+                "hidden": false,
+                "dataModelBindings": {
+                    "simpleBinding": "Group.VisibleNotRequired"
+                }
+            },
+            {
+                "id": "input-group1-hidden-required",
+                "type": "Input",
+                "required": true,
+                "hidden": true,
+                "dataModelBindings": {
+                    "simpleBinding": "Group.HiddenRequired"
+                }
+            },
+            {
+                "id": "input-group1-hidden-not-required",
+                "type": "Input",
+                "required": false,
+                "hidden": true,
+                "dataModelBindings": {
+                    "simpleBinding": "Group.HiddenNotRequired"
+                }
+            },
+            {
+                "id": "group2",
+                "type": "RepeatingGroup",
+                "hiddenRow": [
+                    "notEquals",
+                    [
+                        "dataModel",
+                        "Group.GroupNumber"
+                    ],
+                    2
+                ],
+                "dataModelBindings": {
+                    "group": "Group"
+                },
+                "children": [
+                    "input-group2-visible-required",
+                    "input-group2-visible-not-required",
+                    "input-group2-hidden-required",
+                    "input-group2-hidden-not-required"
+                ]
+            },
+            {
+                "id": "input-group2-visible-required",
+                "type": "Input",
+                "required": true,
+                "hidden": false,
+                "dataModelBindings": {
+                    "simpleBinding": "Group.VisibleRequired"
+                }
+            },
+            {
+                "id": "input-group2-visible-not-required",
+                "type": "Input",
+                "required": false,
+                "hidden": false,
+                "dataModelBindings": {
+                    "simpleBinding": "Group.VisibleNotRequired"
+                }
+            },
+            {
+                "id": "input-group2-hidden-required",
+                "type": "Input",
+                "required": true,
+                "hidden": true,
+                "dataModelBindings": {
+                    "simpleBinding": "Group.HiddenRequired"
+                }
+            },
+            {
+                "id": "input-group2-hidden-not-required",
+                "type": "Input",
+                "required": false,
+                "hidden": true,
+                "dataModelBindings": {
+                    "simpleBinding": "Group.HiddenNotRequired"
+                }
+            }
+        ]
+    }
+}

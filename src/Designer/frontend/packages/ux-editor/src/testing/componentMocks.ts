@@ -207,6 +207,11 @@ const linkComponent: FormComponent<ComponentType.Link> = {
   style: 'link',
 };
 
+const textComponent: FormComponent<ComponentType.Text> = {
+  ...commonProps(ComponentType.Text),
+  value: 'Sample text',
+};
+
 export const componentMocks = {
   [ComponentType.AccordionGroup]: accordionGroupContainer,
   [ComponentType.Accordion]: accordionContainer,
@@ -235,6 +240,7 @@ export const componentMocks = {
   [ComponentType.RadioButtons]: radiosComponent,
   [ComponentType.RepeatingGroup]: repeatingGroupContainer,
   [ComponentType.Subform]: subformComponent,
+  [ComponentType.Text]: textComponent,
   [ComponentType.TextArea]: textareaComponent,
   [ComponentType.Custom]: thirdPartyComponent,
   [ComponentType.Summary]: summaryComponent,

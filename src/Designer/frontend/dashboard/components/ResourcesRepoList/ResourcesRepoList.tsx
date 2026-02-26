@@ -7,7 +7,7 @@ import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/u
 import { getReposLabel } from 'dashboard/utils/repoUtils';
 import type { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner } from '@studio/components';
 import { Alert, Heading, Link } from '@digdir/designsystemet-react';
 import { useSearchReposQuery } from 'dashboard/hooks/queries';
 import type { User } from 'app-shared/types/Repository';
@@ -67,7 +67,7 @@ export const ResourcesRepoList = ({
         {t('dashboard.go_to_resources')}
       </Link>
       {isLoadingResourceList ? (
-        <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.loading_resource_list')} />
+        <StudioSpinner aria-hidden spinnerTitle={t('dashboard.loading_resource_list')} />
       ) : (
         <div data-testid='resource-table-wrapper'>
           <ResourceTable

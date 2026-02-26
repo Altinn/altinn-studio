@@ -79,28 +79,15 @@ public interface IAppResources
     string GetClassRefForLogicDataType(string dataType);
 
     /// <summary>
-    /// Gets the layouts for the app.
-    /// </summary>
-    /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
-    string GetLayouts();
-
-    /// <summary>
-    /// Gets the the layouts settings
-    /// </summary>
-    /// <returns>The layout settings as a JSON string</returns>
-    string? GetLayoutSettingsString();
-
-    /// <summary>
-    /// Gets the layout settings
-    /// </summary>
-    /// <returns>The layout settings</returns>
-    LayoutSettings GetLayoutSettings();
-
-    /// <summary>
     /// Gets the the layout sets
     /// </summary>
     /// <returns>The layout sets</returns>
-    string GetLayoutSets();
+    string? GetLayoutSetsString();
+
+    /// <summary>
+    /// Get the layout set definition. Return null if no layout sets exists
+    /// </summary>
+    LayoutSets? GetLayoutSets();
 
     /// <summary>
     /// Gets the footer layout
@@ -109,12 +96,7 @@ public interface IAppResources
     Task<string?> GetFooter();
 
     /// <summary>
-    /// Get the layout set definition. Return null if no layoutsets exists
-    /// </summary>
-    LayoutSets? GetLayoutSet();
-
-    /// <summary>
-    /// Get the layout set definition for a given task. Return null if no layoutsets exists
+    /// Get the layout set definition for a given task. Return null if no layout sets exists
     /// </summary>
     LayoutSet? GetLayoutSetForTask(string taskId);
 
@@ -148,18 +130,6 @@ public interface IAppResources
     /// </summary>
     /// <returns>The layout settings</returns>
     LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
-
-    /// <summary>
-    /// Gets the ruleconfiguration for av given layoutset
-    /// </summary>
-    /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
-    byte[] GetRuleConfigurationForSet(string id);
-
-    /// <summary>
-    /// Gets the the rule handler for a layoutset
-    /// </summary>
-    /// <returns>The layout settings</returns>
-    byte[] GetRuleHandlerForSet(string id);
 
     /// <summary>
     /// Gets the validation configuration for a given data type

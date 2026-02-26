@@ -26,6 +26,11 @@
   border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
+.headerContent button {
+  border: none;
+  padding: var(--ds-size-6) var(--ds-size-6);
+}
+
 .accordionHeaderRow {
   display: flex;
 }

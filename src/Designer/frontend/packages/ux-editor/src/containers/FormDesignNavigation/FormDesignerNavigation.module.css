@@ -9,13 +9,6 @@
   position: relative;
 }
 
-.alert {
-  background-color: var(--fds-semantic-surface-neutral-subtle);
-  width: 80%;
-  max-width: 1050px;
-  margin-left: var(--fds-spacing-5);
-}
-
 .panel {
   background-color: white;
   border-radius: var(--fds-border_radius-medium);

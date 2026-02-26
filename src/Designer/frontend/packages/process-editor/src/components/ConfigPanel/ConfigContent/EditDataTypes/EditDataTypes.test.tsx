@@ -54,9 +54,7 @@ describe('EditDataTypes', () => {
       name: textMock('process_editor.configuration_panel_set_data_model_link'),
     });
     await user.click(addDataModelButton);
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model_label'),
-    });
+    const combobox = getCombobox();
     const description = screen.getByText(
       textMock('process_editor.configuration_panel_data_model_selection_description'),
     );
@@ -95,14 +93,14 @@ describe('EditDataTypes', () => {
     );
     expect(description).toBeInTheDocument();
 
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model_label'),
-    });
+    const combobox = getCombobox();
     await user.click(combobox);
 
-    expect(screen.getByRole('option', { name: existingDataType })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: existingDataType, hidden: true }),
+    ).toBeInTheDocument();
     availableDataModelIds.forEach((dataType) =>
-      expect(screen.getByRole('option', { name: dataType })).toBeInTheDocument(),
+      expect(screen.getByRole('option', { name: dataType, hidden: true })).toBeInTheDocument(),
     );
   });
 
@@ -125,9 +123,7 @@ describe('EditDataTypes', () => {
     expect(screen.getByText(existingDataType)).toBeInTheDocument();
 
     await user.click(updateDataTypeButton);
-    const combobox = screen.getByRole('combobox', {
-      name: textMock('process_editor.configuration_panel_set_data_model_label'),
-    });
+    const combobox = getCombobox();
     expect(combobox).toHaveValue(existingDataType);
   });
 
@@ -177,6 +173,11 @@ describe('EditDataTypes', () => {
     ).toBeInTheDocument();
   });
 });
+
+const getCombobox = () =>
+  screen.getByRole('combobox', {
+    name: /process_editor\.configuration_panel_set_data_model_label/,
+  });
 
 type RenderProps = {
   bpmnApiContextProps: Partial<BpmnApiContextProps>;

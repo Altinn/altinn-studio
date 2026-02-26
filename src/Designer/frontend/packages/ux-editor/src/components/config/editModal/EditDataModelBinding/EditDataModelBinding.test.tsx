@@ -68,6 +68,13 @@ describe('EditDataModelBinding', () => {
     expect(dataModelFieldSelector).toBeInTheDocument();
   };
 
+  const getConfigButtonText = (componentType: string) => {
+    const titleType = textMock(`ux_editor.component_title.${componentType}`);
+    return textMock('ux_editor.modal_properties_data_model_field_choose_for', {
+      componentName: titleType,
+    });
+  };
+
   it('should render undefinedBinding component initially', () => {
     const label = 'kort svar';
 
@@ -90,12 +97,8 @@ describe('EditDataModelBinding', () => {
 
   it('should render type as label if no label is provided', () => {
     renderEditDataModelBinding({});
-    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
-    const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
-      componentName: type,
-    });
-
-    const button = screen.getByRole('button', { name: labelText });
+    const configButtonText = getConfigButtonText(ComponentType.Input);
+    const button = screen.getByRole('button', { name: configButtonText });
     expect(button).toBeInTheDocument();
   });
 
@@ -103,33 +106,24 @@ describe('EditDataModelBinding', () => {
     const user = userEvent.setup();
     renderEditDataModelBinding({});
 
-    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
-    const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
-      componentName: type,
-    });
-
-    await navigateAndVerifyEditBinding(user, labelText);
+    const configButtonText = getConfigButtonText(ComponentType.Input);
+    await navigateAndVerifyEditBinding(user, configButtonText);
   });
 
   it('should close EditBinding when click on close button', async () => {
     const user = userEvent.setup();
     renderEditDataModelBinding({});
 
-    const type = textMock(`ux_editor.component_title.${ComponentType.Input}`);
-    const labelText = textMock('ux_editor.modal_properties_data_model_field_choose_for', {
-      componentName: type,
-    });
-
-    await navigateAndVerifyEditBinding(user, labelText);
-
+    const configButtonText = getConfigButtonText(ComponentType.Input);
+    await navigateAndVerifyEditBinding(user, configButtonText);
     const closeButton = screen.getByRole('button', {
-      name: textMock('right_menu.data_model_bindings_save_button'),
+      name: textMock('general.cancel'),
     });
     expect(closeButton).toBeInTheDocument();
 
     await user.click(closeButton);
 
-    const undefinedButton = screen.getByRole('button', { name: labelText });
+    const undefinedButton = screen.getByRole('button', { name: configButtonText });
     expect(undefinedButton).toBeInTheDocument();
   });
 

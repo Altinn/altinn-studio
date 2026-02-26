@@ -89,6 +89,16 @@ describe('StudioTextarea', () => {
       screen.getByRole('textbox') as HTMLTextAreaElement;
     testCustomAttributes<HTMLTextAreaElement>(renderStudioTextarea, getTextbox);
   });
+
+  it('Does not set the textarea as required by default', () => {
+    renderStudioTextarea();
+    expect(screen.getByRole('textbox')).not.toBeRequired();
+  });
+
+  it('Sets the textarea as required when the required prop is true', () => {
+    renderStudioTextarea({ required: true });
+    expect(screen.getByRole('textbox')).toBeRequired();
+  });
 });
 
 const defaultProps: StudioTextareaProps = {

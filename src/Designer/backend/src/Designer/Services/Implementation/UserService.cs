@@ -1,6 +1,8 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.RepositoryClient.Model;
@@ -10,16 +12,16 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class UserService : IUserService
 {
-    private readonly IGitea _giteaApi;
+    private readonly IGiteaClient _giteaClient;
 
-    public UserService(IGitea giteaApi)
+    public UserService(IGiteaClient giteaClient)
     {
-        _giteaApi = giteaApi;
+        _giteaClient = giteaClient;
     }
 
-    public async Task<UserOrgPermission> GetUserOrgPermission(AltinnOrgContext altinnOrgContext)
+    public async Task<UserOrgPermission> GetUserOrgPermission(AltinnOrgEditingContext altinnOrgEditingContext)
     {
-        bool canCreateOrgRepo = await HasPermissionToCreateOrgRepo(altinnOrgContext);
+        bool canCreateOrgRepo = await HasPermissionToCreateOrgRepo(altinnOrgEditingContext);
         return new UserOrgPermission() { CanCreateOrgRepo = canCreateOrgRepo };
     }
 
@@ -28,11 +30,11 @@ public class UserService : IUserService
         return developerName == org;
     }
 
-    private async Task<bool> HasPermissionToCreateOrgRepo(AltinnOrgContext altinnOrgContext)
+    private async Task<bool> HasPermissionToCreateOrgRepo(AltinnOrgEditingContext altinnOrgEditingContext)
     {
-        List<Team> teams = await _giteaApi.GetTeams();
-        return IsUserSelfOrg(altinnOrgContext.DeveloperName, altinnOrgContext.Org) ||
-               teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgContext.Org));
+        List<Team> teams = await _giteaClient.GetTeams();
+        return IsUserSelfOrg(altinnOrgEditingContext.Developer, altinnOrgEditingContext.Org)
+            || teams.Any(team => CheckPermissionToCreateOrgRepo(team, altinnOrgEditingContext.Org));
     }
 
     private static bool CheckPermissionToCreateOrgRepo(Team team, string org)

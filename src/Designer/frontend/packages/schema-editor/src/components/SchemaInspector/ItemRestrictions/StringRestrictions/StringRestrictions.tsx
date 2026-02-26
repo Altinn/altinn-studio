@@ -3,12 +3,12 @@ import React, { useCallback, useState, useMemo } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import classes from './StringRestrictions.module.css';
-import { Fieldset, Label, Switch } from '@digdir/designsystemet-react';
+import { Fieldset, Switch } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
-import { StudioNativeSelect, StudioTextfield } from '@studio/components-legacy';
+import { StudioDecimalInput, StudioSelect, StudioTextfield } from '@studio/components';
 import { ItemWrapper } from '../ItemWrapper';
 import {
   isDateOrTimeFormat,
@@ -19,6 +19,8 @@ import {
   updateLatest,
   updateEarliestInclusivity,
   updateLatestInclusivity,
+  updateFormat,
+  removeRestriction,
 } from './utils';
 import type { DateTimeFormatState } from './utils';
 
@@ -48,12 +50,36 @@ export function StringRestrictions({
     [onChangeRestrictions, path],
   );
 
-  const setRestriction = useCallback(
-    (key: StrRestrictionKey, value: string): void => {
-      const updatedRestrictions = updateRestriction(restrictions, key, value);
+  const handleFormatChange: ChangeEventHandler<HTMLSelectElement> = useCallback(
+    (event): void => {
+      const format = (event.target.value as StringFormat) || null;
+      const updatedRestrictions = updateFormat(restrictions, format);
       changeCallback(updatedRestrictions);
     },
     [restrictions, changeCallback],
+  );
+
+  const updateNumberRestriction = useCallback(
+    (key: StrRestrictionKey, value: number | null): void => {
+      const updatedRestrictions =
+        value === null
+          ? removeRestriction(restrictions, key)
+          : updateRestriction(restrictions, key, value);
+      changeCallback(updatedRestrictions);
+    },
+    [restrictions, changeCallback],
+  );
+
+  const handleMinLengthChange = useCallback(
+    (minLength: number | null): void =>
+      updateNumberRestriction(StrRestrictionKey.minLength, minLength),
+    [updateNumberRestriction],
+  );
+
+  const handleMaxLengthChange = useCallback(
+    (maxLength: number | null): void =>
+      updateNumberRestriction(StrRestrictionKey.maxLength, maxLength),
+    [updateNumberRestriction],
   );
 
   const handleUpdateDateTimeRestrictions = useCallback(
@@ -77,20 +103,19 @@ export function StringRestrictions({
 
   return (
     <ItemWrapper>
-      <StudioNativeSelect
+      <StudioSelect
         id='format-select-input'
         label={t('format')}
-        onChange={(event) => setRestriction(StrRestrictionKey.format, event.target.value)}
+        onChange={handleFormatChange}
         value={restrictions[StrRestrictionKey.format] || ''}
-        size='sm'
       >
-        <option value=''>{t('format_none')}</option>
+        <StudioSelect.Option value=''>{t('format_none')}</StudioSelect.Option>
         {formatOptions.map((f) => (
-          <option key={f.key} value={f.value}>
+          <StudioSelect.Option key={f.key} value={f.value}>
             {f.label}
-          </option>
+          </StudioSelect.Option>
         ))}
-      </StudioNativeSelect>
+      </StudioSelect>
       {isDateOrTimeFormat(restrictions) && (
         <DateOrTimeFormatRestrictions
           formatState={dateTimeFormatState}
@@ -99,22 +124,18 @@ export function StringRestrictions({
       )}
       <div className={classes.lengthFields}>
         <div className={classes.lengthField}>
-          <StudioTextfield
+          <StudioDecimalInput
             type='number'
             label={t(StrRestrictionKey.minLength)}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setRestriction(StrRestrictionKey.minLength, e.target.value)
-            }
+            onChangeNumber={handleMinLengthChange}
             value={restrictions[StrRestrictionKey.minLength] || ''}
           />
         </div>
         <div className={classes.lengthField}>
-          <StudioTextfield
+          <StudioDecimalInput
             type='number'
             label={t(StrRestrictionKey.maxLength)}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setRestriction(StrRestrictionKey.maxLength, e.target.value)
-            }
+            onChangeNumber={handleMaxLengthChange}
             value={restrictions[StrRestrictionKey.maxLength] || ''}
           />
         </div>
@@ -129,7 +150,6 @@ export function StringRestrictions({
         />
         <div className={classes.regexTest}>
           <div className={classes.regexTestLabel}>
-            <Label htmlFor={fieldId}>{t('pattern_test_field')}</Label>
             {pattern &&
               (regexTestValueMatchesRegex ? (
                 <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>
@@ -150,13 +170,16 @@ export function StringRestrictions({
                 </span>
               ))}
             </div>
-            <StudioTextfield
-              id={fieldId}
-              onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                handleValueChange(event.target.value)
-              }
-              value={regexTestValue}
-            />
+            <div className={classes.lengthField}>
+              <StudioTextfield
+                label={t('pattern_test_field')}
+                id={fieldId}
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  handleValueChange(event.target.value)
+                }
+                value={regexTestValue}
+              />
+            </div>
           </div>
         </div>
       </Fieldset>

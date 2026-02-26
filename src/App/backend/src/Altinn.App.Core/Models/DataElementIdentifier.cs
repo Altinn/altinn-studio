@@ -62,7 +62,7 @@ public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
     /// but accept and return null values
     /// </summary>
     public static implicit operator DataElementIdentifier?(DataElement? dataElement) =>
-        dataElement is null ? default : new(dataElement);
+        dataElement is null ? null : new(dataElement);
 
     /// <summary>
     /// Make the ToString method return the ID
@@ -77,7 +77,7 @@ public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
     /// </summary>
     public static bool operator ==(DataElementIdentifier left, DataElementIdentifier right)
     {
-        return left.Equals(right);
+        return left.Guid.Equals(right.Guid);
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
     /// </summary>
     public static bool operator !=(DataElementIdentifier left, DataElementIdentifier right)
     {
-        return !left.Equals(right);
+        return !left.Guid.Equals(right.Guid);
     }
 
     /// <inheritdoc />

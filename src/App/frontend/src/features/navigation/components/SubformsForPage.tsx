@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { ExprVal } from 'src/features/expressions/types';
 import { useDataTypeFromLayoutSet, useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
@@ -12,6 +11,7 @@ import classes from 'src/features/navigation/components/SubformsForPage.module.c
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing } from 'src/hooks/useProcessingMutation';
 import {
   getSubformEntryDisplayName,
   useExpressionDataSourcesForSubform,
@@ -116,7 +116,7 @@ function SubformLink({
   dataElement: IData;
   hasErrors: boolean;
 }) {
-  const { isAnyProcessing: disabled } = useIsProcessing();
+  const disabled = useIsAnyProcessing();
   const { enterSubform } = useNavigatePage();
   const { isSubformDataFetching, subformData, subformDataError } = useSubformFormData(dataElement.id);
   const subformDataSources = useExpressionDataSourcesForSubform(dataElement.dataType, subformData, entryDisplayName);

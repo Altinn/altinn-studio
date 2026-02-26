@@ -26,10 +26,17 @@ public interface IAppOptionsService
     /// <param name="language">The language code requested.</param>
     /// <param name="keyValuePairs">Optional list of key/value pairs to use for filtering and further lookup.</param>
     /// <returns>The list of options</returns>
-    Task<AppOptions> GetOptionsAsync(
+    Task<AppOptions?> GetOptionsAsync(
         InstanceIdentifier instanceIdentifier,
         string optionId,
         string? language,
         Dictionary<string, string> keyValuePairs
     );
+
+    /// <summary>
+    /// Checks whether a specific instance app options provider exists for the given optionId
+    /// </summary>
+    /// <param name="optionId">Id/OptionId defined in the IInstanceAppOptionsProvider</param>
+    /// <returns>True if exists, otherwise false</returns>
+    bool IsInstanceAppOptionsProviderRegistered(string optionId);
 }

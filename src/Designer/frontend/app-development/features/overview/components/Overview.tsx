@@ -7,13 +7,13 @@ import { Navigation } from './Navigation';
 import { News } from './News';
 import { Deployments } from './Deployments';
 import { Header } from './Header';
-import { StudioPageImageBackgroundContainer } from '@studio/components-legacy';
+import { StudioPageImageBackgroundContainer } from '@studio/components';
 
-export const Overview = () => {
+export default function Overview() {
   const { t } = useTranslation();
 
   return (
-    <StudioPageImageBackgroundContainer image='/designer/img/page-background.svg'>
+    <StudioPageImageBackgroundContainer image='/img/page-background.svg'>
       <main className={classes.container}>
         {/* According to https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header, the role of <header> should implicitly be "generic" when it is a descendant of <main>, but Testing Library still interprets it as "banner". */}
         <header className={classes.header} role='generic'>
@@ -43,4 +43,4 @@ export const Overview = () => {
       </main>
     </StudioPageImageBackgroundContainer>
   );
-};
+}

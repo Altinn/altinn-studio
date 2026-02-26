@@ -6,3 +6,11 @@
   display: flex;
   align-items: center;
 }
+
+.link {
+  padding-left: 0;
+}
+
+.button {
+  width: fit-content;
+}

@@ -1,5 +1,5 @@
-import { useTextResourcesSelector } from '@altinn/ux-editor/hooks';
-import { textResourceByLanguageAndIdSelector } from '@altinn/ux-editor/selectors/textResourceSelectors';
+import { useTextResourcesSelector } from 'app-shared/hooks';
+import { textResourceByLanguageAndIdSelector } from 'app-shared/selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export const useTextResourceValue = (id: string) => {

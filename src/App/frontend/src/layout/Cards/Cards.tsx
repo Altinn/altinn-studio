@@ -5,6 +5,7 @@ import { AppCard } from 'src/app-components/Card/Card';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Lang } from 'src/features/language/Lang';
 import { CardProvider } from 'src/layout/Cards/CardContext';
+import classes from 'src/layout/Cards/Cards.module.css';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { useHasCapability } from 'src/utils/layout/canRenderIn';
@@ -117,6 +118,7 @@ function CardItem({ baseComponentId, parentBaseId, isMedia, minMediaHeight }: Ca
         <div
           data-componentid={id}
           data-componentbaseid={baseComponentId}
+          className={classes.mediaCard}
         >
           <GenericComponent
             baseComponentId={baseComponentId}

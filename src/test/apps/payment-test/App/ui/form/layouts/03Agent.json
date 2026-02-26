@@ -1,0 +1,210 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": [
+      "equals",
+      [
+        "dataModel",
+        "AgentPerson"
+      ],
+      false
+    ],
+    "layout": [
+      {
+        "id": "navbar3",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "agentInformation",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "agentInformation"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "AgentInfo",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "agentInfo"
+        }
+      },
+      {
+        "id": "AgentInformation",
+        "type": "Group",
+        "children": [
+          "agentAccordion",
+          "agentNumber",
+          "agentName",
+          "agentFirstName",
+          "agentLastName",
+          "agentAddress",
+          "agentPostalCode",
+          "agentPostalCity",
+          "agentCountry",
+          "agentClientNumber"
+        ]
+      },
+      {
+        "id": "agentNumber",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyNumber",
+          "help": "companyNumberInfo"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "AgentCompany.CompanyNumber"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "agentName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyName"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "AgentCompany.CompanyName"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "agentFirstName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyFirstName"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "AgentCompany.FirstName"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "agentLastName",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyLastName"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "AgentCompany.LastName"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "agentAddress",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyAddress"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "AgentCompany.StreetAddress"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "agentPostalCode",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyPostalCode"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "AgentCompany.ZipCode"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 3
+        }
+      },
+      {
+        "id": "agentPostalCity",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "CompanyPostalCity"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "AgentCompany.City"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 3
+        }
+      },
+      {
+        "id": "agentCountry",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "CompanyCountry"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "AgentCompany.Country"
+        },
+        "optionsId": "countries",
+        "grid": {
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "id": "agentClientNumber",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "clientNumber"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "AgentCompany.ClientNumber"
+        },
+        "grid": {
+          "xs": 12,
+          "md": 12,
+          "innerGrid": {
+            "md": 6
+          }
+        }
+      },
+      {
+        "id": "agentAttachment",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "agentAttachment",
+          "description": "agentAttachmentInfo"
+        },
+        "maxFileSizeInMB": 10,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 0,
+        "required": false,
+        "displayMode": "list",
+        "hasCustomFileEndings": true,
+        "validFileEndings": ".pdf, .doc, .docx, .xls, .xlsx, .jpeg, .jpg, .png, .gif, .txt"
+      },
+      {
+        "id": "navButtons3",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next"
+        },
+        "showBackButton": true,
+        "validateOnNext": {
+          "page": "current",
+          "show": [
+            "All"
+          ]
+        }
+      }
+    ]
+  }
+}

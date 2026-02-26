@@ -1,7 +1,7 @@
 import React from 'react';
 import type { LangCode } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
-import { StudioPageSpinner } from '@studio/components-legacy';
+import { StudioPageSpinner } from '@studio/components';
 import { useLocalStorage } from '@studio/components-legacy/src/hooks/useLocalStorage';
 import { useSearchParams } from 'react-router-dom';
 import type { TextResourceIdMutation } from '@altinn/text-editor/types';
@@ -15,7 +15,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
-export const TextEditor = () => {
+export default function TextEditor() {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const [searchParams, setSearchParams] = useSearchParams({ lang: '', search: '' });
@@ -67,4 +67,4 @@ export const TextEditor = () => {
       upsertTextResource={upsertTextResource}
     />
   );
-};
+}

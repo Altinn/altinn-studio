@@ -20,14 +20,14 @@ internal sealed class ProcessTaskCleaner : IProcessTaskCleaner
     /// <inheritdoc/>
     public async Task RemoveAllDataElementsGeneratedFromTask(Instance instance, string taskId)
     {
-        AppIdentifier appIdentifier = new(instance.AppId);
         InstanceIdentifier instanceIdentifier = new(instance);
         var dataElements =
             instance
                 .Data?.Where(de =>
                     de.References?.Exists(r => r.ValueType == ReferenceType.Task && r.Value == taskId) is true
                 )
-                .ToList() ?? [];
+                .ToList()
+            ?? [];
 
         _logger.LogInformation("Found {Count} stale data element(s) to delete", dataElements.Count);
 
@@ -39,8 +39,6 @@ internal sealed class ProcessTaskCleaner : IProcessTaskCleaner
                 dataElement.BlobStoragePath
             );
             await _dataClient.DeleteData(
-                appIdentifier.Org,
-                appIdentifier.App,
                 instanceIdentifier.InstanceOwnerPartyId,
                 instanceIdentifier.InstanceGuid,
                 Guid.Parse(dataElement.Id),

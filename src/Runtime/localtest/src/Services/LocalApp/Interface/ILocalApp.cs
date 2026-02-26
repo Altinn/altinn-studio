@@ -1,6 +1,7 @@
 #nullable enable
 using Altinn.Platform.Storage.Interface.Models;
 using LocalTest.Services.TestData;
+using LocalTest.Services.LocalApp.Implementation;
 
 namespace LocalTest.Services.LocalApp.Interface
 {
@@ -19,6 +20,13 @@ namespace LocalTest.Services.LocalApp.Interface
         /// </summary>
         Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token);
 
-        Task<AppTestDataModel?> GetTestData();
+        public record TestDataResult(AppTestDataModel? Data, bool AllAppsHaveData);
+
+        /// <summary>
+        /// Gets test data along with metadata about whether all apps provided data
+        /// </summary>
+        Task<TestDataResult> GetTestDataWithMetadata();
+
+        void InvalidateTestDataCache();
     }
 }

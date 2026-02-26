@@ -164,7 +164,7 @@ describe('Repeating group attachments', () => {
   };
 
   it('Works when uploading attachments to repeating groups, supports deleting attachments and entire rows', () => {
-    cy.intercept('POST', '**/instances/**/data?dataType=*').as('upload');
+    cy.intercept('POST', '**/instances/**/data/*').as('upload');
 
     const filenames = [
       {

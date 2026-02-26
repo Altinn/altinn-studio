@@ -1,4 +1,4 @@
-import type { ILayoutSet, ILayoutSets } from 'src/layout/common.generated';
+import type { ILayoutSet, ILayoutSets } from 'src/features/form/layoutSets/types';
 
 export const defaultDataTypeMock = 'test-data-model';
 export const statelessDataTypeMock = 'stateless';
@@ -20,6 +20,15 @@ export function getLayoutSetsMock(): ILayoutSets {
       },
       getSubFormLayoutSetMock(),
     ],
+    uiSettings: {
+      hideCloseButton: false,
+      showLanguageSelector: false,
+      showExpandWidthButton: true,
+      expandedWidth: false,
+      showProgress: false,
+      autoSaveBehavior: 'onChangeFormData',
+      taskNavigation: [],
+    },
   };
 }
 

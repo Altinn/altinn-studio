@@ -1,6 +1,5 @@
-import type { ReactElement } from 'react';
 import React, { useEffect } from 'react';
-import { useWebSocket } from 'app-development/hooks/useWebSocket';
+import { useWebSocket } from 'app-shared/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { toast } from 'react-toastify';
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';
@@ -44,7 +43,7 @@ export const WebSocketSyncWrapper = ({
     invalidator.layoutSetName = selectedLayoutSetName;
   }, [invalidator, selectedLayoutSetName]);
 
-  const { onWSMessageReceived } = useWebSocket({
+  useWebSocket({
     webSocketUrls: [syncEntityUpdateWebSocketHub(), syncEventsWebSocketHub()],
     clientsName: [
       SyncClientsName.FileSyncSuccess,
@@ -52,25 +51,25 @@ export const WebSocketSyncWrapper = ({
       SyncEntityClientName.EntityUpdated,
     ],
     webSocketConnector: WSConnector,
+    onWSMessageReceived: (message: SyncError | SyncSuccess | EntityUpdated): void => {
+      if ('resourceName' in message) {
+        entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName as string);
+        return;
+      }
+
+      const isErrorMessage = 'errorCode' in message;
+      if (isErrorMessage) {
+        toast.error(t(SyncUtils.getSyncErrorMessage(message)), { toastId: message.errorCode });
+        return;
+      }
+
+      const isSuccessMessage = 'source' in message;
+      if (isSuccessMessage) {
+        // Please extend the "fileNameCacheKeysMap" inside the "SyncSuccessQueriesInvalidator" class. Do not add query-client invalidation directly here.
+        invalidator.invalidateQueriesByFileLocation(message.source.name);
+      }
+    },
   });
 
-  onWSMessageReceived<SyncError | SyncSuccess | EntityUpdated>((message): ReactElement => {
-    if ('resourceName' in message) {
-      entityUpdateInvalidator.invalidateQueriesByResourceName(message.resourceName as string);
-      return;
-    }
-
-    const isErrorMessage = 'errorCode' in message;
-    if (isErrorMessage) {
-      toast.error(t(SyncUtils.getSyncErrorMessage(message)), { toastId: message.errorCode });
-      return;
-    }
-
-    const isSuccessMessage = 'source' in message;
-    if (isSuccessMessage) {
-      // Please extend the "fileNameCacheKeysMap" inside the "SyncSuccessQueriesInvalidator" class. Do not add query-client invalidation directly here.
-      invalidator.invalidateQueriesByFileLocation(message.source.name);
-    }
-  });
   return <>{children}</>;
 };

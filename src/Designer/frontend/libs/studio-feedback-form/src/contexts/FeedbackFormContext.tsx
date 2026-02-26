@@ -6,7 +6,7 @@ export type FeedbackFormContextProps = {
   submitPath: string;
 };
 
-export const FeedbackFormContext = createContext<FeedbackFormContextProps>(undefined);
+export const FeedbackFormContext = createContext<FeedbackFormContextProps | null>(null);
 
 export type FeedbackFormContextProviderProps = {
   children: React.ReactNode;
@@ -34,7 +34,7 @@ export const FeedbackFormContextProvider = ({
 
 export const useFeedbackFormContext = (): FeedbackFormContextProps => {
   const context = useContext(FeedbackFormContext);
-  if (context === undefined) {
+  if (context === null) {
     throw new Error('useFeedbackFormContext must be used within a FeedbackFormContextProvider');
   }
   return context;

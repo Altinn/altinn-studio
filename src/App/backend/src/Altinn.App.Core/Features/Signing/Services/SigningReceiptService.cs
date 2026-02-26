@@ -117,8 +117,7 @@ internal sealed class SigningReceiptService(
 
         altinnCdnClient ??= _altinnCdnClient;
 
-        AltinnCdnOrgs altinnCdnOrgs = await altinnCdnClient.GetOrgs(ct);
-        AltinnCdnOrgDetails? senderDetails = altinnCdnOrgs.Orgs?.GetValueOrDefault(appMetadata.Org);
+        AltinnCdnOrgDetails? senderDetails = await altinnCdnClient.GetOrgDetails(ct);
         string? senderOrgNumber = senderDetails?.Orgnr;
 
         if (senderDetails is null || string.IsNullOrEmpty(senderOrgNumber))
@@ -153,12 +152,10 @@ internal sealed class SigningReceiptService(
 
         try
         {
-            AppIdentifier appIdentifier = new(context.Instance);
-
             title = await translationService.TranslateTextKey("signing.correspondence_receipt_title", language);
             summary = await translationService.TranslateTextKey("signing.correspondence_receipt_summary", language);
             body = await translationService.TranslateTextKey("signing.correspondence_receipt_body", language);
-            appName = await translationService.TranslateFirstMatchingTextKey(language, "appName", "ServiceName");
+            appName = await translationService.TranslateTextKey("appName", language);
         }
         catch (Exception e)
         {
@@ -208,8 +205,6 @@ internal sealed class SigningReceiptService(
                     .WithSendersReference(element.Id)
                     .WithData(
                         await dataClient.GetDataBytes(
-                            appMetadata.AppIdentifier.Org,
-                            appMetadata.AppIdentifier.App,
                             instanceIdentifier.InstanceOwnerPartyId,
                             instanceIdentifier.InstanceGuid,
                             Guid.Parse(element.Id)

@@ -1,14 +1,15 @@
 import React from 'react';
-import { useNavigation } from 'react-router-dom';
+import { useNavigation } from 'react-router';
 
-import { Spinner, Table } from '@digdir/designsystemet-react';
+import { Table } from '@digdir/designsystemet-react';
 import { PencilIcon, PlusIcon, TrashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
+import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Flex } from 'src/app-components/Flex/Flex';
+import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { Caption } from 'src/components/form/caption/Caption';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
@@ -19,6 +20,7 @@ import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsFor } from 'src/features/validation/selectors/componentValidationsForNode';
 import { useIsSubformPage } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { ComponentErrorList } from 'src/layout/GenericComponent';
 import { SubformCellContent } from 'src/layout/Subform/SubformCellContent';
@@ -56,7 +58,9 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
 
   const { enterSubform } = useNavigatePage();
   const lock = FD.useLocking(id);
-  const { performProcess, isAnyProcessing: isAddingDisabled, isThisProcessing: isAdding } = useIsProcessing();
+  const performProcess = useProcessingMutation('add-subform');
+  const isAdding = useIsThisProcessing('add-subform');
+  const isAddingDisabled = useIsAnyProcessing();
   const nodeId = useIndexedId(baseComponentId);
 
   const subformIdsWithError =
@@ -237,7 +241,9 @@ function SubformTableRow({
     return (
       <Table.Row>
         <Table.Cell colSpan={actualColumns}>
-          <Lang id='form_filler.error_fetch_subform' />
+          <FatalError>
+            <Lang id='form_filler.error_fetch_subform' />
+          </FatalError>
         </Table.Cell>
       </Table.Row>
     );

@@ -2,29 +2,35 @@ using System.Net;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Tests.TestUtils;
-using Altinn.App.PlatformServices.Tests.Helpers;
 using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Moq;
+using Xunit.Abstractions;
 
 namespace Altinn.App.PlatformServices.Tests.Internal.Pdf;
 
 public class PdfServiceTests
 {
+    private readonly ITestOutputHelper _outputHelper;
     private const string HostName = "at22.altinn.cloud";
 
     private readonly Mock<IAppResources> _appResources = new();
@@ -45,10 +51,9 @@ public class PdfServiceTests
 
     private readonly Mock<IAuthenticationContext> _authenticationContext = new();
 
-    private readonly Mock<ILogger<PdfService>> _logger = new();
-
-    public PdfServiceTests()
+    public PdfServiceTests(ITestOutputHelper outputHelper)
     {
+        _outputHelper = outputHelper;
         var resource = new TextResource()
         {
             Id = "digdir-not-really-an-app-nb",
@@ -88,17 +93,19 @@ public class PdfServiceTests
 
         var httpClient = new HttpClient(delegatingHandler);
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
             _userTokenProvider.Object,
-            _httpContextAccessor.Object
+            _httpContextAccessor.Object,
+            hostEnvironment.Object
         );
 
         Stream pdf = await pdfGeneratorClient.GeneratePdf(
-            new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"),
+            new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
             CancellationToken.None
         );
 
@@ -118,18 +125,20 @@ public class PdfServiceTests
 
         var httpClient = new HttpClient(delegatingHandler);
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
             httpClient,
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
             _userTokenProvider.Object,
-            _httpContextAccessor.Object
+            _httpContextAccessor.Object,
+            hostEnvironment.Object
         );
 
         var func = async () =>
             await pdfGeneratorClient.GeneratePdf(
-                new Uri(@"https://org.apps.hostName/appId/#/instance/instanceId"),
+                new Uri(@"https://org.apps.hostName/appId/instance/instanceId"),
                 CancellationToken.None
             );
 
@@ -301,6 +310,176 @@ public class PdfServiceTests
         language.Should().BeNull();
     }
 
+    [Fact]
+    public async Task GenerateAndStorePdf_WithAutoGeneratePdfForTaskIds_ShouldIncludeTaskIdsInUri()
+    {
+        // Arrange
+        var autoGeneratePdfForTaskIds = new List<string> { "Task_1", "Task_2", "Task_3" };
+
+        _pdfGeneratorClient.Setup(s =>
+            s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+        );
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+        };
+
+        // Act
+        await target.GenerateAndStorePdf(instance, "Task_PDF", null, autoGeneratePdfForTaskIds, CancellationToken.None);
+
+        // Assert
+        _pdfGeneratorClient.Verify(
+            s =>
+                s.GeneratePdf(
+                    It.Is<Uri>(u =>
+                        u.Scheme == "https"
+                        && u.Host == $"{instance.Org}.apps.{HostName}"
+                        && u.AbsoluteUri.Contains(instance.AppId)
+                        && u.AbsoluteUri.Contains(instance.Id)
+                        && u.AbsoluteUri.Contains("task=Task_1")
+                        && u.AbsoluteUri.Contains("task=Task_2")
+                        && u.AbsoluteUri.Contains("task=Task_3")
+                    ),
+                    It.Is<string?>(s => s == null),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GenerateAndStorePdf_WithCustomFileNameTextResourceKey_ShouldUseCustomFileName()
+    {
+        // Arrange
+        const string customTextResourceKey = "custom.pdf.filename";
+        const string customFileName = "My Custom Receipt";
+
+        var mockAppResources = new Mock<IAppResources>();
+        var resource = new TextResource()
+        {
+            Id = "digdir-not-really-an-app-nb",
+            Language = LanguageConst.Nb,
+            Org = "digdir",
+            Resources = [new() { Id = customTextResourceKey, Value = customFileName }],
+        };
+        mockAppResources
+            .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(resource);
+
+        _pdfGeneratorClient.Setup(s =>
+            s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+        );
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            appResources: mockAppResources,
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            Data = new()
+            {
+                new() { Id = Guid.NewGuid().ToString(), DataType = "Model" },
+            },
+        };
+
+        // Act
+        await target.GenerateAndStorePdf(instance, "Task_1", customTextResourceKey, null, CancellationToken.None);
+
+        // Assert
+        _dataClient.Verify(
+            s =>
+                s.InsertBinaryData(
+                    It.Is<string>(s => s == instance.Id),
+                    It.Is<string>(s => s == "ref-data-as-pdf"),
+                    It.Is<string>(s => s == "application/pdf"),
+                    It.Is<string>(s => s == "My%20Custom%20Receipt.pdf"),
+                    It.IsAny<Stream>(),
+                    It.Is<string>(s => s == "Task_1"),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
+    [Fact]
+    public async Task GenerateAndStorePdf_WithCustomFileNameIncludingPdfExtension_ShouldNotDuplicateExtension()
+    {
+        // Arrange
+        const string customTextResourceKey = "custom.pdf.filename.with.extension";
+        const string customFileName = "My Custom Receipt.pdf";
+
+        var mockAppResources = new Mock<IAppResources>();
+        var resource = new TextResource()
+        {
+            Id = "digdir-not-really-an-app-nb",
+            Language = LanguageConst.Nb,
+            Org = "digdir",
+            Resources = [new() { Id = customTextResourceKey, Value = customFileName }],
+        };
+        mockAppResources
+            .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(resource);
+
+        _pdfGeneratorClient.Setup(s =>
+            s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+        );
+        _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
+
+        var target = SetupPdfService(
+            appResources: mockAppResources,
+            pdfGeneratorClient: _pdfGeneratorClient,
+            generalSettingsOptions: _generalSettingsOptions
+        );
+
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            Data = new()
+            {
+                new() { Id = Guid.NewGuid().ToString(), DataType = "Model" },
+            },
+        };
+
+        // Act
+        await target.GenerateAndStorePdf(instance, "Task_1", customTextResourceKey, null, CancellationToken.None);
+
+        // Assert
+        _dataClient.Verify(
+            s =>
+                s.InsertBinaryData(
+                    It.Is<string>(s => s == instance.Id),
+                    It.Is<string>(s => s == "ref-data-as-pdf"),
+                    It.Is<string>(s => s == "application/pdf"),
+                    It.Is<string>(s => s == "My%20Custom%20Receipt.pdf"),
+                    It.IsAny<Stream>(),
+                    It.Is<string>(s => s == "Task_1"),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
     private PdfService SetupPdfService(
         Mock<IAppResources>? appResources = null,
         Mock<IDataClient>? dataClient = null,
@@ -313,15 +492,53 @@ public class PdfServiceTests
         TelemetrySink? telemetrySink = null
     )
     {
-        return new PdfService(
+        // Setup a mock service provider with InstanceDataUnitOfWorkInitializer
+        var mockServiceProvider = new Mock<IServiceProvider>();
+        var mockInstanceClient = new Mock<IInstanceClient>();
+        var mockAppMetadata = new Mock<IAppMetadata>();
+
+        // Setup GetApplicationMetadata to return an ApplicationMetadata with DataTypes initialized
+        var dataType = new DataType() { Id = "Model" };
+        var applicationMetadata = new ApplicationMetadata("digdir/not-really-an-app") { DataTypes = [dataType] };
+        mockAppMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+
+        // Setup GetLayoutModelForTask to return a valid LayoutModel
+        var layoutSetComponent = new LayoutSetComponent(new List<PageComponent>(), "layout", dataType);
+        var layoutModel = new LayoutModel([layoutSetComponent], null);
+        var mockAppResourcesForInitializer = appResources ?? _appResources;
+        mockAppResourcesForInitializer.Setup(x => x.GetLayoutModelForTask(It.IsAny<string>())).Returns(layoutModel);
+
+        var initializer = new InstanceDataUnitOfWorkInitializer(
+            dataClient?.Object ?? _dataClient.Object,
+            mockInstanceClient.Object,
+            mockAppMetadata.Object,
+            new TranslationService(
+                new AppIdentifier("digdir", "not-really-an-app"),
+                appResources?.Object ?? _appResources.Object,
+                FakeLoggerXunit.Get<TranslationService>(_outputHelper)
+            ),
+            null!, // ModelSerializationService not needed for these tests
             appResources?.Object ?? _appResources.Object,
+            Options.Create(new FrontEndSettings()),
+            null
+        );
+
+        mockServiceProvider.Setup(x => x.GetService(typeof(InstanceDataUnitOfWorkInitializer))).Returns(initializer);
+
+        return new PdfService(
             dataClient?.Object ?? _dataClient.Object,
             httpContentAccessor?.Object ?? _httpContextAccessor.Object,
             pdfGeneratorClient?.Object ?? _pdfGeneratorClient.Object,
             pdfGeneratorSettingsOptions ?? _pdfGeneratorSettingsOptions,
             generalSettingsOptions ?? _generalSettingsOptions,
-            _logger.Object,
+            FakeLoggerXunit.Get<PdfService>(_outputHelper),
             authenticationContext?.Object ?? _authenticationContext.Object,
+            new TranslationService(
+                new AppIdentifier("digdir", "not-really-an-app"),
+                appResources?.Object ?? _appResources.Object,
+                FakeLoggerXunit.Get<TranslationService>(_outputHelper)
+            ),
+            mockServiceProvider.Object,
             telemetrySink?.Object
         );
     }

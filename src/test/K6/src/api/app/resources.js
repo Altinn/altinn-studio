@@ -9,7 +9,7 @@ export function batchGetAppResources(altinnStudioRuntimeCookie, appOwner, appNam
   req = [
     {
       method: 'get',
-      url: config.appApiBaseUrl(appOwner, appName) + config.appResources['servicemetadata'],
+      url: config.appApiBaseUrl(appOwner, appName) + config.appResources['applicationmetadata'],
       params: requestParams,
     },
     {

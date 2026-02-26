@@ -1,28 +1,36 @@
 const path = require('path');
 
 const packagesToTransform = [
+  '@bpmn-io',
   '@?react-leaflet',
   '@react-dnd',
   'bail',
+  'bpmn-js',
   'decode-.*',
+  'diagram-js',
   'dnd-core',
+  'htm',
   'is-plain-obj',
   'mdast.*',
   'micromark',
   'micromark-.*',
+  'path-intersection',
   'react-dnd',
   'react-dnd-html5-backend',
+  'react-error-boundary',
   'remark-parse',
   'trough',
   'unified',
   'unist-util-stringify-position',
+  'uuid',
   'vfile',
   'vfile-message',
-  'bpmn-js',
-  '@bpmn-io',
-  'diagram-js',
-  'htm',
 ].join('|');
+
+// For packages that declare ESM exports but not CJS
+const resolveNodeModulesPath = (subPath) => {
+  return path.join(__dirname, '../../../node_modules/', subPath);
+};
 
 /** @type {import('jest').Config} */
 const config = {
@@ -41,6 +49,10 @@ const config = {
     // prettier-ignore
     '\\.(jpg|jpeg|png|gif|eot|otf|svg|webp|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': path.join(__dirname, 'testing/mocks/fileMock.js'),
     '\\.(css|less)$': 'identity-obj-proxy',
+    // Force react-i18next to resolve to root node_modules to ensure global mock applies for app-development
+    '^react-i18next$': require.resolve('react-i18next'),
+    '^@bpmn-io/diagram-js-ui$': resolveNodeModulesPath('@bpmn-io/diagram-js-ui/lib/index.js'),
+    '^path-intersection$': resolveNodeModulesPath('path-intersection/intersect.js'),
     '^preact(/(.*)|$)': 'preact$1',
     '^@altinn/policy-editor/(.*)': path.join(__dirname, 'packages/policy-editor/src/$1'),
     '^@altinn/process-editor/(.*)': path.join(__dirname, 'packages/process-editor/src/$1'),
@@ -50,9 +62,11 @@ const config = {
     '^@altinn/text-editor/(.*)': path.join(__dirname, 'packages/text-editor/src/$1'),
     '^@altinn/ux-editor/(.*)': path.join(__dirname, 'packages/ux-editor/src/$1'),
     '^@altinn/ux-editor-v3/(.*)': path.join(__dirname, 'packages/ux-editor-v3/src/$1'),
+    '^@studio/guard/(.*)': path.join(__dirname, 'libs/studio-guard/$1'),
     '^@studio/icons/(.*)': path.join(__dirname, 'libs/studio-icons/$1'),
     '^@studio/components/(.*)': path.join(__dirname, 'libs/studio-components/$1'),
     '^@studio/components-legacy/(.*)': path.join(__dirname, 'libs/studio-components-legacy/$1'),
+    '^@studio/feature-flags/(.*)': path.join(__dirname, 'libs/studio-feature-flags/$1'),
     '^@studio/hooks/(.*)': path.join(__dirname, 'libs/studio-hooks/$1'),
     '^@studio/pure-functions/(.*)': path.join(__dirname, 'libs/studio-pure-functions/$1'),
     '^@studio/testing/(.*)': path.join(__dirname, 'testing/$1'),

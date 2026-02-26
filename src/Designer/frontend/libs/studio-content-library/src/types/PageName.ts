@@ -1,1 +1,6 @@
-export type PageName = 'landingPage' | 'codeList' | 'images';
+export enum PageName {
+  LandingPage = 'landingPage',
+  CodeLists = 'codeLists',
+  CodeListsWithTextResources = 'codeListsWithTextResources',
+  Images = 'images',
+}

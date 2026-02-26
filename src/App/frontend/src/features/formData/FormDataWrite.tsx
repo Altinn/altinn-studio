@@ -9,10 +9,9 @@ import type { AxiosRequestConfig } from 'axios';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useIsStateless } from 'src/features/applicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
-import { useRuleConnections } from 'src/features/form/dynamics/DynamicsContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteStateMachine';
@@ -22,15 +21,17 @@ import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
 import { useLaxInstanceId, useOptimisticallyUpdateCachedInstance } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
-import { type BackendValidationIssueGroups, IgnoredValidators } from 'src/features/validation';
+import {
+  backendValidationIssueGroupListToObject,
+  type BackendValidationIssueGroups,
+  IgnoredValidators,
+} from 'src/features/validation';
 import { useIsUpdatingInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
-import { doPatchMultipleFormData } from 'src/queries/queries';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
 import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
 import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
-import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
 import type {
   DataModelState,
@@ -53,7 +54,6 @@ interface FormDataContextInitialProps {
   initialDataModels: { [dataType: string]: DataModelState };
   autoSaving: boolean;
   proxies: FormDataWriteProxies;
-  ruleConnections: IRuleConnections | null;
   schemaLookup: { [dataType: string]: SchemaLookupTool };
   changeInstance: ChangeInstanceData;
 }
@@ -67,7 +67,7 @@ const {
   useLaxMemoSelector,
   useLaxDelayedSelector,
   useDelayedSelector,
-  useDelayedSelectorProps,
+  useLaxDelayedSelectorProps,
   useLaxSelector,
   useLaxStore,
   useStore,
@@ -78,17 +78,16 @@ const {
     initialDataModels,
     autoSaving,
     proxies,
-    ruleConnections,
     schemaLookup,
     changeInstance,
   }: FormDataContextInitialProps) =>
-    createFormDataWriteStore(initialDataModels, autoSaving, proxies, ruleConnections, schemaLookup, changeInstance),
+    createFormDataWriteStore(initialDataModels, autoSaving, proxies, schemaLookup, changeInstance),
 });
 
 const saveFormDataMutationKey = ['saveFormData'] as const;
 
 function useFormDataSaveMutation() {
-  const { doPatchFormData, doPostStatelessFormData } = useAppMutations();
+  const { doPostStatelessFormData, doPatchMultipleFormData } = useAppMutations();
   const getDataModelUrl = useGetDataModelUrl();
   const instanceId = useLaxInstanceId();
   const multiPatchUrl = instanceId ? getMultiPatchUrl(instanceId) : undefined;
@@ -96,7 +95,7 @@ function useFormDataSaveMutation() {
   const dataModelsRef = useAsRef(useSelector((state) => state.dataModels));
   const saveFinished = useSelector((s) => s.saveFinished);
   const cancelSave = useSelector((s) => s.cancelSave);
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStateless();
   const debounce = useSelector((s) => s.debounce);
   const selectedPartyId = useSelectedParty()?.partyId;
   const waitFor = useWaitForState<
@@ -174,7 +173,7 @@ function useFormDataSaveMutation() {
     }
   }
 
-  const mutation = useMutation({
+  return useMutation({
     mutationKey: saveFormDataMutationKey,
     scope: { id: saveFormDataMutationKey[0] },
     mutationFn: async (): Promise<FDSaveFinished | undefined> => {
@@ -185,17 +184,7 @@ function useFormDataSaveMutation() {
         return;
       }
 
-      if (isStateless) {
-        return saveStateless();
-      }
-
-      const dataTypes = Object.keys(dataModelsRef.current);
-      const shouldUseMultiPatch = dataTypes.length > 1;
-      if (shouldUseMultiPatch) {
-        return performMultiPatch();
-      }
-
-      return preformOldPatch();
+      return isStateless ? saveStateless() : performMultiPatch();
 
       async function waitForDataModelChanges() {
         // While we could get the next model from a ref, we want to make sure we get the latest model after debounce
@@ -271,7 +260,7 @@ function useFormDataSaveMutation() {
 
         const patches: IPatchListItem[] = [];
 
-        for (const dataType of dataTypes) {
+        for (const dataType of Object.keys(dataModelsRef.current)) {
           const { dataElementId } = dataModelsRef.current[dataType];
           if (dataElementId && next[dataType] !== prev[dataType]) {
             const patch = createPatch({ prev: prev[dataType], next: next[dataType] });
@@ -303,43 +292,9 @@ function useFormDataSaveMutation() {
           }
         }
 
-        const validationIssueGroups: BackendValidationIssueGroups = Object.fromEntries(
-          validationIssues.map(({ source, issues }) => [source, issues]),
-        );
-
         return {
           newDataModels: dataModelChanges,
-          validationIssues: validationIssueGroups,
-          instance,
-          savedData: next,
-        };
-      }
-
-      async function preformOldPatch() {
-        const dataType = dataTypes[0];
-        const patch = createPatch({ prev: prev[dataType], next: next[dataType] });
-        if (patch.length === 0) {
-          return;
-        }
-
-        const dataElementId = dataModelsRef.current[dataType].dataElementId;
-        if (!dataElementId) {
-          throw new Error(`Cannot patch data, dataElementId for dataType '${dataType}' could not be determined`);
-        }
-        const url = getDataModelUrl({ dataElementId });
-        if (!url) {
-          throw new Error(`Cannot patch data, url for dataType '${dataType}' could not be determined`);
-        }
-        const { newDataModel, validationIssues, instance } = (
-          await doPatchFormData(url, {
-            patch,
-            // Ignore validations that require layout parsing in the backend which will slow down requests significantly
-            ignoredValidators: IgnoredValidators,
-          })
-        ).data;
-        return {
-          newDataModels: [{ dataType, data: newDataModel, dataElementId }],
-          validationIssues,
+          validationIssues: backendValidationIssueGroupListToObject(validationIssues),
           instance,
           savedData: next,
         };
@@ -358,8 +313,6 @@ function useFormDataSaveMutation() {
       checkForRunawaySaving();
     },
   });
-
-  return mutation;
 }
 
 function useIsSavingFormData() {
@@ -372,7 +325,6 @@ function useIsSavingFormData() {
 
 export function FormDataWriteProvider({ children }: PropsWithChildren) {
   const proxies = useFormDataWriteProxies();
-  const ruleConnections = useRuleConnections();
   const allDataTypes = DataModels.useReadableDataTypes();
   const writableDataTypes = DataModels.useWritableDataTypes();
   const defaultDataType = DataModels.useDefaultDataType();
@@ -407,7 +359,6 @@ export function FormDataWriteProvider({ children }: PropsWithChildren) {
       initialDataModels={initialDataModels}
       autoSaving={!autoSaveBehavior || autoSaveBehavior === 'onChangeFormData'}
       proxies={proxies}
-      ruleConnections={ruleConnections}
       schemaLookup={schemaLookup}
       changeInstance={changeInstance}
     >
@@ -666,6 +617,43 @@ function getFreshNumRows(state: FormDataContext, reference: IDataModelReference 
 const emptyObject = {};
 const emptyArray = [];
 
+/**
+ * Recursively traverses form data to find all actual field paths that match a base field pattern.
+ *
+ * For example, given a base field "names.name" and form data containing:
+ * { names: [{ name: "John" }, { name: "Jane" }] }
+ *
+ * This will collect paths: ["names[0].name", "names[1].name"]
+ */
+function collectMatchingFieldPaths(
+  data: unknown,
+  fieldParts: string[],
+  currentPath: string,
+  partIndex: number,
+  results: string[],
+) {
+  if (partIndex >= fieldParts.length) {
+    results.push(currentPath);
+    return;
+  }
+
+  const part = fieldParts[partIndex];
+  if (typeof data !== 'object' || data === null || data[part] === undefined || data[part] === null) {
+    return;
+  }
+
+  const nextData = data[part];
+  const nextPath = currentPath ? `${currentPath}.${part}` : part;
+
+  if (Array.isArray(nextData)) {
+    for (let i = 0; i < nextData.length; i++) {
+      collectMatchingFieldPaths(nextData[i], fieldParts, `${nextPath}[${i}]`, partIndex + 1, results);
+    }
+  } else {
+    collectMatchingFieldPaths(nextData, fieldParts, nextPath, partIndex + 1, results);
+  }
+}
+
 const currentSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
   dot.pick(reference.field, state.dataModels[reference.dataType]?.currentData);
 const debouncedSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
@@ -707,8 +695,8 @@ export const FD = {
     });
   },
 
-  useDebouncedSelectorProps() {
-    return useDelayedSelectorProps({
+  useLaxDebouncedSelectorProps() {
+    return useLaxDelayedSelectorProps({
       mode: 'simple',
       selector: debouncedSelector,
     });
@@ -768,6 +756,15 @@ export const FD = {
   },
 
   /**
+   * This behaves the same as useDebouncedPick(), but selects from the current data
+   */
+  useCurrentPick(reference: IDataModelReference | undefined): FDValue {
+    return useSelector((v) =>
+      reference ? dot.pick(reference.field, v.dataModels[reference.dataType]?.currentData) : undefined,
+    );
+  },
+
+  /**
    * This will pick a value from the form data, and return it. The path is expected to be a dot-separated path, and
    * the value will be returned as-is. If the value is not found, undefined is returned. Null may also be returned if
    * the value is explicitly set to null.
@@ -776,6 +773,40 @@ export const FD = {
     return useSelector((v) =>
       reference ? dot.pick(reference.field, v.dataModels[reference.dataType]?.debouncedCurrentData) : undefined,
     );
+  },
+
+  /**
+   * This will find all actual field paths that match a base pattern. For example, given "form.names.name",
+   * it might return ["form.names[0].name", "form.names[1].name"] if those paths exist in the form data.
+   * This is useful for finding all instances of a field in repeating groups.
+   */
+  useDebouncedAllPaths(reference: IDataModelReference | undefined): string[] {
+    const lookupTool = DataModels.useLookupBinding();
+    const [, lookupErr] = (reference ? lookupTool?.(reference) : undefined) ?? [undefined, undefined];
+
+    return useShallowSelector((v) => {
+      if (!reference) {
+        return emptyArray;
+      }
+
+      // When lookupTool is available and doesn't report a missing repeating group error, we know there's no
+      // repeating group structure in this path, so we can return the field as-is.
+      const foundInDataModel = lookupTool && (!lookupErr || lookupErr.error !== 'missingProperty');
+      if (foundInDataModel && lookupErr?.error !== 'missingRepeatingGroup') {
+        return [reference?.field];
+      }
+
+      // If lookupTool is not available (e.g., in tests), or if there's a missingRepeatingGroup error,
+      // we need to check the actual data to find all matching paths.
+      const formData = v.dataModels[reference.dataType]?.debouncedCurrentData;
+      if (!formData) {
+        return [];
+      }
+
+      const paths: string[] = [];
+      collectMatchingFieldPaths(formData, reference.field.split('.'), '', 0, paths);
+      return paths.sort();
+    });
   },
 
   /**
@@ -1081,6 +1112,8 @@ export const FD = {
    * Returns the latest validation issues from the backend, from the last time the form data was saved.
    */
   useLastSaveValidationIssues: () => useSelector((s) => s.validationIssues),
+
+  useSetLastValidationIssues: () => useStaticSelector((s) => s.setLastValidationIssues),
 
   useRemoveIndexFromList: () => useStaticSelector((s) => s.removeIndexFromList),
 

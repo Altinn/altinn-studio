@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using Altinn.AccessManagement.Tests.Utils;
 using Altinn.Studio.Designer.Repository.Models;
@@ -10,7 +12,10 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static partial class EntityAssertions
 {
-    public static void AssertEqual(DeploymentEntity deploymentEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel dbRecord)
+    public static void AssertEqual(
+        DeploymentEntity deploymentEntity,
+        Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel dbRecord
+    )
     {
         Assert.Equal(dbRecord.App, deploymentEntity.App);
         Assert.Equal(dbRecord.Org, deploymentEntity.Org);
@@ -28,7 +33,11 @@ public static partial class EntityAssertions
         Assert.Equal(buildDbModel.Result, deploymentEntity.Build.Result.ToString());
         Assert.Equal(BuildType.Deployment, buildDbModel.BuildType);
 
-        AssertionUtil.AssertCloseTo(buildDbModel.Started!.Value.UtcDateTime, deploymentEntity.Build.Started!.Value, TimeSpan.FromMilliseconds(100));
+        AssertionUtil.AssertCloseTo(
+            buildDbModel.Started!.Value.UtcDateTime,
+            deploymentEntity.Build.Started!.Value,
+            TimeSpan.FromMilliseconds(100)
+        );
 
         if (!buildDbModel.Finished.HasValue)
         {
@@ -36,7 +45,11 @@ public static partial class EntityAssertions
         }
         else
         {
-            AssertionUtil.AssertCloseTo(buildDbModel.Finished!.Value.UtcDateTime, deploymentEntity.Build.Finished!.Value, TimeSpan.FromMilliseconds(100));
+            AssertionUtil.AssertCloseTo(
+                buildDbModel.Finished!.Value.UtcDateTime,
+                deploymentEntity.Build.Finished!.Value,
+                TimeSpan.FromMilliseconds(100)
+            );
         }
     }
 
@@ -70,6 +83,28 @@ public static partial class EntityAssertions
         else
         {
             AssertionUtil.AssertCloseTo(expected.Build.Finished.Value, actual.Build.Finished.Value, datesTolerance);
+        }
+
+        AssertEventsEqual(expected.Events, actual.Events, datesTolerance);
+    }
+
+    private static void AssertEventsEqual(List<DeployEvent> expected, List<DeployEvent> actual, TimeSpan datesTolerance)
+    {
+        Assert.Equal(expected?.Count ?? 0, actual?.Count ?? 0);
+
+        if (expected == null || expected.Count == 0)
+        {
+            return;
+        }
+
+        var expectedOrdered = expected.OrderBy(e => e.Timestamp).ToList();
+        var actualOrdered = actual.OrderBy(e => e.Timestamp).ToList();
+
+        for (int i = 0; i < expectedOrdered.Count; i++)
+        {
+            Assert.Equal(expectedOrdered[i].EventType, actualOrdered[i].EventType);
+            Assert.Equal(expectedOrdered[i].Message, actualOrdered[i].Message);
+            AssertionUtil.AssertCloseTo(expectedOrdered[i].Timestamp, actualOrdered[i].Timestamp, datesTolerance);
         }
     }
 }

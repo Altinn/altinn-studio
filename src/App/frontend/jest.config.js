@@ -34,6 +34,7 @@ const config = {
   },
   testEnvironment: 'jsdom',
   globalSetup: './src/globalSetup.ts',
+  clearMocks: true,
 };
 
 module.exports = config;

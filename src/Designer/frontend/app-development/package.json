@@ -9,23 +9,26 @@
     "not op_mini all"
   ],
   "dependencies": {
+    "@posthog/react": "1.7.1",
     "@studio/assistant": "workspace:^",
+    "@studio/browser-storage": "workspace:^",
     "@studio/content-library": "workspace:^",
     "@studio/feedback-form": "workspace:^",
     "@studio/hooks": "workspace:^",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
-    "axios": "1.12.2",
+    "axios": "1.13.5",
     "classnames": "2.5.1",
-    "i18next": "23.16.8",
+    "i18next": "25.7.4",
+    "posthog-js": "1.333.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-i18next": "15.6.1",
-    "react-router-dom": "6.30.1"
+    "react-i18next": "16.5.4",
+    "react-router-dom": "6.30.3"
   },
   "devDependencies": {
     "jest": "29.7.0",
-    "typescript": "5.9.2",
+    "typescript": "5.9.3",
     "vite": "^6.3.2"
   },
   "license": "3-Clause BSD",

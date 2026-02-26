@@ -1,4 +1,6 @@
-﻿namespace Altinn.Studio.Designer.Models
+﻿#nullable disable
+
+namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
     /// Defines a contact point

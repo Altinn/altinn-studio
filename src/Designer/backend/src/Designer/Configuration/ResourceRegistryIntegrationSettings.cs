@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
+﻿#nullable disable
+using System.Collections.Generic;
 
 namespace Altinn.Studio.Designer.Configuration
 {
-    public class ResourceRegistryIntegrationSettings : Dictionary<string, ResourceRegistryEnvironmentSettings>
-    {
-
-    }
+    public class ResourceRegistryIntegrationSettings : Dictionary<string, ResourceRegistryEnvironmentSettings> { }
 }

@@ -1,0 +1,28 @@
+# Additional configurations are available. See: https://docs.altinn.studio/app/development/configuration/deployment/
+
+deployment:
+
+  volumeMounts:
+    - name: datakeys
+      mountPath: /mnt/keys
+    - name: accesstoken
+      mountPath: "/accesstoken"
+    - name: altinn-appsettings-secret
+      mountPath: "/altinn-appsettings-secret"
+
+  volumes:
+    - name : datakeys
+      persistentVolumeClaim:
+        claimName: keys
+    - name: accesstoken
+      secret:
+        secretName: accesstoken
+    - name: altinn-appsettings-secret
+      secret:
+        secretName: altinn-appsettings-secret
+
+  readiness:
+    enabled: true
+
+  liveness:
+    enabled: true

@@ -1,0 +1,181 @@
+{
+  "language": "nb",
+  "resources": [
+    {
+      "id": "feedback.feedback.title",
+      "value": "Hvordan var det å fylle ut dette skjemaet?"
+    },
+    {
+      "id": "summary",
+      "value": "Oppsummering"
+    },
+    {
+      "id": "feedback",
+      "value": "Tilbakemelding"
+    },
+    {
+      "id": "summary.Button-sPjiD2.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "extra.extra.title",
+      "value": "Skjul sider"
+    },
+    {
+      "id": "extra",
+      "value": "Ekstra"
+    },
+    {
+      "id": "info2.Paragraph-b0YANE.title",
+      "value": "Her er litt mer informasjon som utdyper det du leste på forrige side:\n\n- Lorem\n- Ipsum\n- Dolor\n- Sit\n- Amet"
+    },
+    {
+      "id": "info2",
+      "value": "Litt mer info"
+    },
+    {
+      "id": "info1.Paragraph-K6c91n.title",
+      "value": "## Generell informasjon\n\n<br>\n\nHer kommer en punkt-liste:\n\n<br>\n\n1. Punkt én er **veldig** viktig\n2. Punkt to er ikke like viktig"
+    },
+    {
+      "id": "info1",
+      "value": "Generell info"
+    },
+    {
+      "id": "emails.email.title",
+      "value": "E-post"
+    },
+    {
+      "id": "emails.RepeatingGroup-oY9mdw.title",
+      "value": "E-post-addresser"
+    },
+    {
+      "id": "emails",
+      "value": "E-post"
+    },
+    {
+      "id": "birthday.birthday.title",
+      "value": "Fødselsdag"
+    },
+    {
+      "id": "birthday",
+      "value": "Fødselsdag"
+    },
+    {
+      "id": "age.Input-K1eSVX.title",
+      "value": "Alder"
+    },
+    {
+      "id": "lastname",
+      "value": "Etternavn"
+    },
+    {
+      "id": "age",
+      "value": "Alder"
+    },
+    {
+      "id": "lastname.lastname.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "firstname",
+      "value": "Fornavn"
+    },
+    {
+      "id": "Side1.Input-bo3rac.title",
+      "value": "Fornavn"
+    },
+    {
+      "id": "appName",
+      "value": "Navigasjonstest"
+    },
+    {
+      "id": "next",
+      "value": "Neste"
+    },
+    {
+      "id": "back",
+      "value": "Forrige"
+    },
+    {
+      "id": "group.info",
+      "value": "Informasjon med veldig lang tekst"
+    },
+    {
+      "id": "group.form",
+      "value": "Utfylling"
+    },
+    {
+      "id": "group.summary",
+      "value": "Innsending"
+    },
+    {
+      "id": "tasks.form",
+      "value": "Personopplysninger"
+    },
+    {
+      "id": "cars",
+      "value": "Kjøretøy"
+    },
+    {
+      "id": "subform.title",
+      "value": "Biler"
+    },
+    {
+      "id": "subform.add",
+      "value": "Legg til bil"
+    },
+    {
+      "id": "subgroup.data",
+      "value": "Informasjon"
+    },
+    {
+      "id": "brand.title",
+      "value": "Merke"
+    },
+    {
+      "id": "reg.title",
+      "value": "Registreringsnummer"
+    },
+    {
+      "id": "year.title",
+      "value": "Årsmodell"
+    },
+    {
+      "id": "brand",
+      "value": "Merke"
+    },
+    {
+      "id": "reg",
+      "value": "Registreringsnummer"
+    },
+    {
+      "id": "year",
+      "value": "Årsmodell"
+    },
+    {
+      "id": "group.important",
+      "value": "Gruppe med viktig informasjon"
+    },
+    {
+      "id": "important",
+      "value": "Viktig informasjon"
+    },
+    {
+      "id": "important.title",
+      "value": "Viktig informasjon"
+    },
+    {
+      "id": "important.body",
+      "value": "Her kommer det masse viktig informasjon som du må få med deg før du går videre!!!"
+    },
+    { "id": "brand.toyota", "value": "Toyota" },
+    { "id": "brand.volkswagen", "value": "Volkswagen" },
+    { "id": "brand.mercedes", "value": "Mercedes" },
+    { "id": "brand.audi", "value": "Audi" },
+    { "id": "brand.lamborghini", "value": "Lamborghini" },
+    { "id": "cool", "value": "En fet " },
+    { "id": "from", "value": " fra " },
+    { "id": "no-name", "value": "Uten navn" }
+  ]
+}

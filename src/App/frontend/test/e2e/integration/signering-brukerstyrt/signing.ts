@@ -1,6 +1,5 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { type TenorOrg, type TenorUser, tenorUserLogin } from 'test/e2e/support/auth';
-import { getTargetUrl } from 'test/e2e/support/start-app-instance';
+import { type TenorOrg, type TenorUser } from 'test/e2e/support/auth';
 import { reverseName } from 'test/e2e/support/utils';
 
 const appFrontend = new AppFrontend();
@@ -38,9 +37,6 @@ describe('Signing', () => {
       tenorUser: tenorUsers.humanAndrefiolin,
       authenticationLevel: '2',
     });
-
-    let prevHash: string;
-    cy.log(window.location.toString());
 
     // Step 2: Fill in the form and specify other valid users as signees
 
@@ -158,22 +154,14 @@ describe('Signing', () => {
 
       cy.findByText(/venter på signaturer/i);
       cy.findByText(/takk for at du signerte! du kan sende inn skjemaet når alle parter har signert/i);
+    });
 
-      cy.hash().then((hash) => {
-        cy.log('hash:', hash);
-        prevHash = hash;
+    cy.location('href').then((href) => {
+      cy.startAppInstance(appFrontend.apps.signeringBrukerstyrt, {
+        tenorUser: tenorUsers.standhaftigBjornunge,
+        authenticationLevel: '2',
+        urlSuffix: `/instance/${href.split('/instance/')[1]}`,
       });
-    });
-
-    // Step 3: Log in as one of the specified signees
-    tenorUserLogin({
-      appName: appFrontend.apps.signeringBrukerstyrt,
-      tenorUser: tenorUsers.standhaftigBjornunge,
-      authenticationLevel: '2',
-    });
-
-    cy.then(() => {
-      cy.visit(`${getTargetUrl(appFrontend.apps.signeringBrukerstyrt)}${prevHash}`);
     });
 
     // TODO: Cannot test signing with the second user as the authorization is cached and may therefore sometimes fail

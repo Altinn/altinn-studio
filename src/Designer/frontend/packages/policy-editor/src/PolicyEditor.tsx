@@ -57,7 +57,6 @@ export const PolicyEditor = ({
   const handleSavePolicy = (rules: PolicyRuleCard[]) => {
     const policyEditorRules: PolicyRule[] = rules.map((pr) =>
       mapPolicyRuleToPolicyRuleBackendObject(
-        subjects,
         pr,
         `${resourceType}:${usageType === 'app' ? 'example' : resourceId}:ruleid:${pr.ruleId}`, // TODO - find out if ID should be hardcoded. Issue: #10893
       ),
@@ -75,7 +74,7 @@ export const PolicyEditor = ({
       setPolicyRules={setPolicyRules}
       actions={actions}
       subjects={subjects}
-      accessPackages={accessPackages ?? []}
+      accessPackages={accessPackages}
       usageType={usageType}
       resourceType={resourceType}
       showAllErrors={showAllErrors}

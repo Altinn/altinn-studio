@@ -34,20 +34,28 @@ const orgNrSchema: JSONSchemaType<Pick<Organisation, 'orgNr'>> = {
 };
 
 export function checkValidOrgnNr(orgNr: string): boolean {
-  if (orgNr.length !== 9) {
+  if (orgNr.length !== 9 || !/^\d{9}$/.test(orgNr)) {
     return false;
   }
-  const [a1, a2, a3, a4, a5, a6, a7, a8, a9] = orgNr.split('').map(Number);
-  const allegedCheckDigit = a9;
+  const orgnr_digits = orgNr.split('').map(Number);
+  const k1 = orgnr_digits.at(-1)!;
 
-  const [w1, w2, w3, w4, w5, w6, w7, w8] = [3, 2, 7, 6, 5, 4, 3, 2];
-  const sum = a1 * w1 + a2 * w2 + a3 * w3 + a4 * w4 + a5 * w5 + a6 * w6 + a7 * w7 + a8 * w8;
-  const calculatedCheckDigit = 11 - (sum % 11);
+  const weights = [3, 2, 7, 6, 5, 4, 3, 2];
 
-  return calculatedCheckDigit === allegedCheckDigit;
+  let sum = 0;
+  for (let i = 0; i < weights.length; i++) {
+    sum += orgnr_digits[i] * weights[i];
+  }
+
+  let calculated_k1 = modularAdditiveInverse(sum, 11);
+  calculated_k1 = calculated_k1 % 11;
+
+  return calculated_k1 === k1;
 }
 
 export const validateOrgnr = ajv.compile(orgNrSchema);
+
+const modularAdditiveInverse = (value: number, base: number): number => base - (value % base);
 
 const organisationLookupResponseSchema: JSONSchemaType<OrganisationLookupResponse> = {
   type: 'object',

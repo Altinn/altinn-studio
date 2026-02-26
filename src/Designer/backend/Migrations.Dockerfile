@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:f47429a125e38d83f5231a78dde18106cb447d541f7ffdc5b8af4d227a323d95 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine@sha256:ebdd46c1a72c10bb992c276e5e6afc6e245757bd1a295d7f0870b266e11c306e AS build
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ ENV OidcLoginSettings__ClientSecret=dummyRequired
 
 RUN dotnet ef migrations script --project src/Designer/Designer.csproj --idempotent -o /app/migrations.sql
 
-FROM alpine:3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1 AS final
+FROM alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS final
 COPY --from=build /app/migrations.sql migrations.sql
 RUN apk --no-cache add postgresql-client
 

@@ -1,7 +1,8 @@
 import React, { createRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioCodeListEditor, StudioModal } from '@studio/components-legacy';
+import { StudioCodeListEditor } from '@studio/components-legacy';
 import type { CodeListEditorTexts } from '@studio/components-legacy';
+import { StudioDialog, StudioHeading, StudioAlert } from '@studio/components';
 import type { OptionList } from 'app-shared/types/OptionList';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -15,7 +16,6 @@ import { useHandleUpdateTextResource } from '../../hooks/useHandleUpdateTextReso
 import { useTextResourcesForLanguage } from '../../hooks/useTextResourcesForLanguage';
 import classes from './LibraryOptionsEditor.module.css';
 import type { ITextResources } from 'app-shared/types/global';
-import { StudioAlert } from '@studio/components';
 
 export type LibraryOptionsEditorProps = {
   onDeleteButtonClick: () => void;
@@ -61,27 +61,28 @@ export function LibraryOptionsEditor({
         onEditButtonClick={handleEditButtonClick}
         onDeleteButtonClick={onDeleteButtonClick}
       />
-      <StudioModal.Dialog
-        ref={modalRef}
-        className={classes.editOptionTabModal}
-        contentClassName={classes.content}
-        closeButtonTitle={t('general.close')}
-        heading={t('ux_editor.options.modal_header_library_code_list')}
-        footer={
+      <StudioDialog ref={modalRef} className={classes.editOptionTabModal}>
+        <StudioDialog.Block>
+          <StudioHeading level={2}>
+            {t('ux_editor.options.modal_header_library_code_list')}
+          </StudioHeading>
+        </StudioDialog.Block>
+        <StudioDialog.Block className={classes.content}>
+          <StudioCodeListEditor
+            codeList={optionList}
+            onCreateTextResource={handleUpdateTextResource}
+            onUpdateTextResource={handleUpdateTextResource}
+            onUpdateCodeList={handleUpdateCodeList}
+            texts={editorTexts}
+            textResources={textResourcesForLanguage}
+          />
+        </StudioDialog.Block>
+        <StudioDialog.Block>
           <StudioAlert data-color='warning'>
             {t('ux_editor.modal_properties_code_list_alert_title')}
           </StudioAlert>
-        }
-      >
-        <StudioCodeListEditor
-          codeList={optionList}
-          onCreateTextResource={handleUpdateTextResource}
-          onUpdateTextResource={handleUpdateTextResource}
-          onUpdateCodeList={handleUpdateCodeList}
-          texts={editorTexts}
-          textResources={textResourcesForLanguage}
-        />
-      </StudioModal.Dialog>
+        </StudioDialog.Block>
+      </StudioDialog>
     </>
   );
 }

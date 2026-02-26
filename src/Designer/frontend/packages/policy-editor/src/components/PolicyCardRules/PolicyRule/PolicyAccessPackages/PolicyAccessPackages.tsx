@@ -1,38 +1,41 @@
 import React, { type ReactElement, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components-legacy';
+import { StudioSearch } from '@studio/components';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicyAccessPackages.module.css';
 import {
-  filterAccessPackagesByIsDelegable,
+  filterAccessPackagesByIsResourcePolicyAvailable,
   filterAccessPackagesBySearchString,
   groupAccessPackagesByArea,
   isAccessPackageSelected,
 } from './policyAccessPackageUtils';
-import { ChosenAccessPackages } from './ChosenAccessPackages';
 import { AllAccessPackages } from './AllAccessPackages';
-import { PolicyAccessPackagesWarning } from './PolicyAccessPackagesWarning';
-import { Accordion } from '@digdir/designsystemet-react';
+import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 
-export const PolicyAccessPackages = (): ReactElement => {
+interface PolicyAccessPackagesProps {
+  isPersonSubject?: boolean;
+  accessPackages: PolicyAccessPackageAreaGroup[];
+}
+
+export const PolicyAccessPackages = ({
+  isPersonSubject,
+  accessPackages,
+}: PolicyAccessPackagesProps): ReactElement => {
   const { t } = useTranslation();
-  const { policyRules, accessPackages, setPolicyRules, savePolicy } = usePolicyEditorContext();
-  const { policyRule } = usePolicyRuleContext();
+  const { policyRules, setPolicyRules, savePolicy } = usePolicyEditorContext();
+  const { policyRule, policyError, setPolicyError } = usePolicyRuleContext();
 
   const [searchValue, setSearchValue] = useState<string>('');
-  const [chosenAccessPackages, setChosenAccessPackages] = useState<string[]>(
-    policyRule.accessPackages,
-  );
 
   const groupedDelegableAccessPackagesByArea = useMemo(() => {
     const areas = groupAccessPackagesByArea(accessPackages);
-    return filterAccessPackagesByIsDelegable(areas);
+    return filterAccessPackagesByIsResourcePolicyAvailable(areas);
   }, [accessPackages]);
 
   const handleSelectAccessPackage = (packageUrn: string): void => {
-    const isChecked = isAccessPackageSelected(packageUrn, chosenAccessPackages);
+    const isChecked = isAccessPackageSelected(packageUrn, policyRule.accessPackages);
 
     if (isChecked) {
       handleDeselectAccessPackage(packageUrn);
@@ -42,13 +45,11 @@ export const PolicyAccessPackages = (): ReactElement => {
   };
 
   const handleDeselectAccessPackage = (packageUrn: string): void => {
-    setChosenAccessPackages((oldUrns) => oldUrns.filter((urn) => urn !== packageUrn));
     const urnsToSave = policyRule.accessPackages.filter((x) => x !== packageUrn);
     handleAccessPackageChange(urnsToSave);
   };
 
   const handleSelectNewAccessPackage = (packageUrn: string): void => {
-    setChosenAccessPackages((oldUrns) => [...oldUrns, packageUrn]);
     const urnsToSave = [...policyRule.accessPackages, packageUrn];
     handleAccessPackageChange(urnsToSave);
   };
@@ -64,6 +65,10 @@ export const PolicyAccessPackages = (): ReactElement => {
     );
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
+    setPolicyError({
+      ...policyError,
+      subjectsError: newSelectedAccessPackageUrns.length === 0 && policyRule.subject.length === 0,
+    });
   };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -77,42 +82,19 @@ export const PolicyAccessPackages = (): ReactElement => {
 
   return (
     <div className={classes.accessPackages}>
-      <StudioLabelAsParagraph size='md' spacing>
-        {t('policy_editor.access_package_header')}
-      </StudioLabelAsParagraph>
-      <ChosenAccessPackages
-        chosenAccessPackages={chosenAccessPackages}
-        groupedAccessPackagesByArea={groupedDelegableAccessPackagesByArea}
+      <StudioSearch
+        label=''
+        aria-label={t('policy_editor.access_package_search')}
+        value={searchValue}
+        onChange={handleSearch}
+      />
+      <AllAccessPackages
+        chosenAccessPackages={policyRule.accessPackages}
+        accessPackagesToRender={accessPackagesToRender}
+        searchValue={searchValue}
+        isPersonSubject={isPersonSubject}
         handleSelectAccessPackage={handleSelectAccessPackage}
       />
-      <Accordion>
-        <Accordion.Item>
-          <Accordion.Header>{t('policy_editor.access_package_accordion_header')}</Accordion.Header>
-          <Accordion.Content className={classes.accessPackages}>
-            <PolicyAccessPackagesWarning />
-            <StudioLabelAsParagraph size='xs' spacing>
-              {t('policy_editor.access_package_all_packages')}
-            </StudioLabelAsParagraph>
-            <StudioTextfield
-              label={
-                <StudioLabelAsParagraph size='xs'>
-                  {t('policy_editor.access_package_search')}
-                </StudioLabelAsParagraph>
-              }
-              hideLabel
-              placeholder={t('policy_editor.access_package_search')}
-              value={searchValue}
-              onChange={handleSearch}
-            />
-            <AllAccessPackages
-              chosenAccessPackages={chosenAccessPackages}
-              accessPackagesToRender={accessPackagesToRender}
-              searchValue={searchValue}
-              handleSelectAccessPackage={handleSelectAccessPackage}
-            />
-          </Accordion.Content>
-        </Accordion.Item>
-      </Accordion>
     </div>
   );
 };

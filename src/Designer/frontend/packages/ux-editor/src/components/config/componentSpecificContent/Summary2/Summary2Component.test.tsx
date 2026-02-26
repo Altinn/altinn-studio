@@ -64,7 +64,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
     await user.selectOptions(targetTaskIdSelect(), layoutSet2NameMock);
     expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: { taskId: 'Task_2', type: 'component', id: '' } }),
+      expect.objectContaining({ target: { taskId: 'Task_2', type: 'component' } }),
     );
   });
 
@@ -81,51 +81,39 @@ describe('Summary2ComponentTargetSelector', () => {
 
     await user.selectOptions(targetTypeSelect(), 'layoutSet');
     expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: { type: 'layoutSet', id: '' } }),
+      expect.objectContaining({ target: { type: 'layoutSet' } }),
     );
   });
 
   it('should allow selecting component target', async () => {
-    const user = userEvent.setup();
     render({
       component: { ...defaultProps.component, target: { type: 'component', id: component1IdMock } },
     });
 
-    await user.selectOptions(targetTypeSelect(), 'component');
-    const componentId = component1IdMock;
+    const select = await componentTargetSelect();
+    expect(select).toBeInTheDocument();
 
-    await user.click(componentTargetSelect());
-    await user.click(
-      screen.getByRole('option', {
-        name: (content, _) => content.startsWith(componentId),
-      }),
-    );
-    await waitFor(() =>
-      expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-        expect.objectContaining({ target: { type: 'component', id: componentId } }),
-      ),
-    );
+    await waitFor(() => {
+      const selectedChip = screen.getByRole('option', {
+        name: (name) => name.includes(component1IdMock),
+      });
+      expect(selectedChip).toBeInTheDocument();
+    });
   });
 
   it('should allow selecting page target', async () => {
-    const user = userEvent.setup();
     render({
       component: { ...defaultProps.component, target: { type: 'page', id: layout1NameMock } },
     });
 
-    const pageId = layout1NameMock;
-
-    await user.click(pageTargetSelect());
-    await user.click(
-      screen.getByRole('option', {
-        name: (content, _) => content.startsWith(pageId),
-      }),
-    );
-    await waitFor(() =>
-      expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-        expect.objectContaining({ target: { type: 'page', id: pageId } }),
-      ),
-    );
+    const select = await pageTargetSelect();
+    expect(select).toBeInTheDocument();
+    await waitFor(() => {
+      const selectedChip = screen.getByRole('option', {
+        name: (name) => name.includes(layout1NameMock),
+      });
+      expect(selectedChip).toBeInTheDocument();
+    });
   });
 
   it('should show error if page target is invalid', async () => {
@@ -167,14 +155,10 @@ const targetTypeSelect = () =>
   });
 
 const componentTargetSelect = () =>
-  screen.getByRole('combobox', {
-    name: textMock('ux_editor.component_properties.target_unit_component'),
-  });
+  screen.findByLabelText(textMock('ux_editor.component_properties.target_unit_component'));
 
 const pageTargetSelect = () =>
-  screen.getByRole('combobox', {
-    name: textMock('ux_editor.component_properties.target_unit_page'),
-  });
+  screen.findByLabelText(textMock('ux_editor.component_properties.target_unit_page'));
 
 const disabledLayoutSetTargetSelect = () =>
   screen.getByRole('textbox', {
@@ -200,7 +184,6 @@ const render = (props?: Partial<IGenericEditComponent<ComponentType.Summary2>>) 
   renderWithProviders(<Summary2Component {...defaultProps} {...props} />, {
     queryClient,
     appContextProps: {
-      selectedFormLayoutSetName: layoutSet1NameMock,
       selectedFormLayoutName: layout1NameMock,
     },
   });

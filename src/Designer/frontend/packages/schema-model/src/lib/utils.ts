@@ -6,7 +6,11 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FieldNode } from '../types/FieldNode';
 import type { CombinationNode } from '../types/CombinationNode';
 import type { ReferenceNode } from '../types/ReferenceNode';
-import { makePointerFromArray } from './pointerUtils';
+import {
+  createDefinitionPointer,
+  extractNameFromPointer,
+  makePointerFromArray,
+} from './pointerUtils';
 
 export const createNodeBase = (...args: string[]): FieldNode => ({
   objectKind: ObjectKind.Field,
@@ -99,6 +103,12 @@ export const isDefinition = (node: UiSchemaNode): boolean =>
 
 export const isDefinitionPointer = (schemaPointer: string): boolean =>
   schemaPointer.startsWith(makePointerFromArray([Keyword.Definitions]));
+
+export const isDefinitionRoot = (node: UiSchemaNode): boolean =>
+  isDefinitionRootPointer(node.schemaPointer);
+
+export const isDefinitionRootPointer = (schemaPointer: string): boolean =>
+  schemaPointer === createDefinitionPointer(extractNameFromPointer(schemaPointer));
 
 export const isProperty = (node: UiSchemaNode): boolean => !isDefinition(node);
 

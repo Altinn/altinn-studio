@@ -7,8 +7,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { IFormLayouts } from '../../types/global';
-import { layout1NameMock } from 'app-shared/hooks/useSelectedTaskId.test';
-import { groupsPagesModelMock, layoutMock } from '../../testing/layoutMock';
+import { layout1NameMock, groupsPagesModelMock, layoutMock } from '../../testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { SelectedItem } from '../../AppContext';
 import { ItemType } from './ItemType';
@@ -34,13 +33,15 @@ describe('Properties', () => {
 
     it('shows page config when selectedItem is a page', () => {
       renderProperties({ selectedItem: { type: ItemType.Page, id: layout1NameMock } });
-      const pageConfigPanel = screen.getByTestId('pageConfigPanel');
+      const pageConfigPanel = screen.getByRole('heading', { name: 'Side1' });
       expect(pageConfigPanel).toBeInTheDocument();
     });
 
     it('shows group config when selectedItem is a group', () => {
       renderProperties({ selectedItem: { type: ItemType.Group, id: 0 } });
-      const pageConfigPanel = screen.getByTestId('groupConfigPanel');
+      const pageConfigPanel = screen.getByRole('group', {
+        name: textMock('ux_editor.page_group.select_type_title'),
+      });
       expect(pageConfigPanel).toBeInTheDocument();
     });
 

@@ -35,10 +35,10 @@ export const StudioSpinner = forwardRef<HTMLDivElement, StudioSpinnerProps>(
     return (
       <div className={classes.spinnerWrapper} ref={ref} {...rest}>
         <Spinner
-          title={!showSpinnerTitle && spinnerTitle}
+          title={!showSpinnerTitle ? spinnerTitle : ''}
           size={size}
           variant={variant}
-          aria-describedby={showSpinnerTitle ? spinnerDescriptionId : null}
+          aria-describedby={showSpinnerTitle ? spinnerDescriptionId : undefined}
           data-testid='studio-spinner-test-id'
         />
         {showSpinnerTitle && (

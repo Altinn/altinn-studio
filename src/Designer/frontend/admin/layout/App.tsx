@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import './App.css';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 import classes from './App.module.css';
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -8,6 +8,7 @@ import nb from '../../language/src/nb.json';
 import en from '../../language/src/en.json';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { appContentWrapperId } from '@studio/testing/testids';
+import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
 
 i18next.use(initReactI18next).init({
   ns: 'translation',
@@ -35,8 +36,11 @@ export function App() {
   return (
     <div className={classes.container}>
       <div data-testid={appContentWrapperId} className={classes.appContainer}>
-        <Outlet />
+        <WebSocketSyncWrapper>
+          <Outlet />
+        </WebSocketSyncWrapper>
       </div>
+      <ScrollRestoration />
     </div>
   );
 }

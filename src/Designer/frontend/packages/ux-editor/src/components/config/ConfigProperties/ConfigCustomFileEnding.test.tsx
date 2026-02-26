@@ -3,10 +3,9 @@ import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigCustomFileEnding } from './ConfigCustomFileEnding';
 import type { ConfigCustomFileEndingProps } from './ConfigCustomFileEnding';
 import { componentMocks } from '../../../testing/componentMocks';
-import { screen } from '@testing-library/react';
-import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { getPropertyByRole } from './testConfigUtils';
 
 describe('ConfigCustomFileEnding', () => {
   it('should call handleComponentUpdate with updated component', async () => {
@@ -21,9 +20,7 @@ describe('ConfigCustomFileEnding', () => {
       },
     });
     const user = userEvent.setup();
-    const hasCustomFileEndingsSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.hasCustomFileEndings'),
-    });
+    const hasCustomFileEndingsSwitch = getPropertyByRole('checkbox', 'hasCustomFileEndings');
     expect(hasCustomFileEndingsSwitch).not.toBeChecked();
     await user.click(hasCustomFileEndingsSwitch);
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
@@ -46,9 +43,7 @@ describe('ConfigCustomFileEnding', () => {
       },
     });
     const user = userEvent.setup();
-    const hasCustomFileEndingsSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.hasCustomFileEndings'),
-    });
+    const hasCustomFileEndingsSwitch = getPropertyByRole('checkbox', 'hasCustomFileEndings');
     expect(hasCustomFileEndingsSwitch).toBeChecked();
     await user.click(hasCustomFileEndingsSwitch);
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(

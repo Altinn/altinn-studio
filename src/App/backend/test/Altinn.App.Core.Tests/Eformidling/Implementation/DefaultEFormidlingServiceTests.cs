@@ -8,6 +8,8 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
@@ -16,6 +18,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -71,6 +74,9 @@ public class DefaultEFormidlingServiceTests
         var platformSettings = Options.Create(new PlatformSettings { SubscriptionKey = "subscription-key" });
         var eFormidlingClient = new Mock<IEFormidlingClient>();
         var tokenGenerator = new Mock<IAccessTokenGenerator>();
+        var processReader = new Mock<IProcessReader>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
+        var eFormidlingLegacyConfigProvider = new Mock<IEFormidlingLegacyConfigurationProvider>();
 
         var instanceGuid = Guid.Parse("41C1099C-7EDD-47F5-AD1F-6267B497796F");
         var instance = new Instance
@@ -151,18 +157,33 @@ public class DefaultEFormidlingServiceTests
             );
         tokenGenerator.Setup(t => t.GenerateAccessToken("ttd", "test-app")).Returns("access-token");
         userTokenProvider.Setup(u => u.GetUserToken()).Returns("authz-token");
-        eFormidlingReceivers.Setup(er => er.GetEFormidlingReceivers(instance)).ReturnsAsync(new List<Receiver>());
+        eFormidlingReceivers
+            .Setup(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>()))
+            .ReturnsAsync(new List<Receiver>());
         eFormidlingMetadata
             .Setup(em => em.GenerateEFormidlingMetadata(instance))
             .ReturnsAsync(() =>
             {
                 return (EFormidlingMetadataFilename, Stream.Null);
             });
+        eFormidlingLegacyConfigProvider
+            .Setup(cp => cp.GetLegacyConfiguration())
+            .ReturnsAsync(
+                new ValidAltinnEFormidlingConfiguration(
+                    true,
+                    null,
+                    "urn:no:difi:profile:arkivmelding:plan:3.0",
+                    "urn:no:difi:arkivmelding:xsd::arkivmelding",
+                    "v8",
+                    "arkivmelding",
+                    3,
+                    null,
+                    [ModelDataType, FileAttachmentsDataType]
+                )
+            );
         dataClient
             .Setup(x =>
                 x.GetBinaryData(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
                     It.IsAny<int>(),
                     It.IsAny<Guid>(),
                     It.IsAny<Guid>(),
@@ -178,13 +199,15 @@ public class DefaultEFormidlingServiceTests
         services.TryAddTransient(_ => appMetadata.Object);
         services.TryAddTransient(_ => dataClient.Object);
         services.TryAddTransient(_ => eFormidlingReceivers.Object);
+        services.TryAddTransient(_ => eFormidlingMetadata.Object);
+        services.TryAddTransient(_ => eFormidlingLegacyConfigProvider.Object);
         services.TryAddTransient(_ => eventClient.Object);
         services.TryAddTransient(_ => appSettings);
         services.TryAddTransient(_ => platformSettings);
         services.TryAddTransient(_ => eFormidlingClient.Object);
         services.TryAddTransient(_ => tokenGenerator.Object);
-        services.TryAddTransient(_ => eFormidlingMetadata.Object);
-
+        services.TryAddTransient(_ => processReader.Object);
+        services.TryAddTransient(_ => hostEnvironment.Object);
         services.TryAddTransient<IEFormidlingService, DefaultEFormidlingService>();
 
         var serviceProvider = services.BuildStrictServiceProvider();
@@ -213,7 +236,7 @@ public class DefaultEFormidlingServiceTests
         fixture.Mock<IAppMetadata>().Verify(a => a.GetApplicationMetadata());
         fixture.Mock<IAccessTokenGenerator>().Verify(t => t.GenerateAccessToken("ttd", "test-app"));
         fixture.Mock<IUserTokenProvider>().Verify(u => u.GetUserToken());
-        fixture.Mock<IEFormidlingReceivers>().Verify(er => er.GetEFormidlingReceivers(instance));
+        fixture.Mock<IEFormidlingReceivers>().Verify(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>()));
         fixture.Mock<IEFormidlingMetadata>().Verify(em => em.GenerateEFormidlingMetadata(instance));
         var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
         eFormidlingClient.Verify(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), expectedReqHeaders));
@@ -348,7 +371,7 @@ public class DefaultEFormidlingServiceTests
         fixture.Mock<IAppMetadata>().Verify(a => a.GetApplicationMetadata());
         fixture.Mock<IAccessTokenGenerator>().Verify(t => t.GenerateAccessToken("ttd", "test-app"));
         fixture.Mock<IUserTokenProvider>().Verify(u => u.GetUserToken());
-        fixture.Mock<IEFormidlingReceivers>().Verify(er => er.GetEFormidlingReceivers(instance));
+        fixture.Mock<IEFormidlingReceivers>().Verify(er => er.GetEFormidlingReceivers(instance, It.IsAny<string?>()));
         fixture.Mock<IEFormidlingMetadata>().Verify(em => em.GenerateEFormidlingMetadata(instance));
         var eFormidlingClient = fixture.Mock<IEFormidlingClient>();
         eFormidlingClient.Verify(ec => ec.CreateMessage(It.IsAny<StandardBusinessDocument>(), expectedReqHeaders));

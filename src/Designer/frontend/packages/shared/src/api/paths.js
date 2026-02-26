@@ -4,12 +4,14 @@ import { PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants'
 // Base path
 const basePath = '/designer';
 const apiBasePath = `${basePath}/api`;
+const apiBasePathV1 = `${apiBasePath}/v1`;
 
 // Ansattporten
 export const authStatusAnsattporten = () => `${apiBasePath}/ansattporten/auth-status`; // Get
 export const loginWithAnsattPorten = (redirectTo) => `${apiBasePath}/ansattporten/login?redirect_to=${redirectTo}`;
 export const availableMaskinportenScopesPath = (org, app) => `${apiBasePath}/${org}/${app}/app-scopes/maskinporten`; // Get
 export const selectedMaskinportenScopesPath = (org, app) => `${apiBasePath}/${org}/${app}/app-scopes`; // Get, Put
+export const appSettingsPath = (org, app) => `${apiBasePathV1}/${org}/${app}/app-settings`; // Get, Put
 
 // ApplicationMetadata
 export const appMetadataPath = (org, app) => `${apiBasePath}/${org}/${app}/metadata`; // Get, Put, Post
@@ -93,13 +95,17 @@ export const validateImageFromExternalUrlPath = (org, app, url) => `${apiBasePat
 export const getImageFileNamesPath = (org, app) => `${apiBasePath}/${org}/${app}/images/fileNames`; // Get
 
 // Library - org-level
+export const orgLibraryPath = (org, path, reference) => `${apiBasePath}/${org}/shared-resources?${s({ path, reference })}`; // Get
+export const orgLibraryUpdatePath = (org) => `${apiBasePath}/${org}/shared-resources`; // Put
 export const orgCodeListsPath = (org) => `${apiBasePath}/${org}/code-lists`; // Get
 export const orgCodeListPath = (org, codeListId) => `${apiBasePath}/${org}/code-lists/${codeListId}`; // Post, Put, Delete
+export const orgCodeListPublishPath = (org) => `${apiBasePath}/${org}/code-lists/new/publish`; // Post
 export const orgCodeListUpdateIdPath = (org, codeListId) => `${apiBasePath}/${org}/code-lists/change-name/${codeListId}`;
 export const orgCodeListUploadPath = (org) => `${apiBasePath}/${org}/code-lists/upload`; // Post
 export const orgTextResourcesPath = (org, language) => `${apiBasePath}/${org}/text/language/${language}`; // Get, patch, post
 export const orgTextLanguagesPath = (org) => `${apiBasePath}/${org}/text/languages`; // Get
 export const availableResourcesInOrgLibraryPath = (org, contentType) => `${apiBasePath}/${org}/content?${s({ contentType })}`; // Get
+export const publishedResourcesPath = (org, path) => `${apiBasePath}/${org}/shared-resources/published?${s({ path })}`; // Get
 
 // Organizations
 export const orgsListPath = () => `${apiBasePath}/orgs`; // Get
@@ -115,6 +121,7 @@ export const deploymentsPath = (org, app, sortDirection) => `${apiBasePath}/${or
 export const deployPermissionsPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/permissions`; // Get
 export const envConfigPath = () => `${apiBasePath}/environments`; // Get
 export const undeployAppFromEnvPath = (org, app) => `${apiBasePath}/${org}/${app}/deployments/undeploy`;
+export const appValidationPath = (org, app) => `${apiBasePath}/${org}/${app}/validation`;
 
 // Repositories
 export const branchStatusPath = (org, app, branch) => `${apiBasePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
@@ -166,7 +173,7 @@ export const resourceSubjectsPath = (org, repo) => `${apiBasePath}/${org}/${repo
 export const resourceAccessPackagesPath = (org, repo) => `${apiBasePath}/${org}/${repo}/policy/accesspackageoptions`; // Get
 export const resourceAccessPackageServicesPath = (accessPackageUrn, env) => `${apiBasePath}/accesspackageservices/${accessPackageUrn}/${env}`; // Get
 export const resourcePublishStatusPath = (org, repo, id) => `${apiBasePath}/${org}/resources/publishstatus/${repo}/${id}`; // Get
-export const resourceListPath = (org) => `${apiBasePath}/${org}/resources/resourcelist?includeEnvResources=true`; // Get
+export const resourceListPath = (org, skipGiteaFields, skipParseJson) => `${apiBasePath}/${org}/resources/resourcelist?includeEnvResources=true&skipGiteaFields=${skipGiteaFields}&skipParseJson=${skipParseJson}`; // Get
 export const resourceCreatePath = (org) => `${apiBasePath}/${org}/resources/addresource`; // Post
 export const resourceSinglePath = (org, repo, id) => `${apiBasePath}/${org}/resources/${repo}/${id}`; // Get
 export const resourceEditPath = (org, id) => `${apiBasePath}/${org}/resources/updateresource/${id}`; // Put
@@ -203,6 +210,7 @@ export const envFilePath = () => `${basePath}/config/env.json`;
 // Event Hubs
 export const syncEventsWebSocketHub = () => '/hubs/sync';
 export const syncEntityUpdateWebSocketHub = () => '/hubs/entity-updated';
+export const syncAlertsUpdateWebSocketHub = () => '/hubs/alerts-updated';
 export const previewWebSocketHub = () => `/hubs/preview`;
 export const altinityWebSocketHub = () => '/hubs/altinity';
 
@@ -211,3 +219,6 @@ export const belongsToOrg = () => `${apiBasePath}/contact/belongs-to-org`;
 
 // Can use feature
 export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?featureName=${featureName}`;
+
+// Custom Templates
+export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GET

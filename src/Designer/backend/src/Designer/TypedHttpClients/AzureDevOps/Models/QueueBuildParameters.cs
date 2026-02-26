@@ -1,9 +1,13 @@
+#nullable disable
 using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
 {
     /// <summary>
     /// Parameters for build when queueing
+    /// Used for calling release pipeline, deploy pipeline and gitops deployment pipeline
+    /// After deploying and removing feature branch, this class should be split into multiple classes to be
+    /// more explicit for each pipeline.
     /// </summary>
     public class QueueBuildParameters
     {
@@ -60,5 +64,36 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonPropertyName("ALTINN_STUDIO_HOSTNAME")]
         public string AltinnStudioHostname { get; set; }
+
+        /// <summary>
+        /// Whether or not to push the sync root gitops image
+        /// </summary>
+        [JsonPropertyName("PUSH_SYNCROOT_GITOPS_IMAGE")]
+        public string PushSyncRootGitopsImage { get; set; } = "false";
+
+        /// <summary>
+        /// Whether or not to push the apps OCI image
+        /// </summary>
+        [JsonPropertyName("PUSH_APPS_OCI_IMAGE")]
+        public string PushAppsOciImage { get; set; } = "true";
+
+        /// <summary>
+        /// JSON-encoded array of Maskinporten scopes for the app
+        /// Format: ["scope1", "scope2"]
+        /// </summary>
+        [JsonPropertyName("APP_MASKINPORTEN_SCOPES")]
+        public string AppMaskinportenScopes { get; set; }
+
+        /// <summary>
+        /// W3C traceparent propagated from the request that queued the deployment.
+        /// </summary>
+        [JsonPropertyName("TRACEPARENT")]
+        public string TraceParent { get; set; }
+
+        /// <summary>
+        /// W3C tracestate propagated from the request that queued the deployment.
+        /// </summary>
+        [JsonPropertyName("TRACESTATE")]
+        public string TraceState { get; set; }
     }
 }

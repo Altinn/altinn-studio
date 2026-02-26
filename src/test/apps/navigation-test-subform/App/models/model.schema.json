@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/bjosttveit/v4-data/App/models/model.schema.json",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "model",
+  "type": "object",
+  "required": [
+    "firstname",
+    "lastname",
+    "age",
+    "birthday"
+  ],
+  "$defs": {
+    "age": {
+      "type": "string"
+    }
+  },
+  "properties": {
+    "firstname": {
+      "type": "string"
+    },
+    "lastname": {
+      "type": "string"
+    },
+    "age": {
+      "type": "integer",
+      "maximum": 99,
+      "minimum": 0
+    },
+    "birthday": {
+      "type": "string",
+      "format": "date"
+    },
+    "emails": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": false,
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      }
+    },
+    "extra": {
+      "type": "string"
+    },
+    "feedback": {
+      "type": "string"
+    }
+  }
+}

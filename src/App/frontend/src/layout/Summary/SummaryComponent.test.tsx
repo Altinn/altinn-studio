@@ -5,6 +5,7 @@ import { act, fireEvent, screen } from '@testing-library/react';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
+import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
@@ -133,7 +134,7 @@ describe('SummaryComponent', () => {
         fetchLayoutSettings: async () => ({
           pages: {
             order: currentPageId ? ['FormLayout', currentPageId] : ['FormLayout'],
-          },
+          } as unknown as IPagesSettingsWithOrder,
         }),
       },
     });

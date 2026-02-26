@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -11,14 +12,28 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTests>, IClassFixture<WebApplicationFactory<Program>>
+public class CreateCodeListTests
+    : DesignerEndpointsTestsBase<CreateCodeListTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public CreateCodeListTests(WebApplicationFactory<Program> factory) : base(factory)
+    private readonly Mock<ISharedContentClient> _contentClientMock;
+
+    public CreateCodeListTests(WebApplicationFactory<Program> factory)
+        : base(factory)
     {
+        _contentClientMock = new Mock<ISharedContentClient>();
+    }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+        services.AddSingleton(_contentClientMock.Object);
     }
 
     private const string Org = "ttd";
@@ -36,14 +51,20 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string CodeListJson = @"[
+        const string CodeListJson =
+            @"[
             { ""label"": ""label1"", ""value"": ""value1"" },
             { ""label"": ""label2"", ""value"": ""value2"" }
         ]";
         httpRequestMessage.Content = new StringContent(CodeListJson, Encoding.UTF8, "application/json");
         List<Option> codeListToCreate = JsonSerializer.Deserialize<List<Option>>(CodeListJson);
         List<OptionListData> expectedResponse = new([
-            new OptionListData {Title = CodeListId, Data = codeListToCreate, HasError = false}
+            new OptionListData
+            {
+                Title = CodeListId,
+                Data = codeListToCreate,
+                HasError = false,
+            },
         ]);
 
         // Act
@@ -76,7 +97,8 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string StringBoolNumbersCodeList = @"[
+        const string StringBoolNumbersCodeList =
+            @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },
             { ""label"": ""NumberValue"", ""value"": 3.1415 },
@@ -101,7 +123,8 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string EmptyStringCodeList = @"[
+        const string EmptyStringCodeList =
+            @"[
             { ""label"": """", ""value"": """" },
         ]";
         httpRequestMessage.Content = new StringContent(EmptyStringCodeList, Encoding.UTF8, "application/json");
@@ -147,7 +170,8 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string InvalidCodeList = @"[
+        const string InvalidCodeList =
+            @"[
             { ""value"": {}, ""label"": ""label2"" },
         ]";
         httpRequestMessage.Content = new StringContent(InvalidCodeList, Encoding.UTF8, "application/json");
@@ -173,7 +197,8 @@ public class CreateCodeListTests : DesignerEndpointsTestsBase<CreateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, apiUrl);
-        const string CodeListWithMissingFields = @"[
+        const string CodeListWithMissingFields =
+            @"[
             { ""value"": ""value1"" },
             { ""label"": ""label2"" },
             { ""value"": null, ""label"": null },

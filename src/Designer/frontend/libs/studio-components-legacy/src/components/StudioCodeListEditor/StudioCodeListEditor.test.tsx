@@ -3,7 +3,7 @@ import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { StudioCodeListEditorProps } from './StudioCodeListEditor';
 import { StudioCodeListEditor } from './StudioCodeListEditor';
-import type { CodeList } from './types/CodeList';
+import type { CodeListWithTextResources } from './types/CodeListWithTextResources';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import { texts } from './test-data/texts';
@@ -41,7 +41,7 @@ const defaultProps: StudioCodeListEditorProps = {
   textResources,
 };
 const duplicatedValue = 'duplicate';
-const codeListWithDuplicatedValues: CodeList = [
+const codeListWithDuplicatedValues: CodeListWithTextResources = [
   {
     label: 'Test 1',
     value: duplicatedValue,
@@ -584,7 +584,7 @@ describe('StudioCodeListEditor', () => {
 
     it('Saves changed item value as boolean when initial value was a boolean', async () => {
       const user = userEvent.setup();
-      const codeListWithSingleBooleanValue: CodeList = [codeListWithBooleans[0]];
+      const codeListWithSingleBooleanValue: CodeListWithTextResources = [codeListWithBooleans[0]];
       renderCodeListEditor({ codeList: codeListWithSingleBooleanValue });
 
       const valueInput = screen.getByRole('checkbox', { name: texts.itemValue(1) });

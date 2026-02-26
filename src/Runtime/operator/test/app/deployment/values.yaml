@@ -1,0 +1,50 @@
+# Additional configurations are available. See: https://docs.altinn.studio/app/development/configuration/deployment/
+
+deployment:
+  replicaCount: 1
+
+  autoscaling:
+    enabled: false
+
+  image:
+    pullPolicy: Never
+    pullSecrets: []
+
+  ingressRoute:
+    name: ingress-route
+    entryPoints:
+      - http
+      - https
+    routes:
+      - match: Host(`localhost:30000`)&&PathPrefix(`/app`)
+        kind: Rule
+        services:
+          - name: deployment
+            port: 80
+        middlewares:
+          - name: hsts-header
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+  volumeMounts: []
+    # - name: datakeys
+    #   mountPath: /mnt/keys
+    # - name: accesstoken
+    #   mountPath: "/accesstoken"
+
+  volumes: []
+    # - name : datakeys
+    #   persistentVolumeClaim:
+    #     claimName: keys
+    # - name: accesstoken
+    #   secret:
+    #     secretName: accesstoken
+
+  readiness:
+    enabled: true
+
+  liveness:
+    enabled: true

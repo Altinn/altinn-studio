@@ -1,6 +1,9 @@
 import { del, get, patch, post, put } from 'app-shared/utils/networking';
 import {
   appMetadataAttachmentPath,
+  branchesPath,
+  checkoutBranchPath,
+  discardChangesPath,
   copyAppPath,
   createRepoPath,
   deploymentsPath,
@@ -45,6 +48,7 @@ import {
   optionListIdUpdatePath,
   processEditorPath,
   selectedMaskinportenScopesPath,
+  appSettingsPath,
   createInstancePath,
   dataTypePath,
   optionListPath,
@@ -59,9 +63,8 @@ import {
   layoutConvertToPageOrderPath,
   taskNavigationGroupPath,
   orgCodeListUpdateIdPath,
-  branchesPath,
-  checkoutBranchPath,
-  discardChangesPath,
+  orgLibraryUpdatePath,
+  orgCodeListPublishPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -73,11 +76,11 @@ import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
 import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
-import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
-import type { Policy } from '@altinn/policy-editor';
+import type { Policy } from '../types/Policy';
 import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag, MigrateDelegationsRequest } from 'app-shared/types/ResourceAdm';
+import type { Branch, RepoStatus } from 'app-shared/types/api/BranchTypes';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Branch } from 'app-shared/types/api/BranchTypes';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
@@ -90,13 +93,16 @@ import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { DataType } from '../types/DataType';
-import type { CodeList } from 'app-shared/types/CodeList';
+import type { CodeListWithTextResources } from 'app-shared/types/CodeListWithTextResources';
 import type { CodeListsResponse } from 'app-shared/types/api/CodeListsResponse';
 import type { PageModel } from '../types/api/dto/PageModel';
 import type { PagesModel } from '../types/api/dto/PagesModel';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigationGroup';
 import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeListResponse';
+import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
+import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
+import type { AppSettings } from 'app-shared/types/AppSettings';
 
 const headers = {
   Accept: 'application/json',
@@ -112,7 +118,7 @@ export const deleteImage = (org: string, app: string, imageName: string) => del(
 export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del(layoutSetPath(org, app, layoutSetIdToUpdate));
 export const deleteOptionList = (org: string, app: string, optionListId: string) => del(optionListPath(org, app, optionListId));
 export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put(layoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
-export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
+export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(createRepoPath(), repoToAdd);
 export const addXsdFromRepo = (org: string, app: string, modelPath: string) => post<JsonSchema>(dataModelAddXsdFromRepoPath(org, app, modelPath));
 export const commitAndPushChanges = (org: string, app: string, payload: CreateRepoCommitPayload) => post<CreateRepoCommitPayload>(repoCommitPushPath(org, app), payload, { headers });
 export const copyApp = (org: string, app: string, newRepoName: string, newOrg: string) => post(copyAppPath(org, app, newRepoName, newOrg));
@@ -131,6 +137,7 @@ export const deleteFormLayout = (org: string, app: string, layoutName: string, l
 export const deleteLanguageCode = (org: string, app: string, language: string) => del(textResourcesPath(org, app, language));
 export const generateModels = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, false), payload);
 export const logout = () => post(userLogoutPath());
+export const publishCodeList = (org: string, payload: PublishCodeListPayload) => post<void, PublishCodeListPayload>(orgCodeListPublishPath(org), payload);
 export const pushRepoChanges = (org: string, app: string) => post(repoPushPath(org, app));
 export const resetRepoChanges = (org: string, app: string) => get(repoResetPath(org, app)); //Technically a mutation, but currently only implemented as a GET
 export const saveDataModel = (org: string, app: string, modelPath: string, payload: JsonSchema) => put<void, JsonSchema>(dataModelPath(org, app, modelPath, true), payload);
@@ -184,7 +191,7 @@ export const createPreviewInstance = (org: string, app: string, partyId: number,
 
 // ProcessEditor
 
-export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string, taskId: string, allowedContributers?: Array<string>) => post(processEditorDataTypePath(org, app, dataTypeId, taskId), allowedContributers);
+export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: string, taskId: string, allowedContributors?: Array<string>) => post(processEditorDataTypePath(org, app, dataTypeId, taskId), allowedContributors);
 export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 
 export const updateBpmnXml = (org: string, app: string, form: any) =>
@@ -198,10 +205,14 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
+export const updateAppSettings = (org: string, app: string, payload: AppSettings) => put(appSettingsPath(org, app), payload);
+
+// Organisation library
+export const updateSharedResources = async (org: string, payload: UpdateSharedResourcesRequest): Promise<void> => put(orgLibraryUpdatePath(org), payload);
 
 // Organisation library code lists:
-export const createOrgCodeList = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
-export const updateOrgCodeList = async (org: string, codeListId: string, payload: CodeList): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
+export const createOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => post(orgCodeListPath(org, codeListId), payload);
+export const updateOrgCodeList = async (org: string, codeListId: string, payload: CodeListWithTextResources): Promise<CodeListsResponse> => put(orgCodeListPath(org, codeListId), payload);
 export const updateOrgCodeListId = async (org: string, codeListId: string, payload: string): Promise<void> => put<void, string>(orgCodeListUpdateIdPath(org, codeListId), payload, { headers: { 'Content-Type': 'application/json' } });
 export const deleteOrgCodeList = async (org: string, codeListId: string): Promise<CodeListsResponse> => del(orgCodeListPath(org, codeListId));
 export const uploadOrgCodeList = async (org: string, payload: FormData): Promise<CodeListsResponse> => post(orgCodeListUploadPath(org), payload);
@@ -211,9 +222,6 @@ export const createOrgTextResources = async (org: string, language: string, payl
 export const updateOrgTextResources = async (org: string, language: string, payload: KeyValuePairs<string>): Promise<ITextResourcesWithLanguage> => patch<ITextResourcesWithLanguage, KeyValuePairs<string>>(orgTextResourcesPath(org, language), payload);
 
 // Branches:
-export const createBranch = async (org: string, app: string, branchName: string): Promise<Branch> =>
-  post(branchesPath(org, app), { branchName });
-export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> =>
-  post(checkoutBranchPath(org, app), { branchName });
-export const discardChanges = async (org: string, app: string): Promise<RepoStatus> =>
-  post(discardChangesPath(org, app), {});
+export const createBranch = async (org: string, app: string, branchName: string): Promise<Branch> => post(branchesPath(org, app), { branchName });
+export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> => post(checkoutBranchPath(org, app), { branchName });
+export const discardChanges = async (org: string, app: string): Promise<RepoStatus> => post(discardChangesPath(org, app), {});

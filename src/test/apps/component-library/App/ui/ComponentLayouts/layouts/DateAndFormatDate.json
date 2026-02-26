@@ -1,0 +1,244 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "DateAndFormatDate-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "datesDate",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Velg dato/tid"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Dates.SetDate"
+        },
+        "options": [
+          { "label": "Velg en verdi for å overstyre...", "value": "-" },
+          { "label": "Nå", "value": "now" },
+          { "label": "Skuddårsdagen 2020", "value": "2020-02-29 12:00:00" },
+          { "label": "Veldig tett på 2022", "value": "2021-12-31 23:59:59.9999999" },
+          { "label": "Midnatt i en annen tidssone", "value": "2020-05-17 00:00:00-08:00" },
+          { "label": "Midnatt i UTC", "value": "2020-05-17T00:00:00Z" }
+        ]
+      },
+      {
+        "id": "dates-Text-String",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Text",
+          "description": "Data fra streng"
+        },
+        "value": ["dataModel", "Dates.String"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-Text-DateTime",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Text-komponenten",
+          "description": "Data fra DateTime"
+        },
+        "value": ["dataModel", "Dates.DateTime"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-Text-DateOnly",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Text-komponenten",
+          "description": "Data fra DateOnly"
+        },
+        "value": ["dataModel", "Dates.DateOnly"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-Date-String",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Date",
+          "description": "Data fra streng"
+        },
+        "value": ["dataModel", "Dates.String"],
+        "format": "dd.MM.yyyy HH:mm:ss",
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-Date-DateTime",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Date",
+          "description": "Data fra DateTime"
+        },
+        "value": ["dataModel", "Dates.DateTime"],
+        "format": "dd.MM.yyyy HH:mm:ss",
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-Date-DateOnly",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Date",
+          "description": "Data fra DateOnly"
+        },
+        "value": ["dataModel", "Dates.DateOnly"],
+        "format": "dd.MM.yyyy HH:mm:ss",
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-TextFormat-String",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Text m/formatDate",
+          "description": "Data fra streng"
+        },
+        "value": ["formatDate", ["dataModel", "Dates.String"], "dd.MM.yyyy HH:mm:ss"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-TextFormat-DateTime",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Text m/formatDate",
+          "description": "Data fra DateTime"
+        },
+        "value": ["formatDate", ["dataModel", "Dates.DateTime"], "dd.MM.yyyy HH:mm:ss"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-TextFormat-DateOnly",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Text m/formatDate",
+          "description": "Data fra DateOnly"
+        },
+        "value": ["formatDate", ["dataModel", "Dates.DateOnly"], "dd.MM.yyyy HH:mm:ss"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-TextFormat-String-Backend",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "formatDate fra backend",
+          "description": "Data fra streng"
+        },
+        "value": ["dataModel", "Dates.FormatStringBackend"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-TextFormat-DateTime-Backend",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "formatDate fra backend",
+          "description": "Data fra DateTime"
+        },
+        "value": ["dataModel", "Dates.FormatDateTimeBackend"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-TextFormat-DateOnly-Backend",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "formatDate fra backend",
+          "description": "Data fra streng"
+        },
+        "value": ["dataModel", "Dates.FormatDateOnlyBackend"],
+        "direction": "vertical",
+        "grid": {
+          "xs": 4
+        }
+      },
+      {
+        "id": "dates-DatePicker-String",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "Datovelger m/timestamp",
+          "description": "Lagrer mot String"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Dates.String"
+        },
+        "timeStamp": true,
+        "grid": {
+          "md": 4
+        }
+      },
+      {
+        "id": "dates-DatePicker-DateTime",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "Datovelger m/timestamp",
+          "description": "Lagrer mot DateTime"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Dates.DateTime"
+        },
+        "timeStamp": true,
+        "grid": {
+          "md": 4
+        }
+      },
+      {
+        "id": "dates-DatePicker-DateOnly",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "Datovelger u/timestamp",
+          "description": "Lagrer mot DateOnly"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Dates.DateOnly"
+        },
+        "timeStamp": false,
+        "grid": {
+          "md": 4
+        }
+      },
+      {
+        "id": "DateAndFormatDate-NavigationButtons",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "validateOnNext": {
+          "page": "current",
+          "show": ["AllExceptRequired"]
+        }
+      }
+    ]
+  }
+}

@@ -3,17 +3,12 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { skipToken, useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
-import { type BackendValidationIssue, BackendValidationSeverity } from '..';
+import { type BackendValidationIssue } from '..';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useCurrentDataModelDataElementId } from 'src/features/datamodel/useBindingSchema';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { fetchBackendValidationsForDataElement } from 'src/queries/queries';
-import { appSupportsIncrementalValidationFeatures } from 'src/utils/versioning/versions';
 import type { fetchBackendValidations } from 'src/queries/queries';
 
 /**
@@ -21,9 +16,7 @@ import type { fetchBackendValidations } from 'src/queries/queries';
  */
 function useBackendValidationQueryKey() {
   const instanceId = useLaxInstanceId();
-  const currentProcessTaskId = useProcessQuery().data?.currentTask?.elementId;
-
-  return useMemo(() => ['validation', instanceId, currentProcessTaskId], [currentProcessTaskId, instanceId]);
+  return useMemo(() => ['validation', instanceId], [instanceId]);
 }
 
 export function useGetCachedInitialValidations() {
@@ -39,34 +32,13 @@ export function useGetCachedInitialValidations() {
   );
 }
 
-/**
- * For backwards compatibility, this allows you to mark all backend validations as noIncrementalUpdates, which will cause them
- * not to block submit. This should only be used when fetching validations that include non-incremental-validators (ITaskValidator).
- * This is needed when updating validations from process/next, and in <UpdateShowAllErrors />.
- * This is only needed in old apps that do not support onlyIncrementalValidators/noIncrementalUpdates
- */
-function maybeMarkNoIncrementalUpdates(validations: BackendValidationIssue[], forceNoIncrementalUpdates: boolean) {
-  if (!forceNoIncrementalUpdates) {
-    return validations;
-  }
-
-  return validations.map((issue) =>
-    issue.severity === BackendValidationSeverity.Error ? { ...issue, noIncrementalUpdates: true } : issue,
-  );
-}
-
-/**
- * Setting forceNoIncrementalUpdates will set the noIncrementalUpdates flag to true for all validation errors.
- * This is needed for old apps that dont support incremental validation features when getting validations from process/next
- * and in <UpdateShowAllErrors />
- */
 export function useUpdateInitialValidations() {
   const queryKey = useBackendValidationQueryKey();
   const client = useQueryClient();
 
   return useCallback(
-    (validations: BackendValidationIssue[], forceMarkNoIncrementalUpdates = false) => {
-      client.setQueryData(queryKey, maybeMarkNoIncrementalUpdates(validations, forceMarkNoIncrementalUpdates));
+    (validations: BackendValidationIssue[]) => {
+      client.setQueryData(queryKey, validations);
     },
     [client, queryKey],
   );
@@ -91,7 +63,6 @@ type BackendValidationQueryProps = {
  */
 function backendValidationQueryFunc({
   onlyIncrementalValidators,
-  forceMarkNoIncrementalUpdates = false,
   instanceId,
   currentLanguage,
   fetchBackendValidations,
@@ -99,30 +70,7 @@ function backendValidationQueryFunc({
   if (!instanceId) {
     return skipToken;
   }
-  // When incremental validation features are not supported, use the old API to avoid running ITaskValidators,
-  // However, use the regular instance validation API when we specifically want non-incremental validations
-  return async () =>
-    maybeMarkNoIncrementalUpdates(
-      await fetchBackendValidations(instanceId, currentLanguage, onlyIncrementalValidators),
-      forceMarkNoIncrementalUpdates,
-    );
-}
-
-type BackendValidationsForDataElementQueryProps = {
-  instanceId: string | undefined;
-  currentDataElementId: string | undefined;
-  currentLanguage: string;
-  fetchBackendValidationsForDataElement: typeof fetchBackendValidationsForDataElement;
-};
-
-function backendValidationsForDataElementQueryFunc({
-  instanceId,
-  currentDataElementId,
-  currentLanguage,
-}: BackendValidationsForDataElementQueryProps): typeof skipToken | (() => Promise<BackendValidationIssue[]>) {
-  return !instanceId || !currentDataElementId
-    ? skipToken
-    : () => fetchBackendValidationsForDataElement(instanceId, currentDataElementId, currentLanguage);
+  return async () => await fetchBackendValidations(instanceId, currentLanguage, onlyIncrementalValidators);
 }
 
 // By default we only fetch with incremental validations
@@ -131,31 +79,16 @@ export function useBackendValidationQuery<TResult = BackendValidationIssue[]>(
   onlyIncrementalValidators = true,
 ) {
   const queryKey = useBackendValidationQueryKey();
-  const { fetchBackendValidations, fetchBackendValidationsForDataElement } = useAppQueries();
-  const hasIncrementalValidationFeatures = appSupportsIncrementalValidationFeatures(
-    useApplicationMetadata().altinnNugetVersion,
-  );
-  const currentDataElementId = useCurrentDataModelDataElementId();
+  const { fetchBackendValidations } = useAppQueries();
   const instanceId = useLaxInstanceId();
   const currentLanguage = useAsRef(useCurrentLanguage()).current;
 
-  // should use new endpoint if the app supports incremental validation features or if we specifically want non-incremental validations
-  const shouldUseNewEndpoint = hasIncrementalValidationFeatures || !onlyIncrementalValidators;
-
-  const queryFn = shouldUseNewEndpoint
-    ? backendValidationQueryFunc({
-        // Only set this parameter if the app supports this option
-        onlyIncrementalValidators: hasIncrementalValidationFeatures ? onlyIncrementalValidators : undefined,
-        instanceId,
-        currentLanguage,
-        fetchBackendValidations,
-      })
-    : backendValidationsForDataElementQueryFunc({
-        instanceId,
-        currentDataElementId,
-        currentLanguage,
-        fetchBackendValidationsForDataElement,
-      });
+  const queryFn = backendValidationQueryFunc({
+    onlyIncrementalValidators,
+    instanceId,
+    currentLanguage,
+    fetchBackendValidations,
+  });
 
   const query = useQuery({
     queryFn,

@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<bpmn:definitions id="Altinn_SingleDataTask_Process_Definition" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:altinn="http://altinn.no/process" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="SingleDataTask" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1" name="Start">
+      <bpmn:outgoing>To_Task_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <!-- Regular data steps. These individual forms have to be filled out, one by one, in this order, or you can
+      skip directly to another task using the options in Task_1 -->
+    <bpmn:task id="Task_1" name="Utfylling (message)">
+      <bpmn:incoming>To_Task_1</bpmn:incoming>
+      <bpmn:outgoing>To_Main_GW</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+        <altinn:gatewayExtension>
+          <altinn:connectedDataTypeId>message</altinn:connectedDataTypeId>
+        </altinn:gatewayExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <bpmn:exclusiveGateway id="Gateway_0" name="Gateway (to skip to other data tasks)">
+      <bpmn:incoming>To_Main_GW</bpmn:incoming>
+      <bpmn:outgoing>GW_To_Task_2</bpmn:outgoing>
+      <bpmn:outgoing>GW_To_Task_3</bpmn:outgoing>
+      <bpmn:outgoing>GW_To_Task_4</bpmn:outgoing>
+      <bpmn:outgoing>GW_To_Task_5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:task id="Task_2" name="Utfylling (changename)">
+      <bpmn:incoming>GW_To_Task_2</bpmn:incoming>
+      <bpmn:outgoing>To_Task_3</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+          <altinn:actions>
+            <altinn:action type="serverAction">fill</altinn:action>
+            <altinn:action type="serverAction">conflictingOptionsReset</altinn:action>
+            <altinn:action type="serverAction">shiftingOptionsAdd</altinn:action>
+            <altinn:action type="serverAction">shiftingOptionsRemoveAll</altinn:action>
+          </altinn:actions>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_3" name="Utfylling (group)">
+      <bpmn:incoming>To_Task_3</bpmn:incoming>
+      <bpmn:outgoing>To_Task_4</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+          <altinn:actions>
+            <altinn:action type="serverAction">sortPets</altinn:action>
+            <altinn:action type="serverAction">generatePets</altinn:action>
+          </altinn:actions>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_4" name="Utfylling (likert)">
+      <bpmn:incoming>To_Task_4</bpmn:incoming>
+      <bpmn:outgoing>To_Task_5</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_5" name="Utfylling (datalist)">
+      <bpmn:incoming>To_Task_5</bpmn:incoming>
+      <bpmn:outgoing>To_Task_6</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>data</altinn:taskType>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+
+    <!-- Confirmation steps. In the 'datalist' form you get the option to choose which direction you want
+    in Gateway_1. One direction leads you to the standard confirmation page and directly to the receipt,
+    the other direction leads you to a custom confirmation page with a button that allows you to return to
+    the 'datalist' form if you're not satisfied with the data you've entered.  -->
+    <bpmn:exclusiveGateway id="Gateway_1" name="Gateway (to custom or built-in confirm)">
+      <bpmn:incoming>To_Confirm</bpmn:incoming>
+      <bpmn:outgoing>To_Custom_Confirm</bpmn:outgoing>
+      <bpmn:outgoing>To_Default_Confirm</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_Custom_Confirm" name="Tilbakemelding (custom)">
+      <bpmn:incoming>To_Custom_Confirm</bpmn:incoming>
+      <bpmn:outgoing>To_Custom_Confirm_GW</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:gatewayExtension>
+          <altinn:connectedDataTypeId>datalist</altinn:connectedDataTypeId>
+        </altinn:gatewayExtension>
+        <altinn:taskExtension>
+          <altinn:taskType>confirmation</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>reject</altinn:action>
+            <altinn:action>confirm</altinn:action>
+          </altinn:actions>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_Default_Confirm" name="Tilbakemelding (default)">
+      <bpmn:incoming>To_Default_Confirm</bpmn:incoming>
+      <bpmn:outgoing>To_End_Default</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <altinn:taskExtension>
+          <altinn:taskType>confirmation</altinn:taskType>
+          <altinn:actions>
+            <altinn:action>confirm</altinn:action>
+          </altinn:actions>
+        </altinn:taskExtension>
+      </bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_2" name="Gateway (custom confirm)">
+      <bpmn:incoming>To_Custom_Confirm_GW</bpmn:incoming>
+      <bpmn:outgoing>Back_To_Task_5</bpmn:outgoing>
+      <bpmn:outgoing>To_End_Custom</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:endEvent id="EndEvent_1" name="End">
+      <bpmn:incoming>To_End</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="To_Main_GW" sourceRef="Task_1" targetRef="Gateway_0" />
+    <bpmn:sequenceFlow id="GW_To_Task_2" sourceRef="Gateway_0" targetRef="Task_2">
+      <bpmn:conditionExpression>["equals", ["dataModel", "GwTargetTask"], "Task_2"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="GW_To_Task_3" sourceRef="Gateway_0" targetRef="Task_3">
+      <bpmn:conditionExpression>["equals", ["dataModel", "GwTargetTask"], "Task_3"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="GW_To_Task_4" sourceRef="Gateway_0" targetRef="Task_4">
+      <bpmn:conditionExpression>["equals", ["dataModel", "GwTargetTask"], "Task_4"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="GW_To_Task_5" sourceRef="Gateway_0" targetRef="Task_5">
+      <bpmn:conditionExpression>["equals", ["dataModel", "GwTargetTask"], "Task_5"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="To_Task_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="To_Task_3" sourceRef="Task_2" targetRef="Task_3" />
+    <bpmn:sequenceFlow id="To_Task_4" sourceRef="Task_3" targetRef="Task_4" />
+    <bpmn:sequenceFlow id="To_Task_5" sourceRef="Task_4" targetRef="Task_5" />
+
+    <bpmn:sequenceFlow id="To_Confirm" sourceRef="Task_5" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="To_Custom_Confirm" sourceRef="Gateway_1" targetRef="Task_Custom_Confirm">
+      <bpmn:conditionExpression>["equals", ["dataModel", "UseCustomConfirm"], true]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="To_Default_Confirm" sourceRef="Gateway_1" targetRef="Task_Default_Confirm">
+      <bpmn:conditionExpression>["equals", ["dataModel", "UseCustomConfirm"], false]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="To_Custom_Confirm_GW" sourceRef="Task_Custom_Confirm" targetRef="Gateway_2" />
+    <bpmn:sequenceFlow id="Back_To_Task_5" sourceRef="Gateway_2" targetRef="Task_5">
+      <bpmn:conditionExpression>["equals", ["gatewayAction"], "reject"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="To_End_Custom" sourceRef="Gateway_2" targetRef="EndEvent_1">
+      <bpmn:conditionExpression>["equals", ["gatewayAction"], "confirm"]</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="To_End_Default" sourceRef="Task_Default_Confirm" targetRef="EndEvent_1" />
+  </bpmn:process>
+</bpmn:definitions>

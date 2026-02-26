@@ -5,12 +5,12 @@ import { useAppVersionQuery } from 'app-shared/hooks/queries';
 import React from 'react';
 import { usePreviewContext } from '../../contexts/PreviewContext';
 import { useLayoutContext } from '../../contexts/LayoutContext';
-import { StudioPageSpinner } from '@studio/components-legacy';
+import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { MAXIMUM_SUPPORTED_FRONTEND_VERSION } from 'app-shared/constants';
 import { isBelowSupportedVersion } from 'app-shared/utils/compareFunctions';
 
-export const UiEditor = () => {
+export default function UiEditor() {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: version, isPending: fetchingVersionIsPending } = useAppVersionQuery(org, app);
@@ -43,4 +43,4 @@ export const UiEditor = () => {
   );
 
   return isLatestFrontendVersion ? renderUiEditorContent() : <UiEditorV3 />;
-};
+}

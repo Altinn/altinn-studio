@@ -1,0 +1,1 @@
+export { useTextResourcesSelector } from './useTextResourcesSelector';

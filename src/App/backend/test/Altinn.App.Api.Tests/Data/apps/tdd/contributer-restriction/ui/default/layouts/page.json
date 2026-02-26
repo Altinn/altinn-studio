@@ -25,6 +25,15 @@
         "dataModelBindings": {
           "simpleBinding": "melding.hidden"
         }
+      },
+      {
+        "id": "hiddenNotRemove",
+        "type": "Input",
+        "hidden": true,
+        "removeWhenHidden": false,
+        "dataModelBindings": {
+          "simpleBinding": "melding.hiddenNotRemove"
+        }
       }
     ]
   }

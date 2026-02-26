@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -7,6 +8,7 @@ public class ImportOptionListResponse
 {
     [JsonPropertyName("optionLists")]
     public List<OptionListData> OptionLists { get; set; }
+
     [JsonPropertyName("textResources")]
     public Dictionary<string, TextResource> TextResources { get; set; }
 }

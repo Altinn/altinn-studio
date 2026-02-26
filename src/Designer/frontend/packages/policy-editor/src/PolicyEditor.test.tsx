@@ -27,6 +27,7 @@ const defaultProps: PolicyEditorProps = {
   actions: mockActions,
   subjects: mockSubjects,
   resourceId: mockResourecId1,
+  accessPackages: [],
   onSave: mockOnSave,
   showAllErrors: false,
   usageType: mockUsageType,

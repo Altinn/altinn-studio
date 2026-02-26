@@ -25,7 +25,7 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// <p>Depending on the <see cref="NotificationTemplate"/> in use,
     /// this value may be padded according to the template logic.</p>
     /// </summary>
-    [StringLength(1024, MinimumLength = 0)]
+    [StringLength(10000, MinimumLength = 0)]
     public string? EmailBody { get; init; }
 
     /// <summary>
@@ -33,7 +33,7 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// <p>Depending on the <see cref="NotificationTemplate"/> in use,
     /// this value may be padded according to the template logic.</p>
     /// </summary>
-    [StringLength(160, MinimumLength = 0)]
+    [StringLength(2144, MinimumLength = 0)]
     public string? SmsBody { get; init; }
 
     /// <summary>
@@ -54,7 +54,7 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// <p>Depending on the <see cref="NotificationTemplate"/> in use,
     /// this value may be padded according to the template logic.</p>
     /// </summary>
-    [StringLength(1024, MinimumLength = 0)]
+    [StringLength(10000, MinimumLength = 0)]
     public string? ReminderEmailBody { get; init; }
 
     /// <summary>
@@ -62,7 +62,7 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
     /// <p>Depending on the <see cref="NotificationTemplate"/> in use,
     /// this value may be padded according to the template logic.</p>
     /// </summary>
-    [StringLength(160, MinimumLength = 0)]
+    [StringLength(2144, MinimumLength = 0)]
     public string? ReminderSmsBody { get; init; }
 
     /// <summary>

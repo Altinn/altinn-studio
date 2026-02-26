@@ -12,6 +12,7 @@ import type { ResponseFuzzing, Size, SnapshotOptions, SnapshotViewport } from 't
 import { breakpoints } from 'src/hooks/useDeviceWidths';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
+import type { IFeatureToggles } from 'src/features/toggles';
 import type { ILayoutFile } from 'src/layout/common.generated';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
 
@@ -299,7 +300,7 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
   });
 });
 
-Cypress.Commands.add('getCurrentPageId', () => cy.location('hash').then((hash) => hash.split('/').slice(-1)[0]));
+Cypress.Commands.add('getCurrentPageId', () => cy.location('pathname').then((pathname) => pathname.split('/').at(-1)));
 
 const defaultSnapshotOptions: SnapshotOptions = {
   wcag: true,
@@ -536,18 +537,6 @@ Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
   cy.findByRole('progressbar').should('not.exist');
 });
 
-Cypress.Commands.add('interceptLayoutSetsUiSettings', (uiSettings) => {
-  cy.intercept('GET', '**/api/layoutsets', (req) => {
-    req.continue((res) => {
-      const body = JSON.parse(res.body);
-      res.body = JSON.stringify({
-        ...body,
-        uiSettings: { ...body.uiSettings, ...uiSettings },
-      });
-    });
-  }).as('layoutSets');
-});
-
 Cypress.Commands.add('getSummary', (label) => {
   cy.get(`[data-testid^=summary-]:has(span:contains(${label}))`);
 });
@@ -631,19 +620,25 @@ function buildPdfUrl(href: string): string {
 
 Cypress.Commands.add(
   'testPdf',
-  ({
+  function ({
     snapshotName = false,
     beforeReload,
     callback,
+    freeze = true,
     returnToForm = false,
     enableResponseFuzzing = false,
     buildUrl = buildPdfUrl,
-  }) => {
+  }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((this as any).test._retries).to.eq(
+      0,
+      'This test should not be retried, as the real PDF generator needs everything to be working every time. Cypress ' +
+        'automatic retrying should be disabled for this test to make sure we catch bugs instead of silently working ' +
+        'around flaky tests.',
+    );
+
     // Store initial viewport size for later
     cy.getCurrentViewportSize().as('testPdfViewportSize');
-
-    // Make sure instantiation is completed before we get the url
-    cy.location('hash', { log: false }).should('contain', '#/instance/');
 
     // Make sure we blur any selected component before reload to trigger save
     cy.get('body').click({ log: false });
@@ -685,19 +680,24 @@ Cypress.Commands.add(
         cy.viewport(794, 1123);
         cy.get('body').invoke('css', 'margin', '0.75in');
 
-        // Stops timers which helps in 'freezing' the page in its current state, makes it easier to see when data is missing
-        cy.clock();
+        if (freeze) {
+          // Stops timers which helps in 'freezing' the page in its current state, makes it easier to see when data is missing
+          cy.clock();
 
-        cy.then(() => {
-          const timeout = setTimeout(() => {
-            throw 'PDF callback failed, print was not ready when #readyForPrint appeared';
-          }, 0);
-          // Verify that generic elements that should be hidden are not present
+          cy.then(() => {
+            const timeout = setTimeout(() => {
+              throw 'PDF callback failed, print was not ready when #readyForPrint appeared';
+            }, 0);
+            // Verify that generic elements that should be hidden are not present
+            cy.findAllByRole('button').should('not.exist');
+            // Run tests from callback
+            callback();
+            cy.then(() => clearTimeout(timeout));
+          });
+        } else {
           cy.findAllByRole('button').should('not.exist');
-          // Run tests from callback
           callback();
-          cy.then(() => clearTimeout(timeout));
-        });
+        }
 
         // Disable response fuzzing and re-enable caching
         cy.get<ResponseFuzzing>('@responseFuzzing').invoke('disable');
@@ -718,10 +718,17 @@ Cypress.Commands.add(
         cy.viewport(width, height);
       });
       cy.get('body').invoke('css', 'margin', '');
+      cy.get('#readyForPrint').should('exist');
 
-      cy.location('href').then((href) => {
-        cy.visit(href.replace('?pdf=1', ''));
+      // Exit pdf by removing pdf queryparam
+      cy.location().then((location) => {
+        const params = new URLSearchParams(location.search);
+        if (params.has('pdf')) {
+          params.delete('pdf');
+          cy.visit(location.pathname + (params.size ? `?${params}` : ''));
+        }
       });
+
       cy.get('#readyForPrint').should('not.exist');
       cy.get('#finishedLoading').should('exist');
     }
@@ -986,4 +993,21 @@ Cypress.Commands.add('openNavGroup', (groupName, pageName, subformName) => {
       }
     });
   }
+});
+
+Cypress.Commands.add('expectPageBreaks', (expectedCount: number) => {
+  cy.window().should((win) => {
+    if (!win.matchMedia('print').matches) {
+      throw new Error('expectPageBreaks can only be called when media is in print mode');
+    }
+    const allElements = Array.from(win.document.querySelectorAll('*'));
+    const breakBeforeCount = allElements.filter((e) => win.getComputedStyle(e).breakBefore === 'page').length;
+    const breakAfterCount = allElements.filter((e) => win.getComputedStyle(e).breakAfter === 'page').length;
+    const pageCount = breakBeforeCount + breakAfterCount;
+    expect(pageCount).to.equal(expectedCount);
+  });
+});
+
+Cypress.Commands.add('setFeatureToggle', (toggleName: IFeatureToggles, value: boolean) => {
+  cy.setCookie(`FEATURE_${toggleName}`, value.toString());
 });

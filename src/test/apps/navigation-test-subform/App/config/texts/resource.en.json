@@ -1,0 +1,185 @@
+{
+  "language": "en",
+  "resources": [
+    {
+      "id": "feedback.feedback.title",
+      "value": "How was it filling out this form"
+    },
+    {
+      "id": "summary",
+      "value": "Summary"
+    },
+    {
+      "id": "feedback",
+      "value": "Feedback"
+    },
+    {
+      "id": "summary.Button-sPjiD2.title",
+      "value": "Submit"
+    },
+    {
+      "id": "extra.extra.title",
+      "value": "Hide pages"
+    },
+    {
+      "id": "extra",
+      "value": "Extra"
+    },
+    {
+      "id": "info2.Paragraph-b0YANE.title",
+      "value": "Here is some more information about what you read on the previous page:\n\n- Lorem\n- Ipsum\n- Dolor\n- Sit\n- Amet"
+    },
+    {
+      "id": "info2",
+      "value": "Some more info"
+    },
+    {
+      "id": "info1.Paragraph-K6c91n.title",
+      "value": "## General information\n\n<br>\n\nHere is a bullet list:\n\n<br>\n\n1. Point one is **very** important\n2. Point two is not as important"
+    },
+    {
+      "id": "info1",
+      "value": "General info"
+    },
+    {
+      "id": "emails.email.title",
+      "value": "Email"
+    },
+    {
+      "id": "emails.RepeatingGroup-oY9mdw.title",
+      "value": "Email addresses"
+    },
+    {
+      "id": "emails",
+      "value": "Email"
+    },
+    {
+      "id": "birthday.birthday.title",
+      "value": "Birthday"
+    },
+    {
+      "id": "birthday",
+      "value": "Birthday"
+    },
+    {
+      "id": "age.Input-K1eSVX.title",
+      "value": "Age"
+    },
+    {
+      "id": "lastname",
+      "value": "Last name"
+    },
+    {
+      "id": "age",
+      "value": "Age"
+    },
+    {
+      "id": "lastname.lastname.title",
+      "value": "Last name"
+    },
+    {
+      "id": "firstname",
+      "value": "First name"
+    },
+    {
+      "id": "Side1.Input-bo3rac.title",
+      "value": "First name"
+    },
+    {
+      "id": "appName",
+      "value": "Navigation test"
+    },
+    {
+      "id": "next",
+      "value": "Next"
+    },
+    {
+      "id": "back",
+      "value": "Back"
+    },
+    {
+      "id": "group.info",
+      "value": "Information with very long text"
+    },
+    {
+      "id": "group.form",
+      "value": "Fill out"
+    },
+    {
+      "id": "group.summary",
+      "value": "Submition"
+    },
+    {
+      "id": "tasks.form",
+      "value": "Personal information"
+    },
+    {
+      "id": "cars",
+      "value": "Vehicles"
+    },
+    {
+      "id": "subform.title",
+      "value": "Cars"
+    },
+    {
+      "id": "subform.add",
+      "value": "Add car"
+    },
+    {
+      "id": "subgroup.reg",
+      "value": "Registration"
+    },
+    {
+      "id": "subgroup.data",
+      "value": "Information"
+    },
+    {
+      "id": "brand.title",
+      "value": "Brand"
+    },
+    {
+      "id": "reg.title",
+      "value": "Registration number"
+    },
+    {
+      "id": "year.title",
+      "value": "Model year"
+    },
+    {
+      "id": "brand",
+      "value": "Brand"
+    },
+    {
+      "id": "reg",
+      "value": "Registration number"
+    },
+    {
+      "id": "year",
+      "value": "Model year"
+    },
+    {
+      "id": "group.important",
+      "value": "Group with important information"
+    },
+    {
+      "id": "important",
+      "value": "Important information"
+    },
+    {
+      "id": "important.title",
+      "value": "Important information"
+    },
+    {
+      "id": "important.body",
+      "value": "Here is a lot of very important information you need to read before proceeding!!!"
+    },
+    { "id": "brand.toyota", "value": "Toyota" },
+    { "id": "brand.volkswagen", "value": "Volkswagen" },
+    { "id": "brand.mercedes", "value": "Mercedes" },
+    { "id": "brand.audi", "value": "Audi" },
+    { "id": "brand.lamborghini", "value": "Lamborghini" },
+    { "id": "cool", "value": "A sweet " },
+    { "id": "from", "value": " from " },
+    { "id": "no-name", "value": "No name" }
+  ]
+}

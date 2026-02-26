@@ -5,7 +5,7 @@ import { PaperclipIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
 import type { UserAttachment, UserMessage } from '../../../types/ChatThread';
 import classes from './UserInput.module.css';
 import { createUserMessage } from '../../../utils/utils';
-import type { AssistantTexts } from 'libs/studio-assistant/src/types/AssistantTexts';
+import type { AssistantTexts } from '../../../types/AssistantTexts';
 
 export type UserInputProps = {
   texts: AssistantTexts;
@@ -41,7 +41,7 @@ export function UserInput({
   const fileToAttachment = useCallback((file: File): Promise<UserAttachment> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = (): void => {
         resolve({
           name: file.name,
           mimeType: file.type || 'application/octet-stream',
@@ -49,7 +49,7 @@ export function UserInput({
           dataBase64: typeof reader.result === 'string' ? reader.result : '',
         });
       };
-      reader.onerror = () => reject(reader.error ?? new Error('Failed to read file'));
+      reader.onerror = (): void => reject(reader.error ?? new Error('Failed to read file'));
       reader.readAsDataURL(file);
     });
   }, []);

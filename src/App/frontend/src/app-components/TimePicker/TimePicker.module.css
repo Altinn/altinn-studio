@@ -1,0 +1,230 @@
+.calendarInputWrapper {
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  border: var(--ds-border-width-default, 1px) solid var(--ds-color-neutral-border-strong);
+  gap: var(--ds-size-1);
+  background: white;
+  padding: 2px;
+}
+
+.calendarInputWrapper button {
+  margin: 1px;
+}
+
+.calendarInputWrapper:hover {
+  box-shadow: inset 0 0 0 1px var(--ds-color-accent-border-strong);
+}
+
+.segmentContainer {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding: 0 4px;
+}
+
+.segmentContainer input {
+  border: none;
+  background: transparent;
+  padding: 4px 2px;
+  text-align: center;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.segmentContainer input:focus-visible {
+  outline: 2px solid var(--ds-color-neutral-text-default);
+  outline-offset: 0;
+  border-radius: var(--ds-border-radius-sm);
+  box-shadow: 0 0 0 2px var(--ds-color-neutral-background-default);
+}
+
+.segmentSeparator {
+  color: var(--ds-color-neutral-text-subtle);
+  user-select: none;
+  padding: 0 2px;
+}
+
+.timePickerWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.timePickerDropdown {
+  min-width: 280px;
+  max-width: 400px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.dropdownColumns {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 2px;
+}
+
+.dropdownColumn {
+  flex: 1;
+  min-width: 0;
+  max-width: 100px;
+  overflow: hidden;
+}
+
+.dropdownLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ds-color-neutral-text-default);
+  margin-bottom: 4px;
+}
+
+.dropdownTrigger {
+  width: 100%;
+  min-width: 60px;
+}
+
+.dropdownList {
+  max-height: 160px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  border-radius: var(--ds-border-radius-md);
+  padding: 4px;
+  margin: 2px;
+  box-sizing: border-box;
+  width: calc(100% - 4px);
+  position: relative;
+}
+
+.dropdownListFocused {
+  outline: 2px solid var(--ds-color-accent-border-strong);
+  outline-offset: 0;
+}
+
+.dropdownOption {
+  width: 100%;
+  padding: 6px 4px;
+  border: none;
+  background: transparent;
+  font-size: 0.875rem;
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+  color: var(--ds-color-neutral-text-default);
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdownOption:hover {
+  background-color: var(--ds-color-accent-surface-hover);
+}
+
+.dropdownOptionSelected {
+  background-color: var(--ds-color-accent-base-active) !important;
+  color: white;
+  font-weight: 500;
+}
+
+.dropdownOptionSelected:hover {
+  background-color: var(--ds-color-accent-base-active) !important;
+}
+
+.dropdownOptionFocused {
+  outline: 2px solid var(--ds-color-accent-border-strong);
+  outline-offset: -2px;
+  background-color: var(--ds-color-accent-surface-hover);
+  position: relative;
+  z-index: 1;
+}
+
+.dropdownOptionDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--ds-color-neutral-text-subtle);
+}
+
+.dropdownOptionDisabled:hover {
+  background-color: transparent;
+}
+
+/* Scrollbar styling for dropdown lists */
+.dropdownList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dropdownList::-webkit-scrollbar-track {
+  background: var(--ds-color-neutral-background-subtle);
+  border-radius: 2px;
+}
+
+.dropdownList::-webkit-scrollbar-thumb {
+  background: var(--ds-color-neutral-border-default);
+  border-radius: 2px;
+}
+
+.dropdownList::-webkit-scrollbar-thumb:hover {
+  background: var(--ds-color-neutral-border-strong);
+}
+
+/* Responsive styles */
+@media (max-width: 348px) {
+  .calendarInputWrapper {
+    flex-wrap: wrap;
+    gap: var(--ds-size-1);
+  }
+
+  .segmentContainer {
+    flex: 1 1 auto;
+    min-width: 150px;
+  }
+
+  .dropdownColumns {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .dropdownColumn {
+    min-width: calc(50% - 4px);
+    max-width: none;
+  }
+
+  .timePickerDropdown {
+    max-width: 95vw;
+  }
+}
+
+@media (max-width: 205px) {
+  .calendarInputWrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .segmentContainer {
+    justify-content: center;
+    width: 100%;
+    min-width: unset;
+  }
+
+  .segmentContainer input {
+    width: 2.5rem;
+    font-size: 0.875rem;
+  }
+
+  .dropdownColumns {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .dropdownColumn {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .dropdownList {
+    max-height: 100px;
+  }
+}

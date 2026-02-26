@@ -76,24 +76,20 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         Mock<IHostEnvironment> hostEnvironmentMock = new();
         hostEnvironmentMock.Setup(m => m.EnvironmentName).Returns("tt02");
 
-        var orgs = new Dictionary<string, AltinnCdnOrgDetails>
+        var orgDetails = new AltinnCdnOrgDetails
         {
+            Name = new AltinnCdnOrgName
             {
-                "brg",
-                new AltinnCdnOrgDetails
-                {
-                    Name = new AltinnCdnOrgName { Nb = "Brønnøysundregistrene" },
-                    Orgnr = "974760673",
-                    Environments = ["tt02"],
-                }
+                Nb = "Brønnøysundregistrene",
+                Nn = "Brønnøysundregistrene",
+                En = "Brønnøysund Register Centre",
             },
+            Orgnr = "974760673",
+            Environments = ["tt02"],
         };
 
-        AltinnCdnOrgs altinnCdnOrgs = new() { Orgs = orgs };
         Mock<IAltinnCdnClient> altinnCdnClientMock = new();
-        altinnCdnClientMock
-            .Setup(x => x.GetOrgs(It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(altinnCdnOrgs));
+        altinnCdnClientMock.Setup(x => x.GetOrgDetails(It.IsAny<CancellationToken>())).ReturnsAsync(orgDetails);
 
         ApplicationMetadata applicationMetadata = new("org/app")
         {
@@ -130,8 +126,6 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         dataClientMock
             .Setup(x =>
                 x.GetDataBytes(
-                    It.Is<string>(org => org == applicationMetadata.AppIdentifier.Org),
-                    It.Is<string>(app => app == applicationMetadata.AppIdentifier.App),
                     It.Is<int>(party => party == instanceIdentifier.InstanceOwnerPartyId),
                     It.Is<Guid>(guid => guid == instanceIdentifier.InstanceGuid),
                     It.Is<Guid>(id => id == Guid.Parse(signedElement.Id)),
@@ -292,7 +286,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
 
         var service = SetupService(translationServiceOverride: translationService);
 
-        Instance instance = new() { Id = "org/app" };
+        Instance instance = new() { AppId = "org/app" };
 
         Mock<IInstanceDataMutator> instanceDataMutatorMock = new();
         instanceDataMutatorMock.Setup(x => x.Instance).Returns(instance);
@@ -312,18 +306,16 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
                 Nn = "Sender NN",
                 En = "Sender EN",
             },
+            Environments = [],
         };
 
         // Act
         CorrespondenceContent result = await service.GetContent(context, appMetadata, senderDetails);
 
         // Assert
-        Assert.Equal("Fallback App Name: Signeringen er bekreftet", result.Title);
-        Assert.Equal("Du har signert for Fallback App Name.", result.Summary);
-        Assert.Equal(
-            "Dokumentene du har signert er vedlagt. Disse kan lastes ned om ønskelig. <br /><br />Hvis du lurer på noe, kan du kontakte Sender NB.",
-            result.Body
-        );
+        Assert.Equal("Custom receipt title", result.Title);
+        Assert.Equal("Custom receipt summary", result.Summary);
+        Assert.Equal("Custom receipt body", result.Body);
         Assert.Equal(LanguageCode<Iso6391>.Parse(LanguageConst.Nb), result.Language);
     }
 
@@ -365,6 +357,7 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
                 Nn = "Sender NN",
                 En = "Sender EN",
             },
+            Environments = [],
         };
 
         // Act
@@ -413,8 +406,6 @@ public class SigningReceiptServiceTests(ITestOutputHelper output)
         dataClientMock
             .Setup(x =>
                 x.GetDataBytes(
-                    It.Is<string>(org => org == appMetadata.AppIdentifier.Org),
-                    It.Is<string>(app => app == appMetadata.AppIdentifier.App),
                     It.Is<int>(party => party == instanceIdentifier.InstanceOwnerPartyId),
                     It.Is<Guid>(guid => guid == instanceIdentifier.InstanceGuid),
                     It.Is<Guid>(id => id == Guid.Parse(signedElement.Id)),

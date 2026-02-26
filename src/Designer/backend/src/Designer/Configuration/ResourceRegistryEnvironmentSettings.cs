@@ -1,4 +1,5 @@
-﻿namespace Altinn.Studio.Designer.Configuration
+﻿#nullable disable
+namespace Altinn.Studio.Designer.Configuration
 {
     public class ResourceRegistryEnvironmentSettings
     {
@@ -11,6 +12,5 @@
         public string MetadataBaseUrl { get; set; }
 
         public string SblBridgeBaseUrl { get; set; }
-
     }
 }

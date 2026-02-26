@@ -20,21 +20,21 @@ const package1: PolicyAccessPackage = {
   urn: 'urn:package1',
   name: 'Package Alpha',
   description: 'First package',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 const package2: PolicyAccessPackage = {
   id: 'package2',
   urn: 'urn:package2',
   name: 'Package Beta',
   description: 'Second package',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 const package3: PolicyAccessPackage = {
   id: 'package3',
   urn: 'urn:package3',
   name: 'Package Gamma',
   description: 'Third package',
-  isDelegable: true,
+  isResourcePolicyAvailable: true,
 };
 
 const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
@@ -43,7 +43,7 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     name: 'Area 1',
     urn: 'urn:area1',
     description: '',
-    icon: '',
+    iconUrl: '',
     packages: [package1, package2],
   },
   {
@@ -51,7 +51,7 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     name: 'Area 2',
     urn: 'urn:area2',
     description: '',
-    icon: '',
+    iconUrl: '',
     packages: [package3],
   },
 ];

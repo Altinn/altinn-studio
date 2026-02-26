@@ -1,3 +1,4 @@
+#nullable disable
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Scheduling;
@@ -25,20 +26,41 @@ public class DeploymentPipelineQueuedHandler : INotificationHandler<Events.Deplo
             { DeploymentPipelinePollingJobConstants.Arguments.Developer, notification.EditingContext.Developer },
             { DeploymentPipelinePollingJobConstants.Arguments.BuildId, notification.BuildId.ToString() },
             { DeploymentPipelinePollingJobConstants.Arguments.PipelineType, notification.PipelineType.ToString() },
-            { DeploymentPipelinePollingJobConstants.Arguments.Environment, notification.Environment }
+            { DeploymentPipelinePollingJobConstants.Arguments.Environment, notification.Environment },
         };
 
-        var job = JobBuilder.Create<Scheduling.DeploymentPipelinePollingJob>()
-            .WithIdentity(DeploymentPipelinePollingJobConstants.JobIdentity(notification.EditingContext, notification.BuildId), DeploymentPipelinePollingJobConstants.DeploymentPipelineGroup)
+        if (!string.IsNullOrWhiteSpace(notification.TraceParent))
+        {
+            jobData[DeploymentPipelinePollingJobConstants.Arguments.TraceParent] = notification.TraceParent;
+        }
+
+        if (!string.IsNullOrWhiteSpace(notification.TraceState))
+        {
+            jobData[DeploymentPipelinePollingJobConstants.Arguments.TraceState] = notification.TraceState;
+        }
+
+        var job = JobBuilder
+            .Create<Scheduling.DeploymentPipelinePollingJob>()
+            .WithIdentity(
+                DeploymentPipelinePollingJobConstants.JobIdentity(notification.EditingContext, notification.BuildId),
+                DeploymentPipelinePollingJobConstants.DeploymentPipelineGroup
+            )
             .UsingJobData(jobData)
             .Build();
 
-        var trigger = TriggerBuilder.Create()
-            .WithIdentity(DeploymentPipelinePollingJobConstants.TriggerIdentity(notification.EditingContext, notification.BuildId), DeploymentPipelinePollingJobConstants.DeploymentPipelineGroup)
+        var trigger = TriggerBuilder
+            .Create()
+            .WithIdentity(
+                DeploymentPipelinePollingJobConstants.TriggerIdentity(
+                    notification.EditingContext,
+                    notification.BuildId
+                ),
+                DeploymentPipelinePollingJobConstants.DeploymentPipelineGroup
+            )
             .StartNow()
-            .WithSimpleSchedule(x => x
-                .WithIntervalInSeconds(DeploymentPipelinePollingJobConstants.PollingIntervalInSeconds)
-                .RepeatForever())
+            .WithSimpleSchedule(x =>
+                x.WithIntervalInSeconds(DeploymentPipelinePollingJobConstants.PollingIntervalInSeconds).RepeatForever()
+            )
             .Build();
 
         await scheduler.ScheduleJob(job, trigger, cancellationToken);

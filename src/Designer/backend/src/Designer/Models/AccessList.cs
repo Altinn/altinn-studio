@@ -1,11 +1,8 @@
-﻿#nullable enable
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Altinn.Studio.Designer.Models.Dto;
 
 namespace Altinn.Studio.Designer.Models
 {
-
     public class AccessList : HeaderEtag
     {
         public required string Identifier { get; set; }

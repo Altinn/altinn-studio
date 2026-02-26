@@ -17,20 +17,30 @@ export const buildsRoute = async (req, res) => {
     '/designer/api/v1/' +
     (isDeploy ? 'checkdeploymentbuildstatus' : 'checkreleasebuildstatus');
 
+  const ResourceOwner = params.APP_OWNER;
+  const BuildNumber = between(10000000, 99999999);
+
   if (isDeploy) {
     deploys = [
-      ...deploys.filter((item) => item.envName !== params.APP_ENVIRONMENT),
+      ...deploys.filter(
+        (d) =>
+          !(
+            d.app === params.APP_REPO &&
+            d.org === params.APP_OWNER &&
+            d.envName === params.APP_ENVIRONMENT &&
+            d.tagName === params.TAGNAME
+          ),
+      ),
       {
         app: params.APP_REPO,
         org: params.APP_OWNER,
         envName: params.APP_ENVIRONMENT,
         tagName: params.TAGNAME,
+        buildNumber: BuildNumber,
         time: new Date(),
       },
     ];
   }
-  const ResourceOwner = params.APP_OWNER;
-  const BuildNumber = between(10000000, 99999999);
   const buildData = {
     Id: BuildNumber,
     Status: 'notStarted',
@@ -66,7 +76,7 @@ export const buildsRoute = async (req, res) => {
 // http://localhost:6161/_apis/build/builds/80891942?api-version=5.1
 export const buildRoute = async (req, res) => {
   const { BuildNumber } = req.params;
-  const build = builds.find((b) => b.Id === parseInt(BuildNumber));
+  const build = builds.find((b) => b.Id === parseInt(BuildNumber)) || {};
   if (build.Status === 'notStarted') {
     build.Status = 'inProgress';
     build.Result = 'none';
@@ -80,19 +90,58 @@ export const buildRoute = async (req, res) => {
 };
 
 export const kubernetesWrapperRoute = async (req, res) => {
-  const release = req.query.labelSelector.split('=')[1].split('-');
-  const org = release[0];
-  const app = release.slice(1).join('-');
+  const { org, env } = req.params;
+  const release = req.query.labelSelector?.slice('release='.length);
+
+  const kubernetesWrapperDeployments = [
+    { version: '123456', release: 'kuberneteswrapper' },
+    ...deploys
+      .filter((deploy) => deploy.envName === env && deploy.org === org)
+      .map((deploy) => ({
+        version: deploy.tagName,
+        release: `${deploy.org}-${deploy.app}`,
+      })),
+  ];
+
+  res.json(kubernetesWrapperDeployments.filter((deploy) => !release || deploy.release === release));
+};
+
+export const runtimeGatewayDeploymentsRoute = async (req, res) => {
+  const { org, env, origin } = req.params;
 
   res.json(
     deploys
-      .filter(
-        (deploy) =>
-          deploy.envName === req.query.envName && deploy.org === org && deploy.app === app,
-      )
+      .filter((deploy) => deploy.org === org && deploy.envName === env)
       .map((deploy) => ({
-        version: deploy.tagName,
-        release: [deploy.org, deploy.app].join('-'),
+        org: deploy.org,
+        env: deploy.envName,
+        app: deploy.app,
+        sourceEnvironment: origin,
+        buildId: deploy.buildNumber.toString(),
+        imageTag: deploy.tagName,
       })),
   );
+};
+
+export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {
+  const { org, env, app, origin } = req.params;
+
+  const deployment = deploys
+    .filter((deploy) => deploy.org === org && deploy.envName === env && deploy.app === app)
+    .map((deploy) => ({
+      org: deploy.org,
+      env: deploy.envName,
+      app: deploy.app,
+      sourceEnvironment: origin,
+      buildId: deploy.buildNumber.toString(),
+      imageTag: deploy.tagName,
+    }))
+    .at(0);
+
+  if (!deployment) {
+    res.sendStatus(404);
+    return;
+  }
+
+  res.json(deployment);
 };

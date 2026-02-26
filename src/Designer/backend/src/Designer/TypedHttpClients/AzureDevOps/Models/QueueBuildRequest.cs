@@ -1,3 +1,4 @@
+#nullable disable
 using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
@@ -18,5 +19,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonPropertyName("parameters")]
         public string Parameters { get; set; }
+
+        // DEV ONLY - uncomment temporarily to trigger pipeline on a specific branch
+        // [JsonPropertyName("sourceBranch")]
+        // [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        // public string SourceBranch { get; set; } = "";
     }
 }

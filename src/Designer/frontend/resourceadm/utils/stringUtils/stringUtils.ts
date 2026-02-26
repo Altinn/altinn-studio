@@ -8,14 +8,6 @@ export const formatIdString = (s: string): string => {
   return s.replace(/[^A-Za-z0-9_-]+/g, '-').toLowerCase();
 };
 
-export const isAppPrefix = (s: string): boolean => {
-  return s.substring(0, 4) === 'app_';
-};
-
-export const isSePrefix = (s: string): boolean => {
-  return s.substring(0, 3) === 'se_';
-};
-
 /**
  * Numbers with a specific meaning (postal numbers, phone numbers etc) should not be
  * read by screen readers as millons-thousands etc, but rather as groups of numbers.

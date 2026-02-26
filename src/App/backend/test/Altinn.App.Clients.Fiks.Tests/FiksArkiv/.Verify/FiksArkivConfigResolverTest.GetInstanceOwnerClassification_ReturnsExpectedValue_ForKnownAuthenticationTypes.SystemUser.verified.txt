@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<klassifikasjon xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/arkivmelding/opprett/v1">
+  <klassifikasjonssystemID>SystembrukerId</klassifikasjonssystemID>
+  <klasseID>f58fe166-bc22-4899-beb7-c3e8e3332f43</klasseID>
+  <tittel>310702641</tittel>
+</klassifikasjon>

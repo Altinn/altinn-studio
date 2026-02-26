@@ -1,1 +1,0 @@
-export { StudioPageImageBackgroundContainer } from './StudioPageImageBackgroundContainer';

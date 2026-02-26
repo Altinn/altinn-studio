@@ -3,14 +3,14 @@ import React from 'react';
 import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 
-const render = async (logo: IncomingApplicationMetadata['logo']) => {
-  jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getIncomingApplicationMetadataMock({ logo }));
+const render = async (logo: ApplicationMetadata['logo']) => {
+  jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock({ logo }));
 
   return await renderWithInstanceAndLayout({
     renderer: () => <OrganisationLogo />,
@@ -18,7 +18,17 @@ const render = async (logo: IncomingApplicationMetadata['logo']) => {
 };
 
 describe('OrganisationLogo', () => {
-  it('Should get img src from organisations when logo.source is set to "org" in applicationMetadata', async () => {
+  beforeEach(() => {
+    window.altinnAppGlobalData.orgLogoUrl = 'https://altinncdn.no/orgs/mockOrg/mockOrg.png';
+    window.altinnAppGlobalData.orgName = { nb: 'Mockdepartementet', en: 'Mock Ministry', nn: 'Mockdepartementet' };
+  });
+
+  afterEach(() => {
+    window.altinnAppGlobalData.orgLogoUrl = undefined;
+    window.altinnAppGlobalData.orgName = undefined;
+  });
+
+  it('Should get img src from global data when logo.source is set to "org" in applicationMetadata', async () => {
     await render({
       source: 'org',
       displayAppOwnerNameInHeader: false,

@@ -6,8 +6,10 @@ import type { JSONSchema7 } from 'json-schema';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import * as UseBindingSchema from 'src/features/datamodel/useBindingSchema';
+import { DataModelSchemaResult } from 'src/features/datamodel/useDataModelSchemaQuery';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
+import { createValidator } from 'src/features/validation/schemaValidation/schemaValidationUtils';
 import { Validation } from 'src/features/validation/validationContext';
 import type { IDataType } from 'src/types/shared';
 
@@ -253,9 +255,13 @@ describe('SchemaValidation', () => {
                 },
               },
             };
+            const rootElementPath = '';
+            const validator = createValidator(schema);
 
             jest.spyOn(FD, 'useDebounced').mockReturnValue(formData);
-            jest.spyOn(DataModels, 'useDataModelSchema').mockReturnValue(schema);
+            jest
+              .spyOn(DataModels, 'useDataModelSchema')
+              .mockReturnValue({ schema, rootElementPath, validator } as DataModelSchemaResult);
             jest.spyOn(DataModels, 'useDataElementIdForDataType').mockReturnValue(defaultMockDataElementId);
             jest.spyOn(UseBindingSchema, 'useDataModelType').mockReturnValue({} as IDataType);
 

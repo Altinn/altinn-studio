@@ -1,0 +1,25 @@
+{
+    "go.formatTool": "custom",
+    "go.alternateTools": {
+        "customFormatter": "golines",
+        "golangci-lint": "${workspaceFolder}/bin/golangci-lint-v1.57.2"
+    },
+    "go.formatFlags": [
+        "-m",
+        "120",
+        "-w",
+        "--ignore-generated"
+    ],
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": [
+        "--issues-exit-code=0"
+    ],
+    "cSpell.words": [
+        "golines",
+        "segmentio",
+        "azcore",
+        "azidentity",
+        "azsecrets",
+        "keyvault"
+    ]
+}

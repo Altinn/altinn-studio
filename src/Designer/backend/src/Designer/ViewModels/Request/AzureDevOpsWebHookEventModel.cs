@@ -1,3 +1,4 @@
+#nullable disable
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 
@@ -9,7 +10,7 @@ namespace Altinn.Studio.Designer.ViewModels.Request
     public class AzureDevOpsWebHookEventModel
     {
         /// <summary>
-        /// Model that 
+        /// Model that
         /// </summary>
         [Required(ErrorMessage = "Resource property can not be null")]
         public AzureDevOpsResource Resource { get; set; }

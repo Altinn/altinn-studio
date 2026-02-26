@@ -102,6 +102,9 @@ const renderImportImage = (
   queries: Partial<ServicesContextProps> = queriesMock,
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
+  if (!queryClient.getQueryData([QueryKey.ImageFileNames, org, app])) {
+    queryClient.setQueryData([QueryKey.ImageFileNames, org, app], []);
+  }
   renderWithProviders(<ImportImage onImageChange={onImageChangeMock} />, { queries, queryClient });
 };
 

@@ -19,6 +19,22 @@ public class ExpressionConverter : JsonConverter<Expression>
     }
 
     /// <summary>
+    /// Reads a JSON element and converts it to an <see cref="Expression"/>.
+    /// </summary>
+    public static Expression ReadStatic(JsonElement element) =>
+        element.ValueKind switch
+        {
+            JsonValueKind.True => new Expression(true),
+            JsonValueKind.False => new Expression(false),
+            JsonValueKind.String => new Expression(element.GetString()),
+            JsonValueKind.Number => new Expression(element.GetDouble()),
+            JsonValueKind.Null => new Expression(ExpressionValue.Null),
+            JsonValueKind.Array => ReadArray(element),
+            JsonValueKind.Object => throw new JsonException("Invalid type \"object\""),
+            _ => throw new JsonException(),
+        };
+
+    /// <summary>
     /// Same as <see cref="Read" />, but without the nullable return type required by the interface. Throw an exeption instead.
     /// </summary>
     public static Expression ReadStatic(ref Utf8JsonReader reader, JsonSerializerOptions options)
@@ -36,6 +52,40 @@ public class ExpressionConverter : JsonConverter<Expression>
         };
     }
 
+    private static Expression ReadArray(JsonElement element)
+    {
+        if (element.GetArrayLength() == 0)
+        {
+            throw new JsonException("Missing function name in expression");
+        }
+
+        using var enumerator = element.EnumerateArray();
+        if (!enumerator.MoveNext())
+        {
+            throw new JsonException("Missing function name in expression");
+        }
+
+        if (enumerator.Current.ValueKind != JsonValueKind.String)
+        {
+            throw new JsonException("Function name in expression must be string");
+        }
+        var args = new List<Expression>();
+        var functionString = enumerator.Current.GetString();
+
+        var functionEnum = ExpressionFunction(functionString);
+        if (functionEnum == Expressions.ExpressionFunction.INVALID)
+        {
+            args.Add(new Expression(functionString));
+        }
+
+        while (enumerator.MoveNext())
+        {
+            args.Add(ReadStatic(enumerator.Current));
+        }
+
+        return new Expression(functionEnum, args.ToArray());
+    }
+
     private static Expression ReadArray(ref Utf8JsonReader reader, JsonSerializerOptions options)
     {
         reader.Read();
@@ -48,41 +98,55 @@ public class ExpressionConverter : JsonConverter<Expression>
         {
             throw new JsonException("Function name in expression should be string");
         }
-
-        var stringFunction = reader.GetString();
-        if (!Enum.TryParse<ExpressionFunction>(stringFunction, ignoreCase: false, out var functionEnum))
-        {
-            throw new JsonException($"Function \"{stringFunction}\" not implemented");
-        }
-
         var args = new List<Expression>();
+
+        var functionString = reader.GetString();
+        var functionEnum = ExpressionFunction(functionString);
+
+        if (functionEnum == Expressions.ExpressionFunction.INVALID)
+        {
+            args.Add(new Expression(functionString));
+        }
 
         while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
         {
             args.Add(ReadStatic(ref reader, options));
         }
 
-        return new Expression(functionEnum, args);
+        return new Expression(functionEnum, args.ToArray());
+    }
+
+    private static ExpressionFunction ExpressionFunction(string? stringFunction)
+    {
+        if (!Enum.TryParse<ExpressionFunction>(stringFunction, ignoreCase: false, out var functionEnum))
+        {
+            return Expressions.ExpressionFunction.INVALID;
+        }
+
+        return functionEnum;
     }
 
     /// <inheritdoc />
     public override void Write(Utf8JsonWriter writer, Expression value, JsonSerializerOptions options)
     {
-        if (value.IsFunctionExpression)
+        if (value.IsLiteralValue)
+        {
+            // Just serialize the literal value
+            JsonSerializer.Serialize(writer, value.ValueUnion.ToObject(), options);
+        }
+        else
         {
             // Serialize with as an array expression ["functionName", arg1, arg2, ...]
             writer.WriteStartArray();
-            writer.WriteStringValue(value.Function.ToString());
+            if (value.Function != Expressions.ExpressionFunction.INVALID)
+            {
+                writer.WriteStringValue(value.Function.ToString());
+            }
             foreach (var arg in value.Args)
             {
                 JsonSerializer.Serialize(writer, arg, options);
             }
             writer.WriteEndArray();
-        }
-        else
-        {
-            // Just serialize the literal value
-            JsonSerializer.Serialize(writer, value.ValueUnion.ToObject(), options);
         }
     }
 }

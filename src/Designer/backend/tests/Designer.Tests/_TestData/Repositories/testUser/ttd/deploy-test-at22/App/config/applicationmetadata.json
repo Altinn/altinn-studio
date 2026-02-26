@@ -1,0 +1,20 @@
+{
+  "id": "ttd/deploy-test-at22",
+  "org": "ttd",
+  "title": {
+    "nb": "Test Deploy",
+    "en": "Test Deploy"
+  },
+  "dataTypes": [],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": true,
+    "person": true,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2024-01-01T00:00:00Z",
+  "createdBy": "testUser",
+  "lastChanged": "2024-01-01T00:00:00Z",
+  "lastChangedBy": "testUser"
+}

@@ -175,12 +175,36 @@
       HasParent: false
     },
     {
+      Name: Process.Next,
+      IdFormat: W3C,
+      Status: Error,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        },
+        {
+          process.error.type: Conflict
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: ProcessClient.GetProcessDefinition,
       IdFormat: W3C,
       HasParent: true
     },
     {
       Name: ProcessReader.GetAltinnTaskExtension,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetAltinnTaskExtension,
+      IdFormat: W3C,
+      HasParent: true
+    },
+    {
+      Name: ProcessReader.GetFlowElement,
       IdFormat: W3C,
       HasParent: true
     },
@@ -207,6 +231,9 @@
           validation.issue_count: 0
         },
         {
+          validator.remove_hidden_data: false
+        },
+        {
           validator.source: Required
         },
         {
@@ -221,6 +248,9 @@
       Tags: [
         {
           validation.issue_count: 0
+        },
+        {
+          validator.remove_hidden_data: false
         },
         {
           validator.source: Expression
@@ -239,6 +269,9 @@
           validation.issue_count: 0
         },
         {
+          validator.remove_hidden_data: false
+        },
+        {
           validator.source: Altinn.App.Core.Features.Validation.Default.DefaultTaskValidator-*
         },
         {
@@ -253,6 +286,9 @@
       Tags: [
         {
           validation.issue_count: 0
+        },
+        {
+          validator.remove_hidden_data: false
         },
         {
           validator.source: Altinn.App.Core.Features.Validation.Default.DefaultDataElementValidator-*
@@ -271,6 +307,9 @@
           validation.issue_count: 0
         },
         {
+          validator.remove_hidden_data: false
+        },
+        {
           validator.source: DataAnnotations
         },
         {
@@ -287,6 +326,9 @@
           validation.issue_count: 0
         },
         {
+          validator.remove_hidden_data: false
+        },
+        {
           validator.source: Not a valid validation source
         },
         {
@@ -301,6 +343,9 @@
       Tags: [
         {
           validation.issue_count: 1
+        },
+        {
+          validator.remove_hidden_data: false
         },
         {
           validator.source: test-source

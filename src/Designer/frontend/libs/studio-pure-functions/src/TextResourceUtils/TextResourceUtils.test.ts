@@ -31,6 +31,11 @@ describe('TextResourceUtils', () => {
     });
 
     it('Is pure', verifyInitialMapIsUnchanged);
+
+    it.each([null, undefined])('Returns undefined when the id is %s', (id) => {
+      const result = textResourceUtils.get(id);
+      expect(result).toBeUndefined();
+    });
   });
 
   describe('getValueIfExists', () => {

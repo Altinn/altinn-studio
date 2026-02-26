@@ -4,19 +4,34 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetCodeListsTests
+    : DesignerEndpointsTestsBase<GetCodeListsTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public GetCodeListsTests(WebApplicationFactory<Program> factory) : base(factory)
+    private readonly Mock<ISharedContentClient> _contentClientMock;
+
+    public GetCodeListsTests(WebApplicationFactory<Program> factory)
+        : base(factory)
     {
+        _contentClientMock = new Mock<ISharedContentClient>();
+    }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+        services.AddSingleton(_contentClientMock.Object);
     }
 
     private const string Org = "ttd";
@@ -35,9 +50,18 @@ public class GetCodeListsTests : DesignerEndpointsTestsBase<GetCodeListsTests>, 
         string codeListLabelWithNumber = @"[{ ""value"": ""someValue"", ""label"": 12345}]";
         string codeListLabelWithBool = @"[{ ""value"": ""someValue"", ""label"": true}]";
         string repoPath = TestDataHelper.GetRepositoryDirectory(Developer, targetOrg, targetRepository);
-        await File.WriteAllTextAsync(Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithObject")), codeListLabelWithObject);
-        await File.WriteAllTextAsync(Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithNumber")), codeListLabelWithNumber);
-        await File.WriteAllTextAsync(Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithBool")), codeListLabelWithBool);
+        await File.WriteAllTextAsync(
+            Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithObject")),
+            codeListLabelWithObject
+        );
+        await File.WriteAllTextAsync(
+            Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithNumber")),
+            codeListLabelWithNumber
+        );
+        await File.WriteAllTextAsync(
+            Path.Join(repoPath, CodeListUtils.FilePathWithTextResources("codeListLabelWithBool")),
+            codeListLabelWithBool
+        );
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);

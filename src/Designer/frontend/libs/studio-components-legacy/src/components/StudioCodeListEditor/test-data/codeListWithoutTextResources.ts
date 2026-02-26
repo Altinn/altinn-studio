@@ -1,4 +1,4 @@
-import type { CodeList } from '../types/CodeList';
+import type { CodeListWithTextResources } from '../types/CodeListWithTextResources';
 import type { CodeListItem } from '../types/CodeListItem';
 
 const item1: CodeListItem = {
@@ -16,4 +16,4 @@ const item3: CodeListItem = {
   value: 'test3',
 };
 
-export const codeListWithoutTextResources: CodeList = [item1, item2, item3];
+export const codeListWithoutTextResources: CodeListWithTextResources = [item1, item2, item3];

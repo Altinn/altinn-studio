@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -12,14 +13,28 @@ using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers.OrgCodeListController;
 
-public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTests>, IClassFixture<WebApplicationFactory<Program>>
+public class UpdateCodeListTests
+    : DesignerEndpointsTestsBase<UpdateCodeListTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    public UpdateCodeListTests(WebApplicationFactory<Program> factory) : base(factory)
+    private readonly Mock<ISharedContentClient> _contentClientMock;
+
+    public UpdateCodeListTests(WebApplicationFactory<Program> factory)
+        : base(factory)
     {
+        _contentClientMock = new Mock<ISharedContentClient>();
+    }
+
+    protected override void ConfigureTestServices(IServiceCollection services)
+    {
+        base.ConfigureTestServices(services);
+        services.AddSingleton(_contentClientMock.Object);
     }
 
     private const string Org = "ttd";
@@ -37,14 +52,20 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        const string CodeListWithAnUpdate = @"[
+        const string CodeListWithAnUpdate =
+            @"[
             { ""label"": ""aNewLabelThatDidNotExistBefore"", ""value"": ""aNewValueThatDidNotExistBefore"" },
             { ""label"": ""label2"", ""value"": ""value2"" }
         ]";
         httpRequestMessage.Content = new StringContent(CodeListWithAnUpdate, Encoding.UTF8, "application/json");
         List<Option> codeList = JsonSerializer.Deserialize<List<Option>>(CodeListWithAnUpdate);
         List<OptionListData> expectedResponse = new([
-            new OptionListData {Title = CodeListId, Data = codeList, HasError = false}
+            new OptionListData
+            {
+                Title = CodeListId,
+                Data = codeList,
+                HasError = false,
+            },
         ]);
 
         // Act
@@ -77,7 +98,8 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        const string StringBoolNumbersCodeList = @"[
+        const string StringBoolNumbersCodeList =
+            @"[
             { ""label"": ""StringValue"", ""value"": ""value"" },
             { ""label"": ""BoolValue"", ""value"": true },
             { ""label"": ""NumberValue"", ""value"": 3.1415 },
@@ -126,7 +148,8 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        const string InvalidCodeList = @"[
+        const string InvalidCodeList =
+            @"[
             { ""value"": {}, ""label"": ""label2"" },
         ]";
         httpRequestMessage.Content = new StringContent(InvalidCodeList, Encoding.UTF8, "application/json");
@@ -152,7 +175,8 @@ public class UpdateCodeListTests : DesignerEndpointsTestsBase<UpdateCodeListTest
 
         string apiUrl = ApiUrl(targetOrg);
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        const string CodeListWithMissingFields = @"[
+        const string CodeListWithMissingFields =
+            @"[
             { ""value"": ""value1"" },
             { ""label"": ""label2"" },
             { ""value"": null, ""label"": null },

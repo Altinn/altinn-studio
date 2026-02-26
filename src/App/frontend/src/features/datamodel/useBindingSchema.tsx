@@ -3,14 +3,11 @@ import { useCallback, useMemo } from 'react';
 import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import {
-  getCurrentDataTypeForApplication,
-  getCurrentTaskDataElementId,
-} from 'src/features/applicationMetadata/appMetadataUtils';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId } from 'src/features/instance/instanceUtils';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
@@ -30,9 +27,9 @@ export type AsSchema<T> = {
 };
 
 export function useCurrentDataModelDataElementId() {
-  const application = useApplicationMetadata();
-  const layoutSets = useLayoutSets();
+  const layoutSets = getLayoutSets();
   const taskId = useProcessTaskId();
+  const isStateless = useIsStateless();
 
   const overriddenDataElementId = useTaskOverrides()?.dataModelElementId;
 
@@ -44,7 +41,7 @@ export function useCurrentDataModelDataElementId() {
         return overriddenDataElementId;
       }
 
-      return getCurrentTaskDataElementId({ application, dataElements: data.data, taskId, layoutSets });
+      return getCurrentTaskDataElementId({ isStateless, dataElements: data.data, taskId, layoutSets });
     },
   }).data;
 }
@@ -93,7 +90,7 @@ function getDataModelUrl({
 
 export function useGetDataModelUrl() {
   const isAnonymous = useAllowAnonymous();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStateless();
   const instanceId = useLaxInstanceId();
   const currentLanguage = useAsRef(useCurrentLanguage());
 
@@ -114,7 +111,7 @@ export function useGetDataModelUrl() {
 // We assume that the first data element of the correct type is the one we should use, same as isDataTypeWritable
 export function useDataModelUrl({ dataType, dataElementId, language, prefillFromQueryParams }: DataModelProps) {
   const isAnonymous = useAllowAnonymous();
-  const isStateless = useApplicationMetadata().isStatelessApp;
+  const isStateless = useIsStateless();
   const instanceId = useLaxInstanceId();
   const currentLanguage = useAsRef(useCurrentLanguage());
 
@@ -132,16 +129,16 @@ export function useDataModelUrl({ dataType, dataElementId, language, prefillFrom
 export function useCurrentDataModelName() {
   const overriddenDataModelType = useTaskOverrides()?.dataModelType;
 
-  const application = useApplicationMetadata();
-  const layoutSets = useLayoutSets();
+  const layoutSets = getLayoutSets();
   const taskId = useProcessTaskId();
+  const isStateless = useIsStateless();
 
   if (overriddenDataModelType) {
     return overriddenDataModelType;
   }
 
   return getCurrentDataTypeForApplication({
-    application,
+    isStateless,
     layoutSets,
     taskId,
   });
@@ -149,13 +146,13 @@ export function useCurrentDataModelName() {
 
 export function useCurrentDataModelType() {
   const name = useCurrentDataModelName();
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
 
   return application.dataTypes.find((dt) => dt.id === name);
 }
 
 export function useDataModelType(dataType: string) {
-  const application = useApplicationMetadata();
+  const application = getApplicationMetadata();
 
   return application.dataTypes.find((dt) => dt.id === dataType);
 }

@@ -1,24 +1,25 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getGlobalUiSettings } from 'src/features/form/layoutSets';
+import { NavigationReceipt, NavigationTask } from 'src/features/form/layoutSets/types';
 import { AppNavigation } from 'src/features/navigation/AppNavigation';
 import { BackendValidationSeverity } from 'src/features/validation';
 import * as UseNavigatePage from 'src/hooks/useNavigatePage';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type {
   ILayoutFile,
-  ILayoutSets,
   ILayoutSettings,
   NavigationPageGroupMultiple,
   NavigationPageGroupSingle,
-  NavigationReceipt,
-  NavigationTask,
 } from 'src/layout/common.generated';
 
 const user = userEvent.setup({ delay: 100 });
+const layoutSetsMock = getLayoutSetsMock();
 
 describe('AppNavigation', () => {
   async function render({
@@ -39,6 +40,12 @@ describe('AppNavigation', () => {
     overrideTaskNavigation?: (Omit<NavigationTask, 'id'> | Omit<NavigationReceipt, 'id'>)[];
   }) {
     const rawOrder = order ?? groups?.flatMap((g) => g.order) ?? [];
+
+    jest.mocked(getGlobalUiSettings).mockReturnValue({
+      ...layoutSetsMock.uiSettings,
+      taskNavigation:
+        (taskNavigation as (NavigationTask | NavigationReceipt)[]) ?? layoutSetsMock.uiSettings.taskNavigation,
+    });
     return renderWithInstanceAndLayout({
       renderer: () => <AppNavigation />,
       initialPage: initialPage ?? order?.[0] ?? groups?.[0].order[0],
@@ -51,13 +58,6 @@ describe('AppNavigation', () => {
               ...(overrideTaskNavigation && { taskNavigation: overrideTaskNavigation }),
             },
           }) as ILayoutSettings,
-        fetchLayoutSets: async () =>
-          ({
-            ...getLayoutSetsMock(),
-            ...(taskNavigation && {
-              uiSettings: { taskNavigation },
-            }),
-          }) as ILayoutSets,
         fetchLayouts: async () =>
           Object.fromEntries(
             rawOrder.map((page) => [

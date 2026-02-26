@@ -1,25 +1,26 @@
 import React from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router';
 
 import { expect, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
-import { fetchApplicationMetadata } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 
 const render = async () => {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock({
+  jest.mocked(getApplicationMetadata).mockImplementation(() =>
+    getApplicationMetadataMock({
       onEntry: {
         show: 'stateless',
       },
     }),
   );
+  jest.mocked(useIsStateless).mockImplementation(() => true);
   return await renderGenericComponentTest({
     type: 'InstantiationButton',
     component: {
@@ -33,7 +34,6 @@ const render = async () => {
       <MemoryRouter
         basename='/ttd/test'
         initialEntries={['/ttd/test']}
-        future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
       >
         <Routes>
           <Route

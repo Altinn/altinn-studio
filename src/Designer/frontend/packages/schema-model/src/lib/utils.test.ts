@@ -2,6 +2,7 @@ import {
   combinationIsNullable,
   createNodeBase,
   getUniqueNodePath,
+  isDefinitionRoot,
   isNodeValidParent,
   replaceLastPointerSegment,
 } from './utils';
@@ -13,6 +14,8 @@ import { selectorsTestSchema } from '../../test/testUtils';
 import { makePointerFromArray } from './pointerUtils';
 import {
   allOfNodeMock,
+  defNodeMock,
+  defNodeWithChildrenChildMock,
   enumNodeMock,
   numberNodeMock,
   referenceNodeMock,
@@ -80,6 +83,20 @@ describe('utils', () => {
 
     it.each(testCases)('Returns %s when the node is %s', (expectedResult, caseKey) => {
       expect(isNodeValidParent(testData[caseKey])).toBe(expectedResult);
+    });
+  });
+
+  describe('isDefinitionRoot', () => {
+    it('Returns false when the pointer does not indicate a definition', () => {
+      expect(isDefinitionRoot(stringNodeMock)).toBe(false);
+    });
+
+    it('Returns true when the pointer indicates the root of a definition', () => {
+      expect(isDefinitionRoot(defNodeMock)).toBe(true);
+    });
+
+    it('Returns false when the pointer indicates a node within a definition', () => {
+      expect(isDefinitionRoot(defNodeWithChildrenChildMock)).toBe(false);
     });
   });
 });

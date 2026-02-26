@@ -1,6 +1,6 @@
 export * from './ConfigBooleanProperties';
 export * from './ConfigGridProperties';
-export * from './ConfigObjectProperties';
+export * from './ConfigObjectProperty/ConfigObjectProperty';
 export * from './ConfigStringProperties';
 export * from './ConfigNumberProperties';
 export * from './ConfigArrayProperties';

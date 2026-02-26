@@ -7,6 +7,7 @@ import { ConfigContent } from './ConfigContent';
 import { ConfigEndEvent } from './ConfigEndEvent';
 import { ConfigSurface } from '../ConfigSurface/ConfigSurface';
 import { ConfigSequenceFlow } from './ConfigSequenceFlow';
+import { ConfigServiceTask } from './ConfigServiceTask';
 
 export const ConfigPanel = (): React.ReactElement => {
   return (
@@ -43,6 +44,11 @@ const ConfigPanelContent = (): React.ReactElement => {
   const elementIsTask = bpmnDetails.type === BpmnTypeEnum.Task;
   if (elementIsTask) {
     return <ConfigContent key={bpmnDetails.id} />;
+  }
+
+  const elementIsServiceTask = bpmnDetails.type === BpmnTypeEnum.ServiceTask;
+  if (elementIsServiceTask) {
+    return <ConfigServiceTask key={bpmnDetails.id} />;
   }
 
   return (

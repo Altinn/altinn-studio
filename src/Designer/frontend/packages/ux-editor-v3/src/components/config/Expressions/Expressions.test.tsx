@@ -14,9 +14,10 @@ import { Expressions } from './Expressions';
 import { FormItemContext } from '../../../containers/FormItemContext';
 import type { FormComponent } from '../../../types/FormComponent';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
+import { app, org } from '@studio/testing/testids';
+
 import { parsableExternalExpression } from '../../../testing/expressionMocks';
 import type { FormContainer } from '../../../types/FormContainer';
-import { app, org } from '@studio/testing/testids';
 
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
@@ -109,7 +110,7 @@ describe('Expressions', () => {
     expect(expressionLimitAlert).toBeInTheDocument();
   });
 
-  it('adds new expression on read only property when read only menuItem is selected after add expression button is clicked', async () => {
+  it('adds new expression on read only property when read only button is selected after add expression button is clicked', async () => {
     const user = userEvent.setup();
     render({});
 
@@ -117,10 +118,10 @@ describe('Expressions', () => {
       name: textMock('right_menu.expressions_add'),
     });
     await user.click(addExpressionButton);
-    const propertyDropDownMenuItem = screen.getByRole('menuitem', {
+    const propertyDropDownbutton = screen.getByRole('button', {
       name: textMock('right_menu.expressions_property_read_only'),
     });
-    await user.click(propertyDropDownMenuItem);
+    await user.click(propertyDropDownbutton);
 
     const newExpression = screen.getByText(
       textMock('right_menu.expressions_property_preview_read_only'),

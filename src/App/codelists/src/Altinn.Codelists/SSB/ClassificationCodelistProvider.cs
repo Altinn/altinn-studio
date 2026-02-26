@@ -43,7 +43,7 @@ internal sealed class ClassificationCodelistProvider : IAppOptionsProvider
     /// For valid id's please consult the SSB classificaionts api.
     /// ''' <remarks>
     /// ''' <![CDATA[
-    /// ''' http://data.ssb.no/api/klass/v1/classifications?size=150&language=en
+    /// ''' https://data.ssb.no/api/klass/v1/classifications?size=150&language=en
     /// ''' ]]>
     /// ''' </remarks>
     /// </summary>

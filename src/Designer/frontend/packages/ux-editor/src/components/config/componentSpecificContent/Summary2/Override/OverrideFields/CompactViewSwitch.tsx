@@ -1,6 +1,6 @@
 import React, { type ChangeEvent } from 'react';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
-import { StudioSwitch } from '@studio/components-legacy';
+import { StudioSwitch } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type CompactViewSwitchProps = {
@@ -13,15 +13,13 @@ export const Summary2OverrideCompactSwitch = ({ onChange, override }: CompactVie
 
   return (
     <StudioSwitch
-      position='right'
-      size='sm'
+      position='end'
       onChange={(event: ChangeEvent<HTMLInputElement>) =>
         onChange({ ...override, isCompact: event.target.checked })
       }
       checked={override.isCompact ?? false}
       value='isCompact'
-    >
-      {t('ux_editor.component_properties.summary.override.is_compact')}
-    </StudioSwitch>
+      label={t('ux_editor.component_properties.summary.override.is_compact')}
+    />
   );
 };

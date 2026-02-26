@@ -9,22 +9,16 @@ import { useTranslation } from 'react-i18next';
 import { OptionTabs } from './OptionTabs';
 import classes from './EditOptions.module.css';
 
-export interface ISelectionEditComponentProvidedProps<T extends SelectionComponentType>
-  extends IGenericEditComponent<T> {}
-
-export enum SelectedOptionsType {
-  CodeList = 'codelist',
-  Manual = 'manual',
-  ReferenceId = 'referenceId',
-  Unknown = '',
-}
+export interface ISelectionEditComponentProvidedProps<
+  T extends SelectionComponentType,
+> extends IGenericEditComponent<T> {}
 
 export function EditOptions<T extends SelectionComponentType>({
   component,
   handleComponentChange,
 }: ISelectionEditComponentProvidedProps<T>) {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, isPending, isError } = useOptionListIdsQuery(org, app);
+  const { data: idsFromAppLibrary, isPending, isError } = useOptionListIdsQuery(org, app);
   const { t } = useTranslation();
 
   return (
@@ -43,9 +37,9 @@ export function EditOptions<T extends SelectionComponentType>({
         </ErrorMessage>
       ) : (
         <OptionTabs
+          codeListIdContextData={{ idsFromAppLibrary, orgName: org }}
           component={component}
           handleComponentChange={handleComponentChange}
-          optionListIds={optionListIds}
         />
       )}
     </div>

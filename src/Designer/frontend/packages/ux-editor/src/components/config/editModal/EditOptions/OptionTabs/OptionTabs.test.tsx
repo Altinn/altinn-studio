@@ -10,10 +10,12 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { OptionTabs } from './OptionTabs';
 import { componentMocks } from '../../../../../testing/componentMocks';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 const queryClient = createQueryClientMock();
+queryClient.setQueryData([QueryKey.TextResources, org, app], { nb: [], nn: [], en: [] });
 
 describe('OptionTabs', () => {
   afterEach(jest.clearAllMocks);
@@ -41,7 +43,7 @@ describe('OptionTabs', () => {
         optionsId,
         options: undefined,
       },
-      optionListIds: [optionsId],
+      optionListIdsFromLibrary: [optionsId],
     });
 
     expect(
@@ -59,7 +61,7 @@ describe('OptionTabs', () => {
         optionsId,
         options: undefined,
       },
-      optionListIds: [],
+      optionListIdsFromLibrary: [],
     });
 
     expect(
@@ -75,8 +77,9 @@ describe('OptionTabs', () => {
     renderOptionTabs({
       componentProps: {
         optionsId,
+        options: undefined,
       },
-      optionListIds: [],
+      optionListIdsFromLibrary: [],
     });
 
     expect(
@@ -149,22 +152,22 @@ describe('OptionTabs', () => {
   });
 });
 
-type renderOptionTabsProps<T extends ComponentType.Checkboxes | ComponentType.RadioButtons> = {
+type RenderOptionTabsProps<T extends ComponentType.Checkboxes | ComponentType.RadioButtons> = {
   componentProps?: Partial<FormItem<T>>;
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
-  optionListIds?: string[];
+  optionListIdsFromLibrary?: string[];
 };
 
 function renderOptionTabs<T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
   componentProps = {},
   handleComponentChange = jest.fn(),
   queries = {},
-  optionListIds = [],
-}: renderOptionTabsProps<T> = {}) {
+  optionListIdsFromLibrary = [],
+}: RenderOptionTabsProps<T> = {}) {
   return renderWithProviders(
     <OptionTabs
-      optionListIds={optionListIds}
+      codeListIdContextData={{ idsFromAppLibrary: optionListIdsFromLibrary, orgName: org }}
       handleComponentChange={handleComponentChange}
       component={{
         ...mockComponent,

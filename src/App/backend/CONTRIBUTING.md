@@ -4,8 +4,8 @@ Developer documentation for Altinn.App .NET libraries.
 
 Here are some important resources:
 
-  * [Team Apps Github board](https://github.com/orgs/Altinn/projects/39/views/2)
-  * [Altinn Studio docs](https://docs.altinn.studio/)
+- [Team Apps Github board](https://github.com/orgs/Altinn/projects/39/views/2)
+- [Altinn Studio docs](https://docs.altinn.studio/)
 
 ## Reporting Issues
 
@@ -16,28 +16,28 @@ Feel free to query existing issues before creating a new one.
 
 ## Repository setup
 
-* Clone the repo
-* Ensure .NET SDK is install (see `global.json` for  version)
-* Ensure a container runtime is installed (e.g. Docker)
-* `dotnet test`
+- Clone the repo
+- Ensure .NET SDK is install (see `global.json` for version)
+- Ensure a container runtime is installed (e.g. Docker)
+- `dotnet test`
 
 ## Contributing Changes
 
-* Fork and/or create branch (make sure you've completed repository setup above)
-* Push changes
-* Test your changes, see the testing changes below
-* Create PR - fill in the required sections
-  * Try to provide reasoning/rationale for the changes if it hasn't already been discussed
-  * Attach appropriate tags according to the change (`feature`, `kind/feature-request`, `bugfix`, `kind/bug`, `kind/chore`)
-  * If you work on team Apps, attach the `Team Apps` project, add it to a sprint and input an estimate (if an issue isn't already added)
-* Make sure coding style is consistent
-  * Csharpier for formatting (`editor.formatOnSave` is on by default, there should be an extension for your editor/IDE)
-  * EditorConfig is configured, you should use an editor or IDE that supports it (that should cover other conventions)
-* We require 1 approval to merge changes
-  * Make sure Sonar / CodeQL and other static analysis issues are resolved
-    * We don't need 100% code coverage, effort and risk must be weighed
-  * Use squash merge
-  * Use a descriptive PR title, as it is used for release notes generation
+- Fork and/or create branch (make sure you've completed repository setup above)
+- Push changes
+- Test your changes, see the testing changes below
+- Create PR - fill in the required sections
+    - Try to provide reasoning/rationale for the changes if it hasn't already been discussed
+    - Attach appropriate tags according to the change (`feature`, `kind/feature-request`, `bugfix`, `kind/bug`, `kind/chore`)
+    - If you work on team Apps, attach the `Team Apps` project, add it to a sprint and input an estimate (if an issue isn't already added)
+- Make sure coding style is consistent
+    - Csharpier for formatting (`editor.formatOnSave` is on by default, there should be an extension for your editor/IDE)
+    - EditorConfig is configured, you should use an editor or IDE that supports it (that should cover other conventions)
+- We require 1 approval to merge changes
+    - Make sure Sonar / CodeQL and other static analysis issues are resolved
+        - We don't need 100% code coverage, effort and risk must be weighed
+    - Use squash merge
+    - Use a descriptive PR title, as it is used for release notes generation
 
 ### Versioning
 
@@ -56,13 +56,13 @@ that may break things downstream. Names and tags are in the `Telemetry` class.
 
 ### Testing
 
-We have automated tests in the `test/` folder using mainly xUnit, FluentAssertions, Moq and Verify.
+We have automated tests in the `test/` folder using mainly xUnit, Moq and Verify.
 Some tests invoke classes directly (while mocking dependencies as needed),
 while some construct adhoc DI containers or use ASP.NET Core `WebApplicationFactory<>`.
 The following resources are currently snapshot tested (some with Verify)
 
-* OpenAPI doc
-* Telemetry output (activities/spans and metrics)
+- OpenAPI doc
+- Telemetry output (activities/spans and metrics)
 
 In addition to automated testing, we should do manual tests for any non-trivial change as well.
 
@@ -91,7 +91,7 @@ dotnet run --project App/
 
 To debug changes in the libraries, you can
 
-* Add the `altinn-lib-donet/src` projects to your apps `App.sln` file
-* Create a `code-workspace` file in the case of VSCode
+- Add the `altinn-lib-donet/src` projects to your apps `App.sln` file
+- Create a `code-workspace` file in the case of VSCode
 
 Debug breakpoints should then work as normal

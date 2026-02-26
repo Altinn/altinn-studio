@@ -1,12 +1,12 @@
 import React, { type ReactElement } from 'react';
 import type { HeaderMenuItem } from '../../../../types/HeaderMenuItem';
-import { StringUtils, UrlUtils } from '@studio/pure-functions';
 import { useSelectedContext } from '../../../../hooks/useSelectedContext';
-import { StudioPageHeader } from '@studio/components-legacy';
+import { StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
+import { useSubroute } from '../../../../hooks/useSubRoute';
 
 type LargeNavigationMenuProps = {
   menuItems: HeaderMenuItem[];
@@ -28,23 +28,19 @@ type NavigationMenuItemProps = {
 
 function NavigationMenuItem({ menuItem }: NavigationMenuItemProps): ReactElement {
   const selectedContext: string = useSelectedContext();
+  const subroute = useSubroute();
   const { t } = useTranslation();
-  const location = useLocation();
-  const path: string = `${menuItem.link}/${selectedContext}`;
-  const currentRoutePath: string = UrlUtils.extractSecondLastRouterParam(location.pathname);
+  const path: string = `/${menuItem.link}/${selectedContext}`;
 
   return (
     <li key={menuItem.name}>
       <StudioPageHeader.HeaderLink
-        color='dark'
-        variant='regular'
         isBeta={menuItem.isBeta}
         renderLink={(props) => (
           <NavLink to={path} {...props}>
             <span
               className={cn({
-                [classes.active]:
-                  StringUtils.removeLeadingSlash(menuItem.link) === currentRoutePath,
+                [classes.active]: menuItem.link === subroute,
               })}
             >
               {t(menuItem.name)}

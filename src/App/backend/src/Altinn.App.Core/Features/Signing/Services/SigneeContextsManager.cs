@@ -36,7 +36,7 @@ internal sealed class SigneeContextsManager(
         }
     );
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task<List<SigneeContext>> GenerateSigneeContexts(
         IInstanceDataMutator instanceDataMutator,
         AltinnSignatureConfiguration signatureConfiguration,
@@ -78,7 +78,7 @@ internal sealed class SigneeContextsManager(
         return signeeContexts;
     }
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task<List<SigneeContext>> GetSigneeContexts(
         IInstanceDataAccessor instanceDataAccessor,
         AltinnSignatureConfiguration signatureConfiguration,

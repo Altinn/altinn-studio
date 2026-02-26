@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -20,20 +21,25 @@ public class AppScopesService : IAppScopesService
         _timeProvider = timeProvider;
     }
 
-    public Task<AppScopesEntity> GetAppScopesAsync(AltinnRepoContext context,
-        CancellationToken cancellationToken = default)
+    public Task<AppScopesEntity> GetAppScopesAsync(
+        AltinnRepoContext context,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         return _appRepository.GetAppScopesAsync(context, cancellationToken);
     }
 
-    public async Task<AppScopesEntity> UpsertScopesAsync(AltinnRepoEditingContext editingContext,
+    public async Task<AppScopesEntity> UpsertScopesAsync(
+        AltinnRepoEditingContext editingContext,
         ISet<MaskinPortenScopeEntity> scopes,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var appScopes = await _appRepository.GetAppScopesAsync(editingContext, cancellationToken) ??
-                        GenerateNewAppScopesEntity(editingContext);
+        var appScopes =
+            await _appRepository.GetAppScopesAsync(editingContext, cancellationToken)
+            ?? GenerateNewAppScopesEntity(editingContext);
 
         appScopes.Scopes = scopes;
         appScopes.LastModifiedBy = editingContext.Developer;
@@ -49,7 +55,7 @@ public class AppScopesService : IAppScopesService
             CreatedBy = context.Developer,
             Created = _timeProvider.GetUtcNow(),
             LastModifiedBy = context.Developer,
-            Scopes = new HashSet<MaskinPortenScopeEntity>()
+            Scopes = new HashSet<MaskinPortenScopeEntity>(),
         };
     }
 }

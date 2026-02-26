@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -29,7 +30,8 @@ namespace Designer.Tests.Controllers.ReleasesController
         private readonly string _org = "udi";
         private readonly string _app = "kjaerestebesok";
 
-        public GetTests(WebApplicationFactory<Program> factory) : base(factory)
+        public GetTests(WebApplicationFactory<Program> factory)
+            : base(factory)
         {
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             _options.Converters.Add(new JsonStringEnumConverter());
@@ -38,7 +40,7 @@ namespace Designer.Tests.Controllers.ReleasesController
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton(_releaseServiceMock.Object);
         }
 
@@ -58,7 +60,10 @@ namespace Designer.Tests.Controllers.ReleasesController
             // Act
             HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
-            SearchResults<ReleaseEntity> searchResult = JsonSerializer.Deserialize<SearchResults<ReleaseEntity>>(responseString, _options);
+            SearchResults<ReleaseEntity> searchResult = JsonSerializer.Deserialize<SearchResults<ReleaseEntity>>(
+                responseString,
+                _options
+            );
             IEnumerable<ReleaseEntity> actual = searchResult.Results;
 
             // Assert
@@ -89,7 +94,10 @@ namespace Designer.Tests.Controllers.ReleasesController
             // Act
             HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
-            SearchResults<ReleaseEntity> searchResult = JsonSerializer.Deserialize<SearchResults<ReleaseEntity>>(responseString, _options);
+            SearchResults<ReleaseEntity> searchResult = JsonSerializer.Deserialize<SearchResults<ReleaseEntity>>(
+                responseString,
+                _options
+            );
             IEnumerable<ReleaseEntity> actual = searchResult.Results;
 
             // Assert
@@ -110,7 +118,6 @@ namespace Designer.Tests.Controllers.ReleasesController
 
             string releases = File.ReadAllText(path);
             return JsonSerializer.Deserialize<List<ReleaseEntity>>(releases, _options);
-
         }
     }
 }

@@ -2,7 +2,13 @@ import React from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
 
-export function MainAttachmentHeader({ title, className }: { title: React.ReactNode; className?: string }) {
+export function MainAttachmentHeader({
+  title,
+  className,
+}: {
+  title: React.ReactElement | undefined;
+  className?: string;
+}) {
   if (!title) {
     return null;
   }
@@ -18,7 +24,7 @@ export function MainAttachmentHeader({ title, className }: { title: React.ReactN
   );
 }
 
-export function SubAttachmentHeader({ title }: { title: React.ReactNode }) {
+export function SubAttachmentHeader({ title }: { title: React.ReactElement }) {
   return (
     <Heading
       level={3}

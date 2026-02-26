@@ -3,8 +3,7 @@ import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useOptionListIdsQuery } from '../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation, Trans } from 'react-i18next';
-import { StudioButton } from '@studio/components';
-import { StudioNativeSelect, StudioSpinner, StudioTextfield } from '@studio/components-legacy';
+import { StudioButton, StudioSelect, StudioSpinner, StudioTextfield } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -25,10 +24,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   return (
     <div>
       {isPending ? (
-        <StudioSpinner
-          showSpinnerTitle={false}
-          spinnerTitle={t('ux_editor.modal_properties_loading')}
-        />
+        <StudioSpinner aria-hidden spinnerTitle={t('ux_editor.modal_properties_loading')} />
       ) : isError ? (
         <ErrorMessage>
           {t('ux_editor.modal_properties_fetch_option_list_ids_error_message')}
@@ -55,13 +51,13 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
               value={component.optionsId}
               propertyPath={`${component.propertyPath}/properties/optionsId`}
               renderField={({ fieldProps }) => (
-                <StudioNativeSelect {...fieldProps}>
+                <StudioSelect {...fieldProps}>
                   {optionListIds.map((option) => (
-                    <option key={option} value={option}>
+                    <StudioSelect.Option key={option} value={option}>
                       {option}
-                    </option>
+                    </StudioSelect.Option>
                   ))}
-                </StudioNativeSelect>
+                </StudioSelect>
               )}
             />
           )}

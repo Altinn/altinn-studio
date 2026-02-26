@@ -1,24 +1,27 @@
 import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
-import { DeployPage } from './DeployPage';
+import DeployPage from './DeployPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { org } from '@studio/testing/testids';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 describe('DeployPage', () => {
   it('renders a spinner while loading', () => {
     render();
 
-    expect(screen.getByTitle(textMock('app_deployment.loading'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('app_deployment.loading'))).toBeInTheDocument();
   });
 
   it('renders an error message if an error occurs while loading data', async () => {
     render({
       getOrgList: jest.fn().mockImplementation(() => Promise.reject(createApiErrorMock())),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('app_deployment.loading')),
+    );
 
     expect(screen.getByText(textMock('app_deployment.error'))).toBeInTheDocument();
   });
@@ -32,7 +35,9 @@ describe('DeployPage', () => {
         ),
       getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve([])),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('app_deployment.loading')),
+    );
 
     expect(screen.getByText(textMock('app_deployment.no_env_title'))).toBeInTheDocument();
     expect(screen.getByText(textMock('app_deployment.no_env_1'))).toBeInTheDocument();
@@ -49,7 +54,9 @@ describe('DeployPage', () => {
         ),
       getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve([])),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('app_deployment.loading')),
+    );
 
     expect(screen.getByText(textMock('app_deployment.no_team'))).toBeInTheDocument();
     expect(screen.getByText(textMock('app_deployment.no_team_info'))).toBeInTheDocument();
@@ -65,12 +72,18 @@ describe('DeployPage', () => {
         ),
       getDeployPermissions: jest.fn().mockImplementation(() => Promise.resolve([envName])),
     });
-    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('app_deployment.loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('app_deployment.loading')),
+    );
 
     expect(screen.getByText(textMock('app_release.release_title'))).toBeInTheDocument();
   });
 });
 
 const render = (queries?: Partial<ServicesContextProps>) => {
-  return renderWithProviders(queries)(<DeployPage />);
+  return renderWithProviders(queries)(
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <DeployPage />
+    </FeatureFlagsContextProvider>,
+  );
 };

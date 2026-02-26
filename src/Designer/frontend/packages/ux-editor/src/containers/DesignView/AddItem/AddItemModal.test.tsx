@@ -27,7 +27,8 @@ describe('AddItemModal', () => {
     renderAddItemModal({});
     await user.click(screen.getByRole('button', { name: textMock('ux_editor.add_item.show_all') }));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'close modal' }));
+    await user.click(screen.getByRole('button', { name: 'Lukk dialogvindu' }));
+
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

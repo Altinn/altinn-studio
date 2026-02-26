@@ -47,7 +47,7 @@ describe('EditBooleanValue', () => {
     renderEditBooleanValue({ handleComponentChange });
     const inputElement = screen.getByLabelText(textMock('ux_editor.component_properties.required'));
 
-    user.click(inputElement);
+    await user.click(inputElement);
 
     await waitFor(() => {
       expect(handleComponentChange).toHaveBeenCalledWith({

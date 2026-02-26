@@ -3,7 +3,7 @@ import classes from './PreviewControlHeader.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioNativeSelect, StudioSpinner } from '@studio/components-legacy';
+import { StudioSpinner, StudioSelect } from '@studio/components';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export type PreviewControlHeaderProps = {
@@ -28,7 +28,7 @@ export const PreviewControlHeader = ({
   };
 
   if (loadingLayoutSets) {
-    return <StudioSpinner spinnerTitle={t('preview.loading_preview_controller')} />;
+    return <StudioSpinner aria-hidden spinnerTitle={t('preview.loading_preview_controller')} />;
   }
 
   return (
@@ -41,13 +41,17 @@ export const PreviewControlHeader = ({
       </div>
       {layoutSets && (
         <div className={classes.layoutSetSelector}>
-          <StudioNativeSelect onChange={handleLayoutSetChange} value={selectedLayoutSet}>
+          <StudioSelect
+            label={t('preview.select_task')}
+            onChange={handleLayoutSetChange}
+            value={selectedLayoutSet}
+          >
             {layoutSets.sets.map((layoutSet) => (
-              <option key={layoutSet.id} value={layoutSet.id}>
+              <StudioSelect.Option key={layoutSet.id} value={layoutSet.id}>
                 {layoutSet.id}
-              </option>
+              </StudioSelect.Option>
             ))}
-          </StudioNativeSelect>
+          </StudioSelect>
         </div>
       )}
     </div>

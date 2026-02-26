@@ -2,12 +2,14 @@ import React, { useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
 import type { TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
-import { StudioCombobox, StudioDivider } from '@studio/components-legacy';
 import {
+  StudioSuggestion,
   StudioActionCloseButton,
   StudioCard,
   StudioHeading,
   StudioDeleteButton,
+  StudioDivider,
+  type StudioSuggestionItem,
 } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
@@ -45,8 +47,7 @@ export const EditColumnElement = ({
 
   const [selectedComponentId, setSelectedComponentId] = useState<string>();
 
-  const selectComponent = (values: string[]) => {
-    const componentId = values[0];
+  const selectComponent = (componentId: string) => {
     setSelectedComponentId(componentId);
 
     const selectedComponent = availableComponents.find((comp) => comp.id === componentId);
@@ -89,6 +90,7 @@ export const EditColumnElement = ({
       <EditColumnElementComponentSelect
         components={availableComponents}
         onSelectComponent={selectComponent}
+        selectedId={selectedComponentId}
       />
       {hasMultipleDataModelBindings && (
         <DataModelBindingsCombobox
@@ -109,12 +111,12 @@ export const EditColumnElement = ({
       )}
       <div className={classes.buttons}>
         <StudioActionCloseButton
-          data-size='2xs'
+          data-size='sm'
           onClick={onClose}
           title={t('general.save')}
           disabled={isSaveButtonDisabled}
         />
-        <StudioDeleteButton data-size='2xs' title={t('general.delete')} onDelete={onDeleteColumn} />
+        <StudioDeleteButton data-size='sm' title={t('general.delete')} onDelete={onDeleteColumn} />
       </div>
     </StudioCard>
   );
@@ -137,32 +139,46 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
 
 export type EditColumnElementComponentSelectProps = {
   components: FormItem[];
-  onSelectComponent: (values: string[]) => void;
+  onSelectComponent: (value: string) => void;
+  selectedId?: string;
 };
 export const EditColumnElementComponentSelect = ({
   components,
   onSelectComponent,
+  selectedId,
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
 
+  const handleSelectedChange = (item: StudioSuggestionItem) => {
+    onSelectComponent(item.value);
+  };
+
+  const selectedItem: StudioSuggestionItem = selectedId
+    ? { value: selectedId, label: selectedId }
+    : undefined;
+
   return (
-    <StudioCombobox
+    <StudioSuggestion
       label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
       description={t(
         'ux_editor.properties_panel.subform_table_columns.choose_component_description',
       )}
-      size='sm'
-      onValueChange={onSelectComponent}
+      emptyText={t(
+        'ux_editor.properties_panel.subform_table_columns.no_components_available_message',
+      )}
+      filter={() => true}
+      selected={selectedItem}
+      onSelectedChange={handleSelectedChange}
       id='columncomponentselect'
     >
       {components.map((comp: FormItem) => (
-        <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
-          {comp.id}
-        </StudioCombobox.Option>
+        <StudioSuggestion.Option key={comp.id} value={comp.id}>
+          <div>
+            <div>{comp.id}</div>
+            <div className={classes.optionDescription}>{comp.type}</div>
+          </div>
+        </StudioSuggestion.Option>
       ))}
-      <StudioCombobox.Empty key={'noComponentsWithLabel'}>
-        {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
-      </StudioCombobox.Empty>
-    </StudioCombobox>
+    </StudioSuggestion>
   );
 };

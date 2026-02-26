@@ -11,5 +11,21 @@ setup('authenticate user', async ({ page }): Promise<void> => {
   await loginPage.clickLoginButton();
   await loginPage.clickAuthorizeButtonIfLoaded();
   await loginPage.confirmSuccessfulLogin();
+
+  const consentCookieValue = JSON.stringify({
+    preferences: { analytics: false, sessionRecording: false },
+    timestamp: Date.now(),
+  });
+
+  await page.context().addCookies([
+    {
+      name: 'altinn-studio-consent',
+      value: encodeURIComponent(consentCookieValue),
+      domain: new URL(process.env.PLAYWRIGHT_TEST_BASE_URL ?? 'http://studio.localhost').hostname,
+      path: '/',
+      sameSite: 'Lax',
+    },
+  ]);
+
   await loginPage.addSessionToSharableStorage();
 });

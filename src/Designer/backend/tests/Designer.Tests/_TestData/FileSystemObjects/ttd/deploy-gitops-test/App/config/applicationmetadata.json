@@ -1,0 +1,23 @@
+{
+    "name": "applicationmetadata.json",
+    "path": "App/config/applicationmetadata.json",
+    "sha": "abc123def456789012345678901234567890abcd",
+    "last_commit_sha": "abc123def456",
+    "last_committer_date": "2024-01-01T00:00:00Z",
+    "last_author_date": "2024-01-01T00:00:00Z",
+    "type": "file",
+    "size": 435,
+    "encoding": "base64",
+    "content": "ewogICJpZCI6ICJ0dGQvZGVwbG95LWdpdG9wcy10ZXN0IiwKICAib3JnIjogInR0ZCIsCiAgInRpdGxlIjogewogICAgIm5iIjogIlRlc3QgRGVwbG95IEdpdE9wcyIsCiAgICAiZW4iOiAiVGVzdCBEZXBsb3kgR2l0T3BzIgogIH0sCiAgImRhdGFUeXBlcyI6IFtdLAogICJwYXJ0eVR5cGVzQWxsb3dlZCI6IHsKICAgICJiYW5rcnVwdGN5RXN0YXRlIjogZmFsc2UsCiAgICAib3JnYW5pc2F0aW9uIjogdHJ1ZSwKICAgICJwZXJzb24iOiB0cnVlLAogICAgInN1YlVuaXQiOiBmYWxzZQogIH0sCiAgImF1dG9EZWxldGVPblByb2Nlc3NFbmQiOiBmYWxzZSwKICAiY3JlYXRlZCI6ICIyMDI0LTAxLTAxVDAwOjAwOjAwWiIsCiAgImNyZWF0ZWRCeSI6ICJ0ZXN0VXNlciIsCiAgImxhc3RDaGFuZ2VkIjogIjIwMjQtMDEtMDFUMDA6MDA6MDBaIiwKICAibGFzdENoYW5nZWRCeSI6ICJ0ZXN0VXNlciIKfQ==",
+    "target": null,
+    "url": "https://dev.altinn.studio/repos/api/v1/repos/ttd/deploy-gitops-test/contents/App/config/applicationmetadata.json?ref=master",
+    "html_url": "https://dev.altinn.studio/repos/ttd/deploy-gitops-test/src/branch/master/App/config/applicationmetadata.json",
+    "git_url": "https://dev.altinn.studio/repos/api/v1/repos/ttd/deploy-gitops-test/git/blobs/abc123def456789012345678901234567890abcd",
+    "download_url": "https://dev.altinn.studio/repos/ttd/deploy-gitops-test/raw/branch/master/App/config/applicationmetadata.json",
+    "submodule_git_url": null,
+    "_links": {
+        "self": "https://dev.altinn.studio/repos/api/v1/repos/ttd/deploy-gitops-test/contents/App/config/applicationmetadata.json?ref=master",
+        "git": "https://dev.altinn.studio/repos/api/v1/repos/ttd/deploy-gitops-test/git/blobs/abc123def456789012345678901234567890abcd",
+        "html": "https://dev.altinn.studio/repos/ttd/deploy-gitops-test/src/branch/master/App/config/applicationmetadata.json"
+    }
+}

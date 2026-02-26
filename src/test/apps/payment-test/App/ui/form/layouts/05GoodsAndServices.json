@@ -1,0 +1,443 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "navbar5",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "goodsAndServicesTitle",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "goodsAndServicesTitle"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "goodsAndServicesInfo",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "goodsAndServicesInfo"
+        }
+      },
+      {
+        "id": "qualifications",
+        "type": "Group",
+        "children": [
+          "importantNotice",
+          "haveReadAndUnderstood"
+        ],
+        "groupingIndicator": "indented"
+      },
+      {
+        "id": "importantNotice",
+        "type": "Panel",
+        "textResourceBindings": {
+          "title": "importantNotice",
+          "body": "importantNoticeInfo"
+        },
+        "variant": "info"
+      },
+      {
+        "id": "haveReadAndUnderstood",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "HF_HaveReadAndUnderstood"
+        },
+        "options": [
+          {
+            "value": true,
+            "label": "haveReadAndUnderstood"
+          }
+        ]
+      },
+      {
+        "id": "iFrameExamples",
+        "type": "IFrame",
+        "textResourceBindings": {
+          "title": "iFrameExamples"
+        },
+        "hidden": true
+      },
+      {
+        "id": "buttonGroup1",
+        "type": "ButtonGroup",
+        "children": [
+          "button1",
+          "button2",
+          "button3",
+          "button4"
+        ],
+        "hidden": true
+      },
+      {
+        "id": "button1",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "clothes"
+        }
+      },
+      {
+        "id": "button2",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "development"
+        }
+      },
+      {
+        "id": "button3",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "coffee"
+        }
+      },
+      {
+        "id": "button4",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "beauty"
+        }
+      },
+      {
+        "id": "pG1",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "pG1"
+        },
+        "hidden": true
+      },
+      {
+        "id": "pG2",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "pG2"
+        },
+        "hidden": true
+      },
+      {
+        "id": "pG3",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "pG3"
+        },
+        "hidden": true
+      },
+      {
+        "id": "servicesInfo",
+        "type": "Accordion",
+        "textResourceBindings": {
+          "title": "servicesInfo"
+        },
+        "children": [
+          "servicesHelpInfo"
+        ],
+        "hidden": [
+          "equals",
+          [
+            "dataModel",
+            "HF_HaveReadAndUnderstood"
+          ],
+          null
+        ]
+      },
+      {
+        "id": "servicesHelpInfo",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "servicesHelpInfo"
+        }
+      },
+      {
+        "id": "services",
+        "type": "RepeatingGroup",
+        "children": [
+          "niceClassificationNumber",
+          "servicesAndGoods"
+        ],
+        "tableHeaders": [
+          "niceClassificationNumber",
+          "servicesAndGoods"
+        ],
+        "edit": {
+          "editButton": false,
+          "deleteButton": true,
+          "openByDefault": true,
+          "mode": "onlyTable"
+        },
+        "tableColumns": {
+          "niceClassificationNumber": {
+            "editInTable": true,
+            "showInExpandedEdit": true,
+            "width": "25%"
+          },
+          "servicesAndGoods": {
+            "editInTable": true,
+            "showInExpandedEdit": true,
+            "width": "75%",
+            "textOverflow": {
+              "lineWrap": true,
+              "maxHeight": 4
+            }
+          }
+        },
+        "dataModelBindings": {
+          "group": "GoodsAndServicesProperties.Inventory.InventoryProperties"
+        },
+        "textResourceBindings": {
+          "add_button": "addClassification"
+        },
+        "maxCount": 99,
+        "minCount": 1,
+        "hidden": [
+          "equals",
+          [
+            "dataModel",
+            "HF_HaveReadAndUnderstood"
+          ],
+          null
+        ]
+      },
+      {
+        "id": "paymentDetails",
+        "type": "PaymentDetails",
+        "textResourceBindings": {
+          "title": "Oversikt over betaling",
+          "description": "Her er en oversikt over hva du skal betale for."
+        },
+        "mapping": {
+          "GoodsAndServicesProperties.Inventory.InventoryProperties": "paymentDetails"
+        },
+        "hidden": [
+          "or",
+          ["equals",
+          [
+            "dataModel",
+            "HF_HaveReadAndUnderstood"
+          ],
+          null],
+          ["equals",
+          [
+            "dataModel",
+            "HideFirstPaymentDetails"
+          ],
+          true]
+        ]
+      },
+      {
+        "id": "niceClassificationNumber",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "niceClassificationNumber"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GoodsAndServicesProperties.Inventory.InventoryProperties.NiceClassification"
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 3,
+          "md": 3
+        }
+      },
+      {
+        "id": "servicesAndGoods",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "servicesAndGoods"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GoodsAndServicesProperties.Inventory.InventoryProperties.GoodsAndServices"
+        },
+        "labelSettings": {
+          "optionalIndicator": false
+        },
+        "grid": {
+          "xs": 12,
+          "sm": 9,
+          "md": 9
+        }
+      },
+      {
+        "id": "displaySearch",
+        "type": "Group",
+        "children": [
+          "searchSimilarTrademarks",
+          "trademarkResults"
+        ],
+        "groupingIndicator": "panel",
+        "hidden": [
+          "or",
+          [
+            "equals",
+            [
+              "dataModel",
+              "SimilarTrademarks.SearchResult[1].ApplicationNumber"
+            ],
+            null
+          ],
+          [
+            "equals",
+            [
+              "dataModel",
+              "HF_HaveReadAndUnderstood"
+            ],
+            null
+          ]
+        ]
+      },
+      {
+        "id": "searchSimilarTrademarks",
+        "type": "Panel",
+        "textResourceBindings": {
+          "title": "searchSimilarTrademarks",
+          "body": [
+            "if",
+            [
+              "notEquals",
+              [
+                "dataModel",
+                "SimilarTrademarks.SearchServiceLink"
+              ],
+              null
+            ],
+            "searchLink"
+          ]
+        },
+        "variant": "info"
+      },
+      {
+        "id": "trademarkResults",
+        "type": "RepeatingGroup",
+        "children": [
+          "goodsAndsServicesClassNumber",
+          "trademarkWord",
+          "status",
+          "applicationNumber"
+        ],
+        "dataModelBindings": {
+          "group": "SimilarTrademarks.SearchResult"
+        },
+        "edit": {
+          "openByDefault": false,
+          "addButton": false,
+          "editButton": false,
+          "deleteButton": false,
+          "saveAndNextButton": false,
+          "saveButton": false
+        },
+        "tableHeaders": [
+          "goodsAndsServicesClassNumber",
+          "trademarkWord",
+          "status",
+          "applicationNumber"
+        ],
+        "tableColumns": {
+          "goodsAndsServicesClassNumber": {
+            "editInTable": false,
+            "showInExpandedEdit": true,
+            "width": "15%"
+          },
+          "trademarkWord": {
+            "editInTable": false,
+            "showInExpandedEdit": true,
+            "width": "30%"
+          },
+          "status": {
+            "editInTable": false,
+            "showInExpandedEdit": true,
+            "width": "30%"
+          },
+          "applicationNumber": {
+            "editInTable": false,
+            "showInExpandedEdit": true,
+            "width": "25%"
+          }
+        }
+      },
+      {
+        "id": "applicationNumber",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "applicationNumber"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "SimilarTrademarks.SearchResult.ApplicationNumber"
+        }
+      },
+      {
+        "id": "trademarkWord",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "trademarkWord"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "SimilarTrademarks.SearchResult.TrademarkText"
+        }
+      },
+      {
+        "id": "status",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "status"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "SimilarTrademarks.SearchResult.Status"
+        }
+      },
+      {
+        "id": "goodsAndsServicesClassNumber",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "goodsAndsServicesClassNumber"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "SimilarTrademarks.SearchResult.GoodsAndServicesClassNumber"
+        }
+      },
+      {
+        "id": "servicesDetails",
+        "type": "TextArea",
+        "textResourceBindings": {
+          "title": "servicesDetails",
+          "description": "serviceInfo"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "GoodsAndServicesProperties.Details"
+        },
+        "hidden": [
+          "equals",
+          [
+            "dataModel",
+            "HF_HaveReadAndUnderstood"
+          ],
+          null
+        ]
+      },
+      {
+        "id": "navButtons5",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "next": "next"
+        },
+        "showBackButton": true,
+        "validateOnNext": {
+          "page": "current",
+          "show": [
+            "All"
+          ]
+        },
+        "hidden": [
+          "equals",
+          [
+            "dataModel",
+            "HF_HaveReadAndUnderstood"
+          ],
+          null
+        ]
+      }
+    ]
+  }
+}

@@ -1,7 +1,9 @@
+#nullable disable
 using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
@@ -20,12 +22,10 @@ namespace Altinn.Studio.Designer.Controllers
     [Route("[controller]/[action]/{id?}")]
     public class HomeController : Controller
     {
-        private readonly IGitea _giteaApi;
         private readonly ILogger<HomeController> _logger;
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
         private readonly GeneralSettings _generalSettings;
-        private readonly ApplicationInsightsSettings _applicationInsightsSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class
@@ -33,24 +33,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="logger">The logger</param>
         /// <param name="repositorySettings">settings for the repository</param>
         /// <param name="generalSettings">the general settings</param>
-        /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="sourceControl">the source control</param>
-        /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
         public HomeController(
             ILogger<HomeController> logger,
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
-            IGitea giteaWrapper,
-            ISourceControl sourceControl,
-            ApplicationInsightsSettings applicationInsightsSettings
+            ISourceControl sourceControl
         )
         {
             _logger = logger;
             _settings = repositorySettings;
             _generalSettings = generalSettings;
-            _giteaApi = giteaWrapper;
             _sourceControl = sourceControl;
-            _applicationInsightsSettings = applicationInsightsSettings;
         }
 
         /// <summary>
@@ -111,7 +105,8 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         public IActionResult AppToken(AppKey appKey)
         {
-            _sourceControl.StoreAppTokenForUser(appKey.Key);
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            _sourceControl.StoreAppTokenForUser(appKey.Key, developer);
             return Redirect("/");
         }
     }

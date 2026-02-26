@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Register;
 using Altinn.App.Core.Internal.App;
@@ -76,7 +77,7 @@ public class PersonClientTests
 
         Assert.Equal(HttpMethod.Get, platformRequest!.Method);
         Assert.Equal("Bearer usertoken", platformRequest!.Headers.Authorization!.ToString());
-        Assert.Equal("accesstoken", platformRequest!.Headers.GetValues("PlatformAccessToken").First());
+        Assert.Equal("accesstoken", platformRequest!.Headers.GetValues(General.PlatformAccessTokenHeaderName).First());
         Assert.StartsWith("http://real.domain.com", platformRequest!.RequestUri!.ToString());
         Assert.EndsWith("persons", platformRequest!.RequestUri!.ToString());
         Assert.Equal("personnummer", platformRequest!.Headers.GetValues("X-Ai-NationalIdentityNumber").First());

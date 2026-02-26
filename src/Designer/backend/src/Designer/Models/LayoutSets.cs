@@ -1,4 +1,3 @@
-#nullable enable
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Converters;
@@ -26,7 +25,8 @@ public class LayoutSetConfig
     [JsonPropertyName("id")]
     public required string Id { get; set; }
 
-    [JsonPropertyName("dataType")] public string? DataType { get; set; }
+    [JsonPropertyName("dataType")]
+    public string? DataType { get; set; }
 
     [JsonPropertyName("tasks")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -73,5 +73,5 @@ public class TaskNavigationReceipt : TaskNavigationGroup
 public enum TaskNavigationReceiptType
 {
     [JsonStringEnumMemberName("receipt")]
-    Receipt
+    Receipt,
 }

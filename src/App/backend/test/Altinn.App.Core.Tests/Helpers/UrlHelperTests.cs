@@ -27,7 +27,7 @@ public class UrlHelperTests
 
         // Assert
         Assert.Equal(
-            "http://localhost.altinn.cloud/testOrg/testApp/#/instance/50841220/7c811874-deca-428d-b238-019f1a149833",
+            "http://localhost.altinn.cloud/testOrg/testApp/instance/50841220/7c811874-deca-428d-b238-019f1a149833",
             result
         );
     }

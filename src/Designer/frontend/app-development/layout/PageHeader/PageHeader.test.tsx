@@ -9,6 +9,7 @@ import { pageHeaderContextMock, previewContextMock } from 'app-development/test/
 import { PreviewContext } from 'app-development/contexts/PreviewContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
@@ -72,10 +73,12 @@ type Props = {
 const renderPageHeader = (props: Partial<Props> = {}) => {
   const { componentProps, contextProps } = props;
   return renderWithProviders()(
-    <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...contextProps }}>
-      <PreviewContext.Provider value={previewContextMock}>
-        <PageHeader {...defaultProps} {...componentProps} />,
-      </PreviewContext.Provider>
-    </PageHeaderContext.Provider>,
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...contextProps }}>
+        <PreviewContext.Provider value={previewContextMock}>
+          <PageHeader {...defaultProps} {...componentProps} />
+        </PreviewContext.Provider>
+      </PageHeaderContext.Provider>
+    </FeatureFlagsContextProvider>,
   );
 };

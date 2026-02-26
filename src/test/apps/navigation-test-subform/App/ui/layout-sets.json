@@ -1,0 +1,29 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.16.1-pr.543.navigation.148ab6d3/schemas/json/layout/layout-sets.schema.v1.json",
+  "sets": [
+    {
+      "id": "form",
+      "dataType": "model",
+      "tasks": ["Task_1"]
+    },
+    {
+      "id": "subform",
+      "dataType": "subform",
+      "type": "subform"
+    }
+  ],
+  "uiSettings": {
+    "taskNavigation": [
+      {
+        "name": "tasks.form",
+        "taskId": "Task_1"
+      },
+      {
+        "taskId": "Task_Confirm"
+      },
+      {
+        "type": "receipt"
+      }
+    ]
+  }
+}

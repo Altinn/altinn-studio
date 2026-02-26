@@ -19,7 +19,7 @@ export function ApiTableSummary({ targetBaseComponentId }: Summary2Props) {
     'SimpleTable',
   );
 
-  const { title } = textResourceBindings ?? {};
+  const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const isMobile = useIsMobile();
   const { data } = useExternalApis(externalApi ? [externalApi.id] : []);
 

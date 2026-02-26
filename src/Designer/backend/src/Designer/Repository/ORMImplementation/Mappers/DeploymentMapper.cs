@@ -1,7 +1,10 @@
+#nullable disable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
@@ -14,7 +17,27 @@ public static class DeploymentMapper
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        Converters = { new JsonStringEnumConverter() }
+        Converters = { new JsonStringEnumConverter() },
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver
+        {
+            Modifiers =
+            {
+                static typeInfo =>
+                {
+                    if (typeInfo.Type != typeof(DeploymentEntity))
+                    {
+                        return;
+                    }
+                    var eventsProperty = typeInfo.Properties.FirstOrDefault(p =>
+                        p.Name.Equals(nameof(DeploymentEntity.Events), StringComparison.OrdinalIgnoreCase)
+                    );
+                    if (eventsProperty != null)
+                    {
+                        eventsProperty.ShouldSerialize = (_, _) => false;
+                    }
+                },
+            },
+        },
     };
 
     public static DeploymentDbModel MapToDbModel(DeploymentEntity deploymentEntity)
@@ -29,12 +52,23 @@ public static class DeploymentMapper
             Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
             Created = deploymentEntity.Created.ToUniversalTime(),
             CreatedBy = deploymentEntity.CreatedBy,
-            DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)(int)deploymentEntity.DeploymentType,
+            DeploymentType = (Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentType)
+                (int)deploymentEntity.DeploymentType,
             Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions),
-            Build = BuildMapper.MapToDbModel(deploymentEntity.Build, deploymentEntity.DeploymentType == Altinn.Studio.Designer.Repository.Models.DeploymentType.Deploy ? BuildType.Deployment : BuildType.Decommission)
+            Build = BuildMapper.MapToDbModel(
+                deploymentEntity.Build,
+                deploymentEntity.DeploymentType == Altinn.Studio.Designer.Repository.Models.DeploymentType.Deploy
+                    ? BuildType.Deployment
+                    : BuildType.Decommission
+            ),
         };
     }
-    public static DeploymentDbModel MapToDbModel(DeploymentEntity deploymentEntity, long deploymentSequenceNo, long buildId)
+
+    public static DeploymentDbModel MapToDbModel(
+        DeploymentEntity deploymentEntity,
+        long deploymentSequenceNo,
+        long buildId
+    )
     {
         var dbModel = MapToDbModel(deploymentEntity);
         dbModel.Sequenceno = deploymentSequenceNo;
@@ -54,7 +88,20 @@ public static class DeploymentMapper
             Build = BuildMapper.MapToModel(dbObject.Build),
             Created = dbObject.Created.ToUniversalTime(),
             CreatedBy = dbObject.CreatedBy,
-            DeploymentType = (Altinn.Studio.Designer.Repository.Models.DeploymentType)(int)dbObject.DeploymentType
+            DeploymentType = (Altinn.Studio.Designer.Repository.Models.DeploymentType)(int)dbObject.DeploymentType,
+            Events =
+                dbObject
+                    .Events?.OrderBy(e => e.Created)
+                    .Select(e => new DeployEvent
+                    {
+                        Message = e.Message,
+                        Timestamp = e.Timestamp,
+                        EventType = Enum.Parse<DeployEventType>(e.EventType),
+                        Created = e.Created,
+                        Origin = Enum.Parse<DeployEventOrigin>(e.Origin),
+                    })
+                    .ToList()
+                ?? [],
         };
     }
 

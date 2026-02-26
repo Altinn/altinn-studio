@@ -1,11 +1,11 @@
-﻿#nullable enable
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.CodeList;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces.Organisation;
@@ -13,6 +13,7 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Controllers.Organisation;
 
@@ -25,14 +26,17 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 public class OrgCodeListController : ControllerBase
 {
     private readonly IOrgCodeListService _orgCodeListService;
+    private readonly ILogger<OrgCodeListController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrgCodeListController"/> class.
     /// </summary>
     /// <param name="orgCodeListService">The CodeList service for organisation level</param>
-    public OrgCodeListController(IOrgCodeListService orgCodeListService)
+    /// <param name="logger">The logger</param>
+    public OrgCodeListController(IOrgCodeListService orgCodeListService, ILogger<OrgCodeListController> logger)
     {
         _orgCodeListService = orgCodeListService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -43,7 +47,10 @@ public class OrgCodeListController : ControllerBase
     /// <returns>List of <see cref="OptionListData" /> objects with all code lists belonging to the organisation with data
     /// set if code list is valid, or hasError set if code list is invalid.</returns>
     [HttpGet]
-    public async Task<ActionResult<List<OptionListData>>> GetCodeLists(string org, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<OptionListData>>> GetCodeLists(
+        string org,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         try
@@ -61,21 +68,37 @@ public class OrgCodeListController : ControllerBase
     }
 
     /// <summary>
-    /// Fetches the contents of all the code lists belonging to the organisation.
+    /// Publishes a code list to shared storage.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation.</param>
-    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if empty.</param>
+    /// <param name="requestBody">The publish request containing the code list title and data.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    /// <returns>List of <see cref="CodeListWrapper" /> which includes all code lists belonging to the organisation.</returns>
-    [HttpGet]
-    [Route("new")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<CodeListWrapper>>> GetCodeListsNew(string org, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
+    [HttpPost]
+    [ProducesResponseType(typeof(PublishedVersionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [Route("new/publish")]
+    [Authorize(Policy = AltinnPolicy.MustBelongToOrganization)]
+    public async Task<ActionResult<PublishedVersionResponse>> PublishCodeList(
+        string org,
+        [FromBody] PublishCodeListRequest requestBody,
+        CancellationToken cancellationToken = default
+    )
     {
-        List<CodeListWrapper> codeLists = await _orgCodeListService.GetCodeListsNew(org, reference, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        return Ok(codeLists);
+        try
+        {
+            string publishedVersion = await _orgCodeListService.PublishCodeList(org, requestBody, cancellationToken);
+            PublishedVersionResponse response = new() { PublishedVersion = publishedVersion };
+            return Ok(response);
+        }
+        catch (Exception ex) when (ex is ArgumentException or IllegalCodeListTitleException or ArgumentNullException)
+        {
+            _logger.LogError(ex, "Invalid request to publish codelist for org {Org}.", org);
+            return BadRequest(
+                new ProblemDetails { Title = "Invalid request", Status = StatusCodes.Status400BadRequest }
+            );
+        }
     }
 
     /// <summary>
@@ -90,45 +113,25 @@ public class OrgCodeListController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("{codeListId}")]
-    public async Task<ActionResult<List<OptionListData>>> CreateCodeList(string org, [FromRoute] string codeListId, [FromBody] List<Option> codeList, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<OptionListData>>> CreateCodeList(
+        string org,
+        [FromRoute] string codeListId,
+        [FromBody] List<Option> codeList,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        List<OptionListData> codeLists = await _orgCodeListService.CreateCodeList(org, developer, codeListId, codeList, cancellationToken);
+        List<OptionListData> codeLists = await _orgCodeListService.CreateCodeList(
+            org,
+            developer,
+            codeListId,
+            codeList,
+            cancellationToken
+        );
 
         return Ok(codeLists);
-    }
-
-    /// <summary>
-    /// Creates or overwrites the code lists.
-    /// </summary>
-    /// <param name="org">Unique identifier of the organisation.</param>
-    /// <param name="requestBody">The body of the request <see cref="UpdateCodeListRequest"/></param>
-    /// <param name="reference">Resource reference, commit/branch/tag, usually default branch if not supplied.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-    [HttpPut]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [Route("new")]
-    public async Task<ActionResult> UpdateCodeListsNew(string org, [FromBody] UpdateCodeListRequest requestBody, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        List<CodeListWrapper> codeListWrappers = requestBody.CodeListWrappers;
-        string? commitMessage = requestBody.CommitMessage;
-
-        try
-        {
-            await _orgCodeListService.UpdateCodeListsNew(org, developer, codeListWrappers, commitMessage, reference, cancellationToken);
-        }
-        catch (Exception ex) when (ex is IllegalFileNameException or IllegalCommitMessageException)
-        {
-            return BadRequest(ex.Message);
-        }
-
-        return Ok();
     }
 
     /// <summary>
@@ -143,12 +146,23 @@ public class OrgCodeListController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("{codeListId}")]
-    public async Task<ActionResult<List<OptionListData>>> UpdateCodeList(string org, [FromRoute] string codeListId, [FromBody] List<Option> codeList, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<OptionListData>>> UpdateCodeList(
+        string org,
+        [FromRoute] string codeListId,
+        [FromBody] List<Option> codeList,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        List<OptionListData> codeLists = await _orgCodeListService.UpdateCodeList(org, developer, codeListId, codeList, cancellationToken);
+        List<OptionListData> codeLists = await _orgCodeListService.UpdateCodeList(
+            org,
+            developer,
+            codeListId,
+            codeList,
+            cancellationToken
+        );
 
         return Ok(codeLists);
     }
@@ -160,7 +174,12 @@ public class OrgCodeListController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public ActionResult UpdateCodeListId(string org, [FromRoute] string codeListId, [FromBody] string newCodeListId, CancellationToken cancellationToken = default)
+    public ActionResult UpdateCodeListId(
+        string org,
+        [FromRoute] string codeListId,
+        [FromBody] string newCodeListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -188,14 +207,23 @@ public class OrgCodeListController : ControllerBase
     /// <param name="cancellationToken"><see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     [HttpPost]
     [Route("upload")]
-    public async Task<ActionResult<List<OptionListData>>> UploadCodeList(string org, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    public async Task<ActionResult<List<OptionListData>>> UploadCodeList(
+        string org,
+        [FromForm] IFormFile file,
+        CancellationToken cancellationToken
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         try
         {
-            List<OptionListData> codeLists = await _orgCodeListService.UploadCodeList(org, developer, file, cancellationToken);
+            List<OptionListData> codeLists = await _orgCodeListService.UploadCodeList(
+                org,
+                developer,
+                file,
+                cancellationToken
+            );
             return Ok(codeLists);
         }
         catch (JsonException e)
@@ -214,7 +242,11 @@ public class OrgCodeListController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [Route("{codeListId}")]
-    public async Task<ActionResult<List<OptionListData>>> DeleteCodeList(string org, [FromRoute] string codeListId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<OptionListData>>> DeleteCodeList(
+        string org,
+        [FromRoute] string codeListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -225,7 +257,12 @@ public class OrgCodeListController : ControllerBase
             return NotFound($"The code list file {codeListId}.json does not exist.");
         }
 
-        List<OptionListData> codeLists = await _orgCodeListService.DeleteCodeList(org, developer, codeListId, cancellationToken);
+        List<OptionListData> codeLists = await _orgCodeListService.DeleteCodeList(
+            org,
+            developer,
+            codeListId,
+            cancellationToken
+        );
         return Ok(codeLists);
     }
 }

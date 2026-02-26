@@ -4,7 +4,7 @@ import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Keyword } from '@altinn/schema-model';
 import classes from './ReferenceSelectionComponent.module.css';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioNativeSelect } from '@studio/components-legacy';
+import { StudioSelect } from '@studio/components';
 
 export interface IReferenceSelectionProps {
   buttonText: string;
@@ -26,19 +26,18 @@ export function ReferenceSelectionComponent({
   const selectId = makeDomFriendlyID(selectedNode.schemaPointer, { suffix: 'ref-select' });
   return (
     <div>
-      <StudioNativeSelect
+      <StudioSelect
         id={selectId}
         label={label}
         onChange={(event) => onChangeRef(selectedNode.schemaPointer, event.target.value)}
         value={selectedNode.reference || ''}
-        size='sm'
       >
         {definitions.map(({ schemaPointer }) => (
-          <option key={schemaPointer} value={schemaPointer}>
+          <StudioSelect.Option key={schemaPointer} value={schemaPointer}>
             {schemaPointer.replace(`#/${Keyword.Definitions}/`, '')}
-          </option>
+          </StudioSelect.Option>
         ))}
-      </StudioNativeSelect>
+      </StudioSelect>
       <button type='button' className={classes.navButton} onClick={onGoToDefButtonClick}>
         {buttonText}
       </button>

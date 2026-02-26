@@ -3,6 +3,7 @@ import React from 'react';
 import { isAxiosError } from 'axios';
 import { z, ZodError } from 'zod';
 
+import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 
@@ -22,7 +23,7 @@ export function SigneeListError({ error }: { error: Error }) {
     );
 
     return (
-      <div>
+      <FatalError>
         <Lang id='signee_list.parse_error' />
         <br />
         <Lang
@@ -33,7 +34,7 @@ export function SigneeListError({ error }: { error: Error }) {
             { key: 'general.customer_service_slack' },
           ]}
         />
-      </div>
+      </FatalError>
     );
   }
 
@@ -42,9 +43,17 @@ export function SigneeListError({ error }: { error: Error }) {
 
     if (parsed.success) {
       window.logErrorOnce(langAsString(error.message));
-      return <Lang id='signee_list.api_error_display' />;
+      return (
+        <FatalError>
+          <Lang id='signee_list.api_error_display' />
+        </FatalError>
+      );
     }
   }
 
-  return <Lang id='signee_list.unknown_api_error' />;
+  return (
+    <FatalError>
+      <Lang id='signee_list.unknown_api_error' />
+    </FatalError>
+  );
 }

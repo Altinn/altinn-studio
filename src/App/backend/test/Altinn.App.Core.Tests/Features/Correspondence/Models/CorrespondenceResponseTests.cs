@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Models;

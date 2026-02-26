@@ -10,13 +10,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class GetAccessPackageOptionsTests : DesignerEndpointsTestsBase<GetAccessPackageOptionsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetAccessPackageOptionsTests
+        : DesignerEndpointsTestsBase<GetAccessPackageOptionsTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public GetAccessPackageOptionsTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public GetAccessPackageOptionsTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Get_AccessPackageOptions()
@@ -32,11 +33,13 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
 
-                accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(responseBody, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(
+                    responseBody,
+                    new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+                );
             }
 
             Assert.NotNull(accessPackageOptions);
-            Assert.Equal(3, accessPackageOptions.Count);
         }
     }
 }

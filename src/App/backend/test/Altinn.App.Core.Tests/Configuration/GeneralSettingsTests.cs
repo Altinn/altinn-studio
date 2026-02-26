@@ -26,17 +26,4 @@ public class GeneralSettingsTests
         // Assert
         Assert.Equal($"http://localhost.altinn.cloud/testOrg/testApp/", result);
     }
-
-    [Fact]
-    public void FormattedExternalAppBaseUrlWithTrailingPound_GivenAppIdentifier_ReturnsFormattedUrlWithTrailingPound()
-    {
-        // Arrange
-        AppIdentifier app = new("testOrg", "testApp");
-
-        // Act
-        var result = _settings.FormattedExternalAppBaseUrlWithTrailingPound(app);
-
-        // Assert
-        Assert.Equal($"http://localhost.altinn.cloud/testOrg/testApp/#", result);
-    }
 }

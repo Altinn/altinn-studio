@@ -27,6 +27,7 @@ import {
   accessListsPath,
   accessListPath,
   accessListMemberPath,
+  appValidationPath,
   processEditorPath,
   releasesPath,
   repoMetaPath,
@@ -61,6 +62,7 @@ import {
   authStatusAnsattporten,
   availableMaskinportenScopesPath,
   selectedMaskinportenScopesPath,
+  appSettingsPath,
   resourceAccessPackageServicesPath,
   optionListPath,
   optionListReferencesPath,
@@ -74,6 +76,9 @@ import {
   allAccessListsPath,
   orgTextLanguagesPath,
   canUseFeaturePath,
+  orgLibraryPath,
+  publishedResourcesPath,
+  customTemplatesPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -95,7 +100,8 @@ import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import type { PolicyAction, PolicySubject } from '@altinn/policy-editor';
+import type { PolicyAction } from '../types/PolicyAction';
+import type { PolicySubject } from '../types/PolicySubject';
 import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview, ConsentTemplate } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -119,15 +125,23 @@ import type { LibraryContentType } from 'app-shared/enums/LibraryContentType';
 import type { ExternalResource } from 'app-shared/types/ExternalResource';
 import type { CanUseFeature } from 'app-shared/types/api/CanUseFeatureResponse';
 import type { FeatureName } from 'app-shared/enums/CanUseFeature';
+import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourcesResponse';
+import type { AppValidationResult } from 'app-development/hooks/queries/useAppValidationQuery';
+import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
+import type { AppSettings } from 'app-shared/types/AppSettings';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
+export const getAppSettings = (org: string, app: string) => get<AppSettings>(appSettingsPath(org, app));
 
 export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
+export const getAppValidation = (owner: string, app: string) => get<AppValidationResult>(appValidationPath(owner, app));
+
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
 export const getAvailableResourcesFromOrg = (owner: string, contentType?: LibraryContentType) => get<ExternalResource[]>(availableResourcesInOrgLibraryPath(owner, contentType));
+export const getAvailableTemplates = () => get<CustomTemplateList>(customTemplatesPath());
 export const getBranchStatus = (owner: string, app: string, branch: string) => get<BranchStatus>(branchStatusPath(owner, app, branch));
 export const getDataModel = (owner: string, app: string, modelPath: string) => get<JsonSchema>(dataModelPath(owner, app, modelPath));
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
@@ -186,7 +200,7 @@ export const getPolicySubjects = (org: string, repo: string) => get<PolicySubjec
 export const getAccessPackages = (org: string, repo: string) => get<PolicyAccessPackageAreaGroup[]>(resourceAccessPackagesPath(org, repo));
 export const getAccessPackageServices = (accessPackageUrn: string, env: string) => get<AccessPackageResource[]>(resourceAccessPackageServicesPath(accessPackageUrn, env));
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
-export const getResourceList = (org: string) => get<ResourceListItem[]>(resourceListPath(org));
+export const getResourceList = (org: string, skipGiteaFields = false, skipParseJson = false) => get<ResourceListItem[]>(resourceListPath(org, skipGiteaFields, skipParseJson));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
 export const getValidatePolicy = (org: string, repo: string, id: string) => get<Validation>(resourceValidatePolicyPath(org, repo, id));
 export const getValidateResource = (org: string, repo: string, id: string) => get<Validation>(resourceValidateResourcePath(org, repo, id));
@@ -208,6 +222,9 @@ export const getProcessTaskType = (org: string, app: string, taskId: string) => 
 export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());
 
 // Organisation library
+export const getSharedResources = async (org: string, path: string, reference?: string): Promise<SharedResourcesResponse> => get<SharedResourcesResponse>(orgLibraryPath(org, path, reference));
+
 export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeListsPath(org));
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
+export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));

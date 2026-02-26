@@ -1,30 +1,29 @@
 import React from 'react';
-import { Heading } from '@digdir/designsystemet-react';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { usePropertyTypes } from './ConfigProperties/usePropertyTypes';
 import {
   ConfigGridProperties,
   ConfigBooleanProperties,
-  ConfigObjectProperties,
   ConfigArrayProperties,
   ConfigStringProperties,
   ConfigNumberProperties,
 } from './ConfigProperties';
-import { useText } from '../../hooks';
 import type { FormItem } from '../../types/FormItem';
 import classes from './FormComponentConfig.module.css';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { ConfigObjectProperty } from './ConfigProperties/ConfigObjectProperty/ConfigObjectProperty';
 
 export interface IEditFormComponentProps {
   editFormId: string;
   component: FormItem;
   handleComponentUpdate: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
+  keepEditOpen?: boolean;
 }
 
 export interface FormComponentConfigProps extends IEditFormComponentProps {
   schema: JsonSchema;
-  hideUnsupported?: boolean;
 }
 
 export const FormComponentConfig = ({
@@ -32,10 +31,8 @@ export const FormComponentConfig = ({
   editFormId,
   component,
   handleComponentUpdate,
-  hideUnsupported,
+  keepEditOpen,
 }: FormComponentConfigProps) => {
-  const t = useText();
-
   // Add any properties that have a custom implementation to this list so they are not duplicated in the generic view
   const customProperties = [
     'hasCustomFileEndings',
@@ -47,6 +44,7 @@ export const FormComponentConfig = ({
     'target',
     'tableColumns',
     'overrides',
+    component.type === ComponentType.Text ? 'value' : '',
   ];
 
   const { booleanKeys, stringKeys, numberKeys, arrayKeys, objectKeys } = usePropertyTypes(
@@ -66,12 +64,6 @@ export const FormComponentConfig = ({
       {layoutSet && component['layoutSet'] && (
         <RedirectToLayoutSet selectedSubform={component['layoutSet']} />
       )}
-      {!hideUnsupported && (
-        <Heading level={3} size='xxsmall' className={classes.elementWrapper}>
-          {t('ux_editor.component_other_properties_title')}
-        </Heading>
-      )}
-
       {/** Boolean fields, incl. expression type */}
       {booleanKeys.length > 0 && (
         <ConfigBooleanProperties
@@ -100,6 +92,7 @@ export const FormComponentConfig = ({
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
+          keepEditOpen={keepEditOpen}
         />
       )}
 
@@ -111,6 +104,7 @@ export const FormComponentConfig = ({
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
+          keepEditOpen={keepEditOpen}
         />
       )}
 
@@ -122,20 +116,25 @@ export const FormComponentConfig = ({
           component={component}
           handleComponentUpdate={handleComponentUpdate}
           className={classes.elementWrapper}
+          keepEditOpen={keepEditOpen}
         />
       )}
 
       {/** Object properties  */}
-      {objectKeys.length > 0 && (
-        <ConfigObjectProperties
-          editFormId={editFormId}
-          objectPropertyKeys={objectKeys}
-          schema={schema}
-          component={component}
-          handleComponentUpdate={handleComponentUpdate}
-          className={classes.elementWrapper}
-        />
-      )}
+      {objectKeys.length > 0 &&
+        objectKeys.map((objectPropertyKey) => {
+          return (
+            <ConfigObjectProperty
+              key={objectPropertyKey}
+              editFormId={editFormId}
+              objectPropertyKey={objectPropertyKey}
+              schema={schema}
+              component={component}
+              handleComponentUpdate={handleComponentUpdate}
+              className={classes.elementWrapper}
+            />
+          );
+        })}
     </>
   );
 };

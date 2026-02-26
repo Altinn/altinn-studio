@@ -1,1 +1,0 @@
-export { StudioCheckboxTableHeader } from './StudioCheckboxTableHeader';

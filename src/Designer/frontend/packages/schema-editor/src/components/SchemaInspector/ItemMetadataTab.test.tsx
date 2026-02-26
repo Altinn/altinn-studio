@@ -11,6 +11,11 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { DataType } from 'app-shared/types/DataType';
 import userEvent from '@testing-library/user-event';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
+import { app, org } from '@studio/testing/testids';
+
+jest.mock('app-shared/hooks/useStudioEnvironmentParams', () => ({
+  useStudioEnvironmentParams: () => ({ org, app }),
+}));
 
 describe('ItemMetadataTab', () => {
   it('should render correctly', async () => {
@@ -61,7 +66,7 @@ describe('ItemMetadataTab', () => {
     await user.clear(maxCountSpinButton());
     await user.type(maxCountSpinButton(), '3');
     await user.type(minCountSpinButton(), '2');
-    await user.click(autoCreateCheckbox());
+    await user.click(autoCreateSwitch());
     await waitForDebounce();
     expect(updateDataType).toHaveBeenCalledTimes(2);
     expect(updateDataType).toHaveBeenCalledWith(
@@ -113,6 +118,6 @@ const maxCountSpinButton = () =>
   screen.getByRole('spinbutton', { name: /schema_editor\.metadata\.maxCount/i });
 const minCountSpinButton = () =>
   screen.getByRole('spinbutton', { name: /schema_editor\.metadata\.minCount/i });
-const autoCreateCheckbox = () =>
-  screen.getByRole('checkbox', { name: /schema_editor\.metadata\.autoCreate/i });
+const autoCreateSwitch = () =>
+  screen.getByRole('switch', { name: /schema_editor\.metadata\.autoCreate/i });
 const noMetadataErrorMessage = () => screen.getByText(/schema_editor.metadata.not_found/);

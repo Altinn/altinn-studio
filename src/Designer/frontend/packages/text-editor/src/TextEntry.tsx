@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import type { TextTableRowEntry } from './types';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { Variables } from './Variables';
-import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
+import { useAutoSizeTextArea } from '@studio/components/src/hooks';
 import { APP_NAME } from 'app-shared/constants';
 import { FormField } from 'app-shared/components/FormField/FormField';
 import { useTranslation } from 'react-i18next';
-import { StudioTextarea } from '@studio/components-legacy';
+import { StudioTextarea } from '@studio/components';
 
 export interface TextEntryProps extends TextTableRowEntry {
   textId: string;

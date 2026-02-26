@@ -1,0 +1,7 @@
+.regularSub {
+  background-color: var(--studio-designer-header-background-secondary);
+}
+
+.previewSub {
+  background-color: var(--studio-preview-header-background-secondary);
+}

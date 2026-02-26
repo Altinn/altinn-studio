@@ -2,6 +2,9 @@ using System.Net;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Internal;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
@@ -43,7 +46,8 @@ public class LocaltestValidationTests
 
         public static Fixture Create(
             Action<IServiceCollection>? registerCustomAppServices = default,
-            Action? onRequest = null
+            Action? onRequest = null,
+            int? mockServerPort = null
         )
         {
             var server = WireMockServer.Start();
@@ -52,6 +56,21 @@ public class LocaltestValidationTests
             mockHttpClientFactory
                 .Setup(f => f.CreateClient(It.IsAny<string>()))
                 .Returns(() => server.CreateClient(new ReqHandler(onRequest)));
+
+            // Mock IServer with IServerAddressesFeature
+            var mockServer = new Mock<IServer>();
+            var mockAddressesFeature = new Mock<IServerAddressesFeature>();
+            var mockFeatureCollection = new Mock<IFeatureCollection>();
+
+            // Set up the mock port (default to 5005 for backward compatibility)
+            var port = mockServerPort ?? 5005;
+            var addresses = new List<string> { $"http://0.0.0.0:{port}" };
+
+            mockAddressesFeature.Setup(f => f.Addresses).Returns(addresses);
+            mockFeatureCollection
+                .Setup(f => f.Get<IServerAddressesFeature>())
+                .Returns(() => mockAddressesFeature.Object);
+            mockServer.Setup(s => s.Features).Returns(mockFeatureCollection.Object);
 
             var app = AppBuilder.Build(registerCustomAppServices: services =>
             {
@@ -68,6 +87,9 @@ public class LocaltestValidationTests
                 services.AddSingleton(fakeTimeProvider);
 
                 services.AddSingleton(mockHttpClientFactory.Object);
+
+                // Replace the real IServer with our mock
+                services.AddSingleton(mockServer.Object);
 
                 registerCustomAppServices?.Invoke(services);
             });
@@ -94,23 +116,25 @@ public class LocaltestValidationTests
         Assert.NotNull(service);
     }
 
-    [Fact]
-    public async Task Test_Recent_Version()
+    [Theory]
+    [InlineData(2, 5005)] // Version 2 on default port - should not register
+    [InlineData(3, 5005)] // Version 3 on default port - should not register (default port)
+    [InlineData(3, 5432)] // Version 3 on non-default port - should register successfully
+    public async Task Test_Valid_Version_And_Port_Combinations(int version, int port)
     {
-        await using var fixture = Fixture.Create();
-
-        var expectedVersion = _okExpectedVersion;
+        await using var fixture = Fixture.Create(mockServerPort: port);
 
         var server = fixture.Server;
         server
             .Given(Request.Create().WithPath(Fixture.ApiPath).UsingGet())
             .RespondWith(
-                Response
-                    .Create()
-                    .WithStatusCode(200)
-                    .WithHeader("Content-Type", "text/plain")
-                    .WithBody($"{expectedVersion}")
+                Response.Create().WithStatusCode(200).WithHeader("Content-Type", "text/plain").WithBody($"{version}")
             );
+
+        // Mock the registration endpoint for version 3 tests
+        server
+            .Given(Request.Create().WithPath("/Home/Localtest/Register").UsingPost())
+            .RespondWith(Response.Create().WithStatusCode(200));
 
         var service = fixture.Validator;
         var lifetime = fixture.App.Services.GetRequiredService<IHostApplicationLifetime>();
@@ -119,12 +143,40 @@ public class LocaltestValidationTests
         var result = await service.Results.FirstAsync();
         Assert.NotNull(result);
         var ok = Assert.IsType<VersionResult.Ok>(result);
-        Assert.Equal(expectedVersion, ok.Version);
+        Assert.Equal(version, ok.Version);
 
         var reqs = server.FindLogEntries(Request.Create().WithPath(Fixture.ApiPath).UsingGet());
         Assert.Single(reqs);
 
         Assert.False(lifetime.ApplicationStopping.IsCancellationRequested);
+    }
+
+    [Fact]
+    public async Task Test_Version_Too_Low_For_NonDefault_Port()
+    {
+        // Version 2 on non-default port should call Exit() and stop the application
+        await using var fixture = Fixture.Create(mockServerPort: 5432);
+
+        var server = fixture.Server;
+        server
+            .Given(Request.Create().WithPath(Fixture.ApiPath).UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(200).WithHeader("Content-Type", "text/plain").WithBody("2"));
+
+        var service = fixture.Validator;
+        var lifetime = fixture.App.Services.GetRequiredService<IHostApplicationLifetime>();
+
+        await service.StartAsync(lifetime.ApplicationStopping);
+
+        var result = await service.Results.FirstAsync();
+        Assert.NotNull(result);
+        var ok = Assert.IsType<VersionResult.Ok>(result);
+        Assert.Equal(2, ok.Version);
+
+        var reqs = server.FindLogEntries(Request.Create().WithPath(Fixture.ApiPath).UsingGet());
+        Assert.Single(reqs);
+
+        // Should have called Exit() which triggers ApplicationStopping
+        Assert.True(lifetime.ApplicationStopping.IsCancellationRequested);
     }
 
     [Fact]

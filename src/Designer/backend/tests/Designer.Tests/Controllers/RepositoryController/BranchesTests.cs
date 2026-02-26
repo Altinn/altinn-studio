@@ -3,9 +3,9 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.RepositoryClient.Model;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -15,18 +15,19 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class BranchesTests : DesignerEndpointsTestsBase<BranchesTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class BranchesTests
+        : DesignerEndpointsTestsBase<BranchesTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix => "/designer/api/repos";
-        public BranchesTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+
+        public BranchesTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
+            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
+            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         }
 
         [Fact]

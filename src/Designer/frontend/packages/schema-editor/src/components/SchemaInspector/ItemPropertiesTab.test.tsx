@@ -71,7 +71,9 @@ describe('ItemPropertiesTab', () => {
     renderWithProviders({ appContextProps })(<ItemPropertiesTab selectedItem={selectedNode} />);
 
     expect(
-      screen.getByRole('textbox', { name: textMock('schema_editor.name') }),
+      screen.getByRole('textbox', {
+        name: (accessibleName) => accessibleName.includes(textMock('schema_editor.name')),
+      }),
     ).toBeInTheDocument();
   });
 

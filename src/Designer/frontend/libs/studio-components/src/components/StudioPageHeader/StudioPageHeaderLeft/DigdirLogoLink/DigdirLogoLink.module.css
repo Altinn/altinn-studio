@@ -1,0 +1,19 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-1);
+  overflow: hidden;
+  padding: var(--ds-size-2);
+  flex: 1;
+}
+
+.titleText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: var(--ds-size-3);
+}
+
+.titleText.preview {
+  color: var(--ds-color-neutral-background-default) !important;
+}

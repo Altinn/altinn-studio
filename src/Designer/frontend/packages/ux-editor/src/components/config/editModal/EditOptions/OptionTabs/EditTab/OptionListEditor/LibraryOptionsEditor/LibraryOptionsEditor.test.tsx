@@ -61,7 +61,8 @@ describe('LibraryOptionEditor', () => {
     await user.click(getEditButton());
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
+    await user.click(screen.getByRole('button', { name: 'Lukk dialogvindu' }));
+
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 

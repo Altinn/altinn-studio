@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Xml;
 using System.Xml.Serialization;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Models.Result;
 using Altinn.Platform.Storage.Interface.Models;
@@ -15,7 +16,7 @@ namespace Altinn.App.Core.Helpers.Serialization;
 /// <summary>
 /// DI registered service for centralizing (de)serialization logic for data models
 /// </summary>
-public class ModelSerializationService
+public sealed class ModelSerializationService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web);
     private static readonly XmlSerializerCache _xmlSerializer = new();
@@ -38,12 +39,41 @@ public class ModelSerializationService
     /// <param name="data">The binary data</param>
     /// <param name="dataType">The data type used to get content type and the classRef for the object to be returned</param>
     /// <returns>The model specified in </returns>
+    [Obsolete("DeserializeFromStorage needs a DataElement parameter to support json in storage")]
     public object DeserializeFromStorage(ReadOnlySpan<byte> data, DataType dataType)
+    {
+        if (DataClient.TypeAllowsJson(dataType))
+        {
+            throw new InvalidOperationException(
+                $"Data type {dataType.Id} allows application/json and must use DeserializeFromStorage with DataElement specified"
+            );
+        }
+        var type = GetModelTypeForDataType(dataType);
+        return DeserializeXml(data, type);
+    }
+
+    /// <summary>
+    /// Deserialize binary data from storage to a model of the classRef specified in the dataType
+    /// </summary>
+    /// <param name="data">The binary data</param>
+    /// <param name="dataType">The data type used to get content type and the classRef for the object to be returned</param>
+    /// <param name="dataElement"></param>
+    /// <returns>The model specified in </returns>
+    public object DeserializeFromStorage(ReadOnlySpan<byte> data, DataType dataType, DataElement dataElement)
     {
         var type = GetModelTypeForDataType(dataType);
 
-        // TODO: support sending json to storage based on dataType.ContentTypes
-        return DeserializeXml(data, type);
+        return dataElement.ContentType?.ToLowerInvariant() switch
+        {
+            "application/xml" => DeserializeXml(data, type),
+            "application/json" => DeserializeJson(data, type),
+            null or "" => throw new InvalidOperationException(
+                $"Data element {dataElement.Id} does not have a content type"
+            ), // Consider defaulting to xml after initial testing?
+            _ => throw new InvalidOperationException(
+                $"Unsupported content type {dataElement.ContentType} on data element {dataElement.Id}"
+            ),
+        };
     }
 
     /// <summary>
@@ -53,7 +83,31 @@ public class ModelSerializationService
     /// <param name="dataType">The data type</param>
     /// <returns>the binary data and the content type (currently only application/xml, but likely also json in the future)</returns>
     /// <exception cref="InvalidOperationException">If the classRef in dataType does not match type of the model</exception>
+    [Obsolete("SerializeToStorage needs a DataElement parameter to support json in storage")]
     public (ReadOnlyMemory<byte> data, string contentType) SerializeToStorage(object model, DataType dataType)
+    {
+        if (DataClient.TypeAllowsJson(dataType))
+        {
+            throw new InvalidOperationException(
+                $"Data type {dataType.Id} allows application/json and must use SerializeToStorage with DataElement specified"
+            );
+        }
+        return SerializeToStorage(model, dataType, null);
+    }
+
+    /// <summary>
+    /// Serialize an object to binary data for storage, respecting classRef and content type in dataType
+    /// </summary>
+    /// <param name="model">The object to serialize (must match the classRef in DataType)</param>
+    /// <param name="dataType">The data type</param>
+    /// <param name="dataElement">The existing data element to preserve content type</param>
+    /// <returns>the binary data and the content type (application/xml or application/json)</returns>
+    /// <exception cref="InvalidOperationException">If the classRef in dataType does not match type of the model</exception>
+    public (ReadOnlyMemory<byte> data, string contentType) SerializeToStorage(
+        object model,
+        DataType dataType,
+        DataElement? dataElement
+    )
     {
         var type = GetModelTypeForDataType(dataType);
         if (type != model.GetType())
@@ -63,8 +117,15 @@ public class ModelSerializationService
             );
         }
 
-        //TODO: support sending json to storage based on dataType.ContentTypes
-        return (SerializeToXml(model), "application/xml");
+        var contentType = dataElement is not null ? dataElement.ContentType : FindFirstContentType(dataType);
+
+        return contentType?.ToLowerInvariant() switch
+        {
+            "application/json" => (SerializeToJson(model), "application/json"),
+            // When the content type is missing, default to xml for backward compatibility
+            "application/xml" or "" or null => (SerializeToXml(model), "application/xml"),
+            _ => throw new InvalidOperationException($"Unsupported content type {contentType}"),
+        };
     }
 
     /// <summary>
@@ -125,23 +186,27 @@ public class ModelSerializationService
 
         var modelType = GetModelTypeForDataType(dataType);
         object model;
-        if (contentType?.Contains("application/xml") ?? true) // default to xml if no content type is provided
+        if (contentType?.Contains("application/xml", StringComparison.Ordinal) ?? true) // default to xml if no content type is provided
         {
             try
             {
                 model = DeserializeXml(segment, modelType);
             }
-            catch (XmlException e)
+            catch (Exception e)
             {
+                // XML deserialization can throw a variety of exceptions,
+                // all of which should result in a 400 response
+                // The actual exception is logged by the DeserializeXml method
+                var message = e.InnerException is null ? e.Message : $"{e.Message} {e.InnerException.Message}";
                 return new ProblemDetails()
                 {
                     Title = "Failed to deserialize XML",
-                    Detail = e.Message,
+                    Detail = message,
                     Status = StatusCodes.Status400BadRequest,
                 };
             }
         }
-        else if (contentType.Contains("application/json"))
+        else if (contentType.Contains("application/json", StringComparison.Ordinal))
         {
             try
             {
@@ -181,8 +246,16 @@ public class ModelSerializationService
     public object DeserializeJson(ReadOnlySpan<byte> data, Type modelType)
     {
         using var activity = _telemetry?.StartDeserializeFromJsonActivity(modelType);
-        return JsonSerializer.Deserialize(data.RemoveBom(), modelType, _jsonSerializerOptions)
-            ?? throw new JsonException("Json deserialization returned null");
+        try
+        {
+            return JsonSerializer.Deserialize(data.RemoveBom(), modelType, _jsonSerializerOptions)
+                ?? throw new JsonException("Json deserialization returned null");
+        }
+        catch (Exception ex)
+        {
+            activity?.AddException(ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -191,28 +264,36 @@ public class ModelSerializationService
     public object DeserializeXml(ReadOnlySpan<byte> data, Type modelType)
     {
         using var activity = _telemetry?.StartDeserializeFromXmlActivity(modelType);
-        // convert to UTF16 string as it seems to be preferred by the XmlTextReader
-        // and aligns with previous implementation
-        string streamContent = Encoding.UTF8.GetString(data.RemoveBom());
-        if (string.IsNullOrWhiteSpace(streamContent))
-        {
-            throw new ArgumentException("No XML content read from stream");
-        }
         try
         {
-            using XmlTextReader xmlTextReader = new XmlTextReader(new StringReader(streamContent));
-            XmlSerializer serializer = _xmlSerializer.GetSerializer(modelType);
+            // convert to UTF16 string as it seems to be preferred by the XmlTextReader
+            // and aligns with previous implementation
+            string streamContent = Encoding.UTF8.GetString(data.RemoveBom());
+            if (string.IsNullOrWhiteSpace(streamContent))
+            {
+                throw new ArgumentException("No XML content read from stream");
+            }
+            try
+            {
+                using XmlTextReader xmlTextReader = new XmlTextReader(new StringReader(streamContent));
+                XmlSerializer serializer = _xmlSerializer.GetSerializer(modelType);
 
-            return serializer.Deserialize(xmlTextReader)
-                ?? throw new InvalidOperationException("Deserialization returned null");
+                return serializer.Deserialize(xmlTextReader)
+                    ?? throw new InvalidOperationException("Deserialization returned null");
+            }
+            catch (InvalidOperationException)
+            {
+                using XmlTextReader xmlTextReader = new XmlTextReader(new StringReader(streamContent));
+                XmlSerializer serializer = _xmlSerializer.GetSerializerIgnoreNamespace(modelType);
+
+                return serializer.Deserialize(xmlTextReader)
+                    ?? throw new InvalidOperationException("Deserialization returned null");
+            }
         }
-        catch (InvalidOperationException)
+        catch (Exception ex)
         {
-            using XmlTextReader xmlTextReader = new XmlTextReader(new StringReader(streamContent));
-            XmlSerializer serializer = _xmlSerializer.GetSerializerIgnoreNamespace(modelType);
-
-            return serializer.Deserialize(xmlTextReader)
-                ?? throw new InvalidOperationException("Deserialization returned null");
+            activity?.AddException(ex);
+            throw;
         }
     }
 
@@ -294,5 +375,27 @@ public class ModelSerializationService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(dataType?.AppLogic?.ClassRef);
         return _appModel.Create(dataType.AppLogic.ClassRef);
+    }
+
+    private static string FindFirstContentType(DataType dataType)
+    {
+        if (dataType.AllowedContentTypes is not null)
+        {
+            foreach (var contentType in dataType.AllowedContentTypes)
+            {
+                if ("application/xml".Equals(contentType, StringComparison.OrdinalIgnoreCase))
+                {
+                    return "application/xml";
+                }
+                if ("application/json".Equals(contentType, StringComparison.OrdinalIgnoreCase))
+                {
+                    return "application/json";
+                }
+            }
+        }
+
+        // If no supported content type is found, default to xml for backward compatibility
+        // Valid apps will never trigger this
+        return "application/xml";
     }
 }

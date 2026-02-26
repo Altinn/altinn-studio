@@ -1,3 +1,4 @@
+#nullable disable
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -27,7 +28,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         public PlatformBearerTokenHandler(
             IAccessTokenGenerator accessTokenGenerator,
             IAltinnAuthenticationClient altinnAuthenticationClient,
-            GeneralSettings generalSettings)
+            GeneralSettings generalSettings
+        )
         {
             _altinnAuthenticationClient = altinnAuthenticationClient;
             _accesTokenGenerator = accessTokenGenerator;
@@ -41,7 +43,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         /// <param name="request">System.Net.Http.HttpResponseMessage</param>
         /// <param name="cancellationToken">System.Threading.CancellationToken</param>
         /// <returns>HttpResponseMessage</returns>
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
         {
             string issuer;
             if (_generalSettings.HostName.Contains("dev"))

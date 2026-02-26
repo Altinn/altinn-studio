@@ -3,35 +3,26 @@
   flex: var(--elements-width-fraction);
 }
 
-.pagesContent {
-  padding: var(--fds-spacing-2);
-}
-
-.pagesContent .addButton {
-  padding-bottom: var(--fds-spacing-3);
-  padding-top: var(--fds-spacing-2);
-}
-
 .componentsHeader {
-  margin: var(--fds-spacing-3);
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  background-color: var(--ds-color-surface-neutral);
+  padding-inline: var(--ds-size-4);
+  height: var(--ds-size-15);
+  border-bottom: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+  box-sizing: border-box;
 }
 
-.openElementsButton {
-  writing-mode: vertical-lr;
-  text-transform: uppercase;
-  border-radius: 0;
+.collapsedPanel {
+  margin-top: var(--ds-size-2);
+  width: 100%;
 }
-
 .noPageSelected {
-  padding-inline: var(--fds-spacing-3);
+  margin-top: var(--ds-size-5);
+  padding-left: var(--ds-size-5);
 }
 
 .errorMessage {
-  padding: var(--fds-spacing-3);
-  max-width: 350px;
-  width: 100%;
+  padding: var(--ds-size-4);
 }

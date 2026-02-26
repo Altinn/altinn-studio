@@ -108,12 +108,12 @@ describe('OnProcessTaskAddHandler', () => {
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledTimes(2);
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(1, {
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'paymentInformation-1234',
       taskId: 'testElementId',
     });
     expect(addDataTypeToAppMetadataMock).toHaveBeenNthCalledWith(2, {
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'paymentReceiptPdf-1234',
       taskId: 'testElementId',
     });
@@ -140,7 +140,7 @@ describe('OnProcessTaskAddHandler', () => {
     });
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
       dataTypeId: 'signatureInformation-1234',
       taskId: 'testElementId',
     });
@@ -151,8 +151,8 @@ describe('OnProcessTaskAddHandler', () => {
     const onProcessTaskAddHandler = createOnProcessTaskHandler();
 
     const taskMetadata: OnProcessTaskEvent = {
-      taskType: 'userControlledSigning',
-      taskEvent: createTaskEvent(getMockBpmnElementForTask('userControlledSigning').businessObject),
+      taskType: 'signing',
+      taskEvent: createTaskEvent(getMockBpmnElementForTask('signing').businessObject),
     };
 
     onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
@@ -163,12 +163,12 @@ describe('OnProcessTaskAddHandler', () => {
         tasks: ['testElementId'],
       },
       layoutSetIdToUpdate: 'testElementId',
-      taskType: 'userControlledSigning',
+      taskType: 'signing',
     });
 
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
-      allowedContributers: [AllowedContributor.AppOwned],
-      dataTypeId: 'userControlledSigningInformation-1234',
+      allowedContributors: [AllowedContributor.AppOwned],
+      dataTypeId: 'signatureInformation-1234',
       taskId: 'testElementId',
     });
 

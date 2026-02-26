@@ -1,13 +1,14 @@
 import dot from 'dot-object';
 import escapeStringRegexp from 'escape-string-regexp';
 
+import { ContextNotProvided } from 'src/core/contexts/context';
+import { SearchParams } from 'src/core/routing/types';
 import { exprCastValue } from 'src/features/expressions';
 import { ExprRuntimeError, NodeRelationNotFound } from 'src/features/expressions/errors';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError } from 'src/features/expressions/validation';
 import { makeIndexedId } from 'src/features/form/layout/utils/makeIndexedId';
 import { CodeListPending } from 'src/features/options/CodeListsProvider';
-import { SearchParams } from 'src/hooks/navigation';
 import { buildAuthContext } from 'src/utils/authContext';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { formatDateLocale } from 'src/utils/dateUtils';
@@ -22,7 +23,7 @@ import type {
 } from 'src/features/expressions/types';
 import type { ValidationContext } from 'src/features/expressions/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
-import type { IAuthContext, IInstanceDataSources } from 'src/types/shared';
+import type { IInstanceDataSources } from 'src/types/shared';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 type ArgsToActual<T extends readonly AnyExprArg[]> = {
@@ -406,22 +407,20 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     return (this.dataSources.applicationSettings && this.dataSources.applicationSettings[key]) || null;
   },
   authContext(key) {
-    const authContextKeys: { [key in keyof IAuthContext]: true } = {
-      read: true,
-      write: true,
-      instantiate: true,
-      confirm: true,
-      sign: true,
-      reject: true,
-      complete: true,
-    };
-
-    if (key === null || authContextKeys[key] !== true) {
-      throw new ExprRuntimeError(this.expr, this.path, `Unknown auth context property ${key}`);
+    if (key === null) {
+      throw new ExprRuntimeError(this.expr, this.path, `Auth context key cannot be null`);
     }
 
     const authContext = buildAuthContext(this.dataSources.process?.currentTask);
-    return Boolean(authContext?.[key]);
+    const hasAction = authContext?.[key];
+    if (hasAction === undefined) {
+      throw new ExprRuntimeError(
+        this.expr,
+        this.path,
+        `Unknown Auth context property ${key} for task ${this.dataSources.process?.currentTask?.elementId} (allowed keys are {${Object.keys(authContext).join(', ')}})`,
+      );
+    }
+    return Boolean(hasAction);
   },
   component(id) {
     if (id === null) {
@@ -859,6 +858,9 @@ function pickSimpleValue(
   }
 
   const value = params.dataSources.formDataSelector(path);
+  if (value === ContextNotProvided) {
+    return null;
+  }
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
     return value;
   }

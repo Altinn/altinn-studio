@@ -1,0 +1,31 @@
+.chosenSubjectCard {
+  border: 1px solid var(--ds-color-neutral-border-subtle);
+  padding: var(--ds-size-6);
+  margin: var(--ds-size-4) 0;
+  border-radius: var(--ds-border-radius-lg);
+}
+
+.chosenSubjectHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-2);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.chosenSubjectList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+  margin-top: var(--ds-size-4);
+}
+
+.chosenSubjectColumn {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  max-width: 50%;
+}
+.chosenSubjectContainer {
+  display: flex;
+  gap: var(--ds-size-3);
+}

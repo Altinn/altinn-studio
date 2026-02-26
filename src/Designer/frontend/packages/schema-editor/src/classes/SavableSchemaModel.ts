@@ -1,4 +1,12 @@
-import type { CombinationNode, FieldNode, NodePosition, UiSchemaNode } from '@altinn/schema-model';
+import type {
+  CombinationKind,
+  CombinationNode,
+  FieldNode,
+  FieldType,
+  NodePosition,
+  ReferenceNode,
+  UiSchemaNode,
+} from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
 
 type SaveSchemaModel = (schema: SchemaModel) => void;
@@ -16,36 +24,45 @@ export class SavableSchemaModel extends SchemaModel {
     return this;
   }
 
-  protected addNode<T extends UiSchemaNode>(name: string, node: T, target: NodePosition): T {
-    const newNode: T = super.addNode<T>(name, node, target);
+  public addFieldAndSave(name?: string, fieldType?: FieldType, target?: NodePosition): FieldNode {
+    const newField = this.addField(name, fieldType, target);
     this.save();
-    return newNode;
+    return newField;
   }
 
-  protected addType<T extends FieldNode | CombinationNode>(name: string, node: T): T {
-    const newNode: T = super.addType(name, node);
+  public addCombinationAndSave(
+    name?: string,
+    target?: NodePosition,
+    combinationType?: CombinationKind,
+  ): CombinationNode {
+    const newCombination = this.addCombination(name, target, combinationType);
     this.save();
-    return newNode;
+    return newCombination;
   }
 
-  public deleteNode(schemaPointer: string): SavableSchemaModel {
-    super.deleteNode(schemaPointer);
+  public addReferenceAndSave(
+    name: string | undefined,
+    referenceName: string,
+    target?: NodePosition,
+  ): ReferenceNode {
+    const newReference = this.addReference(name, referenceName, target);
+    this.save();
+    return newReference;
+  }
+
+  public deleteNodeAndSave(schemaPointer: string): SavableSchemaModel {
+    this.deleteNode(schemaPointer);
     return this.save();
   }
 
-  public convertToDefinition(schemaPointer: string): SavableSchemaModel {
-    super.convertToDefinition(schemaPointer);
+  public convertToDefinitionAndSave(schemaPointer: string): SavableSchemaModel {
+    this.convertToDefinition(schemaPointer);
     return this.save();
   }
 
-  public moveNode(schemaPointer: string, target: NodePosition): UiSchemaNode {
-    const movedNode = super.moveNode(schemaPointer, target);
+  public moveNodeAndSave(schemaPointer: string, target: NodePosition): UiSchemaNode {
+    const movedNode = this.moveNode(schemaPointer, target);
     this.save();
     return movedNode;
-  }
-
-  public updateNode(schemaPointer: string, newNode: UiSchemaNode): SavableSchemaModel {
-    super.updateNode(schemaPointer, newNode);
-    return this.save();
   }
 }

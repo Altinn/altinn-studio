@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Net.Http;
 using System.Text;
@@ -29,7 +30,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             HttpClient httpClient,
             IEnvironmentsService environmentsService,
             PlatformSettings options,
-             ILogger<AltinnAuthorizationPolicyClient> logger)
+            ILogger<AltinnAuthorizationPolicyClient> logger
+        )
         {
             _httpClient = httpClient;
             _platformSettings = options;
@@ -55,12 +57,14 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             await _httpClient.SendAsync(request);
 
             /*
-             * After the deploy of the Policy to authorization server, we need to refresh the subjects. 
+             * After the deploy of the Policy to authorization server, we need to refresh the subjects.
              * This is a temporary fix until policy is directly published to resource registry endpoint
              */
             try
             {
-                Uri refreshSubjectsUri = new($"{platformUri}{_platformSettings.ResourceRegistryUrl}/app_{org}_{app}/policy/subjects?reloadFromXacml=true");
+                Uri refreshSubjectsUri = new(
+                    $"{platformUri}{_platformSettings.ResourceRegistryUrl}/app_{org}_{app}/policy/subjects?reloadFromXacml=true"
+                );
                 using HttpRequestMessage getRequest = new(HttpMethod.Get, refreshSubjectsUri);
                 await _httpClient.SendAsync(getRequest);
             }

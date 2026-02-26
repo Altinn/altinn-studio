@@ -321,6 +321,25 @@ describe('ResourceDashBoardPage', () => {
 
     expect(mockedNavigate).toHaveBeenCalled();
   });
+
+  it('should navigate to access list page', async () => {
+    const user = userEvent.setup();
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
+    renderResourceDashboardPage({ getResourceList });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('resourceadm.dashboard_spinner')),
+    );
+
+    const accessListButton = screen.getByText(
+      textMock('resourceadm.dashboard_change_organization_lists'),
+    );
+    await user.click(accessListButton);
+
+    expect(mockedNavigate).toHaveBeenCalledWith('/ttd/ttd-resources/accesslists');
+  });
 });
 
 const renderResourceDashboardPage = (

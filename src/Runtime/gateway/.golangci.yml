@@ -1,0 +1,124 @@
+version: "2"
+run:
+  timeout: 5m
+  allow-parallel-runners: true
+
+linters:
+  default: all
+
+  disable:
+    - nonamedreturns
+    - arangolint
+    - ginkgolinter
+    - wsl
+    - wsl_v5
+    - lll
+    - paralleltest
+    - promlinter
+    - varnamelen
+    - nlreturn
+    - noinlineerr
+    - gomoddirectives
+    - depguard
+    - godox
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+
+    govet:
+      enable-all: true
+
+    nakedret:
+      max-func-lines: 0
+
+    exhaustive:
+      default-signifies-exhaustive: false
+
+    goconst:
+      min-occurrences: 3
+
+    gocyclo:
+      min-complexity: 16
+
+    gocognit:
+      min-complexity: 20
+
+    cyclop:
+      max-complexity: 20
+      package-average: 10.0
+
+    funlen:
+      lines: 80
+      statements: 50
+
+    nestif:
+      min-complexity: 4
+
+    mnd:
+      ignored-numbers:
+        - "0"
+        - "1"
+        - "2"
+      ignored-functions:
+        - "make"
+        - "os.Exit"
+        - "strconv.*"
+
+    exhaustruct:
+      exclude:
+        - 'net/http\.Client'
+
+    gocritic:
+      settings:
+        captLocal:
+          paramsOnly: false
+        underef:
+          skipRecvDeref: false
+
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+
+    revive:
+      rules:
+        - name: comment-spacings
+        - name: import-shadowing
+        - name: error-return
+        - name: error-naming
+        - name: exported
+        - name: if-return
+        - name: increment-decrement
+        - name: var-declaration
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: unexported-return
+        - name: indent-error-flow
+        - name: errorf
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: empty-block
+        - name: unnecessary-stmt
+        - name: unreachable-code
+
+  exclusions:
+    warn-unused: true
+    rules: []
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+    - golines
+  settings:
+    goimports:
+      local-prefixes:
+        - altinn.studio/
+
+    golines:
+      max-len: 120

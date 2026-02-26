@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/stateless-app/App/models/task2.schema.json",
+  "info": {
+    "rootNode": ""
+  },
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "task2",
+  "type": "object",
+  "$defs": {
+    "gatewayShouldFail": {
+      "type": "string"
+    }
+  },
+  "properties": {
+    "property1": {
+      "type": "string"
+    },
+    "property2": {
+      "type": "string"
+    },
+    "property3": {
+      "type": "string"
+    },
+    "gatewayShouldFail": {
+      "type": "boolean"
+    }
+  }
+}

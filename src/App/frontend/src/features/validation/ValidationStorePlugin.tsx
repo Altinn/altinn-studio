@@ -386,7 +386,7 @@ function getChildren(props: GetDeepValidationsProps): { id: string; baseId: stri
 
     for (const idToCheck of props.baseToIndexedMap.get(childBaseId) ?? []) {
       const childData = props.state.nodeData[idToCheck];
-      if (!childData || !idToCheck.startsWith(childId)) {
+      if (!childData || (idToCheck !== childId && !idToCheck.startsWith(`${childId}-`))) {
         continue;
       }
       children.push({ id: childData.id, baseId: childData.baseId });

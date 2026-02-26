@@ -40,7 +40,7 @@ internal static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Binds a <see cref="MaskinportenClient"/> configuration to the supplied config section path and options name.
+    /// Binds a <see cref="MaskinportenSettings"/> configuration to the supplied config section path and options name.
     /// </summary>
     /// <param name="services">The service collection</param>
     /// <param name="configSectionPath">The configuration section path, e.g. "MaskinportenSettingsInternal"</param>
@@ -48,13 +48,31 @@ internal static class ServiceCollectionExtensions
     public static IServiceCollection ConfigureMaskinportenClient(
         this IServiceCollection services,
         string configSectionPath,
-        string? optionsName = default
+        string? optionsName = null
     )
     {
         services
             .AddOptions<MaskinportenSettings>(optionsName ?? Microsoft.Extensions.Options.Options.DefaultName)
             .BindConfiguration(configSectionPath)
             .ValidateDataAnnotations();
+        return services;
+    }
+
+    /// <summary>
+    /// <p>Configures the <see cref="MaskinportenClient"/> service with a configuration object which will be static for the lifetime of the service.</p>
+    /// <p>If you have already provided a <see cref="MaskinportenSettings"/> configuration this will be overridden.</p>
+    /// </summary>
+    /// <param name="services">The service collection</param>
+    /// <param name="configureOptions">
+    /// Action delegate that provides <see cref="MaskinportenSettings"/> configuration for the <see cref="MaskinportenClient"/> service
+    /// </param>
+    public static IServiceCollection ConfigureMaskinportenClient(
+        this IServiceCollection services,
+        Action<MaskinportenSettings> configureOptions
+    )
+    {
+        services.AddOptions<MaskinportenSettings>().Configure(configureOptions).ValidateDataAnnotations();
+
         return services;
     }
 }

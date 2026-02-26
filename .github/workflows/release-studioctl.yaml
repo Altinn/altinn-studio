@@ -1,0 +1,75 @@
+name: Release - studioctl
+
+# Automatically triggers release when a changelog promotion PR is merged.
+# PRs must have the 'release/studioctl' label.
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+      - 'release/studioctl/v*'
+    paths:
+      - 'src/cli/CHANGELOG.md'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-latest
+    # Only run if PR was merged AND has the release label
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'release/studioctl')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: Checkout base branch
+        run: |
+          BASE="${{ github.event.pull_request.base.ref }}"
+          MERGE_SHA="${{ github.event.pull_request.merge_commit_sha }}"
+          git fetch origin "$BASE"
+          git checkout -B "$BASE" "$MERGE_SHA"
+
+      - name: Setup Go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5
+        with:
+          go-version-file: 'releaser/go.mod'
+          cache-dependency-path: releaser/go.sum
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run release workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          go run . workflow --component studioctl --base-branch "${{ github.event.pull_request.base.ref }}"
+        working-directory: releaser
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **PR**: #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Base branch**: ${{ github.event.pull_request.base.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version source**: latest released section in src/cli/CHANGELOG.md" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ -d "releaser/build/release" ]]; then
+            echo "### Assets" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            ls -la releaser/build/release/ >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No assets found"
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi

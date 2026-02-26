@@ -1,5 +1,5 @@
+#nullable disable
 using Altinn.Common.AccessToken.Configuration;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Microsoft.Extensions.Configuration;
@@ -17,11 +17,13 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="configuration">The configuration for the project</param>
-        public static IServiceCollection ConfigureNonMarkedSettings(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection ConfigureNonMarkedSettings(
+            this IServiceCollection services,
+            IConfiguration configuration
+        )
         {
             services.RegisterSettings<KeyVaultSettings>(configuration, "kvSetting");
             services.RegisterSettings<AzureDevOpsSettings>(configuration, "Integrations:AzureDevOpsSettings");
-            services.RegisterSettings<ApplicationInsightsSettings>(configuration, "ApplicationInsights");
             return services;
         }
     }

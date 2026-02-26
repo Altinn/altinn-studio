@@ -2,6 +2,7 @@ import React from 'react';
 
 import cn from 'classnames';
 
+import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import classes from 'src/components/altinnError.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { altinnAppsIllustrationHelpCircleSvgUrl } from 'src/utils/urls/urlHelper';
@@ -29,7 +30,7 @@ export const AltinnError = ({
   imageAlt,
   imageUrl,
 }: IAltinnErrorProps) => (
-  <div
+  <FatalError
     data-testid='AltinnError'
     className={classes.flexContainer}
   >
@@ -75,5 +76,5 @@ export const AltinnError = ({
         src={imageUrl || altinnAppsIllustrationHelpCircleSvgUrl}
       />
     </div>
-  </div>
+  </FatalError>
 );

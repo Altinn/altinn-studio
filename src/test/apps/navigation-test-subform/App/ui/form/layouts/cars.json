@@ -1,0 +1,56 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.17.2-pr.759.subform-table-expressions-v3.874b714e/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "subform",
+        "type": "Subform",
+        "textResourceBindings": {
+          "title": "subform.title",
+          "addButton": "subform.add"
+        },
+        "layoutSet": "subform",
+        "entryDisplayName": [
+          "if",
+          ["and", ["compare", ["stringLength", ["dataModel", "brand"]], "greaterThan", 0], ["compare", ["stringLength", ["dataModel", "modelyear"]], "greaterThan", 0]],
+          ["concat", ["text", "cool"], ["optionLabel", "brands", ["dataModel", "brand"]], ["text", "from"], ["dataModel", "modelyear"]],
+          "else",
+          ["text", "no-name"]
+        ],
+        "tableColumns": [
+          {
+            "headerContent": "reg.title",
+            "cellContent": {
+              "value": [
+                "if",
+                ["compare", ["stringLength", ["dataModel", "registrationnumber"]], "greaterThan", 0],
+                ["concat", "⟦", ["dataModel", "registrationnumber"], "⟧"]
+              ],
+              "default": "N/A"
+            }
+          },
+          {
+            "headerContent": "brand.title",
+            "cellContent": {
+              "value": ["optionLabel", "brands", ["dataModel", "brand"]],
+              "default": "N/A"
+            }
+          },
+          {
+            "headerContent": "year.title",
+            "cellContent": {
+              "value": ["dataModel", "modelyear"],
+              "default": "N/A"
+            }
+          }
+        ]
+      },
+      {
+        "id": "NavigationButtons-cars",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

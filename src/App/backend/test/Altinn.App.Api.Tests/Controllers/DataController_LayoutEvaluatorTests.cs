@@ -49,7 +49,10 @@ public class DataController_LayoutEvaluatorTests : ApiTestBase, IClassFixture<We
                 var id = new DataElementIdentifier(dataId.Value);
                 hidden
                     .Should()
-                    .BeEquivalentTo([new DataReference() { DataElementIdentifier = id, Field = "melding.hidden" }]);
+                    .BeEquivalentTo([
+                        new DataReference() { DataElementIdentifier = id, Field = "melding.hidden" },
+                        new DataReference() { DataElementIdentifier = id, Field = "melding.hiddenNotRemove" },
+                    ]);
                 if (data is Skjema { Melding: { } melding })
                 {
                     melding.Toggle = !melding.Toggle;

@@ -149,4 +149,21 @@ describe('fetchSigneeList', () => {
       },
     ] satisfies SigneeState[]);
   });
+
+  it('should append taskId as query parameter when provided', async () => {
+    const taskId = 'MyTask';
+    mockedGet.mockResolvedValue({ signeeStates: [] });
+
+    await fetchSigneeList(partyId, instanceGuid, taskId);
+
+    expect(mockedGet).toHaveBeenCalledWith(expect.stringContaining(`?taskId=${taskId}`));
+  });
+
+  it('should not append taskId query parameter when undefined', async () => {
+    mockedGet.mockResolvedValue({ signeeStates: [] });
+
+    await fetchSigneeList(partyId, instanceGuid, undefined);
+
+    expect(mockedGet).toHaveBeenCalledWith(expect.not.stringContaining('?taskId'));
+  });
 });

@@ -2,13 +2,13 @@ import React from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import { focusMainContent } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import type { IInstantiationButtonComponentProvidedProps } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 
@@ -17,7 +17,9 @@ type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedP
 // TODO(Datamodels): This uses mapping and therefore only supports the "default" data model
 export const InstantiationButton = ({ children, ...props }: Props) => {
   const instantiation = useInstantiation();
-  const { performProcess, isAnyProcessing, isThisProcessing: isLoading } = useIsProcessing();
+  const performProcess = useProcessingMutation('instantiation');
+  const isLoading = useIsThisProcessing('instantiation');
+  const isAnyProcessing = useIsAnyProcessing();
   const prefill = FD.useMapping(props.mapping, DataModels.useDefaultDataType());
   const party = useSelectedParty();
   const setNavigationEffect = useSetNavigationEffect();
@@ -28,7 +30,6 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
       errors={instantiation.error ? <ErrorListFromInstantiation error={instantiation.error} /> : undefined}
     >
       <Button
-        {...props}
         id={useIndexedId(props.baseComponentId)}
         onClick={() =>
           performProcess(() =>

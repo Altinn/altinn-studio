@@ -6,6 +6,8 @@ import type {
   AddLayoutSetMutationPayload,
 } from '../../../hooks/mutations/useAddLayoutSetMutation';
 import { StudioModeler } from '@altinn/process-editor/utils/bpmnModeler/StudioModeler';
+import type { Element } from 'bpmn-js/lib/model/Types';
+import { TaskUtils } from '@altinn/process-editor/utils/taskUtils';
 
 export enum AllowedContributor {
   AppOwned = 'app:owned',
@@ -21,7 +23,7 @@ export class OnProcessTaskAddHandler {
     private readonly addDataTypeToAppMetadata: (data: {
       dataTypeId: string;
       taskId: string;
-      allowedContributers?: Array<string>;
+      allowedContributors?: Array<string>;
     }) => void,
   ) {}
 
@@ -40,10 +42,6 @@ export class OnProcessTaskAddHandler {
 
     if (taskMetadata.taskType === 'signing') {
       this.handleSigningTaskAdd(taskMetadata);
-    }
-
-    if (taskMetadata.taskType === 'userControlledSigning') {
-      this.handleUserControlledSigningTaskAdd(taskMetadata);
     }
   }
 
@@ -64,7 +62,7 @@ export class OnProcessTaskAddHandler {
   private handlePaymentTaskAdd(taskMetadata: OnProcessTaskEvent): void {
     this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
 
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
@@ -72,7 +70,7 @@ export class OnProcessTaskAddHandler {
     this.addDataTypeToAppMetadata({
       dataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
     });
 
     const receiptPdfDataTypeId = studioModeler.getReceiptPdfDataTypeIdFromBusinessObject(
@@ -82,7 +80,7 @@ export class OnProcessTaskAddHandler {
     this.addDataTypeToAppMetadata({
       dataTypeId: receiptPdfDataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
     });
 
     const paymentPolicyBuilder = new PaymentPolicyBuilder(this.org, this.app);
@@ -104,16 +102,9 @@ export class OnProcessTaskAddHandler {
    */
   private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
     this.handleGenericSigningTaskAdd(taskMetadata);
-  }
-
-  /**
-   * Adds a dataType and layoutset to the added user-controlled-signing task
-   * @param taskMetadata
-   * @private
-   */
-  private handleUserControlledSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
-    this.handleGenericSigningTaskAdd(taskMetadata);
-    this.addSigneeStateToApplicationMetadata(taskMetadata);
+    if (TaskUtils.isUserControlledSigning(taskMetadata.taskEvent.element as Element)) {
+      this.addSigneeStateToApplicationMetadata(taskMetadata);
+    }
   }
 
   /**
@@ -132,7 +123,7 @@ export class OnProcessTaskAddHandler {
 
   private handleGenericSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
     this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as any);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,
       taskMetadata.taskEvent.element.businessObject,
@@ -141,12 +132,12 @@ export class OnProcessTaskAddHandler {
     this.addDataTypeToAppMetadata({
       dataTypeId,
       taskId: taskMetadata.taskEvent.element.id,
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
     });
   }
 
   private addSigneeStateToApplicationMetadata(taskMetadata: OnProcessTaskEvent): void {
-    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as any);
+    const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as Element);
 
     this.addDataTypeToAppMetadata({
       dataTypeId: studioModeler.getSigneeStatesDataTypeId(
@@ -154,7 +145,7 @@ export class OnProcessTaskAddHandler {
         taskMetadata.taskEvent.element.businessObject,
       ),
       taskId: taskMetadata.taskEvent.element.id,
-      allowedContributers: [AllowedContributor.AppOwned],
+      allowedContributors: [AllowedContributor.AppOwned],
     });
   }
 }

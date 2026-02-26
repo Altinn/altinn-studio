@@ -193,9 +193,9 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     /// <inheritdoc/>
     public ICorrespondenceRequestBuilder WithExternalReference(CorrespondenceReferenceType type, string value)
     {
-        return WithExternalReferences(
-            [new CorrespondenceExternalReference { ReferenceType = type, ReferenceValue = value }]
-        );
+        return WithExternalReferences([
+            new CorrespondenceExternalReference { ReferenceType = type, ReferenceValue = value },
+        ]);
     }
 
     /// <inheritdoc/>

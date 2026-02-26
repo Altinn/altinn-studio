@@ -1,0 +1,439 @@
+﻿[
+  {
+    Method: IValidator.ShouldRunForTask(string taskId),
+    Arguments: {
+      Arguments: {
+        taskId: Task_1-access
+      }
+    },
+    ReturnValue: true
+  },
+  {
+    Method: IValidator.get_ValidationSource(),
+    Arguments: {},
+    ReturnValue: mockValidator
+  },
+  {
+    Method: IValidator.get_NoIncrementalValidation(),
+    Arguments: {},
+    ReturnValue: false
+  },
+  {
+    Method: IValidator.get_ValidationSource(),
+    Arguments: {},
+    ReturnValue: mockValidator
+  },
+  {
+    Method: IValidator.get_ShouldRunAfterRemovingHiddenData(),
+    Arguments: {},
+    ReturnValue: false
+  },
+  {
+    Method: IValidator.get_ShouldRunAfterRemovingHiddenData(),
+    Arguments: {},
+    ReturnValue: false
+  },
+  {
+    Method: IValidator.get_ShouldRunAfterRemovingHiddenData(),
+    Arguments: {},
+    ReturnValue: false
+  },
+  {
+    Method: IValidator.HasRelevantChanges(IInstanceDataAccessor dataAccessor, string taskId, DataElementChanges changes),
+    Arguments: {
+      Arguments: {
+        changes: {
+          AllChanges: [
+            {
+              PreviousFormData: {
+                HideMainTitle: false,
+                MainTitle: Main Title,
+                HidePage1: false,
+                HideMainComponentGroup: false,
+                MainComponentGroup: [
+                  {
+                    Name: row1,
+                    HideRow: false,
+                    Description: row1 description,
+                    HideName: false
+                  },
+                  {
+                    Name: row2,
+                    HideRow: true,
+                    Description: row2 description,
+                    HideName: false
+                  },
+                  {
+                    Name: row3,
+                    HideRow: false,
+                    Description: row3 description,
+                    HideName: true
+                  },
+                  {
+                    Name: row4,
+                    HideRow: true
+                  },
+                  {
+                    Name: row5,
+                    HideRow: false
+                  }
+                ],
+                HideSubLayout: false
+              },
+              CurrentFormData: {
+                HideMainTitle: true,
+                MainTitle: Main Title,
+                HidePage1: false,
+                HideMainComponentGroup: false,
+                MainComponentGroup: [
+                  {
+                    AltinnRowId: Guid_1,
+                    Name: row1,
+                    HideRow: false,
+                    Description: row1 description,
+                    HideName: false
+                  },
+                  {
+                    AltinnRowId: Guid_2,
+                    Name: row2,
+                    HideRow: true,
+                    Description: row2 description,
+                    HideName: false
+                  },
+                  {
+                    AltinnRowId: Guid_3,
+                    Name: row3,
+                    HideRow: false,
+                    Description: row3 description,
+                    HideName: true
+                  },
+                  {
+                    AltinnRowId: Guid_4,
+                    Name: row4,
+                    HideRow: true
+                  },
+                  {
+                    AltinnRowId: Guid_5,
+                    Name: row5,
+                    HideRow: false
+                  }
+                ],
+                HideSubLayout: false
+              },
+              CurrentFormDataWrapper: {
+                BackingDataType: MainModel
+              },
+              PreviousBinaryData: {
+                Length: 1411,
+                IsEmpty: false
+              },
+              CurrentBinaryData: {
+                Length: 1410,
+                IsEmpty: false
+              },
+              Type: Updated,
+              DataElement: {
+                Id: Guid_6,
+                DataType: mainLayout_dataType,
+                ContentType: application/xml,
+                Locked: false,
+                IsRead: true
+              },
+              DataElementIdentifier: {
+                Guid: Guid_6,
+                Id: Guid_6,
+                DataTypeId: mainLayout_dataType
+              },
+              DataType: {
+                Id: mainLayout_dataType,
+                AppLogic: {
+                  ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.MainModel,
+                  AllowAnonymousOnStateless: false,
+                  AutoDeleteOnProcessEnd: false,
+                  DisallowUserCreate: false,
+                  DisallowUserDelete: false
+                },
+                TaskId: Task_1-access,
+                MinCount: 0,
+                EnablePdfCreation: true,
+                EnableFileScan: false,
+                ValidationErrorOnPendingFileScan: false
+              },
+              ContentType: application/xml
+            },
+            {
+              PreviousFormData: {
+                SubPageTitle: ,
+                UnboundField: unbound1
+              },
+              CurrentFormData: {
+                HideSubPageTitle: true,
+                SubPageTitle: ,
+                UnboundField: unbound1
+              },
+              CurrentFormDataWrapper: {
+                BackingDataType: SubModel
+              },
+              PreviousBinaryData: {
+                Length: 337,
+                IsEmpty: false
+              },
+              CurrentBinaryData: {
+                Length: 343,
+                IsEmpty: false
+              },
+              Type: Updated,
+              DataElement: {
+                Id: Guid_7,
+                DataType: subLayout_dataType,
+                ContentType: application/xml,
+                Locked: false,
+                IsRead: true
+              },
+              DataElementIdentifier: {
+                Guid: Guid_7,
+                Id: Guid_7,
+                DataTypeId: subLayout_dataType
+              },
+              DataType: {
+                Id: subLayout_dataType,
+                AppLogic: {
+                  ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.SubModel,
+                  AllowAnonymousOnStateless: false,
+                  AutoDeleteOnProcessEnd: false,
+                  DisallowUserCreate: false,
+                  DisallowUserDelete: false
+                },
+                TaskId: Task_1-access,
+                MaxCount: 0,
+                MinCount: 0,
+                EnablePdfCreation: true,
+                EnableFileScan: false,
+                ValidationErrorOnPendingFileScan: false
+              },
+              ContentType: application/xml
+            },
+            {
+              PreviousFormData: {
+                HideSubPageTitle: false,
+                SubPageTitle: sub2 title,
+                SubComponentGroup: [
+                  {
+                    Name: subGroup1
+                  }
+                ]
+              },
+              CurrentFormData: {
+                HideSubPageTitle: true,
+                SubPageTitle: sub2 title,
+                SubComponentGroup: [
+                  {
+                    AltinnRowId: Guid_8,
+                    Name: subGroup1
+                  }
+                ]
+              },
+              CurrentFormDataWrapper: {
+                BackingDataType: SubModel
+              },
+              PreviousBinaryData: {
+                Length: 507,
+                IsEmpty: false
+              },
+              CurrentBinaryData: {
+                Length: 506,
+                IsEmpty: false
+              },
+              Type: Updated,
+              DataElement: {
+                Id: Guid_9,
+                DataType: subLayout_dataType,
+                ContentType: application/xml,
+                Locked: false,
+                IsRead: true
+              },
+              DataElementIdentifier: {
+                Guid: Guid_9,
+                Id: Guid_9,
+                DataTypeId: subLayout_dataType
+              },
+              DataType: {
+                Id: subLayout_dataType,
+                AppLogic: {
+                  ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.SubModel,
+                  AllowAnonymousOnStateless: false,
+                  AutoDeleteOnProcessEnd: false,
+                  DisallowUserCreate: false,
+                  DisallowUserDelete: false
+                },
+                TaskId: Task_1-access,
+                MaxCount: 0,
+                MinCount: 0,
+                EnablePdfCreation: true,
+                EnableFileScan: false,
+                ValidationErrorOnPendingFileScan: false
+              },
+              ContentType: application/xml
+            }
+          ]
+        },
+        dataAccessor: {
+          Instance: {
+            Id: 1337/00000000-babe-0000-0000-000000000001,
+            InstanceOwner: {
+              PartyId: 1337
+            },
+            Data: [
+              {
+                Id: Guid_6,
+                DataType: mainLayout_dataType,
+                ContentType: application/xml,
+                Locked: false,
+                IsRead: true
+              },
+              {
+                Id: Guid_7,
+                DataType: subLayout_dataType,
+                ContentType: application/xml,
+                Locked: false,
+                IsRead: true
+              },
+              {
+                Id: Guid_9,
+                DataType: subLayout_dataType,
+                ContentType: application/xml,
+                Locked: false,
+                IsRead: true
+              }
+            ]
+          },
+          DataTypes: [
+            {
+              Id: mainLayout_dataType,
+              AppLogic: {
+                ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.MainModel,
+                AllowAnonymousOnStateless: false,
+                AutoDeleteOnProcessEnd: false,
+                DisallowUserCreate: false,
+                DisallowUserDelete: false
+              },
+              TaskId: Task_1-access,
+              MinCount: 0,
+              EnablePdfCreation: true,
+              EnableFileScan: false,
+              ValidationErrorOnPendingFileScan: false
+            },
+            {
+              Id: subLayout_dataType,
+              AppLogic: {
+                ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.SubModel,
+                AllowAnonymousOnStateless: false,
+                AutoDeleteOnProcessEnd: false,
+                DisallowUserCreate: false,
+                DisallowUserDelete: false
+              },
+              TaskId: Task_1-access,
+              MaxCount: 0,
+              MinCount: 0,
+              EnablePdfCreation: true,
+              EnableFileScan: false,
+              ValidationErrorOnPendingFileScan: false
+            }
+          ],
+          TaskId: Task_1-access,
+          Language: test-language,
+          HasAbandonIssues: false
+        },
+        taskId: Task_1-access
+      }
+    },
+    ReturnValue: {
+      Status: RanToCompletion,
+      Result: true
+    }
+  },
+  {
+    Method: IValidator.Validate(IInstanceDataAccessor dataAccessor, string taskId, string language),
+    Arguments: {
+      Arguments: {
+        dataAccessor: {
+          Instance: {
+            Id: 1337/00000000-babe-0000-0000-000000000001,
+            InstanceOwner: {
+              PartyId: 1337
+            },
+            Data: [
+              {
+                Id: Guid_6,
+                DataType: mainLayout_dataType,
+                ContentType: application/xml,
+                Locked: false,
+                IsRead: true
+              },
+              {
+                Id: Guid_7,
+                DataType: subLayout_dataType,
+                ContentType: application/xml,
+                Locked: false,
+                IsRead: true
+              },
+              {
+                Id: Guid_9,
+                DataType: subLayout_dataType,
+                ContentType: application/xml,
+                Locked: false,
+                IsRead: true
+              }
+            ]
+          },
+          DataTypes: [
+            {
+              Id: mainLayout_dataType,
+              AppLogic: {
+                ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.MainModel,
+                AllowAnonymousOnStateless: false,
+                AutoDeleteOnProcessEnd: false,
+                DisallowUserCreate: false,
+                DisallowUserDelete: false
+              },
+              TaskId: Task_1-access,
+              MinCount: 0,
+              EnablePdfCreation: true,
+              EnableFileScan: false,
+              ValidationErrorOnPendingFileScan: false
+            },
+            {
+              Id: subLayout_dataType,
+              AppLogic: {
+                ClassRef: Altinn.App.Core.Tests.LayoutExpressions.FullTests.CleanDataAccessor.SubModel,
+                AllowAnonymousOnStateless: false,
+                AutoDeleteOnProcessEnd: false,
+                DisallowUserCreate: false,
+                DisallowUserDelete: false
+              },
+              TaskId: Task_1-access,
+              MaxCount: 0,
+              MinCount: 0,
+              EnablePdfCreation: true,
+              EnableFileScan: false,
+              ValidationErrorOnPendingFileScan: false
+            }
+          ],
+          TaskId: Task_1-access,
+          Language: test-language,
+          HasAbandonIssues: false
+        },
+        language: test-language,
+        taskId: Task_1-access
+      }
+    },
+    ReturnValue: {
+      Status: RanToCompletion
+    }
+  },
+  {
+    Method: IValidator.get_ValidationSource(),
+    Arguments: {},
+    ReturnValue: mockValidator
+  }
+]

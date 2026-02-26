@@ -143,7 +143,7 @@ describe('Options', () => {
     cy.goto('changename');
     cy.wait('@optionsMunicipality');
 
-    cy.dsSelect(appFrontend.changeOfName.municipality, 'Oslo');
+    cy.dsSelect(appFrontend.changeOfName.municipality, /Oslo/);
 
     cy.get(appFrontend.changeOfName.municipalityMetadata)
       .should('have.prop', 'value')

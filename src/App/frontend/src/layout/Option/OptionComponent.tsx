@@ -3,6 +3,7 @@ import React from 'react';
 import cn from 'classnames';
 
 import { HelpText } from 'src/app-components/HelpText/HelpText';
+import { LoadingEmpty } from 'src/app-components/loading/LoadingEmpty/LoadingEmpty';
 import { getLabelId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -57,8 +58,9 @@ function Text({ baseComponentId, usingLabel }: TextProps) {
   const { langAsString } = useLanguage();
   const selectedOption = options.find((option) => option.value === value);
   const indexedId = useIndexedId(baseComponentId);
+
   if (isFetching) {
-    return null;
+    return <LoadingEmpty />;
   }
 
   return (

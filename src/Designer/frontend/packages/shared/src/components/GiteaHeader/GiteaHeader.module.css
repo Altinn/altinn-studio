@@ -18,3 +18,7 @@
   gap: var(--fds-spacing-2);
   padding-inline: var(--fds-spacing-4);
 }
+
+.validationDrawer {
+  z-index: 3;
+}

@@ -1,15 +1,12 @@
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
-import { usePartiesQueryDef, useSelectedPartyQueryDef } from 'src/features/party/PartiesProvider';
-import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
+import { usePartiesQueryDef } from 'src/features/party/PartiesProvider';
+import { useIsAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
 
 /**
  * Prefetches parties and current party if applicable
  */
 export function PartyPrefetcher() {
-  const enabled = useShouldFetchProfile();
-
-  usePrefetchQuery(usePartiesQueryDef(true), enabled);
-  usePrefetchQuery(useSelectedPartyQueryDef(true), enabled);
-
+  const allowAnonymous = useIsAllowAnonymous(false);
+  usePrefetchQuery(usePartiesQueryDef(true), allowAnonymous);
   return null;
 }

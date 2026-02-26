@@ -1,10 +1,14 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.Models;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -26,7 +30,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly IReleaseRepository _releaseRepository;
-        private readonly HttpContext _httpContext;
+        private readonly IAppScopesRepository _appScopesRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly GeneralSettings _generalSettings;
 
         /// <summary>
@@ -35,28 +40,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="azureDevOpsBuildClient">IAzureDevOpsBuildClient</param>
         /// <param name="releaseRepository">IReleaseRepository</param>
+        /// <param name="appScopesRepository">IAppScopesRepository</param>
         /// <param name="azureDevOpsOptions">AzureDevOpsSettings</param>
         /// <param name="generalSettings"></param>
         public ReleaseService(
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
             IReleaseRepository releaseRepository,
+            IAppScopesRepository appScopesRepository,
             AzureDevOpsSettings azureDevOpsOptions,
-            GeneralSettings generalSettings)
+            GeneralSettings generalSettings
+        )
         {
             _azureDevOpsSettings = azureDevOpsOptions;
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _releaseRepository = releaseRepository;
-            _httpContext = httpContextAccessor.HttpContext;
+            _appScopesRepository = appScopesRepository;
+            _httpContextAccessor = httpContextAccessor;
             _generalSettings = generalSettings;
         }
 
         /// <inheritdoc/>
         public async Task<ReleaseEntity> CreateAsync(ReleaseEntity release)
         {
-            release.PopulateBaseProperties(release.Org, release.App, _httpContext);
+            var httpContext = _httpContextAccessor.HttpContext;
+            var cancellationToken = httpContext.RequestAborted;
+            cancellationToken.ThrowIfCancellationRequested();
+            release.PopulateBaseProperties(release.Org, release.App, httpContext);
 
-            await ValidateUniquenessOfRelease(release);
+            await ValidateUniquenessOfRelease(release, cancellationToken);
 
             QueueBuildParameters queueBuildParameters = new()
             {
@@ -65,20 +77,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppRepo = release.App,
                 TagName = release.TagName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
-                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
-                AltinnStudioHostname = _generalSettings.HostName
+                AppDeployToken = await httpContext.GetDeveloperAppTokenAsync(),
+                AltinnStudioHostname = _generalSettings.HostName,
+                AppMaskinportenScopes = await GetAppScopesAsJson(release.Org, release.App, cancellationToken),
             };
 
+            // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
+            // cancels the request, but we prefer to atleast attempt the completion once we've started mutating some state
+            // This particular multi-step process starts mutating state by queueing the ADO build
+            cancellationToken = CancellationToken.None;
             Build queuedBuild = await _azureDevOpsBuildClient.QueueAsync(
                 queueBuildParameters,
-                _azureDevOpsSettings.BuildDefinitionId);
+                _azureDevOpsSettings.BuildDefinitionId,
+                cancellationToken
+            );
 
             release.Build = new BuildEntity
             {
                 Id = queuedBuild.Id.ToString(),
                 Status = queuedBuild.Status,
                 Result = BuildResult.None,
-                Started = queuedBuild.StartTime
+                Started = queuedBuild.StartTime,
             };
 
             return await _releaseRepository.Create(release);
@@ -87,12 +106,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<SearchResults<ReleaseEntity>> GetAsync(string org, string app, DocumentQueryModel query)
         {
-
             IEnumerable<ReleaseEntity> results = await _releaseRepository.Get(org, app, query);
-            return new SearchResults<ReleaseEntity>
-            {
-                Results = results
-            };
+            return new SearchResults<ReleaseEntity> { Results = results };
         }
 
         /// <inheritdoc/>
@@ -101,7 +116,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.Get(appOwner, buildNumber);
             ReleaseEntity releaseEntity = releaseDocuments.Single();
 
-            BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber);
+            BuildEntity buildEntity = await _azureDevOpsBuildClient.Get(buildNumber, CancellationToken.None);
             ReleaseEntity release = new() { Build = buildEntity };
 
             releaseEntity.Build.Status = release.Build.Status;
@@ -112,24 +127,44 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await _releaseRepository.Update(releaseEntity);
         }
 
-        private async Task ValidateUniquenessOfRelease(ReleaseEntity release)
+        private async Task ValidateUniquenessOfRelease(ReleaseEntity release, CancellationToken _)
         {
             List<string> buildStatus = new()
-                {
-                    BuildStatus.InProgress.ToEnumMemberAttributeValue(),
-                    BuildStatus.NotStarted.ToEnumMemberAttributeValue()
-                };
+            {
+                BuildStatus.InProgress.ToEnumMemberAttributeValue(),
+                BuildStatus.NotStarted.ToEnumMemberAttributeValue(),
+            };
 
             List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
 
-            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.Get(release.Org, release.App, release.TagName, buildStatus, buildResult);
+            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.Get(
+                release.Org,
+                release.App,
+                release.TagName,
+                buildStatus,
+                buildResult
+            );
             if (existingReleaseEntity.Any())
             {
                 throw new HttpRequestWithStatusException("A release with the same properties already exist.")
                 {
-                    StatusCode = HttpStatusCode.Conflict
+                    StatusCode = HttpStatusCode.Conflict,
                 };
             }
+        }
+
+        private async Task<string> GetAppScopesAsJson(string org, string app, CancellationToken cancellationToken)
+        {
+            var context = AltinnRepoContext.FromOrgRepo(org, app);
+            var appScopes = await _appScopesRepository.GetAppScopesAsync(context, cancellationToken);
+
+            if (appScopes?.Scopes is null || appScopes.Scopes.Count == 0)
+            {
+                return "[]";
+            }
+
+            var scopeList = appScopes.Scopes.Select(s => s.Scope).ToArray();
+            return JsonSerializer.Serialize(scopeList);
         }
     }
 }

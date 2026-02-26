@@ -1,3 +1,4 @@
+import { INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE } from '@altinn/policy-editor/constants';
 import type { PolicyAction, PolicyRuleCard, PolicySubject } from '../../types';
 
 /**
@@ -29,20 +30,6 @@ export const getUpdatedRules = (
 };
 
 /**
- * Maps the subject objects to option objects for display in the select component
- *
- * @param subjects the list of possible subjects
- * @param policyRule the currect policy rule
- *
- * @returns a list of select options with value and label
- */
-export const getSubjectOptions = (subjects: PolicySubject[], policyRule: PolicyRuleCard) => {
-  return subjects
-    .filter((s) => !policyRule.subject.includes(s.subjectId))
-    .map((s) => ({ value: s.subjectId, label: s.subjectTitle }));
-};
-
-/**
  * Maps the action objects to option objects for display in the select component
  *
  * @param actions the list of possible actions
@@ -65,4 +52,30 @@ export const getActionOptions = (actions: PolicyAction[], policyRule: PolicyRule
  */
 export const getPolicyRuleIdString = (policyRule: PolicyRuleCard) => {
   return policyRule.ruleId.toString();
+};
+
+const isPersonSubject = (subjectUrn: string) => {
+  return subjectUrn === 'urn:altinn:rolecode:PRIV' || subjectUrn === 'urn:altinn:rolecode:SELN';
+};
+export const getCcrSubjects = (subjects: PolicySubject[]) => {
+  return subjects.filter((s) => s.provider?.code === 'sys-ccr');
+};
+export const getAltinnSubjects = (subjects: PolicySubject[]) => {
+  return subjects.filter((s) => {
+    const isAltinn = s.provider?.code === 'sys-altinn2' || s.provider?.code === 'sys-altinn3';
+    const isPersonRole = isPersonSubject(s.legacyUrn);
+    return isAltinn && !isPersonRole;
+  });
+};
+export const getOtherSubjects = (subjects: PolicySubject[]) => {
+  return subjects.filter((s) => {
+    const isOther = s.provider?.code === INTERNAL_ACCESS_PACKAGE_PROVIDER_CODE;
+    return isOther;
+  });
+};
+
+export const getPersonSubjects = (subjects: PolicySubject[]) => {
+  return subjects.filter((s) => {
+    return isPersonSubject(s.legacyUrn);
+  });
 };

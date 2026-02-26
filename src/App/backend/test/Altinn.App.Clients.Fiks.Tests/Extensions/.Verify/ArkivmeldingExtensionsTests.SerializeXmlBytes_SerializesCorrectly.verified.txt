@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<arkivmelding xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/arkivmelding/opprett/v1">
+  <system>record-system-id</system>
+  <regel>record-rule-id</regel>
+  <antallFiler>2</antallFiler>
+  <mappe xsi:type="saksmappe">
+    <tittel>folder-title</tittel>
+    <offentligTittel>folder-public-title</offentligTittel>
+    <referanseEksternNoekkel>
+      <fagsystem xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">folder-external-system</fagsystem>
+      <noekkel xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">folder-external-system-id</noekkel>
+    </referanseEksternNoekkel>
+    <saksaar>2025</saksaar>
+    <saksdato>2025-01-01</saksdato>
+    <administrativEnhet>
+      <navn xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">folder-creator</navn>
+    </administrativEnhet>
+  </mappe>
+  <registrering xsi:type="journalpost">
+    <opprettetAv>journal-entry-creator</opprettetAv>
+    <arkivertAv>journal-entry-archivist</arkivertAv>
+    <referanseForelderMappe>
+      <referanseEksternNoekkel xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">
+        <fagsystem>folder-external-system</fagsystem>
+        <noekkel>folder-external-system-id</noekkel>
+      </referanseEksternNoekkel>
+    </referanseForelderMappe>
+    <tittel>journal-entry-title</tittel>
+    <offentligTittel>journal-entry-public-title</offentligTittel>
+    <referanseEksternNoekkel>
+      <fagsystem xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">folder-external-system</fagsystem>
+      <noekkel xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">folder-external-system-id</noekkel>
+    </referanseEksternNoekkel>
+    <journalaar>2025</journalaar>
+    <journalposttype>
+      <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">U</kode>
+      <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Utgående dokument</beskrivelse>
+    </journalposttype>
+    <journalstatus>
+      <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">J</kode>
+      <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Journalført</beskrivelse>
+    </journalstatus>
+    <dokumentetsDato>2025-01-01</dokumentetsDato>
+  </registrering>
+</arkivmelding>

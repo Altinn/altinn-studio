@@ -1,0 +1,14 @@
+[
+  {
+      "value": "altinn",
+      "label": "alternativ 1, Altinn"
+  },
+  {
+      "value": "digdir",
+      "label": "alternativ 2, Digitaliseringsdirektoratet"
+  },     
+  {
+      "value": "annet",
+      "label": "alternativ 3, Annet"
+  }
+]

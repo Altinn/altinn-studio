@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,8 +15,10 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ProcessDataTypesChangedLayoutSetsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-        IFileSyncHandlerExecutor fileSyncHandlerExecutor)
+    public ProcessDataTypesChangedLayoutSetsHandler(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
@@ -33,7 +36,8 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
                 var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     notification.EditingContext.Org,
                     notification.EditingContext.Repo,
-                    notification.EditingContext.Developer);
+                    notification.EditingContext.Developer
+                );
 
                 if (!repository.AppUsesLayoutSets())
                 {
@@ -48,7 +52,8 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
                 }
 
                 return hasChanges;
-            });
+            }
+        );
     }
 
     private static bool TryChangeDataTypes(LayoutSets layoutSets, List<string> newDataTypes, string connectedTaskId)
@@ -63,5 +68,4 @@ public class ProcessDataTypesChangedLayoutSetsHandler : INotificationHandler<Pro
 
         return hasChanges;
     }
-
 }

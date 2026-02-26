@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
-import { useTranslation, Trans } from 'react-i18next';
-import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioSpinner, StudioTextfield } from '@studio/components-legacy';
-import { StudioAlert, StudioParagraph } from '@studio/components';
+import { useTranslation } from 'react-i18next';
+import { StudioAlert, StudioParagraph, StudioTextfield, StudioSpinner } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { isOptionsIdReferenceId, hasStaticOptionList } from '../utils/optionsUtils';
 import classes from './ReferenceTab.module.css';
+import type { CodeListIdContextData } from '../types/CodeListIdContextData';
 
 export function ReferenceTab({
   component,
@@ -18,7 +17,7 @@ export function ReferenceTab({
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, isPending } = useOptionListIdsQuery(org, app);
   const [referenceId, setReferenceId] = useState<string>(
-    isOptionsIdReferenceId(optionListIds, component.optionsId) ? component.optionsId : undefined,
+    isOptionsIdReferenceId(optionListIds, component.optionsId) ? component.optionsId : '',
   );
 
   const handleOptionsIdChange = (optionsId: string) => {
@@ -36,13 +35,14 @@ export function ReferenceTab({
   if (isPending) {
     return (
       <StudioSpinner
-        showSpinnerTitle={false}
+        aria-label={t('global.loading')}
         spinnerTitle={t('ux_editor.modal_properties_loading')}
       />
     );
   }
 
-  const shouldDisplayAlert: boolean = hasStaticOptionList(optionListIds, component);
+  const contextData: CodeListIdContextData = { idsFromAppLibrary: optionListIds, orgName: org };
+  const shouldDisplayAlert: boolean = hasStaticOptionList(contextData, component);
 
   return (
     <div className={classes.container}>
@@ -63,17 +63,6 @@ export function ReferenceTab({
           {t('ux_editor.options.tab_reference_id_alert_title')}
         </StudioAlert>
       )}
-      <p>
-        <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
-          <a
-            href={altinnDocsUrl({
-              relativeUrl: 'altinn-studio/guides/development/options/sources/dynamic/',
-            })}
-            target='_newTab'
-            rel='noopener noreferrer'
-          />
-        </Trans>
-      </p>
     </div>
   );
 }

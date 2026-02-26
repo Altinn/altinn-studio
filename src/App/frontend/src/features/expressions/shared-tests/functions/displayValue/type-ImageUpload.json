@@ -1,0 +1,42 @@
+{
+  "name": "Display value of FileUpload component",
+  "expression": [
+    "displayValue",
+    "image"
+  ],
+  "context": {
+    "component": "image",
+    "currentLayout": "Page"
+  },
+  "expects": "my-image.jpg",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "image",
+            "type": "ImageUpload"
+          }
+        ]
+      }
+    }
+  },
+  "instanceDataElements": [
+    {
+        "id": "bb2b2222-2b22-2b22-222b-222222222222",
+        "instanceGuid": "aa1a1111-1a11-1a11-111a-111111111111",
+        "dataType": "image",
+        "filename": "my-image.jpg",
+        "contentType": "image/jpeg",
+        "blobStoragePath": "",
+        "size": 100,
+        "locked": false,
+        "refs": [],
+        "created": "2021-01-01T00:00:00.000Z",
+        "createdBy": "testUser",
+        "lastChanged": "2021-01-01T00:00:00.000Z",
+        "lastChangedBy": "testUser"
+    }
+  ]
+}

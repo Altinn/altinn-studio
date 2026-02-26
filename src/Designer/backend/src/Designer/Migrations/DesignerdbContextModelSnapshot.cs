@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
@@ -73,6 +73,65 @@ namespace Altinn.Studio.Designer.Migrations
                     b.ToTable("app_scopes", "designer");
                 });
 
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppSettingsDbModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("App")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("app");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("character varying")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Environment")
+                        .HasColumnType("character varying")
+                        .HasColumnName("environment");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("character varying")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.Property<bool>("UndeployOnInactivity")
+                        .HasColumnType("boolean")
+                        .HasColumnName("undeploy_on_inactivity");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("app_settings_pkey");
+
+                    b.HasIndex(new[] { "Org", "App", "Environment" }, "idx_app_settings_org_app_environment")
+                        .IsUnique()
+                        .HasFilter("\"environment\" IS NOT NULL");
+
+                    b.HasIndex(new[] { "Org", "App" }, "idx_app_settings_org_app_global")
+                        .IsUnique()
+                        .HasFilter("\"environment\" IS NULL");
+
+                    b.ToTable("app_settings", "designer");
+                });
+
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel", b =>
                 {
                     b.Property<long>("Id")
@@ -114,6 +173,49 @@ namespace Altinn.Studio.Designer.Migrations
                         .IsUnique();
 
                     b.ToTable("builds", "designer");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeployEventDbModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created");
+
+                    b.Property<long>("DeploymentSequenceNo")
+                        .HasColumnType("BIGSERIAL")
+                        .HasColumnName("deployment_sequenceno");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("event_type");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("text")
+                        .HasColumnName("message");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("origin");
+
+                    b.Property<DateTimeOffset>("Timestamp")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("timestamp");
+
+                    b.HasKey("Id")
+                        .HasName("deploy_events_pkey");
+
+                    b.HasIndex(new[] { "DeploymentSequenceNo" }, "idx_deploy_events_deployment_sequenceno");
+
+                    b.ToTable("deploy_events", "designer");
                 });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel", b =>
@@ -230,6 +332,18 @@ namespace Altinn.Studio.Designer.Migrations
                     b.ToTable("releases", "designer");
                 });
 
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeployEventDbModel", b =>
+                {
+                    b.HasOne("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel", "Deployment")
+                        .WithMany("Events")
+                        .HasForeignKey("DeploymentSequenceNo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_deploy_events_deployments");
+
+                    b.Navigation("Deployment");
+                });
+
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel", b =>
                 {
                     b.HasOne("Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel", "Build")
@@ -238,6 +352,11 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasConstraintName("fk_deployments_builds_buildid");
 
                     b.Navigation("Build");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel", b =>
+                {
+                    b.Navigation("Events");
                 });
 #pragma warning restore 612, 618
         }

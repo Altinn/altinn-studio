@@ -39,7 +39,9 @@ const defaultProps: StudioTextResourceInputProps = {
   onUpdateTextResource,
   currentId,
 };
-const currentTextResource = TextResourceUtils.fromArray(textResources).get(currentId);
+const currentTextResource = TextResourceUtils.fromArray(textResources).get(
+  currentId,
+) as TextResource;
 
 describe('StudioTextResourceInput', () => {
   afterEach(jest.clearAllMocks);

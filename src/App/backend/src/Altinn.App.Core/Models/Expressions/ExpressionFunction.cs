@@ -13,6 +13,13 @@ namespace Altinn.App.Core.Models.Expressions;
 public enum ExpressionFunction
 {
     /// <summary>
+    /// Expressions that hold a literal value have this as function
+    /// </summary>
+#pragma warning disable CA1707 // Identifiers should not contain underscores
+    LITERAL_VALUE = -1,
+#pragma warning restore CA1707 // Identifiers should not contain underscores
+
+    /// <summary>
     /// Value for all unknown functions.
     /// </summary>
     INVALID,

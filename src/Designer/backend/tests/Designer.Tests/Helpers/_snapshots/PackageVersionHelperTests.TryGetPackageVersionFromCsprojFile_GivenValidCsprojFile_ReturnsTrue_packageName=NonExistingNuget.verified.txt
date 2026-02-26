@@ -1,0 +1,20 @@
+﻿{
+  Inputs: [
+    [
+      NonExistingNuget,
+      NonExistingNuget.Experimental
+    ],
+    [
+      NonExistingNuget.Experimental,
+      NonExistingNuget
+    ]
+  ],
+  Outputs: [
+    {
+      Item1: false
+    },
+    {
+      Item1: false
+    }
+  ]
+}

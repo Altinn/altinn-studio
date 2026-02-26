@@ -14,5 +14,6 @@ export {
   convertMetadataStringToConsentMetadata,
   getResourcePolicyRules,
   getResourceSubjects,
+  getValidIdentifierPrefixes,
 } from './resourceUtils';
 export type { EnvId, Environment } from './resourceUtils';

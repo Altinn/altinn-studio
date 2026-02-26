@@ -7,27 +7,18 @@ using System.Threading.Tasks;
 
 namespace LocalTest.Models
 {
+    public enum AppMode
+    {
+        Http,
+        File
+    }
+
     public class StartAppModel
     {
-        /// <summary>
-        /// The name of the app
-        /// </summary>
-        public string App { get; set; }
-
-        /// <summary>
-        /// The name of the org
-        /// </summary>
-        public string Org { get; set; }
-
         /// <summary>
         /// Defines if a app has defined invalid path
         /// </summary>
         public bool InvalidAppPath { get; set; }
-
-        /// <summary>
-        /// Title of the app
-        /// </summary>
-        public string AppTitle { get; set; }
 
         /// <summary>
         /// _localPlatformSettings.AppRepositoryBasePath
@@ -81,7 +72,7 @@ namespace LocalTest.Models
 
         /// <summary>
         /// Url for where to load the local frontend from
-        /// (implemented as a cookie that nginx reads and substitutes the content in index.html)
+        /// (implemented as a cookie consumed by localtest proxy middleware)
         /// </summary>
         public string LocalFrontendUrl { get; set; }
 
@@ -101,8 +92,13 @@ namespace LocalTest.Models
         public IEnumerable<SelectListItem> AuthenticationLevels { get; set; }
 
         /// <summary>
-        /// Modify site conditionally on the app mode
+        /// The current app mode
         /// </summary>
-        public bool AppModeIsHttp { get; set; }
+        public AppMode AppMode { get; set; }
+
+        /// <summary>
+        /// Whether there are any registered apps
+        /// </summary>
+        public bool HasRegisteredApps { get; set; }
     }
 }

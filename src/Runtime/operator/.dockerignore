@@ -1,0 +1,12 @@
+# More info: https://docs.docker.com/engine/reference/builder/#dockerignore-file
+# Ignore build and test binaries.
+bin/
+test/
+dist/
+.github/
+.vscode/
+.cache/
+.gocache/
+
+*.svg
+*.out

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { ReactElement } from 'react';
-import { StudioResizableLayout } from '@studio/components-legacy';
+import { StudioResizableLayout } from '@studio/components';
 import { ToolColumn } from '../ToolColumn/ToolColumn';
 import classes from './CompleteInterface.module.css';
 import { HeadingBar } from '../HeadingBar/HeadingBar';
@@ -29,6 +29,7 @@ export function CompleteInterface({
   onCreateThread,
   previewContent,
   fileBrowserContent,
+  currentUser,
 }: CompleteInterfaceProps): ReactElement {
   const [isThreadColumnCollapsed, setIsThreadColumnCollapsed] = useState(false);
   const [toolColumnMode, setToolColumnMode] = useState<ToolColumnMode>(ToolColumnMode.Preview);
@@ -36,7 +37,7 @@ export function CompleteInterface({
   // Get the current thread - prefer activeThreadId, then most recently updated thread
   const currentThread = React.useMemo(() => {
     // First try to find the explicitly requested thread
-    if (activeThreadId) {
+    if (activeThreadId && chatThreads) {
       const thread = chatThreads.find((t) => t.id === activeThreadId);
       if (thread) {
         return thread;
@@ -44,8 +45,8 @@ export function CompleteInterface({
     }
 
     // If no active thread is selected, return empty chat thread for blank state
-    return emptyChatThread;
-  }, [activeThreadId, chatThreads]);
+    return createEmptyChatThread(texts.newThread);
+  }, [activeThreadId, chatThreads, texts]);
 
   const handleToggleCollapse = (): void => setIsThreadColumnCollapsed(!isThreadColumnCollapsed);
 
@@ -81,7 +82,7 @@ export function CompleteInterface({
           ) : (
             <ThreadColumn
               texts={texts}
-              chatThreads={chatThreads}
+              chatThreads={chatThreads ?? []}
               selectedThreadId={activeThreadId ? currentThread.id : undefined}
               currentSessionId={activeThreadId}
               onSelectThread={onSelectThread}
@@ -99,6 +100,7 @@ export function CompleteInterface({
             onCancelWorkflow={onCancelWorkflow}
             workflowIsActive={workflowStatus?.isActive ?? false}
             enableCompactInterface={false}
+            currentUser={currentUser}
           />
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element minimumSize={200}>
@@ -113,8 +115,8 @@ export function CompleteInterface({
   );
 }
 
-const emptyChatThread: ChatThread = {
+const createEmptyChatThread = (title: string): ChatThread => ({
   id: 'new-chat',
-  title: 'Ny tråd',
+  title,
   messages: [],
-};
+});

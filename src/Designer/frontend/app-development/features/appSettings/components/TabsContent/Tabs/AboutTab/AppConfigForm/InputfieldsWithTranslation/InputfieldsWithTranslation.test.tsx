@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { InputfieldsWithTranslationProps } from './InputfieldsWithTranslation';
 import userEvent from '@testing-library/user-event';
@@ -13,7 +14,7 @@ describe('InputfieldsWithTranslation', () => {
   it('renders NB field with correct label and description', () => {
     renderInputfieldsWithTranslation();
 
-    expect(getTextbox(`${label} (${textMock('language.nb')}) ${required}`)).toBeInTheDocument();
+    expect(getTextbox(`${label} (${textMock('language.nb')})`)).toBeInTheDocument();
     expect(getText(description)).toBeInTheDocument();
   });
 
@@ -30,7 +31,7 @@ describe('InputfieldsWithTranslation', () => {
     const updateLanguage = jest.fn();
     renderInputfieldsWithTranslation({ updateLanguage });
 
-    const input = getTextbox(`${label} (${textMock('language.nb')}) ${required}`);
+    const input = getTextbox(`${label} (${textMock('language.nb')})`);
     const newText: string = 'A';
     await user.type(input, newText);
 
@@ -44,7 +45,6 @@ describe('InputfieldsWithTranslation', () => {
 
 const label = textMock('label');
 const description = textMock('some_description_translation');
-const required = textMock('general.required');
 const value: SupportedLanguage = { nb: 'Tjeneste', nn: '', en: '' };
 
 const defaultProps: InputfieldsWithTranslationProps = {
@@ -59,7 +59,11 @@ const defaultProps: InputfieldsWithTranslationProps = {
 };
 
 function renderInputfieldsWithTranslation(props: Partial<InputfieldsWithTranslationProps> = {}) {
-  return render(<InputfieldsWithTranslation {...defaultProps} {...props} />);
+  return render(
+    <MemoryRouter initialEntries={['/']}>
+      <InputfieldsWithTranslation {...defaultProps} {...props} />
+    </MemoryRouter>,
+  );
 }
 
 const getTextbox = (name: string): HTMLInputElement => screen.getByRole('textbox', { name });

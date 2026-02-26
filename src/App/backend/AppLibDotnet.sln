@@ -24,6 +24,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Internal.Analyze
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Analyzers", "src\Altinn.App.Analyzers\Altinn.App.Analyzers.csproj", "{9F956488-F123-48A2-B21A-2C2918E8B416}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Clients.Fiks", "src\Altinn.App.Clients.Fiks\Altinn.App.Clients.Fiks.csproj", "{024AF273-AECF-4275-B123-05F8CE8C7AAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.App.Clients.Fiks.Tests", "test\Altinn.App.Clients.Fiks.Tests\Altinn.App.Clients.Fiks.Tests.csproj", "{927BF3D3-24B9-40B0-B66C-4DA24A869622}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +62,14 @@ Global
 		{9F956488-F123-48A2-B21A-2C2918E8B416}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F956488-F123-48A2-B21A-2C2918E8B416}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F956488-F123-48A2-B21A-2C2918E8B416}.Release|Any CPU.Build.0 = Release|Any CPU
+		{024AF273-AECF-4275-B123-05F8CE8C7AAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{024AF273-AECF-4275-B123-05F8CE8C7AAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{024AF273-AECF-4275-B123-05F8CE8C7AAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{024AF273-AECF-4275-B123-05F8CE8C7AAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{927BF3D3-24B9-40B0-B66C-4DA24A869622}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{927BF3D3-24B9-40B0-B66C-4DA24A869622}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{927BF3D3-24B9-40B0-B66C-4DA24A869622}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{927BF3D3-24B9-40B0-B66C-4DA24A869622}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -70,6 +82,8 @@ Global
 		{D5838692-2703-4E42-8802-6E1FA7F1B50B} = {6C8EB054-1747-4BAC-A637-754F304BCAFA}
 		{A43CE769-FAB0-49E7-BDD4-3FCA939E1E5A} = {7AD5FADE-607F-4D5F-8511-6647D0C1AA1C}
 		{9F956488-F123-48A2-B21A-2C2918E8B416} = {7AD5FADE-607F-4D5F-8511-6647D0C1AA1C}
+		{024AF273-AECF-4275-B123-05F8CE8C7AAC} = {7AD5FADE-607F-4D5F-8511-6647D0C1AA1C}
+		{927BF3D3-24B9-40B0-B66C-4DA24A869622} = {6C8EB054-1747-4BAC-A637-754F304BCAFA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4584C6E1-D5B4-40B1-A8C4-CF4620EB0896}

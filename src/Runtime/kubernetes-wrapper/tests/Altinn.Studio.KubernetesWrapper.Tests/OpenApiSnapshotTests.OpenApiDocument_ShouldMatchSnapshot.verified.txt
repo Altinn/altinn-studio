@@ -1,0 +1,125 @@
+﻿{
+  openapi: 3.0.4,
+  info: {
+    title: Altinn Kuberneteswrapper,
+    version: v1
+  },
+  paths: {
+    /api/v1/DaemonSets: {
+      get: {
+        tags: [
+          DaemonSets
+        ],
+        parameters: [
+          {
+            name: labelSelector,
+            in: query,
+            schema: {
+              type: string
+            }
+          },
+          {
+            name: fieldSelector,
+            in: query,
+            schema: {
+              type: string
+            }
+          }
+        ],
+        responses: {
+          200: {
+            description: OK,
+            content: {
+              application/json: {
+                schema: {
+                  type: array,
+                  items: {
+                    $ref: #/components/schemas/DaemonSet
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    /api/v1/Deployments: {
+      get: {
+        tags: [
+          Deployments
+        ],
+        parameters: [
+          {
+            name: labelSelector,
+            in: query,
+            schema: {
+              type: string
+            }
+          },
+          {
+            name: fieldSelector,
+            in: query,
+            schema: {
+              type: string
+            }
+          }
+        ],
+        responses: {
+          200: {
+            description: OK,
+            content: {
+              application/json: {
+                schema: {
+                  type: array,
+                  items: {
+                    $ref: #/components/schemas/Deployment
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  components: {
+    schemas: {
+      DaemonSet: {
+        type: object,
+        properties: {
+          version: {
+            type: string,
+            nullable: true
+          },
+          release: {
+            type: string,
+            nullable: true
+          }
+        },
+        additionalProperties: false
+      },
+      Deployment: {
+        type: object,
+        properties: {
+          version: {
+            type: string,
+            nullable: true
+          },
+          release: {
+            type: string,
+            nullable: true
+          }
+        },
+        additionalProperties: false
+      }
+    }
+  },
+  tags: [
+    {
+      name: DaemonSets
+    },
+    {
+      name: Deployments
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 
@@ -13,4 +14,3 @@ public class AppScopesEntity
     public string LastModifiedBy { get; set; }
     public uint Version { get; set; }
 }
-

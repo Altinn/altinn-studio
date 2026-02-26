@@ -1,20 +1,20 @@
 import React from 'react';
-import { Form } from 'react-router-dom';
+import { Form } from 'react-router';
 
 import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
-import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
+import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import { ProcessTaskType } from 'src/types';
 import type { AppQueries } from 'src/queries/types';
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
@@ -26,8 +26,8 @@ enum RenderAs {
 }
 
 const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>) => {
-  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
-    getIncomingApplicationMetadataMock((m) => {
+  jest.mocked(getApplicationMetadata).mockImplementationOnce(() =>
+    getApplicationMetadataMock((m) => {
       m.org = 'brg';
       m.partyTypesAllowed.person = true;
       m.partyTypesAllowed.organisation = true;
@@ -53,11 +53,11 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
     renderer: () => (
       <InstanceProvider>
         <FormProvider>
-          <PDFWrapper>
-            <PresentationComponent type={ProcessTaskType.Data}>
+          <PdfWrapper>
+            <PresentationComponent>
               <Form />
             </PresentationComponent>
-          </PDFWrapper>
+          </PdfWrapper>
         </FormProvider>
       </InstanceProvider>
     ),

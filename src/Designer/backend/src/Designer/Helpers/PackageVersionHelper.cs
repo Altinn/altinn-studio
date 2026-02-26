@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable disable
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
@@ -8,7 +9,11 @@ namespace Altinn.Studio.Designer.Helpers
 {
     public static class PackageVersionHelper
     {
-        public static bool TryGetPackageVersionFromCsprojFile(string csprojFilePath, IReadOnlyList<string> packageNames, out SemanticVersion version)
+        public static bool TryGetPackageVersionFromCsprojFile(
+            string csprojFilePath,
+            IReadOnlyList<string> packageNames,
+            out SemanticVersion version
+        )
         {
             version = null;
             var doc = XDocument.Load(csprojFilePath);
@@ -22,6 +27,10 @@ namespace Altinn.Studio.Designer.Helpers
                 {
                     continue;
                 }
+
+                // Ensure that we also handle pinned versions like [1.2.3]
+                // TODO: Consider other version range formats if needed
+                versionString = versionString.Replace("[", string.Empty).Replace("]", string.Empty);
 
                 if (SemanticVersion.TryParse(versionString, out version))
                 {

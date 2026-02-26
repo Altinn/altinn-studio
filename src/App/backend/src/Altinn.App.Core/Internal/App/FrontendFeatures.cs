@@ -1,4 +1,4 @@
-using Altinn.App.Core.Features;
+using System.Text.Json;
 using Microsoft.FeatureManagement;
 
 namespace Altinn.App.Core.Internal.App;
@@ -8,29 +8,27 @@ namespace Altinn.App.Core.Internal.App;
 /// </summary>
 public class FrontendFeatures : IFrontendFeatures
 {
-    private readonly Dictionary<string, bool> _features = new();
+    private readonly IFeatureManager _featureManager;
 
     /// <summary>
     /// Default implementation of IFrontendFeatures
-    /// </summary>
+    ///  </summary>
     public FrontendFeatures(IFeatureManager featureManager)
     {
-        _features.Add("footer", true);
-        _features.Add("processActions", true);
-
-        if (featureManager.IsEnabledAsync(FeatureFlags.JsonObjectInDataResponse).Result)
-        {
-            _features.Add("jsonObjectInDataResponse", true);
-        }
-        else
-        {
-            _features.Add("jsonObjectInDataResponse", false);
-        }
+        _featureManager = featureManager;
     }
 
     /// <inheritdoc />
-    public Task<Dictionary<string, bool>> GetFrontendFeatures()
+    public async Task<Dictionary<string, bool>> GetFrontendFeatures()
     {
-        return Task.FromResult(_features);
+        var result = new Dictionary<string, bool>();
+
+        await foreach (var name in _featureManager.GetFeatureNamesAsync())
+        {
+            var camelCaseName = JsonNamingPolicy.CamelCase.ConvertName(name);
+            result[camelCaseName] = await _featureManager.IsEnabledAsync(name);
+        }
+
+        return result;
     }
 }

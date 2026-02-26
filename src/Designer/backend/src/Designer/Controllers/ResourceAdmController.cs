@@ -1,4 +1,5 @@
-﻿using Altinn.Studio.Designer.Services.Interfaces;
+﻿#nullable disable
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -14,6 +15,5 @@ namespace Altinn.Studio.Designer.Controllers
         {
             _sourceControl = sourceControl;
         }
-
     }
 }

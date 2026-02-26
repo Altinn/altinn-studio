@@ -60,6 +60,7 @@ export const NodeInspector = () => {
             </div>
           </div>
           <NodeInspectorContextProvider
+            key={selectedId}
             value={{
               selectedNodeId: selectedId,
               selectedBaseId: baseComponentId,

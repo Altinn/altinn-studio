@@ -1,0 +1,8 @@
+[
+  { "label": "PetsSortOrder.AscSpecies", "value": "ascSpecies" },
+  { "label": "PetsSortOrder.DescSpecies", "value": "descSpecies" },
+  { "label": "PetsSortOrder.AscName", "value": "ascName" },
+  { "label": "PetsSortOrder.DescName", "value": "descName" },
+  { "label": "PetsSortOrder.AscAge", "value": "ascAge" },
+  { "label": "PetsSortOrder.DescAge", "value": "descAge" }
+]

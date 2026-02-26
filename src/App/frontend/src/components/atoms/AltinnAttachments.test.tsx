@@ -130,7 +130,7 @@ describe('AltinnAttachments', () => {
     render(
       <AltinnAttachments
         attachments={mockAttachments}
-        title={title}
+        title={title as unknown as React.ReactElement}
         showLinks={true}
       />,
     );

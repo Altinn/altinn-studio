@@ -5,6 +5,17 @@
   padding-inline: var(--fds-spacing-4);
 }
 
+.link {
+  color: var(--ds-color-neutral-background-default);
+  padding: var(--ds-size-2);
+}
+
+.link:hover {
+  background-color: var(--studio-preview-header-background-default);
+  border-radius: var(--ds-border-radius-default);
+}
+
 .icon {
   font-size: var(--fds-sizing-6);
+  color: var(--ds-color-neutral-background-default);
 }

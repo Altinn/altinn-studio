@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
 
@@ -155,5 +156,64 @@ namespace Altinn.Platform.Storage.Helpers
 
             return (lastChangedBy, lastChanged);
         }
+
+        /// <summary>
+        /// Extracts instance owner type and value from a formatted instance owner identifier.
+        /// </summary>
+        /// <param name="instanceOwnerIdentifier">The instance owner identifier in format "type:value"</param>
+        /// <returns>A tuple with the type and value</returns>
+        public static (string InstanceOwnerIdType, string InstanceOwnerIdValue) GetIdentifierFromInstanceOwnerIdentifier(string instanceOwnerIdentifier)
+        {
+            if (string.IsNullOrEmpty(instanceOwnerIdentifier))
+            {
+                return (string.Empty, string.Empty);
+            }
+
+            string[] parts = instanceOwnerIdentifier.Replace(" ", string.Empty).ToLower().Split(':');
+            if (parts.Length != 2)
+            {
+                return (string.Empty, string.Empty);
+            }
+
+            string partyType = parts[0];
+            string partyNumber = parts[1];
+
+            if (Enum.TryParse<PartyType>(partyType, true, out _))
+            {
+                return (partyType, partyNumber);
+            }
+
+            return (string.Empty, string.Empty);
+        }
+
+        /// <summary>
+        /// Check if the instance is prevented from deletion based on application settings
+        /// </summary>
+        /// <param name="instanceStatus">The status of the instance to check</param>
+        /// <param name="application">The application the instance belongs to</param>
+        public static bool IsPreventedFromDeletion(InstanceStatus instanceStatus, Application application)
+        {
+            if (!instanceStatus.Archived.HasValue || !application.PreventInstanceDeletionForDays.HasValue)
+            {
+                return false;
+            }
+
+            DateTime archivedDateTime = instanceStatus.Archived.Value;
+            DateTime dueDate = archivedDateTime.AddDays(application.PreventInstanceDeletionForDays.Value);
+
+            return DateTime.UtcNow < dueDate;
+        }
+    }
+
+    /// <summary>
+    /// A helper class to validate instance owner ID with regular expression
+    /// </summary>
+    public static partial class InstanceOwnerIdRegExHelper
+    {
+        private static readonly Regex _elevenDigitRegex = new Regex(@"^\d{11}$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(500));
+        private static readonly Regex _nineDigitRegex = new Regex(@"^\d{9}$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(500));
+
+        public static Regex ElevenDigitRegex() => _elevenDigitRegex;
+        public static Regex NineDigitRegex() => _nineDigitRegex;
     }
 }

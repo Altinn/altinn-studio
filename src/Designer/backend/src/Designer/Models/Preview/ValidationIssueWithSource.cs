@@ -1,4 +1,3 @@
-#nullable enable
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.Validation;

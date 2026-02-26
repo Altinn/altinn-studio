@@ -19,9 +19,7 @@ import type { RequiredSelection } from '../../types/RequiredSelection';
 export type StudioTextResourceInputProps = TextResourceInputPropsBase &
   HTMLAttributes<HTMLInputElement>;
 /**
- * @remarks StudioCodeFragment lives in `@studio/components-legacy`. We can not import from `@studio/components`
- *          because of the lint rule forbidding cross-dependency.
- * @todo When Parent legacy-component StudioTextResourceInput moved out of legacy, replace `StudioCodeFragment` with the one from `@studio/components`.
+ * @deprecated Use StudioTextResourceInput from @studio/components instead.
  */
 type TextResourceInputPropsBase = {
   currentId?: string | null;
@@ -60,7 +58,7 @@ export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextRe
     const [textResources, setTextResources] = usePropState<TextResource[]>(givenTextResources);
     const [mode, setMode] = useState<Mode>(Mode.EditValue);
 
-    const handleChangeCurrentId = (id: string): void => {
+    const handleChangeCurrentId = (id: string | null): void => {
       setCurrentId(id);
       onChangeCurrentId(id);
     };
@@ -214,7 +212,11 @@ const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
     );
 
     const editCurrentTextResource = useCallback(
-      (value: string): TextResource => editTextResourceValue(currentTextResource, value),
+      (value: string): TextResource => {
+        /* istanbul ignore else */
+        if (currentTextResource) return editTextResourceValue(currentTextResource, value);
+        else throw new Error('No current text resource to edit.');
+      },
       [currentTextResource],
     );
 
@@ -304,11 +306,11 @@ function ModeToggle({
 
 type CurrentIdProps = {
   className?: string;
-  currentId: string;
+  currentId?: string | null;
   label: string;
 };
 
-function CurrentId({ className: givenClass, currentId, label }: CurrentIdProps): ReactElement {
+function CurrentId({ className: givenClass, currentId = '', label }: CurrentIdProps): ReactElement {
   const className = cn(givenClass, classes.id);
   return (
     <div className={className}>

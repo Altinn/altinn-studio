@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -22,8 +23,10 @@ public class UrlPolicyValidator : IUrlPolicyValidator
             return false;
         }
 
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
-            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        if (
+            !Uri.TryCreate(url, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+        )
         {
             return false;
         }

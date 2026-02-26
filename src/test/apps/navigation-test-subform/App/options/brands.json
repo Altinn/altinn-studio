@@ -1,0 +1,7 @@
+[
+  { "label": "brand.toyota", "value": "T" },
+  { "label": "brand.volkswagen", "value": "V" },
+  { "label": "brand.mercedes", "value": "M" },
+  { "label": "brand.audi", "value": "A" },
+  { "label": "brand.lamborghini", "value": "L" }
+]

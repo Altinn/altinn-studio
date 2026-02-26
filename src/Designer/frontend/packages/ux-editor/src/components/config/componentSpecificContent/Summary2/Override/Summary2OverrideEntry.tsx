@@ -1,4 +1,3 @@
-import { StudioDivider } from '@studio/components-legacy';
 import { CheckmarkIcon } from '@studio/icons';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -18,6 +17,7 @@ import {
   StudioDeleteButton,
   StudioProperty,
   StudioCard,
+  StudioDivider,
 } from '@studio/components';
 
 type Summary2OverrideEntryProps = {

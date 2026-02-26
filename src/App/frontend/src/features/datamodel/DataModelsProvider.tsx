@@ -1,17 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useMutationState, useQueryClient } from '@tanstack/react-query';
+import { useMutationState } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import { createStore } from 'zustand';
-import type { JSONSchema7 } from 'json-schema';
 
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { useCustomValidationConfigQuery } from 'src/features/customValidation/useCustomValidationQuery';
 import { UpdateDataElementIdsForCypress } from 'src/features/datamodel/DataElementIdsForCypress';
 import { useCurrentDataModelName, useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
@@ -27,16 +25,13 @@ import {
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import {
-  instanceQueries,
-  useInstanceDataElements,
-  useInstanceDataQueryArgs,
-} from 'src/features/instance/InstanceContext';
+import { useInstanceDataElements, useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { getFirstDataElementId } from 'src/features/instance/instanceUtils';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
 import { HttpStatusCodes } from 'src/utils/network/networking';
-import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
+import type { DataModelSchemaResult } from 'src/features/datamodel/useDataModelSchemaQuery';
 import type { IExpressionValidations } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
@@ -47,8 +42,7 @@ interface DataModelsState {
   writableDataTypes: string[] | null;
   initialData: { [dataType: string]: object };
   dataElementIds: { [dataType: string]: string | null };
-  schemas: { [dataType: string]: JSONSchema7 };
-  schemaLookup: { [dataType: string]: SchemaLookupTool };
+  schemaResults: { [dataType: string]: DataModelSchemaResult };
   expressionValidationConfigs: { [dataType: string]: IExpressionValidations | null };
   error: Error | null;
 }
@@ -62,7 +56,7 @@ interface DataModelsMethods {
   ) => void;
   setInitialData: (dataType: string, initialData: object) => void;
   setDataElementId: (dataType: string, dataElementId: string | null) => void;
-  setDataModelSchema: (dataType: string, schema: JSONSchema7, lookupTool: SchemaLookupTool) => void;
+  setDataModelSchema: (dataType: string, result: DataModelSchemaResult) => void;
   setExpressionValidationConfig: (dataType: string, config: IExpressionValidations | null) => void;
   setError: (error: Error) => void;
 }
@@ -75,8 +69,7 @@ function initialCreateStore() {
     writableDataTypes: null,
     initialData: {},
     dataElementIds: {},
-    schemas: {},
-    schemaLookup: {},
+    schemaResults: {},
     expressionValidationConfigs: {},
     error: null,
 
@@ -104,15 +97,11 @@ function initialCreateStore() {
         },
       }));
     },
-    setDataModelSchema: (dataType, schema, lookupTool) => {
+    setDataModelSchema: (dataType, result) => {
       set((state) => ({
-        schemas: {
-          ...state.schemas,
-          [dataType]: schema,
-        },
-        schemaLookup: {
-          ...state.schemaLookup,
-          [dataType]: lookupTool,
+        schemaResults: {
+          ...state.schemaResults,
+          [dataType]: result,
         },
       }));
     },
@@ -136,11 +125,12 @@ function initialCreateStore() {
   }));
 }
 
-const { Provider, useSelector, useLaxSelector, useSelectorAsRef, useStaticSelector } = createZustandContext({
-  name: 'DataModels',
-  required: true,
-  initialCreateStore,
-});
+const { Provider, useSelector, useShallowSelector, useLaxSelector, useSelectorAsRef, useStaticSelector } =
+  createZustandContext({
+    name: 'DataModels',
+    required: true,
+    initialCreateStore,
+  });
 
 export function DataModelsProvider({ children }: PropsWithChildren) {
   return (
@@ -153,19 +143,18 @@ export function DataModelsProvider({ children }: PropsWithChildren) {
 }
 
 function DataModelsLoader() {
-  const applicationMetadata = useApplicationMetadata();
+  const applicationMetadata = getApplicationMetadata();
   const setDataTypes = useSelector((state) => state.setDataTypes);
   const allDataTypes = useSelector((state) => state.allDataTypes);
   const writableDataTypes = useSelector((state) => state.writableDataTypes);
   const layouts = useLayouts();
   const defaultDataType = useCurrentDataModelName();
-  const isStateless = useApplicationMetadata().isStatelessApp;
-  const queryClient = useQueryClient();
-  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
+  const isStateless = useIsStateless();
 
-  const dataElements =
-    queryClient.getQueryData(instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }).queryKey)?.data ??
-    emptyArray;
+  const { data: dataElements, isFetching } = useInstanceDataQuery({
+    enabled: !isStateless,
+    select: (data) => data.data.map((element) => [element.dataType, element.locked] as const),
+  });
 
   const layoutSetId = useCurrentLayoutSetId();
 
@@ -176,6 +165,10 @@ function DataModelsLoader() {
 
   // Find all data types referenced in dataModelBindings in the layout
   useEffect(() => {
+    if (isFetching) {
+      return;
+    }
+
     const referencedDataTypes = getAllReferencedDataTypes(layouts, defaultDataType);
     const allValidDataTypes: string[] = [];
     const writableDataTypes: string[] = [];
@@ -195,10 +188,7 @@ function DataModelsLoader() {
         continue;
       }
 
-      // We don't check this if the data model is overridden, because dataElements (from the instance) may not
-      // even be up to date yet when (for example) a subform has just been added.
-      const isOverridden = overriddenDataType === dataType && !!overriddenDataElementId;
-      if (!isStateless && !isOverridden && !dataElements.find((data) => data.dataType === dataType)) {
+      if (!isStateless && !dataElements?.find(([dt]) => dt === dataType)) {
         const error = new MissingDataElementException(dataType);
         window.logErrorOnce(error.message);
         continue;
@@ -206,23 +196,13 @@ function DataModelsLoader() {
 
       allValidDataTypes.push(dataType);
 
-      if (isDataTypeWritable(dataType, isStateless, dataElements)) {
+      if (isDataTypeWritable(dataType, isStateless, dataElements ?? [])) {
         writableDataTypes.push(dataType);
       }
     }
 
     setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId);
-  }, [
-    applicationMetadata,
-    defaultDataType,
-    isStateless,
-    layouts,
-    setDataTypes,
-    dataElements,
-    layoutSetId,
-    overriddenDataType,
-    overriddenDataElementId,
-  ]);
+  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements, layoutSetId, isFetching]);
 
   // We should load form data and schema for all referenced data models, schema is used for dataModelBinding validation which we want to do even if it is readonly
   // We only need to load expression validation config for data types that are not readonly. Additionally, backend will error if we try to validate a model we are not supposed to
@@ -252,8 +232,15 @@ function DataModelsLoader() {
 }
 
 function BlockUntilLoaded({ children }: PropsWithChildren) {
-  const { layoutSetId, allDataTypes, writableDataTypes, initialData, schemas, expressionValidationConfigs, error } =
-    useSelector((state) => state);
+  const {
+    layoutSetId,
+    allDataTypes,
+    writableDataTypes,
+    initialData,
+    schemaResults,
+    expressionValidationConfigs,
+    error,
+  } = useSelector((state) => state);
   const actualCurrentTask = useCurrentLayoutSetId();
   const isPDF = useIsPdf();
 
@@ -296,7 +283,7 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
       return <Loader reason='initial-data' />;
     }
 
-    if (!Object.keys(schemas).includes(dataType)) {
+    if (!Object.keys(schemaResults).includes(dataType)) {
       return <Loader reason='data-model-schema' />;
     }
   }
@@ -320,12 +307,13 @@ function LoadInitialData({ dataType, overrideDataElement }: LoaderProps & { over
   const setError = useSelector((state) => state.setError);
   const dataElements = useInstanceDataElements(dataType);
   const dataElementId = overrideDataElement ?? getFirstDataElementId(dataElements, dataType);
-  const metaData = useApplicationMetadata();
+  const metaData = getApplicationMetadata();
+  const isStateless = useIsStateless();
 
   const url = useDataModelUrl({
     dataType,
     dataElementId,
-    prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, dataType),
+    prefillFromQueryParams: getValidPrefillDataFromQueryParams(metaData, isStateless, dataType),
   });
 
   const { data, error } = useFormDataQuery(url);
@@ -359,7 +347,7 @@ function LoadSchema({ dataType }: LoaderProps) {
 
   useEffect(() => {
     if (data) {
-      setDataModelSchema(dataType, data.schema, data.lookupTool);
+      setDataModelSchema(dataType, data);
     }
   }, [data, dataType, setDataModelSchema]);
 
@@ -403,19 +391,26 @@ export const DataModels = {
   useLaxReadableDataTypes: () => useLaxSelector((state) => state.allDataTypes ?? emptyArray),
   useWritableDataTypes: () => useSelector((state) => state.writableDataTypes ?? emptyArray),
 
-  useDataModelSchema: (dataType: string) => useSelector((state) => state.schemas[dataType]),
-  useSchemaLookup: () => useSelector((state) => state.schemaLookup),
+  useDataModelSchema: (dataType: string) => useSelector((state) => state.schemaResults[dataType]),
+
+  useSchemaLookup: () =>
+    useShallowSelector((state) =>
+      Object.fromEntries(
+        Object.entries(state.schemaResults).map(([dataType, result]) => [dataType, result.lookupTool]),
+      ),
+    ),
 
   useLookupBinding: () => {
     // Using a static selector to avoid re-rendering. While the state can update later, we don't need
     // to re-run data model validations, etc.
-    const { schemaLookup, allDataTypes } = useStaticSelector((state) => state);
+    const { schemaResults, allDataTypes } = useStaticSelector((state) => state);
     return useMemo(() => {
-      if (allDataTypes?.every((dt) => schemaLookup[dt])) {
-        return (reference: IDataModelReference) => schemaLookup[reference.dataType].getSchemaForPath(reference.field);
+      if (allDataTypes?.every((dt) => schemaResults[dt])) {
+        return (reference: IDataModelReference) =>
+          schemaResults[reference.dataType].lookupTool.getSchemaForPath(reference.field);
       }
       return undefined;
-    }, [allDataTypes, schemaLookup]);
+    }, [allDataTypes, schemaResults]);
   },
 
   useExpressionValidationConfig: (dataType: string) =>

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelectedFormLayout } from '../../../hooks';
 import type { FormComponent } from '../../../types/FormComponent';
 import { FormField } from '../../FormField';
-import { StudioTextfield } from '@studio/components-legacy';
+import { StudioTextfield } from '@studio/components';
 
 export interface IEditComponentId {
   handleComponentUpdate: (component: FormComponent) => void;

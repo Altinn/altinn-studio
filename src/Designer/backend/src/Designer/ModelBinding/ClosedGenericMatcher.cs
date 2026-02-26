@@ -1,6 +1,6 @@
+#nullable disable
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
 using System;
 using System.Reflection;
 
@@ -56,9 +56,7 @@ namespace Altinn.Studio.Designer.ModelBinding
 
         private static bool IsGenericInstantiation(Type candidate, Type interfaceType)
         {
-            return
-                candidate.GetTypeInfo().IsGenericType &&
-                candidate.GetGenericTypeDefinition() == interfaceType;
+            return candidate.GetTypeInfo().IsGenericType && candidate.GetGenericTypeDefinition() == interfaceType;
         }
 
         private static Type GetGenericInstantiation(Type queryType, Type interfaceType)

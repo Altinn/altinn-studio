@@ -5,9 +5,6 @@ import type { ChatColumnProps } from './ChatColumn';
 import { MessageAuthor } from '../../types/MessageAuthor';
 import type { Message } from '../../types/ChatThread';
 import { mockTexts } from '../../mocks/mockTexts';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data
 const userMessageContent = 'User message';
@@ -50,10 +47,5 @@ const defaultProps: ChatColumnProps = {
 };
 
 const renderChatColumn = (props?: Partial<ChatColumnProps>): void => {
-  const queryClient = createQueryClientMock();
-  render(
-    <ServicesContextProvider {...queriesMock} client={queryClient}>
-      <ChatColumn {...defaultProps} {...props} />
-    </ServicesContextProvider>,
-  );
+  render(<ChatColumn {...defaultProps} {...props} />);
 };

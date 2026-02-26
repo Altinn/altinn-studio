@@ -1,15 +1,16 @@
 import React from 'react';
-import type { PropsWithChildren } from 'react';
 
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 
-import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettingsMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getSubFormLayoutSetMock } from 'src/__mocks__/getLayoutSetsMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { type FunctionTestBase, getSharedTests, type SharedTestFunctionContext } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
@@ -20,16 +21,17 @@ import {
   isRepeatingComponent,
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
-import { fetchApplicationMetadata, fetchInstanceData, fetchProcessState, fetchUserProfile } from 'src/queries/queries';
+import { getLayoutSets } from 'src/features/form/layoutSets';
+import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
+import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
   renderWithoutInstanceAndLayout,
   StatelessRouter,
 } from 'src/test/renderWithProviders';
-import { DataModelLocationProvider } from 'src/utils/layout/DataModelLocation';
+import { NestedDataModelLocationProviders } from 'src/utils/layout/DataModelLocation';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
-import { useDataModelBindingsFor, useExternalItem } from 'src/utils/layout/hooks';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { IRawOption } from 'src/layout/common.generated';
@@ -56,16 +58,10 @@ function InnerExpressionRunner({ expression, positionalArguments, valueArguments
 }
 
 function ExpressionRunner(props: Props) {
+  const layoutLookups = useLayoutLookups();
   if (props.context === undefined || props.context.rowIndices === undefined || props.context.rowIndices.length === 0) {
     return <InnerExpressionRunner {...props} />;
   }
-
-  // Skipping this hook to make sure we can eval expressions without a layout as well. Some tests need to run
-  // without layout, and in those cases this hook will crash when we're missing the context. Breaking the rule of hooks
-  // eslint rule makes this conditional, and that's fine here.
-  // eslint-disable-next-line react-compiler/react-compiler
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const layoutLookups = useLayoutLookups();
 
   const parentIds: string[] = [];
   let currentParent = layoutLookups.componentToParent[props.context.component];
@@ -84,44 +80,38 @@ function ExpressionRunner(props: Props) {
     );
   }
 
-  let result = <InnerExpressionRunner {...props} />;
-  for (const [i, parentId] of parentIds.entries()) {
-    const reverseIndex = props.context.rowIndices.length - i - 1;
-    const rowIndex = props.context.rowIndices[reverseIndex];
+  const fieldSegments: string[] = [];
+  for (let level = 0; level < parentIds.length; level++) {
+    const parentId = parentIds[parentIds.length - 1 - level]; // Get outermost parent first
+    const rowIndex = props.context.rowIndices[level];
+    const component = layoutLookups.getComponent(parentId);
+    const bindings = component.dataModelBindings as IDataModelBindings<RepeatingComponents>;
+    const groupBinding = getRepeatingBinding(component.type as RepeatingComponents, bindings);
+    if (!groupBinding) {
+      throw new Error(`No group binding found for ${parentId}`);
+    }
 
-    result = (
-      <DataModelLocationFor
-        id={parentId}
-        rowIndex={rowIndex}
-      >
-        {result}
-      </DataModelLocationFor>
-    );
-  }
+    const currentPath = fieldSegments.join('.');
+    let segmentName = groupBinding.field;
+    if (currentPath) {
+      const currentFieldPath = currentPath.replace(/\[\d+]/g, ''); // Remove all [index] parts
+      if (segmentName.startsWith(`${currentFieldPath}.`)) {
+        segmentName = segmentName.substring(currentFieldPath.length + 1);
+      }
+    }
 
-  return result;
-}
-
-function DataModelLocationFor<T extends RepeatingComponents>({
-  id,
-  rowIndex,
-  children,
-}: PropsWithChildren<{ id: string; rowIndex: number }>) {
-  const component = useExternalItem(id) as { type: T };
-  const bindings = useDataModelBindingsFor(id) as IDataModelBindings<T>;
-  const groupBinding = getRepeatingBinding(component.type, bindings);
-
-  if (!groupBinding) {
-    throw new Error(`No group binding found for ${id}`);
+    fieldSegments.push(`${segmentName}[${rowIndex}]`);
   }
 
   return (
-    <DataModelLocationProvider
-      groupBinding={groupBinding}
-      rowIndex={rowIndex}
+    <NestedDataModelLocationProviders
+      reference={{
+        dataType: 'default',
+        field: fieldSegments.join('.'),
+      }}
     >
-      {children}
-    </DataModelLocationProvider>
+      <InnerExpressionRunner {...props} />
+    </NestedDataModelLocationProviders>
   );
 }
 
@@ -161,6 +151,7 @@ describe('Expressions shared function tests', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    window.altinnAppGlobalData.userProfile = getProfileMock();
   });
 
   afterAll(() => {
@@ -194,6 +185,8 @@ describe('Expressions shared function tests', () => {
         codeLists,
         stateless,
       } = test;
+
+      jest.mocked(useTextResources).mockReturnValue(resourcesAsMap(textResources ?? []));
 
       if (disabledFrontend) {
         // Skipped tests usually means that the frontend does not support the feature yet
@@ -256,7 +249,7 @@ describe('Expressions shared function tests', () => {
         } as object),
       });
 
-      const applicationMetadata = getIncomingApplicationMetadataMock(
+      const applicationMetadata = getApplicationMetadataMock(
         stateless ? { onEntry: { show: 'layout-set' }, externalApiIds: ['testId'] } : {},
       );
       if (instanceDataElements) {
@@ -287,9 +280,9 @@ describe('Expressions shared function tests', () => {
         } as unknown as IDataType);
       }
 
-      const profile = getProfileMock();
       if (profileSettings?.language) {
-        profile.profileSettingPreference.language = profileSettings.language;
+        window.altinnAppGlobalData.userProfile = getProfileMock();
+        window.altinnAppGlobalData.userProfile.profileSettingPreference.language = profileSettings.language;
       }
 
       async function fetchFormData(url: string) {
@@ -312,10 +305,18 @@ describe('Expressions shared function tests', () => {
       // Clear localstorage, because LanguageProvider uses it to cache selected languages
       localStorage.clear();
 
-      jest.mocked(fetchApplicationMetadata).mockResolvedValue(applicationMetadata);
+      // Set up applicationSettings in window global (useApplicationSettings reads from here)
+      if (frontendSettings) {
+        window.altinnAppGlobalData.frontendSettings = getApplicationSettingsMock(frontendSettings);
+      }
+
+      jest.mocked(getApplicationMetadata).mockReturnValue(applicationMetadata);
+      jest
+        .mocked(getLayoutSets)
+        .mockReturnValue([{ id: 'layout-set', dataType: 'default', tasks: ['Task_1'] }, getSubFormLayoutSetMock()]);
+      jest.mocked(useIsStateless).mockImplementation(() => stateless ?? false);
       jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
       jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
-      jest.mocked(fetchUserProfile).mockImplementation(async () => profile);
       jest.mocked(fetchInstanceData).mockImplementation(async () => {
         let instanceData = getInstanceDataMock();
         if (instance) {
@@ -343,16 +344,9 @@ describe('Expressions shared function tests', () => {
       );
 
       const queries: Partial<AppQueries> = {
-        fetchLayoutSets: async () => ({
-          sets: [{ id: 'layout-set', dataType: 'default', tasks: ['Task_1'] }, getSubFormLayoutSetMock()],
-        }),
         fetchLayouts: async () => layouts,
         fetchFormData,
         ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
-        fetchTextResources: async () => ({
-          language: 'nb',
-          resources: textResources || [],
-        }),
         fetchOptions: async (url: string) => {
           const codeListId = url.match(/api\/options\/(\w+)\?/)?.[1];
           if (!codeLists || !codeListId || !codeLists[codeListId]) {

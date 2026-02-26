@@ -7,8 +7,9 @@ import { UndefinedBinding } from './UndefinedBinding';
 import { EditBinding } from './EditBinding';
 import { DefinedBinding } from './DefinedBinding';
 
-export interface EditDataModelBindingProps<T extends ComponentType>
-  extends IGenericEditComponent<T> {
+export interface EditDataModelBindingProps<
+  T extends ComponentType,
+> extends IGenericEditComponent<T> {
   renderOptions?: {
     label?: string;
     returnValue?: any;

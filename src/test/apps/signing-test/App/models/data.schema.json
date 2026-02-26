@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/signing-test/App/models/data.schema.json",
+  "@xsdNamespaces": {
+    "xsd": "http://www.w3.org/2001/XMLSchema",
+    "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "seres": "http://seres.no/xsd/forvaltningsdata"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "Unqualified",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None"
+  },
+  "@xsdRootElement": "data",
+  "type": "object",
+  "required": [
+    "form"
+  ],
+  "$defs": {
+    "form": {
+      "type": "object",
+      "title": "Skjema",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Navn"
+        },
+        "orgNumber": {
+          "type": "string",
+          "title": "Org. nummer",
+          "format": "regex",
+          "maxLength": 9,
+          "minLength": 9,
+          "pattern": "^\\d*$"
+        },
+        "year": {
+          "type": "integer",
+          "title": "År",
+          "minimum": 2000
+        },
+        "income": {
+          "type": "integer",
+          "title": "Inntekt",
+          "description": "",
+          "minimum": 0
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
+        }
+      },
+      "required": [
+        "name",
+        "orgNumber",
+        "year",
+        "income"
+      ]
+    }
+  },
+  "properties": {
+    "form": {
+      "$ref": "#/$defs/form",
+      "title": "Skjema"
+    }
+  }
+}

@@ -1,0 +1,496 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/text-resources/text-resources.schema.v1.json",
+  "language": "nb",
+  "resources": [
+    {
+      "id": "appName",
+      "value": "Ny søknad om registrering av varemerke i Norge"
+    },
+    {
+      "id": "01ContactInformation",
+      "value": "Kontakt informasjon"
+    },
+    {
+      "id": "02OrganizationInformation",
+      "value": "Søkeren"
+    },
+    {
+      "id": "03Agent",
+      "value": "Fullmektigen"
+    },
+    {
+      "id": "04Trademark",
+      "value": "Merket"
+    },
+    {
+      "id": "05GoodsAndServices",
+      "value": "Varer og tjenester"
+    },
+    {
+      "id": "06Priority",
+      "value": "Prioritet"
+    },
+    {
+      "id": "07Payment",
+      "value": "Betalning og saksgangen vidare"
+    },
+    {
+      "id": "applicationAccordionText",
+      "value": "Hvis du skal sende inn svar eller andre meldinger til Patentstyret i en eksisterende søknad, må du fylle ut et annet skjema [Korrespondanse til Patentstyret](https://www.altinn.no/skjemaoversikt/patentstyret/korrespondanse-til-patentstyret/)."
+    },
+    {
+      "id": "publicAccordion",
+      "value": "Søknaden din blir offentlig"
+    },
+    {
+      "id": "publicAccordionText",
+      "value": "Søknaden din og alle dokumenter knyttet til den vil bli publisert på https://search.patentstyret.no/. Vi skjermer i utgangspunktet sensitive opplysninger og taushetsbelagt informasjon. <br> Du kan be oss om å unnta forretningshemmeligheter fra offentligheten (selve merket eller teksten i merket ditt regnes ikke som en forretningshemmelighet og kan ikke unntas offentligheten). Marker tydelig hvilke opplysninger i søknaden eller i vedlegg som du ønsker unntatt. Vi vil deretter vurdere om opplysningene kan unntas fra offentligheten. Bruk feltet ‘Annen informasjon’ på siden 'Opplysninger om varer og tjenester' for å gjøre oss oppmerksom på dette. <br> Les mer om hvordan Patentstyret behandler persondata på nettsidene våre."
+    },
+    {
+      "id": "correspondenceAccordion",
+      "value": "Noen finner ikke korrespondanse fra oss i Altinn"
+    },
+    {
+      "id": "correspondenceAccordionText",
+      "value": "Hvis du leverer søknaden på vegne av et firma havner korrespondanse fra Patentstyret i firmaets innboks/arkiv. Daglig leder i firmaet må delegere rollen Patent, Varemerke og Design til deg for at du skal kunne se korrespondanse og kvitteringer. [Les mer om hvordan du delegerer roller](https://www.altinn.no)."
+    },
+    {
+      "id": "contactInformation",
+      "value": "Kontaktinformasjon for søknaden"
+    },
+    {
+      "id": "fullName",
+      "value": "Navn"
+    },
+    {
+      "id": "phoneNumber",
+      "value": "Telefon"
+    },
+    {
+      "id": "email",
+      "value": "E-postadresse"
+    },
+    {
+      "id": "personReference",
+      "value": "Referanse"
+    },
+    {
+      "id": "personReferenceInfo",
+      "value": "Hvis du har en egen referanse, vennligst fyll ut dette feltet (maks 20 tegn)."
+    },
+    {
+      "id": "personReferenceHelp",
+      "value": "Denne referansen vil fremkomme på korrespondanse fra Patentstyret. <br>Patentstyret bruker den referanse som vi har fått oppgitt i saken i alle utgående brev under saksbehandlingen. <br>Dersom du endrer referansen i dette skjemaet vil denne overskrive tidligere oppgitt referanse i søknaden."
+    },
+    {
+      "id": "delegateRole",
+      "value": "Angi om du er søker eller fullmektig"
+    },
+    {
+      "id": "selfDelegate",
+      "value": "Jeg fyller ut skjemaet som søker"
+    },
+    {
+      "id": "descriptionSelfDelegate",
+      "value": "All kommunikasjon i søknaden vil bli rettet til søkeren."
+    },
+    {
+      "id": "delegatePerson",
+      "value": "Jeg fyller ut skjemaet som fullmektig for en søker"
+    },
+    {
+      "id": "descriptionDelegatePerson",
+      "value": "Hvis du er en enkeltperson eller jobber i et foretak som har fullmakt til å representere søkeren, skal du merke av her. All kommunikasjon i søknaden blir rettet til fullmektigen."
+    },
+    {
+      "id": "CompanyHeader",
+      "value": "Opplysninger om søkeren"
+    },
+    {
+      "id": "CompanyDescription",
+      "value": "Søkeren er den som blir registrert som innehaver av merket. Både enkeltpersoner og foretak kan være søker. Hvis merket skal benyttes av et foretak er det foretaket som bør stå som søker, ikke en person i det aktuelle foretaket."
+    },
+    {
+      "id": "CompanyNumber",
+      "value": "Organisasjonsnummer"
+    },
+    {
+      "id": "companyNumberInfo",
+      "value": "Hvis fullmektigen er et norsk foretak, legger du inn organisasjonsnummer i dette feltet."
+    },
+    {
+      "id": "CompanyName",
+      "value": "Foretakets navn"
+    },
+    {
+      "id": "CompanyFirstName",
+      "value": "Fornavn"
+    },
+    {
+      "id": "CompanyLastName",
+      "value": "Etternavn"
+    },
+    {
+      "id": "CompanyAddress",
+      "value": "Postadresse"
+    },
+    {
+      "id": "CompanyPostalCode",
+      "value": "Postnummer"
+    },
+    {
+      "id": "CompanyPostalCity",
+      "value": "Poststed"
+    },
+    {
+      "id": "CompanyLandCode",
+      "value": "Landkode"
+    },
+    {
+      "id": "CompanyCountry",
+      "value": "Land"
+    },
+    {
+      "id": "clientNumber",
+      "value": "Ev. kundenummer i Patentstyret"
+    },
+    {
+      "id": "agentInformation",
+      "value": "Opplysninger om fullmektigen"
+    },
+    {
+      "id": "agentInfo",
+      "value": " Vi retter all kommunikasjon i søknaden til fullmektigen. Vi regner deg som fullmektig hvis du sender inn søknaden på vegne av en annen."
+    },
+    {
+      "id": "agentAttachment",
+      "value": "Vedlegg"
+    },
+    {
+      "id": "agentAttachmentInfo",
+      "value": "Du må sende inn kopi av fullmakt med mindre du er advokat eller advokatfullmektig og representerer søkeren personlig.<br> Bruk gjerne fullmaktsskjema fra patentstyret.no."
+    },
+    {
+      "id": "word",
+      "value": "Ordmerke"
+    },
+    {
+      "id": "figure",
+      "value": "Figurmerke"
+    },
+    {
+      "id": "figureTrademark",
+      "value": "Kombinert merke"
+    },
+    {
+      "id": "trademarkWordInfo",
+      "value": "Ordmerker består av ren tekst, slik som ord, bokstaver eller tall. Dette kan være for eksempel navnet på virksomheten din, modellnavnet på et av produktene dine, eller slagordet til virksomheten."
+    },
+    {
+      "id": "trademarkLogoInfo",
+      "value": "Et figurmerke består av en eller flere figurer, og ingen tekst."
+    },
+    {
+      "id": "trademarkFigureInfo",
+      "value": "Et kombinert merke består av en tekst med en stil eller layout som ikke er standard, eller av tekst og figur(er). "
+    },
+    {
+      "id": "threeDimensionalTrademark",
+      "value": "Tredimensjonalt merke"
+    },
+    {
+      "id": "threeDimensionalInfo",
+      "value": "Et merke som viser en tredimensjonal form, for eksempel varens form eller varens innpakning. Send inn så mange bilder som er nødvendig for å vise hele merkets utforming."
+    },
+    {
+      "id": "hologramTrademark",
+      "value": "Hologrammerke"
+    },
+    {
+      "id": "hologramInfo",
+      "value": "Et merke som består av elementer av holografisk art. Det er elementene av holografisk art som skiller disse merkene fra figurmerker og bevegelsesmerker. Merket skal enten gjengis med en videofil (MP4-format, maks 20 mb) eller fotografisk eller grafisk (JPEG- eller PNG-format, maks 5 mb). Gjengivelsen må inneholde de synsvinkler som er nødvendig for å vise hologrammet i sin helhet."
+    },
+    {
+      "id": "soundTrademark",
+      "value": "Lydmerke"
+    },
+    {
+      "id": "soundInfo",
+      "value": "Et merke som utelukkende består av en lyd eller en kombinasjon av lyder. Merket skal gjengis med en lydfil som gjengir lyden (MP3-format, maks 5 mb). Alternativt kan man levere inn et notesystem, så lenge dette gir en nøyaktig gjengivelse av lyden (JPEG- eller PNG-format, maks 5 mb)."
+    },
+    {
+      "id": "trademarkDetails",
+      "value": "Mer detaljert om merket. Her kan du beskrive farge, mønster, bevegelse og hologram."
+    },
+    {
+      "id": "moreTrademarks",
+      "value": "Flere varemerken"
+    },
+    {
+      "id": "hologramFile",
+      "value": "<html><video height=\"205\" controls><source src=\"Logosymbol_holografisk_2.mp4\" type=\"video/mp4\"/></video></html>"
+    },
+    {
+      "id": "soundFile",
+      "value": "<html><audio width=\"205\" height=\"205\" controls><source src=\"patentstyret_LOGO_m_R.mp3\" type=\"audio/mp3\"/></audio></html>"
+    },
+    {
+      "id": "chooseTrademark",
+      "value": "Velg varemærke"
+    },
+    {
+      "id": "trademarkTextInfo",
+      "value": "Valg av tekst er viktigt"
+    },
+    {
+      "id": "trademarkTextDescription",
+      "value": "<b>Ikke vær for lik andre</b><br><u>Unngå</u> Gogle, Mcrosoft<br><u>Kanskje</u> Swix, Mercedes-Benz<br><br><b>Passer slagordet ditt for mange andre også?</b><br><em>Unngå</em> Vi gjør jobben billigere, Simply the best, You design  We deliver.<br><em>Kanskje</em> Pepperjack when character counts (202310032)<br><br><b>Ikke beskriv produktet eller kvaliteten</b><br><em>Unngå:</em> Oslo frisør, Verdens beste pølser, Godt brød<br><em>Kanskje:</em> Floken<br><br><b>En figur bør være unik i forhold til produktene</b><br>Unngå: Bilde av et eple hvis du selger epler<br>Kanskje: bilde av et eple hvis du selger datamaskiner<br>Unngå: et bilde av et jordbær hvis du selger syltetøy<br>Kanskje: Et bilde av et jordbær hvis du driver med arkitekttjenester<br>Unngå: Et bilde av en kaffebønne med teksten flavour and aroma<br>Kanskje: Et bilde av en skilpadde med teksten flavour and aroma"
+    },
+    {
+      "id": "trademarkText",
+      "value": "Tekst i merket"
+    },
+    {
+      "id": "trademarkAttachments",
+      "value": "Vedlegg av merket"
+    },
+    {
+      "id": "goodsAndServicesTitle",
+      "value": "Opplysninger om varer og tjenester"
+    },
+    {
+      "id": "goodsAndServicesInfo",
+      "value": "På denne siden velger du varer og tjenester (produkter) som varemerket skal brukes på. Eneretten du får gjelder bare for de produktene du velger."
+    },
+    {
+      "id": "servicesInfo",
+      "value": "Hjelp til utfylling av klassenummer for varer og tjenester"
+    },
+    {
+      "id": "servicesHelpInfo",
+      "value": "Produktene er delt inn i et internasjonalt klassesystem. Klassene 1-34 er vareklasser hvor varemerket brukes for varene (produktene) du tilbyr i markedet. Klassene 35-45 er tjenesteklasser hvor varemerket brukes på tjenester du selv utfører, får utført eller tilbyr i markedet. <br> <br> Du kan bruke [lenken til Patentstyrets produktvelger](https://search.patentstyret.no/classification) til å lete opp konkrete varer/tjenester og finne hvilke klasser disse inngår i. Det finnes utallige forhåndsgodkjente varer/tjenester oppført i vår Produktvelger. <br><br>Lurer du på hvilken klasse du må velge når du skal selge egne eller andres varer? [Se vår video](https://youtu.be/-vMs_u_Zd8k)"
+    },
+    {
+      "id": "servicesExamples",
+      "value": "Exempler på varer og tjenester i ulike bransjer"
+    },
+    {
+      "id": "applicationProcess",
+      "value": "Produktvelgerens varer og tjenester gir kortere saksbehandlingstid"
+    },
+    {
+      "id": "applicationProcessInfo",
+      "value": "Hvis du bare velger ferdig godkjente varer og tjenester fra Patentstyrets Produktvelger (og betaler søknadsgebyret når du leverer søknaden), får du en kortere saksbehandlingstid enn hvis du legger inn egendefinerte produkter. "
+    },
+    {
+      "id": "importantNotice",
+      "value": "Viktig om varefortegnelsen"
+    },
+    {
+      "id": "haveReadAndUnderstood",
+      "value": "Jeg har lest og forstått"
+    },
+    {
+      "id": "importantNoticeInfo",
+      "value": "<li>Du må oppgi varene/tjenestene du bruker merket for i dag, eller planlegger å bruke det for i nær fremtid.</li><li>Varefortegnelsen må være på norsk.</li><li>Det er ikke mulig å legge til varer eller tjenester etter at søknaden er sendt inn.</li><li>Hvis du velger godkjente varer og tjenester fra vår <a href=\"https://www.w3schools.com\">produktvelger</a>, vil du få kortere behandlingstid enn hvis du legger inn egendefinerte produkter.</li>"
+    },
+    {
+      "id": "niceClassificationNumber",
+      "value": "Klassenummer"
+    },
+    {
+      "id": "addClassification",
+      "value": "klasse med varer/tjenester"
+    },
+    {
+      "id": "servicesAndGoods",
+      "value": "Varer/tjenester"
+    },
+    {
+      "id": "trademarkResults",
+      "value": "Lignende merker i samme klasse"
+    },
+    {
+      "id": "searchSimilarTrademarks",
+      "value": "Se hva vi fant av lignende varemerker"
+    },
+    {
+      "id": "searchLink",
+      "value": "Vi tok en automatisk sjekk basert på det du har skrevet. Listen under viser topptreffene på lignende varemerker som kan være til hinder for din registrering. [Bruk gjerne vår søketjeneste for å se om det finnes flere.]({0})",
+      "variables": [
+        {
+          "key": "SimilarTrademarks.SearchServiceLink",
+          "dataSource": "dataModel.model"
+        }
+      ]
+    },
+    {
+      "id": "applicationNumber",
+      "value": "Søknadsnummer"
+    },
+    {
+      "id": "trademarkWord",
+      "value": "Text i merket"
+    },
+    {
+      "id": "status",
+      "value": "Status"
+    },
+    {
+      "id": "goodsAndsServicesClassNumber",
+      "value": "Klasse"
+    },
+    {
+      "id": "servicesDetails",
+      "value": "Annen informasjon"
+    },
+    {
+      "id": "serviceInfo",
+      "value": "Har du merknader til søknaden, kan du skrive dem her."
+    },
+    {
+      "id": "iFrameTest",
+      "value": "<html><details><summary>Exempler på varer og tjenester i ulike bransjer</summary><div class=\"news\"><button id=\"showClothesButton\" onclick=\"showClothes()\">Klær</button><p id=\"clothesParagraph\" class=\"clothesParagraph\" style=\"display:none;\">This is a paragraph.</p><script type=\"text/javascript\">function showClothes(){var paragraph = document.getElementById(\"clothesParagraph\"); if (paragraph.style.display === \"none\") { paragraph.style.display = \"block\"; } else { paragraph.style.display = \"none\"; }}</script></div></details></html>"
+    },
+    {
+      "id": "showSnipFileIFrame",
+      "value": "<html>\"<object type=\"application/pdf\" data=\"/media/examples/In-CC0.pdf\" width=\"250\" height=\"200\"></object></html>"
+    },
+    {
+      "id": "iFrameTest",
+      "value": "<html><details><summary>Exempler på varer og tjenester i ulike bransjer</summary><div class=\"news\"><button id=\"showClothesButton\" onclick=\"showClothes()\">Klær</button><p id=\"clothesParagraph\" class=\"clothesParagraph\" style=\"display:none;\">This is a paragraph.</p><script type=\"text/javascript\">function showClothes(){var paragraph = document.getElementById(\"clothesParagraph\"); if (paragraph.style.display === \"none\") { paragraph.style.display = \"block\"; } else { paragraph.style.display = \"none\"; }}</script></div></details></html>"
+    },
+    {
+      "id": "iFrameExamples",
+      "value": "<html><details><summary>Exempler på varer og tjenester i ulike bransjer</summary><details><summary>Klær, klesbutikk og klesdesign</details><details><summary>Dataprogrammer, salg og utvikling av dataprogrammer</details></details></html>"
+    },
+    {
+      "id": "exampleGroup",
+      "value": "<html><body><style></style></body></html>"
+    },
+    {
+      "id": "priorityTitle",
+      "value": "Opplysninger om prioritet"
+    },
+    {
+      "id": "priorityDetails",
+      "value": "Du skal bare fylle ut denne siden hvis du tidligere har fått utført en forundersøkelse, hvis du krever prioritet fra en identisk søknad du har levert i utlandet eller vist på en internasjonal utstilling."
+    },
+    {
+      "id": "investigationYear",
+      "value": "Årstall"
+    },
+    {
+      "id": "investigationNumber",
+      "value": "Nummer"
+    },
+    {
+      "id": "registrationNumber",
+      "value": "Søknadsnummer/registreringsnummer"
+    },
+    {
+      "id": "hasPreInvestigation",
+      "value": "Har du tidligare hat kontakt med patentstyret?"
+    },
+    {
+      "id": "priorityReason",
+      "value": "Prioritets krav"
+    },
+    {
+      "id": "earlierApplicant",
+      "value": "Jeg krever prioritet på bakgrunn av en tidligere søknad"
+    },
+    {
+      "id": "earlierApplicantInfo",
+      "value": "Dersom merket ditt blir registrert, får du i utgangspunktet vern fra dagen du leverte søknaden. Hvis du tidligere har levert en identisk varemerkesøknad i utlandet, kan du kreve prioritet. Dette innebærer at merket ditt får vern allerede frainnleveringsdatoen i utlandet."
+    },
+    {
+      "id": "earlierCase",
+      "value": "Jeg krever prioritet på bakgrunn av tidligere utstilling"
+    },
+    {
+      "id": "earlierCaseInfo",
+      "value": "Denne prioriteten kan KUN kreves dersom utstillingen er godkjent av den internasjonale organisasjonen ‘Bureau International des Expositions’. Utstillingen må være vist på [deres nettsted](https://www.bie-paris.org/site/en/) <br>"
+    },
+    {
+      "id": "nationalApplication",
+      "value": "Jeg krever prioritet på bakgrunn av omdanning fra internasjonal registrering til nasjonal søknad"
+    },
+    {
+      "id": "nationalApplicationInfo",
+      "value": "Omdanning innebærer at du kan få prioritetsdatoen til en opphørt internasjonal registrering, dersom du viderefører denne som en nasjonal søknad eller registrering. Søknaden må leveres til Patentstyret innen tre måneder etter bortfallsdatoen (datoen den internasjonale registreringen opphører)."
+    },
+    {
+      "id": "noPriority",
+      "value": "Jeg krever ikke noen prioritet"
+    },
+    {
+      "id": "preApplication",
+      "value": "Forundersøkelse"
+    },
+    {
+      "id": "preApplicationInfo",
+      "value": "Har du fått utført en forundersøkelse på det søkte merket? <br> Hvis ja, kan du uppgi nummeret på forundersøkelsen."
+    },
+    {
+      "id": "priorityDeclaration",
+      "value": "Prioritets erklæring"
+    },
+    {
+      "id": "earlierAppInfo",
+      "value": "Du må leverere søknaden innen 6 måneder fra innleveringdatoen i utlandet."
+    },
+    {
+      "id": "prioritetyDeclarationInfo",
+      "value": "Du krever prioritet ved å fylle ut feltene under."
+    },
+    {
+      "id": "caseAppInfo",
+      "value": ""
+    },
+    {
+      "id": "nationalAppInfo",
+      "value": "Søknaden må leveres til Patentstyret innen tre måneder etter bortfallsdatoen (datoen den internasjonale registreringen opphører)."
+    },
+    {
+      "id": "priorityDate",
+      "value": "Prioritetsdato"
+    },
+    {
+      "id": "countryCode",
+      "value": "Landkode"
+    },
+    {
+      "id": "GoodsAndServicesNiceClassificationNumber",
+      "value": "Gjelder for varer/tjenester i klasse(ne)"
+    },
+    {
+      "id": "yes",
+      "value": "Ja"
+    },
+    {
+      "id": "no",
+      "value": "Nei"
+    },
+    {
+      "id": "",
+      "value": ""
+    },
+    {
+      "id": "",
+      "value": ""
+    },
+    {
+      "id": "",
+      "value": ""
+    },
+    {
+      "id": "trademarkOptionsImage",
+      "value": "/pat/varemerke/jotun_figurmerke.jpg"
+    },
+    {
+      "id": "trademarkOptionsCombined",
+      "value": "/pat/varemerke/jotun_figurmerke.jpg"
+    }
+  ]
+}

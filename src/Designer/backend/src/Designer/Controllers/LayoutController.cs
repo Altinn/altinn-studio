@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,10 +33,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
-                editingContext,
-                layoutSetId
-            );
+            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(editingContext, layoutSetId);
             PagesDto pages = PagesDto.From(layoutSettings);
             return Ok(pages);
         }
@@ -55,10 +53,7 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
-            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
-                editingContext,
-                layoutSetId
-            );
+            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(editingContext, layoutSetId);
             if (layoutSettings.Pages is PagesWithOrder pages)
             {
                 string existingPage = pages.Order.Find(p => p == page.Id);
@@ -85,10 +80,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
-                editingContext,
-                layoutSetId
-            );
+            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(editingContext, layoutSetId);
             PagesDto pagesDto = PagesDto.From(layoutSettings);
             PageDto page = pagesDto.Pages.Find(p => p.Id == pageId);
             if (page == null)
@@ -117,8 +109,8 @@ namespace Altinn.Studio.Designer.Controllers
             PagesDto pagesDto = PagesDto.From(layoutSettings);
 
             PageDto existingPage =
-                pagesDto.Groups?
-                    .Where(g => g?.Pages != null)
+                pagesDto
+                    .Groups?.Where(g => g?.Pages != null)
                     .SelectMany(g => g.Pages)
                     .FirstOrDefault(p => p?.Id == pageId)
                 ?? pagesDto.Pages?.FirstOrDefault(p => p?.Id == pageId);
@@ -146,10 +138,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(
-                editingContext,
-                layoutSetId
-            );
+            LayoutSettings layoutSettings = await layoutService.GetLayoutSettings(editingContext, layoutSetId);
             PagesDto pagesDto = PagesDto.From(layoutSettings);
             PageDto page = pagesDto.Pages.Find(p => p.Id == pageId);
             if (page == null)

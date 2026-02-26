@@ -72,6 +72,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
         icon={<DownloadIcon />}
         variant='tertiary'
         aria-label={t('sync_header.fetch_changes')}
+        title={t('sync_header.fetch_changes')}
       >
         {shouldDisplayText && t('sync_header.fetch_changes')}
         {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}

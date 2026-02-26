@@ -2,7 +2,7 @@ import { renderWithProviders } from '../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import React from 'react';
-import { TextEditor } from './TextEditor';
+import TextEditor from './TextEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import userEvent from '@testing-library/user-event';
@@ -50,7 +50,9 @@ describe('TextEditor', () => {
 
   it('renders the component', async () => {
     renderTextEditor();
-    await waitForElementToBeRemoved(() => screen.queryByText(textMock('text_editor.loading_page')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByLabelText(textMock('text_editor.loading_page')),
+    );
     expect(screen.getByText(testTextResourceKey)).toBeInTheDocument();
     expect(screen.getByText(testTextResourceValue)).toBeInTheDocument();
   });
@@ -185,7 +187,7 @@ describe('TextEditor', () => {
     renderWithProviders(<TextEditor />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}`,
     });
-    expect(screen.getByText(textMock('text_editor.loading_page'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('text_editor.loading_page'))).toBeInTheDocument();
   });
 });
 

@@ -28,6 +28,7 @@ export { RoadmapResourceIcon } from './RoadmapResourceIcon';
 export { TextIcon } from './TextIcon';
 export { PaymentDetailsIcon } from './PaymentDetailsIcon';
 export { PaymentTaskIcon } from './PaymentTaskIcon';
+export { PdfTaskIcon } from './PdfTaskIcon';
 export { PropertyIcon } from './PropertyIcon';
 export { RadioButtonIcon } from './RadioButtonIcon';
 export { ReferenceIcon } from './ReferenceIcon';

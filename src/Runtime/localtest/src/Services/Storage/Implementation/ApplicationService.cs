@@ -36,5 +36,19 @@ namespace Altinn.Platform.Storage.Services
 
             return (false, new ServiceError(405, $"DataType {dataType} is not declared in application metadata for app {appId}"));
         }
+
+        /// <inheritdoc/>
+        public async Task<(Application Application, ServiceError ServiceError)> GetApplicationOrErrorAsync(string appId)
+        {
+            string org = appId.Split('/')[0];
+            Application application = await _applicationRepository.FindOne(appId, org);
+
+            if (application == null)
+            {
+                return (null, new ServiceError(404, $"Cannot find application {appId} in storage"));
+            }
+
+            return (application, null);
+        }
     }
 }

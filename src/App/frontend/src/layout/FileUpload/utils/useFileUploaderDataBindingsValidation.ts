@@ -7,7 +7,7 @@ import {
 } from 'src/utils/layout/generator/validation/hooks';
 import type { IDataModelBindings } from 'src/layout/layout';
 
-export function useFileUploaderDataBindingsValidation<T extends 'FileUpload' | 'FileUploadWithTag'>(
+export function useFileUploaderDataBindingsValidation<T extends 'FileUpload' | 'FileUploadWithTag' | 'ImageUpload'>(
   baseComponentId: string,
   bindings: IDataModelBindings<T>,
 ): string[] {

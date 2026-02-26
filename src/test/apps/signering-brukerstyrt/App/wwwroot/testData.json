@@ -1,0 +1,256 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/test-users/test-users.schema.v1.json",
+  "persons": [
+    {
+      "partyId": 600000,
+      "partyUuid": "190492a9-50f0-473c-9f95-83098bd00d30",
+      "ssn": "09876298713",
+      "firstName": "HUMAN",
+      "middleName": null,
+      "lastName": "ANDREFIOLIN",
+      "customClaims": [
+        {
+          "type": "user:source",
+          "value": "localTenor",
+          "valueType": "http://www.w3.org/2001/XMLSchema#string"
+        }
+      ],
+      "partyRoles": {
+        "600000": [
+          {
+            "type": "Altinn",
+            "value": "REGNA"
+          }
+        ],
+        "700001": [
+          {
+            "type": "Altinn",
+            "value": "DAGL"
+          }
+        ]
+      },
+      "addressCity": "LODDEFJORD",
+      "addressHouseLetter": "41360",
+      "addressHouseNumber": "64",
+      "addressMunicipalName": null,
+      "addressMunicipalNumber": "4601",
+      "addressPostalCode": null,
+      "addressStreetName": null,
+      "mailingAddress": null,
+      "mailingPostalCity": null,
+      "mailingPostalCode": null,
+      "mobileNumber": null,
+      "telephoneNumber": null,
+      "email": null,
+      "userId": 10000,
+      "language": null,
+      "userName": "user-90123701286"
+    },
+    {
+      "partyId": 600001,
+      "partyUuid": "c4394475-73e0-4628-982a-ac395d7c88b1",
+      "ssn": "10928198958",
+      "firstName": "SN\u00C5L",
+      "middleName": null,
+      "lastName": "DUGNAD",
+      "customClaims": [
+        {
+          "type": "user:source",
+          "value": "localTenor",
+          "valueType": "http://www.w3.org/2001/XMLSchema#string"
+        }
+      ],
+      "partyRoles": {
+        "600001": [
+          {
+            "type": "Altinn",
+            "value": "REGNA"
+          }
+        ],
+        "700000": [
+          {
+            "type": "Altinn",
+            "value": "DAGL"
+          },
+          {
+            "type": "Altinn",
+            "value": "LEDE"
+          }
+        ],
+        "700002": [
+          {
+            "type": "Altinn",
+            "value": "DAGL"
+          },
+          {
+            "type": "Altinn",
+            "value": "LEDE"
+          }
+        ]
+      },
+      "addressCity": "TROMS\u00D8",
+      "addressHouseLetter": "42220",
+      "addressHouseNumber": "161",
+      "addressMunicipalName": null,
+      "addressMunicipalNumber": "5501",
+      "addressPostalCode": null,
+      "addressStreetName": null,
+      "mailingAddress": null,
+      "mailingPostalCity": null,
+      "mailingPostalCode": null,
+      "mobileNumber": null,
+      "telephoneNumber": null,
+      "email": null,
+      "userId": 10001,
+      "language": null,
+      "userName": "user-89071801041"
+    },
+    {
+      "partyId": 600002,
+      "partyUuid": "7249c4ab-deea-4f65-8013-54dd5f335e50",
+      "ssn": "23849199013",
+      "firstName": "STANDHAFTIG",
+      "middleName": null,
+      "lastName": "BJ\u00D8RNUNGE",
+      "customClaims": [
+        {
+          "type": "user:source",
+          "value": "localTenor",
+          "valueType": "http://www.w3.org/2001/XMLSchema#string"
+        }
+      ],
+      "partyRoles": {
+        "600002": [
+          {
+            "type": "Altinn",
+            "value": "REGNA"
+          }
+        ]
+      },
+      "addressCity": "S\u00D8RUMSAND",
+      "addressHouseLetter": "18091",
+      "addressHouseNumber": "13",
+      "addressMunicipalName": null,
+      "addressMunicipalNumber": "3205",
+      "addressPostalCode": null,
+      "addressStreetName": null,
+      "mailingAddress": null,
+      "mailingPostalCity": null,
+      "mailingPostalCode": null,
+      "mobileNumber": null,
+      "telephoneNumber": null,
+      "email": null,
+      "userId": 10002,
+      "language": null,
+      "userName": "user-76150800986"
+    },
+    {
+      "partyId": 600003,
+      "partyUuid": "314f496d-2a6c-46af-9410-f79f9d4d6782",
+      "ssn": "03835698199",
+      "firstName": "VARSOM",
+      "middleName": null,
+      "lastName": "DIAMETER",
+      "customClaims": [
+        {
+          "type": "user:source",
+          "value": "localTenor",
+          "valueType": "http://www.w3.org/2001/XMLSchema#string"
+        }
+      ],
+      "partyRoles": {
+        "600003": [
+          {
+            "type": "Altinn",
+            "value": "REGNA"
+          }
+        ],
+        "700001": [
+          {
+            "type": "Altinn",
+            "value": "LEDE"
+          }
+        ]
+      },
+      "addressCity": "\u00C5LESUND",
+      "addressHouseLetter": "1400",
+      "addressHouseNumber": "86",
+      "addressMunicipalName": null,
+      "addressMunicipalNumber": "1508",
+      "addressPostalCode": null,
+      "addressStreetName": null,
+      "mailingAddress": null,
+      "mailingPostalCity": null,
+      "mailingPostalCode": null,
+      "mobileNumber": null,
+      "telephoneNumber": null,
+      "email": null,
+      "userId": 10003,
+      "language": null,
+      "userName": "user-96164301800"
+    }
+  ],
+  "orgs": [
+    {
+      "partyId": 700000,
+      "partyUuid": "662a9f80-b193-4602-90d3-122fa36d9e05",
+      "orgNumber": "314277961",
+      "parentPartyId": null,
+      "name": "OFFISIELL VIRTUELL TIGER AS",
+      "businessAddress": "Elvebakken 19",
+      "businessPostalCity": "BERGEN",
+      "businessPostalCode": "5067",
+      "eMailAddress": null,
+      "faxNumber": null,
+      "internetAddress": null,
+      "mailingAddress": "",
+      "mailingPostalCity": null,
+      "mailingPostalCode": null,
+      "mobileNumber": null,
+      "telephoneNumber": null,
+      "unitStatus": null,
+      "unitType": null
+    },
+    {
+      "partyId": 700001,
+      "partyUuid": "b8406dae-c251-49cc-b604-25267996a868",
+      "orgNumber": "312405091",
+      "parentPartyId": null,
+      "name": "SIVILISERT AVANSERT ISBJ\u00D8RN SA",
+      "businessAddress": "c/o Aktiv Politibil\nHinnatunet 22",
+      "businessPostalCity": "STAVANGER",
+      "businessPostalCode": "4020",
+      "eMailAddress": null,
+      "faxNumber": null,
+      "internetAddress": null,
+      "mailingAddress": "",
+      "mailingPostalCity": null,
+      "mailingPostalCode": null,
+      "mobileNumber": null,
+      "telephoneNumber": null,
+      "unitStatus": null,
+      "unitType": null
+    },
+    {
+      "partyId": 700002,
+      "partyUuid": "41472ebe-4ef2-4f28-aa09-98df8c3653a5",
+      "orgNumber": "314307577",
+      "parentPartyId": null,
+      "name": "TILBAKEHOLDEN UPOPUL\u00C6R TIGER AS",
+      "businessAddress": "Koll\u00E5sen 49A",
+      "businessPostalCity": "ULSET",
+      "businessPostalCode": "5116",
+      "eMailAddress": null,
+      "faxNumber": null,
+      "internetAddress": null,
+      "mailingAddress": "",
+      "mailingPostalCity": null,
+      "mailingPostalCode": null,
+      "mobileNumber": null,
+      "telephoneNumber": null,
+      "unitStatus": null,
+      "unitType": null
+    }
+  ],
+  "systems": null
+}

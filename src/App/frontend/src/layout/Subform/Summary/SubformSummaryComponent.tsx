@@ -1,8 +1,8 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 
-import { Spinner } from '@digdir/designsystemet-react';
-
+import { FatalError } from 'src/app-components/error/FatalError/FatalError';
+import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
@@ -58,7 +58,11 @@ function SubformSummaryRow({ dataElement, baseComponentId }: { dataElement: IDat
       />
     );
   } else if (subformDataError) {
-    return <Lang id='form_filler.error_fetch_subform' />;
+    return (
+      <FatalError>
+        <Lang id='form_filler.error_fetch_subform' />
+      </FatalError>
+    );
   }
 
   const content: (ReactNode | string)[] = tableColumns.map((entry, i) => (

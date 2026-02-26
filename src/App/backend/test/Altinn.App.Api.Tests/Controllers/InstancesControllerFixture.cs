@@ -112,27 +112,27 @@ internal sealed record InstancesControllerFixture(IServiceProvider ServiceProvid
         services.AddOptions<AppSettings>().Configure(_ => { });
         services.AddAppImplementationFactory();
 
-        services.AddSingleton(new Mock<IAltinnPartyClient>().Object);
-        services.AddSingleton(new Mock<IRegisterClient>().Object);
-        services.AddSingleton(new Mock<IInstanceClient>().Object);
-        services.AddSingleton(new Mock<IDataClient>().Object);
-        services.AddSingleton(new Mock<IAppMetadata>().Object);
-        services.AddSingleton(new Mock<IAppModel>().Object);
-        services.AddSingleton(new Mock<IInstantiationProcessor>().Object);
-        services.AddSingleton(new Mock<IInstantiationValidator>().Object);
-        services.AddSingleton(new Mock<IPDP>().Object);
-        services.AddSingleton(new Mock<IEventsClient>().Object);
-        services.AddSingleton(new Mock<IPrefill>().Object);
-        services.AddSingleton(new Mock<IProfileClient>().Object);
-        services.AddSingleton(new Mock<IProcessEngine>().Object);
-        services.AddSingleton(new Mock<IOrganizationClient>().Object);
-        services.AddSingleton(new Mock<IHostEnvironment>().Object);
-        services.AddSingleton(new Mock<IValidationService>().Object);
-        services.AddSingleton(new Mock<ITranslationService>().Object);
-        services.AddSingleton(new Mock<IDataElementAccessChecker>().Object);
+        services.AddSingleton(new Mock<IAltinnPartyClient>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IRegisterClient>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IInstanceClient>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IDataClient>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IAppMetadata>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IAppModel>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IInstantiationProcessor>(MockBehavior.Loose).Object);
+        services.AddSingleton(new Mock<IInstantiationValidator>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IPDP>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IEventsClient>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IPrefill>(MockBehavior.Loose).Object);
+        services.AddSingleton(new Mock<IProfileClient>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IProcessEngine>(MockBehavior.Loose).Object);
+        services.AddSingleton(new Mock<IOrganizationClient>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IHostEnvironment>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IValidationService>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<ITranslationService>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<IDataElementAccessChecker>(MockBehavior.Strict).Object);
         services.AddSingleton(new Mock<IAppResources>(MockBehavior.Strict).Object);
 
-        var httpContextMock = new Mock<HttpContext>();
+        var httpContextMock = new Mock<HttpContext>(MockBehavior.Strict);
         services.AddTransient(_ => httpContextMock.Object);
 
         services.AddTransient<InternalPatchService>();

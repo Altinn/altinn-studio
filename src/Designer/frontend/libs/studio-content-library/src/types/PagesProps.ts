@@ -1,19 +1,15 @@
-import type { CodeListPageProps } from '../ContentLibrary/LibraryBody/pages/CodeListPage';
+import type { CodeListsWithTextResourcesPageProps } from '../pages/CodeListsWithTextResources/CodeListsWithTextResourcesPage';
 import type { PageName } from './PageName';
-import type { ImagesPageProps } from '../ContentLibrary/LibraryBody/pages/ImagesPage';
+import type { ImagesPageProps } from '../pages/Images/ImagesPage';
+import type { CodeListsPageProps } from '../pages/CodeLists/CodeListsPage';
 
 export type PagePropsMap<P extends PageName> = {
   landingPage: {};
-  codeList: CodeListPageProps;
+  codeLists: CodeListsPageProps;
+  codeListsWithTextResources: CodeListsWithTextResourcesPageProps;
   images: ImagesPageProps;
 }[P];
 
-type GlobalPageConfig<T> = {
-  props: T;
+export type PagesConfig = {
+  [K in PageName]?: PagePropsMap<K>;
 };
-
-type AllPagesConfig = {
-  [K in PageName]: GlobalPageConfig<PagePropsMap<K>>;
-};
-
-export type PagesConfig = Partial<AllPagesConfig>;

@@ -1,8 +1,6 @@
 import {
   addCombinationItem,
-  changeChildrenOrder,
   deleteNode,
-  promoteProperty,
   setCombinationType,
   setCustomProperties,
   setDescription,
@@ -12,12 +10,10 @@ import {
   setRestriction,
   setRestrictions,
   setTitle,
-  setType,
   toggleArrayField,
 } from './ui-schema-reducers';
 import type {
   AddCombinationItemArgs,
-  ChangeChildrenOrderArgs,
   SetCombinationTypeArgs,
   SetDescriptionArgs,
   SetPropertyNameArgs,
@@ -25,7 +21,6 @@ import type {
   SetRestrictionArgs,
   SetRestrictionsArgs,
   SetTitleArgs,
-  SetTypeArgs,
   SetCustomPropertiesArgs,
 } from './ui-schema-reducers';
 import {
@@ -33,7 +28,6 @@ import {
   arrayNodeMock,
   numberNodeMock,
   optionalNodeMock,
-  parentNodeMock,
   requiredNodeMock,
   stringNodeMock,
   uiSchemaMock,
@@ -44,8 +38,7 @@ import {
 } from '../../../test/uiSchemaMock';
 import { getChildNodesByFieldPointer } from '../selectors';
 import { expect } from '@jest/globals';
-import { CombinationKind, FieldType, Keyword, ObjectKind, StrRestrictionKey } from '../../types';
-import { ROOT_POINTER } from '../constants';
+import { CombinationKind, Keyword, ObjectKind, StrRestrictionKey } from '../../types';
 import { getPointers } from '../mappers/getPointers';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { validateTestUiSchema } from '../../../test/validateTestUiSchema';
@@ -67,18 +60,6 @@ describe('ui-schema-reducers', () => {
   afterEach(() => {
     validateTestUiSchema(result.asArray());
     jest.clearAllMocks();
-  });
-
-  describe('promoteProperty', () => {
-    it('Converts a property to a root level definition', () => {
-      const { schemaPointer } = stringNodeMock;
-      result = promoteProperty(createNewModelMock(), schemaPointer);
-      const expectedPointer = `${ROOT_POINTER}/$defs/${StringUtils.substringAfterLast(schemaPointer, '/')}`;
-      expect(getPointers(result.asArray())).toContain(expectedPointer);
-      expect(result.getNodeBySchemaPointer(expectedPointer)).toMatchObject({
-        fieldType: stringNodeMock.fieldType,
-      });
-    });
   });
 
   describe('deleteNode', () => {
@@ -123,18 +104,6 @@ describe('ui-schema-reducers', () => {
       expect(updatedNode.objectKind).toEqual(ObjectKind.Reference);
       expect(updatedNode.implicitType).toBe(true);
       expect(result.getReferredNode(updatedNode)).toEqual(unusedDefinitionMock);
-    });
-  });
-
-  describe('setType', () => {
-    it('Sets the type of the given node', () => {
-      const path = numberNodeMock.schemaPointer;
-      const type = FieldType.String;
-      const args: SetTypeArgs = { path, type };
-      result = setType(createNewModelMock(), args);
-      const updatedNode = result.getNodeBySchemaPointer(path) as FieldNode;
-      expect(updatedNode.fieldType).toEqual(type);
-      expect(updatedNode.implicitType).toBe(false);
     });
   });
 
@@ -278,18 +247,6 @@ describe('ui-schema-reducers', () => {
       children.forEach((childNode) => {
         expect(childNode).not.toContain(Keyword.Items);
       });
-    });
-  });
-
-  describe('changeChildrenOrder', () => {
-    it('Changes the order of the children of the given node', () => {
-      const { schemaPointer: parentPointer, children } = parentNodeMock;
-      const [pointerA, pointerB] = children;
-      const args: ChangeChildrenOrderArgs = { pointerA, pointerB };
-      result = changeChildrenOrder(createNewModelMock(), args);
-      const updatedChildren = result.getChildNodes(parentPointer);
-      expect(updatedChildren[0].schemaPointer).toBe(pointerB);
-      expect(updatedChildren[1].schemaPointer).toBe(pointerA);
     });
   });
 });

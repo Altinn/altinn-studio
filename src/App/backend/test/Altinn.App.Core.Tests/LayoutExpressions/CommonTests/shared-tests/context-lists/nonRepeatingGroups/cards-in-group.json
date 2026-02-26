@@ -1,0 +1,108 @@
+{
+  "name": "Simple cards layout with two components in a group",
+  "layouts": {
+    "Page1": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp1",
+            "type": "Header"
+          },
+          {
+            "id": "group1",
+            "type": "Group",
+            "dataModelBindings": {
+              "group": "gruppe1"
+            },
+            "maxCount": 0,
+            "children": ["cards1"]
+          },
+          {
+            "id": "cards1",
+            "type": "Cards",
+            "cards": [
+              {
+                "children": ["comp3"]
+              },
+              {
+                "children": ["comp4"]
+              }
+            ]
+          },
+          {
+            "id": "comp3",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "gruppe1.comp3binding"
+            }
+          },
+          {
+            "id": "comp4",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "gruppe1.comp4binding"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "gruppe1": [
+      { "altinnRowId": "row1", "comp3binding": "123", "comp4binding": "dadda" },
+      { "altinnRowId": "row2", "comp3binding": "456", "comp4binding": "dodo" }
+    ]
+  },
+  "expectedContexts": [
+    {
+      "component": "Page1",
+      "currentLayout": "Page1",
+      "children": [
+        {
+          "component": "comp1",
+          "currentLayout": "Page1"
+        },
+        {
+          "component": "group1",
+          "currentLayout": "Page1",
+          "children": [
+            {
+              "component": "cards1",
+              "rowIndices": [0],
+              "currentLayout": "Page1",
+              "children":[
+                {
+                  "component": "comp3",
+                  "rowIndices": [0],
+                  "currentLayout": "Page1"
+                },
+                {
+                  "component": "comp4",
+                  "rowIndices": [0],
+                  "currentLayout": "Page1"
+                }
+              ]
+            },
+            {
+              "component": "cards1",
+              "rowIndices": [1],
+              "currentLayout": "Page1",
+              "children":[
+                {
+                  "component": "comp3",
+                  "rowIndices": [1],
+                  "currentLayout": "Page1"
+                },
+                {
+                  "component": "comp4",
+                  "rowIndices": [1],
+                  "currentLayout": "Page1"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

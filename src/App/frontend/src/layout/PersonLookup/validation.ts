@@ -37,8 +37,8 @@ export function checkValidSsn(ssn: string): boolean {
   }
 
   const digits = ssn.split('').map(Number);
-  const k1 = digits[9];
-  const k2 = digits[10];
+  const k1 = digits.at(-2)!;
+  const k2 = digits.at(-1)!;
 
   // Calculate first control digit (K1)
   const weights1 = [3, 7, 6, 1, 8, 9, 4, 5, 2];
@@ -47,10 +47,8 @@ export function checkValidSsn(ssn: string): boolean {
     sum1 += digits[i] * weights1[i];
   }
 
-  let calculated_k1 = mod11(sum1);
-  if (calculated_k1 === 11) {
-    calculated_k1 = 0;
-  }
+  let calculated_k1 = modularAdditiveInverse(sum1, 11);
+  calculated_k1 = calculated_k1 % 11;
 
   // Calculate second control digit (K2)
   const weights2 = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
@@ -63,16 +61,14 @@ export function checkValidSsn(ssn: string): boolean {
     }
   }
 
-  let calculated_k2 = mod11(sum2);
-  if (calculated_k2 === 11) {
-    calculated_k2 = 0;
-  }
+  let calculated_k2 = modularAdditiveInverse(sum2, 11);
+  calculated_k2 = calculated_k2 % 11;
 
   // Validate controls and return result
   return k1 === calculated_k1 && k2 === calculated_k2;
 }
 
-const mod11 = (value: number): number => 11 - (value % 11);
+const modularAdditiveInverse = (value: number, base: number): number => base - (value % base);
 
 export const validateSsn = ajv.compile(ssnSchema);
 

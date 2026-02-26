@@ -1,0 +1,20 @@
+.wrapper {
+  padding: var(--ds-size-5) var(--ds-size-11);
+  background-color: var(--ds-color-surface-tinted);
+  margin-bottom: var(--ds-size-2);
+}
+
+.flexContainer {
+  display: flex;
+  gap: var(--ds-size-4);
+}
+
+.heading {
+  font-weight: var(--ds-font-weight-regular);
+  font-size: var(--ds-font-size-4);
+}
+
+.requiredIndicator {
+  display: inline;
+  padding: var(--fds-spacing-2);
+}

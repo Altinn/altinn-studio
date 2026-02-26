@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Text.Json.Nodes;
 using Altinn.Platform.Storage.Interface.Models;

@@ -1,4 +1,6 @@
+#nullable disable
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -34,7 +36,14 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="developer">Developer that is working on the repository.</param>
         /// <param name="repositoriesRootDirectory">Base path (full) for where the repository resides on-disk.</param>
         /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
-        public AltinnGitRepository(string org, string repository, string developer, string repositoriesRootDirectory, string repositoryDirectory) : base(repositoriesRootDirectory, repositoryDirectory)
+        public AltinnGitRepository(
+            string org,
+            string repository,
+            string developer,
+            string repositoriesRootDirectory,
+            string repositoryDirectory
+        )
+            : base(repositoriesRootDirectory, repositoryDirectory)
         {
             Guard.AssertNotNullOrEmpty(org, nameof(org));
             Guard.AssertNotNullOrEmpty(repository, nameof(repository));
@@ -60,7 +69,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         public string Developer { get; private set; }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Gets the repository type.
+        /// </summary>
+        /// <returns>The repository type, see <see cref="AltinnRepositoryType"/></returns>
         public async Task<AltinnRepositoryType> GetRepositoryType()
         {
             var settings = await GetAltinnStudioSettings();
@@ -126,7 +138,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
             else
             {
-                (AltinnStudioSettings altinnStudioSettings, bool needsSaving) = await MigrateExistingAltinnStudioSettings();
+                (AltinnStudioSettings altinnStudioSettings, bool needsSaving) =
+                    await MigrateExistingAltinnStudioSettings();
 
                 if (needsSaving)
                 {
@@ -141,29 +154,58 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private async Task<AltinnStudioSettings> CreateNewAltinnStudioSettings()
         {
-            AltinnStudioSettings settings = IsDatamodelsRepo()
-                ? new AltinnStudioSettings { RepoType = AltinnRepositoryType.Datamodels }
-                : new AltinnStudioSettings { RepoType = AltinnRepositoryType.App };
+            AltinnStudioSettings settings = new()
+            {
+                RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App,
+                UseNullableReferenceTypes = false,
+            };
 
             await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, settings, true);
 
             return settings;
         }
 
-        private async Task<(AltinnStudioSettings AltinnStudioSettinngs, bool NeedsSaving)> MigrateExistingAltinnStudioSettings()
+        private async Task<(
+            AltinnStudioSettings AltinnStudioSettinngs,
+            bool NeedsSaving
+        )> MigrateExistingAltinnStudioSettings()
         {
             string altinnStudioSettingsJson = await ReadTextByRelativePathAsync(STUDIO_SETTINGS_FILEPATH);
-            AltinnStudioSettings altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(altinnStudioSettingsJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
+            AltinnStudioSettings altinnStudioSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(
+                altinnStudioSettingsJson,
+                new JsonSerializerOptions()
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Converters = { new JsonStringEnumConverter() },
+                }
+            );
 
-            bool needsSaving = false;
+            bool shouldSave = JsonMissingAnyModelProperty<AltinnStudioSettings>(altinnStudioSettingsJson);
 
             if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
             {
-                altinnStudioSettings.RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App;
-                needsSaving = true;
+                altinnStudioSettings.RepoType = IsDatamodelsRepo()
+                    ? AltinnRepositoryType.Datamodels
+                    : AltinnRepositoryType.App;
+                shouldSave = true;
             }
 
-            return (altinnStudioSettings, needsSaving);
+            return (altinnStudioSettings, shouldSave);
+        }
+
+        private static bool JsonMissingAnyModelProperty<T>(string json)
+        {
+            PropertyInfo[] properties = typeof(T).GetProperties();
+            using JsonDocument jsonDocument = JsonDocument.Parse(json);
+            foreach (PropertyInfo property in properties)
+            {
+                string jsonName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
+                if (jsonDocument.RootElement.TryGetProperty(jsonName, out _) is false)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>

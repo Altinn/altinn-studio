@@ -8,7 +8,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import type { ToastOptions } from 'react-toastify';
 import { ToastContainer, Slide, toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
-import { isAxiosError } from 'axios';
+import { isAxiosError, isCancel } from 'axios';
 import type { i18n } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
@@ -37,14 +37,29 @@ const handleError = (
   meta: QueryMeta | MutationMeta,
   logout: () => Promise<void>,
 ): void => {
+  if (isCancel(error)) {
+    return;
+  }
+
   if (!isAxiosError(error)) {
     console.error(error);
   }
 
-  const renderToast = (key: string, options: ToastOptions = {}) => {
+  const renderToast = (key: string, detail?: string, options: ToastOptions = {}) => {
     const errorMessageKey = `api_errors.${key}`;
     if (i18n.exists(errorMessageKey)) {
-      toast.error(t(errorMessageKey), {
+      const message = (
+        <>
+          {t(errorMessageKey)}{' '}
+          {detail && (
+            <>
+              <br />
+              {`${t('app_error.details')}: ${detail}`}
+            </>
+          )}
+        </>
+      );
+      toast.error(message, {
         toastId: errorMessageKey,
         ...options,
       });
@@ -54,10 +69,11 @@ const handleError = (
   };
 
   const errorCode = error?.response?.data?.errorCode;
+  const detail = error?.response?.data?.detail;
   const unAuthorizedErrorCode = error?.response?.status === ServerCodes.Unauthorized;
 
   if (unAuthorizedErrorCode) {
-    return renderToast(errorCode || 'Unauthorized', {
+    return renderToast(errorCode || 'Unauthorized', detail, {
       onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
       autoClose: LOG_OUT_TIMER_MS,
     });
@@ -70,7 +86,7 @@ const handleError = (
     return;
 
   if (errorCode) {
-    return renderToast(errorCode);
+    return renderToast(errorCode, detail);
   }
 
   renderDefaultToast();
@@ -79,16 +95,18 @@ const handleError = (
 const renderDefaultToast = () => {
   toast.error(
     () => (
-      <Trans
-        i18nKey={'general.error_message'}
-        components={{
-          a: (
-            <Link href='/info/contact' inverted={true}>
-              {' '}
-            </Link>
-          ),
-        }}
-      />
+      <div>
+        <Trans
+          i18nKey={'general.error_message'}
+          components={{
+            a: (
+              <Link href='/info/contact' inverted={true}>
+                {' '}
+              </Link>
+            ),
+          }}
+        />
+      </div>
     ),
     { toastId: 'default' },
   );

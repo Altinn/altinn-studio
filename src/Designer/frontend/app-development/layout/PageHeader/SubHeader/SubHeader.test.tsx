@@ -10,6 +10,14 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { PageHeaderContextProps } from '../../../contexts/PageHeaderContext';
 import { RepositoryType } from 'app-shared/types/global';
 import userEvent from '@testing-library/user-event';
+import { FeatureFlagsContextProvider } from '@studio/feature-flags';
+
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
 
 const defaultProps: SubHeaderProps = {
   hasRepoError: false,
@@ -52,6 +60,10 @@ describe('SubHeader', () => {
 });
 
 describe('LeftContent', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render the returnTo button if returnTo is set', () => {
     renderLeftContent({
       pageHeaderContextProps: {
@@ -91,9 +103,6 @@ describe('LeftContent', () => {
   });
 
   it('should call the navigate function when the returnTo button is clicked', async () => {
-    const navigate = jest
-      .spyOn(require('react-router-dom'), 'useNavigate')
-      .mockReturnValue(jest.fn());
     renderLeftContent({
       pageHeaderContextProps: {
         returnTo: 'ui-editor',
@@ -107,7 +116,8 @@ describe('LeftContent', () => {
     });
     expect(returnToButton).toBeInTheDocument();
     await user.click(returnToButton);
-    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('ui-editor');
   });
 });
 
@@ -121,11 +131,13 @@ const renderSubHeader = ({
   pageHeaderContextProps,
 }: Partial<Props<SubHeaderProps>> = {}) => {
   return renderWithProviders()(
-    <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...pageHeaderContextProps }}>
-      <PreviewContext.Provider value={previewContextMock}>
-        <SubHeader {...defaultProps} {...componentProps} />
-      </PreviewContext.Provider>
-    </PageHeaderContext.Provider>,
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...pageHeaderContextProps }}>
+        <PreviewContext.Provider value={previewContextMock}>
+          <SubHeader {...defaultProps} {...componentProps} />
+        </PreviewContext.Provider>
+      </PageHeaderContext.Provider>
+    </FeatureFlagsContextProvider>,
   );
 };
 
@@ -137,8 +149,10 @@ const renderLeftContent = ({
     repositoryType: RepositoryType.App,
   };
   return renderWithProviders()(
-    <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...pageHeaderContextProps }}>
-      <LeftContent {...props} {...componentProps} />
-    </PageHeaderContext.Provider>,
+    <FeatureFlagsContextProvider value={{ flags: [] }}>
+      <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...pageHeaderContextProps }}>
+        <LeftContent {...props} {...componentProps} />
+      </PageHeaderContext.Provider>
+    </FeatureFlagsContextProvider>,
   );
 };

@@ -1,9 +1,9 @@
-import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 
-export const getIncomingApplicationMetadataMock = (
-  overrides: Partial<IncomingApplicationMetadata> | ((application: IncomingApplicationMetadata) => void) = {},
-): IncomingApplicationMetadata => {
-  const out: IncomingApplicationMetadata = {
+export const getApplicationMetadataMock = (
+  overrides: Partial<ApplicationMetadata> | ((application: ApplicationMetadata) => void) = {},
+): ApplicationMetadata => {
+  const out: ApplicationMetadata = {
     id: 'mockOrg/test-app',
     org: 'mockOrg',
     title: {
@@ -90,18 +90,4 @@ export const getIncomingApplicationMetadataMock = (
   }
 
   return out;
-};
-
-export const getApplicationMetadataMock = (
-  overrides: Partial<ApplicationMetadata> | ((application: ApplicationMetadata) => void) = {},
-): ApplicationMetadata => {
-  const incomingAppMetadata = getIncomingApplicationMetadataMock();
-  return {
-    ...incomingAppMetadata,
-    isValidVersion: true,
-    isStatelessApp: false,
-    logoOptions: incomingAppMetadata.logo,
-    onEntry: { show: 'new-instance' },
-    ...overrides,
-  };
 };

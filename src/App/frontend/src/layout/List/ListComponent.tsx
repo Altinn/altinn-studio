@@ -108,7 +108,7 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
     return JSON.stringify(selectedRow) === JSON.stringify(row);
   }
 
-  const title = item.textResourceBindings?.title;
+  const title = item.textResourceBindings?.summaryTitle || item.textResourceBindings?.title;
   const description = item.textResourceBindings?.description;
 
   const handleRowClick = (row: Row) => {
@@ -298,7 +298,6 @@ export const ListComponent = ({ baseComponentId }: PropsFromGenericComponent<'Li
             <Table.Row
               key={JSON.stringify(row)}
               onClick={!readOnly ? () => handleRowClick(row) : undefined}
-              className={cn({ [classes.readOnlyRow]: readOnly })}
             >
               {!readOnly && (
                 <Table.Cell

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { Checkbox, Combobox, Fieldset, Tabs } from '@digdir/designsystemet-react';
+import { Checkbox, EXPERIMENTAL_Suggestion as Suggestion, Fieldset, Tabs } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/ExpressionPlayground/ExpressionPlayground.module.css';
@@ -16,6 +16,7 @@ import comboboxClasses from 'src/styles/combobox.module.css';
 import { DataModelLocationProviderFromNode } from 'src/utils/layout/DataModelLocation';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
+import { optionFilter } from 'src/utils/options';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
 import type { Expression, ExprFunctionName } from 'src/features/expressions/types';
 
@@ -57,7 +58,6 @@ export const ExpressionPlayground = () => {
 
   const { showAllSteps, setShowAllSteps, activeOutputTab, setActiveOutputTab, outputs, setOutputs } =
     usePlaygroundState();
-  const selectedContext = nodeId ? [nodeId] : [];
 
   // This is OK if this function is called from places that immediately evaluates the expression again, thus
   // populating the output history with a fresh value.
@@ -138,28 +138,32 @@ export const ExpressionPlayground = () => {
         <div className={classes.rightColumn}>
           <Fieldset>
             <Fieldset.Legend>Kjør uttrykk i kontekst av komponent</Fieldset.Legend>
-            <Combobox
-              size='sm'
-              value={selectedContext}
-              onValueChange={(values) => {
-                const selected = values.at(0);
-                if (selected) {
-                  const { baseComponentId } = splitDashedKey(selected);
-                  setContext(selected, baseComponentId);
-                }
-              }}
+            <Suggestion
+              multiple={false}
+              filter={optionFilter}
+              data-size='sm'
+              selected={nodeId ? { value: nodeId, label: nodeId } : undefined}
               className={comboboxClasses.container}
+              style={{ width: '100%' }}
             >
-              {componentOptions.map(({ value, label }) => (
-                <Combobox.Option
-                  key={value}
-                  value={value}
-                  displayValue={label}
-                >
-                  {label}
-                </Combobox.Option>
-              ))}
-            </Combobox>
+              <Suggestion.Input aria-label='Velg komponent' />
+              <Suggestion.List>
+                <Suggestion.Empty>Ingen komponenter funnet</Suggestion.Empty>
+                {componentOptions.map(({ value, label }) => (
+                  <Suggestion.Option
+                    key={value}
+                    value={value}
+                    label={label}
+                    onClick={() => {
+                      const { baseComponentId } = splitDashedKey(value);
+                      setContext(value, baseComponentId);
+                    }}
+                  >
+                    {label}
+                  </Suggestion.Option>
+                ))}
+              </Suggestion.List>
+            </Suggestion>
             {nodeId && nodePage === currentPageId && (
               // eslint-disable-next-line jsx-a11y/anchor-is-valid
               <a
@@ -196,7 +200,7 @@ export const ExpressionPlayground = () => {
             <Fieldset.Legend>Dokumentasjon</Fieldset.Legend>
             Les mer om uttrykk{' '}
             <a
-              href='https://docs.altinn.studio/nb/altinn-studio/reference/logic/expressions/'
+              href='https://docs.altinn.studio/nb/altinn-studio/v8/reference/logic/expressions/'
               target='_blank'
               rel='noreferrer'
             >

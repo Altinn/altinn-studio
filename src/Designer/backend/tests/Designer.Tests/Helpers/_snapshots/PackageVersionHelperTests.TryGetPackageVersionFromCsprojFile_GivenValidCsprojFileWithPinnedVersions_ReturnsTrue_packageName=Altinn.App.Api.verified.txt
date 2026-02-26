@@ -1,0 +1,22 @@
+﻿{
+  Inputs: [
+    [
+      Altinn.App.Api,
+      Altinn.App.Api.Experimental
+    ],
+    [
+      Altinn.App.Api.Experimental,
+      Altinn.App.Api
+    ]
+  ],
+  Outputs: [
+    {
+      Item1: true,
+      Item2: 8.8.3
+    },
+    {
+      Item1: true,
+      Item2: 8.8.3
+    }
+  ]
+}

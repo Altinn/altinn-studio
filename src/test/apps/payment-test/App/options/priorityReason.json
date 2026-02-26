@@ -1,0 +1,21 @@
+[
+    {
+      "value": "earlierApplicant",
+      "label": "earlierApplicant",
+      "helpText": "earlierApplicantInfo"
+    },
+    {
+        "value": "earlierCase",
+        "label": "earlierCase",
+        "helpText": "earlierCaseInfo"
+    },
+    {
+        "value": "nationalApplication",
+        "label": "nationalApplication",
+        "helpText": "nationalApplicationInfo"
+    },
+    {
+        "value": "noPriority",
+        "label": "noPriority"
+    }
+]

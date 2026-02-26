@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models.Dto
@@ -21,8 +20,10 @@ namespace Altinn.Studio.Designer.Models.Dto
     {
         [JsonPropertyName("urn:altinn:party:uuid")]
         public required string PartyUuid { get; set; }
+
         [JsonPropertyName("urn:altinn:party:id")]
         public required int PartyId { get; set; }
+
         [JsonPropertyName("urn:altinn:organization:identifier-no")]
         public required string OrganizationNumber { get; set; }
     }
@@ -31,6 +32,4 @@ namespace Altinn.Studio.Designer.Models.Dto
     {
         public required IList<string> Data { get; set; }
     }
-
-
 }

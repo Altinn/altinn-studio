@@ -10,8 +10,8 @@ import { PaymentStatus } from 'src/features/payment/types';
 import { usePerformPayActionMutation } from 'src/features/payment/usePerformPaymentMutation';
 import { useIsPayment } from 'src/features/payment/utils';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { useIsPdf } from 'src/hooks/useIsPdf';
+import { useOurEffectEvent } from 'src/hooks/useOurEffectEvent';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 
 type PaymentContextProps = {
@@ -26,6 +26,9 @@ type PaymentContextProvider = {
 
 export const PaymentContext = createContext<PaymentContextProps | undefined>(undefined);
 
+// Module-level tracking to prevent duplicate payment calls across component remounts
+const paymentInitiatedForInstance = new Map<string, boolean>();
+
 export const PaymentProvider: React.FC<PaymentContextProvider> = ({ children }) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
@@ -38,8 +41,8 @@ export const PaymentProvider: React.FC<PaymentContextProvider> = ({ children }) 
 
   const isLoading = isPaymentPending || isConfirmPending;
 
-  const performPayment = useEffectEvent(() => mutateAsync());
-  const skipPayment = useEffectEvent(() => processConfirm());
+  const performPayment = useOurEffectEvent(() => mutateAsync());
+  const skipPayment = useOurEffectEvent(() => processConfirm());
 
   const contextValue = useShallowMemo({ performPayment, skipPayment, paymentError });
 
@@ -55,6 +58,7 @@ function PaymentNavigation() {
   const paymentInfo = usePaymentInformation();
   const isPdf = useIsPdf();
   const { performPayment, skipPayment } = usePayment();
+  const instanceGuid = useNavigationParam('instanceGuid');
 
   const paymentDoesNotExist = paymentInfo?.status === PaymentStatus.Uninitialized;
   const isPaymentProcess = useIsPayment();
@@ -62,10 +66,21 @@ function PaymentNavigation() {
   // If when landing on payment task, PaymentStatus is Uninitialized, initiate it by calling the pay action and
   // go to payment provider
   useEffect(() => {
-    if (isPaymentProcess && paymentDoesNotExist && !isPdf) {
-      performPayment();
+    if (isPaymentProcess && paymentDoesNotExist && !isPdf && instanceGuid) {
+      // Check module-level map to prevent duplicate calls across remounts
+      if (!paymentInitiatedForInstance.get(instanceGuid)) {
+        paymentInitiatedForInstance.set(instanceGuid, true);
+        performPayment();
+      }
+    } else if (
+      instanceGuid &&
+      paymentInfo?.status !== undefined &&
+      paymentInfo.status !== PaymentStatus.Uninitialized
+    ) {
+      // Clean up the flag once payment status is known and no longer Uninitialized
+      paymentInitiatedForInstance.delete(instanceGuid);
     }
-  }, [isPaymentProcess, paymentDoesNotExist, performPayment, isPdf]);
+  }, [isPaymentProcess, paymentDoesNotExist, performPayment, isPdf, instanceGuid, paymentInfo?.status]);
 
   const paymentCompleted = paymentInfo?.status === PaymentStatus.Paid || paymentInfo?.status === PaymentStatus.Skipped;
 

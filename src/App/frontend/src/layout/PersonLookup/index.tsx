@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { useEmptyFieldValidationAllBindings } from 'src/features/validation/nodeValidation/emptyFieldValidation';
+import { useEmptyFieldValidationOnlyOneBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { PersonLookupDef } from 'src/layout/PersonLookup/config.def.generated';
 import { PersonLookupComponent } from 'src/layout/PersonLookup/PersonLookupComponent';
 import { PersonLookupSummary } from 'src/layout/PersonLookup/PersonLookupSummary';
@@ -18,7 +18,36 @@ import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types'
 export class PersonLookup extends PersonLookupDef {
   useDisplayData(baseComponentId: string): string {
     const formData = useNodeFormDataWhenType(baseComponentId, 'PersonLookup');
-    return Object.values(formData ?? {}).join(', ');
+    if (!formData) {
+      return '';
+    }
+    const parts: string[] = [];
+
+    if (formData.person_lookup_ssn) {
+      parts.push(formData.person_lookup_ssn);
+    }
+
+    // Build full name from individual parts or use the Name binding
+    if (formData.person_lookup_name) {
+      parts.push(formData.person_lookup_name);
+    } else {
+      const nameParts: string[] = [];
+      if (formData.person_lookup_first_name) {
+        nameParts.push(formData.person_lookup_first_name);
+      }
+      if (formData.person_lookup_middle_name) {
+        nameParts.push(formData.person_lookup_middle_name);
+      }
+      if (formData.person_lookup_last_name) {
+        nameParts.push(formData.person_lookup_last_name);
+      }
+
+      if (nameParts.length > 0) {
+        parts.push(nameParts.join(' '));
+      }
+    }
+
+    return parts.join(', ');
   }
 
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'PersonLookup'>>(
@@ -40,7 +69,7 @@ export class PersonLookup extends PersonLookupDef {
   }
 
   useEmptyFieldValidation(baseComponentId: string): ComponentValidation[] {
-    return useEmptyFieldValidationAllBindings(baseComponentId, 'person_lookup.error_required');
+    return useEmptyFieldValidationOnlyOneBinding(baseComponentId, 'person_lookup_ssn');
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'PersonLookup'>): string[] {

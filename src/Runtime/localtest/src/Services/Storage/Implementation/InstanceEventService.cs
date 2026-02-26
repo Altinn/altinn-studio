@@ -58,7 +58,7 @@ namespace Altinn.Platform.Storage.Services
         {
             var instanceEvent = BuildInstanceEvent(eventType, instance);
 
-            await _repository.InsertInstanceEvent(instanceEvent);
+            await _repository.InsertInstanceEvent(instanceEvent, instance);
         }
 
         /// <inheritdoc/>
@@ -84,7 +84,7 @@ namespace Altinn.Platform.Storage.Services
                 Created = DateTime.UtcNow,
             };
 
-            await _repository.InsertInstanceEvent(instanceEvent);
+            await _repository.InsertInstanceEvent(instanceEvent, instance);
         }
     }
 }

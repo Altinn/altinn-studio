@@ -1,3 +1,4 @@
+#nullable disable
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -8,13 +9,6 @@ namespace Altinn.Studio.Designer.Services.Models
     /// </summary>
     public class EnvironmentModel
     {
-        /// <summary>
-        /// AppsUrl
-        /// </summary>
-        [Required]
-        [JsonPropertyName("appsUrl")]
-        public string AppsUrl { get; set; }
-
         /// <summary>
         /// PlatformUrl
         /// </summary>

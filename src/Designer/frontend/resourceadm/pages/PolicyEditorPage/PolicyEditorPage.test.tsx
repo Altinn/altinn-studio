@@ -30,22 +30,43 @@ const mockActions: PolicyAction[] = [
 
 const mockSubjects: PolicySubject[] = [
   {
-    subjectId: 's1',
-    subjectTitle: 'Subject 1',
-    subjectSource: 'sub1',
-    subjectDescription: 'The first subject',
+    id: 'd41d67f2-15b0-4c82-95db-b8d5baaa14a4',
+    name: 'Varamedlem',
+    description: 'Fysisk- eller juridisk person som er stedfortreder for et styremedlem',
+    urn: 'urn:altinn:rolecode:VARA',
+    legacyRoleCode: 'VARA',
+    legacyUrn: 'urn:altinn:rolecode:VARA',
+    provider: {
+      id: '0195ea92-2080-758b-89db-7735c4f68320',
+      name: 'Altinn 2',
+      code: 'sys-altinn2',
+    },
   },
   {
-    subjectId: 's2',
-    subjectTitle: 'Subject 2',
-    subjectSource: 'sub2',
-    subjectDescription: 'The second subject',
+    id: '1f8a2518-9494-468a-80a0-7405f0daf9e9',
+    name: 'Observatør',
+    description: 'Fysisk person som deltar i styremøter i en virksomhet, men uten stemmerett',
+    urn: 'urn:altinn:rolecode:OBS',
+    legacyRoleCode: 'OBS',
+    legacyUrn: 'urn:altinn:rolecode:OBS',
+    provider: {
+      id: '0195ea92-2080-758b-89db-7735c4f68320',
+      name: 'Altinn 2',
+      code: 'sys-altinn2',
+    },
   },
   {
-    subjectId: 's3',
-    subjectTitle: 'Subject 3',
-    subjectSource: 'sub3',
-    subjectDescription: 'The third subject',
+    id: 'f045ffda-dbdc-41da-b674-b9b276ad5b01',
+    name: 'Styremedlem',
+    description: 'Fysisk- eller juridisk person som inngår i et styre',
+    urn: 'urn:altinn:rolecode:MEDL',
+    legacyRoleCode: 'MEDL',
+    legacyUrn: 'urn:altinn:rolecode:MEDL',
+    provider: {
+      id: '0195ea92-2080-758b-89db-7735c4f68320',
+      name: 'Altinn 2',
+      code: 'sys-altinn2',
+    },
   },
 ];
 
@@ -122,7 +143,7 @@ describe('PolicyEditorPage', () => {
     expect(screen.getByText(textMock('policy_editor.rules'))).toBeInTheDocument();
   });
 
-  it('displays the page spinner when access lists for consent resource', async () => {
+  it('displays the page spinner when loading access lists for consent resource', async () => {
     getResource.mockImplementation(() =>
       Promise.resolve<Resource>({
         identifier: 'test-resource',

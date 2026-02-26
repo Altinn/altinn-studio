@@ -3,6 +3,7 @@ import { StudioCallToActionBar } from '@studio/components';
 import type { IInternalLayout } from '../../types/global';
 import classes from './WithHoverAddButton.module.css';
 import { InlineItemAdder } from '../../containers/DesignView/AddItem/AddItem';
+import { getItem } from '../../utils/formLayoutUtils';
 
 export type WithHoverAddButtonProps = {
   children: ReactNode;
@@ -10,6 +11,7 @@ export type WithHoverAddButtonProps = {
   containerId: string;
   saveAtIndexPosition: number;
   layout: IInternalLayout;
+  isLastChild?: boolean;
 };
 export const WithHoverAddButton = ({
   children,
@@ -17,9 +19,13 @@ export const WithHoverAddButton = ({
   containerId,
   layout,
   saveAtIndexPosition,
+  isLastChild,
 }: WithHoverAddButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
+
+  const parentContainer = containerId ? getItem(layout, containerId) : null;
+  const isLastChildInRepGroup = isLastChild && parentContainer?.type === 'RepeatingGroup';
 
   return (
     <>
@@ -28,6 +34,8 @@ export const WithHoverAddButton = ({
         title={title}
         isVisible={isOpen || hovered}
         actionBarClassName={classes.hoverCallToAction}
+        className={isLastChildInRepGroup ? classes.lastChild : undefined}
+        data-testid='with-hover-add-button-root'
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >

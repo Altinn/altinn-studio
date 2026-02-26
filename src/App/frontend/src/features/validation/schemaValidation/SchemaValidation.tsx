@@ -1,40 +1,26 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 
 import { FrontendValidationSource } from '..';
 import type { FieldValidations } from '..';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { pointerToDotNotation } from 'src/features/datamodel/notations';
-import { useDataModelType } from 'src/features/datamodel/useBindingSchema';
 import { FD } from 'src/features/formData/FormDataWrite';
 import {
-  createValidator,
   getErrorCategory,
   getErrorParams,
   getErrorTextKey,
 } from 'src/features/validation/schemaValidation/schemaValidationUtils';
 import { Validation } from 'src/features/validation/validationContext';
-import { getRootElementPath, getSchemaPart, getSchemaPartOldGenerator } from 'src/utils/schemaUtils';
+import { getSchemaPart, getSchemaPartOldGenerator } from 'src/utils/schemaUtils';
 import type { TextReference } from 'src/features/language/useLanguage';
 
 export function SchemaValidation({ dataType }: { dataType: string }) {
   const updateDataModelValidations = Validation.useUpdateDataModelValidations();
 
   const formData = FD.useDebounced(dataType);
-  const schema = DataModels.useDataModelSchema(dataType);
-  const dataTypeDef = useDataModelType(dataType);
+  const { validator, rootElementPath, schema } = DataModels.useDataModelSchema(dataType) ?? {};
   const dataElementId = DataModels.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
-
-  /**
-   * Create a validator for the current schema and data type.
-   */
-  const [validator, rootElementPath] = useMemo(() => {
-    if (!schema || !dataTypeDef) {
-      return [undefined, undefined] as const;
-    }
-
-    return [createValidator(schema), getRootElementPath(schema, dataTypeDef)] as const;
-  }, [schema, dataTypeDef]);
 
   /**
    * Perform validation using AJV schema validation.

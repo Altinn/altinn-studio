@@ -1,0 +1,169 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "nav3",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "personer-group",
+        "type": "RepeatingGroup",
+        "textResourceBindings": {
+          "title": "Personer"
+        },
+        "dataModelBindings": {
+          "group": {
+            "dataType": "modell2",
+            "field": "personer"
+          }
+        },
+        "children": [
+          "person-fornavn",
+          "person-etternavn",
+          "person-alder",
+          "person-fodselsdato",
+          "repeatingParagraph",
+          "fileUploadSingle",
+          "fileUploadMulti"
+        ],
+        "tableHeaders": ["person-fornavn", "person-etternavn", "person-alder"]
+      },
+      {
+        "id": "person-fornavn",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Fornavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "field": "personer.fornavn"
+          }
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "person-etternavn",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Etternavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "field": "personer.etternavn"
+          }
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "person-fodselsdato",
+        "type": "Datepicker",
+        "textResourceBindings": {
+          "title": "Fødselsdato"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "field": "personer.fødselsdato"
+          }
+        },
+        "timeStamp": false,
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "person-alder",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Alder"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "field": "personer.alder"
+          }
+        },
+        "readOnly": true,
+        "formatting": {
+          "unit": "year"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "id": "repeatingParagraph",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "repeatingParagraph"
+        }
+      },
+      {
+        "id": "fileUploadSingle",
+        "type": "FileUploadWithTag",
+        "textResourceBindings": {
+          "title": "Kopi av legitimasjon"
+        },
+        "dataModelBindings": {
+          "simpleBinding": {
+            "dataType": "modell2",
+            "field": "personer.legitimasjon"
+          }
+        },
+        "displayMode": "simple",
+        "options": [
+          {
+            "label": "Førerkort",
+            "value": "drivers-licence"
+          },
+          {
+            "label": "Pass",
+            "value": "passport"
+          },
+          {
+            "label": "Bankkort",
+            "value": "credit-card"
+          }
+        ],
+        "validFileEndings": [".jpg", ".png", ".pdf"],
+        "maxFileSizeInMB": 20,
+        "maxNumberOfAttachments": 1,
+        "minNumberOfAttachments": 0
+      },
+      {
+        "id": "fileUploadMulti",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "Andre vedlegg"
+        },
+        "dataModelBindings": {
+          "list": {
+            "dataType": "modell2",
+            "field": "personer.vedlegg"
+          }
+        },
+        "displayMode": "list",
+        "validFileEndings": [".pdf"],
+        "maxFileSizeInMB": 20,
+        "maxNumberOfAttachments": 5,
+        "minNumberOfAttachments": 0
+      },
+      {
+        "id": "navbuttons3",
+        "showBackButton": true,
+        "textResourceBindings": {
+          "next": "Neste",
+          "back": "Forrige"
+        },
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

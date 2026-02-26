@@ -3,12 +3,12 @@ import { getChildIds } from '../../../utils/formLayoutUtils';
 import { FormItem } from './FormItem';
 import type { IInternalLayout } from '../../../types/global';
 import { AddItem } from '../AddItem';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const renderItemList = (
   layout: IInternalLayout,
   duplicateComponents: string[],
   parentId: string,
+  withSpacer: boolean,
 ): ReactElement => {
   const childIds: string[] = getChildIds(layout, parentId);
   return childIds.length ? (
@@ -21,10 +21,11 @@ export const renderItemList = (
           key={id}
           containerId={parentId}
           saveAtIndexPosition={getSavePositionByIndex(index)}
+          isLastChild={index === childIds.length - 1}
         />
       ))}
       {/* Spacer component to make space for the HoverAddButton in containers*/}
-      {shouldDisplayFeature(FeatureFlag.AddComponentModal) && <Spacer />}
+      {withSpacer && <Spacer />}
     </>
   ) : null;
 };

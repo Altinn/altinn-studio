@@ -1,4 +1,5 @@
-﻿using Altinn.ApiClients.Maskinporten.Config;
+﻿#nullable disable
+using Altinn.ApiClients.Maskinporten.Config;
 
 namespace Altinn.Studio.Designer.Configuration
 {

@@ -96,7 +96,7 @@ describe('Summary2Override', () => {
 
     expect(
       screen.queryByRole('combobox', {
-        name: textMock('ux_editor.component_properties.summary.override.display_type'),
+        name: /ux_editor\.component_properties\.summary\.override\.display_type/,
       }),
     ).not.toBeInTheDocument();
   });
@@ -111,12 +111,18 @@ describe('Summary2Override', () => {
     render({ component });
     const componentId = component1IdMock;
     await user.click(overrideCollapsedButton(1));
-    await user.click(overrideComponentSelect());
-    await user.click(
-      screen.getByRole('option', {
+    const combobox = overrideComponentSelect();
+    await user.clear(combobox);
+    await user.type(combobox, componentId);
+    const option = await screen.findByRole(
+      'option',
+      {
         name: (content, _) => content.startsWith(componentId),
-      }),
+        hidden: true,
+      },
+      { timeout: 3000 },
     );
+    await user.click(option);
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
         expect.objectContaining({ overrides: [{ componentId }] }),
@@ -133,7 +139,7 @@ describe('Summary2Override', () => {
     render({ component });
     await user.click(overrideCollapsedButton(1));
     await user.click(
-      screen.getByRole('checkbox', {
+      screen.getByRole('switch', {
         name: textMock('ux_editor.component_properties.summary.override.show_component'),
       }),
     );
@@ -146,7 +152,7 @@ describe('Summary2Override', () => {
     );
   });
 
-  it('"isCompact" checkbox should not be checked when isCompact is false', async () => {
+  it('"isCompact" switch should not be checked when isCompact is false', async () => {
     const user = userEvent.setup();
     const component = {
       ...defaultProps.component,
@@ -154,7 +160,7 @@ describe('Summary2Override', () => {
     };
     render({ component });
     await user.click(overrideCollapsedButton(1));
-    const compactCheckbox = screen.getByRole('checkbox', {
+    const compactCheckbox = screen.getByRole('switch', {
       name: textMock('ux_editor.component_properties.summary.override.is_compact'),
     });
     expect(compactCheckbox).toBeInTheDocument();
@@ -169,7 +175,7 @@ describe('Summary2Override', () => {
     );
   });
 
-  it('"isCompact" checkbox should be checked when isCompact is true', async () => {
+  it('"isCompact" switch should be checked when isCompact is true', async () => {
     const user = userEvent.setup();
     const component = {
       ...defaultProps.component,
@@ -177,7 +183,7 @@ describe('Summary2Override', () => {
     };
     render({ component });
     await user.click(overrideCollapsedButton(1));
-    const compactCheckbox = screen.getByRole('checkbox', {
+    const compactCheckbox = screen.getByRole('switch', {
       name: textMock('ux_editor.component_properties.summary.override.is_compact'),
     });
     expect(compactCheckbox).toBeInTheDocument();
@@ -310,12 +316,18 @@ describe('Summary2Override', () => {
     render({ component });
 
     await user.click(overrideCollapsedButton(1));
-    await user.click(overrideComponentSelect());
-    await user.click(
-      screen.getByRole('option', {
+    const combobox = overrideComponentSelect();
+    await user.clear(combobox);
+    await user.type(combobox, args.componentId);
+    const option = await screen.findByRole(
+      'option',
+      {
         name: new RegExp(args.componentId),
-      }),
+        hidden: true,
+      },
+      { timeout: 3000 },
     );
+    await user.click(option);
 
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
@@ -349,12 +361,12 @@ const removeOverrideButton = () =>
 
 const overrideComponentSelect = () =>
   screen.getByRole('combobox', {
-    name: textMock('ux_editor.component_properties.summary.override.choose_component'),
+    name: /ux_editor\.component_properties\.summary\.override\.choose_component/,
   });
 
 const overrideDisplaySelector = () =>
   screen.getByRole('combobox', {
-    name: textMock('ux_editor.component_properties.summary.override.display'),
+    name: /ux_editor\.component_properties\.summary\.override\.display(?!_type)/,
   });
 
 const overrideDisplaySelectType = (type: OverrideDisplay) =>
@@ -364,7 +376,7 @@ const overrideDisplaySelectType = (type: OverrideDisplay) =>
 
 const overrideDisplayTypeSelector = () =>
   screen.getByRole('combobox', {
-    name: textMock('ux_editor.component_properties.summary.override.display_type'),
+    name: /ux_editor\.component_properties\.summary\.override\.display_type/,
   });
 
 const overrideDisplayType = (type: OverrideDisplayType) =>
@@ -400,7 +412,6 @@ const render = (props?: Partial<Summary2OverrideProps>) => {
   renderWithProviders(<Summary2Override {...defaultProps} {...props} />, {
     queryClient,
     appContextProps: {
-      selectedFormLayoutSetName: layoutSet1NameMock,
       selectedFormLayoutName: layout1NameMock,
     },
   });

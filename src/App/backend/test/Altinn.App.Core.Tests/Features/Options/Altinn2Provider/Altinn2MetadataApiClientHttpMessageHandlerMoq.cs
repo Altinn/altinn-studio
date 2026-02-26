@@ -8,13 +8,13 @@ public class Altinn2MetadataApiClientHttpMessageHandlerMoq : HttpMessageHandler
     public int CallCounter { get; private set; } = 0;
 
     protected override Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage httpRequestMessage,
+        HttpRequestMessage request,
         CancellationToken cancellationToken
     )
     {
         CallCounter++;
 
-        var url = httpRequestMessage.RequestUri?.ToString() ?? string.Empty;
+        var url = request.RequestUri?.ToString() ?? string.Empty;
 
         if (url.StartsWith("https://www.altinn.no/api/metadata/codelists/serverError"))
         {

@@ -3,7 +3,9 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using DotNet.Testcontainers.Builders;
@@ -28,9 +30,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
     private CookieContainer CookieContainer { get; } = new();
 
     /// On some systems path too long error occurs if repo is nested deep in file system.
-    protected override string TestRepositoriesLocation =>
-        Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos");
-
+    protected override string TestRepositoriesLocation => Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos");
 
     protected override void Dispose(bool disposing)
     {
@@ -50,10 +50,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
             return;
         }
 
-        var directory = new DirectoryInfo(directoryPath)
-        {
-            Attributes = FileAttributes.Normal
-        };
+        var directory = new DirectoryInfo(directoryPath) { Attributes = FileAttributes.Normal };
 
         foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
         {
@@ -63,17 +60,17 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
         directory.Delete(true);
     }
 
-    protected sealed override void ConfigureTestServices(IServiceCollection services)
+    protected sealed override void ConfigureTestServices(IServiceCollection services) { }
+
+    protected GiteaIntegrationTestsBase(
+        GiteaWebAppApplicationFactoryFixture<Program> factory,
+        GiteaFixture giteaFixture,
+        SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider
+    )
+        : base(factory)
     {
-
-    }
-
-    protected GiteaIntegrationTestsBase(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider) : base(factory)
-    {
-
         GiteaFixture = giteaFixture;
         _sharedDesignerHttpClientProvider = sharedDesignerHttpClientProvider;
-
     }
 
     private readonly SharedDesignerHttpClientProvider _sharedDesignerHttpClientProvider;
@@ -96,28 +93,35 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
             .AddEnvironmentVariables()
             .Build();
 
-        Factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseConfiguration(configuration);
-            builder.ConfigureAppConfiguration((t, conf) =>
+        Factory
+            .WithWebHostBuilder(builder =>
             {
-                conf.AddJsonFile(configPath, false, false);
-                conf.AddJsonStream(GenerateGiteaOverrideConfigStream());
-                conf.AddEnvironmentVariables();
-            });
+                builder.UseConfiguration(configuration);
+                builder.ConfigureAppConfiguration(
+                    (t, conf) =>
+                    {
+                        conf.AddJsonFile(configPath, false, false);
+                        conf.AddJsonStream(GenerateGiteaOverrideConfigStream());
+                        conf.AddEnvironmentVariables();
+                    }
+                );
 
-            builder.ConfigureTestServices(ConfigureTestServices);
-        }).CreateDefaultClient();
+                builder.ConfigureTestServices(ConfigureTestServices);
+            })
+            .CreateDefaultClient();
 
-        _sharedDesignerHttpClientProvider.SharedHttpClient =
-            new HttpClient(new GiteaAuthDelegatingHandler()
+        _sharedDesignerHttpClientProvider.SharedHttpClient = new HttpClient(
+            new GiteaAuthDelegatingHandler()
             {
                 InnerHandler = new CookieContainerHandler(CookieContainer)
                 {
-                    InnerHandler = new HttpClientHandler { AllowAutoRedirect = false, }
-                }
-            })
-            { BaseAddress = new Uri(TestUrlsProvider.Instance.DesignerUrl) };
+                    InnerHandler = new HttpClientHandler { AllowAutoRedirect = false },
+                },
+            }
+        )
+        {
+            BaseAddress = new Uri(TestUrlsProvider.Instance.DesignerUrl),
+        };
 
         return _sharedDesignerHttpClientProvider.SharedHttpClient;
     }
@@ -125,9 +129,17 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
     protected Stream GenerateGiteaOverrideConfigStream()
     {
         string reposLocation = new Uri(TestRepositoriesLocation).AbsolutePath;
-        string templateLocationPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "..", "App", "template", "src");
+        string templateLocationPath = Path.Combine(
+            CommonDirectoryPath.GetSolutionDirectory().DirectoryPath,
+            "..",
+            "..",
+            "App",
+            "template",
+            "src"
+        );
         string templateLocation = new Uri(templateLocationPath).AbsolutePath;
-        string configOverride = $@"
+        string configOverride =
+            $@"
               {{
                     ""ServiceRepositorySettings"": {{
                         ""RepositoryLocation"": ""{reposLocation}"",
@@ -182,7 +194,14 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
         // Create repo with designer
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
             HttpMethod.Post,
-            $"designer/api/repos/create-app?org={org}&repository={repoName}");
+            $"designer/api/repos/create-app"
+        );
+
+        httpRequestMessage.Content = new StringContent(
+            JsonSerializer.Serialize(new CreateAppRequest() { Org = org, Repository = repoName }),
+            Encoding.UTF8,
+            "application/json"
+        );
 
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);

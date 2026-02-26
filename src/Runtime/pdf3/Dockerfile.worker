@@ -1,0 +1,48 @@
+FROM --platform=$BUILDPLATFORM golang:1.26.0-trixie@sha256:100774df3fd947fbd1f2b674e71215af6bf087b3676d9fcfdf1a9d0ec9e5cb9c AS builder
+ARG TARGETOS
+ARG TARGETARCH
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+
+# Remove the devenv dependency from go.mod as it's not needed for building binaries
+# The test/harness package is only imported by test files, not by cmd/worker.
+RUN sed -i '/altinn\.studio\/devenv v/d' go.mod && \
+    sed -i '/replace altinn\.studio\/devenv/d' go.mod
+
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -a -installsuffix cgo -o main ./cmd/worker
+
+FROM docker.io/chromedp/headless-shell:stable@sha256:43d8b0d7980c76aa9d9f8a8556d2d994073fdb9c755744cc27667e351e2fe9d5
+
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
+    sed -i 's/main$/main contrib/' /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        fontconfig \
+        ttf-mscorefonts-installer && \
+    fc-cache -f -v && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=builder /app/main .
+
+RUN mkdir -p ./output
+
+EXPOSE 5031
+
+RUN mkdir -p /tmp/user-home && \
+    chown -R nobody:nogroup /tmp/user-home
+
+ENV HOME=/tmp/user-home
+USER nobody
+
+ENTRYPOINT ["./main"]

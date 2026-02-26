@@ -1,0 +1,11 @@
+{
+  "sets": [
+    {
+      "id": "skjema",
+      "dataType": "skjema",
+      "tasks": [
+        "Task_1"
+      ]
+    }
+  ]
+}

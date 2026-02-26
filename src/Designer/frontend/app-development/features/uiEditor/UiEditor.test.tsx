@@ -5,7 +5,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { UiEditor } from './UiEditor';
+import UiEditor from './UiEditor';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { renderWithProviders } from '../../test/testUtils';
 
@@ -68,7 +68,7 @@ describe('UiEditor', () => {
 
   it('renders a loading spinner while fetching frontend version', () => {
     renderUiEditor();
-    expect(screen.getByText(textMock('ux_editor.loading_page'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('ux_editor.loading_page'))).toBeInTheDocument();
   });
 });
 

@@ -13,4 +13,8 @@ export class Gitea extends StudioEnvironment {
     const app = environment?.app || this.app;
     return `/repos/api/v1/repos/${org}/${app}?token=${this.giteaAccessToken}`;
   }
+
+  public getAppFilePath(filepath: string): string {
+    return `/repos/${this.org}/${this.app}/raw/branch/master/${filepath}`;
+  }
 }

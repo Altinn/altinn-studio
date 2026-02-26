@@ -1,4 +1,4 @@
-import type { Element } from 'bpmn-moddle';
+import type { Element } from 'bpmn-js/lib/model/Types';
 import { StudioModeler } from './StudioModeler';
 
 // We have not written test for this class then we need to mock the BpmnModelerInstance and its methods.

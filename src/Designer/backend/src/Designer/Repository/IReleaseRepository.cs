@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
@@ -25,7 +26,13 @@ namespace Altinn.Studio.Designer.Repository
         /// <summary>
         /// Calls a procedure to retrieve release entities based on buildId
         /// </summary>
-        Task<IEnumerable<ReleaseEntity>> Get(string org, string app, string tagName, List<string> buildStatus, List<string> buildResult);
+        Task<IEnumerable<ReleaseEntity>> Get(
+            string org,
+            string app,
+            string tagName,
+            List<string> buildStatus,
+            List<string> buildResult
+        );
 
         /// <summary>
         /// Calls a procedure to retrieve release entity based on buildId

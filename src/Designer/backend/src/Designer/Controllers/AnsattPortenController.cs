@@ -15,9 +15,8 @@ public class AnsattPortenController : ControllerBase
 {
     [Authorize(AnsattPortenConstants.AnsattportenAuthorizationPolicy)]
     [HttpGet("login")]
-    public async Task<IActionResult> Login([FromQuery(Name = "redirect_to")] string redirectTo)
+    public IActionResult Login([FromQuery(Name = "redirect_to")] string redirectTo)
     {
-        await Task.CompletedTask;
         if (!Url.IsLocalUrl(redirectTo))
         {
             return Forbid();
@@ -30,16 +29,12 @@ public class AnsattPortenController : ControllerBase
     [HttpGet("auth-status")]
     public async Task<IActionResult> AuthStatus()
     {
-        await Task.CompletedTask;
-        var authenticateResult =
-            await HttpContext.AuthenticateAsync(AnsattPortenConstants.AnsattportenAuthenticationScheme);
+        var authenticateResult = await HttpContext.AuthenticateAsync(
+            AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme
+        );
 
-        var authStatus = new AuthStatus
-        {
-            IsLoggedIn = authenticateResult.Succeeded
-        };
+        var authStatus = new AuthStatus { IsLoggedIn = authenticateResult.Succeeded };
 
         return Ok(authStatus);
     }
-
 }

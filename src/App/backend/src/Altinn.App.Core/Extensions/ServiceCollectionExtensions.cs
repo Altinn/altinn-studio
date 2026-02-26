@@ -3,6 +3,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.AccessManagement;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.Core.Features.ExternalApi;
@@ -10,12 +11,13 @@ using Altinn.App.Core.Features.FileAnalyzis;
 using Altinn.App.Core.Features.Notifications.Email;
 using Altinn.App.Core.Features.Notifications.Sms;
 using Altinn.App.Core.Features.Options;
-using Altinn.App.Core.Features.PageOrder;
+using Altinn.App.Core.Features.Options.Altinn3LibraryCodeList;
 using Altinn.App.Core.Features.Payment.Processors;
 using Altinn.App.Core.Features.Payment.Processors.FakePaymentProcessor;
 using Altinn.App.Core.Features.Payment.Processors.Nets;
 using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Pdf;
+using Altinn.App.Core.Features.Redirect;
 using Altinn.App.Core.Features.Signing.Services;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Features.Validation.Default;
@@ -47,7 +49,8 @@ using Altinn.App.Core.Internal.Process.Authorization;
 using Altinn.App.Core.Internal.Process.EventHandlers;
 using Altinn.App.Core.Internal.Process.EventHandlers.ProcessTask;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
-using Altinn.App.Core.Internal.Process.ServiceTasks;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks;
+using Altinn.App.Core.Internal.Process.ProcessTasks.ServiceTasks.Legacy;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Secrets;
 using Altinn.App.Core.Internal.Sign;
@@ -171,11 +174,11 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IAppResources, AppResourcesSI>();
         services.TryAddSingleton<IAppMetadata, AppMetadata>();
         services.TryAddSingleton<IFrontendFeatures, FrontendFeatures>();
+        services.TryAddSingleton<IIndexPageGenerator, IndexPageGenerator>();
         services.TryAddSingleton<ITranslationService, TranslationService>();
+        services.TryAddSingleton<IBootstrapGlobalService, BootstrapGlobalService>();
+        services.TryAddTransient<IReturnUrlService, ReturnUrlService>();
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
-#pragma warning disable CS0618, CS0612 // Type or member is obsolete
-        services.TryAddTransient<IPageOrder, DefaultPageOrder>();
-#pragma warning restore CS0618, CS0612 // Type or member is obsolete
         services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();
         services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
         services.TryAddTransient<IAppModel, DefaultAppModel>();
@@ -230,6 +233,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IDataElementValidator, DefaultDataElementValidator>();
         services.AddTransient<ITaskValidator, DefaultTaskValidator>();
         services.AddTransient<IValidator, SigningTaskValidator>();
+        services.AddTransient<IValidator, SignatureHashValidator>();
 
         var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>();
         if (appSettings?.RequiredValidation is true)
@@ -329,11 +333,14 @@ public static class ServiceCollectionExtensions
 
         // Services related to application options
         services.TryAddTransient<AppOptionsFactory>();
-        services.AddTransient<IAppOptionsProvider, DefaultAppOptionsProvider>();
         services.TryAddTransient<IAppOptionsFileHandler, AppOptionsFileHandler>();
 
         // Services related to instance aware and secure app options
         services.TryAddTransient<InstanceAppOptionsFactory>();
+
+        // Services related to Altinn 3 library code list
+        services.AddHttpClient<IAltinn3LibraryCodeListApiClient, Altinn3LibraryCodeListApiClient>();
+        services.TryAddTransient<IAltinn3LibraryCodeListService, Altinn3LibraryCodeListService>();
     }
 
     private static void AddExternalApis(IServiceCollection services)
@@ -370,8 +377,12 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IProcessTask, NullTypeProcessTask>();
 
         // Service tasks
+        services.AddTransient<IPdfServiceTaskLegacy, PdfServiceTaskLegacy>();
+        services.AddTransient<IEFormidlingServiceTaskLegacy, EformidlingServiceTaskLegacy>();
+
         services.AddTransient<IServiceTask, PdfServiceTask>();
-        services.AddTransient<IServiceTask, EformidlingServiceTask>();
+        services.AddTransient<IServiceTask, EFormidlingServiceTask>();
+        services.AddTransient<IServiceTask, SubformPdfServiceTask>();
     }
 
     private static void AddActionServices(IServiceCollection services)

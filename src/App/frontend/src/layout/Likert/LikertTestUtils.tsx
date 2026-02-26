@@ -1,19 +1,31 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { v4 as uuidv4 } from 'uuid';
 import type { AxiosResponse } from 'axios';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
-import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
+import { resourcesAsMap } from 'src/features/language/textResources/TextResourcesProvider';
+import { BackendValidationSeverity } from 'src/features/validation';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { IRawTextResource, ITextResourceResult } from 'src/features/language/textResources';
-import type { IRawOption } from 'src/layout/common.generated';
+import type { IRawTextResource, TextResourceMap } from 'src/features/language/textResources';
+import type { BackendValidationIssue } from 'src/features/validation';
+import type { IPagesSettingsWithOrder, IRawOption } from 'src/layout/common.generated';
 import type { CompLikertExternal } from 'src/layout/Likert/config.generated';
 import type { CompLikertItemExternal } from 'src/layout/LikertItem/config.generated';
+
+let mockTextResourcesValue: TextResourceMap = {};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
+jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => ({
+  ...jest.requireActual<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider'),
+  useTextResources: jest.fn(() => mockTextResourcesValue),
+}));
 
 const groupBinding = 'Questions';
 const answerBinding = 'Answer';
@@ -71,26 +83,23 @@ const createLikertLayout = (props: Partial<CompLikertExternal> | undefined): Com
   ...props,
 });
 
-const createTextResource = (questions: IQuestion[], extraResources: IRawTextResource[]): ITextResourceResult => ({
-  resources: [
-    {
-      id: 'likert-questions',
-      value: '{0}',
-      variables: [
-        {
-          key: `${groupBinding}[{0}].${questionBinding}`,
-          dataSource: 'dataModel.default',
-        },
-      ],
-    },
-    ...questions.map((question, index) => ({
-      id: `likert-questions-${index}`,
-      value: question.Question,
-    })),
-    ...extraResources,
-  ],
-  language: 'nb',
-});
+const createTextResource = (questions: IQuestion[], extraResources: IRawTextResource[]): IRawTextResource[] => [
+  {
+    id: 'likert-questions',
+    value: '{0}',
+    variables: [
+      {
+        key: `${groupBinding}[{0}].${questionBinding}`,
+        dataSource: 'dataModel.default',
+      },
+    ],
+  },
+  ...questions.map((question, index) => ({
+    id: `likert-questions-${index}`,
+    value: question.Question,
+  })),
+  ...extraResources,
+];
 
 const { setScreenWidth } = mockMediaQuery(992);
 
@@ -119,13 +128,20 @@ export const render = async ({
 }: IRenderProps) => {
   const mockLikertLayout = createLikertLayout(likertProps);
 
+  // Set the mutable mock value before rendering
+  mockTextResourcesValue = resourcesAsMap(createTextResource(mockQuestions, extraTextResources));
+
   setScreenWidth(mobileView ? 600 : 1200);
-  return await renderWithInstanceAndLayout({
-    renderer: () => <ContainerTester id={mockLikertLayout.id} />,
+  const result = await renderWithInstanceAndLayout({
+    renderer: () => (
+      <LikertComponent
+        baseComponentId={mockLikertLayout.id}
+        containerDivRef={{ current: null }}
+      />
+    ),
     queries: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fetchOptions: async () => ({ data: mockOptions, headers: {} }) as AxiosResponse<IRawOption[], any>,
-      fetchTextResources: async () => createTextResource(mockQuestions, extraTextResources),
       fetchFormData: async () => generateMockFormData(mockQuestions),
       fetchLayouts: async () => ({
         FormLayout: {
@@ -137,18 +153,11 @@ export const render = async ({
       fetchLayoutSettings: async () => ({
         pages: {
           order: ['FormLayout'],
-        },
+        } as unknown as IPagesSettingsWithOrder,
       }),
       fetchBackendValidations: async () => validationIssues,
     },
   });
-};
 
-export function ContainerTester(props: { id: string }) {
-  return (
-    <LikertComponent
-      baseComponentId={props.id}
-      containerDivRef={{ current: null }}
-    />
-  );
-}
+  return result;
+};

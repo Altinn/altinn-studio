@@ -1,0 +1,41 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "neverValidatedInputGroup1",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "This input should never be shown, and never validated (group layout)"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PrefillValues"
+        },
+        "required": true
+      },
+      {
+        "id": "neverValidatedInputGroup2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "This input should never be shown, and never validated (group layout, valid binding #1)"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.Avgiver-grp-9787.OppgavegiverNavn-datadef-68.value"
+        },
+        "required": true
+      },
+      {
+        "id": "neverValidatedInputGroup3",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "This input should never be shown, and never validated (group layout, valid binding #2)"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PrefillValues"
+        },
+        "required": true
+      }
+    ]
+  }
+}
+

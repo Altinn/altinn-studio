@@ -1,0 +1,111 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "FileUpload-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "h2",
+        "id": "FileUpload-Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "FileUpload"
+        }
+      },
+      {
+        "displayMode": "simple",
+        "hasCustomFileEndings": false,
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 10,
+        "minNumberOfAttachments": 1,
+        "id": "FileUpload-N6frPq",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "Enkel filopplasting"
+        }
+      },
+      {
+        "size": "h3",
+        "id": "FileUpload-Header-Summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Oppsummering av FileUpload"
+        }
+      },
+      {
+        "id": "FileUploadSummary",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "FileUpload-N6frPq"
+        }
+      },
+      {
+        "size": "h2",
+        "id": "FileUpload-HeaderWithtag",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "FileUpload with tag"
+        }
+      },
+      {
+        "displayMode": "list",
+        "hasCustomFileEndings": false,
+        "maxFileSizeInMB": 25,
+        "maxNumberOfAttachments": 10,
+        "minNumberOfAttachments": 1,
+        "optionsId": "",
+        "id": "FileUploadWithTag-UvbEiL",
+        "type": "FileUploadWithTag",
+        "textResourceBindings": {
+          "tagTitle": "Filtype",
+          "title": "Filopplasting med type"
+        },
+        "options": [
+          {
+            "label": "Bil",
+            "value": "bil"
+          },
+          {
+            "label": "Moped",
+            "value": "moped"
+          },
+          {
+            "label": "Traktor",
+            "value": "traktor"
+          },
+          {
+            "label": "Båt",
+            "value": "baat"
+          }
+        ]
+      },
+      {
+        "size": "h3",
+        "id": "FileUpload-Header-summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Oppsummering av FileUpload with tag:"
+        }
+      },
+      {
+        "id": "FileUploadSummaryWithTag",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "FileUploadWithTag-UvbEiL"
+        }
+      },
+      {
+        "id": "NavigationButtons-L67e32",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

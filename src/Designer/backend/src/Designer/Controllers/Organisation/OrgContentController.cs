@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -33,7 +34,6 @@ public class OrgContentController : ControllerBase
         _orgService = orgService;
     }
 
-
     /// <summary>
     /// Retrieves a list of available library content from the organisation.
     /// </summary>
@@ -41,7 +41,10 @@ public class OrgContentController : ControllerBase
     /// <param name="contentType">The type of content to return the names of. Returns all types if not given.</param>
     [HttpGet]
     [Route("content")]
-    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences([FromRoute] string orgName, [FromQuery] string contentType)
+    public async Task<ActionResult<List<LibraryContentReference>>> GetOrgLibraryContentReferences(
+        [FromRoute] string orgName,
+        [FromQuery] string contentType
+    )
     {
         if (!await _orgService.IsOrg(orgName))
         {
@@ -49,8 +52,8 @@ public class OrgContentController : ControllerBase
             return NoContent();
         }
 
-        AltinnOrgContext editingContext = CreateAltinnOrgContext(orgName);
-        bool repositoryExists = await _orgContentService.OrgContentRepoExists(editingContext);
+        AltinnOrgEditingContext editingEditingContext = CreateAltinnOrgContext(orgName);
+        bool repositoryExists = await _orgContentService.OrgContentRepoExists(editingEditingContext);
         if (!repositoryExists)
         {
             HttpContext.Response.Headers["Reason"] = $"{orgName}-content repo does not exist";
@@ -71,9 +74,9 @@ public class OrgContentController : ControllerBase
         return await _orgContentService.GetOrgContentReferences(parsedContentType, orgName);
     }
 
-    private AltinnOrgContext CreateAltinnOrgContext(string orgName)
+    private AltinnOrgEditingContext CreateAltinnOrgContext(string orgName)
     {
         string developerName = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        return AltinnOrgContext.FromOrg(orgName, developerName);
+        return AltinnOrgEditingContext.FromOrgDeveloper(orgName, developerName);
     }
 }

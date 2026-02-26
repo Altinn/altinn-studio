@@ -27,7 +27,8 @@ export class ResourcePage extends ResourceEnvironment {
   private readonly ruleHeader: Locator;
   private readonly addPolicyRuleButton: Locator;
   private readonly policyActionDropdown: Locator;
-  private readonly policySubjectDropdown: Locator;
+  private readonly policySubjectAccordion: Locator;
+  private readonly policySubjectCheckbox: Locator;
   private readonly publishTab: Locator;
   private readonly versionTextField: Locator;
   private readonly uploadChangesButton: Locator;
@@ -103,9 +104,10 @@ export class ResourcePage extends ResourceEnvironment {
     this.policyActionDropdown = this.page.getByLabel(
       textMock('policy_editor.rule_card_actions_title'),
     );
-    this.policySubjectDropdown = this.page.getByLabel(
-      textMock('policy_editor.rule_card_subjects_title'),
-    );
+    this.policySubjectAccordion = this.page.getByRole('button', {
+      name: textMock('policy_editor.org_subjects_header'),
+    });
+    this.policySubjectCheckbox = this.page.getByRole('checkbox').first();
     this.publishTab = this.page.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_deploy'),
     });
@@ -200,6 +202,7 @@ export class ResourcePage extends ResourceEnvironment {
     if (!isPolicyRuleVisible) {
       await this.addPolicyRuleButton.click();
       await this.setPolicyAction();
+      await this.expandPolicySubjectAccordion();
       await this.setPolicySubject();
     }
   }
@@ -210,10 +213,12 @@ export class ResourcePage extends ResourceEnvironment {
     await this.policyActionDropdown.press('Enter');
   }
 
+  private async expandPolicySubjectAccordion(): Promise<void> {
+    await this.policySubjectAccordion.click();
+  }
+
   private async setPolicySubject(): Promise<void> {
-    await this.policySubjectDropdown.click();
-    await this.policySubjectDropdown.press('ArrowDown');
-    await this.policySubjectDropdown.press('Enter');
+    await this.policySubjectCheckbox.click();
   }
 
   public async gotoPublishTab(): Promise<void> {

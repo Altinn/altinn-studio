@@ -13,6 +13,7 @@ interface ILandmarkShortcut {
   text: React.ReactNode;
 }
 
+// TODO: remove workaround since we no longer use hash-router
 export function LandmarkShortcuts({ shortcuts }: ILandmarkShortcutsProps) {
   const handleClick = (id: string) => {
     // workaround because we still use a hash-router (sigh...)

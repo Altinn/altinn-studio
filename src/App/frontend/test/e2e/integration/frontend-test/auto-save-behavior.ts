@@ -1,5 +1,6 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
 
@@ -8,8 +9,10 @@ type ReqCounter = { count: number };
 
 describe('Auto save behavior', () => {
   it('onChangeFormData: Should save form data when interacting with form element(checkbox) but not on navigation', () => {
-    cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangeFormData' });
-    cy.intercept('PATCH', '**/data/**').as('saveFormData');
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangeFormData';
+    });
+    cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
 
     cy.goto('group');
 
@@ -17,7 +20,7 @@ describe('Auto save behavior', () => {
     cy.get('@saveFormData.all').should('have.length', 1);
 
     cy.findByRole('button', { name: 'Neste' }).clickAndGone();
-    cy.get('@saveFormData.all').should('have.length', 2); // The row has a fiels with preselectedOptionIndex
+    cy.get('@saveFormData.all').should('have.length', 1);
     cy.findByRole('button', { name: 'Forrige' }).clickAndGone();
 
     // Doing an extra wait to be sure no request is sent to backend
@@ -25,12 +28,14 @@ describe('Auto save behavior', () => {
     cy.waitForNetworkIdle(100);
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(100);
-    cy.get('@saveFormData.all').should('have.length', 2);
+    cy.get('@saveFormData.all').should('have.length', 1);
   });
 
   it('onChangePage: Should not save form when interacting with form element(checkbox), but should save on navigating between pages', () => {
-    cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
-    cy.intercept('PATCH', '**/data/**').as('saveFormData');
+    interceptAltinnAppGlobalData((globalData) => {
+      globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangePage';
+    });
+    cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
     cy.goto('group');
 
     cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
@@ -53,41 +58,39 @@ describe('Auto save behavior', () => {
     // Go forward again, change something and then observe the back button saves
     cy.findByRole('button', { name: 'Neste' }).clickAndGone();
 
-    // At some point when we got the reply back we saw that one of those new rows should have a preselectedOptionIndex,
-    // so that gets set and saved as well during a page navigation (2).
-    cy.get('@saveFormData.all').should('have.length', 2);
-
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.mainGroup).should('be.visible');
 
-    // We have now clicked 'Ja' to show the repeating group (3)
+    // We have now clicked 'Ja' to show the repeating group (2)
     cy.findByRole('button', { name: 'Forrige' }).clickAndGone();
-    cy.get('@saveFormData.all').should('have.length', 3);
+    cy.get('@saveFormData.all').should('have.length', 2);
 
     // NavigationBar
     cy.findByRole('checkbox', { name: appFrontend.group.prefill.middels }).check();
 
-    // Now we've added 'middels' (4)
+    // Now we've added 'middels' (3)
     cy.gotoNavPage('repeating');
-    cy.get('@saveFormData.all').should('have.length', 4);
+    cy.get('@saveFormData.all').should('have.length', 3);
 
     // Icon previous button
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).uncheck();
 
-    // Now we've unchecked 'ja' and added a preselectedOptionIndex for the new row (5)
+    // Now we've unchecked 'ja' and added a preselectedOptionIndex for the new row (4)
     cy.findByRole('button', { name: 'Forrige' }).clickAndGone();
-    cy.get('@saveFormData.all').should('have.length', 5);
+    cy.get('@saveFormData.all').should('have.length', 4);
 
     // Doing a hard wait to be sure no request is sent to backend
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(1000);
     cy.waitUntilSaved();
-    cy.get('@saveFormData.all').should('have.length', 5);
+    cy.get('@saveFormData.all').should('have.length', 4);
   });
 
   (['current', 'all'] as const).forEach((pages) => {
     it(`should run save before single field validation with navigation trigger ${pages || 'undefined'}`, () => {
-      cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
+      interceptAltinnAppGlobalData((globalData) => {
+        globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangePage';
+      });
       cy.interceptLayout('changename', (component) => {
         if (component.type === 'NavigationButtons') {
           component.validateOnNext = { page: pages, show: ['All'] };
@@ -98,7 +101,7 @@ describe('Auto save behavior', () => {
         }
       });
 
-      cy.intercept('PATCH', '**/data/**').as('saveFormData');
+      cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
       cy.goto('changename');
 
       // The newFirstName field has a trigger for single field validation, and it should cause a very specific error
@@ -106,7 +109,16 @@ describe('Auto save behavior', () => {
       // the data on page navigation, the error message should appear (because the field is set to trigger it).
       cy.get(appFrontend.changeOfName.newFirstName).type('test');
 
+      // The data processor that allows confirmChangeName to be shown requires we save form data after writing the name,
+      // so we'll navigate to the summary page and back to ensure Kråka is saved.
       cy.get(appFrontend.changeOfName.newMiddleName).type('Kråka');
+      cy.get(appFrontend.changeOfName.confirmChangeName).should('not.exist');
+      cy.gotoNavPage('summary');
+      cy.get('#send-in-text').should('be.visible');
+      cy.get('@saveFormData.all').should('have.length', 1);
+      cy.gotoNavPage('form');
+      cy.navPage('form').should('have.attr', 'aria-current', 'page');
+
       cy.get(appFrontend.changeOfName.confirmChangeName)
         .findByRole('checkbox', {
           name: /Ja[a-z, ]*/,
@@ -118,7 +130,7 @@ describe('Auto save behavior', () => {
       cy.get('button[aria-label*="Today"]').click();
 
       cy.findByRole('button', { name: /Neste/ }).click();
-      cy.get('@saveFormData.all').should('have.length', 1);
+      cy.get('@saveFormData.all').should('have.length', 2);
 
       // None of the triggers should cause the page to change, because all of them should be triggered validation
       // and stopped by the error message.
@@ -156,7 +168,9 @@ describe('Auto save behavior', () => {
 
   ([undefined, 'current', 'currentAndPrevious', 'all'] as const).forEach((validateOnNext) => {
     it(`should run save before single field validation with validateOnNext = ${validateOnNext || 'undefined'}`, () => {
-      cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
+      interceptAltinnAppGlobalData((globalData) => {
+        globalData.layoutSets.uiSettings.autoSaveBehavior = 'onChangePage';
+      });
       cy.interceptLayout('changename', (component) => {
         if (component.type === 'NavigationButtons') {
           component.validateOnNext = validateOnNext
@@ -168,7 +182,7 @@ describe('Auto save behavior', () => {
         }
       });
 
-      cy.intercept('PATCH', '**/data/**').as('saveFormData');
+      cy.intercept('PATCH', '**/data?language=*').as('saveFormData');
       cy.goto('changename');
 
       // The newFirstName field has a trigger for single field validation, and it should cause a very specific error
@@ -176,7 +190,16 @@ describe('Auto save behavior', () => {
       // the data on page navigation, the error message should appear (because the field is set to trigger it).
       cy.get(appFrontend.changeOfName.newFirstName).type('test');
 
+      // The data processor that allows confirmChangeName to be shown requires we save form data after writing the name,
+      // so we'll navigate to the summary page and back to ensure Kråka is saved.
       cy.get(appFrontend.changeOfName.newMiddleName).type('Kråka');
+      cy.get(appFrontend.changeOfName.confirmChangeName).should('not.exist');
+      cy.gotoNavPage('summary');
+      cy.get('#send-in-text').should('be.visible');
+      cy.get('@saveFormData.all').should('have.length', 1);
+      cy.gotoNavPage('form');
+      cy.navPage('form').should('have.attr', 'aria-current', 'page');
+
       cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
       cy.get(appFrontend.changeOfName.reasonRelationship).click();
       cy.get(appFrontend.changeOfName.reasonRelationship).type('hello world');
@@ -185,7 +208,7 @@ describe('Auto save behavior', () => {
 
       cy.findByRole('button', { name: /Neste/ }).click();
       cy.wait('@saveFormData');
-      cy.get('@saveFormData.all').should('have.length', 1);
+      cy.get('@saveFormData.all').should('have.length', 2);
 
       if (validateOnNext === undefined) {
         // We moved to the next page here, as there was nothing stopping it
@@ -230,7 +253,7 @@ describe('Auto save behavior', () => {
   it('new list items from the backend should never trigger runaway saving', () => {
     cy.wrap<ReqCounter>({ count: 0 }).as('formDataReq');
     cy.get<ReqCounter>('@formDataReq').then((formDataReq) => {
-      cy.intercept('PATCH', '**/data/**', () => {
+      cy.intercept('PATCH', '**/data?language=*', () => {
         formDataReq.count++;
       }).as('saveFormData');
     });

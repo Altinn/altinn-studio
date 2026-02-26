@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
+import { SearchParams } from 'src/core/routing/types';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
-import { SearchParams } from 'src/hooks/navigation';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useRepeatingGroupComponentId } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';

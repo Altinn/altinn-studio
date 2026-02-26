@@ -34,8 +34,8 @@ describe('grafanaPodLogsUrl', () => {
       env: 'production',
       app: 'app',
       isProduction: true,
-      buildStartTime: 1,
-      buildFinishTime: 2,
+      deployStartTime: 1,
+      deployFinishTime: 2,
     });
 
     expect(result).toBe(
@@ -49,8 +49,8 @@ describe('grafanaPodLogsUrl', () => {
       env: 'tt02',
       app: 'app',
       isProduction: false,
-      buildStartTime: 1,
-      buildFinishTime: 2,
+      deployStartTime: 1,
+      deployFinishTime: 2,
     });
 
     expect(result).toBe(
@@ -58,7 +58,7 @@ describe('grafanaPodLogsUrl', () => {
     );
   });
 
-  it('should not return build time when build time are undefined', () => {
+  it('should not return from and to parameters when undefined', () => {
     const result = grafanaPodLogsUrl({
       org: 'ttd',
       env: 'tt02',

@@ -9,8 +9,6 @@ import { CustomReceiptConfig } from './CustomReceiptConfig';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
 import type { Environment } from '../../helpers/StudioEnvironment';
 
-const connectionArrowText: string = 'Connect using Sequence/MessageFlow or Association';
-
 export class ProcessEditorPage extends BasePage {
   public readonly dataModelConfig: DataModelConfig;
   public readonly actionsConfig: ActionsConfig;
@@ -57,9 +55,20 @@ export class ProcessEditorPage extends BasePage {
     const targetX = boundingBox.width / 2 + (extraDistanceX ?? 0);
     const targetY = boundingBox.y + boundingBox.height / 2 + (extraDistanceY ?? 0);
 
-    const title = `Create ${task} task`;
+    const title = this.getPaletteCreateTaskTitle(task);
     await this.startDragElement(title);
     await this.stopDragElement(targetX, targetY);
+  }
+
+  private getPaletteCreateTaskTitle(task: BpmnTaskType): string {
+    const taskTypeToTranslationKeyMap = {
+      data: 'process_editor.palette_create_data_task',
+      confirm: 'process_editor.palette_create_confirmation_task',
+      feedback: 'process_editor.palette_create_feedback_task',
+      signing: 'process_editor.palette_create_signing_task',
+    } as const satisfies Record<BpmnTaskType, string>;
+    const translationKey = taskTypeToTranslationKeyMap[task];
+    return this.textMock(translationKey);
   }
 
   public async skipRecommendedTask(): Promise<void> {
@@ -146,7 +155,7 @@ export class ProcessEditorPage extends BasePage {
   }
 
   public async clickOnConnectionArrow(): Promise<void> {
-    await this.page.getByTitle(connectionArrowText).click();
+    await this.page.locator('[data-action="connect"]').click();
   }
 
   public async waitForEndEventHeaderToBeVisible(): Promise<void> {

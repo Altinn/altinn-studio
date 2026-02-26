@@ -1,14 +1,20 @@
 using System.Globalization;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout.Components;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Extensions;
@@ -27,21 +33,28 @@ namespace Altinn.App.Api.Controllers;
 public class CustomOpenApiController : Controller
 {
     private readonly IAppMetadata _appMetadata;
+    private readonly IAppResources _appResources;
     private readonly IAppModel _appModel;
     private readonly SchemaGenerator _schemaGenerator;
     private readonly SchemaRepository _schemaRepository;
     private readonly IProcessReader _processReader;
+    private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly AppSettings _settings;
 
     /// <summary>
     /// Constructor with services from dependency injection
     /// </summary>
     public CustomOpenApiController(
+        IAppResources appResources,
         IAppModel appModel,
         IAppMetadata appMetadata,
         ISerializerDataContractResolver dataContractResolver,
-        IProcessReader processReader
+        IProcessReader processReader,
+        IServiceProvider serviceProvider,
+        IOptions<AppSettings> settings
     )
     {
+        _appResources = appResources;
         _appModel = appModel;
         _appMetadata = appMetadata;
         _processReader = processReader;
@@ -50,6 +63,8 @@ public class CustomOpenApiController : Controller
             dataContractResolver
         );
         _schemaRepository = new SchemaRepository();
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
+        _settings = settings.Value;
     }
 
     internal static readonly OpenApiSpecVersion SpecVersion = OpenApiSpecVersion.OpenApi3_0;
@@ -60,7 +75,7 @@ public class CustomOpenApiController : Controller
     /// </summary>
     public static string InfoDescriptionWarningText =>
         """
-            App API description for both enduser and serviceowner users, as well as open metadata information<br><br>All operations* described within this document require authentication and authorization. Read more at <a href="https://docs.altinn.studio/authentication/guides">https://docs.altinn.studio/authentication/guides</a><br><br><strong>All GET operations* and POST operations may return or contain, respectively, personal identifiable information (national identity numbers and names).</strong><br><br>For more information about this product, see <a href="https://docs.altinn.studio/api/apps">https://docs.altinn.studio/api/apps</a><br><br><em>* Except the metadata APIs
+            App API description for both end users and service owners, as well as open metadata information<br><br>All operations* described within this document require authentication and authorization. Read more at <a href="https://docs.altinn.studio/authentication/guides">https://docs.altinn.studio/authentication/guides</a><br><br><strong>All GET operations* and POST operations may return or contain, respectively, personally identifiable information (PII; national identity numbers and names).</strong><br><br>For more information about this product, see <a href="https://docs.altinn.studio/api/apps">https://docs.altinn.studio/api/apps</a><br><br><em>* Except the metadata APIs</em>
 
             """;
 
@@ -85,7 +100,7 @@ public class CustomOpenApiController : Controller
                 Contact = new()
                 {
                     Name = "Digitaliseringsdirektoratet (altinn)",
-                    Url = new("https://altinn.slack.com"),
+                    Url = new("https://digdir-samarbeid.slack.com"),
                 },
                 Version = appMetadata.AltinnNugetVersion,
                 Description = GetIntroDoc(appMetadata),
@@ -130,7 +145,7 @@ public class CustomOpenApiController : Controller
         var walker = new OpenApiWalker(new SchemaPostVisitor());
         walker.Walk(document);
 
-        return Ok(document.Serialize(SpecVersion, SpecFormat));
+        return Content(document.Serialize(SpecVersion, SpecFormat), "application/json");
     }
 
     private string GetIntroDoc(ApplicationMetadata appMetadata)
@@ -587,7 +602,7 @@ public class CustomOpenApiController : Controller
             new OpenApiTag()
             {
                 Name = "Authentication",
-                Description = "Operations for exchanging maskinporten or idporten tokens to altinn tokens",
+                Description = "Operations for exchanging Maskinporten or ID-Porten tokens to Altinn tokens",
             },
         };
         document.Paths.Add(
@@ -616,9 +631,9 @@ public class CustomOpenApiController : Controller
                             },
                             new OpenApiParameter()
                             {
-                                Name = "Autorization",
+                                Name = "Authorization",
                                 Description =
-                                    "Bearer token from the selected token provider to exchange for an altinn token",
+                                    "Bearer token from the selected token provider to exchange for an Altinn token",
                                 In = ParameterLocation.Header,
                                 Example = new OpenApiString("Bearer <token>"),
                                 Required = true,
@@ -734,6 +749,269 @@ public class CustomOpenApiController : Controller
                 Servers = [new OpenApiServer { Url = "http://local.altinn.cloud" }],
             }
         );
+
+        // Options endpoint
+        var optionsTags = new[]
+        {
+            new OpenApiTag { Name = "Options", Description = "Operations for getting app options" },
+        };
+        var allOptionsSchemaCollection = GetInstanceAppOptionsSchemaCollection();
+        allOptionsSchemaCollection.AddRange(GetAppOptionsSchemaCollection(appMetadata));
+        document.Paths.Add(
+            $"/{appMetadata.Id}/instances/{{instanceOwnerPartyId}}/{{instanceGuid}}/options/{{optionsId}}",
+            new OpenApiPathItem()
+            {
+                Summary = "Get instance app options",
+                Operations =
+                {
+                    [OperationType.Get] = new()
+                    {
+                        Tags = optionsTags,
+                        OperationId = "GetInstanceAppOptions",
+                        Summary = "Get instance app options",
+                        Description =
+                            "Exposes options related to the app and logged in user. The tags field is only populated when requesting library code lists.",
+                        Parameters =
+                        [
+                            Snippets.InstanceOwnerPartyIdParameterReference,
+                            Snippets.InstanceGuidParameterReference,
+                            new()
+                            {
+                                Name = "optionsId",
+                                Description = "OptionsId from a layout component.",
+                                In = ParameterLocation.Path,
+                                Schema = new OpenApiSchema() { Type = "string", Enum = allOptionsSchemaCollection },
+                            },
+                            new()
+                            {
+                                Name = "queryParams",
+                                Description = "Query parameters supplied.",
+                                In = ParameterLocation.Query,
+                                Schema = new OpenApiSchema()
+                                {
+                                    Type = "object",
+                                    AdditionalProperties = new OpenApiSchema() { Type = "string" },
+                                    Example = new OpenApiObject() { ["key"] = new OpenApiString("value") },
+                                },
+                            },
+                            new()
+                            {
+                                Name = "language",
+                                Description = "The language selected by the user (ISO 639-1, e.g., 'nb').",
+                                In = ParameterLocation.Query,
+                                Schema = new OpenApiSchema() { Type = "string", Example = new OpenApiString("nb") },
+                            },
+                        ],
+                        Responses = Snippets.AddCommonErrorResponses(
+                            new OpenApiResponses
+                            {
+                                ["200"] = new()
+                                {
+                                    Description = "AppOptions",
+                                    Content =
+                                    {
+                                        ["application/json"] = new OpenApiMediaType()
+                                        {
+                                            Schema = _schemaGenerator.GenerateSchema(
+                                                typeof(List<AppOption>),
+                                                _schemaRepository
+                                            ),
+                                        },
+                                    },
+                                },
+                            }
+                        ),
+                    },
+                },
+            }
+        );
+        var appOptionsSchemaCollection = GetAppOptionsSchemaCollection(appMetadata);
+        document.Paths.Add(
+            $"/{appMetadata.Id}/api/options/{{optionsId}}",
+            new OpenApiPathItem()
+            {
+                Summary = "Get app options",
+                Operations =
+                {
+                    [OperationType.Get] = new()
+                    {
+                        Tags = optionsTags,
+                        OperationId = "GetAppOptions",
+                        Summary = "Get app options",
+                        Description =
+                            "Api that exposes app related options. The tags field is only populated when requesting library code lists.",
+                        Parameters =
+                        [
+                            new()
+                            {
+                                Name = "optionsId",
+                                Description = "OptionsId from a layout component.",
+                                In = ParameterLocation.Path,
+                                Schema = new OpenApiSchema() { Type = "string", Enum = appOptionsSchemaCollection },
+                            },
+                            new()
+                            {
+                                Name = "queryParams",
+                                Description = "Query parameters supplied.",
+                                In = ParameterLocation.Query,
+                                Schema = new OpenApiSchema()
+                                {
+                                    Type = "object",
+                                    AdditionalProperties = new OpenApiSchema() { Type = "string" },
+                                    Example = new OpenApiObject() { ["key"] = new OpenApiString("value") },
+                                },
+                            },
+                            new()
+                            {
+                                Name = "language",
+                                Description = "The language selected by the user (ISO 639-1, e.g., 'nb').",
+                                In = ParameterLocation.Query,
+                                Schema = new OpenApiSchema() { Type = "string", Example = new OpenApiString("nb") },
+                            },
+                        ],
+                        Responses = Snippets.AddCommonErrorResponses(
+                            new OpenApiResponses
+                            {
+                                ["200"] = new()
+                                {
+                                    Description = "AppOptions",
+                                    Content =
+                                    {
+                                        ["application/json"] = new OpenApiMediaType()
+                                        {
+                                            Schema = _schemaGenerator.GenerateSchema(
+                                                typeof(List<AppOption>),
+                                                _schemaRepository
+                                            ),
+                                        },
+                                    },
+                                },
+                            }
+                        ),
+                    },
+                },
+            }
+        );
+
+        // Validation endpoint
+        var validationTags = new[]
+        {
+            new OpenApiTag { Name = "Validation", Description = "Operations for validating" },
+        };
+        document.Paths.Add(
+            $"/{appMetadata.Id}/instances/{{instanceOwnerPartyId}}/{{instanceGuid}}/validate",
+            new()
+            {
+                Summary = "Validate an app instance",
+                Operations =
+                {
+                    [OperationType.Get] = new()
+                    {
+                        Tags = validationTags,
+                        OperationId = "ValidateInstance",
+                        Summary = "Validate an app instance",
+                        Description =
+                            "This will validate all individual data elements, both the binary elements and the elements bound to a model, and then finally the state of the instance.",
+                        Parameters =
+                        [
+                            Snippets.InstanceOwnerPartyIdParameterReference,
+                            Snippets.InstanceGuidParameterReference,
+                            new()
+                            {
+                                Name = "ignoredValidators",
+                                Description = "Comma separated list of validators to ignore",
+                                In = ParameterLocation.Query,
+                                Schema = new OpenApiSchema()
+                                {
+                                    Type = "string",
+                                    Example = new OpenApiString(
+                                        "DataAnnotations, Altinn.App.Models.model.ModelValidation_FormData"
+                                    ),
+                                },
+                            },
+                            new()
+                            {
+                                Name = "onlyIncrementalValidators",
+                                Description =
+                                    "When true, only run incremental validators (those that run on PATCH requests)",
+                                In = ParameterLocation.Query,
+                                Schema = new OpenApiSchema() { Type = "boolean", Example = new OpenApiBoolean(false) },
+                            },
+                            new()
+                            {
+                                Name = "language",
+                                Description = "The currently used language by the user (or null if not available)",
+                                In = ParameterLocation.Query,
+                                Schema = new OpenApiSchema() { Type = "string", Example = new OpenApiString("nb") },
+                            },
+                        ],
+                        Responses = Snippets.AddCommonErrorResponses(
+                            new OpenApiResponses
+                            {
+                                ["200"] = new()
+                                {
+                                    Description = "Validation result",
+                                    Content =
+                                    {
+                                        ["application/json"] = new OpenApiMediaType()
+                                        {
+                                            Schema = _schemaGenerator.GenerateSchema(
+                                                typeof(List<ValidationIssueWithSource>),
+                                                _schemaRepository
+                                            ),
+                                        },
+                                    },
+                                },
+                                ["409"] = new()
+                                {
+                                    Description = "Validation cannot be performed (e.g., no active task)",
+                                    Reference = Snippets.ProblemDetailsResponseReference,
+                                },
+                            }
+                        ),
+                    },
+                },
+            }
+        );
+    }
+
+    private List<IOpenApiAny> GetInstanceAppOptionsSchemaCollection()
+    {
+        var optionsIds = _appImplementationFactory.GetAll<IInstanceAppOptionsProvider>().Select(a => a.Id);
+
+        return optionsIds.Select(optionsId => new OpenApiString(optionsId)).Cast<IOpenApiAny>().ToList();
+    }
+
+    private List<IOpenApiAny> GetAppOptionsSchemaCollection(ApplicationMetadata appMetadata)
+    {
+        // Get Altinn 3 library code lists references configured in ApplicationMetadata:
+        const string libraryRefRegex =
+            @"^lib\*\*(?<org>[a-zA-Z0-9]+)\*\*(?<codeListId>[a-zA-Z0-9_-]+)\*\*(?<version>[a-zA-Z0-9._-]+)$";
+        var optionsIds = appMetadata
+            .DataTypes.Select(d => d.TaskId)
+            .Distinct()
+            .Select(taskId => _appResources.GetLayoutModelForTask(taskId))
+            .SelectMany(layout => layout?.AllComponents.OfType<OptionsComponent>().Select(oc => oc.OptionsId) ?? [])
+            .Where(o => !string.IsNullOrWhiteSpace(o) && Regex.IsMatch(o, libraryRefRegex))
+            .Distinct()
+            .ToList();
+
+        // Get all ids from IAppOptionsProviders:
+        optionsIds.AddRange(_appImplementationFactory.GetAll<IAppOptionsProvider>().Select(a => a.Id));
+
+        // Get Json file names:
+        string jsonOptionsFolderPath = Path.Join(_settings.AppBasePath, _settings.OptionsFolder);
+        if (Directory.Exists(jsonOptionsFolderPath))
+        {
+            optionsIds.AddRange(
+                Directory
+                    .GetFiles(jsonOptionsFolderPath)
+                    .Where(x => x.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                    .Select(Path.GetFileNameWithoutExtension)
+            );
+        }
+
+        return optionsIds.Select(optionsId => new OpenApiString(optionsId)).Cast<IOpenApiAny>().ToList();
     }
 
     private void AddRoutsForDataType(OpenApiDocument doc, ApplicationMetadata appMetadata, DataType dataType)
@@ -1017,8 +1295,8 @@ public static class Snippets
                 ["instanceOwner"] = new OpenApiSchema()
                 {
                     Type = "object",
-                    Title = "Altnernate ways to spcecify the instance owner",
-                    Description = "Only one of these should be spcecified when creating a new inistance",
+                    Title = "Alternate ways to specify the instance owner",
+                    Description = "Only one of these should be specified when creating a new instance",
                     Properties =
                     {
                         ["partyId"] = new OpenApiSchema()
@@ -1176,7 +1454,7 @@ public static class Snippets
             {
                 Name = "instanceOwnerPartyId",
                 Description =
-                    "PartyId for the owner of the instance, this is altinns internal id for the organisation, person or self registered user. Might be the current user, or ",
+                    "PartyId for the owner of the instance, this is Altinn's internal id for the organisation, person or self registered user. Might be the current user, or a party the user has rights to represent.",
                 In = ParameterLocation.Path,
                 Required = true,
                 Schema = new OpenApiSchema() { Type = "integer" },
@@ -1249,9 +1527,10 @@ public static class Snippets
                             {
                                 Type = "string",
                                 Nullable = true,
-                                Example = new OpenApiString("Actually usefull description of the error"),
+                                Example = new OpenApiString("Actually useful description of the error"),
                             },
                             ["instance"] = new OpenApiSchema() { Type = "string", Nullable = true },
+                            ["traceId"] = new OpenApiSchema() { Type = "string", Nullable = true },
                         },
                         AdditionalProperties = new()
                         {
@@ -1275,7 +1554,7 @@ public static class Snippets
         Type = SecuritySchemeType.Http,
         Description = """
             Get a token for [localtest](http://local.altinn.cloud/Home/Tokens)
-            or by exchanging a maskinporten token with the [token exchange endpoint](https://docs.altinn.studio/api/authentication/spec/#/Authentication/get_exchange__tokenProvider_)
+            or by exchanging a Maskinporten token with the [token exchange endpoint](https://docs.altinn.studio/api/authentication/spec/#/Authentication/get_exchange__tokenProvider_)
             """,
     };
 

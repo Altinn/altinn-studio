@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: operator-config
+data:
+  config.env: |
+    maskinporten_api.scope=idporten:dcr.altinn
+    org_registry.url=https://altinncdn.no/orgs/altinn-orgs.json
+    maskinporten_controller.requeue_after=24h
+    maskinporten_controller.jwk_rotation_threshold=23d
+    maskinporten_controller.jwk_expiry=30d
+    keyvault_sync_controller.poll_interval=5m

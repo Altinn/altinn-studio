@@ -13,7 +13,7 @@ const defaultProps = {
     name: 'Lufttransport',
     description: 'Luft',
     urn: 'urn',
-    isDelegable: true,
+    isResourcePolicyAvailable: true,
   },
   isChecked: false,
   handleSelectChange: jest.fn(),

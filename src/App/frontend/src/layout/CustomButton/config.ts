@@ -58,7 +58,7 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'buttonStyle',
-      new CG.enum('primary', 'secondary')
+      new CG.enum('primary', 'secondary', 'tertiary')
         .setTitle('Button style')
         .setDescription('The style/color scheme of the button.')
         .optional({ default: 'secondary' })
@@ -85,4 +85,11 @@ export const Config = new CG.component({
         .exportAs('CustomButtonSize'),
     ),
   )
-  .addTextResource(new CG.trb({ name: 'title', title: 'Title', description: 'The title/text on the button' }));
+  .addTextResource(new CG.trb({ name: 'title', title: 'Title', description: 'The title/text on the button' }))
+  .addTextResource(
+    new CG.trb({
+      name: 'tableTitle',
+      title: 'Table title',
+      description: 'The title/text for the button when rendered in a table',
+    }),
+  );

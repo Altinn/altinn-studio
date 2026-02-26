@@ -39,7 +39,7 @@ class BaseConfig:
     ]
 
     # External integrations
-    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:8069/sse")
+    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:8070/sse")
     MCP_SERVER_EXPECTED_VERSION = os.getenv("MCP_SERVER_EXPECTED_VERSION")  # Optional: if set, checks for exact version match
 
     # LLM configuration - Azure OpenAI preferred
@@ -96,7 +96,7 @@ class BaseConfig:
     LANGFUSE_PUBLIC_KEY = os.getenv("LANGFUSE_PUBLIC_KEY")
     LANGFUSE_HOST = os.getenv("LANGFUSE_BASE_URL", "https://langfuse.digdir.cloud")  # Use cloud by default, or self-hosted URL
     LANGFUSE_ENABLED = os.getenv("LANGFUSE_ENABLED", "true").lower() == "true"
-    LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "altinity-agents-v1.1")  # Version/release tag for traces
+    LANGFUSE_RELEASE = os.getenv("LANGFUSE_RELEASE", "altinity-agents-v1")  # Version/release tag for traces
     LANGFUSE_ENVIRONMENT = os.getenv("LANGFUSE_ENVIRONMENT", ENVIRONMENT)  # Inherit from general environment
 
 

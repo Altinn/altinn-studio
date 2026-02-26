@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import type { ReactElement } from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { get } from 'app-shared/utils/networking';
@@ -31,30 +31,35 @@ export const FileBrowser = (): ReactElement => {
 
   const canBrowse = Boolean(org && app);
 
-  const loadDirectory = async (path: string): Promise<void> => {
-    if (!canBrowse) return;
+  const loadDirectory = useCallback(
+    async (path: string): Promise<void> => {
+      if (!org || !app) return;
 
-    setIsLoadingList(true);
-    setError(null);
-    try {
-      const url =
-        `/designer/api/repos/repo/${org}/${app}/contents` +
-        (path ? `?path=${encodeURIComponent(path)}` : '');
-      const data = await get<FileSystemObject[]>(url);
-      setItems(Array.isArray(data) ? data : []);
-      setCurrentPath(path);
-      setSelectedFile(null);
-      setFileContent(null);
-    } catch (e) {
-      setError('Kunne ikke laste inn filer.');
-    } finally {
-      setIsLoadingList(false);
-    }
-  };
+      setIsLoadingList(true);
+      setError(null);
+      try {
+        const url =
+          `/designer/api/repos/repo/${org}/${app}/contents` +
+          (path ? `?path=${encodeURIComponent(path)}` : '');
+        const data = await get<FileSystemObject[]>(url);
+        setItems(Array.isArray(data) ? data : []);
+        setCurrentPath(path);
+        setSelectedFile(null);
+        setFileContent(null);
+      } catch (e) {
+        setError('Kunne ikke laste inn filer.');
+      } finally {
+        setIsLoadingList(false);
+      }
+    },
+    [org, app],
+  );
 
   const loadFile = async (file: FileSystemObject): Promise<void> => {
     if (!canBrowse) return;
 
+    setSelectedFile(file);
+    setFileContent(null);
     setIsLoadingFile(true);
     setError(null);
     try {
@@ -69,7 +74,6 @@ export const FileBrowser = (): ReactElement => {
           : null
         : data;
 
-      setSelectedFile(file);
       if (!entry || entry.content == null) {
         setFileContent('');
         setError('Filinnhold er ikke tilgjengelig fra tjeneren for denne filen.');
@@ -87,7 +91,7 @@ export const FileBrowser = (): ReactElement => {
     if (canBrowse) {
       void loadDirectory(ROOT_PATH);
     }
-  }, [canBrowse]);
+  }, [canBrowse, loadDirectory]);
 
   useEffect(() => {
     if (breadcrumbRef.current) {

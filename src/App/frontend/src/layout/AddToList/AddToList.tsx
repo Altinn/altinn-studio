@@ -57,7 +57,7 @@ export function AddToListModal({
   let addToListModalRef = useRef<HTMLDialogElement | null>(null);
   addToListModalRef = modalRef ?? addToListModalRef;
 
-  const { schemaLookup } = DataModels.useFullStateRef().current;
+  const schemaLookup = DataModels.useSchemaLookup();
 
   const schema = schemaLookup[dataModelReference.dataType].getSchemaForPath(dataModelReference.field)[0];
 

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { toast } from 'react-toastify';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -7,7 +7,6 @@ import { isAxiosError } from 'axios';
 
 import { Button } from 'src/app-components/Button/Button';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
-import { useIsProcessing } from 'src/core/contexts/processingContext';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -17,6 +16,7 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useIsSubformPage, useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useIsAnyProcessing, useIsThisProcessing, useProcessingMutation } from 'src/hooks/useProcessingMutation';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -175,6 +175,7 @@ function useHandleServerActionMutationFn(acquireLock: FormDataLocking) {
 export const buttonStyles: { [style in CBTypes.ButtonStyle]: { color: ButtonColor; variant: ButtonVariant } } = {
   primary: { variant: 'primary', color: 'success' },
   secondary: { variant: 'secondary', color: 'first' },
+  tertiary: { variant: 'tertiary', color: 'second' },
 };
 
 function toShorthandSize(size?: CBTypes.CustomButtonSize): 'sm' | 'md' | 'lg' {
@@ -202,12 +203,14 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const acquireLock = FD.useLocking(id);
   const isAuthorized = useIsAuthorized();
   const { handleClientActions } = useHandleClientActions();
-  const { mutate: handleServerAction, error } = useMutation({
+  const { mutateAsync: handleServerAction, error } = useMutation({
     mutationFn: useHandleServerActionMutationFn(acquireLock),
   });
 
   const onPageNavigationValidation = useOnPageNavigationValidation();
-  const { performProcess, isAnyProcessing, isThisProcessing } = useIsProcessing();
+  const performProcess = useProcessingMutation('custom-action');
+  const isThisProcessing = useIsThisProcessing('custom-action');
+  const isAnyProcessing = useIsAnyProcessing();
   const layoutLookups = useLayoutLookups();
 
   const getScrollPosition = React.useCallback(
@@ -263,7 +266,11 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
         if (isClientAction(action)) {
           await handleClientActions([action]);
         } else if (isServerAction(action)) {
-          handleServerAction({ action, buttonId: id });
+          try {
+            await handleServerAction({ action, buttonId: id });
+          } catch {
+            // Error is handled elsewhere
+          }
         }
       }
     });

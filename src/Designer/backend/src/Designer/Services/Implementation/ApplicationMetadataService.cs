@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
@@ -28,7 +30,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAltinnStorageAppMetadataClient _storageAppMetadataClient;
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IGitea _giteaApiWrapper;
+        private readonly IGiteaClient _giteaClient;
 
         /// <summary>
         /// Constructor
@@ -36,20 +38,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="logger">ILogger of type ApplicationMetadataService</param>
         /// <param name="storageAppMetadataClient">IAltinnStorageAppMetadataClient</param>
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-        /// <param name="httpContextAccessor">The http context accessor.</param>
-        /// <param name="giteaApiWrapper"></param>
+        /// <param name="httpContextAccessor">The http context accessor</param>
+        /// <param name="giteaClient">The gitea client</param>
         public ApplicationMetadataService(
             ILogger<ApplicationMetadataService> logger,
             IAltinnStorageAppMetadataClient storageAppMetadataClient,
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             IHttpContextAccessor httpContextAccessor,
-            IGitea giteaApiWrapper)
+            IGiteaClient giteaClient
+        )
         {
             _logger = logger;
             _storageAppMetadataClient = storageAppMetadataClient;
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _httpContextAccessor = httpContextAccessor;
-            _giteaApiWrapper = giteaApiWrapper;
+            _giteaClient = giteaClient;
         }
 
         /// <inheritdoc/>
@@ -73,10 +76,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateApplicationMetaDataLocally(string org, string app, ApplicationMetadata applicationMetadata)
+        public async Task UpdateApplicationMetaDataLocally(
+            string org,
+            string app,
+            ApplicationMetadata applicationMetadata
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                app,
+                developer
+            );
             await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
 
@@ -84,7 +95,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<ServiceConfiguration> GetAppMetadataConfigAsync(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                app,
+                developer
+            );
             try
             {
                 ServiceConfiguration serviceConfiguration = await altinnAppGitRepository.GetAppMetadataConfig();
@@ -98,10 +113,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdic />
-        public async Task UpdateAppMetadataConfigAsync(string org, string app, ServiceConfiguration serviceConfiguration)
+        public async Task UpdateAppMetadataConfigAsync(
+            string org,
+            string app,
+            ServiceConfiguration serviceConfiguration
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                app,
+                developer
+            );
             await altinnAppGitRepository.SaveAppMetadataConfig(serviceConfiguration);
         }
 
@@ -141,19 +164,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             AutoCreate = true,
                             ClassRef = "Altinn.App.Models.model.model",
                             AllowAnonymousOnStateless = false,
-                            AutoDeleteOnProcessEnd = false
+                            AutoDeleteOnProcessEnd = false,
                         },
                         TaskId = "Task_1",
                         MaxCount = 1,
                         MinCount = 1,
                         EnablePdfCreation = true,
                         EnableFileScan = false,
-                        ValidationErrorOnPendingFileScan = false
-                    }
+                        ValidationErrorOnPendingFileScan = false,
+                    },
                 },
-                PartyTypesAllowed = new PartyTypesAllowed()
+                PartyTypesAllowed = new PartyTypesAllowed(),
             };
 
+            await UpdateApplicationMetaDataLocally(org, app, appMetadata);
+        }
+
+        /// <inheritdoc/>
+        public async Task SetCoreProperties(string org, string app, string appTitle)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+
+            var appMetadata = await GetApplicationMetadataFromRepository(org, app);
+            string id = ApplicationHelper.GetFormattedApplicationId(org, app);
+
+            appMetadata.Org = org;
+            appMetadata.Id = id;
+            appMetadata.Title = new Dictionary<string, string> { { "nb", appTitle ?? app } };
+            appMetadata.LastChanged = DateTime.UtcNow;
+            appMetadata.LastChangedBy = developer;
             await UpdateApplicationMetaDataLocally(org, app, appMetadata);
         }
 
@@ -173,7 +212,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
             string attachmentId = attachmentMetadata.GetValue("id").Value;
             ApplicationMetadata existingApplicationMetadata = await GetApplicationMetadataFromRepository(org, app);
-            DataType applicationForm = existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new DataType();
+            DataType applicationForm =
+                existingApplicationMetadata.DataTypes.FirstOrDefault(m => m.Id == attachmentId) ?? new DataType();
             applicationForm.AllowedContentTypes = new List<string>();
 
             if (attachmentMetadata.GetValue("fileType") != null)
@@ -221,7 +261,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task UpdateApplicationMetadataInStorageAsync(string org, string app, string shortCommitId, string envName, CancellationToken cancellationToken)
+        public async Task UpdateApplicationMetadataInStorageAsync(
+            string org,
+            string app,
+            string shortCommitId,
+            string envName,
+            CancellationToken cancellationToken
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
             string appMetadataJson = await GetApplicationMetadataJsonFromSpecificReference(org, app, shortCommitId);
@@ -231,7 +277,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<ApplicationMetadata> GetApplicationMetadataFromRepository(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                app,
+                developer
+            );
             ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
             return applicationMetadata;
         }
@@ -243,9 +293,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="referenceId">The name of the commit/branch/tag. Default the repository’s default branch</param>
         /// <returns>The application metadata for an application.</returns>
-        private async Task<string> GetApplicationMetadataJsonFromSpecificReference(string org, string app, string referenceId)
+        public async Task<string> GetApplicationMetadataJsonFromSpecificReference(
+            string org,
+            string app,
+            string referenceId
+        )
         {
-            var file = await _giteaApiWrapper.GetFileAsync(org, app, "App/config/applicationmetadata.json", referenceId);
+            var file = await _giteaClient.GetFileAsync(org, app, "App/config/applicationmetadata.json", referenceId);
             if (string.IsNullOrEmpty(file.Content))
             {
                 throw new NotFoundHttpRequestException("There is no ApplicationMetadata file in repo.");
@@ -260,14 +314,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public bool ApplicationMetadataExistsInRepository(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                org,
+                app,
+                developer
+            );
             return altinnAppGitRepository.ApplicationMetadataExists();
         }
 
-        private async Task UpdateApplicationMetadataInStorage(string org, string app, string applicationMetadataJson, string envName, string shortCommitId)
+        private async Task UpdateApplicationMetadataInStorage(
+            string org,
+            string app,
+            string applicationMetadataJson,
+            string envName,
+            string shortCommitId
+        )
         {
             applicationMetadataJson = ApplicationMetadataJsonHelper.SetId(applicationMetadataJson, id: $"{org}/{app}");
-            applicationMetadataJson = ApplicationMetadataJsonHelper.SetVersionId(applicationMetadataJson, versionId: shortCommitId);
+            applicationMetadataJson = ApplicationMetadataJsonHelper.SetVersionId(
+                applicationMetadataJson,
+                versionId: shortCommitId
+            );
 
             await _storageAppMetadataClient.UpsertApplicationMetadata(org, app, applicationMetadataJson, envName);
         }

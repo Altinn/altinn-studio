@@ -1,6 +1,7 @@
 import React, { type ReactElement } from 'react';
 import classes from './DeployDropdown.module.css';
-import { StudioCombobox, StudioError, StudioSpinner } from '@studio/components-legacy';
+import type { StudioSuggestionItem } from '@studio/components';
+import { StudioSuggestion, StudioSpinner, StudioError } from '@studio/components';
 import type { ImageOption } from '../../ImageOption';
 import { useTranslation } from 'react-i18next';
 import { useAppReleasesQuery } from 'app-development/hooks/queries';
@@ -36,38 +37,45 @@ export const DeployDropdown = ({
   } = useAppReleasesQuery(org, app, { hideDefaultError: true });
 
   if (isPendingReleases)
-    return (
-      <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('app_deployment.releases_loading')} />
-    );
+    return <StudioSpinner aria-hidden spinnerTitle={t('app_deployment.releases_loading')} />;
 
   if (hasReleasesError) return <StudioError>{t('app_deployment.releases_error')}</StudioError>;
 
   const successfullyBuiltAppReleases: AppRelease[] = filterSucceededReleases(releases);
   const imageOptions: ImageOption[] = mapAppReleasesToImageOptions(successfullyBuiltAppReleases, t);
 
-  const hasSelectedImageTag = selectedImageTag && imageOptions?.length > 0;
-  const selectedVersion = hasSelectedImageTag ? [selectedImageTag] : undefined;
+  const selectedItems: StudioSuggestionItem = selectedImageTag
+    ? imageOptions.filter((option) => option.value === selectedImageTag)[0]
+    : undefined;
+
+  const handleSelectedChange = (item: StudioSuggestionItem | null) => {
+    if (!disabled) {
+      setSelectedImageTag(item?.value || '');
+    }
+  };
 
   return (
     <div className={classes.deployDropDown}>
-      <StudioCombobox
-        size='small'
-        value={selectedVersion}
+      <StudioSuggestion
+        selected={selectedItems}
         label={t('app_deployment.choose_version')}
-        onValueChange={(selectedImageOptions: string[]) =>
-          setSelectedImageTag(selectedImageOptions[0])
-        }
-        disabled={disabled}
+        emptyText={t('app_deployment.no_versions')}
+        filter={() => true}
+        onSelectedChange={handleSelectedChange}
+        multiple={false}
       >
         {imageOptions.map((imageOption: ImageOption) => {
           return (
-            <StudioCombobox.Option key={imageOption.value} value={imageOption.value}>
+            <StudioSuggestion.Option
+              key={imageOption.value}
+              value={imageOption.value}
+              label={imageOption.label}
+            >
               {imageOption.label}
-            </StudioCombobox.Option>
+            </StudioSuggestion.Option>
           );
         })}
-        <StudioCombobox.Empty>{t('app_deployment.no_versions')}</StudioCombobox.Empty>
-      </StudioCombobox>
+      </StudioSuggestion>
       <div className={classes.deployButton}>
         <DeployPopover
           appDeployedVersion={appDeployedVersion}

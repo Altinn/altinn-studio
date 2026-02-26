@@ -12,6 +12,7 @@ import { useFormItemContext } from '../../../../FormItemContext';
 import { useAppContext } from '../../../../../hooks';
 import classNames from 'classnames';
 import { isComponentDeprecated } from '@altinn/ux-editor/utils/component';
+import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
 
 export interface FormItemTitleProps {
   children: ReactNode;
@@ -22,7 +23,8 @@ export interface FormItemTitleProps {
 export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormItemTitleProps) => {
   const { t } = useTranslation();
   const deleteItem = useDeleteItem(formItem);
-  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
+  const { updateLayoutsForPreview } = useAppContext();
+  const { layoutSet } = useUxEditorParams();
   const { handleDiscard } = useFormItemContext();
 
   const handleDelete = useCallback(() => {
@@ -33,12 +35,12 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
     if (confirm(confirmMessage)) {
       deleteItem(formItem.id, {
         onSuccess: async () => {
-          await updateLayoutsForPreview(selectedFormLayoutSetName, true);
+          await updateLayoutsForPreview(layoutSet, true);
           handleDiscard();
         },
       });
     }
-  }, [formItem, t, deleteItem, updateLayoutsForPreview, selectedFormLayoutSetName, handleDiscard]);
+  }, [formItem, t, deleteItem, updateLayoutsForPreview, layoutSet, handleDiscard]);
 
   return (
     <div

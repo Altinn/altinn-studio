@@ -3,7 +3,7 @@ import './styles/index.css';
 import { AppContextProvider } from './AppContext';
 import { App as FormDesigner } from './App';
 import { FormDesignerNavigation } from './containers/FormDesignNavigation';
-import { useAppContext } from './hooks';
+import { Outlet, Route, Routes } from 'react-router-dom';
 
 type SubAppProps = {
   shouldReloadPreview: boolean;
@@ -11,15 +11,21 @@ type SubAppProps = {
   onLayoutSetNameChange: (layoutSetName: string) => void;
 };
 
-const App = () => {
-  const { selectedFormLayoutSetName } = useAppContext();
-  return !selectedFormLayoutSetName ? <FormDesignerNavigation /> : <FormDesigner />;
+const App = (props: SubAppProps) => {
+  return (
+    <AppContextProvider {...props}>
+      <Outlet />
+    </AppContextProvider>
+  );
 };
 
 export const SubApp = (props: SubAppProps) => {
   return (
-    <AppContextProvider {...props}>
-      <App />
-    </AppContextProvider>
+    <Routes>
+      <Route element={<App {...props} />}>
+        <Route index element={<FormDesignerNavigation />} />
+        <Route path='/layoutSet/:layoutSet' element={<FormDesigner />} />
+      </Route>
+    </Routes>
   );
 };

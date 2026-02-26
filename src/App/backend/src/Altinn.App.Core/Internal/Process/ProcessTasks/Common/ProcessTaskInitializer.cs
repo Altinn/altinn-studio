@@ -87,12 +87,10 @@ public class ProcessTaskInitializer : IProcessTaskInitializer
             var instantiationProcessor = _appImplementationFactory.GetRequired<IInstantiationProcessor>();
             await instantiationProcessor.DataCreation(instance, data, prefill);
 
-            Type type = _appModel.GetModelType(dataType.AppLogic.ClassRef);
-
             ObjectUtils.InitializeAltinnRowId(data);
             ObjectUtils.PrepareModelForXmlStorage(data);
 
-            DataElement createdDataElement = await _dataClient.InsertFormData(instance, dataType.Id, data, type);
+            DataElement createdDataElement = await _dataClient.InsertFormData(instance, dataType.Id, data);
             instance.Data ??= [];
             instance.Data.Add(createdDataElement);
 

@@ -15,7 +15,7 @@
 }
 
 .appReleaseCreateRelease {
-  padding: var(--release-panel-padding);
+  padding-inline: var(--release-panel-padding);
   flex-grow: 1;
 }
 

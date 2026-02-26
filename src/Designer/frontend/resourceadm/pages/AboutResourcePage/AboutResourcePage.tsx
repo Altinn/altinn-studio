@@ -201,19 +201,6 @@ export const AboutResourcePage = ({
                 {t('resourceadm.about_resource_consent_templates_error')}
               </StudioAlert>
             )}
-            <ResourceTextField
-              id='consentMetadata'
-              label={t('resourceadm.about_resource_consent_metadata')}
-              description={t('resourceadm.about_resource_consent_metadata_description')}
-              value={Object.keys(resourceData.consentMetadata ?? {}).join(', ')}
-              regexp={/[^a-z, ]/g}
-              onBlur={(val: string) =>
-                handleSave({
-                  ...resourceData,
-                  consentMetadata: convertMetadataStringToConsentMetadata(val),
-                })
-              }
-            />
             <ResourceLanguageTextField
               id='consentText'
               label={t('resourceadm.about_resource_consent_text_label')}
@@ -228,6 +215,19 @@ export const AboutResourcePage = ({
               hasMarkdownToolbar
               onSetLanguage={(setLanguage: ValidLanguage) => setPreviewLanguage(setLanguage)}
               errors={validationErrors.filter((error) => error.field === 'consentText')}
+            />
+            <ResourceTextField
+              id='consentMetadata'
+              label={t('resourceadm.about_resource_consent_metadata')}
+              description={t('resourceadm.about_resource_consent_metadata_description')}
+              value={Object.keys(resourceData.consentMetadata ?? {}).join(', ')}
+              regexp={/[^a-z, ]/g}
+              onBlur={(val: string) =>
+                handleSave({
+                  ...resourceData,
+                  consentMetadata: convertMetadataStringToConsentMetadata(val),
+                })
+              }
             />
             <ResourceSwitchInput
               id='isOneTimeConsent'

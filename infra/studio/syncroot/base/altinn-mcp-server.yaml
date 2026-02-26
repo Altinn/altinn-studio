@@ -1,0 +1,31 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: altinn-mcp-server-repo
+  namespace: default
+spec:
+  interval: 5m
+  provider: azure
+  ref:
+    tag: ${ENVIRONMENT}
+  timeout: 5m
+  url: oci://altinntjenestercontainerregistry.azurecr.io/configs/altinn-mcp-server-repo
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: altinn-mcp-server
+  namespace: default
+spec:
+  targetNamespace: default
+  interval: 5m
+  retryInterval: 5m
+  timeout: 1m
+  prune: false
+  force: false
+  wait: true
+  path: ./
+  sourceRef:
+    kind: OCIRepository
+    name: altinn-mcp-server-repo
+    namespace: default

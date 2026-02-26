@@ -1,0 +1,44 @@
+.subjectItem {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-size-3);
+  box-shadow: var(--ds-shadow-sm);
+  padding: var(--ds-size-3);
+}
+
+.subjectTitle {
+  font-weight: var(--ds-font-weight-medium);
+  flex: 1;
+}
+.selectedSubjectTitle {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  min-width: 0px;
+}
+
+.subjectCheckbox {
+  margin: 0 var(--ds-size-2);
+}
+
+.iconContainer {
+  font-size: var(--ds-font-size-7);
+  background-color: var(--ds-color-surface-tinted);
+  border-radius: var(--ds-border-radius-sm);
+  padding: var(--ds-size-1);
+}
+
+.subjectSubTitle {
+  color: var(--ds-color-text-subtle);
+  font-size: var(--ds-font-size-1);
+  font-weight: var(--ds-font-weight-regular);
+  line-height: normal;
+}
+
+.personSubject {
+  background-color: var(--ds-color-success-surface-tinted);
+}
+
+.orgSubject {
+  background-color: var(--ds-color-accent-surface-tinted);
+}

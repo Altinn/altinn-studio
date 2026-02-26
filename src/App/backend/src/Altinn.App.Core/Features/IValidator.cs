@@ -40,6 +40,15 @@ public interface IValidator
     bool NoIncrementalValidation => false;
 
     /// <summary>
+    /// Indicates whether this validator should run against a cleaned view of the data where fields marked as hidden are removed.
+    /// </summary>
+    /// <remarks>
+    /// Defaults to <c>false</c>. When <c>true</c>, the validation pipeline will supply a cleaned accessor for both
+    /// <see cref="Validate"/> and <see cref="HasRelevantChanges"/>, ensuring consistent visibility semantics.
+    /// </remarks>
+    bool ShouldRunAfterRemovingHiddenData => false;
+
+    /// <summary>
     /// Run this validator and return all the issues this validator is aware of.
     /// </summary>
     /// <param name="dataAccessor">Use this to access the form data from <see cref="DataElement"/>s</param>

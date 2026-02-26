@@ -55,7 +55,7 @@ jest.useFakeTimers({ advanceTimers: true });
 describe('SelectedSchemaEditor', () => {
   it('Displays loading spinner while loading', () => {
     render();
-    expect(screen.getByTitle(textMock('schema_editor.loading_page'))).toBeInTheDocument();
+    expect(screen.getByLabelText(textMock('schema_editor.loading_page'))).toBeInTheDocument();
   });
 
   it('Displays error message if loading fails', async () => {
@@ -63,7 +63,7 @@ describe('SelectedSchemaEditor', () => {
     const getDataModel = jest.fn().mockImplementation(() => Promise.reject(new Error(message)));
     render({ getDataModel });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('schema_editor.loading_page')),
+      screen.queryByLabelText(textMock('schema_editor.loading_page')),
     );
     expect(screen.getByText(message)).toBeInTheDocument();
   });
@@ -76,7 +76,7 @@ describe('SelectedSchemaEditor', () => {
       .mockImplementation(() => Promise.reject(createApiErrorMock(400, 'DM_05', [customMessage])));
     render({ getDataModel });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('schema_editor.loading_page')),
+      screen.queryByLabelText(textMock('schema_editor.loading_page')),
     );
     expect(screen.getByText(customMessage)).toBeInTheDocument();
   });
@@ -84,7 +84,7 @@ describe('SelectedSchemaEditor', () => {
   it('Renders SchemaEditorApp when finished loading', async () => {
     render();
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('schema_editor.loading_page')),
+      screen.queryByLabelText(textMock('schema_editor.loading_page')),
     );
     expect(screen.getByTestId(schemaEditorTestId)).toBeInTheDocument();
   });
@@ -96,7 +96,7 @@ describe('SelectedSchemaEditor', () => {
     render({ getDataModel, saveDataModel });
 
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('schema_editor.loading_page')),
+      screen.queryByLabelText(textMock('schema_editor.loading_page')),
     );
 
     const button = screen.getByTestId(saveButtonTestId);
@@ -115,7 +115,7 @@ describe('SelectedSchemaEditor', () => {
       renderResult: { rerender },
     } = render({ getDataModel, saveDataModel });
     await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('schema_editor.loading_page')),
+      screen.queryByLabelText(textMock('schema_editor.loading_page')),
     );
     expect(saveDataModel).not.toHaveBeenCalled();
 

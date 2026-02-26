@@ -9,7 +9,7 @@ import { BpmnConfigPanelFormContextProvider } from '../../contexts/BpmnConfigPan
 import type Modeler from 'bpmn-js/lib/Modeler';
 import { BpmnApiContextProvider } from '../../contexts/BpmnApiContext';
 import { mockBpmnDetails } from '../../../test/mocks/bpmnDetailsMock';
-import { StudioRecommendedNextActionContextProvider } from '@studio/components-legacy';
+import { StudioRecommendedNextActionContextProvider } from '@studio/components';
 
 jest.mock('./ConfigSequenceFlow', () => ({
   ConfigSequenceFlow: () => <h1>ConfigSequenceFlow Mocked Component</h1>,
@@ -60,6 +60,21 @@ describe('ConfigPanel', () => {
     expect(
       screen.getByText(textMock('process_editor.configuration_panel_end_event')),
     ).toBeInTheDocument();
+  });
+
+  it('should render ConfigServiceTask if bpmn type is ServiceTask', () => {
+    renderConfigPanel({
+      modelerRef: {
+        current: {
+          get: () => {},
+        } as unknown as Modeler,
+      },
+      bpmnDetails: { ...mockBpmnDetails, type: BpmnTypeEnum.ServiceTask },
+    });
+    const editTaskIdButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_change_task_id'),
+    });
+    expect(editTaskIdButton).toBeInTheDocument();
   });
 
   it.each([

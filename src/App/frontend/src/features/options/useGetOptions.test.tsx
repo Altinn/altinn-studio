@@ -16,6 +16,30 @@ import type { IRawOption, ISelectionComponentFull } from 'src/layout/common.gene
 import type { ILayout } from 'src/layout/layout';
 import type { fetchOptions } from 'src/queries/queries';
 
+type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
+jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => {
+  const actual = jest.requireActual<TextResourcesProviderImport>(
+    'src/features/language/textResources/TextResourcesProvider',
+  );
+  return {
+    ...actual,
+    useTextResources: jest.fn(() =>
+      actual.resourcesAsMap([
+        {
+          id: 'myLabel',
+          value: '{0}',
+          variables: [
+            {
+              dataSource: 'dataModel.default',
+              key: 'Group[{0}].label',
+            },
+          ],
+        },
+      ]),
+    ),
+  };
+});
+
 interface RenderProps {
   type: 'single' | 'multi';
   via: 'layout' | 'api' | 'repeatingGroups';
@@ -109,21 +133,6 @@ async function render(props: RenderProps) {
             })),
             headers: {},
           }) as AxiosResponse<IRawOption[]>),
-      fetchTextResources: async () => ({
-        resources: [
-          {
-            id: 'myLabel',
-            value: '{0}',
-            variables: [
-              {
-                dataSource: 'dataModel.default',
-                key: 'Group[{0}].label',
-              },
-            ],
-          },
-        ],
-        language: 'nb',
-      }),
     },
   });
 }

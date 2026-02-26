@@ -1,3 +1,4 @@
+#nullable disable
 using System.ComponentModel.DataAnnotations;
 
 namespace Altinn.Studio.Designer.Configuration
@@ -10,7 +11,10 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Gets or sets the repository name
         /// </summary>
-        [RegularExpression("^[a-zA-Z]+[a-zA-Z0-9_]*$", ErrorMessage = "Må begynne med en bokstav og ikke inneholde mellomrom eller spesialtegn ('_' er tillatt)")]
+        [RegularExpression(
+            "^[a-zA-Z]+[a-zA-Z0-9_]*$",
+            ErrorMessage = "Må begynne med en bokstav og ikke inneholde mellomrom eller spesialtegn ('_' er tillatt)"
+        )]
         public string RepositoryName { get; set; }
 
         /// <summary>

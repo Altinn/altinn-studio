@@ -4,7 +4,7 @@ import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { StudioTextResourcePickerProps } from './StudioTextResourcePicker';
 import { StudioTextResourcePicker } from './StudioTextResourcePicker';
 import type { RenderResult } from '@testing-library/react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
@@ -50,17 +50,26 @@ describe('StudioTextResourcePicker', () => {
     await user.click(getInput());
     testTextResources.forEach((textResource) => {
       const expectedName = expectedOptionName(textResource);
-      expect(screen.getByRole('option', { name: expectedName })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: expectedName, hidden: true })).toBeInTheDocument();
     });
   });
 
-  it('Calls the onValueChange when the user picks a text resource', async () => {
+  it('Calls the onValueChange when comboboxbeforeselect is fired', async () => {
     const user = userEvent.setup();
     renderTextResourcePicker();
-    await user.click(getInput());
     const textResourceToPick = textResources[arbitraryTextResourceIndex];
-    await user.click(screen.getByRole('option', { name: expectedOptionName(textResourceToPick) }));
-    await waitFor(expect(onValueChange).toBeCalled);
+    await user.click(getInput());
+    const mockOption = {
+      value: textResourceToPick.id,
+      textContent: textResourceToPick.value,
+      isConnected: false,
+    };
+    const event = new CustomEvent('comboboxbeforeselect', {
+      detail: mockOption,
+      bubbles: true,
+    });
+    screen.getByRole('combobox').dispatchEvent(event);
+    await waitFor(() => expect(onValueChange).toHaveBeenCalled());
     expect(onValueChange).toHaveBeenCalledTimes(1);
     expect(onValueChange).toHaveBeenCalledWith(textResourceToPick.id);
   });
@@ -77,8 +86,7 @@ describe('StudioTextResourcePicker', () => {
     const user = userEvent.setup();
     renderTextResourcePicker();
     await user.click(getInput());
-    const listbox = screen.getByRole('listbox');
-    const options = within(listbox).getAllByRole('option');
+    const options = screen.getAllByRole('option', { hidden: true });
     expect(options.some((opt) => opt.getAttribute('value') === '')).toBe(true);
   });
 

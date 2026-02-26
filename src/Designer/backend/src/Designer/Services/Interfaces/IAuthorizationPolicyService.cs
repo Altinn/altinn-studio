@@ -1,3 +1,4 @@
+#nullable disable
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,6 +23,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
             string app,
             string fullCommitId,
             string envName,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default
+        );
     }
 }

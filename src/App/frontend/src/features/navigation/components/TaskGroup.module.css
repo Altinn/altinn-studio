@@ -1,6 +1,6 @@
 .task-button {
   font-family: var(--font-family);
-  font-size: 16px;
+  font-size: 1rem;
   background-color: transparent;
   border: none;
   cursor: not-allowed;
@@ -34,7 +34,7 @@
   width: 28px;
   height: 28px;
   box-sizing: border-box;
-  font-size: 20px;
+  font-size: 1.25rem;
   border-width: 2px;
   border-style: solid;
   border-radius: var(--ds-border-radius-md);

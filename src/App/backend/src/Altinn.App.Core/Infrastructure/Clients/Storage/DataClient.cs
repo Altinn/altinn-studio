@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Mime;
@@ -24,7 +25,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 /// <summary>
 /// A client for handling actions on data in Altinn Platform.
 /// </summary>
-public class DataClient : IDataClient
+public sealed class DataClient : IDataClient
 {
     private readonly PlatformSettings _platformSettings;
     private readonly ILogger _logger;
@@ -35,6 +36,8 @@ public class DataClient : IDataClient
     private readonly HttpClient _client;
 
     private readonly AuthenticationMethod _defaultAuthenticationMethod = StorageAuthenticationMethod.CurrentUser();
+
+    private static readonly TimeSpan _httpOperationTimeout = TimeSpan.FromSeconds(100);
 
     /// <summary>
     /// Initializes a new data of the <see cref="DataClient"/> class.
@@ -54,10 +57,12 @@ public class DataClient : IDataClient
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+        httpClient.Timeout = Timeout.InfiniteTimeSpan;
         _client = httpClient;
     }
 
     /// <inheritdoc />
+    [Obsolete("Use InsertFormData with Instance parameter instead")]
     public async Task<DataElement> InsertFormData<T>(
         T dataToSerialize,
         Guid instanceGuid,
@@ -71,60 +76,47 @@ public class DataClient : IDataClient
     )
         where T : notnull
     {
-        using var activity = _telemetry?.StartInsertFormDataActivity(instanceGuid, instanceOwnerPartyId);
+        if (type != dataToSerialize.GetType())
+        {
+            throw new ArgumentException(
+                $"The provided type {type.FullName} does not match the type of dataToSerialize {dataToSerialize.GetType().FullName}"
+            );
+        }
         Instance instance = new() { Id = $"{instanceOwnerPartyId}/{instanceGuid}" };
-        return await InsertFormData(instance, dataType, dataToSerialize, type, authenticationMethod, cancellationToken);
+        return await InsertFormData(instance, dataType, dataToSerialize, authenticationMethod, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<DataElement> InsertFormData<T>(
+    public async Task<DataElement> InsertFormData(
         Instance instance,
-        string dataTypeString,
-        T dataToSerialize,
-        Type type,
+        string dataTypeId,
+        object dataToSerialize,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
-        where T : notnull
     {
         using var activity = _telemetry?.StartInsertFormDataActivity(instance);
-        string apiUrl = $"instances/{instance.Id}/data?dataType={dataTypeString}";
-
-        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
-            authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
-        );
-
-        var application = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
         var dataType =
-            application.DataTypes.Find(d => d.Id == dataTypeString)
-            ?? throw new InvalidOperationException($"Data type {dataTypeString} not found in applicationmetadata.json");
+            appMetadata.DataTypes.Find(d => d.Id == dataTypeId)
+            ?? throw new InvalidOperationException($"Data type {dataTypeId} not found in applicationmetadata.json");
 
-        var (data, contentType) = _modelSerializationService.SerializeToStorage(dataToSerialize, dataType);
+        var (data, contentType) = _modelSerializationService.SerializeToStorage(dataToSerialize, dataType, null);
 
-        StreamContent streamContent = new(new MemoryAsStream(data));
-        streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-        HttpResponseMessage response = await _client.PostAsync(token, apiUrl, streamContent);
-
-        if (response.IsSuccessStatusCode)
-        {
-            string instanceData = await response.Content.ReadAsStringAsync(cancellationToken);
-            // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
-            var dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData)!;
-
-            return dataElement;
-        }
-
-        _logger.Log(
-            LogLevel.Error,
-            "unable to save form data for instance {InstanceId} due to response {StatusCode}",
+        return await InsertBinaryData(
             instance.Id,
-            response.StatusCode
+            dataTypeId,
+            contentType,
+            null,
+            new MemoryAsStream(data),
+            null,
+            authenticationMethod,
+            cancellationToken
         );
-        throw await PlatformHttpException.CreateAsync(response);
     }
 
     /// <inheritdoc />
+    [Obsolete("Use the UpdateFormData method with Instance parameter instead")]
     public async Task<DataElement> UpdateData<T>(
         T dataToSerialize,
         Guid instanceGuid,
@@ -138,28 +130,48 @@ public class DataClient : IDataClient
     )
         where T : notnull
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartUpdateDataActivity(instanceGuid, dataId);
+        // Verify that all dataTypes uses XML serialization so that the deprecated method might work as expected without access to dataElement.ContentType
+        if (type != dataToSerialize.GetType())
+        {
+            throw new ArgumentException(
+                $"The provided type {type.FullName} does not match the type of dataToSerialize {dataToSerialize.GetType().FullName}"
+            );
+        }
+        var classRef = type.FullName;
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        if (TypeAllowsJson(classRef, appMetadata))
+        {
+            throw new InvalidOperationException(
+                $"The data type {classRef} is configured to use JSON serialization and must use UpdateFormData method instead"
+            );
+        }
+
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
         string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
-        //TODO: this method does not get enough information to know the content type from the DataType
-        //      if we start to support more than XML
         var serializedBytes = _modelSerializationService.SerializeToXml(dataToSerialize);
         var contentType = "application/xml";
 
         StreamContent streamContent = new(new MemoryAsStream(serializedBytes));
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
 
-        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, streamContent);
+        HttpResponseMessage response = await _client.PutAsync(
+            token,
+            apiUrl,
+            streamContent,
+            cancellationToken: cts.Token
+        );
 
         if (response.IsSuccessStatusCode)
         {
-            string instanceData = await response.Content.ReadAsStringAsync(cancellationToken);
+            string instanceData = await response.Content.ReadAsStringAsync(cts.Token);
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData)!;
             return dataElement;
@@ -169,9 +181,39 @@ public class DataClient : IDataClient
     }
 
     /// <inheritdoc />
+    public async Task<DataElement> UpdateFormData(
+        Instance instance,
+        object dataToSerialize,
+        DataElement dataElement,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = _telemetry?.StartUpdateDataActivity(instance, dataElement);
+
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
+
+        var dataType =
+            appMetadata.DataTypes.Find(d => d.Id == dataElement.DataType)
+            ?? throw new InvalidOperationException(
+                $"Data type {dataElement.DataType} not found in applicationmetadata.json"
+            );
+
+        var (data, contentType) = _modelSerializationService.SerializeToStorage(dataToSerialize, dataType, dataElement);
+
+        return await UpdateBinaryData(
+            new InstanceIdentifier(instance),
+            contentType,
+            dataElement.Filename,
+            Guid.Parse(dataElement.Id),
+            new MemoryAsStream(data),
+            authenticationMethod,
+            cancellationToken
+        );
+    }
+
+    /// <inheritdoc />
     public async Task<Stream> GetBinaryData(
-        string org,
-        string app,
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataId,
@@ -179,32 +221,73 @@ public class DataClient : IDataClient
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartGetBinaryDataActivity(instanceGuid, dataId);
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
         string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadAsStreamAsync(cancellationToken);
+            return await response.Content.ReadAsStreamAsync(cts.Token);
         }
-        else if (response.StatusCode == HttpStatusCode.NotFound)
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
-#nullable disable
-            return null;
-#nullable restore
+            // ! TODO: Remove null return in v9 and throw exception instead
+            return null!;
         }
 
         throw await PlatformHttpException.CreateAsync(response);
     }
 
     /// <inheritdoc />
+    public async Task<Stream> GetBinaryDataStream(
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        TimeSpan? timeout = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var cts = cancellationToken.WithTimeout(timeout ?? _httpOperationTimeout);
+        using Activity? activity = _telemetry?.StartGetBinaryDataActivity(instanceGuid, dataId);
+        var instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
+        var apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
+
+        JwtToken token = await _authenticationTokenResolver.GetAccessToken(
+            authenticationMethod ?? _defaultAuthenticationMethod,
+            cancellationToken: cts.Token
+        );
+
+        HttpResponseMessage response = await _client.GetStreamingAsync(token, apiUrl, cancellationToken: cts.Token);
+
+        if (response.IsSuccessStatusCode)
+        {
+            try
+            {
+                Stream stream = await response.Content.ReadAsStreamAsync(cts.Token);
+                return new ResponseWrapperStream(response, stream);
+            }
+            catch (Exception)
+            {
+                response.Dispose();
+                throw;
+            }
+        }
+
+        throw await PlatformHttpResponseSnapshotException.CreateAndDisposeHttpResponse(response, cts.Token);
+    }
+
+    /// <inheritdoc />
+    [Obsolete("Use the overload with Instance parameter instead")]
     public async Task<object> GetFormData(
         Guid instanceGuid,
         Type type,
@@ -216,24 +299,32 @@ public class DataClient : IDataClient
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartGetFormDataActivity(instanceGuid, instanceOwnerPartyId);
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
         string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        var classRef = type.FullName;
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        if (TypeAllowsJson(classRef, appMetadata))
+        {
+            throw new InvalidOperationException(
+                $"The data type {classRef} is configured to use JSON serialization and must use GetFormData with dataElement argument instead"
+            );
+        }
+
+        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
         if (response.IsSuccessStatusCode)
         {
-            var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+            var bytes = await response.Content.ReadAsByteArrayAsync(cts.Token);
 
             try
             {
-                //TODO: this method does not get enough information to know the content type from the DataType
-                //      if we start to support more than XML
                 return _modelSerializationService.DeserializeXml(bytes, type);
             }
             catch (Exception e)
@@ -247,9 +338,38 @@ public class DataClient : IDataClient
     }
 
     /// <inheritdoc />
+    public async Task<object> GetFormData(
+        Instance instance,
+        DataElement dataElement,
+        StorageAuthenticationMethod? authenticationMethod = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(dataElement);
+        using var activity = _telemetry?.StartGetFormDataActivity(instance);
+
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var dataType =
+            appMetadata.DataTypes.Find(d => d.Id == dataElement.DataType)
+            ?? throw new InvalidOperationException(
+                $"Data type {dataElement.DataType} not found in applicationmetadata.json"
+            );
+
+        InstanceIdentifier instanceIdentifier = new(instance);
+        var data = await GetDataBytes(
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            Guid.Parse(dataElement.Id),
+            authenticationMethod,
+            cancellationToken
+        );
+
+        return _modelSerializationService.DeserializeFromStorage(data, dataType, dataElement);
+    }
+
+    /// <inheritdoc />
     public async Task<byte[]> GetDataBytes(
-        string org,
-        string app,
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataId,
@@ -257,20 +377,21 @@ public class DataClient : IDataClient
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartGetBinaryDataActivity(instanceGuid, dataId);
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
         string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadAsByteArrayAsync(cancellationToken);
+            return await response.Content.ReadAsByteArrayAsync(cts.Token);
         }
 
         throw await PlatformHttpException.CreateAsync(response);
@@ -278,30 +399,29 @@ public class DataClient : IDataClient
 
     /// <inheritdoc />
     public async Task<List<AttachmentList>> GetBinaryDataList(
-        string org,
-        string app,
         int instanceOwnerPartyId,
         Guid instanceGuid,
         StorageAuthenticationMethod? authenticationMethod = null,
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartGetBinaryDataListActivity(instanceGuid, instanceOwnerPartyId);
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
         string apiUrl = $"instances/{instanceIdentifier}/dataelements";
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
         DataElementList dataList;
         List<AttachmentList> attachmentList = [];
 
-        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        HttpResponseMessage response = await _client.GetAsync(token, apiUrl, cancellationToken: cts.Token);
         if (response.StatusCode == HttpStatusCode.OK)
         {
-            string instanceData = await response.Content.ReadAsStringAsync(cancellationToken);
+            string instanceData = await response.Content.ReadAsStringAsync(cts.Token);
             dataList =
                 JsonConvert.DeserializeObject<DataElementList>(instanceData)
                 ?? throw new JsonException("Could not deserialize DataElementList");
@@ -352,22 +472,7 @@ public class DataClient : IDataClient
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteBinaryData(
-        string org,
-        string app,
-        int instanceOwnerPartyId,
-        Guid instanceGuid,
-        Guid dataGuid
-    )
-    {
-        using var activity = _telemetry?.StartDeleteBinaryDataActivity(instanceGuid, instanceOwnerPartyId);
-        return await DeleteData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, false);
-    }
-
-    /// <inheritdoc />
     public async Task<bool> DeleteData(
-        string org,
-        string app,
         int instanceOwnerPartyId,
         Guid instanceGuid,
         Guid dataGuid,
@@ -376,16 +481,17 @@ public class DataClient : IDataClient
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartDeleteDataActivity(instanceGuid, instanceOwnerPartyId);
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
         string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}?delay={delay}";
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
-        HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl);
+        HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl, cancellationToken: cts.Token);
 
         if (response.IsSuccessStatusCode)
         {
@@ -399,6 +505,7 @@ public class DataClient : IDataClient
     }
 
     /// <inheritdoc />
+    [Obsolete("The overload that takes a HttpRequest is deprecated, use the overload that takes a Stream instead")]
     public async Task<DataElement> InsertBinaryData(
         string org,
         string app,
@@ -410,6 +517,7 @@ public class DataClient : IDataClient
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartInsertBinaryDataActivity(instanceGuid, instanceOwnerPartyId);
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
         string apiUrl =
@@ -417,15 +525,15 @@ public class DataClient : IDataClient
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
         StreamContent content = request.CreateContentStream();
-        HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content);
+        HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content, cancellationToken: cts.Token);
 
         if (response.IsSuccessStatusCode)
         {
-            string instancedata = await response.Content.ReadAsStringAsync(cancellationToken);
+            string instancedata = await response.Content.ReadAsStringAsync(cts.Token);
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata)!;
 
@@ -450,6 +558,7 @@ public class DataClient : IDataClient
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartInsertBinaryDataActivity(instanceId);
         string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
         if (!string.IsNullOrEmpty(generatedFromTask))
@@ -459,7 +568,7 @@ public class DataClient : IDataClient
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
         StreamContent content = new(stream);
@@ -473,11 +582,11 @@ public class DataClient : IDataClient
             };
         }
 
-        HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content);
+        HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content, cancellationToken: cts.Token);
 
         if (response.IsSuccessStatusCode)
         {
-            string dataElementString = await response.Content.ReadAsStringAsync(cancellationToken);
+            string dataElementString = await response.Content.ReadAsStringAsync(cts.Token);
 
             var dataElement = JsonConvert.DeserializeObject<DataElement>(dataElementString);
             if (dataElement is not null)
@@ -485,12 +594,16 @@ public class DataClient : IDataClient
         }
 
         _logger.LogError(
-            $"Storing attachment for instance {instanceId} failed with status code {response.StatusCode} - content {await response.Content.ReadAsStringAsync(cancellationToken)}"
+            "Storing attachment for instance {InstanceId} failed with status code {StatusCode} - content {Content}",
+            instanceId,
+            response.StatusCode,
+            await response.Content.ReadAsStringAsync(cts.Token)
         );
         throw await PlatformHttpException.CreateAsync(response);
     }
 
     /// <inheritdoc />
+    [Obsolete("The overload that takes a HttpRequest is deprecated, use the overload that takes a Stream instead")]
     public async Task<DataElement> UpdateBinaryData(
         string org,
         string app,
@@ -502,22 +615,23 @@ public class DataClient : IDataClient
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartUpdateBinaryDataActivity(instanceGuid, instanceOwnerPartyId);
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
         string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
         StreamContent content = request.CreateContentStream();
 
-        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content);
+        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content, cancellationToken: cts.Token);
 
         if (response.IsSuccessStatusCode)
         {
-            string instancedata = await response.Content.ReadAsStringAsync(cancellationToken);
+            string instancedata = await response.Content.ReadAsStringAsync(cts.Token);
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata)!;
 
@@ -541,12 +655,13 @@ public class DataClient : IDataClient
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartUpdateBinaryDataActivity(instanceIdentifier.GetInstanceId());
         string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
         StreamContent content = new(stream);
@@ -561,11 +676,11 @@ public class DataClient : IDataClient
             };
         }
 
-        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content);
+        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content, cancellationToken: cts.Token);
         _logger.LogInformation("Update binary data result: {ResultCode}", response.StatusCode);
         if (response.IsSuccessStatusCode)
         {
-            string instancedata = await response.Content.ReadAsStringAsync(cancellationToken);
+            string instancedata = await response.Content.ReadAsStringAsync(cts.Token);
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata)!;
 
@@ -582,22 +697,23 @@ public class DataClient : IDataClient
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartUpdateDataActivity(instance);
         string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instance.Id}/dataelements/{dataElement.Id}";
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
         StringContent jsonString = new(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
-        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, jsonString);
+        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, jsonString, cancellationToken: cts.Token);
 
         if (response.IsSuccessStatusCode)
         {
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
             DataElement result = JsonConvert.DeserializeObject<DataElement>(
-                await response.Content.ReadAsStringAsync(cancellationToken)
+                await response.Content.ReadAsStringAsync(cts.Token)
             )!;
 
             return result;
@@ -614,12 +730,13 @@ public class DataClient : IDataClient
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartLockDataElementActivity(instanceIdentifier.GetInstanceId(), dataGuid);
         string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock";
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
         _logger.LogDebug(
@@ -628,12 +745,18 @@ public class DataClient : IDataClient
             instanceIdentifier,
             apiUrl
         );
-        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content: null);
+        HttpResponseMessage response = await _client.PutAsync(
+            token,
+            apiUrl,
+            content: null,
+            platformAccessToken: null,
+            cts.Token
+        );
         if (response.IsSuccessStatusCode)
         {
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
             DataElement result = JsonConvert.DeserializeObject<DataElement>(
-                await response.Content.ReadAsStringAsync(cancellationToken)
+                await response.Content.ReadAsStringAsync(cts.Token)
             )!;
             return result;
         }
@@ -654,12 +777,13 @@ public class DataClient : IDataClient
         CancellationToken cancellationToken = default
     )
     {
+        using var cts = cancellationToken.WithTimeout(_httpOperationTimeout);
         using var activity = _telemetry?.StartUnlockDataElementActivity(instanceIdentifier.GetInstanceId(), dataGuid);
         string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}/lock";
 
         JwtToken token = await _authenticationTokenResolver.GetAccessToken(
             authenticationMethod ?? _defaultAuthenticationMethod,
-            cancellationToken: cancellationToken
+            cancellationToken: cts.Token
         );
 
         _logger.LogDebug(
@@ -668,12 +792,12 @@ public class DataClient : IDataClient
             instanceIdentifier,
             apiUrl
         );
-        HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl);
+        HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl, cancellationToken: cts.Token);
         if (response.IsSuccessStatusCode)
         {
             // ! TODO: this null-forgiving operator should be fixed/removed for the next major release
             DataElement result = JsonConvert.DeserializeObject<DataElement>(
-                await response.Content.ReadAsStringAsync(cancellationToken)
+                await response.Content.ReadAsStringAsync(cts.Token)
             )!;
             return result;
         }
@@ -684,5 +808,19 @@ public class DataClient : IDataClient
             response.StatusCode
         );
         throw await PlatformHttpException.CreateAsync(response);
+    }
+
+    private static bool TypeAllowsJson(string? classRef, ApplicationMetadata appMetadata)
+    {
+        return appMetadata.DataTypes.Where(dt => dt?.AppLogic?.ClassRef == classRef).Any(TypeAllowsJson);
+    }
+
+    internal static bool TypeAllowsJson(DataType? dataType)
+    {
+        if (dataType?.AllowedContentTypes is null)
+            return false;
+        return !dataType.AllowedContentTypes.TrueForAll(ct =>
+            !ct.Equals("application/json", StringComparison.OrdinalIgnoreCase)
+        );
     }
 }

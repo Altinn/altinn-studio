@@ -11,7 +11,6 @@ using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.AltinnExtensionProperties;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models.Process;
-using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -35,12 +34,12 @@ public class ProcessController : ControllerBase
     private readonly ILogger<ProcessController> _logger;
     private readonly IInstanceClient _instanceClient;
     private readonly IProcessClient _processClient;
-    private readonly IValidationService _validationService;
     private readonly IAuthorizationService _authorization;
     private readonly IProcessEngine _processEngine;
     private readonly IProcessReader _processReader;
-    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
     private readonly IProcessEngineAuthorizer _processEngineAuthorizer;
+    private readonly IValidationService _validationService;
+    private readonly InstanceDataUnitOfWorkInitializer _instanceDataUnitOfWorkInitializer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessController"/>
@@ -60,12 +59,12 @@ public class ProcessController : ControllerBase
         _logger = logger;
         _instanceClient = instanceClient;
         _processClient = processClient;
-        _validationService = validationService;
         _authorization = authorization;
         _processReader = processReader;
         _processEngine = processEngine;
-        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
         _processEngineAuthorizer = processEngineAuthorizer;
+        _validationService = validationService;
+        _instanceDataUnitOfWorkInitializer = serviceProvider.GetRequiredService<InstanceDataUnitOfWorkInitializer>();
     }
 
     /// <summary>
@@ -238,38 +237,6 @@ public class ProcessController : ControllerBase
         }
     }
 
-    private async Task<ProblemDetails?> GetValidationProblemDetails(
-        Instance instance,
-        string currentTaskId,
-        string? language
-    )
-    {
-        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, currentTaskId, language);
-
-        var validationIssues = await _validationService.ValidateInstanceAtTask(
-            dataAccessor,
-            currentTaskId, // run full validation
-            ignoredValidators: null,
-            onlyIncrementalValidators: null,
-            language: language
-        );
-        var success = validationIssues.TrueForAll(v => v.Severity != ValidationIssueSeverity.Error);
-
-        if (!success)
-        {
-            var errorCount = validationIssues.Count(v => v.Severity == ValidationIssueSeverity.Error);
-            return new ProblemDetails()
-            {
-                Detail = $"{errorCount} validation errors found for task {currentTaskId}",
-                Status = StatusCodes.Status409Conflict,
-                Title = "Validation failed for task",
-                Extensions = new Dictionary<string, object?>() { { "validationIssues", validationIssues } },
-            };
-        }
-
-        return null;
-    }
-
     /// <summary>
     /// Change the instance's process state to next process element in accordance with process definition.
     /// </summary>
@@ -301,110 +268,16 @@ public class ProcessController : ControllerBase
         {
             Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
-            string? currentTaskId = instance.Process.CurrentTask?.ElementId;
-
-            if (currentTaskId is null)
+            var processNextRequest = new ProcessNextRequest
             {
-                return Conflict(
-                    new ProblemDetails()
-                    {
-                        Status = StatusCodes.Status409Conflict,
-                        Title = "Process is not started. Use start!",
-                    }
-                );
-            }
-
-            if (instance.Process.Ended.HasValue)
-            {
-                return Conflict(
-                    new ProblemDetails() { Status = StatusCodes.Status409Conflict, Title = "Process is ended." }
-                );
-            }
-
-            string? altinnTaskType = instance.Process.CurrentTask?.AltinnTaskType;
-
-            if (altinnTaskType == null)
-            {
-                return Conflict(
-                    new ProblemDetails()
-                    {
-                        Status = StatusCodes.Status409Conflict,
-                        Title = "Instance does not have current altinn task type information!",
-                    }
-                );
-            }
-
-            bool authorized = await _processEngineAuthorizer.AuthorizeProcessNext(instance, processNext?.Action);
-
-            if (!authorized)
-            {
-                return StatusCode(
-                    403,
-                    new ProblemDetails()
-                    {
-                        Status = StatusCodes.Status403Forbidden,
-                        Detail =
-                            $"User is not authorized to perform process next. Task ID: {currentTaskId}. Task type: {altinnTaskType}. Action: {processNext?.Action ?? "none"}.",
-                        Title = "Unauthorized",
-                    }
-                );
-            }
-
-            _logger.LogDebug(
-                "User successfully authorized to perform process next. Task ID: {CurrentTaskId}. Task type: {AltinnTaskType}. Action: {ProcessNextAction}.",
-                currentTaskId,
-                altinnTaskType,
-                LogSanitizer.Sanitize(processNext?.Action ?? "none")
-            );
-
-            string checkedAction = processNext?.Action ?? ConvertTaskTypeToAction(altinnTaskType);
-
-            var request = new ProcessNextRequest()
-            {
-                Instance = instance,
                 User = User,
-                Action = checkedAction,
+                Instance = instance,
+                Action = processNext?.Action,
                 ActionOnBehalfOf = processNext?.ActionOnBehalfOf,
                 Language = language,
             };
 
-            if (processNext?.Action is not null)
-            {
-                UserActionResult userActionResult = await _processEngine.HandleUserAction(request, ct);
-                if (userActionResult.ResultType is ResultType.Failure)
-                {
-                    var failedUserActionResult = new ProcessChangeResult()
-                    {
-                        Success = false,
-                        ErrorMessage = $"Action handler for action {request.Action} failed!",
-                        ErrorType = userActionResult.ErrorType,
-                    };
-
-                    return GetResultForError(failedUserActionResult);
-                }
-            }
-
-            // If the action is 'reject' the task is being abandoned, and we should skip validation, but only if reject has been allowed for the task in bpmn.
-            if (checkedAction == "reject" && _processReader.IsActionAllowedForTask(currentTaskId, checkedAction))
-            {
-                _logger.LogInformation(
-                    "Skipping validation during process next because the action is 'reject' and the task is being abandoned."
-                );
-            }
-            else
-            {
-                ProblemDetails? validationProblem = await GetValidationProblemDetails(
-                    instance,
-                    currentTaskId,
-                    language
-                );
-                if (validationProblem is not null)
-                {
-                    return Conflict(validationProblem);
-                }
-            }
-
-            ProcessChangeResult result = await _processEngine.Next(request);
+            ProcessChangeResult result = await _processEngine.Next(processNextRequest, ct);
 
             if (!result.Success)
             {
@@ -420,58 +293,12 @@ public class ProcessController : ControllerBase
         }
         catch (PlatformHttpException e)
         {
-            _logger.LogError("Platform exception when processing next. {message}", e.Message);
+            _logger.LogError("Platform exception when processing next. {Message}", e.Message);
             return HandlePlatformHttpException(e, "Process next failed.");
         }
         catch (Exception exception)
         {
             return ExceptionResponse(exception, "Process next failed.");
-        }
-    }
-
-    private ActionResult<AppProcessState> GetResultForError(ProcessChangeResult result)
-    {
-        switch (result.ErrorType)
-        {
-            case ProcessErrorType.Conflict:
-                return Conflict(
-                    new ProblemDetails()
-                    {
-                        Detail = result.ErrorMessage,
-                        Status = StatusCodes.Status409Conflict,
-                        Title = "Conflict",
-                    }
-                );
-            case ProcessErrorType.Internal:
-                return StatusCode(
-                    500,
-                    new ProblemDetails()
-                    {
-                        Detail = result.ErrorMessage,
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Internal server error",
-                    }
-                );
-            case ProcessErrorType.Unauthorized:
-                return StatusCode(
-                    403,
-                    new ProblemDetails()
-                    {
-                        Detail = result.ErrorMessage,
-                        Status = StatusCodes.Status403Forbidden,
-                        Title = "Unauthorized",
-                    }
-                );
-            default:
-                return StatusCode(
-                    500,
-                    new ProblemDetails()
-                    {
-                        Detail = $"Unknown ProcessErrorType {result.ErrorType}",
-                        Status = StatusCodes.Status500InternalServerError,
-                        Title = "Internal server error",
-                    }
-                );
         }
     }
 
@@ -561,14 +388,14 @@ public class ProcessController : ControllerBase
 
             try
             {
-                ProcessNextRequest request = new ProcessNextRequest()
+                ProcessNextRequest request = new()
                 {
                     Instance = instance,
                     User = User,
-                    Action = ConvertTaskTypeToAction(instance.Process.CurrentTask.AltinnTaskType),
+                    Action = ProcessEngine.ConvertTaskTypeToAction(instance.Process.CurrentTask.AltinnTaskType),
                     Language = language,
                 };
-                var result = await _processEngine.Next(request);
+                ProcessChangeResult result = await _processEngine.Next(request);
 
                 if (!result.Success)
                 {
@@ -656,16 +483,18 @@ public class ProcessController : ControllerBase
                 appProcessState.CurrentTask.HasReadAccess = authDecisions.Single(a => a.Id == "read").Authorized;
                 appProcessState.CurrentTask.HasWriteAccess = authDecisions.Single(a => a.Id == "write").Authorized;
                 appProcessState.CurrentTask.UserActions = authDecisions;
+                appProcessState.CurrentTask.ElementType = flowElement.ElementType();
             }
         }
 
         var processTasks = new List<AppProcessTaskTypeInfo>();
-        foreach (var processElement in _processReader.GetAllFlowElements().OfType<ProcessTask>())
+        foreach (ProcessTask processElement in _processReader.GetAllFlowElements().OfType<ProcessTask>())
         {
             processTasks.Add(
                 new AppProcessTaskTypeInfo
                 {
                     ElementId = processElement.Id,
+                    ElementType = processElement.ElementType(),
                     AltinnTaskType = processElement.ExtensionElements?.TaskExtension?.TaskType,
                 }
             );
@@ -676,9 +505,72 @@ public class ProcessController : ControllerBase
         return appProcessState;
     }
 
+    private ActionResult<AppProcessState> GetResultForError(ProcessChangeResult result)
+    {
+        switch (result.ErrorType)
+        {
+            case ProcessErrorType.Conflict:
+                return Conflict(
+                    new ProblemDetails()
+                    {
+                        Detail = result.ErrorMessage,
+                        Status = StatusCodes.Status409Conflict,
+                        Title = result.ErrorTitle,
+                        Extensions = new Dictionary<string, object?>
+                        {
+                            { "validationIssues", result.ValidationIssues },
+                        },
+                    }
+                );
+            case ProcessErrorType.Internal:
+                return StatusCode(
+                    500,
+                    new ProblemDetails()
+                    {
+                        Detail = result.ErrorMessage,
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = result.ErrorTitle ?? "Internal server error",
+                    }
+                );
+            case ProcessErrorType.Unauthorized:
+                return StatusCode(
+                    403,
+                    new ProblemDetails()
+                    {
+                        Detail = result.ErrorMessage,
+                        Status = StatusCodes.Status403Forbidden,
+                        Title = result.ErrorTitle ?? "Unauthorized",
+                    }
+                );
+            default:
+                return StatusCode(
+                    500,
+                    new ProblemDetails()
+                    {
+                        Detail = $"Unknown ProcessErrorType {result.ErrorType}",
+                        Status = StatusCodes.Status500InternalServerError,
+                        Title = result.ErrorTitle ?? "Internal server error",
+                    }
+                );
+        }
+    }
+
     private ObjectResult ExceptionResponse(Exception exception, string message)
     {
         _logger.LogError(exception, message);
+
+        if (exception is PlatformHttpResponseSnapshotException phse)
+        {
+            return StatusCode(
+                phse.StatusCode,
+                new ProblemDetails()
+                {
+                    Detail = phse.Message,
+                    Status = phse.StatusCode,
+                    Title = message,
+                }
+            );
+        }
 
         if (exception is PlatformHttpException phe)
         {
@@ -717,26 +609,41 @@ public class ProcessController : ControllerBase
         );
     }
 
+    private async Task<ProblemDetails?> GetValidationProblemDetails(
+        Instance instance,
+        string currentTaskId,
+        string? language
+    )
+    {
+        var dataAccessor = await _instanceDataUnitOfWorkInitializer.Init(instance, currentTaskId, language);
+
+        var validationIssues = await _validationService.ValidateInstanceAtTask(
+            dataAccessor,
+            currentTaskId, // run full validation
+            ignoredValidators: null,
+            onlyIncrementalValidators: null,
+            language: language
+        );
+        var success = validationIssues.TrueForAll(v => v.Severity != ValidationIssueSeverity.Error);
+
+        if (!success)
+        {
+            var errorCount = validationIssues.Count(v => v.Severity == ValidationIssueSeverity.Error);
+            return new ProblemDetails()
+            {
+                Detail = $"{errorCount} validation errors found for task {currentTaskId}",
+                Status = StatusCodes.Status409Conflict,
+                Title = "Validation failed for task",
+                Extensions = new Dictionary<string, object?>() { { "validationIssues", validationIssues } },
+            };
+        }
+
+        return null;
+    }
+
     private async Task<List<UserAction>> AuthorizeActions(List<AltinnAction> actions, Instance instance)
     {
         return await _authorization.AuthorizeActions(instance, HttpContext.User, actions);
-    }
-
-    private static string ConvertTaskTypeToAction(string actionOrTaskType)
-    {
-        switch (actionOrTaskType)
-        {
-            case "data":
-            case "feedback":
-                return "write";
-            case "confirmation":
-                return "confirm";
-            case "signing":
-                return "sign";
-            default:
-                // Not any known task type, so assume it is an action type
-                return actionOrTaskType;
-        }
     }
 
     private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)

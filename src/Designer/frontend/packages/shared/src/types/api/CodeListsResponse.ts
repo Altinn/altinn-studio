@@ -1,3 +1,3 @@
-import type { CodeListData } from '../CodeListData';
+import type { CodeListDataWithTextResources } from '../CodeListDataWithTextResources';
 
-export type CodeListsResponse = CodeListData[];
+export type CodeListsResponse = CodeListDataWithTextResources[];

@@ -90,10 +90,12 @@ describe('ManualOptionsDialog', () => {
       options: [],
     };
 
-    await renderAndShowCodeListDialog({ props: { component: componentWithoutOptions } });
-    await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
+    await renderAndShowCodeListDialog({
+      props: { component: componentWithoutOptions },
+    });
+    await user.click(screen.getByRole('button', { name: /Lukk dialogvindu/ }));
 
-    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(handleComponentChange).toHaveBeenCalledTimes(1));
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...componentWithoutOptions,
       options: undefined,

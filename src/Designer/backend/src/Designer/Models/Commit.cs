@@ -1,7 +1,8 @@
+#nullable disable
 namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
-    /// Describes a 
+    /// Describes a
     /// </summary>
     public class Commit
     {

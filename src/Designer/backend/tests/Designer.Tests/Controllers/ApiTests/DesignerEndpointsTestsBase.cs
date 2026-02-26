@@ -4,14 +4,16 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Medallion.Threading;
 using Medallion.Threading.FileSystem;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace Designer.Tests.Controllers.ApiTests
 {
@@ -35,14 +37,18 @@ namespace Designer.Tests.Controllers.ApiTests
         // Most common tests configuration used. If needed override this method in the test class.
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
+            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
+            services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton<IDistributedLockProvider>(_ =>
             {
                 var directoryInfo = TestLockPathProvider.Instance.LockFileDirectory;
                 return new FileDistributedSynchronizationProvider(directoryInfo);
             });
+
+            // Use mock logger for Quartz to prevent ObjectDisposedException on LoggerFactory
+            var mockLoggerFactory = new Mock<ILoggerFactory>();
+            mockLoggerFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger>().Object);
+            Quartz.Logging.LogContext.SetCurrentLogProvider(mockLoggerFactory.Object);
         }
 
         /// <summary>
@@ -53,12 +59,11 @@ namespace Designer.Tests.Controllers.ApiTests
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = { new JsonStringEnumConverter() }
+            Converters = { new JsonStringEnumConverter() },
         };
 
-        public DesignerEndpointsTestsBase(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public DesignerEndpointsTestsBase(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         /// <summary>
         /// Copies a repository from the test repositories location to a temporary location for testing.
@@ -109,7 +114,13 @@ namespace Designer.Tests.Controllers.ApiTests
         /// <param name="targetOrg">Test organisation name.</param>
         /// <param name="targetRepository">test repository name.</param>
         /// <exception cref="InvalidOperationException"></exception>
-        protected async Task CopyOrgRepositoryForTest(string developer, string org, string repo, string targetOrg, string targetRepository)
+        protected async Task CopyOrgRepositoryForTest(
+            string developer,
+            string org,
+            string repo,
+            string targetOrg,
+            string targetRepository
+        )
         {
             if (TestOrgPath is not null)
             {
@@ -130,7 +141,13 @@ namespace Designer.Tests.Controllers.ApiTests
         /// <remarks>
         /// <see cref="CopyOrgRepositoryForTest"/> must be used first.
         /// </remarks>
-        protected async Task AddRepositoryToTestOrg(string developer, string org, string repo, string targetOrg, string targetRepository)
+        protected async Task AddRepositoryToTestOrg(
+            string developer,
+            string org,
+            string repo,
+            string targetOrg,
+            string targetRepository
+        )
         {
             if (TestOrgPath is null)
             {

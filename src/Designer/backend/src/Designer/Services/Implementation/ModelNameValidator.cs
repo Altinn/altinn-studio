@@ -22,33 +22,41 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class ModelNameValidator : IModelNameValidator
 {
     private readonly IXmlSchemaToJsonSchemaConverter _xmlSchemaToJsonSchemaConverter;
-    private readonly IJsonSchemaToXmlSchemaConverter _jsonSchemaToXmlSchemaConverter;
     private readonly IModelMetadataToCsharpConverter _modelMetadataToCsharpConverter;
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
-    public ModelNameValidator(IXmlSchemaToJsonSchemaConverter xmlSchemaToJsonSchemaConverter, IJsonSchemaToXmlSchemaConverter jsonSchemaToXmlSchemaConverter, IModelMetadataToCsharpConverter modelMetadataToCsharpConverter, IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+    public ModelNameValidator(
+        IXmlSchemaToJsonSchemaConverter xmlSchemaToJsonSchemaConverter,
+        IModelMetadataToCsharpConverter modelMetadataToCsharpConverter,
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory
+    )
     {
         _xmlSchemaToJsonSchemaConverter = xmlSchemaToJsonSchemaConverter;
-        _jsonSchemaToXmlSchemaConverter = jsonSchemaToXmlSchemaConverter;
         _modelMetadataToCsharpConverter = modelMetadataToCsharpConverter;
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
-
-    public async Task ValidateModelNameForNewXsdSchemaAsync(Stream xsdSchema, string fileName, AltinnRepoEditingContext altinnRepoEditingContext)
+    public async Task ValidateModelNameForNewXsdSchemaAsync(
+        Stream xsdSchema,
+        string fileName,
+        AltinnRepoEditingContext altinnRepoEditingContext
+    )
     {
-        var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+        var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
 
-        AltinnRepositoryType altinnRepositoryType = await repository.GetRepositoryType();
-        if (altinnRepositoryType != AltinnRepositoryType.App)
+        AltinnStudioSettings altinnStudioSettings = await repository.GetAltinnStudioSettings();
+        if (altinnStudioSettings.RepoType != AltinnRepositoryType.App)
         {
             return;
         }
 
         // Try to go through conversion all the way.
         // This will enforce either all files are written to disk or none if there is an error.
-        ModelMetadata modelMetadata = TestE2EConversion(xsdSchema);
-
+        ModelMetadata modelMetadata = TestE2EConversion(xsdSchema, altinnStudioSettings);
 
         string modelName = modelMetadata.GetRootElement().TypeName;
 
@@ -59,7 +67,9 @@ public class ModelNameValidator : IModelNameValidator
 
         var applicationMetadata = await repository.GetApplicationMetadata();
 
-        bool fileExistsByRelativePath = repository.FileExistsByRelativePath(Path.Combine(repository.GetRelativeModelFolder(), fileName));
+        bool fileExistsByRelativePath = repository.FileExistsByRelativePath(
+            Path.Combine(repository.GetRelativeModelFolder(), fileName)
+        );
 
         bool alreadyHasTypeName = CheckIfAppAlreadyHasTypeName(applicationMetadata, modelName);
 
@@ -69,7 +79,7 @@ public class ModelNameValidator : IModelNameValidator
         }
     }
 
-    private ModelMetadata TestE2EConversion(Stream xsdSchema)
+    private ModelMetadata TestE2EConversion(Stream xsdSchema, AltinnStudioSettings altinnStudioSettings)
     {
         using XmlReader xmlReader = XmlReader.Create(xsdSchema);
         var xmlSchema = XmlSchema.Read(xmlReader, (_, _) => { });
@@ -78,13 +88,24 @@ public class ModelNameValidator : IModelNameValidator
         var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
         var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
         var modelMetadata = metamodelConverter.Convert(SerializeJsonSchema(jsonSchema));
-        _modelMetadataToCsharpConverter.CreateModelFromMetadata(modelMetadata, separateNamespaces: false, useNullableReferenceTypes: false);
+        _modelMetadataToCsharpConverter.CreateModelFromMetadata(
+            modelMetadata,
+            separateNamespaces: false,
+            altinnStudioSettings.UseNullableReferenceTypes
+        );
         return modelMetadata;
     }
 
-    public async Task ValidateModelNameForNewJsonSchemaAsync(string modelName, AltinnRepoEditingContext altinnRepoEditingContext)
+    public async Task ValidateModelNameForNewJsonSchemaAsync(
+        string modelName,
+        AltinnRepoEditingContext altinnRepoEditingContext
+    )
     {
-        var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+        var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            altinnRepoEditingContext.Org,
+            altinnRepoEditingContext.Repo,
+            altinnRepoEditingContext.Developer
+        );
 
         if (!repository.ApplicationMetadataExists())
         {
@@ -103,15 +124,20 @@ public class ModelNameValidator : IModelNameValidator
 
     private bool CheckIfAppAlreadyHasTypeName(ApplicationMetadata metadata, string modelName)
     {
-        return metadata.DataTypes.Any(d => d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}"
-                                           || d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}.{modelName}");
+        return metadata.DataTypes.Any(d =>
+            d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}"
+            || d.AppLogic?.ClassRef == $"Altinn.App.Models.{modelName}.{modelName}"
+        );
     }
 
     private string SerializeJsonSchema(JsonSchema jsonSchema)
     {
-        return JsonSerializer.Serialize(jsonSchema, new JsonSerializerOptions()
-        {
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement)
-        });
+        return JsonSerializer.Serialize(
+            jsonSchema,
+            new JsonSerializerOptions()
+            {
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
+            }
+        );
     }
 }

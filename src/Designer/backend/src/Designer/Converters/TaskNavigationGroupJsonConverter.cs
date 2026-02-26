@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -7,7 +8,11 @@ namespace Altinn.Studio.Designer.Converters;
 
 public class TaskNavigationGroupJsonConverter : JsonConverter<TaskNavigationGroup>
 {
-    public override TaskNavigationGroup Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override TaskNavigationGroup Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         using var jsonDoc = JsonDocument.ParseValue(ref reader);
         var root = jsonDoc.RootElement;

@@ -9,7 +9,7 @@ export class CodeLists extends BasePage {
 
   public async waitForCodeListPageToLoad(): Promise<void> {
     const heading = this.page.getByRole('heading', {
-      name: this.textMock('app_content_library.code_lists.page_name'),
+      name: this.textMock('app_content_library.code_lists_with_text_resources.page_name'),
       level: 1,
       exact: true,
     });
@@ -20,7 +20,7 @@ export class CodeLists extends BasePage {
   public async clickOnAddNewCodeListDropdown(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('app_content_library.code_lists.add_new_code_list'),
+        name: this.textMock('app_content_library.code_lists_with_text_resources.add_new_code_list'),
       })
       .click();
   }
@@ -28,14 +28,18 @@ export class CodeLists extends BasePage {
   public async clickOnCreateNewCodelistButton(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('app_content_library.code_lists.create_new_code_list'),
+        name: this.textMock(
+          'app_content_library.code_lists_with_text_resources.create_new_code_list',
+        ),
       })
       .click();
   }
 
   public async verifyNewCodelistModalIsOpen(): Promise<void> {
     const modalTitle = this.page.getByRole('heading', {
-      name: this.textMock('app_content_library.code_lists.create_new_code_list_modal_title'),
+      name: this.textMock(
+        'app_content_library.code_lists_with_text_resources.create_new_code_list_modal_title',
+      ),
       level: 2,
     });
 
@@ -45,7 +49,9 @@ export class CodeLists extends BasePage {
   public async writeCodelistTitle(title: string): Promise<void> {
     await this.page
       .getByRole('textbox', {
-        name: this.textMock('app_content_library.code_lists.create_new_code_list_name'),
+        name: this.textMock(
+          'app_content_library.code_lists_with_text_resources.create_new_code_list_name',
+        ),
       })
       .fill(title);
   }
@@ -77,7 +83,7 @@ export class CodeLists extends BasePage {
 
   public async verifyThatCodeListIsVisible(title: string): Promise<void> {
     const codeList = this.page.getByTitle(
-      this.textMock('app_content_library.code_lists.code_list_details_title', {
+      this.textMock('app_content_library.code_lists_with_text_resources.code_list_details_title', {
         codeListTitle: title,
       }),
     );
@@ -87,7 +93,7 @@ export class CodeLists extends BasePage {
 
   public async codeListTitleExists(title: string): Promise<boolean> {
     const codeList = this.page.getByTitle(
-      this.textMock('app_content_library.code_lists.code_list_details_title', {
+      this.textMock('app_content_library.code_lists_with_text_resources.code_list_details_title', {
         codeListTitle: title,
       }),
     );
@@ -110,7 +116,7 @@ export class CodeLists extends BasePage {
   public async clickOnDeleteCodelistButton(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('app_content_library.code_lists.code_list_delete'),
+        name: this.textMock('app_content_library.code_lists_with_text_resources.code_list_delete'),
       })
       .click();
   }
@@ -150,7 +156,10 @@ export class CodeLists extends BasePage {
     this.page.once('dialog', async (dialog) => {
       expect(dialog.type()).toBe('confirm');
       expect(dialog.message()).toContain(
-        this.textMock('app_content_library.code_lists.code_list_delete_confirm', { codeListTitle }),
+        this.textMock(
+          'app_content_library.code_lists_with_text_resources.code_list_delete_confirm',
+          { codeListTitle },
+        ),
       );
       await dialog.accept();
     });
@@ -158,7 +167,7 @@ export class CodeLists extends BasePage {
 
   public async verifyThatCodeListIsNotVisible(title: string): Promise<void> {
     const codeList = this.page.getByTitle(
-      this.textMock('app_content_library.code_lists.code_list_details_title', {
+      this.textMock('app_content_library.code_lists_with_text_resources.code_list_details_title', {
         codeListTitle: title,
       }),
     );
@@ -194,7 +203,7 @@ export class CodeLists extends BasePage {
   private async clickOnUploadCodelistButton(): Promise<void> {
     await this.page
       .getByRole('button', {
-        name: this.textMock('app_content_library.code_lists.upload_code_list'),
+        name: this.textMock('app_content_library.code_lists_with_text_resources.upload_code_list'),
       })
       .click();
   }

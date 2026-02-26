@@ -14,7 +14,7 @@ export type StudioTextResourcePickerProps = Override<
     onValueChange: (id: string | null) => void;
     required?: boolean;
     textResources: TextResource[];
-    value?: string;
+    value?: string | null;
   },
   StudioComboboxProps
 >;

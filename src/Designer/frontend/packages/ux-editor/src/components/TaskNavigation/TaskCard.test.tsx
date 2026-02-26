@@ -54,15 +54,6 @@ describe('taskCard', () => {
     expect(queriesMock.deleteLayoutSet).toHaveBeenCalledWith(org, app, 'test');
   });
 
-  it('should set selected form layout set name when clicking on navigation button', async () => {
-    const user = userEvent.setup();
-    const setSelectedFormLayoutSetName = jest.fn();
-
-    render({ appContextProps: { setSelectedFormLayoutSetName } });
-    await user.click(screen.getByRole('button', { name: /ux_editor.task_card.ux_editor/ }));
-    expect(setSelectedFormLayoutSetName).toHaveBeenCalledWith('test');
-  });
-
   it('should open edit mode when clicking edit button', async () => {
     const user = userEvent.setup();
     render();

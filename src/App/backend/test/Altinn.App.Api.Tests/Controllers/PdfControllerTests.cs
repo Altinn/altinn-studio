@@ -9,10 +9,12 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -44,6 +46,7 @@ public class PdfControllerTests
     private readonly Mock<IAuthenticationContext> _authenticationContext = new();
 
     private readonly Mock<ILogger<PdfService>> _logger = new();
+    private readonly Mock<ITranslationService> _translationService = new();
 
     public PdfControllerTests()
     {
@@ -71,14 +74,14 @@ public class PdfControllerTests
     )
     {
         var pdfService = new PdfService(
-            _appResources.Object,
             _dataClient.Object,
             httpContextAccessor.Object,
             pdfGeneratorClient,
             _pdfGeneratorSettingsOptions,
             generalSettingsOptions,
             _logger.Object,
-            _authenticationContext.Object
+            _authenticationContext.Object,
+            _translationService.Object
         );
         return pdfService;
     }
@@ -101,6 +104,8 @@ public class PdfControllerTests
         var httpClient = new HttpClient(handler.Object);
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
+        hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Development);
 
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
@@ -108,7 +113,8 @@ public class PdfControllerTests
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
             _userTokenProvider.Object,
-            httpContextAccessor.Object
+            httpContextAccessor.Object,
+            hostEnvironment.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -136,10 +142,13 @@ public class PdfControllerTests
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .Callback<HttpRequestMessage, CancellationToken>(
-                    (m, c) => requestBody = m.Content!.ReadAsStringAsync().Result
-                )
-                .ReturnsAsync(mockResponse);
+                .Returns<HttpRequestMessage, CancellationToken>(
+                    async (m, c) =>
+                    {
+                        requestBody = await m.Content!.ReadAsStringAsync();
+                        return mockResponse;
+                    }
+                );
 
             var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId);
             result.Should().BeOfType(typeof(FileStreamResult));
@@ -148,7 +157,7 @@ public class PdfControllerTests
         requestBody
             .Should()
             .Contain(
-                @"url"":""http://local.altinn.cloud/org/app/#/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
+                @"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
         requestBody.Should().NotContain(@"name"":""frontendVersion");
     }
@@ -171,6 +180,8 @@ public class PdfControllerTests
         var httpClient = new HttpClient(handler.Object);
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
+        hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Development);
 
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
@@ -178,7 +189,8 @@ public class PdfControllerTests
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
             _userTokenProvider.Object,
-            httpContextAccessor.Object
+            httpContextAccessor.Object,
+            hostEnvironment.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -206,10 +218,13 @@ public class PdfControllerTests
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .Callback<HttpRequestMessage, CancellationToken>(
-                    (m, c) => requestBody = m.Content!.ReadAsStringAsync().Result
-                )
-                .ReturnsAsync(mockResponse);
+                .Returns<HttpRequestMessage, CancellationToken>(
+                    async (m, c) =>
+                    {
+                        requestBody = await m.Content!.ReadAsStringAsync();
+                        return mockResponse;
+                    }
+                );
 
             var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId);
             result.Should().BeOfType(typeof(FileStreamResult));
@@ -218,7 +233,7 @@ public class PdfControllerTests
         requestBody
             .Should()
             .Contain(
-                @"url"":""http://local.altinn.cloud/org/app/#/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
+                @"url"":""http://local.altinn.cloud/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
         requestBody
             .Should()
@@ -243,6 +258,8 @@ public class PdfControllerTests
         var httpClient = new HttpClient(handler.Object);
 
         var logger = new Mock<ILogger<PdfGeneratorClient>>();
+        var hostEnvironment = new Mock<IHostEnvironment>();
+        hostEnvironment.Setup(x => x.EnvironmentName).Returns(Environments.Production);
 
         var pdfGeneratorClient = new PdfGeneratorClient(
             logger.Object,
@@ -250,7 +267,8 @@ public class PdfControllerTests
             _pdfGeneratorSettingsOptions,
             _platformSettingsOptions,
             _userTokenProvider.Object,
-            httpContextAccessor.Object
+            httpContextAccessor.Object,
+            hostEnvironment.Object
         );
         var pdfService = NewPdfService(httpContextAccessor, pdfGeneratorClient, generalSettingsOptions);
         var pdfController = new PdfController(
@@ -278,10 +296,13 @@ public class PdfControllerTests
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>()
                 )
-                .Callback<HttpRequestMessage, CancellationToken>(
-                    (m, c) => requestBody = m.Content!.ReadAsStringAsync().Result
-                )
-                .ReturnsAsync(mockResponse);
+                .Returns<HttpRequestMessage, CancellationToken>(
+                    async (m, c) =>
+                    {
+                        requestBody = await m.Content!.ReadAsStringAsync();
+                        return mockResponse;
+                    }
+                );
 
             var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId);
             result.Should().BeOfType(typeof(FileStreamResult));
@@ -290,7 +311,7 @@ public class PdfControllerTests
         requestBody
             .Should()
             .Contain(
-                @"url"":""http://org.apps.tt02.altinn.no/org/app/#/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
+                @"url"":""http://org.apps.tt02.altinn.no/org/app/instance/12345/e11e3e0b-a45c-48fb-a968-8d4ddf868c80?pdf=1"
             );
         requestBody.Should().NotContain(@"name"":""frontendVersion");
     }

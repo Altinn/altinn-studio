@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<klassifikasjon xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/arkivmelding/opprett/v1">
+  <klassifikasjonssystemID>Organisasjonsnummer</klassifikasjonssystemID>
+  <klasseID>405003309</klasseID>
+</klassifikasjon>

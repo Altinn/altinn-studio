@@ -6,7 +6,7 @@ import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 import type { TaskEvent } from '../types/TaskEvent';
 import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
-import { useStudioRecommendedNextActionContext } from '@studio/components-legacy';
+import { useStudioRecommendedNextActionContext } from '@studio/components';
 import type Modeler from 'bpmn-js/lib/Modeler';
 
 // Wrapper around bpmn-js to Reactify it
@@ -102,17 +102,17 @@ function useModelerEventListener<Event>(eventName: string, callback: (event: Eve
 }
 
 function useEditorCallback(): (div: HTMLDivElement) => void {
-  const { initialBpmnXml, modelerRef, setIsInitialized } = useBpmnContext();
+  const { initialBpmnXml, modelerRef, setIsInitialized, appVersion } = useBpmnContext();
 
   const initialize = useCallback(
     (div: HTMLDivElement) => {
-      const modeler = BpmnModelerInstance.getInstance(div);
+      const modeler = BpmnModelerInstance.getInstance(div, appVersion);
       if (!modelerRef.current) {
         modelerRef.current = modeler;
         initializeEditor(modeler, initialBpmnXml).then(() => setIsInitialized(true));
       }
     },
-    [setIsInitialized, modelerRef, initialBpmnXml],
+    [setIsInitialized, modelerRef, initialBpmnXml, appVersion],
   );
 
   const cleanUp = useCallback(() => {

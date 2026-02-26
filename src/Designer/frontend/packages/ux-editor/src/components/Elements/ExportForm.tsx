@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { StudioBlobDownloader } from '@studio/components-legacy';
+import React, { useMemo } from 'react';
+import { StudioBlobDownloader } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
 import { useTextResourcesQuery, useOptionListsQuery } from 'app-shared/hooks/queries';
@@ -37,25 +37,20 @@ export const ExportForm = ({ formLayoutSetName }: ExportFormProps) => {
     [formLayouts, textResources, settings, formLayoutSetName, app, optionListsData],
   );
 
-  const [exportFormat, setExportFormat] = React.useState<ExportFormType>({
-    appId: '',
-    formId: '',
-    pages: [],
-  });
-
-  useEffect(() => {
+  const generateData = (): string => {
     if (formLayouts && textResources) {
-      const generatedExportFormat = exportUtils.generateExportFormFormat();
-      setExportFormat(generatedExportFormat);
+      const generatedExportFormat: ExportFormType = exportUtils.generateExportFormFormat();
+      return JSON.stringify(generatedExportFormat);
     }
-  }, [formLayouts, textResources, exportUtils]);
+    return JSON.stringify({ appId: '', formId: '', pages: [] });
+  };
 
   return (
     <StudioBlobDownloader
       fileName={`${formLayoutSetName}.json`}
       fileType='application/json'
       linkText={t('ux_editor.top_bar.export_form')}
-      data={JSON.stringify(exportFormat)}
+      getData={generateData}
     />
   );
 };

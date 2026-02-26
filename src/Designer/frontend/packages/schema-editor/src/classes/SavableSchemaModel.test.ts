@@ -5,7 +5,6 @@ import {
   uiSchemaNodesMock,
   definitionNodeMock,
   fieldNode1Mock,
-  combinationNodeMock,
 } from '../../test/mocks/uiSchemaMock';
 
 describe('SavableSchemaModel', () => {
@@ -18,57 +17,45 @@ describe('SavableSchemaModel', () => {
 
   afterEach(jest.clearAllMocks);
 
-  describe('addField', () => {
+  describe('addFieldAndSave', () => {
     it('Adds a field, saves the model once and returns the new node', () => {
       const savableSchema = setupSchema();
       const name = 'field';
-      const field = savableSchema.addField(name);
+      const field = savableSchema.addFieldAndSave(name);
       expect(savableSchema.hasNode(field.schemaPointer)).toBe(true);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
     });
   });
 
-  describe('addCombination', () => {
+  describe('addCombinationAndSave', () => {
     it('Adds a combination, saves the model once and returns the new node', () => {
       const savableSchema = setupSchema();
       const name = 'combination';
-      const combination = savableSchema.addCombination(name);
+      const combination = savableSchema.addCombinationAndSave(name);
       expect(savableSchema.hasNode(combination.schemaPointer)).toBe(true);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
     });
   });
 
-  describe('addReference', () => {
+  describe('addReferenceAndSave', () => {
     it('Adds a reference, saves the model once and returns the new node', () => {
       const savableSchema = setupSchema();
       const name = 'reference';
       const referenceName = extractNameFromPointer(definitionNodeMock.schemaPointer);
-      const reference = savableSchema.addReference(name, referenceName);
+      const reference = savableSchema.addReferenceAndSave(name, referenceName);
       expect(savableSchema.hasNode(reference.schemaPointer)).toBe(true);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
     });
   });
 
-  describe('addFieldType', () => {
-    it('Adds a field definition, saves the model once and returns the new node', () => {
-      const savableSchema = setupSchema();
-      const name = 'testdef';
-      const definitionNode = savableSchema.addFieldType(name);
-      expect(savableSchema.hasDefinition(name)).toBe(true);
-      expect(savableSchema.getDefinition(name)).toBe(definitionNode);
-      expect(save).toHaveBeenCalledTimes(1);
-      expect(save).toHaveBeenCalledWith(savableSchema);
-    });
-  });
-
-  describe('deleteNode', () => {
+  describe('deleteNodeAndSave', () => {
     it('Deletes a node, saves the model once and returns the object', () => {
       const savableSchema = setupSchema();
       const { schemaPointer } = fieldNode1Mock;
-      const result = savableSchema.deleteNode(schemaPointer);
+      const result = savableSchema.deleteNodeAndSave(schemaPointer);
       expect(savableSchema.hasNode(schemaPointer)).toBe(false);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
@@ -76,12 +63,12 @@ describe('SavableSchemaModel', () => {
     });
   });
 
-  describe('convertToDefinition', () => {
+  describe('convertToDefinitionAndSave', () => {
     it('Converts a node to a definition, saves the model once and returns the object', () => {
       const savableSchema = setupSchema();
       const { schemaPointer } = fieldNode1Mock;
       const name = extractNameFromPointer(schemaPointer);
-      const result = savableSchema.convertToDefinition(schemaPointer);
+      const result = savableSchema.convertToDefinitionAndSave(schemaPointer);
       expect(savableSchema.hasDefinition(name)).toBe(true);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
@@ -89,7 +76,7 @@ describe('SavableSchemaModel', () => {
     });
   });
 
-  describe('moveNode', () => {
+  describe('moveNodeAndSave', () => {
     it('Moves a node, saves the model once and returns the moved node', () => {
       const savableSchema = setupSchema();
       const { schemaPointer } = fieldNode1Mock;
@@ -98,25 +85,11 @@ describe('SavableSchemaModel', () => {
         parentPointer: ROOT_POINTER,
         index: -1,
       };
-      const movedNode = savableSchema.moveNode(schemaPointer, target);
+      const movedNode = savableSchema.moveNodeAndSave(schemaPointer, target);
       expect(savableSchema.doesNodeHaveChildWithName(ROOT_POINTER, name)).toBe(true);
       expect(save).toHaveBeenCalledTimes(1);
       expect(save).toHaveBeenCalledWith(savableSchema);
       expect(movedNode).toBe(savableSchema.getNodeBySchemaPointer(movedNode.schemaPointer));
-    });
-  });
-
-  describe('updateNode', () => {
-    it('Updates a node, saves the model once and returns the object', () => {
-      const savableSchema = setupSchema();
-      const { schemaPointer } = combinationNodeMock;
-      const newNode = savableSchema.getNodeBySchemaPointer(schemaPointer);
-      newNode.isRequired = true;
-      const result = savableSchema.updateNode(schemaPointer, newNode);
-      expect(savableSchema.getNodeBySchemaPointer(schemaPointer).isRequired).toBe(true);
-      expect(save).toHaveBeenCalledTimes(1);
-      expect(save).toHaveBeenCalledWith(savableSchema);
-      expect(result).toBe(savableSchema);
     });
   });
 });

@@ -3,13 +3,12 @@ import { type Repository, type User } from 'app-shared/types/Repository';
 import { useTranslation } from 'react-i18next';
 import { useUserNameAndOrg } from 'app-shared/hooks/useUserNameAndOrg';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useMediaQuery, StudioAvatar } from '@studio/components-legacy';
 import {
-  useMediaQuery,
-  StudioAvatar,
   StudioPageHeader,
   type StudioProfileMenuItem,
   type StudioProfileMenuGroup,
-} from '@studio/components-legacy';
+} from '@studio/components';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
@@ -43,7 +42,6 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   return (
     <StudioPageHeader.ProfileMenu
       triggerButtonText={shouldDisplayText ? userNameAndOrg : undefined}
-      ariaLabelTriggerButton={userNameAndOrg}
       profileImage={
         <StudioAvatar
           src={user?.avatar_url}
@@ -52,8 +50,6 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
         />
       }
       profileMenuGroups={profileMenuGroups}
-      color='light'
-      variant='preview'
     />
   );
 };

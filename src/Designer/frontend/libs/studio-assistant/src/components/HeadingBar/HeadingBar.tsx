@@ -22,7 +22,10 @@ export function HeadingBar({
 }: HeadingBarProps): ReactElement {
   const shouldShowToggleGroup = selectedToolColumnMode && onModeChange;
 
-  const getConnectionStatusDisplay = () => {
+  const getConnectionStatusDisplay = (): {
+    text: string;
+    color: 'warning' | 'success' | 'danger' | 'neutral';
+  } => {
     switch (connectionStatus) {
       case 'connecting':
         return { text: 'Kobler til...', color: 'warning' as const };

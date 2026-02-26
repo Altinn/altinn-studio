@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -18,7 +19,12 @@ namespace Altinn.Studio.Designer.Repository.Models
         /// <param name="app">app</param>
         /// <param name="httpContext">HttpContext</param>
         /// <returns></returns>
-        public static BaseEntity PopulateBaseProperties(this BaseEntity entity, string org, string app, HttpContext httpContext)
+        public static BaseEntity PopulateBaseProperties(
+            this BaseEntity entity,
+            string org,
+            string app,
+            HttpContext httpContext
+        )
         {
             entity.Org = org;
             entity.App = app;
@@ -28,7 +34,11 @@ namespace Altinn.Studio.Designer.Repository.Models
             return entity;
         }
 
-        public static BaseEntity PopulateBaseProperties(this BaseEntity entity, AltinnRepoEditingContext editingContext, TimeProvider timeProvider)
+        public static BaseEntity PopulateBaseProperties(
+            this BaseEntity entity,
+            AltinnRepoEditingContext editingContext,
+            TimeProvider timeProvider
+        )
         {
             entity.Org = editingContext.Org;
             entity.App = editingContext.Repo;

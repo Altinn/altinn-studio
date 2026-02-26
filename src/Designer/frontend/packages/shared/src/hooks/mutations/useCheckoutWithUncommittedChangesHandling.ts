@@ -1,8 +1,7 @@
 import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import { useCheckoutBranchMutation } from './useCheckoutBranchMutation';
-import type { UncommittedChangesError } from '../../types/api/BranchTypes';
-import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import type { RepoStatus, UncommittedChangesError } from '../../types/api/BranchTypes';
 import { HttpResponseUtils } from '../../utils/httpResponseUtils';
 
 interface UseCheckoutWithUncommittedChangesOptions {

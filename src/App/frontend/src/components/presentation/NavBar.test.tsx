@@ -4,6 +4,7 @@ import { screen } from '@testing-library/react';
 import mockAxios from 'jest-mock-axios';
 
 import { NavBar } from 'src/components/presentation/NavBar';
+import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { PresentationType, ProcessTaskType } from 'src/types';
 
@@ -21,7 +22,8 @@ const render = async ({ hideCloseButton, initialPage }: RenderNavBarProps) => {
     renderer: () => <NavBar />,
     initialPage,
     queries: {
-      fetchLayoutSettings: () => Promise.resolve({ pages: { hideCloseButton, order: ['1', '2', '3'] } }),
+      fetchLayoutSettings: () =>
+        Promise.resolve({ pages: { hideCloseButton, order: ['1', '2', '3'] } as unknown as IPagesSettingsWithOrder }),
     },
   });
 };

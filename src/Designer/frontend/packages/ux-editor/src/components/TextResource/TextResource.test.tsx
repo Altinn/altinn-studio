@@ -8,12 +8,9 @@ import { renderWithProviders } from '../../testing/mocks';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { typedLocalStorage } from '@studio/pure-functions';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
-import { emptyTextResourceListMock } from 'app-shared/mocks/emptyTextResourceListMock';
 
 const user = userEvent.setup();
 
@@ -34,7 +31,6 @@ describe('TextResource', () => {
   afterEach(() => {
     jest.clearAllMocks();
     queryClientMock.clear();
-    typedLocalStorage.removeItem('featureFlags');
   });
 
   it('Renders a button with the given label when no resource id is given', () => {
@@ -43,23 +39,8 @@ describe('TextResource', () => {
     expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
   });
 
-  it('Calls handleIdChange when the button is clicked', async () => {
+  it('Calls handleIdChange with expected id when card is opened, updated and saved', async () => {
     const label = 'Lorem ipsum';
-    renderTextResource({ label });
-    await user.click(screen.getByRole('button', { name: label }));
-    await fillTextAndSave();
-    expect(handleIdChange).toHaveBeenCalledTimes(1);
-  });
-
-  it('Opens the text resource fieldset when the text resource button is clicked', async () => {
-    const label = 'Lorem ipsum';
-    renderTextResource({ label });
-    await user.click(screen.getByRole('button', { name: label }));
-    expect(screen.getByRole('group', { name: label })).toBeInTheDocument();
-  });
-
-  it('Calls handleIdChange with expected id when save button is clicked', async () => {
-    const label = 'Title';
     renderTextResource({
       label,
       generateIdOptions: {
@@ -68,28 +49,12 @@ describe('TextResource', () => {
         textResourceKey: 'title',
       },
     });
-    const addButton = screen.getByRole('button', { name: label });
-    await user.click(addButton);
+    await openCard(label);
     await fillTextAndSave();
     expect(handleIdChange).toHaveBeenCalledTimes(1);
-    expect(handleIdChange).toHaveBeenCalledWith('Page1.test-id.title');
-  });
-
-  it('Calls handleIdChange with expected id when save button is clicked', async () => {
-    const label = 'Title';
-    renderTextResource({
-      label,
-      generateIdOptions: {
-        componentId: 'test-id',
-        layoutId: 'Page1',
-        textResourceKey: 'title',
-      },
-    });
-    const addButton = screen.getByRole('button', { name: label });
-    await user.click(addButton);
-    await fillTextAndSave();
-    expect(handleIdChange).toHaveBeenCalledTimes(1);
-    expect(handleIdChange).toHaveBeenCalledWith('Page1.test-id.title');
+    expect(handleIdChange).toHaveBeenCalledWith(
+      expect.stringMatching(/^Page1\.test-id\.title\..+$/),
+    );
   });
 
   it('Renders value of resource with given id', () => {
@@ -108,16 +73,6 @@ describe('TextResource', () => {
     renderTextResource({ label, textResourceId }, [textResource]);
     const button = screen.getByRole('button', { name: label });
     expect(button).toHaveTextContent(value);
-  });
-
-  it('Does not call handleIdChange when the button is clicked and there is already a binding', async () => {
-    const label = 'Title';
-    const textResourceId = 'some-id';
-    const value = 'Lorem ipsum dolor sit amet';
-    const textResource: ITextResource = { id: textResourceId, value };
-    renderTextResource({ label, textResourceId }, [textResource]);
-    await user.click(screen.getByRole('button', { name: label }));
-    expect(handleIdChange).not.toHaveBeenCalled();
   });
 
   it('Does not render search section by default', () => {
@@ -148,7 +103,7 @@ describe('TextResource', () => {
     expect(screen.getAllByRole('option')).toHaveLength(textResources.length + 1); // + 1 because of the "none" option
   });
 
-  it('Calls handleIdChange when selection in search section is changed', async () => {
+  it('Calls handleIdChange when selection in search section is changed and saved', async () => {
     await renderAndOpenSearchSection();
 
     await user.selectOptions(
@@ -161,22 +116,12 @@ describe('TextResource', () => {
     expect(handleIdChange).toHaveBeenCalledWith(textResources[1].id);
   });
 
-  it('Should call handleRemoveTextResource when "none" is selected', async () => {
-    await renderAndOpenSearchSection();
-    await user.selectOptions(
-      screen.getByRole('combobox'),
-      screen.getByRole('option', { name: textMock('ux_editor.search_text_resources_none') }),
-    );
-    await user.click(getSaveButton());
-    expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
-  });
-
   it('Calls handleRemoveTextResourceBinding when the user clicks the delete button and confirms', async () => {
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     const label = 'Test';
     const testTextResource = { id: idText, value: textValue };
     renderTextResource({ label, textResourceId: idText }, [testTextResource]);
-    await user.click(screen.getByRole('button', { name: label }));
+    await openCard(label);
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(handleRemoveTextResource).toHaveBeenCalledTimes(1);
   });
@@ -186,7 +131,7 @@ describe('TextResource', () => {
     const label = 'Test';
     const testTextResource = { id: idText, value: textValue };
     renderTextResource({ label, textResourceId: idText }, [testTextResource]);
-    await user.click(screen.getByRole('button', { name: label }));
+    await openCard(label);
     await user.click(screen.getByRole('button', { name: textMock('general.delete') }));
     expect(handleRemoveTextResource).not.toHaveBeenCalled();
   });
@@ -194,17 +139,19 @@ describe('TextResource', () => {
   it('Renders delete button as disabled when no handleRemoveTextResource is given', async () => {
     const label = 'Test';
     renderTextResource({ label, handleRemoveTextResource: undefined });
-    await user.click(screen.getByRole('button', { name: label }));
+    await openCard(label);
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeDisabled();
   });
 
-  it('Closes the text resource fieldset when the close button is clicked', async () => {
+  it('Closes the card when cancel button is clicked', async () => {
     const label = 'Test';
     renderTextResource({ label });
-    await user.click(screen.getByRole('button', { name: label }));
-    await fillTextAndSave();
 
-    expect(screen.queryByRole('group', { name: label })).not.toBeInTheDocument();
+    await openCard(label);
+    expect(textbox()).toBeInTheDocument();
+    const closeButton = screen.getByRole('button', { name: textMock('general.cancel') });
+    await user.click(closeButton);
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
   it('Displays textbox with given value', async () => {
@@ -212,43 +159,7 @@ describe('TextResource', () => {
     const textResourceId = textResources[0].id;
     renderTextResource({ label, textResourceId }, textResources);
     await user.click(screen.getByRole('button', { name: label }));
-    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
-    const textbox = screen.getByRole('textbox', { name: textboxLabel });
-    expect(textbox).toHaveValue(textResources[0].value);
-  });
-
-  it('Mutates text resource when save button is clicked', async () => {
-    const label = 'Test';
-    const textResourceId = textResources[0].id;
-    const upsertTextResources = jest
-      .fn()
-      .mockImplementation(() => Promise.resolve(emptyTextResourceListMock(DEFAULT_LANGUAGE)));
-    renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
-    await user.click(screen.getByRole('button', { name: label }));
-    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
-    const textbox = screen.getByRole('textbox', { name: textboxLabel });
-    await user.type(textbox, 'a');
-    await user.click(getSaveButton());
-    expect(upsertTextResources).toHaveBeenCalledTimes(1);
-    expect(upsertTextResources).toHaveBeenCalledWith(org, app, DEFAULT_LANGUAGE, {
-      [textResourceId]: textResources[0].value + 'a',
-    });
-    expect(appContextMock.updateTextsForPreview).toHaveBeenCalledTimes(1);
-    expect(appContextMock.updateTextsForPreview).toHaveBeenCalledWith(DEFAULT_LANGUAGE);
-  });
-
-  it('Disables save button when text is cleared', async () => {
-    const label = 'Test';
-    const textResourceId = textResources[0].id;
-    const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
-    renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
-    await user.click(screen.getByRole('button', { name: label }));
-    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
-    const textbox = screen.getByRole('textbox', { name: textboxLabel });
-    await user.clear(textbox);
-    const saveButton = getSaveButton();
-    expect(saveButton).toBeDisabled();
-    expect(upsertTextResources).toHaveBeenCalledTimes(0);
+    expect(textbox()).toHaveValue(textResources[0].value);
   });
 
   it('Does not show scrollbar when text content is shorter than default min height', async () => {
@@ -257,18 +168,26 @@ describe('TextResource', () => {
     const upsertTextResources = jest.fn().mockImplementation(() => Promise.resolve());
     renderTextResource({ label, textResourceId }, textResources, { upsertTextResources });
     await user.click(screen.getByRole('button', { name: label }));
-    const textboxLabel = textMock('ux_editor.text_resource_binding_text');
-    const textbox = screen.getByRole('textbox', { name: textboxLabel });
+    const textbox = screen.getByRole('textbox', {
+      name: textMock('ux_editor.text_resource_binding_text'),
+    });
     expect(textbox.style.height).toBe('100px'); // the min height passed to the useAutoSizeTextArea hook from TextResourceValueEditor
     expect(textbox.style.overflow).toBe('hidden');
   });
 });
 
 const getSaveButton = () => screen.getByRole('button', { name: textMock('general.save') });
+const openCard = async (label?: string) => {
+  const button = screen.getByRole('button', { name: label });
+  await user.click(button);
+};
+const textbox = () =>
+  screen.getByRole('textbox', {
+    name: textMock('ux_editor.text_resource_binding_text'),
+  });
 
 const fillTextAndSave = async (text: string = textValue) => {
-  const textbox = screen.getByRole('textbox');
-  await user.type(textbox, text);
+  await user.type(textbox(), text);
   await user.click(getSaveButton());
 };
 

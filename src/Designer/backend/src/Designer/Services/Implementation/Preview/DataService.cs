@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -8,14 +9,9 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Preview;
 
-public class DataService(
-        IDistributedCache distributedCache
-) : IDataService
+public class DataService(IDistributedCache distributedCache) : IDataService
 {
-    readonly DistributedCacheEntryOptions _cacheOptions = new()
-    {
-        SlidingExpiration = TimeSpan.FromMinutes(30),
-    };
+    readonly DistributedCacheEntryOptions _cacheOptions = new() { SlidingExpiration = TimeSpan.FromMinutes(30) };
 
     public DataElement CreateDataElement(int partyId, Guid instanceGuid, string dataTypeId)
     {
@@ -53,5 +49,4 @@ public class DataService(
         distributedCache.SetString(dataGuid.ToString(), JsonSerializer.Serialize(dataNode), _cacheOptions);
         return dataNode;
     }
-
 }

@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: runtime-obs
+
+resources:
+  - ../../base
+
+patches:
+  - path: patches/linkerd-injection.yaml
+  - path: patches/router-config.yaml
+  - path: patches/network-policy-labels.yaml
+  - path: patches/gateway-config.yaml
+  - path: patches/gateway-secrets.yaml
+  # Rename cluster-scoped resources to avoid conflicts with other deployments
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ClusterRole
+      name: otel-collector
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: runtime-otel-collector
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ClusterRoleBinding
+      name: otel-collector
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: runtime-otel-collector
+      - op: replace
+        path: /subjects/0/namespace
+        value: runtime-obs
+      - op: replace
+        path: /roleRef/name
+        value: runtime-otel-collector

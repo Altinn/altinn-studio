@@ -50,21 +50,3 @@ internal readonly record struct ValidAltinnPaymentConfiguration(
     string PaymentDataType,
     string PaymentReceiptPdfDataType
 );
-
-file static class ValidationExtensions
-{
-    internal static bool IsNullOrWhitespace(
-        [NotNullWhen(false)] this string? value,
-        [NotNullWhen(true)] ref List<string>? errors,
-        string error
-    )
-    {
-        var result = string.IsNullOrWhiteSpace(value);
-        if (result)
-        {
-            errors ??= new List<string>(1);
-            errors.Add(error);
-        }
-        return result;
-    }
-}

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "LinkPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "LinkPage-Header",
+        "type": "Header",
+        "size": "h2",
+        "textResourceBindings": {
+          "title": "Lenker"
+        }
+      },
+
+
+      {
+        "id": "PlainLink",
+        "type": "Link",
+        "textResourceBindings": {
+          "title": "Vanlig lenke"
+        },
+        "openInNewTab": true,
+        "style": "link"
+      },
+      {
+        "id": "LinkPage-Sub-Header",
+        "type": "Header",
+        "size": "h3",
+        "textResourceBindings": {
+          "title": "Lenker stylet som knapp"
+        }
+      },
+      {
+        "id": "LinkPageLeftAlign",
+        "type": "Link",
+        "textResourceBindings": {
+          "title": "Venstrestilt tekst"
+        },
+        "size": "lg",
+        "fullWidth": true,
+        "openInNewTab": true,
+        "style": "secondary",
+        "textAlign": "left"
+      },
+
+      {
+        "id": "LinkPageCenterAlign",
+        "type": "Link",
+        "textResourceBindings": {
+          "title": "Sentrert tekst"
+        },
+        "size": "lg",
+        "fullWidth": true,
+        "openInNewTab": true,
+        "style": "secondary",
+        "textAlign": "center"
+      },
+
+      {
+        "id": "LinkPageRightAlign",
+        "type": "Link",
+        "textResourceBindings": {
+          "title": "Høyrestilt tekst"
+        },
+        "size": "lg",
+        "fullWidth": true,
+        "openInNewTab": true,
+        "style": "secondary",
+        "textAlign": "right"
+      },
+
+
+      {
+        "id": "small-link-button",
+        "type": "Link",
+        "textResourceBindings": {
+          "title": "Liten knapp"
+        },
+        "size": "sm",
+        "fullWidth": false,
+        "openInNewTab": true,
+        "style": "primary"
+      },
+
+      {
+        "id": "medium-link-button",
+        "type": "Link",
+        "textResourceBindings": {
+          "title": "Medium knapp"
+        },
+        "size": "md",
+        "fullWidth": false,
+        "openInNewTab": true,
+        "style": "primary"
+      },
+
+      {
+        "id": "large-link-button",
+        "type": "Link",
+        "textResourceBindings": {
+          "title": "Large knapp"
+        },
+        "size": "lg",
+        "fullWidth": false,
+        "openInNewTab": true,
+        "style": "primary"
+      },
+
+      {
+        "id": "Link-NavigationButtons",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {}
+      }
+    ]
+  }
+}

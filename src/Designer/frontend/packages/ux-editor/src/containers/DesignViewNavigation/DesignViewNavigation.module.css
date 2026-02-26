@@ -1,3 +1,10 @@
+.sectionHeader {
+  background-color: var(--ds-color-surface-neutral);
+  padding-inline: var(--ds-size-4);
+  height: var(--ds-size-15);
+  align-items: center;
+}
+
 .menu {
   align-items: center;
 }

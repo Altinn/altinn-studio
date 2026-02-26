@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner, StudioErrorMessage } from '@studio/components-legacy';
-import { StudioDeleteButton } from '@studio/components';
+import { StudioDeleteButton, StudioSpinner, StudioValidationMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
@@ -11,43 +10,63 @@ import { ManualOptionsPanel } from './ManualOptionsPanel';
 import { handleOptionsChange, resetComponentOptions } from '../../utils/optionsUtils';
 import classes from './OptionListEditor.module.css';
 import type { ITextResources } from 'app-shared/types/global';
+import { retrieveOptionsType } from '../../utils/retrieveOptionsType';
+import { OptionsType } from '../../enums/OptionsType';
+import type { CodeListIdContextData } from '../../types/CodeListIdContextData';
+import { Guard } from '@studio/guard';
+import { PublishedCodeListEditor } from './PublishedCodeListEditor';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
 > & {
+  codeListIdContextData: CodeListIdContextData;
   textResources: ITextResources;
-  onEditButtonClick: () => void;
+  onEditInternalButtonClick: () => void;
 };
 
 export function OptionListEditor({
+  codeListIdContextData,
   component,
   handleComponentChange,
-  onEditButtonClick,
+  onEditInternalButtonClick,
   textResources,
-}: OptionListEditorProps): React.ReactNode {
+}: OptionListEditorProps): React.ReactElement {
   const handleDeleteButtonClick = () => {
     const updatedComponent = resetComponentOptions(component);
     handleOptionsChange(updatedComponent, handleComponentChange);
   };
 
-  if (component.options !== undefined) {
-    return (
-      <ManualOptionsPanel
-        component={component}
-        onDeleteButtonClick={handleDeleteButtonClick}
-        onEditButtonClick={onEditButtonClick}
-        textResources={textResources}
-      />
-    );
-  } else {
-    return (
-      <OptionListResolver
-        optionsId={component.optionsId}
-        onDeleteButtonClick={handleDeleteButtonClick}
-        textResources={textResources}
-      />
-    );
+  const type = retrieveOptionsType(component, codeListIdContextData);
+  Guard.againstNull(type);
+  Guard.againstInvalidValue<OptionsType, OptionsType.CustomId>(type, OptionsType.CustomId);
+
+  switch (type) {
+    case OptionsType.Internal:
+      return (
+        <ManualOptionsPanel
+          component={component}
+          onDeleteButtonClick={handleDeleteButtonClick}
+          onEditButtonClick={onEditInternalButtonClick}
+          textResources={textResources}
+        />
+      );
+    case OptionsType.FromAppLibrary:
+      return (
+        <OptionListResolver
+          optionsId={component.optionsId}
+          onDeleteButtonClick={handleDeleteButtonClick}
+          textResources={textResources}
+        />
+      );
+    case OptionsType.Published:
+      return (
+        <PublishedCodeListEditor
+          component={component}
+          handleComponentChange={handleComponentChange}
+          orgName={codeListIdContextData.orgName}
+        />
+      );
   }
 }
 
@@ -69,14 +88,17 @@ function OptionListResolver({
   switch (status) {
     case 'pending':
       return (
-        <StudioSpinner spinnerTitle={t('ux_editor.modal_properties_code_list_spinner_title')} />
+        <StudioSpinner
+          aria-hidden
+          spinnerTitle={t('ux_editor.modal_properties_code_list_spinner_title')}
+        />
       );
     case 'error':
       return (
         <>
-          <StudioErrorMessage>
+          <StudioValidationMessage>
             {t('ux_editor.modal_properties_fetch_option_list_error_message')}
-          </StudioErrorMessage>
+          </StudioValidationMessage>
           <StudioDeleteButton
             className={classes.deleteButton}
             onDelete={onDeleteButtonClick}

@@ -32,17 +32,17 @@ describe('EditTab', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('should render spinner', () => {
-    renderEditTab();
+    renderEditTabWithoutData();
     expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
   });
 
   it('Makes the spinner disappear when the data is loaded', async () => {
     renderEditTab();
-    await waitForSpinnerToBeRemoved();
+    expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument();
   });
 
   it('should render error message when a query fails', async () => {
-    renderEditTab({
+    renderEditTabWithoutData({
       queries: { getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()) },
     });
 
@@ -153,12 +153,33 @@ type RenderEditTabArgs = {
   props?: Partial<EditTabProps>;
 } & Partial<ExtendedRenderOptions>;
 
-function renderEditTab({
+function renderEditTabWithoutData({
   props,
+  appRouteParams = defaultAppRouteParams,
   queryClient = createQueryClientMock(),
   ...rest
 }: RenderEditTabArgs = {}) {
   return renderWithProviders(<EditTab {...defaultProps} {...props} />, {
+    appRouteParams,
+    queryClient,
+    ...rest,
+  });
+}
+
+function renderEditTab({
+  props,
+  appRouteParams = defaultAppRouteParams,
+  queryClient = createQueryClientMock(),
+  ...rest
+}: RenderEditTabArgs = {}) {
+  const { org, app } = appRouteParams;
+  const optionListIds: string[] = [];
+  const textResources: ITextResources = { [DEFAULT_LANGUAGE]: [] };
+  queryClient.setQueryData([QueryKey.OptionListIds, org, app], optionListIds);
+  queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
+
+  return renderWithProviders(<EditTab {...defaultProps} {...props} />, {
+    appRouteParams,
     queryClient,
     ...rest,
   });

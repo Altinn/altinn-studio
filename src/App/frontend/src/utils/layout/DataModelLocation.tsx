@@ -22,14 +22,12 @@ const { Provider, useCtx } = createContext<DMLocation | undefined>({
 
 export const useCurrentDataModelLocation = () => useCtx()?.reference;
 
-export function DataModelLocationProvider({
-  groupBinding,
-  rowIndex,
-  children,
-}: PropsWithChildren<{
+interface LocationProps {
   groupBinding: IDataModelReference;
   rowIndex: number;
-}>) {
+}
+
+export function DataModelLocationProvider({ groupBinding, rowIndex, children }: PropsWithChildren<LocationProps>) {
   const parentCtx = useCtx();
   const value = useMemo(
     () => ({
@@ -119,4 +117,73 @@ export function useIndexedId(baseId: string | undefined, skipLastMutator?: boole
 export function useIndexedId(baseId: unknown, skipLastMutator = false) {
   const idMutator = useComponentIdMutator(skipLastMutator);
   return useMemo(() => (typeof baseId === 'string' ? idMutator(baseId) : baseId), [baseId, idMutator]);
+}
+
+/**
+ * Parses a field path to extract group binding contexts for all array indexes found.
+ *
+ * For example, given "people[0].addresses[1].street", this returns:
+ * [
+ *   { groupBinding: { dataType, field: "people" }, rowIndex: 0 },
+ *   { groupBinding: { dataType, field: "people[0].addresses" }, rowIndex: 1 }
+ * ]
+ */
+function parseGroupContexts(reference: IDataModelReference) {
+  const contexts: LocationProps[] = [];
+
+  const parts = reference.field.split('.');
+  let currentPath = '';
+
+  for (const part of parts) {
+    if (currentPath) {
+      currentPath += '.';
+    }
+
+    // Check if this part contains an array index
+    const arrayMatch = part.match(/^(.+)\[(\d+)]$/);
+    if (arrayMatch) {
+      const [, arrayName, indexStr] = arrayMatch;
+      const groupPath = currentPath + arrayName;
+      const rowIndex = parseInt(indexStr, 10);
+
+      contexts.push({
+        groupBinding: { dataType: reference.dataType, field: groupPath },
+        rowIndex,
+      });
+
+      currentPath += part;
+    } else {
+      currentPath += part;
+    }
+  }
+
+  return contexts;
+}
+
+interface NestedLocationProps {
+  reference: IDataModelReference;
+}
+
+/**
+ * Component to render nested DataModelLocationProviders for field paths with repeating group indexes.
+ */
+export function NestedDataModelLocationProviders({ reference, children }: PropsWithChildren<NestedLocationProps>) {
+  const groupContexts = parseGroupContexts(reference);
+  if (groupContexts.length === 0) {
+    return children;
+  }
+
+  // Recursively nest the providers from outermost to innermost
+  return groupContexts.reduceRight(
+    (child, { groupBinding, rowIndex }) => (
+      <DataModelLocationProvider
+        key={`${groupBinding.dataType}-${groupBinding.field}-${rowIndex}`}
+        groupBinding={groupBinding}
+        rowIndex={rowIndex}
+      >
+        {child}
+      </DataModelLocationProvider>
+    ),
+    children as React.ReactElement,
+  );
 }

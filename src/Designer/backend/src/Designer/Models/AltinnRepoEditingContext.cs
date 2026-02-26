@@ -8,19 +8,15 @@ namespace Altinn.Studio.Designer.Models
     /// A context class representing an Altinn repository in editing mode.
     /// This class in part of internal domain model and should not be exposed to the outside world.
     /// </summary>
-    public class AltinnRepoEditingContext : AltinnRepoContext
+    public record AltinnRepoEditingContext : AltinnRepoContext
     {
         /// <summary>
         /// Developer that is editing the repository.
         /// </summary>
         public string Developer { get; }
 
-        /// <summary>
-        /// Optional branch to check out when working on this repository.
-        /// </summary>
-        public string Branch { get; }
-
-        private AltinnRepoEditingContext(string org, string repo, string developer, string branch = null) : base(org, repo)
+        protected AltinnRepoEditingContext(string org, string repo, string developer)
+            : base(org, repo)
         {
             ValidateDeveloper(developer);
             branch = NormalizeBranch(branch);
@@ -69,5 +65,7 @@ namespace Altinn.Studio.Designer.Models
         {
             return new AltinnRepoEditingContext(org, repo, developer, branch);
         }
+
+        public string Path => System.IO.Path.Join(Developer, Org, Repo);
     }
 }

@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 
@@ -6,9 +5,7 @@ namespace Altinn.Studio.Designer.Helpers.Extensions;
 
 public static class DictionaryExtensions
 {
-    public static bool IsEqualTo(
-        this Dictionary<string, string>? first,
-        Dictionary<string, string>? second)
+    public static bool IsEqualTo(this Dictionary<string, string>? first, Dictionary<string, string>? second)
     {
         if (first is null && second is null)
         {

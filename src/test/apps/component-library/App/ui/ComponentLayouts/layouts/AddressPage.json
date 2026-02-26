@@ -1,0 +1,79 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "AddressPage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "size": "h2",
+        "id": "AddressPage-Header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "AddressPage"
+        }
+      },
+      {
+        "size": "h3",
+        "id": "AddressPage-Header-Component",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Component"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "address": "street",
+          "zipCode": "postnr",
+          "postPlace": "city",
+          "careOf": "co",
+          "houseNumber": "streetnr"
+        },
+        "simplified": false,
+        "saveWhileTyping": 400,
+        "id": "AddressPage-Address",
+        "type": "Address",
+        "required": true
+      },
+      {
+        "size": "h3",
+        "id": "AddressPage-Header-Summary",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary"
+        }
+      },
+      {
+        "componentRef": "AddressPage-Address",
+        "id": "AddressPage-Summary",
+        "type": "Summary",
+        "largeGroup": false
+      },
+      {
+        "size": "h3",
+        "id": "AddressPage-Header-Summary2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        }
+      },
+      {
+        "id": "AddressPage-Summary2",
+        "type": "Summary2",
+        "hideEmptyFields": true,
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "AddressPage-Address"
+        }
+      },
+      {
+        "id": "AddressPage-NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}

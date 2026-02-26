@@ -36,7 +36,7 @@ export const consequencesDialogData: ConsequencesDialogData = [
       { textKey: 'app_deployment.unpublish_alternatives_make_unavailable' },
       {
         textKey: 'app_deployment.unpublish_alternatives_change_access',
-        link: altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/logic/instantiation/' }),
+        link: altinnDocsUrl({ relativeUrl: 'altinn-studio/v8/reference/logic/instantiation/' }),
       },
       { textKey: 'app_deployment.unpublish_alternatives_add_validation' },
     ],

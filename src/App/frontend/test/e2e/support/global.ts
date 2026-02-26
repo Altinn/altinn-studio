@@ -4,8 +4,8 @@ import type { ConsoleMessage } from 'cypress-fail-on-console-error';
 
 import type { CyUser, TenorUser } from 'test/e2e/support/auth';
 
+import type { IFeatureToggles } from 'src/features/toggles';
 import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
-import type { ILayoutSets } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { LooseAutocomplete } from 'src/types';
 
@@ -19,7 +19,7 @@ export type StartAppInstanceOptions = {
   // Tenor user to log in as (alternative to user)
   tenorUser?: TenorUser | null;
 
-  authenticationLevel?: string;
+  authenticationLevel?: '0' | '1' | '2';
 
   // JavaScript code to evaluate before starting the app instance (evaluates in the browser, in context of the app).
   // The code runs inside an async function, and if it ends with a return value, that value will assumed to be a
@@ -33,6 +33,7 @@ export type StartAppInstanceOptions = {
 export interface TestPdfOptions {
   snapshotName?: string;
   beforeReload?: () => void;
+  freeze?: boolean;
   callback: () => void;
   returnToForm?: boolean;
   enableResponseFuzzing?: boolean;
@@ -163,8 +164,6 @@ declare global {
         allLayoutsMutator?: (layouts: ILayouts) => void,
       ): Chainable<null>;
 
-      interceptLayoutSetsUiSettings(uiSettings: Partial<ILayoutSets['uiSettings']>): Chainable<null>;
-
       iframeCustom(): Chainable<null>;
 
       assertUser(user: CyUser): Chainable<null>;
@@ -203,7 +202,7 @@ declare global {
       /**
        * Select from a dropdown in the design system
        */
-      dsSelect(selector: string, value: string, debounce?: boolean): Chainable<null>;
+      dsSelect(selector: string, value: string | RegExp, debounce?: boolean): Chainable<null>;
 
       /**
        * Shortcut for clicking an element and waiting for it to disappear
@@ -324,6 +323,16 @@ declare global {
       gotoNavGroup(groupName: RegExp, device: 'mobile' | 'tablet' | 'desktop', pageName?: RegExp): Chainable<null>;
 
       openNavGroup(groupName: RegExp, pageName?: RegExp, subformName?: RegExp): Chainable<null>;
+
+      /**
+       * Assert the approximate number of pages in a printout by counting CSS break-before and break-after page properties
+       */
+      expectPageBreaks(expectedCount: number): Chainable<null>;
+
+      /**
+       * Set a feature toggle value via cookie
+       */
+      setFeatureToggle(toggleName: IFeatureToggles, value: boolean): Chainable<null>;
 
       ignoreConsoleMessages(consoleMessages: ConsoleMessage[]): Chainable<null>;
     }

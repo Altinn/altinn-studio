@@ -3,8 +3,8 @@
 type SlackChannel = 'product-altinn-studio' | 'altinn';
 
 const slackChannelMap: Record<SlackChannel, string> = {
-  'product-altinn-studio': 'https://altinn.slack.com/archives/C02EJ9HKQA3',
-  altinn: 'https://altinn.slack.com',
+  'product-altinn-studio': 'https://digdir-samarbeid.slack.com/archives/C02EJ9HKQA3',
+  altinn: 'https://digdir-samarbeid.slack.com',
 };
 
 export class SlackContactProvider implements GetInTouchProvider<SlackChannel> {

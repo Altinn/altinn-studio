@@ -1,23 +1,20 @@
-.label {
-  margin-top: var(--fds-spacing-7);
-  margin-bottom: var(--fds-spacing-1);
+.subjectHeader {
+  margin-top: var(--ds-size-8);
+  font-weight: var(--ds-font-weight-medium);
 }
 
-.chipWrapper {
-  display: flex;
-  flex-wrap: wrap;
+.subjectDescription {
+  color: var(--ds-color-text-subtle);
 }
 
-.dropdownWrapper {
-  margin-bottom: var(--fds-spacing-3);
+.personAccordion {
+  background-color: var(--ds-color-success-surface-tinted);
+  font-weight: var(--ds-font-weight-medium);
+  font-size: var(--ds-font-size-4);
 }
 
-.inputParagraph {
-  margin-bottom: var(--fds-spacing-1);
-}
-
-.chip {
-  margin: 0;
-  margin-right: var(--fds-spacing-1);
-  margin-top: var(--fds-spacing-1);
+.orgAccordion {
+  background-color: var(--ds-color-accent-surface-tinted);
+  font-weight: var(--ds-font-weight-medium);
+  font-size: var(--ds-font-size-4);
 }

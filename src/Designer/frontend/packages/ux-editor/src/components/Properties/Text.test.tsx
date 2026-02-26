@@ -67,14 +67,6 @@ describe('TextTab', () => {
       render({ props });
     });
 
-    it('should render sub title for texts', () => {
-      render({ props });
-      const textsSubTitle = screen.getByText(
-        textMock('ux_editor.properties_panel.texts.sub_title_texts'),
-      );
-      expect(textsSubTitle).toBeInTheDocument();
-    });
-
     it('should render all available textResourceBinding properties for the group component', () => {
       render({ props });
       textResourceBindingsPropertiesForComponentType(props.formItem.type).forEach((trbProperty) => {

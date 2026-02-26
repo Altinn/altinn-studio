@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { loadingClassName, useHasElementsByClass } from 'src/components/ReadyForPrint';
+import { loadingAttribute, useHasElementsByAttribute } from 'src/components/ReadyForPrint';
 import { useIsLoading } from 'src/core/loading/LoadingContext';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
-import { LangDataSourcesProvider } from 'src/features/language/LangDataSourcesProvider';
 import { useNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 
 interface Props extends PropsWithChildren {
@@ -21,18 +20,18 @@ interface Props extends PropsWithChildren {
  */
 export function RenderStart({ children, devTools = true, dataModelFetcher = true }: Props) {
   return (
-    <LangDataSourcesProvider>
+    <>
       <RunNavigationEffect />
       {children}
       {devTools && <DevTools />}
       {dataModelFetcher && <DataModelFetcher />}
-    </LangDataSourcesProvider>
+    </>
   );
 }
 
 function RunNavigationEffect() {
   const isLoading = useIsLoading();
-  const hasLoaders = useHasElementsByClass(loadingClassName);
+  const hasLoaders = useHasElementsByAttribute(loadingAttribute);
   const navigationEffect = useNavigationEffect();
   const location = useLocation().pathname;
 

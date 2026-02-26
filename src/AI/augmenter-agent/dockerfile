@@ -1,0 +1,23 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine@sha256:9b4b31da5246f575086b1901e9871b189ae2a80eb42fe9234e9d000b51febd4b AS build
+WORKDIR /app
+
+COPY src/Altinn.Augmenter.Agent/Altinn.Augmenter.Agent.csproj src/Altinn.Augmenter.Agent/
+RUN dotnet restore src/Altinn.Augmenter.Agent/Altinn.Augmenter.Agent.csproj
+
+COPY src/ src/
+RUN dotnet publish src/Altinn.Augmenter.Agent/Altinn.Augmenter.Agent.csproj -c Release -o /out --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:258b939d6d684ff05ad7ea16782b4bee55260de4acc6f99bec897fd11de7640c AS runtime
+WORKDIR /app
+
+RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community typst
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+
+COPY --from=build /out .
+
+ENV ASPNETCORE_URLS=http://+:8072
+EXPOSE 8072
+
+ENTRYPOINT ["dotnet", "Altinn.Augmenter.Agent.dll"]

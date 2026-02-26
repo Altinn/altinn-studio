@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -15,7 +16,9 @@ public class OptionValueConverter : JsonConverter<object>
             JsonTokenType.Number when reader.TryGetDouble(out double d) => d,
             JsonTokenType.True => true,
             JsonTokenType.False => false,
-            _ => throw new InvalidOptionsFormatException($"Unsupported JSON token for Value field, {typeToConvert}: {reader.TokenType}.")
+            _ => throw new InvalidOptionsFormatException(
+                $"Unsupported JSON token for Value field, {typeToConvert}: {reader.TokenType}."
+            ),
         };
     }
 
@@ -36,7 +39,9 @@ public class OptionValueConverter : JsonConverter<object>
                 writer.WriteBooleanValue(b);
                 break;
             default:
-                throw new InvalidOptionsFormatException($"{value} is an unsupported type for Value field. Accepted types are string, numbers and bool.");
+                throw new InvalidOptionsFormatException(
+                    $"{value} is an unsupported type for Value field. Accepted types are string, numbers and bool."
+                );
         }
     }
 }

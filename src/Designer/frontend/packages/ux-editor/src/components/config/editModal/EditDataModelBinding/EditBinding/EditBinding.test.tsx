@@ -114,15 +114,14 @@ describe('EditBinding', () => {
     await waitForElementToBeRemoved(() => screen.queryByTitle(loadingSpinnerTitle));
   });
 
-  it('should render field set', async () => {
+  it('should render card', async () => {
     renderEditBinding({});
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
     );
-
-    const fieldSet = screen.getByRole('group', { name: defaultEditBinding.label });
-    expect(fieldSet).toBeInTheDocument();
+    const card = screen.getByRole('region');
+    expect(card).toBeInTheDocument();
   });
 
   it('should display two selectors: data model and a data model field', async () => {
@@ -239,7 +238,7 @@ describe('EditBinding', () => {
     expect(errorMessage).not.toBeInTheDocument();
   });
 
-  it('should call handleComponentChange with new binding format when data model field is changed', async () => {
+  it('should call handleComponentChange with new binding format when data model field is changed and saved', async () => {
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditBinding({
@@ -263,6 +262,11 @@ describe('EditBinding', () => {
     const option2 = screen.getByRole('option', { name: 'field2' });
     await user.selectOptions(dataModelFieldSelector, option2);
 
+    const saveButton = screen.getByRole('button', {
+      name: textMock('right_menu.data_model_bindings_save_button'),
+    });
+    await user.click(saveButton);
+
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith(
       {
@@ -283,7 +287,7 @@ describe('EditBinding', () => {
     );
   });
 
-  it('should call handleComponentChange with new binding format when data model is changed', async () => {
+  it('should call handleComponentChange with new binding format when data model is changed and saved', async () => {
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditBinding({
@@ -307,23 +311,29 @@ describe('EditBinding', () => {
     const option2 = screen.getByRole('option', { name: secondDataModel });
     await user.selectOptions(dataModelSelector, option2);
 
+    const dataFieldSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    const secondDataFieldOption = screen.getByRole('option', { name: secondDataModelField });
+    await user.selectOptions(dataFieldSelector, secondDataFieldOption);
+
+    const saveButton = screen.getByRole('button', {
+      name: textMock('right_menu.data_model_bindings_save_button'),
+    });
+
+    await user.click(saveButton);
+
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
     expect(handleComponentChange).toHaveBeenCalledWith(
-      {
-        ...componentMocks[ComponentType.Input],
-        dataModelBindings: {
-          [defaultEditBinding.bindingKey]: {
-            field: '',
+      expect.objectContaining({
+        dataModelBindings: expect.objectContaining({
+          [defaultEditBinding.bindingKey]: expect.objectContaining({
+            field: 'field2',
             dataType: secondDataModel,
-          },
-        },
-        maxCount: undefined,
-        required: undefined,
-        timeStamp: undefined,
-      },
-      {
-        onSuccess: expect.any(Function),
-      },
+          }),
+        }),
+      }),
+      expect.any(Object),
     );
   });
 
@@ -366,5 +376,26 @@ describe('EditBinding', () => {
         onSuccess: expect.any(Function),
       },
     );
+  });
+
+  it('should close the EditBinding when clicking cancel', async () => {
+    const user = userEvent.setup();
+    const onSetDataModelSelectVisible = jest.fn();
+    renderEditBinding({
+      editBindingProps: {
+        ...defaultEditBinding,
+        onSetDataModelSelectVisible,
+      },
+    });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+    const cancelButton = screen.getByRole('button', {
+      name: textMock('general.cancel'),
+    });
+    await user.click(cancelButton);
+
+    expect(onSetDataModelSelectVisible).toHaveBeenCalledTimes(1);
+    expect(onSetDataModelSelectVisible).toHaveBeenCalledWith(false);
   });
 });

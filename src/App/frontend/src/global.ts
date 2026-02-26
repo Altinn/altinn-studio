@@ -1,16 +1,41 @@
 import type { QueryClient } from '@tanstack/react-query';
 
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IAttachmentsMap } from 'src/features/attachments';
+import type { IFooterLayout } from 'src/features/footer/types';
+import type { ILayoutSets } from 'src/features/form/layoutSets/types';
+import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { IFeatureTogglesOptionalMap } from 'src/features/toggles';
-import type { IRuleObject } from 'src/types';
+import type { IAppLanguage, IApplicationSettings, IParty, IProfile } from 'src/types/shared';
 
 ///<reference types="cypress-iframe" />
+
+export interface OrgName {
+  nb?: string;
+  nn?: string;
+  en?: string;
+}
+
+export type AltinnAppGlobalData = {
+  applicationMetadata: ApplicationMetadata;
+  footer: IFooterLayout;
+  layoutSets: ILayoutSets;
+  frontendSettings: IApplicationSettings;
+  availableLanguages: IAppLanguage[];
+  userProfile?: IProfile;
+  returnUrl?: string;
+  selectedParty?: IParty;
+  textResources?: ITextResourceResult;
+  orgName?: OrgName;
+  orgLogoUrl?: string;
+};
 
 declare global {
   interface Window {
     app: string;
     org: string;
     featureToggles: IFeatureTogglesOptionalMap;
+    altinnAppGlobalData: AltinnAppGlobalData;
 
     // Exposes our global query client, which is used to cache data from API calls. This is exposed so that Cypress
     // can inject data into the cache, and so that we can access the cache in tests. It is also used by Studio
@@ -38,9 +63,6 @@ declare global {
 
     // Allows forcing node properties validation always-on or always-off (defaults to auto-detection)
     forceNodePropertiesValidation: undefined | 'on' | 'off';
-
-    conditionalRuleHandlerObject: IRuleObject;
-    ruleHandlerObject: IRuleObject;
 
     /**
      * In React components, hierarchy generators, or other places that are run continuously, use window.logErrorOnce() instead

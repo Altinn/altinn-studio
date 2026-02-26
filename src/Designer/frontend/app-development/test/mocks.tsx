@@ -3,39 +3,25 @@ import React from 'react';
 import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { BrowserRouter } from 'react-router-dom';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import { PreviewContext, type PreviewContextProps } from '../contexts/PreviewContext';
+import { TestAppRouter } from '@studio/testing/testRoutingUtils';
 
 export const renderWithProviders =
   (
     queries: Partial<ServicesContextProps> = {},
     queryClient?: QueryClient,
     previewContextProps: Partial<PreviewContextProps> = {},
+    path?: string,
+    pathTemplate?: string,
   ) =>
   (component: ReactNode) => {
     const renderResult = render(
-      <ServicesContextProvider
-        {...queriesMock}
-        {...queries}
-        client={queryClient}
-        clientConfig={queryClientConfigMock}
-      >
-        <PreviewConnectionContextProvider>
-          <PreviewContext.Provider
-            value={{ ...defaultPreviewContextProps, ...previewContextProps }}
-          >
-            <BrowserRouter>{component}</BrowserRouter>
-          </PreviewContext.Provider>
-        </PreviewConnectionContextProvider>
-      </ServicesContextProvider>,
-    );
-    const rerender = (rerenderedComponent: ReactNode) =>
-      renderResult.rerender(
+      <TestAppRouter initialPath={path} pathTemplate={pathTemplate}>
         <ServicesContextProvider
           {...queriesMock}
           {...queries}
@@ -46,10 +32,30 @@ export const renderWithProviders =
             <PreviewContext.Provider
               value={{ ...defaultPreviewContextProps, ...previewContextProps }}
             >
-              <BrowserRouter>{rerenderedComponent}</BrowserRouter>
+              {component}
             </PreviewContext.Provider>
           </PreviewConnectionContextProvider>
-        </ServicesContextProvider>,
+        </ServicesContextProvider>
+      </TestAppRouter>,
+    );
+    const rerender = (rerenderedComponent: ReactNode) =>
+      renderResult.rerender(
+        <TestAppRouter initialPath={path} pathTemplate={pathTemplate}>
+          <ServicesContextProvider
+            {...queriesMock}
+            {...queries}
+            client={queryClient}
+            clientConfig={queryClientConfigMock}
+          >
+            <PreviewConnectionContextProvider>
+              <PreviewContext.Provider
+                value={{ ...defaultPreviewContextProps, ...previewContextProps }}
+              >
+                {rerenderedComponent}
+              </PreviewContext.Provider>
+            </PreviewConnectionContextProvider>
+          </ServicesContextProvider>
+        </TestAppRouter>,
       );
     return { renderResult: { ...renderResult, rerender } };
   };
@@ -59,14 +65,16 @@ export const renderHookWithProviders =
   (hook: () => any) => {
     const renderHookResult = renderHook(hook, {
       wrapper: ({ children }) => (
-        <ServicesContextProvider
-          {...queriesMock}
-          {...queries}
-          client={queryClient}
-          clientConfig={queryClientConfigMock}
-        >
-          <PreviewConnectionContextProvider>{children}</PreviewConnectionContextProvider>
-        </ServicesContextProvider>
+        <TestAppRouter>
+          <ServicesContextProvider
+            {...queriesMock}
+            {...queries}
+            client={queryClient}
+            clientConfig={queryClientConfigMock}
+          >
+            <PreviewConnectionContextProvider>{children}</PreviewConnectionContextProvider>
+          </ServicesContextProvider>
+        </TestAppRouter>
       ),
     });
     return { renderHookResult };

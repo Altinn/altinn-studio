@@ -1,0 +1,48 @@
+.listItem {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.button {
+  align-items: center;
+  border-radius: 0;
+  border-width: 0 0 0 var(--studio-treeitem-vertical-line-width);
+  color: var(--ds-color-text-default);
+  justify-content: left;
+  width: 100%;
+}
+
+.button[aria-selected='true'] {
+  background-color: var(--ds-color-surface-active);
+  border-color: var(--studio-treeitem-vertical-line-colour-root);
+}
+
+.listItem .listItem .button:not([aria-selected='true']) {
+  /* This should not apply to the top level, hence the nested .listItem selector */
+  border-color: var(--ds-color-border-default);
+}
+
+.button:focus {
+  z-index: 1;
+}
+
+.childItemList {
+  --icon-width: 1em;
+  --icon-left-spacing: calc(var(--studio-treeitem-vertical-line-width) + var(--ds-size-3));
+  --vertical-line-center: calc(var(--icon-left-spacing) + var(--icon-width) / 2);
+  --vertical-line-left-spacing: calc(
+    var(--vertical-line-center) - var(--studio-treeitem-vertical-line-width) / 2
+  );
+
+  padding-left: 0;
+  margin-left: var(--vertical-line-left-spacing);
+  box-shadow: var(--ds-color-neutral-border-subtle) var(--studio-treeitem-vertical-line-width) 0
+    inset;
+}
+
+.label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

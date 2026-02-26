@@ -1,0 +1,20 @@
+{
+  "id": "ttd/deploy-gitops-test",
+  "org": "ttd",
+  "title": {
+    "nb": "Test Deploy GitOps",
+    "en": "Test Deploy GitOps"
+  },
+  "dataTypes": [],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organisation": true,
+    "person": true,
+    "subUnit": false
+  },
+  "autoDeleteOnProcessEnd": false,
+  "created": "2024-01-01T00:00:00Z",
+  "createdBy": "testUser",
+  "lastChanged": "2024-01-01T00:00:00Z",
+  "lastChangedBy": "testUser"
+}

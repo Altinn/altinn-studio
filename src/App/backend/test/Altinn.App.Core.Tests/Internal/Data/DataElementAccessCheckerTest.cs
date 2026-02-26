@@ -3,6 +3,7 @@ using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
@@ -321,6 +322,39 @@ public class DataElementAccessCheckerTest
         Assert.Equal(StatusCodes.Status400BadRequest, deleteResult.Status!.Value);
         Assert.Equal("User Delete Disallowed", deleteResult.Title);
 
+        Assert.False(canDelete);
+    }
+
+    [Fact]
+    public async Task Mutators_BlockPdfDataType()
+    {
+        // Arrange
+        var fixture = Fixture.Create();
+        var instance = fixture.Data.DefaultInstance;
+        var dataType = fixture.Data.DataTypeA;
+
+        dataType.Id = PdfService.PdfElementType;
+
+        // Act
+        var createResult = await fixture.DataElementAccessChecker.GetCreateProblem(instance, dataType);
+        var updateResult = await fixture.DataElementAccessChecker.GetUpdateProblem(instance, dataType);
+        var deleteResult = await fixture.DataElementAccessChecker.GetDeleteProblem(instance, dataType, Guid.Empty);
+        var canCreate = await fixture.DataElementAccessChecker.CanCreate(instance, dataType);
+        var canUpdate = await fixture.DataElementAccessChecker.CanUpdate(instance, dataType);
+        var canDelete = await fixture.DataElementAccessChecker.CanDelete(instance, dataType, Guid.Empty);
+
+        // Assert
+        Assert.NotNull(createResult);
+        Assert.NotNull(updateResult);
+        Assert.NotNull(deleteResult);
+
+        Assert.Equal(StatusCodes.Status403Forbidden, createResult.Status!.Value);
+        Assert.Equal(StatusCodes.Status403Forbidden, updateResult.Status!.Value);
+        Assert.Equal(StatusCodes.Status403Forbidden, deleteResult.Status!.Value);
+        Assert.Contains("cannot be modified", createResult.Detail);
+
+        Assert.False(canCreate);
+        Assert.False(canUpdate);
         Assert.False(canDelete);
     }
 

@@ -1,11 +1,9 @@
 import React from 'react';
 
-import { AltinnContentIconFormData } from 'src/components/atoms/AltinnContentIconFormData';
-import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
+import { AltinnContentLoader } from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
 import { PresentationComponent, useHasPresentation } from 'src/components/presentation/Presentation';
 import { LoadingProvider } from 'src/core/loading/LoadingContext';
 import { Lang } from 'src/features/language/Lang';
-import { ProcessTaskType } from 'src/types';
 
 interface LoaderProps {
   reason: string; // The reason is used by developers to identify the reason for the loader
@@ -20,7 +18,6 @@ export const Loader = (props: LoaderProps) => {
       <LoadingProvider reason={props.reason}>
         <PresentationComponent
           header={<Lang id='instantiate.starting' />}
-          type={ProcessTaskType.Unknown}
           showNavbar={false}
           showNavigation={false}
         >
@@ -39,11 +36,10 @@ export const Loader = (props: LoaderProps) => {
 
 const InnerLoader = ({ reason, details }: LoaderProps) => (
   <AltinnContentLoader
+    variant='form'
     width='100%'
     height='400'
     reason={reason}
     details={details}
-  >
-    <AltinnContentIconFormData />
-  </AltinnContentLoader>
+  />
 );

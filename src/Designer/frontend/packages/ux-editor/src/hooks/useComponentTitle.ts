@@ -4,9 +4,9 @@ import type { FormContainer } from '../types/FormContainer';
 import type { FormComponent } from '../types/FormComponent';
 import { formItemConfigs } from '../data/formItemConfig';
 import type { IToolbarElement } from '../types/global';
-import { textResourcesByLanguageSelector } from '../selectors/textResourceSelectors';
+import { textResourcesByLanguageSelector } from 'app-shared/selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { useTextResourcesSelector } from './useTextResourcesSelector';
+import { useTextResourcesSelector } from 'app-shared/hooks';
 import type { ITextResource } from 'app-shared/types/global';
 import { getTextResource, getTitleByComponentType } from '../utils/language';
 

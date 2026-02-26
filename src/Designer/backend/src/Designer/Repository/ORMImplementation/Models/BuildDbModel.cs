@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
@@ -23,5 +24,5 @@ public enum BuildType
 {
     Deployment = 0,
     Decommission = 1,
-    Release = 2
+    Release = 2,
 }

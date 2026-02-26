@@ -1,4 +1,5 @@
 import type { ModdleElement } from 'bpmn-js/lib/BaseModeler';
+import type { Element } from 'bpmn-js/lib/model/Types';
 import { StudioModeler } from './StudioModeler';
 import { getPredefinedActions } from '../processActions';
 

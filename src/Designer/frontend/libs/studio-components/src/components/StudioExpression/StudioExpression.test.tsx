@@ -14,7 +14,7 @@ import {
 import userEvent from '@testing-library/user-event';
 import { GeneralRelationOperator } from './enums/GeneralRelationOperator';
 import { SimpleSubexpressionValueType } from './enums/SimpleSubexpressionValueType';
-import { expressionToString } from './converters/expressionToString';
+import { expressionToString } from '../StudioManualExpression/converters';
 import { LogicalTupleOperator } from './enums/LogicalTupleOperator';
 
 const onChange = jest.fn();

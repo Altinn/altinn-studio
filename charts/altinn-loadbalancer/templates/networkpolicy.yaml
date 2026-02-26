@@ -14,4 +14,8 @@ spec:
   - to:
     - namespaceSelector:
         matchLabels:
-          kubernetes.io/metadata.name: "default"  
+          kubernetes.io/metadata.name: "default"
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: "lhci"  

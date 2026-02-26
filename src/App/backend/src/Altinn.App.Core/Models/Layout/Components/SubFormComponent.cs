@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Text.Json;
+using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Expressions;
 
 namespace Altinn.App.Core.Models.Layout.Components;
@@ -5,62 +8,85 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// <summary>
 /// Component for handling subforms
 /// </summary>
-public record SubFormComponent : BaseComponent
+public sealed class SubFormComponent : Base.BaseLayoutComponent
 {
     /// <summary>Constructor</summary>
     /// <remarks>
     /// Note that some properties are commented out, as they are currently not used, and might allow expressions in the future
     /// </remarks>
-    public SubFormComponent(
-        string id,
-        string type,
-        IReadOnlyDictionary<string, ModelBinding>? dataModelBindings,
-        string layoutSetId,
-        // List<TableColumn> tableColumns,
-        // bool showAddButton,
-        // bool showDeleteButton,
-        Expression hidden,
-        Expression required,
-        Expression readOnly,
-        IReadOnlyDictionary<string, string>? additionalProperties
-    )
-        : base(id, type, dataModelBindings, hidden, required, readOnly, additionalProperties)
+    public static SubFormComponent Parse(JsonElement componentElement, string pageId, string layoutId)
     {
-        LayoutSetId = layoutSetId;
-        // TableColumns = tableColumns;
-        // ShowAddButton = showAddButton;
-        // ShowDeleteButton = showDeleteButton;
+        if (
+            !componentElement.TryGetProperty("layoutSet", out JsonElement layoutSetIdElement)
+            || layoutSetIdElement.ValueKind != JsonValueKind.String
+        )
+        {
+            throw new ArgumentException("SubFormComponent must have a string 'layoutSet' property.");
+        }
+        var layoutSetId = layoutSetIdElement.GetString() ?? throw new UnreachableException();
+
+        return new SubFormComponent()
+        {
+            // BaseComponent properties
+            Id = ParseId(componentElement),
+            Type = ParseType(componentElement),
+            PageId = pageId,
+            LayoutId = layoutId,
+            Required = ParseRequiredExpression(componentElement),
+            ReadOnly = ParseReadOnlyExpression(componentElement),
+            Hidden = ParseHiddenExpression(componentElement),
+            RemoveWhenHidden = ParseRemoveWhenHiddenExpression(componentElement),
+            DataModelBindings = ParseDataModelBindings(componentElement),
+            TextResourceBindings = ParseTextResourceBindings(componentElement),
+            // SubFormComponent properties
+            LayoutSetId = layoutSetId,
+        };
     }
 
     /// <summary>
     /// The layout set to load for this subform
     /// </summary>
-    public string LayoutSetId { get; }
+    public required string LayoutSetId { get; init; }
 
-    // /// <summary>
-    // /// Specification for preview of subForms in main form
-    // /// </summary>
-    // public List<TableColumn> TableColumns { get; }
-    // /// <summary>
-    // /// Show button to add a new row
-    // /// </summary>
-    // public bool ShowAddButton { get; }
-    // /// <summary>
-    // /// Show button to remove a row
-    // /// </summary>
-    // public bool ShowDeleteButton { get; }
+    /// <inheritdoc />
+    public override async Task<ComponentContext> GetContext(
+        LayoutEvaluatorState state,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? rowIndexes,
+        Dictionary<string, LayoutSetComponent> layoutsLookup
+    )
+    {
+        if (!layoutsLookup.TryGetValue(LayoutSetId, out var layoutSet))
+        {
+            throw new ArgumentException(
+                $"SubFormComponent {Id} is configured to use Layout set {LayoutSetId}, but it was not found."
+            );
+        }
 
-    /// <summary>
-    /// Specification for preview of subForms in main form
-    /// </summary>
-    /// <param name="HeaderContent">The header value to display. May contain a text resource bindings, but no data model lookups.</param>
-    /// <param name="CellContent"></param>
-    public record TableColumn(string HeaderContent, CellContent CellContent);
+        List<ComponentContext> childContexts = [];
+        foreach (
+            DataElementIdentifier dataElement in state.Instance.Data.Where(d =>
+                d.DataType == layoutSet.DefaultDataType.Id
+            )
+        )
+        {
+            // Currently, we just add all pages flat into the subform component.
+            // We don't have any need for a "SubFormRow" context.
+            foreach (var subformPage in layoutSet.Pages)
+            {
+                childContexts.Add(await subformPage.GetContextForPage(state, dataElement, null, layoutsLookup));
+            }
+        }
 
-    /// <summary>
-    /// How to select the content of a cell in a subform preview
-    /// </summary>
-    /// <param name="Query">The cell value to display from a data model lookup (dot notation).</param>
-    /// <param name="DefaultContent">The cell value to display if `query` returns no result.</param>
-    public record CellContent(string Query, string DefaultContent);
+        return new ComponentContext(state, this, rowIndexes, defaultDataElementIdentifier, childContexts);
+    }
+
+    /// <inheritdoc />
+    public override void ClaimChildren(
+        Dictionary<string, Base.BaseLayoutComponent> unclaimedComponents,
+        Dictionary<string, string> claimedComponents
+    )
+    {
+        // Sub form does not claim children from the same layout
+    }
 }

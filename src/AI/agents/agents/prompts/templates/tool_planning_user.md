@@ -39,7 +39,6 @@ CRITICAL INSTRUCTIONS:
 - Never return generic queries like "documentation" or "help".
 - Ensure coverage for data bindings, text resources, rules/expressions, and layout details whenever the goal implies them.
 - IMPORTANT: These tools accept NO parameters:
-
   - Documentation tools (altinn_datamodel_docs, altinn_prefill_docs, altinn_expression_docs, altinn_resource_docs) - return static documentation
   - altinn_layout_list - returns ALL component examples from the library (no filtering)
     Do NOT include arguments for these tools.

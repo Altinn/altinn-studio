@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useMemo } from 'react';
 
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
@@ -30,7 +30,7 @@ import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CodeListSelector } from 'src/features/options/CodeListsProvider';
 import type { DSProps, DSPropsMatching } from 'src/hooks/delayedSelectors';
-import type { FormDataSelector } from 'src/layout';
+import type { FormDataSelectorLax } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
 
@@ -40,7 +40,7 @@ export interface ExpressionDataSources {
   applicationSettings: IApplicationSettings | null;
   dataElementSelector: ReturnType<typeof useDataElementsSelectorProps>;
   dataModelNames: string[];
-  formDataSelector: FormDataSelector;
+  formDataSelector: FormDataSelectorLax;
   attachmentsSelector: AttachmentsSelector;
   langToolsSelector: (dataModelPath: IDataModelReference | undefined) => IUseLanguage;
   currentLanguage: string;
@@ -55,7 +55,7 @@ export interface ExpressionDataSources {
 }
 
 const multiSelectors = {
-  formDataSelector: () => FD.useDebouncedSelectorProps(),
+  formDataSelector: () => FD.useLaxDebouncedSelectorProps(),
   attachmentsSelector: () => NodesInternal.useAttachmentsSelectorProps(),
   codeListSelector: () => useCodeListSelectorProps(),
 } satisfies {
@@ -76,7 +76,7 @@ const directHooks = {
   dataModelNames: (isInGenerator) =>
     isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
   externalApis: (isInGenerator) =>
-    isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(useApplicationMetadata().externalApiIds ?? []),
+    isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(getApplicationMetadata().externalApiIds ?? []),
   langToolsSelector: (isInGenerator) =>
     useInnerLanguageWithForcedPathSelector(
       isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType(),

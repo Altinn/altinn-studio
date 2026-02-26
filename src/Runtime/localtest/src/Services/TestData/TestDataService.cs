@@ -1,6 +1,7 @@
 #nullable enable
 using LocalTest.Configuration;
 using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.AppRegistry;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -13,13 +14,16 @@ public class TestDataService
     private readonly IMemoryCache _cache;
     private readonly LocalPlatformSettings _settings;
     private readonly ILogger<TestDataService> _logger;
-    public TestDataService(ILocalApp localApp, TenorDataRepository tenorDataRepository, IOptions<LocalPlatformSettings> settings, IMemoryCache memoryCache, ILogger<TestDataService> logger)
+    private readonly AppRegistryService _appRegistryService;
+
+    public TestDataService(ILocalApp localApp, TenorDataRepository tenorDataRepository, IOptions<LocalPlatformSettings> settings, IMemoryCache memoryCache, ILogger<TestDataService> logger, AppRegistryService appRegistryService)
     {
         _localApp = localApp;
         _tenorDataRepository = tenorDataRepository;
         _cache = memoryCache;
         _settings = settings.Value;
         _logger = logger;
+        _appRegistryService = appRegistryService;
     }
 
     public async Task<TestDataModel> GetTestData()
@@ -31,21 +35,25 @@ public class TestDataService
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30);
 
                 var diskModel = await TestDataDiskReader.ReadFromDisk(_settings.LocalTestingStaticTestDataPath);
-                void PopulateDefaults(TestDataModel model)
-                {
-                    // TODO: this is weird
-                    model.Authorization.Systems = diskModel.Authorization.Systems;
-                    model.Authorization.SystemUsers = diskModel.Authorization.SystemUsers;
-                }
 
                 try
                 {
-                    var appData = await _localApp.GetTestData();
-
-                    if (appData is not null)
+                    var appResult = await _localApp.GetTestDataWithMetadata();
+                    if (appResult.Data is not null)
                     {
-                        var model = appData.GetTestDataModel();
-                        return model;
+                        var appModel = appResult.Data.GetTestDataModel();
+
+                        // If ALL apps provided testData, use ONLY that testData (no built-in users)
+                        // If ANY app lacks testData, merge app data INTO disk data (built-in users included)
+                        if (appResult.AllAppsHaveData)
+                        {
+                            _logger.LogInformation("Using only app-provided test data (no built-in users)");
+                            return appModel;
+                        }
+
+                        _logger.LogInformation("Merging app test data with built-in users");
+                        TestDataMerger.MergeTestData(appModel, diskModel, "app testData");
+                        return diskModel;
                     }
                 }
                 catch (HttpRequestException e)
@@ -56,14 +64,19 @@ public class TestDataService
                 var tenorUsers = await _tenorDataRepository.GetAppTestDataModel();
                 if (tenorUsers is not null && !tenorUsers.IsEmpty())
                 {
-                    // Use tenor users if they exist
-                    var model = tenorUsers.GetTestDataModel();
-                    PopulateDefaults(model);
-                    return model;
+                    // Merge tenor users INTO disk data
+                    var tenorModel = tenorUsers.GetTestDataModel();
+                    TestDataMerger.MergeTestData(tenorModel, diskModel, "Tenor users");
+                    return diskModel;
                 }
 
-                //Fallback to Ola Nordmann, Sofie Salt ... if no other users are availible
+                // Return built-in users (Ola Nordmann, Sofie Salt, etc.) if no other users are available
                 return diskModel;
             }))!;
+    }
+
+    public void InvalidateCache()
+    {
+        _cache.Remove("TEST_DATA");
     }
 }

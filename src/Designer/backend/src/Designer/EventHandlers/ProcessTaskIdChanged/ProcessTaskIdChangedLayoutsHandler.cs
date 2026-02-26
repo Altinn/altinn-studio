@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,10 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
     private readonly IAppDevelopmentService _appDevelopmentService;
 
-    public ProcessTaskIdChangedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHandlerExecutor, IAppDevelopmentService appDevelopmentService)
+    public ProcessTaskIdChangedLayoutsHandler(
+        IFileSyncHandlerExecutor fileSyncHandlerExecutor,
+        IAppDevelopmentService appDevelopmentService
+    )
     {
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
         _appDevelopmentService = appDevelopmentService;
@@ -29,8 +33,16 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
             "layouts",
             async () =>
             {
-                List<Reference> referencesToUpdate = [new Reference(ReferenceType.Task, null, notification.OldId, notification.NewId)];
-                return await _appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToUpdate, cancellationToken);
-            });
+                List<Reference> referencesToUpdate =
+                [
+                    new Reference(ReferenceType.Task, null, notification.OldId, notification.NewId),
+                ];
+                return await _appDevelopmentService.UpdateLayoutReferences(
+                    notification.EditingContext,
+                    referencesToUpdate,
+                    cancellationToken
+                );
+            }
+        );
     }
 }

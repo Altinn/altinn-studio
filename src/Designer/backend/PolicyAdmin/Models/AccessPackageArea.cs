@@ -12,7 +12,7 @@ namespace PolicyAdmin.Models
 
         public string? Description { get; set; }
 
-        public string? Icon { get; set; }
+        public string? IconUrl { get; set; }
 
         public IEnumerable<AccessPackageOption> Packages { get; set; } = [];
     }

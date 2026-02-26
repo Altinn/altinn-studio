@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -23,8 +22,7 @@ public class DataPatchRequestMultiple
     /// </summary>
     /// <param name="DataElementId">The guid of the data element to patch</param>
     /// <param name="Patch">The patch to apply</param>
-    public record PatchListItem
-    (
+    public record PatchListItem(
         [property: JsonPropertyName("dataElementId")] Guid DataElementId,
         [property: JsonPropertyName("patch")] JsonPatch Patch
     );

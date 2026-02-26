@@ -4,7 +4,9 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -20,19 +22,22 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, IClassFixture<WebApplicationFactory<Program>>
+public class GetDeployments
+    : DbDesignerEndpointsTestsBase<GetDeployments>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IKubernetesDeploymentsService> _kubernetesDeploymentsMock = new Mock<IKubernetesDeploymentsService>();
+    private readonly Mock<IKubernetesDeploymentsService> _kubernetesDeploymentsMock =
+        new Mock<IKubernetesDeploymentsService>();
 
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/deployments";
 
-    public GetDeployments(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture) : base(factory, designerDbFixture)
-    {
-    }
+    public GetDeployments(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
+        : base(factory, designerDbFixture) { }
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
-        services.AddSingleton<IGitea, IGiteaMock>();
+        services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         services.AddSingleton(_ => _kubernetesDeploymentsMock.Object);
     }
 
@@ -48,7 +53,7 @@ public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, ICla
         await DesignerDbFixture.PrepareEntitiesInDatabase(completedDeployments);
 
         _kubernetesDeploymentsMock
-            .Setup(rs => rs.GetAsync(org, app))
+            .Setup(rs => rs.GetAsync(org, app, It.IsAny<CancellationToken>()))
             .ReturnsAsync(kubernetesDeployments);
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
@@ -56,7 +61,10 @@ public class GetDeployments : DbDesignerEndpointsTestsBase<GetDeployments>, ICla
         // Act
         HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
         string responseString = await res.Content.ReadAsStringAsync();
-        DeploymentsResponse actual = JsonSerializer.Deserialize<DeploymentsResponse>(responseString, JsonSerializerOptions);
+        DeploymentsResponse actual = JsonSerializer.Deserialize<DeploymentsResponse>(
+            responseString,
+            JsonSerializerOptions
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);

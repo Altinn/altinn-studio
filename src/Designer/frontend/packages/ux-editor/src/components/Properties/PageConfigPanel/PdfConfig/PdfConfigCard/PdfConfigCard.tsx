@@ -1,7 +1,6 @@
 import React, { type ReactElement } from 'react';
 import classes from './PdfConfigCard.module.css';
-import { StudioSwitch } from '@studio/components-legacy';
-import { StudioParagraph, StudioCard, StudioHeading } from '@studio/components';
+import { StudioSwitch, StudioParagraph, StudioCard, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { usePdf } from '../../../../../hooks/usePdf/usePdf';
 import { useSavableFormLayoutSettings } from '../../../../../hooks/useSavableFormLayoutSettings';
@@ -38,7 +37,6 @@ export const PdfConfigCard = ({ onClickConvert }: PdfConfigCardProps): ReactElem
         <StudioSwitch
           checked={isCurrentPagePdf()}
           onChange={toggleSwitch}
-          size='sm'
           aria-label={switchAriaLabel}
         />
       </div>

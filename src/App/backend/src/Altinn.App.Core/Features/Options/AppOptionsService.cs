@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Options;
 /// </summary>
 public class AppOptionsService : IAppOptionsService
 {
-    private readonly AppOptionsFactory _appOpptionsFactory;
+    private readonly AppOptionsFactory _appOptionsFactory;
     private readonly InstanceAppOptionsFactory _instanceAppOptionsFactory;
     private readonly Telemetry? _telemetry;
 
@@ -20,7 +20,7 @@ public class AppOptionsService : IAppOptionsService
         Telemetry? telemetry = null
     )
     {
-        _appOpptionsFactory = appOptionsFactory;
+        _appOptionsFactory = appOptionsFactory;
         _instanceAppOptionsFactory = instanceAppOptionsFactory;
         _telemetry = telemetry;
     }
@@ -33,11 +33,11 @@ public class AppOptionsService : IAppOptionsService
     )
     {
         using var activity = _telemetry?.StartGetOptionsActivity();
-        return await _appOpptionsFactory.GetOptionsProvider(optionId).GetAppOptionsAsync(language, keyValuePairs);
+        return await _appOptionsFactory.GetOptionsProvider(optionId).GetAppOptionsAsync(language, keyValuePairs);
     }
 
     /// <inheritdoc/>
-    public async Task<AppOptions> GetOptionsAsync(
+    public async Task<AppOptions?> GetOptionsAsync(
         InstanceIdentifier instanceIdentifier,
         string optionId,
         string? language,
@@ -45,8 +45,18 @@ public class AppOptionsService : IAppOptionsService
     )
     {
         using var activity = _telemetry?.StartGetOptionsActivity(instanceIdentifier);
-        return await _instanceAppOptionsFactory
-            .GetOptionsProvider(optionId)
-            .GetInstanceAppOptionsAsync(instanceIdentifier, language, keyValuePairs);
+        var appOptionsProvider = _instanceAppOptionsFactory.GetOptionsProvider(optionId);
+        if (appOptionsProvider != null)
+        {
+            return await appOptionsProvider.GetInstanceAppOptionsAsync(instanceIdentifier, language, keyValuePairs);
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc/>
+    public bool IsInstanceAppOptionsProviderRegistered(string optionId)
+    {
+        return _instanceAppOptionsFactory.GetOptionsProvider(optionId) != null;
     }
 }

@@ -1,8 +1,8 @@
 {
   "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/application/application-metadata.schema.v1.json",
-  "id": "tdd/bestilling",
-  "org": "tdd",
-  "title": { "nb": "Bestillingseksempelapp" },
+  "id": "[ORG]/[APP]",
+  "org": "[ORG]",
+  "title": { "nb": "[APP]" },
   "dataTypes": [
     {
       "id": "ref-data-as-pdf",
@@ -35,10 +35,10 @@
     }
   ],
   "partyTypesAllowed": {
-    "bankruptcyEstate": true,
-    "organisation": true,
-    "person": true,
-    "subUnit": true
+    "bankruptcyEstate": false,
+    "organisation": false,
+    "person": false,
+    "subUnit": false
   },
   "autoDeleteOnProcessEnd": false
 }

@@ -2,7 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Altinn App Api",
-    "description": "App API description for both enduser and serviceowner users, as well as open metadata information<br><br>All operations* described within this document require authentication and authorization. Read more at <a href=\"https://docs.altinn.studio/authentication/guides\">https://docs.altinn.studio/authentication/guides</a><br><br><strong>All GET operations* and POST operations may return or contain, respectively, personal identifiable information (national identity numbers and names).</strong><br><br>For more information about this product, see <a href=\"https://docs.altinn.studio/api/apps\">https://docs.altinn.studio/api/apps</a><br><br><em>* Except the metadata APIs\n",
+    "description": "App API description for both end users and service owners, as well as open metadata information<br><br>All operations* described within this document require authentication and authorization. Read more at <a href=\"https://docs.altinn.studio/authentication/guides\">https://docs.altinn.studio/authentication/guides</a><br><br><strong>All GET operations* and POST operations may return or contain, respectively, personally identifiable information (PII; national identity numbers and names).</strong><br><br>For more information about this product, see <a href=\"https://docs.altinn.studio/api/apps\">https://docs.altinn.studio/api/apps</a><br><br><em>* Except the metadata APIs</em>\n",
     "version": ""
   },
   "paths": {
@@ -288,7 +288,7 @@
         "tags": [
           "ApplicationMetadata"
         ],
-        "summary": "Get the application metadata https://altinncdn.no/schemas/json/application/application-metadata.schema.v1.json\n            \nIf org and app does not match, this returns a 409 Conflict response",
+        "summary": "Get the application metadata \"https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/application/application-metadata.schema.v1.json\"\n            \nIf org and app does not match, this returns a 409 Conflict response",
         "parameters": [
           {
             "name": "org",
@@ -1686,7 +1686,7 @@
           {
             "name": "queryParams",
             "in": "query",
-            "description": "Query parameteres supplied",
+            "description": "Query parameters supplied",
             "style": "deepObject",
             "schema": {
               "type": "object",
@@ -2494,9 +2494,32 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "org",
             "in": "path",
-            "description": "The application owner short name.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2505,18 +2528,395 @@
           {
             "name": "app",
             "in": "path",
-            "description": "The name of the app",
             "required": true,
             "schema": {
               "type": "string"
             }
-          },
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/instance-selection": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
           {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/party-selection": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
+          {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/party-selection/{errorCode}": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
+          {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "errorCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/{pageName}": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
+          {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/instance/{partyId}/{instanceGuid}": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
+          {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/{org}/{app}/instance/{partyId}/{instanceGuid}/{rest}": {
+      "get": {
+        "tags": [
+          "Home"
+        ],
+        "summary": "Returns the index view with references to the React app.",
+        "parameters": [
+          {
+            "name": "dontChooseReportee",
+            "in": "query",
+            "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "returnUrl",
+            "in": "query",
+            "description": "Custom returnUrl param that will be verified",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rest",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -3217,17 +3617,18 @@
         }
       }
     },
-    "/{org}/{app}/api/options/{optionsId}": {
+    "/{org}/{app}/api/options/{optionsIdOrLibraryRef}": {
       "get": {
         "tags": [
           "Options"
         ],
-        "summary": "Api that exposes app related options",
+        "summary": "Api that exposes app related options.",
+        "description": "The tags field is only populated when requesting library code lists.",
         "parameters": [
           {
-            "name": "optionsId",
+            "name": "optionsIdOrLibraryRef",
             "in": "path",
-            "description": "The optionsId",
+            "description": "The optionsId configured for the options provider in the app startup,\nor a library reference on the format: `lib**{creatorOrg}**{codeListId}**{version}`\n(version=\"latest\", if you want the latest version).",
             "required": true,
             "schema": {
               "type": "string"
@@ -3236,7 +3637,7 @@
           {
             "name": "queryParams",
             "in": "query",
-            "description": "Query parameters supplied",
+            "description": "Query parameters supplied.",
             "style": "deepObject",
             "schema": {
               "type": "object",
@@ -3248,7 +3649,7 @@
           {
             "name": "language",
             "in": "query",
-            "description": "The language selected by the user.",
+            "description": "The language selected by the user (ISO 639-1, e.g., 'nb').",
             "schema": {
               "type": "string"
             }
@@ -3272,89 +3673,33 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/options/{optionsId}": {
-      "get": {
-        "tags": [
-          "Options"
-        ],
-        "summary": "Exposes options related to the app and logged in user",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "unique identifier of the organisation responsible for the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "application identifier which is unique within an organisation",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "instanceOwnerPartyId",
-            "in": "path",
-            "description": "unique id of the party that is the owner of the instance",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceGuid",
-            "in": "path",
-            "description": "unique id to identify the instance",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "optionsId",
-            "in": "path",
-            "description": "The optionsId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "language",
-            "in": "query",
-            "description": "The language selected by the user.",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "queryParams",
-            "in": "query",
-            "description": "Query parameteres supplied",
-            "style": "deepObject",
-            "schema": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppOption"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppOption"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppOption"
+                  }
+                }
               }
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
           },
           "404": {
             "description": "Not Found",
@@ -3385,20 +3730,112 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/pages/order": {
-      "post": {
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/options/{optionsIdOrLibraryRef}": {
+      "get": {
         "tags": [
-          "Pages"
+          "Options"
         ],
-        "summary": "Get the page order based on the current state of the instance",
+        "summary": "Exposes options related to the app and logged in user.",
+        "description": "The tags field is only populated when requesting library code lists.",
         "parameters": [
           {
             "name": "org",
             "in": "path",
+            "description": "Unique identifier of the organisation responsible for the app.",
             "required": true,
             "schema": {
               "type": "string"
@@ -3407,6 +3844,7 @@
           {
             "name": "app",
             "in": "path",
+            "description": "Application identifier which is unique within an organisation.",
             "required": true,
             "schema": {
               "type": "string"
@@ -3415,6 +3853,7 @@
           {
             "name": "instanceOwnerPartyId",
             "in": "path",
+            "description": "Unique id of the party that is the owner of the instance.",
             "required": true,
             "schema": {
               "type": "integer",
@@ -3424,6 +3863,7 @@
           {
             "name": "instanceGuid",
             "in": "path",
+            "description": "Unique id to identify the instance.",
             "required": true,
             "schema": {
               "type": "string",
@@ -3431,49 +3871,35 @@
             }
           },
           {
-            "name": "layoutSetId",
-            "in": "query",
+            "name": "optionsIdOrLibraryRef",
+            "in": "path",
+            "description": "The optionsId configured for the options provider in the app startup,\nor a library reference on the format: `lib**{creatorOrg}**{codeListId}**{version}`\n(version=\"latest\", if you want the latest version).",
+            "required": true,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "currentPage",
+            "name": "language",
             "in": "query",
+            "description": "The language selected by the user (ISO 639-1, e.g., 'nb').",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "dataTypeId",
+            "name": "queryParams",
             "in": "query",
+            "description": "Query parameters supplied.",
+            "style": "deepObject",
             "schema": {
-              "type": "string"
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            },
-            "text/json": {
-              "schema": {}
-            },
-            "application/*+json": {
-              "schema": {}
-            },
-            "application/xml": {
-              "schema": {}
-            },
-            "text/xml": {
-              "schema": {}
-            },
-            "application/*+xml": {
-              "schema": {}
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "OK",
@@ -3482,7 +3908,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/AppOption"
                   }
                 }
               },
@@ -3490,7 +3916,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/AppOption"
                   }
                 }
               },
@@ -3498,24 +3924,38 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/AppOption"
                   }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "application/xml": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               },
               "text/xml": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -3525,13 +3965,92 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
           }
-        },
-        "deprecated": true
+        }
       }
     },
     "/{org}/{app}/api/v1/parties": {
@@ -5085,44 +5604,6 @@
         }
       }
     },
-    "/{org}/{app}/api/layouts": {
-      "get": {
-        "tags": [
-          "Resource"
-        ],
-        "summary": "Get the form layout\n<param name=\"org\">Unique identifier of the organisation responsible for the app.</param><param name=\"app\">Application identifier which is unique within an organisation.</param><returns>A collection of FormLayout objects in JSON format.</returns>",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/{org}/{app}/api/layouts/{id}": {
       "get": {
         "tags": [
@@ -5152,46 +5633,6 @@
             "name": "id",
             "in": "path",
             "description": "The layoutset id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{org}/{app}/api/layoutsettings": {
-      "get": {
-        "tags": [
-          "Resource"
-        ],
-        "summary": "Get the layout settings.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The application name",
             "required": true,
             "schema": {
               "type": "string"
@@ -5297,108 +5738,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/{org}/{app}/api/rulehandler/{id}": {
-      "get": {
-        "tags": [
-          "Resource"
-        ],
-        "summary": "Get the rule settings\n<param name=\"org\">Unique identifier of the organisation responsible for the app.</param><param name=\"app\">Application identifier which is unique within an organisation.</param><param name=\"id\">The layoutset id</param><returns>A collection of FormLayout objects in JSON format.</returns>",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/javascript": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "204": {
-            "description": "No Content"
-          }
-        }
-      }
-    },
-    "/{org}/{app}/api/ruleconfiguration/{id}": {
-      "get": {
-        "tags": [
-          "Resource"
-        ],
-        "summary": "Get the ruleconfiguration.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The application name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The layoutset id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
-          },
-          "204": {
-            "description": "No Content"
           }
         }
       }
@@ -5547,6 +5886,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "description": "If data should be loaded from a different task than the current one.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -5662,6 +6009,14 @@
             "name": "language",
             "in": "query",
             "description": "The currently used language by the user (or null if not available)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "description": "If data should be loaded from a different task than the current one.",
             "schema": {
               "type": "string"
             }
@@ -5810,6 +6165,14 @@
             "name": "language",
             "in": "query",
             "description": "The currently used language by the user (or null if not available)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "description": "If data should be loaded from a different task than the current one.",
             "schema": {
               "type": "string"
             }
@@ -6265,133 +6628,6 @@
         }
       }
     },
-    "/{org}/{app}/v1/pages/order": {
-      "post": {
-        "tags": [
-          "StatelessPages"
-        ],
-        "summary": "Get the page order based on the current state of the instance",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "layoutSetId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "currentPage",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "dataTypeId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            },
-            "text/json": {
-              "schema": {}
-            },
-            "application/*+json": {
-              "schema": {}
-            },
-            "application/xml": {
-              "schema": {}
-            },
-            "text/xml": {
-              "schema": {}
-            },
-            "application/*+xml": {
-              "schema": {}
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "deprecated": true
-      }
-    },
     "/{org}/{app}/api/v1/texts/{language}": {
       "get": {
         "tags": [
@@ -6781,6 +7017,66 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -6790,7 +7086,7 @@
         "tags": [
           "Validate"
         ],
-        "summary": "Validate an app instance. This will validate a single data element",
+        "summary": "Validate a single data element (deprecated).\nUse `/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/validate` with filters as needed.",
         "parameters": [
           {
             "name": "org",
@@ -7009,6 +7305,39 @@
         },
         "additionalProperties": false
       },
+      "AppOption": {
+        "required": [
+          "label",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "helpText": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "AppProcessElementInfo": {
         "type": "object",
         "properties": {
@@ -7065,6 +7394,10 @@
           },
           "write": {
             "type": "boolean"
+          },
+          "elementType": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -7113,6 +7446,10 @@
           "elementId": {
             "type": "string",
             "nullable": true
+          },
+          "elementType": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -7153,10 +7490,6 @@
           },
           "disallowUserDelete": {
             "type": "boolean"
-          },
-          "allowInSubform": {
-            "type": "boolean",
-            "deprecated": true
           },
           "shadowFields": {
             "$ref": "#/components/schemas/ShadowFields"
@@ -7285,6 +7618,10 @@
             "$ref": "#/components/schemas/Logo"
           },
           "altinnNugetVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "promptForParty": {
             "type": "string",
             "nullable": true
           },
@@ -8240,6 +8577,10 @@
             "nullable": true
           },
           "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
             "type": "string",
             "nullable": true
           }

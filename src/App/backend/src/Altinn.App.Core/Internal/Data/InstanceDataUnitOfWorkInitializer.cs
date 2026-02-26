@@ -1,7 +1,9 @@
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
 
@@ -14,9 +16,11 @@ internal class InstanceDataUnitOfWorkInitializer
 {
     private readonly IDataClient _dataClient;
     private readonly IInstanceClient _instanceClient;
+    private readonly ITranslationService _translationService;
     private readonly ModelSerializationService _modelSerializationService;
     private readonly IAppResources _appResources;
     private readonly IOptions<FrontEndSettings> _frontEndSettings;
+    private readonly Telemetry? _telemetry;
     private readonly IAppMetadata _applicationMetadata;
 
     /// <summary>
@@ -26,16 +30,20 @@ internal class InstanceDataUnitOfWorkInitializer
         IDataClient dataClient,
         IInstanceClient instanceClient,
         IAppMetadata applicationMetadata,
+        ITranslationService translationService,
         ModelSerializationService modelSerializationService,
         IAppResources appResources,
-        IOptions<FrontEndSettings> frontEndSettings
+        IOptions<FrontEndSettings> frontEndSettings,
+        Telemetry? telemetry = null
     )
     {
         _dataClient = dataClient;
         _instanceClient = instanceClient;
+        _translationService = translationService;
         _modelSerializationService = modelSerializationService;
         _appResources = appResources;
         _frontEndSettings = frontEndSettings;
+        _telemetry = telemetry;
         _applicationMetadata = applicationMetadata;
     }
 
@@ -51,11 +59,13 @@ internal class InstanceDataUnitOfWorkInitializer
             _dataClient,
             _instanceClient,
             applicationMetadata,
+            _translationService,
             _modelSerializationService,
             _appResources,
             _frontEndSettings,
             taskId,
-            language
+            language,
+            _telemetry
         );
     }
 }

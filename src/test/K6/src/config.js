@@ -68,11 +68,6 @@ export var platformAuthorization = {
   deletePolicy: `https://platform.${baseUrl}/authorization/api/v1/delegations/DeletePolicy`,
 };
 
-//PDF
-export var platformPdf = {
-  generate: 'https://platform.' + baseUrl + '/pdf/api/v1/generate',
-};
-
 //Receipt
 export var platformReceipt = {
   receipt: 'https://platform.' + baseUrl + '/receipt/api/v1/instances',
@@ -198,9 +193,9 @@ export var appResources = {
   textresources: '/api/textresources',
   applicationmetadata: '/api/v1/applicationmetadata',
   servicemetadata: '/api/metadata/ServiceMetadata',
-  formlayout: '/api/resource/FormLayout.json',
-  rulehandler: '/api/resource/RuleHandler.js',
-  ruleconfiguration: '/api/resource/RuleConfiguration.json',
+  formlayout: '/api/layouts/form',
+  rulehandler: '/api/rulehandler/form',
+  ruleconfiguration: '/api/ruleconfiguration/form',
   texts: '/api/v1/texts/',
   jsonschema: '/api/jsonschema/',
   layoutsettings: '/api/layoutsettings',

@@ -1,5 +1,6 @@
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Internal.App;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 
 namespace Altinn.App.Api.Extensions;
@@ -40,7 +41,8 @@ public static class HostBuilderExtensions
 
         builder.Configuration.AddAzureKeyVault(
             new Uri(keyVaultUri),
-            new ClientSecretCredential(tenantId, clientId, clientSecret)
+            new ClientSecretCredential(tenantId, clientId, clientSecret),
+            new AzureKeyVaultConfigurationOptions { ReloadInterval = TimeSpan.FromMinutes(5) }
         );
     }
 }

@@ -18,8 +18,8 @@ public class RepeatingGroupsHidden
         var jsonData = $$"""
             {
                 "some": {
-                    "hidePage1": {{hidePage1.ToString().ToLowerInvariant()}},
-                    "hidePage2": {{hidePage2.ToString().ToLowerInvariant()}},
+                    "hidePage1": {{(hidePage1 ? "true" : "false")}},
+                    "hidePage2": {{(hidePage2 ? "true" : "false")}},
                     "hideGroup1": true,
                     "data": [
                         {
@@ -51,6 +51,7 @@ public class RepeatingGroupsHidden
         var state = await LayoutTestUtils.GetLayoutModelTools(data, "RepeatingGroupsHidden");
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
-        await Verify(hidden).UseParameters(hidePage1, hidePage2);
+        await Verify(hidden.OrderBy(d => d.DataElementIdentifier.Guid).ThenBy(d => d.Field))
+            .UseParameters(hidePage1, hidePage2);
     }
 }

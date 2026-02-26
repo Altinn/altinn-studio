@@ -28,6 +28,9 @@ using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Filters;
 using LocalTest.Helpers;
+using LocalTest.Services.AppRegistry;
+using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.TestData;
 using LocalTest.Notifications.LocalTestNotifications;
 using LocalTest.Services.AccessManagement;
 using LocalTest.Services.Authentication.Implementation;
@@ -36,7 +39,6 @@ using LocalTest.Services.Authorization.Implementation;
 using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Events.Implementation;
 using LocalTest.Services.LocalApp.Implementation;
-using LocalTest.Services.LocalApp.Interface;
 using LocalTest.Services.LocalFrontend;
 using LocalTest.Services.LocalFrontend.Interface;
 using LocalTest.Services.Profile.Implementation;
@@ -44,7 +46,6 @@ using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.Storage.Implementation;
-using LocalTest.Services.TestData;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
@@ -83,6 +84,8 @@ namespace LocalTest
             services.AddControllersWithViews();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<Altinn.Platform.Storage.Configuration.GeneralSettings>(Configuration.GetSection("StorageGeneralSettings"));
+            services.Configure<Altinn.Platform.Storage.Configuration.WolverineSettings>(Configuration.GetSection("WolverineSettings"));
             services.Configure<Altinn.Platform.Authentication.Configuration.GeneralSettings>(Configuration.GetSection("AuthnGeneralSettings"));
             services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
@@ -96,6 +99,7 @@ namespace LocalTest
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IInstanceAndEventsRepository, InstanceAndEventsRepository>();
             services.AddSingleton<IDataRepository, DataRepository>();
+            services.AddSingleton<IBlobRepository, BlobRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IEventsRepository, EventsRepository>();
             services.AddTransient<ISubscriptionService, SubscriptionService>();
@@ -108,12 +112,14 @@ namespace LocalTest
             services.AddTransient<IPersonLookup, PersonLookupService>();
             services.AddTransient<TestDataService>();
             services.AddTransient<TenorDataRepository>();
+            services.AddSingleton<IInstanceLockRepository, InstanceLockRepository>();
 
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
             services.AddSingleton<IRoles, RolesWrapper>();
             services.AddSingleton<IPartiesWithInstancesClient, PartiesWithInstancesClient>();
+            services.AddSingleton<IOnDemandClient, OnDemandClient>();
             services.AddSingleton<IPolicyRepository, PolicyRepositoryMock>();
             services.AddSingleton<IResourceRegistry, ResourceRegistryService>();
             services.AddSingleton<IResourceRegistryRepository, RegisterResourceRepositoryMock>();
@@ -128,17 +134,18 @@ namespace LocalTest
             services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
 
             // Notifications services
-            
+
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
             services.AddNotificationServices(generalSettings.BaseUrl, Configuration);
-            
+
             // Storage services
             services.AddSingleton<IClaimsPrincipalProvider, ClaimsPrincipalProvider>();
             services.AddTransient<IAuthorization, AuthorizationService>();
             services.AddTransient<IDataService, DataService>();
-            services.AddTransient<IInstanceService, InstanceService>();
+            services.AddTransient<ISigningService, SigningService>();
             services.AddTransient<IInstanceEventService, InstanceEventService>();
             services.AddSingleton<IApplicationService, ApplicationService>();
+            services.AddTransient<IRegisterService, RegisterService>();
             services.AddMemoryCache();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
@@ -154,7 +161,7 @@ namespace LocalTest
                         ClockSkew = TimeSpan.Zero
                     };
                     options.JwtCookieName = "AltinnStudioRuntime";
-                    options.MetadataAddress = new Uri($"http://localhost:5101/authentication/api/v1/openid").ToString();;
+                    options.MetadataAddress = new Uri("http://localhost:5101/authentication/api/v1/openid").ToString();
                     options.RequireHttpsMetadata = false;
                 });
 
@@ -195,6 +202,8 @@ namespace LocalTest
 
             services.AddDirectoryBrowser();
 
+            services.AddSingleton<AppRegistryService>();
+
             // Access local app details depending on LocalAppMode ("file" or "http")
             if ("http".Equals(Configuration["LocalPlatformSettings:LocalAppMode"], StringComparison.InvariantCultureIgnoreCase))
             {
@@ -216,8 +225,15 @@ namespace LocalTest
         public void Configure(
             IApplicationBuilder app,
             IWebHostEnvironment env,
-            IOptions<LocalPlatformSettings> localPlatformSettings)
+            IOptions<LocalPlatformSettings> localPlatformSettings,
+            AppRegistryService appRegistry,
+            ILocalApp localApp,
+            TestDataService testDataService)
         {
+            // Register cache invalidation callbacks
+            appRegistry.RegisterCacheInvalidationCallback(() => localApp.InvalidateTestDataCache());
+            appRegistry.RegisterCacheInvalidationCallback(() => testDataService.InvalidateCache());
+
             if (env.IsDevelopment() || env.IsEnvironment("docker") || env.IsEnvironment("podman"))
             {
                 app.UseDeveloperExceptionPage();
@@ -234,11 +250,11 @@ namespace LocalTest
 
             app.UseHealthChecks("/health");
             app.UseMiddleware<ProxyMiddleware>();
-            
+
             var storagePath = new DirectoryInfo(localPlatformSettings.Value.LocalTestingStorageBasePath);
             if (!storagePath.Exists)
                 storagePath.Create();
-            
+
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(storagePath.FullName),

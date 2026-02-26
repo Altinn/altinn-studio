@@ -14,7 +14,7 @@ jest.mock('./StudioButton.module.css', () => ({
 }));
 
 describe('StudioButton', () => {
-  const iconPlacementCases: IconPlacement[] = [undefined, 'left', 'right'];
+  const iconPlacementCases: (IconPlacement | undefined)[] = [undefined, 'left', 'right'];
 
   it('Renders a button with the given content', () => {
     const children = 'Button content';

@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Configuration;

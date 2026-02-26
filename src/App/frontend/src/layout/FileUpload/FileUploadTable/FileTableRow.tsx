@@ -8,7 +8,7 @@ import { isAttachmentUploaded } from 'src/features/attachments';
 import { FileScanResults } from 'src/features/attachments/types';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
+import { usePdfModeActive } from 'src/features/pdf/PdfWrapper';
 import { AttachmentFileName } from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName';
 import { FileTableButtons } from 'src/layout/FileUpload/FileUploadTable/FileTableButtons';
 import classes from 'src/layout/FileUpload/FileUploadTable/FileTableRow.module.css';

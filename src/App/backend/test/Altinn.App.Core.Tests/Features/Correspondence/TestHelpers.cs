@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text.Json;
-using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Features.Maskinporten;
 using Altinn.App.Core.Models;

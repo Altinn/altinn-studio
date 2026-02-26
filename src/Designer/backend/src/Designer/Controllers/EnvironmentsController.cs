@@ -1,3 +1,4 @@
+#nullable disable
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -16,7 +17,6 @@ namespace Altinn.Studio.Designer.Controllers
     public class EnvironmentsController : ControllerBase
     {
         private readonly IEnvironmentsService _environmentsService;
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EnvironmentsController"/> class.

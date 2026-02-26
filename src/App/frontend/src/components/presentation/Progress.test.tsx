@@ -3,6 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { Progress } from 'src/components/presentation/Progress';
+import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 type RenderProps = {
@@ -15,7 +16,8 @@ const render = ({ order = [], currentPageId }: RenderProps) =>
     renderer: () => <Progress />,
     initialPage: currentPageId,
     queries: {
-      fetchLayoutSettings: () => Promise.resolve({ showProgress: true, pages: { order } }),
+      fetchLayoutSettings: () =>
+        Promise.resolve({ showProgress: true, pages: { order } as unknown as IPagesSettingsWithOrder }),
     },
   });
 

@@ -1,3 +1,4 @@
+#nullable disable
 using Altinn.Studio.Designer.Configuration.Marker;
 
 namespace Altinn.Studio.Designer.Infrastructure.Models
@@ -21,6 +22,11 @@ namespace Altinn.Studio.Designer.Infrastructure.Models
         /// Id for a definition that undeploy an Altinn Studio app
         /// </summary>
         public int DecommissionDefinitionId { get; set; }
+
+        /// <summary>
+        /// Id for a definition that manages deploy of an Altinn Studio apps using GitOps
+        /// </summary>
+        public int GitOpsManagerDefinitionId { get; set; }
 
         /// <summary>
         /// Base URI for Azure DevOps

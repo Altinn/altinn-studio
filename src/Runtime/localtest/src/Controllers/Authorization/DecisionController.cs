@@ -363,7 +363,7 @@ namespace Altinn.Platform.Authorization.Controllers
             var instanceOwnerIdStr = split[0];
             var instanceOwnerId = int.Parse(instanceOwnerIdStr);
             var instanceGuid = Guid.Parse(split[1]);
-            var instance = await _instanceRepository.GetOne(instanceOwnerId, instanceGuid);
+            (var instance, _) = await _instanceRepository.GetOne(instanceGuid, true, CancellationToken.None);
             var delegations = await _instanceDelegationsRepository.Read(instanceGuid);
             var currentTaskId = instance.Process?.CurrentTask?.ElementId;
             var reqTaskId = taskIdAttr?.AttributeValues.SingleOrDefault()?.Value;

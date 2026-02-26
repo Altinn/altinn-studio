@@ -3,7 +3,6 @@ export type QuestionsProps = {
   label: string;
   value: string | string[];
   onChange: (questionId: string, value: any) => void;
-  key?: string;
 };
 
 export type QuestionConfig = TextQuestionProps | YesNoQuestionProps | CheckboxQuestionProps;

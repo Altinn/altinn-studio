@@ -1,0 +1,77 @@
+package v1alpha1
+
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
+// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
+// MaskinportenClientSpec defines the desired state of MaskinportenClient
+type MaskinportenClientSpec struct {
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+
+	// Scopes is a list of Maskinporten scopes that the client should have access to
+	Scopes []string `json:"scopes,omitempty"`
+}
+
+// ActionRecord represents a single executed command with its result
+type ActionRecord struct {
+	// Command is the type of command that was executed
+	Command string `json:"command"`
+	// Result describes the outcome (e.g., "created", "updated", "deleted", "synced", "cleared")
+	Result string `json:"result"`
+	// Timestamp when the action was executed
+	Timestamp metav1.Time `json:"timestamp"`
+	// Details contains command-specific information (clientId, keyCount, etc.)
+	// +optional
+	Details string `json:"details,omitempty"`
+	// TraceId is the OTel trace ID for correlating with observability backends
+	// +optional
+	TraceId string `json:"traceId,omitempty"`
+}
+
+// MaskinportenClientStatus defines the observed state of MaskinportenClient
+type MaskinportenClientStatus struct {
+	// ClientId is the client id of the client in Maskinporten API
+	ClientId  string   `json:"clientId,omitempty"`
+	Authority string   `json:"authority,omitempty"`
+	KeyIds    []string `json:"keyIds,omitempty"`
+	// LastSynced is the timestamp of the last successful sync towards Maskinporten API
+	// +kubebuilder:validation:Format=date-time
+	LastSynced         *metav1.Time `json:"lastSynced,omitempty"`
+	ObservedGeneration int64        `json:"observedGeneration,omitempty"`
+	// ActionHistory contains up to 10 recent actions, ordered oldest to newest
+	// +optional
+	ActionHistory []ActionRecord `json:"actionHistory,omitempty"`
+	// Conditions represent the latest available observations of the resource's state
+	// +listType=map
+	// +listMapKey=type
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+}
+
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+
+// MaskinportenClient is the Schema for the maskinportenclients API
+type MaskinportenClient struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   MaskinportenClientSpec   `json:"spec,omitempty"`
+	Status MaskinportenClientStatus `json:"status,omitempty"`
+}
+
+// +kubebuilder:object:root=true
+
+// MaskinportenClientList contains a list of MaskinportenClient
+type MaskinportenClientList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []MaskinportenClient `json:"items"`
+}
+
+func init() {
+	SchemeBuilder.Register(&MaskinportenClient{}, &MaskinportenClientList{})
+}

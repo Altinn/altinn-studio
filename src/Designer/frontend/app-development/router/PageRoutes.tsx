@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import {
   RouterProvider,
   createBrowserRouter,
@@ -19,6 +19,7 @@ import {
 } from './PageRouterErrorBoundry';
 import { GiteaRoutePaths } from '../enums/GiteaRoutePaths';
 import { NavigateToLatestCommitInGitea } from '../features/navigateToLatestCommitInGitea';
+import { StudioPageSpinner } from '@studio/components';
 
 const BASE_PATH = '/:org/:app';
 
@@ -36,7 +37,11 @@ const router = createBrowserRouter(
           <Route
             key={route.path}
             path={route.path}
-            element={<route.subapp />}
+            element={
+              <Suspense fallback={<StudioPageSpinner spinnerTitle='' />}>
+                <route.subapp />
+              </Suspense>
+            }
             errorElement={<RouteErrorBoundary />}
           />
         ))}

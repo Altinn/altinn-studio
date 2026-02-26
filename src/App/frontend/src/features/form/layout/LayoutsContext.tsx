@@ -6,15 +6,16 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
+import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import { applyLayoutQuirks } from 'src/features/form/layout/quirks';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { getLayoutSets } from 'src/features/form/layoutSets';
 import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
-import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
+import { fetchLayoutsForInstance } from 'src/queries/queries';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
@@ -32,10 +33,20 @@ export function useLayoutQueryDef(
   layoutSetId?: string,
 ): QueryDefinition<LayoutContextValue> {
   const { fetchLayouts } = useAppQueries();
+  const instanceId = useLaxInstanceId();
+  const features = getApplicationMetadata().features ?? {};
+
   return {
     queryKey: ['formLayouts', layoutSetId, enabled],
     queryFn: layoutSetId
-      ? () => fetchLayouts(layoutSetId).then((layouts) => processLayouts(layouts, layoutSetId, defaultDataModelType))
+      ? async () => {
+          const shouldUseInstanceEndpoint = features.addInstanceIdentifierToLayoutRequests && instanceId;
+          const layouts = shouldUseInstanceEndpoint
+            ? await fetchLayoutsForInstance(layoutSetId, instanceId)
+            : await fetchLayouts(layoutSetId);
+
+          return processLayouts(layouts, defaultDataModelType);
+        }
       : skipToken,
     enabled: enabled && !!layoutSetId,
   };
@@ -77,7 +88,7 @@ const { Provider, useCtx, useLaxCtx } = delayedContext(() =>
 );
 
 export function useDataTypeFromLayoutSet(layoutSetName: string | undefined) {
-  const layoutSets = useLayoutSets();
+  const layoutSets = getLayoutSets();
   return layoutSets.find((set) => set.id === layoutSetName)?.dataType;
 }
 
@@ -101,7 +112,7 @@ export const useHiddenLayoutsExpressions = () => {
 
 export const useExpandedWidthLayouts = () => useCtx().expandedWidthLayouts;
 
-function processLayouts(input: ILayoutCollection, layoutSetId: string, dataModelType: string): LayoutContextValue {
+function processLayouts(input: ILayoutCollection, dataModelType: string): LayoutContextValue {
   const layouts: ILayouts = {};
   const hiddenLayoutsExpressions: IHiddenLayoutsExternal = {};
   const expandedWidthLayouts: IExpandedWidthLayouts = {};
@@ -112,24 +123,18 @@ function processLayouts(input: ILayoutCollection, layoutSetId: string, dataModel
     expandedWidthLayouts[key] = file.data.expandedWidth;
   }
 
-  const withQuirksFixed = applyLayoutQuirks(layouts, layoutSetId);
-  removeDuplicateComponentIds(withQuirksFixed, layoutSetId);
-  addLikertItemToLayout(withQuirksFixed);
+  removeDuplicateComponentIds(layouts);
+  addLikertItemToLayout(layouts);
 
   return {
-    layouts: withQuirksFixed,
+    layouts,
     hiddenLayoutsExpressions,
     expandedWidthLayouts,
   };
 }
 
-function removeDuplicateComponentIds(layouts: ILayouts, layoutSetId: string) {
+function removeDuplicateComponentIds(layouts: ILayouts) {
   const seenIds = new Map<string, { pageKey: string; idx: number }>();
-  const quirksCode = {
-    verifyAndApplyEarly: new Set<string>(),
-    verifyAndApplyLate: new Set<string>(),
-    logMessages: new Set<string>(),
-  };
 
   for (const pageKey of Object.keys(layouts)) {
     const page = layouts[pageKey] || [];
@@ -143,13 +148,6 @@ function removeDuplicateComponentIds(layouts: ILayouts, layoutSetId: string) {
         );
         toRemove.push(idx);
 
-        quirksCode.verifyAndApplyEarly.add(`assert(layouts['${prev.pageKey}']![${prev.idx}].id === '${comp.id}');`);
-        quirksCode.verifyAndApplyEarly.add(`assert(layouts['${pageKey}']![${idx}].id === '${comp.id}');`);
-        quirksCode.verifyAndApplyLate.add(`layouts['${pageKey}']![${idx}].id = '${comp.id}Duplicate';`);
-        quirksCode.logMessages.add(
-          `\`Renamed component id '${comp.id}' to '${comp.id}Duplicate' on page '${pageKey}'\``,
-        );
-
         continue;
       }
       seenIds.set(comp.id, { pageKey, idx });
@@ -158,24 +156,6 @@ function removeDuplicateComponentIds(layouts: ILayouts, layoutSetId: string) {
     for (const idx of toRemove) {
       page.splice(idx, 1);
     }
-  }
-
-  if (quirksCode.verifyAndApplyEarly.size) {
-    const code: string[] = [];
-    code.push('{');
-    code.push('  verifyAndApply: (layouts) => {');
-    code.push(`    ${[...quirksCode.verifyAndApplyEarly.values()].join('\n    ')}`);
-    code.push('');
-    code.push(`    ${[...quirksCode.verifyAndApplyLate.values()].join('\n    ')}`);
-    code.push('  },');
-    code.push('  logMessages: [');
-    code.push(`    ${[...quirksCode.logMessages.values()].join(',\n    ')}`);
-    code.push('  ],');
-    code.push('}');
-    const fullKey = `${window.org}/${window.app}/${layoutSetId}`;
-    const _fullCode = `'${fullKey}': ${code.join('\n')},`;
-    // Uncomment the next line to get the generated quirks code
-    // debugger;
   }
 }
 

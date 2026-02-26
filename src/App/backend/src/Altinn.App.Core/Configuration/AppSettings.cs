@@ -90,11 +90,6 @@ public class AppSettings
     public string FooterFileName { get; set; } = "footer.json";
 
     /// <summary>
-    /// Gets or sets The name of the rule configuration json file Name
-    /// </summary>
-    public string RuleConfigurationJSONFileName { get; set; } = "RuleConfiguration.json";
-
-    /// <summary>
     /// Gets or sets The JSON schema file name
     /// </summary>
     public string JsonSchemaFileName { get; set; } = JSON_SCHEMA_FILENAME;
@@ -139,11 +134,6 @@ public class AppSettings
     /// </summary>
     public string DefaultBootstrapUrl { get; set; } =
         "https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css";
-
-    /// <summary>
-    /// Gets or sets the filename for the instantiation handler
-    /// </summary>
-    public string RuleHandlerFileName { get; set; } = "RuleHandler.js";
 
     /// <summary>
     /// Open Id Connect Well known endpoint

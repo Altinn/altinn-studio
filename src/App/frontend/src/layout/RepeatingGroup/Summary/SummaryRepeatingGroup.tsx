@@ -143,9 +143,17 @@ function RegularRepeatingGroupRow({
   const isHidden = useIsHiddenMulti(children);
   const idMutator = useComponentIdMutator();
   const layoutLookups = useLayoutLookups();
+  const { tableColumns } = useItemWhenType(targetBaseComponentId, 'RepeatingGroup');
+
+  const hiddenColumns = tableColumns
+    ? Object.entries(tableColumns)
+        .filter(([_, settings]) => settings.hidden === true)
+        .map(([id]) => id)
+    : [];
 
   const childSummaryComponents = children
     .filter((baseId) => !inExcludedChildren(idMutator(baseId), baseId))
+    .filter((baseId) => !hiddenColumns.includes(baseId))
     .map((baseId) => {
       const component = layoutLookups.getComponent(baseId);
       const def = getComponentDef(component.type);

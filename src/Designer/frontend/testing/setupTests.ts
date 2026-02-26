@@ -6,10 +6,10 @@ import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { app, org } from './testids';
 import type { WithTranslationProps } from 'react-i18next';
 import { configure } from '@testing-library/dom';
 import { TextEncoder, TextDecoder } from 'util';
+import { webcrypto } from 'crypto';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -55,12 +55,21 @@ Object.defineProperty(document, 'getAnimations', {
   writable: true,
 });
 
+// Use Node's implementation of Web Crypto API, since Jest does not have access to browser's Web Crypto API
+Object.defineProperty(window, 'crypto', {
+  value: webcrypto,
+  writable: true,
+});
+
 // Workaround for the known issue. For more info, see this: https://github.com/jsdom/jsdom/issues/3294#issuecomment-1268330372
 HTMLDialogElement.prototype.showModal = jest.fn(function mock(this: HTMLDialogElement) {
   this.open = true;
 });
 HTMLDialogElement.prototype.close = jest.fn(function mock(this: HTMLDialogElement) {
-  this.open = false;
+  if (this.open) {
+    this.open = false;
+    this.dispatchEvent(new Event('close'));
+  }
 });
 
 // I18next mocks. The useTranslation and Trans mocks apply the textMock function on the text key, so that it can be used to address the texts in the tests.
@@ -75,6 +84,7 @@ jest.mock('react-i18next', () => ({
     t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
     i18n: {
       exists: () => true,
+      language: 'nb',
     },
   }),
   withTranslation:
@@ -94,12 +104,6 @@ jest.mock('react-i18next', () => ({
 jest.mock('@microsoft/signalr', () => ({
   ...jest.requireActual('@microsoft/signalr'),
   ...SignalR,
-}));
-
-// Mock org and app params
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org, app }),
 }));
 
 jest.setTimeout(3000000);
