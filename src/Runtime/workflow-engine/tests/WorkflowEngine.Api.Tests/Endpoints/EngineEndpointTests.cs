@@ -49,7 +49,7 @@ public class EngineEndpointTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(WorkflowEnqueueResponse.Accept(new Dictionary<long, string> { [42L] = "wf-1" }));
+            .ReturnsAsync(WorkflowEnqueueResponse.Accept(new Dictionary<string, long> { ["wf-1"] = 42L }));
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
@@ -64,7 +64,7 @@ public class EngineEndpointTests
         var ok = Assert.IsType<Ok<WorkflowEnqueueResponse.Accepted>>(result.Result);
         Assert.NotNull(ok.Value);
         Assert.Single(ok.Value.Workflows);
-        Assert.Equal("wf-1", ok.Value.Workflows[42L]);
+        Assert.Equal(42L, ok.Value.Workflows["wf-1"]);
     }
 
     [Fact]
@@ -295,7 +295,7 @@ public class EngineEndpointTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(WorkflowEnqueueResponse.Accept(new Dictionary<long, string> { [1L] = "wf-1" }));
+            .ReturnsAsync(WorkflowEnqueueResponse.Accept(new Dictionary<string, long> { ["wf-1"] = 1L }));
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
@@ -336,7 +336,7 @@ public class EngineEndpointTests
             .Callback<WorkflowEnqueueRequest, WorkflowRequestMetadata, CancellationToken>(
                 (_, meta, _) => capturedMetadata = meta
             )
-            .ReturnsAsync(WorkflowEnqueueResponse.Accept(new Dictionary<long, string> { [1L] = "wf-1" }));
+            .ReturnsAsync(WorkflowEnqueueResponse.Accept(new Dictionary<string, long> { ["wf-1"] = 1L }));
 
         // Act
         await EngineRequestHandlers.EnqueueWorkflows(

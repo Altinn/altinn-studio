@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using WorkflowMap = System.Collections.Generic.Dictionary<long, string>;
+using WorkflowMap = System.Collections.Generic.Dictionary<string, long>;
 
 namespace WorkflowEngine.Models;
 

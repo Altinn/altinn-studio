@@ -25,7 +25,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = response.Workflows.Keys.Single();
+        var workflowId = response.Workflows.Values.Single();
         var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
@@ -56,7 +56,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = response.Workflows.Keys.Single();
+        var workflowId = response.Workflows.Values.Single();
         var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
@@ -79,7 +79,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = response.Workflows.Keys.Single();
+        var workflowId = response.Workflows.Values.Single();
         var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
@@ -129,7 +129,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = response.Workflows.Keys.Single();
+        var workflowId = response.Workflows.Values.Single();
         var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
@@ -164,7 +164,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = response.Workflows.Keys.Single();
+        var workflowId = response.Workflows.Values.Single();
         var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
 
         // Assert
@@ -192,7 +192,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = response.Workflows.Keys.Single();
+        var workflowId = response.Workflows.Values.Single();
         var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
@@ -220,7 +220,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var statuses = await WaitForWorkflowStatus(response.Workflows.Keys, PersistentItemStatus.Completed);
+        var statuses = await WaitForWorkflowStatus(response.Workflows.Values, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Equal(4, response.Workflows.Count);
@@ -249,7 +249,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var statuses = await WaitForWorkflowStatus(response.Workflows.Keys, PersistentItemStatus.Completed);
+        var statuses = await WaitForWorkflowStatus(response.Workflows.Values, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Equal(3, response.Workflows.Count);
@@ -284,11 +284,11 @@ public partial class EngineEndToEndTests
         // Act
         var requestA = CreateEnqueueRequest(workflowA);
         var responseA = await _client.Enqueue(Org, App, PartyId, _instanceGuid, requestA);
-        var workflowAIdA = responseA.Workflows.Keys.Single();
+        var workflowAIdA = responseA.Workflows.Values.Single();
 
         var requestB = CreateEnqueueRequest(workflowB with { DependsOn = [workflowAIdA] });
         var responseB = await _client.Enqueue(Org, App, PartyId, _instanceGuid, requestB);
-        var workflowIdB = responseB.Workflows.Keys.Single();
+        var workflowIdB = responseB.Workflows.Values.Single();
 
         var statusA = await WaitForWorkflowStatus(workflowAIdA, PersistentItemStatus.Failed);
         var statusB = await WaitForWorkflowStatus(workflowIdB, PersistentItemStatus.DependencyFailed);
@@ -478,7 +478,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var statuses = await WaitForWorkflowStatus(response.Workflows.Keys, PersistentItemStatus.Completed);
+        var statuses = await WaitForWorkflowStatus(response.Workflows.Values, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Equal(8, response.Workflows.Count);

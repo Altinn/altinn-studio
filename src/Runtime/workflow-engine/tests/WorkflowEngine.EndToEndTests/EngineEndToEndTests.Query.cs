@@ -17,7 +17,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = response.Workflows.Keys.Single();
+        var workflowId = response.Workflows.Values.Single();
         await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         var workflow = await _client.GetWorkflow(Org, App, PartyId, _instanceGuid, workflowId);
@@ -40,7 +40,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = response.Workflows.Keys.Single();
+        var workflowId = response.Workflows.Values.Single();
         await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         var resultForCorrectInstance = await _client.GetWorkflowRaw(Org, App, PartyId, _instanceGuid, workflowId);
@@ -73,7 +73,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = response.Workflows.Keys.Single();
+        var workflowId = response.Workflows.Values.Single();
 
         // Poll until the engine picks up the workflow (Enqueued or Processing).
         var deadline = DateTimeOffset.UtcNow.AddSeconds(10);
@@ -100,7 +100,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = response.Workflows.Keys.Single();
+        var workflowId = response.Workflows.Values.Single();
 
         await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
@@ -128,7 +128,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = response.Workflows.Keys.Single();
+        var workflowId = response.Workflows.Values.Single();
         var activeFromApi = await _client.ListActiveWorkflows(Org, App, PartyId, _instanceGuid);
         var scheduledFromDb = await context.GetScheduledWorkflows().ToListAsync(TestContext.Current.CancellationToken);
 

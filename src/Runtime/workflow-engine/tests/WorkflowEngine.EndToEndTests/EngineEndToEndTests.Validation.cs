@@ -82,7 +82,7 @@ public partial class EngineEndToEndTests
         var responseA = await _client.Enqueue(Org, App, PartyId, _instanceGuid, requestA);
         var responseB = await _client.EnqueueRaw(Org, App, PartyId, _instanceGuid, requestB);
 
-        var workflowAId = responseA.Workflows.Keys.Single();
+        var workflowAId = responseA.Workflows.Values.Single();
         await WaitForWorkflowStatus(workflowAId, PersistentItemStatus.Completed);
 
         // Assert
@@ -106,7 +106,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var responseA = await _client.Enqueue(Org, App, PartyId, _instanceGuid, CreateEnqueueRequest(workflowA));
-        var workflowAId = responseA.Workflows.Keys.Single();
+        var workflowAId = responseA.Workflows.Values.Single();
         await WaitForWorkflowStatus(workflowAId, PersistentItemStatus.Processing);
 
         var responseB = await _client.Enqueue(
@@ -116,7 +116,7 @@ public partial class EngineEndToEndTests
             _instanceGuid,
             CreateEnqueueRequest(workflowB with { DependsOn = [workflowAId] })
         );
-        var workflowBId = responseB.Workflows.Keys.Single();
+        var workflowBId = responseB.Workflows.Values.Single();
 
         var statuses = await WaitForWorkflowStatus([workflowAId, workflowBId], PersistentItemStatus.Completed);
 
