@@ -134,8 +134,7 @@ export const buildPipelineHTML = (wf, isStatic) => {
   const phaseLabel = (phase) => {
     if (phase === 'end') return tx.from;
     if (phase === 'start') return tx.to;
-    if (phase === 'commit') return 'commit';
-    if (phase === 'post') return 'post-commit';
+    if (phase === 'process-end') return 'End Event';
     return '';
   };
 

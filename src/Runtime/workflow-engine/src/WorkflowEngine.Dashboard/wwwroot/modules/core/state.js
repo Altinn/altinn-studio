@@ -177,28 +177,23 @@ export const parseTransition = (wf) => {
 };
 
 const TASK_END_COMMANDS = new Set([
-  'ProcessTaskEnd','CommonTaskFinalization','EndTaskLegacyHook',
+  'EndTask','CommonTaskFinalization','EndTaskLegacyHook',
   'OnTaskEndingHook','LockTaskData',
-  'ProcessTaskAbandon','OnTaskAbandonHook','AbandonTaskLegacyHook',
+  'AbandonTask','OnTaskAbandonHook','AbandonTaskLegacyHook',
 ]);
 const TASK_START_COMMANDS = new Set([
-  'UnlockTaskData','ProcessTaskStart','OnTaskStartingHook',
-  'CommonTaskInitialization',
+  'UnlockTaskData','StartTask','StartTaskLegacyHook',
+  'OnTaskStartingHook','CommonTaskInitialization',
 ]);
-const COMMIT_COMMANDS = new Set([
-  'UpdateProcessState',
-]);
-const POST_COMMIT_COMMANDS = new Set([
-  'MovedToAltinnEvent','ExecuteServiceTask','InstanceCreatedAltinnEvent',
-  'OnProcessEndingHook','ProcessEndLegacyHook','CompletedAltinnEvent',
+const PROCESS_END_COMMANDS = new Set([
+  'OnProcessEndingHook',
 ]);
 
-/** @param {string} commandDetail @returns {'end'|'start'|'process'|'post'|null} */
+/** @param {string} commandDetail @returns {'end'|'start'|'process-end'|null} */
 export const stepPhase = (commandDetail) => {
   if (TASK_END_COMMANDS.has(commandDetail)) return 'end';
   if (TASK_START_COMMANDS.has(commandDetail)) return 'start';
-  if (COMMIT_COMMANDS.has(commandDetail)) return 'commit';
-  if (POST_COMMIT_COMMANDS.has(commandDetail)) return 'post';
+  if (PROCESS_END_COMMANDS.has(commandDetail)) return 'process-end';
   return null;
 };
 
