@@ -72,7 +72,7 @@ npx cypress open --env environment=docker
 | 2.4 | Validation display and visibility | Done | ComponentValidations component; added to Input, TextArea, Dropdown, Datepicker, Checkboxes, RadioButtons |
 | 2.5 | Required field validation | Done | useRequiredValidation hook + required indicators on 6 components |
 | 3.1 | Page navigation within a task | Done | NavigationButtons component with validation-blocked navigation |
-| 3.2 | Layout settings integration | Done | Page order from layoutSettings fed into FormClient |
+| 3.2 | Layout settings integration | Partial | Page order from layoutSettings fed into FormClient; missing: expression-based page hiding (hidden pages filtered from nav/order) |
 | 3.3 | Process management | Not started | |
 | 3.4 | Confirmation and receipt pages | Not started | |
 | 4.1 | Text/date components | Not started | |
@@ -330,6 +330,7 @@ This separation means the form library can be used in other apps (e.g., Altinn S
 - App shell fetches layout settings (page order, nav style) via `layoutApi`
 - Feeds page order info to form-client/form-engine
 - Support `showNavigationBar` / sidebar navigation
+- **Expression-based page hiding**: Each page layout has a `data.hidden` expression. Pages where `hidden` evaluates to `true` must be filtered from the page order, NavigationBar, and NavigationButtons (skip hidden pages when navigating next/prev). The old codebase does this in `usePageOrder()` → `useHiddenPages()` which evaluates each layout's `hidden` expression reactively.
 - **Reference**: `src/features/form/layoutSettings/LayoutSettingsContext.tsx`
 - **Files**: `nextsrc/core/apiClient/layoutApi.ts`, `nextsrc/features/form/pages/task/taskLoader.ts`
 

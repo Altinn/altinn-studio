@@ -2,36 +2,47 @@ import React from 'react';
 
 import cn from 'classnames';
 import { useNavigate, useParams } from 'react-router';
-import { useLayoutNames } from 'nextsrc/libs/form-client/react/hooks';
+import { usePageOrder, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 
 import classes from 'nextsrc/libs/form-engine/components/NavigationBar.module.css';
 
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
+const NavButton = ({ name, index, isCurrent, onClick }: { name: string; index: number; isCurrent: boolean; onClick: () => void }) => {
+  const label = useTextResource(name);
+
+  return (
+    <li className={classes.containerBase}>
+      <button
+        type='button'
+        className={cn(classes.buttonBase, {
+          [classes.buttonSelected]: isCurrent,
+        })}
+        onClick={onClick}
+        {...(isCurrent && { 'aria-current': 'page' as const })}
+      >
+        {index + 1}. {label || name}
+      </button>
+    </li>
+  );
+};
+
 export const NavigationBar = (_props: ComponentProps) => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
-  const layoutNames = useLayoutNames();
+  const pageOrder = usePageOrder();
 
   return (
     <nav data-testid='NavigationBar'>
       <ul className={classes.menu}>
-        {layoutNames.map((name, index) => (
-          <li
+        {pageOrder.map((name, index) => (
+          <NavButton
             key={name}
-            className={classes.containerBase}
-          >
-            <button
-              type='button'
-              className={cn(classes.buttonBase, {
-                [classes.buttonSelected]: name === pageId,
-              })}
-              onClick={() => navigate(`../${name}`, { relative: 'path' })}
-              {...(name === pageId && { 'aria-current': 'page' as const })}
-            >
-              {index + 1}. {name}
-            </button>
-          </li>
+            name={name}
+            index={index}
+            isCurrent={name === pageId}
+            onClick={() => navigate(`../${name}`, { relative: 'path' })}
+          />
         ))}
       </ul>
     </nav>

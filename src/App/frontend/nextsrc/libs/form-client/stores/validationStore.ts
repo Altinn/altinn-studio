@@ -13,6 +13,7 @@ interface ValidationActions {
   setFieldValidations: (path: string, validations: FieldValidation[]) => void;
   clearField: (path: string) => void;
   clearAll: () => void;
+  clearBackend: () => void;
   getFieldValidations: (path: string) => FieldValidation[];
   hasErrors: (path?: string) => boolean;
 }
@@ -32,6 +33,16 @@ export function createValidationStore() {
         return { fieldValidations: rest };
       }),
     clearAll: () => set({ fieldValidations: {} }),
+    clearBackend: () =>
+      set((state) => {
+        const kept: Record<string, FieldValidation[]> = {};
+        for (const [key, value] of Object.entries(state.fieldValidations)) {
+          if (key.includes(':__')) {
+            kept[key] = value;
+          }
+        }
+        return { fieldValidations: kept };
+      }),
     getFieldValidations: (path) => get().fieldValidations[path] ?? [],
     hasErrors: (path) => {
       const validations = get().fieldValidations;

@@ -93,8 +93,9 @@ export function useFormDataPersistence({
       }
 
       // Feed validation issues into the validation store
+      // Only clear backend validation keys (not client-side ones like :__required)
       const validationState = client.validationStore.getState();
-      validationState.clearAll();
+      validationState.clearBackend();
 
       const issuesBySource = response.validationIssues;
       if (issuesBySource && typeof issuesBySource === 'object') {
