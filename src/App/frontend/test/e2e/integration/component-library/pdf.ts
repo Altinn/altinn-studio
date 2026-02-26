@@ -1,6 +1,6 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
-import type { ILayoutSettings } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
 
 const appFrontend = new AppFrontend();
@@ -8,15 +8,9 @@ const appFrontend = new AppFrontend();
 describe('PDF', () => {
   it('Custom PDF page with hideEmptyFields, custom logo, externalApi', { retries: 0 }, () => {
     const pdfLayoutName = 'pdf-page';
-    cy.intercept('GET', '**/layoutsettings/**', (req) =>
-      req.on('response', (res) => {
-        const body: ILayoutSettings = JSON.parse(res.body);
-        res.send({
-          ...body,
-          pages: { ...body.pages, pdfLayoutName },
-        });
-      }),
-    );
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_1.pages.pdfLayoutName = pdfLayoutName;
+    });
     cy.intercept('GET', '**/layouts/**', (req) =>
       req.on('response', (res) => {
         const body: ILayoutCollection = JSON.parse(res.body);

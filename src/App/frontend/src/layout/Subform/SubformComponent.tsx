@@ -11,7 +11,7 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
-import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
+import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
@@ -45,7 +45,7 @@ export function SubformComponent({ baseComponentId }: PropsFromGenericComponent<
   } = useItemWhenType(baseComponentId, 'Subform');
 
   const isSubformPage = useIsSubformPage();
-  const dataType = useDataTypeFromLayoutSet(layoutSet);
+  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
   const navigation = useNavigation();
 
   if (!dataType) {

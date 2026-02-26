@@ -7,14 +7,14 @@ import { Button } from 'src/app-components/Button/Button';
 import { translationKey } from 'src/AppComponentsBridge';
 import { useIsReceiptPage } from 'src/core/routing/useIsReceiptPage';
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { usePageGroups, usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/AppNavigation.module.css';
 import { PageGroup } from 'src/features/navigation/components/PageGroup';
 import { TaskGroup } from 'src/features/navigation/components/TaskGroup';
 import { useIsSubformPage } from 'src/hooks/navigation';
-import type { NavigationReceipt, NavigationTask } from 'src/features/form/layoutSets/types';
+import type { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
 
 export function AppNavigation({ onNavigate }: { onNavigate?: () => void }) {
   const pageGroups = usePageGroups();

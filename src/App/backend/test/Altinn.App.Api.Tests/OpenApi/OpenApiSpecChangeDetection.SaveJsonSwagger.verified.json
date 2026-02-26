@@ -5632,7 +5632,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "The layoutset id",
+            "description": "The name of the subfolder in ui to get layouts from (a taskId, stateless name, subform, etc)",
             "required": true,
             "schema": {
               "type": "string"
@@ -5739,7 +5739,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/{org}/{app}/api/v1/footer": {
