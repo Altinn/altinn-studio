@@ -6,6 +6,7 @@ import { pick } from 'dot-object';
 
 import { FieldRenderer } from 'src/app-components/DynamicForm/DynamicForm';
 import { AppTable } from 'src/app-components/Table/Table';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -17,6 +18,7 @@ import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { AddToListModal } from 'src/layout/AddToList/AddToList';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
+import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
 import type { TableActionButton } from 'src/app-components/Table/Table';
@@ -64,7 +66,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
           callback: (_) => true,
         });
       },
-      buttonText: <Lang id='general.delete' />,
+      buttonText: translationKey('general.delete'),
       icon: <TrashIcon />,
       color: 'danger',
     });
@@ -76,7 +78,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
         setEditItemIndex(idx);
         setShowEdit(true);
       },
-      buttonText: <Lang id='general.edit' />,
+      buttonText: translationKey('general.edit'),
       icon: <PencilIcon />,
       variant: 'tertiary',
       color: 'second',
@@ -144,8 +146,8 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
         schema={schema}
         mobile={isMobile}
         actionButtons={actionButtons}
-        actionButtonHeader={<Lang id='general.action' />}
-        emptyText={<Lang id='general.empty_table' />}
+        actionButtonHeader={translationKey('general.action')}
+        emptyText={translationKey('general.empty_table')}
         caption={
           title && (
             <Caption
@@ -159,7 +161,6 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
         stickyHeader={true}
         columns={columns.map((config) => {
           const { component } = config;
-          const header = <Lang id={config.header} />;
           let renderCell;
           if (component) {
             renderCell = (_, __, rowIndex) => {
@@ -194,6 +195,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
                           }))
                         : undefined,
                   }}
+                  getDatepickerFormat={getDatepickerFormat}
                   handleChange={(fieldName, value) => {
                     const valueToUpdate = data.find((_, idx) => idx === rowIndex);
                     const nextValue = { ...valueToUpdate, [`${fieldName}`]: value };
@@ -210,7 +212,7 @@ export function SimpleTableComponent({ baseComponentId, dataModelBindings }: Tab
 
           return {
             ...config,
-            header,
+            header: translationKey(config.header),
             renderCell,
           };
         })}

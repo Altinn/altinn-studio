@@ -222,7 +222,7 @@ export default tseslint.config(
     files: ['src/app-components/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
-        'warn',
+        'error',
         {
           patterns: [
             {

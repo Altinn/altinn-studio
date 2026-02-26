@@ -600,8 +600,20 @@ var _ = Describe("controller", Ordered, func() {
 
 			ctx := context.Background()
 
+			By("capturing current client id before deletion")
+			client := &resourcesv1alpha1.MaskinportenClient{}
+			err := k8sClient.CRD.Get().
+				Resource("maskinportenclients").
+				Namespace(clientNamespace).
+				Name(clientName).
+				Do(ctx).
+				Into(client)
+			Expect(err).To(Succeed())
+			expectedClientID := client.Status.ClientId
+			Expect(expectedClientID).NotTo(BeEmpty())
+
 			By("deleting MaskinportenClient")
-			err := k8sClient.CRD.Delete().
+			err = k8sClient.CRD.Delete().
 				Resource("maskinportenclients").
 				Namespace(clientNamespace).
 				Name(clientName).
@@ -618,6 +630,165 @@ var _ = Describe("controller", Ordered, func() {
 				time.Second,
 				"step3-deleted",
 			)
+
+			By("verifying client is deleted from fakes db")
+			Eventually(func() error {
+				db, err := FetchFakesDb()
+				if err != nil {
+					return err
+				}
+				for _, record := range db {
+					if record.ClientId == expectedClientID {
+						return fmt.Errorf("client %s still exists in fakes db", expectedClientID)
+					}
+				}
+				return nil
+			}, 20*time.Second, time.Second).Should(Succeed())
+		})
+
+		It("should clean up when secret is deleted before CR", func() {
+			k8sClient := Client
+			Expect(k8sClient).NotTo(BeNil())
+
+			ctx := context.Background()
+
+			By("recreating MaskinportenClient resource")
+			maskinportenClient := &resourcesv1alpha1.MaskinportenClient{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      clientName,
+					Namespace: clientNamespace,
+					Labels: map[string]string{
+						"app": "ttd-localtestapp-deployment",
+					},
+				},
+				Spec: resourcesv1alpha1.MaskinportenClientSpec{
+					Scopes: []string{"altinn:serviceowner/instances.read"},
+				},
+			}
+			err := k8sClient.CRD.Post().
+				Resource("maskinportenclients").
+				Namespace(clientNamespace).
+				Body(maskinportenClient).
+				Do(ctx).
+				Error()
+			Expect(err).To(Succeed())
+
+			By("waiting for reconciliation to complete")
+			Eventually(func() error {
+				client, secret, err := createStateFetcher(k8sClient, clientName, secretName, clientNamespace)()
+				if err != nil {
+					return err
+				}
+				return stateIsReconciled(client, secret)
+			}, 15*time.Second, time.Second).Should(Succeed())
+
+			By("capturing reconciled client id")
+			client := &resourcesv1alpha1.MaskinportenClient{}
+			err = k8sClient.CRD.Get().
+				Resource("maskinportenclients").
+				Namespace(clientNamespace).
+				Name(clientName).
+				Do(ctx).
+				Into(client)
+			Expect(err).To(Succeed())
+			expectedClientID := client.Status.ClientId
+			Expect(expectedClientID).NotTo(BeEmpty())
+
+			By("snapshotting app secret for suite state restoration")
+			originalSecret := &corev1.Secret{}
+			err = k8sClient.Core.Get().
+				Resource("secrets").
+				Namespace(clientNamespace).
+				Name(secretName).
+				Do(ctx).
+				Into(originalSecret)
+			Expect(err).To(Succeed())
+
+			DeferCleanup(func() {
+				By("restoring shared app secret for subsequent e2e suites")
+				currentSecret := &corev1.Secret{}
+				err := k8sClient.Core.Get().
+					Resource("secrets").
+					Namespace(clientNamespace).
+					Name(secretName).
+					Do(ctx).
+					Into(currentSecret)
+				if apierrors.IsNotFound(err) {
+					restored := originalSecret.DeepCopy()
+					restored.SetResourceVersion("")
+					restored.SetUID("")
+					restored.SetGeneration(0)
+					restored.SetCreationTimestamp(metav1.Time{})
+					restored.SetManagedFields(nil)
+					restored.SetFinalizers(nil)
+					restored.SetOwnerReferences(nil)
+
+					err = k8sClient.Core.Post().
+						Resource("secrets").
+						Namespace(clientNamespace).
+						Body(restored).
+						Do(ctx).
+						Error()
+					Expect(err).To(Succeed())
+				} else {
+					Expect(err).To(Succeed())
+				}
+			})
+
+			By("deleting secret first")
+			err = k8sClient.Core.Delete().
+				Resource("secrets").
+				Namespace(clientNamespace).
+				Name(secretName).
+				Do(ctx).
+				Error()
+			if err != nil && !apierrors.IsNotFound(err) {
+				Expect(err).To(Succeed())
+			}
+
+			By("waiting for secret to be absent before deleting CR")
+			Eventually(func() bool {
+				secret := &corev1.Secret{}
+				err := k8sClient.Core.Get().
+					Resource("secrets").
+					Namespace(clientNamespace).
+					Name(secretName).
+					Do(ctx).
+					Into(secret)
+				return apierrors.IsNotFound(err)
+			}, 10*time.Second, time.Second).Should(BeTrue())
+
+			By("deleting MaskinportenClient after secret deletion")
+			err = k8sClient.CRD.Delete().
+				Resource("maskinportenclients").
+				Namespace(clientNamespace).
+				Name(clientName).
+				Do(ctx).
+				Error()
+			if err != nil && !apierrors.IsNotFound(err) {
+				Expect(err).To(Succeed())
+			}
+
+			By("waiting for CR deletion and API client cleanup")
+			Eventually(func() error {
+				mpClient, secret, err := createStateFetcher(k8sClient, clientName, secretName, clientNamespace)()
+				if err != nil {
+					return err
+				}
+				if err := stateIsDeleted(mpClient, secret); err != nil {
+					return err
+				}
+				db, err := FetchFakesDb()
+				if err != nil {
+					return err
+				}
+				for _, record := range db {
+					if record.ClientId == expectedClientID {
+						return fmt.Errorf("client %s still exists in fakes db", expectedClientID)
+					}
+				}
+				return nil
+			}, 20*time.Second, time.Second).Should(Succeed())
 		})
 	})
 })

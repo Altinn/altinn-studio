@@ -21,7 +21,7 @@ runners:
       replicas: 1
       registrationTokenSecretName: altinn-gitea-runner-ttd-secret
     - name: brg
-      replicas: 5
+      replicas: 6
       registrationTokenSecretName: altinn-gitea-runner-brg-secret
     - name: dsb
       replicas: 1
@@ -35,3 +35,6 @@ runners:
     - name: pat
       replicas: 1
       registrationTokenSecretName: altinn-gitea-runner-pat-secret
+    - name: dibk
+      replicas: 1
+      registrationTokenSecretName: altinn-gitea-runner-dibk-secret

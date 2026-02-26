@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"strings"
@@ -35,13 +37,35 @@ func main() {
 
 	baseLogger.Info("Starting", "GOMAXPROCS", runtime.GOMAXPROCS(0), "NumCPU", runtime.NumCPU())
 
-	otelShutdown, err := telemetry.ConfigureOTel(context.Background())
-	if err != nil {
-		baseLogger.Error("Failed to initialize telemetry", "error", err)
-		os.Exit(1)
+	cfg := config.ReadConfig()
+	telemetryEnabled := config.ShouldConfigureOTel(cfg.Environment)
+	otelShutdown := func(context.Context) error { return nil }
+	if telemetryEnabled {
+		configuredShutdown, err := telemetry.ConfigureOTel(context.Background())
+		if err != nil {
+			baseLogger.Error("Failed to initialize telemetry", "error", err)
+			os.Exit(1)
+		}
+		otelShutdown = configuredShutdown
+	} else {
+		baseLogger.Info(
+			"Telemetry exporter disabled for localtest",
+			"environment", cfg.Environment,
+			"enable_with", "OTEL_EXPORTER_OTLP_ENDPOINT",
+		)
 	}
 
-	cfg := config.ReadConfig()
+	if cfg.Environment == config.EnvironmentLocaltest && cfg.LocaltestPublicBaseURL != "" {
+		if _, err := parseCanonicalLocaltestBaseURL(cfg.LocaltestPublicBaseURL); err != nil {
+			baseLogger.Error(
+				"Invalid localtest public base URL",
+				"error", err,
+				"env_var", config.LocaltestPublicBaseURLEnv,
+				"value", cfg.LocaltestPublicBaseURL,
+			)
+			os.Exit(1)
+		}
+	}
 	hostParams := config.ResolveHostParametersForEnvironment(cfg.Environment)
 
 	host := iruntime.NewHost(
@@ -109,7 +133,10 @@ func main() {
 	// The localtest harness will run on all dev machines
 	// We can avoid some overhead by just running the single container
 	if cfg.Environment == config.EnvironmentLocaltest {
-		http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", generateLocalPdfHandler(logger, gen)))
+		http.Handle(
+			"/pdf",
+			telemetry.WrapHandler("POST /pdf", generateLocalPdfHandler(logger, gen, cfg.LocaltestPublicBaseURL)),
+		)
 	} else {
 		http.Handle("/generate", telemetry.WrapHandler("POST /generate", generatePdfHandler(logger, gen)))
 	}
@@ -145,22 +172,28 @@ func main() {
 		logger.Info("Gracefully shut down HTTP server")
 	}
 
-	logger.Info("Shutting down telemetry")
-	telemetryShutdownTimeout := config.ResolveTelemetryShutdownTimeoutForEnvironment(cfg.Environment)
-	if telemetryShutdownTimeout == 0 {
-		logger.Info("Skipping graceful telemetry flush", "environment", cfg.Environment)
-	} else {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), telemetryShutdownTimeout)
-		defer cancel()
-		if err := otelShutdown(shutdownCtx); err != nil {
-			logger.Warn("Failed to gracefully shut down telemetry", "error", err)
+	if telemetryEnabled {
+		logger.Info("Shutting down telemetry")
+		telemetryShutdownTimeout := config.ResolveTelemetryShutdownTimeoutForEnvironment(cfg.Environment)
+		if telemetryShutdownTimeout == 0 {
+			logger.Info("Skipping graceful telemetry flush", "environment", cfg.Environment)
+		} else {
+			shutdownCtx, cancel := context.WithTimeout(context.Background(), telemetryShutdownTimeout)
+			defer cancel()
+			if err := otelShutdown(shutdownCtx); err != nil {
+				logger.Warn("Failed to gracefully shut down telemetry", "error", err)
+			}
 		}
 	}
 
 	logger.Info("Server shut down gracefully")
 }
 
-func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
+func generateLocalPdfHandler(
+	logger *slog.Logger,
+	gen types.PdfGenerator,
+	localtestPublicBaseURL string,
+) http.HandlerFunc {
 	assert.That(!iruntime.IsTestInternalsMode, "Localtest env should not run internals test mode")
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -218,6 +251,24 @@ func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.H
 				TraceRejectionError:  err,
 			})
 			return
+		}
+
+		normalizedURL, rewriteReason, normalizeErr := normalizeLocaltestURL(req.URL, localtestPublicBaseURL)
+		if normalizeErr != nil {
+			logger.Warn(
+				"Failed to normalize localtest request URL",
+				"error", normalizeErr,
+				"url", req.URL,
+				"env_var", config.LocaltestPublicBaseURLEnv,
+			)
+		} else if rewriteReason != "" {
+			logger.Info(
+				"Rewrote localtest request URL",
+				"reason", rewriteReason,
+				"from", req.URL,
+				"to", normalizedURL,
+			)
+			req.URL = normalizedURL
 		}
 
 		logger = logger.With("url", req.URL)
@@ -278,6 +329,72 @@ func generateLocalPdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.H
 		}
 	}
 }
+
+func normalizeLocaltestURL(requestURL, localtestBaseURL string) (string, string, error) {
+	if localtestBaseURL == "" {
+		return requestURL, "", nil
+	}
+
+	requestURI, err := url.Parse(requestURL)
+	if err != nil {
+		return requestURL, "", fmt.Errorf("parse request URL: %w", err)
+	}
+
+	if requestURI.Scheme == "" || requestURI.Host == "" {
+		return requestURL, "", nil
+	}
+
+	canonicalBase, err := parseCanonicalLocaltestBaseURL(localtestBaseURL)
+	if err != nil {
+		return requestURL, "", err
+	}
+
+	if !strings.EqualFold(requestURI.Hostname(), canonicalBase.Hostname()) {
+		return requestURL, "", nil
+	}
+
+	portMismatch := requestURI.Port() != canonicalBase.Port()
+	schemeMismatch := !strings.EqualFold(requestURI.Scheme, canonicalBase.Scheme)
+	if !portMismatch && !schemeMismatch {
+		return requestURL, "", nil
+	}
+
+	rewritten := *requestURI
+	rewritten.Scheme = canonicalBase.Scheme
+	rewritten.Host = canonicalBase.Host
+
+	reason := "scheme_mismatch"
+	if portMismatch {
+		if requestURI.Port() == "" {
+			reason = "missing_port"
+		} else {
+			reason = "port_mismatch"
+		}
+		if schemeMismatch {
+			reason += "_and_scheme_mismatch"
+		}
+	}
+
+	return rewritten.String(), reason, nil
+}
+
+func parseCanonicalLocaltestBaseURL(localtestBaseURL string) (*url.URL, error) {
+	canonicalBase, err := url.Parse(localtestBaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("parse %s: %w", config.LocaltestPublicBaseURLEnv, err)
+	}
+	if canonicalBase.Scheme == "" || canonicalBase.Host == "" {
+		return nil, fmt.Errorf(
+			"%w: %s=%q",
+			errInvalidLocaltestPublicBaseURL,
+			config.LocaltestPublicBaseURLEnv,
+			localtestBaseURL,
+		)
+	}
+	return canonicalBase, nil
+}
+
+var errInvalidLocaltestPublicBaseURL = errors.New("invalid localtest public base URL")
 
 func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

@@ -20,6 +20,7 @@ import {
   layoutSetsPath,
   layoutSetsExtendedPath,
   layoutSettingsPath,
+  validateNavigationLayoutSettingsPath,
   optionListIdsPath,
   optionListsPath,
   orgsListPath,
@@ -89,7 +90,7 @@ import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/typ
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { ILayoutSettings, ITextResourcesWithLanguage, IFrontEndSettings } from 'app-shared/types/global';
+import type { ILayoutSettings, IValidationOnNavigationLayoutSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets } from 'app-shared/types/global';
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgList } from 'app-shared/types/OrgList';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
@@ -152,6 +153,7 @@ export const getDeployPermissions = (owner: string, app: string) => get<string[]
 export const getDeployments = (owner: string, app: string) => get<DeploymentsResponse>(deploymentsPath(owner, app, 'Descending'));
 export const getEnvironments = () => get<Environment[]>(envConfigPath());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
+export const getValidationOnNavigationLayoutSettings = (owner: string, app: string) => get<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(owner, app));
 export const getFormLayouts = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse>(formLayoutsPath(owner, app, layoutSetName));
 export const getFormLayoutsV3 = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponseV3>(formLayoutsPath(owner, app, layoutSetName));
 export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));
@@ -159,6 +161,7 @@ export const getImageFileNames = (owner: string, app: string) => get<string[]>(g
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetModel[]>(layoutSetsExtendedPath(owner, app));
+export const getValidationOnNavigationLayoutSets = (owner: string, app: string) => get<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(owner, app)}/validation-on-navigation`);
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionListsResponse>(optionListsPath(owner, app));
 export const getOptionListsReferences = (owner: string, app: string) => get<OptionListReferences>(optionListReferencesPath(owner, app));

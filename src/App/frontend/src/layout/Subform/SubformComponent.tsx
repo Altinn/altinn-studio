@@ -9,6 +9,7 @@ import { Button } from 'src/app-components/Button/Button';
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -276,7 +277,7 @@ function SubformTableRow({
             variant='tertiary'
             color='second'
             onClick={async () => enterSubform({ nodeId, dataElementId: id, validate: hasErrors })}
-            aria-label={editButtonText}
+            aria-label={translationKey(editButtonText)}
             className={classes.tableButton}
           >
             {editButtonText}
@@ -295,7 +296,7 @@ function SubformTableRow({
               variant='tertiary'
               color='danger'
               onClick={() => deleteSubformEntry(id)}
-              aria-label={deleteButtonText}
+              aria-label={translationKey(deleteButtonText)}
               className={classes.tableButton}
             >
               {deleteButtonText}

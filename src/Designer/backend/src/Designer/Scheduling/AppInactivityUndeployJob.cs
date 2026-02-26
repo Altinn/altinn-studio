@@ -62,6 +62,7 @@ public class AppInactivityUndeployJob : IJob
             )
         {
             activity?.SetStatus(ActivityStatusCode.Error, "Job timed out.");
+            activity?.AddException(ex);
             activity?.AddEvent(
                 new ActivityEvent(
                     "job_timeout",
