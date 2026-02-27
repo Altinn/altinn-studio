@@ -588,7 +588,6 @@ namespace Altinn.Studio.Designer.Controllers
             CancellationToken cancellationToken
         )
         {
-            Console.WriteLine("Saving validation on navigation layout sets with config: " + config);
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
 
@@ -597,6 +596,22 @@ namespace Altinn.Studio.Designer.Controllers
                 config,
                 cancellationToken
             );
+
+            return Ok();
+        }
+
+        [HttpDelete("layout-sets/validation-on-navigation")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> DeleteValidationOnNavigationLayoutSets(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            await _appDevelopmentService.SaveValidationOnNavigationLayoutSets(editingContext, null, cancellationToken);
 
             return Ok();
         }
