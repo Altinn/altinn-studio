@@ -15,7 +15,7 @@ export const partySelectionAction =
       return { ok: false, message: 'No selected party id.' };
     }
 
-    await PartiesApi.updateSelectedParty(selectedPartyId);
+    await PartiesApi.updateSelectedParty(Number(selectedPartyId));
     invalidatePartyQueries(queryClient);
 
     return redirect(routeBuilders.root({}));

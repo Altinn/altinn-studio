@@ -97,7 +97,7 @@ export const InstanceSelectionPage = () => {
 
   const sortDirection = instanceSelectionOptions?.sortDirection ?? 'asc';
   const { data: instances, isPending } = useActiveInstances({
-    instanceOwnerPartyId: selectedPartyId.toString(),
+    instanceOwnerPartyId: selectedPartyId,
     sortDirection,
   });
 
@@ -291,7 +291,7 @@ function CreateInstanceButton() {
             result.id,
           );
 
-          return navigate(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
+          return navigate(routeBuilders.instance({ instanceOwnerPartyId: String(instanceOwnerPartyId), instanceGuid }));
         }}
         disabled={createInstanceMutation.isPending}
         size='md'

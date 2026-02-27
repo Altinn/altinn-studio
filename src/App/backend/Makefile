@@ -72,3 +72,6 @@ endif
 .PHONY: test-integration-debug
 test-integration-debug:
 	TEST_KEEP_CONTAINERS=1 make ti filter="FullyQualifiedName~BasicAppTests.Full&DisplayName~SimplifiedNoPrefill&DisplayName~OldUser"
+
+regenerate-json-swagger:
+	dotnet test test/Altinn.App.Api.Tests/ --filter SaveJsonSwagger

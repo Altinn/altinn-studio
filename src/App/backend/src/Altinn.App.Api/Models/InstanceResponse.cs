@@ -1,4 +1,3 @@
-#nullable disable
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -79,7 +78,7 @@ public sealed class InstanceResponse
     /// <summary>
     /// The date and time for when the element was created.
     /// </summary>
-    public required DateTime? Created { get; init; }
+    public required DateTime Created { get; init; }
 
     /// <summary>
     /// The id of the user who created this element.
@@ -126,7 +125,7 @@ public sealed class InstanceResponse
             Data = instance.Data,
             DataValues = instance.DataValues,
             PresentationTexts = instance.PresentationTexts,
-            Created = instance.Created,
+            Created = instance.Created ?? default, // Can never actually not be set, but the type from Storage is nullable
             CreatedBy = instance.CreatedBy,
             LastChanged = instance.LastChanged,
             LastChangedBy = instance.LastChangedBy,
@@ -147,17 +146,17 @@ public sealed class InstanceOwnerResponse
     /// <summary>
     /// Person number (national identification number) of the party. Null if the party is not a person.
     /// </summary>
-    public required string PersonNumber { get; init; }
+    public required string? PersonNumber { get; init; }
 
     /// <summary>
     /// The organisation number of the party. Null if the party is not an organisation.
     /// </summary>
-    public required string OrganisationNumber { get; init; }
+    public required string? OrganisationNumber { get; init; }
 
     /// <summary>
     /// The username of the party. Null if the party is not self identified.
     /// </summary>
-    public required string Username { get; init; }
+    public required string? Username { get; init; }
 
     /// <summary>
     /// Party information for the instance owner.
@@ -188,22 +187,22 @@ public sealed class PartyResponse
     /// <summary>
     /// Person number (national identification number) of the party. Null if the party is not a person.
     /// </summary>
-    public required string SSN { get; init; }
+    public required string? SSN { get; init; }
 
     /// <summary>
     /// The organisation number of the party. Null if the party is not an organisation.
     /// </summary>
-    public required string OrgNumber { get; init; }
+    public required string? OrgNumber { get; init; }
 
     /// <summary>
     /// The UnitType
     /// </summary>
-    public required string UnitType { get; init; }
+    public required string? UnitType { get; init; }
 
     /// <summary>
     /// The Name
     /// </summary>
-    public required string Name { get; init; }
+    public required string? Name { get; init; }
 
     /// <summary>
     /// The IsDeleted

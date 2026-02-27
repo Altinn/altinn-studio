@@ -19,7 +19,7 @@ export const instanceSelectionLoader = (queryClient: QueryClient) => async (_arg
     throw new Response('No selected party', { status: ServerStatusCodes.Unauthorized });
   }
 
-  const activeInstances = await queryClient.ensureQueryData(activeInstancesQuery(selectedParty.partyId.toString()));
+  const activeInstances = await queryClient.ensureQueryData(activeInstancesQuery(selectedParty.partyId));
   if (activeInstances.length === 0) {
     const newInstance = await InstanceApi.create(selectedParty.partyId);
     const [instanceOwnerPartyId, instanceGuid] = newInstance.id.split('/');
