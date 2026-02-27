@@ -21,11 +21,17 @@ public sealed record Step : PersistentItem
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
     internal bool HasPendingChanges { get; set; }
 
-    public static Step FromRequest(StepRequest request, WorkflowRequestMetadata metadata, int index) =>
+    public static Step FromRequest(
+        WorkflowRequest parent,
+        StepRequest request,
+        WorkflowRequestMetadata metadata,
+        int index
+    ) =>
         new()
         {
             DatabaseId = 0,
             OperationId = request.Command.OperationId,
+            IdempotencyKey = request.IdempotencyKey ?? $"{parent.IdempotencyKey}/{request.Command}",
             Actor = metadata.Actor,
             CreatedAt = metadata.CreatedAt,
             ProcessingOrder = index,

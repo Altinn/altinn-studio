@@ -18,6 +18,8 @@ internal sealed class StepEntity : IHasCommonMetadata
     [MaxLength(100)]
     public required string OperationId { get; set; }
 
+    public required string IdempotencyKey { get; set; }
+
     public PersistentItemStatus Status { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
@@ -58,6 +60,7 @@ internal sealed class StepEntity : IHasCommonMetadata
         {
             Id = step.DatabaseId,
             OperationId = step.OperationId,
+            IdempotencyKey = step.IdempotencyKey,
             Status = step.Status,
             CreatedAt = step.CreatedAt,
             UpdatedAt = step.UpdatedAt,
@@ -88,6 +91,7 @@ internal sealed class StepEntity : IHasCommonMetadata
         {
             DatabaseId = Id,
             OperationId = OperationId,
+            IdempotencyKey = IdempotencyKey,
             Status = Status,
             ProcessingOrder = ProcessingOrder,
             CreatedAt = CreatedAt,

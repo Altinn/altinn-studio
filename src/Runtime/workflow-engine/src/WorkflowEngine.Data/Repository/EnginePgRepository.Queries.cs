@@ -69,6 +69,63 @@ internal static class EnginePgRepositoryQueries
                 .MaybeFilterByInstanceGuid(instanceFilter)
                 .Where(wf => PersistentItemStatusMap.Successful.Contains(wf.Status));
 
+        public IQueryable<WorkflowEntity> GetFinishedWorkflows(
+            IReadOnlyList<PersistentItemStatus> statuses,
+            string? search = null,
+            int? take = null,
+            DateTimeOffset? before = null,
+            DateTimeOffset? since = null,
+            bool retriedOnly = false,
+            string? org = null,
+            string? app = null,
+            string? party = null,
+            string? instanceGuid = null
+        )
+        {
+            var query = dbContext.Workflows.Include(j => j.Steps).Where(x => statuses.Contains(x.Status));
+
+            if (before.HasValue)
+                query = query.Where(x => x.UpdatedAt < before.Value);
+
+            if (since.HasValue)
+                query = query.Where(x => x.UpdatedAt >= since.Value);
+
+            if (retriedOnly)
+                query = query.Where(x => x.Steps.Any(s => s.RequeueCount > 0));
+
+            if (!string.IsNullOrWhiteSpace(org))
+                query = query.Where(x => x.InstanceOrg == org);
+
+            if (!string.IsNullOrWhiteSpace(app))
+                query = query.Where(x => x.InstanceApp == app);
+
+            if (!string.IsNullOrWhiteSpace(party))
+                query = query.Where(x => x.InstanceOwnerPartyId.ToString() == party);
+
+            if (!string.IsNullOrWhiteSpace(instanceGuid))
+                query = query.Where(x => x.InstanceGuid.ToString() == instanceGuid);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                query = query.Where(x =>
+                    x.InstanceGuid.ToString().Contains(s)
+                    || x.InstanceOrg.ToLower().Contains(s)
+                    || x.InstanceApp.ToLower().Contains(s)
+                    || x.OperationId.ToLower().Contains(s)
+                    || x.InstanceOwnerPartyId.ToString().Contains(s)
+                    || x.Steps.Any(st => st.OperationId.ToLower().Contains(s))
+                );
+            }
+
+            query = query.OrderByDescending(x => x.UpdatedAt);
+
+            if (take.HasValue)
+                query = query.Take(take.Value);
+
+            return query;
+        }
+
         public IQueryable<WorkflowEntity> GetWorkflowById(
             long workflowId,
             bool includeSteps = true,

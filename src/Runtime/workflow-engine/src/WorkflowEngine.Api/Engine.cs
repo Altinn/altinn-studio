@@ -365,11 +365,8 @@ internal partial class Engine : IEngine, IDisposable
 
     private void FinalizeWorkflowProcessing(Workflow workflow)
     {
-        // TODO: This order of operations might be bad after merge!
         RemoveWorkflowAndReleaseQueueSlot(workflow);
-        StopActivity(workflow, dispose: false);
-        workflow.EngineActivity?.Dispose();
-        workflow.EngineActivity = null;
+        StopActivity(workflow);
         _logger.WorkflowCompleted(workflow);
     }
 

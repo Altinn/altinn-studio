@@ -24,6 +24,7 @@ public sealed record Workflow : PersistentItem
     ) =>
         new()
         {
+            IdempotencyKey = request.IdempotencyKey,
             InstanceLockKey = metadata.InstanceLockKey,
             InstanceInformation = metadata.InstanceInformation,
             Actor = metadata.Actor,
@@ -34,8 +35,8 @@ public sealed record Workflow : PersistentItem
             Type = request.Type,
             Dependencies = dependencies,
             Links = links,
-            Steps = request.Steps.Select((step, i) => Step.FromRequest(step, metadata, i)).ToList(),
-            InitialState = engineRequest.State,
+            Steps = request.Steps.Select((step, i) => Step.FromRequest(request, step, metadata, i)).ToList(),
+            InitialState = request.State,
         };
 
     public override string ToString() => $"[{GetType().Name}] {OperationId} ({Status})";

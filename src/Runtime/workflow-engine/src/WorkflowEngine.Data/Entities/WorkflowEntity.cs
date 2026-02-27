@@ -15,6 +15,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [MaxLength(100)]
     public required string OperationId { get; set; }
 
+    public required string IdempotencyKey { get; set; }
+
     [MaxLength(100)]
     public string? InstanceLockKey { get; set; }
 
@@ -65,6 +67,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             Id = workflow.DatabaseId,
             InstanceLockKey = workflow.InstanceLockKey,
             OperationId = workflow.OperationId,
+            IdempotencyKey = workflow.IdempotencyKey,
             CreatedAt = workflow.CreatedAt,
             StartAt = workflow.StartAt,
             UpdatedAt = workflow.UpdatedAt,
@@ -90,6 +93,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
         {
             DatabaseId = Id,
             InstanceLockKey = InstanceLockKey,
+            IdempotencyKey = IdempotencyKey,
             OperationId = OperationId,
             CreatedAt = CreatedAt,
             StartAt = StartAt,

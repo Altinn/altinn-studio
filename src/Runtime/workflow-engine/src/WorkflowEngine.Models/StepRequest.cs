@@ -25,4 +25,10 @@ public sealed record StepRequest
     /// </summary>
     [JsonPropertyName("metadata")]
     public string? Metadata { get; init; }
+
+    /// <summary>
+    /// An optional idempotency key for this workflow.
+    /// </summary>
+    [JsonPropertyName("idempotencyKey")]
+    public string? IdempotencyKey { get; init; }
 }

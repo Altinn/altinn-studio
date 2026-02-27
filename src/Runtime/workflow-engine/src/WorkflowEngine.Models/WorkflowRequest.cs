@@ -20,6 +20,12 @@ public sealed record WorkflowRequest
     public required string OperationId { get; init; }
 
     /// <summary>
+    /// An idempotency key for this workflow.
+    /// </summary>
+    [JsonPropertyName("idempotencyKey")]
+    public required string IdempotencyKey { get; init; }
+
+    /// <summary>
     /// The type of workflow this request is for.
     /// </summary>
     [JsonPropertyName("type")]
@@ -42,6 +48,12 @@ public sealed record WorkflowRequest
     /// </summary>
     [JsonPropertyName("metadata")]
     public string? Metadata { get; init; }
+
+    /// <summary>
+    /// Opaque state passed through from the app. The engine never inspects this.
+    /// </summary>
+    [JsonPropertyName("state")]
+    public string? State { get; init; }
 
     /// <summary>
     /// Workflows that must complete before this one can execute.
