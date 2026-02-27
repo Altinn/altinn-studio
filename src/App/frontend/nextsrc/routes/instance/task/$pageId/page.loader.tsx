@@ -15,13 +15,13 @@ export const pageLoader = async ({
     throw new Error('Route params missing');
   }
 
-  const layoutSet = GlobalData.layoutSetByTaskId(taskId);
+  const layoutSettings = GlobalData.ui.folders[taskId];
 
-  if (!layoutSet?.id) {
-    throw new Error('No layoutset ID, this is an error');
+  if (!layoutSettings) {
+    throw new Error('No UI folder for this task, this is an error');
   }
 
-  const layout = await LayoutApi.getLayout(layoutSet?.id);
+  const layout = await LayoutApi.getLayout(taskId);
   formClient.setLayoutCollection(layout);
 
   const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });

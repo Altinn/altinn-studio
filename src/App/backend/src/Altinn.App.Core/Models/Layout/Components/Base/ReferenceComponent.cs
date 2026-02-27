@@ -64,7 +64,7 @@ public abstract class ReferenceComponent : BaseLayoutComponent
         LayoutEvaluatorState state,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, LayoutSetComponent> layoutsLookup
+        Dictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         if (_claimedChildrenLookup is null)
@@ -87,7 +87,7 @@ public abstract class ReferenceComponent : BaseLayoutComponent
         LayoutEvaluatorState state,
         DataElementIdentifier defaultDataElementIdentifier,
         int[]? rowIndexes,
-        Dictionary<string, LayoutSetComponent> layoutsLookup
+        Dictionary<string, UiFolderComponent> layoutsLookup
     )
     {
         if (ChildReferences is null)

@@ -10,11 +10,11 @@ export const Task = () => {
     return undefined;
   }
 
-  const ourLayoutSet = GlobalData.layoutSets?.sets.find((layoutSet) => layoutSet.tasks?.includes(taskId));
+  const ourUiFolder = GlobalData.ui.folders[taskId];
   return (
     <div>
       I am Task: {taskId}
-      <pre>{JSON.stringify(ourLayoutSet, null, 2)}</pre>
+      <pre>{JSON.stringify(ourUiFolder, null, 2)}</pre>
     </div>
   );
 };

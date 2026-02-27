@@ -1,7 +1,6 @@
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
-import { LayoutApi } from 'nextsrc/core/api-client/layout.api';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { isPagesSettingsWithGroups, isPagesSettingsWithOrder } from 'nextsrc/core/typeguards';
 
@@ -10,17 +9,12 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs<{ taskId: string
   if (!taskId) {
     return null;
   }
-  const layoutSet = GlobalData.layoutSetByTaskId(taskId);
-
-  if (!layoutSet) {
-    throw new Error('layoutSet is undefined, this is an error fix it.');
-  }
-
-  const layoutSettings = await LayoutApi.getLayoutSettings(layoutSet.id);
+  const layoutSettings = GlobalData.ui.folders[taskId];
 
   if (!layoutSettings) {
-    throw new Error('layoutSettings is undefined, this is an error fix it.');
+    throw new Error(`No UI folder for task ${taskId}, this is an error fix it.`);
   }
+
   if (isPagesSettingsWithOrder(layoutSettings.pages)) {
     return redirect(`${layoutSettings.pages.order[0]}`);
   }
