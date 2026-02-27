@@ -5,12 +5,12 @@ import { Alert } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { LayoutInspectorItem } from 'src/features/devtools/components/LayoutInspector/LayoutInspectorItem';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { useLayoutSetIdFromUrl } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
@@ -20,7 +20,6 @@ export const LayoutInspector = () => {
   const setSelectedComponent = useDevToolsStore((state) => state.actions.layoutInspectorSet);
   const currentView = useCurrentView();
   const layouts = FormBootstrap.useLayouts();
-  const currentLayoutSetId = useLayoutSetIdFromUrl();
   const [componentProperties, setComponentProperties] = useState<string | null>(null);
   const [propertiesHaveChanged, setPropertiesHaveChanged] = useState(false);
   const [error, setError] = useState<boolean>(false);
@@ -117,7 +116,7 @@ export const LayoutInspector = () => {
                 onClick={() => setSelectedComponent(undefined)}
                 variant='tertiary'
                 color='second'
-                aria-label='close'
+                aria-label={translationKey('general.close')}
                 icon={true}
               >
                 <XMarkIcon

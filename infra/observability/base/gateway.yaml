@@ -39,21 +39,39 @@ spec:
         trace_statements:
           - context: span
             statements:
-              - set(attributes["http.host"], attributes["server.address"]) where attributes["server.address"] != nil
-              - set(attributes["http.method"], attributes["http.request.method"]) where attributes["http.request.method"] != nil
-              - set(attributes["http.scheme"], attributes["url.scheme"]) where attributes["url.scheme"] != nil
-              - set(attributes["http.target"], attributes["url.path"]) where attributes["url.path"] != nil and (attributes["url.query"] == nil or attributes["url.query"] == "")
-              - set(attributes["http.target"], Concat([attributes["url.path"], attributes["url.query"]], "?")) where attributes["url.path"] != nil and (attributes["url.query"] != nil and attributes["url.query"] != "")
-              - set(attributes["http.url"], attributes["url.full"]) where attributes["url.full"] != nil and attributes["http.url"] == nil
-              - set(attributes["http.status_code"], attributes["http.response.status_code"]) where attributes["http.response.status_code"] != nil
-              - set(attributes["http.client_ip"], attributes["client.address"]) where attributes["client.address"] != nil
-              - set(attributes["db.statement"], attributes["sql.query.text"]) where attributes["sql.query.text"] != nil
-              - set(attributes["db.system"], attributes["db.system.name"]) where attributes["db.system.name"] != nil
-              - set(attributes["http.route"], attributes["url.path"]) where attributes["url.path"] != nil and attributes["http.route"] == nil
-              - replace_pattern(attributes["http.route"], "/(.*?)/(.*?)?/(.*?)?$","/$$1/$$2") where resource.attributes["k8s.deployment.name"] == "traefik" and attributes["http.route"] != nil
-              - set(attributes["http.host"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
-              - set(attributes["http.target"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
-              - set(attributes["server.address"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+              - set(span.attributes["http.host"], span.attributes["server.address"]) where span.attributes["server.address"] != nil
+              - set(span.attributes["http.method"], span.attributes["http.request.method"]) where span.attributes["http.request.method"] != nil
+              - set(span.attributes["http.scheme"], span.attributes["url.scheme"]) where span.attributes["url.scheme"] != nil
+              - set(span.attributes["http.target"], span.attributes["url.path"]) where span.attributes["url.path"] != nil and (span.attributes["url.query"] == nil or span.attributes["url.query"] == "")
+              - set(span.attributes["http.target"], Concat([span.attributes["url.path"], span.attributes["url.query"]], "?")) where span.attributes["url.path"] != nil and (span.attributes["url.query"] != nil and span.attributes["url.query"] != "")
+              - set(span.attributes["http.url"], span.attributes["url.full"]) where span.attributes["url.full"] != nil and span.attributes["http.url"] == nil
+              - set(span.attributes["http.status_code"], span.attributes["http.response.status_code"]) where span.attributes["http.response.status_code"] != nil
+              - set(span.attributes["http.client_ip"], span.attributes["client.address"]) where span.attributes["client.address"] != nil
+              - set(span.attributes["db.statement"], span.attributes["sql.query.text"]) where span.attributes["sql.query.text"] != nil
+              - set(span.attributes["db.system"], span.attributes["db.system.name"]) where span.attributes["db.system.name"] != nil
+              - set(span.attributes["http.route"], span.attributes["url.path"]) where span.attributes["url.path"] != nil and span.attributes["http.route"] == nil
+              - replace_pattern(span.attributes["http.route"], "/(.*?)/(.*?)?/(.*?)?$","/$$1/$$2") where resource.attributes["k8s.deployment.name"] == "traefik" and span.attributes["http.route"] != nil
+              - set(span.attributes["http.host"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+              - set(span.attributes["http.target"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+              - set(span.attributes["server.address"], resource.attributes["service.name"]) where resource.attributes["linkerd.io/proxy-deployment"] != nil
+      transform/pdf3_expected_429_success:
+        error_mode: ignore
+        trace_statements:
+          - context: span
+            statements:
+              # Queue-full retries are expected in pdf3 worker. Re-map 429 to 299 so
+              # Azure Monitor request success stays true, while retaining original code.
+              - set(span.attributes["altinn.original_http.response.status_code"], span.attributes["http.response.status_code"]) where resource.attributes["service.name"] == "pdf3-worker" and name == "POST /generate" and span.attributes["http.response.status_code"] == 429
+              - set(span.attributes["altinn.original_http.status_code"], span.attributes["http.status_code"]) where resource.attributes["service.name"] == "pdf3-worker" and name == "POST /generate" and span.attributes["http.status_code"] == 429
+              - set(span.attributes["http.response.status_code"], 299) where resource.attributes["service.name"] == "pdf3-worker" and name == "POST /generate" and span.attributes["http.response.status_code"] == 429
+              - set(span.attributes["http.status_code"], 299) where resource.attributes["service.name"] == "pdf3-worker" and name == "POST /generate" and span.attributes["http.status_code"] == 429
+      filter/metrics_allowlist:
+        error_mode: ignore
+        metrics:
+          include:
+            match_type: regexp
+            metric_names:
+              - '^(altinn|http)([._].*)?$'
       tail_sampling:
         decision_wait: 40s
         num_traces: 50000
@@ -74,10 +92,33 @@ spec:
             type: latency
             latency:
               threshold_ms: 1000
+          - name: kubernetes-wrapper-probabilistic
+            type: and
+            and:
+              and_sub_policy:
+                - name: is-kubernetes-wrapper
+                  type: string_attribute
+                  string_attribute:
+                    key: service.name
+                    values: [kubernetes-wrapper]
+                - name: low-rate
+                  type: probabilistic
+                  probabilistic:
+                    sampling_percentage: 1
           - name: probabilistic
-            type: probabilistic
-            probabilistic:
-              sampling_percentage: 10
+            type: and
+            and:
+              and_sub_policy:
+                - name: not-kubernetes-wrapper
+                  type: string_attribute
+                  string_attribute:
+                    key: service.name
+                    values: [kubernetes-wrapper]
+                    invert_match: true
+                - name: default-rate
+                  type: probabilistic
+                  probabilistic:
+                    sampling_percentage: 10
       batch:
         send_batch_size: 1024
         timeout: 5s

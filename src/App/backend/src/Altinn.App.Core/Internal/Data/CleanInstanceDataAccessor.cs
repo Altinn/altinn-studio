@@ -36,7 +36,7 @@ internal sealed class CleanInstanceDataAccessor : IInstanceDataAccessor
         _translationService = translationService;
 
         LayoutModel? layouts = dataAccessor.TaskId is not null
-            ? appResources.GetLayoutModelForTask(dataAccessor.TaskId)
+            ? appResources.GetLayoutModelForFolder(dataAccessor.TaskId)
             : null;
         if (layouts is null)
         {

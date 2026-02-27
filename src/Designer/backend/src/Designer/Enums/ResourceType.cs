@@ -5,7 +5,6 @@
 /// </summary>
 public enum ResourceType
 {
-
     Default = 0,
 
     Systemresource = 1 << 0,

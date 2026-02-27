@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/DevNavigationButtons/DevNavigationButtons.module.css';
 import { useIsInFormContext } from 'src/features/form/FormContext';
-import { useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';

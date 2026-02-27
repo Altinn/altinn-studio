@@ -16,7 +16,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AnsattPortenController;
 
-public class AuthStatusTest : AnsattPortenControllerTestsBase<AuthStatusTest>, IClassFixture<WebApplicationFactory<Program>>
+public class AuthStatusTest
+    : AnsattPortenControllerTestsBase<AuthStatusTest>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix => "/designer/api/ansattporten/auth-status";
 
@@ -30,22 +32,25 @@ public class AuthStatusTest : AnsattPortenControllerTestsBase<AuthStatusTest>, I
             .AddEnvironmentVariables()
             .Build();
 
-        return Factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseConfiguration(configuration);
-            builder.ConfigureAppConfiguration((_, conf) =>
+        return Factory
+            .WithWebHostBuilder(builder =>
             {
-                conf.AddJsonFile(configPath);
-                conf.AddJsonStream(GenerateJsonOverrideConfig());
-            });
-            builder.ConfigureTestServices(ConfigureTestServices);
-            builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
-        }).CreateDefaultClient(new CookieContainerHandler());
+                builder.UseConfiguration(configuration);
+                builder.ConfigureAppConfiguration(
+                    (_, conf) =>
+                    {
+                        conf.AddJsonFile(configPath);
+                        conf.AddJsonStream(GenerateJsonOverrideConfig());
+                    }
+                );
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
+            })
+            .CreateDefaultClient(new CookieContainerHandler());
     }
 
-    public AuthStatusTest(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public AuthStatusTest(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Fact]
     public async Task AuthStatus_Should_ReturnFalse_IfNotAuthenticated()
@@ -65,9 +70,15 @@ public class AuthStatusTest : AnsattPortenControllerTestsBase<AuthStatusTest>, I
         // Setup test authentication
         ConfigureTestServicesForSpecificTest = services =>
         {
-            services.AddAuthentication(defaultScheme: TestAuthConstants.TestAuthenticationScheme)
+            services
+                .AddAuthentication(defaultScheme: TestAuthConstants.TestAuthenticationScheme)
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
-                    TestAuthConstants.TestAuthenticationScheme, options => { options.TimeProvider = TimeProvider.System; });
+                    TestAuthConstants.TestAuthenticationScheme,
+                    options =>
+                    {
+                        options.TimeProvider = TimeProvider.System;
+                    }
+                );
             services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
         };
 

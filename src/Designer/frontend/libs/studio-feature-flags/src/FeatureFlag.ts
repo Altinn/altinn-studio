@@ -6,4 +6,6 @@ export enum FeatureFlag {
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   AppMetadata = 'appMetadata',
   NewCodeLists = 'newCodeLists',
+  ValidateNavigation = 'validateNavigation',
+  AiAssistant = 'aiAssistant',
 }

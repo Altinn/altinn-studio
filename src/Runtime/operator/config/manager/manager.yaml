@@ -19,6 +19,7 @@ spec:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
       labels:
         control-plane: controller-manager
         azure.workload.identity/use: 'true'

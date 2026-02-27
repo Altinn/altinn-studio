@@ -6,7 +6,7 @@ import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { useRawPageOrder } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsIsChildHidden } from 'src/layout';

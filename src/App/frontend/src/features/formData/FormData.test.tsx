@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { afterAll, beforeAll, expect, jest } from '@jest/globals';
@@ -10,8 +10,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
+import { defaultDataTypeMock, statelessDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FD, FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
@@ -95,14 +94,11 @@ const mockSchema: JSONSchema7 = {
 type MinimalRenderProps = Partial<Omit<Parameters<typeof renderWithInstanceAndLayout>[0], 'renderer'>>;
 type RenderProps = MinimalRenderProps & { renderer: React.ReactElement };
 async function statelessRender(props: RenderProps) {
-  jest.mocked(useIsStateless).mockImplementation(() => true);
-  jest.mocked(getApplicationMetadata).mockImplementation(() =>
-    getApplicationMetadataMock({
-      onEntry: {
-        show: 'stateless',
-      },
-    }),
-  );
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({
+    onEntry: {
+      show: 'stateless',
+    },
+  });
   const initialRenderRef = { current: true };
   const { mocks: formDataMethods, proxies: formDataProxies } = makeFormDataMethodProxies(initialRenderRef);
   return {
@@ -111,7 +107,7 @@ async function statelessRender(props: RenderProps) {
       ...props,
       initialRenderRef,
       router: ({ children }: PropsWithChildren) => (
-        <MemoryRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+        <MemoryRouter>
           <Routes>
             <Route
               path='/'
@@ -147,8 +143,7 @@ async function statelessRender(props: RenderProps) {
 }
 
 async function statefulRender(props: RenderProps) {
-  jest.mocked(useIsStateless).mockImplementation(() => false);
-  jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock());
+  window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock();
   return await renderWithInstanceAndLayout({
     ...props,
     alwaysRouteToChildren: true,
@@ -710,7 +705,7 @@ describe('FormData', () => {
     }
 
     async function render(props: MinimalRenderProps = {}) {
-      const utils = await statelessRender({
+      return await statelessRender({
         renderer: <InvalidReadWrite path='obj3.prop1' />,
         queries: {
           fetchFormData: async () => ({
@@ -722,8 +717,6 @@ describe('FormData', () => {
         },
         ...props,
       });
-
-      return utils;
     }
 
     it('Clearing an invalid value should remove invalid data', async () => {

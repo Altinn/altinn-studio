@@ -12,7 +12,7 @@ prefix_rule(
 
 # Read-only GitHub CLI commands.
 prefix_rule(
-  pattern = ["gh", "pr", ["view", "list"]],
+  pattern = ["gh", "pr", ["view", "list", "diff"]],
   decision = "allow",
 )
 
@@ -38,7 +38,7 @@ prefix_rule(
 )
 
 prefix_rule(
-  pattern = ["go", ["build", "mod", "tidy"]],
+  pattern = ["go", ["build", "mod", "tidy", "test"]],
   decision = "allow",
 )
 

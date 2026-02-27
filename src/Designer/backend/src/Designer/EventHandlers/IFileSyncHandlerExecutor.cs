@@ -21,7 +21,10 @@ public interface IFileSyncHandlerExecutor
     /// and use the provided error code for notification to a syncHub. Additionally, if the handler function
     /// returns <c>true</c>, indicating altered files, success notifications are triggered to the syncHub.
     /// </remarks>
-    Task ExecuteWithExceptionHandlingAndConditionalNotification(AltinnRepoEditingContext editingContext, string errorCode, string sourcePath,
-      Func<Task<bool>> handlerFunction);
-
+    Task ExecuteWithExceptionHandlingAndConditionalNotification(
+        AltinnRepoEditingContext editingContext,
+        string errorCode,
+        string sourcePath,
+        Func<Task<bool>> handlerFunction
+    );
 }

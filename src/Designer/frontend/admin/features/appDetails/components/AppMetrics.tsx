@@ -19,15 +19,12 @@ import { AppHealthMetric } from './AppHealthMetric';
 import { TimeRangeSelect } from 'admin/components/TimeRangeSelect/TimeRangeSelect';
 import {
   Chart as ChartJS,
-  CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   ArcElement,
   Title,
   Tooltip,
   Filler,
-  Legend,
   TimeScale,
 } from 'chart.js';
 import { useAppErrorMetricsQuery } from 'admin/hooks/queries/useAppErrorMetricsQuery';
@@ -35,18 +32,7 @@ import { AppErrorMetric } from './AppErrorMetric';
 import { isAxiosError } from 'axios';
 import { useCurrentOrg } from 'admin/layout/PageLayout';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Filler,
-  Legend,
-  TimeScale,
-);
+ChartJS.register(LinearScale, BarElement, ArcElement, Title, Tooltip, Filler, TimeScale);
 
 export type AppMetricsProps = {
   range: number;
@@ -143,14 +129,7 @@ export const AppMetrics = ({ range, setRange }: AppMetricsProps) => {
     }
 
     return appErrorMetrics?.map((metric) => (
-      <AppErrorMetric
-        key={metric.name}
-        metric={metric}
-        range={range}
-        org={org}
-        environment={environment}
-        apps={[app]}
-      />
+      <AppErrorMetric key={metric.name} metric={metric} range={range} />
     ));
   };
 

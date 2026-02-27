@@ -1,1 +1,0 @@
-export { ContactPointCard } from './ContactPointCard';

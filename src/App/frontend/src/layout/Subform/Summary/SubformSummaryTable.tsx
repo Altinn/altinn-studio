@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useNavigation } from 'react-router-dom';
+import { useNavigate, useNavigation } from 'react-router';
 
 import { Paragraph, Table } from '@digdir/designsystemet-react';
 import classNames from 'classnames';
@@ -9,7 +9,7 @@ import { Flex } from 'src/app-components/Flex/Flex';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { Caption } from 'src/components/form/caption/Caption';
 import { Label } from 'src/components/label/Label';
-import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
+import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
@@ -117,7 +117,7 @@ export function SubformSummaryTable({
   const navigation = useNavigation();
 
   const isSubformPage = useIsSubformPage();
-  const dataType = useDataTypeFromLayoutSet(layoutSet);
+  const dataType = getDefaultDataTypeFromUiFolder(layoutSet);
   const subformIdsWithError =
     useComponentValidationsFor(targetBaseComponentId).find(isSubformValidation)?.subformDataElementIds;
 

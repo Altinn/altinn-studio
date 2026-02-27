@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
@@ -21,10 +22,10 @@ internal class BootstrapGlobalResponse
     public object? Footer { get; set; }
 
     /// <summary>
-    /// Layout sets configuration.
+    /// UI configuration.
     /// </summary>
-    [JsonPropertyName("layoutSets")]
-    public required LayoutSets LayoutSets { get; set; }
+    [JsonPropertyName("ui")]
+    public required UiConfiguration Ui { get; set; }
 
     /// <summary>
     /// FrontendSettings layout configuration.
@@ -49,6 +50,12 @@ internal class BootstrapGlobalResponse
     /// </summary>
     [JsonPropertyName("userProfile")]
     public UserProfile? UserProfile { get; set; }
+
+    /// <summary>
+    /// selectedParty
+    /// </summary>
+    [JsonPropertyName("selectedParty")]
+    public Party? SelectedParty { get; set; }
 
     /// <summary>
     /// Default text resources.

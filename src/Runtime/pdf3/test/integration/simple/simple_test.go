@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -61,12 +60,8 @@ func Test_Networking(t *testing.T) {
 		t.Fatalf("Unexpectedly reached pdf3-worker from jumpbox: %d", resp.StatusCode)
 	}
 
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatalf("Error reading resp body: %v", err)
-	}
-	content := fmt.Sprintf("%d\n\n%s", resp.StatusCode, string(bodyBytes))
-	harness.Snapshot(t, []byte(content), "error", "txt")
+	// Body content is infrastructure-dependent (nginx error text varies by environment),
+	// so we only assert the status code above.
 }
 
 // Test_CompareOldAndNew generates a PDF and saves snapshots.

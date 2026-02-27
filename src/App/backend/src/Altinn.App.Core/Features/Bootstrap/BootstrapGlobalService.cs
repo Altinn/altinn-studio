@@ -10,6 +10,7 @@ using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -49,13 +50,17 @@ internal sealed class BootstrapGlobalService(
         var textResourcesTask = GetTextResources(org, app, language);
         var availableLanguagesTask = _applicationLanguage.GetApplicationLanguages();
 
-        var layoutSets = _appResources.GetLayoutSets() ?? new LayoutSets { Sets = [] };
-        layoutSets.UiSettings ??= new GlobalPageSettings();
+        var ui = _appResources.GetUiConfiguration();
+        if (ui is null)
+        {
+            throw new Exception("No UI configuration found, cannot bootstrap global state for frontend");
+        }
+
+        ui.Settings ??= new GlobalPageSettings();
 
         var validatedUrl = _returnUrlService.Validate(redirectUrl);
-
         var userProfileTask = GetUserProfileOrNull();
-
+        var currentPartyTask = GetCurrentParty();
         var orgDataTask = GetOrgData();
 
         await Task.WhenAll(
@@ -64,6 +69,7 @@ internal sealed class BootstrapGlobalService(
             availableLanguagesTask,
             userProfileTask,
             textResourcesTask,
+            currentPartyTask,
             orgDataTask
         );
 
@@ -75,12 +81,13 @@ internal sealed class BootstrapGlobalService(
             TextResources = await textResourcesTask,
             ApplicationMetadata = await appMetadataTask,
             Footer = await footerTask,
-            LayoutSets = layoutSets,
+            Ui = ui,
             FrontEndSettings = _frontEndSettings.Value,
             ReturnUrl = validatedUrl.DecodedUrl is not null ? validatedUrl.DecodedUrl : null,
             UserProfile = await userProfileTask,
             OrgName = orgName,
             OrgLogoUrl = orgLogoUrl,
+            SelectedParty = await currentPartyTask,
         };
     }
 
@@ -102,6 +109,40 @@ internal sealed class BootstrapGlobalService(
         return string.IsNullOrEmpty(footerJson)
             ? null
             : JsonSerializer.Deserialize<object>(footerJson, _jsonSerializerOptions);
+    }
+
+    private async Task<Party?> GetCurrentParty()
+    {
+        var context = _authenticationContext.Current;
+        switch (context)
+        {
+            case Authenticated.None:
+                return null;
+            case Authenticated.User user:
+            {
+                var details = await user.LoadDetails(validateSelectedParty: true);
+                if (details.CanRepresent is null)
+                    throw new Exception("Couldn't validate selected party");
+                return details.SelectedParty;
+            }
+            case Authenticated.Org org:
+            {
+                var details = await org.LoadDetails();
+                return details.Party;
+            }
+            case Authenticated.ServiceOwner so:
+            {
+                var details = await so.LoadDetails();
+                return details.Party;
+            }
+            case Authenticated.SystemUser su:
+            {
+                var details = await su.LoadDetails();
+                return details.Party;
+            }
+            default:
+                throw new Exception($"Unknown authentication context: {context.GetType().Name}");
+        }
     }
 
     private async Task<TextResource?> GetTextResources(string org, string app, string? languageFromUrl)

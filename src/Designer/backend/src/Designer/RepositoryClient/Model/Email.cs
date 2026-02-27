@@ -91,19 +91,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Model
                 return false;
             }
 
-            return
-                (
-                    this.EmailId == input.EmailId ||
-                    (this.EmailId != null &&
-                    this.EmailId.Equals(input.EmailId))) &&
-                (
-                    this.Primary == input.Primary ||
-                    (this.Primary != null &&
-                    this.Primary.Equals(input.Primary))) &&
-                (
-                    this.Verified == input.Verified ||
-                    (this.Verified != null &&
-                    this.Verified.Equals(input.Verified)));
+            return (this.EmailId == input.EmailId || (this.EmailId != null && this.EmailId.Equals(input.EmailId)))
+                && (this.Primary == input.Primary || (this.Primary != null && this.Primary.Equals(input.Primary)))
+                && (this.Verified == input.Verified || (this.Verified != null && this.Verified.Equals(input.Verified)));
         }
 
         /// <summary>

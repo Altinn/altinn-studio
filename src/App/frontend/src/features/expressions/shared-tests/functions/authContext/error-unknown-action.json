@@ -1,0 +1,16 @@
+{
+  "name": "error unknown action",
+  "expression":  ["authContext", "unknown_action"],
+  "expectsFailure": "Unknown Auth context property unknown_action for task Task_1",
+  "permissions": {
+    "read": true,
+    "write": false,
+    "actions": {
+      "instantiate": true,
+      "confirm": true,
+      "sign": false,
+      "reject": false,
+      "asdf":false
+    }
+  }
+}

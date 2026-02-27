@@ -14,18 +14,19 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class GetCurrentBranchTests : DesignerEndpointsTestsBase<GetCurrentBranchTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetCurrentBranchTests
+        : DesignerEndpointsTestsBase<GetCurrentBranchTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
         private static string VersionPrefix => "/designer/api/repos";
-        public GetCurrentBranchTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+
+        public GetCurrentBranchTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
+            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton(_sourceControlMock.Object);
         }
@@ -34,16 +35,22 @@ namespace Designer.Tests.Controllers.RepositoryController
         [InlineData("ttd", "apps-test", "master")]
         [InlineData("ttd", "apps-test", "main")]
         [InlineData("ttd", "apps-test", "feature/new-feature")]
-        public async Task GetCurrentBranch_ValidRepository_ReturnsCurrentBranchInfo(string org, string repo, string branchName)
+        public async Task GetCurrentBranch_ValidRepository_ReturnsCurrentBranchInfo(
+            string org,
+            string repo,
+            string branchName
+        )
         {
             // Arrange
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
             var expectedBranchInfo = new CurrentBranchInfo { BranchName = branchName };
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                repo,
+                "testUser"
+            );
 
-            _sourceControlMock
-                .Setup(x => x.GetCurrentBranch(editingContext))
-                .Returns(expectedBranchInfo);
+            _sourceControlMock.Setup(x => x.GetCurrentBranch(editingContext)).Returns(expectedBranchInfo);
 
             // Act
             using HttpResponseMessage response = await HttpClient.GetAsync(uri);
@@ -63,7 +70,11 @@ namespace Designer.Tests.Controllers.RepositoryController
             string org = "ttd";
             string repo = "non-existing-repo";
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/current-branch";
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                repo,
+                "testUser"
+            );
 
             _sourceControlMock
                 .Setup(x => x.GetCurrentBranch(editingContext))
