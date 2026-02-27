@@ -144,7 +144,7 @@ export const state = {
   queryLoaded:        false,
   liveFilter:           '',
   querySearch:          '',
-  sectionStatus:        { scheduled: '', live: '', recent: '', query: 'failed' },
+  sectionStatus:        { scheduled: '', live: '', recent: '', query: '' },
   orgFilter:            new Set(),
   appFilter:            new Set(),
   partyFilter:          new Set(),

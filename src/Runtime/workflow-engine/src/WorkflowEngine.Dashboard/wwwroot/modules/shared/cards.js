@@ -98,13 +98,13 @@ window.skipBackoff = async (e, wfKey, stepKey) => {
       btn.classList.remove('retrying');
       btn.classList.add('retry-failed');
       btn.innerHTML = '&#10007; Failed';
-      setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#9654; Force retry'; }, 3000);
+      setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#9654; Retry now'; }, 3000);
     }
   } catch (ex) {
     btn.classList.remove('retrying');
     btn.classList.add('retry-failed');
     btn.innerHTML = '&#10007; Failed';
-    setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#9654; Force retry'; }, 3000);
+    setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#9654; Retry now'; }, 3000);
   }
 };
 

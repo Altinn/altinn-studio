@@ -29,8 +29,8 @@ const buildStepTimingHTML = (step, isStatic) => {
     const label = dur < 1 ? `${(dur * 1000).toFixed(0)}ms` : `${dur.toFixed(1)}s`;
     return `<span class="step-timing">${label}</span>`;
   }
-  if (step.status === 'Processing' && !isStatic) {
-    return `<span class="step-timing">&hellip;</span>`;
+  if (step.status === 'Processing' && !isStatic && step.executionStartedAt) {
+    return `<span class="step-timing" data-step-started="${step.executionStartedAt}"></span>`;
   }
   return '';
 };
@@ -88,7 +88,7 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
   }
   if (step.status === 'Requeued' && step.backoffUntil && !isStatic
       && (new Date(step.backoffUntil) - Date.now()) > 5000) {
-    html += `<a class="step-retry-badge" onclick="skipBackoff(event,'${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}')">&#9654; Force retry</a>`;
+    html += `<a class="step-retry-badge" onclick="skipBackoff(event,'${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}')">&#9654; Retry now</a>`;
   }
 
   html += `</div>`;

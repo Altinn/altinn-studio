@@ -70,8 +70,18 @@ internal static class DashboardMapper
         var mapped = new List<DashboardStepDto>(ordered.Count);
         string? prevState = workflow.InitialState;
 
-        foreach (Step step in ordered)
+        for (int i = 0; i < ordered.Count; i++)
         {
+            Step step = ordered[i];
+
+            // ExecutionStartedAt is in-memory only (not persisted). When loading from DB,
+            // approximate it: subsequent steps started when the previous step finished;
+            // first step uses its own CreatedAt (safe across retries).
+            if (step.ExecutionStartedAt is null && step.UpdatedAt is not null)
+            {
+                step.ExecutionStartedAt = i > 0 ? ordered[i - 1].UpdatedAt : step.CreatedAt;
+            }
+
             bool changed = step.StateOut is not null && step.StateOut != prevState;
             mapped.Add(MapStep(step, changed));
             if (step.StateOut is not null)

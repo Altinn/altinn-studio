@@ -165,7 +165,6 @@ internal partial class Engine
 
             step.Status = PersistentItemStatus.Enqueued;
             step.BackoffUntil = null;
-            step.LastError = null;
             step.RequeueCount = 0;
             step.HasPendingChanges = true;
             stepsToReset.Add(step);

@@ -162,25 +162,9 @@ const buildDetailsContent = (data) => {
   const status = /** @type {string} */ (data.status) || '';
   const isFailing = status === 'Failed' || status === 'Requeued';
 
-  if (data.lastError) {
-    const err = /** @type {string} */ (data.lastError);
-    const tagMatch = err.match(/^\[([^\]]+)\]\s*/);
-    const tag = tagMatch ? tagMatch[1] : null;
-    const message = tagMatch ? err.slice(tagMatch[0].length) : err;
-    html += `<div class="modal-error">`;
-    if (tag) html += `<span class="error-tag">${esc(tag)}</span>`;
-    html += `${esc(message)}</div>`;
-  } else if (isFailing) {
-    html += `<div class="modal-error-hint">Error details are not persisted to the database. Available in Inbox and Recent views only.</div>`;
-  }
-  if (data.idempotencyKey && isFailing) {
-    const lokiQuery = `{service_name="WorkflowEngine"} |= \`${data.idempotencyKey}\``;
-    const panes = JSON.stringify({l:{datasource:"loki",queries:[{refId:"logs",expr:lokiQuery,datasource:{type:"loki",uid:"loki"}}],range:{from:"now-1h",to:"now"}}});
-    const lokiUrl = 'http://localhost:7070/explore?schemaVersion=1&panes=' + encodeURIComponent(panes) + '&orgId=1';
-    html += `<a class="modal-grafana-link" href="${lokiUrl}" target="_blank">View error logs in Grafana</a>`;
-  }
-
-  html += `<div class="detail-row"><span class="detail-label">Status</span><span class="status-pill ${status}">${esc(status)}</span></div>`;
+  const backoffSuffix = data.backoffUntil ? ` <span class="step-backoff" data-backoff="${esc(/** @type {string} */ (data.backoffUntil))}"></span>` : '';
+  const retrySuffix = data.retryCount ? ` <span class="step-retry">&#8635;${esc(String(data.retryCount))}</span>` : '';
+  html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="status-pill ${status}">${esc(status)}</span>${backoffSuffix}${retrySuffix}</span></div>`;
   html += row('Idempotency Key', data.idempotencyKey);
 
   const actor = /** @type {Record<string, unknown>|null} */ (data.actor);
@@ -193,30 +177,37 @@ const buildDetailsContent = (data) => {
   html += timeRow('Created', /** @type {string} */ (data.createdAt));
   html += timeRow('Execution Started', /** @type {string} */ (data.executionStartedAt));
   html += timeRow('Last Updated', /** @type {string} */ (data.updatedAt));
-  html += timeRow('Backoff Until', /** @type {string} */ (data.backoffUntil));
-
-  if (data.retryCount || data.retryStrategy) {
-    html += '<div class="detail-section">Retry</div>';
-    html += row('Retry Count', data.retryCount);
-    const rs = /** @type {Record<string, unknown>|null} */ (data.retryStrategy);
-    if (rs) {
-      html += row('Backoff Type', rs.backoffType);
-      html += row('Base Interval', fmtDuration(/** @type {string} */ (rs.baseInterval)));
-      html += row('Max Retries', rs.maxRetries);
-      html += row('Max Delay', fmtDuration(/** @type {string} */ (rs.maxDelay)));
-      html += row('Max Duration', fmtDuration(/** @type {string} */ (rs.maxDuration)));
-    }
-  }
 
   const cmd = /** @type {Record<string, unknown>|null} */ (data.command);
   if (cmd) {
-    html += '<div class="detail-section">Command</div>';
     const cmdType = cmd.type === 'app' ? 'AppCommand' : cmd.type === 'webhook' ? 'Webhook' : String(cmd.type || '');
     html += row('Type', cmdType);
     html += row('Max Execution Time', fmtDuration(/** @type {string} */ (cmd.maxExecutionTime)));
     if (cmd.type === 'webhook') {
       html += row('URI', cmd.uri);
       html += row('Content-Type', cmd.contentType);
+    }
+  }
+
+  const showError = status !== 'Completed' && (data.lastError || isFailing);
+  if (showError) {
+    html += '<div class="detail-section" style="margin-top:24px"></div>';
+    if (data.lastError) {
+      const err = /** @type {string} */ (data.lastError);
+      const tagMatch = err.match(/^\[([^\]]+)\]\s*/);
+      const tag = tagMatch ? tagMatch[1] : null;
+      const message = tagMatch ? err.slice(tagMatch[0].length) : err;
+      html += `<div class="modal-error">`;
+      if (tag) html += `<span class="error-tag">${esc(tag)}</span>`;
+      html += `${esc(message)}</div>`;
+    } else {
+      html += `<div class="modal-error-hint">Error details are not persisted to the database. Available in Inbox and Recent views only.</div>`;
+    }
+    if (data.idempotencyKey) {
+      const lokiQuery = `{service_name="WorkflowEngine"} |= \`${data.idempotencyKey}\``;
+      const panes = JSON.stringify({l:{datasource:"loki",queries:[{refId:"logs",expr:lokiQuery,datasource:{type:"loki",uid:"loki"}}],range:{from:"now-1h",to:"now"}}});
+      const lokiUrl = 'http://localhost:7070/explore?schemaVersion=1&panes=' + encodeURIComponent(panes) + '&orgId=1';
+      html += `<a class="modal-grafana-link" href="${lokiUrl}" target="_blank">View error logs in Grafana</a>`;
     }
   }
 
@@ -229,6 +220,13 @@ const buildDetailsContent = (data) => {
  */
 /** Whether the current step has both stateIn and stateOut (for sub-tabs) */
 let _hasStateDiff = false;
+
+/** Currently open modal context (for SSE-driven refresh) */
+let _openWfKey = '';
+let _openStepKey = '';
+let _openStepName = '';
+let _openCreatedAt = '';
+let _refreshTimer = 0;
 
 const renderStepDetail = (data) => {
   const cmd = /** @type {Record<string, unknown>|null} */ (data.command);
@@ -286,7 +284,58 @@ window.switchStateView = (/** @type {HTMLElement} */ btn, /** @type {string} */ 
   }
 };
 
+/** Get the currently active tab name */
+const activeTab = () =>
+  dom.modalTabs.querySelector('.modal-tab.active')?.getAttribute('onclick')?.match(/'(\w+)'\)$/)?.[1] || 'details';
+
+/** Get the currently active state sub-tab name */
+const activeStateView = () =>
+  dom.modalSubtabs.querySelector('.state-tab.active')?.getAttribute('onclick')?.match(/'(\w+)'\)$/)?.[1] || 'diff';
+
+/** Fetch step data and render (or re-render) the modal */
+const fetchAndRender = async (wfKey, stepKey, stepName, createdAt, initialTab) => {
+  let url = `${engineUrl}/dashboard/step?wf=${encodeURIComponent(wfKey)}&step=${encodeURIComponent(stepKey)}`;
+  if (createdAt) url += `&createdAt=${encodeURIComponent(createdAt)}`;
+
+  try {
+    const res = await fetch(url);
+    if (_openWfKey !== wfKey || _openStepKey !== stepKey) return; // modal changed while fetching
+    if (!res.ok) throw new Error('Step not found (may have left inbox)');
+    const data = await res.json();
+    if (_openWfKey !== wfKey || _openStepKey !== stepKey) return;
+
+    // Enrich title for ExecuteServiceTask with the service task type
+    if (stepName === 'ExecuteServiceTask' && data.command?.payload) {
+      try {
+        const p = typeof data.command.payload === 'string' ? JSON.parse(data.command.payload) : data.command.payload;
+        if (p.serviceTaskType) dom.modalTitle.textContent = `${stepName}: ${p.serviceTaskType}`;
+      } catch { /* ignore */ }
+    }
+
+    // Preserve active tabs across re-render
+    const tab = initialTab || activeTab();
+    const stateView = activeStateView();
+    renderStepDetail(data);
+    if (tab !== 'details') {
+      const tabBtn = dom.modalTabs.querySelector(`.modal-tab[onclick*="'${tab}'"]`);
+      if (tabBtn) tabBtn.click();
+    }
+    if (tab === 'state' && stateView !== 'diff') {
+      const stateBtn = dom.modalSubtabs.querySelector(`.state-tab[onclick*="'${stateView}'"]`);
+      if (stateBtn) stateBtn.click();
+    }
+  } catch (err) {
+    if (_openWfKey !== wfKey || _openStepKey !== stepKey) return;
+    dom.modalBody.innerHTML = `<div class="modal-loading">${esc(/** @type {Error} */ (err).message)}</div>`;
+  }
+};
+
 window.openStepModal = async (wfKey, stepKey, stepName, createdAt, initialTab) => {
+  _openWfKey = wfKey;
+  _openStepKey = stepKey;
+  _openStepName = stepName || '';
+  _openCreatedAt = createdAt || '';
+
   dom.modalTitle.textContent = stepName || 'Step Details';
   dom.modalTabs.innerHTML = '';
   dom.modalTabs.style.display = 'none';
@@ -295,31 +344,23 @@ window.openStepModal = async (wfKey, stepKey, stepName, createdAt, initialTab) =
   dom.modalBody.innerHTML = '<div class="modal-loading">Loading...</div>';
   dom.modal.classList.add('open');
 
-  try {
-    let url = `${engineUrl}/dashboard/step?wf=${encodeURIComponent(wfKey)}&step=${encodeURIComponent(stepKey)}`;
-    if (createdAt) url += `&createdAt=${encodeURIComponent(createdAt)}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Step not found (may have left inbox)');
-    const data = await res.json();
-    // Enrich title for ExecuteServiceTask with the service task type
-    if (stepName === 'ExecuteServiceTask' && data.command?.payload) {
-      try {
-        const p = typeof data.command.payload === 'string' ? JSON.parse(data.command.payload) : data.command.payload;
-        if (p.serviceTaskType) dom.modalTitle.textContent = `${stepName}: ${p.serviceTaskType}`;
-      } catch { /* ignore */ }
-    }
-    renderStepDetail(data);
-    // Auto-switch to requested tab (e.g. 'state' from pipeline badge)
-    if (initialTab) {
-      const tabBtn = dom.modalTabs.querySelector(`.modal-tab[onclick*="'${initialTab}'"]`);
-      if (tabBtn) tabBtn.click();
-    }
-  } catch (err) {
-    dom.modalBody.innerHTML = `<div class="modal-loading">${esc(/** @type {Error} */ (err).message)}</div>`;
-  }
+  await fetchAndRender(wfKey, stepKey, stepName, createdAt, initialTab);
+};
+
+/** Called by live.js when a workflow fingerprint changes. Debounced refresh. */
+export const notifyStepChanged = (/** @type {string} */ wfKey) => {
+  if (!_openWfKey || wfKey !== _openWfKey) return;
+  clearTimeout(_refreshTimer);
+  _refreshTimer = window.setTimeout(
+    () => fetchAndRender(_openWfKey, _openStepKey, _openStepName, _openCreatedAt),
+    300
+  );
 };
 
 window.closeModal = () => {
+  _openWfKey = '';
+  _openStepKey = '';
+  clearTimeout(_refreshTimer);
   dom.modal.classList.remove('open');
   dom.modalTabs.style.display = 'none';
   dom.modalSubtabs.style.display = 'none';
