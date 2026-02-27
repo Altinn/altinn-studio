@@ -25,7 +25,7 @@ func NewSelfCommand(cfg *config.Config, out *ui.Output) *SelfCommand {
 	return &SelfCommand{
 		cfg:     cfg,
 		out:     out,
-		service: selfsvc.NewService(cfg),
+		service: selfsvc.NewService(cfg.DataDir, cfg.Version),
 	}
 }
 
@@ -211,12 +211,6 @@ func (c *SelfCommand) installResources(ctx context.Context) error {
 
 	spinner.StopWithSuccess("Localtest resources installed")
 	c.out.Verbosef("Installed to: %s", c.cfg.DataDir)
-
-	if result.ConfigError != nil {
-		c.out.Warningf("Failed to create config: %v", result.ConfigError)
-	} else {
-		c.out.Verbosef("Config installed to: %s", c.cfg.Home)
-	}
 
 	return nil
 }

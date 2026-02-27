@@ -1,7 +1,5 @@
-version: 1
-
 # Container images for studioctl
-# This file is embedded in the binary and copied to ~/.altinn-studio/config.yaml during install
+# This file is embedded in the binary as defaults
 # Renovate will automatically update image tags in the repository version
 
 images:
