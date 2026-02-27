@@ -8,12 +8,10 @@ import type { IValidationOnNavigationLayoutSets } from 'app-shared/types/global'
 describe('useSaveValidationOnNavigationLayoutSets', () => {
   it('Calls saveValidationOnNavigationLayoutSets with correct arguments and payload', async () => {
     const { result } = renderSaveValidationOnNavigationLayoutSets();
-    const payload: IValidationOnNavigationLayoutSets[] = [
-      {
-        show: ['type1', 'type2'],
-        page: 'page1',
-      },
-    ];
+    const payload: IValidationOnNavigationLayoutSets = {
+      show: ['type1', 'type2'],
+      page: 'page1',
+    };
 
     result.current.mutate(payload);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
