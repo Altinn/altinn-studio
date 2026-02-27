@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
 import { convertToExternalConfig, Scope } from '../utils/ValidateNavigationUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -9,7 +8,6 @@ import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig'
 import { useValidationOnNavigationLayoutSetsMutation } from '@altinn/ux-editor/hooks/mutations/useValidationOnNavigationLayoutSetsMutation';
 
 export const ValidateAllTasksConfig = () => {
-  const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSetsSchema } = useLayoutSetsQuery(org, app);
   const configData = layoutSetsSchema?.validationOnNavigation;
@@ -27,7 +25,6 @@ export const ValidateAllTasksConfig = () => {
 
   return (
     <ValidateNavigationConfig
-      propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
       scope={Scope.AllTasks}
       config={config}
       onSave={handleSave}

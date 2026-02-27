@@ -40,6 +40,7 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type {
   IFrontEndSettings,
   ILayoutSettings,
+  IValidationOnNavigationLayoutSettings,
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
@@ -128,6 +129,9 @@ export const queriesMock: ServicesContextProps = {
   getRepoDiff: jest.fn().mockImplementation(() => Promise.resolve<RepoDiffResponse>({})),
   getEnvironments: jest.fn().mockImplementation(() => Promise.resolve<Environment[]>([])),
   getFormLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve<ILayoutSettings>({})),
+  getValidationOnNavigationLayoutSettings: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<IValidationOnNavigationLayoutSettings[]>([])),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),

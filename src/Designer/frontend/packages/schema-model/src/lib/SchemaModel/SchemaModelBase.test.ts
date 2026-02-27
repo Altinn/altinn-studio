@@ -45,7 +45,7 @@ describe('SchemaModel', () => {
       const invalidRootNode = { ...referenceNodeMock, schemaPointer: ROOT_POINTER };
       const model = SchemaModel.fromArray([invalidRootNode]);
       const modelBase = new SchemaModelBase(model.getNodeMap());
-      expect(() => modelBase.getRootNode()).toThrowError();
+      expect(() => modelBase.getRootNode()).toThrow();
     });
   });
 

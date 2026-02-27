@@ -79,14 +79,3 @@ public enum TaskNavigationReceiptType
     [JsonStringEnumMemberName("receipt")]
     Receipt,
 }
-
-public class ValidationOnNavigation
-{
-    [JsonPropertyName("show")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<string>? Show { get; set; }
-
-    [JsonPropertyName("page")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Page { get; set; }
-}
