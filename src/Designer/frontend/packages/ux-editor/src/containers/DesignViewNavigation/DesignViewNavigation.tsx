@@ -35,12 +35,7 @@ export const DesignViewNavigation = () => {
         }}
         menu={
           <div className={classes.menu}>
-            <DropdownMenu
-              open={dropdownOpen}
-              onClose={() => setDropdownOpen(false)}
-              portal
-              size='small'
-            >
+            <DropdownMenu open={dropdownOpen} onClose={() => setDropdownOpen(false)} portal>
               <DropdownMenu.Trigger asChild>
                 <StudioButton
                   icon={<MenuElipsisVerticalIcon />}
@@ -48,7 +43,6 @@ export const DesignViewNavigation = () => {
                   aria-haspopup='menu'
                   variant='tertiary'
                   title={t('general.options')}
-                  style={{ fontSize: 12 }}
                 />
               </DropdownMenu.Trigger>
               <DropdownMenu.Content>

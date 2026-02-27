@@ -4,7 +4,13 @@ import classes from './PageGroupAccordion.module.css';
 import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
-import { StudioAlert, StudioButton, StudioPopover, StudioDeleteButton } from '@studio/components';
+import {
+  StudioAlert,
+  StudioButton,
+  StudioPopover,
+  StudioDeleteButton,
+  StudioParagraph,
+} from '@studio/components';
 import {
   MenuElipsisVerticalIcon,
   FolderIcon,
@@ -115,7 +121,7 @@ export const PageGroupAccordion = ({
         >
           <div className={classes.container} onClick={() => handleSelectGroup(groupIndex)}>
             <FolderIcon aria-hidden />
-            <h2 className='fds-paragraph fds-paragraph--sm'>{groupDisplayName}</h2>
+            <StudioParagraph>{groupDisplayName}</StudioParagraph>
           </div>
           <div className={classes.rightIconsContainer}>
             <StudioPopover.TriggerContext>
