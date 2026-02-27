@@ -77,7 +77,6 @@ public static class WorkflowExtensions
             [
                 ("workflow.actor.id", workflow.Actor.UserIdOrOrgNumber),
                 ("workflow.database.id", workflow.DatabaseId),
-                ("workflow.idempotency.key", workflow.IdempotencyKey),
                 ("workflow.operation.id", workflow.OperationId),
                 ("workflow.instance.guid", workflow.InstanceInformation.InstanceGuid),
                 ("workflow.instance.party.id", workflow.InstanceInformation.InstanceOwnerPartyId),

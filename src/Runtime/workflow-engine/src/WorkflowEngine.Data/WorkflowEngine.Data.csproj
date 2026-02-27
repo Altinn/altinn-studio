@@ -18,7 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Sql\Functions\*.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    <InternalsVisibleTo Include="WorkflowEngine.Integration.Tests" />
+    <InternalsVisibleTo Include="WorkflowEngine.EndToEndTests" />
   </ItemGroup>
 
 </Project>

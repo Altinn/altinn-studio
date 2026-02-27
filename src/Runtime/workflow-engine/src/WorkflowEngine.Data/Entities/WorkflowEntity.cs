@@ -12,11 +12,10 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long Id { get; set; }
 
-    [MaxLength(500)]
-    public required string IdempotencyKey { get; set; }
-
     [MaxLength(100)]
     public required string OperationId { get; set; }
+
+    public required string IdempotencyKey { get; set; }
 
     [MaxLength(100)]
     public string? InstanceLockKey { get; set; }
@@ -48,20 +47,27 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [MaxLength(100)]
     public string? TraceContext { get; set; }
 
+    [Column(TypeName = "jsonb")]
+    public string? MetadataJson { get; set; }
+
+    public WorkflowType Type { get; set; }
+
     [MaxLength(100)]
     public string? EngineTraceId { get; set; }
 
     public string? InitialState { get; set; }
 
     public ICollection<StepEntity> Steps { get; set; } = [];
+    public ICollection<WorkflowEntity>? Dependencies { get; set; }
+    public ICollection<WorkflowEntity>? Links { get; set; }
 
     public static WorkflowEntity FromDomainModel(Workflow workflow) =>
         new()
         {
             Id = workflow.DatabaseId,
-            IdempotencyKey = workflow.IdempotencyKey,
             InstanceLockKey = workflow.InstanceLockKey,
             OperationId = workflow.OperationId,
+            IdempotencyKey = workflow.IdempotencyKey,
             CreatedAt = workflow.CreatedAt,
             StartAt = workflow.StartAt,
             UpdatedAt = workflow.UpdatedAt,
@@ -73,17 +79,21 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             InstanceOwnerPartyId = workflow.InstanceInformation.InstanceOwnerPartyId,
             InstanceGuid = workflow.InstanceInformation.InstanceGuid,
             TraceContext = workflow.DistributedTraceContext,
+            Type = workflow.Type,
+            MetadataJson = workflow.Metadata,
             EngineTraceId = workflow.EngineTraceId,
             InitialState = workflow.InitialState,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
+            Dependencies = workflow.Dependencies?.Select(FromDomainModel).ToList(),
+            Links = workflow.Links?.Select(FromDomainModel).ToList(),
         };
 
     public Workflow ToDomainModel() =>
         new()
         {
             DatabaseId = Id,
-            IdempotencyKey = IdempotencyKey,
             InstanceLockKey = InstanceLockKey,
+            IdempotencyKey = IdempotencyKey,
             OperationId = OperationId,
             CreatedAt = CreatedAt,
             StartAt = StartAt,
@@ -98,8 +108,12 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
                 InstanceGuid = InstanceGuid,
             },
             DistributedTraceContext = TraceContext,
+            Type = Type,
+            Metadata = MetadataJson,
             EngineTraceId = EngineTraceId,
             InitialState = InitialState,
-            Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(t => t.ToDomainModel(TraceContext)).ToList(),
+            Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(x => x.ToDomainModel()).ToList(),
+            Dependencies = Dependencies?.Select(x => x.ToDomainModel()).ToList(),
+            Links = Links?.Select(x => x.ToDomainModel()).ToList(),
         };
 }

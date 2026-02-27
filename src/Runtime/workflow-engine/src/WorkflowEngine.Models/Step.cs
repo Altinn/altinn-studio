@@ -21,23 +21,28 @@ public sealed record Step : PersistentItem
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
     internal bool HasPendingChanges { get; set; }
 
-    public static Step FromRequest(EngineRequest parent, StepRequest request, DateTimeOffset createdAt, int index) =>
+    public static Step FromRequest(
+        WorkflowRequest parent,
+        StepRequest request,
+        WorkflowRequestMetadata metadata,
+        int index
+    ) =>
         new()
         {
             DatabaseId = 0,
-            IdempotencyKey = $"{parent.IdempotencyKey}/{request.Command}",
             OperationId = request.Command.OperationId,
-            Actor = parent.Actor,
-            CreatedAt = createdAt,
+            IdempotencyKey = request.IdempotencyKey ?? $"{parent.IdempotencyKey}/{request.Command}",
+            Actor = metadata.Actor,
+            CreatedAt = metadata.CreatedAt,
             ProcessingOrder = index,
             Command = request.Command,
             RetryStrategy = request.RetryStrategy,
+            Metadata = request.Metadata,
         };
 
-    public override string ToString() => $"[{nameof(Step)}.{Command.GetType().Name}] {IdempotencyKey} ({Status})";
+    public override string ToString() => $"[{nameof(Step)}.{Command.GetType().Name}] {OperationId} ({Status})";
 
-    public override int GetHashCode() => IdempotencyKey.GetHashCode(StringComparison.InvariantCulture);
+    public override int GetHashCode() => DatabaseId.GetHashCode();
 
-    public bool Equals(Step? other) =>
-        other?.IdempotencyKey.Equals(IdempotencyKey, StringComparison.OrdinalIgnoreCase) is true;
+    public bool Equals(Step? other) => other?.DatabaseId == DatabaseId;
 }

@@ -21,12 +21,25 @@ internal interface IEngine
     bool CanAcceptNewWork { get; }
     Task Start(CancellationToken cancellationToken = default);
     Task Stop();
-    Task<EngineResponse> EnqueueWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default);
-    bool HasDuplicateWorkflow(string jobIdentifier);
-    bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation);
+    Task<WorkflowEnqueueResponse> EnqueueWorkflow(
+        WorkflowEnqueueRequest request,
+        WorkflowRequestMetadata metadata,
+        CancellationToken cancellationToken = default
+    );
     Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation);
     IReadOnlyList<Workflow> GetAllInboxWorkflows();
     IReadOnlyList<DashboardWorkflowDto> GetRecentWorkflows(int count);
+}
+
+internal sealed record WorkflowStatusTracker(long DatabaseId, PersistentItemStatus Status)
+{
+    public override int GetHashCode() => DatabaseId.GetHashCode();
+
+    public bool Equals(WorkflowStatusTracker? other) => other?.DatabaseId == DatabaseId;
+
+    public static implicit operator WorkflowStatusTracker(Workflow workflow) => FromWorkflow(workflow);
+
+    public static WorkflowStatusTracker FromWorkflow(Workflow workflow) => new(workflow.DatabaseId, workflow.Status);
 }
 
 internal partial class Engine : IEngine, IDisposable
@@ -44,10 +57,11 @@ internal partial class Engine : IEngine, IDisposable
     );
 
     private readonly RecentWorkflowCache _recentWorkflows = new();
-
-    private ConcurrentDictionary<string, Workflow> _inbox;
+    private ConcurrentDictionary<long, Workflow> _inbox;
     private HashSet<Workflow> _activeSet;
     private readonly Lock _activeSetLock = new();
+    private HashSet<WorkflowStatusTracker> _statusTrackers;
+    private readonly Lock _statusTrackersLock = new();
     private CancellationTokenSource? _cancellationTokenSource;
     private Task? _mainLoopTask;
     private SemaphoreSlim _inboxCapacityLimit;
@@ -148,6 +162,8 @@ internal partial class Engine : IEngine, IDisposable
         Interlocked.Exchange(ref _newWorkSignal, signal);
 
         // TODO: We get a tick every 0.5s, but often sooner. Check here if it's time to fetch from database. Keep track of last time we queried, etc.
+        // TODO: The same task can also be responsible for maintaining the status trackers
+        // TODO: Fail all dependants for a workflow that has failed: cascade_dependency_failures()
         // Hydrate the inbox with workflows from the database
         // ...
 
@@ -195,6 +211,39 @@ internal partial class Engine : IEngine, IDisposable
             return;
         }
 
+        // Deal with dependencies
+        if (workflow.Dependencies is not null)
+        {
+            List<PersistentItemStatus>? dependencyStatuses = null;
+            lock (_statusTrackersLock)
+            {
+                dependencyStatuses = workflow
+                    .Dependencies.Select(x =>
+                    {
+                        _statusTrackers.TryGetValue(x, out var value);
+                        return value?.Status ?? PersistentItemStatus.Enqueued;
+                    })
+                    .ToList();
+            }
+
+            // We have any failed dependencies -> fail
+            if (dependencyStatuses.Any(x => x.IsDone() && !x.IsSuccessful()))
+            {
+                StartProcessWorkflowActivityOnce(workflow);
+                workflow.Status = PersistentItemStatus.DependencyFailed;
+                await UpdateWorkflowInDb(workflow, cancellationToken); // TODO: This will hold the thread instead of the established `DatabaseTask` concept (not immediately compatible)?
+                FinalizeWorkflowProcessing(workflow);
+
+                return;
+            }
+
+            // We have pending dependencies -> wait
+            if (dependencyStatuses.Any(x => !x.IsDone()))
+            {
+                return;
+            }
+        }
+
         StartProcessWorkflowActivityOnce(workflow);
 
         try
@@ -208,14 +257,14 @@ internal partial class Engine : IEngine, IDisposable
                     if (workflow.ExecutionStartedAt is null)
                     {
                         RecordWorkflowQueueTime(workflow);
+                        UpdateWorkflowStatusAndTracker(workflow, PersistentItemStatus.Processing);
                         workflow.ExecutionStartedAt = _timeProvider.GetUtcNow();
-                        workflow.Status = PersistentItemStatus.Processing;
                         workflow.DatabaseTask = UpdateWorkflowInDb(workflow, cancellationToken); // Background
                     }
 
                     // Process steps and update overall status
                     var processingStatus = await ProcessSteps(workflow, cancellationToken);
-                    workflow.Status = workflow.OverallStatus();
+                    UpdateWorkflowStatusAndTracker(workflow, workflow.OverallStatus());
 
                     // If we're still processing the db task at this point, we have to return early while we wait
                     if (workflow.DatabaseTask is not null)
@@ -311,11 +360,13 @@ internal partial class Engine : IEngine, IDisposable
         }
 
         // Workflow is done (success or permanent failure)
-        // Stop but don't dispose yet — RecentWorkflowCache needs the TraceId
-        StopActivity(workflow, dispose: false);
+        FinalizeWorkflowProcessing(workflow);
+    }
+
+    private void FinalizeWorkflowProcessing(Workflow workflow)
+    {
         RemoveWorkflowAndReleaseQueueSlot(workflow);
-        workflow.EngineActivity?.Dispose();
-        workflow.EngineActivity = null;
+        StopActivity(workflow);
         _logger.WorkflowCompleted(workflow);
     }
 

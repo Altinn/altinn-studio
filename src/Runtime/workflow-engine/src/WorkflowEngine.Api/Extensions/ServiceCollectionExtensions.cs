@@ -1,13 +1,8 @@
 using Microsoft.Extensions.Options;
-using OpenTelemetry.Logs;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using WorkflowEngine.Api.Constants;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
-using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Api.Extensions;
 

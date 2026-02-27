@@ -1,4 +1,4 @@
-using System.Data.Common;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -10,9 +10,6 @@ using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Data.Services;
 
-// CA2100: Review SQL queries for security vulnerabilities
-#pragma warning disable CA2100
-
 /// <summary>
 /// Service responsible for applying database migrations with distributed locking.
 /// Uses PostgreSQL advisory locks to ensure only one instance runs migrations at a time.
@@ -22,7 +19,7 @@ public sealed class DbMigrationService
     private const long MigrationLockId = 0x4D6967726174; // "Migrat" in hex
     private static ILogger<DbMigrationService>? _logger { get; set; }
 
-    public DbMigrationService(IServiceProvider serviceProvider, ILogger<DbMigrationService> logger)
+    public DbMigrationService(ILogger<DbMigrationService> logger)
     {
         _logger = logger;
     }
@@ -36,15 +33,22 @@ public sealed class DbMigrationService
 
         await using var connection = new NpgsqlConnection(dbConnectionString);
         await connection.OpenAsync(cancellationToken);
-        await using var dbLock = await LockScope.Acquire(connection, cancellationToken);
+        await using var dbLock = await AdvisoryLockScope.Acquire(MigrationLockId, connection, cancellationToken);
 
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(connection).Options;
-
         await using var dbContext = new EngineDbContext(options);
 
-        var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync(cancellationToken);
+        await ExecuteMigrations(dbContext, cancellationToken);
+        await RegisterFunctions(dbContext, cancellationToken);
+    }
 
-        if (!pendingMigrations.Any())
+    private static async Task ExecuteMigrations(EngineDbContext dbContext, CancellationToken cancellationToken)
+    {
+        using var activity = Metrics.Source.StartActivity("DbMigrationService.ExecuteMigrations");
+
+        List<string> pendingMigrations = [.. await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)];
+
+        if (pendingMigrations.Count == 0)
         {
             _logger?.NoPendingMigrations();
             return;
@@ -52,7 +56,7 @@ public sealed class DbMigrationService
 
         try
         {
-            _logger?.ApplyingPendingMigrations(pendingMigrations.Count(), string.Join(", ", pendingMigrations));
+            _logger?.ApplyingPendingMigrations(pendingMigrations.Count, string.Join(", ", pendingMigrations));
             await dbContext.Database.MigrateAsync(cancellationToken);
             _logger?.MigrationsAppliedSuccessfully();
         }
@@ -63,60 +67,38 @@ public sealed class DbMigrationService
         }
     }
 
-    private sealed class LockScope : IAsyncDisposable
+    /// <summary>
+    /// Reads all embedded SQL function files and executes them via CREATE OR REPLACE FUNCTION (idempotent).
+    /// </summary>
+    private static async Task RegisterFunctions(EngineDbContext dbContext, CancellationToken cancellationToken)
     {
-        private readonly DbConnection _connection;
+        using var activity = Metrics.Source.StartActivity("DbMigrationService.RegisterFunctions");
 
-        private LockScope(DbConnection connection)
+        var assembly = Assembly.GetExecutingAssembly();
+        var sqlResources = assembly
+            .GetManifestResourceNames()
+            .Where(name => name.EndsWith(".sql", StringComparison.OrdinalIgnoreCase));
+
+        foreach (var resourceName in sqlResources)
         {
-            _connection = connection;
-        }
+            _logger?.RegisteringFunction(resourceName);
 
-        public static async Task<LockScope> Acquire(DbConnection connection, CancellationToken cancellationToken)
-        {
-            _logger?.AcquiringMigrationLock();
+            await using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream is null)
+                continue;
 
-            await using DbCommand cmd = connection.CreateCommand();
-            cmd.CommandText = $"SELECT pg_advisory_lock({MigrationLockId})";
-            await cmd.ExecuteNonQueryAsync(cancellationToken);
+            using var reader = new StreamReader(stream);
+            var sql = await reader.ReadToEndAsync(cancellationToken);
 
-            _logger?.MigrationLockAcquired();
+            await dbContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
 
-            return new LockScope(connection);
-        }
-
-        public async ValueTask Release()
-        {
-            _logger?.ReleasingMigrationLock();
-
-            await using DbCommand cmd = _connection.CreateCommand();
-            cmd.CommandText = $"SELECT pg_advisory_unlock({MigrationLockId})";
-            await cmd.ExecuteNonQueryAsync(CancellationToken.None);
-
-            _logger?.MigrationLockReleased();
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await Release();
+            _logger?.FunctionRegistered(resourceName);
         }
     }
 }
 
 internal static partial class DatabaseMigrationServiceLogs
 {
-    [LoggerMessage(LogLevel.Information, "Acquiring migration lock")]
-    public static partial void AcquiringMigrationLock(this ILogger<DbMigrationService> logger);
-
-    [LoggerMessage(LogLevel.Information, "Migration lock acquired")]
-    public static partial void MigrationLockAcquired(this ILogger<DbMigrationService> logger);
-
-    [LoggerMessage(LogLevel.Information, "Releasing migration lock")]
-    public static partial void ReleasingMigrationLock(this ILogger<DbMigrationService> logger);
-
-    [LoggerMessage(LogLevel.Information, "Migration lock released")]
-    public static partial void MigrationLockReleased(this ILogger<DbMigrationService> logger);
-
     [LoggerMessage(LogLevel.Information, "Applying {Count} pending migration(s): {Migrations}")]
     public static partial void ApplyingPendingMigrations(
         this ILogger<DbMigrationService> logger,
@@ -136,4 +118,10 @@ internal static partial class DatabaseMigrationServiceLogs
         string errorMessage,
         Exception ex
     );
+
+    [LoggerMessage(LogLevel.Information, "Registering SQL function: {ResourceName}")]
+    public static partial void RegisteringFunction(this ILogger<DbMigrationService> logger, string resourceName);
+
+    [LoggerMessage(LogLevel.Information, "SQL function registered: {ResourceName}")]
+    public static partial void FunctionRegistered(this ILogger<DbMigrationService> logger, string resourceName);
 }

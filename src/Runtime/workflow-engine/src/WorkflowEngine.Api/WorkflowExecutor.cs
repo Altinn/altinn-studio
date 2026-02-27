@@ -129,6 +129,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 workflow.InstanceLockKey
                 ?? throw new InvalidOperationException("Missing InstanceLockKey for app callback payload"),
             Payload = command.Payload,
+            WorkflowId = workflow.DatabaseId,
             State = stateIn,
         };
         var endpoint = command.CommandKey.ToUri(UriKind.Relative);

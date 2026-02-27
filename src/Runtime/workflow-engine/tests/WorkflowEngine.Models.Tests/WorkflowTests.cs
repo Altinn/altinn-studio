@@ -15,43 +15,46 @@ public class WorkflowTests
         };
 
     [Fact]
-    public void Equality_Uses_IdempotencyKey()
+    public void Equality_Uses_DatabaseId()
     {
         // Arrange
 
-        var sharedKey1 = new Workflow
+        var sharedId1 = new Workflow
         {
-            IdempotencyKey = "shared-idempotency-key",
+            DatabaseId = 42,
             OperationId = "workflow-1-operation",
+            IdempotencyKey = "key-1",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
         };
-        var sharedKey2 = new Workflow
+        var sharedId2 = new Workflow
         {
-            IdempotencyKey = "shared-idempotency-key",
+            DatabaseId = 42,
             OperationId = "workflow-2-operation",
+            IdempotencyKey = "key-2",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
         };
-        var uniqueKey = new Workflow
+        var uniqueId = new Workflow
         {
-            IdempotencyKey = "unique-idempotency-key",
+            DatabaseId = 99,
             OperationId = "workflow-3-operation",
+            IdempotencyKey = "key-3",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
         };
 
         // Act
-        bool shouldBeEqual1 = sharedKey1 == sharedKey2;
-        bool shouldBeEqual2 = sharedKey1.Equals(sharedKey2);
+        bool shouldBeEqual1 = sharedId1 == sharedId2;
+        bool shouldBeEqual2 = sharedId1.Equals(sharedId2);
 
-        bool shouldNotBeEqual1 = uniqueKey == sharedKey1;
-        bool shouldNotBeEqual2 = uniqueKey.Equals(sharedKey1);
+        bool shouldNotBeEqual1 = uniqueId == sharedId1;
+        bool shouldNotBeEqual2 = uniqueId.Equals(sharedId1);
 
-        bool shouldContain = new[] { sharedKey1, uniqueKey }.Contains(sharedKey2);
+        bool shouldContain = new[] { sharedId1, uniqueId }.Contains(sharedId2);
 
         // Assert
         Assert.True(shouldBeEqual1);
@@ -76,32 +79,36 @@ public class WorkflowTests
             InstanceGuid = Guid.NewGuid(),
         };
         var retryStrategy = RetryStrategy.Exponential(baseInterval: TimeSpan.FromSeconds(1));
-        var steps = new[]
-        {
-            new StepRequest { Command = new Command.AppCommand("step-1") },
-            new StepRequest { Command = new Command.AppCommand("step-2"), RetryStrategy = retryStrategy },
-        };
         var createdAt = DateTimeOffset.UtcNow;
         var startAt = createdAt.AddMinutes(10);
         var traceContext = "trace-context-123";
 
-        var request = new EngineRequest(
-            "idempotency-key-1",
-            "next",
-            instanceInfo,
-            actor,
-            createdAt,
-            startAt,
-            steps,
-            traceContext,
-            "lock-key-1"
+        var workflowRequest = new WorkflowRequest
+        {
+            Ref = "wf-1",
+            OperationId = "next",
+            IdempotencyKey = "wf-1-key",
+            Type = WorkflowType.AppProcessChange,
+            StartAt = startAt,
+            Steps =
+            [
+                new StepRequest { Command = new Command.AppCommand("step-1") },
+                new StepRequest { Command = new Command.AppCommand("step-2"), RetryStrategy = retryStrategy },
+            ],
+        };
+
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: instanceInfo,
+            Actor: actor,
+            CreatedAt: createdAt,
+            TraceContext: traceContext,
+            InstanceLockKey: "lock-key-1"
         );
 
         // Act
-        var workflow = Workflow.FromRequest(request);
+        var workflow = Workflow.FromRequest(workflowRequest, metadata, dependencies: null, links: null);
 
         // Assert — Workflow fields
-        Assert.Equal("idempotency-key-1", workflow.IdempotencyKey);
         Assert.Equal("next", workflow.OperationId);
         Assert.Same(instanceInfo, workflow.InstanceInformation);
         Assert.Same(actor, workflow.Actor);
@@ -110,15 +117,18 @@ public class WorkflowTests
         Assert.Equal(traceContext, workflow.DistributedTraceContext);
         Assert.Equal("lock-key-1", workflow.InstanceLockKey);
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Status);
+        Assert.Equal(WorkflowType.AppProcessChange, workflow.Type);
+        Assert.Null(workflow.Dependencies);
+        Assert.Null(workflow.Links);
 
         // Assert — Steps are created with correct count and ordering
         Assert.Equal(2, workflow.Steps.Count);
         Assert.Equal(0, workflow.Steps[0].ProcessingOrder);
         Assert.Equal(1, workflow.Steps[1].ProcessingOrder);
 
-        // Assert — Step fields are mapped from parent request
-        Assert.Equal("idempotency-key-1/step-1", workflow.Steps[0].IdempotencyKey);
-        Assert.Equal("idempotency-key-1/step-2", workflow.Steps[1].IdempotencyKey);
+        // Assert — Step fields are mapped from metadata
+        Assert.Equal("step-1", workflow.Steps[0].OperationId);
+        Assert.Equal("step-2", workflow.Steps[1].OperationId);
         Assert.Same(actor, workflow.Steps[0].Actor);
         Assert.Equal(createdAt, workflow.Steps[0].CreatedAt);
     }
@@ -127,30 +137,91 @@ public class WorkflowTests
     public void FromRequest_MapsNullOptionalFields()
     {
         // Arrange
-        var request = new EngineRequest(
-            "key-1",
-            "op-1",
-            new InstanceInformation
+        var workflowRequest = new WorkflowRequest
+        {
+            Ref = "wf-1",
+            OperationId = "op-1",
+            IdempotencyKey = "wf-1-key",
+            Type = WorkflowType.Generic,
+            Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
+        };
+
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
                 App = "app",
                 InstanceOwnerPartyId = 1,
                 InstanceGuid = Guid.NewGuid(),
             },
-            new Actor { UserIdOrOrgNumber = "user-1" },
-            DateTimeOffset.UtcNow,
-            null, // StartAt
-            [new StepRequest { Command = new Command.Debug.Noop() }],
-            null, // TraceContext
-            null // InstanceLockKey
+            Actor: new Actor { UserIdOrOrgNumber = "user-1" },
+            CreatedAt: DateTimeOffset.UtcNow,
+            TraceContext: null,
+            InstanceLockKey: null
         );
 
         // Act
-        var workflow = Workflow.FromRequest(request);
+        var workflow = Workflow.FromRequest(workflowRequest, metadata, dependencies: null, links: null);
 
         // Assert
         Assert.Null(workflow.StartAt);
         Assert.Null(workflow.DistributedTraceContext);
         Assert.Null(workflow.InstanceLockKey);
+        Assert.Equal(WorkflowType.Generic, workflow.Type);
+        Assert.Null(workflow.Dependencies);
+        Assert.Null(workflow.Links);
+    }
+
+    [Fact]
+    public void FromRequest_WithDependenciesAndLinks_MapsCorrectly()
+    {
+        // Arrange
+        var dependency = new Workflow
+        {
+            DatabaseId = 10,
+            OperationId = "dep-op",
+            IdempotencyKey = "dep-key",
+            Actor = _randomActor,
+            InstanceInformation = _randomInstance,
+            Steps = [],
+        };
+        var link = new Workflow
+        {
+            DatabaseId = 20,
+            OperationId = "link-op",
+            IdempotencyKey = "link-key",
+            Actor = _randomActor,
+            InstanceInformation = _randomInstance,
+            Steps = [],
+        };
+
+        var workflowRequest = new WorkflowRequest
+        {
+            Ref = "wf-1",
+            OperationId = "op-1",
+            IdempotencyKey = "wf-1-key",
+            Type = WorkflowType.Generic,
+            Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
+        };
+
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: _randomInstance,
+            Actor: _randomActor,
+            CreatedAt: DateTimeOffset.UtcNow,
+            TraceContext: null,
+            InstanceLockKey: null
+        );
+
+        // Act
+        var workflow = Workflow.FromRequest(workflowRequest, metadata, dependencies: [dependency], links: [link]);
+
+        // Assert
+        Assert.NotNull(workflow.Dependencies);
+        Assert.Single(workflow.Dependencies);
+        Assert.Equal(10, workflow.Dependencies.First().DatabaseId);
+
+        Assert.NotNull(workflow.Links);
+        Assert.Single(workflow.Links);
+        Assert.Equal(20, workflow.Links.First().DatabaseId);
     }
 }

@@ -6,43 +6,49 @@ namespace WorkflowEngine.Api.Extensions;
 
 internal static class HostExtensions
 {
-    /// <summary>
-    /// Terminates all existing connections to the database.
-    /// Only intended for development use, to clear stale connections from ungraceful shutdowns.
-    /// </summary>
-    public static async Task ResetDatabaseConnections(
-        this IHost host,
-        string dbConnectionString,
-        CancellationToken cancellationToken = default
-    )
+    extension(IHost host)
     {
-        _ = host.Services.GetService<TracerProvider>();
+        /// <summary>
+        /// Terminates all existing connections to the database.
+        /// Only intended for development use, to clear stale connections from ungraceful shutdowns.
+        /// </summary>
+        public async Task ResetDatabaseConnectionsInDev(
+            string dbConnectionString,
+            CancellationToken cancellationToken = default
+        )
+        {
+            var env = host.Services.GetRequiredService<IHostEnvironment>();
+            if (!env.IsDevelopment())
+                return;
 
-        using var activity = Metrics.Source.StartActivity("Engine.ResetDatabaseConnections");
+            host.ForceInitializeTracerProvider();
+            using var activity = Metrics.Source.StartActivity("Engine.ResetDatabaseConnections");
 
-        using var scope = host.Services.CreateScope();
-        var resetService = scope.ServiceProvider.GetRequiredService<DbConnectionResetService>();
-        await resetService.ResetConnections(dbConnectionString, cancellationToken);
-    }
+            using var scope = host.Services.CreateScope();
+            var resetService = scope.ServiceProvider.GetRequiredService<DbConnectionResetService>();
+            await resetService.ResetConnections(dbConnectionString, cancellationToken);
+        }
 
-    /// <summary>
-    /// Applies any pending database migrations with distributed locking.
-    /// Should be called before the application starts handling requests.
-    /// </summary>
-    public static async Task ApplyDatabaseMigrations(
-        this IHost host,
-        string dbConnectionString,
-        CancellationToken cancellationToken = default
-    )
-    {
-        // Force-initialize the TracerProvider singleton so its ActivityListener is registered.
-        // Without this, StartActivity returns null because the host hasn't started yet.
-        _ = host.Services.GetService<TracerProvider>();
+        /// <summary>
+        /// Applies any pending database migrations with distributed locking.
+        /// Should be called before the application starts handling requests.
+        /// </summary>
+        public async Task ApplyDatabaseMigrations(
+            string dbConnectionString,
+            CancellationToken cancellationToken = default
+        )
+        {
+            host.ForceInitializeTracerProvider();
+            using var activity = Metrics.Source.StartActivity("Engine.ApplyDatabaseMigrations");
 
-        using var activity = Metrics.Source.StartActivity("Engine.ApplyDatabaseMigrations");
+            using var scope = host.Services.CreateScope();
+            var migrationService = scope.ServiceProvider.GetRequiredService<DbMigrationService>();
+            await migrationService.Migrate(dbConnectionString, cancellationToken);
+        }
 
-        using var scope = host.Services.CreateScope();
-        var migrationService = scope.ServiceProvider.GetRequiredService<DbMigrationService>();
-        await migrationService.Migrate(dbConnectionString, cancellationToken);
+        private void ForceInitializeTracerProvider()
+        {
+            _ = host.Services.GetService<TracerProvider>();
+        }
     }
 }

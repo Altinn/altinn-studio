@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Altinn.Studio.Runtime.Common;
+using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Models.Extensions;
@@ -93,7 +95,6 @@ internal partial class Engine
     private async Task AcquireQueueSlot(CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("Engine.AcquireQueueSlot");
-        _logger.AcquiringQueueSlot();
 
         await _inboxCapacityLimit.WaitAsync(cancellationToken);
 
@@ -101,8 +102,45 @@ internal partial class Engine
             Status |= EngineHealthStatus.QueueFull;
         else
             Status &= ~EngineHealthStatus.QueueFull;
+    }
 
-        _logger.StatusAfterAcquiringSlot(Status);
+    private async Task AcquireQueueSlots(int count, CancellationToken cancellationToken = default)
+    {
+        using var activity = Metrics.Source.StartActivity("Engine.AcquireQueueSlots", tags: [("count", $"{count}")]);
+
+        Assert.That(count > 0, "Count must be greater than 0");
+
+        for (int i = 0; i < count; i++)
+            await _inboxCapacityLimit.WaitAsync(cancellationToken);
+
+        UpdateQueueHealthStatus();
+    }
+
+    private void UpdateQueueHealthStatus()
+    {
+        if (InboxCount >= _settings.QueueCapacity)
+            Status |= EngineHealthStatus.QueueFull;
+        else
+            Status &= ~EngineHealthStatus.QueueFull;
+    }
+
+    private void ReleaseQueueSlot(ActivityContext? parentContext = null)
+    {
+        using var activity = Metrics.Source.StartActivity("Engine.ReleaseQueueSlot", parentContext: parentContext);
+
+        _inboxCapacityLimit.Release();
+
+        UpdateQueueHealthStatus();
+    }
+
+    private void ReleaseQueueSlots(int count, ActivityContext? parentContext = null)
+    {
+        using var activity = Metrics.Source.StartActivity("Engine.ReleaseQueueSlot", parentContext: parentContext);
+
+        for (int i = 0; i < count; i++)
+            _inboxCapacityLimit.Release();
+
+        UpdateQueueHealthStatus();
     }
 
     private void RefreshActiveSet()
@@ -124,22 +162,21 @@ internal partial class Engine
 
     private void RemoveWorkflowAndReleaseQueueSlot(Workflow workflow)
     {
-        _logger.ReleasingQueueSlot();
-
         // Capture final state before removal (for dashboard "recent" section)
         _recentWorkflows.Add(workflow);
 
         lock (_activeSetLock)
         {
-            var removed = _inbox.TryRemove(workflow.IdempotencyKey, out _) && _activeSet.Remove(workflow);
+            var removed = _inbox.TryRemove(workflow.DatabaseId, out _) && _activeSet.Remove(workflow);
             if (!removed)
             {
                 Metrics.Errors.Add(1, ("operation", "queueSlotRelease"));
-                throw new EngineException($"Unable to release queue slot {workflow.IdempotencyKey}");
+                throw new EngineException($"Unable to release queue slot {workflow.DatabaseId}");
             }
         }
 
-        _inboxCapacityLimit.Release();
+        UpdateWorkflowStatusAndTracker(workflow, workflow.Status);
+        ReleaseQueueSlot(workflow.EngineActivity?.Context);
 
         if (workflow.OverallStatus().IsSuccessful())
             Metrics.WorkflowsSucceeded.Add(1);
@@ -147,11 +184,29 @@ internal partial class Engine
             Metrics.WorkflowsFailed.Add(1);
     }
 
-    [MemberNotNull(nameof(_inbox), nameof(_activeSet), nameof(_inboxCapacityLimit), nameof(_newWorkSignal))]
+    // TODO: Need to drop unused items periodically
+    private void UpdateWorkflowStatusAndTracker(Workflow workflow, PersistentItemStatus status)
+    {
+        workflow.Status = status;
+
+        lock (_statusTrackersLock)
+        {
+            _statusTrackers.AddOrUpdate(workflow);
+        }
+    }
+
+    [MemberNotNull(
+        nameof(_inbox),
+        nameof(_activeSet),
+        nameof(_statusTrackers),
+        nameof(_inboxCapacityLimit),
+        nameof(_newWorkSignal)
+    )]
     private void InitializeInbox()
     {
         _inbox = [];
         _activeSet = [];
+        _statusTrackers = [];
         _inboxCapacityLimit = new SemaphoreSlim(_settings.QueueCapacity, _settings.QueueCapacity);
         Interlocked.Exchange(
             ref _newWorkSignal,
@@ -177,6 +232,7 @@ internal partial class Engine
 
             _inbox.Clear();
             _activeSet.Clear();
+            _statusTrackers.Clear();
             _inboxCapacityLimit.Dispose();
 
             InitializeInbox();

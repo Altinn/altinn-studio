@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddTelemetry()
+        public IServiceCollection AddTelemetry(bool emitQueryParameters = false)
         {
             services
                 .AddOpenTelemetry()
@@ -55,6 +55,18 @@ public static class ServiceCollectionExtensions
                                 };
 
                                 activity.DisplayName = $"SQL EFCore: {commandType} @ {command.Connection?.Database}";
+
+                                if (emitQueryParameters && command.Parameters.Count > 0)
+                                {
+                                    var paramDict = new Dictionary<string, object?>(command.Parameters.Count);
+                                    foreach (System.Data.IDbDataParameter param in command.Parameters)
+                                        paramDict[param.ParameterName] = param.Value is DBNull ? null : param.Value;
+
+                                    activity.SetTag(
+                                        "db.statement.parameters",
+                                        System.Text.Json.JsonSerializer.Serialize(paramDict)
+                                    );
+                                }
                             };
                         })
                         .AddOtlpExporter(opts =>

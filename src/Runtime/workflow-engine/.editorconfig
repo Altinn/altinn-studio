@@ -123,6 +123,8 @@ dotnet_diagnostic.S3251.severity = none
 dotnet_diagnostic.S3267.severity = none
 # CA1031: Do not catch general exception types
 dotnet_diagnostic.CA1031.severity = none
+# Explicit argument passed to parameter with caller info attribute -- triggers for all Telemetry->StartActivity calls
+resharper_explicit_caller_info_argument_highlighting = none
 
 
 ## WorkflowEngine.Data ##
@@ -138,6 +140,15 @@ dotnet_diagnostic.CA1861.severity = none
 
 # CA1707: Identifiers should not contain underscores
 dotnet_diagnostic.CA1707.severity = none
+# CA1515: Consider making public types internal
+dotnet_diagnostic.CA1515.severity = none
+# CA1711: Identifiers should not have incorrect suffix
+dotnet_diagnostic.CA1711.severity = none
+# NX0001: Instance of NullForgiving operator without justification
+dotnet_diagnostic.NX0001.severity = none
+dotnet_diagnostic.NX0002.severity = none
+# CA2234: Pass System.Uri objects instead of strings
+dotnet_diagnostic.CA2234.severity = none
 
 
 ## JSON and YAML ##

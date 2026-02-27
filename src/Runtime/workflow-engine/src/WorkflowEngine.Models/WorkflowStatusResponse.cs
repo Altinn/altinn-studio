@@ -8,6 +8,57 @@ namespace WorkflowEngine.Models;
 public sealed record WorkflowStatusResponse
 {
     /// <summary>
+    /// The database ID of the workflow.
+    /// </summary>
+    [JsonPropertyName("databaseId")]
+    public long DatabaseId { get; init; }
+
+    /// <summary>
+    /// An identifier for this operation.
+    /// </summary>
+    [JsonPropertyName("operationId")]
+    public required string OperationId { get; init; }
+
+    /// <summary>
+    /// An idempotency key for this workflow.
+    /// </summary>
+    [JsonPropertyName("idempotencyKey")]
+    public required string IdempotencyKey { get; init; }
+
+    /// <summary>
+    /// The time the workflow was created.
+    /// </summary>
+    [JsonPropertyName("createdAt")]
+    public required DateTimeOffset CreatedAt { get; init; }
+
+    /// <summary>
+    /// The last time this record was updated.
+    /// </summary>
+    [JsonPropertyName("updatedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? UpdatedAt { get; init; }
+
+    /// <summary>
+    /// Optional start time for when the workflow should be executed.
+    /// </summary>
+    [JsonPropertyName("startAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? StartAt { get; init; }
+
+    /// <summary>
+    /// Optional metadata associated with the workflow (json).
+    /// </summary>
+    [JsonPropertyName("metadata")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Metadata { get; init; }
+
+    /// <summary>
+    /// The actor that initiated the workflow.
+    /// </summary>
+    [JsonPropertyName("actor")]
+    public required Actor Actor { get; init; }
+
+    /// <summary>
     /// The overall status of the workflow for this instance.
     /// </summary>
     [JsonPropertyName("overallStatus")]
@@ -15,59 +66,47 @@ public sealed record WorkflowStatusResponse
     public required PersistentItemStatus OverallStatus { get; init; }
 
     /// <summary>
+    /// The type of workflow.
+    /// </summary>
+    [JsonPropertyName("type")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public required WorkflowType Type { get; init; }
+
+    /// <summary>
+    /// Optional dependencies for this workflow, presented as a dictionary of workflow ID and corresponding processing status.
+    /// </summary>
+    [JsonPropertyName("dependencies")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyDictionary<long, PersistentItemStatus>? Dependencies { get; init; }
+
+    /// <summary>
+    /// Optional links for this workflow, presented as a dictionary of workflow ID and corresponding processing status.
+    /// </summary>
+    [JsonPropertyName("links")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyDictionary<long, PersistentItemStatus>? Links { get; init; }
+
+    /// <summary>
     /// Details about each step in the workflow.
     /// </summary>
     [JsonPropertyName("steps")]
-    public required IReadOnlyList<StepDetail> Steps { get; init; }
+    public required IReadOnlyList<StepStatusResponse> Steps { get; init; }
 
     public static WorkflowStatusResponse FromWorkflow(Workflow workflow) =>
-        new() { OverallStatus = workflow.Status, Steps = workflow.Steps.Select(StepDetail.FromStep).ToList() };
-}
-
-/// <summary>
-/// Details about a workflow engine step.
-/// </summary>
-public sealed record StepDetail
-{
-    /// <summary>
-    /// The step identifier.
-    /// </summary>
-    [JsonPropertyName("identifier")]
-    public required string Identifier { get; init; }
-
-    /// <summary>
-    /// The command type.
-    /// </summary>
-    [JsonPropertyName("commandType")]
-    public required string CommandType { get; init; }
-
-    /// <summary>
-    /// The current execution status.
-    /// </summary>
-    [JsonPropertyName("status")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required PersistentItemStatus Status { get; init; }
-
-    /// <summary>
-    /// The number of times this step has been retried.
-    /// </summary>
-    [JsonPropertyName("retryCount")]
-    public required int RetryCount { get; init; }
-
-    /// <summary>
-    /// When the step will next be eligible for execution (if backed off).
-    /// </summary>
-    [JsonPropertyName("backoffUntil")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? BackoffUntil { get; init; }
-
-    internal static StepDetail FromStep(Step step) =>
         new()
         {
-            Identifier = step.IdempotencyKey,
-            CommandType = step.Command.GetType().Name,
-            Status = step.Status,
-            RetryCount = step.RequeueCount,
-            BackoffUntil = step.BackoffUntil,
+            DatabaseId = workflow.DatabaseId,
+            IdempotencyKey = workflow.IdempotencyKey,
+            OperationId = workflow.OperationId,
+            CreatedAt = workflow.CreatedAt,
+            UpdatedAt = workflow.UpdatedAt,
+            StartAt = workflow.StartAt,
+            Metadata = workflow.Metadata,
+            Actor = workflow.Actor,
+            OverallStatus = workflow.Status,
+            Type = workflow.Type,
+            Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
+            Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),
+            Steps = workflow.Steps.Select(StepStatusResponse.FromStep).ToList(),
         };
 }

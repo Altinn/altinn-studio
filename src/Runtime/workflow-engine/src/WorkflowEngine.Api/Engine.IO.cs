@@ -1,5 +1,7 @@
+using WorkflowEngine.Api.Utils;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -7,117 +9,96 @@ namespace WorkflowEngine.Api;
 
 internal partial class Engine
 {
-    public async Task<EngineResponse> EnqueueWorkflow(
-        EngineRequest engineRequest,
+    public async Task<WorkflowEnqueueResponse> EnqueueWorkflow(
+        WorkflowEnqueueRequest request,
+        WorkflowRequestMetadata metadata,
         CancellationToken cancellationToken = default
     )
     {
         using var activity = Metrics.Source.StartActivity(
-            "Engine.EnqueueWorkflow",
+            "Engine.EnqueueBatch",
             tags:
             [
-                ("request.operation.id", engineRequest.OperationId),
-                ("request.idempotency.key", engineRequest.IdempotencyKey),
-                ("request.actor.id", engineRequest.Actor.UserIdOrOrgNumber),
-                ("request.instance.guid", engineRequest.InstanceInformation.InstanceGuid),
-                ("request.instance.party.id", engineRequest.InstanceInformation.InstanceOwnerPartyId),
-                (
-                    "request.instance.app",
-                    $"{engineRequest.InstanceInformation.Org}/{engineRequest.InstanceInformation.App}"
-                ),
+                ("request.actor.id", request.Actor.UserIdOrOrgNumber),
+                ("request.workflows.count", request.Workflows.Count),
+                ("request.instance.guid", metadata.InstanceInformation.InstanceGuid),
+                ("request.instance.party.id", metadata.InstanceInformation.InstanceOwnerPartyId),
+                ("request.instance.app", $"{metadata.InstanceInformation.Org}/{metadata.InstanceInformation.App}"),
             ]
         );
 
-        _logger.EnqueuingWorkflow(engineRequest);
+        _logger.EnqueuingWorkflowBatch(request.Workflows.Count, metadata.InstanceInformation);
 
+        // Early capacity check before potentially expensive operations
         if (!CanAcceptNewWork)
         {
             activity?.Errored(errorMessage: "At capacity");
-            return EngineResponse.Reject(EngineResponse.Rejection.AtCapacity);
+            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.AtCapacity);
         }
 
-        if (!engineRequest.IsValid())
+        // Validate the dependency graph and get topologically sorted requests
+        IReadOnlyList<WorkflowRequest> sortedRequests;
+        try
         {
-            activity?.Errored(errorMessage: "Invalid request");
-            return EngineResponse.Reject(EngineResponse.Rejection.Invalid, $"Invalid request: {engineRequest}");
+            sortedRequests = ValidationUtils.ValidateAndSortWorkflowGraph(request.Workflows);
         }
-
-        if (HasDuplicateWorkflow(engineRequest.IdempotencyKey))
+        catch (ArgumentException ex)
         {
-            activity?.Errored(errorMessage: "Duplicate workflow request");
-            return EngineResponse.Reject(
-                EngineResponse.Rejection.Duplicate,
-                "Duplicate request. A job with the same identifier is already being processed"
+            activity?.Errored(ex);
+            return WorkflowEnqueueResponse.Reject(
+                WorkflowEnqueueResponse.Rejection.Invalid,
+                $"Invalid request. Workflow graph did not validate: {ex.Message}"
             );
         }
 
-        // TODO: We need to implement support for concurrency!
-        if (HasQueuedWorkflowForInstance(engineRequest.InstanceInformation))
+        // Do we have capacity for this batch?
+        if (_inboxCapacityLimit.CurrentCount < sortedRequests.Count)
         {
-            activity?.Errored(errorMessage: "Instance already has an active job. Concurrency not supported");
-            return EngineResponse.Reject(
-                EngineResponse.Rejection.Duplicate,
-                "A job for this instance is already processing. Concurrency is currently not supported"
+            activity?.Errored(errorMessage: "At capacity");
+            throw new EngineAtCapacityException(
+                $"Not enough capacity to enqueue {sortedRequests.Count} workflows. Available: {_inboxCapacityLimit.CurrentCount}"
             );
         }
 
-        if (_mainLoopTask is null)
+        await AcquireQueueSlots(sortedRequests.Count, cancellationToken);
+
+        using var scope = _serviceProvider.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+
+        IReadOnlyList<Workflow> workflows;
+        try
         {
-            activity?.Errored(errorMessage: "Workflow engine not started");
-            return EngineResponse.Reject(
-                EngineResponse.Rejection.Unavailable,
-                "Workflow engine is not running. Did you call Start()?"
-            );
+            workflows = await repository.AddWorkflowBatch(sortedRequests, metadata, cancellationToken);
+        }
+        catch (EngineWorkflowConcurrencyException ex)
+        {
+            ReleaseQueueSlots(sortedRequests.Count);
+            activity?.Errored(ex);
+            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.ConcurrencyViolation, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            ReleaseQueueSlots(sortedRequests.Count);
+
+            activity?.Errored(ex);
+            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, ex.Message);
         }
 
-        // TODO: We probably don't need these `ShouldRun` checks now that we are running standalone.
-        var enabled = await _isEnabledHistory.Latest() ?? await ShouldRun(cancellationToken);
-        if (!enabled)
-        {
-            activity?.Errored(errorMessage: "Workflow engine inactive (disabled)");
-            return EngineResponse.Reject(
-                EngineResponse.Rejection.Unavailable,
-                "Workflow engine is currently inactive. Did you call the right instance?"
-            );
-        }
+        // Add all to inbox and signal once
+        foreach (var workflow in workflows)
+            _inbox[workflow.DatabaseId] = workflow;
 
-        await AcquireQueueSlot(cancellationToken);
-        using (var scope = _serviceProvider.CreateScope())
-        {
-            var repository = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-            var workflow = await repository.AddWorkflow(engineRequest, cancellationToken: cancellationToken);
-            _inbox[engineRequest.IdempotencyKey] = workflow;
-        }
         _newWorkSignal.TrySetResult();
 
-        Metrics.WorkflowRequestsAccepted.Add(1);
-        Metrics.StepRequestsAccepted.Add(engineRequest.Steps.Count());
+        Metrics.WorkflowRequestsAccepted.Add(sortedRequests.Count);
+        Metrics.StepRequestsAccepted.Add(workflows.Sum(w => w.Steps.Count));
 
-        return EngineResponse.Accept();
-    }
+        // Build Ref -> DatabaseId map
+        var results = sortedRequests
+            .Zip(workflows, (req, wf) => (req.Ref, wf.DatabaseId))
+            .ToDictionary(t => t.Ref, t => t.DatabaseId);
 
-    public bool HasDuplicateWorkflow(string jobIdentifier)
-    {
-        bool isDupe = _inbox.ContainsKey(jobIdentifier);
-
-        using var activity = Metrics.Source.StartActivity(
-            "Engine.HasDuplicateWorkflow",
-            tags: [("workflow.isDuplicate", isDupe)]
-        );
-
-        return isDupe;
-    }
-
-    public bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation)
-    {
-        var instanceHasActiveWorkflow = _inbox.Values.Any(w => w.InstanceInformation == instanceInformation);
-
-        using var activity = Metrics.Source.StartActivity(
-            "Engine.HasQueuedWorkflowForInstance",
-            tags: [("instance.hasActiveWorkflow", instanceHasActiveWorkflow)]
-        );
-
-        return instanceHasActiveWorkflow;
+        return WorkflowEnqueueResponse.Accept(results);
     }
 
     public Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation)
@@ -147,9 +128,9 @@ internal partial class Engine
         {
             // TODO: Not sure about this logic...
             // Only add if not already in memory to avoid duplicates
-            if (_inbox.TryAdd(job.IdempotencyKey, job))
+            if (_inbox.TryAdd(job.DatabaseId, job))
             {
-                _logger.RestoredWorkflowFromDb(job.IdempotencyKey);
+                _logger.RestoredWorkflowFromDb(job.DatabaseId.ToString());
             }
         }
     }

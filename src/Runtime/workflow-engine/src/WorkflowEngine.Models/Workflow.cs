@@ -7,32 +7,41 @@ public sealed record Workflow : PersistentItem
     public required InstanceInformation InstanceInformation { get; init; }
     public DateTimeOffset? StartAt { get; init; }
     public required IReadOnlyList<Step> Steps { get; init; }
+    public WorkflowType Type { get; init; }
+    public string? DistributedTraceContext { get; set; }
+    public IEnumerable<Workflow>? Dependencies { get; init; }
+    public IEnumerable<Workflow>? Links { get; init; }
     public string? InitialState { get; init; }
 
     internal Task? DatabaseTask { get; set; }
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
 
-    public static Workflow FromRequest(EngineRequest engineRequest) =>
+    public static Workflow FromRequest(
+        WorkflowRequest request,
+        WorkflowRequestMetadata metadata,
+        IEnumerable<Workflow>? dependencies,
+        IEnumerable<Workflow>? links
+    ) =>
         new()
         {
-            IdempotencyKey = engineRequest.IdempotencyKey,
-            InstanceLockKey = engineRequest.InstanceLockKey,
-            InstanceInformation = engineRequest.InstanceInformation,
-            Actor = engineRequest.Actor,
-            CreatedAt = engineRequest.CreatedAt,
-            StartAt = engineRequest.StartAt,
-            DistributedTraceContext = engineRequest.TraceContext,
-            OperationId = engineRequest.OperationId,
-            InitialState = engineRequest.State,
-            Steps = engineRequest
-                .Steps.Select((step, i) => Step.FromRequest(engineRequest, step, engineRequest.CreatedAt, i))
-                .ToList(),
+            IdempotencyKey = request.IdempotencyKey,
+            InstanceLockKey = metadata.InstanceLockKey,
+            InstanceInformation = metadata.InstanceInformation,
+            Actor = metadata.Actor,
+            CreatedAt = metadata.CreatedAt,
+            StartAt = request.StartAt,
+            DistributedTraceContext = metadata.TraceContext,
+            OperationId = request.OperationId,
+            Type = request.Type,
+            Dependencies = dependencies,
+            Links = links,
+            Steps = request.Steps.Select((step, i) => Step.FromRequest(request, step, metadata, i)).ToList(),
+            InitialState = request.State,
         };
 
-    public override string ToString() => $"[{GetType().Name}] {IdempotencyKey} ({Status})";
+    public override string ToString() => $"[{GetType().Name}] {OperationId} ({Status})";
 
-    public override int GetHashCode() => IdempotencyKey.GetHashCode(StringComparison.InvariantCulture);
+    public override int GetHashCode() => DatabaseId.GetHashCode();
 
-    public bool Equals(Workflow? other) =>
-        other?.IdempotencyKey.Equals(IdempotencyKey, StringComparison.OrdinalIgnoreCase) is true;
+    public bool Equals(Workflow? other) => other?.DatabaseId == DatabaseId;
 };

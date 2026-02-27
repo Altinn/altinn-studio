@@ -21,13 +21,48 @@ internal sealed class EngineDbContext : DbContext
             // Indexes
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => e.IdempotencyKey);
             entity.HasIndex(e => new
             {
                 e.InstanceOrg,
                 e.InstanceApp,
                 e.InstanceGuid,
             });
+            entity.HasIndex(e => new
+            {
+                e.InstanceGuid,
+                e.Type,
+                e.Status,
+            });
+
+            // Self-referencing many-to-many: a workflow can depend on many other workflows
+            entity
+                .HasMany(e => e.Dependencies)
+                .WithMany()
+                .UsingEntity(
+                    "WorkflowDependency",
+                    l => l.HasOne(typeof(WorkflowEntity)).WithMany().HasForeignKey("DependsOnWorkflowId"),
+                    r => r.HasOne(typeof(WorkflowEntity)).WithMany().HasForeignKey("WorkflowId"),
+                    j =>
+                    {
+                        j.HasKey("WorkflowId", "DependsOnWorkflowId");
+                        j.HasIndex("DependsOnWorkflowId");
+                    }
+                );
+
+            // Self-referencing many-to-many: optional links to related workflows
+            entity
+                .HasMany(e => e.Links)
+                .WithMany()
+                .UsingEntity(
+                    "WorkflowLink",
+                    l => l.HasOne(typeof(WorkflowEntity)).WithMany().HasForeignKey("LinkedWorkflowId"),
+                    r => r.HasOne(typeof(WorkflowEntity)).WithMany().HasForeignKey("WorkflowId"),
+                    j =>
+                    {
+                        j.HasKey("WorkflowId", "LinkedWorkflowId");
+                        j.HasIndex("LinkedWorkflowId");
+                    }
+                );
         });
 
         // Configure Step entity
@@ -37,7 +72,6 @@ internal sealed class EngineDbContext : DbContext
             entity.HasIndex(e => e.BackoffUntil);
             entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.ProcessingOrder);
-            entity.HasIndex(e => e.IdempotencyKey);
         });
     }
 }

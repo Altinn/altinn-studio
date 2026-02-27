@@ -1,0 +1,30 @@
+﻿{
+  status: Healthy,
+  checks: [
+    {
+      name: Engine,
+      status: Healthy,
+      description: Engine is operational,
+      data: {
+        status: Healthy, Running,
+        queue: {
+          count: 0,
+          limit: 100
+        },
+        http_connections: {
+          count: 0,
+          limit: 300
+        },
+        db_connections: {
+          count: 0,
+          limit: 95
+        }
+      }
+    },
+    {
+      name: Database,
+      status: Healthy,
+      description: null
+    }
+  ]
+}

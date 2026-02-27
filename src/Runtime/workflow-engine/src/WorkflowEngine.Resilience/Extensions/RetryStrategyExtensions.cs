@@ -18,7 +18,7 @@ public static class RetryStrategyExtensions
         /// </summary>
         public bool CanRetry(int iteration)
         {
-            if (strategy.MaxRetries > iteration)
+            if (strategy.MaxRetries < iteration)
                 return false;
 
             return true;
