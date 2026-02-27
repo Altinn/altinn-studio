@@ -6,7 +6,9 @@ import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewCo
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient, QueryClientConfig } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
+import type { MemoryRouterProps } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { FeatureFlagsContextProvider, type FeatureFlag } from '@studio/feature-flags';
 import type { WrapperFunction } from './composeWrappers';
 import { TestAppRouter } from './testRoutingUtils';
 
@@ -56,7 +58,7 @@ export function withTestAppRouter({
 }
 
 export interface MemoryRouterWrapperOptions {
-  initialEntries?: string[];
+  initialEntries?: MemoryRouterProps['initialEntries'];
 }
 
 export function withMemoryRouter({
@@ -64,5 +66,23 @@ export function withMemoryRouter({
 }: MemoryRouterWrapperOptions = {}): WrapperFunction {
   return (children: ReactNode) => (
     <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
+  );
+}
+
+export function withBrowserRouter(): WrapperFunction {
+  return (children: ReactNode) => <BrowserRouter>{children}</BrowserRouter>;
+}
+
+export interface FeatureFlagsWrapperOptions {
+  featureFlags?: FeatureFlag[];
+}
+
+export function withFeatureFlags({
+  featureFlags = [],
+}: FeatureFlagsWrapperOptions = {}): WrapperFunction {
+  return (children: ReactNode) => (
+    <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
+      {children}
+    </FeatureFlagsContextProvider>
   );
 }

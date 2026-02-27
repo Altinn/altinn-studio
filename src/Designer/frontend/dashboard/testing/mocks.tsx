@@ -4,40 +4,21 @@ import { render, renderHook } from '@testing-library/react';
 import React from 'react';
 import type { ReactNode } from 'react';
 import type { MemoryRouterProps } from 'react-router-dom';
-import { MemoryRouter } from 'react-router-dom';
-import {
-  type ServicesContextProps,
-  ServicesContextProvider,
-} from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
-import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 import type { FeatureFlag } from '@studio/feature-flags';
+import { composeWrappers } from '@studio/testing/composeWrappers';
+import {
+  withMemoryRouter,
+  withServicesProvider,
+  withFeatureFlags,
+} from '@studio/testing/providerWrappers';
 
 type WrapperArgs = {
   queries: Partial<ServicesContextProps>;
   queryClient: QueryClient;
   featureFlags: FeatureFlag[];
 } & Pick<MemoryRouterProps, 'initialEntries'>;
-
-/* istanbul ignore next */
-const wrapper =
-  ({
-    queries = {},
-    queryClient = createQueryClientMock(),
-    featureFlags = [],
-    initialEntries,
-  }: WrapperArgs) =>
-  // eslint-disable-next-line react/display-name
-  (component: ReactNode) => (
-    <MemoryRouter initialEntries={initialEntries}>
-      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-        <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
-          {component}
-        </FeatureFlagsContextProvider>
-      </ServicesContextProvider>
-    </MemoryRouter>
-  );
 
 export interface ProviderData extends Partial<WrapperArgs> {
   externalWrapper?: (children: ReactNode) => ReactNode;
@@ -52,15 +33,13 @@ export function renderWithProviders(
     initialEntries,
   }: ProviderData = {},
 ) {
-  const renderOptions: RenderOptions = {
-    wrapper: ({ children }) =>
-      wrapper({
-        queries,
-        queryClient,
-        featureFlags,
-        initialEntries,
-      })(children),
-  };
+  const Wrapper = composeWrappers([
+    withMemoryRouter({ initialEntries }),
+    withServicesProvider({ queries, queryClient }),
+    withFeatureFlags({ featureFlags }),
+  ]);
+
+  const renderOptions: RenderOptions = { wrapper: Wrapper };
   return render(component, renderOptions);
 }
 
@@ -74,16 +53,13 @@ export function renderHookWithProviders<HookResult, Props>(
     initialEntries,
   }: ProviderData = {},
 ) {
+  const ProviderWrapper = composeWrappers([
+    withMemoryRouter({ initialEntries }),
+    withServicesProvider({ queries, queryClient }),
+    withFeatureFlags({ featureFlags }),
+  ]);
   const renderHookOptions: RenderHookOptions<Props, Queries> = {
-    wrapper: ({ children }) =>
-      externalWrapper(
-        wrapper({
-          queries,
-          queryClient,
-          featureFlags,
-          initialEntries,
-        })(children),
-      ),
+    wrapper: ({ children }) => externalWrapper(<ProviderWrapper>{children}</ProviderWrapper>),
   };
   return renderHook<HookResult, Props, Queries>(hook, renderHookOptions);
 }

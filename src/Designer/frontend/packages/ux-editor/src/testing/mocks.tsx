@@ -3,12 +3,9 @@ import React from 'react';
 import type { RenderOptions } from '@testing-library/react';
 import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
 import { layout1NameMock, layout2NameMock } from './layoutMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import type { AppContextProps } from '../AppContext';
 import { AppContext } from '../AppContext';
@@ -17,7 +14,6 @@ import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { PreviewContext, type PreviewContextProps } from 'app-development/contexts/PreviewContext';
 import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
 import {
-  FeatureFlagsContextProvider,
   FeatureFlagMutationContextProvider,
 } from '@studio/feature-flags';
 import type { FeatureFlag, FeatureFlagMutationContextValue } from '@studio/feature-flags';
@@ -27,6 +23,12 @@ import {
   layoutSet as testLayoutSet,
   org as testOrg,
 } from '@studio/testing/testids';
+import { composeWrappers, type WrapperFunction } from '@studio/testing/composeWrappers';
+import {
+  withServicesProvider,
+  withPreviewConnection,
+  withFeatureFlags,
+} from '@studio/testing/providerWrappers';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
@@ -58,48 +60,49 @@ const defaultFeatureFlagMutations: FeatureFlagMutationContextValue = {
   removeFlag: jest.fn(),
 };
 
-type WrapperArgs = {
-  queries: Partial<ServicesContextProps>;
-  queryClient: QueryClient;
-  appContextProps: Partial<AppContextProps>;
-  previewContextProps?: Partial<PreviewContextProps>;
-  uxEditorParams?: UxEditorParams;
-  appRouteParams?: AppRouteParams;
-  featureFlags?: FeatureFlag[];
-  featureFlagMutations?: FeatureFlagMutationContextValue;
-};
-
-function wrapper({
-  queries = {},
-  queryClient = queryClientMock,
-  appContextProps = {},
-  previewContextProps = {},
-  uxEditorParams = defaultUxEditorParams,
-  appRouteParams = defaultAppRouteParams,
-  featureFlags = [],
-  featureFlagMutations = defaultFeatureFlagMutations,
-}: WrapperArgs): (component: ReactNode) => ReactElement {
-  const renderComponent = (component: ReactNode): ReactElement => (
-    <AppRouter params={{ ...appRouteParams, ...uxEditorParams }}>
-      <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
-        <PreviewConnectionContextProvider>
-          <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
-            <PreviewContext.Provider
-              value={{ ...defaultPreviewContextProps, ...previewContextProps }}
-            >
-              <FeatureFlagMutationContextProvider value={featureFlagMutations}>
-                <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
-                  {component}
-                </FeatureFlagsContextProvider>
-              </FeatureFlagMutationContextProvider>
-            </PreviewContext.Provider>
-          </AppContext.Provider>
-        </PreviewConnectionContextProvider>
-      </ServicesContextProvider>
-    </AppRouter>
+function withAppRouter(
+  appRouteParams: AppRouteParams,
+  uxEditorParams: UxEditorParams,
+): WrapperFunction {
+  const { org, app } = appRouteParams;
+  const { layoutSet } = uxEditorParams;
+  const route = `/${org}/${app}/${layoutSet}`;
+  const path = '/:org/:app/:layoutSet';
+  return (children: ReactNode) => (
+    <MemoryRouter initialEntries={[route]}>
+      <Routes>
+        <Route path={path} element={children} />
+      </Routes>
+    </MemoryRouter>
   );
-  renderComponent.displayName = 'renderComponent';
-  return renderComponent;
+}
+
+function withAppContext(appContextProps: Partial<AppContextProps> = {}): WrapperFunction {
+  return (children: ReactNode) => (
+    <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+function withPreviewContext(
+  previewContextProps: Partial<PreviewContextProps> = {},
+): WrapperFunction {
+  return (children: ReactNode) => (
+    <PreviewContext.Provider value={{ ...defaultPreviewContextProps, ...previewContextProps }}>
+      {children}
+    </PreviewContext.Provider>
+  );
+}
+
+function withFeatureFlagMutations(
+  featureFlagMutations: FeatureFlagMutationContextValue = defaultFeatureFlagMutations,
+): WrapperFunction {
+  return (children: ReactNode) => (
+    <FeatureFlagMutationContextProvider value={featureFlagMutations}>
+      {children}
+    </FeatureFlagMutationContextProvider>
+  );
 }
 
 type AppRouterProps = {
@@ -133,61 +136,63 @@ export interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   uxEditorParams?: UxEditorParams;
 }
 
+function createWrappers({
+  queries = {},
+  queryClient = queryClientMock,
+  appContextProps = {},
+  previewContextProps = {},
+  appRouteParams = defaultAppRouteParams,
+  featureFlags = [],
+  featureFlagMutations = defaultFeatureFlagMutations,
+  uxEditorParams = defaultUxEditorParams,
+}: Partial<ExtendedRenderOptions> = {}) {
+  return composeWrappers([
+    withAppRouter(appRouteParams, uxEditorParams),
+    withServicesProvider({ queries, queryClient }),
+    withPreviewConnection(),
+    withAppContext(appContextProps),
+    withPreviewContext(previewContextProps),
+    withFeatureFlagMutations(featureFlagMutations),
+    withFeatureFlags({ featureFlags }),
+  ]);
+}
+
 export const renderHookWithProviders = (
   hook: () => any,
-  {
-    queries = {},
-    queryClient = queryClientMock,
-    appContextProps = {},
-    previewContextProps = {},
-    appRouteParams = defaultAppRouteParams,
-    featureFlags = [],
-    featureFlagMutations = defaultFeatureFlagMutations,
-    uxEditorParams = defaultUxEditorParams,
-  }: ExtendedRenderOptions = {},
+  options: ExtendedRenderOptions = {},
 ) => {
-  return renderHook(hook, {
-    wrapper: ({ children }) =>
-      wrapper({
-        queries,
-        queryClient,
-        appContextProps,
-        previewContextProps,
-        appRouteParams,
-        featureFlags,
-        featureFlagMutations,
-        uxEditorParams,
-      })(children),
-  });
+  const Wrapper = createWrappers(options);
+  return renderHook(hook, { wrapper: Wrapper });
 };
 
 export const renderWithProviders = (
   component: ReactNode,
   {
-    queries = {},
-    queryClient = queryClientMock,
-    appContextProps = {},
-    previewContextProps = {},
-    appRouteParams = defaultAppRouteParams,
-    featureFlags = [],
-    featureFlagMutations = defaultFeatureFlagMutations,
-    uxEditorParams = defaultUxEditorParams,
+    queries,
+    queryClient,
+    appContextProps,
+    previewContextProps,
+    appRouteParams,
+    featureFlags,
+    featureFlagMutations,
+    uxEditorParams,
     ...renderOptions
   }: Partial<ExtendedRenderOptions> = {},
 ) => {
+  const Wrapper = createWrappers({
+    queries,
+    queryClient,
+    appContextProps,
+    previewContextProps,
+    uxEditorParams,
+    appRouteParams,
+    featureFlags,
+    featureFlagMutations,
+  });
+
   return {
     ...render(component, {
-      wrapper: ({ children }) =>
-        wrapper({
-          queries,
-          queryClient,
-          appContextProps,
-          previewContextProps,
-          uxEditorParams,
-          appRouteParams,
-          featureFlags,
-          featureFlagMutations,
-        })(children),
+      wrapper: Wrapper,
       ...renderOptions,
     }),
   };

@@ -4,18 +4,35 @@ import { render } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { FeatureFlagsContextProvider, type FeatureFlag } from '@studio/feature-flags';
+import type { FeatureFlag } from '@studio/feature-flags';
 import { AppDevelopmentContextProvider } from '../contexts/AppDevelopmentContext';
+import { composeWrappers, type WrapperFunction } from '@studio/testing/composeWrappers';
+import { withServicesProvider, withFeatureFlags } from '@studio/testing/providerWrappers';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   startUrl?: string;
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
   featureFlags?: FeatureFlag[];
+}
+
+function withAppDevelopmentRouter(startUrl?: string): WrapperFunction {
+  return (children: React.ReactNode) => (
+    <MemoryRouter basename={APP_DEVELOPMENT_BASENAME} initialEntries={[startUrl]}>
+      {children}
+    </MemoryRouter>
+  );
+}
+
+function withAppDevelopmentContext(): WrapperFunction {
+  return (children: React.ReactNode) => (
+    <AppDevelopmentContextProvider>
+      <Routes>
+        <Route path='/:org/:app/*' element={children} />
+      </Routes>
+    </AppDevelopmentContextProvider>
+  );
 }
 
 export const renderWithProviders = (
@@ -28,26 +45,12 @@ export const renderWithProviders = (
     ...renderOptions
   }: ExtendedRenderOptions = {},
 ) => {
-  function Wrapper({ children }: React.PropsWithChildren<unknown>) {
-    return (
-      <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
-        <MemoryRouter basename={APP_DEVELOPMENT_BASENAME} initialEntries={[startUrl]}>
-          <ServicesContextProvider
-            {...queriesMock}
-            {...queries}
-            client={queryClient}
-            clientConfig={queryClientConfigMock}
-          >
-            <AppDevelopmentContextProvider>
-              <Routes>
-                <Route path='/:org/:app/*' element={children} />
-              </Routes>
-            </AppDevelopmentContextProvider>
-          </ServicesContextProvider>
-        </MemoryRouter>
-      </FeatureFlagsContextProvider>
-    );
-  }
+  const Wrapper = composeWrappers([
+    withFeatureFlags({ featureFlags }),
+    withAppDevelopmentRouter(startUrl),
+    withServicesProvider({ queries, queryClient }),
+    withAppDevelopmentContext(),
+  ]);
 
   return {
     ...render(component, {

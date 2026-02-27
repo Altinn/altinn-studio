@@ -2,13 +2,28 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import { render, type RenderResult } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { BrowserRouter } from 'react-router-dom';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
-import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 import { GiteaHeaderContext, type GiteaHeaderContextProps } from '../context/GiteaHeaderContext';
 import { app, org } from '@studio/testing/testids';
+import { composeWrappers, type WrapperFunction } from '@studio/testing/composeWrappers';
+import { withServicesProvider, withBrowserRouter } from '@studio/testing/providerWrappers';
+
+const defaultGiteaHeaderContextProps: GiteaHeaderContextProps = {
+  owner: org,
+  repoName: app,
+};
+
+function withGiteaHeaderContext(
+  giteaContextProps: Partial<GiteaHeaderContextProps> = {},
+): WrapperFunction {
+  return (children: ReactNode) => (
+    <GiteaHeaderContext.Provider
+      value={{ ...defaultGiteaHeaderContextProps, ...giteaContextProps }}
+    >
+      {children}
+    </GiteaHeaderContext.Provider>
+  );
+}
 
 export const renderWithProviders =
   (
@@ -17,24 +32,11 @@ export const renderWithProviders =
     giteaContextProps: Partial<GiteaHeaderContextProps> = {},
   ) =>
   (component: ReactNode): RenderResult => {
-    const renderResult = render(
-      <ServicesContextProvider
-        {...queriesMock}
-        {...queries}
-        client={queryClient}
-        clientConfig={queryClientConfigMock}
-      >
-        <GiteaHeaderContext.Provider
-          value={{ ...defaultGiteaHeaderContextProps, ...giteaContextProps }}
-        >
-          <BrowserRouter>{component}</BrowserRouter>
-        </GiteaHeaderContext.Provider>
-      </ServicesContextProvider>,
-    );
-    return renderResult;
-  };
+    const Wrapper = composeWrappers([
+      withServicesProvider({ queries, queryClient }),
+      withGiteaHeaderContext(giteaContextProps),
+      withBrowserRouter(),
+    ]);
 
-const defaultGiteaHeaderContextProps: GiteaHeaderContextProps = {
-  owner: org,
-  repoName: app,
-};
+    return render(<Wrapper>{component}</Wrapper>);
+  };
