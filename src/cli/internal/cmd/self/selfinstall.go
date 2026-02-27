@@ -258,8 +258,8 @@ func Install(targetDir string) (string, error) {
 }
 
 func copyFile(src, dst string) (err error) {
-	//nolint:gosec // G304: src is from os.Executable(), trusted
-	srcFile, err := os.Open(src)
+	//nolint:gosec // G304: src is resolved from os.Executable/EvalSymlinks in Install, not user input.
+	srcFile, err := os.OpenFile(src, os.O_RDONLY, 0)
 	if err != nil {
 		return fmt.Errorf("open source: %w", err)
 	}
@@ -295,25 +295,72 @@ func copyFile(src, dst string) (err error) {
 }
 
 func replaceFile(src, dst string) error {
-	renameErr := os.Rename(src, dst)
-	if renameErr == nil {
+	initialRenameErr := os.Rename(src, dst)
+	if initialRenameErr == nil {
 		return nil
 	}
 
+	renameErr := fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, initialRenameErr)
+
 	if runtime.GOOS != osWindows {
-		return fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, renameErr)
+		return renameErr
 	}
 
-	removeErr := os.Remove(dst)
-	if removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
-		return fmt.Errorf("replace destination: remove %q: %w", dst, removeErr)
+	backupPath, err := reserveBackupPath(dst)
+	if err != nil {
+		return errors.Join(renameErr, err)
 	}
 
-	if renameErr := os.Rename(src, dst); renameErr != nil {
-		return fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, renameErr)
+	moveToBackupErr := os.Rename(dst, backupPath)
+	if moveToBackupErr != nil {
+		if errors.Is(moveToBackupErr, os.ErrNotExist) {
+			return renameErr
+		}
+		return errors.Join(
+			renameErr,
+			fmt.Errorf(
+				"replace destination: move existing destination %q to backup %q: %w",
+				dst,
+				backupPath,
+				moveToBackupErr,
+			),
+		)
+	}
+
+	if err := os.Rename(src, dst); err != nil {
+		restoreErr := os.Rename(backupPath, dst)
+		if restoreErr != nil {
+			return errors.Join(
+				fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, err),
+				fmt.Errorf("replace destination: restore backup %q to %q: %w", backupPath, dst, restoreErr),
+			)
+		}
+		return fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, err)
+	}
+
+	if removeErr := os.Remove(backupPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+		return fmt.Errorf("replace destination: remove backup %q: %w", backupPath, removeErr)
 	}
 
 	return nil
+}
+
+func reserveBackupPath(dst string) (string, error) {
+	backup, err := os.CreateTemp(filepath.Dir(dst), "."+filepath.Base(dst)+".old-*")
+	if err != nil {
+		return "", fmt.Errorf("replace destination: create backup temp file: %w", err)
+	}
+	backupPath := backup.Name()
+
+	if err := closeWithError(backup, "close backup temp file"); err != nil {
+		return "", cleanupTempFile(backupPath, err)
+	}
+
+	if err := os.Remove(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return "", fmt.Errorf("replace destination: prepare backup path %q: %w", backupPath, err)
+	}
+
+	return backupPath, nil
 }
 
 func cleanupTempFile(path string, errs ...error) error {
