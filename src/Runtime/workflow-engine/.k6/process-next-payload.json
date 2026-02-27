@@ -1,22 +1,28 @@
 {
-    "currentElementId": "Task_1",
-    "desiredElementId": "Task_2",
     "actor": {
         "userIdOrOrgNumber": "1337",
         "language": "nb"
     },
-    "lockToken": "...",
-    "steps": [
-        { "command": { "type": "app", "commandKey": "ProcessTaskEnd" } },
-        { "command": { "type": "app", "commandKey": "CommonTaskFinalization" } },
-        { "command": { "type": "app", "commandKey": "EndTaskLegacyHook" } },
-        { "command": { "type": "app", "commandKey": "OnTaskEndingHook" } },
-        { "command": { "type": "app", "commandKey": "LockTaskData" } },
-        { "command": { "type": "app", "commandKey": "UpdateInstanceProcessState" } },
-        { "command": { "type": "app", "commandKey": "UnlockTaskData" } },
-        { "command": { "type": "app", "commandKey": "StartTaskLegacyHook" } },
-        { "command": { "type": "app", "commandKey": "OnTaskStartingHook" } },
-        { "command": { "type": "app", "commandKey": "ProcessTaskStart" } },
-        { "command": { "type": "app", "commandKey": "MovedToAltinnEvent" } }
+    "lockToken": "k6-load-test-lock-token",
+    "workflows": [
+        {
+            "ref": "wf-1",
+            "operationId": "next",
+            "idempotencyKey": "__IDEMPOTENCY_KEY__",
+            "type": "AppProcessChange",
+            "steps": [
+                { "command": { "type": "app", "commandKey": "ProcessTaskEnd" } },
+                { "command": { "type": "app", "commandKey": "CommonTaskFinalization" } },
+                { "command": { "type": "app", "commandKey": "EndTaskLegacyHook" } },
+                { "command": { "type": "app", "commandKey": "OnTaskEndingHook" } },
+                { "command": { "type": "app", "commandKey": "LockTaskData" } },
+                { "command": { "type": "app", "commandKey": "UpdateInstanceProcessState" } },
+                { "command": { "type": "app", "commandKey": "UnlockTaskData" } },
+                { "command": { "type": "app", "commandKey": "StartTaskLegacyHook" } },
+                { "command": { "type": "app", "commandKey": "OnTaskStartingHook" } },
+                { "command": { "type": "app", "commandKey": "ProcessTaskStart" } },
+                { "command": { "type": "app", "commandKey": "MovedToAltinnEvent" } }
+            ]
+        }
     ]
 }

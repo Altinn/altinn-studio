@@ -226,7 +226,7 @@ internal partial class Engine : IEngine, IDisposable
                     .ToList();
             }
 
-            // We have any failed dependencies (fail)
+            // We have any failed dependencies -> fail
             if (dependencyStatuses.Any(x => x.IsDone() && !x.IsSuccessful()))
             {
                 StartProcessWorkflowActivityOnce(workflow);
@@ -237,7 +237,7 @@ internal partial class Engine : IEngine, IDisposable
                 return;
             }
 
-            // We have pending dependencies (wait)
+            // We have pending dependencies -> wait
             if (dependencyStatuses.Any(x => !x.IsDone()))
             {
                 return;
