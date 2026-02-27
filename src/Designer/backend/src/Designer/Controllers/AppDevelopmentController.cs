@@ -601,7 +601,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpDelete("layout-sets/validation-on-navigation")]
-        [UseSystemTextJson]
         public async Task<IActionResult> DeleteValidationOnNavigationLayoutSets(
             string org,
             string app,
