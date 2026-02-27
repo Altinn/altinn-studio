@@ -162,9 +162,20 @@ const buildDetailsContent = (data) => {
   const status = /** @type {string} */ (data.status) || '';
   const isFailing = status === 'Failed' || status === 'Requeued';
 
-  const backoffSuffix = data.backoffUntil ? ` <span class="step-backoff" data-backoff="${esc(/** @type {string} */ (data.backoffUntil))}"></span>` : '';
-  const retrySuffix = data.retryCount ? ` <span class="step-retry">&#8635;${esc(String(data.retryCount))}</span>` : '';
-  html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="status-pill ${status}">${esc(status)}</span>${backoffSuffix}${retrySuffix}</span></div>`;
+  let statusParts = `<span class="status-pill ${status}">${esc(status)}</span>`;
+  if (data.backoffUntil && status === 'Requeued') {
+    statusParts += ` <span class="step-backoff" data-backoff="${esc(/** @type {string} */ (data.backoffUntil))}"></span>`;
+  } else if (status === 'Processing' && data.executionStartedAt) {
+    statusParts += ` <span data-step-started="${esc(/** @type {string} */ (data.executionStartedAt))}"></span>`;
+  }
+  if (data.retryCount) statusParts += ` <span class="step-retry" style="margin-left:4px;margin-top:0">&#8635;${esc(String(data.retryCount))}</span>`;
+  const showSkipBackoff = data.backoffUntil && status === 'Requeued' && (new Date(/** @type {string} */ (data.backoffUntil)) - Date.now()) > 5000;
+  if (status === 'Failed') {
+    statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${esc(_openWfKey)}','${esc(_openCreatedAt)}')">&#8635; Retry</a>`;
+  } else if (showSkipBackoff) {
+    statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="skipBackoff(event,'${esc(_openWfKey)}','${esc(/** @type {string} */ (data.idempotencyKey))}')">&#9654; Retry now</a>`;
+  }
+  html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;
   html += row('Idempotency Key', data.idempotencyKey);
 
   const actor = /** @type {Record<string, unknown>|null} */ (data.actor);
@@ -189,26 +200,32 @@ const buildDetailsContent = (data) => {
     }
   }
 
-  const showError = status !== 'Completed' && (data.lastError || isFailing);
-  if (showError) {
-    html += '<div class="detail-section" style="margin-top:24px"></div>';
-    if (data.lastError) {
-      const err = /** @type {string} */ (data.lastError);
+  // Error section — always rendered to reserve stable space
+  html += '<div class="detail-section" style="margin-top:24px"></div>';
+  const errors = /** @type {string[]|null} */ (data.errorHistory);
+  html += `<div class="error-list">`;
+  if (errors && errors.length > 0) {
+    for (let i = errors.length - 1; i >= 0; i--) {
+      const err = errors[i];
       const tagMatch = err.match(/^\[([^\]]+)\]\s*/);
       const tag = tagMatch ? tagMatch[1] : null;
       const message = tagMatch ? err.slice(tagMatch[0].length) : err;
-      html += `<div class="modal-error">`;
+      const isLatest = i === errors.length - 1;
+      const cls = isLatest ? 'modal-error' : 'modal-error modal-error-past';
+      html += `<div class="${cls}">`;
+      if (errors.length > 1) html += `<span class="error-attempt">${i + 1}</span>`;
       if (tag) html += `<span class="error-tag">${esc(tag)}</span>`;
       html += `${esc(message)}</div>`;
-    } else {
-      html += `<div class="modal-error-hint">Error details are not persisted to the database. Available in Inbox and Recent views only.</div>`;
     }
-    if (data.idempotencyKey) {
-      const lokiQuery = `{service_name="WorkflowEngine"} |= \`${data.idempotencyKey}\``;
-      const panes = JSON.stringify({l:{datasource:"loki",queries:[{refId:"logs",expr:lokiQuery,datasource:{type:"loki",uid:"loki"}}],range:{from:"now-1h",to:"now"}}});
-      const lokiUrl = 'http://localhost:7070/explore?schemaVersion=1&panes=' + encodeURIComponent(panes) + '&orgId=1';
-      html += `<a class="modal-grafana-link" href="${lokiUrl}" target="_blank">View error logs in Grafana</a>`;
-    }
+  } else if (isFailing) {
+    html += `<div class="modal-error-hint">Error details are not persisted to the database. Available in Inbox and Recent views only.</div>`;
+  }
+  html += `</div>`;
+  if (data.idempotencyKey) {
+    const lokiQuery = `{service_name="WorkflowEngine"} |= \`${data.idempotencyKey}\``;
+    const panes = JSON.stringify({l:{datasource:"loki",queries:[{refId:"logs",expr:lokiQuery,datasource:{type:"loki",uid:"loki"}}],range:{from:"now-1h",to:"now"}}});
+    const lokiUrl = 'http://localhost:7070/explore?schemaVersion=1&panes=' + encodeURIComponent(panes) + '&orgId=1';
+    html += `<a class="modal-grafana-link" href="${lokiUrl}" target="_blank">View error logs in Grafana</a>`;
   }
 
   return html;

@@ -79,7 +79,6 @@ public class EngineRetryTests : IDisposable
                     Command = new Command.Debug.Noop(),
                     Actor = WorkflowEngineTestFixture.DefaultActor,
                     Status = PersistentItemStatus.Failed,
-                    LastError = "404 Not Found",
                     RequeueCount = 3,
                     BackoffUntil = DateTimeOffset.UtcNow.AddMinutes(10),
                 },
@@ -104,7 +103,6 @@ public class EngineRetryTests : IDisposable
         // Step 1 (Failed) should be reset
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Steps[1].Status);
         Assert.Null(workflow.Steps[1].BackoffUntil);
-        Assert.Null(workflow.Steps[1].LastError);
         Assert.Equal(0, workflow.Steps[1].RequeueCount);
 
         _repoMock.Verify(

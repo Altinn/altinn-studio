@@ -428,7 +428,6 @@ internal partial class Engine : IEngine, IDisposable
             if (result.IsSuccess())
             {
                 currentStep.Status = PersistentItemStatus.Completed;
-                currentStep.LastError = null;
 
                 Metrics.StepsSucceeded.Add(1);
                 _logger.StepCompletedSuccessfully(currentStep);
@@ -440,7 +439,7 @@ internal partial class Engine : IEngine, IDisposable
             {
                 currentStep.Status = PersistentItemStatus.Failed;
                 currentStep.BackoffUntil = null;
-                currentStep.LastError = result.Message;
+                currentStep.ErrorHistory.Add(result.Message!);
 
                 Metrics.StepsFailed.Add(1);
                 _logger.FailingStepCritical(currentStep, currentStep.RequeueCount);
@@ -457,7 +456,7 @@ internal partial class Engine : IEngine, IDisposable
                 currentStep.RequeueCount++;
                 currentStep.Status = PersistentItemStatus.Requeued;
                 currentStep.BackoffUntil = GetExecutionRetryBackoff(currentStep, retryStrategy);
-                currentStep.LastError = result.Message;
+                currentStep.ErrorHistory.Add(result.Message!);
 
                 Metrics.StepsRequeued.Add(1);
                 _logger.SlatingStepForRetry(currentStep, currentStep.RequeueCount);
@@ -467,7 +466,7 @@ internal partial class Engine : IEngine, IDisposable
 
             currentStep.Status = PersistentItemStatus.Failed;
             currentStep.BackoffUntil = null;
-            currentStep.LastError = result.Message;
+            currentStep.ErrorHistory.Add(result.Message!);
 
             Metrics.StepsFailed.Add(1);
             _logger.FailingStepRetries(currentStep, currentStep.RequeueCount);

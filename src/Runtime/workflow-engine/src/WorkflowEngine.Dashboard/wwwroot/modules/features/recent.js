@@ -3,6 +3,7 @@
 import { dom, state } from '../core/state.js';
 import { cssId } from '../core/helpers.js';
 import { buildCardHTML, buildCompactCardHTML, setCardFilterData } from '../shared/cards.js';
+import { notifyStepChanged } from './modal.js';
 
 /** Late-bound references */
 /** @type {() => void} */
@@ -68,6 +69,7 @@ export const updateRecentWorkflows = (recent) => {
     card.innerHTML = compact ? buildCompactCardHTML(wf, true) : buildCardHTML(wf, true);
     setCardFilterData(card, wf);
     dom.recentContainer.insertBefore(card, dom.recentContainer.children[i] ?? null);
+    notifyStepChanged(wf.idempotencyKey);
   }
   _mergeDiscoveredOrgsAndApps();
   _applyFilter();

@@ -54,7 +54,8 @@ window.retryWorkflow = async (e, idempotencyKey, createdAt) => {
       btn.classList.add('retried');
       btn.innerHTML = '&#10003; Queued';
       // Remove the card from Recent/Query DOM so it doesn't linger as "Failed"
-      const card = btn.closest('.workflow-card');
+      const card = btn.closest('.workflow-card')
+        || document.getElementById(`wf-recent-${cssId(idempotencyKey)}`);
       if (card) {
         card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
         card.style.opacity = '0';

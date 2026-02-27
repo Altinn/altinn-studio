@@ -66,6 +66,7 @@ export const updateLiveWorkflows = (workflows) => {
       dom.liveContainer.appendChild(card);
       state.workflowTimers[wf.idempotencyKey] = { startedAt: wf.executionStartedAt || wf.createdAt };
       state.workflowFingerprints[wf.idempotencyKey] = fp;
+      notifyStepChanged(wf.idempotencyKey);
     } else if (state.workflowFingerprints[wf.idempotencyKey] !== fp) {
       const isCompact = card.classList.contains('compact');
       card.innerHTML = isCompact ? buildCompactCardHTML(wf) : buildCardHTML(wf);

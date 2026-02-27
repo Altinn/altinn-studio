@@ -279,12 +279,15 @@ internal static class DashboardEndpoints
                         if (s is null)
                             return Results.NotFound();
 
-                        // Merge lastError from recent cache if the DB doesn't have it
-                        DashboardWorkflowDto? cached = s.LastError is null
-                            ? engine.GetRecentWorkflows(100).FirstOrDefault(c => c.IdempotencyKey == wf)
-                            : null;
-                        string? lastError =
-                            s.LastError ?? cached?.Steps.FirstOrDefault(cs => cs.IdempotencyKey == step)?.LastError;
+                        // ErrorHistory is in-memory only; merge from recent cache if DB step doesn't have it
+                        IReadOnlyList<string>? errorHistory =
+                            s.ErrorHistory.Count > 0
+                                ? s.ErrorHistory
+                                : engine
+                                    .GetRecentWorkflows(100)
+                                    .FirstOrDefault(c => c.IdempotencyKey == wf)
+                                    ?.Steps.FirstOrDefault(cs => cs.IdempotencyKey == step)
+                                    ?.ErrorHistory;
 
                         var stateIn =
                             s.ProcessingOrder == 0
@@ -303,7 +306,7 @@ internal static class DashboardEndpoints
                                 status = s.Status.ToString(),
                                 processingOrder = s.ProcessingOrder,
                                 retryCount = s.RequeueCount,
-                                lastError,
+                                errorHistory,
                                 createdAt = s.CreatedAt,
                                 executionStartedAt = s.ExecutionStartedAt,
                                 updatedAt = s.UpdatedAt,
@@ -319,7 +322,7 @@ internal static class DashboardEndpoints
                         );
                     }
 
-                    // Fall back to recent cache only (has lastError but no state)
+                    // Fall back to recent cache only (has errorHistory but no state)
                     DashboardWorkflowDto? recentCached = engine
                         .GetRecentWorkflows(100)
                         .FirstOrDefault(c => c.IdempotencyKey == wf);
@@ -337,7 +340,7 @@ internal static class DashboardEndpoints
                                 cs.Status,
                                 cs.ProcessingOrder,
                                 cs.RetryCount,
-                                cs.LastError,
+                                cs.ErrorHistory,
                                 cs.CreatedAt,
                                 cs.ExecutionStartedAt,
                                 cs.UpdatedAt,
