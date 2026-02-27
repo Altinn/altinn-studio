@@ -321,7 +321,7 @@ body{min-height:100vh;padding:0}
 }
 .step-circle.Completed{border-color:var(--green);background:var(--green);color:#000}
 .step-circle.Requeued{border-color:var(--orange);color:var(--orange);animation:bounce 1s ease infinite}
-.step-circle.Failed{border-color:var(--red);color:var(--red);animation:shake 0.5s ease}
+.step-circle.Failed{border-color:var(--red);background:var(--red);color:#000;animation:shake 0.5s ease}
 .step-circle.Canceled{border-color:var(--gray);color:var(--gray);opacity:0.5}
 .step-circle[onclick]:hover{transform:scale(1.15)}
 .step-state-badge{
@@ -348,6 +348,12 @@ body{min-height:100vh;padding:0}
   background:rgba(var(--red-rgb),0.1);border:1px solid var(--red);border-radius:8px;
   padding:12px 16px;margin-bottom:16px;color:var(--red);font-size:13px;
   line-height:1.5;word-break:break-word;
+}
+.error-tag{
+  display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;
+  padding:2px 7px;border-radius:4px;margin-right:8px;
+  background:rgba(var(--red-rgb),0.15);border:1px solid rgba(var(--red-rgb),0.3);
+  color:var(--red);vertical-align:middle;position:relative;top:-1px;
 }
 .modal-error-hint{
   font-size:12px;color:var(--text-dim);margin-bottom:12px;font-style:italic;
@@ -640,6 +646,19 @@ pre.diff-remove{background:rgba(var(--red-rgb),0.12);color:var(--red)}
 .retry-action-btn.retrying{opacity:0.5;pointer-events:none;color:var(--amber)}
 .retry-action-btn.retried{color:var(--green);border-color:var(--green);opacity:1}
 .retry-action-btn.retry-failed{color:var(--red);border-color:var(--red);opacity:1}
+.step-retry-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  margin-top:6px;padding:3px 10px;
+  border-radius:12px;border:1px solid var(--orange);
+  background:rgba(var(--orange-rgb),0.12);color:var(--orange);
+  font-size:11px;font-weight:700;letter-spacing:0.3px;
+  cursor:pointer;user-select:none;text-decoration:none;
+  transition:background 0.15s,box-shadow 0.15s;
+}
+.step-retry-badge:hover{background:rgba(var(--orange-rgb),0.25);box-shadow:0 0 8px rgba(var(--orange-rgb),0.4)}
+.step-retry-badge.retrying{opacity:0.5;pointer-events:none;border-color:var(--amber);color:var(--amber);background:rgba(var(--amber-rgb),0.1)}
+.step-retry-badge.retried{border-color:var(--green);color:var(--green);background:rgba(var(--green-rgb),0.12)}
+.step-retry-badge.retry-failed{border-color:var(--red);color:var(--red);background:rgba(var(--red-rgb),0.12)}
 
 /* ── State button ────────────────────────────────────────── */
 .state-btn{font-size:11px;font-weight:700;font-family:var(--font);letter-spacing:0}

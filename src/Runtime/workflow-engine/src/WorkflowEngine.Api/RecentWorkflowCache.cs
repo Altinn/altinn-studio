@@ -26,6 +26,29 @@ internal sealed class RecentWorkflowCache
 
     public IReadOnlyList<DashboardWorkflowDto> GetAll() => _entries.Reverse().ToList();
 
+    public bool Remove(string idempotencyKey, DateTimeOffset createdAt)
+    {
+        // ConcurrentQueue doesn't support removal, so drain and re-enqueue everything except the match.
+        // The cache is small (max 100 entries) so this is fine.
+        int count = _entries.Count;
+        bool removed = false;
+        for (int i = 0; i < count; i++)
+        {
+            if (!_entries.TryDequeue(out DashboardWorkflowDto? entry))
+                break;
+
+            if (!removed && entry.IdempotencyKey == idempotencyKey && entry.CreatedAt == createdAt)
+            {
+                removed = true;
+                continue;
+            }
+
+            _entries.Enqueue(entry);
+        }
+
+        return removed;
+    }
+
     public void Clear()
     {
         while (_entries.TryDequeue(out _)) { }

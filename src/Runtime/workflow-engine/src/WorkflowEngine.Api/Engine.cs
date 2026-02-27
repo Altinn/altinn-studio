@@ -27,6 +27,7 @@ internal interface IEngine
         DateTimeOffset createdAt,
         CancellationToken cancellationToken = default
     );
+    bool SkipBackoff(string workflowIdempotencyKey, string stepIdempotencyKey);
     bool HasDuplicateWorkflow(string jobIdentifier);
     bool HasQueuedWorkflowForInstance(InstanceInformation instanceInformation);
     Workflow? GetWorkflowForInstance(InstanceInformation instanceInformation);

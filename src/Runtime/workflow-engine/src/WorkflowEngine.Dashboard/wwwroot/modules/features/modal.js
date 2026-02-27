@@ -163,7 +163,13 @@ const buildDetailsContent = (data) => {
   const isFailing = status === 'Failed' || status === 'Requeued';
 
   if (data.lastError) {
-    html += `<div class="modal-error">${esc(/** @type {string} */ (data.lastError))}</div>`;
+    const err = /** @type {string} */ (data.lastError);
+    const tagMatch = err.match(/^\[([^\]]+)\]\s*/);
+    const tag = tagMatch ? tagMatch[1] : null;
+    const message = tagMatch ? err.slice(tagMatch[0].length) : err;
+    html += `<div class="modal-error">`;
+    if (tag) html += `<span class="error-tag">${esc(tag)}</span>`;
+    html += `${esc(message)}</div>`;
   } else if (isFailing) {
     html += `<div class="modal-error-hint">Error details are not persisted to the database. Available in Inbox and Recent views only.</div>`;
   }

@@ -1,7 +1,7 @@
 /* Card rendering — shared by live, recent, and query views */
 
 import { parseTransition, stepSubLabel, state, workflowData, engineUrl } from '../core/state.js';
-import { esc, formatElapsed, fmtTime } from '../core/helpers.js';
+import { cssId, esc, formatElapsed, fmtTime } from '../core/helpers.js';
 import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
 
 /** @param {string} guid */
@@ -39,41 +39,72 @@ window.copyGuid = async (e, guid) => {
   } catch { /* ignore */ }
 };
 
-/** @param {import('../core/state.js').Workflow} wf @returns {string} */
-export const retryIconHTML = (wf) => {
-  if (wf.status !== 'Failed') return '';
-  return `<a class="open-btn retry-action-btn" onclick="retryWorkflow(event,'${esc(wf.idempotencyKey)}','${esc(wf.createdAt)}')" title="Retry workflow">&#8635;</a>`;
-};
-
 /** @param {Event} e @param {string} idempotencyKey @param {string} createdAt */
 window.retryWorkflow = async (e, idempotencyKey, createdAt) => {
   e.stopPropagation();
   const btn = /** @type {HTMLElement} */ (e.currentTarget);
   if (btn.classList.contains('retrying')) return;
   btn.classList.add('retrying');
-  btn.innerHTML = '&#8987;';
+  btn.innerHTML = '&#8987; Retrying';
   try {
     const url = `${engineUrl}/dashboard/retry?wf=${encodeURIComponent(idempotencyKey)}&createdAt=${encodeURIComponent(createdAt)}`;
     const resp = await fetch(url, { method: 'POST' });
     if (resp.ok) {
       btn.classList.remove('retrying');
       btn.classList.add('retried');
-      btn.innerHTML = '&#10003;';
-      setTimeout(() => { btn.classList.remove('retried'); btn.innerHTML = '&#8635;'; }, 2000);
+      btn.innerHTML = '&#10003; Queued';
+      // Remove the card from Recent/Query DOM so it doesn't linger as "Failed"
+      const card = btn.closest('.workflow-card');
+      if (card) {
+        card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.97)';
+        setTimeout(() => {
+          card.remove();
+          // Purge from recent key tracking so SSE doesn't think it's still rendered
+          state.lastRecentKeys = state.lastRecentKeys.split(',').filter(k => k !== idempotencyKey).join(',');
+        }, 400);
+      }
     } else {
       const err = await resp.text();
       btn.classList.remove('retrying');
       btn.classList.add('retry-failed');
-      btn.innerHTML = '&#10007;';
-      btn.title = `Retry failed: ${err}`;
-      setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#8635;'; btn.title = 'Retry workflow'; }, 3000);
+      btn.innerHTML = '&#10007; Failed';
+      setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#8635; Retry'; }, 3000);
     }
   } catch (ex) {
     btn.classList.remove('retrying');
     btn.classList.add('retry-failed');
-    btn.innerHTML = '&#10007;';
-    btn.title = `Retry error: ${ex.message}`;
-    setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#8635;'; btn.title = 'Retry workflow'; }, 3000);
+    btn.innerHTML = '&#10007; Failed';
+    setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#8635; Retry'; }, 3000);
+  }
+};
+
+/** @param {Event} e @param {string} wfKey @param {string} stepKey */
+window.skipBackoff = async (e, wfKey, stepKey) => {
+  e.stopPropagation();
+  const btn = /** @type {HTMLElement} */ (e.currentTarget);
+  if (btn.classList.contains('retrying')) return;
+  btn.classList.add('retrying');
+  btn.innerHTML = '&#8987; Skipping';
+  try {
+    const url = `${engineUrl}/dashboard/skip-backoff?wf=${encodeURIComponent(wfKey)}&step=${encodeURIComponent(stepKey)}`;
+    const resp = await fetch(url, { method: 'POST' });
+    if (resp.ok) {
+      btn.classList.remove('retrying');
+      btn.classList.add('retried');
+      btn.innerHTML = '&#10003; Skipped';
+    } else {
+      btn.classList.remove('retrying');
+      btn.classList.add('retry-failed');
+      btn.innerHTML = '&#10007; Failed';
+      setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#9654; Force retry'; }, 3000);
+    }
+  } catch (ex) {
+    btn.classList.remove('retrying');
+    btn.classList.add('retry-failed');
+    btn.innerHTML = '&#10007; Failed';
+    setTimeout(() => { btn.classList.remove('retry-failed'); btn.innerHTML = '&#9654; Force retry'; }, 3000);
   }
 };
 
@@ -163,7 +194,6 @@ export const buildCardHTML = (wf, isStatic) => {
   html += openIconHTML(inst);
   if (wf.hasState) html += stateIconHTML(wf);
   if (wf.traceId) html += traceIconHTML(wf.traceId);
-  html += retryIconHTML(wf);
   html += `</div>`;
 
   html += buildPipelineHTML(wf, isStatic);
@@ -201,7 +231,6 @@ export const buildCompactCardHTML = (wf, isStatic) => {
   html += openIconHTML(inst);
   if (wf.hasState) html += stateIconHTML(wf);
   if (wf.traceId) html += traceIconHTML(wf.traceId);
-  html += retryIconHTML(wf);
   html += `</div>`;
   return html;
 };

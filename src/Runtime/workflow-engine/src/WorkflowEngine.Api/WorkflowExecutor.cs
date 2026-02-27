@@ -298,27 +298,25 @@ internal class WorkflowExecutor : IWorkflowExecutor
             && value is JsonElement { ValueKind: JsonValueKind.True }
         )
         {
-            return ExecutionResult.CriticalError(
-                $"[non-retryable: app response] {errorPrefix} with status code {statusCode}: {errorDetail}"
-            );
+            return ExecutionResult.CriticalError($"[non-retryable] {errorDetail}");
         }
 
         // Gate 2: Status code in non-retryable list
         if (strategy.NonRetryableHttpStatusCodes?.Contains(statusCode) == true)
         {
-            return ExecutionResult.CriticalError(
-                $"[non-retryable: status code {statusCode}] {errorPrefix}: {errorDetail}"
-            );
+            return ExecutionResult.CriticalError($"[non-retryable: HTTP {statusCode}] {errorDetail}");
         }
 
         // Default: retryable
-        return ExecutionResult.RetryableError($"{errorPrefix} with status code {response.StatusCode}: {errorDetail}");
+        return ExecutionResult.RetryableError($"[HTTP {response.StatusCode}] {errorDetail}");
     }
 
     private static string FormatErrorDetail(ProblemDetails? problem, string body)
     {
+        // Prefer Detail (the specific occurrence message) over Title (the generic type name).
+        // Title is often just an exception class name which adds noise.
         if (problem?.Detail is not null)
-            return problem.Title is not null ? $"{problem.Title}: {problem.Detail}" : problem.Detail;
+            return problem.Detail;
 
         if (problem?.Title is not null)
             return problem.Title;

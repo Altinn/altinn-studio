@@ -188,11 +188,26 @@ internal partial class Engine
 
         await AcquireQueueSlot(cancellationToken);
         _inbox[idempotencyKey] = workflow;
+        _recentWorkflows.Remove(idempotencyKey, workflow.CreatedAt);
         _newWorkSignal.TrySetResult();
 
         Metrics.WorkflowRequestsAccepted.Add(1);
 
         return EngineResponse.Accept();
+    }
+
+    public bool SkipBackoff(string workflowIdempotencyKey, string stepIdempotencyKey)
+    {
+        if (!_inbox.TryGetValue(workflowIdempotencyKey, out Workflow? workflow))
+            return false;
+
+        Step? step = workflow.Steps.FirstOrDefault(s => s.IdempotencyKey == stepIdempotencyKey);
+        if (step is null || step.Status != PersistentItemStatus.Requeued || step.BackoffUntil is null)
+            return false;
+
+        step.BackoffUntil = null;
+        _newWorkSignal.TrySetResult();
+        return true;
     }
 
     public bool HasDuplicateWorkflow(string jobIdentifier)

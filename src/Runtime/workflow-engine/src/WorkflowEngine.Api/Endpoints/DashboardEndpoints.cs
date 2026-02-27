@@ -388,6 +388,13 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
+        app.MapPost(
+                "/dashboard/skip-backoff",
+                (IEngine engine, string wf, string step) =>
+                    engine.SkipBackoff(wf, step) ? Results.Ok() : Results.NotFound()
+            )
+            .ExcludeFromDescription();
+
         app.MapGet(
                 "/dashboard/state",
                 async (

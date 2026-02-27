@@ -81,7 +81,17 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     html += `<span class="step-backoff" data-backoff="${step.backoffUntil}"></span>`;
   }
   html += buildStepTimingHTML(step, isStatic);
-  html += `</div></div>`;
+  html += `</div>`;
+
+  if (step.status === 'Failed' && wf.status === 'Failed') {
+    html += `<a class="step-retry-badge" onclick="retryWorkflow(event,'${esc(wf.idempotencyKey)}','${esc(wf.createdAt)}')">&#8635; Retry</a>`;
+  }
+  if (step.status === 'Requeued' && step.backoffUntil && !isStatic
+      && (new Date(step.backoffUntil) - Date.now()) > 5000) {
+    html += `<a class="step-retry-badge" onclick="skipBackoff(event,'${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}')">&#9654; Force retry</a>`;
+  }
+
+  html += `</div>`;
 
   return html;
 };
