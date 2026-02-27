@@ -256,7 +256,7 @@ func assertNoAppsComputedStateApplied(g *WithT, h *testHarness) {
 		err = h.k8sClient.Get(h.ctx, client.ObjectKey{Name: name, Namespace: runtimePdf3Namespace}, hpa)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(hpa.Spec.MinReplicas).NotTo(BeNil())
-		g.Expect(*hpa.Spec.MinReplicas).To(Equal(scaleDownReplicaZero))
+		g.Expect(*hpa.Spec.MinReplicas).To(Equal(scaleDownReplicaOne))
 		g.Expect(annotation(hpa, reconcileAnnotationKey)).To(Equal(reconcileDisabledValue))
 		g.Expect(annotation(hpa, scalerManagedAnnotationKey)).To(Equal("true"))
 		g.Expect(annotation(hpa, scalerBaselineAnnotationKey)).NotTo(BeEmpty())
