@@ -95,7 +95,7 @@ describe('Navigation', () => {
 
   it("should read the summary component's textResourceBindings.returnToSummaryButtonTitle and display this text as button title", () => {
     cy.interceptLayout(
-      'group',
+      'Task_3',
       (component) => component,
       (layout) => {
         layout['prefill'].data.layout.push({
@@ -120,7 +120,7 @@ describe('Navigation', () => {
 
   it("should read the summary component's display.nextButton and display the next button as well as the back to summary button", () => {
     cy.interceptLayout(
-      'group',
+      'Task_3',
       (component) => component,
       (layout) => {
         layout['prefill'].data.layout.push({
@@ -147,7 +147,7 @@ describe('Navigation', () => {
 
   function mockLinkTo(type: 'component' | 'page', target: string, enableBackButton: boolean) {
     cy.interceptLayout(
-      'group',
+      'Task_3',
       (component) => component,
       (layout) => {
         layout['prefill'].data.layout.push({

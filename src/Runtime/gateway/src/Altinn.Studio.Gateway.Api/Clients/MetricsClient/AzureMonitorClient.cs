@@ -8,7 +8,6 @@ using Azure.Identity;
 using Azure.Monitor.Query.Logs;
 using Azure.Monitor.Query.Logs.Models;
 using Azure.ResourceManager.OperationalInsights;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Gateway.Api.Clients.MetricsClient;
@@ -44,9 +43,16 @@ internal sealed class AzureMonitorClient(
 
     internal static IReadOnlyCollection<string> OperationNameKeys { get; } = _operationNames.Keys.ToArray();
 
+    internal static int GetBucketSize(int range)
+    {
+        var maxPoints = 12;
+        return (int)Math.Max(1, Math.Ceiling((double)range / maxPoints));
+    }
+
     private static string GetInterval(int range)
     {
-        return range < 360 ? "5m" : "1h";
+        var bucketSize = GetBucketSize(range);
+        return $"{bucketSize}m";
     }
 
     private ResourceIdentifier GetApplicationLogAnalyticsWorkspaceId()
@@ -73,7 +79,7 @@ internal sealed class AzureMonitorClient(
                 | where ClientType != 'Browser'
                 | where toint(ResultCode) >= 500
                 | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
-                | summarize Count = count() by AppRoleName, OperationName";
+                | summarize Count = count() by AppRoleName, OperationName;";
 
         Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
@@ -209,7 +215,7 @@ internal sealed class AzureMonitorClient(
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where OperationName in ('{string.Join("','", _operationNames.Values.SelectMany(value => value))}')
                 | summarize Count = count() by OperationName, DateTimeOffset = bin(TimeGenerated, {interval})
-                | order by DateTimeOffset desc;";
+                | order by DateTimeOffset desc";
 
         Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
@@ -219,28 +225,26 @@ internal sealed class AzureMonitorClient(
         );
 
         var metrics = response
-            .Value.Table.Rows.Select(row =>
+            .Value.Table.Rows.GroupBy(row =>
+                _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key
+            )
+            .Select(group => new AppFailedRequest
             {
-                return new
-                {
-                    Name = _operationNames.First(n => n.Value.Contains(row.GetString("OperationName"))).Key,
-                    DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
-                    Count = row.GetDouble("Count") ?? 0,
-                };
-            })
-            .GroupBy(row => row.Name)
-            .Select(row =>
-            {
-                return new AppFailedRequest
-                {
-                    Name = row.Key,
-                    DataPoints = row.Select(e => new DataPoint { DateTimeOffset = e.DateTimeOffset, Count = e.Count }),
-                };
+                Name = group.Key,
+                Timestamps = group.Select(row =>
+                    row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0
+                ),
+                Counts = group.Select(row => row.GetDouble("Count") ?? 0),
             });
 
         return _operationNames.Select(name =>
             metrics.FirstOrDefault(metric => metric.Name == name.Key)
-            ?? new AppFailedRequest { Name = name.Key, DataPoints = [] }
+            ?? new AppFailedRequest
+            {
+                Name = name.Key,
+                Timestamps = [],
+                Counts = [],
+            }
         );
     }
 
@@ -261,7 +265,7 @@ internal sealed class AzureMonitorClient(
                 | where AppRoleName == '{app.Replace("'", "''")}'
                 | where Name in ('{string.Join("','", names)}')
                 | summarize Count = sum(Sum) by Name, DateTimeOffset = bin(TimeGenerated, {interval})
-                | order by DateTimeOffset desc;";
+                | order by DateTimeOffset desc";
 
         Response<LogsQueryResult> response = await _logsQueryClient.QueryResourceAsync(
             logAnalyticsWorkspaceId,
@@ -271,27 +275,24 @@ internal sealed class AzureMonitorClient(
         );
 
         var metrics = response
-            .Value.Table.Rows.Select(row =>
+            .Value.Table.Rows.GroupBy(row => row.GetString("Name"))
+            .Select(group => new AppMetric
             {
-                return new
-                {
-                    Name = row.GetString("Name"),
-                    DateTimeOffset = row.GetDateTimeOffset("DateTimeOffset").GetValueOrDefault(),
-                    Count = row.GetDouble("Count") ?? 0,
-                };
-            })
-            .GroupBy(row => row.Name)
-            .Select(row =>
-            {
-                return new AppMetric
-                {
-                    Name = row.Key,
-                    DataPoints = row.Select(e => new DataPoint { DateTimeOffset = e.DateTimeOffset, Count = e.Count }),
-                };
+                Name = group.Key,
+                Timestamps = group.Select(row =>
+                    row.GetDateTimeOffset("DateTimeOffset")?.ToUnixTimeMilliseconds() ?? 0
+                ),
+                Counts = group.Select(row => row.GetDouble("Count") ?? 0),
             });
 
         return names.Select(name =>
-            metrics.FirstOrDefault(metric => metric.Name == name) ?? new AppMetric { Name = name, DataPoints = [] }
+            metrics.FirstOrDefault(metric => metric.Name == name)
+            ?? new AppMetric
+            {
+                Name = name,
+                Timestamps = [],
+                Counts = [],
+            }
         );
     }
 

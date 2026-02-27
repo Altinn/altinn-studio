@@ -1,13 +1,13 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 const appFrontend = new AppFrontend();
 
 describe('Expanded width', () => {
   it('Shows page with expandedWidth in settings as expanded', () => {
-    cy.intercept('GET', '**/api/layoutsettings/changename', {
-      statusCode: 200,
-      body: {
-        $schema: 'https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json',
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_2 = {
+        defaultDataType: data.ui.folders.Task_2.defaultDataType,
         pages: {
           order: ['form', 'summary', 'grid'],
           excludeFromPdf: ['summary'],
@@ -17,7 +17,7 @@ describe('Expanded width', () => {
         components: {
           excludeFromPdf: ['confirmChangeName'],
         },
-      },
+      };
     });
     cy.goto('changename');
     cy.get(appFrontend.expandedWidth).should('exist');
@@ -27,10 +27,9 @@ describe('Expanded width', () => {
   });
 
   it('Overwrites page with expandedWidth in settings from layout', () => {
-    cy.intercept('GET', '**/api/layoutsettings/changename', {
-      statusCode: 200,
-      body: {
-        $schema: 'https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json',
+    interceptAltinnAppGlobalData((data) => {
+      data.ui.folders.Task_2 = {
+        defaultDataType: data.ui.folders.Task_2.defaultDataType,
         pages: {
           order: ['form', 'summary', 'grid'],
           excludeFromPdf: ['summary'],
@@ -40,10 +39,10 @@ describe('Expanded width', () => {
         components: {
           excludeFromPdf: ['confirmChangeName'],
         },
-      },
+      };
     });
     cy.interceptLayout(
-      'changename',
+      'Task_2',
       () => {},
       (layoutSet) => {
         layoutSet.grid.data.expandedWidth = false;

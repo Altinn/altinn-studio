@@ -14,9 +14,7 @@ describe('Formatting', () => {
     cy.get(appFrontend.changeOfName.mobilenummer).should('have.value', '+47 444 44 444');
     cy.fillOut('changename');
     cy.findByRole('button', { name: 'Forrige' }).should('be.visible');
-    cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
     cy.get(appFrontend.sendinButton).click();
-    cy.wait('@getLayoutGroup');
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.addNewItem).click();

@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -24,7 +25,7 @@ export const IFrameComponent = ({ baseComponentId }: PropsFromGenericComponent<'
       <Panel
         variant={PANEL_VARIANT.Error}
         showIcon={true}
-        title={<Lang id='iframe_component.unsupported_browser_title' />}
+        title={translationKey('iframe_component.unsupported_browser_title')}
         fullWidth={false}
       >
         <p>

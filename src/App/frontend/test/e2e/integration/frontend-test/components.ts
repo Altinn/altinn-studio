@@ -70,7 +70,7 @@ describe('UI Components', () => {
   });
 
   it('is possible to upload and delete attachments', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'newFirstName') {
         // TODO(Validation): Once it is possible to treat custom validations as required, this can be removed.
         (component as CompInputExternal).showValidations = [];
@@ -116,7 +116,7 @@ describe('UI Components', () => {
   });
 
   it('is possible to upload attachments with tags', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'newFirstName') {
         // TODO(Validation): Once it is possible to treat custom validations as required, this can be removed.
         (component as CompInputExternal).showValidations = [];
@@ -188,7 +188,7 @@ describe('UI Components', () => {
         shouldExist: appFrontend.changeOfName.uploadWithTag.editWindow,
       },
     ];
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       for (const { type } of components) {
         if (component.type === type) {
           component.alertOnDelete = true;
@@ -211,7 +211,7 @@ describe('UI Components', () => {
   });
 
   it('minNumberOfAttachments should validate like required', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.type === 'FileUpload' || component.type === 'FileUploadWithTag') {
         component.minNumberOfAttachments = 1;
       }
@@ -278,7 +278,7 @@ describe('UI Components', () => {
   });
 
   it('should not be possible to check a readonly checkbox', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.type === 'Checkboxes') {
         component.readOnly = true;
       }
@@ -295,7 +295,7 @@ describe('UI Components', () => {
   });
 
   it('should not be possible to check a readonly radio button', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.type === 'RadioButtons') {
         component.readOnly = true;
       }
@@ -313,7 +313,7 @@ describe('UI Components', () => {
   });
 
   it('should be possible to set all elements as readonly and snapshot', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       const formTypes: CompExternal['type'][] = [
         'Address',
         'Checkboxes',
@@ -359,7 +359,7 @@ describe('UI Components', () => {
   });
 
   it('description and helptext for components and options in radio and checkboxes', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.type === 'RadioButtons' && component.id === 'reason') {
         component.textResourceBindings!.help = 'Denne står på reason-komponenten';
       }
@@ -410,7 +410,7 @@ describe('UI Components', () => {
   });
 
   it('should display alert on changing radio button', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'reason' && component.type === 'RadioButtons') {
         component.alertOnChange = true;
         component.preselectedOptionIndex = undefined;
@@ -438,7 +438,7 @@ describe('UI Components', () => {
   });
 
   it('should display alert on changing dropdown', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'sources' && component.type === 'Dropdown') {
         component.alertOnChange = true;
       }
@@ -468,7 +468,7 @@ describe('UI Components', () => {
   });
 
   it('should display alert on changing multiple-select', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'colorsCheckboxes' && component.type === 'Checkboxes') {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (component as any).type = 'MultipleSelect';
@@ -508,7 +508,7 @@ describe('UI Components', () => {
   });
 
   it('should display alert when unchecking checkbox', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
         component.alertOnChange = true;
       }
@@ -527,7 +527,7 @@ describe('UI Components', () => {
   });
 
   it('retains focus when checking focused checkbox that has alert on uncheck', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
         component.alertOnChange = true;
       }
@@ -544,7 +544,7 @@ describe('UI Components', () => {
   });
 
   it('should display alert unchecking checkbox in checkbox group', () => {
-    cy.interceptLayout('changename', (component) => {
+    cy.interceptLayout('Task_2', (component) => {
       if (component.id === 'innhentet-studie' && component.type === 'Checkboxes') {
         component.alertOnChange = true;
       }
@@ -610,7 +610,7 @@ describe('UI Components', () => {
 
   [4, 5].forEach((maxLength) => {
     it(`should countdown remaining letters of ${maxLength} and display validation`, () => {
-      cy.interceptLayout('changename', (component) => {
+      cy.interceptLayout('Task_2', (component) => {
         if (component.type === 'Input' && component.id === 'newFirstName') {
           component.maxLength = maxLength;
         }
@@ -791,7 +791,7 @@ describe('UI Components', () => {
 
   it('Map component with simpleBinding', function () {
     cy.fixture('map-tile.png', 'base64').then((data) => {
-      cy.interceptLayout('changename', (component) => {
+      cy.interceptLayout('Task_2', (component) => {
         if (component.type === 'Map' && component.id === 'map') {
           component.layers = [
             {
@@ -881,7 +881,7 @@ describe('UI Components', () => {
 
   it('Map component with geometries should center the map around the geometries', () => {
     cy.fixture('map-tile.png', 'base64').then((data) => {
-      cy.interceptLayout('changename', (component) => {
+      cy.interceptLayout('Task_2', (component) => {
         if (component.type === 'Map' && component.id === 'map') {
           component.layers = [
             {
