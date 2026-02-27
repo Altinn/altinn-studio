@@ -30,7 +30,7 @@ export function useConvertToInternalConfig(
     pages: item.pages?.map(toOption),
   });
 
-  if (!externalConfig) return undefined;
+  if (!externalConfig) return null;
 
   return Array.isArray(externalConfig) ? externalConfig.map(convert) : convert(externalConfig);
 }
