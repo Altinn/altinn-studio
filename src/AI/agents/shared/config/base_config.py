@@ -28,7 +28,6 @@ class BaseConfig:
     API_PORT = int(os.getenv("API_PORT", "8071"))
 
     # Gitea integration for agent branch pushes
-    GITEA_LOCAL_TOKEN = os.getenv("GITEA_LOCAL_TOKEN")
     GITEA_BASE_URL = os.getenv("GITEA_BASE_URL", "http://localhost:3000")
 
     # CORS settings for frontend connections

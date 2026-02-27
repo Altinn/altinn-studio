@@ -39,11 +39,11 @@ describe('pointerUtils', () => {
     });
 
     it('Throws an error when the parent is a reference', () => {
-      expect(() => createPropertyPointer(referenceNodeMock, 'hello')).toThrowError();
+      expect(() => createPropertyPointer(referenceNodeMock, 'hello')).toThrow();
     });
 
     it('Throws an error when the parent is a field node, but not an object nor an array', () => {
-      expect(() => createPropertyPointer(stringNodeMock, 'hello')).toThrowError();
+      expect(() => createPropertyPointer(stringNodeMock, 'hello')).toThrow();
     });
   });
 

@@ -8,19 +8,21 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class DeleteAttachmentTests : PreviewControllerTestsBase<DeleteAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class DeleteAttachmentTests
+        : PreviewControllerTestsBase<DeleteAttachmentTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public DeleteAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public DeleteAttachmentTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Delete_Attachment_Ok()
         {
             string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{V3InstanceId}/data/asdf";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri(
+                $"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet="
+            );
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

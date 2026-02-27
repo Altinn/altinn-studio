@@ -13,40 +13,40 @@ public class ScribanGitOpsManifestsRendererTests : FluentTestsBase<ScribanGitOps
     private Dictionary<string, string> RenderedAppManifests { get; set; }
     private Dictionary<string, string> RenderedEnvManifests { get; set; }
 
-
     [Theory]
     [MemberData(nameof(ManifestTestDataProvider.BaseManifestsTestData), MemberType = typeof(ManifestTestDataProvider))]
     public void RenderedBaseManifest_ShouldEqualExpected(Dictionary<string, string> expectedManifests)
     {
-        Given.That
-            .BaseManifestsRendered()
-            .Then
-            .Manifests_ShouldEqualExpected(expectedManifests, RenderedBaseManifests);
+        Given.That.BaseManifestsRendered().Then.Manifests_ShouldEqualExpected(expectedManifests, RenderedBaseManifests);
     }
-
 
     [Theory]
     [MemberData(nameof(ManifestTestDataProvider.AppsManifestsTestData), MemberType = typeof(ManifestTestDataProvider))]
-    public void RenderedAppsManifests_ShouldEqualExpected(AltinnRepoContext context, Dictionary<string, string> expectedManifests)
+    public void RenderedAppsManifests_ShouldEqualExpected(
+        AltinnRepoContext context,
+        Dictionary<string, string> expectedManifests
+    )
     {
-
-        Given.That
-            .AppManifestsRendered(context)
-            .Then
-            .Manifests_ShouldEqualExpected(expectedManifests, RenderedAppManifests);
+        Given
+            .That.AppManifestsRendered(context)
+            .Then.Manifests_ShouldEqualExpected(expectedManifests, RenderedAppManifests);
     }
-
 
     [Theory]
-    [MemberData(nameof(ManifestTestDataProvider.EnvironmentManifestsTestData), MemberType = typeof(ManifestTestDataProvider))]
-    public void RenderedEnvironmentManifests_ShouldEqualExpected(AltinnEnvironment environment, HashSet<AltinnRepoName> apps, Dictionary<string, string> expectedManifests)
+    [MemberData(
+        nameof(ManifestTestDataProvider.EnvironmentManifestsTestData),
+        MemberType = typeof(ManifestTestDataProvider)
+    )]
+    public void RenderedEnvironmentManifests_ShouldEqualExpected(
+        AltinnEnvironment environment,
+        HashSet<AltinnRepoName> apps,
+        Dictionary<string, string> expectedManifests
+    )
     {
-        Given.That
-            .EnvironmentManifestsRendered(environment, apps)
-            .Then
-            .Manifests_ShouldEqualExpected(expectedManifests, RenderedEnvManifests);
+        Given
+            .That.EnvironmentManifestsRendered(environment, apps)
+            .Then.Manifests_ShouldEqualExpected(expectedManifests, RenderedEnvManifests);
     }
-
 
     private ScribanGitOpsManifestsRendererTests BaseManifestsRendered()
     {
@@ -62,15 +62,20 @@ public class ScribanGitOpsManifestsRendererTests : FluentTestsBase<ScribanGitOps
         return this;
     }
 
-    private ScribanGitOpsManifestsRendererTests EnvironmentManifestsRendered(AltinnEnvironment environment, HashSet<AltinnRepoName> apps)
+    private ScribanGitOpsManifestsRendererTests EnvironmentManifestsRendered(
+        AltinnEnvironment environment,
+        HashSet<AltinnRepoName> apps
+    )
     {
         ScribanGitOpsManifestsRenderer renderer = new();
         RenderedEnvManifests = renderer.GetEnvironmentOverlayManifests(environment, apps);
         return this;
     }
 
-    private void Manifests_ShouldEqualExpected(Dictionary<string, string> expectedManifests,
-        Dictionary<string, string> actualManifests)
+    private void Manifests_ShouldEqualExpected(
+        Dictionary<string, string> expectedManifests,
+        Dictionary<string, string> actualManifests
+    )
     {
         Assert.Equal(expectedManifests.Count, actualManifests.Count);
 

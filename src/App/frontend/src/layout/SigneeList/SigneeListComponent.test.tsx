@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import { useParams } from 'react-router';
 
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
-import { render } from '@testing-library/react';
+import { render as renderRtl, RenderOptions } from '@testing-library/react';
 import { randomUUID } from 'crypto';
 
+import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { useTaskTypeFromBackend } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -157,3 +158,6 @@ describe('SigneeListComponent', () => {
     expect(screen.getAllByRole('row')).toHaveLength(2);
   });
 });
+
+const render = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
+  renderRtl(<AppComponentsBridge>{ui}</AppComponentsBridge>, options);

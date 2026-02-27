@@ -18,7 +18,6 @@ namespace Designer.Tests.Services;
 
 public class OrgLibraryServiceTests
 {
-
     private const string Org = "ttd";
     private const string NotACodeList = "[{\"This is not a code list\"}]";
     private const string CodeList = "[{\"value\":\"US\", \"label\":{\"nb\":\"Amerika\"}}]";
@@ -32,29 +31,34 @@ public class OrgLibraryServiceTests
         // Arrange
         string notACodeListContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(NotACodeList));
         string codeListContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(CodeList));
-        List<FileSystemObject> rootObjects = [
-            new FileSystemObject(){
+        List<FileSystemObject> rootObjects =
+        [
+            new FileSystemObject()
+            {
                 Encoding = "base64",
                 Content = notACodeListContent,
                 Name = "rootFile.json",
                 Type = "file",
-                Path = "/rootFile.json"
+                Path = "/rootFile.json",
             },
-            new FileSystemObject(){
+            new FileSystemObject()
+            {
                 Name = "CodeLists",
                 Type = "dir",
-                Path = "CodeLists"
-            }
+                Path = "CodeLists",
+            },
         ];
 
-        List<FileSystemObject> codeListFiles = [
-            new FileSystemObject(){
+        List<FileSystemObject> codeListFiles =
+        [
+            new FileSystemObject()
+            {
                 Encoding = "base64",
                 Content = codeListContent,
                 Name = "fileInPath.json",
                 Type = "file",
-                Path = "CodeLists/fileInPath.json"
-            }
+                Path = "CodeLists/fileInPath.json",
+            },
         ];
 
         List<FileSystemObject> emptyDirFiles = [];
@@ -63,24 +67,54 @@ public class OrgLibraryServiceTests
         Mock<IGiteaClient> giteaClient = new();
 
         // Setup for root directory (path == null)
-        giteaClient.Setup(g => g.GetDirectoryAsync(Org, "ttd-content", null, It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(rootObjects);
+        giteaClient
+            .Setup(g =>
+                g.GetDirectoryAsync(Org, "ttd-content", null, It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(rootObjects);
 
         // Setup for CodeLists directory
-        giteaClient.Setup(g => g.GetDirectoryAsync(Org, "ttd-content", "CodeLists", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        giteaClient
+            .Setup(g =>
+                g.GetDirectoryAsync(Org, "ttd-content", "CodeLists", It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(codeListFiles);
 
         // Setup for EmptyDir directory
-        giteaClient.Setup(g => g.GetDirectoryAsync(Org, "ttd-content", "EmptyDir", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        giteaClient
+            .Setup(g =>
+                g.GetDirectoryAsync(Org, "ttd-content", "EmptyDir", It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(emptyDirFiles);
 
-        giteaClient.Setup(g => g.GetFileAndErrorAsync(Org, "ttd-content", "/rootFile.json", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        giteaClient
+            .Setup(g =>
+                g.GetFileAndErrorAsync(
+                    Org,
+                    "ttd-content",
+                    "/rootFile.json",
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync((rootObjects[0], null));
 
-        giteaClient.Setup(g => g.GetFileAndErrorAsync(Org, "ttd-content", "CodeLists/fileInPath.json", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        giteaClient
+            .Setup(g =>
+                g.GetFileAndErrorAsync(
+                    Org,
+                    "ttd-content",
+                    "CodeLists/fileInPath.json",
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync((codeListFiles[0], null));
 
-        giteaClient.Setup(g => g.GetLatestCommitOnBranch(Org, "ttd-content", It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        giteaClient
+            .Setup(g =>
+                g.GetLatestCommitOnBranch(Org, "ttd-content", It.IsAny<string>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(commitSha);
 
         OrgLibraryService orgLibraryService = Setup(overrideGitea: giteaClient);
@@ -107,7 +141,8 @@ public class OrgLibraryServiceTests
             .ThrowsAsync(new DirectoryNotFoundException())
             .Verifiable();
 
-        giteaClient.Setup(g => g.GetLatestCommitOnBranch(Org, "ttd-content", null, It.IsAny<CancellationToken>()))
+        giteaClient
+            .Setup(g => g.GetLatestCommitOnBranch(Org, "ttd-content", null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(CommitSha)
             .Verifiable();
 
@@ -168,13 +203,18 @@ public class OrgLibraryServiceTests
     private static OrgLibraryService Setup(
         Mock<IGiteaClient>? overrideGitea = null,
         Mock<IAltinnGitRepositoryFactory>? overrideFactory = null
-        )
+    )
     {
         Mock<IGiteaClient> giteaClient = overrideGitea ?? new();
         Mock<ISourceControl> sourceControl = new();
         Mock<IAltinnGitRepositoryFactory> altinnGitRepositoryFactory = overrideFactory ?? new();
         Mock<ISharedContentClient> sharedContentClient = new();
 
-        return new(giteaClient.Object, sourceControl.Object, altinnGitRepositoryFactory.Object, sharedContentClient.Object);
+        return new(
+            giteaClient.Object,
+            sourceControl.Object,
+            altinnGitRepositoryFactory.Object,
+            sharedContentClient.Object
+        );
     }
 }

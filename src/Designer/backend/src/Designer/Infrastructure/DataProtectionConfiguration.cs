@@ -20,22 +20,33 @@ namespace Altinn.Studio.Designer.Infrastructure
         /// <param name="services">The service collections</param>
         /// <param name="configuration">Configuration containing settings for keyvault</param>
         /// <param name="logger">A logger instance</param>
-        public static void ConfigureDataProtection(this IServiceCollection services, IConfiguration configuration, ILogger logger)
+        public static void ConfigureDataProtection(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            ILogger logger
+        )
         {
-            var dataProtectionBuilder = services.AddDataProtection()
-                   .PersistKeysToFileSystem(new System.IO.DirectoryInfo(GetKeysDirectory()));
+            var dataProtectionBuilder = services
+                .AddDataProtection()
+                .PersistKeysToFileSystem(new System.IO.DirectoryInfo(GetKeysDirectory()));
 
             // Check if we have key vault settings:
             var keyVaultSettings = configuration.GetSection("kvSetting").Get<KeyVaultSettings>();
-            if (string.IsNullOrWhiteSpace(keyVaultSettings?.ClientId)
+            if (
+                string.IsNullOrWhiteSpace(keyVaultSettings?.ClientId)
                 || string.IsNullOrWhiteSpace(keyVaultSettings?.ClientSecret)
-                || string.IsNullOrWhiteSpace(keyVaultSettings?.SecretUri))
+                || string.IsNullOrWhiteSpace(keyVaultSettings?.SecretUri)
+            )
             {
                 logger.LogWarning("Missing settings for key vault. Will not encrypt data protection keys.");
                 return;
             }
 
-            dataProtectionBuilder.ProtectKeysWithAzureKeyVault($"{keyVaultSettings.SecretUri}/keys/data-protection", keyVaultSettings.ClientId, keyVaultSettings.ClientSecret);
+            dataProtectionBuilder.ProtectKeysWithAzureKeyVault(
+                $"{keyVaultSettings.SecretUri}/keys/data-protection",
+                keyVaultSettings.ClientId,
+                keyVaultSettings.ClientSecret
+            );
         }
 
         /// <summary>
@@ -54,13 +65,21 @@ namespace Altinn.Studio.Designer.Infrastructure
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // This is the default behaviour for keys in Windows.
-                return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "ASP.NET", "DataProtection-Keys");
+                return Path.Combine(
+                    System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+                    "ASP.NET",
+                    "DataProtection-Keys"
+                );
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 // This is the default behaviour for keys in OSX.
-                return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "ASP.NET", "DataProtection-Keys");
+                return Path.Combine(
+                    System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
+                    "ASP.NET",
+                    "DataProtection-Keys"
+                );
             }
 
             // Assume linux like systems

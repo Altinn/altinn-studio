@@ -1,0 +1,11 @@
+# Repository-wide defaults for image builds from src/ context.
+# Service-specific filtering should be handled in Dockerfile.dockerignore files.
+**/.DS_Store
+**/.cache
+**/.config
+**/.git
+**/.idea
+**/.vscode
+**/bin
+**/obj
+**/node_modules

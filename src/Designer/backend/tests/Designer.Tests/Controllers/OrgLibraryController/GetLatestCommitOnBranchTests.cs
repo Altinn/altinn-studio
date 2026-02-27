@@ -16,9 +16,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.OrgLibraryController;
 
-public class GetLatestCommitOnBranchTests(WebApplicationFactory<Program> factory) : DesignerEndpointsTestsBase<GetLatestCommitOnBranchTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+public class GetLatestCommitOnBranchTests(WebApplicationFactory<Program> factory)
+    : DesignerEndpointsTestsBase<GetLatestCommitOnBranchTests>(factory),
+        IClassFixture<WebApplicationFactory<Program>>
 {
-
     private readonly Mock<IOrgLibraryService> _orgLibraryServiceMock = new();
     private readonly Mock<IUserOrganizationService> _userOrganizationServiceMock = new();
     private const string Org = "ttd";
@@ -29,7 +30,6 @@ public class GetLatestCommitOnBranchTests(WebApplicationFactory<Program> factory
         services.AddSingleton(_ => _userOrganizationServiceMock.Object);
         services.AddSingleton(_ => _orgLibraryServiceMock.Object);
     }
-
 
     [Fact]
     public async Task GetLatestCommitOnBranch_ValidRequest_ReturnsOk()
@@ -43,9 +43,7 @@ public class GetLatestCommitOnBranchTests(WebApplicationFactory<Program> factory
             .Setup(s => s.GetLatestCommitOnBranch(Org, branchName, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedCommitId);
 
-        _userOrganizationServiceMock
-            .Setup(s => s.UserIsMemberOfOrganization(Org))
-            .ReturnsAsync(true);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(Org)).ReturnsAsync(true);
 
         // Act
         HttpResponseMessage response = await HttpClient.GetAsync(url);
@@ -64,9 +62,7 @@ public class GetLatestCommitOnBranchTests(WebApplicationFactory<Program> factory
         // Arrange
         string branchName = "main";
         string url = ApiUrl(branchName);
-        _userOrganizationServiceMock
-            .Setup(s => s.UserIsMemberOfOrganization(Org))
-            .ReturnsAsync(false);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(Org)).ReturnsAsync(false);
         // Act
         HttpResponseMessage response = await HttpClient.GetAsync(url);
         // Assert
@@ -85,15 +81,15 @@ public class GetLatestCommitOnBranchTests(WebApplicationFactory<Program> factory
         _orgLibraryServiceMock
             .Setup(s => s.GetLatestCommitOnBranch(Org, expectedBranchName, It.IsAny<CancellationToken>()))
             // Capture the branch name to verify default is used
-            .Callback<string, string, CancellationToken>((_, branchName, _) =>
-            {
-                Assert.Equal(expectedBranchName, branchName);
-            })
+            .Callback<string, string, CancellationToken>(
+                (_, branchName, _) =>
+                {
+                    Assert.Equal(expectedBranchName, branchName);
+                }
+            )
             .ReturnsAsync("irrelevant");
 
-        _userOrganizationServiceMock
-            .Setup(s => s.UserIsMemberOfOrganization(Org))
-            .ReturnsAsync(true);
+        _userOrganizationServiceMock.Setup(s => s.UserIsMemberOfOrganization(Org)).ReturnsAsync(true);
 
         // Act
         HttpResponseMessage response = await HttpClient.GetAsync(url);
@@ -103,5 +99,7 @@ public class GetLatestCommitOnBranchTests(WebApplicationFactory<Program> factory
         _orgLibraryServiceMock.VerifyAll();
         _userOrganizationServiceMock.VerifyAll();
     }
-    private static string ApiUrl(string branchName) => $"/designer/api/{Org}/shared-resources/latest-commit?branchName={branchName}";
+
+    private static string ApiUrl(string branchName) =>
+        $"/designer/api/{Org}/shared-resources/latest-commit?branchName={branchName}";
 }

@@ -252,14 +252,14 @@ describe('SchemaModel', () => {
     it('Throws an error and keeps the model unchanged when a node with the same name already exists in the given parent node', () => {
       const model = schemaModel.deepClone();
       const name = extractNameFromPointer(stringNodeMock.schemaPointer);
-      expect(() => model.addCombination(name, target)).toThrowError();
+      expect(() => model.addCombination(name, target)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
 
     it('Throws an error and keeps the model unchanged when the given parent node is invalid', () => {
       const model = schemaModel.deepClone();
       const target: NodePosition = { parentPointer: stringNodeMock.schemaPointer, index: -1 };
-      expect(() => model.addCombination('newName', target)).toThrowError();
+      expect(() => model.addCombination('newName', target)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
   });
@@ -295,7 +295,7 @@ describe('SchemaModel', () => {
     it('Throws an error and keeps the model unchanged when a node with the same name already exists in the given parent node', () => {
       const model = schemaModel.deepClone();
       const name = extractNameFromPointer(stringNodeMock.schemaPointer);
-      expect(() => model.addReference(name, defNodeMock.schemaPointer, target)).toThrowError();
+      expect(() => model.addReference(name, defNodeMock.schemaPointer, target)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
 
@@ -303,14 +303,14 @@ describe('SchemaModel', () => {
       const model = schemaModel.deepClone();
       const name = 'newName';
       const reference = extractNameFromPointer(stringNodeMock.schemaPointer);
-      expect(() => model.addReference(name, reference, target)).toThrowError();
+      expect(() => model.addReference(name, reference, target)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
 
     it('Throws an error and keeps the model unchanged when the given parent node is invalid', () => {
       const model = schemaModel.deepClone();
       const target: NodePosition = { parentPointer: stringNodeMock.schemaPointer, index: -1 };
-      expect(() => model.addReference('newName', defNodeMock.schemaPointer, target)).toThrowError();
+      expect(() => model.addReference('newName', defNodeMock.schemaPointer, target)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
   });
@@ -355,21 +355,21 @@ describe('SchemaModel', () => {
       const model = schemaModel.deepClone();
       const name = extractNameFromPointer(stringNodeMock.schemaPointer);
       const target: NodePosition = { parentPointer: parentNodeMock.schemaPointer, index: -1 };
-      expect(() => model.addField(name, FieldType.String, target)).toThrowError();
+      expect(() => model.addField(name, FieldType.String, target)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
 
     it('Throws an error and keeps the model unchanged when the given parent node is invalid', () => {
       const model = schemaModel.deepClone();
       const target: NodePosition = { parentPointer: stringNodeMock.schemaPointer, index: -1 };
-      expect(() => model.addField('newName', FieldType.String, target)).toThrowError();
+      expect(() => model.addField('newName', FieldType.String, target)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
 
     it('Throws an error and keeps the model unchanged when adding to an object and no name is given', () => {
       const model = schemaModel.deepClone();
       const target: NodePosition = { parentPointer: parentNodeMock.schemaPointer, index: -1 };
-      expect(() => model.addField(undefined, FieldType.String, target)).toThrowError();
+      expect(() => model.addField(undefined, FieldType.String, target)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
   });
@@ -503,7 +503,7 @@ describe('SchemaModel', () => {
       const target: NodePosition = { parentPointer, index };
       expect(() =>
         model.moveNode(nodeWithSameNameAsStringNodeMock.schemaPointer, target),
-      ).toThrowError();
+      ).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
   });
@@ -640,20 +640,20 @@ describe('SchemaModel', () => {
 
     it('Throws an error and keeps the model unchanged if trying to delete the root node', () => {
       const model = schemaModel.deepClone();
-      expect(() => model.deleteNode(rootNodeMock.schemaPointer)).toThrowError();
+      expect(() => model.deleteNode(rootNodeMock.schemaPointer)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
 
     it('Throws an error and keeps the model unchanged if trying to delete a definition node that is in use', () => {
       const model = schemaModel.deepClone();
-      expect(() => model.deleteNode(defNodeMock.schemaPointer)).toThrowError();
-      expect(() => model.deleteNode(defNodeWithChildrenMock.schemaPointer)).toThrowError();
+      expect(() => model.deleteNode(defNodeMock.schemaPointer)).toThrow();
+      expect(() => model.deleteNode(defNodeWithChildrenMock.schemaPointer)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
 
     it('Should not throw an error if trying to delete a child node of a definition in use', () => {
       const model = schemaModel.deepClone();
-      expect(() => model.deleteNode(defNodeWithChildrenChildMock.schemaPointer)).not.toThrowError();
+      expect(() => model.deleteNode(defNodeWithChildrenChildMock.schemaPointer)).not.toThrow();
       expect(model.asArray()).not.toEqual(schemaModel.asArray());
     });
   });
@@ -741,7 +741,7 @@ describe('SchemaModel', () => {
       const model = schemaModel.deepClone();
       expect(() =>
         model.changeCombinationType(stringNodeMock.schemaPointer, CombinationKind.AnyOf),
-      ).toThrowError();
+      ).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
   });
@@ -878,14 +878,14 @@ describe('SchemaModel', () => {
     it('Throws an error and keeps the model unchanged when the node to convert is already a definition', () => {
       const model = schemaModel.deepClone();
       const pointerToConvert = defNodeMock.schemaPointer;
-      expect(() => model.convertToDefinition(pointerToConvert)).toThrowError();
+      expect(() => model.convertToDefinition(pointerToConvert)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
 
     it('Throws an error and keeps the model unchanged when the node to convert is already a reference', () => {
       const model = schemaModel.deepClone();
       const pointerToConvert = referenceNodeMock.schemaPointer;
-      expect(() => model.convertToDefinition(pointerToConvert)).toThrowError();
+      expect(() => model.convertToDefinition(pointerToConvert)).toThrow();
       expect(model.asArray()).toEqual(schemaModel.asArray());
     });
   });

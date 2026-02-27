@@ -14,8 +14,10 @@ public class BelongsToOrganizationHandler : AuthorizationHandler<BelongsToOrgani
         _userOrganizationService = userOrganizationService;
     }
 
-    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
-        BelongsToOrganizationRequirement requirement)
+    protected override async Task HandleRequirementAsync(
+        AuthorizationHandlerContext context,
+        BelongsToOrganizationRequirement requirement
+    )
     {
         if (IsNotAuthenticatedUser(context))
         {

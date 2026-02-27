@@ -1,0 +1,409 @@
+
+[TestResolveClusterState - 1]
+[
+ {
+  "appCount": 2,
+  "environment": "at22",
+  "name": "ttd-weekday-workhours-with-apps",
+  "serviceOwner": "ttd",
+  "state": "normal",
+  "time": "2026-02-23T10:00:00+01:00"
+ },
+ {
+  "appCount": 2,
+  "environment": "at22",
+  "name": "ttd-weekday-offhours-with-apps",
+  "serviceOwner": "ttd",
+  "state": "ttd_offhours",
+  "time": "2026-02-23T03:00:00+01:00"
+ },
+ {
+  "appCount": 1,
+  "environment": "at22",
+  "name": "ttd-weekend-with-apps",
+  "serviceOwner": "ttd",
+  "state": "ttd_offhours",
+  "time": "2026-02-22T12:00:00+01:00"
+ },
+ {
+  "appCount": 0,
+  "environment": "at22",
+  "name": "ttd-no-apps",
+  "serviceOwner": "ttd",
+  "state": "no_apps",
+  "time": "2026-02-23T11:00:00+01:00"
+ },
+ {
+  "appCount": 0,
+  "environment": "at22",
+  "name": "ttd-offhours-no-apps",
+  "serviceOwner": "ttd",
+  "state": "ttd_offhours_no_apps",
+  "time": "2026-02-23T03:00:00+01:00"
+ },
+ {
+  "appCount": 3,
+  "environment": "tt02",
+  "name": "non-ttd-offhours-with-apps",
+  "serviceOwner": "nav",
+  "state": "normal",
+  "time": "2026-02-23T03:00:00+01:00"
+ },
+ {
+  "appCount": 0,
+  "environment": "tt02",
+  "name": "non-ttd-no-apps",
+  "serviceOwner": "nav",
+  "state": "no_apps",
+  "time": "2026-02-23T12:00:00+01:00"
+ }
+]
+---
+
+[TestSyncAll_TtdOffhoursAndRestore - 1]
+{
+ "offhours": [
+  {
+   "baseline": {
+    "minReplicas": {
+     "set": false
+    },
+    "replicas": {
+     "set": true,
+     "value": 2
+    }
+   },
+   "kind": "Deployment",
+   "managed": "true",
+   "name": "ttd-app-a-deployment-v2",
+   "namespace": "default",
+   "replicas": 1
+  },
+  {
+   "baseline": {
+    "minReplicas": {
+     "set": false
+    },
+    "replicas": {
+     "set": true,
+     "value": 3
+    }
+   },
+   "kind": "Deployment",
+   "managed": "true",
+   "name": "ttd-app-b-deployment-v2",
+   "namespace": "default",
+   "replicas": 1
+  },
+  {
+   "baseline": {
+    "minReplicas": {
+     "set": false
+    },
+    "replicas": {
+     "set": true,
+     "value": 2
+    }
+   },
+   "kind": "Deployment",
+   "managed": "true",
+   "name": "gateway",
+   "namespace": "runtime-gateway",
+   "replicas": 1
+  },
+  {
+   "baseline": {
+    "minReplicas": {
+     "set": true,
+     "value": 2
+    },
+    "replicas": {
+     "set": false
+    }
+   },
+   "kind": "HorizontalPodAutoscaler",
+   "managed": "true",
+   "minReplicas": 1,
+   "name": "ttd-app-a-deployment",
+   "namespace": "default",
+   "reconcile": "disabled"
+  },
+  {
+   "baseline": {
+    "minReplicas": {
+     "set": true,
+     "value": 3
+    },
+    "replicas": {
+     "set": false
+    }
+   },
+   "kind": "HorizontalPodAutoscaler",
+   "managed": "true",
+   "minReplicas": 1,
+   "name": "pdf3-proxy-hpa",
+   "namespace": "runtime-pdf3",
+   "reconcile": "disabled"
+  },
+  {
+   "baseline": {
+    "minReplicas": {
+     "set": true,
+     "value": 3
+    },
+    "replicas": {
+     "set": false
+    }
+   },
+   "kind": "HorizontalPodAutoscaler",
+   "managed": "true",
+   "minReplicas": 1,
+   "name": "pdf3-worker-hpa",
+   "namespace": "runtime-pdf3",
+   "reconcile": "disabled"
+  }
+ ],
+ "workhours": [
+  {
+   "kind": "Deployment",
+   "name": "ttd-app-a-deployment-v2",
+   "namespace": "default",
+   "replicas": 2
+  },
+  {
+   "kind": "Deployment",
+   "name": "ttd-app-b-deployment-v2",
+   "namespace": "default",
+   "replicas": 3
+  },
+  {
+   "kind": "Deployment",
+   "name": "gateway",
+   "namespace": "runtime-gateway",
+   "replicas": 2
+  },
+  {
+   "kind": "HorizontalPodAutoscaler",
+   "minReplicas": 2,
+   "name": "ttd-app-a-deployment",
+   "namespace": "default"
+  },
+  {
+   "kind": "HorizontalPodAutoscaler",
+   "minReplicas": 3,
+   "name": "pdf3-proxy-hpa",
+   "namespace": "runtime-pdf3"
+  },
+  {
+   "kind": "HorizontalPodAutoscaler",
+   "minReplicas": 3,
+   "name": "pdf3-worker-hpa",
+   "namespace": "runtime-pdf3"
+  }
+ ]
+}
+---
+
+[TestSyncAll_NonTtdNoApps - 1]
+[
+ {
+  "baseline": {
+   "minReplicas": {
+    "set": false
+   },
+   "replicas": {
+    "set": true,
+    "value": 2
+   }
+  },
+  "kind": "Deployment",
+  "managed": "true",
+  "name": "gateway",
+  "namespace": "runtime-gateway",
+  "replicas": 1
+ },
+ {
+  "baseline": {
+   "minReplicas": {
+    "set": true,
+    "value": 3
+   },
+   "replicas": {
+    "set": false
+   }
+  },
+  "kind": "HorizontalPodAutoscaler",
+  "managed": "true",
+  "minReplicas": 0,
+  "name": "pdf3-proxy-hpa",
+  "namespace": "runtime-pdf3",
+  "reconcile": "disabled"
+ },
+ {
+  "baseline": {
+   "minReplicas": {
+    "set": true,
+    "value": 3
+   },
+   "replicas": {
+    "set": false
+   }
+  },
+  "kind": "HorizontalPodAutoscaler",
+  "managed": "true",
+  "minReplicas": 0,
+  "name": "pdf3-worker-hpa",
+  "namespace": "runtime-pdf3",
+  "reconcile": "disabled"
+ }
+]
+---
+
+[TestSyncAll_TtdOffhoursNoApps - 1]
+[
+ {
+  "baseline": {
+   "minReplicas": {
+    "set": false
+   },
+   "replicas": {
+    "set": true,
+    "value": 2
+   }
+  },
+  "kind": "Deployment",
+  "managed": "true",
+  "name": "gateway",
+  "namespace": "runtime-gateway",
+  "replicas": 1
+ },
+ {
+  "baseline": {
+   "minReplicas": {
+    "set": true,
+    "value": 3
+   },
+   "replicas": {
+    "set": false
+   }
+  },
+  "kind": "HorizontalPodAutoscaler",
+  "managed": "true",
+  "minReplicas": 0,
+  "name": "pdf3-proxy-hpa",
+  "namespace": "runtime-pdf3",
+  "reconcile": "disabled"
+ },
+ {
+  "baseline": {
+   "minReplicas": {
+    "set": true,
+    "value": 3
+   },
+   "replicas": {
+    "set": false
+   }
+  },
+  "kind": "HorizontalPodAutoscaler",
+  "managed": "true",
+  "minReplicas": 0,
+  "name": "pdf3-worker-hpa",
+  "namespace": "runtime-pdf3",
+  "reconcile": "disabled"
+ }
+]
+---
+
+[TestSyncAll_RetriesOnConflict - 1]
+[
+ {
+  "baseline": {
+   "minReplicas": {
+    "set": false
+   },
+   "replicas": {
+    "set": true,
+    "value": 2
+   }
+  },
+  "kind": "Deployment",
+  "managed": "true",
+  "name": "ttd-conflict-app-deployment-v2",
+  "namespace": "default",
+  "replicas": 1
+ },
+ {
+  "baseline": {
+   "minReplicas": {
+    "set": false
+   },
+   "replicas": {
+    "set": true,
+    "value": 2
+   }
+  },
+  "kind": "Deployment",
+  "managed": "true",
+  "name": "gateway",
+  "namespace": "runtime-gateway",
+  "replicas": 1
+ },
+ {
+  "baseline": {
+   "minReplicas": {
+    "set": true,
+    "value": 3
+   },
+   "replicas": {
+    "set": false
+   }
+  },
+  "kind": "HorizontalPodAutoscaler",
+  "managed": "true",
+  "minReplicas": 1,
+  "name": "pdf3-proxy-hpa",
+  "namespace": "runtime-pdf3",
+  "reconcile": "disabled"
+ },
+ {
+  "baseline": {
+   "minReplicas": {
+    "set": true,
+    "value": 3
+   },
+   "replicas": {
+    "set": false
+   }
+  },
+  "kind": "HorizontalPodAutoscaler",
+  "managed": "true",
+  "minReplicas": 1,
+  "name": "pdf3-worker-hpa",
+  "namespace": "runtime-pdf3",
+  "reconcile": "disabled"
+ }
+]
+---
+
+[TestSyncAll_ProdNoop - 1]
+[
+ {
+  "kind": "Deployment",
+  "name": "gateway",
+  "namespace": "runtime-gateway",
+  "replicas": 2
+ },
+ {
+  "kind": "HorizontalPodAutoscaler",
+  "minReplicas": 3,
+  "name": "pdf3-proxy-hpa",
+  "namespace": "runtime-pdf3"
+ },
+ {
+  "kind": "HorizontalPodAutoscaler",
+  "minReplicas": 3,
+  "name": "pdf3-worker-hpa",
+  "namespace": "runtime-pdf3"
+ }
+]
+---

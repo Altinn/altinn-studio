@@ -14,10 +14,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ImageController;
 
-public class ValidateExternalImageUrlTests(
-    WebApplicationFactory<Program> factory,
-    MockServerFixture mockServerFixture
-)
+public class ValidateExternalImageUrlTests(WebApplicationFactory<Program> factory, MockServerFixture mockServerFixture)
     : DesignerEndpointsTestsBase<ValidateExternalImageUrlTests>(factory),
         IClassFixture<WebApplicationFactory<Program>>,
         IClassFixture<MockServerFixture>
@@ -53,9 +50,7 @@ public class ValidateExternalImageUrlTests(
     {
         _mockServerFixture.MockApi.Reset();
         IRequestBuilder notFoundRequest = Request.Create().UsingHead();
-        IResponseBuilder notFoundResponse = Response
-            .Create()
-            .WithStatusCode(404);
+        IResponseBuilder notFoundResponse = Response.Create().WithStatusCode(404);
 
         _mockServerFixture.MockApi.Given(notFoundRequest).RespondWith(notFoundResponse);
 
@@ -82,8 +77,7 @@ public class ValidateExternalImageUrlTests(
         _mockServerFixture.MockApi.Given(validNonImageRequest).RespondWith(validNonImageResponse);
 
         string urlPointingToNonImage = _mockServerFixture.MockApi.Url;
-        string path =
-            $"{VersionPrefix}/{Org}/{EmptyApp}/images/validate?url={urlPointingToNonImage}";
+        string path = $"{VersionPrefix}/{Org}/{EmptyApp}/images/validate?url={urlPointingToNonImage}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, path);
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string validationResult = await response.Content.ReadAsStringAsync();

@@ -7,7 +7,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IModelNameValidator
 {
-    Task ValidateModelNameForNewXsdSchemaAsync(Stream xsdSchema, string fileName, AltinnRepoEditingContext altinnRepoEditingContext);
+    Task ValidateModelNameForNewXsdSchemaAsync(
+        Stream xsdSchema,
+        string fileName,
+        AltinnRepoEditingContext altinnRepoEditingContext
+    );
 
     Task ValidateModelNameForNewJsonSchemaAsync(string modelName, AltinnRepoEditingContext altinnRepoEditingContext);
 }

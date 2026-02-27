@@ -5,6 +5,7 @@ import { FingerButtonIcon } from '@navikt/aksel-icons';
 import { Button } from 'src/app-components/Button/Button';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { setHighlightStyle } from 'src/features/devtools/hooks/useComponentHighlighter';
+import type { TranslationKey } from 'src/app-components/types';
 
 type ComponentSelectorProps = {
   type: 'component' | 'node';
@@ -128,7 +129,7 @@ export function ComponentSelector({ type }: ComponentSelectorProps) {
 
   return (
     <Button
-      title={type === 'node' ? 'Velg en komponent' : 'Velg en layout-komponent'}
+      title={type === 'node' ? ('Velg en komponent' as TranslationKey) : ('Velg en layout-komponent' as TranslationKey)}
       onClick={toggle}
       variant={active ? 'primary' : 'tertiary'}
       color='second'

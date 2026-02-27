@@ -8,16 +8,23 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class UseXsdFromRepoTests : DesignerEndpointsTestsBase<UseXsdFromRepoTests>, IClassFixture<WebApplicationFactory<Program>>
+public class UseXsdFromRepoTests
+    : DesignerEndpointsTestsBase<UseXsdFromRepoTests>,
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
-    public UseXsdFromRepoTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/datamodels";
+
+    public UseXsdFromRepoTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     [Theory]
     [InlineData("ttd", "ttd-datamodels", "testUser")]
-    public async Task UseXsdFromRepo_DatamodelsRepo_ShouldReturnCreated(string org, string sourceRepository, string developer)
+    public async Task UseXsdFromRepo_DatamodelsRepo_ShouldReturnCreated(
+        string org,
+        string sourceRepository,
+        string developer
+    )
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
 

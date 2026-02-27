@@ -32,7 +32,7 @@ namespace Altinn.Studio.Designer.Models.Dto
                 Id = template.Id,
                 Owner = template.Owner,
                 Name = template.Name,
-                Description = template.Description
+                Description = template.Description,
             };
         }
 
@@ -44,7 +44,6 @@ namespace Altinn.Studio.Designer.Models.Dto
             }
 
             if (string.IsNullOrWhiteSpace(Name))
-
             {
                 return false;
             }
