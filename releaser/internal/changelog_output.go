@@ -10,15 +10,15 @@ import (
 
 const compareBaseURL = "https://github.com/Altinn/altinn-studio/compare"
 
-func withFullChangelogLink(baseContent, previousVersion, currentVersion string) string {
+func withFullChangelogLink(baseContent, previousTag, currentTag string) string {
 	baseContent = strings.TrimRight(baseContent, "\n")
-	previousVersion = strings.TrimSpace(previousVersion)
-	currentVersion = strings.TrimSpace(currentVersion)
-	if previousVersion == "" || currentVersion == "" {
+	previousTag = strings.TrimSpace(previousTag)
+	currentTag = strings.TrimSpace(currentTag)
+	if previousTag == "" || currentTag == "" {
 		return baseContent
 	}
 
-	link := fmt.Sprintf("**Full Changelog**: %s/%s...%s", compareBaseURL, previousVersion, currentVersion)
+	link := fmt.Sprintf("**Full Changelog**: %s/%s...%s", compareBaseURL, previousTag, currentTag)
 	if baseContent == "" {
 		return link
 	}

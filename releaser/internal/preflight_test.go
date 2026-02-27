@@ -221,7 +221,7 @@ func TestRunPrepareWithDeps_PRBodyIncludesCompareLink(t *testing.T) {
 		t.Fatalf("RunPrepareWithDeps() error = %v", err)
 	}
 
-	const want = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/v1.0.0...v1.0.1"
+	const want = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/studioctl/v1.0.0...studioctl/v1.0.1"
 	if !strings.Contains(gh.prBody, want) {
 		t.Fatalf("PR body missing compare link %q\nbody:\n%s", want, gh.prBody)
 	}
@@ -267,7 +267,7 @@ func TestRunPrepareWithDeps_FirstStablePRBodyComparesToLatestStable(t *testing.T
 		t.Fatalf("RunPrepareWithDeps() error = %v", err)
 	}
 
-	const want = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/v1.0.5...v1.1.0"
+	const want = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/studioctl/v1.0.5...studioctl/v1.1.0"
 	if !strings.Contains(gh.prBody, want) {
 		t.Fatalf("PR body missing compare link %q\nbody:\n%s", want, gh.prBody)
 	}
@@ -307,7 +307,7 @@ func TestRunPrepareWithDeps_FirstPrereleasePRBodyComparesToLatestStable(t *testi
 		t.Fatalf("RunPrepareWithDeps() error = %v", err)
 	}
 
-	const want = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/v1.9.3...v2.0.0-preview.1"
+	const want = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/studioctl/v1.9.3...studioctl/v2.0.0-preview.1"
 	if !strings.Contains(gh.prBody, want) {
 		t.Fatalf("PR body missing compare link %q\nbody:\n%s", want, gh.prBody)
 	}

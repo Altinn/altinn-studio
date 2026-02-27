@@ -163,7 +163,7 @@ func prepareReleasePrepConfig(
 	}
 	previousVersion := previousReleasedVersion(promotedCl, verStr)
 	promoted := promotedCl.String()
-	prBody, err := buildPreparePRBody(verStr, promotedCl)
+	prBody, err := buildPreparePRBody(comp, verStr, promotedCl)
 	if err != nil {
 		return nil, fmt.Errorf("build PR body: %w", err)
 	}
@@ -222,9 +222,12 @@ func determineBranchStrategy(ctx context.Context, git *GitCLI, tag *Tag) (string
 	}
 }
 
-func buildPreparePRBody(version string, promotedCl *changelog.Changelog) (string, error) {
+func buildPreparePRBody(component *Component, version string, promotedCl *changelog.Changelog) (string, error) {
 	if promotedCl == nil {
 		return "", errChangelogNil
+	}
+	if component == nil {
+		return "", errComponentRequired
 	}
 
 	section := promotedCl.GetVersion(version)
@@ -255,7 +258,11 @@ func buildPreparePRBody(version string, promotedCl *changelog.Changelog) (string
 	previousVersion := previousReleasedVersion(promotedCl, version)
 	body := strings.TrimRight(b.String(), "\n")
 	body += "\n\n@coderabbitai ignore"
-	body = withFullChangelogLink(body, previousVersion, version)
+	previousTag := ""
+	if previousVersion != "" {
+		previousTag = component.Tag(previousVersion)
+	}
+	body = withFullChangelogLink(body, previousTag, component.Tag(version))
 
 	return body, nil
 }
