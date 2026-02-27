@@ -14,7 +14,11 @@ import (
 )
 
 const (
+	osLinux   = "linux"
 	osWindows = "windows"
+	osDarwin  = "darwin"
+
+	exeSuffix = ".exe"
 
 	executablePerm = 0o755
 )
@@ -75,7 +79,7 @@ func DetectCandidates(out *ui.Output) []Candidate {
 	var candidates []Candidate
 
 	switch runtime.GOOS {
-	case "linux", "darwin":
+	case osLinux, osDarwin:
 		candidates = unixCandidates(inPath, out)
 	case osWindows:
 		candidates = windowsCandidates(inPath, out)
@@ -228,7 +232,7 @@ func Install(targetDir string) (string, error) {
 
 	binaryName := "studioctl"
 	if runtime.GOOS == osWindows {
-		binaryName += ".exe"
+		binaryName += exeSuffix
 	}
 	targetPath := filepath.Join(targetDir, binaryName)
 
@@ -254,33 +258,119 @@ func Install(targetDir string) (string, error) {
 }
 
 func copyFile(src, dst string) (err error) {
-	//nolint:gosec // G304: src is from os.Executable(), trusted
-	srcFile, err := os.Open(src)
+	//nolint:gosec // G304: src is resolved from os.Executable/EvalSymlinks in Install, not user input.
+	srcFile, err := os.OpenFile(src, os.O_RDONLY, 0)
 	if err != nil {
 		return fmt.Errorf("open source: %w", err)
 	}
-	defer func() {
-		if closeErr := srcFile.Close(); closeErr != nil && err == nil {
-			err = fmt.Errorf("close source: %w", closeErr)
-		}
-	}()
 
-	//nolint:gosec // G304: dst is constructed from user-selected directory
-	dstFile, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, osutil.FilePermDefault)
+	tmpFile, err := os.CreateTemp(filepath.Dir(dst), "."+filepath.Base(dst)+".tmp-*")
 	if err != nil {
-		return fmt.Errorf("create destination: %w", err)
+		return errors.Join(fmt.Errorf("create destination temp file: %w", err), closeWithError(srcFile, "close source"))
 	}
-	defer func() {
-		if closeErr := dstFile.Close(); closeErr != nil && err == nil {
-			err = fmt.Errorf("close destination: %w", closeErr)
-		}
-	}()
+	tmpPath := tmpFile.Name()
 
-	if _, err := io.Copy(dstFile, srcFile); err != nil {
-		return fmt.Errorf("copy content: %w", err)
+	if _, err := io.Copy(tmpFile, srcFile); err != nil {
+		return cleanupTempFile(
+			tmpPath,
+			fmt.Errorf("copy content: %w", err),
+			closeWithError(srcFile, "close source"),
+			closeWithError(tmpFile, "close destination temp file"),
+		)
+	}
+
+	if err := closeWithError(srcFile, "close source"); err != nil {
+		return cleanupTempFile(tmpPath, err, closeWithError(tmpFile, "close destination temp file"))
+	}
+
+	if err := closeWithError(tmpFile, "close destination temp file"); err != nil {
+		return cleanupTempFile(tmpPath, err)
+	}
+
+	if err := replaceFile(tmpPath, dst); err != nil {
+		return cleanupTempFile(tmpPath, err)
 	}
 
 	return nil
+}
+
+func replaceFile(src, dst string) error {
+	initialRenameErr := os.Rename(src, dst)
+	if initialRenameErr == nil {
+		return nil
+	}
+
+	renameErr := fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, initialRenameErr)
+
+	if runtime.GOOS != osWindows {
+		return renameErr
+	}
+
+	backupPath, err := reserveBackupPath(dst)
+	if err != nil {
+		return errors.Join(renameErr, err)
+	}
+
+	moveToBackupErr := os.Rename(dst, backupPath)
+	if moveToBackupErr != nil {
+		if errors.Is(moveToBackupErr, os.ErrNotExist) {
+			return renameErr
+		}
+		return errors.Join(
+			renameErr,
+			fmt.Errorf(
+				"replace destination: move existing destination %q to backup %q: %w",
+				dst,
+				backupPath,
+				moveToBackupErr,
+			),
+		)
+	}
+
+	if err := os.Rename(src, dst); err != nil {
+		restoreErr := os.Rename(backupPath, dst)
+		if restoreErr != nil {
+			return errors.Join(
+				fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, err),
+				fmt.Errorf("replace destination: restore backup %q to %q: %w", backupPath, dst, restoreErr),
+			)
+		}
+		return fmt.Errorf("replace destination: rename %q to %q: %w", src, dst, err)
+	}
+
+	if removeErr := os.Remove(backupPath); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+		return fmt.Errorf("replace destination: remove backup %q: %w", backupPath, removeErr)
+	}
+
+	return nil
+}
+
+func reserveBackupPath(dst string) (string, error) {
+	backup, err := os.CreateTemp(filepath.Dir(dst), "."+filepath.Base(dst)+".old-*")
+	if err != nil {
+		return "", fmt.Errorf("replace destination: create backup temp file: %w", err)
+	}
+	backupPath := backup.Name()
+
+	if err := closeWithError(backup, "close backup temp file"); err != nil {
+		return "", cleanupTempFile(backupPath, err)
+	}
+
+	if err := os.Remove(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return "", fmt.Errorf("replace destination: prepare backup path %q: %w", backupPath, err)
+	}
+
+	return backupPath, nil
+}
+
+func cleanupTempFile(path string, errs ...error) error {
+	joined := errors.Join(errs...)
+
+	if removeErr := os.Remove(path); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+		return errors.Join(joined, fmt.Errorf("remove temp file %q: %w", path, removeErr))
+	}
+
+	return joined
 }
 
 // PathInstructions returns platform-specific instructions for adding a directory to PATH.

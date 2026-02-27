@@ -213,7 +213,7 @@ describe('ServicesContext', () => {
   it('Throws an error if used outside a ServiceContextProvider', () => {
     const renderHookFn = () => renderHook(() => useServicesContext());
     jest.spyOn(console, 'error').mockImplementation();
-    expect(renderHookFn).toThrowError(
+    expect(renderHookFn).toThrow(
       'useServicesContext must be used within a ServicesContextProvider.',
     );
   });

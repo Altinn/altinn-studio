@@ -33,11 +33,11 @@ async def execute_tool(tool_name: str, tool_input: Dict[str, Any], display_name:
             "tool_name": tool_name,
             "parameter_count": len(tool_input)
         })
-        
+
         # Set detailed inputs
-        span.set_inputs({
+        span.update(input={
             "tool_parameters": tool_input,
-            "parameter_summary": {k: str(v)[:100] + "..." if isinstance(v, str) and len(v) > 100 else v 
+            "parameter_summary": {k: str(v)[:100] + "..." if isinstance(v, str) and len(v) > 100 else v
                                 for k, v in tool_input.items()}
         })
         

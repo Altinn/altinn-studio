@@ -36,7 +36,7 @@ var ErrInvalidResourceLayout = errors.New("invalid localtest resource layout")
 // RuntimeConfig holds runtime-specific configuration for localtest.
 type RuntimeConfig struct {
 	HostGateway      string                        // resolved host gateway IP (e.g., "172.17.0.1")
-	LoadBalancerPort string                        // port for localtest (default: "80" for Docker, "8000" for Podman)
+	LoadBalancerPort string                        // port for localtest (default: "8000")
 	User             string                        // "uid:gid" to run containers as (prevents root-owned bind mount files)
 	Installation     container.RuntimeInstallation // container runtime installation type
 }
@@ -62,6 +62,7 @@ type ContainerStatus struct {
 type Status struct {
 	Containers []ContainerStatus `json:"containers"`
 	Running    bool              `json:"running"`
+	AnyRunning bool              `json:"anyRunning"`
 }
 
 func newPort(hostPort, containerPort string) types.PortMapping {
@@ -103,6 +104,7 @@ func newStatus() Status {
 	return Status{
 		Containers: []ContainerStatus{},
 		Running:    false,
+		AnyRunning: false,
 	}
 }
 
@@ -146,9 +148,10 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			ContainerPDF3,
 			[]types.PortMapping{newPort("5300", "5031")},
 			map[string]string{
-				"TZ":               "Europe/Oslo",
-				"PDF3_ENVIRONMENT": "localtest",
-				"PDF3_QUEUE_SIZE":  "3",
+				"TZ":                             "Europe/Oslo",
+				"PDF3_ENVIRONMENT":               "localtest",
+				"PDF3_QUEUE_SIZE":                "3",
+				"PDF3_LOCALTEST_PUBLIC_BASE_URL": "http://" + networking.LocalDomain + ":" + cfg.LoadBalancerPort,
 			},
 			nil,
 			extraHosts,

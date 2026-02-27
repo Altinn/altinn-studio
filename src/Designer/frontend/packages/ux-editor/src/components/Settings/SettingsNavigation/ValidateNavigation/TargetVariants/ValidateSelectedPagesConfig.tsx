@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
 import {
   Scope,
@@ -11,8 +10,6 @@ import type { ExternalConfigWithId, InternalConfigState } from '../utils/Validat
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 
 export const ValidateSelectedPagesConfig = () => {
-  const { t } = useTranslation();
-
   const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigWithId[]>(
     withUniqueIds(dummyDataPages),
   );
@@ -40,16 +37,16 @@ export const ValidateSelectedPagesConfig = () => {
       {internalConfigs?.map((conf) => (
         <ValidateNavigationConfig
           key={conf.id}
-          propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
           scope={Scope.SelectedPages}
           config={conf}
+          existingConfigs={internalConfigs}
           onSave={(newConf) => handleSave(newConf, conf.id)}
           onDelete={() => handleDelete(conf.id)}
         />
       ))}
       <ValidateNavigationConfig
-        propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
         scope={Scope.SelectedPages}
+        existingConfigs={internalConfigs}
         onSave={(newConf) => handleSave(newConf)}
       />
     </>

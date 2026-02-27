@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ContactPointsTable } from './ContactPointsTable';
 import type { ContactPoint } from 'app-shared/types/AppConfig';
@@ -30,6 +30,10 @@ const fieldLabelKeys = {
 } as const;
 
 describe('ContactPointsTable', () => {
+  beforeAll(() => {
+    window.HTMLElement.prototype.scrollIntoView = jest.fn();
+  });
+
   it('renders existing contact points in the table', () => {
     renderContactPointsTable();
     expect(screen.getByText(mockContactPoints[0].email)).toBeInTheDocument();
@@ -81,11 +85,59 @@ describe('ContactPointsTable', () => {
     expect(updatedList).toHaveLength(0);
     confirmSpy.mockRestore();
   });
+
+  it('focuses the add button when URL focus targets contact points', async () => {
+    renderContactPointsTable({
+      contactPointList: [],
+      initialEntries: [
+        '/editor/org/app/app-settings?currentTab=about&focus=contact-points-table-0',
+      ],
+    });
+    const addButton = screen.getByRole('button', {
+      name: textMock('app_settings.about_tab_contact_point_add_button_text'),
+    });
+    await waitFor(() => expect(addButton).toHaveFocus());
+    expect(addButton.className).toContain('validationFocusedButton');
+  });
+
+  it('does not focus add button for unrelated URL focus target', async () => {
+    renderContactPointsTable({
+      contactPointList: [],
+      initialEntries: ['/editor/org/app/app-settings?currentTab=about&focus=title-nb'],
+    });
+    const addButton = screen.getByRole('button', {
+      name: textMock('app_settings.about_tab_contact_point_add_button_text'),
+    });
+    await waitFor(() => expect(addButton).not.toHaveFocus());
+    expect(addButton.className).not.toContain('validationFocusedButton');
+  });
+
+  it('removes validation focus class when focus moves away from add button', async () => {
+    const user = userEvent.setup();
+    renderContactPointsTable({
+      contactPointList: [],
+      initialEntries: [
+        '/editor/org/app/app-settings?currentTab=about&focus=contact-points-table-0',
+      ],
+    });
+    const addButton = screen.getByRole('button', {
+      name: textMock('app_settings.about_tab_contact_point_add_button_text'),
+    });
+    await waitFor(() => expect(addButton.className).toContain('validationFocusedButton'));
+    await user.click(addButton);
+    await waitFor(async () => {
+      addButton.blur();
+    });
+    await waitFor(() => {
+      expect(addButton.className).not.toContain('validationFocusedButton');
+    });
+  });
 });
 
 type RenderOptions = {
   contactPointList?: ContactPoint[];
   onContactPointsChanged?: (contactPoints: ContactPoint[]) => void;
+  initialEntries?: string[];
 };
 
 const renderContactPointsTable = (options?: RenderOptions) => {
@@ -108,5 +160,5 @@ const renderContactPointsTable = (options?: RenderOptions) => {
     );
   };
 
-  return renderWithProviders(<Wrapper />);
+  return renderWithProviders(<Wrapper />, { initialEntries: options?.initialEntries });
 };

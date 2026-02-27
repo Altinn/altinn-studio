@@ -527,6 +527,7 @@ namespace Altinn.App.Api.Controllers
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/layoutsets")]
+        [System.Obsolete("Layout-sets no longer exist, folders are named the same as taskIds")]
         public Microsoft.AspNetCore.Mvc.ActionResult GetLayoutSets(string org, string app) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(string), 200, "application/json", new string[0])]
