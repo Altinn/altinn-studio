@@ -16,13 +16,15 @@ The bridge provides configuration data only; it does not implement the resolutio
 
 ## Problem context
 
-[2026-02-19-app-components-i18n.md](./2026-02-19-app-components-i18n.md) established that `app-components` will receive a translation function and text resources via a scoped context. The type of this interface is defined by `app-components` itself, ensuring the component library owns its own contract.
+[2026-02-19-app-components-i18n.md](./2026-02-19-app-components-i18n.md) established that `app-components` will receive a translation function and text resources via a scoped context, whilst [2026-02-24-translation-key-validation.md](./2026-02-24-translation-key-validation.md) defines how to make sure strings passed are real translation keys and that developers know that the strings or variables they are passing are being translated. The type of the AppComponentProvider interface is defined by `app-components` itself, ensuring the component library owns its own contract. Consumers of the `app-components` "lib", implements this contract.
 
-In addition to this translation function, we have certain static strings, or _keys_, which are defaults or internal values to the components. But these keys need to point to values, which need to follow the current language. I.e. they need to be translated too.
+In addition to this translation function and making sure static strings that are passed exist in the consumer app's translation keys, we have certain cases where we need a default translation, but static strings, or internal _translationKeys_, which are defaults or internal values to the components. But these keys need to point to values, which need to follow the current language. I.e. they need to be translated too.
 
 The open question is: who owns these static translation _keys_ that components use when calling the translation function?
 
 The keys used today are `'general.loading'` (Button), `'general.page_number'` (Pagination), `input_components.remaining_characters` and `input_components.exceeded_max_limit`. These keys currently exist in the app's static language files (`src/language/texts/`) and may also be overridden by dynamic text resources fetched from the API.
+
+Currently, we also ensure that the string literals passed are valid through the eslint rule in `src/App/frontend/src/language/eslint.js`, but this is an implicit binding between the `app` and `app-components`. Thus, if one day we decide to move `app-components` outside of the `src/App/frontend/src/` folder, this will no longer work, but without any indication that anything has changed.
 
 ## Decision drivers
 
@@ -86,10 +88,10 @@ Each component that needs a static translated string exposes a prop for the key.
 
 ```tsx
 // The app passes its own key as a prop at each usage site
-<Button loadingKey='general.loading' />
+<Button loadingKey='general.loading' />;
 
 // app-components translates it internally
-t(props.loadingKey) // → "Loading..."
+t(props.loadingKey); // → "Loading..."
 ```
 
 - Good, because it satisfies B1: no key names are hardcoded inside `app-components`.
@@ -97,4 +99,4 @@ t(props.loadingKey) // → "Loading..."
 - Good, because no central mapping object or `app-components`-owned namespace is needed — simpler than B at the provider level.
 - Bad, because it does not fully satisfy B2: TypeScript enforces that the prop is provided, but the value is a plain `string` — there is no enforcement that the key actually resolves to anything in the translation system.
 - Bad, because it does not satisfy B3: adding a new translated string requires adding a prop to the component and updating every usage site in the app. The number of touch points grows with usage, not with the number of keys.
-- Bad, because it scatters the "which key to use" concern across all call sites rather than centralising it in one mapping.
+- Bad, because it scatters the "which key to use" concern across all call sites rather than centralizing it in one mapping.
