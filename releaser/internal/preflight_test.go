@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -177,14 +178,138 @@ func TestRunPrepareWithDeps_PRBodyFormat(t *testing.T) {
 		t.Fatalf("PR label = %q, want %q", gh.prLabel, "release/studioctl")
 	}
 
-	const wantBody = `## Description
+	wantSnippets := []string{
+		"## Description",
+		"Prepare release v0.1.0-preview.1",
+		"- [Added] Add feature A (#1234)",
+		"- [Fixed] Fix issue in parser (#1235)",
+		"@coderabbitai ignore",
+	}
+	for _, snippet := range wantSnippets {
+		if !strings.Contains(gh.prBody, snippet) {
+			t.Fatalf("PR body missing snippet %q\nbody:\n%s", snippet, gh.prBody)
+		}
+	}
+}
 
-Prepare release v0.1.0-preview.1
+func TestRunPrepareWithDeps_PRBodyIncludesCompareLink(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
 
-- [Added] Add feature A (#1234)
-- [Fixed] Fix issue in parser (#1235)`
-	if gh.prBody != wantBody {
-		t.Fatalf("PR body mismatch\nwant:\n%s\ngot:\n%s", wantBody, gh.prBody)
+## [Unreleased]
+
+### Fixed
+
+- Patch entry
+
+## [1.0.0] - 2025-01-01
+
+### Added
+
+- Initial release
+`)
+	createReleaseBranch(t, repo, "release/studioctl/v1.0")
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Version:   "v1.0.1",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	const want = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/v1.0.0...v1.0.1"
+	if !strings.Contains(gh.prBody, want) {
+		t.Fatalf("PR body missing compare link %q\nbody:\n%s", want, gh.prBody)
+	}
+}
+
+func TestRunPrepareWithDeps_FirstStablePRBodyComparesToLatestStable(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- First stable entry
+
+## [1.1.0-preview.2] - 2025-01-03
+
+### Added
+
+- Preview two
+
+## [1.1.0-preview.1] - 2025-01-02
+
+### Added
+
+- Preview one
+
+## [1.0.5] - 2025-01-01
+
+### Fixed
+
+- Latest stable
+`)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Version:   "v1.1.0",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	const want = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/v1.0.5...v1.1.0"
+	if !strings.Contains(gh.prBody, want) {
+		t.Fatalf("PR body missing compare link %q\nbody:\n%s", want, gh.prBody)
+	}
+}
+
+func TestRunPrepareWithDeps_FirstPrereleasePRBodyComparesToLatestStable(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Added
+
+- Next major preview entry
+
+## [1.9.3] - 2025-01-03
+
+### Added
+
+- Latest stable v1
+
+## [1.9.3-preview.1] - 2025-01-02
+
+### Added
+
+- Historical preview
+`)
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Version:   "v2.0.0-preview.1",
+	}, git, gh, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunPrepareWithDeps() error = %v", err)
+	}
+
+	const want = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/v1.9.3...v2.0.0-preview.1"
+	if !strings.Contains(gh.prBody, want) {
+		t.Fatalf("PR body missing compare link %q\nbody:\n%s", want, gh.prBody)
 	}
 }
 
@@ -228,6 +353,49 @@ func TestRunPrepareWithDeps_StopsWhenCommitNotConfirmed(t *testing.T) {
 	const wantAction = "promote changelog and create commit"
 	if prompter.calls[0].action != wantAction {
 		t.Fatalf("prompt action = %q, want %q", prompter.calls[0].action, wantAction)
+	}
+	if !containsDetail(prompter.calls[0].detail, "Previous version: (none found)") {
+		t.Fatalf("prompt details missing previous version: %v", prompter.calls[0].detail)
+	}
+}
+
+func TestRunPrepareWithDeps_CommitPromptIncludesPreviousVersion(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+### Fixed
+
+- Pending patch
+
+## [1.0.0] - 2025-01-01
+
+### Added
+
+- Initial release
+`)
+	createReleaseBranch(t, repo, "release/studioctl/v1.0")
+	t.Chdir(repo)
+
+	git := internal.NewGitCLI(internal.WithWorkdir(repo), internal.WithLogger(internal.NopLogger{}))
+	gh := &fakeGH{}
+	prompter := &scriptedPrompter{
+		answers: []bool{false},
+	}
+
+	err := internal.RunPrepareWithDeps(t.Context(), internal.PrepareRequest{
+		Component: "studioctl",
+		Version:   "v1.0.1",
+		Prompter:  prompter,
+	}, git, gh, internal.NopLogger{})
+	if !errors.Is(err, internal.ErrActionNotConfirmed) {
+		t.Fatalf("RunPrepareWithDeps() error = %v, want %v", err, internal.ErrActionNotConfirmed)
+	}
+	if len(prompter.calls) != 1 {
+		t.Fatalf("prompt calls = %d, want 1", len(prompter.calls))
+	}
+	if !containsDetail(prompter.calls[0].detail, "Previous version: v1.0.0") {
+		t.Fatalf("prompt details missing previous version: %v", prompter.calls[0].detail)
 	}
 }
 
@@ -291,4 +459,8 @@ func (p *scriptedPrompter) Confirm(action string, details []string) (bool, error
 	answer := p.answers[0]
 	p.answers = p.answers[1:]
 	return answer, nil
+}
+
+func containsDetail(details []string, want string) bool {
+	return slices.Contains(details, want)
 }

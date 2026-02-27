@@ -19,6 +19,7 @@ type releasePrepConfig struct {
 	branchName          string
 	baseBranch          string
 	releaseBranch       string
+	previousVersion     string
 	prTitle             string
 	prBody              string
 	promoted            string
@@ -160,6 +161,7 @@ func prepareReleasePrepConfig(
 	if err != nil {
 		return nil, fmt.Errorf("promote changelog: %w", err)
 	}
+	previousVersion := previousReleasedVersion(promotedCl, verStr)
 	promoted := promotedCl.String()
 	prBody, err := buildPreparePRBody(verStr, promotedCl)
 	if err != nil {
@@ -173,10 +175,18 @@ func prepareReleasePrepConfig(
 		baseBranch:          baseBranch,
 		createReleaseBranch: createReleaseBranch,
 		releaseBranch:       tag.ReleaseBranch(),
+		previousVersion:     previousVersion,
 		prTitle:             "chore: release " + comp.ReleaseTitle(verStr),
 		prBody:              prBody,
 		promoted:            promoted,
 	}, nil
+}
+
+func displayPreviousVersion(previousVersion string) string {
+	if previousVersion == "" {
+		return "(none found)"
+	}
+	return previousVersion
 }
 
 func readRemoteFile(ctx context.Context, git *GitCLI, branch, path string) (string, error) {
@@ -242,8 +252,12 @@ func buildPreparePRBody(version string, promotedCl *changelog.Changelog) (string
 	if entryCount == 0 {
 		b.WriteString("- No changelog entries found\n")
 	}
+	previousVersion := previousReleasedVersion(promotedCl, version)
+	body := strings.TrimRight(b.String(), "\n")
+	body += "\n\n@coderabbitai ignore"
+	body = withFullChangelogLink(body, previousVersion, version)
 
-	return strings.TrimRight(b.String(), "\n"), nil
+	return body, nil
 }
 
 func printReleasePrepDryRun(log Logger, cfg *releasePrepConfig) {
@@ -253,6 +267,7 @@ func printReleasePrepDryRun(log Logger, cfg *releasePrepConfig) {
 	}
 	log.Info("Would create prep branch: %s", cfg.branchName)
 	log.Info("Would promote changelog to: [%s]", cfg.version.String())
+	log.Info("Current released version: %s", displayPreviousVersion(cfg.previousVersion))
 	log.Info("Would create PR targeting: %s", cfg.baseBranch)
 	log.Info("Would set PR title: %s", cfg.prTitle)
 	log.Info("Would add label: %s", cfg.component.ReleaseLabel())
@@ -292,6 +307,7 @@ func executeReleasePrepare(
 		"Branch: "+cfg.branchName,
 		"File: "+clPath,
 		"Version: "+cfg.version.String(),
+		"Previous version: "+displayPreviousVersion(cfg.previousVersion),
 		"Commit message: "+commitMsg,
 	); err != nil {
 		return err
