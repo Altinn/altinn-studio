@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### FIXED
+### Fixed
 
 - Update to latest PDF container image, to resolve connectivity issues (#17988)
 
