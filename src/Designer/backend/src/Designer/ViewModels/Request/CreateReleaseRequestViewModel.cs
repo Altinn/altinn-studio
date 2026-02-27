@@ -60,12 +60,19 @@ namespace Altinn.Studio.Designer.ViewModels.Request
 
             if (TagName.Length > 128)
             {
-                issues.Add(new ValidationResult($"Tag name cannot be longer than 128 characters.", new[] { nameof(TagName) }));
+                issues.Add(
+                    new ValidationResult($"Tag name cannot be longer than 128 characters.", new[] { nameof(TagName) })
+                );
             }
 
             if (!Regex.IsMatch(TagName, "^[a-z0-9.-]*$"))
             {
-                issues.Add(new ValidationResult($"Tag name cannot have characters outside the following ranges [a-z0-9.-].", new[] { nameof(TagName) }));
+                issues.Add(
+                    new ValidationResult(
+                        $"Tag name cannot have characters outside the following ranges [a-z0-9.-].",
+                        new[] { nameof(TagName) }
+                    )
+                );
             }
 
             return issues;

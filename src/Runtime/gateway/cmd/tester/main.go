@@ -193,6 +193,9 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, er
 		return nil, err
 	}
 
+	srcRoot := filepath.Clean(filepath.Join(root, "../.."))
+	dockerfile := filepath.Join(srcRoot, "Runtime", "gateway", "Dockerfile")
+
 	cfg := harness.Config{
 		ProjectRoot: root,
 		CachePath:   cachePath,
@@ -206,8 +209,8 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, er
 		Images: []harness.Image{
 			{
 				Name:       "gateway",
-				Context:    ".",
-				Dockerfile: "Dockerfile",
+				Context:    srcRoot,
+				Dockerfile: dockerfile,
 				Tag:        "localhost:5001/gateway:latest",
 			},
 		},

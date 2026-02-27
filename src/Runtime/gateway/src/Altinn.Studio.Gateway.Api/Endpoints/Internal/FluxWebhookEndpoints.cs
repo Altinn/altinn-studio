@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Altinn.Studio.Gateway.Api.Clients.Designer.Contracts;
 using Altinn.Studio.Gateway.Api.Clients.K8s;
 using Altinn.Studio.Gateway.Api.Endpoints.Internal.Contracts;
-using Altinn.Studio.Gateway.Api.Hosting;
 using Altinn.Studio.Gateway.Api.Telemetry;
 
 namespace Altinn.Studio.Gateway.Api.Endpoints.Internal;
@@ -18,16 +17,16 @@ internal static class FluxWebhookEndpoints
         string? TraceState
     );
 
-    public static WebApplication MapFluxWebhookEndpoint(this WebApplication app)
+    public static RouteGroupBuilder MapFluxWebhookEndpoint(this RouteGroupBuilder internalApiV1)
     {
-        app.MapPost("/api/v1/flux/webhook", HandleFluxWebhook)
-            .RequireInternalPort()
+        internalApiV1
+            .MapPost("/flux/webhook", HandleFluxWebhook)
             .WithName("FluxWebhook")
             .WithSummary("Receive Flux CD webhook notifications")
             .WithDescription("Endpoint for receiving event notifications from Flux CD controllers")
             .WithTags("Flux");
 
-        return app;
+        return internalApiV1;
     }
 
     private static async Task<IResult> HandleFluxWebhook(
@@ -71,7 +70,7 @@ internal static class FluxWebhookEndpoints
             return Results.Ok();
         }
 
-        var info = await TryResolveHelmReleaseInfoAsync(
+        var info = await TryResolveHelmReleaseInfo(
             helmReleaseClient,
             helmReleaseName,
             helmReleaseNamespace,
@@ -102,8 +101,8 @@ internal static class FluxWebhookEndpoints
             activity?.SetTag("flux.reason", fluxEvent.Reason);
             activity?.SetTag("flux.build_id", info.BuildId);
 
-            var httpClient = httpClientFactory.CreateClient(info.SourceEnvironment);
-            var response = await httpClient.PostAsJsonAsync(
+            using var httpClient = httpClientFactory.CreateClient(info.SourceEnvironment);
+            using var response = await httpClient.PostAsJsonAsync(
                 $"designer/api/v1/{info.Org}/{info.App}/deployments/webhooks/events",
                 deployEvent,
                 AppJsonSerializerContext.Default.DeployEventRequest,
@@ -126,7 +125,7 @@ internal static class FluxWebhookEndpoints
         return Results.Ok();
     }
 
-    private static async Task<HelmReleaseInfo?> TryResolveHelmReleaseInfoAsync(
+    private static async Task<HelmReleaseInfo?> TryResolveHelmReleaseInfo(
         HelmReleaseClient helmReleaseClient,
         string helmReleaseName,
         string helmReleaseNamespace,
@@ -134,7 +133,7 @@ internal static class FluxWebhookEndpoints
         CancellationToken cancellationToken
     )
     {
-        var helmRelease = await helmReleaseClient.GetAsync(helmReleaseName, helmReleaseNamespace, cancellationToken);
+        var helmRelease = await helmReleaseClient.Get(helmReleaseName, helmReleaseNamespace, cancellationToken);
         if (helmRelease is not null)
         {
             var labels = helmRelease.GetLabels();

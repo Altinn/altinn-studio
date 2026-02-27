@@ -1,60 +1,105 @@
 import React, { useState } from 'react';
-import { StudioConfigCard, StudioProperty } from '@studio/components';
-import type { Scope } from './ValidateNavigationUtils';
+import { StudioAlert, StudioLabel, StudioConfigCard, StudioProperty } from '@studio/components';
+import {
+  type Scope,
+  isRuleDuplicateInScope,
+  getCardLabel,
+  getDefaultConfig,
+  getValuesToDisplay,
+  validateForm,
+} from './utils/ValidateNavigationUtils';
 import { useTranslation } from 'react-i18next';
 import classes from './ValidateNavigationConfig.module.css';
-import { ValidateCardContent } from './ValidateCardContent';
-import type { ValidateConfigState } from './ValidateNavigationTypes';
-import { getCardLabel, getDefaultConfig } from './ValidateNavigationUtils';
+import { ValidateCardContent } from './ValidateCardContent/ValidateCardContent';
+import type { InternalConfigState } from './utils/ValidateNavigationTypes';
+import cn from 'classnames';
 
 export type ValidateNavigationConfigProps = {
-  propertyLabel: string;
   scope: Scope;
+  config?: InternalConfigState;
+  existingConfigs?: InternalConfigState[];
+  onSave: (config: InternalConfigState) => void;
+  onDelete?: () => void;
 };
 
 export const ValidateNavigationConfig = ({
-  propertyLabel,
   scope,
+  config,
+  existingConfigs,
+  onSave,
+  onDelete,
 }: ValidateNavigationConfigProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
+  const { t } = useTranslation();
+
+  const getButtonLabel = (currentConfig: InternalConfigState) => {
+    return !currentConfig && t('ux_editor.settings.navigation_validation_button_rule_undefined');
+  };
 
   if (!isEditMode) {
     return (
       <StudioProperty.Button
         onClick={() => setIsEditMode(true)}
-        property={propertyLabel}
-        value={null} // For now left as null since we don't have a real config object, will replace with actual config in next PR
-        className={classes.configWrapper}
+        property={getButtonLabel(config)}
+        title={config && t('ux_editor.settings.navigation_validation_button_rule_defined')}
+        value={config && <DisplayValues {...config} />}
+        className={cn(classes.configWrapper, { [classes.configDefined]: config })}
       />
     );
   }
 
-  return <ValidateCard scope={scope} setIsEditMode={setIsEditMode} />;
+  return (
+    <ValidateCard
+      scope={scope}
+      config={config}
+      existingConfigs={existingConfigs}
+      setIsEditMode={setIsEditMode}
+      onSave={onSave}
+      onDelete={onDelete}
+    />
+  );
 };
 
 type ValidateCardProps = {
   scope: Scope;
+  config?: InternalConfigState;
+  existingConfigs?: InternalConfigState[];
   setIsEditMode: (isEditMode: boolean) => void;
+  onSave: (config: InternalConfigState) => void;
+  onDelete?: () => void;
 };
 
-const ValidateCard = ({ scope, setIsEditMode }: ValidateCardProps) => {
-  const getConfig = null; // Placeholder for function that would get the actual config based on scope, will implement in next PR
+const ValidateCard = ({
+  scope,
+  config,
+  existingConfigs,
+  setIsEditMode,
+  onSave,
+  onDelete,
+}: ValidateCardProps) => {
   const { t } = useTranslation();
-  const [config, setConfig] = useState<ValidateConfigState>(getConfig || getDefaultConfig(scope));
+  const [newConfig, setNewConfig] = useState<InternalConfigState>(
+    config || getDefaultConfig(scope),
+  );
+  const isFormValid = validateForm({ scope, config, newConfig });
+  const isRuleDuplicate = isRuleDuplicateInScope({
+    scope,
+    newConfig,
+    existingConfigs,
+    isFormValid,
+  });
 
-  const update = (updates: Partial<ValidateConfigState>) => {
-    setConfig((prev) => ({ ...prev, ...updates }));
+  const update = (updates: Partial<InternalConfigState>) => {
+    setNewConfig((prev) => ({ ...prev, ...updates }));
   };
 
   const handleDelete = () => {
-    // For now just log the config that would be deleted, will implement actual delete logic in next PR
-    console.log(`Deleted validation rule with config: ${config} for ${scope}`);
+    onDelete?.();
     setIsEditMode(false);
   };
 
-  const handleSave = () => {
-    // For now just log the config that would be  saved, will implement actual save logic in next PR
-    console.log(`Saved validation rule with config:`, config, `for scope: ${scope}`);
+  const handleSaveAndClose = () => {
+    onSave(newConfig);
     setIsEditMode(false);
   };
 
@@ -68,16 +113,41 @@ const ValidateCard = ({ scope, setIsEditMode }: ValidateCardProps) => {
         cardLabel={t(getCardLabel(scope))}
         deleteAriaLabel={t('general.delete')}
         onDelete={handleDelete}
+        isDeleteDisabled={!config}
       />
       <StudioConfigCard.Body>
-        <ValidateCardContent scope={scope} config={config} onChange={update} />
+        <ValidateCardContent scope={scope} newConfig={newConfig} onChange={update} />
+        {isRuleDuplicate && (
+          <StudioAlert data-color='info'>
+            {t('ux_editor.settings.navigation_validation_alert_message')}
+          </StudioAlert>
+        )}
       </StudioConfigCard.Body>
       <StudioConfigCard.Footer
         saveLabel={t('general.save')}
         cancelLabel={t('general.cancel')}
-        onSave={handleSave}
+        onSave={handleSaveAndClose}
         onCancel={handleCancel}
+        isDisabled={!isFormValid}
       />
     </StudioConfigCard>
+  );
+};
+
+const DisplayValues = (config: InternalConfigState) => {
+  const valueToDisplay = getValuesToDisplay(config);
+  const { t } = useTranslation();
+  const translateKeyToDisplay = (key: string) => {
+    return t(`ux_editor.settings.navigation_validation_view_mode_label_${key}`);
+  };
+
+  return (
+    <div>
+      {Object.entries(valueToDisplay).map(([key, value]) => (
+        <div key={key}>
+          <StudioLabel>{translateKeyToDisplay(key)}:</StudioLabel> {value}
+        </div>
+      ))}
+    </div>
   );
 };

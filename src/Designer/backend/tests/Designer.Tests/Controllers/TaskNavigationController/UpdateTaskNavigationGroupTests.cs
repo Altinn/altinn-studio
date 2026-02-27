@@ -17,9 +17,12 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.TaskNavigationController;
 
-public class UpdateTaskNavigationTests(WebApplicationFactory<Program> factory) : DesignerEndpointsTestsBase<UpdateTaskNavigationTests>(factory), IClassFixture<WebApplicationFactory<Program>>
+public class UpdateTaskNavigationTests(WebApplicationFactory<Program> factory)
+    : DesignerEndpointsTestsBase<UpdateTaskNavigationTests>(factory),
+        IClassFixture<WebApplicationFactory<Program>>
 {
-    private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/task-navigation";
+    private static string VersionPrefix(string org, string repository) =>
+        $"/designer/api/{org}/{repository}/task-navigation";
 
     [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
@@ -30,19 +33,19 @@ public class UpdateTaskNavigationTests(WebApplicationFactory<Program> factory) :
 
         string url = VersionPrefix(org, targetRepository);
 
-        IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList = [new ()
-        {
-            TaskId = "data",
-            Name = "data",
-        }, new ()
-        {
-            TaskType = "receipt",
-            Name = "receipt",
-        }];
+        IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList =
+        [
+            new() { TaskId = "data", Name = "data" },
+            new() { TaskType = "receipt", Name = "receipt" },
+        ];
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(JsonSerializer.Serialize(taskNavigationGroupDtoList), Encoding.UTF8, MediaTypeNames.Application.Json)
+            Content = new StringContent(
+                JsonSerializer.Serialize(taskNavigationGroupDtoList),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -50,7 +53,11 @@ public class UpdateTaskNavigationTests(WebApplicationFactory<Program> factory) :
 
         string relativePath = "App/ui/layout-sets.json";
 
-        JsonNode expectedData = JsonNode.Parse(JsonSerializer.Serialize(taskNavigationGroupDtoList.Select(taskNavigationGroupDto => taskNavigationGroupDto.ToDomain())));
+        JsonNode expectedData = JsonNode.Parse(
+            JsonSerializer.Serialize(
+                taskNavigationGroupDtoList.Select(taskNavigationGroupDto => taskNavigationGroupDto.ToDomain())
+            )
+        );
 
         string savedFile = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath);
         JsonNode savedData = JsonNode.Parse(savedFile)["uiSettings"]["taskNavigation"];
@@ -69,7 +76,7 @@ public class UpdateTaskNavigationTests(WebApplicationFactory<Program> factory) :
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent("[]", Encoding.UTF8, MediaTypeNames.Application.Json)
+            Content = new StringContent("[]", Encoding.UTF8, MediaTypeNames.Application.Json),
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);
@@ -85,21 +92,26 @@ public class UpdateTaskNavigationTests(WebApplicationFactory<Program> factory) :
 
     [Theory]
     [InlineData("ttd", "app-with-groups-and-task-navigation", "testUser")]
-    public async Task UpdateTaskNavigation_WhenInvalidPayload_ReturnsBadRequest(string org, string app, string developer)
+    public async Task UpdateTaskNavigation_WhenInvalidPayload_ReturnsBadRequest(
+        string org,
+        string app,
+        string developer
+    )
     {
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(org, app, developer, targetRepository);
 
         string url = VersionPrefix(org, targetRepository);
 
-        IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList = [new ()
-        {
-            TaskType = "test",
-        }];
+        IEnumerable<TaskNavigationGroupDto> taskNavigationGroupDtoList = [new() { TaskType = "test" }];
 
         using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(JsonSerializer.Serialize(taskNavigationGroupDtoList), Encoding.UTF8, MediaTypeNames.Application.Json)
+            Content = new StringContent(
+                JsonSerializer.Serialize(taskNavigationGroupDtoList),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            ),
         };
 
         using var response = await HttpClient.SendAsync(httpRequestMessage);

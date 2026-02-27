@@ -9,20 +9,28 @@ namespace Designer.Tests.DbIntegrationTests.DeploymentEntityRepository;
 
 public class GetPendingDecommissionTests : DbIntegrationTestsBase
 {
-    public GetPendingDecommissionTests(DesignerDbFixture dbFixture) : base(dbFixture)
-    {
-    }
+    public GetPendingDecommissionTests(DesignerDbFixture dbFixture)
+        : base(dbFixture) { }
 
     [Theory]
     [InlineData("ttd", "local", null, null)]
     [InlineData("ttd", "local", DeployEventType.PipelineScheduled, "Pipeline scheduled")]
     [InlineData("ttd", "local", DeployEventType.PipelineSucceeded, "Pipeline succeeded")]
-    public async Task GetPendingDecommission_ShouldReturnDecommissionDeployment_WhenNoFinalEvent(string org, string envName, DeployEventType? eventType, string message)
+    public async Task GetPendingDecommission_ShouldReturnDecommissionDeployment_WhenNoFinalEvent(
+        string org,
+        string envName,
+        DeployEventType? eventType,
+        string message
+    )
     {
         // Arrange
         string app = Guid.NewGuid().ToString();
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org, app, envName: envName, deploymentType: DeploymentType.Decommission);
+            org,
+            app,
+            envName: envName,
+            deploymentType: DeploymentType.Decommission
+        );
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         if (eventType.HasValue)
@@ -33,7 +41,7 @@ public class GetPendingDecommissionTests : DbIntegrationTestsBase
                 Message = message,
                 Timestamp = DateTimeOffset.UtcNow,
                 Created = DateTimeOffset.UtcNow,
-                Origin = DeployEventOrigin.Internal
+                Origin = DeployEventOrigin.Internal,
             };
             await DbFixture.PrepareDeployEventInDatabase(org, deploymentEntity.Build.Id, evt);
         }
@@ -55,7 +63,11 @@ public class GetPendingDecommissionTests : DbIntegrationTestsBase
         // Arrange
         string app = Guid.NewGuid().ToString();
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org, app, envName: envName, deploymentType: DeploymentType.Deploy);
+            org,
+            app,
+            envName: envName,
+            deploymentType: DeploymentType.Deploy
+        );
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         // Act
@@ -69,12 +81,21 @@ public class GetPendingDecommissionTests : DbIntegrationTestsBase
     [Theory]
     [InlineData("ttd", "local", DeployEventType.UninstallSucceeded, "Uninstall succeeded")]
     [InlineData("ttd", "local", DeployEventType.UninstallFailed, "Uninstall failed")]
-    public async Task GetPendingDecommission_ShouldReturnNull_WhenDecommissionHasFinalEvent(string org, string envName, DeployEventType eventType, string message)
+    public async Task GetPendingDecommission_ShouldReturnNull_WhenDecommissionHasFinalEvent(
+        string org,
+        string envName,
+        DeployEventType eventType,
+        string message
+    )
     {
         // Arrange
         string app = Guid.NewGuid().ToString();
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org, app, envName: envName, deploymentType: DeploymentType.Decommission);
+            org,
+            app,
+            envName: envName,
+            deploymentType: DeploymentType.Decommission
+        );
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var finalEvent = new DeployEvent
@@ -83,7 +104,7 @@ public class GetPendingDecommissionTests : DbIntegrationTestsBase
             Message = message,
             Timestamp = DateTimeOffset.UtcNow,
             Created = DateTimeOffset.UtcNow,
-            Origin = DeployEventOrigin.Webhook
+            Origin = DeployEventOrigin.Webhook,
         };
         await DbFixture.PrepareDeployEventInDatabase(org, deploymentEntity.Build.Id, finalEvent);
 
@@ -102,7 +123,11 @@ public class GetPendingDecommissionTests : DbIntegrationTestsBase
         // Arrange
         string app = Guid.NewGuid().ToString();
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org, app, envName: envName, deploymentType: DeploymentType.Decommission);
+            org,
+            app,
+            envName: envName,
+            deploymentType: DeploymentType.Decommission
+        );
         await DbFixture.PrepareEntityInDatabase(deploymentEntity);
 
         var events = EntityGenerationUtils.Deployment.GenerateDeployEvents();
@@ -129,13 +154,21 @@ public class GetPendingDecommissionTests : DbIntegrationTestsBase
         string app = Guid.NewGuid().ToString();
 
         var olderDecommission = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org, app, envName: envName, deploymentType: DeploymentType.Decommission);
+            org,
+            app,
+            envName: envName,
+            deploymentType: DeploymentType.Decommission
+        );
         await DbFixture.PrepareEntityInDatabase(olderDecommission);
 
         await Task.Delay(10); // Ensure different timestamps
 
         var newerDecommission = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
-            org, app, envName: envName, deploymentType: DeploymentType.Decommission);
+            org,
+            app,
+            envName: envName,
+            deploymentType: DeploymentType.Decommission
+        );
         await DbFixture.PrepareEntityInDatabase(newerDecommission);
 
         // Act

@@ -2,8 +2,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { AppMetric as Metric } from 'admin/types/metrics/AppMetric';
 
-import { Line } from 'react-chartjs-2';
-import { getChartData, getChartOptions } from 'admin/utils/charts';
+import { Bar } from 'react-chartjs-2';
+import { getChartOptions } from 'admin/utils/charts';
 import { Alert } from 'admin/components/Alert/Alert';
 
 type AppErrorMetricProps = {
@@ -13,13 +13,20 @@ type AppErrorMetricProps = {
 
 export const AppErrorMetric = ({ metric, range }: AppErrorMetricProps) => {
   const { t } = useTranslation();
-  const options = getChartOptions(range);
-  const count = metric.dataPoints.reduce((sum, item) => sum + item.count, 0);
+  const options = getChartOptions(metric.bucketSize, range);
+  const count = metric.counts.reduce((sum, item) => sum + item, 0);
   const isError = count > 0;
 
-  const metricsChartData = getChartData(metric.dataPoints, {
-    borderColor: isError ? '#590d0d' : '#023409',
-  });
+  const metricsChartData = {
+    labels: metric.timestamps,
+    datasets: [
+      {
+        data: metric.counts,
+        borderColor: isError ? '#b81a1a' : '#108c22',
+        backgroundColor: isError ? '#b81a1a' : '#108c22',
+      },
+    ],
+  };
 
   return (
     <Alert
@@ -28,7 +35,7 @@ export const AppErrorMetric = ({ metric, range }: AppErrorMetricProps) => {
       count={count.toString()}
       url={metric.logsUrl}
     >
-      <Line options={options} data={metricsChartData} />
+      <Bar options={options} data={metricsChartData} />
     </Alert>
   );
 };

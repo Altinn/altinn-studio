@@ -4,5 +4,6 @@
     "order": [
       "Side1"
     ]
-  }
+  },
+  "defaultDataType": "SubformModel"
 }

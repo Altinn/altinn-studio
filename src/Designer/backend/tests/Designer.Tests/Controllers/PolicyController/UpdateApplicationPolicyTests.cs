@@ -10,13 +10,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PolicyControllerTests
 {
-    public class UpdateApplicationPolicyTests : DesignerEndpointsTestsBase<UpdateApplicationPolicyTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class UpdateApplicationPolicyTests
+        : DesignerEndpointsTestsBase<UpdateApplicationPolicyTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly string _versionPrefix = "designer/api";
 
-        public UpdateApplicationPolicyTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+        public UpdateApplicationPolicyTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         [Fact]
         public async Task Update_AppPolicyOk()
@@ -30,7 +31,11 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
             string responseBody;
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData))
             {
-                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
+                httpRequestMessage.Content = new StringContent(
+                    JsonConvert.SerializeObject(resourcePolicy),
+                    Encoding.UTF8,
+                    "application/json"
+                );
 
                 HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
@@ -52,7 +57,11 @@ namespace Designer.Tests.Controllers.PolicyControllerTests
 
             using (HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData))
             {
-                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(resourcePolicy), Encoding.UTF8, "application/json");
+                httpRequestMessage.Content = new StringContent(
+                    JsonConvert.SerializeObject(resourcePolicy),
+                    Encoding.UTF8,
+                    "application/json"
+                );
                 HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
                 response.EnsureSuccessStatusCode();
                 responseBody = await response.Content.ReadAsStringAsync();

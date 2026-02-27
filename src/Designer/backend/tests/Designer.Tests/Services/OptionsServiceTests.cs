@@ -34,7 +34,7 @@ public class OptionsServiceTests : IDisposable
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
     };
 
     public OptionsServiceTests()
@@ -80,16 +80,8 @@ public class OptionsServiceTests : IDisposable
         // Arrange
         var expectedOptions = new List<Option>
         {
-            new Option
-            {
-                Label = "label1",
-                Value = "value1",
-            },
-            new Option
-            {
-                Label = "label2",
-                Value = "value2",
-            }
+            new Option { Label = "label1", Value = "value1" },
+            new Option { Label = "label2", Value = "value2" },
         };
 
         const string Repo = "app-with-options";
@@ -135,16 +127,8 @@ public class OptionsServiceTests : IDisposable
         // Arrange
         var newOptions = new List<Option>
         {
-            new Option
-            {
-                Label = "label1",
-                Value = "value1",
-            },
-            new Option
-            {
-                Label = "label2",
-                Value = "value2",
-            }
+            new Option { Label = "label1", Value = "value1" },
+            new Option { Label = "label2", Value = "value2" },
         };
 
         const string Repo = "empty-app";
@@ -154,7 +138,13 @@ public class OptionsServiceTests : IDisposable
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(Org, targetRepository, Developer, OptionListId, newOptions);
+        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(
+            Org,
+            targetRepository,
+            Developer,
+            OptionListId,
+            newOptions
+        );
 
         // Assert
         Assert.Equal(newOptions.Count, updatedOptions.Count);
@@ -174,16 +164,8 @@ public class OptionsServiceTests : IDisposable
         // Arrange
         var newOptions = new List<Option>
         {
-            new Option
-            {
-                Label = "someNewOption",
-                Value = "someNewValue",
-            },
-            new Option
-            {
-                Label = "label2",
-                Value = "value2",
-            }
+            new Option { Label = "someNewOption", Value = "someNewValue" },
+            new Option { Label = "label2", Value = "value2" },
         };
 
         const string Repo = "app-with-options";
@@ -193,7 +175,13 @@ public class OptionsServiceTests : IDisposable
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(Org, targetRepository, Developer, ExistingOptionListId, newOptions);
+        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(
+            Org,
+            targetRepository,
+            Developer,
+            ExistingOptionListId,
+            newOptions
+        );
 
         // Assert
         Assert.Equal(newOptions.Count, updatedOptions.Count);
@@ -292,15 +280,36 @@ public class OptionsServiceTests : IDisposable
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, AppRepo, TargetOrgName, targetAppRepository);
 
-        string expectedOptionListString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, CodeListUtils.FilePathWithTextResources(OptionListId));
+        string expectedOptionListString = TestDataHelper.GetFileFromRepo(
+            TargetOrgName,
+            targetOrgRepository,
+            Developer,
+            CodeListUtils.FilePathWithTextResources(OptionListId)
+        );
         List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(expectedOptionListString);
 
         const string NbLanguageCode = "nb";
         const string EnLanguageCode = "en";
-        string nbExpectedTextResourceString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Join(TextResourceFolderPath, GetTextResourceFileName(NbLanguageCode)));
-        string enExpectedTextResourceString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetOrgRepository, Developer, Path.Join(TextResourceFolderPath, GetTextResourceFileName(EnLanguageCode)));
-        TextResource nbExpectedTextResource = JsonSerializer.Deserialize<TextResource>(nbExpectedTextResourceString, s_jsonOptions);
-        TextResource enExpectedTextResource = JsonSerializer.Deserialize<TextResource>(enExpectedTextResourceString, s_jsonOptions);
+        string nbExpectedTextResourceString = TestDataHelper.GetFileFromRepo(
+            TargetOrgName,
+            targetOrgRepository,
+            Developer,
+            Path.Join(TextResourceFolderPath, GetTextResourceFileName(NbLanguageCode))
+        );
+        string enExpectedTextResourceString = TestDataHelper.GetFileFromRepo(
+            TargetOrgName,
+            targetOrgRepository,
+            Developer,
+            Path.Join(TextResourceFolderPath, GetTextResourceFileName(EnLanguageCode))
+        );
+        TextResource nbExpectedTextResource = JsonSerializer.Deserialize<TextResource>(
+            nbExpectedTextResourceString,
+            s_jsonOptions
+        );
+        TextResource enExpectedTextResource = JsonSerializer.Deserialize<TextResource>(
+            enExpectedTextResourceString,
+            s_jsonOptions
+        );
 
         _giteaContentLibraryServiceMock
             .Setup(service => service.GetCodeList(TargetOrgName, OptionListId))
@@ -310,14 +319,24 @@ public class OptionsServiceTests : IDisposable
             .ReturnsAsync([EnLanguageCode, NbLanguageCode]);
         _giteaContentLibraryServiceMock
             .Setup(service => service.GetTextResource(TargetOrgName, It.IsAny<string>()))
-            .ReturnsAsync((string _, string languageCode) => languageCode.Contains(EnLanguageCode) ? enExpectedTextResource : nbExpectedTextResource);
+            .ReturnsAsync(
+                (string _, string languageCode) =>
+                    languageCode.Contains(EnLanguageCode) ? enExpectedTextResource : nbExpectedTextResource
+            );
         _giteaContentLibraryServiceMock
             .Setup(service => service.GetShaForCodeListFile(TargetOrgName, OptionListId))
             .ReturnsAsync(CommitSha);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        (List<OptionListData> optionListDataList, Dictionary<string, TextResource> textResources) = await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
+        (List<OptionListData> optionListDataList, Dictionary<string, TextResource> textResources) =
+            await optionsService.ImportOptionListFromOrg(
+                TargetOrgName,
+                targetAppRepository,
+                Developer,
+                OptionListId,
+                OverrideExistingTextResources
+            );
         List<Option> optionList = optionListDataList.Single(e => e.Title == OptionListId).Data!;
 
         // Assert
@@ -333,7 +352,12 @@ public class OptionsServiceTests : IDisposable
 
         Assert.Equal(2, textResources.Keys.Count);
 
-        string actualAppSettingsString = TestDataHelper.GetFileFromRepo(TargetOrgName, targetAppRepository, Developer, ".altinnstudio/settings.json");
+        string actualAppSettingsString = TestDataHelper.GetFileFromRepo(
+            TargetOrgName,
+            targetAppRepository,
+            Developer,
+            ".altinnstudio/settings.json"
+        );
         AltinnStudioSettings actualAppSettings = JsonSerializer.Deserialize<AltinnStudioSettings>(
             actualAppSettingsString,
             new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }
@@ -360,7 +384,8 @@ public class OptionsServiceTests : IDisposable
         string targetAppRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.AddRepositoryToTestOrg(Developer, Org, AppRepo, TargetOrgName, targetAppRepository);
 
-        const string CodeList = @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
+        const string CodeList =
+            @"[{ ""label"": ""label1"", ""value"": ""value1""}, { ""label"": ""label2"", ""value"": ""value2""}]";
         string repoPath = TestDataHelper.GetTestDataRepositoryDirectory(TargetOrgName, targetAppRepository, Developer);
         string filePath = Path.Join(repoPath, "App/options");
         await File.WriteAllTextAsync(Path.Join(filePath, $"{OptionListId}.json"), CodeList);
@@ -370,13 +395,21 @@ public class OptionsServiceTests : IDisposable
 
         await Assert.ThrowsAsync<ConflictingFileNameException>(async () =>
         {
-            await optionsService.ImportOptionListFromOrg(TargetOrgName, targetAppRepository, Developer, OptionListId, OverrideExistingTextResources);
+            await optionsService.ImportOptionListFromOrg(
+                TargetOrgName,
+                targetAppRepository,
+                Developer,
+                OptionListId,
+                OverrideExistingTextResources
+            );
         });
     }
 
     private OptionsService GetOptionsServiceForTest()
     {
-        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+        AltinnGitRepositoryFactory altinnGitRepositoryFactory = new(
+            TestDataHelper.GetTestDataRepositoriesRootDirectory()
+        );
         OptionsService optionsService = new(altinnGitRepositoryFactory, _giteaContentLibraryServiceMock.Object);
 
         return optionsService;

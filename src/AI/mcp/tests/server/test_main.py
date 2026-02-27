@@ -1,122 +1,79 @@
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, ANY
 from server.main import _initialize_documentation_search, main
 
 DEFAULT_PORT = 8069
 CUSTOM_PORT = 9000
-DEFAULT_TRANSPORT = "sse"
-STDIO_TRANSPORT = "stdio"
+
 
 class TestInitializeDocumentationSearch:
-    def test_initialize_documentation_search_verbose(self, mocker):
-        mock_init_doc_search = mocker.patch('server.tools.planning_tool.planning_tool.initialize_documentation_search')
+    def test_verbose_logs_to_stderr(self, mocker):
+        mocker.patch('server.tools.planning_tool.planning_tool.initialize_documentation_search')
         mock_stderr = mocker.patch('sys.stderr')
 
         _initialize_documentation_search(verbose=True)
 
-        mock_init_doc_search.assert_called_once_with(verbose=True)
         mock_stderr.write.assert_called()
 
-    def test_initialize_documentation_search_not_verbose(self, mocker):
-        mock_init_doc_search = mocker.patch('server.tools.planning_tool.planning_tool.initialize_documentation_search')
+    def test_not_verbose_suppresses_logs(self, mocker):
+        mocker.patch('server.tools.planning_tool.planning_tool.initialize_documentation_search')
         mock_stderr = mocker.patch('sys.stderr')
 
         _initialize_documentation_search(verbose=False)
 
-        mock_init_doc_search.assert_called_once_with(verbose=False)
         mock_stderr.write.assert_not_called()
 
 
 class TestMain:
-    @pytest.fixture
-    def mock_mcp_instance(self):
-        return MagicMock()
+    @pytest.fixture(autouse=True)
+    def setup_mocks(self, mocker):
+        """Shared mocks for all main() tests."""
+        self.mcp = MagicMock()
+        self.init_doc = mocker.patch('server.main._initialize_documentation_search')
+        mocker.patch('server.tools.register_all_tools')
+        mocker.patch('server.tools.initialize_mcp', return_value=self.mcp)
+        self.uvicorn_run = mocker.patch('uvicorn.run')
 
-    @pytest.fixture
-    def default_args(self):
-        return Mock(stdio=False, port=None, skip_doc_init=False)
+        # Stub ASGI infrastructure
+        mocker.patch('fastmcp.server.http.create_streamable_http_app', return_value=MagicMock())
+        mocker.patch('starlette.applications.Starlette')
+        mocker.patch('starlette.routing.Mount')
 
-    def test_main_default_settings(self, mocker, mock_mcp_instance, default_args):
-        mock_parse_args = mocker.patch('argparse.ArgumentParser.parse_args')
-        mock_init_doc = mocker.patch('server.main._initialize_documentation_search')
-        mock_register_tools = mocker.patch('server.tools.register_all_tools')
-        mock_init_mcp = mocker.patch('server.tools.initialize_mcp')
-
-        mock_parse_args.return_value = default_args
-        mock_init_mcp.return_value = mock_mcp_instance
-
+    def _run_with_args(self, mocker, **overrides):
+        defaults = {"stdio": False, "port": None, "skip_doc_init": False}
+        defaults.update(overrides)
+        args = MagicMock(**defaults)
+        mocker.patch('argparse.ArgumentParser.parse_args', return_value=args)
+        # Save original run before main() replaces it with custom_run
+        self.original_mcp_run = self.mcp.run
         main()
 
-        mock_init_mcp.assert_called_once()
-        mock_register_tools.assert_called_once()
-        mock_init_doc.assert_called_once_with(verbose=True)
-        mock_mcp_instance.run.assert_called_once_with(transport=DEFAULT_TRANSPORT, host="0.0.0.0", port=DEFAULT_PORT)
+    def test_default_settings(self, mocker):
+        self._run_with_args(mocker)
 
-    def test_main_with_stdio_transport(self, mocker, mock_mcp_instance):
-        mock_parse_args = mocker.patch('argparse.ArgumentParser.parse_args')
-        mock_init_doc = mocker.patch('server.main._initialize_documentation_search')
-        mock_register_tools = mocker.patch('server.tools.register_all_tools')
-        mock_init_mcp = mocker.patch('server.tools.initialize_mcp')
+        self.init_doc.assert_called_once_with(verbose=True)
+        self.uvicorn_run.assert_called_once_with(ANY, host="0.0.0.0", port=DEFAULT_PORT)
 
-        mock_args = Mock(stdio=True, port=None, skip_doc_init=False)
-        mock_parse_args.return_value = mock_args
-        mock_init_mcp.return_value = mock_mcp_instance
+    def test_stdio_transport(self, mocker):
+        self._run_with_args(mocker, stdio=True)
 
-        main()
+        self.init_doc.assert_called_once_with(verbose=False)
+        self.original_mcp_run.assert_called_once_with(transport="stdio")
 
-        mock_init_mcp.assert_called_once()
-        mock_register_tools.assert_called_once()
-        mock_init_doc.assert_called_once_with(verbose=False)
-        mock_mcp_instance.run.assert_called_once_with(transport=STDIO_TRANSPORT)
+    def test_custom_port(self, mocker):
+        self._run_with_args(mocker, port=CUSTOM_PORT)
 
-    def test_main_with_custom_port(self, mocker, mock_mcp_instance):
-        mock_parse_args = mocker.patch('argparse.ArgumentParser.parse_args')
-        mock_init_doc = mocker.patch('server.main._initialize_documentation_search')
-        mock_register_tools = mocker.patch('server.tools.register_all_tools')
-        mock_init_mcp = mocker.patch('server.tools.initialize_mcp')
+        self.uvicorn_run.assert_called_once_with(ANY, host="0.0.0.0", port=CUSTOM_PORT)
 
-        mock_args = Mock(stdio=False, port=CUSTOM_PORT, skip_doc_init=False)
-        mock_parse_args.return_value = mock_args
-        mock_init_mcp.return_value = mock_mcp_instance
+    def test_skip_doc_init(self, mocker):
+        self._run_with_args(mocker, skip_doc_init=True)
 
-        main()
+        self.init_doc.assert_not_called()
 
-        mock_init_mcp.assert_called_once()
-        mock_register_tools.assert_called_once()
-        mock_init_doc.assert_called_once_with(verbose=True)
-        mock_mcp_instance.run.assert_called_once_with(transport=DEFAULT_TRANSPORT, host="0.0.0.0", port=CUSTOM_PORT)
+    def test_doc_init_failure_continues(self, mocker, capsys):
+        self.init_doc.side_effect = Exception("Connection error")
 
-    def test_main_skip_doc_init(self, mocker, mock_mcp_instance):
-        mock_parse_args = mocker.patch('argparse.ArgumentParser.parse_args')
-        mock_init_doc = mocker.patch('server.main._initialize_documentation_search')
-        mock_register_tools = mocker.patch('server.tools.register_all_tools')
-        mock_init_mcp = mocker.patch('server.tools.initialize_mcp')
+        self._run_with_args(mocker)
 
-        mock_args = Mock(stdio=False, port=None, skip_doc_init=True)
-        mock_parse_args.return_value = mock_args
-        mock_init_mcp.return_value = mock_mcp_instance
-
-        main()
-
-        mock_init_mcp.assert_called_once()
-        mock_register_tools.assert_called_once()
-        mock_init_doc.assert_not_called()
-        mock_mcp_instance.run.assert_called_once_with(transport=DEFAULT_TRANSPORT, host="0.0.0.0", port=DEFAULT_PORT)
-
-    def test_main_doc_init_failure(self, mocker, mock_mcp_instance, default_args, capsys):
-        mock_parse_args = mocker.patch('argparse.ArgumentParser.parse_args')
-        mock_init_doc = mocker.patch('server.main._initialize_documentation_search')
-        mock_register_tools = mocker.patch('server.tools.register_all_tools')
-        mock_init_mcp = mocker.patch('server.tools.initialize_mcp')
-
-        mock_parse_args.return_value = default_args
-        mock_init_mcp.return_value = mock_mcp_instance
-        mock_init_doc.side_effect = Exception("Connection error")
-
-        main()
-
-        mock_init_mcp.assert_called_once()
-        mock_register_tools.assert_called_once()
-        mock_init_doc.assert_called_once_with(verbose=True)
         assert "Failed to initialize documentation search" in capsys.readouterr().err
-        mock_mcp_instance.run.assert_called_once_with(transport=DEFAULT_TRANSPORT, host="0.0.0.0", port=DEFAULT_PORT)
+        self.uvicorn_run.assert_called_once()

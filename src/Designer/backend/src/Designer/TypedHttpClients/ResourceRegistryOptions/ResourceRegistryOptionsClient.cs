@@ -12,7 +12,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
     {
         HttpClient _client;
 
-        private readonly JsonSerializerOptions _dataNorgeSerilizerOptions = new System.Text.Json.JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+        private readonly JsonSerializerOptions _dataNorgeSerilizerOptions = new System.Text.Json.JsonSerializerOptions()
+        {
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+        };
 
         public ResourceRegistryOptionsClients(HttpClient client)
         {
@@ -30,7 +33,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
                 string content = await response.Content.ReadAsStringAsync(cancellationToken);
-                eurovoc = System.Text.Json.JsonSerializer.Deserialize<EuroVocTerms>(content, _dataNorgeSerilizerOptions);
+                eurovoc = System.Text.Json.JsonSerializer.Deserialize<EuroVocTerms>(
+                    content,
+                    _dataNorgeSerilizerOptions
+                );
                 return eurovoc;
             }
             catch (Exception ex)
@@ -70,7 +76,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
                 string sectorscontent = await response.Content.ReadAsStringAsync(cancellationToken);
-                dataThemes = System.Text.Json.JsonSerializer.Deserialize<DataThemesContainer>(sectorscontent, _dataNorgeSerilizerOptions);
+                dataThemes = System.Text.Json.JsonSerializer.Deserialize<DataThemesContainer>(
+                    sectorscontent,
+                    _dataNorgeSerilizerOptions
+                );
                 return dataThemes;
             }
             catch (Exception ex)

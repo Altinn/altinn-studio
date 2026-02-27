@@ -22,7 +22,6 @@ namespace Designer.Tests.Fixtures
             GiteaPort = GetRandomAvailablePort();
             DesignerUrl = $"http://localhost:{DesignerPort}";
             GiteaUrl = $"http://localhost:{GiteaPort}";
-
         }
 
         public static int GetRandomAvailablePort()

@@ -2,9 +2,9 @@ import React from 'react';
 
 import { Card } from '@digdir/designsystemet-react';
 
-import { AccordionItem as AccordionComponent } from 'src/app-components/Accordion/AccordionItem';
+import { AccordionItem } from 'src/app-components/Accordion/AccordionItem';
 import { Flex } from 'src/app-components/Flex/Flex';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/layout/Accordion/Accordion.module.css';
 import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -15,15 +15,14 @@ import type { PropsFromGenericComponent } from 'src/layout';
 
 export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accordion'>) => {
   const { textResourceBindings, children, openByDefault } = useItemWhenType(baseComponentId, 'Accordion');
-  const { langAsString } = useLanguage();
   const canRender = useHasCapability('renderInAccordion');
   const renderAsAccordionItem = useIsInAccordionGroup();
 
-  const title = langAsString(textResourceBindings?.title ?? '');
+  const title = textResourceBindings?.title ?? '';
 
   const AccordionContent = ({ className }: { className?: string }) => (
-    <AccordionComponent
-      title={title}
+    <AccordionItem
+      title={translationKey(title)}
       className={className}
       defaultOpen={Boolean(openByDefault)}
     >
@@ -40,7 +39,7 @@ export const Accordion = ({ baseComponentId }: PropsFromGenericComponent<'Accord
           />
         ))}
       </Flex>
-    </AccordionComponent>
+    </AccordionItem>
   );
 
   return (

@@ -1,0 +1,13 @@
+.switch {
+  width: 100%;
+}
+
+.settingSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-size-3);
+}
+
+.settingInfoAlert {
+  align-self: stretch;
+}

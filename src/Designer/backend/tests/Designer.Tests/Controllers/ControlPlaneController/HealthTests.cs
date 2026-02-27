@@ -22,9 +22,8 @@ public class HealthTests : ControlPlaneControllerTestsBase<HealthTests>, IClassF
     private const string VersionPrefix = "/designer/api/v1/controlplane/health";
     private const string MaskinportenTestScheme = "MaskinportenTest";
 
-    public HealthTests(WebApplicationFactory<Program> factory) : base(factory)
-    {
-    }
+    public HealthTests(WebApplicationFactory<Program> factory)
+        : base(factory) { }
 
     private HttpClient CreateClientWithMaskinportenAuth(bool shouldAuthenticate, string scope = null)
     {
@@ -35,57 +34,68 @@ public class HealthTests : ControlPlaneControllerTestsBase<HealthTests>, IClassF
             .AddEnvironmentVariables()
             .Build();
 
-        return Factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseConfiguration(configuration);
-            builder.ConfigureAppConfiguration((_, conf) =>
+        return Factory
+            .WithWebHostBuilder(builder =>
             {
-                conf.AddJsonFile(configPath);
-                conf.AddJsonStream(GenerateJsonOverrideConfig());
-            });
-            builder.ConfigureTestServices(ConfigureTestServices);
-            builder.ConfigureTestServices(services =>
-            {
-                // Remove the IssuerSchemeCacheInitializer to avoid HTTP calls during test startup
-                ServiceDescriptor initializerDescriptor = services.FirstOrDefault(
-                    d => d.ImplementationType == typeof(IssuerSchemeCacheInitializer)
+                builder.UseConfiguration(configuration);
+                builder.ConfigureAppConfiguration(
+                    (_, conf) =>
+                    {
+                        conf.AddJsonFile(configPath);
+                        conf.AddJsonStream(GenerateJsonOverrideConfig());
+                    }
                 );
-                if (initializerDescriptor is not null)
+                builder.ConfigureTestServices(ConfigureTestServices);
+                builder.ConfigureTestServices(services =>
                 {
-                    services.Remove(initializerDescriptor);
-                }
+                    // Remove the IssuerSchemeCacheInitializer to avoid HTTP calls during test startup
+                    ServiceDescriptor initializerDescriptor = services.FirstOrDefault(d =>
+                        d.ImplementationType == typeof(IssuerSchemeCacheInitializer)
+                    );
+                    if (initializerDescriptor is not null)
+                    {
+                        services.Remove(initializerDescriptor);
+                    }
 
-                services.AddAuthentication(MaskinportenTestScheme)
-                    .AddScheme<MaskinportenTestAuthOptions, MaskinportenTestAuthHandler>(
-                        MaskinportenTestScheme,
-                        options =>
-                        {
-                            options.ShouldAuthenticate = shouldAuthenticate;
-                            options.Scope = scope;
-                            options.TimeProvider = System.TimeProvider.System;
-                        });
-
-                services.AddAuthorizationBuilder()
-                    .AddPolicy(
-                        MaskinportenConstants.AuthorizationPolicy,
-                        policy =>
-                        {
-                            policy.AddAuthenticationSchemes(MaskinportenTestScheme);
-                            policy.RequireAuthenticatedUser();
-                            policy.RequireAssertion(context =>
+                    services
+                        .AddAuthentication(MaskinportenTestScheme)
+                        .AddScheme<MaskinportenTestAuthOptions, MaskinportenTestAuthHandler>(
+                            MaskinportenTestScheme,
+                            options =>
                             {
-                                var scopeClaim = context.User.FindFirst(MaskinportenConstants.ScopeClaimType);
-                                if (scopeClaim is null)
-                                {
-                                    return false;
-                                }
+                                options.ShouldAuthenticate = shouldAuthenticate;
+                                options.Scope = scope;
+                                options.TimeProvider = System.TimeProvider.System;
+                            }
+                        );
 
-                                string[] scopes = scopeClaim.Value.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
-                                return scopes.Contains(RequiredScope);
-                            });
-                        });
-            });
-        }).CreateDefaultClient(new CookieContainerHandler());
+                    services
+                        .AddAuthorizationBuilder()
+                        .AddPolicy(
+                            MaskinportenConstants.AuthorizationPolicy,
+                            policy =>
+                            {
+                                policy.AddAuthenticationSchemes(MaskinportenTestScheme);
+                                policy.RequireAuthenticatedUser();
+                                policy.RequireAssertion(context =>
+                                {
+                                    var scopeClaim = context.User.FindFirst(MaskinportenConstants.ScopeClaimType);
+                                    if (scopeClaim is null)
+                                    {
+                                        return false;
+                                    }
+
+                                    string[] scopes = scopeClaim.Value.Split(
+                                        ' ',
+                                        System.StringSplitOptions.RemoveEmptyEntries
+                                    );
+                                    return scopes.Contains(RequiredScope);
+                                });
+                            }
+                        );
+                });
+            })
+            .CreateDefaultClient(new CookieContainerHandler());
     }
 
     [Fact]
@@ -120,7 +130,8 @@ public class HealthTests : ControlPlaneControllerTestsBase<HealthTests>, IClassF
     {
         using var client = CreateClientWithMaskinportenAuth(
             shouldAuthenticate: true,
-            scope: $"some:other:scope {RequiredScope} another:scope");
+            scope: $"some:other:scope {RequiredScope} another:scope"
+        );
         using var response = await client.GetAsync(VersionPrefix);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

@@ -14,5 +14,10 @@ public interface IAlertsService
         CancellationToken cancellationToken
     );
 
-    public Task NotifyAlertsUpdatedAsync(string org, AltinnEnvironment environment, Alert alert, CancellationToken cancellationToken);
+    public Task NotifyAlertsUpdatedAsync(
+        string org,
+        AltinnEnvironment environment,
+        Alert alert,
+        CancellationToken cancellationToken
+    );
 }

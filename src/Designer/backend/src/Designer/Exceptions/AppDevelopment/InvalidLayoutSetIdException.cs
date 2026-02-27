@@ -9,18 +9,14 @@ namespace Altinn.Studio.Designer.Exceptions.AppDevelopment
     public class InvalidLayoutSetIdException : Exception
     {
         /// <inheritdoc/>
-        public InvalidLayoutSetIdException()
-        {
-        }
+        public InvalidLayoutSetIdException() { }
 
         /// <inheritdoc/>
-        public InvalidLayoutSetIdException(string message) : base(message)
-        {
-        }
+        public InvalidLayoutSetIdException(string message)
+            : base(message) { }
 
         /// <inheritdoc/>
-        public InvalidLayoutSetIdException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
+        public InvalidLayoutSetIdException(string message, Exception innerException)
+            : base(message, innerException) { }
     }
 }
