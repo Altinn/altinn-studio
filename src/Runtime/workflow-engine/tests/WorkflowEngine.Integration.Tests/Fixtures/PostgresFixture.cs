@@ -84,9 +84,3 @@ public sealed class PostgresFixture : IAsyncLifetime
         await context.Database.ExecuteSqlRawAsync("""TRUNCATE "Workflows", "Steps" CASCADE""");
     }
 }
-
-[CollectionDefinition(Name)]
-public class PostgresCollection : ICollectionFixture<PostgresFixture>
-{
-    public const string Name = "Postgres";
-}

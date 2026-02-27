@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WorkflowEngine.EndToEndTests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience.Models;
 
 // CA1816: call GC.SuppressFinalize(object)
 #pragma warning disable CA1816
@@ -50,20 +51,33 @@ public partial class EngineEndToEndTests(EngineAppFixture fixture) : IAsyncLifet
     /// <summary>
     /// Creates a GET Webhook step pointing at <c>http://localhost:{wireMockPort}{path}</c>.
     /// </summary>
-    private StepRequest CreateWebhookStep(string path) =>
-        new() { Command = new Command.Webhook($"http://localhost:{fixture.WireMock.Port}{path}") };
-
-    /// <summary>
-    /// Creates a POST Webhook step pointing at <c>http://localhost:{wireMockPort}{path}</c>.
-    /// </summary>
-    private StepRequest CreateWebhookStep(string path, string payload) =>
-        new() { Command = new Command.Webhook($"http://localhost:{fixture.WireMock.Port}{path}", payload) };
+    private StepRequest CreateWebhookStep(
+        string path,
+        string? payload = null,
+        string? contentType = null,
+        TimeSpan? maxExecutionTime = null,
+        RetryStrategy? retryStrategy = null
+    ) =>
+        new()
+        {
+            Command = new Command.Webhook(
+                $"http://localhost:{fixture.WireMock.Port}{path}",
+                payload,
+                contentType,
+                maxExecutionTime
+            ),
+            RetryStrategy = retryStrategy,
+        };
 
     /// <summary>
     /// Creates an AppCommand step with the given command.
     /// </summary>
-    private static StepRequest CreateAppCommandStep(string command) =>
-        new() { Command = new Command.AppCommand(command) };
+    private static StepRequest CreateAppCommandStep(
+        string command,
+        string? payload = null,
+        TimeSpan? maxExecutionTime = null,
+        RetryStrategy? retryStrategy = null
+    ) => new() { Command = new Command.AppCommand(command, payload, maxExecutionTime), RetryStrategy = retryStrategy };
 
     /// <summary>Builds a <see cref="WorkflowRequest"/> with the supplied steps.</summary>
     private static WorkflowRequest CreateWorkflow(

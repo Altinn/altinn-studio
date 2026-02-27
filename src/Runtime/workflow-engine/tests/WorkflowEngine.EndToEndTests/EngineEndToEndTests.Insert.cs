@@ -1,6 +1,8 @@
+using WireMock;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.EndToEndTests;
 
@@ -17,8 +19,8 @@ public partial class EngineEndToEndTests
         var stubs = Enumerable.Range(1, numSteps).Select(i => $"/{stepType}-{i}").ToList();
         var steps = stepType switch
         {
-            "webhook" => stubs.Select(CreateWebhookStep).ToList(),
-            "app-command" => stubs.Select(CreateAppCommandStep).ToList(),
+            "webhook" => stubs.Select(x => CreateWebhookStep(x)).ToList(),
+            "app-command" => stubs.Select(x => CreateAppCommandStep(x)).ToList(),
             _ => throw new ArgumentOutOfRangeException(nameof(stepType)),
         };
         var request = CreateEnqueueRequest(CreateWorkflow("wf", WorkflowType.Generic, steps), lockToken: LockToken);
@@ -204,7 +206,64 @@ public partial class EngineEndToEndTests
         Assert.Equal(payload, logs[0].RequestMessage.Body);
     }
 
-    // TODO: Add test for overriding the default retry policy.
+    [Theory]
+    [InlineData("webhook")]
+    [InlineData("app-command")]
+    public async Task StepCommand_UsesMaxExecutionTime_CanOverrideRetryPolicy(string stepType)
+    {
+        // Arrange
+        var requestReceived = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        string? requestPath = null;
+
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().UsingAnyMethod())
+            .RespondWith(
+                Response
+                    .Create()
+                    .WithCallback(req =>
+                    {
+                        requestPath = req.AbsolutePath;
+                        requestReceived.TrySetResult(true);
+                        return new ResponseMessage { StatusCode = 200 };
+                    })
+                    .WithDelay(TimeSpan.FromSeconds(1))
+            );
+
+        var step = stepType switch
+        {
+            "webhook" => CreateWebhookStep(
+                $"/{stepType}-callback",
+                maxExecutionTime: TimeSpan.FromSeconds(0.5),
+                retryStrategy: RetryStrategy.None()
+            ),
+            "app-command" => CreateAppCommandStep(
+                $"/{stepType}-callback",
+                maxExecutionTime: TimeSpan.FromSeconds(0.5),
+                retryStrategy: RetryStrategy.None()
+            ),
+            _ => throw new InvalidOperationException(),
+        };
+
+        var request = CreateEnqueueRequest(
+            CreateWorkflow("wf", WorkflowType.AppProcessChange, [step]),
+            lockToken: LockToken
+        );
+
+        // Act
+        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var workflowId = response.Workflows.Values.Single();
+        var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Failed, status.OverallStatus);
+        Assert.Equal(PersistentItemStatus.Failed, status.Steps[0].Status);
+
+        await requestReceived.Task.WaitAsync(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+
+        Assert.NotNull(requestPath);
+        Assert.Contains($"/{stepType}-callback", requestPath, StringComparison.OrdinalIgnoreCase);
+    }
 
     [Fact]
     public async Task DiamondDag_AllWorkflowsComplete()
