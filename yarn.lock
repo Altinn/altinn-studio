@@ -2675,16 +2675,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/builder-vite@npm:10.2.10":
-  version: 10.2.10
-  resolution: "@storybook/builder-vite@npm:10.2.10"
+"@storybook/builder-vite@npm:10.2.11":
+  version: 10.2.11
+  resolution: "@storybook/builder-vite@npm:10.2.11"
   dependencies:
-    "@storybook/csf-plugin": "npm:10.2.10"
+    "@storybook/csf-plugin": "npm:10.2.11"
     ts-dedent: "npm:^2.0.0"
   peerDependencies:
-    storybook: ^10.2.10
+    storybook: ^10.2.11
     vite: ^5.0.0 || ^6.0.0 || ^7.0.0
-  checksum: 10/ff795c831c19d52bfedc280aabf150f25fb69838bf229111208fab05737047ba936790042238ebf209ec46bcca6ae0a0a217821afd22afca8612f8e4929e0991
+  checksum: 10/0afb63920c742bba72343576527b98ef84046ad8740ade10e57b04abc4137764d3c462bcc6f27f8e37112d1e641ff14f1986edc4d8e5cfb03d43b6a7b7bdf4ee
   languageName: node
   linkType: hard
 
@@ -2701,15 +2701,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/csf-plugin@npm:10.2.10":
-  version: 10.2.10
-  resolution: "@storybook/csf-plugin@npm:10.2.10"
+"@storybook/csf-plugin@npm:10.2.11":
+  version: 10.2.11
+  resolution: "@storybook/csf-plugin@npm:10.2.11"
   dependencies:
     unplugin: "npm:^2.3.5"
   peerDependencies:
     esbuild: "*"
     rollup: "*"
-    storybook: ^10.2.10
+    storybook: ^10.2.11
     vite: "*"
     webpack: "*"
   peerDependenciesMeta:
@@ -2721,7 +2721,7 @@ __metadata:
       optional: true
     webpack:
       optional: true
-  checksum: 10/600f9f5b47c269cc24e283f5f94c2e7b7c6649fe653028d4a91c04a9b4e9ef2444c41ac2b094052672d1ba47453d1755940d28f375c699523d3972d9d5d3d4d9
+  checksum: 10/e6c10d25bbfa772b75cac6eff4ba9b78587eeadb3eb2e32027e1481de9f77bdfc8256155b4d4007f27e5a310e197e9b60f06ea4679ed50c826c54b40dfd2fb90
   languageName: node
   linkType: hard
 
@@ -2834,7 +2834,7 @@ __metadata:
     "@chromatic-com/storybook": "npm:^5.0.0"
     "@storybook/addon-docs": "npm:9.1.19"
     "@storybook/addon-links": "npm:9.1.19"
-    "@storybook/builder-vite": "npm:10.2.10"
+    "@storybook/builder-vite": "npm:10.2.11"
     "@storybook/react-vite": "npm:9.1.19"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
@@ -2867,7 +2867,7 @@ __metadata:
     "@digdir/designsystemet-theme": "npm:1.11.0"
     "@storybook/addon-docs": "npm:9.1.19"
     "@storybook/addon-links": "npm:9.1.19"
-    "@storybook/builder-vite": "npm:10.2.10"
+    "@storybook/builder-vite": "npm:10.2.11"
     "@storybook/react-vite": "npm:9.1.19"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
