@@ -113,7 +113,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var traceContext = GetCurrentTraceContext();
             DeploymentEntity deploymentEntity = new();
-            deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContextAccessor.HttpContext);
+            deploymentEntity.PopulateBaseProperties(
+                authenticatedContext.Org,
+                authenticatedContext.Repo,
+                _httpContextAccessor.HttpContext
+            );
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvName = deployment.EnvName;
 
