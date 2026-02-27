@@ -1,10 +1,24 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { ValidateCardContent, type ValidateCardContentProps } from './ValidateCardContent';
 import { Scope } from '../utils/ValidateNavigationUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { selectSuggestionOption } from '../utils/ValidateNavigationTestUtils';
+import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
+
+const layoutSet1NameMock = 'test-layout-set';
+const layoutSets = {
+  sets: [
+    {
+      id: layoutSet1NameMock,
+      dataType: 'Task',
+    },
+  ],
+};
 
 describe('ValidateCardContent', () => {
   it('renders page selector when scope is SelectedPages', () => {
@@ -35,10 +49,10 @@ describe('ValidateCardContent', () => {
     const selectorLabel = textMock(
       'ux_editor.settings.navigation_validation_specific_task_label_several',
     );
-    const optionLabel = 'Oppgave 1';
+    const optionLabel = layoutSet1NameMock;
     await selectSuggestionOption({ user, selectorLabel, optionLabel });
     expect(mockOnChange).toHaveBeenCalledWith({
-      tasks: [{ label: 'Oppgave 1', value: 'Oppgave 1' }],
+      tasks: [{ label: layoutSet1NameMock, value: layoutSet1NameMock }],
     });
   });
 
@@ -48,11 +62,11 @@ describe('ValidateCardContent', () => {
     const mockOnChange = jest.fn();
     renderValidateCardContent({ scope: Scope.SelectedPages, onChange: mockOnChange });
     const selectorLabel = textMock('ux_editor.settings.navigation_validation_specific_task_label');
-    const optionLabel = 'Oppgave 1';
+    const optionLabel = layoutSet1NameMock;
     await selectSuggestionOption({ user, selectorLabel, optionLabel });
 
     expect(mockOnChange).toHaveBeenCalledWith({
-      task: { label: 'Oppgave 1', value: 'Oppgave 1' },
+      task: { label: layoutSet1NameMock, value: layoutSet1NameMock },
       pages: [],
     });
   });
@@ -62,11 +76,17 @@ const renderValidateCardContent = ({
   scope,
   onChange = jest.fn(),
 }: Partial<ValidateCardContentProps>) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
+
   const mockConfig = {
     types: [],
     pageScope: { label: '', value: '' },
     tasks: [],
   };
 
-  render(<ValidateCardContent scope={scope} config={mockConfig} onChange={onChange} />);
+  renderWithProviders(
+    <ValidateCardContent scope={scope} newConfig={mockConfig} onChange={onChange} />,
+    { queryClient },
+  );
 };

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
@@ -21,11 +21,14 @@ export type AppConfigFormProps = {
 
 export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps): ReactElement {
   const { t } = useTranslation();
-  const appConfigWithDefaults: ApplicationMetadata = {
-    ...appConfig,
-    visible: appConfig.visible ?? true,
-    access: { ...appConfig.access, delegable: appConfig.access?.delegable ?? true },
-  };
+  const appConfigWithDefaults: ApplicationMetadata = useMemo(
+    () => ({
+      ...appConfig,
+      visible: appConfig.visible ?? true,
+      access: { ...appConfig.access, delegable: appConfig.access?.delegable ?? true },
+    }),
+    [appConfig],
+  );
 
   const defaultDescriptionValue = { nb: '', nn: '', en: '' };
 

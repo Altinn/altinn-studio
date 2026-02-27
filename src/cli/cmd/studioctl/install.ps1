@@ -11,8 +11,11 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
+$DefaultVersion = "__STUDIOCTL_DEFAULT_VERSION__"
+if ($DefaultVersion -eq "__STUDIOCTL_DEFAULT_VERSION__") { $DefaultVersion = "latest" }
+
 if (-not $Version) { $Version = $env:STUDIOCTL_VERSION }
-if (-not $Version) { $Version = "latest" }
+if (-not $Version) { $Version = $DefaultVersion }
 if (-not $Repo) { $Repo = $env:STUDIOCTL_REPO }
 if (-not $Repo) { $Repo = "Altinn/altinn-studio" }
 if (-not $Asset) { $Asset = $env:STUDIOCTL_ASSET }
@@ -108,7 +111,8 @@ function Test-Checksum {
     foreach ($line in $checksumLines) {
         # Format: checksum  filename or checksum filename
         if ($line -match "^([a-f0-9]{64})\s+(.+)$") {
-            if ($Matches[2] -eq $Asset) {
+            $name = $Matches[2].Trim().TrimStart('*')
+            if ($name -eq $Asset) {
                 $expected = $Matches[1].ToLowerInvariant()
                 break
             }

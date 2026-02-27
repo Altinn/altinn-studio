@@ -30,7 +30,7 @@ describe('useSchemaEditorAppContext', () => {
   it('Throws an error if used outside a SchemaEditorAppContextProvider', () => {
     const renderHookFn = () => renderHook(() => useSchemaEditorAppContext());
     jest.spyOn(console, 'error').mockImplementation();
-    expect(renderHookFn).toThrowError(
+    expect(renderHookFn).toThrow(
       'useSchemaEditorAppContext must be used within a SchemaEditorAppContextProvider.',
     );
   });

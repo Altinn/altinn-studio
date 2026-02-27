@@ -7,4 +7,5 @@ export enum FeatureFlag {
   AppMetadata = 'appMetadata',
   NewCodeLists = 'newCodeLists',
   ValidateNavigation = 'validateNavigation',
+  AiAssistant = 'aiAssistant',
 }

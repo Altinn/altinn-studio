@@ -19,7 +19,7 @@
     "typecheck:watch": "tsc --noEmit -w"
   },
   "dependencies": {
-    "@posthog/react": "1.7.0",
+    "@posthog/react": "1.7.1",
     "@studio/content-library": "workspace:^",
     "@studio/feedback-form": "workspace:^",
     "@studio/hooks": "workspace:^",
@@ -31,7 +31,7 @@
     "posthog-js": "1.333.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-i18next": "16.5.3",
+    "react-i18next": "16.5.4",
     "react-router-dom": "7.12.0"
   },
   "devDependencies": {

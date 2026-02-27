@@ -3,8 +3,8 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import mockAxios from 'jest-mock-axios';
 
+import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { NavBar } from 'src/components/presentation/NavBar';
-import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { PresentationType, ProcessTaskType } from 'src/types';
 
@@ -18,13 +18,19 @@ interface RenderNavBarProps {
 }
 
 const render = async ({ hideCloseButton, initialPage }: RenderNavBarProps) => {
+  window.altinnAppGlobalData.ui = getUiConfigMock((ui) => {
+    ui.settings = { ...ui.settings!, hideCloseButton };
+    ui.folders.Task_1 = {
+      defaultDataType: defaultDataTypeMock,
+      pages: {
+        order: ['1', '2', '3'],
+      },
+    };
+  });
+
   await renderWithInstanceAndLayout({
     renderer: () => <NavBar />,
     initialPage,
-    queries: {
-      fetchLayoutSettings: () =>
-        Promise.resolve({ pages: { hideCloseButton, order: ['1', '2', '3'] } as unknown as IPagesSettingsWithOrder }),
-    },
   });
 };
 
