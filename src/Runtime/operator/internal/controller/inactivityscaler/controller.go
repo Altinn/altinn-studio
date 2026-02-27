@@ -39,7 +39,6 @@ const (
 	pdf3ProxyHpaName      = "pdf3-proxy-hpa"
 	pdf3WorkerHpaName     = "pdf3-worker-hpa"
 
-	scaleDownReplicaZero    = int32(0)
 	scaleDownReplicaOne     = int32(1)
 	desiredWorkdayStartHour = 6
 	desiredWorkdayEndHour   = 18
@@ -67,8 +66,9 @@ var (
 // Scaling paths:
 // - normal: restore app deployments/HPAs, gateway, and pdf3 to baseline.
 // - ttd_offhours: scale apps/gateway/pdf3 to 1 outside workhours for targeted ttd environments.
-// - no_apps: keep gateway at 1 and scale pdf3 to 0 until an app deployment appears.
-// - ttd_offhours_no_apps: same as no_apps for pdf3 (0), while app/gateway logic follows offhours/no-app rules.
+// - no_apps: same as above for now.
+// - ttd_offhours_no_apps: same as above for now.
+// NOTE: we cant scale to 0 atm with HPA
 type clusterState string
 
 const (
@@ -86,15 +86,8 @@ func (s clusterState) scaleGateway() bool {
 	return s == stateTTDOffhours || s == stateNoApps || s == stateTTDOffhoursNoApps
 }
 
-func (s clusterState) pdf3ScaleTarget() (bool, int32) {
-	switch s {
-	case stateNoApps, stateTTDOffhoursNoApps:
-		return true, scaleDownReplicaZero
-	case stateTTDOffhours:
-		return true, scaleDownReplicaOne
-	default:
-		return false, scaleDownReplicaOne
-	}
+func (s clusterState) scalePdf3() bool {
+	return s == stateTTDOffhours || s == stateNoApps || s == stateTTDOffhoursNoApps
 }
 
 type optionalInt32 struct {
@@ -250,13 +243,12 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 		span.SetStatus(codes.Error, "reconcile gateway")
 		return err
 	}
-	pdf3ShouldScale, pdf3Target := state.pdf3ScaleTarget()
-	if err := r.reconcileHpa(ctx, client.ObjectKey{Name: pdf3ProxyHpaName, Namespace: runtimePdf3Namespace}, pdf3ShouldScale, pdf3Target); err != nil {
+	if err := r.reconcileHpa(ctx, client.ObjectKey{Name: pdf3ProxyHpaName, Namespace: runtimePdf3Namespace}, state.scalePdf3(), scaleDownReplicaOne); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "reconcile pdf3-proxy")
 		return err
 	}
-	if err := r.reconcileHpa(ctx, client.ObjectKey{Name: pdf3WorkerHpaName, Namespace: runtimePdf3Namespace}, pdf3ShouldScale, pdf3Target); err != nil {
+	if err := r.reconcileHpa(ctx, client.ObjectKey{Name: pdf3WorkerHpaName, Namespace: runtimePdf3Namespace}, state.scalePdf3(), scaleDownReplicaOne); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "reconcile pdf3-worker")
 		return err
