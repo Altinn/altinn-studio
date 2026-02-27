@@ -1,5 +1,6 @@
 import { getAltinnAppApi } from 'nextsrc/api/generated/endpoints/altinnAppApi';
-import { IParty } from 'src/types/shared';
+
+import type { IParty } from 'src/types/shared';
 
 export class PartiesApi {
   private static altinnAppApi = getAltinnAppApi();

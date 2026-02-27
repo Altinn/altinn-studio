@@ -171,6 +171,10 @@ public class InstancesController : ControllerBase
             }
 
             var instanceOwnerParty = await _registerClient.GetPartyUnchecked(instanceOwnerPartyId, cancellationToken);
+            if (instanceOwnerParty is null)
+            {
+                return NotFound($"Party {instanceOwnerPartyId} not found");
+            }
 
             var dto = InstanceResponse.From(
                 await instance.WithOnlyAccessibleDataElements(_dataElementAccessChecker),

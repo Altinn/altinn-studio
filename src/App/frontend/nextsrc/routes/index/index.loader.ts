@@ -1,15 +1,14 @@
-import type { LoaderFunctionArgs } from 'react-router';
 import { redirect } from 'react-router';
+import type { LoaderFunctionArgs } from 'react-router';
 
-import type { QueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { InstanceApi } from 'nextsrc/core/api-client/instance.api';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { activeInstancesQuery } from 'nextsrc/core/queries/instance';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
 import { routeBuilders } from 'nextsrc/routesBuilder';
-
-import { InstanceResponse } from 'nextsrc/api/generated/model';
+import type { QueryClient } from '@tanstack/react-query';
+import type { InstanceResponse } from 'nextsrc/api/generated/model';
 
 function isStateless() {
   const entryType = GlobalData.applicationMetadata.onEntry?.show;

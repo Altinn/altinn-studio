@@ -1,7 +1,8 @@
 import { getAltinnAppApi } from 'nextsrc/api/generated/endpoints/altinnAppApi';
-import type { InstanceResponse, SimpleInstance } from 'nextsrc/api/generated/model';
-import { ISimpleInstance } from 'src/types';
-import { IInstance, IProcess } from 'src/types/shared';
+import type { InstanceResponse } from 'nextsrc/api/generated/model';
+
+import type { ISimpleInstance } from 'src/types';
+import type { IInstance, IProcess } from 'src/types/shared';
 
 export class InstanceApi {
   private static altinnAppApi = getAltinnAppApi();
