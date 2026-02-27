@@ -2,15 +2,18 @@ import React from 'react';
 
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
-import { render } from '@testing-library/react';
+import { render as renderRtl } from '@testing-library/react';
 import { randomUUID } from 'crypto';
 
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { ApplicationMetadata } from 'src/features/applicationMetadata/types';
+import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { ITextResourceBindings } from 'src/layout/layout';
 import { type SigningDocument, useDocumentList } from 'src/layout/SigningDocumentList/api';
 import { SigningDocumentListComponent } from 'src/layout/SigningDocumentList/SigningDocumentListComponent';
 import { ProcessTaskType } from 'src/types';
+
+function render(ui: React.ReactNode) {
+  return renderRtl(<AppComponentsBridge>{ui}</AppComponentsBridge>);
+}
 
 const mockDocumentList: SigningDocument[] = [
   {
@@ -31,7 +34,7 @@ const mockDocumentList: SigningDocument[] = [
 
 jest.mock('src/utils/layout/useNodeItem', () => ({}));
 
-jest.mock('react-router-dom', () => ({
+jest.mock('react-router', () => ({
   useParams: jest.fn(() => ({
     partyId: 'partyId',
     instanceGuid: randomUUID(),
@@ -48,12 +51,6 @@ jest.mock('src/features/language/Lang', () => ({
   Lang: ({ id }: { id: string }) => id,
 }));
 
-jest.mocked(getApplicationMetadata).mockImplementation(
-  () =>
-    ({
-      dataTypes: [],
-    }) as unknown as ApplicationMetadata,
-);
 jest.mock('src/features/instance/useProcessQuery', () => ({
   useTaskTypeFromBackend: jest.fn(() => ProcessTaskType.Signing),
 }));

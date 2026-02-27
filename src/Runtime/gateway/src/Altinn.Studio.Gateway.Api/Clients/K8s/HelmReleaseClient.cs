@@ -7,7 +7,7 @@ namespace Altinn.Studio.Gateway.Api.Clients.K8s;
 /// <summary>
 /// Service for interacting with HelmRelease resources in Kubernetes
 /// </summary>
-internal sealed class HelmReleaseClient(IKubernetes kubernetes)
+internal sealed class HelmReleaseClient(IKubernetes _kubernetes)
 {
     private const string HelmReleaseGroup = "helm.toolkit.fluxcd.io";
     private const string HelmReleaseVersion = "v2";
@@ -20,15 +20,11 @@ internal sealed class HelmReleaseClient(IKubernetes kubernetes)
     /// <param name="namespace">Namespace of the HelmRelease</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>HelmRelease if exists, or null if not found</returns>
-    public async Task<HelmRelease?> GetAsync(
-        string name,
-        string @namespace,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<HelmRelease?> Get(string name, string @namespace, CancellationToken cancellationToken = default)
     {
         try
         {
-            var obj = await kubernetes.CustomObjects.GetNamespacedCustomObjectAsync(
+            var obj = await _kubernetes.CustomObjects.GetNamespacedCustomObjectAsync(
                 HelmReleaseGroup,
                 HelmReleaseVersion,
                 @namespace,
@@ -62,14 +58,14 @@ internal sealed class HelmReleaseClient(IKubernetes kubernetes)
     /// <returns>
     /// A list of HelmReleases. The list is empty if no HelmReleases match.
     /// </returns>
-    public async Task<IReadOnlyList<HelmRelease>> ListAsync(
+    public async Task<IReadOnlyList<HelmRelease>> List(
         string @namespace,
         string? fieldSelector = null,
         string? labelSelector = null,
         CancellationToken cancellationToken = default
     )
     {
-        var obj = await kubernetes.CustomObjects.ListNamespacedCustomObjectAsync(
+        var obj = await _kubernetes.CustomObjects.ListNamespacedCustomObjectAsync(
             HelmReleaseGroup,
             HelmReleaseVersion,
             @namespace,

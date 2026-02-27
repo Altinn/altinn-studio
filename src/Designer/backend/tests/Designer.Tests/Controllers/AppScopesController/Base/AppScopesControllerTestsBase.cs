@@ -15,22 +15,24 @@ using Moq;
 namespace Designer.Tests.Controllers.AppScopesController.Base;
 
 public class AppScopesControllerTestsBase<TControllerTest> : DbDesignerEndpointsTestsBase<TControllerTest>
-where TControllerTest : class
+    where TControllerTest : class
 {
-    public AppScopesControllerTestsBase(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture) : base(factory, designerDbFixture)
+    public AppScopesControllerTestsBase(WebApplicationFactory<Program> factory, DesignerDbFixture designerDbFixture)
+        : base(factory, designerDbFixture)
     {
         JsonConfigOverrides.Add(
             $$"""
-                     {
-                           "FeatureManagement": {
-                               "{{StudioFeatureFlags.AnsattPorten}}": true
-                           },
-                           "AnsattPortenLoginSettings": {
-                               "ClientId": "non-empty-for-testing",
-                               "ClientSecret": "non-empty-for-testing"
-                           }
+               {
+                     "FeatureManagement": {
+                         "{{StudioFeatureFlags.AnsattPorten}}": true
+                     },
+                     "AnsattPortenLoginSettings": {
+                         "ClientId": "non-empty-for-testing",
+                         "ClientSecret": "non-empty-for-testing"
                      }
-                  """);
+               }
+            """
+        );
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)

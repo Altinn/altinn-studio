@@ -401,7 +401,6 @@ src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 *.generated.schema.json
 nextsrc/api/generated
 layout.schema.v1.json
-layout-sets.schema.v1.json
 layoutSettings.schema.v1.json
 
 /test/run-all-artifacts

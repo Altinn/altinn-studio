@@ -8,11 +8,7 @@ namespace Altinn.Studio.Designer.Converters;
 
 public class PagesJsonConverter : JsonConverter<Pages>
 {
-    public override Pages Read(
-        ref Utf8JsonReader reader,
-        Type typeToConvert,
-        JsonSerializerOptions options
-    )
+    public override Pages Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         using JsonDocument jsonDoc = JsonDocument.ParseValue(ref reader);
         JsonElement root = jsonDoc.RootElement;

@@ -24,6 +24,7 @@
       "Bash(gh issue view:*)",
       "Bash(gh pr view:*)",
       "Bash(gh pr list:*)",
+      "Bash(gh pr diff:*)",
       "Bash(gh search prs:*)",
 
       "Bash(make build:*)",
@@ -37,6 +38,7 @@
 
       "Bash(go build:*)",
       "Bash(go mod tidy:*)",
+      "Bash(go test:*)",
 
       "Bash(yarn test:*)",
       "Bash(yarn lint:*)",

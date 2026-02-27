@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import type { SetURLSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
+import type { SetURLSearchParams } from 'react-router';
 
 import classNames from 'classnames';
 
@@ -163,6 +163,9 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         data-componentbaseid={baseComponentId}
         data-componentid={nodeId}
         data-componenttype={component.type}
+        data-has-preselected-option={
+          'preselectedOptionIndex' in component && component.preselectedOptionIndex !== undefined ? '' : undefined
+        }
         ref={containerDivRef}
         item
         container

@@ -1,9 +1,9 @@
 // Route patterns (for router declaration)
-import { generatePath } from 'react-router-dom';
+import { generatePath } from 'react-router';
 
 export const routes = {
   root: '/',
-  partySelection: '/party-selection',
+  partySelection: '/party-selection/:errorCode?',
   instance: '/instance/:instanceOwnerPartyId/:instanceGuid',
   task: '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId',
   page: '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageId',

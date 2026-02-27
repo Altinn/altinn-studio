@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useSyncExternalStore } from 'react';
 
-import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
+import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 import type { FormClient } from 'nextsrc/libs/form-client/form-client';
 
 const FormClientContext = createContext<FormClient | null>(null);
@@ -20,14 +20,10 @@ export function useFormClient(): FormClient {
 export function useLayout(layoutId: string) {
   const client = useFormClient();
 
-  const value = useSyncExternalStore(
+  return useSyncExternalStore(
     (cb) => client.subscribe(layoutId, cb),
     () => client.getFormLayout(layoutId),
   );
-
-  // const setValue = (next: unknown) => client.setField(formId, field, next);
-
-  return value;
 }
 
 export function useFormValue(path: string): { value: FormDataPrimitive; setValue: (v: FormDataPrimitive) => void } {

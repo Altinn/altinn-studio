@@ -16,12 +16,14 @@ export type PublishedOptionListSelectorProps = {
   readonly component: FormItem<SelectionComponentType>;
   readonly handleComponentChange: (component: FormItem<SelectionComponentType>) => void;
   readonly orgName: string;
+  readonly triggerProps: React.ComponentProps<typeof StudioDialog.Trigger>;
 };
 
 export function PublishedOptionListSelector({
   component,
   handleComponentChange,
   orgName,
+  triggerProps,
 }: PublishedOptionListSelectorProps): React.ReactNode {
   const { t } = useTranslation();
 
@@ -59,9 +61,7 @@ export function PublishedOptionListSelector({
 
   return (
     <StudioDialog.TriggerContext>
-      <StudioDialog.Trigger variant='secondary'>
-        {t('ux_editor.options.published_code_list.choose')}
-      </StudioDialog.Trigger>
+      <StudioDialog.Trigger variant='secondary' {...triggerProps} />
       <StudioDialog ref={dialogRef}>
         <form ref={formRef}>
           <StudioFieldset legend={t('ux_editor.options.published_code_list.choose')}>

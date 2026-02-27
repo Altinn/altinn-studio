@@ -990,7 +990,7 @@ public class CustomOpenApiController : Controller
         var optionsIds = appMetadata
             .DataTypes.Select(d => d.TaskId)
             .Distinct()
-            .Select(taskId => _appResources.GetLayoutModelForTask(taskId))
+            .Select(taskId => _appResources.GetLayoutModelForFolder(taskId))
             .SelectMany(layout => layout?.AllComponents.OfType<OptionsComponent>().Select(oc => oc.OptionsId) ?? [])
             .Where(o => !string.IsNullOrWhiteSpace(o) && Regex.IsMatch(o, libraryRefRegex))
             .Distinct()

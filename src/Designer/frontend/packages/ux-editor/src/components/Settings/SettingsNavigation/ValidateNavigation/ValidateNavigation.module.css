@@ -1,4 +1,4 @@
-.validationContent {
+.validateContent {
   display: flex;
   flex-direction: column;
   gap: var(--ds-size-4);

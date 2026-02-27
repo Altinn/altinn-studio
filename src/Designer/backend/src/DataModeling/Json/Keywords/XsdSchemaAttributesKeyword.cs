@@ -48,7 +48,11 @@ public sealed class XsdSchemaAttributesKeyword : IJsonSchemaKeyword, IEquatable<
         Properties = values as List<(string, string)> ?? values.ToList();
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -89,7 +93,11 @@ public sealed class XsdSchemaAttributesKeyword : IJsonSchemaKeyword, IEquatable<
         /// <summary>
         /// Read @xsdSchemaAttributes keyword from json schema
         /// </summary>
-        public override XsdSchemaAttributesKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdSchemaAttributesKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             JsonDocument document = JsonDocument.ParseValue(ref reader);
 
@@ -98,13 +106,19 @@ public sealed class XsdSchemaAttributesKeyword : IJsonSchemaKeyword, IEquatable<
                 throw new JsonException("Expected object");
             }
 
-            return new XsdSchemaAttributesKeyword(document.RootElement.EnumerateObject().Select(p => (p.Name, p.Value.GetString())));
+            return new XsdSchemaAttributesKeyword(
+                document.RootElement.EnumerateObject().Select(p => (p.Name, p.Value.GetString()))
+            );
         }
 
         /// <summary>
         /// Write @xsdSchemaAttributes keyword to json
         /// </summary>
-        public override void Write(Utf8JsonWriter writer, XsdSchemaAttributesKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            XsdSchemaAttributesKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WritePropertyName(Name);
             writer.WriteStartObject();

@@ -1,9 +1,11 @@
 import React from 'react';
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import type { JSONSchema7 } from 'json-schema';
 
 import { AppTable } from 'src/app-components/Table/Table';
+import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
+import type { TranslationKey } from 'src/app-components/types';
 
 const data = [
   { id: 1, name: 'Alice', date: '05.10.2023', amount: 100 },
@@ -11,20 +13,20 @@ const data = [
 ];
 
 const columns = [
-  { header: 'Name', accessors: ['name'] },
-  { header: 'Date', accessors: ['date'] },
-  { header: 'Amount', accessors: ['amount'] },
+  { header: 'Name' as TranslationKey, accessors: ['name'] },
+  { header: 'Date' as TranslationKey, accessors: ['date'] },
+  { header: 'Amount' as TranslationKey, accessors: ['amount'] },
 ];
 
 const actionButtons = [
   {
     onClick: jest.fn(),
-    buttonText: 'Edit',
+    buttonText: 'Edit' as TranslationKey,
     icon: null,
   },
   {
     onClick: jest.fn(),
-    buttonText: 'Delete',
+    buttonText: 'Delete' as TranslationKey,
     icon: null,
   },
 ];
@@ -42,7 +44,7 @@ const schema: JSONSchema7 = {
 
 describe('AppTable Component', () => {
   test('renders table with correct headers', () => {
-    render(
+    renderWithAppComponentsProvider(
       <AppTable
         data={data}
         columns={columns}
@@ -56,7 +58,7 @@ describe('AppTable Component', () => {
   });
 
   test('renders correct number of rows', () => {
-    render(
+    renderWithAppComponentsProvider(
       <AppTable
         data={data}
         columns={columns}
@@ -69,7 +71,7 @@ describe('AppTable Component', () => {
   });
 
   test('renders action buttons when provided', () => {
-    render(
+    renderWithAppComponentsProvider(
       <AppTable
         data={data}
         columns={columns}
@@ -83,7 +85,7 @@ describe('AppTable Component', () => {
   });
 
   test('correctly displays dates in cells', () => {
-    render(
+    renderWithAppComponentsProvider(
       <AppTable
         data={data}
         columns={columns}
@@ -99,12 +101,12 @@ describe('AppTable Component', () => {
     const columnsWithRenderCell = [
       ...columns,
       {
-        header: 'Custom',
+        header: 'Custom' as TranslationKey,
         accessors: ['name', 'amount'],
         renderCell: (values) => `Name: ${values[0]}, Amount: ${values[1]}`,
       },
     ];
-    render(
+    renderWithAppComponentsProvider(
       <AppTable
         data={data}
         columns={columnsWithRenderCell}
@@ -121,12 +123,12 @@ describe('AppTable Component', () => {
     const actionButtonsMock = [
       {
         onClick: onClickMock,
-        buttonText: 'Edit',
+        buttonText: 'Edit' as TranslationKey,
         icon: null,
       },
     ];
 
-    render(
+    renderWithAppComponentsProvider(
       <AppTable
         data={data}
         columns={columns}
@@ -147,7 +149,7 @@ describe('AppTable Component', () => {
   });
 
   test('does not render action buttons column when actionButtons is not provided', () => {
-    render(
+    renderWithAppComponentsProvider(
       <AppTable
         data={data}
         columns={columns}
@@ -160,7 +162,7 @@ describe('AppTable Component', () => {
   });
 
   test('renders extra header cell when actionButtons are provided', () => {
-    render(
+    renderWithAppComponentsProvider(
       <AppTable
         data={data}
         columns={columns}
@@ -178,7 +180,7 @@ describe('AppTable Component', () => {
       { id: 1, name: 'Alice', date: 'Not a date', amount: 100 },
       { id: 2, name: 'Bob', date: 'Also not a date', amount: 200 },
     ];
-    render(
+    renderWithAppComponentsProvider(
       <AppTable
         data={dataWithNonDate}
         columns={columns}

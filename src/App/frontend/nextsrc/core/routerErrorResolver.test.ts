@@ -1,8 +1,9 @@
-import { isRouteErrorResponse } from 'react-router-dom';
+import { isRouteErrorResponse } from 'react-router';
 
+import { expect, jest } from '@jest/globals';
 import { RouterErrorResolver } from 'nextsrc/core/routerErrorResolver';
 
-jest.mock('react-router-dom', () => ({
+jest.mock('react-router', () => ({
   isRouteErrorResponse: jest.fn(),
 }));
 

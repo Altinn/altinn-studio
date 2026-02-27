@@ -86,6 +86,7 @@ export interface IInstance {
   completeConfirmations?: unknown;
   presentationTexts?: unknown;
   dataValues?: unknown;
+  process?: IProcess;
 }
 
 export interface IInstanceStatus {
