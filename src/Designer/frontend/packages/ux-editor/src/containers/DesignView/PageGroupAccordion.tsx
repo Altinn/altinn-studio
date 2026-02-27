@@ -4,13 +4,7 @@ import classes from './PageGroupAccordion.module.css';
 import { useTranslation } from 'react-i18next';
 import { PageAccordion } from './PageAccordion';
 import { FormLayout } from './FormLayout';
-import {
-  StudioAlert,
-  StudioButton,
-  StudioPopover,
-  StudioHeading,
-  StudioDeleteButton,
-} from '@studio/components';
+import { StudioAlert, StudioButton, StudioPopover, StudioDeleteButton } from '@studio/components';
 import {
   MenuElipsisVerticalIcon,
   FolderIcon,
