@@ -7,7 +7,6 @@ import type { CyUser, TenorUser } from 'test/e2e/support/auth';
 import type { IFeatureToggles } from 'src/features/toggles';
 import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
-import type { LooseAutocomplete } from 'src/types';
 
 export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'datalist' | 'confirm';
 export type FillableFrontendTasks = Exclude<FrontendTestTask, 'message' | 'confirm'>;
@@ -148,7 +147,7 @@ declare global {
        * Must be called in the beginning of your test.
        */
       interceptLayout(
-        taskName: LooseAutocomplete<FrontendTestTask>,
+        taskId: string,
         mutator?: (component: CompExternal) => void,
         wholeLayoutMutator?: (layoutSet: ILayoutCollection) => void,
         options?: { times?: number },

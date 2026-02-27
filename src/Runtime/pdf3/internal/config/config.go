@@ -11,11 +11,19 @@ import (
 
 var logger = log.NewComponent("config")
 
+const (
+	// EnvironmentLocaltest identifies localtest execution mode.
+	EnvironmentLocaltest = "localtest"
+	// LocaltestPublicBaseURLEnv provides the canonical public base URL used for localtest URL rewriting.
+	LocaltestPublicBaseURLEnv = "PDF3_LOCALTEST_PUBLIC_BASE_URL"
+)
+
 type Config struct {
 	Environment string
 
 	QueueSize              int
 	BrowserRestartInterval time.Duration
+	LocaltestPublicBaseURL string
 }
 
 func ReadConfig() *Config {
@@ -59,7 +67,28 @@ func ReadConfig() *Config {
 		Environment:            environment,
 		QueueSize:              queueSize,
 		BrowserRestartInterval: browserRestartInterval,
+		LocaltestPublicBaseURL: os.Getenv(LocaltestPublicBaseURLEnv),
 	}
+}
+
+// ShouldConfigureOTel reports whether PDF3 should initialize OpenTelemetry exporters.
+// In localtest, exporters are opt-in to avoid noisy connection errors in default setup.
+func ShouldConfigureOTel(environment string) bool {
+	if environment != EnvironmentLocaltest {
+		return true
+	}
+
+	for _, key := range []string{
+		"OTEL_EXPORTER_OTLP_ENDPOINT",
+		"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+		"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+	} {
+		if val := os.Getenv(key); val != "" {
+			return true
+		}
+	}
+
+	return false
 }
 
 // HostParameters contains timeout values for runtime.NewHost
@@ -72,7 +101,7 @@ type HostParameters struct {
 // ResolveHostParametersForEnvironment returns appropriate host parameters based on environment.
 // Localtest uses zero timeouts for fast restarts, production uses full graceful shutdown periods.
 func ResolveHostParametersForEnvironment(environment string) HostParameters {
-	if environment == "localtest" {
+	if environment == EnvironmentLocaltest {
 		// Minimal delays for local development - fast restarts
 		return HostParameters{
 			ReadinessDrainDelay: 0,
@@ -86,4 +115,13 @@ func ResolveHostParametersForEnvironment(environment string) HostParameters {
 		ShutdownPeriod:      45 * time.Second,
 		ShutdownHardPeriod:  3 * time.Second,
 	}
+}
+
+// ResolveTelemetryShutdownTimeoutForEnvironment returns how long to wait for OTel shutdown flush.
+// Localtest skips graceful flush to prioritize fast restarts.
+func ResolveTelemetryShutdownTimeoutForEnvironment(environment string) time.Duration {
+	if environment == EnvironmentLocaltest {
+		return 0
+	}
+	return 5 * time.Second
 }

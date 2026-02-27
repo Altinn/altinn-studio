@@ -1,0 +1,16 @@
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: grafana-annotation-kuberneteswrapper
+  namespace: default
+spec:
+  eventMetadata:
+    env: ${ENVIRONMENT}
+    cluster: studio-${ENVIRONMENT}-aks
+    app: kuberneteswrapper
+  eventSeverity: info
+  eventSources:
+    - kind: Kustomization
+      name: kubernetes-wrapper
+  providerRef:
+    name: grafana

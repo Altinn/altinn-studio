@@ -11,10 +11,11 @@ internal sealed record ClientIpResponse(
 
 internal static class DebugEndpoints
 {
-    public static WebApplication MapDebugEndpoints(this WebApplication app)
+    public static RouteGroupBuilder MapDebugEndpoints(this RouteGroupBuilder localApiV1)
     {
-        app.MapGet(
-                "/runtime/gateway/api/v1/debug/clientip",
+        localApiV1
+            .MapGet(
+                "/debug/clientip",
                 (HttpContext ctx) =>
                 {
                     var headers = ctx.Request.Headers;
@@ -28,11 +29,10 @@ internal static class DebugEndpoints
                     );
                 }
             )
-            .RequirePublicPort()
             .WithName("DebugClientIp")
             .WithTags("Debug")
             .ExcludeFromDescription();
 
-        return app;
+        return localApiV1;
     }
 }

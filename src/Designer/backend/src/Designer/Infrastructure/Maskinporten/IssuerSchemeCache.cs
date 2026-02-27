@@ -45,9 +45,7 @@ internal sealed class IssuerSchemeCacheInitializer(
         cts.CancelAfter(TimeSpan.FromSeconds(20));
         cancellationToken = cts.Token;
 
-        string[]? metadataAddresses = configuration
-            .GetSection("Maskinporten:MetadataAddresses")
-            .Get<string[]>();
+        string[]? metadataAddresses = configuration.GetSection("Maskinporten:MetadataAddresses").Get<string[]>();
 
         if (metadataAddresses is null || metadataAddresses.Length == 0)
         {
@@ -64,10 +62,7 @@ internal sealed class IssuerSchemeCacheInitializer(
             string metadataAddress = metadataAddresses[i];
             string schemeName = $"Maskinporten_{i}";
 
-            string response = await httpClient.GetStringAsync(
-                new Uri(metadataAddress),
-                cancellationToken
-            );
+            string response = await httpClient.GetStringAsync(new Uri(metadataAddress), cancellationToken);
             using var doc = JsonDocument.Parse(response);
 
             if (!doc.RootElement.TryGetProperty("issuer", out JsonElement issuerElement))
@@ -84,11 +79,7 @@ internal sealed class IssuerSchemeCacheInitializer(
                 );
 
             mapping[issuer] = schemeName;
-            logger.LogInformation(
-                "Mapped issuer {Issuer} to authentication scheme {Scheme}",
-                issuer,
-                schemeName
-            );
+            logger.LogInformation("Mapped issuer {Issuer} to authentication scheme {Scheme}", issuer, schemeName);
         }
 
         cache.Initialize(mapping.ToFrozenDictionary());

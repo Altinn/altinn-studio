@@ -1,0 +1,152 @@
+version: "2"
+run:
+  timeout: 5m
+  allow-parallel-runners: true
+
+linters:
+  default: all
+
+  disable:
+    - nonamedreturns
+    - arangolint
+    - ginkgolinter
+    - wsl
+    - wsl_v5
+    - lll
+    - paralleltest
+    - promlinter
+    - varnamelen
+    - nlreturn
+    - noinlineerr
+    - gomoddirectives
+    - depguard
+    - godox
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+
+    govet:
+      enable-all: true
+      # disable:
+      #   - fieldalignment
+
+    nakedret:
+      max-func-lines: 0
+
+    exhaustive:
+      default-signifies-exhaustive: false
+
+    goconst:
+      min-occurrences: 3
+
+    gocyclo:
+      min-complexity: 16
+
+    gocognit:
+      min-complexity: 20
+
+    cyclop:
+      max-complexity: 20
+      package-average: 10.0
+
+    funlen:
+      lines: 80
+      statements: 50
+
+    nestif:
+      min-complexity: 4
+
+    mnd:
+      ignored-numbers:
+        - "0"
+        - "1"
+        - "2"
+      ignored-functions:
+        - "make"
+        - "os.Exit"
+        - "strconv.*"
+
+    exhaustruct:
+      exclude:
+        - 'net/http\.Client'
+
+    gocritic:
+      # Settings passed to gocritic.
+      # The settings key is the name of a supported gocritic checker.
+      # The list of supported checkers can be found at https://go-critic.com/overview.
+      settings:
+        captLocal:
+          # Whether to restrict checker to params only.
+          # Default: true
+          paramsOnly: false
+        underef:
+          # Whether to skip (*x).method() calls where x is a pointer receiver.
+          # Default: true
+          skipRecvDeref: false
+
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+
+    revive:
+      rules:
+        - name: comment-spacings
+        - name: import-shadowing
+        - name: error-return
+        - name: error-naming
+        - name: exported
+        - name: if-return
+        - name: increment-decrement
+        - name: var-declaration
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: unexported-return
+        - name: indent-error-flow
+        - name: errorf
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: empty-block
+        - name: unnecessary-stmt
+        - name: unreachable-code
+
+  exclusions:
+    # Log a warning if an exclusion rule is unused.
+    # Default: false
+    warn-unused: true
+    # Predefined exclusion rules.
+    # Default: []
+    # presets:
+      # - std-error-handling
+      # - common-false-positives
+    # Excluding configuration per-path, per-linter, per-text and per-source.
+    rules:
+      - path: '_test\.go'
+        linters:
+          - funlen
+          - gosec
+          - gocognit
+          - exhaustruct
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+    - golines
+  settings:
+    goimports:
+      # A list of prefixes, which, if set, checks import paths
+      # with the given prefixes are grouped after 3rd-party packages.
+      # Default: []
+      local-prefixes:
+        - altinn.studio/
+
+    golines:
+      # Target maximum line length.
+      # Default: 100
+      max-len: 120

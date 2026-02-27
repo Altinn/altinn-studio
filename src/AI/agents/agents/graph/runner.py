@@ -126,23 +126,33 @@ async def run_once(state: AgentState, event_sink: EventSink = None):
 
     # Send completion event
     success = final_state.get("tests_passed", False)
-    notes = final_state.get("verify_notes") or []
-    if not isinstance(notes, list):
-        notes = [str(notes)]
-    if success:
+    completion_message = final_state.get("completion_message")
+
+    # Determine status and message
+    if completion_message:
+        # Use custom completion message if set (e.g., "no changes")
+        status = "no_changes"
+        message = completion_message
+    elif success:
+        status = "completed"
         message = "Task completed successfully"
     else:
+        notes = final_state.get("verify_notes") or []
+        if not isinstance(notes, list):
+            notes = [str(notes)]
         if notes:
             message = "Task failed: " + "; ".join(str(n) for n in notes)
         else:
             message = "Task completed with issues"
+        status = "failed"
+
     event_sink.send(AgentEvent(
         type="status",
         session_id=final_state.get("session_id", state.session_id),
         data={
-            "done": True, 
+            "done": True,
             "success": success,
-            "status": "completed" if success else "failed",
+            "status": status,
             "message": message
         }
     ))

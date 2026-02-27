@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
 using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -25,7 +24,9 @@ namespace Altinn.Studio.Designer.Controllers
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/text")]
-    [Obsolete("TextController is deprecated, please use TextsController instead. Only in use until new texts format is implemented in apps.")]
+    [Obsolete(
+        "TextController is deprecated, please use TextsController instead. Only in use until new texts format is implemented in apps."
+    )]
     public class TextController : Controller
     {
         private readonly IWebHostEnvironment _hostingEnvironment;
@@ -44,7 +45,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="logger">the log handler.</param>
         /// <param name="textsService">The texts service</param>
         /// <param name="mediator">the mediator.</param>
-        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger, ITextsService textsService, IMediator mediator)
+        public TextController(
+            IWebHostEnvironment hostingEnvironment,
+            IRepository repositoryService,
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<TextController> logger,
+            ITextsService textsService,
+            IMediator mediator
+        )
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = repositoryService;
@@ -90,7 +98,6 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return NotFound($"Text resource, resource.{languageCode}.json, could not be found.");
             }
-
         }
 
         /// <summary>
@@ -103,7 +110,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>A View with update status</returns>
         [HttpPost]
         [Route("language/{languageCode}")]
-        public async Task<ActionResult> SaveResource([FromBody] TextResource jsonData, string languageCode, string org, string app)
+        public async Task<ActionResult> SaveResource(
+            [FromBody] TextResource jsonData,
+            string languageCode,
+            string org,
+            string app
+        )
         {
             try
             {
@@ -133,14 +145,24 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
         [HttpPut]
         [Route("language/{languageCode}")]
-        public async Task<IActionResult> UpdateTextsForKeys(string org, string app, [FromBody] Dictionary<string, string> keysTexts, string languageCode)
+        public async Task<IActionResult> UpdateTextsForKeys(
+            string org,
+            string app,
+            [FromBody] Dictionary<string, string> keysTexts,
+            string languageCode
+        )
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-                TextResource textResource = await _textsService.UpdateTextsForKeys(org, app, developer, keysTexts, languageCode);
+                TextResource textResource = await _textsService.UpdateTextsForKeys(
+                    org,
+                    app,
+                    developer,
+                    keysTexts,
+                    languageCode
+                );
                 return Ok(textResource);
-
             }
             catch (ArgumentException exception)
             {
@@ -162,7 +184,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <remarks>If the newId is empty or undefined it implies that it is going to be removed</remarks>
         /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
         [HttpPut("keys")]
-        public async Task<IActionResult> UpdateKeyNames(string org, string app, [FromBody] List<TextIdMutation> mutations)
+        public async Task<IActionResult> UpdateKeyNames(
+            string org,
+            string app,
+            [FromBody] List<TextIdMutation> mutations
+        )
         {
             bool mutationHasOccured = false;
             try
@@ -177,12 +203,14 @@ namespace Altinn.Studio.Designer.Controllers
                     {
                         if (m.OldId == "appName" || m.OldId == "serviceName")
                         {
-                            throw new ArgumentException("You can not change the key representing the name of the application.");
+                            throw new ArgumentException(
+                                "You can not change the key representing the name of the application."
+                            );
                         }
 
-                        int originalEntryIndex =
-                            textResourceObject.Resources.FindIndex(textResourceElement =>
-                                textResourceElement.Id == m.OldId);
+                        int originalEntryIndex = textResourceObject.Resources.FindIndex(textResourceElement =>
+                            textResourceElement.Id == m.OldId
+                        );
                         if (originalEntryIndex == -1)
                         {
                             continue;
@@ -201,11 +229,13 @@ namespace Altinn.Studio.Designer.Controllers
                         mutationHasOccured = true;
                     }
 
-                    await _mediator.Publish(new LanguageTextsKeyChangedEvent
-                    {
-                        IdMutations = mutations,
-                        EditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)
-                    });
+                    await _mediator.Publish(
+                        new LanguageTextsKeyChangedEvent
+                        {
+                            IdMutations = mutations,
+                            EditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
+                        }
+                    );
                     await _textsService.SaveText(org, app, developer, textResourceObject, languageCode);
                 }
             }
@@ -233,7 +263,12 @@ namespace Altinn.Studio.Designer.Controllers
         public IActionResult DeleteLanguage(string org, string app, string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            if (_repository.DeleteLanguage(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), languageCode))
+            if (
+                _repository.DeleteLanguage(
+                    AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer),
+                    languageCode
+                )
+            )
             {
                 return Ok($"Resources.{languageCode}.json was successfully deleted.");
             }

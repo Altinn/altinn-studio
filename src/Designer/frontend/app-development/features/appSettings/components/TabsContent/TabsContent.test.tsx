@@ -11,7 +11,14 @@ import type { SettingsPageTabId } from 'app-development/types/SettingsPageTabId'
 import { MemoryRouter } from 'react-router-dom';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 
-const tabs: SettingsPageTabId[] = ['about', 'setup', 'policy', 'access_control', 'maskinporten'];
+const tabs: SettingsPageTabId[] = [
+  'about',
+  'setup',
+  'policy',
+  'access_control',
+  'run',
+  'maskinporten',
+];
 
 describe('TabsContent', () => {
   afterEach(() => {

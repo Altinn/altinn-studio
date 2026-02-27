@@ -30,7 +30,4 @@ type: Opaque
 stringData:
   runtime-common-secrets.json: |-
     {
-      "ApplicationInsights": {
-        "ConnectionString": ""
-      }
     }

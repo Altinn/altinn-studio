@@ -16,18 +16,19 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class DiscardChangesTests : DesignerEndpointsTestsBase<DiscardChangesTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class DiscardChangesTests
+        : DesignerEndpointsTestsBase<DiscardChangesTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly Mock<ISourceControl> _sourceControlMock = new Mock<ISourceControl>();
         private static string VersionPrefix => "/designer/api/repos";
-        public DiscardChangesTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+
+        public DiscardChangesTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
+            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGiteaClient, IGiteaClientMock>();
             services.AddSingleton(_sourceControlMock.Object);
         }
@@ -43,13 +44,15 @@ namespace Designer.Tests.Controllers.RepositoryController
             {
                 RepositoryStatus = RepositoryStatus.Ok,
                 CurrentBranch = "main",
-                ContentStatus = new List<RepositoryContent>()
+                ContentStatus = new List<RepositoryContent>(),
             };
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                repo,
+                "testUser"
+            );
 
-            _sourceControlMock
-                .Setup(x => x.DiscardLocalChanges(editingContext))
-                .Returns(expectedRepoStatus);
+            _sourceControlMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
 
             // Act
             using HttpResponseMessage response = await HttpClient.PostAsync(uri, null);
@@ -73,13 +76,15 @@ namespace Designer.Tests.Controllers.RepositoryController
             {
                 RepositoryStatus = RepositoryStatus.Ok,
                 CurrentBranch = "main",
-                ContentStatus = new List<RepositoryContent>()
+                ContentStatus = new List<RepositoryContent>(),
             };
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                repo,
+                "testUser"
+            );
 
-            _sourceControlMock
-                .Setup(x => x.DiscardLocalChanges(editingContext))
-                .Returns(expectedRepoStatus);
+            _sourceControlMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
 
             // Act
             using HttpResponseMessage response = await HttpClient.PostAsync(uri, null);
@@ -99,7 +104,11 @@ namespace Designer.Tests.Controllers.RepositoryController
             string org = "ttd";
             string repo = "non-existing-repo";
             string uri = $"{VersionPrefix}/repo/{org}/{repo}/discard-changes";
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                repo,
+                "testUser"
+            );
 
             _sourceControlMock
                 .Setup(x => x.DiscardLocalChanges(editingContext))
@@ -127,13 +136,15 @@ namespace Designer.Tests.Controllers.RepositoryController
             {
                 RepositoryStatus = RepositoryStatus.Ok,
                 CurrentBranch = branchName,
-                ContentStatus = new List<RepositoryContent>()
+                ContentStatus = new List<RepositoryContent>(),
             };
-            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, "testUser");
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                org,
+                repo,
+                "testUser"
+            );
 
-            _sourceControlMock
-                .Setup(x => x.DiscardLocalChanges(editingContext))
-                .Returns(expectedRepoStatus);
+            _sourceControlMock.Setup(x => x.DiscardLocalChanges(editingContext)).Returns(expectedRepoStatus);
 
             // Act
             using HttpResponseMessage response = await HttpClient.PostAsync(uri, null);

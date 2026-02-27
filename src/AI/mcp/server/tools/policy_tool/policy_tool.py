@@ -16,15 +16,46 @@ ROLE_API_URL = "https://www.altinn.no/api/metadata/roledefinitions"
 @register_tool(
     name="policy_tool",
     description="""
-    Tool with all relevant context for policy generation.
-    For all use in policy.xml, or any changes in the authorization or access control of users.
-    Generate standard for the policy code for a user query using the Altinn Studio pipeline.
-    Find the relevant role based on user query.
-    Find the relevant authorization based on user query.
-    Remove authorization from role based on prompt.
+Returns static documentation on authorization policies and access control in Altinn applications.
 
-    Returns:
-        A dictionary containing all relevant information for policy generation, including roles, access controls, and markdown with steps to generate the policy code
+## Purpose
+Understand how to create and configure policy.xml for authorization rules.
+
+## No Parameters Required
+Returns comprehensive static documentation - call ONCE per session.
+
+## Documentation Covers
+- XACML policy structure and syntax
+- Role definitions and role codes
+- Resource and action definitions
+- Policy rule patterns (Permit/Deny)
+- Common authorization scenarios
+
+## File Location
+Policy file is stored at: `App/config/authorization/policy.xml`
+
+## When to Use
+✅ To understand policy.xml structure before creating rules
+✅ When implementing authorization for the first time
+✅ To learn about available roles and actions
+✅ Before using `policy_summarization_tool` or `policy_validation_tool`
+
+## When NOT to Use
+❌ To summarize existing policy (use `policy_summarization_tool` instead)
+❌ To validate policy rules (use `policy_validation_tool` instead)
+❌ Multiple times in same session (returns identical static content)
+
+## Related Tools
+- `policy_summarization_tool`: Parse and summarize existing policy.xml
+- `policy_validation_tool`: Validate rules against requirements (requires summarization first)
+
+## Policy Workflow
+```
+1. policy_tool() → Understand policy concepts
+2. Create/modify policy.xml
+3. policy_summarization_tool(xml_content) → Get readable summary
+4. policy_validation_tool(query, policy_rules) → Validate against requirements
+```
 """,
     title="Policy Tool",
     annotations=ToolAnnotations(

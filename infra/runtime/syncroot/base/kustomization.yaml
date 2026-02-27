@@ -6,6 +6,7 @@ resources:
   - operator.yaml
   - pdf.yaml
   - gateway.yaml
+  - kubernetes-wrapper.yaml
   - flux-config.yaml
   - altinn-charts.yaml
   - apps-syncroot.yaml

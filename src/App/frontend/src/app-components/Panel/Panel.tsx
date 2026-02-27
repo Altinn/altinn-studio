@@ -1,5 +1,5 @@
 import React from 'react';
-import type { JSX, PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
 import {
@@ -10,11 +10,13 @@ import {
 } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
+import { useIsMobile } from 'src/app-components/hooks/useDeviceWidths';
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import classes from 'src/app-components/Panel/Panel.module.css';
-import { useIsMobile } from 'src/hooks/useDeviceWidths';
+import type { TranslationKey } from 'src/app-components/types';
 
 export type PanelVariant = (typeof PANEL_VARIANT)[keyof typeof PANEL_VARIANT];
 
@@ -22,7 +24,7 @@ export type PanelProps = PropsWithChildren<{
   variant: PanelVariant;
   showIcon?: boolean;
   forceMobileLayout?: boolean;
-  title?: JSX.Element;
+  title?: TranslationKey;
   style?: React.CSSProperties;
   className?: string;
   fullWidth?: boolean;
@@ -82,6 +84,7 @@ export const Panel: React.FC<PanelProps> = ({
   className,
   children,
 }) => {
+  const { TranslateComponent } = useTranslation();
   const isMobile = useIsMobile();
   const isMobileLayout = forceMobileLayout || isMobile;
 
@@ -123,7 +126,7 @@ export const Panel: React.FC<PanelProps> = ({
                 data-size={isMobileLayout ? 'xs' : 'sm'}
                 className={classes.panelHeader}
               >
-                {title}
+                <TranslateComponent tKey={title} />
               </Heading>
             )}
             <div>{children}</div>

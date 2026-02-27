@@ -24,7 +24,11 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [ValidateAntiForgeryToken]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/feedbackform")]
-public class FeedbackFormController(ISlackClient slackClient, GeneralSettings generalSettings, FeedbackFormSettings feedbackFormSettings) : ControllerBase
+public class FeedbackFormController(
+    ISlackClient slackClient,
+    GeneralSettings generalSettings,
+    FeedbackFormSettings feedbackFormSettings
+) : ControllerBase
 {
     private readonly ISlackClient _slackClient = slackClient;
     private readonly GeneralSettings _generalSettings = generalSettings;
@@ -39,7 +43,12 @@ public class FeedbackFormController(ISlackClient slackClient, GeneralSettings ge
     /// </summary>
     [HttpPost]
     [Route("submit")]
-    public async Task<IActionResult> SubmitFeedback([FromRoute] string org, [FromRoute] string app, [FromBody] FeedbackForm feedback, CancellationToken cancellationToken)
+    public async Task<IActionResult> SubmitFeedback(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromBody] FeedbackForm feedback,
+        CancellationToken cancellationToken
+    )
     {
         if (feedback == null)
         {
@@ -66,10 +75,11 @@ public class FeedbackFormController(ISlackClient slackClient, GeneralSettings ge
             feedback.Answers.Add("env", _generalSettings.HostName);
         }
 
-        await _slackClient.SendMessageAsync(feedbackFormSettings.SlackWebhookUrl, new SlackMessage
-        {
-            Text = JsonSerializer.Serialize(feedback.Answers, s_jsonSerializerOptions),
-        }, cancellationToken);
+        await _slackClient.SendMessageAsync(
+            feedbackFormSettings.SlackWebhookUrl,
+            new SlackMessage { Text = JsonSerializer.Serialize(feedback.Answers, s_jsonSerializerOptions) },
+            cancellationToken
+        );
 
         return Ok();
     }

@@ -807,6 +807,25 @@ func TestNewClientState_MissingSecret(t *testing.T) {
 	g.Expect(err).To(BeAssignableToTypeOf(missingErr))
 }
 
+func TestNewClientState_MissingSecretDuringDeletion(t *testing.T) {
+	g := NewWithT(t)
+	deps := newFixture()
+
+	crd := createCrd(
+		WithFinalizer(),
+		WithDeletionTimestamp(deps.clock.Now()),
+	)
+
+	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId}, nil, nil, nil)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(commands).To(HaveLen(2))
+	g.Expect(commands[0].Data).To(BeAssignableToTypeOf(&DeleteClientInApiCommand{}))
+	g.Expect(commands[1].Data).To(BeAssignableToTypeOf(&RemoveFinalizerCommand{}))
+}
+
 func TestNewClientState_NilCrd(t *testing.T) {
 	g := NewWithT(t)
 
