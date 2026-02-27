@@ -1,31 +1,28 @@
 # Kubernetes Wrapper
 
-Application exposing information about deployments in kubernetes in a rest API
+Go service exposing Kubernetes Deployments and DaemonSets through a REST API.
 
-## Testing
+## Endpoints
 
-### Linux and macOS
+- `GET /api/v1/deployments`
+- `GET /api/v1/daemonsets`
 
-To test kuberneteswrapper in a kubernetes cluster (kind) lokally run the following command
+Optional query parameters for both endpoints:
 
-```shell
-make test
-make test-e2e
-```
+- `labelSelector`
+- `fieldSelector`
 
-This will do the following
+Supported field selector keys:
 
-1. create a kind kubernetescluster
-2. build kuberneteswrapper docker image
-3. load the image into kind
-4. deploy kuberneteswrapper and test services
-5. add portfowrward to the kuberneteswrapper service in kind
-6. test that kuberneteswrapper produces the expected responses
+- `metadata.name`
+- `metadata.namespace`
 
-After the test command is executed a portforward on port 8080 is left intact if you want to execute api calls to kuberneteswrapper
+## Development
 
-To clean up after you are done testing run:
+Run checks locally:
 
 ```shell
-make clean
+make check
 ```
+
+`make test` uses `envtest` and runs in-process integration tests with snapshot assertions for both APIs.

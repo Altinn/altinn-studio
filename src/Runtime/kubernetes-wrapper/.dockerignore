@@ -1,5 +1,8 @@
 .config/
 infra/
+test/
+integrationtests/
 tests/
-**/bin
+bin/
 **/obj
+**/bin

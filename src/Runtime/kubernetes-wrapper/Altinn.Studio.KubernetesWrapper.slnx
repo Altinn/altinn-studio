@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="src/Altinn.Studio.KubernetesWrapper.csproj" />
-  <Project Path="tests/Altinn.Studio.KubernetesWrapper.Tests/Altinn.Studio.KubernetesWrapper.Tests.csproj" />
-</Solution>

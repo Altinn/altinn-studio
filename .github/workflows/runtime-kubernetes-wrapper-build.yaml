@@ -5,7 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Runtime/kubernetes-wrapper/**'
-      - '.github/workflows/runtime-kubernetes-wrapper-integrationtests-kind.yaml'
+      - '.github/workflows/runtime-kubernetes-wrapper-build.yaml'
   workflow_dispatch:
 
 jobs:
@@ -20,23 +20,21 @@ jobs:
         working-directory: src/Runtime/kubernetes-wrapper
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
-      with:
-        dotnet-version: |
-          10.0.x
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6
+        with:
+          go-version-file: src/Runtime/kubernetes-wrapper/go.mod
+          cache-dependency-path: src/Runtime/kubernetes-wrapper/go.sum
 
-    - name: Restore tools
-      run: dotnet tool restore
+      - name: Build
+        run: make build
 
-    - name: Formatting
-      run: dotnet csharpier check .
+      - name: Lint
+        run: make lint
 
-    - name: Test
-      run: make test
-
-    - name: Test E2E
-      run: make test-e2e
+      - name: Test
+        env:
+          UPDATE_SNAPS: "false"
+        run: make test

@@ -57,7 +57,7 @@ jobs:
           SHA="${{ needs.get-short-sha.outputs.short-sha }}"
           IMAGE_BASE="ghcr.io/altinn/altinn-studio/kubernetes-wrapper"
           docker build --platform linux/amd64,linux/arm64 src/Runtime/kubernetes-wrapper \
-            -f src/Runtime/kubernetes-wrapper/src/Dockerfile \
+            -f src/Runtime/kubernetes-wrapper/Dockerfile \
             -t "${IMAGE_BASE}:${SHA}"
 
       - name: Push docker image

@@ -1,0 +1,22 @@
+
+[TestDeploymentsEndpointSnapshot - 1]
+[
+ {
+  "release": "dummy-deployment",
+  "version": "alpine"
+ },
+ {
+  "release": "kuberneteswrapper",
+  "version": "local"
+ }
+]
+---
+
+[TestDaemonSetsEndpointSnapshot - 1]
+[
+ {
+  "release": "dummy-daemonset",
+  "version": "alpine"
+ }
+]
+---
