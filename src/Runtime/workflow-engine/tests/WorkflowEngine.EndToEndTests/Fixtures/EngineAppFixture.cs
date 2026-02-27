@@ -22,6 +22,7 @@ public sealed class EngineAppFixture : IAsyncLifetime
     public const string TestApiKey = "e2e-test-api-key-00000001";
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18").Build();
     private EngineWebApplicationFactory _factory = null!;
+    private int _wireMockPort;
 
     private string _appCommandEndpoint =>
         $"http://localhost:{WireMock.Port}/{{Org}}/{{App}}/instances/{{InstanceOwnerPartyId}}/{{InstanceGuid}}/workflow-engine-callbacks";
@@ -60,6 +61,7 @@ public sealed class EngineAppFixture : IAsyncLifetime
         await migrationService.Migrate(_postgres.GetConnectionString());
 
         WireMock = WireMockServer.Start();
+        _wireMockPort = WireMock.Port;
         SetupDefaultStub();
 
         // Accessing Server triggers ConfigureWebHost -> app startup.
@@ -72,6 +74,7 @@ public sealed class EngineAppFixture : IAsyncLifetime
     /// </summary>
     public async ValueTask DisposeAsync()
     {
+        WireMock.Stop();
         WireMock.Dispose();
         await _factory.DisposeAsync();
         await _postgres.DisposeAsync();
@@ -83,10 +86,9 @@ public sealed class EngineAppFixture : IAsyncLifetime
     /// </summary>
     public async Task ResetAsync()
     {
-        // Reset WireMock first so any in-flight engine HTTP calls fail immediately
-        // rather than holding DB transactions open for the duration of a WireMock delay.
-        WireMock.Reset();
-        SetupDefaultStub();
+        // Stop and dispose WireMock server. This may or may not fail in-flight pending requests.
+        WireMock.Stop();
+        WireMock.Dispose();
 
         // Wait for the engine background service to drain in-flight work so the TRUNCATE does
         // not race with an active DB transaction, which would cause a deadlock.
@@ -94,6 +96,10 @@ public sealed class EngineAppFixture : IAsyncLifetime
 
         await using var context = GetDbContext();
         await context.Database.ExecuteSqlRawAsync("""TRUNCATE "Workflows", "Steps" CASCADE""");
+
+        // Start a fresh instance of WireMock, recycling the port (which has already been sent to the EngineWebApplicationFactory)
+        WireMock = WireMockServer.Start(port: _wireMockPort);
+        SetupDefaultStub();
     }
 
     /// <summary>

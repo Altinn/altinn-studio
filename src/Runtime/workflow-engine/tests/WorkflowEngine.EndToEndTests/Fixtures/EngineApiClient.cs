@@ -3,9 +3,6 @@ using System.Net.Http.Json;
 using System.Text;
 using WorkflowEngine.Models;
 
-// CA2234: Pass System.Uri objects instead of strings
-#pragma warning disable CA2234
-
 namespace WorkflowEngine.EndToEndTests.Fixtures;
 
 /// <summary>

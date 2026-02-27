@@ -105,7 +105,6 @@ public partial class EngineEndToEndTests
     public async Task StepCommands_RetryOnFailure_ThenCompletes(string stepType)
     {
         // Arrange -- WireMock returns 500 on the first POST, then 200 on the second.
-        fixture.WireMock.Reset();
         fixture
             .WireMock.Given(Request.Create().UsingAnyMethod())
             .InScenario("retry-test")

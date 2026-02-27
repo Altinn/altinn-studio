@@ -40,12 +40,13 @@ public partial class EngineEndToEndTests(EngineAppFixture fixture) : IAsyncLifet
     {
         await fixture.ResetAsync();
         await AssertDbEmpty();
+        await Task.Delay(50); // The scheduler may or may not need a cycle breathing room here
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         _client.Dispose();
-        return ValueTask.CompletedTask;
+        await Task.Delay(50); // The scheduler may or may not need a cycle breathing room here
     }
 
     /// <summary>
@@ -89,7 +90,7 @@ public partial class EngineEndToEndTests(EngineAppFixture fixture) : IAsyncLifet
         new()
         {
             Ref = wfRef,
-            OperationId = $"op-{wfRef}-{Guid.NewGuid()}",
+            OperationId = $"op-{wfRef}",
             Type = type,
             Steps = steps.ToArray(),
             DependsOn = dependsOn?.ToList(),

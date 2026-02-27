@@ -1,0 +1,6 @@
+﻿{
+  workflows: {
+    wf-a: {Scrubbed},
+    wf-b: {Scrubbed}
+  }
+}
