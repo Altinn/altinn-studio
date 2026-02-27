@@ -1,14 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Repository.Models;
-using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
-using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
-using Microsoft.EntityFrameworkCore;
-
 namespace Altinn.Studio.Designer.Repository.ORMImplementation;
 
 public class ChatThreadRepository : IChatThreadRepository
@@ -20,6 +9,9 @@ public class ChatThreadRepository : IChatThreadRepository
         _dbContext = dbContext;
     }
 
+    // To do: Remove this method. We don't need to pass the thread populated with messages to the frontend.
+    // Instead we can fetch all messages based on the ThreadId. 
+    // In the frontend, we can store them in cache under QueryKey "Threads, org, app, user" and "Messages, org, app, user".
     /// <inheritdoc />
     public async Task<ChatThreadEntity?> GetThreadAsync(
         Guid id,
