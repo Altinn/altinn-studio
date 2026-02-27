@@ -6,7 +6,7 @@ const useActiveInstances = ({
   instanceOwnerPartyId,
   sortDirection,
 }: {
-  instanceOwnerPartyId: string;
+  instanceOwnerPartyId: number;
   sortDirection: 'desc' | 'asc';
 }) =>
   useQuery({

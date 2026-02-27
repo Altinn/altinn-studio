@@ -1,15 +1,15 @@
-import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
+import { redirect } from 'react-router';
 
+import type { QueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { InstanceApi } from 'nextsrc/core/api-client/instance.api';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { activeInstancesQuery } from 'nextsrc/core/queries/instance';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
 import { routeBuilders } from 'nextsrc/routesBuilder';
-import type { QueryClient } from '@tanstack/react-query';
 
-import type { IInstance } from 'src/types/shared';
+import { InstanceResponse } from 'nextsrc/api/generated/model';
 
 function isStateless() {
   const entryType = GlobalData.applicationMetadata.onEntry?.show;
@@ -32,9 +32,7 @@ export const loader = (queryClient: QueryClient) => async (_: LoaderFunctionArgs
   }
 
   if (entryType === 'select-instance' && GlobalData.selectedParty) {
-    const activeInstances = await queryClient.ensureQueryData(
-      activeInstancesQuery(GlobalData.selectedParty.partyId.toString()),
-    );
+    const activeInstances = await queryClient.ensureQueryData(activeInstancesQuery(GlobalData.selectedParty.partyId));
 
     if (activeInstances.length === 0) {
       const instance = await createNewInstanceOrRedirect();
@@ -45,7 +43,8 @@ export const loader = (queryClient: QueryClient) => async (_: LoaderFunctionArgs
       return redirect(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
     }
     if (activeInstances.length === 1) {
-      const [instanceOwnerPartyId, instanceGuid] = activeInstances[0].id.split('/');
+      const id = activeInstances.at(0)?.id;
+      const [instanceOwnerPartyId, instanceGuid] = id?.split('/') ?? []; // TODO: fix type so that id is not nullable (which it is not)
       return redirect(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
     }
 
@@ -55,7 +54,7 @@ export const loader = (queryClient: QueryClient) => async (_: LoaderFunctionArgs
   throw new Error();
 };
 
-async function createNewInstanceOrRedirect(): Promise<IInstance | Response> {
+async function createNewInstanceOrRedirect(): Promise<InstanceResponse | Response> {
   try {
     return await createNewInstance();
   } catch (error) {
@@ -66,7 +65,7 @@ async function createNewInstanceOrRedirect(): Promise<IInstance | Response> {
   }
 }
 
-async function createNewInstance(): Promise<IInstance> {
+async function createNewInstance(): Promise<InstanceResponse> {
   const party = GlobalData.selectedParty;
 
   const currentPartyIdFromCookie = document.cookie
@@ -78,7 +77,8 @@ async function createNewInstance(): Promise<IInstance> {
   if (!currentPartyId) {
     throw new Response('User profile not available', { status: ServerStatusCodes.Unauthorized });
   }
-  return await InstanceApi.create(Number.parseInt(`${currentPartyId}`));
+  const partyId = typeof currentPartyId === 'string' ? Number.parseInt(currentPartyId) : currentPartyId;
+  return await InstanceApi.create(partyId);
 }
 
 // FIXME: Placeholder

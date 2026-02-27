@@ -1,12 +1,12 @@
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
-import { InstanceApi } from 'nextsrc/core/api-client/instance.api';
 import { GlobalData } from 'nextsrc/core/globalData';
 import { activeInstancesQuery } from 'nextsrc/core/queries/instance';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
 import { routeBuilders } from 'nextsrc/routesBuilder';
 import type { QueryClient } from '@tanstack/react-query';
+import { InstanceApi } from 'nextsrc/core/api-client/instance.api';
 
 export const instanceSelectionLoader = (queryClient: QueryClient) => async (_args: LoaderFunctionArgs) => {
   const entryType = GlobalData.applicationMetadata.onEntry?.show;
@@ -19,7 +19,7 @@ export const instanceSelectionLoader = (queryClient: QueryClient) => async (_arg
     throw new Response('No selected party', { status: ServerStatusCodes.Unauthorized });
   }
 
-  const activeInstances = await queryClient.ensureQueryData(activeInstancesQuery(selectedParty.partyId.toString()));
+  const activeInstances = await queryClient.ensureQueryData(activeInstancesQuery(selectedParty.partyId));
   if (activeInstances.length === 0) {
     const newInstance = await InstanceApi.create(selectedParty.partyId);
     const [instanceOwnerPartyId, instanceGuid] = newInstance.id.split('/');
