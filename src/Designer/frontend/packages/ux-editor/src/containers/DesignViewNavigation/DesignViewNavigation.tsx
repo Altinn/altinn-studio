@@ -48,6 +48,7 @@ export const DesignViewNavigation = () => {
                   aria-haspopup='menu'
                   variant='tertiary'
                   title={t('general.options')}
+                  style={{ fontSize: 12 }}
                 />
               </DropdownMenu.Trigger>
               <DropdownMenu.Content>
