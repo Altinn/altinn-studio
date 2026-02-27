@@ -6,6 +6,33 @@ import type { SchemaEditorAppContextProps } from '@altinn/schema-editor/contexts
 import { SchemaEditorAppContext } from '@altinn/schema-editor/contexts/SchemaEditorAppContext';
 import { uiSchemaNodesMock } from './mocks/uiSchemaMock';
 import { SchemaModel } from '@altinn/schema-model';
+import { composeWrappers, type WrapperFunction } from '@studio/testing/composeWrappers';
+
+function createDefaultSchemaContextProps(
+  appContextProps: Partial<SchemaEditorAppContextProps> = {},
+): SchemaEditorAppContextProps {
+  return {
+    schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
+    save: jest.fn(),
+    selectedUniquePointer: null,
+    setSelectedUniquePointer: jest.fn(),
+    selectedTypePointer: null,
+    setSelectedTypePointer: jest.fn(),
+    name: 'Test',
+    ...appContextProps,
+  };
+}
+
+function withSchemaEditorAppContext(
+  appContextProps: Partial<SchemaEditorAppContextProps> = {},
+): WrapperFunction {
+  const contextValue = createDefaultSchemaContextProps(appContextProps);
+  return (children: ReactNode) => (
+    <SchemaEditorAppContext.Provider value={contextValue}>
+      {children}
+    </SchemaEditorAppContext.Provider>
+  );
+}
 
 export const renderHookWithProviders =
   (
@@ -14,38 +41,23 @@ export const renderHookWithProviders =
     },
   ) =>
   (hook: () => any) => {
-    const allSelectedSchemaContextProps: SchemaEditorAppContextProps = {
-      schemaModel: SchemaModel.fromArray(uiSchemaNodesMock),
-      save: jest.fn(),
-      selectedUniquePointer: null,
-      setSelectedUniquePointer: jest.fn(),
-      selectedTypePointer: null,
-      setSelectedTypePointer: jest.fn(),
-      name: 'Test',
-      ...appContextProps,
-    };
+    const Wrapper = composeWrappers([withSchemaEditorAppContext(appContextProps)]);
 
-    const result = renderHook(hook, {
-      wrapper: ({ children }) => (
-        <SchemaEditorAppContext.Provider value={allSelectedSchemaContextProps}>
-          {children}
-        </SchemaEditorAppContext.Provider>
-      ),
-    });
+    const result = renderHook(hook, { wrapper: Wrapper });
 
     const rerender = (
       { appContextProps: rerenderAppContextProps = {} }: RenderWithProvidersData = {
         appContextProps: {},
       },
     ) => {
-      const newAppContextProps: SchemaEditorAppContextProps = {
-        ...allSelectedSchemaContextProps,
+      const newContextProps = createDefaultSchemaContextProps({
+        ...appContextProps,
         ...rerenderAppContextProps,
-      };
+      });
 
       return (rerenderElement: ReactNode) =>
         result.rerender(
-          <SchemaEditorAppContext.Provider value={newAppContextProps}>
+          <SchemaEditorAppContext.Provider value={newContextProps}>
             {rerenderElement}
           </SchemaEditorAppContext.Provider>,
         );
