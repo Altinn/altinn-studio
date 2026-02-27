@@ -12,7 +12,8 @@ import (
 	"altinn.studio/studioctl/internal/networking"
 )
 
-const defaultLoadBalancerPort = 8000
+// DefaultLoadBalancerPort is the default localtest load balancer port.
+const DefaultLoadBalancerPort = 8000
 
 type runtimeConfigResolver struct {
 	cfg    *config.Config
@@ -57,7 +58,7 @@ func (r *runtimeConfigResolver) Build(ctx context.Context, portFlag int) (Runtim
 
 func resolveLoadBalancerPort(portFlag int) int {
 	if portFlag == 0 {
-		return defaultLoadBalancerPort
+		return DefaultLoadBalancerPort
 	}
 	return portFlag
 }

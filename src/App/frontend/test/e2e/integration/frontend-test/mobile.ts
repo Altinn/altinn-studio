@@ -33,13 +33,11 @@ function testChangeName() {
   cy.goto('changename');
 
   cy.fillOut('changename');
-  cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
   cy.get(appFrontend.sendinButton).should('be.visible');
   sendIn();
 }
 
 function testGroup(mode: Mode) {
-  cy.wait('@getLayoutGroup');
   cy.findByRole('checkbox', { name: appFrontend.group.prefill.liten }).check();
   cy.findByRole('checkbox', { name: appFrontend.group.prefill.middels }).check();
   cy.findByRole('checkbox', { name: appFrontend.group.prefill.stor }).check();

@@ -45,6 +45,7 @@ export const ValidateSelectedTasksConfig = () => {
             propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
             scope={Scope.SelectedTasks}
             config={conf}
+            existingConfigs={internalConfigs}
             onSave={(newConf) => handleSave(newConf, conf.id)}
             onDelete={() => handleDelete(conf.id)}
           />
@@ -52,6 +53,7 @@ export const ValidateSelectedTasksConfig = () => {
       <ValidateNavigationConfig
         propertyLabel={t('ux_editor.settings.navigation_validation_button_label')}
         scope={Scope.SelectedTasks}
+        existingConfigs={internalConfigs}
         onSave={(newConf) => handleSave(newConf)}
       />
     </>

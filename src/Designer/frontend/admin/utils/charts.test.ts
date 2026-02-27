@@ -1,55 +1,48 @@
-import type { TimeScaleOptions } from 'chart.js';
-import { getChartOptions, getChartData } from './charts';
+import type { TimeScaleOptions, TooltipCallbacks } from 'chart.js';
+import { getChartOptions } from './charts';
 
 describe('getChartOptions', () => {
-  it('uses minute unit when range is below threshold', () => {
-    const options = getChartOptions(100);
+  beforeEach(() => {
+    jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+  });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('sets min and max based on bucket size and range', () => {
+    const options = getChartOptions(5, 60);
     const xScale = options.scales?.x as TimeScaleOptions;
-
-    expect(xScale?.time?.unit).toBe('minute');
+    expect(xScale?.min).toBe(1_699_996_200_000);
+    expect(xScale?.max).toBe(1_700_000_100_000);
   });
 
-  it('uses hour unit when range is equal or above threshold', () => {
-    const options = getChartOptions(1140);
+  describe('tooltip title', () => {
+    const getTitle = (bucketSize: number, startMs: number): string[] => {
+      const options = getChartOptions(bucketSize, 60);
+      const title = options.plugins?.tooltip?.callbacks?.title;
+      return title?.call({} as TooltipCallbacks<'bar'>, [{ parsed: { x: startMs } }]) as string[];
+    };
 
-    const xScale = options.scales?.x as TimeScaleOptions;
-
-    expect(xScale?.time?.unit).toBe('hour');
-  });
-});
-
-describe('getChartData', () => {
-  const dataPoints = [
-    {
-      dateTimeOffset: '2023-01-01T10:00:00Z',
-      count: 5,
-    },
-    {
-      dateTimeOffset: '2023-01-01T10:01:00Z',
-      count: 8,
-    },
-  ];
-
-  it('maps labels from dateTimeOffset', () => {
-    const chartData = getChartData(dataPoints, {});
-
-    expect(chartData.labels).toEqual(['2023-01-01T10:00:00Z', '2023-01-01T10:01:00Z']);
-  });
-
-  it('maps dataset data from count', () => {
-    const chartData = getChartData(dataPoints, {});
-
-    expect(chartData.datasets[0].data).toEqual([5, 8]);
-  });
-
-  it('applies dataset options overrides', () => {
-    const chartData = getChartData(dataPoints, {
-      borderColor: 'red',
-      label: 'Test Dataset',
+    it('returns date header and time range on same day', () => {
+      const startMs = new Date('2023-11-14T12:00:00').getTime();
+      const [dateHeader, timeRange] = getTitle(60, startMs);
+      expect(dateHeader).toContain('2023');
+      expect(timeRange).toMatch(/\d{2}:\d{2} – \d{2}:\d{2}/);
     });
 
-    expect(chartData.datasets[0].borderColor).toBe('red');
-    expect(chartData.datasets[0].label).toBe('Test Dataset');
+    it('returns two date headers when bucket spans multiple days', () => {
+      const startMs = new Date('2023-11-14T23:30:00').getTime();
+      const [dateHeader, timeRange] = getTitle(60, startMs);
+      expect(dateHeader).toContain('–');
+      expect(timeRange).toMatch(/\d{2}:\d{2} – \d{2}:\d{2}/);
+    });
+
+    it('returns undefined when no items', () => {
+      const options = getChartOptions(5, 60);
+      const title = options.plugins?.tooltip?.callbacks?.title;
+      const result = title?.call({} as TooltipCallbacks<'bar'>, []);
+      expect(result).toBe(undefined);
+    });
   });
 });

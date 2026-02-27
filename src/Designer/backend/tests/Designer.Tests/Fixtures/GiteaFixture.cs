@@ -121,8 +121,7 @@ namespace Designer.Tests.Fixtures
                 throw new Exception($"Failed to build gitea image. Error: {error}");
             }
 
-            _giteaContainer = new ContainerBuilder()
-                .WithImage(GiteaTestImageName)
+            _giteaContainer = new ContainerBuilder(GiteaTestImageName)
                 .WithImagePullPolicy(PullPolicy.Never)
                 .WithNetwork(_giteaNetwork)
                 .WithName("gitea")

@@ -6,11 +6,11 @@ import { Scope } from '../utils/ValidateNavigationUtils';
 
 export type ValidateCardContentProps = {
   scope: Scope;
-  config: InternalConfigState;
+  newConfig: InternalConfigState;
   onChange: (updates: Partial<InternalConfigState>) => void;
 };
 
-export const ValidateCardContent = ({ scope, config, onChange }: ValidateCardContentProps) => {
+export const ValidateCardContent = ({ scope, newConfig, onChange }: ValidateCardContentProps) => {
   const isPerPage = scope === Scope.SelectedPages;
   const isPerTask = scope === Scope.SelectedTasks;
 
@@ -18,26 +18,26 @@ export const ValidateCardContent = ({ scope, config, onChange }: ValidateCardCon
     <>
       {isPerTask && (
         <TasksSelector
-          selectedTasks={config.tasks}
+          selectedTasks={newConfig.tasks}
           onChange={(value) => onChange({ tasks: value })}
         />
       )}
       {isPerPage && (
         <>
           <TaskSelector
-            selectedTask={config.task}
+            selectedTask={newConfig.task}
             onChange={(value) => onChange({ task: value, pages: [] })}
           />
           <PagesSelector
-            taskName={config.task?.value}
-            selectedPages={config.pages}
+            taskName={newConfig.task?.value}
+            selectedPages={newConfig.pages}
             onChange={(value) => onChange({ pages: value })}
           />
         </>
       )}
       <ValidateRuleConfig
-        selectedTypes={config.types}
-        selectedPageScope={config.pageScope}
+        selectedTypes={newConfig.types}
+        selectedPageScope={newConfig.pageScope}
         onChange={onChange}
       />
     </>
