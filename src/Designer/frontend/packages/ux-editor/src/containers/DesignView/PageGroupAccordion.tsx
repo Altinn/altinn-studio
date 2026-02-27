@@ -151,11 +151,10 @@ export const PageGroupAccordion = ({
             </StudioPopover.TriggerContext>
             <StudioDeleteButton
               title={t('general.delete_item', { item: groupDisplayName })}
-              data-color='danger'
+              data-color='info'
               icon={<TrashIcon />}
               onDelete={handleConfirmDelete}
               variant='tertiary'
-              data-size='2xs'
               disabled={isPending}
             />
           </div>
