@@ -39,14 +39,14 @@ public class ResourceController : ControllerBase
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="id">The layoutset id</param>
+    /// <param name="id">The name of the subfolder in ui to get layouts from (a taskId, stateless name, subform, etc)</param>
     /// <returns>A collection of FormLayout objects in JSON format.</returns>
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "application/json")]
     [HttpGet]
     [Route("{org}/{app}/api/layouts/{id}")]
     public ActionResult GetLayouts(string org, string app, string id)
     {
-        string layouts = _appResourceService.GetLayoutsForSet(id);
+        string layouts = _appResourceService.GetLayoutsInFolder(id);
         return Ok(layouts);
     }
 
@@ -62,7 +62,7 @@ public class ResourceController : ControllerBase
     [Route("{org}/{app}/api/layoutsettings/{id}")]
     public ActionResult GetLayoutSettings(string org, string app, string id)
     {
-        string? settings = _appResourceService.GetLayoutSettingsStringForSet(id);
+        string? settings = _appResourceService.GetLayoutSettingsStringForFolder(id);
         return Ok(settings);
     }
 
@@ -75,10 +75,12 @@ public class ResourceController : ControllerBase
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK, "application/json")]
     [HttpGet]
     [Route("{org}/{app}/api/layoutsets")]
+    [Obsolete("Layout-sets no longer exist, folders are named the same as taskIds")]
     public ActionResult GetLayoutSets(string org, string app)
     {
-        string? layoutSets = _appResourceService.GetLayoutSetsString();
-        return Ok(layoutSets);
+        return BadRequest(
+            "Layout-sets no longer exist, folders are named the same as taskIds now, there are no mapping between layoutsets and taskIds. The default data type can now be read from layoutsettings."
+        );
     }
 
     /// <summary>

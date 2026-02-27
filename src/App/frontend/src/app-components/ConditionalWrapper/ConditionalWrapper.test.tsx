@@ -1,9 +1,10 @@
 import React from 'react';
 
 import { jest } from '@jest/globals';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
+import { renderWithAppComponentsProvider } from 'src/app-components/test/renderWithAppComponentsProvider';
 
 describe('ConditionalWrapper', () => {
   it('should pass children to wrapper callback when condition is true', () => {
@@ -31,14 +32,17 @@ describe('ConditionalWrapper', () => {
   });
 });
 
-const render = (props) => {
-  const allProps = {
+const render = (overridingProps: {
+  condition?: boolean;
+  wrapper?: (children: React.ReactNode) => React.JSX.Element;
+}) => {
+  const allProps: Parameters<typeof ConditionalWrapper>[0] = {
     condition: false,
     wrapper: (children) => <div data-testid='conditional-wrapper'>{children}</div>,
-    ...props,
+    ...overridingProps,
   };
 
-  return rtlRender(
+  return renderWithAppComponentsProvider(
     <ConditionalWrapper {...allProps}>
       <div data-testid='children'>Children</div>
     </ConditionalWrapper>,
