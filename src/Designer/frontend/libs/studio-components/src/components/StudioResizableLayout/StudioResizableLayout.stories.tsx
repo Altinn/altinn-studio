@@ -1,4 +1,4 @@
-import type { StoryFn, Meta } from '@storybook/react/*';
+import type { StoryFn, Meta } from '@storybook/react';
 import React from 'react';
 import type { StudioResizableLayoutContainerProps } from './StudioResizableLayoutContainer/StudioResizableLayoutContainer';
 import { StudioResizableLayoutContainer } from './StudioResizableLayoutContainer/StudioResizableLayoutContainer';
