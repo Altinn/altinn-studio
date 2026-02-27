@@ -37,12 +37,12 @@ public class ChatMessageDbModel
     public required ActionMode ActionMode { get; set; }
 
     /// <summary>
-    /// List of app files changed by assistant.
+    /// App files changed by assistant.
     /// </summary>
     public List<string> FilesChanged { get; set; } = [];
 
     /// <summary>
-    /// Navigation property for attachments.
+    /// Names of attached files.
     /// </summary>
-    public List<ChatAttachmentDbModel> Attachments { get; set; } = [];
+    public List<string> AttachmentFileNames { get; set; } = [];
 }

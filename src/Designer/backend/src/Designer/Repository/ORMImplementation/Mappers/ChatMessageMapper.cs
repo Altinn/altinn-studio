@@ -1,4 +1,3 @@
-using System.Linq;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
@@ -15,7 +14,8 @@ public static class ChatMessageMapper
             Role = entity.Role,
             Content = entity.Content,
             ActionMode = entity.ActionMode,
-            FilesChanged = entity.FilesChanged
+            FilesChanged = entity.FilesChanged,
+            AttachmentFileNames = entity.AttachmentFileNames,
         };
     }
 
@@ -29,8 +29,7 @@ public static class ChatMessageMapper
             Content = dbModel.Content,
             ActionMode = dbModel.ActionMode,
             FilesChanged = dbModel.FilesChanged,
-            Attachments = dbModel.Attachments.Select(ChatAttachmentMapper.MapToModel).ToList()
+            AttachmentFileNames = dbModel.AttachmentFileNames,
         };
     }
-
 }

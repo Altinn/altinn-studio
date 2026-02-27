@@ -12,44 +12,43 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
 
         builder.HasKey(e => e.Id);
 
-        builder.HasOne<ChatThreadDbModel>()
+        builder
+            .HasOne<ChatThreadDbModel>()
             .WithMany(t => t.Messages)
             .HasForeignKey(e => e.ThreadId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(e => e.ThreadId, "idx_chat_messages_thread_id");
 
-        builder.Property(e => e.Id)
-            .HasColumnType("uuid")
-            .HasColumnName("id")
-            .IsRequired();
+        builder.Property(e => e.Id).HasColumnType("uuid").HasColumnName("id").IsRequired();
 
-        builder.Property(e => e.ThreadId)
+        builder
+            .Property(e => e.ThreadId)
             .HasColumnType("uuid")
             .HasColumnName("thread_id")
             .IsRequired();
 
-        builder.Property(e => e.CreatedAt)
+        builder
+            .Property(e => e.CreatedAt)
             .HasColumnType("timestamptz")
             .HasColumnName("created_at")
             .IsRequired();
 
-        builder.Property(e => e.Role)
-            .HasColumnType("integer")
-            .HasColumnName("role")
-            .IsRequired();
+        builder.Property(e => e.Role).HasColumnType("integer").HasColumnName("role").IsRequired();
 
-        builder.Property(e => e.Content)
+        builder
+            .Property(e => e.Content)
             .HasColumnType("character varying")
             .HasColumnName("content")
             .IsRequired();
 
-        builder.Property(e => e.ActionMode)
-            .HasColumnType("integer")
-            .HasColumnName("action_mode");
+        builder.Property(e => e.ActionMode).HasColumnType("integer").HasColumnName("action_mode");
 
-        builder.Property(e => e.FilesChanged)
+        builder.Property(e => e.FilesChanged).HasColumnType("jsonb").HasColumnName("files_changed");
+
+        builder
+            .Property(e => e.AttachmentFileNames)
             .HasColumnType("jsonb")
-            .HasColumnName("files_changed");
+            .HasColumnName("attachment_file_names");
     }
 }

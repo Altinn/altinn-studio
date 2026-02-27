@@ -40,4 +40,3 @@ public class ChatThreadDbModel
     /// </summary>
     public List<ChatMessageDbModel> Messages { get; set; } = [];
 }
-

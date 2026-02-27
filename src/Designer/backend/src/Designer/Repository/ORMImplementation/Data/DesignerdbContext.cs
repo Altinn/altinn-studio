@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +17,6 @@ public class DesignerdbContext : DbContext
     public virtual DbSet<AppSettingsDbModel> AppSettings { get; set; }
     public virtual DbSet<ChatThreadDbModel> ChatThreads { get; set; }
     public virtual DbSet<ChatMessageDbModel> ChatMessages { get; set; }
-    public virtual DbSet<ChatAttachmentDbModel> ChatAttachments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,7 +29,6 @@ public class DesignerdbContext : DbContext
         modelBuilder.ApplyConfiguration(new AppSettingsConfiguration());
         modelBuilder.ApplyConfiguration(new ChatThreadConfiguration());
         modelBuilder.ApplyConfiguration(new ChatMessageConfiguration());
-        modelBuilder.ApplyConfiguration(new ChatAttachmentConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

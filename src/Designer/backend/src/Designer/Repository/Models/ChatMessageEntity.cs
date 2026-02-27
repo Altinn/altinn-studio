@@ -11,8 +11,18 @@ public class ChatMessageEntity
     public required string Content { get; set; }
     public required ActionMode ActionMode { get; set; }
     public List<string> FilesChanged { get; set; } = [];
-    public List<ChatAttachmentEntity> Attachments { get; set; } = [];
+    public List<string> AttachmentFileNames { get; set; } = [];
 }
 
-public enum Role { User = 0, Assistant = 1 }
-public enum ActionMode { Auto = 0, Ask = 1, Edit = 2 }
+public enum Role
+{
+    User = 0,
+    Assistant = 1,
+}
+
+public enum ActionMode
+{
+    Auto = 0,
+    Ask = 1,
+    Edit = 2,
+}

@@ -15,7 +15,7 @@ public static class ChatThreadMapper
             Org = entity.Org,
             App = entity.App,
             CreatedBy = entity.CreatedBy,
-            CreatedAt = entity.CreatedAt
+            CreatedAt = entity.CreatedAt,
         };
     }
 
@@ -29,8 +29,7 @@ public static class ChatThreadMapper
             App = dbModel.App,
             CreatedBy = dbModel.CreatedBy,
             CreatedAt = dbModel.CreatedAt,
-            Messages = dbModel.Messages.Select(ChatMessageMapper.MapToModel).ToList()
+            Messages = dbModel.Messages.Select(ChatMessageMapper.MapToModel).ToList(),
         };
     }
-
 }
