@@ -111,6 +111,7 @@ public partial class EngineEndToEndTests
                 {
                     Ref = "wf",
                     OperationId = $"op-{Guid.NewGuid()}",
+                    IdempotencyKey = $"key-{Guid.NewGuid()}",
                     Type = WorkflowType.AppProcessChange,
                     Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
                 },
@@ -170,7 +171,7 @@ public partial class EngineEndToEndTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body);
+        await VerifyJson(body).ScrubInlineGuids();
     }
 
     [Fact]
@@ -190,7 +191,7 @@ public partial class EngineEndToEndTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body);
+        await VerifyJson(body).ScrubInlineGuids();
     }
 
     [Fact]
@@ -213,7 +214,7 @@ public partial class EngineEndToEndTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body);
+        await VerifyJson(body).ScrubInlineGuids();
     }
 
     [Fact]
@@ -262,7 +263,7 @@ public partial class EngineEndToEndTests
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         body = Regex.Replace(body, @"""(\d{1,})"":", @"""{Scrubbed}"":"); // Scrub the workflow IDs from the `dependencies` dict
-        await VerifyJson(body);
+        await VerifyJson(body).ScrubInlineGuids();
     }
 
     // ── ListActiveWorkflows endpoint responses ────────────────────────────────
@@ -293,7 +294,7 @@ public partial class EngineEndToEndTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body);
+        await VerifyJson(body).ScrubInlineGuids();
     }
 
     [Fact]

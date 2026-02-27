@@ -1,6 +1,7 @@
 ﻿{
   databaseId: {Scrubbed},
   operationId: op-wf-1,
+  idempotencyKey: key-wf-1-Guid_1,
   createdAt: {Scrubbed},
   updatedAt: {Scrubbed},
   actor: {
@@ -12,6 +13,7 @@
   steps: [
     {
       databaseId: {Scrubbed},
+      idempotencyKey: key-wf-1-Guid_1/webhook,
       processingOrder: 0,
       updatedAt: {Scrubbed},
       command: {
@@ -23,6 +25,7 @@
     },
     {
       databaseId: {Scrubbed},
+      idempotencyKey: key-wf-1-Guid_1/webhook,
       processingOrder: 1,
       updatedAt: {Scrubbed},
       command: {
@@ -34,6 +37,7 @@
     },
     {
       databaseId: {Scrubbed},
+      idempotencyKey: key-wf-1-Guid_1/webhook,
       processingOrder: 2,
       updatedAt: {Scrubbed},
       command: {

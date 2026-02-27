@@ -16,6 +16,7 @@ public class StepTests
         {
             DatabaseId = 42,
             OperationId = "step-1-command",
+            IdempotencyKey = "key-1",
             Actor = _randomActor,
             ProcessingOrder = 0,
             Command = _randomAppCommand,
@@ -24,6 +25,7 @@ public class StepTests
         {
             DatabaseId = 42,
             OperationId = "step-2-command",
+            IdempotencyKey = "key-2",
             Actor = _randomActor,
             ProcessingOrder = 0,
             Command = _randomAppCommand,
@@ -32,6 +34,7 @@ public class StepTests
         {
             DatabaseId = 99,
             OperationId = "step-3-command",
+            IdempotencyKey = "key-3",
             Actor = _randomActor,
             ProcessingOrder = 0,
             Command = _randomAppCommand,
@@ -82,7 +85,16 @@ public class StepTests
         var stepRequest = new StepRequest { Command = command, RetryStrategy = retryStrategy };
 
         // Act
-        var step = Step.FromRequest(stepRequest, metadata, index: 2);
+        var parentRequest = new WorkflowRequest
+        {
+            Ref = "wf-1",
+            OperationId = "op-1",
+            IdempotencyKey = "parent-key",
+            Type = WorkflowType.Generic,
+            Steps = [stepRequest],
+        };
+
+        var step = Step.FromRequest(parentRequest, stepRequest, metadata, index: 2);
 
         // Assert
         Assert.Equal(0, step.DatabaseId);
@@ -115,9 +127,17 @@ public class StepTests
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
+        var parentRequest = new WorkflowRequest
+        {
+            Ref = "wf-1",
+            OperationId = "op-1",
+            IdempotencyKey = "parent-key",
+            Type = WorkflowType.Generic,
+            Steps = [stepRequest],
+        };
 
         // Act
-        var step = Step.FromRequest(stepRequest, metadata, index: 0);
+        var step = Step.FromRequest(parentRequest, stepRequest, metadata, index: 0);
 
         // Assert
         Assert.Same(actor, step.Actor);
@@ -142,9 +162,17 @@ public class StepTests
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
+        var parentRequest = new WorkflowRequest
+        {
+            Ref = "wf-1",
+            OperationId = "op-1",
+            IdempotencyKey = "parent-key",
+            Type = WorkflowType.Generic,
+            Steps = [stepRequest],
+        };
 
         // Act
-        var step = Step.FromRequest(stepRequest, metadata, index: 0);
+        var step = Step.FromRequest(parentRequest, stepRequest, metadata, index: 0);
 
         // Assert
         Assert.Null(step.RetryStrategy);

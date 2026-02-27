@@ -91,6 +91,7 @@ public partial class EngineEndToEndTests(EngineAppFixture fixture) : IAsyncLifet
         {
             Ref = wfRef,
             OperationId = $"op-{wfRef}",
+            IdempotencyKey = $"key-{wfRef}-{Guid.NewGuid()}",
             Type = type,
             Steps = steps.ToArray(),
             DependsOn = dependsOn?.ToList(),

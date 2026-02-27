@@ -53,6 +53,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         {
             Ref = "test-workflow",
             OperationId = "next",
+            IdempotencyKey = $"test-key-{Guid.NewGuid()}",
             Type = WorkflowType.Generic,
             Steps =
             [
@@ -217,6 +218,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             {
                 Ref = "wf-a",
                 OperationId = "op-a",
+                IdempotencyKey = $"key-a-{Guid.NewGuid()}",
                 Type = WorkflowType.Generic,
                 Steps = [new StepRequest { Command = new Command.AppCommand("step-a") }],
             },
@@ -224,6 +226,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             {
                 Ref = "wf-b",
                 OperationId = "op-b",
+                IdempotencyKey = $"key-b-{Guid.NewGuid()}",
                 Type = WorkflowType.Generic,
                 Steps = [new StepRequest { Command = new Command.AppCommand("step-b") }],
                 Links = [(WorkflowRef)"wf-a"],
@@ -261,6 +264,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         {
             Ref = "wf-b",
             OperationId = "op-b",
+            IdempotencyKey = $"key-b-{Guid.NewGuid()}",
             Type = WorkflowType.Generic,
             Steps = [new StepRequest { Command = new Command.AppCommand("step-b") }],
             DependsOn = [(WorkflowRef)workflowA.DatabaseId],
@@ -289,6 +293,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         {
             Ref = "wf-b",
             OperationId = "op-b",
+            IdempotencyKey = $"key-b-{Guid.NewGuid()}",
             Type = WorkflowType.Generic,
             Steps = [new StepRequest { Command = new Command.AppCommand("step-b") }],
             Links = [(WorkflowRef)workflowA.DatabaseId],
@@ -407,7 +412,16 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository(queryContext);
 
-        var results = await queryRepo.GetFailedWorkflows(TestContext.Current.CancellationToken);
+        var failedStatuses = new List<PersistentItemStatus>
+        {
+            PersistentItemStatus.Failed,
+            PersistentItemStatus.Canceled,
+            PersistentItemStatus.DependencyFailed,
+        };
+        var results = await queryRepo.GetFinishedWorkflows(
+            failedStatuses,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
 
         Assert.Equal(3, results.Count);
         Assert.Contains(results, w => w.DatabaseId == canceled.DatabaseId);
@@ -497,6 +511,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         {
             Ref = "test-workflow",
             OperationId = "next",
+            IdempotencyKey = $"test-key-{Guid.NewGuid()}",
             Type = WorkflowType.Generic,
             Steps =
             [

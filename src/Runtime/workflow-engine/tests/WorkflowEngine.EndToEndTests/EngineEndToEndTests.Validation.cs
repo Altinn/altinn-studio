@@ -23,6 +23,7 @@ public partial class EngineEndToEndTests
                 {
                     Ref = "wf",
                     OperationId = $"op-{Guid.NewGuid()}",
+                    IdempotencyKey = $"key-{Guid.NewGuid()}",
                     Type = WorkflowType.AppProcessChange,
                     Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
                 },

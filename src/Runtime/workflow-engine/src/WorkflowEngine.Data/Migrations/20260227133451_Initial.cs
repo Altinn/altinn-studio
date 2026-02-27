@@ -22,18 +22,16 @@ namespace WorkflowEngine.Data.Migrations
                             "Npgsql:ValueGenerationStrategy",
                             NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
                         ),
-                    IdempotencyKey = table.Column<string>(
-                        type: "character varying(500)",
-                        maxLength: 500,
-                        nullable: false
+                    OperationId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    IdempotencyKey = table.Column<string>(type: "text", nullable: false),
+                    InstanceLockKey = table.Column<string>(
+                        type: "character varying(100)",
+                        maxLength: 100,
+                        nullable: true
                     ),
-                    InstanceLockKey = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(
-                        type: "timestamp with time zone",
-                        nullable: false,
-                        defaultValueSql: "NOW()"
-                    ),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    StartAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     ActorUserIdOrOrgNumber = table.Column<string>(
                         type: "character varying(50)",
@@ -45,7 +43,15 @@ namespace WorkflowEngine.Data.Migrations
                     InstanceApp = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     InstanceOwnerPartyId = table.Column<int>(type: "integer", nullable: false),
                     InstanceGuid = table.Column<Guid>(type: "uuid", nullable: false),
-                    TraceContext = table.Column<string>(type: "text", nullable: true),
+                    TraceContext = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    MetadataJson = table.Column<string>(type: "jsonb", nullable: true),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    EngineTraceId = table.Column<string>(
+                        type: "character varying(100)",
+                        maxLength: 100,
+                        nullable: true
+                    ),
+                    InitialState = table.Column<string>(type: "text", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -63,21 +69,12 @@ namespace WorkflowEngine.Data.Migrations
                             "Npgsql:ValueGenerationStrategy",
                             NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
                         ),
-                    IdempotencyKey = table.Column<string>(
-                        type: "character varying(500)",
-                        maxLength: 500,
-                        nullable: false
-                    ),
+                    OperationId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    IdempotencyKey = table.Column<string>(type: "text", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(
-                        type: "timestamp with time zone",
-                        nullable: false,
-                        defaultValueSql: "NOW()"
-                    ),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     ProcessingOrder = table.Column<int>(type: "integer", nullable: false),
-                    FirstSeenAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    StartAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     BackoffUntil = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     RequeueCount = table.Column<int>(type: "integer", nullable: false),
                     ActorUserIdOrOrgNumber = table.Column<string>(
@@ -88,6 +85,8 @@ namespace WorkflowEngine.Data.Migrations
                     ActorLanguage = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
                     CommandJson = table.Column<string>(type: "jsonb", nullable: false),
                     RetryStrategyJson = table.Column<string>(type: "jsonb", nullable: true),
+                    MetadataJson = table.Column<string>(type: "jsonb", nullable: true),
+                    StateOut = table.Column<string>(type: "text", nullable: true),
                     JobId = table.Column<long>(type: "bigint", nullable: false),
                 },
                 constraints: table =>
@@ -103,11 +102,63 @@ namespace WorkflowEngine.Data.Migrations
                 }
             );
 
+            migrationBuilder.CreateTable(
+                name: "WorkflowDependency",
+                columns: table => new
+                {
+                    WorkflowId = table.Column<long>(type: "bigint", nullable: false),
+                    DependsOnWorkflowId = table.Column<long>(type: "bigint", nullable: false),
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkflowDependency", x => new { x.WorkflowId, x.DependsOnWorkflowId });
+                    table.ForeignKey(
+                        name: "FK_WorkflowDependency_Workflows_DependsOnWorkflowId",
+                        column: x => x.DependsOnWorkflowId,
+                        principalTable: "Workflows",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade
+                    );
+                    table.ForeignKey(
+                        name: "FK_WorkflowDependency_Workflows_WorkflowId",
+                        column: x => x.WorkflowId,
+                        principalTable: "Workflows",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
+
+            migrationBuilder.CreateTable(
+                name: "WorkflowLink",
+                columns: table => new
+                {
+                    WorkflowId = table.Column<long>(type: "bigint", nullable: false),
+                    LinkedWorkflowId = table.Column<long>(type: "bigint", nullable: false),
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkflowLink", x => new { x.WorkflowId, x.LinkedWorkflowId });
+                    table.ForeignKey(
+                        name: "FK_WorkflowLink_Workflows_LinkedWorkflowId",
+                        column: x => x.LinkedWorkflowId,
+                        principalTable: "Workflows",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade
+                    );
+                    table.ForeignKey(
+                        name: "FK_WorkflowLink_Workflows_WorkflowId",
+                        column: x => x.WorkflowId,
+                        principalTable: "Workflows",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
+
             migrationBuilder.CreateIndex(name: "IX_Steps_BackoffUntil", table: "Steps", column: "BackoffUntil");
 
             migrationBuilder.CreateIndex(name: "IX_Steps_CreatedAt", table: "Steps", column: "CreatedAt");
-
-            migrationBuilder.CreateIndex(name: "IX_Steps_IdempotencyKey", table: "Steps", column: "IdempotencyKey");
 
             migrationBuilder.CreateIndex(name: "IX_Steps_JobId", table: "Steps", column: "JobId");
 
@@ -115,12 +166,24 @@ namespace WorkflowEngine.Data.Migrations
 
             migrationBuilder.CreateIndex(name: "IX_Steps_Status", table: "Steps", column: "Status");
 
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkflowDependency_DependsOnWorkflowId",
+                table: "WorkflowDependency",
+                column: "DependsOnWorkflowId"
+            );
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkflowLink_LinkedWorkflowId",
+                table: "WorkflowLink",
+                column: "LinkedWorkflowId"
+            );
+
             migrationBuilder.CreateIndex(name: "IX_Workflows_CreatedAt", table: "Workflows", column: "CreatedAt");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Workflows_IdempotencyKey",
+                name: "IX_Workflows_InstanceGuid_Type_Status",
                 table: "Workflows",
-                column: "IdempotencyKey"
+                columns: new[] { "InstanceGuid", "Type", "Status" }
             );
 
             migrationBuilder.CreateIndex(
@@ -136,6 +199,10 @@ namespace WorkflowEngine.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(name: "Steps");
+
+            migrationBuilder.DropTable(name: "WorkflowDependency");
+
+            migrationBuilder.DropTable(name: "WorkflowLink");
 
             migrationBuilder.DropTable(name: "Workflows");
         }

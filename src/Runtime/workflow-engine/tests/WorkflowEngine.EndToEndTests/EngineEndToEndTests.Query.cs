@@ -122,6 +122,7 @@ public partial class EngineEndToEndTests
             {
                 Ref = "wf",
                 OperationId = $"op-{Guid.NewGuid()}",
+                IdempotencyKey = $"key-{Guid.NewGuid()}",
                 Type = WorkflowType.Generic,
                 StartAt = startAt,
                 Steps = [CreateWebhookStep("/scheduled")],

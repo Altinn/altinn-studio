@@ -24,6 +24,7 @@ internal static class WorkflowTestHelper
         {
             Ref = "test-workflow",
             OperationId = "next",
+            IdempotencyKey = $"test-key-{Guid.NewGuid()}",
             Type = type,
             Steps = [new StepRequest { Command = new Command.AppCommand("test-step") }],
             StartAt = startAt,

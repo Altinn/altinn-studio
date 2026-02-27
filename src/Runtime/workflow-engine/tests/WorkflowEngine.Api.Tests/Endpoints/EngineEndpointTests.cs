@@ -28,6 +28,7 @@ public class EngineEndpointTests
                 {
                     Ref = "wf-1",
                     OperationId = "op-1",
+                    IdempotencyKey = "wf-1-key",
                     Type = WorkflowType.Generic,
                     Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
                 },
@@ -235,6 +236,7 @@ public class EngineEndpointTests
                 {
                     Ref = "wf-1",
                     OperationId = "op-1",
+                    IdempotencyKey = "wf-1-key",
                     Type = WorkflowType.AppProcessChange,
                     Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
                 },
@@ -280,6 +282,7 @@ public class EngineEndpointTests
                 {
                     Ref = "wf-1",
                     OperationId = "op-1",
+                    IdempotencyKey = "wf-1-key",
                     Type = WorkflowType.AppProcessChange,
                     Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
                 },
@@ -441,6 +444,7 @@ public class EngineEndpointTests
         var workflow = new Workflow
         {
             OperationId = "test-op",
+            IdempotencyKey = "wf-key",
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             InstanceInformation = new InstanceInformation
             {
@@ -499,6 +503,7 @@ public class EngineEndpointTests
         var workflow = new Workflow
         {
             OperationId = "test-op",
+            IdempotencyKey = "wf-key",
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             InstanceInformation = new InstanceInformation
             {

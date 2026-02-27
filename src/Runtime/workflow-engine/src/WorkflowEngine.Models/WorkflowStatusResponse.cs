@@ -20,6 +20,12 @@ public sealed record WorkflowStatusResponse
     public required string OperationId { get; init; }
 
     /// <summary>
+    /// An idempotency key for this workflow.
+    /// </summary>
+    [JsonPropertyName("idempotencyKey")]
+    public required string IdempotencyKey { get; init; }
+
+    /// <summary>
     /// The time the workflow was created.
     /// </summary>
     [JsonPropertyName("createdAt")]
@@ -90,6 +96,7 @@ public sealed record WorkflowStatusResponse
         new()
         {
             DatabaseId = workflow.DatabaseId,
+            IdempotencyKey = workflow.IdempotencyKey,
             OperationId = workflow.OperationId,
             CreatedAt = workflow.CreatedAt,
             UpdatedAt = workflow.UpdatedAt,

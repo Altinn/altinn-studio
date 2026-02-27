@@ -9,6 +9,7 @@ public class WorkflowEntityTests
         new()
         {
             Id = 42,
+            IdempotencyKey = "wf-key",
             InstanceLockKey = "lock-key-1",
             OperationId = "next",
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
@@ -31,6 +32,7 @@ public class WorkflowEntityTests
         {
             Id = 100 + order,
             OperationId = "noop",
+            IdempotencyKey = $"step-key-{order}",
             Status = PersistentItemStatus.Enqueued,
             ProcessingOrder = order,
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),

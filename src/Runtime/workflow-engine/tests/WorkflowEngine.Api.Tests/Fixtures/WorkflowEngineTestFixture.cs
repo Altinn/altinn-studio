@@ -97,6 +97,7 @@ internal sealed record WorkflowEngineTestFixture(
         return new Workflow
         {
             OperationId = "test-operation",
+            IdempotencyKey = "test-wf-key",
             Actor = DefaultActor,
             InstanceInformation = DefaultInstanceInformation,
             InstanceLockKey = instanceLockKey,
@@ -108,6 +109,7 @@ internal sealed record WorkflowEngineTestFixture(
         new()
         {
             OperationId = command.OperationId,
+            IdempotencyKey = $"test-step-key/{command.OperationId}",
             ProcessingOrder = 0,
             Command = command,
             Actor = DefaultActor,

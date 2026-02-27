@@ -13,6 +13,7 @@ public class ValidationUtilsTests
         {
             Ref = workflowRef,
             OperationId = $"op-{workflowRef}",
+            IdempotencyKey = $"key-{workflowRef}",
             Type = WorkflowType.Generic,
             Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
             DependsOn = dependsOnRefs?.Select(d => (WorkflowRef)d).ToList(),
@@ -177,6 +178,7 @@ public class ValidationUtilsTests
             {
                 Ref = "b",
                 OperationId = "op-b",
+                IdempotencyKey = "key-b",
                 Type = WorkflowType.Generic,
                 Steps = [],
             },
@@ -217,6 +219,7 @@ public class ValidationUtilsTests
         {
             Ref = "wf",
             OperationId = "op",
+            IdempotencyKey = "wf-key",
             Type = WorkflowType.Generic,
             Steps = [validStep],
         };
@@ -335,6 +338,7 @@ public class ValidationUtilsTests
             {
                 Ref = "wf",
                 OperationId = "op",
+                IdempotencyKey = "wf-key",
                 Type = WorkflowType.Generic,
                 Steps = steps,
             };

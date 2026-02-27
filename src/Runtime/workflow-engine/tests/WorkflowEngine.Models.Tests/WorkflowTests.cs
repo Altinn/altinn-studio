@@ -23,6 +23,7 @@ public class WorkflowTests
         {
             DatabaseId = 42,
             OperationId = "workflow-1-operation",
+            IdempotencyKey = "key-1",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
@@ -31,6 +32,7 @@ public class WorkflowTests
         {
             DatabaseId = 42,
             OperationId = "workflow-2-operation",
+            IdempotencyKey = "key-2",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
@@ -39,6 +41,7 @@ public class WorkflowTests
         {
             DatabaseId = 99,
             OperationId = "workflow-3-operation",
+            IdempotencyKey = "key-3",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
@@ -84,6 +87,7 @@ public class WorkflowTests
         {
             Ref = "wf-1",
             OperationId = "next",
+            IdempotencyKey = "wf-1-key",
             Type = WorkflowType.AppProcessChange,
             StartAt = startAt,
             Steps =
@@ -137,6 +141,7 @@ public class WorkflowTests
         {
             Ref = "wf-1",
             OperationId = "op-1",
+            IdempotencyKey = "wf-1-key",
             Type = WorkflowType.Generic,
             Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
         };
@@ -175,6 +180,7 @@ public class WorkflowTests
         {
             DatabaseId = 10,
             OperationId = "dep-op",
+            IdempotencyKey = "dep-key",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
@@ -183,6 +189,7 @@ public class WorkflowTests
         {
             DatabaseId = 20,
             OperationId = "link-op",
+            IdempotencyKey = "link-key",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
@@ -192,6 +199,7 @@ public class WorkflowTests
         {
             Ref = "wf-1",
             OperationId = "op-1",
+            IdempotencyKey = "wf-1-key",
             Type = WorkflowType.Generic,
             Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
         };

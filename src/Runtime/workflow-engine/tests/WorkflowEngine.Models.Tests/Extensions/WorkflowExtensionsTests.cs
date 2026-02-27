@@ -19,6 +19,7 @@ public class WorkflowExtensionsTests
         new()
         {
             OperationId = "op",
+            IdempotencyKey = $"step-key-{order}",
             Actor = _defaultActor,
             ProcessingOrder = order,
             Command = new Command.Debug.Noop(),
@@ -29,6 +30,7 @@ public class WorkflowExtensionsTests
         new()
         {
             OperationId = "test-op",
+            IdempotencyKey = "wf-key",
             Actor = _defaultActor,
             InstanceInformation = _defaultInstance,
             Steps = steps.ToList(),
