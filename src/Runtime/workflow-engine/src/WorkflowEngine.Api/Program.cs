@@ -18,6 +18,21 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // Services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "Dashboard",
+        policy =>
+        {
+            var origins =
+                builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ??
+                [
+                    "http://localhost:8090",
+                ];
+            policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
+        }
+    );
+});
 builder.Services.AddWorkflowEngineHost();
 builder.Services.AddApiKeyAuthentication();
 builder.Services.AddTelemetry(emitQueryParameters: isDev);
@@ -55,6 +70,11 @@ if (!isDev)
 // Endpoints
 app.MapHealthEndpoints();
 app.MapEngineEndpoints();
+if (!app.Environment.IsProduction())
+{
+    app.UseCors("Dashboard");
+    app.MapDashboardEndpoints();
+}
 
 await app.RunAsync();
 

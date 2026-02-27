@@ -11,6 +11,7 @@ public sealed record Workflow : PersistentItem
     public string? DistributedTraceContext { get; set; }
     public IEnumerable<Workflow>? Dependencies { get; init; }
     public IEnumerable<Workflow>? Links { get; init; }
+    public string? InitialState { get; init; }
 
     internal Task? DatabaseTask { get; set; }
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
@@ -34,6 +35,7 @@ public sealed record Workflow : PersistentItem
             Dependencies = dependencies,
             Links = links,
             Steps = request.Steps.Select((step, i) => Step.FromRequest(step, metadata, i)).ToList(),
+            InitialState = engineRequest.State,
         };
 
     public override string ToString() => $"[{GetType().Name}] {OperationId} ({Status})";

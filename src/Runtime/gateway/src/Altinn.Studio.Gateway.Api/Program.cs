@@ -2,10 +2,12 @@ using Altinn.Studio.Runtime.Common;
 using Altinn.Studio.Gateway.Api;
 using Altinn.Studio.Gateway.Api.Authentication;
 using Altinn.Studio.Gateway.Api.Hosting;
+using HostPortScope = Altinn.Studio.Gateway.Api.Hosting.PortScope;
+using HostPortScopeMetadata = Altinn.Studio.Gateway.Api.Hosting.PortScopeMetadata;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 builder.AddGateway();
-builder.ConfigureKestrelPorts(PortConfiguration.PublicPort, PortConfiguration.InternalPort);
+builder.ConfigureKestrelPorts(publicPort: PortConfiguration.PublicPort, internalPort: PortConfiguration.InternalPort);
 builder.UseCommonHostingConfiguration();
 builder.AddMaskinportenAuthentication();
 builder.AddOpenTelemetry();
@@ -22,8 +24,8 @@ builder.Services.AddOpenApi(
     {
         options.ShouldInclude = (description) =>
         {
-            var scope = description.ActionDescriptor.EndpointMetadata.OfType<PortScopeMetadata>().FirstOrDefault();
-            return scope?.Scope != PortScope.Internal;
+            var scope = description.ActionDescriptor.EndpointMetadata.OfType<HostPortScopeMetadata>().FirstOrDefault();
+            return scope?.Scope != HostPortScope.Internal;
         };
     }
 );
@@ -33,8 +35,8 @@ builder.Services.AddOpenApi(
     {
         options.ShouldInclude = (description) =>
         {
-            var scope = description.ActionDescriptor.EndpointMetadata.OfType<PortScopeMetadata>().FirstOrDefault();
-            return scope?.Scope != PortScope.Public;
+            var scope = description.ActionDescriptor.EndpointMetadata.OfType<HostPortScopeMetadata>().FirstOrDefault();
+            return scope?.Scope != HostPortScope.Public;
         };
     }
 );

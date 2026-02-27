@@ -37,4 +37,10 @@ public sealed record AppCallbackPayload
     /// </summary>
     [JsonPropertyName("workflowId")]
     public required long WorkflowId { get; init; }
+
+    /// <summary>
+    /// Opaque state sent to the app. The engine never inspects this.
+    /// </summary>
+    [JsonPropertyName("state")]
+    public string? State { get; init; }
 }

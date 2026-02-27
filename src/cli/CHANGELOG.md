@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support `self update` and `self uninstall` for Linux, macOS
+
 ### Fixed
 
 - PDF connectivity when running `env localtest` (#17959)

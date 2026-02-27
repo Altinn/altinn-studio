@@ -162,6 +162,9 @@ internal partial class Engine
 
     private void RemoveWorkflowAndReleaseQueueSlot(Workflow workflow)
     {
+        // Capture final state before removal (for dashboard "recent" section)
+        _recentWorkflows.Add(workflow);
+
         lock (_activeSetLock)
         {
             var removed = _inbox.TryRemove(workflow.DatabaseId, out _) && _activeSet.Remove(workflow);

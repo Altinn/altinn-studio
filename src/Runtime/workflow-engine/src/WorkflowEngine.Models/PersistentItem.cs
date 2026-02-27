@@ -10,6 +10,8 @@ public abstract record PersistentItem
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; internal set; }
     public string? Metadata { get; init; }
+    public string? DistributedTraceContext { get; set; }
+    public string? EngineTraceId { get; set; }
 
     internal Activity? EngineActivity { get; set; }
 }

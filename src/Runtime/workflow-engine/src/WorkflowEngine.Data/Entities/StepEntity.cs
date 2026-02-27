@@ -45,6 +45,8 @@ internal sealed class StepEntity : IHasCommonMetadata
     [Column(TypeName = "jsonb")]
     public string? MetadataJson { get; set; }
 
+    public string? StateOut { get; set; }
+
     // Foreign key and navigation property
     [ForeignKey(nameof(Job))]
     public long JobId { get; set; }
@@ -68,6 +70,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
             MetadataJson = step?.Metadata,
+            StateOut = step.StateOut,
         };
     }
 
@@ -94,6 +97,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             Command = command,
             RetryStrategy = retryStrategy,
+            StateOut = StateOut,
         };
     }
 }

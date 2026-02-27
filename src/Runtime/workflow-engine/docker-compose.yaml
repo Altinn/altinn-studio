@@ -1,9 +1,10 @@
 services:
   workflow-engine:
     build:
-      context: ../
-      dockerfile: workflow-engine/Dockerfile
+      context: ../../
+      dockerfile: Runtime/workflow-engine/Dockerfile
     container_name: workflow-engine-api
+    restart: unless-stopped
     networks:
       - workflow-engine-network
     ports:
@@ -17,9 +18,25 @@ services:
         condition: service_healthy
     profiles: [app, full]
 
+  dashboard:
+    build:
+      context: src/WorkflowEngine.Dashboard
+    container_name: workflow-engine-dashboard
+    restart: unless-stopped
+    networks:
+      - workflow-engine-network
+    ports:
+      - "8090:8080"
+    volumes:
+      - ./src/WorkflowEngine.Dashboard/wwwroot:/app/wwwroot:ro
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+    profiles: [app, full]
+
   postgres:
     image: postgres:18
     container_name: workflow-engine-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_DB: workflow_engine
       POSTGRES_USER: postgres
@@ -41,6 +58,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: workflow-engine-pgadmin
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@altinn.no
       PGADMIN_DEFAULT_PASSWORD: admin123
@@ -60,6 +78,7 @@ services:
   blackbox-exporter:
     image: prom/blackbox-exporter:latest
     container_name: workflow-engine-blackbox
+    restart: unless-stopped
     volumes:
       - ./.docker/blackbox.yml:/config/blackbox.yml:ro
     entrypoint: ["/bin/sh", "-c", "/bin/blackbox_exporter --config.file=/config/blackbox.yml 2>/dev/null"]
@@ -71,6 +90,7 @@ services:
   postgres-exporter:
     image: quay.io/prometheuscommunity/postgres-exporter
     container_name: workflow-engine-postgres-exporter
+    restart: unless-stopped
     environment:
       DATA_SOURCE_URI: postgres:5432/workflow_engine?sslmode=disable
       DATA_SOURCE_USER: postgres
@@ -104,6 +124,7 @@ services:
   wiremock:
     image: wiremock/wiremock:3.13.2
     container_name: workflow-engine-wiremock
+    restart: unless-stopped
     ports:
       - "6060:8080"
     networks:
