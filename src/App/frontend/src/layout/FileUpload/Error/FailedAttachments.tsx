@@ -5,6 +5,7 @@ import { isAxiosError } from 'axios';
 
 import { Alert } from 'src/app-components/Alert/Alert';
 import { Button } from 'src/app-components/Button/Button';
+import { translationKey } from 'src/AppComponentsBridge';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { type IFailedAttachment, isDataPostError } from 'src/features/attachments';
 import { useDeleteFailedAttachment, useFailedAttachmentsFor } from 'src/features/attachments/hooks';
@@ -60,7 +61,7 @@ function FileUploadError({ attachment, handleClose }: { attachment: IFailedAttac
           variant='tertiary'
           color='second'
           onClick={handleClose}
-          aria-label={langAsString('general.close')}
+          aria-label={translationKey('general.close')}
         >
           <XMarkIcon
             fontSize='1rem'
