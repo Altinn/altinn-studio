@@ -5,7 +5,7 @@ namespace Altinn.Studio.Designer.Repository.Models;
 
 public class ChatMessageEntity
 {
-    public required Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.CreateVersion7();
     public required DateTime CreatedAt { get; set; }
     public required Role Role { get; set; }
     public required string Content { get; set; }

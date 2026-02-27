@@ -8,7 +8,7 @@ public class ChatThreadDbModel
     /// <summary>
     /// Unique identifier for the chat thread.
     /// </summary>
-    public required Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.CreateVersion7();
 
     /// <summary>
     /// Org that owns the thread.

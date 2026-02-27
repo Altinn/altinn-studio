@@ -9,7 +9,7 @@ public class ChatMessageDbModel
     /// <summary>
     /// Unique identifier for the message.
     /// </summary>
-    public required Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.CreateVersion7();
 
     /// <summary>
     /// Foreign key for thread where message belongs.
