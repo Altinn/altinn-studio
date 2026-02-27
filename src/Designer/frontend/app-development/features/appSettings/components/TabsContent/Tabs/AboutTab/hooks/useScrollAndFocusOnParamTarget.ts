@@ -7,6 +7,9 @@ type Options = {
   sectionRef: MutableRefObject<HTMLDivElement | null>;
   searchParams: URLSearchParams;
   setSearchParams: SetURLSearchParams;
+  getFocusElement?: (section: HTMLDivElement) => HTMLElement | null;
+  onFocused?: () => void;
+  clearFocusParam?: boolean;
 };
 
 export function useScrollAndFocusOnParamTarget({
@@ -14,6 +17,9 @@ export function useScrollAndFocusOnParamTarget({
   sectionRef,
   searchParams,
   setSearchParams,
+  getFocusElement,
+  onFocused,
+  clearFocusParam = true,
 }: Options): void {
   useLayoutEffect(() => {
     if (!isTarget || !sectionRef.current) return;
@@ -23,18 +29,28 @@ export function useScrollAndFocusOnParamTarget({
     const scrollAndFocus = () => {
       section.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-      const field = section.querySelector('textarea, input') as
-        | HTMLTextAreaElement
-        | HTMLInputElement
-        | null;
+      const target =
+        getFocusElement?.(section) ??
+        (section.querySelector('textarea, input') as HTMLTextAreaElement | HTMLInputElement | null);
 
-      field?.focus({ preventScroll: true });
+      target?.focus({ preventScroll: true });
+      onFocused?.();
     };
 
     requestAnimationFrame(scrollAndFocus);
 
-    const next = new URLSearchParams(searchParams);
-    next.delete('focus');
-    setSearchParams(next, { replace: true });
-  }, [isTarget, sectionRef, searchParams, setSearchParams]);
+    if (clearFocusParam) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('focus');
+      setSearchParams(next, { replace: true });
+    }
+  }, [
+    isTarget,
+    sectionRef,
+    searchParams,
+    setSearchParams,
+    getFocusElement,
+    onFocused,
+    clearFocusParam,
+  ]);
 }
