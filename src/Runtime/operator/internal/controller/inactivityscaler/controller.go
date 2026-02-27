@@ -46,7 +46,7 @@ const (
 )
 
 var (
-	defaultPollInterval      = time.Minute
+	defaultPollInterval      = 10 * time.Minute
 	osloLocation             = mustLoadLocation("Europe/Oslo")
 	ttdScaleDownEnvironments = map[string]struct{}{
 		"at22": {},
