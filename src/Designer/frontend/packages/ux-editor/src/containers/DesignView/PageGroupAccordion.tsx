@@ -115,7 +115,7 @@ export const PageGroupAccordion = ({
         >
           <div className={classes.container} onClick={() => handleSelectGroup(groupIndex)}>
             <FolderIcon aria-hidden />
-            <span class='fds-paragraph fds-paragraph--sm'>{groupDisplayName}</span>
+            <span className='fds-paragraph fds-paragraph--sm'>{groupDisplayName}</span>
           </div>
           <div className={classes.rightIconsContainer}>
             <StudioPopover.TriggerContext>
