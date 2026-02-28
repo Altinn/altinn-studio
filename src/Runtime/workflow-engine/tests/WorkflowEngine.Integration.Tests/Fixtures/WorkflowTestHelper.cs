@@ -22,7 +22,6 @@ internal static class WorkflowTestHelper
 
         var request = new WorkflowRequest
         {
-            Ref = "test-workflow",
             OperationId = "next",
             IdempotencyKey = $"test-key-{Guid.NewGuid()}",
             Type = type,

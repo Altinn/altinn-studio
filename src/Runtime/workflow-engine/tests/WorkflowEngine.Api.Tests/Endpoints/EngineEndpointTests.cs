@@ -26,7 +26,6 @@ public class EngineEndpointTests
             [
                 new WorkflowRequest
                 {
-                    Ref = "wf-1",
                     OperationId = "op-1",
                     IdempotencyKey = "wf-1-key",
                     Type = WorkflowType.Generic,
@@ -50,7 +49,11 @@ public class EngineEndpointTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(WorkflowEnqueueResponse.Accept(new Dictionary<string, long> { ["wf-1"] = 42L }));
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Accept([
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = 42L },
+                ])
+            );
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
@@ -65,7 +68,8 @@ public class EngineEndpointTests
         var ok = Assert.IsType<Ok<WorkflowEnqueueResponse.Accepted>>(result.Result);
         Assert.NotNull(ok.Value);
         Assert.Single(ok.Value.Workflows);
-        Assert.Equal(42L, ok.Value.Workflows["wf-1"]);
+        Assert.Equal("wf-1", ok.Value.Workflows[0].Ref);
+        Assert.Equal(42L, ok.Value.Workflows[0].DatabaseId);
     }
 
     [Fact]
@@ -298,7 +302,11 @@ public class EngineEndpointTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(WorkflowEnqueueResponse.Accept(new Dictionary<string, long> { ["wf-1"] = 1L }));
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Accept([
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = 1L },
+                ])
+            );
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
@@ -339,7 +347,11 @@ public class EngineEndpointTests
             .Callback<WorkflowEnqueueRequest, WorkflowRequestMetadata, CancellationToken>(
                 (_, meta, _) => capturedMetadata = meta
             )
-            .ReturnsAsync(WorkflowEnqueueResponse.Accept(new Dictionary<string, long> { ["wf-1"] = 1L }));
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Accept([
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = 1L },
+                ])
+            );
 
         // Act
         await EngineRequestHandlers.EnqueueWorkflows(

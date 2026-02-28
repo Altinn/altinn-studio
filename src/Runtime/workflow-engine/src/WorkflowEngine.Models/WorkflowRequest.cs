@@ -8,10 +8,11 @@ namespace WorkflowEngine.Models;
 public sealed record WorkflowRequest
 {
     /// <summary>
-    /// Request-scoped alias for this workflow, used to reference it within this batch (never persisted).
+    /// Optional request-scoped alias for this workflow, used to reference it within this batch (never persisted).
+    /// Only required when other workflows in the same batch reference this one via <see cref="DependsOn"/> or <see cref="Links"/>.
     /// </summary>
     [JsonPropertyName("ref")]
-    public required string Ref { get; init; }
+    public string? Ref { get; init; }
 
     /// <summary>
     /// An identifier for this operation.

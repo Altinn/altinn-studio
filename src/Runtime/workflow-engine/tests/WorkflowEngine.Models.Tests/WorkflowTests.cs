@@ -85,7 +85,6 @@ public class WorkflowTests
 
         var workflowRequest = new WorkflowRequest
         {
-            Ref = "wf-1",
             OperationId = "next",
             IdempotencyKey = "wf-1-key",
             Type = WorkflowType.AppProcessChange,
@@ -139,7 +138,6 @@ public class WorkflowTests
         // Arrange
         var workflowRequest = new WorkflowRequest
         {
-            Ref = "wf-1",
             OperationId = "op-1",
             IdempotencyKey = "wf-1-key",
             Type = WorkflowType.Generic,
@@ -197,7 +195,6 @@ public class WorkflowTests
 
         var workflowRequest = new WorkflowRequest
         {
-            Ref = "wf-1",
             OperationId = "op-1",
             IdempotencyKey = "wf-1-key",
             Type = WorkflowType.Generic,

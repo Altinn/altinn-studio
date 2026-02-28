@@ -83,7 +83,7 @@ public partial class EngineEndToEndTests
         var responseA = await _client.Enqueue(Org, App, PartyId, _instanceGuid, requestA);
         var responseB = await _client.EnqueueRaw(Org, App, PartyId, _instanceGuid, requestB);
 
-        var workflowAId = responseA.Workflows.Values.Single();
+        var workflowAId = responseA.Workflows.Single().DatabaseId;
         await WaitForWorkflowStatus(workflowAId, PersistentItemStatus.Completed);
 
         // Assert
@@ -107,7 +107,7 @@ public partial class EngineEndToEndTests
 
         // Act
         var responseA = await _client.Enqueue(Org, App, PartyId, _instanceGuid, CreateEnqueueRequest(workflowA));
-        var workflowAId = responseA.Workflows.Values.Single();
+        var workflowAId = responseA.Workflows.Single().DatabaseId;
         await WaitForWorkflowStatus(workflowAId, PersistentItemStatus.Processing);
 
         var responseB = await _client.Enqueue(
@@ -117,7 +117,7 @@ public partial class EngineEndToEndTests
             _instanceGuid,
             CreateEnqueueRequest(workflowB with { DependsOn = [workflowAId] })
         );
-        var workflowBId = responseB.Workflows.Values.Single();
+        var workflowBId = responseB.Workflows.Single().DatabaseId;
 
         var statuses = await WaitForWorkflowStatus([workflowAId, workflowBId], PersistentItemStatus.Completed);
 
@@ -136,7 +136,7 @@ public partial class EngineEndToEndTests
             "wf-b",
             WorkflowType.AppProcessChange,
             [CreateWebhookStep("/something-else")],
-            dependsOn: [workflowA.Ref]
+            dependsOn: ["wf-a"]
         );
         var request = CreateEnqueueRequest([workflowA, workflowB]);
 

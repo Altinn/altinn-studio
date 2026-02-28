@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using WorkflowMap = System.Collections.Generic.Dictionary<string, long>;
 
 namespace WorkflowEngine.Models;
 
@@ -10,7 +9,7 @@ public abstract record WorkflowEnqueueResponse
 {
     private WorkflowEnqueueResponse() { }
 
-    public static Accepted Accept(WorkflowMap workflows) => new() { Workflows = workflows };
+    public static Accepted Accept(IReadOnlyList<WorkflowResult> workflows) => new() { Workflows = workflows };
 
     public static Rejected Reject(Rejection reason, string? message = null) =>
         new() { Reason = reason, Message = message };
@@ -21,7 +20,7 @@ public abstract record WorkflowEnqueueResponse
     public sealed record Accepted : WorkflowEnqueueResponse
     {
         [JsonPropertyName("workflows")]
-        public required WorkflowMap Workflows { get; init; }
+        public required IReadOnlyList<WorkflowResult> Workflows { get; init; }
     }
 
     /// <summary>
@@ -46,5 +45,18 @@ public abstract record WorkflowEnqueueResponse
         Unavailable,
         AtCapacity,
         ConcurrencyViolation,
+    }
+
+    /// <summary>
+    /// A single workflow result within an accepted enqueue response.
+    /// </summary>
+    public sealed record WorkflowResult
+    {
+        [JsonPropertyName("ref")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? Ref { get; init; }
+
+        [JsonPropertyName("databaseId")]
+        public required long DatabaseId { get; init; }
     }
 }

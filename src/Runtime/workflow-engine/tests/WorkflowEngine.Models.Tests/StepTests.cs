@@ -87,7 +87,6 @@ public class StepTests
         // Act
         var parentRequest = new WorkflowRequest
         {
-            Ref = "wf-1",
             OperationId = "op-1",
             IdempotencyKey = "parent-key",
             Type = WorkflowType.Generic,
@@ -129,7 +128,6 @@ public class StepTests
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
         var parentRequest = new WorkflowRequest
         {
-            Ref = "wf-1",
             OperationId = "op-1",
             IdempotencyKey = "parent-key",
             Type = WorkflowType.Generic,
@@ -164,7 +162,6 @@ public class StepTests
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
         var parentRequest = new WorkflowRequest
         {
-            Ref = "wf-1",
             OperationId = "op-1",
             IdempotencyKey = "parent-key",
             Type = WorkflowType.Generic,

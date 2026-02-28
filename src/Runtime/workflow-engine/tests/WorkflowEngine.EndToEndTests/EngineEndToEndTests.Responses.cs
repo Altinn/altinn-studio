@@ -60,7 +60,7 @@ public partial class EngineEndToEndTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body).ScrubMembers("wf-1");
+        await VerifyJson(body).ScrubMembers("databaseId");
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public partial class EngineEndToEndTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body).ScrubMembers("wf-a", "wf-b");
+        await VerifyJson(body).ScrubMembers("databaseId");
     }
 
     [Fact]
@@ -162,7 +162,7 @@ public partial class EngineEndToEndTests
     {
         var request = CreateEnqueueRequest(CreateWorkflow("wf-1", WorkflowType.Generic, [CreateWebhookStep("/ping")]));
         var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = accepted.Workflows.Values.Single();
+        var workflowId = accepted.Workflows.Single().DatabaseId;
 
         await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
@@ -182,7 +182,7 @@ public partial class EngineEndToEndTests
             lockToken: LockToken
         );
         var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = accepted.Workflows.Values.Single();
+        var workflowId = accepted.Workflows.Single().DatabaseId;
 
         await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
@@ -205,7 +205,7 @@ public partial class EngineEndToEndTests
             )
         );
         var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = accepted.Workflows.Values.Single();
+        var workflowId = accepted.Workflows.Single().DatabaseId;
 
         await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
@@ -230,7 +230,7 @@ public partial class EngineEndToEndTests
     {
         var request = CreateEnqueueRequest(CreateWorkflow("wf-1", WorkflowType.Generic, [CreateWebhookStep("/ping")]));
         var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = accepted.Workflows.Values.Single();
+        var workflowId = accepted.Workflows.Single().DatabaseId;
 
         await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
@@ -248,14 +248,14 @@ public partial class EngineEndToEndTests
             "wf-b",
             WorkflowType.Generic,
             [CreateWebhookStep("/ping-b")],
-            dependsOn: [workflowA.Ref]
+            dependsOn: ["wf-a"]
         );
         var request = CreateEnqueueRequest([workflowA, workflowB]);
 
         var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowBId = accepted.Workflows["wf-b"];
+        var workflowBId = accepted.Workflows.First(w => w.Ref == "wf-b").DatabaseId;
 
-        await WaitForWorkflowStatus(accepted.Workflows.Values, PersistentItemStatus.Completed);
+        await WaitForWorkflowStatus(accepted.Workflows.Select(w => w.DatabaseId), PersistentItemStatus.Completed);
 
         using var response = await _client.GetWorkflowRaw(Org, App, PartyId, _instanceGuid, workflowBId);
 
@@ -314,7 +314,7 @@ public partial class EngineEndToEndTests
     {
         var request = CreateEnqueueRequest(CreateWorkflow("wf-1", WorkflowType.Generic, [CreateWebhookStep("/ping")]));
         var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var workflowId = accepted.Workflows.Values.Single();
+        var workflowId = accepted.Workflows.Single().DatabaseId;
 
         await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 

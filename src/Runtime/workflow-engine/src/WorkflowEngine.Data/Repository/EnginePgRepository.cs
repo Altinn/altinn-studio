@@ -476,7 +476,8 @@ internal partial class EnginePgRepository : IEngineRepository
                     }
                 }
 
-                refToEntity[request.Ref] = entity;
+                if (request.Ref is not null)
+                    refToEntity[request.Ref] = entity;
                 results.Add(entity.ToDomainModel());
             }
 

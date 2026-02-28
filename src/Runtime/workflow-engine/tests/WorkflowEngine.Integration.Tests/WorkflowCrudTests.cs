@@ -51,7 +51,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var instanceGuid = Guid.NewGuid();
         var request = new WorkflowRequest
         {
-            Ref = "test-workflow",
             OperationId = "next",
             IdempotencyKey = $"test-key-{Guid.NewGuid()}",
             Type = WorkflowType.Generic,
@@ -262,7 +261,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var (_, metadataB) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
         var batchRequest = new WorkflowRequest
         {
-            Ref = "wf-b",
             OperationId = "op-b",
             IdempotencyKey = $"key-b-{Guid.NewGuid()}",
             Type = WorkflowType.Generic,
@@ -291,7 +289,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var (_, metadataB) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
         var batchRequest = new WorkflowRequest
         {
-            Ref = "wf-b",
             OperationId = "op-b",
             IdempotencyKey = $"key-b-{Guid.NewGuid()}",
             Type = WorkflowType.Generic,
@@ -509,7 +506,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var repo = fixture.CreateRepository(context);
         var request = new WorkflowRequest
         {
-            Ref = "test-workflow",
             OperationId = "next",
             IdempotencyKey = $"test-key-{Guid.NewGuid()}",
             Type = WorkflowType.Generic,

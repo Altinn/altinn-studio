@@ -93,10 +93,13 @@ internal partial class Engine
         Metrics.WorkflowRequestsAccepted.Add(sortedRequests.Count);
         Metrics.StepRequestsAccepted.Add(workflows.Sum(w => w.Steps.Count));
 
-        // Build Ref -> DatabaseId map
+        // Build ordered list of results
         var results = sortedRequests
-            .Zip(workflows, (req, wf) => (req.Ref, wf.DatabaseId))
-            .ToDictionary(t => t.Ref, t => t.DatabaseId);
+            .Zip(
+                workflows,
+                (req, wf) => new WorkflowEnqueueResponse.WorkflowResult { Ref = req.Ref, DatabaseId = wf.DatabaseId }
+            )
+            .ToList();
 
         return WorkflowEnqueueResponse.Accept(results);
     }

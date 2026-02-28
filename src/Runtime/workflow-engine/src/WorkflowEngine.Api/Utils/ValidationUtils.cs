@@ -21,16 +21,17 @@ internal static class ValidationUtils
     {
         using var activity = Metrics.Source.StartActivity("ValidationUtils.ValidateAndSortWorkflowGraph");
 
-        // Build ref -> index map and validate uniqueness
+        // Build ref -> index map (only for workflows that have a ref) and validate uniqueness
         var refToIndex = new Dictionary<string, int>(requests.Count);
         for (int i = 0; i < requests.Count; i++)
         {
             var req = requests[i];
-            if (!refToIndex.TryAdd(req.Ref, i))
-                throw new ArgumentException($"Duplicate ref '{req.Ref}' in batch.");
 
             if (!IsValidWorkflowRequest(req))
-                throw new ArgumentException($"Workflow '{req.Ref}' is invalid.");
+                throw new ArgumentException($"Workflow at index {i} ({WorkflowLabel(req, i)}) is invalid.");
+
+            if (req.Ref is not null && !refToIndex.TryAdd(req.Ref, i))
+                throw new ArgumentException($"Duplicate ref '{req.Ref}' in batch.");
         }
 
         // Build adjacency list (edges: dependency -> dependent)
@@ -40,12 +41,12 @@ internal static class ValidationUtils
         for (int i = 0; i < requests.Count; i++)
             dependents[i] = [];
 
-        foreach (var req in requests)
+        for (int i = 0; i < requests.Count; i++)
         {
+            var req = requests[i];
             if (req.DependsOn is null)
                 continue;
 
-            int reqIdx = refToIndex[req.Ref];
             foreach (var dep in req.DependsOn)
             {
                 // If the dependency is a db id, skip calculation.
@@ -55,15 +56,17 @@ internal static class ValidationUtils
                 var depRef = dep.Ref;
 
                 if (depRef == req.Ref)
-                    throw new ArgumentException($"Workflow '{req.Ref}' has a self-reference in DependsOn.");
+                    throw new ArgumentException(
+                        $"Workflow '{WorkflowLabel(req, i)}' has a self-reference in DependsOn."
+                    );
 
                 if (!refToIndex.TryGetValue(depRef, out int depIdx))
                     throw new ArgumentException(
-                        $"DependsOn ref '{depRef}' in workflow '{req.Ref}' is not present in the batch."
+                        $"DependsOn ref '{depRef}' in workflow '{WorkflowLabel(req, i)}' is not present in the batch."
                     );
 
-                dependents[depIdx].Add(reqIdx);
-                inDegree[reqIdx]++;
+                dependents[depIdx].Add(i);
+                inDegree[i]++;
             }
         }
 
@@ -92,7 +95,7 @@ internal static class ValidationUtils
         if (sorted.Count != requests.Count)
         {
             // Find the refs involved in the cycle for a helpful error message
-            var cycleRefs = requests.Where((_, i) => inDegree[i] > 0).Select(r => r.Ref).ToList();
+            var cycleRefs = requests.Where((_, i) => inDegree[i] > 0).Select((r, i) => WorkflowLabel(r, i)).ToList();
 
             throw new ArgumentException(
                 $"Dependency cycle detected in batch involving refs: {string.Join(", ", cycleRefs)}"
@@ -103,13 +106,15 @@ internal static class ValidationUtils
     }
 
     /// <summary>
+    /// Returns a human-readable label for a workflow request, preferring Ref if available, falling back to index.
+    /// </summary>
+    private static string WorkflowLabel(WorkflowRequest req, int index) => req.Ref ?? $"#{index}";
+
+    /// <summary>
     /// Basic validation for a workflow request.
     /// </summary>
     public static bool IsValidWorkflowRequest(WorkflowRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Ref))
-            return false;
-
         if (string.IsNullOrWhiteSpace(request.OperationId))
             return false;
 

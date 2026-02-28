@@ -168,6 +168,58 @@ public class ValidationUtilsTests
     }
 
     [Fact]
+    public void ValidateAndSort_NullRefs_NoDependencies_Succeeds()
+    {
+        var requests = new List<WorkflowRequest>
+        {
+            CreateWorkflowRequest("a") with
+            {
+                Ref = null,
+            },
+            CreateWorkflowRequest("b") with
+            {
+                Ref = null,
+            },
+        };
+
+        var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public void ValidateAndSort_MixedNullAndNonNullRefs_WithDependency_Succeeds()
+    {
+        // Workflow at index 1 (null ref) depends on "a" which has a ref
+        var requests = new List<WorkflowRequest>
+        {
+            CreateWorkflowRequest("a"),
+            CreateWorkflowRequest("b") with
+            {
+                Ref = null,
+                DependsOn = [(WorkflowRef)"a"],
+            },
+        };
+
+        var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
+
+        Assert.Equal(2, result.Count);
+        Assert.Equal("a", result[0].Ref);
+        Assert.Null(result[1].Ref);
+    }
+
+    [Fact]
+    public void ValidateAndSort_NullRefWorkflow_WithExternalIdDependency_Succeeds()
+    {
+        // A workflow without a ref can still depend on external DB IDs
+        var requests = new List<WorkflowRequest> { CreateWorkflowRequest("a") with { Ref = null, DependsOn = [99L] } };
+
+        var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
+
+        Assert.Single(result);
+    }
+
+    [Fact]
     public void ValidateAndSort_InvalidWorkflowInBatch_Throws()
     {
         // A workflow with no steps is invalid and should cause ValidateAndSort to throw
@@ -185,7 +237,7 @@ public class ValidationUtilsTests
         };
 
         var ex = Assert.Throws<ArgumentException>(() => ValidationUtils.ValidateAndSortWorkflowGraph(requests));
-        Assert.Contains("'b' is invalid", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("(b) is invalid", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Theory]
@@ -217,7 +269,6 @@ public class ValidationUtilsTests
         var validStep = new StepRequest { Command = new Command.Debug.Noop() };
         var validWorkflow = new WorkflowRequest
         {
-            Ref = "wf",
             OperationId = "op",
             IdempotencyKey = "wf-key",
             Type = WorkflowType.Generic,
@@ -238,9 +289,8 @@ public class ValidationUtilsTests
                 },
                 ExpectedResult.Valid
             },
-            // Invalid: Ref
-            { validWorkflow with { Ref = "" }, ExpectedResult.Invalid },
-            { validWorkflow with { Ref = "   " }, ExpectedResult.Invalid },
+            // Valid: Ref is optional
+            { validWorkflow with { Ref = null }, ExpectedResult.Valid },
             // Invalid: OperationId
             { validWorkflow with { OperationId = "" }, ExpectedResult.Invalid },
             { validWorkflow with { OperationId = "   " }, ExpectedResult.Invalid },
@@ -336,7 +386,6 @@ public class ValidationUtilsTests
         WorkflowRequest Wf(params StepRequest[] steps) =>
             new()
             {
-                Ref = "wf",
                 OperationId = "op",
                 IdempotencyKey = "wf-key",
                 Type = WorkflowType.Generic,
