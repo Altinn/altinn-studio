@@ -1,8 +1,9 @@
 import React, { useId, useRef } from 'react';
 
-import { Button, Input, Label } from '@digdir/designsystemet-react';
+import { Input, Label } from '@digdir/designsystemet-react';
 import { ArrowUndoIcon, TrashIcon, UploadIcon } from '@navikt/aksel-icons';
 
+import { Button } from 'src/app-components/Button/Button';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useFocusWhenUploaded } from 'src/layout/ImageUpload/hooks/useFocusWhenUploaded';

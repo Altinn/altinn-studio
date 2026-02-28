@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 
-import { Checkbox, Heading, ValidationMessage } from '@digdir/designsystemet-react';
+import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Checkbox } from 'src/app-components/Checkbox/Checkbox';
 import { Spinner } from 'src/app-components/loading/Spinner/Spinner';
 import { Panel } from 'src/app-components/Panel/Panel';
 import { useIsAuthorized } from 'src/features/instance/useProcessQuery';

@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
 import { ExpandIcon, ShrinkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/components/presentation/ExpandWidthButton.module.css';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { Lang } from 'src/features/language/Lang';

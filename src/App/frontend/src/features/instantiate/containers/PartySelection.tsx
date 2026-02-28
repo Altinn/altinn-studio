@@ -1,11 +1,12 @@
 import React from 'react';
 import { useMatch, useNavigate } from 'react-router';
 
-import { Checkbox, Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { PlusIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Checkbox } from 'src/app-components/Checkbox/Checkbox';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Input } from 'src/app-components/Input/Input';
 import { translationKey } from 'src/AppComponentsBridge';

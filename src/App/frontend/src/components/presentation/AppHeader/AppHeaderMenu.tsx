@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 
-import { Button, Dropdown } from '@digdir/designsystemet-react';
+import { Dropdown } from '@digdir/designsystemet-react';
 import { Buildings3Icon, PersonIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { Button } from 'src/app-components/Button/Button';
 import { CircleIcon } from 'src/components/CircleIcon';
 import classes from 'src/components/presentation/AppHeader/AppHeaderMenu.module.css';
 import { Lang } from 'src/features/language/Lang';

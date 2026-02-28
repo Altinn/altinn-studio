@@ -1,9 +1,9 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useEffect, useRef, useState } from 'react';
 
-import { Alert } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';
 
+import { Alert } from 'src/app-components/Alert/Alert';
 import { Button } from 'src/app-components/Button/Button';
 import { translationKey } from 'src/AppComponentsBridge';
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
