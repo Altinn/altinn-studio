@@ -517,12 +517,15 @@ namespace Altinn.Studio.Designer.Controllers
                 var settingsWithIds = new List<(string Id, LayoutSettings Settings)>();
                 foreach (var layoutSet in layoutSetsModel.Sets)
                 {
-                    LayoutSettings settings =
-                        await _layoutService.GetLayoutSettings(editingContext, layoutSet.Id, cancellationToken)
-                        ?? throw new FileNotFoundException(
-                            $"Layout settings file not found for layout set '{layoutSet.Id}'."
-                        );
-                    settingsWithIds.Add((layoutSet.Id, settings));
+                    LayoutSettings settings = await _layoutService.GetLayoutSettings(
+                        editingContext,
+                        layoutSet.Id,
+                        cancellationToken
+                    );
+                    if (settings != null)
+                    {
+                        settingsWithIds.Add((layoutSet.Id, settings));
+                    }
                 }
 
                 var result = settingsWithIds
