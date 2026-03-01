@@ -26,8 +26,10 @@ import (
 	"altinn.studio/operator/internal"
 	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
 	"altinn.studio/operator/internal/controller/cnpgsync"
+	"altinn.studio/operator/internal/controller/inactivityscaler"
 	"altinn.studio/operator/internal/controller/maskinporten"
 	"altinn.studio/operator/internal/controller/secretsync"
+	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/telemetry"
 	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
@@ -196,6 +198,17 @@ func main() {
 		setupLog.Error(err, "unable to add CnpgSync controller to manager")
 		span.End()
 		os.Exit(1)
+	}
+
+	if rt.GetOperatorContext().Environment != operatorcontext.EnvironmentProd {
+		inactivityScalerController := inactivityscaler.NewReconciler(rt, mgr.GetClient(), mgr.GetAPIReader())
+		if err = mgr.Add(inactivityScalerController); err != nil {
+			setupLog.Error(err, "unable to add InactivityScaler controller to manager")
+			span.End()
+			os.Exit(1)
+		}
+	} else {
+		setupLog.Info("skipping InactivityScaler controller in prod")
 	}
 
 	if err = mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

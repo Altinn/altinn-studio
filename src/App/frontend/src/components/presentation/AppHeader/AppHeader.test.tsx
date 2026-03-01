@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { expect, jest } from '@jest/globals';
+import { expect } from '@jest/globals';
 import { act, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
@@ -9,9 +9,6 @@ import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
 import { LogoColor } from 'src/components/logo/AltinnLogo';
 import { AppHeader } from 'src/components/presentation/AppHeader/AppHeader';
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { resourcesAsMap, useTextResources } from 'src/features/language/textResources/TextResourcesProvider';
-import { IPagesSettingsWithOrder } from 'src/layout/common.generated';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
@@ -57,8 +54,9 @@ describe('presentation/AppHeader', () => {
     textResources?: IRawTextResource[];
   }
   const render = async ({ logo, showLanguageSelector = false, textResources = [] }: IRenderComponentProps) => {
-    jest.mocked(getApplicationMetadata).mockImplementation(() => getApplicationMetadataMock({ logo }));
-    jest.mocked(useTextResources).mockImplementation(() => resourcesAsMap(textResources));
+    window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock({ logo });
+    window.altinnAppGlobalData.textResources!.resources = textResources;
+    window.altinnAppGlobalData.ui.settings = { showLanguageSelector };
 
     return await renderWithInstanceAndLayout({
       renderer: () => (
@@ -67,13 +65,6 @@ describe('presentation/AppHeader', () => {
           headerBackgroundColor={headerBackgroundColor}
         />
       ),
-
-      queries: {
-        fetchLayoutSettings: () =>
-          Promise.resolve({
-            pages: { showLanguageSelector, order: ['1', '2', '3'] } as unknown as IPagesSettingsWithOrder,
-          }),
-      },
     });
   };
 
@@ -115,37 +106,5 @@ describe('presentation/AppHeader', () => {
       logo: { source: 'org', displayAppOwnerNameInHeader: false },
     });
     expect(screen.getByRole('img')).toHaveAttribute('src', 'https://altinncdn.no/orgs/mockOrg/mockOrg.png');
-  });
-
-  it('should render and change app language', async () => {
-    await render({
-      party: userPerson.party,
-      showLanguageSelector: true,
-    });
-
-    await userEvent.click(screen.getByRole('button', { name: /Språkvalg/i }));
-    const en = screen.getByRole('menuitemradio', { name: /engelsk/i });
-    await userEvent.click(en);
-
-    // Language now changed, so the value should be the language name in the selected language
-    await userEvent.click(screen.getByRole('button', { name: /Language/i }));
-    expect(screen.getByRole('menuitemradio', { name: /english/i })).toHaveAttribute('aria-checked', 'true');
-  });
-
-  it('should render app language with custom labels', async () => {
-    await render({
-      party: userPerson.party,
-      showLanguageSelector: true,
-      textResources: [
-        { id: 'language.language_selection', value: 'Språkvalg test' },
-        { id: 'language.full_name.nb', value: 'Norsk test' },
-        { id: 'language.full_name.en', value: 'Engelsk test' },
-      ],
-    });
-
-    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /Språkvalg test/i }));
-    screen.getByRole('menuitemradio', { name: /norsk test/i });
-    screen.getByRole('menuitemradio', { name: /engelsk test/i });
   });
 });

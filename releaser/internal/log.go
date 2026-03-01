@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -69,8 +70,29 @@ func (l *ConsoleLogger) Info(msg string, args ...any) {
 
 // Command logs a command being executed.
 func (l *ConsoleLogger) Command(cmd string, args []string) {
+	formattedArgs := formatCommandArgs(args)
+	if formattedArgs == "" {
+		//nolint:errcheck // logging errors are non-critical
+		fmt.Fprintf(l.out, "    [%s]\n", cmd)
+		return
+	}
 	//nolint:errcheck // logging errors are non-critical
-	fmt.Fprintf(l.out, "    [%s] %s\n", cmd, strings.Join(args, " "))
+	fmt.Fprintf(l.out, "    [%s] %s\n", cmd, formattedArgs)
+}
+
+func formatCommandArgs(args []string) string {
+	if len(args) == 0 {
+		return ""
+	}
+
+	var b strings.Builder
+	for i, arg := range args {
+		if i > 0 {
+			b.WriteByte(' ')
+		}
+		b.WriteString(strconv.Quote(arg))
+	}
+	return b.String()
 }
 
 // Success logs a success message.

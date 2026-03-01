@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioAlert, StudioConfigCard, StudioProperty } from '@studio/components';
+import { StudioAlert, StudioLabel, StudioConfigCard, StudioProperty } from '@studio/components';
 import {
   type Scope,
   isRuleDuplicateInScope,
@@ -12,9 +12,9 @@ import { useTranslation } from 'react-i18next';
 import classes from './ValidateNavigationConfig.module.css';
 import { ValidateCardContent } from './ValidateCardContent/ValidateCardContent';
 import type { InternalConfigState } from './utils/ValidateNavigationTypes';
+import cn from 'classnames';
 
 export type ValidateNavigationConfigProps = {
-  propertyLabel: string;
   scope: Scope;
   config?: InternalConfigState;
   existingConfigs?: InternalConfigState[];
@@ -23,7 +23,6 @@ export type ValidateNavigationConfigProps = {
 };
 
 export const ValidateNavigationConfig = ({
-  propertyLabel,
   scope,
   config,
   existingConfigs,
@@ -31,14 +30,20 @@ export const ValidateNavigationConfig = ({
   onDelete,
 }: ValidateNavigationConfigProps) => {
   const [isEditMode, setIsEditMode] = useState(false);
+  const { t } = useTranslation();
+
+  const getButtonLabel = (currentConfig: InternalConfigState) => {
+    return !currentConfig && t('ux_editor.settings.navigation_validation_button_rule_undefined');
+  };
 
   if (!isEditMode) {
     return (
       <StudioProperty.Button
         onClick={() => setIsEditMode(true)}
-        property={propertyLabel}
+        property={getButtonLabel(config)}
+        title={config && t('ux_editor.settings.navigation_validation_button_rule_defined')}
         value={config && <DisplayValues {...config} />}
-        className={classes.configWrapper}
+        className={cn(classes.configWrapper, { [classes.configDefined]: config })}
       />
     );
   }
@@ -131,11 +136,17 @@ const ValidateCard = ({
 
 const DisplayValues = (config: InternalConfigState) => {
   const valueToDisplay = getValuesToDisplay(config);
+  const { t } = useTranslation();
+  const translateKeyToDisplay = (key: string) => {
+    return t(`ux_editor.settings.navigation_validation_view_mode_label_${key}`);
+  };
 
   return (
     <div>
       {Object.entries(valueToDisplay).map(([key, value]) => (
-        <div key={key}> {value}</div>
+        <div key={key}>
+          <StudioLabel>{translateKeyToDisplay(key)}:</StudioLabel> {value}
+        </div>
       ))}
     </div>
   );

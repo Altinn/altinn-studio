@@ -60,15 +60,14 @@ internal static class HandleMetrics
         );
 
         var amMetrics = await metricsClient.GetAppMetrics(app, range, cancellationToken);
+        var bucketSize = AzureMonitorClient.GetBucketSize(range);
 
         var metrics = amMetrics.Select(metric => new AppMetric
         {
             Name = metric.Name,
-            DataPoints = metric.DataPoints.Select(dataPoint => new AppMetricDataPoint
-            {
-                DateTimeOffset = dataPoint.DateTimeOffset,
-                Count = dataPoint.Count,
-            }),
+            Timestamps = metric.Timestamps,
+            Counts = metric.Counts,
+            BucketSize = bucketSize,
         });
 
         return Results.Ok(metrics);
@@ -92,15 +91,14 @@ internal static class HandleMetrics
         var from = now.AddMinutes(-range);
 
         var amFailedRequests = await metricsClient.GetAppFailedRequests(app, range, cancellationToken);
+        var bucketSize = AzureMonitorClient.GetBucketSize(range);
 
         var metrics = amFailedRequests.Select(failedRequest => new AppErrorMetric
         {
             Name = failedRequest.Name,
-            DataPoints = failedRequest.DataPoints.Select(dataPoint => new AppMetricDataPoint
-            {
-                DateTimeOffset = dataPoint.DateTimeOffset,
-                Count = dataPoint.Count,
-            }),
+            Timestamps = failedRequest.Timestamps,
+            Counts = failedRequest.Counts,
+            BucketSize = bucketSize,
             LogsUrl = metricsClient.GetLogsUrl(
                 currentGatewayContext.AzureSubscriptionId,
                 currentGatewayContext.ServiceOwner,

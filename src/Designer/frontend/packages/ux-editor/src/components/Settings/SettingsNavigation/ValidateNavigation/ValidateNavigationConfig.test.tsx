@@ -8,14 +8,13 @@ import {
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-const propertyLabel = 'Test Property';
+const undefinedLabel = textMock('ux_editor.settings.navigation_validation_button_rule_undefined');
 const allTasksCardLabel = textMock('ux_editor.settings.navigation_validation_all_tasks_card_label');
 
 describe('ValidateNavigationConfig', () => {
   it('renders add validation rule button when in view mode', () => {
     renderValidateNavigationConfig({ scope: Scope.AllTasks });
-
-    const addButton = screen.getByRole('button', { name: propertyLabel });
+    const addButton = screen.getByRole('button', { name: undefinedLabel });
     expect(addButton).toBeInTheDocument();
   });
 
@@ -64,21 +63,17 @@ describe('ValidateNavigationConfig', () => {
   );
 });
 
-const openCard = async (user: UserEvent) => {
-  const addButton = screen.getByRole('button', { name: propertyLabel });
+const openCard = async (user: UserEvent, label?: string) => {
+  const addButton = screen.getByRole('button', { name: label });
   await user.click(addButton);
 };
 
 const renderValidateNavigationConfig = (props: Partial<ValidateNavigationConfigProps> = {}) => {
   const defaultProps: ValidateNavigationConfigProps = {
-    propertyLabel,
     scope: Scope.AllTasks,
     onSave: jest.fn(),
     onDelete: jest.fn(),
-    config: {
-      types: [],
-      pageScope: { value: '', label: '' },
-    },
+    config: undefined,
   };
   return render(<ValidateNavigationConfig {...defaultProps} {...props} />);
 };
