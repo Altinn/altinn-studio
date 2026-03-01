@@ -1,42 +1,53 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
 import {
   Scope,
-  convertToExternalConfig,
-  dummyDataTasks,
+  convertInternalToExternalConfig,
+  convertExternalToBackendSetting,
+  convertBackendToExternalConfig,
   withUniqueIds,
 } from '../utils/ValidateNavigationUtils';
 import type { ExternalConfigWithId, InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationGroupedSettingsQuery';
+import { useUpdateValidationOnNavigationLayoutSettingsMutation } from '@altinn/ux-editor/hooks/mutations/useUpdateValidationOnNavigationLayoutSettingsMutation';
 
 export const ValidateSelectedTasksConfig = () => {
-  const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigWithId[]>( // This is just to simulate the save functionality, in real implementation this would be handled differently
-    withUniqueIds(dummyDataTasks),
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: settings } = useValidationOnNavigationGroupedSettingsQuery(org, app);
+  const { mutate: updateSettings } = useUpdateValidationOnNavigationLayoutSettingsMutation(
+    org,
+    app,
   );
 
-  const internalConfigs = useConvertToInternalConfig(tempExtConfigs)?.map((conf, i) => ({
+  const extConfigs = useMemo<ExternalConfigWithId[]>(
+    () => withUniqueIds((settings ?? []).map(convertBackendToExternalConfig)),
+    [settings],
+  );
+
+  const internalConfigs = useConvertToInternalConfig(extConfigs)?.map((conf, i) => ({
     ...conf,
-    id: tempExtConfigs[i].id,
+    id: extConfigs[i].id,
   }));
 
   const handleSave = (updatedConfig: InternalConfigState, id?: string) => {
-    const newExternal = convertToExternalConfig(updatedConfig);
-
-    setTempExtConfigs((prevConfigs) =>
-      id
-        ? prevConfigs.map((config) => (config.id === id ? { ...newExternal, id } : config))
-        : [...prevConfigs, { ...newExternal, id: crypto.randomUUID() }],
-    );
+    const newExternal = convertInternalToExternalConfig(updatedConfig);
+    const newExtConfigs: ExternalConfigWithId[] = id
+      ? extConfigs.map((config) => (config.id === id ? { ...newExternal, id } : config))
+      : [...extConfigs, { ...newExternal, id: crypto.randomUUID() }];
+    updateSettings(newExtConfigs.map(convertExternalToBackendSetting));
   };
 
   const handleDelete = (id: string) => {
-    setTempExtConfigs((prev) => prev.filter((config) => config.id !== id));
+    const newExtConfigs = extConfigs.filter((config) => config.id !== id);
+    updateSettings(newExtConfigs.map(convertExternalToBackendSetting));
   };
 
   return (
     <>
       {internalConfigs &&
-        internalConfigs.map((conf, index) => (
+        internalConfigs.map((conf) => (
           <ValidateNavigationConfig
             key={conf.id}
             scope={Scope.SelectedTasks}

@@ -1,6 +1,6 @@
 import { layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import {
-  convertToExternalConfig,
+  convertInternalToExternalConfig,
   getAvailablePages,
   getAvailableTasks,
   getCardLabel,
@@ -58,7 +58,7 @@ describe('getCardLabel', () => {
   });
 });
 
-describe('convertToExternalConfig', () => {
+describe('convertInternalToExternalConfig', () => {
   it('should convert internal config to external config correctly', () => {
     const internalConfig = {
       types: [
@@ -73,7 +73,7 @@ describe('convertToExternalConfig', () => {
         { value: 'page2', label: 'Page 2' },
       ],
     };
-    const externalConfig = convertToExternalConfig(internalConfig);
+    const externalConfig = convertInternalToExternalConfig(internalConfig);
     expect(externalConfig).toEqual({
       show: ['type1', 'type2'],
       page: 'current',

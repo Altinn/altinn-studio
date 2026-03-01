@@ -6,6 +6,7 @@ import type {
 import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
 import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
+import type { IValidationOnNavigationLayoutSettings } from 'app-shared/types/global';
 
 export enum Scope {
   AllTasks = 'allTasks',
@@ -46,7 +47,7 @@ export const getRuleEnums = (ruleType: RuleType) => {
   return [];
 };
 
-export const convertToExternalConfig = (
+export const convertInternalToExternalConfig = (
   internalConfig: InternalConfigState,
 ): ExternalConfigState => ({
   show: internalConfig.types.map((type) => type.value),
@@ -71,15 +72,23 @@ export const getValuesToDisplay = (config: InternalConfigState) => {
 export const withUniqueIds = (configs: ExternalConfigState[]): ExternalConfigWithId[] =>
   configs.map((config) => ({ ...config, id: crypto.randomUUID() }));
 
-// Temporary dummy data before integration with backend, to be replaced with actual data fetching and saving logic where it is used in upcoming PRs
-export const dummyDataTasks: ExternalConfigState[] = [
-  {
-    show: ['Schema', 'Component'],
-    page: 'current',
-    tasks: ['form2'],
-  },
-];
+export const convertBackendToExternalConfig = (
+  setting: IValidationOnNavigationLayoutSettings,
+): ExternalConfigState => ({
+  show: setting.show ?? [],
+  page: setting.page ?? '',
+  tasks: setting.tasks,
+});
 
+export const convertExternalToBackendSetting = (
+  config: ExternalConfigState,
+): IValidationOnNavigationLayoutSettings => ({
+  tasks: config.tasks ?? [],
+  show: config.show,
+  page: config.page || undefined,
+});
+
+// Temporary dummy data before integration with backend, to be replaced with actual data fetching and saving logic where it is used in upcoming PRs
 export const dummyDataPages: ExternalConfigState[] = [
   {
     show: ['Schema', 'Component'],

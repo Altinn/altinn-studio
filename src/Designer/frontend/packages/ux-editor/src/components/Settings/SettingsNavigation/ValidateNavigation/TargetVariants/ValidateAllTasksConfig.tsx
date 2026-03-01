@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import { convertToExternalConfig, Scope } from '../utils/ValidateNavigationUtils';
+import { convertInternalToExternalConfig, Scope } from '../utils/ValidateNavigationUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import type { InternalConfigState } from '../utils/ValidateNavigationTypes';
@@ -14,7 +14,7 @@ export const ValidateAllTasksConfig = () => {
   const config = useConvertToInternalConfig(tempExtConfig);
 
   const handleSave = (updatedConfig: InternalConfigState) => {
-    setTempExtConfig(convertToExternalConfig(updatedConfig));
+    setTempExtConfig(convertInternalToExternalConfig(updatedConfig));
   };
 
   const handleDelete = () => {
