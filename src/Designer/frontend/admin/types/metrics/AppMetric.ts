@@ -1,7 +1,7 @@
-import type { AppMetricDataPoint } from './AppMetricDataPoint';
-
 export type AppMetric = {
   name: string;
-  dataPoints: AppMetricDataPoint[];
+  timestamps: number[];
+  counts: number[];
+  bucketSize: number;
   logsUrl: string;
 };

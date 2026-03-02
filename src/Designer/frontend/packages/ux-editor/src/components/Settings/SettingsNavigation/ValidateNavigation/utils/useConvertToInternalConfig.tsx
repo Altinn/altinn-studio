@@ -2,7 +2,7 @@ import type { StudioSuggestionItem } from '@studio/components';
 import type { ExternalConfigState, InternalConfigState } from './ValidateNavigationTypes';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks';
 
-export function useConvertToInternalConfig(externalConfig: undefined): undefined;
+export function useConvertToInternalConfig(externalConfig: null): null;
 
 export function useConvertToInternalConfig(
   externalConfig: ExternalConfigState,
@@ -30,7 +30,7 @@ export function useConvertToInternalConfig(
     pages: item.pages?.map(toOption),
   });
 
-  if (!externalConfig) return undefined;
+  if (!externalConfig) return null;
 
   return Array.isArray(externalConfig) ? externalConfig.map(convert) : convert(externalConfig);
 }

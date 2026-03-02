@@ -579,6 +579,42 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(config);
         }
 
+        [HttpPost("layout-sets/validation-on-navigation")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> SaveValidationOnNavigationLayoutSets(
+            string org,
+            string app,
+            [FromBody] ValidationOnNavigation config,
+            CancellationToken cancellationToken
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            await _appDevelopmentService.SaveValidationOnNavigationLayoutSets(
+                editingContext,
+                config,
+                cancellationToken
+            );
+
+            return Ok();
+        }
+
+        [HttpDelete("layout-sets/validation-on-navigation")]
+        public async Task<IActionResult> DeleteValidationOnNavigationLayoutSets(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            await _appDevelopmentService.SaveValidationOnNavigationLayoutSets(editingContext, null, cancellationToken);
+
+            return Ok();
+        }
+
         /// <summary>
         /// Add a new layout set
         /// </summary>

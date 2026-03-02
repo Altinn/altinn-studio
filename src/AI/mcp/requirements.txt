@@ -21,9 +21,9 @@ markupsafe>=3.0.2
 httpcore>=1.0.9
 certifi>=2025.6.15
 colorlog>=6.9.0
-langchain>=0.3.26
-langchain-core>=0.3.68
-langchain-openai>=0.3.27
+langchain>=1.2.10
+langchain-core>=1.2.11
+langchain-openai>=1.1.9
 jsonschema
 numpy>=1.25.0
 langgraph
