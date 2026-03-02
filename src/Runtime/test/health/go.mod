@@ -6,7 +6,7 @@ require (
 	github.com/fluxcd/helm-controller/api v1.5.0
 	github.com/fluxcd/kustomize-controller/api v1.8.0
 	k8s.io/api v0.35.1
-	k8s.io/apimachinery v0.35.1
+	k8s.io/apimachinery v0.35.2
 	k8s.io/client-go v0.35.1
 	k8s.io/metrics v0.35.1
 	sigs.k8s.io/gateway-api v1.4.1

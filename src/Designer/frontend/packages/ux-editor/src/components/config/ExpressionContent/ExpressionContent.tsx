@@ -54,7 +54,7 @@ export const ExpressionContent = ({
           className={classes.deleteButton}
           confirmMessage={t('right_menu.expressions_delete_confirm')}
           onDelete={onDelete}
-          data-size='2xs'
+          data-size='sm'
           title={t('right_menu.expression_delete')}
         />
       )}
