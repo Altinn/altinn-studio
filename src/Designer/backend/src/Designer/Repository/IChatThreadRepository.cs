@@ -13,14 +13,6 @@ namespace Altinn.Studio.Designer.Repository;
 public interface IChatThreadRepository
 {
     /// <summary>
-    /// Gets a chat thread by id, including its messages.
-    /// </summary>
-    /// <param name="id">The thread id.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
-    /// <returns>The thread, or null if not found.</returns>
-    Task<ChatThreadEntity?> GetThreadAsync(Guid id, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Gets all threads without messages for a given user, ordered by newest first.
     /// </summary>
     /// <param name="context">An <see cref="AltinnRepoEditingContext"/>.</param>
@@ -36,10 +28,7 @@ public interface IChatThreadRepository
     /// <param name="thread">The thread to create.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
     /// <returns>The created thread.</returns>
-    Task<ChatThreadEntity> CreateThreadAsync(
-        ChatThreadEntity thread,
-        CancellationToken cancellationToken = default
-    );
+    Task<ChatThreadEntity> CreateThreadAsync(ChatThreadEntity thread, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the title of an existing chat thread.
@@ -67,4 +56,11 @@ public interface IChatThreadRepository
         ChatMessageEntity message,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Gets all messages for a given thread, ordered by creation time.
+    /// </summary>
+    /// <param name="threadId">The thread id.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
+    Task<IEnumerable<ChatMessageEntity>> GetMessagesAsync(Guid threadId, CancellationToken cancellationToken = default);
 }

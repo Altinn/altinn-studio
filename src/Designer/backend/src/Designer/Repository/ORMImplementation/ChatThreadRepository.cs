@@ -1,3 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
+using Microsoft.EntityFrameworkCore;
+
 namespace Altinn.Studio.Designer.Repository.ORMImplementation;
 
 public class ChatThreadRepository : IChatThreadRepository
@@ -9,23 +20,6 @@ public class ChatThreadRepository : IChatThreadRepository
         _dbContext = dbContext;
     }
 
-    // To do: Remove this method. We don't need to pass the thread populated with messages to the frontend.
-    // Instead we can fetch all messages based on the ThreadId. 
-    // In the frontend, we can store them in cache under QueryKey "Threads, org, app, user" and "Messages, org, app, user".
-    /// <inheritdoc />
-    public async Task<ChatThreadEntity?> GetThreadAsync(
-        Guid id,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var thread = await _dbContext
-            .ChatThreads.AsNoTracking()
-            .Include(t => t.Messages.OrderBy(m => m.CreatedAt))
-            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
-
-        return thread is null ? null : ChatThreadMapper.MapToModel(thread);
-    }
-
     /// <inheritdoc />
     public async Task<IEnumerable<ChatThreadEntity>> GetThreadsAsync(
         AltinnRepoEditingContext context,
@@ -34,9 +28,7 @@ public class ChatThreadRepository : IChatThreadRepository
     {
         var threads = await _dbContext
             .ChatThreads.AsNoTracking()
-            .Where(t =>
-                t.Org == context.Org && t.App == context.Repo && t.CreatedBy == context.Developer
-            )
+            .Where(t => t.Org == context.Org && t.App == context.Repo && t.CreatedBy == context.Developer)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync(cancellationToken);
 
@@ -56,10 +48,7 @@ public class ChatThreadRepository : IChatThreadRepository
     }
 
     /// <inheritdoc />
-    public async Task UpdateThreadAsync(
-        ChatThreadEntity thread,
-        CancellationToken cancellationToken = default
-    )
+    public async Task UpdateThreadAsync(ChatThreadEntity thread, CancellationToken cancellationToken = default)
     {
         await _dbContext
             .ChatThreads.Where(t => t.Id == thread.Id)
@@ -84,5 +73,20 @@ public class ChatThreadRepository : IChatThreadRepository
         _dbContext.ChatMessages.Add(dbModel);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return ChatMessageMapper.MapToModel(dbModel);
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<ChatMessageEntity>> GetMessagesAsync(
+        Guid threadId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var messages = await _dbContext
+            .ChatMessages.AsNoTracking()
+            .Where(m => m.ThreadId == threadId)
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return messages.Select(ChatMessageMapper.MapToModel);
     }
 }

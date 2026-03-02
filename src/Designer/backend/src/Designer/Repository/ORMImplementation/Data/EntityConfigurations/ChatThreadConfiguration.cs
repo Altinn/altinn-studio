@@ -24,34 +24,14 @@ public class ChatThreadConfiguration : IEntityTypeConfiguration<ChatThreadDbMode
 
         builder.Property(e => e.Id).HasColumnType("uuid").HasColumnName("id").IsRequired();
 
-        builder
-            .Property(e => e.Org)
-            .HasColumnType("character varying")
-            .HasColumnName("org")
-            .IsRequired();
+        builder.Property(e => e.Org).HasColumnType("character varying").HasColumnName("org").IsRequired();
 
-        builder
-            .Property(e => e.App)
-            .HasColumnType("character varying")
-            .HasColumnName("app")
-            .IsRequired();
+        builder.Property(e => e.App).HasColumnType("character varying").HasColumnName("app").IsRequired();
 
-        builder
-            .Property(e => e.CreatedBy)
-            .HasColumnType("character varying")
-            .HasColumnName("created_by")
-            .IsRequired();
+        builder.Property(e => e.CreatedBy).HasColumnType("character varying").HasColumnName("created_by").IsRequired();
 
-        builder
-            .Property(e => e.Title)
-            .HasColumnType("character varying")
-            .HasColumnName("title")
-            .IsRequired();
+        builder.Property(e => e.Title).HasColumnType("character varying").HasColumnName("title").IsRequired();
 
-        builder
-            .Property(e => e.CreatedAt)
-            .HasColumnType("timestamptz")
-            .HasColumnName("created_at")
-            .IsRequired();
+        builder.Property(e => e.CreatedAt).HasColumnType("timestamptz").HasColumnName("created_at").IsRequired();
     }
 }
