@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     [DbContext(typeof(DesignerdbContext))]
-    [Migration("20260302133109_ChatTables")]
+    [Migration("20260302142919_ChatTables")]
     partial class ChatTables
     {
         /// <inheritdoc />
