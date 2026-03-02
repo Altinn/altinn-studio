@@ -50,16 +50,16 @@ export function FormProvider({
   const instanceGuid = useNavigationParam('instanceGuid');
   const hasProcess = !!(instanceOwnerPartyId && instanceGuid);
   const taskOverrides = useTaskOverrides();
-  const hasValidTaskOverridePair = !!(taskOverrides.layoutSetId && taskOverrides.dataModelElementId);
+  const hasValidTaskOverridePair = !!(taskOverrides.uiFolder && taskOverrides.dataModelElementId);
 
-  const bootstrapLayoutSetIdOverride =
-    layoutSetIdOverride ?? (hasValidTaskOverridePair ? taskOverrides.layoutSetId : undefined);
+  const bootstrapUiFolderOverride =
+    layoutSetIdOverride ?? (hasValidTaskOverridePair ? taskOverrides.uiFolder : undefined);
   const bootstrapDataElementIdOverride =
     dataElementIdOverride ?? (hasValidTaskOverridePair ? taskOverrides.dataModelElementId : undefined);
 
   return (
     <FormBootstrapProvider
-      layoutSetIdOverride={bootstrapLayoutSetIdOverride}
+      uiFolderOverride={bootstrapUiFolderOverride}
       dataElementIdOverride={bootstrapDataElementIdOverride}
     >
       <FormDataWriteProvider>

@@ -120,7 +120,7 @@ public class FormBootstrapController : ControllerBase
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
-    /// <param name="layoutSetId">The layout set ID to use.</param>
+    /// <param name="uiFolder">The layout set ID to use.</param>
     /// <param name="language">Language code for text resources.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Complete form bootstrap data.</returns>
@@ -129,16 +129,16 @@ public class FormBootstrapController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    [Route("{org}/{app}/api/bootstrap-form/{layoutSetId}")]
+    [Route("{org}/{app}/api/bootstrap-form/{uiFolder}")]
     public async Task<ActionResult<FormBootstrapResponse>> GetStatelessFormBootstrap(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromRoute] string layoutSetId,
+        [FromRoute] string uiFolder,
         [FromQuery] string language = "nb",
         CancellationToken cancellationToken = default
     )
     {
-        var validationResult = ValidateLayoutSetId(layoutSetId);
+        var validationResult = ValidateLayoutSetId(uiFolder);
         if (validationResult != null)
         {
             return validationResult;
@@ -146,7 +146,7 @@ public class FormBootstrapController : ControllerBase
 
         if (User.Identity?.IsAuthenticated != true)
         {
-            var isAnonymousAllowed = await IsAnonymousAllowedForLayoutSet(layoutSetId);
+            var isAnonymousAllowed = await IsAnonymousAllowedForLayoutSet(uiFolder);
             if (!isAnonymousAllowed)
             {
                 return Forbid();
@@ -156,7 +156,7 @@ public class FormBootstrapController : ControllerBase
         try
         {
             var response = await _formBootstrapService.GetStatelessFormBootstrap(
-                layoutSetId,
+                uiFolder,
                 language,
                 cancellationToken
             );
@@ -165,7 +165,7 @@ public class FormBootstrapController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to bootstrap stateless form for layout set {LayoutSetId}", layoutSetId);
+            _logger.LogError(ex, "Failed to bootstrap stateless form for layout set {LayoutSetId}", uiFolder);
             throw;
         }
     }

@@ -2,7 +2,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { GlobalPageSettings } from 'src/features/form/layoutSets/types';
+import type { GlobalPageSettings } from 'src/features/form/ui/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { BackendValidationIssue, IExpressionValidations } from 'src/features/validation';
 import type { ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
@@ -56,12 +56,10 @@ export interface ProcessedDataModelInfo extends DataModelInfo {
 }
 
 export interface FormBootstrapContextValue {
-  schemaVersion: number;
   layouts: ILayouts;
   layoutLookups: LayoutLookups;
   hiddenLayoutsExpressions: IHiddenLayoutsExternal;
   expandedWidthLayouts: IExpandedWidthLayouts;
-  layoutSettings: ProcessedLayoutSettings;
   dataModels: Record<string, ProcessedDataModelInfo>;
   defaultDataType: string;
   allDataTypes: string[];

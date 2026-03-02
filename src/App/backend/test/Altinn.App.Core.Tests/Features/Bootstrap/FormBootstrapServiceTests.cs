@@ -56,22 +56,16 @@ public class FormBootstrapServiceTests
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            layoutSetIdOverride: null,
+            uiFolder: null,
             dataElementIdOverride: null,
             isPdf: false,
             language: "nb"
         );
 
         // Assert - Response shape
-        Assert.Equal(1, result.SchemaVersion);
         Assert.NotNull(result.Layouts);
         Assert.NotNull(result.DataModels);
         Assert.NotNull(result.StaticOptions);
-        Assert.NotNull(result.Metadata);
-        Assert.Equal("form", result.Metadata.LayoutSetId);
-        Assert.Equal("model", result.Metadata.DefaultDataType);
-        Assert.False(result.Metadata.IsSubform);
-        Assert.False(result.Metadata.IsPdf);
     }
 
     [Fact]
@@ -134,14 +128,10 @@ public class FormBootstrapServiceTests
         var result = await service.GetStatelessFormBootstrap("stateless", "nb");
 
         // Assert
-        Assert.Equal(1, result.SchemaVersion);
         Assert.NotNull(result.Layouts);
         Assert.NotNull(result.DataModels);
         Assert.NotNull(result.StaticOptions);
         Assert.Null(result.ValidationIssues); // Stateless should not have validation
-        Assert.Equal("stateless", result.Metadata.LayoutSetId);
-        Assert.False(result.Metadata.IsSubform);
-        Assert.False(result.Metadata.IsPdf);
         Assert.All(result.DataModels.Values, dataModel => Assert.Null(dataModel.InitialValidationIssues));
     }
 
@@ -172,67 +162,6 @@ public class FormBootstrapServiceTests
     }
 
     [Fact]
-    public async Task GetInstanceFormBootstrap_SubformOverride_SetsIsSubformTrue()
-    {
-        // Arrange
-        var instance = CreateTestInstance("Task_1");
-        var layoutSet = new LayoutSet
-        {
-            Id = "subform",
-            DataType = "submodel",
-            Tasks = ["Task_1"],
-        };
-        var appMetadata = CreateAppMetadata("model", "submodel");
-
-        SetupMocks(instance, layoutSet, appMetadata, layoutSetId: "subform");
-
-        var service = CreateService();
-
-        // Act
-        var result = await service.GetInstanceFormBootstrap(
-            instance,
-            layoutSetIdOverride: "subform",
-            dataElementIdOverride: null,
-            isPdf: false,
-            language: "nb"
-        );
-
-        // Assert
-        Assert.True(result.Metadata.IsSubform);
-        Assert.Equal("subform", result.Metadata.LayoutSetId);
-    }
-
-    [Fact]
-    public async Task GetInstanceFormBootstrap_PdfMode_SetsIsPdfTrue()
-    {
-        // Arrange
-        var instance = CreateTestInstance("Task_1");
-        var layoutSet = new LayoutSet
-        {
-            Id = "form",
-            DataType = "model",
-            Tasks = ["Task_1"],
-        };
-        var appMetadata = CreateAppMetadata("model");
-
-        SetupMocks(instance, layoutSet, appMetadata);
-
-        var service = CreateService();
-
-        // Act
-        var result = await service.GetInstanceFormBootstrap(
-            instance,
-            layoutSetIdOverride: null,
-            dataElementIdOverride: null,
-            isPdf: true,
-            language: "nb"
-        );
-
-        // Assert
-        Assert.True(result.Metadata.IsPdf);
-    }
-
-    [Fact]
     public async Task GetInstanceFormBootstrap_PdfMode_ExcludesExpressionValidationConfig()
     {
         // Arrange
@@ -252,7 +181,7 @@ public class FormBootstrapServiceTests
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            layoutSetIdOverride: null,
+            uiFolder: null,
             dataElementIdOverride: null,
             isPdf: true,
             language: "nb"
@@ -283,7 +212,7 @@ public class FormBootstrapServiceTests
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            layoutSetIdOverride: null,
+            uiFolder: null,
             dataElementIdOverride: null,
             isPdf: false,
             language: "nb"
@@ -339,7 +268,7 @@ public class FormBootstrapServiceTests
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            layoutSetIdOverride: null,
+            uiFolder: null,
             dataElementIdOverride: null,
             isPdf: false,
             language: "nb"
@@ -387,7 +316,7 @@ public class FormBootstrapServiceTests
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            layoutSetIdOverride: null,
+            uiFolderOverride: null,
             dataElementIdOverride: null,
             isPdf: false,
             language: "nb"
@@ -419,7 +348,7 @@ public class FormBootstrapServiceTests
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            layoutSetIdOverride: "subform",
+            uiFolderOverride: "subform",
             dataElementIdOverride: dataElementId,
             isPdf: false,
             language: "nb"
@@ -470,19 +399,13 @@ public class FormBootstrapServiceTests
     }
 
     private void SetupMocks(
-        Instance instance,
-        LayoutSet layoutSet,
         ApplicationMetadata appMetadata,
-        string layoutSetId = "form",
         string dataType = "model",
         bool hasValidationConfig = false,
         Dictionary<string, List<Dictionary<string, string>>>? staticOptions = null
     )
     {
-        _appResources.Setup(x => x.GetLayoutSetForTask(It.IsAny<string>())).Returns(layoutSet);
-        _appResources.Setup(x => x.GetLayoutSets()).Returns(new LayoutSets { Sets = [layoutSet] });
-        _appResources.Setup(x => x.GetLayoutsForSet(layoutSetId)).Returns("""{"page1": {"data": {"layout": []}}}""");
-        _appResources.Setup(x => x.GetLayoutSettingsStringForSet(layoutSetId)).Returns((string?)null);
+        _appResources.Setup(x => x.GetLayoutsInFolder(It.IsAny<string>())).Returns("""{"page1": {"data": {"layout": []}}}""");
         _appResources.Setup(x => x.GetModelJsonSchema(It.IsAny<string>())).Returns("""{"type": "object"}""");
         _appResources
             .Setup(x => x.GetValidationConfiguration(It.IsAny<string>()))
@@ -525,9 +448,7 @@ public class FormBootstrapServiceTests
 
     private void SetupStatelessMocks(LayoutSet layoutSet, ApplicationMetadata appMetadata)
     {
-        _appResources.Setup(x => x.GetLayoutSets()).Returns(new LayoutSets { Sets = [layoutSet] });
-        _appResources.Setup(x => x.GetLayoutsForSet(layoutSet.Id)).Returns("""{"page1": {"data": {"layout": []}}}""");
-        _appResources.Setup(x => x.GetLayoutSettingsStringForSet(layoutSet.Id)).Returns((string?)null);
+        _appResources.Setup(x => x.GetLayoutsInFolder(It.IsAny<string>())).Returns("""{"page1": {"data": {"layout": []}}}""");
         _appResources.Setup(x => x.GetModelJsonSchema(It.IsAny<string>())).Returns("""{"type": "object"}""");
         _appResources.Setup(x => x.GetValidationConfiguration(It.IsAny<string>())).Returns((string?)null);
 

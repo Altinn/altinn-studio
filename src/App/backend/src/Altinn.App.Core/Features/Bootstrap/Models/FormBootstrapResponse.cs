@@ -11,22 +11,10 @@ namespace Altinn.App.Core.Features.Bootstrap.Models;
 public sealed class FormBootstrapResponse
 {
     /// <summary>
-    /// Schema version for this response format. Used for frontend compatibility.
-    /// </summary>
-    [JsonPropertyName("schemaVersion")]
-    public int SchemaVersion { get; init; } = 1;
-
-    /// <summary>
     /// Layouts keyed by page name, containing all layout definitions.
     /// </summary>
     [JsonPropertyName("layouts")]
     public required object Layouts { get; init; }
-
-    /// <summary>
-    /// Layout settings including page order configuration.
-    /// </summary>
-    [JsonPropertyName("layoutSettings")]
-    public object? LayoutSettings { get; init; }
 
     /// <summary>
     /// Data models keyed by data type ID.
@@ -48,12 +36,6 @@ public sealed class FormBootstrapResponse
     [JsonPropertyName("validationIssues")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<ValidationIssueWithSource>? ValidationIssues { get; init; }
-
-    /// <summary>
-    /// Metadata about the form bootstrap request.
-    /// </summary>
-    [JsonPropertyName("metadata")]
-    public required FormBootstrapMetadata Metadata { get; init; }
 }
 
 /// <summary>
@@ -130,36 +112,4 @@ public sealed class StaticOptionsVariant
     /// </summary>
     [JsonPropertyName("options")]
     public required List<AppOption> Options { get; init; }
-}
-
-/// <summary>
-/// Metadata about the form bootstrap response.
-/// </summary>
-public sealed class FormBootstrapMetadata
-{
-    /// <summary>
-    /// The layout set ID being used.
-    /// </summary>
-    [JsonPropertyName("layoutSetId")]
-    public required string LayoutSetId { get; init; }
-
-    /// <summary>
-    /// The default data type for this layout set.
-    /// </summary>
-    [JsonPropertyName("defaultDataType")]
-    public required string DefaultDataType { get; init; }
-
-    /// <summary>
-    /// Whether this is a subform (nested form data).
-    /// </summary>
-    [JsonPropertyName("isSubform")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool IsSubform { get; init; }
-
-    /// <summary>
-    /// Whether this is for PDF generation (skip certain validations).
-    /// </summary>
-    [JsonPropertyName("isPdf")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool IsPdf { get; init; }
 }

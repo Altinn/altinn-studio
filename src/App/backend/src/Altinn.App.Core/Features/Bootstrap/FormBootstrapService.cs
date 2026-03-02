@@ -19,7 +19,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
     private readonly IAppResources _appResources;
@@ -55,44 +55,24 @@ internal sealed class FormBootstrapService : IFormBootstrapService
     /// <inheritdoc />
     public async Task<FormBootstrapResponse> GetInstanceFormBootstrap(
         Instance instance,
-        string? layoutSetIdOverride,
+        string uiFolder,
         string? dataElementIdOverride,
         bool isPdf,
         string language,
         CancellationToken cancellationToken = default
     )
     {
-        // 1. Determine layout set
-        var taskId = instance.Process?.CurrentTask?.ElementId;
-        if (string.IsNullOrEmpty(taskId))
+        var defaultDataType = GetDefaultDataType(uiFolder);
+        if (defaultDataType == null)
         {
-            throw new InvalidOperationException(
-                $"Could not determine current task for instance {instance.Id}. Ensure process has started."
-            );
+            throw new InvalidOperationException("Unable to find default data type for folder");
         }
 
-        var layoutSetId = layoutSetIdOverride ?? GetLayoutSetFromProcess(instance);
-        if (string.IsNullOrEmpty(layoutSetId))
-        {
-            throw new InvalidOperationException(
-                $"Could not determine layout set for instance {instance.Id}. "
-                    + "Ensure the instance has a current task with an associated layout set."
-            );
-        }
-
-        var defaultDataType = await GetDefaultDataType(layoutSetId);
-        var isSubform = layoutSetIdOverride is not null;
-
-        // 2. Load layouts (needed for analysis)
-        var layoutsJson = _appResources.GetLayoutsForSet(layoutSetId);
+        var layoutsJson = _appResources.GetLayoutsInFolder(uiFolder);
         var layouts = DeserializeJson(layoutsJson);
-        var layoutSettings = GetLayoutSettings(layoutSetId);
-
-        // 3. Analyze layouts
         var referencedDataTypes = _layoutAnalysis.GetReferencedDataTypes(layoutsJson, defaultDataType);
         var staticOptions = _layoutAnalysis.GetStaticOptions(layoutsJson);
 
-        // 4. Load everything in parallel
         var dataModelsTask = LoadInstanceDataModels(
             instance,
             referencedDataTypes,
@@ -106,7 +86,9 @@ internal sealed class FormBootstrapService : IFormBootstrapService
             new InstanceIdentifier(instance),
             cancellationToken
         );
-        Task<PartitionedInitialValidations?> initialValidationTask = isPdf
+
+        var taskId = instance.Process?.CurrentTask?.ElementId;
+        var initialValidationTask = isPdf || taskId == null
             ? Task.FromResult<PartitionedInitialValidations?>(null)
             : LoadAndPartitionInitialValidations(instance, taskId, language, defaultDataType, cancellationToken);
 
@@ -118,39 +100,31 @@ internal sealed class FormBootstrapService : IFormBootstrapService
         return new FormBootstrapResponse
         {
             Layouts = layouts,
-            LayoutSettings = layoutSettings,
             DataModels = dataModels,
             StaticOptions = await optionsTask,
-            ValidationIssues = initialValidations?.TaskIssues,
-            Metadata = new FormBootstrapMetadata
-            {
-                LayoutSetId = layoutSetId,
-                DefaultDataType = defaultDataType,
-                IsSubform = isSubform,
-                IsPdf = isPdf,
-            },
+            ValidationIssues = initialValidations?.TaskIssues
         };
     }
 
     /// <inheritdoc />
     public async Task<FormBootstrapResponse> GetStatelessFormBootstrap(
-        string layoutSetId,
+        string uiFolder,
         string language,
         CancellationToken cancellationToken = default
     )
     {
-        var defaultDataType = await GetDefaultDataType(layoutSetId);
+        var defaultDataType = GetDefaultDataType(uiFolder);
+        if (defaultDataType == null)
+        {
+            throw new InvalidOperationException("Unable to find default data type for folder");
+        }
 
-        // Load layouts
-        var layoutsJson = _appResources.GetLayoutsForSet(layoutSetId);
+        var layoutsJson = _appResources.GetLayoutsInFolder(uiFolder);
         var layouts = DeserializeJson(layoutsJson);
-        var layoutSettings = GetLayoutSettings(layoutSetId);
 
-        // Analyze
         var referencedDataTypes = _layoutAnalysis.GetReferencedDataTypes(layoutsJson, defaultDataType);
         var staticOptions = _layoutAnalysis.GetStaticOptions(layoutsJson);
 
-        // Load in parallel
         var dataModelsTask = LoadStatelessDataModels(referencedDataTypes, cancellationToken);
         var optionsTask = LoadStaticOptions(staticOptions, language, instanceIdentifier: null, cancellationToken);
 
@@ -159,17 +133,9 @@ internal sealed class FormBootstrapService : IFormBootstrapService
         return new FormBootstrapResponse
         {
             Layouts = layouts,
-            LayoutSettings = layoutSettings,
             DataModels = await dataModelsTask,
             StaticOptions = await optionsTask,
-            ValidationIssues = null, // No validation for stateless
-            Metadata = new FormBootstrapMetadata
-            {
-                LayoutSetId = layoutSetId,
-                DefaultDataType = defaultDataType,
-                IsSubform = false,
-                IsPdf = false,
-            },
+            ValidationIssues = null // No validation for stateless
         };
     }
 
@@ -178,50 +144,9 @@ internal sealed class FormBootstrapService : IFormBootstrapService
         return JsonSerializer.Deserialize<JsonElement>(json, _jsonSerializerOptions);
     }
 
-    private string? GetLayoutSetFromProcess(Instance instance)
+    private string? GetDefaultDataType(string uiFolder)
     {
-        var taskId = instance.Process?.CurrentTask?.ElementId;
-        if (string.IsNullOrEmpty(taskId))
-        {
-            return null;
-        }
-
-        var layoutSet = _appResources.GetLayoutSetForTask(taskId);
-        return layoutSet?.Id;
-    }
-
-    private async Task<string> GetDefaultDataType(string layoutSetId)
-    {
-        var layoutSets = _appResources.GetLayoutSets();
-        var layoutSet = layoutSets?.Sets?.FirstOrDefault(s =>
-            string.Equals(s.Id, layoutSetId, StringComparison.OrdinalIgnoreCase)
-        );
-
-        if (!string.IsNullOrEmpty(layoutSet?.DataType))
-        {
-            return layoutSet.DataType;
-        }
-
-        // Fallback: use the first data type with app logic
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var defaultDataType = appMetadata.DataTypes.FirstOrDefault(dt => dt.AppLogic?.ClassRef is not null);
-
-        return defaultDataType?.Id
-            ?? throw new InvalidOperationException(
-                $"No default data type found for layout set {layoutSetId}. "
-                    + "Ensure at least one data type has AppLogic.ClassRef defined."
-            );
-    }
-
-    private object? GetLayoutSettings(string layoutSetId)
-    {
-        var settingsString = _appResources.GetLayoutSettingsStringForSet(layoutSetId);
-        if (string.IsNullOrEmpty(settingsString))
-        {
-            return null;
-        }
-
-        return JsonSerializer.Deserialize<JsonElement>(settingsString, _jsonSerializerOptions);
+        return _appResources.GetLayoutSettingsForFolder(uiFolder)?.DefaultDataType;
     }
 
     private async Task<Dictionary<string, DataModelInfo>> LoadInstanceDataModels(
@@ -246,7 +171,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
                 if (dataTypeDef?.AppLogic?.ClassRef is null)
                 {
                     _logger.LogWarning("Data type {DataType} missing AppLogic.ClassRef, skipping", dataType);
-                    return (dataType, (DataModelInfo?)null);
+                    return (dataType, null);
                 }
 
                 // Find data element
@@ -267,7 +192,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
                 if (dataElement is null)
                 {
                     _logger.LogDebug("No data element found for type {DataType}", dataType);
-                    return (dataType, (DataModelInfo?)null);
+                    return (dataType, null);
                 }
 
                 // Load schema, data, and validation config
@@ -284,14 +209,14 @@ internal sealed class FormBootstrapService : IFormBootstrapService
                             InitialData = formData,
                             DataElementId = dataElement.Id,
                             IsWritable = dataElement.Locked != true,
-                            ExpressionValidationConfig = validationConfig,
+                            ExpressionValidationConfig = validationConfig
                         }
                 );
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to load data model for type {DataType}", dataType);
-                return (dataType, (DataModelInfo?)null);
+                return (dataType, null);
             }
         });
 
@@ -340,7 +265,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
                     InitialData = defaultData,
                     DataElementId = null,
                     IsWritable = true,
-                    ExpressionValidationConfig = validationConfig,
+                    ExpressionValidationConfig = validationConfig
                 };
             }
             catch (Exception ex)
@@ -424,7 +349,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
         return await _appOptionsService.GetOptionsAsync(optionsId, language, queryParameters);
     }
 
-    private async Task<PartitionedInitialValidations> LoadAndPartitionInitialValidations(
+    private async Task<PartitionedInitialValidations?> LoadAndPartitionInitialValidations(
         Instance instance,
         string taskId,
         string language,
@@ -475,7 +400,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
         return new PartitionedInitialValidations
         {
             TaskIssues = taskIssues.Count == 0 ? null : taskIssues,
-            DataModelIssues = dataModelIssues,
+            DataModelIssues = dataModelIssues
         };
     }
 
@@ -494,7 +419,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
 #pragma warning disable CS0618
             CustomTextParams = issue.CustomTextParams,
 #pragma warning restore CS0618
-            CustomTextParameters = issue.CustomTextParameters,
+            CustomTextParameters = issue.CustomTextParameters
         };
     }
 
