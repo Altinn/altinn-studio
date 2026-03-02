@@ -1,11 +1,10 @@
 import React from 'react';
 
 import { Textfield } from '@digdir/designsystemet-react';
-
 import { useBoundValue, useRequiredValidation, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
-import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components';
 
 import type { CompTextAreaExternal } from 'src/layout/TextArea/config.generated';
 

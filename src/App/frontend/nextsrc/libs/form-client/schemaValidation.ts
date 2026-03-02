@@ -1,6 +1,7 @@
 import Ajv from 'ajv';
 import Ajv2020 from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
+// @ts-ignore
 import addAdditionalFormats from 'ajv-formats-draft2019';
 import type { ErrorObject, Options } from 'ajv';
 import type { JSONSchema7 } from 'json-schema';
