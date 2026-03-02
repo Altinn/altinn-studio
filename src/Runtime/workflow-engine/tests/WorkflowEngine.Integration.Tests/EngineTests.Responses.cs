@@ -8,7 +8,7 @@ using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Integration.Tests;
 
-public partial class EngineEndToEndTests
+public partial class EngineTests
 {
     // ── Health endpoint responses ─────────────────────────────────────────────
 

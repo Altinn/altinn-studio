@@ -9,7 +9,7 @@ using WorkflowEngine.Resilience.Models;
 namespace WorkflowEngine.Integration.Tests;
 
 /// <summary>
-/// End-to-end tests that spin up the full ASP.NET Core application (via WebApplicationFactory),
+/// Integration tests that spin up the full ASP.NET Core application (via WebApplicationFactory),
 /// POST real JSON payloads to the engine API, and assert on the final workflow state after the
 /// engine has processed the requests.
 ///
@@ -22,7 +22,7 @@ namespace WorkflowEngine.Integration.Tests;
 /// database and restore WireMock to its default catch-all 200 stub.
 /// </summary>
 [Collection(EngineAppCollection.Name)]
-public partial class EngineEndToEndTests(EngineAppFixture fixture) : IAsyncLifetime
+public partial class EngineTests(EngineAppFixture fixture) : IAsyncLifetime
 {
     // ── Instance-level constants ──────────────────────────────────────────────
 

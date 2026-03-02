@@ -7,7 +7,7 @@ using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Integration.Tests;
 
-public partial class EngineEndToEndTests
+public partial class EngineTests
 {
     [Fact]
     public async Task AppCommand_WithoutLockToken_Returns400_AndNothingEnqueued()

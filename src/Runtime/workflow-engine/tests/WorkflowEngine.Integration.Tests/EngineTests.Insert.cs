@@ -6,7 +6,7 @@ using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Integration.Tests;
 
-public partial class EngineEndToEndTests
+public partial class EngineTests
 {
     [Theory]
     [InlineData(1, "webhook")]

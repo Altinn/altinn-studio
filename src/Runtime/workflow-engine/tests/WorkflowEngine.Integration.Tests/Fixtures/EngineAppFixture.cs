@@ -12,9 +12,11 @@ using WorkflowEngine.Data.Services;
 namespace WorkflowEngine.Integration.Tests.Fixtures;
 
 /// <summary>
-/// Shared fixture that boots a real PostgreSQL container, a WireMock server, and the full
-/// ASP.NET Core application (via WebApplicationFactory).  All end-to-end tests share one
-/// fixture instance; each test calls <see cref="ResetAsync"/> to restore a clean state.
+/// Shared fixture that boots a real PostgreSQL container, an in-memory WireMock server,
+/// and the full ASP.NET Core application (via WebApplicationFactory).
+///
+/// All tests within the same collection share one fixture instance;
+/// each test calls <see cref="ResetAsync"/> to restore a clean state.
 /// </summary>
 public sealed class EngineAppFixture : IAsyncLifetime
 {
