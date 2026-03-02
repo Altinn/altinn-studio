@@ -8632,7 +8632,7 @@
             "type": "string",
             "nullable": true
           },
-          "email": {
+          "externalIdentifier": {
             "type": "string",
             "nullable": true
           }
@@ -8667,6 +8667,11 @@
           "username": {
             "type": "string",
             "description": "The username of the party. Null if the party is not self identified.",
+            "nullable": true
+          },
+          "externalIdentifier": {
+            "type": "string",
+            "description": "The external identifier of a self identified party. Null if the party is not self identified.",
             "nullable": true
           },
           "party": {

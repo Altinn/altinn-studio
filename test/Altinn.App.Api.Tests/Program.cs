@@ -8,6 +8,7 @@ using Altinn.App.Api.Tests.Mocks.Event;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Cache;
+using Altinn.App.Core.Infrastructure.Clients.Register;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
@@ -109,7 +110,10 @@ void ConfigureMockServices(IServiceCollection services, ConfigurationManager con
     services.AddTransient<IAppMetadata, AppMetadataMock>();
     services.AddSingleton<IAppConfigurationCache, AppConfigurationCacheMock>();
     services.AddTransient<IDataClient, DataClientMock>();
-    services.AddTransient<IAltinnPartyClient, AltinnPartyClientMock>();
+    services.AddTransient<AltinnPartyClientInterceptor>();
+    services
+        .AddHttpClient<IAltinnPartyClient, AltinnPartyClient>()
+        .ConfigurePrimaryHttpMessageHandler<AltinnPartyClientInterceptor>();
     services.AddTransient<IRegisterClient, RegisterClientMock>();
     services.AddTransient<IProfileClient, ProfileClientMock>();
     services.AddTransient<IInstanceEventClient, InstanceEventClientMock>();

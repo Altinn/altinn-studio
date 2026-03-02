@@ -230,26 +230,11 @@ public class ApiTestBase
 
     private void ConfigureFakeHttpClientHandler(IServiceCollection services)
     {
-        // Remove existing IHttpClientFactory and HttpClient
-        var httpClientFactoryDescriptor = services.Single(d => d.ServiceType == typeof(IHttpClientFactory));
-        services.Remove(httpClientFactoryDescriptor);
-
-        var httpClientDescriptor = services.Single(d => d.ServiceType == typeof(HttpClient));
-        services.Remove(httpClientDescriptor);
-
-        // Add the new HttpClient as singleton
-        services.AddSingleton<IHttpClientFactory>(sp =>
-        {
-            // Create an HttpClient using the mocked handler
-            var clientFactoryMock = new Mock<IHttpClientFactory>(MockBehavior.Strict);
-            clientFactoryMock
-                .Setup(f => f.CreateClient(It.IsAny<string>()))
-                .Returns(() => sp.GetRequiredService<HttpClient>());
-            return clientFactoryMock.Object;
-        });
-        services.AddTransient<HttpClient>(sp => new HttpClient(
-            new MockHttpMessageHandler(SendAsync, sp.GetRequiredService<ILogger<MockHttpMessageHandler>>())
-        ));
+        services.ConfigureHttpClientDefaults(c =>
+            c.ConfigurePrimaryHttpMessageHandler(
+                (sp) => new MockHttpMessageHandler(SendAsync, sp.GetRequiredService<ILogger<MockHttpMessageHandler>>())
+            )
+        );
     }
 
     protected async Task<TelemetrySnapshot> GetTelemetrySnapshot(int numberOfActivities, int numberOfMetrics)

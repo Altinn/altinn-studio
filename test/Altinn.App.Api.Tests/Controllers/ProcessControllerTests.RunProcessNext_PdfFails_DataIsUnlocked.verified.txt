@@ -202,6 +202,16 @@
       HasParent: false
     },
     {
+      Name: PartyClient.GetParty,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.owner.party.id: 500600
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: PdfGeneratorClient.GeneratePdf,
       IdFormat: W3C,
       HasParent: true

@@ -1015,6 +1015,7 @@ namespace Altinn.App.Api.Models
     public sealed class InstanceOwnerResponse
     {
         public InstanceOwnerResponse() { }
+        public string ExternalIdentifier { get; init; }
         public required string OrganisationNumber { get; init; }
         public required Altinn.App.Api.Models.PartyResponse Party { get; init; }
         public required string PartyId { get; init; }
