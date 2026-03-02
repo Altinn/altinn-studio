@@ -15,6 +15,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,7 +26,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [ApiController]
     [Authorize]
-    [AutoValidateAntiforgeryToken]
+    [TypeFilter(typeof(ConditionalAntiforgeryFilter))]
     [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments")]
     public class DeploymentsController : ControllerBase
     {

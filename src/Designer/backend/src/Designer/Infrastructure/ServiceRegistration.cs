@@ -72,6 +72,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IAppScopesRepository, AppScopesRepository>();
             services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
             services.AddScoped<IResourceRegistryRepository, ResourceRegistryRepository>();
+            services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
             services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
@@ -121,6 +122,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IAltinnAppServiceResourceService, AltinnAppServiceResourceService>();
             services.AddTransient<ICustomTemplateService, CustomTemplateService>();
             services.AddTransient<IStudioOidcUsernameProvider, GiteaDbStudioOidcUsernameProvider>();
+            services.AddScoped<IApiKeyService, ApiKeyService>();
+            services.RegisterSettingsSingleton<ApiKeySettings>(configuration);
             services.AddSingleton<IGitServerAuthHeadersProvider, GiteaAuthHeadersProvider>();
             services.RegisterSettingsSingleton<CustomTemplateSettings>(configuration);
 

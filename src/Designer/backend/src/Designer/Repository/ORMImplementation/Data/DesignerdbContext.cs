@@ -16,6 +16,7 @@ public class DesignerdbContext : DbContext
     public virtual DbSet<AppScopesDbModel> AppScopes { get; set; }
     public virtual DbSet<AppSettingsDbModel> AppSettings { get; set; }
     public virtual DbSet<DeveloperIdentityMappingDbModel> DeveloperIdentityMappings { get; set; }
+    public virtual DbSet<ApiKeyDbModel> ApiKeys { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,6 +28,7 @@ public class DesignerdbContext : DbContext
         modelBuilder.ApplyConfiguration(new AppScopesConfiguration());
         modelBuilder.ApplyConfiguration(new AppSettingsConfiguration());
         modelBuilder.ApplyConfiguration(new DeveloperIdentityMappingConfiguration());
+        modelBuilder.ApplyConfiguration(new ApiKeyConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }
