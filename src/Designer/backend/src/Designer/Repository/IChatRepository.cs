@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Repository;
 /// <summary>
 /// Repository for managing chat threads and messages for the AI Assistant.
 /// </summary>
-public interface IChatThreadRepository
+public interface IChatRepository
 {
     /// <summary>
     /// Gets all threads without messages for a given user, ordered by newest first.

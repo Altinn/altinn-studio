@@ -11,11 +11,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation;
 
-public class ChatThreadRepository : IChatThreadRepository
+public class ChatRepository : IChatRepository
 {
     private readonly DesignerdbContext _dbContext;
 
-    public ChatThreadRepository(DesignerdbContext dbContext)
+    public ChatRepository(DesignerdbContext dbContext)
     {
         _dbContext = dbContext;
     }

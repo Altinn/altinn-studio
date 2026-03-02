@@ -70,7 +70,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<IDeployEventRepository, DeployEventRepository>();
             services.AddScoped<IAppScopesRepository, AppScopesRepository>();
             services.AddScoped<IAppSettingsRepository, AppSettingsRepository>();
-            services.AddScoped<IChatThreadRepository, ChatThreadRepository>();
+            services.AddScoped<IChatRepository, ChatRepository>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IImageUrlValidationService, ImageUrlValidationService>();
             services.AddScoped<IUrlPolicyValidator, UrlPolicyValidator>();
