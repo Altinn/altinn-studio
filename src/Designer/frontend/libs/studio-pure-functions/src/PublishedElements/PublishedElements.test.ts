@@ -55,4 +55,43 @@ describe('PublishedElements', () => {
       expect(publishedElements.latestVersionOrNull('trains')).toBeNull();
     });
   });
+
+  describe('hasAtLeastOneElement', () => {
+    it('Returns true when at least one element appears in the list', () => {
+      const publishedElements = new PublishedElements(fileNames);
+      expect(publishedElements.hasAtLeastOneElement()).toBe(true);
+    });
+
+    it('Returns false when there is an index file only', () => {
+      const publishedElements = new PublishedElements(['_index.json']);
+      expect(publishedElements.hasAtLeastOneElement()).toBe(false);
+    });
+
+    it('Returns false when the list of files is empty', () => {
+      const publishedElements = new PublishedElements([]);
+      expect(publishedElements.hasAtLeastOneElement()).toBe(false);
+    });
+  });
+
+  describe('retrieveElementNames', () => {
+    it('Returns a list of all the element names in the list', () => {
+      const publishedElements = new PublishedElements(fileNames);
+      expect(publishedElements.retrieveElementNames()).toEqual([
+        elementName1,
+        elementName2,
+        elementName3,
+        capitalisedElementName,
+      ]);
+    });
+
+    it('Returns an empty list when there is an index file only', () => {
+      const publishedElements = new PublishedElements(['_index.json']);
+      expect(publishedElements.retrieveElementNames()).toEqual([]);
+    });
+
+    it('Returns an empty list when the list of files is empty', () => {
+      const publishedElements = new PublishedElements([]);
+      expect(publishedElements.retrieveElementNames()).toEqual([]);
+    });
+  });
 });

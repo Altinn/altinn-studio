@@ -234,7 +234,7 @@
   },
   "kind": "HorizontalPodAutoscaler",
   "managed": "true",
-  "minReplicas": 0,
+  "minReplicas": 1,
   "name": "pdf3-proxy-hpa",
   "namespace": "runtime-pdf3",
   "reconcile": "disabled"
@@ -251,7 +251,7 @@
   },
   "kind": "HorizontalPodAutoscaler",
   "managed": "true",
-  "minReplicas": 0,
+  "minReplicas": 1,
   "name": "pdf3-worker-hpa",
   "namespace": "runtime-pdf3",
   "reconcile": "disabled"
@@ -289,7 +289,7 @@
   },
   "kind": "HorizontalPodAutoscaler",
   "managed": "true",
-  "minReplicas": 0,
+  "minReplicas": 1,
   "name": "pdf3-proxy-hpa",
   "namespace": "runtime-pdf3",
   "reconcile": "disabled"
@@ -306,7 +306,7 @@
   },
   "kind": "HorizontalPodAutoscaler",
   "managed": "true",
-  "minReplicas": 0,
+  "minReplicas": 1,
   "name": "pdf3-worker-hpa",
   "namespace": "runtime-pdf3",
   "reconcile": "disabled"

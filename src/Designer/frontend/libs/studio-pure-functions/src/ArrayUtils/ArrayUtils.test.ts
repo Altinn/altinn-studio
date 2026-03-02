@@ -431,4 +431,15 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.isArrayOfStrings('abc')).toBe(false);
     });
   });
+
+  describe('filterNotNull', () => {
+    it('Filters out null values', () => {
+      const array = ['a', 'b', 'c', null, 1, null, undefined, null, false];
+      expect(ArrayUtils.filterNotNull(array)).toEqual(['a', 'b', 'c', 1, undefined, false]);
+    });
+
+    it('Returns the same array when there are no nulls', () => {
+      expect(ArrayUtils.filterNotNull(['a', 'b', 'c'])).toEqual(['a', 'b', 'c']);
+    });
+  });
 });
