@@ -2,7 +2,7 @@ import type { Meta, StoryFn } from '@storybook/react-vite';
 import { logicalExpression } from '../StudioExpression/test-data/expressions';
 import { texts } from '../StudioExpression/test-data/texts';
 import { StudioManualExpression } from './StudioManualExpression';
-import { fn } from 'storybook/internal/test';
+import { fn } from 'storybook/test';
 
 type Story = StoryFn<typeof StudioManualExpression>;
 
