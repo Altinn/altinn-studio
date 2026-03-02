@@ -43,9 +43,6 @@ var (
 
 	// ErrSocketDirRequired is returned when the socket directory is not set.
 	ErrSocketDirRequired = errors.New("socket directory is required")
-
-	// ErrInvalidConfigVersion is returned when config file version is invalid.
-	ErrInvalidConfigVersion = errors.New("invalid config version")
 )
 
 // Config holds all configuration for studioctl.
@@ -80,7 +77,7 @@ func New(flags Flags, version string) (*Config, error) {
 		return nil, fmt.Errorf("resolve socket dir: %w", err)
 	}
 
-	// Load persisted config (images, etc.) with embedded defaults fallback
+	// Load optional user overrides with embedded defaults fallback.
 	persisted, err := Load(home)
 	if err != nil {
 		return nil, fmt.Errorf("load config: %w", err)
@@ -216,7 +213,7 @@ func (c *Config) AppManagerBinaryPath() string {
 	return filepath.Join(c.BinDir, name)
 }
 
-// persistedConfigPath returns the path to the persisted config file.
+// persistedConfigPath returns the path to the optional user override file.
 func persistedConfigPath(homeDir string) string {
 	return filepath.Join(homeDir, "config.yaml")
 }
@@ -291,26 +288,9 @@ type ImagesConfig struct {
 	Utility    UtilityImages    `yaml:"utility"`
 }
 
-// PersistedConfig is the root structure for the persisted config file.
+// PersistedConfig is the root structure for the optional user override file.
 type PersistedConfig struct {
-	Images  ImagesConfig `yaml:"images"`
-	Version int          `yaml:"version"`
-}
-
-// Install writes the embedded config to the home directory.
-// If force is false and the file already exists, it does nothing.
-func Install(homeDir string, force bool) error {
-	path := persistedConfigPath(homeDir)
-	if !force {
-		if _, err := os.Stat(path); err == nil {
-			return nil // already exists
-		}
-	}
-
-	if err := os.WriteFile(path, embeddedConfig, osutil.FilePermOwnerOnly); err != nil {
-		return fmt.Errorf("write config file: %w", err)
-	}
-	return nil
+	Images ImagesConfig `yaml:"images"`
 }
 
 // loadEmbedded returns the embedded default configuration.
@@ -358,12 +338,7 @@ func Load(homeDir string) (PersistedConfig, error) {
 		return PersistedConfig{}, fmt.Errorf("load user config: %w", err)
 	}
 
-	migratedUser, err := migrate(userCfg, defaults.Version)
-	if err != nil {
-		return PersistedConfig{}, fmt.Errorf("migrate user config: %w", err)
-	}
-
-	return merge(defaults, migratedUser), nil
+	return merge(defaults, userCfg), nil
 }
 
 // mergeImageSpec merges Image and Tag fields independently.
@@ -405,22 +380,4 @@ func merge(defaults, user PersistedConfig) PersistedConfig {
 	result.Images.Utility.Busybox = mergeImageSpec(defaults.Images.Utility.Busybox, user.Images.Utility.Busybox)
 
 	return result
-}
-
-// migrate upgrades a persisted config to currentVersion.
-func migrate(cfg PersistedConfig, currentVersion int) (PersistedConfig, error) {
-	version := cfg.Version
-
-	if version > currentVersion {
-		return PersistedConfig{}, fmt.Errorf(
-			"%w: %d (current version: %d)",
-			ErrInvalidConfigVersion,
-			version,
-			currentVersion,
-		)
-	}
-
-	// TODO: migration
-
-	return cfg, nil
 }
