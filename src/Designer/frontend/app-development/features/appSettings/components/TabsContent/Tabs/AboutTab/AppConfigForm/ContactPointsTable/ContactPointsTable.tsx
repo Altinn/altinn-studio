@@ -59,6 +59,7 @@ export const ContactPointsTable = ({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const openCreateDialog = () => {
+    setShowValidationButtonFocus(false);
     setDraftContactPoint(emptyContactPoint);
     setEditingIndex(null);
     dialogRef.current?.showModal();
