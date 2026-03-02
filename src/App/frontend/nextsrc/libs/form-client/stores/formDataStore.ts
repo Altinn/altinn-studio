@@ -3,6 +3,18 @@ import { createStore } from 'zustand/vanilla';
 
 import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
 
+function deepEqual(a: FormDataNode, b: FormDataNode): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') {
+    return false;
+  }
+  // JSON.stringify comparison is sufficient for plain form data (no functions,
+  // dates, or circular references) and avoids generating a full diff patch.
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 interface FormDataState {
   data: FormDataNode;
 }
@@ -36,7 +48,16 @@ function resolvePath(simpleBinding: string, parentBinding?: string, itemIndex?: 
 export function createFormDataStore(initial?: FormDataNode, options?: FormDataStoreOptions) {
   return createStore<FormDataStore>()((set, get) => ({
     data: initial ?? null,
-    setData: (data) => set({ data }),
+    setData: (data) =>
+      set((state) => {
+        // Skip update if the data is deeply equal to avoid replacing object
+        // references and triggering re-renders in useGroupArray/useShallow
+        // subscribers (e.g. after backend save returns identical data).
+        if (deepEqual(state.data, data)) {
+          return state;
+        }
+        return { data };
+      }),
     getValue: (path) => {
       const { data } = get();
       if (typeof data !== 'object' || data === null || Array.isArray(data)) {
