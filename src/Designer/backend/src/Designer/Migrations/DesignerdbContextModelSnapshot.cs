@@ -183,12 +183,11 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<int>("ActionMode")
+                    b.Property<int?>("ActionMode")
                         .HasColumnType("integer")
                         .HasColumnName("action_mode");
 
                     b.PrimitiveCollection<List<string>>("AttachmentFileNames")
-                        .IsRequired()
                         .HasColumnType("jsonb")
                         .HasColumnName("attachment_file_names");
 
@@ -202,7 +201,6 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnName("created_at");
 
                     b.PrimitiveCollection<List<string>>("FilesChanged")
-                        .IsRequired()
                         .HasColumnType("jsonb")
                         .HasColumnName("files_changed");
 

@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     [DbContext(typeof(DesignerdbContext))]
-    [Migration("20260302113847_ChatTables")]
+    [Migration("20260302133109_ChatTables")]
     partial class ChatTables
     {
         /// <inheritdoc />
@@ -186,12 +186,11 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<int>("ActionMode")
+                    b.Property<int?>("ActionMode")
                         .HasColumnType("integer")
                         .HasColumnName("action_mode");
 
                     b.PrimitiveCollection<List<string>>("AttachmentFileNames")
-                        .IsRequired()
                         .HasColumnType("jsonb")
                         .HasColumnName("attachment_file_names");
 
@@ -205,7 +204,6 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnName("created_at");
 
                     b.PrimitiveCollection<List<string>>("FilesChanged")
-                        .IsRequired()
                         .HasColumnType("jsonb")
                         .HasColumnName("files_changed");
 

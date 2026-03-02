@@ -9,9 +9,9 @@ public class ChatMessageEntity
     public required DateTime CreatedAt { get; set; }
     public required Role Role { get; set; }
     public required string Content { get; set; }
-    public required ActionMode ActionMode { get; set; }
-    public List<string> FilesChanged { get; set; } = [];
-    public List<string> AttachmentFileNames { get; set; } = [];
+    public ActionMode? ActionMode { get; set; }
+    public List<string>? AttachmentFileNames { get; set; }
+    public List<string>? FilesChanged { get; set; }
 }
 
 public enum Role

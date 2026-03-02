@@ -34,15 +34,15 @@ public class ChatMessageDbModel
     /// <summary>
     /// Assistant action mode, set by the user.
     /// </summary>
-    public required ActionMode ActionMode { get; set; }
-
-    /// <summary>
-    /// App files changed by assistant.
-    /// </summary>
-    public List<string> FilesChanged { get; set; } = [];
+    public ActionMode? ActionMode { get; set; }
 
     /// <summary>
     /// Names of attached files.
     /// </summary>
-    public List<string> AttachmentFileNames { get; set; } = [];
+    public List<string>? AttachmentFileNames { get; set; }
+
+    /// <summary>
+    /// App files changed by assistant.
+    /// </summary>
+    public List<string>? FilesChanged { get; set; }
 }
