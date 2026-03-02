@@ -32,9 +32,10 @@ export function useScrollAndFocusOnParamTarget({
       const target =
         getFocusElement?.(section) ??
         (section.querySelector('textarea, input') as HTMLTextAreaElement | HTMLInputElement | null);
-
-      target?.focus({ preventScroll: true });
-      onFocused?.();
+      if (target) {
+        target.focus({ preventScroll: true });
+        onFocused?.();
+      }
     };
 
     requestAnimationFrame(scrollAndFocus);
