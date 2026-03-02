@@ -12,11 +12,7 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
 
         builder.HasKey(e => e.Id);
 
-        builder
-            .HasOne<ChatThreadDbModel>()
-            .WithMany()
-            .HasForeignKey(e => e.ThreadId)
-            .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne<ChatThreadDbModel>().WithMany().HasForeignKey(e => e.ThreadId).OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(e => e.ThreadId, "idx_chat_messages_thread_id");
 

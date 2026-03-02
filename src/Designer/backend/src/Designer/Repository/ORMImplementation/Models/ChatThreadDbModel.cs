@@ -33,5 +33,4 @@ public class ChatThreadDbModel
     /// Thread creation timestamp.
     /// </summary>
     public required DateTime CreatedAt { get; set; }
-
 }
