@@ -9,7 +9,7 @@ using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Models;
 
-namespace WorkflowEngine.Integration.Tests.Fixtures;
+namespace WorkflowEngine.Repository.Tests.Fixtures;
 
 public sealed class PostgresFixture : IAsyncLifetime
 {

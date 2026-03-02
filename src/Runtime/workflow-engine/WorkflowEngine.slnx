@@ -12,8 +12,8 @@
     <Project Path="tests/WorkflowEngine.Data.Tests/WorkflowEngine.Data.Tests.csproj" />
     <Project Path="tests/WorkflowEngine.Models.Tests/WorkflowEngine.Models.Tests.csproj" />
     <Project Path="tests/WorkflowEngine.Resilience.Tests/WorkflowEngine.Resilience.Tests.csproj" />
+    <Project Path="tests/WorkflowEngine.Repository.Tests/WorkflowEngine.Repository.Tests.csproj" />
     <Project Path="tests/WorkflowEngine.Integration.Tests/WorkflowEngine.Integration.Tests.csproj" />
-    <Project Path="tests/WorkflowEngine.EndToEndTests/WorkflowEngine.EndToEndTests.csproj" />
   </Folder>
   <Project Path="../../common/Altinn.Studio.Runtime.Common.csproj" />
 </Solution>

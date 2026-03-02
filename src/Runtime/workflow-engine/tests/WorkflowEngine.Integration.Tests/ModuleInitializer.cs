@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using DiffEngine;
 
-namespace WorkflowEngine.EndToEndTests;
+namespace WorkflowEngine.Integration.Tests;
 
 public static class ModuleInitializer
 {

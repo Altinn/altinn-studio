@@ -2,10 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
-using WorkflowEngine.EndToEndTests.Fixtures;
+using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 
-namespace WorkflowEngine.EndToEndTests;
+namespace WorkflowEngine.Integration.Tests;
 
 public partial class EngineEndToEndTests
 {

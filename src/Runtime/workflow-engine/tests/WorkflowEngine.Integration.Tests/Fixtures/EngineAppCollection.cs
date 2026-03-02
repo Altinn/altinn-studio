@@ -1,4 +1,4 @@
-namespace WorkflowEngine.EndToEndTests.Fixtures;
+namespace WorkflowEngine.Integration.Tests.Fixtures;
 
 [CollectionDefinition(Name)]
 public class EngineAppCollection : ICollectionFixture<EngineAppFixture>

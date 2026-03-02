@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 
-namespace WorkflowEngine.EndToEndTests.Fixtures;
+namespace WorkflowEngine.Integration.Tests.Fixtures;
 
 /// <summary>
 /// Returns the full exception type, message, and stack trace as the response body so tests

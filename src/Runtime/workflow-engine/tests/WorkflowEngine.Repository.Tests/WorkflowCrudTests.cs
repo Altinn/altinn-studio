@@ -1,8 +1,8 @@
-using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
+using WorkflowEngine.Repository.Tests.Fixtures;
 
-namespace WorkflowEngine.Integration.Tests;
+namespace WorkflowEngine.Repository.Tests;
 
 [Collection(PostgresCollection.Name)]
 public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime

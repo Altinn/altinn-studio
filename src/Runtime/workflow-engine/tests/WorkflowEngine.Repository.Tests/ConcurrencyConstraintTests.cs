@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
+using WorkflowEngine.Repository.Tests.Fixtures;
 
-namespace WorkflowEngine.Integration.Tests;
+namespace WorkflowEngine.Repository.Tests;
 
 [Collection(PostgresCollection.Name)]
 public sealed class ConcurrencyConstraintTests(PostgresFixture fixture) : IAsyncLifetime

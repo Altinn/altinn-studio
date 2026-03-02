@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using WorkflowEngine.Models;
 
-namespace WorkflowEngine.EndToEndTests.Fixtures;
+namespace WorkflowEngine.Integration.Tests.Fixtures;
 
 /// <summary>
 /// Typed wrapper around <see cref="HttpClient"/> for the workflow-engine REST API.

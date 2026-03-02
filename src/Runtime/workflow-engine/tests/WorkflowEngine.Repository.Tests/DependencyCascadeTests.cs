@@ -1,7 +1,7 @@
-using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.Repository.Tests.Fixtures;
 
-namespace WorkflowEngine.Integration.Tests;
+namespace WorkflowEngine.Repository.Tests;
 
 [Collection(PostgresCollection.Name)]
 public sealed class DependencyCascadeTests(PostgresFixture fixture) : IAsyncLifetime

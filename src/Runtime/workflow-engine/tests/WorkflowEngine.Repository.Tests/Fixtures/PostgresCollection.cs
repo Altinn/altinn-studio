@@ -1,4 +1,4 @@
-namespace WorkflowEngine.Integration.Tests.Fixtures;
+namespace WorkflowEngine.Repository.Tests.Fixtures;
 
 [CollectionDefinition(Name)]
 public class PostgresCollection : ICollectionFixture<PostgresFixture>

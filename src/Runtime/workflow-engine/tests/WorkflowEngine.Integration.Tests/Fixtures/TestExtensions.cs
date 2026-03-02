@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace WorkflowEngine.EndToEndTests.Fixtures;
+namespace WorkflowEngine.Integration.Tests.Fixtures;
 
 public static class TestExtensions
 {

@@ -75,3 +75,4 @@ dotnet ef migrations add <Name> \
 - [Architectural overview](docs/architecture.md)
 - [Concurrency rules](docs/concurrency.md)
 - [Performance testing](docs/performance.md)
+- [Notes on db connections during dev cycle](docs/db-connections-notes.md)

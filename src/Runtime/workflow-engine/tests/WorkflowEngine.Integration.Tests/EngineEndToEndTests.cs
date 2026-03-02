@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
-using WorkflowEngine.EndToEndTests.Fixtures;
+using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
 // CA1816: call GC.SuppressFinalize(object)
 #pragma warning disable CA1816
 
-namespace WorkflowEngine.EndToEndTests;
+namespace WorkflowEngine.Integration.Tests;
 
 /// <summary>
 /// End-to-end tests that spin up the full ASP.NET Core application (via WebApplicationFactory),

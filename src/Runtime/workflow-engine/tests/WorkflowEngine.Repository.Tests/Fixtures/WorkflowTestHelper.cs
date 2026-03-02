@@ -3,7 +3,7 @@ using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 
-namespace WorkflowEngine.Integration.Tests.Fixtures;
+namespace WorkflowEngine.Repository.Tests.Fixtures;
 
 internal static class WorkflowTestHelper
 {
