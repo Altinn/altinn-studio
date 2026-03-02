@@ -1,5 +1,6 @@
 import { isRouteErrorResponse } from 'react-router';
 
+import { expect, jest } from '@jest/globals';
 import { RouterErrorResolver } from 'nextsrc/core/routerErrorResolver';
 
 jest.mock('react-router', () => ({
