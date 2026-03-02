@@ -31,7 +31,7 @@ services:
       - ./src/WorkflowEngine.Dashboard/wwwroot:/app/wwwroot:ro
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
-    profiles: [app, full]
+    profiles: [dash, dashboard, full]
 
   postgres:
     image: postgres:18
