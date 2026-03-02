@@ -2422,18 +2422,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-alias@npm:^5.1.1":
-  version: 5.1.1
-  resolution: "@rollup/plugin-alias@npm:5.1.1"
-  peerDependencies:
-    rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
-  peerDependenciesMeta:
-    rollup:
-      optional: true
-  checksum: 10/1f1ab178aa2726c81e2ae1709f73b3688491f14655b97c54d43bea35ac3f783f8855d701d1e5eac234e3ffe89fef56ce975726b036a97049fefa9b514686e55c
-  languageName: node
-  linkType: hard
-
 "@rollup/pluginutils@npm:^5.0.2":
   version: 5.3.0
   resolution: "@rollup/pluginutils@npm:5.3.0"
@@ -12688,7 +12676,6 @@ __metadata:
     "@microsoft/applicationinsights-react-js": "npm:17.3.6"
     "@microsoft/applicationinsights-web": "npm:3.3.11"
     "@microsoft/signalr": "npm:8.0.17"
-    "@rollup/plugin-alias": "npm:^5.1.1"
     "@swc/core": "npm:1.15.13"
     "@swc/jest": "npm:0.2.39"
     "@tanstack/react-query": "npm:5.90.21"
