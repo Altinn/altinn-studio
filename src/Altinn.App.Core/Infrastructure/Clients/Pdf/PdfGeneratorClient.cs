@@ -104,11 +104,21 @@ public class PdfGeneratorClient : IPdfGeneratorClient
                     if (k != "traceparent" && k != "tracestate")
                         _logger.LogWarning("Unexpected key '{Key}' when propagating trace context (expected W3C)", k);
 
+                    var value = v;
+                    if (k == "tracestate")
+                    {
+                        // tracestate will contain e.g. baggage which are arbitrary keyvalue pairs example kv: "dd=s:1;o:rum".
+                        // values can contain semicolon which is not allowed in cookie values
+                        // so we base64 encode the entire value to be safe
+                        // Frontend accounts for this when passing it back when on the PDF page
+                        value = Convert.ToBase64String(Encoding.UTF8.GetBytes(v));
+                    }
+
                     c.Add(
                         new PdfGeneratorCookieOptions
                         {
                             Name = $"altinn-telemetry-{k}",
-                            Value = v,
+                            Value = value,
                             Domain = uri.Host,
                         }
                     );
