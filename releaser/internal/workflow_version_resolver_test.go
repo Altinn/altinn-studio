@@ -102,6 +102,10 @@ func TestRunWorkflow_SelectsLatestPrereleaseForMain(t *testing.T) {
 	if !strings.Contains(string(content), "Latest preview notes") {
 		t.Fatalf("release notes did not use latest prerelease:\n%s", string(content))
 	}
+	const prereleaseCompare = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/studioctl/v1.2.0-preview.1...studioctl/v1.2.0-preview.2"
+	if !strings.Contains(string(content), prereleaseCompare) {
+		t.Fatalf("release notes missing compare link %q:\n%s", prereleaseCompare, string(content))
+	}
 }
 
 func TestRunWorkflow_SelectsLatestStableForReleaseLine(t *testing.T) {
@@ -148,6 +152,44 @@ func TestRunWorkflow_SelectsLatestStableForReleaseLine(t *testing.T) {
 	}
 	if !strings.Contains(string(content), "Latest patch notes") {
 		t.Fatalf("release notes did not use latest stable patch:\n%s", string(content))
+	}
+	const patchCompare = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/studioctl/v1.0.1...studioctl/v1.0.2"
+	if !strings.Contains(string(content), patchCompare) {
+		t.Fatalf("release notes missing compare link %q:\n%s", patchCompare, string(content))
+	}
+}
+
+func TestRunWorkflow_NonDraftReleaseNotesExcludeFullChangelog(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+## [1.2.0-preview.1] - 2025-01-01
+
+### Added
+
+- Preview notes
+`)
+	t.Chdir(repo)
+
+	err := internal.RunWorkflow(t.Context(), internal.WorkflowRequest{
+		Component:             "studioctl",
+		BaseBranch:            "main",
+		DryRun:                true,
+		Draft:                 false,
+		UnsafeSkipBranchCheck: true,
+	}, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunWorkflow() error = %v", err)
+	}
+
+	notesPath := filepath.Join(repo, "build", "release", "release-notes.md")
+	content, readErr := os.ReadFile(notesPath)
+	if readErr != nil {
+		t.Fatalf("read release notes: %v", readErr)
+	}
+	if strings.Contains(string(content), "**Full Changelog**:") {
+		t.Fatalf("release notes unexpectedly included compare link:\n%s", string(content))
 	}
 }
 

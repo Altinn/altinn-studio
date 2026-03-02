@@ -1,9 +1,9 @@
 export {
-  filterRoutesByFeatureFlag,
+  isMenuItemEnabledByFeatureFlag,
   getFilteredTopBarMenu,
   getTopBarMenuItems,
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
   getFilteredMenuListForOverviewPage,
-  topBarMenuItem,
+  topBarMenuItems,
 } from './headerMenuUtils';

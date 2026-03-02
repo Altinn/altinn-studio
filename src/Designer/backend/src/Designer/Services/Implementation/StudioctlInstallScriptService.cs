@@ -30,6 +30,7 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
     private const int MaxReleaseMetadataBytes = 1024 * 1024;
     private const int ReleaseLookupPageSize = 100;
     private const int ReleaseLookupMaxPages = 10;
+    private const string StudioctlPreviewSuffix = "-preview.";
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IMemoryCache _cache;
@@ -271,6 +272,11 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
         CancellationToken cancellationToken
     )
     {
+        StudioctlTagVersion? highestStableVersion = null;
+        string? highestStableTag = null;
+        StudioctlTagVersion? highestPreviewVersion = null;
+        string? highestPreviewTag = null;
+
         for (int page = 1; page <= ReleaseLookupMaxPages; page++)
         {
             Uri releasesUrl = new($"{s_releaseApiUrl}?per_page={ReleaseLookupPageSize}&page={page}");
@@ -337,14 +343,37 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
             foreach (GitHubRelease release in releases)
             {
                 releaseCount++;
-                if (release.Draft || release.Prerelease)
+                if (release.Draft || release.TagName is null)
                 {
                     continue;
                 }
 
-                if (IsStableStudioctlReleaseTag(release.TagName))
+                if (!TryParseStudioctlTagVersion(release.TagName, out StudioctlTagVersion tagVersion))
                 {
-                    return new ReleaseLookupResult(StudioctlInstallScriptStatus.Ok, release.TagName);
+                    continue;
+                }
+                if (!tagVersion.IsPreview && release.Prerelease)
+                {
+                    continue;
+                }
+
+                if (!tagVersion.IsPreview)
+                {
+                    if (highestStableVersion is null || CompareCoreVersions(tagVersion, highestStableVersion.Value) > 0)
+                    {
+                        highestStableVersion = tagVersion;
+                        highestStableTag = release.TagName;
+                    }
+                    continue;
+                }
+
+                if (
+                    highestPreviewVersion is null
+                    || ComparePreviewVersions(tagVersion, highestPreviewVersion.Value) > 0
+                )
+                {
+                    highestPreviewVersion = tagVersion;
+                    highestPreviewTag = release.TagName;
                 }
             }
 
@@ -352,6 +381,20 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
             {
                 break;
             }
+        }
+
+        if (highestStableTag is not null)
+        {
+            return new ReleaseLookupResult(StudioctlInstallScriptStatus.Ok, highestStableTag);
+        }
+
+        if (highestPreviewTag is not null)
+        {
+            _logger.LogInformation(
+                "No stable studioctl release tag was found upstream; using preview {Tag}",
+                highestPreviewTag
+            );
+            return new ReleaseLookupResult(StudioctlInstallScriptStatus.Ok, highestPreviewTag);
         }
 
         _logger.LogInformation("No stable studioctl release tag was found upstream");
@@ -382,8 +425,10 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
         }
     }
 
-    private static bool IsStableStudioctlReleaseTag(string? tagName)
+    // TODO: Consolidate studioctl tag parsing/comparison with releaser into a shared library to avoid drift.
+    private static bool TryParseStudioctlTagVersion(string? tagName, out StudioctlTagVersion version)
     {
+        version = default;
         if (string.IsNullOrWhiteSpace(tagName))
         {
             return false;
@@ -396,14 +441,56 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
             return false;
         }
 
-        ReadOnlySpan<char> version = tag[prefix.Length..];
+        ReadOnlySpan<char> tagVersion = tag[prefix.Length..];
+        int previewIndex = tagVersion.IndexOf(StudioctlPreviewSuffix.AsSpan());
+        if (previewIndex < 0)
+        {
+            if (tagVersion.Contains('-'))
+            {
+                return false;
+            }
+
+            if (!TryParseVersionCore(tagVersion, out int major, out int minor, out int patch))
+            {
+                return false;
+            }
+
+            version = new StudioctlTagVersion(major, minor, patch, 0, false);
+            return true;
+        }
+
+        ReadOnlySpan<char> versionCore = tagVersion[..previewIndex];
+        ReadOnlySpan<char> previewNumber = tagVersion[(previewIndex + StudioctlPreviewSuffix.Length)..];
+        if (previewNumber.Length == 0 || previewNumber.Contains('-'))
+        {
+            return false;
+        }
+
+        if (
+            !TryParseVersionCore(versionCore, out int previewMajor, out int previewMinor, out int previewPatch)
+            || !TryParseVersionNumber(previewNumber, out int previewNumberValue)
+        )
+        {
+            return false;
+        }
+
+        version = new StudioctlTagVersion(previewMajor, previewMinor, previewPatch, previewNumberValue, true);
+        return true;
+    }
+
+    private static bool TryParseVersionCore(ReadOnlySpan<char> version, out int major, out int minor, out int patch)
+    {
+        major = 0;
+        minor = 0;
+        patch = 0;
+
         int firstDot = version.IndexOf('.');
         if (firstDot <= 0)
         {
             return false;
         }
 
-        ReadOnlySpan<char> major = version[..firstDot];
+        ReadOnlySpan<char> majorSpan = version[..firstDot];
         ReadOnlySpan<char> afterFirstDot = version[(firstDot + 1)..];
         int secondDot = afterFirstDot.IndexOf('.');
         if (secondDot <= 0)
@@ -411,18 +498,63 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
             return false;
         }
 
-        ReadOnlySpan<char> minor = afterFirstDot[..secondDot];
-        ReadOnlySpan<char> patch = afterFirstDot[(secondDot + 1)..];
-        if (patch.Length == 0 || patch.IndexOf('.') >= 0)
+        ReadOnlySpan<char> minorSpan = afterFirstDot[..secondDot];
+        ReadOnlySpan<char> patchSpan = afterFirstDot[(secondDot + 1)..];
+        if (patchSpan.Length == 0 || patchSpan.IndexOf('.') >= 0)
         {
             return false;
         }
 
-        return IsValidVersionNumber(major) && IsValidVersionNumber(minor) && IsValidVersionNumber(patch);
+        return TryParseVersionNumber(majorSpan, out major)
+            && TryParseVersionNumber(minorSpan, out minor)
+            && TryParseVersionNumber(patchSpan, out patch);
     }
 
-    private static bool IsValidVersionNumber(ReadOnlySpan<char> value) =>
-        int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out _);
+    private static bool TryParseVersionNumber(ReadOnlySpan<char> value, out int versionNumber)
+    {
+        versionNumber = 0;
+        if (value.Length == 0)
+        {
+            return false;
+        }
+        foreach (char c in value)
+        {
+            if (c < '0' || c > '9')
+            {
+                return false;
+            }
+        }
+
+        return int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out versionNumber);
+    }
+
+    private static int CompareCoreVersions(StudioctlTagVersion left, StudioctlTagVersion right)
+    {
+        int major = left.Major.CompareTo(right.Major);
+        if (major != 0)
+        {
+            return major;
+        }
+
+        int minor = left.Minor.CompareTo(right.Minor);
+        if (minor != 0)
+        {
+            return minor;
+        }
+
+        return left.Patch.CompareTo(right.Patch);
+    }
+
+    private static int ComparePreviewVersions(StudioctlTagVersion left, StudioctlTagVersion right)
+    {
+        int core = CompareCoreVersions(left, right);
+        if (core != 0)
+        {
+            return core;
+        }
+
+        return left.PreviewNumber.CompareTo(right.PreviewNumber);
+    }
 
     private sealed record class GitHubRelease
     {
@@ -437,6 +569,14 @@ public class StudioctlInstallScriptService : IStudioctlInstallScriptService
     }
 
     private readonly record struct ReleaseLookupResult(StudioctlInstallScriptStatus Status, string? TagName);
+
+    private readonly record struct StudioctlTagVersion(
+        int Major,
+        int Minor,
+        int Patch,
+        int PreviewNumber,
+        bool IsPreview
+    );
 
     internal sealed record StudioctlInstallScriptCacheEntry(byte[] Content, DateTimeOffset FetchedAt);
 }

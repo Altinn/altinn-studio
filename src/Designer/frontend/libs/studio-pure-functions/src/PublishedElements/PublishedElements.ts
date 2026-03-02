@@ -1,5 +1,6 @@
 import { Guard } from '@studio/guard';
 import { FileNameUtils } from '../FileNameUtils';
+import { ArrayUtils } from '../ArrayUtils';
 
 export class PublishedElements {
   readonly #fileNames: readonly string[];
@@ -47,5 +48,22 @@ export class PublishedElements {
     const match = fileName.match(/(?<=\/)(\d+)(?=\.json$)/i);
     Guard.againstNull(match);
     return parseInt(match[0], 10);
+  }
+
+  public hasAtLeastOneElement(): boolean {
+    return !!this.retrieveElementNames().length;
+  }
+
+  public retrieveElementNames(): string[] {
+    const namesAndNulls = this.#fileNames.map(PublishedElements.evaluateElementNameFromFileName);
+    const names = ArrayUtils.filterNotNull(namesAndNulls);
+    return ArrayUtils.removeDuplicates(names);
+  }
+
+  private static evaluateElementNameFromFileName(fileName: string): string | null {
+    const regexp = /^([^/]+)\/.+\.json$/i;
+    const match = regexp.exec(fileName);
+    if (!match) return null;
+    return match[1];
   }
 }
