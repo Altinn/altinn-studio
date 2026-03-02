@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Enums;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
