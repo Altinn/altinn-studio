@@ -19,7 +19,10 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
 import type { CodeListIdContextData } from '../../types/CodeListIdContextData';
 import type { PublishedCodeListReferenceValues } from '../../types/PublishedCodeListReferenceValues';
-import { createPublishedCodeListReferenceString } from '../../utils/published-code-list-reference-utils';
+import {
+  createPublishedCodeListReferenceString,
+  latestVersionString,
+} from '../../utils/published-code-list-reference-utils';
 import { FeatureFlag } from '@studio/feature-flags';
 
 // Mocks:
@@ -70,9 +73,15 @@ describe('OptionListEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('Displays the interface for published code lists when optionsId refers to a published code list', () => {
-    renderOptionListEditorWithPublishedCodeList();
-    const expectedText = textMock('ux_editor.options.published_code_list_in_use');
+  it('Displays the correct text when optionsId refers to a fixed version of a published code list', () => {
+    renderOptionListEditorWithPublishedCodeList('1');
+    const expectedText = textMock('ux_editor.options.published_code_list_in_use_fixed');
+    expect(screen.getByText(expectedText)).toBeInTheDocument();
+  });
+
+  it('Displays the correct text when optionsId refers to the latest version of a published code list', () => {
+    renderOptionListEditorWithPublishedCodeList(latestVersionString);
+    const expectedText = textMock('ux_editor.options.published_code_list_in_use_latest');
     expect(screen.getByText(expectedText)).toBeInTheDocument();
   });
 
@@ -191,9 +200,8 @@ function renderOptionListEditor({
   });
 }
 
-function renderOptionListEditorWithPublishedCodeList(): void {
+function renderOptionListEditorWithPublishedCodeList(version: string = '1'): void {
   const codeListName = 'some-published-code-list';
-  const version = '1';
   const refValues: PublishedCodeListReferenceValues = { orgName: org, codeListName, version };
   const optionsId = createPublishedCodeListReferenceString(refValues);
   const queryClient = createQueryClientMock();
