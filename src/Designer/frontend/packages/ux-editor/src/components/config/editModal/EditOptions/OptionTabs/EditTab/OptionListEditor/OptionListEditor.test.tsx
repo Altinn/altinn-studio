@@ -13,7 +13,7 @@ import type { OptionList } from 'app-shared/types/OptionList';
 import type { OptionListEditorProps } from './OptionListEditor';
 import { OptionListEditor } from './OptionListEditor';
 import type { ITextResources } from 'app-shared/types/global';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { DEFAULT_LANGUAGE, PUBLISHED_CODE_LIST_FOLDER } from 'app-shared/constants';
 import { textResourcesMock } from 'app-shared/mocks/textResourcesMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppRouteParams } from 'app-shared/types/AppRouteParams';
@@ -193,11 +193,22 @@ function renderOptionListEditor({
 
 function renderOptionListEditorWithPublishedCodeList(): void {
   const codeListName = 'some-published-code-list';
-  const version = '12';
+  const version = '1';
   const refValues: PublishedCodeListReferenceValues = { orgName: org, codeListName, version };
   const optionsId = createPublishedCodeListReferenceString(refValues);
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(
+    [QueryKey.PublishedResources, org, PUBLISHED_CODE_LIST_FOLDER],
+    [
+      '_index.json',
+      `${codeListName}/_index.json`,
+      `${codeListName}/_latest.json`,
+      `${codeListName}/${version}.json`,
+    ],
+  );
   renderOptionListEditor({
     props: { component: { ...componentWithOptionsId, optionsId } },
     featureFlags: [FeatureFlag.NewCodeLists],
+    queryClient,
   });
 }
