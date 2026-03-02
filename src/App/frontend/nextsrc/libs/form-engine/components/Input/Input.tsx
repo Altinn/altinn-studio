@@ -77,7 +77,11 @@ export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) =
         description={description}
         grid={props.grid?.labelGrid}
       >
-        <Flex item size={{ xs: 12 }} className={alignClass}>
+        <Flex
+          item
+          size={{ xs: 12 }}
+          className={alignClass}
+        >
           <NumericInput
             {...labelProps}
             id={props.id}
@@ -118,7 +122,11 @@ export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) =
         description={description}
         grid={props.grid?.labelGrid}
       >
-        <Flex item size={{ xs: 12 }} className={alignClass}>
+        <Flex
+          item
+          size={{ xs: 12 }}
+          className={alignClass}
+        >
           <FormattedInput
             {...labelProps}
             id={props.id}
@@ -155,7 +163,11 @@ export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) =
       description={description}
       grid={props.grid?.labelGrid}
     >
-      <Flex item size={{ xs: 12 }} className={alignClass}>
+      <Flex
+        item
+        size={{ xs: 12 }}
+        className={alignClass}
+      >
         <AppInput
           {...labelProps}
           id={props.id}

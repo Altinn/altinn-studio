@@ -16,7 +16,7 @@ import { FormClientProvider } from 'nextsrc/libs/form-client/react/provider';
 import { queryClient } from 'nextsrc/QueryClient';
 import { router } from 'nextsrc/router';
 
-import 'src/index.css';
+import 'nextsrc/index.css';
 
 export const formClient = new FormClient({
   textResources: GlobalData.textResources?.resources,

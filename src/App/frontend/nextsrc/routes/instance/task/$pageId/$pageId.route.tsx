@@ -15,10 +15,8 @@ export const Page = () => {
   }
 
   return (
-    <div style={{ fontFamily: 'arial' }}>
-      <AppComponentsBridge>
-        <FormEngine components={layout.data.layout} />
-      </AppComponentsBridge>
-    </div>
+    <AppComponentsBridge>
+      <FormEngine components={layout.data.layout} />
+    </AppComponentsBridge>
   );
 };
