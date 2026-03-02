@@ -1,11 +1,19 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
+using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -69,7 +77,7 @@ public static class StudioOidcAuthenticationExtensions
                 options.Cookie.IsEssential = true;
 
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(oidcSettings.CookieExpiryTimeInMinutes);
-                options.SlidingExpiration = false;
+                options.SlidingExpiration = true;
 
                 options.Cookie.Name = General.DesignerCookieName;
 
@@ -78,6 +86,9 @@ public static class StudioOidcAuthenticationExtensions
                     context.Response.StatusCode = StatusCodes.Status403Forbidden;
                     return Task.CompletedTask;
                 };
+
+                options.Events.OnValidatePrincipal = context =>
+                    RefreshAccessTokenIfExpired(context, oidcSettings);
             })
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
@@ -194,5 +205,109 @@ public static class StudioOidcAuthenticationExtensions
 
         clientId = keys.FirstOrDefault(k => k.Key == "STUDIO_OIDC_CLIENT_ID").Value;
         clientSecret = keys.FirstOrDefault(k => k.Key == "STUDIO_OIDC_CLIENT_SECRET").Value;
+    }
+
+    private static async Task RefreshAccessTokenIfExpired(
+        CookieValidatePrincipalContext context,
+        StudioOidcLoginSettings oidcSettings)
+    {
+        AuthenticationProperties properties = context.Properties;
+        string? expiresAtValue = properties.GetTokenValue("expires_at");
+
+        if (string.IsNullOrEmpty(expiresAtValue))
+        {
+            return;
+        }
+
+        if (!DateTimeOffset.TryParse(expiresAtValue, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var expiresAt))
+        {
+            return;
+        }
+
+        var timeProvider = context.HttpContext.RequestServices.GetRequiredService<TimeProvider>();
+
+        const int RefreshBufferSeconds = 60;
+        if (timeProvider.GetUtcNow() < expiresAt.AddSeconds(-RefreshBufferSeconds))
+        {
+            return;
+        }
+
+        string? refreshToken = properties.GetTokenValue("refresh_token");
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            context.RejectPrincipal();
+            return;
+        }
+
+        using var activity = ServiceTelemetry.Source.StartActivity("oidc.token_refresh");
+        activity?.SetTag("auth.authority", oidcSettings.Authority);
+        activity?.SetTag("auth.previous_expires_at", expiresAtValue);
+        activity.SetAlwaysSample();
+
+        try
+        {
+            using var httpClient = new HttpClient();
+
+            string credentials = Convert.ToBase64String(
+                Encoding.UTF8.GetBytes($"{oidcSettings.ClientId}:{oidcSettings.ClientSecret}"));
+            httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Basic", credentials);
+
+            string discoveryUrl = $"{oidcSettings.Authority.TrimEnd('/')}/.well-known/openid-configuration";
+            string discoveryJson = await httpClient.GetStringAsync(discoveryUrl);
+            using var discoveryDoc = JsonDocument.Parse(discoveryJson);
+            string tokenUrl = discoveryDoc.RootElement.GetProperty("token_endpoint").GetString()!;
+
+            activity?.SetTag("auth.token_endpoint", tokenUrl);
+
+            var requestContent = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["grant_type"] = "refresh_token",
+                ["refresh_token"] = refreshToken,
+            });
+
+            var response = await httpClient.PostAsync(tokenUrl, requestContent);
+
+            activity?.SetTag("auth.refresh_status_code", (int)response.StatusCode);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                activity?.SetStatus(ActivityStatusCode.Error, $"Refresh failed: {response.StatusCode}");
+                context.RejectPrincipal();
+                return;
+            }
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            using var tokenResponse = JsonDocument.Parse(responseBody);
+            var root = tokenResponse.RootElement;
+
+            string newAccessToken = root.GetProperty("access_token").GetString()!;
+            int expiresIn = root.GetProperty("expires_in").GetInt32();
+            bool newRefreshTokenIssued = root.TryGetProperty("refresh_token", out var rt);
+            string resolvedRefreshToken = newRefreshTokenIssued ? rt.GetString()! : refreshToken;
+
+            var newExpiresAt = timeProvider.GetUtcNow().AddSeconds(expiresIn)
+                .ToString("o", CultureInfo.InvariantCulture);
+
+            properties.StoreTokens(
+            [
+                new AuthenticationToken { Name = "access_token", Value = newAccessToken },
+                new AuthenticationToken { Name = "refresh_token", Value = resolvedRefreshToken },
+                new AuthenticationToken { Name = "expires_at", Value = newExpiresAt },
+            ]);
+
+            context.ShouldRenew = true;
+
+            activity?.SetTag("auth.new_expires_at", newExpiresAt);
+            activity?.SetTag("auth.new_refresh_token_issued", newRefreshTokenIssued);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.AddEvent(new ActivityEvent("token_refresh_exception",
+                tags: new ActivityTagsCollection { { "exception.message", ex.Message } }));
+            context.RejectPrincipal();
+        }
     }
 }

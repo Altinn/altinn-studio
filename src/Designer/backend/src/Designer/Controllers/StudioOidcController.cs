@@ -79,11 +79,11 @@ public class StudioOidcController(IStudioOidcUsernameProvider usernameProvider) 
 
     [Authorize]
     [HttpGet("userinfo")]
-    public IActionResult UserInfo()
+    public UserInfoResponse UserInfo()
     {
-        return Ok(new UserInfoResponse(
+        return new UserInfoResponse(
             User.Identity?.Name,
             User.FindFirst("given_name")?.Value,
-            User.FindFirst("family_name")?.Value));
+            User.FindFirst("family_name")?.Value);
     }
 }
