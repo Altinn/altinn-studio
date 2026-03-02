@@ -9,6 +9,17 @@ volumes:
   redisdata:
 
 services:
+  fake_ansattporten:
+    container_name: fake-ansattporten
+    image: fake-ansattporten:${COMMIT:-latest}
+    build:
+      context: ./development/fake-ansattporten
+    ports:
+      - '8443:8443'
+    environment:
+      - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
+      - ISSUER=http://fake-ansattporten:8443
+
   studio_azure_mock:
     image: studio-azure-mock:${COMMIT:-latest}
     container_name: studio-azure-mock
@@ -87,8 +98,10 @@ services:
       - OidcLoginSettings:CookieExpiryTimeInMinutes=59
       - OidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
       - StudioOidcLoginSettings:FetchClientIdAndSecretFromRootEnvFile=false
-      - StudioOidcLoginSettings:ClientId=${STUDIO_OIDC_CLIENT_ID:-dummyRequired}
-      - StudioOidcLoginSettings:ClientSecret=${STUDIO_OIDC_CLIENT_SECRET:-dummyRequired}
+      - StudioOidcLoginSettings:ClientId=${STUDIO_OIDC_CLIENT_ID:-fake-client}
+      - StudioOidcLoginSettings:ClientSecret=${STUDIO_OIDC_CLIENT_SECRET:-fake-secret}
+      - StudioOidcLoginSettings:Authority=${STUDIO_OIDC_AUTHORITY:-http://fake-ansattporten:8443}
+      - StudioOidcLoginSettings:RequireHttpsMetadata=false
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
       - FeatureManagement:GitOpsDeploy=${FEATUREFLAGS_GITOPSDEPLOY:-true}
       - FeatureManagement:StudioOidc=${FEATUREFLAGS_STUDIOOIDC:-true}
@@ -108,6 +121,8 @@ services:
     depends_on:
       studio_db:
         condition: service_healthy
+      fake_ansattporten:
+        condition: service_started
     build:
       context: ./../..
       dockerfile: src/Designer/Dockerfile
