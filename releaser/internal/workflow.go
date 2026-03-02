@@ -399,6 +399,14 @@ func (w *Workflow) createGitHubRelease(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("extract release notes: %w", err)
 	}
+	if w.config.Draft {
+		previousVersion := previousReleasedVersion(w.parsedChangelog, verStr)
+		previousTag := ""
+		if previousVersion != "" {
+			previousTag = w.component.Tag(previousVersion)
+		}
+		notes = withFullChangelogLink(notes, previousTag, w.component.Tag(verStr))
+	}
 	w.log.Info("Release notes:")
 	for line := range strings.SplitSeq(notes, "\n") {
 		w.log.Info("  %s", line)
