@@ -7,11 +7,12 @@ import { format, isValid } from 'date-fns';
 
 import styles from 'src/app-components/Datepicker/Calendar.module.css';
 import {
+  dateFormatCanBeNumericInReactPatternFormat,
+  getFormatAsPatternFormat,
   getSaveFormattedDateString,
   strictParseFormat,
   strictParseISO,
 } from 'src/app-components/Datepicker/utils/dateHelpers';
-import { dateFormatCanBeNumericInReactPatternFormat, getFormatAsPatternFormat } from 'src/utils/dateUtils';
 
 export interface DatePickerInputProps {
   id: string;

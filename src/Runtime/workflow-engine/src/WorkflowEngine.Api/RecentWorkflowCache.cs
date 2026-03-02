@@ -22,32 +22,22 @@ internal sealed class RecentWorkflowCache
             _entries.TryDequeue(out _);
     }
 
+    public void Remove(string idempotencyKey)
+    {
+        // ConcurrentQueue doesn't support removal — rebuild without the target entry.
+        // This is rare (only on manual retry) and the queue is small (≤100 entries).
+        var snapshot = _entries.ToArray();
+        while (_entries.TryDequeue(out _)) { }
+        foreach (DashboardWorkflowDto entry in snapshot)
+        {
+            if (entry.IdempotencyKey != idempotencyKey)
+                _entries.Enqueue(entry);
+        }
+    }
+
     public IReadOnlyList<DashboardWorkflowDto> GetRecent(int count) => _entries.Reverse().Take(count).ToList();
 
     public IReadOnlyList<DashboardWorkflowDto> GetAll() => _entries.Reverse().ToList();
-
-    public bool Remove(string idempotencyKey, DateTimeOffset createdAt)
-    {
-        // ConcurrentQueue doesn't support removal, so drain and re-enqueue everything except the match.
-        // The cache is small (max 100 entries) so this is fine.
-        int count = _entries.Count;
-        bool removed = false;
-        for (int i = 0; i < count; i++)
-        {
-            if (!_entries.TryDequeue(out DashboardWorkflowDto? entry))
-                break;
-
-            if (!removed && entry.IdempotencyKey == idempotencyKey && entry.CreatedAt == createdAt)
-            {
-                removed = true;
-                continue;
-            }
-
-            _entries.Enqueue(entry);
-        }
-
-        return removed;
-    }
 
     public void Clear()
     {

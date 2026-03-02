@@ -19,4 +19,16 @@ public sealed record StepRequest
     /// </summary>
     [JsonPropertyName("retryStrategy")]
     public RetryStrategy? RetryStrategy { get; init; }
+
+    /// <summary>
+    /// Optional metadata associated with this request. Expects JSON string.
+    /// </summary>
+    [JsonPropertyName("metadata")]
+    public string? Metadata { get; init; }
+
+    /// <summary>
+    /// An optional idempotency key for this workflow.
+    /// </summary>
+    [JsonPropertyName("idempotencyKey")]
+    public string? IdempotencyKey { get; init; }
 }

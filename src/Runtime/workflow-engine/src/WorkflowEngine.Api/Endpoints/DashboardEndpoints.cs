@@ -279,16 +279,6 @@ internal static class DashboardEndpoints
                         if (s is null)
                             return Results.NotFound();
 
-                        // ErrorHistory is in-memory only; merge from recent cache if DB step doesn't have it
-                        IReadOnlyList<string>? errorHistory =
-                            s.ErrorHistory.Count > 0
-                                ? s.ErrorHistory
-                                : engine
-                                    .GetRecentWorkflows(100)
-                                    .FirstOrDefault(c => c.IdempotencyKey == wf)
-                                    ?.Steps.FirstOrDefault(cs => cs.IdempotencyKey == step)
-                                    ?.ErrorHistory;
-
                         var stateIn =
                             s.ProcessingOrder == 0
                                 ? workflow.InitialState
@@ -297,6 +287,8 @@ internal static class DashboardEndpoints
                                     .OrderByDescending(st => st.ProcessingOrder)
                                     .Select(st => st.StateOut)
                                     .FirstOrDefault(st => st is not null);
+
+                        object? errorHistory = s.ErrorHistory.Count > 0 ? s.ErrorHistory : null;
 
                         return Results.Json(
                             new
@@ -322,7 +314,7 @@ internal static class DashboardEndpoints
                         );
                     }
 
-                    // Fall back to recent cache only (has errorHistory but no state)
+                    // Fall back to recent cache (has errorHistory but no state)
                     DashboardWorkflowDto? recentCached = engine
                         .GetRecentWorkflows(100)
                         .FirstOrDefault(c => c.IdempotencyKey == wf);
@@ -366,26 +358,42 @@ internal static class DashboardEndpoints
 
         app.MapPost(
                 "/dashboard/retry",
-                async (IEngine engine, string wf, DateTimeOffset createdAt, CancellationToken ct) =>
+                async (IEngine engine, HttpContext ctx, CancellationToken ct) =>
                 {
-                    EngineResponse result = await engine.RetryWorkflow(wf, createdAt, ct);
+                    using var reader = new System.IO.StreamReader(ctx.Request.Body);
+                    string body = await reader.ReadToEndAsync(ct);
+                    var payload = JsonSerializer.Deserialize<JsonElement>(body);
+
+                    string? idempotencyKey = payload.TryGetProperty("idempotencyKey", out var ik)
+                        ? ik.GetString()
+                        : null;
+                    DateTimeOffset? createdAt = payload.TryGetProperty("createdAt", out var ca)
+                        ? DateTimeOffset.Parse(ca.GetString()!)
+                        : null;
+
+                    if (idempotencyKey is null || createdAt is null)
+                        return Results.BadRequest(new { error = "idempotencyKey and createdAt are required" });
+
+                    WorkflowRetryResponse result = await engine.RetryWorkflow(idempotencyKey, createdAt.Value, ct);
+
                     return result switch
                     {
-                        EngineResponse.Accepted => Results.Ok(),
-                        EngineResponse.Rejected { Reason: EngineResponse.Rejection.NotFound } r => Results.Problem(
-                            r.Message,
-                            statusCode: 404
+                        WorkflowRetryResponse.Accepted => Results.Ok(new { status = "accepted" }),
+                        WorkflowRetryResponse.Rejected r => Results.Json(
+                            new
+                            {
+                                status = "rejected",
+                                reason = r.Reason.ToString(),
+                                r.Message,
+                            },
+                            statusCode: r.Reason switch
+                            {
+                                WorkflowRetryResponse.Rejection.NotFound => 404,
+                                WorkflowRetryResponse.Rejection.AtCapacity => 503,
+                                _ => 400,
+                            }
                         ),
-                        EngineResponse.Rejected { Reason: EngineResponse.Rejection.AtCapacity } r => Results.Problem(
-                            r.Message,
-                            statusCode: 429
-                        ),
-                        EngineResponse.Rejected { Reason: EngineResponse.Rejection.Unavailable } r => Results.Problem(
-                            r.Message,
-                            statusCode: 503
-                        ),
-                        EngineResponse.Rejected r => Results.Problem(r.Message, statusCode: 409),
-                        _ => Results.Problem("Unexpected error", statusCode: 500),
+                        _ => Results.StatusCode(500),
                     };
                 }
             )
@@ -393,8 +401,43 @@ internal static class DashboardEndpoints
 
         app.MapPost(
                 "/dashboard/skip-backoff",
-                (IEngine engine, string wf, string step) =>
-                    engine.SkipBackoff(wf, step) ? Results.Ok() : Results.NotFound()
+                async (IEngine engine, HttpContext ctx, CancellationToken ct) =>
+                {
+                    using var reader = new System.IO.StreamReader(ctx.Request.Body);
+                    string body = await reader.ReadToEndAsync(ct);
+                    var payload = JsonSerializer.Deserialize<JsonElement>(body);
+
+                    string? idempotencyKey = payload.TryGetProperty("idempotencyKey", out var ik)
+                        ? ik.GetString()
+                        : null;
+                    string? stepIdempotencyKey = payload.TryGetProperty("stepIdempotencyKey", out var sk)
+                        ? sk.GetString()
+                        : null;
+
+                    if (idempotencyKey is null || stepIdempotencyKey is null)
+                        return Results.BadRequest(new { error = "idempotencyKey and stepIdempotencyKey are required" });
+
+                    WorkflowRetryResponse result = await engine.SkipBackoff(idempotencyKey, stepIdempotencyKey, ct);
+
+                    return result switch
+                    {
+                        WorkflowRetryResponse.Accepted => Results.Ok(new { status = "accepted" }),
+                        WorkflowRetryResponse.Rejected r => Results.Json(
+                            new
+                            {
+                                status = "rejected",
+                                reason = r.Reason.ToString(),
+                                r.Message,
+                            },
+                            statusCode: r.Reason switch
+                            {
+                                WorkflowRetryResponse.Rejection.NotFound => 404,
+                                _ => 400,
+                            }
+                        ),
+                        _ => Results.StatusCode(500),
+                    };
+                }
             )
             .ExcludeFromDescription();
 

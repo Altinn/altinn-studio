@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Api.Tests.Fixtures;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Api.Tests.Endpoints;
@@ -17,75 +18,79 @@ public class EngineEndpointTests
             InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
         };
 
-    private static ProcessNextRequest _defaultProcessNextRequest =>
+    private static WorkflowEnqueueRequest _defaultWorkflowRequest =>
         new()
         {
-            CurrentElementId = "Task_1",
-            DesiredElementId = "Task_2",
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
-            LockToken = "test-lock",
-            Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
+            Workflows =
+            [
+                new WorkflowRequest
+                {
+                    OperationId = "op-1",
+                    IdempotencyKey = "wf-1-key",
+                    Type = WorkflowType.Generic,
+                    Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
+                },
+            ],
         };
 
-    // === Next Handler Tests ===
+    // === EnqueueWorkflows Handler Tests ===
 
     [Fact]
-    public async Task Next_Accepted_ReturnsOk()
+    public async Task Enqueue_Accepted_ReturnsOkWithRefMap()
     {
         // Arrange
         var engineMock = new Mock<IEngine>();
         engineMock
-            .Setup(e => e.EnqueueWorkflow(It.IsAny<EngineRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EngineResponse.Accept());
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Accept([
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = 42L },
+                ])
+            );
 
         // Act
-        var result = await EngineRequestHandlers.Next(
+        var result = await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            _defaultProcessNextRequest,
+            _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
             CancellationToken.None
         );
 
         // Assert
-        Assert.IsType<Ok>(result.Result);
+        var ok = Assert.IsType<Ok<WorkflowEnqueueResponse.Accepted>>(result.Result);
+        Assert.NotNull(ok.Value);
+        Assert.Single(ok.Value.Workflows);
+        Assert.Equal("wf-1", ok.Value.Workflows[0].Ref);
+        Assert.Equal(42L, ok.Value.Workflows[0].DatabaseId);
     }
 
     [Fact]
-    public async Task Next_RejectedDuplicate_ReturnsNoContent()
+    public async Task Enqueue_RejectedAtCapacity_Returns429()
     {
         // Arrange
         var engineMock = new Mock<IEngine>();
         engineMock
-            .Setup(e => e.EnqueueWorkflow(It.IsAny<EngineRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EngineResponse.Reject(EngineResponse.Rejection.Duplicate, "Duplicate workflow"));
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.AtCapacity, "Queue full"));
 
         // Act
-        var result = await EngineRequestHandlers.Next(
+        var result = await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            _defaultProcessNextRequest,
-            engineMock.Object,
-            TimeProvider.System,
-            CancellationToken.None
-        );
-
-        // Assert
-        Assert.IsType<NoContent>(result.Result);
-    }
-
-    [Fact]
-    public async Task Next_RejectedAtCapacity_Returns429()
-    {
-        // Arrange
-        var engineMock = new Mock<IEngine>();
-        engineMock
-            .Setup(e => e.EnqueueWorkflow(It.IsAny<EngineRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EngineResponse.Reject(EngineResponse.Rejection.AtCapacity, "Queue full"));
-
-        // Act
-        var result = await EngineRequestHandlers.Next(
-            _defaultRouteParams,
-            _defaultProcessNextRequest,
+            _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
             CancellationToken.None
@@ -97,18 +102,26 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task Next_RejectedUnavailable_Returns503()
+    public async Task Enqueue_RejectedUnavailable_Returns503()
     {
         // Arrange
         var engineMock = new Mock<IEngine>();
         engineMock
-            .Setup(e => e.EnqueueWorkflow(It.IsAny<EngineRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EngineResponse.Reject(EngineResponse.Rejection.Unavailable, "Engine unavailable"));
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Unavailable, "Engine unavailable")
+            );
 
         // Act
-        var result = await EngineRequestHandlers.Next(
+        var result = await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            _defaultProcessNextRequest,
+            _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
             CancellationToken.None
@@ -120,18 +133,89 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task Next_RejectedInvalid_Returns400()
+    public async Task Enqueue_RejectedDuplicate_Returns409()
     {
         // Arrange
         var engineMock = new Mock<IEngine>();
         engineMock
-            .Setup(e => e.EnqueueWorkflow(It.IsAny<EngineRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EngineResponse.Reject(EngineResponse.Rejection.Invalid, "Invalid request"));
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Duplicate, "Duplicate workflow")
+            );
 
         // Act
-        var result = await EngineRequestHandlers.Next(
+        var result = await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            _defaultProcessNextRequest,
+            _defaultWorkflowRequest,
+            engineMock.Object,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert
+        var problem = Assert.IsType<ProblemHttpResult>(result.Result);
+        Assert.Equal(409, problem.StatusCode);
+    }
+
+    [Fact]
+    public async Task Enqueue_RejectedConcurrencyViolation_Returns409()
+    {
+        // Arrange
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Reject(
+                    WorkflowEnqueueResponse.Rejection.ConcurrencyViolation,
+                    "Concurrency violation"
+                )
+            );
+
+        // Act
+        var result = await EngineRequestHandlers.EnqueueWorkflows(
+            _defaultRouteParams,
+            _defaultWorkflowRequest,
+            engineMock.Object,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert
+        var problem = Assert.IsType<ProblemHttpResult>(result.Result);
+        Assert.Equal(409, problem.StatusCode);
+    }
+
+    [Fact]
+    public async Task Enqueue_RejectedInvalid_Returns400()
+    {
+        // Arrange
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, "Invalid request"));
+
+        // Act
+        var result = await EngineRequestHandlers.EnqueueWorkflows(
+            _defaultRouteParams,
+            _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
             CancellationToken.None
@@ -142,57 +226,320 @@ public class EngineEndpointTests
         Assert.Equal(400, problem.StatusCode);
     }
 
-    // === Status Handler Tests ===
-
     [Fact]
-    public void Status_NoActiveWorkflow_ReturnsNoContent()
+    public async Task Enqueue_AppCommandWithoutLockToken_Returns400()
     {
-        // Arrange
+        // Arrange — request contains an AppCommand step but no LockToken
+        var request = new WorkflowEnqueueRequest
+        {
+            Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            LockToken = null,
+            Workflows =
+            [
+                new WorkflowRequest
+                {
+                    Ref = "wf-1",
+                    OperationId = "op-1",
+                    IdempotencyKey = "wf-1-key",
+                    Type = WorkflowType.AppProcessChange,
+                    Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
+                },
+            ],
+        };
+
         var engineMock = new Mock<IEngine>();
-        engineMock.Setup(e => e.GetWorkflowForInstance(It.IsAny<InstanceInformation>())).Returns((Workflow?)null);
 
         // Act
-        var result = EngineRequestHandlers.Status(_defaultRouteParams, engineMock.Object);
+        var result = await EngineRequestHandlers.EnqueueWorkflows(
+            _defaultRouteParams,
+            request,
+            engineMock.Object,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert — rejected before the engine is even called
+        var problem = Assert.IsType<ProblemHttpResult>(result.Result);
+        Assert.Equal(400, problem.StatusCode);
+        engineMock.Verify(
+            e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task Enqueue_AppCommandWithLockToken_ProceedsToEngine()
+    {
+        // Arrange — AppCommand step with a LockToken present should reach the engine
+        var request = new WorkflowEnqueueRequest
+        {
+            Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            LockToken = "some-lock-token",
+            Workflows =
+            [
+                new WorkflowRequest
+                {
+                    Ref = "wf-1",
+                    OperationId = "op-1",
+                    IdempotencyKey = "wf-1-key",
+                    Type = WorkflowType.AppProcessChange,
+                    Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
+                },
+            ],
+        };
+
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Accept([
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = 1L },
+                ])
+            );
+
+        // Act
+        var result = await EngineRequestHandlers.EnqueueWorkflows(
+            _defaultRouteParams,
+            request,
+            engineMock.Object,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert — engine was called and returned 200
+        engineMock.Verify(
+            e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+        Assert.IsType<Ok<WorkflowEnqueueResponse.Accepted>>(result.Result);
+    }
+
+    [Fact]
+    public async Task Enqueue_MetadataIsBuiltFromRequestAndRouteParams()
+    {
+        // Arrange — capture the metadata passed to the engine to verify it was built correctly
+        WorkflowRequestMetadata? capturedMetadata = null;
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<WorkflowEnqueueRequest, WorkflowRequestMetadata, CancellationToken>(
+                (_, meta, _) => capturedMetadata = meta
+            )
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Accept([
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = 1L },
+                ])
+            );
+
+        // Act
+        await EngineRequestHandlers.EnqueueWorkflows(
+            _defaultRouteParams,
+            _defaultWorkflowRequest,
+            engineMock.Object,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.NotNull(capturedMetadata);
+        Assert.Equal(_defaultRouteParams.Org, capturedMetadata.InstanceInformation.Org);
+        Assert.Equal(_defaultRouteParams.App, capturedMetadata.InstanceInformation.App);
+        Assert.Equal(
+            _defaultRouteParams.InstanceOwnerPartyId,
+            capturedMetadata.InstanceInformation.InstanceOwnerPartyId
+        );
+        Assert.Equal(_defaultRouteParams.InstanceGuid, capturedMetadata.InstanceInformation.InstanceGuid);
+        Assert.Equal(_defaultWorkflowRequest.Actor.UserIdOrOrgNumber, capturedMetadata.Actor.UserIdOrOrgNumber);
+        Assert.Equal(_defaultWorkflowRequest.LockToken, capturedMetadata.InstanceLockKey);
+    }
+
+    // === ListActiveWorkflows Handler Tests ===
+
+    [Fact]
+    public async Task ListWorkflows_HasActiveWorkflows_ReturnsOk()
+    {
+        // Arrange
+        var step = WorkflowEngineTestFixture.CreateStep(new Command.Debug.Noop());
+        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
+
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([workflow]);
+
+        // Act
+        var result = await EngineRequestHandlers.ListActiveWorkflows(
+            _defaultRouteParams,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        var ok = Assert.IsType<Ok<IEnumerable<WorkflowStatusResponse>>>(result.Result);
+        Assert.NotNull(ok.Value);
+        var workflows = ok.Value.ToList();
+        Assert.Single(workflows);
+        Assert.Equal(PersistentItemStatus.Enqueued, workflows[0].OverallStatus);
+    }
+
+    [Fact]
+    public async Task ListWorkflows_NoWorkflows_ReturnsNoContent()
+    {
+        // Arrange
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        // Act
+        var result = await EngineRequestHandlers.ListActiveWorkflows(
+            _defaultRouteParams,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
 
         // Assert
         Assert.IsType<NoContent>(result.Result);
     }
 
     [Fact]
-    public void Status_ActiveWorkflow_ReturnsOkWithStatus()
+    public async Task ListWorkflows_UsesInstanceGuidFromRouteParams()
     {
         // Arrange
-        var workflow = new Workflow
-        {
-            IdempotencyKey = "test-key",
-            OperationId = "test-op",
-            Actor = new Actor { UserIdOrOrgNumber = "test-user" },
-            InstanceInformation = WorkflowEngineTestFixture.DefaultInstanceInformation,
-            Steps =
-            [
-                new Step
-                {
-                    IdempotencyKey = "step-1",
-                    OperationId = "step-op",
-                    ProcessingOrder = 0,
-                    Command = new Command.Debug.Noop(),
-                    Actor = new Actor { UserIdOrOrgNumber = "test-user" },
-                },
-            ],
-        };
-
-        var engineMock = new Mock<IEngine>();
-        engineMock.Setup(e => e.GetWorkflowForInstance(It.IsAny<InstanceInformation>())).Returns(workflow);
+        Guid? capturedGuid = null;
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Callback<Guid, CancellationToken>((guid, _) => capturedGuid = guid)
+            .ReturnsAsync([]);
 
         // Act
-        var result = EngineRequestHandlers.Status(_defaultRouteParams, engineMock.Object);
+        await EngineRequestHandlers.ListActiveWorkflows(
+            _defaultRouteParams,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.Equal(_defaultRouteParams.InstanceGuid, capturedGuid);
+    }
+
+    // === GetWorkflow Handler Tests ===
+
+    [Fact]
+    public async Task GetWorkflow_Found_ReturnsOk()
+    {
+        // Arrange
+        var step = WorkflowEngineTestFixture.CreateStep(new Command.Debug.Noop());
+        var workflow = new Workflow
+        {
+            OperationId = "test-op",
+            IdempotencyKey = "wf-key",
+            Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            InstanceInformation = new InstanceInformation
+            {
+                Org = _defaultRouteParams.Org,
+                App = _defaultRouteParams.App,
+                InstanceOwnerPartyId = _defaultRouteParams.InstanceOwnerPartyId,
+                InstanceGuid = _defaultRouteParams.InstanceGuid,
+            },
+            Steps = [step],
+        };
+
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock.Setup(r => r.GetWorkflow(99L, It.IsAny<CancellationToken>())).ReturnsAsync(workflow);
+
+        // Act
+        var result = await EngineRequestHandlers.GetWorkflow(
+            _defaultRouteParams,
+            99L,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
 
         // Assert
         var ok = Assert.IsType<Ok<WorkflowStatusResponse>>(result.Result);
         Assert.NotNull(ok.Value);
         Assert.Equal(PersistentItemStatus.Enqueued, ok.Value.OverallStatus);
         Assert.Single(ok.Value.Steps);
-        Assert.Equal("step-1", ok.Value.Steps[0].Identifier);
+    }
+
+    [Fact]
+    public async Task GetWorkflow_NotFound_Returns404()
+    {
+        // Arrange
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock
+            .Setup(r => r.GetWorkflow(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Workflow?)null);
+
+        // Act
+        var result = await EngineRequestHandlers.GetWorkflow(
+            _defaultRouteParams,
+            999L,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
+
+        // Assert
+        Assert.IsType<NotFound>(result.Result);
+    }
+
+    [Fact]
+    public async Task GetWorkflow_WrongInstance_Returns404()
+    {
+        // Arrange — workflow belongs to a different instance
+        var step = WorkflowEngineTestFixture.CreateStep(new Command.Debug.Noop());
+        var workflow = new Workflow
+        {
+            OperationId = "test-op",
+            IdempotencyKey = "wf-key",
+            Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            InstanceInformation = new InstanceInformation
+            {
+                Org = "other-org",
+                App = "other-app",
+                InstanceOwnerPartyId = 99999,
+                InstanceGuid = Guid.NewGuid(), // Different from _defaultRouteParams
+            },
+            Steps = [step],
+        };
+
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock.Setup(r => r.GetWorkflow(99L, It.IsAny<CancellationToken>())).ReturnsAsync(workflow);
+
+        // Act
+        var result = await EngineRequestHandlers.GetWorkflow(
+            _defaultRouteParams,
+            99L,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
+
+        // Assert — cross-instance disclosure prevention
+        Assert.IsType<NotFound>(result.Result);
     }
 
     // === InstanceRouteParams Conversion Tests ===

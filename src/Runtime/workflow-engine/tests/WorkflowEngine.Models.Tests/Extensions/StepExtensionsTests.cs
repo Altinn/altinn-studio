@@ -11,8 +11,8 @@ public class StepExtensionsTests
     ) =>
         new()
         {
-            IdempotencyKey = "test-key",
             OperationId = "test-op",
+            IdempotencyKey = "test-key",
             Actor = new Actor { UserIdOrOrgNumber = "user-1" },
             ProcessingOrder = 0,
             Command = new Command.Debug.Noop(),

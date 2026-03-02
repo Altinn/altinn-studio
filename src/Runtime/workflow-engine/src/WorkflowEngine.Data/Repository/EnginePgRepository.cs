@@ -1,20 +1,18 @@
-using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Exceptions;
+using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience;
-using WorkflowEngine.Resilience.Extensions;
-using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Data.Repository;
 
-internal sealed class EnginePgRepository : IEngineRepository
+internal partial class EnginePgRepository : IEngineRepository
 {
     private readonly EngineDbContext _context;
     private readonly TimeProvider _timeProvider;
@@ -343,24 +341,56 @@ internal sealed class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default)
+    public async Task<PersistentItemStatus?> GetWorkflowStatus(
+        long workflowId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetWorkflowStatus");
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            var entity = await _context
+                .GetWorkflowById(workflowId, includeSteps: false, includeDependencies: false, includeLinks: false)
+                .Select(w => new { w.Status })
+                .SingleOrDefaultAsync(cancellationToken);
+
+            return entity?.Status;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<Workflow> AddWorkflow(
+        WorkflowRequest request,
+        WorkflowRequestMetadata metadata,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.AddWorkflow");
         using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
-            _logger.AddingWorkflow(engineRequest);
+            _logger.AddingWorkflow(request);
+            var policy = request.Type.GetConcurrencyPolicy();
 
-            var workflow = Workflow.FromRequest(engineRequest);
-            var entity = WorkflowEntity.FromDomainModel(workflow);
-            var dbRecord = _context.Workflows.Add(entity);
-            await _context.SaveChangesAsync(cancellationToken);
-            var result = dbRecord.Entity.ToDomainModel();
-
-            _logger.SuccessfullyAddedWorkflow(workflow);
-
-            return result; // Result contains updated `Id`
+            return policy switch
+            {
+                ConcurrencyPolicy.SingleActive => await AddWorkflowConstrained(request, metadata, cancellationToken),
+                ConcurrencyPolicy.Unrestricted => await AddWorkflowUnconstrained(request, metadata, cancellationToken),
+                _ => throw new InvalidOperationException($"Unknown concurrency policy: {policy}"),
+            };
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -370,6 +400,167 @@ internal sealed class EnginePgRepository : IEngineRepository
         {
             activity?.Errored(ex);
             _logger.FailedToAddWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Workflow>> AddWorkflowBatch(
+        IReadOnlyList<WorkflowRequest> orderedRequests,
+        WorkflowRequestMetadata metadata,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EnginePgRepository.AddWorkflowBatch");
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            _logger.AddingWorkflowBatch(orderedRequests.Count);
+
+            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+            // Maps batch ref → inserted WorkflowEntity (within-batch dep resolution)
+            var refToEntity = new Dictionary<string, WorkflowEntity>(orderedRequests.Count);
+            var results = new List<Workflow>(orderedRequests.Count);
+
+            foreach (var request in orderedRequests)
+            {
+                // Resolve DependsOn: ref entries -> already-inserted batch entities; ID entries -> DB lookup
+                var allDepEntities = await ResolveWorkflowRefs(
+                    request.DependsOn,
+                    refToEntity,
+                    "dependency",
+                    metadata.InstanceInformation.InstanceGuid,
+                    cancellationToken
+                );
+
+                // Resolve Links: same pattern
+                var allLinkEntities = await ResolveWorkflowRefs(
+                    request.Links,
+                    refToEntity,
+                    "link",
+                    metadata.InstanceInformation.InstanceGuid,
+                    cancellationToken
+                );
+
+                // Insert the entity
+                var (_, entity) = await InsertWorkflowEntity(
+                    request,
+                    metadata,
+                    cancellationToken,
+                    preFetchedDependencies: allDepEntities,
+                    preFetchedLinks: allLinkEntities
+                );
+
+                // Flush to get the DB-assigned ID before inserting dependent items
+                await _context.SaveChangesAsync(cancellationToken);
+
+                // Enforce the concurrency constraint for SingleActive workflows
+                if (request.Type.GetConcurrencyPolicy() == ConcurrencyPolicy.SingleActive)
+                {
+                    var violation = await CheckActiveWorkflowConstraint(
+                        workflowId: entity.Id,
+                        workflowType: request.Type,
+                        metadata.InstanceInformation.InstanceGuid,
+                        cancellationToken
+                    );
+                    if (violation is not null)
+                    {
+                        await transaction.RollbackAsync(cancellationToken);
+                        throw new EngineWorkflowConcurrencyException(
+                            request.Type,
+                            violation.RejectionReason,
+                            violation.BlockingWorkflowId
+                        );
+                    }
+                }
+
+                if (request.Ref is not null)
+                    refToEntity[request.Ref] = entity;
+                results.Add(entity.ToDomainModel());
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+
+            _logger.SuccessfullyAddedWorkflowBatch(results.Count);
+
+            return results;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            _logger.FailedToAddWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForInstance(
+        Guid instanceGuid,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetActiveWorkflowsForInstance");
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            _logger.FetchingWorkflowsForInstance(instanceGuid);
+
+            var result = await _context
+                .GetActiveWorkflows(instanceFilter: instanceGuid)
+                .ToDomainModel()
+                .ToListAsync(cancellationToken);
+
+            _logger.SuccessfullyFetchedWorkflows(result.Count);
+
+            return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<Workflow?> GetWorkflow(long workflowId, CancellationToken cancellationToken = default)
+    {
+        using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetWorkflow");
+        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            _logger.FetchingWorkflowById(workflowId);
+
+            var entity = await _context.GetWorkflowById(workflowId).SingleOrDefaultAsync(cancellationToken);
+
+            if (entity is null)
+            {
+                _logger.WorkflowNotFound(workflowId);
+                return null;
+            }
+
+            return entity.ToDomainModel();
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            _logger.FailedToFetchWorkflows(ex.Message, ex);
             throw;
         }
     }
@@ -415,7 +606,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         catch (Exception ex)
         {
             activity?.Errored(ex);
-            _logger.FailedToUpdateWorkflow(workflow.IdempotencyKey, workflow.DatabaseId, ex.Message, ex);
+            _logger.FailedToUpdateWorkflow(workflow.OperationId, workflow.DatabaseId, ex.Message, ex);
             throw;
         }
     }
@@ -458,7 +649,7 @@ internal sealed class EnginePgRepository : IEngineRepository
         catch (Exception ex)
         {
             activity?.Errored(ex);
-            _logger.FailedToUpdateStep(step.IdempotencyKey, step.DatabaseId, ex.Message, ex);
+            _logger.FailedToUpdateStep(step.OperationId, step.DatabaseId, ex.Message, ex);
             throw;
         }
     }
@@ -530,279 +721,4 @@ internal sealed class EnginePgRepository : IEngineRepository
             _context.ChangeTracker.AutoDetectChangesEnabled = previousChangeTrackerDetection;
         }
     }
-
-    private async Task ExecuteWithRetry(
-        Func<CancellationToken, Task> operation,
-        CancellationToken cancellationToken = default,
-        [CallerMemberName] string operationName = ""
-    )
-    {
-        using CancellationTokenSource dbTokenSource = CreateDbTokenSource(cancellationToken);
-        await _settings.DatabaseRetryStrategy.Execute(
-            operation,
-            SuccessCallback,
-            RetryErrorHandler,
-            _timeProvider,
-            _logger,
-            dbTokenSource.Token,
-            operationName
-        );
-    }
-
-    // Keep this unused method for now, we will probably need it later
-#pragma warning disable S1144
-    private async Task<T> ExecuteWithRetry<T>(
-#pragma warning restore S1144
-        Func<CancellationToken, Task<T>> operation,
-        CancellationToken cancellationToken = default,
-        [CallerMemberName] string operationName = ""
-    )
-    {
-        using CancellationTokenSource dbTokenSource = CreateDbTokenSource(cancellationToken);
-        return await _settings.DatabaseRetryStrategy.Execute(
-            operation,
-            (_) => SuccessCallback(),
-            RetryErrorHandler,
-            _timeProvider,
-            _logger,
-            dbTokenSource.Token,
-            operationName
-        );
-    }
-
-    private static void SuccessCallback()
-    {
-        Metrics.DbOperationsSucceeded.Add(1);
-    }
-
-    private static RetryDecision RetryErrorHandler(Exception exception)
-    {
-        var decision = exception switch
-        {
-            // Network/connection issues - retryable
-            TimeoutException => RetryDecision.Retry,
-            SocketException => RetryDecision.Retry,
-            HttpRequestException => RetryDecision.Retry,
-            InvalidOperationException => RetryDecision.Retry,
-
-            // Database-specific transient errors - retryable
-            _ when exception.GetType().Name.Contains("timeout", StringComparison.OrdinalIgnoreCase) =>
-                RetryDecision.Retry,
-            _ when exception.GetType().Name.Contains("connection", StringComparison.OrdinalIgnoreCase) =>
-                RetryDecision.Retry,
-            _ when exception.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase) => RetryDecision.Retry,
-            _ when exception.Message.Contains("connection", StringComparison.OrdinalIgnoreCase) => RetryDecision.Retry,
-
-            // Permanent errors - don't retry
-            ArgumentNullException => RetryDecision.Abort,
-            ArgumentException => RetryDecision.Abort,
-
-            // Default to retrying for unknown exceptions
-            _ => RetryDecision.Retry,
-        };
-
-        if (decision == RetryDecision.Retry)
-            Metrics.DbOperationsRequeued.Add(1);
-        else
-            Metrics.DbOperationsFailed.Add(1);
-
-        return decision;
-    }
-
-    private CancellationTokenSource CreateDbTokenSource(CancellationToken cancellationToken)
-    {
-        CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(_settings.DatabaseCommandTimeout);
-
-        return cts;
-    }
-}
-
-internal static class EnginePgRepositoryQueries
-{
-    private static List<PersistentItemStatus> _incompleteItemStatuses =>
-        [PersistentItemStatus.Enqueued, PersistentItemStatus.Processing, PersistentItemStatus.Requeued];
-
-    private static List<PersistentItemStatus> _failedItemStatuses =>
-        [PersistentItemStatus.Requeued, PersistentItemStatus.Failed];
-
-    extension(EngineDbContext dbContext)
-    {
-        public IQueryable<WorkflowEntity> GetActiveWorkflows() =>
-            dbContext
-                .Workflows.Include(j => j.Steps)
-                .Where(x => x.StartAt == null || x.StartAt <= DateTime.UtcNow)
-                .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
-
-        public IQueryable<WorkflowEntity> GetScheduledWorkflows() =>
-            dbContext
-                .Workflows.Include(j => j.Steps)
-                .Where(x => x.StartAt != null && x.StartAt > DateTime.UtcNow)
-                .Where(x => x.Steps.Any(y => _incompleteItemStatuses.Contains(y.Status)));
-
-        public IQueryable<WorkflowEntity> GetFailedWorkflows() =>
-            dbContext.Workflows.Where(x => _failedItemStatuses.Contains(x.Status));
-
-        public IQueryable<WorkflowEntity> GetFinishedWorkflows(
-            IReadOnlyList<PersistentItemStatus> statuses,
-            string? search = null,
-            int? take = null,
-            DateTimeOffset? before = null,
-            DateTimeOffset? since = null,
-            bool retriedOnly = false,
-            string? org = null,
-            string? app = null,
-            string? party = null,
-            string? instanceGuid = null
-        )
-        {
-            var query = dbContext.Workflows.Include(j => j.Steps).Where(x => statuses.Contains(x.Status));
-
-            if (before.HasValue)
-                query = query.Where(x => x.UpdatedAt < before.Value);
-
-            if (since.HasValue)
-                query = query.Where(x => x.UpdatedAt >= since.Value);
-
-            if (retriedOnly)
-                query = query.Where(x => x.Steps.Any(s => s.RequeueCount > 0));
-
-            if (!string.IsNullOrWhiteSpace(org))
-                query = query.Where(x => x.InstanceOrg == org);
-
-            if (!string.IsNullOrWhiteSpace(app))
-                query = query.Where(x => x.InstanceApp == app);
-
-            if (!string.IsNullOrWhiteSpace(party))
-                query = query.Where(x => x.InstanceOwnerPartyId.ToString() == party);
-
-            if (!string.IsNullOrWhiteSpace(instanceGuid))
-                query = query.Where(x => x.InstanceGuid.ToString() == instanceGuid);
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var s = search.ToLower();
-                query = query.Where(x =>
-                    x.InstanceGuid.ToString().Contains(s)
-                    || x.InstanceOrg.ToLower().Contains(s)
-                    || x.InstanceApp.ToLower().Contains(s)
-                    || x.OperationId.ToLower().Contains(s)
-                    || x.InstanceOwnerPartyId.ToString().Contains(s)
-                    || x.Steps.Any(st => st.OperationId.ToLower().Contains(s))
-                );
-            }
-
-            query = query.OrderByDescending(x => x.UpdatedAt);
-
-            if (take.HasValue)
-                query = query.Take(take.Value);
-
-            return query;
-        }
-    }
-
-    extension(IQueryable<WorkflowEntity> entityQuery)
-    {
-        public IQueryable<Workflow> ToDomainModel() => entityQuery.Select(x => x.ToDomainModel());
-    }
-
-    extension(IQueryable<StepEntity> entityQuery)
-    {
-        public IQueryable<Step> ToDomainModel(string? traceContext) =>
-            entityQuery.Select(x => x.ToDomainModel(traceContext));
-    }
-}
-
-internal static partial class EnginePgRepositoryLogs
-{
-    [LoggerMessage(LogLevel.Debug, "Fetching {WorkflowType} workflows from database")]
-    internal static partial void FetchingWorkflows(this ILogger<EnginePgRepository> logger, string workflowType);
-
-    [LoggerMessage(LogLevel.Debug, "Counting {WorkflowType} workflows from database")]
-    internal static partial void CountingWorkflows(this ILogger<EnginePgRepository> logger, string workflowType);
-
-    [LoggerMessage(LogLevel.Debug, "Fetched {WorkflowCount} workflows from database")]
-    internal static partial void SuccessfullyFetchedWorkflows(
-        this ILogger<EnginePgRepository> logger,
-        int workflowCount
-    );
-
-    [LoggerMessage(
-        LogLevel.Error,
-        "Failed to fetch workflows from database due to task cancellation or after all retries exhausted. Database down? Error: {Message}"
-    )]
-    internal static partial void FailedToFetchWorkflows(
-        this ILogger<EnginePgRepository> logger,
-        string message,
-        Exception ex
-    );
-
-    [LoggerMessage(LogLevel.Debug, "Adding workflow to database: {engineRequest}")]
-    internal static partial void AddingWorkflow(this ILogger<EnginePgRepository> logger, EngineRequest engineRequest);
-
-    [LoggerMessage(LogLevel.Debug, "Successfully added workflow to database: {Workflow}")]
-    internal static partial void SuccessfullyAddedWorkflow(this ILogger<EnginePgRepository> logger, Workflow workflow);
-
-    [LoggerMessage(
-        LogLevel.Error,
-        "Failed to add workflow to database due to task cancellation or after all retries exhausted. Database down? Error: {Message}"
-    )]
-    internal static partial void FailedToAddWorkflows(
-        this ILogger<EnginePgRepository> logger,
-        string message,
-        Exception ex
-    );
-
-    [LoggerMessage(LogLevel.Debug, "Updating workflow in database: {Workflow}")]
-    internal static partial void UpdatingWorkflow(this ILogger<EnginePgRepository> logger, Workflow workflow);
-
-    [LoggerMessage(LogLevel.Debug, "Successfully updated workflow in database: {Workflow}")]
-    internal static partial void SuccessfullyUpdatedWorkflow(
-        this ILogger<EnginePgRepository> logger,
-        Workflow workflow
-    );
-
-    [LoggerMessage(
-        LogLevel.Error,
-        "Failed to update workflow {WorkflowIdentifier} (ID: {DatabaseId}) in database after all retries exhausted. Database down? Error: {Message}"
-    )]
-    internal static partial void FailedToUpdateWorkflow(
-        this ILogger<EnginePgRepository> logger,
-        string workflowIdentifier,
-        long databaseId,
-        string message,
-        Exception ex
-    );
-
-    [LoggerMessage(LogLevel.Debug, "Successfully updated {StepCount} steps in database")]
-    internal static partial void SuccessfullyUpdatedSteps(this ILogger<EnginePgRepository> logger, int stepCount);
-
-    [LoggerMessage(
-        LogLevel.Error,
-        "Failed to update {StepCount} steps in database after all retries exhausted. Database down? Error: {Message}"
-    )]
-    internal static partial void FailedToUpdateSteps(
-        this ILogger<EnginePgRepository> logger,
-        int stepCount,
-        string message,
-        Exception ex
-    );
-
-    [LoggerMessage(LogLevel.Debug, "Updating step in database: {Step}")]
-    internal static partial void UpdatingStep(this ILogger<EnginePgRepository> logger, Step step);
-
-    [LoggerMessage(LogLevel.Debug, "Successfully updated step in database: {Step}")]
-    internal static partial void SuccessfullyUpdatedStep(this ILogger<EnginePgRepository> logger, Step step);
-
-    [LoggerMessage(
-        LogLevel.Error,
-        "Failed to update step {StepIdentifier} (ID: {DatabaseId}) in database after all retries exhausted. Database down? Error: {Message}"
-    )]
-    internal static partial void FailedToUpdateStep(
-        this ILogger<EnginePgRepository> logger,
-        string stepIdentifier,
-        long databaseId,
-        string message,
-        Exception ex
-    );
 }

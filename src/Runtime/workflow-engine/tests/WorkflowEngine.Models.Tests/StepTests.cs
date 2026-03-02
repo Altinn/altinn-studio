@@ -8,43 +8,46 @@ public class StepTests
     private static Actor _randomActor => new() { UserIdOrOrgNumber = Guid.NewGuid().ToString() };
 
     [Fact]
-    public void Equality_Uses_IdempotencyKey()
+    public void Equality_Uses_DatabaseId()
     {
         // Arrange
 
-        var sharedKey1 = new Step
+        var sharedId1 = new Step
         {
-            IdempotencyKey = "shared-idempotency-key",
+            DatabaseId = 42,
             OperationId = "step-1-command",
+            IdempotencyKey = "key-1",
             Actor = _randomActor,
             ProcessingOrder = 0,
             Command = _randomAppCommand,
         };
-        var sharedKey2 = new Step
+        var sharedId2 = new Step
         {
-            IdempotencyKey = "shared-idempotency-key",
+            DatabaseId = 42,
             OperationId = "step-2-command",
+            IdempotencyKey = "key-2",
             Actor = _randomActor,
             ProcessingOrder = 0,
             Command = _randomAppCommand,
         };
-        var uniqueKey = new Step
+        var uniqueId = new Step
         {
-            IdempotencyKey = "unique-idempotency-key",
+            DatabaseId = 99,
             OperationId = "step-3-command",
+            IdempotencyKey = "key-3",
             Actor = _randomActor,
             ProcessingOrder = 0,
             Command = _randomAppCommand,
         };
 
         // Act
-        bool shouldBeEqual1 = sharedKey1 == sharedKey2;
-        bool shouldBeEqual2 = sharedKey1.Equals(sharedKey2);
+        bool shouldBeEqual1 = sharedId1 == sharedId2;
+        bool shouldBeEqual2 = sharedId1.Equals(sharedId2);
 
-        bool shouldNotBeEqual1 = uniqueKey == sharedKey1;
-        bool shouldNotBeEqual2 = uniqueKey.Equals(sharedKey1);
+        bool shouldNotBeEqual1 = uniqueId == sharedId1;
+        bool shouldNotBeEqual2 = uniqueId.Equals(sharedId1);
 
-        bool shouldContain = new[] { sharedKey1, uniqueKey }.Contains(sharedKey2);
+        bool shouldContain = new[] { sharedId1, uniqueId }.Contains(sharedId2);
 
         // Assert
         Assert.True(shouldBeEqual1);
@@ -65,30 +68,35 @@ public class StepTests
         var retryStrategy = RetryStrategy.Exponential(baseInterval: TimeSpan.FromSeconds(2));
         var createdAt = DateTimeOffset.UtcNow;
 
-        var parentRequest = new EngineRequest(
-            "parent-key",
-            "next",
-            new InstanceInformation
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
                 App = "test-app",
                 InstanceOwnerPartyId = 12345,
                 InstanceGuid = Guid.NewGuid(),
             },
-            actor,
-            createdAt,
-            null,
-            []
+            Actor: actor,
+            CreatedAt: createdAt,
+            TraceContext: null,
+            InstanceLockKey: null
         );
 
         var stepRequest = new StepRequest { Command = command, RetryStrategy = retryStrategy };
 
         // Act
-        var step = Step.FromRequest(parentRequest, stepRequest, createdAt, index: 2);
+        var parentRequest = new WorkflowRequest
+        {
+            OperationId = "op-1",
+            IdempotencyKey = "parent-key",
+            Type = WorkflowType.Generic,
+            Steps = [stepRequest],
+        };
+
+        var step = Step.FromRequest(parentRequest, stepRequest, metadata, index: 2);
 
         // Assert
         Assert.Equal(0, step.DatabaseId);
-        Assert.Equal("parent-key/process-payment", step.IdempotencyKey);
         Assert.Equal("process-payment", step.OperationId);
         Assert.Same(actor, step.Actor);
         Assert.Equal(createdAt, step.CreatedAt);
@@ -99,59 +107,69 @@ public class StepTests
     }
 
     [Fact]
-    public void FromRequest_UsesParentActorNotStepSpecificActor()
+    public void FromRequest_UsesMetadataActor()
     {
         // Arrange
-        var parentActor = new Actor { UserIdOrOrgNumber = "parent-user" };
-        var parentRequest = new EngineRequest(
-            "key-1",
-            "op-1",
-            new InstanceInformation
+        var actor = new Actor { UserIdOrOrgNumber = "metadata-user" };
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
                 App = "app",
                 InstanceOwnerPartyId = 1,
                 InstanceGuid = Guid.NewGuid(),
             },
-            parentActor,
-            DateTimeOffset.UtcNow,
-            null,
-            []
+            Actor: actor,
+            CreatedAt: DateTimeOffset.UtcNow,
+            TraceContext: null,
+            InstanceLockKey: null
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
+        var parentRequest = new WorkflowRequest
+        {
+            OperationId = "op-1",
+            IdempotencyKey = "parent-key",
+            Type = WorkflowType.Generic,
+            Steps = [stepRequest],
+        };
 
         // Act
-        var step = Step.FromRequest(parentRequest, stepRequest, DateTimeOffset.UtcNow, index: 0);
+        var step = Step.FromRequest(parentRequest, stepRequest, metadata, index: 0);
 
         // Assert
-        Assert.Same(parentActor, step.Actor);
+        Assert.Same(actor, step.Actor);
     }
 
     [Fact]
     public void FromRequest_DefaultsOptionalFieldsCorrectly()
     {
         // Arrange
-        var parentRequest = new EngineRequest(
-            "key-1",
-            "op-1",
-            new InstanceInformation
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
                 App = "app",
                 InstanceOwnerPartyId = 1,
                 InstanceGuid = Guid.NewGuid(),
             },
-            new Actor { UserIdOrOrgNumber = "user-1" },
-            DateTimeOffset.UtcNow,
-            null,
-            []
+            Actor: new Actor { UserIdOrOrgNumber = "user-1" },
+            CreatedAt: DateTimeOffset.UtcNow,
+            TraceContext: null,
+            InstanceLockKey: null
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
+        var parentRequest = new WorkflowRequest
+        {
+            OperationId = "op-1",
+            IdempotencyKey = "parent-key",
+            Type = WorkflowType.Generic,
+            Steps = [stepRequest],
+        };
 
         // Act
-        var step = Step.FromRequest(parentRequest, stepRequest, DateTimeOffset.UtcNow, index: 0);
+        var step = Step.FromRequest(parentRequest, stepRequest, metadata, index: 0);
 
         // Assert
         Assert.Null(step.RetryStrategy);

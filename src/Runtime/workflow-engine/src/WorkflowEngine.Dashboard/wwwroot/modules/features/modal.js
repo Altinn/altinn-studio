@@ -162,20 +162,40 @@ const buildDetailsContent = (data) => {
   const status = /** @type {string} */ (data.status) || '';
   const isFailing = status === 'Failed' || status === 'Requeued';
 
-  let statusParts = `<span class="status-pill ${status}">${esc(status)}</span>`;
-  if (data.backoffUntil && status === 'Requeued') {
-    statusParts += ` <span class="step-backoff" data-backoff="${esc(/** @type {string} */ (data.backoffUntil))}"></span>`;
-  } else if (status === 'Processing' && data.executionStartedAt) {
-    statusParts += ` <span data-step-started="${esc(/** @type {string} */ (data.executionStartedAt))}"></span>`;
+  const errorHistory = /** @type {Array<{timestamp:string, message:string, httpStatusCode:number|null, wasRetryable:boolean}>|null} */ (data.errorHistory);
+  if (errorHistory && errorHistory.length > 0) {
+    html += `<div class="error-history">`;
+    html += `<div class="error-history-header" onclick="this.parentElement.classList.toggle('expanded')">`;
+    html += `<span class="error-history-chevron">&#9656;</span>`;
+    html += `Error History (${errorHistory.length})`;
+    html += `</div>`;
+    html += `<div class="error-history-list">`;
+    // Show most recent first
+    for (const entry of [...errorHistory].reverse()) {
+      const retryable = entry.wasRetryable ? 'retryable' : 'non-retryable';
+      const statusCode = entry.httpStatusCode ? ` HTTP ${entry.httpStatusCode}` : '';
+      const ts = fmtTime(entry.timestamp);
+      const ago = fmtAgo(entry.timestamp);
+      html += `<div class="error-entry ${retryable}">`;
+      html += `<div class="error-entry-meta">`;
+      html += `<span class="error-entry-badge ${retryable}">${retryable}${statusCode}</span>`;
+      if (ts) html += `<span class="error-entry-time"><span class="timestamp" data-iso="${esc(entry.timestamp)}">${esc(ts)}</span>`;
+      if (ago) html += ` <span class="detail-ago">${esc(ago)}</span>`;
+      if (ts) html += `</span>`;
+      html += `</div>`;
+      html += `<div class="error-entry-message">${esc(entry.message)}</div>`;
+      html += `</div>`;
+    }
+    html += `</div></div>`;
   }
-  if (data.retryCount) statusParts += ` <span class="step-retry" style="margin-left:4px;margin-top:0">&#8635;${esc(String(data.retryCount))}</span>`;
-  const showSkipBackoff = data.backoffUntil && status === 'Requeued' && (new Date(/** @type {string} */ (data.backoffUntil)) - Date.now()) > 5000;
-  if (status === 'Failed') {
-    statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${esc(_openWfKey)}','${esc(_openCreatedAt)}')">&#8635; Retry</a>`;
-  } else if (showSkipBackoff) {
-    statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="skipBackoff(event,'${esc(_openWfKey)}','${esc(/** @type {string} */ (data.idempotencyKey))}')">&#9654; Retry now</a>`;
+  if (data.idempotencyKey && isFailing) {
+    const lokiQuery = `{service_name="WorkflowEngine"} |= \`${data.idempotencyKey}\``;
+    const panes = JSON.stringify({l:{datasource:"loki",queries:[{refId:"logs",expr:lokiQuery,datasource:{type:"loki",uid:"loki"}}],range:{from:"now-1h",to:"now"}}});
+    const lokiUrl = 'http://localhost:7070/explore?schemaVersion=1&panes=' + encodeURIComponent(panes) + '&orgId=1';
+    html += `<a class="modal-grafana-link" href="${lokiUrl}" target="_blank">View error logs in Grafana</a>`;
   }
-  html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;
+
+  html += `<div class="detail-row"><span class="detail-label">Status</span><span class="status-pill ${status}">${esc(status)}</span></div>`;
   html += row('Idempotency Key', data.idempotencyKey);
 
   const actor = /** @type {Record<string, unknown>|null} */ (data.actor);
@@ -188,9 +208,24 @@ const buildDetailsContent = (data) => {
   html += timeRow('Created', /** @type {string} */ (data.createdAt));
   html += timeRow('Execution Started', /** @type {string} */ (data.executionStartedAt));
   html += timeRow('Last Updated', /** @type {string} */ (data.updatedAt));
+  html += timeRow('Backoff Until', /** @type {string} */ (data.backoffUntil));
+
+  if (data.retryCount || data.retryStrategy) {
+    html += '<div class="detail-section">Retry</div>';
+    html += row('Retry Count', data.retryCount);
+    const rs = /** @type {Record<string, unknown>|null} */ (data.retryStrategy);
+    if (rs) {
+      html += row('Backoff Type', rs.backoffType);
+      html += row('Base Interval', fmtDuration(/** @type {string} */ (rs.baseInterval)));
+      html += row('Max Retries', rs.maxRetries);
+      html += row('Max Delay', fmtDuration(/** @type {string} */ (rs.maxDelay)));
+      html += row('Max Duration', fmtDuration(/** @type {string} */ (rs.maxDuration)));
+    }
+  }
 
   const cmd = /** @type {Record<string, unknown>|null} */ (data.command);
   if (cmd) {
+    html += '<div class="detail-section">Command</div>';
     const cmdType = cmd.type === 'app' ? 'AppCommand' : cmd.type === 'webhook' ? 'Webhook' : String(cmd.type || '');
     html += row('Type', cmdType);
     html += row('Max Execution Time', fmtDuration(/** @type {string} */ (cmd.maxExecutionTime)));
@@ -198,34 +233,6 @@ const buildDetailsContent = (data) => {
       html += row('URI', cmd.uri);
       html += row('Content-Type', cmd.contentType);
     }
-  }
-
-  // Error section — always rendered to reserve stable space
-  html += '<div class="detail-section" style="margin-top:24px"></div>';
-  const errors = /** @type {string[]|null} */ (data.errorHistory);
-  html += `<div class="error-list">`;
-  if (errors && errors.length > 0) {
-    for (let i = errors.length - 1; i >= 0; i--) {
-      const err = errors[i];
-      const tagMatch = err.match(/^\[([^\]]+)\]\s*/);
-      const tag = tagMatch ? tagMatch[1] : null;
-      const message = tagMatch ? err.slice(tagMatch[0].length) : err;
-      const isLatest = i === errors.length - 1;
-      const cls = isLatest ? 'modal-error' : 'modal-error modal-error-past';
-      html += `<div class="${cls}">`;
-      if (errors.length > 1) html += `<span class="error-attempt">${i + 1}</span>`;
-      if (tag) html += `<span class="error-tag">${esc(tag)}</span>`;
-      html += `${esc(message)}</div>`;
-    }
-  } else if (isFailing) {
-    html += `<div class="modal-error-hint">Error details are not persisted to the database. Available in Inbox and Recent views only.</div>`;
-  }
-  html += `</div>`;
-  if (data.idempotencyKey) {
-    const lokiQuery = `{service_name="WorkflowEngine"} |= \`${data.idempotencyKey}\``;
-    const panes = JSON.stringify({l:{datasource:"loki",queries:[{refId:"logs",expr:lokiQuery,datasource:{type:"loki",uid:"loki"}}],range:{from:"now-1h",to:"now"}}});
-    const lokiUrl = 'http://localhost:7070/explore?schemaVersion=1&panes=' + encodeURIComponent(panes) + '&orgId=1';
-    html += `<a class="modal-grafana-link" href="${lokiUrl}" target="_blank">View error logs in Grafana</a>`;
   }
 
   return html;
@@ -237,13 +244,6 @@ const buildDetailsContent = (data) => {
  */
 /** Whether the current step has both stateIn and stateOut (for sub-tabs) */
 let _hasStateDiff = false;
-
-/** Currently open modal context (for SSE-driven refresh) */
-let _openWfKey = '';
-let _openStepKey = '';
-let _openStepName = '';
-let _openCreatedAt = '';
-let _refreshTimer = 0;
 
 const renderStepDetail = (data) => {
   const cmd = /** @type {Record<string, unknown>|null} */ (data.command);
@@ -301,58 +301,7 @@ window.switchStateView = (/** @type {HTMLElement} */ btn, /** @type {string} */ 
   }
 };
 
-/** Get the currently active tab name */
-const activeTab = () =>
-  dom.modalTabs.querySelector('.modal-tab.active')?.getAttribute('onclick')?.match(/'(\w+)'\)$/)?.[1] || 'details';
-
-/** Get the currently active state sub-tab name */
-const activeStateView = () =>
-  dom.modalSubtabs.querySelector('.state-tab.active')?.getAttribute('onclick')?.match(/'(\w+)'\)$/)?.[1] || 'diff';
-
-/** Fetch step data and render (or re-render) the modal */
-const fetchAndRender = async (wfKey, stepKey, stepName, createdAt, initialTab) => {
-  let url = `${engineUrl}/dashboard/step?wf=${encodeURIComponent(wfKey)}&step=${encodeURIComponent(stepKey)}`;
-  if (createdAt) url += `&createdAt=${encodeURIComponent(createdAt)}`;
-
-  try {
-    const res = await fetch(url);
-    if (_openWfKey !== wfKey || _openStepKey !== stepKey) return; // modal changed while fetching
-    if (!res.ok) throw new Error('Step not found (may have left inbox)');
-    const data = await res.json();
-    if (_openWfKey !== wfKey || _openStepKey !== stepKey) return;
-
-    // Enrich title for ExecuteServiceTask with the service task type
-    if (stepName === 'ExecuteServiceTask' && data.command?.payload) {
-      try {
-        const p = typeof data.command.payload === 'string' ? JSON.parse(data.command.payload) : data.command.payload;
-        if (p.serviceTaskType) dom.modalTitle.textContent = `${stepName}: ${p.serviceTaskType}`;
-      } catch { /* ignore */ }
-    }
-
-    // Preserve active tabs across re-render
-    const tab = initialTab || activeTab();
-    const stateView = activeStateView();
-    renderStepDetail(data);
-    if (tab !== 'details') {
-      const tabBtn = dom.modalTabs.querySelector(`.modal-tab[onclick*="'${tab}'"]`);
-      if (tabBtn) tabBtn.click();
-    }
-    if (tab === 'state' && stateView !== 'diff') {
-      const stateBtn = dom.modalSubtabs.querySelector(`.state-tab[onclick*="'${stateView}'"]`);
-      if (stateBtn) stateBtn.click();
-    }
-  } catch (err) {
-    if (_openWfKey !== wfKey || _openStepKey !== stepKey) return;
-    dom.modalBody.innerHTML = `<div class="modal-loading">${esc(/** @type {Error} */ (err).message)}</div>`;
-  }
-};
-
 window.openStepModal = async (wfKey, stepKey, stepName, createdAt, initialTab) => {
-  _openWfKey = wfKey;
-  _openStepKey = stepKey;
-  _openStepName = stepName || '';
-  _openCreatedAt = createdAt || '';
-
   dom.modalTitle.textContent = stepName || 'Step Details';
   dom.modalTabs.innerHTML = '';
   dom.modalTabs.style.display = 'none';
@@ -361,26 +310,90 @@ window.openStepModal = async (wfKey, stepKey, stepName, createdAt, initialTab) =
   dom.modalBody.innerHTML = '<div class="modal-loading">Loading...</div>';
   dom.modal.classList.add('open');
 
-  await fetchAndRender(wfKey, stepKey, stepName, createdAt, initialTab);
-};
-
-/** Called by live.js when a workflow fingerprint changes. Debounced refresh. */
-export const notifyStepChanged = (/** @type {string} */ wfKey) => {
-  if (!_openWfKey || wfKey !== _openWfKey) return;
-  clearTimeout(_refreshTimer);
-  _refreshTimer = window.setTimeout(
-    () => fetchAndRender(_openWfKey, _openStepKey, _openStepName, _openCreatedAt),
-    300
-  );
+  try {
+    let url = `${engineUrl}/dashboard/step?wf=${encodeURIComponent(wfKey)}&step=${encodeURIComponent(stepKey)}`;
+    if (createdAt) url += `&createdAt=${encodeURIComponent(createdAt)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Step not found (may have left inbox)');
+    const data = await res.json();
+    // Enrich title for ExecuteServiceTask with the service task type
+    if (stepName === 'ExecuteServiceTask' && data.command?.payload) {
+      try {
+        const p = typeof data.command.payload === 'string' ? JSON.parse(data.command.payload) : data.command.payload;
+        if (p.serviceTaskType) dom.modalTitle.textContent = `${stepName}: ${p.serviceTaskType}`;
+      } catch { /* ignore */ }
+    }
+    renderStepDetail(data);
+    // Auto-switch to requested tab (e.g. 'state' from pipeline badge)
+    if (initialTab) {
+      const tabBtn = dom.modalTabs.querySelector(`.modal-tab[onclick*="'${initialTab}'"]`);
+      if (tabBtn) tabBtn.click();
+    }
+  } catch (err) {
+    dom.modalBody.innerHTML = `<div class="modal-loading">${esc(/** @type {Error} */ (err).message)}</div>`;
+  }
 };
 
 window.closeModal = () => {
-  _openWfKey = '';
-  _openStepKey = '';
-  clearTimeout(_refreshTimer);
   dom.modal.classList.remove('open');
   dom.modalTabs.style.display = 'none';
   dom.modalSubtabs.style.display = 'none';
+};
+
+/** Retry a failed workflow — called from card retry buttons */
+window.retryWorkflow = async (e, idempotencyKey, createdAt) => {
+  e.stopPropagation();
+  const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    const res = await fetch(`${engineUrl}/dashboard/retry`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idempotencyKey, createdAt }),
+    });
+    if (res.ok) {
+      btn.textContent = 'Retried';
+      btn.classList.add('retry-success');
+    } else {
+      const data = await res.json().catch(() => ({}));
+      btn.textContent = 'Failed';
+      btn.title = data.message || 'Retry failed';
+      btn.classList.add('retry-failed');
+      setTimeout(() => { btn.disabled = false; btn.innerHTML = '&#8635; Retry'; btn.classList.remove('retry-failed'); }, 3000);
+    }
+  } catch {
+    btn.textContent = 'Error';
+    btn.classList.add('retry-failed');
+    setTimeout(() => { btn.disabled = false; btn.innerHTML = '&#8635; Retry'; btn.classList.remove('retry-failed'); }, 3000);
+  }
+};
+
+/** Skip backoff timer for a step — called from pipeline skip buttons */
+window.skipBackoff = async (e, idempotencyKey, stepIdempotencyKey) => {
+  e.stopPropagation();
+  const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    const res = await fetch(`${engineUrl}/dashboard/skip-backoff`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idempotencyKey, stepIdempotencyKey }),
+    });
+    if (res.ok) {
+      btn.textContent = 'Skipped';
+      btn.classList.add('skip-success');
+    } else {
+      btn.textContent = 'Failed';
+      btn.classList.add('skip-failed');
+      setTimeout(() => { btn.disabled = false; btn.textContent = 'skip'; btn.classList.remove('skip-failed'); }, 3000);
+    }
+  } catch {
+    btn.textContent = 'Error';
+    btn.classList.add('skip-failed');
+    setTimeout(() => { btn.disabled = false; btn.textContent = 'skip'; btn.classList.remove('skip-failed'); }, 3000);
+  }
 };
 
 document.addEventListener('keydown', (e) => {

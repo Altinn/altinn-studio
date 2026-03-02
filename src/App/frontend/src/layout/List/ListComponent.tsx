@@ -13,6 +13,7 @@ import {
 import cn from 'classnames';
 
 import { Pagination as CustomPagination } from 'src/app-components/Pagination/Pagination';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Description } from 'src/components/form/Description';
 import { RadioButton } from 'src/components/form/RadioButton';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
@@ -377,7 +378,6 @@ function Pagination({
   numberOfRows = 0,
   rowsPerPageOptions = [],
 }: PaginationProps) {
-  const { langAsString } = useLanguage();
   const isMobile = useIsMobile();
 
   function handlePageSizeChange(newSize: number) {
@@ -388,11 +388,9 @@ function Pagination({
     <div className={cn({ [classes.paginationMobile]: isMobile }, classes.pagination, 'ds-table__header__cell')}>
       <CustomPagination
         id={id}
-        nextLabel={langAsString('list_component.nextPage')}
-        nextLabelAriaLabel={langAsString('list_component.nextPageAriaLabel')}
-        previousLabel={langAsString('list_component.previousPage')}
-        previousLabelAriaLabel={langAsString('list_component.previousPageAriaLabel')}
-        rowsPerPageText={langAsString('list_component.rowsPerPage')}
+        nextLabel={translationKey('list_component.nextPage')}
+        previousLabel={translationKey('list_component.previousPage')}
+        rowsPerPageText={translationKey('list_component.rowsPerPage')}
         size='sm'
         currentPage={currentPage}
         numberOfRows={numberOfRows}

@@ -5,7 +5,6 @@ import { cssId } from '../core/helpers.js';
 import { buildCardHTML, buildCompactCardHTML, createWorkflowCard, setCardFilterData } from '../shared/cards.js';
 import { scrollPipelineToActive } from '../shared/pipeline.js';
 import { notifyWorkflowChanged } from './state-modal.js';
-import { notifyStepChanged } from './modal.js';
 
 /** Late-bound references */
 /** @type {() => void} */
@@ -66,7 +65,6 @@ export const updateLiveWorkflows = (workflows) => {
       dom.liveContainer.appendChild(card);
       state.workflowTimers[wf.idempotencyKey] = { startedAt: wf.executionStartedAt || wf.createdAt };
       state.workflowFingerprints[wf.idempotencyKey] = fp;
-      notifyStepChanged(wf.idempotencyKey);
     } else if (state.workflowFingerprints[wf.idempotencyKey] !== fp) {
       const isCompact = card.classList.contains('compact');
       card.innerHTML = isCompact ? buildCompactCardHTML(wf) : buildCardHTML(wf);
@@ -74,7 +72,6 @@ export const updateLiveWorkflows = (workflows) => {
       if (!isCompact) scrollPipelineToActive(card);
       state.workflowFingerprints[wf.idempotencyKey] = fp;
       notifyWorkflowChanged(wf.idempotencyKey);
-      notifyStepChanged(wf.idempotencyKey);
     }
 
     state.previousWorkflows[wf.idempotencyKey] = wf;

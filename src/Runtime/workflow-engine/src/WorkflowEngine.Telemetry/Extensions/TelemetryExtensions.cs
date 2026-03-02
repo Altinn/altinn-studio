@@ -92,7 +92,7 @@ public static class TelemetryExtensions
             IEnumerable<ActivityEvent>? events = null
         )
         {
-            activity.HasData();
+            activity.Record();
             activity.SetStatus(ActivityStatusCode.Error, errorMessage ?? exception?.Message);
             if (exception is not null)
             {
@@ -121,15 +121,21 @@ public static class TelemetryExtensions
             activity.IsAllDataRequested = false;
         }
 
+        public void HasData()
+        {
+            activity.IsAllDataRequested = true;
+        }
+
         public void DontRecord()
         {
             activity.NoData();
             activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
         }
 
-        public void HasData()
+        public void Record()
         {
-            activity.IsAllDataRequested = true;
+            activity.HasData();
+            activity.ActivityTraceFlags |= ActivityTraceFlags.Recorded;
         }
     }
 

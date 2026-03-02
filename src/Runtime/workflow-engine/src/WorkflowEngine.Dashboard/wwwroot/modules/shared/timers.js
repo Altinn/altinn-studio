@@ -16,13 +16,7 @@ export const updateTimers = () => {
 
   for (const el of document.querySelectorAll('[data-backoff]')) {
     const remaining = (new Date(el.getAttribute('data-backoff') ?? '').getTime() - now) / 1000;
-    if (remaining > 0) el.textContent = `retry ${remaining.toFixed(1)}s`;
-    else el.textContent = formatElapsed(-remaining);
-  }
-
-  for (const el of document.querySelectorAll('[data-step-started]')) {
-    const elapsed = (now - new Date(el.getAttribute('data-step-started') ?? '').getTime()) / 1000;
-    el.textContent = elapsed > 0 ? formatElapsed(elapsed) : '';
+    el.textContent = remaining > 0 ? `retry ${remaining.toFixed(1)}s` : 'retrying...';
   }
 
   for (const el of document.querySelectorAll('[data-starts-at]')) {

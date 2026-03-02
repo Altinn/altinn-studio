@@ -37,19 +37,15 @@ public sealed record RetryStrategy
     [JsonPropertyName("maxDuration")]
     public TimeSpan? MaxDuration { get; init; }
 
-    // TODO: Consider adding jitter option
-
     /// <summary>
-    /// HTTP status codes that should not be retried. When a response has one of these status codes,
-    /// the step fails immediately as a <see cref="Models.BackoffType"/> CriticalError instead of retrying.
+    /// HTTP status codes that should not be retried. When an HTTP call returns one of these
+    /// status codes, the step fails immediately instead of being requeued.
     /// </summary>
     [JsonPropertyName("nonRetryableHttpStatusCodes")]
     public IReadOnlyList<int>? NonRetryableHttpStatusCodes { get; init; }
 
     /// <summary>
-    /// The default set of HTTP status codes that should not be retried.
-    /// Includes 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 422 Unprocessable Entity.
-    /// Notably absent: 408 (timeout, transient), 409 (conflict, may resolve), 429 (rate limit, retry after cooldown).
+    /// Default HTTP status codes that are considered non-retryable (client errors that won't succeed on retry).
     /// </summary>
     public static readonly IReadOnlyList<int> DefaultNonRetryableHttpStatusCodes = [400, 401, 403, 404, 422];
 

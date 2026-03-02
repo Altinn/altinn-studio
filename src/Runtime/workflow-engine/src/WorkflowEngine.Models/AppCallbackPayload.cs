@@ -19,7 +19,7 @@ public sealed record AppCallbackPayload
     [JsonPropertyName("actor")]
     public required Actor Actor { get; init; }
 
-    // TODO: This is named 'LockKey' elsewhere, unify to one or the other
+    // TODO: This is named 'InstanceLockKey' elsewhere, unify to one or the other
     /// <summary>
     /// The lock token associated with this process/next request
     /// </summary>
@@ -31,6 +31,12 @@ public sealed record AppCallbackPayload
     /// </summary>
     [JsonPropertyName("payload")]
     public string? Payload { get; init; }
+
+    /// <summary>
+    /// The workflow database ID.
+    /// </summary>
+    [JsonPropertyName("workflowId")]
+    public required long WorkflowId { get; init; }
 
     /// <summary>
     /// Opaque state sent to the app. The engine never inspects this.

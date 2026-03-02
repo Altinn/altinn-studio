@@ -2,6 +2,8 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using WorkflowEngine.Api.Authentication.ApiKey;
+using WorkflowEngine.Api.Utils;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -12,19 +14,26 @@ internal static class EngineEndpoints
 {
     public static WebApplication MapEngineEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1/workflow/{org}/{app}/{instanceOwnerPartyId:int}/{instanceGuid:guid}")
+        var group = app.MapGroup("/api/v1/workflows/{org}/{app}/{instanceOwnerPartyId:int}/{instanceGuid:guid}")
             .RequireApiKeyAuthorization()
             .WithTags("Workflows");
 
         group
-            .MapPost("/next", EngineRequestHandlers.Next)
-            .WithName("MoveProcessNext")
-            .WithDescription("Advances an instance to the next process step");
+            .MapPost("", EngineRequestHandlers.EnqueueWorkflows)
+            .WithName("EnqueueWorkflows")
+            .WithDescription("Enqueues one or more workflows, resolving their dependency graph");
 
         group
-            .MapGet("/status", EngineRequestHandlers.Status)
-            .WithName("GetWorkflowStatus")
-            .WithDescription("Gets the current status of the workflow for an instance");
+            .MapGet("", EngineRequestHandlers.ListActiveWorkflows)
+            .WithName("ListActiveWorkflows")
+            .WithDescription("Lists all active workflows for the given instance");
+
+        group
+            .MapGet("/{workflowId:long}", EngineRequestHandlers.GetWorkflow)
+            .WithName("GetWorkflow")
+            .WithDescription("Gets details of a single workflow by database ID");
+
+        // TODO: Probably need a historical endpoint for workflows here
 
         return app;
     }
@@ -32,30 +41,42 @@ internal static class EngineEndpoints
 
 internal static class EngineRequestHandlers
 {
-    public static async Task<Results<Ok, NoContent, ProblemHttpResult>> Next(
+    public static async Task<Results<Ok<WorkflowEnqueueResponse.Accepted>, ProblemHttpResult>> EnqueueWorkflows(
         [AsParameters] InstanceRouteParams instanceParams,
-        [FromBody] ProcessNextRequest request,
+        [FromBody] WorkflowEnqueueRequest request,
         [FromServices] IEngine engine,
         [FromServices] TimeProvider timeProvider,
         CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowRequestsReceived.Add(1, ("endpoint", "next"));
+        Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, ("endpoint", "enqueue"));
 
-        var traceContext = Activity.Current?.Id;
-        var engineRequest = request.ToEngineRequest(instanceParams, timeProvider.GetUtcNow(), traceContext);
-        var response = await engine.EnqueueWorkflow(engineRequest, cancellationToken);
+        if (ValidationUtils.HasAppCommandSteps(request.Workflows) && string.IsNullOrWhiteSpace(request.LockToken))
+            return TypedResults.Problem(
+                detail: "A LockToken is required when any workflow step uses an AppCommand.",
+                statusCode: StatusCodes.Status400BadRequest
+            );
+
+        var metadata = new WorkflowRequestMetadata(
+            instanceParams,
+            request.Actor,
+            timeProvider.GetUtcNow(),
+            Activity.Current?.Id,
+            request.LockToken
+        );
+        var response = await engine.EnqueueWorkflow(request, metadata, cancellationToken);
 
         return response switch
         {
-            EngineResponse.Accepted => TypedResults.Ok(),
-            EngineResponse.Rejected { Reason: EngineResponse.Rejection.Duplicate } => TypedResults.NoContent(),
-            EngineResponse.Rejected rejected => TypedResults.Problem(
+            WorkflowEnqueueResponse.Accepted accepted => TypedResults.Ok(accepted),
+            WorkflowEnqueueResponse.Rejected rejected => TypedResults.Problem(
                 detail: rejected.Message,
                 statusCode: rejected.Reason switch
                 {
-                    EngineResponse.Rejection.AtCapacity => StatusCodes.Status429TooManyRequests,
-                    EngineResponse.Rejection.Unavailable => StatusCodes.Status503ServiceUnavailable,
+                    WorkflowEnqueueResponse.Rejection.Duplicate => StatusCodes.Status409Conflict,
+                    WorkflowEnqueueResponse.Rejection.AtCapacity => StatusCodes.Status429TooManyRequests,
+                    WorkflowEnqueueResponse.Rejection.Unavailable => StatusCodes.Status503ServiceUnavailable,
+                    WorkflowEnqueueResponse.Rejection.ConcurrencyViolation => StatusCodes.Status409Conflict,
                     _ => StatusCodes.Status400BadRequest,
                 }
             ),
@@ -63,18 +84,41 @@ internal static class EngineRequestHandlers
         };
     }
 
-    public static Results<Ok<WorkflowStatusResponse>, NoContent> Status(
+    public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
         [AsParameters] InstanceRouteParams instanceParams,
-        [FromServices] IEngine engine
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
     )
     {
-        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "status"));
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
-        var job = engine.GetWorkflowForInstance(instanceParams);
+        var workflows = await repository.GetActiveWorkflowsForInstance(instanceParams.InstanceGuid, cancellationToken);
 
-        return job is null
-            ? TypedResults.NoContent() // 204 - No active workflow for this instance
-            : TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(job));
+        if (workflows.Count == 0)
+            return TypedResults.NoContent();
+
+        return TypedResults.Ok(workflows.Select(WorkflowStatusResponse.FromWorkflow));
+    }
+
+    public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
+        [AsParameters] InstanceRouteParams instanceParams,
+        [FromRoute] long workflowId,
+        [FromServices] IEngineRepository repository,
+        CancellationToken cancellationToken
+    )
+    {
+        Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "get"));
+
+        var workflow = await repository.GetWorkflow(workflowId, cancellationToken);
+
+        if (workflow is null)
+            return TypedResults.NotFound();
+
+        // Prevent cross-instance information disclosure
+        if (workflow.InstanceInformation.InstanceGuid != instanceParams.InstanceGuid)
+            return TypedResults.NotFound();
+
+        return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
     }
 }
 

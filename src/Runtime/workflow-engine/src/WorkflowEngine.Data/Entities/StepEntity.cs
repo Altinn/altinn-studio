@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using WorkflowEngine.Data.Abstractions;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
@@ -14,11 +15,10 @@ internal sealed class StepEntity : IHasCommonMetadata
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long Id { get; set; }
 
-    [MaxLength(500)]
-    public required string IdempotencyKey { get; set; }
-
     [MaxLength(100)]
     public required string OperationId { get; set; }
+
+    public required string IdempotencyKey { get; set; }
 
     public PersistentItemStatus Status { get; set; }
 
@@ -44,6 +44,12 @@ internal sealed class StepEntity : IHasCommonMetadata
     [Column(TypeName = "jsonb")]
     public string? RetryStrategyJson { get; set; }
 
+    [Column(TypeName = "jsonb")]
+    public string? ErrorHistoryJson { get; set; }
+
+    [Column(TypeName = "jsonb")]
+    public string? MetadataJson { get; set; }
+
     public string? StateOut { get; set; }
 
     // Foreign key and navigation property
@@ -56,8 +62,8 @@ internal sealed class StepEntity : IHasCommonMetadata
         return new StepEntity
         {
             Id = step.DatabaseId,
-            IdempotencyKey = step.IdempotencyKey,
             OperationId = step.OperationId,
+            IdempotencyKey = step.IdempotencyKey,
             Status = step.Status,
             CreatedAt = step.CreatedAt,
             UpdatedAt = step.UpdatedAt,
@@ -66,35 +72,45 @@ internal sealed class StepEntity : IHasCommonMetadata
             RequeueCount = step.RequeueCount,
             ActorUserIdOrOrgNumber = step.Actor.UserIdOrOrgNumber,
             ActorLanguage = step.Actor.Language,
-            CommandJson = JsonSerializer.Serialize(step.Command),
-            RetryStrategyJson = step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy) : null,
+            CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
+            RetryStrategyJson =
+                step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
+            ErrorHistoryJson =
+                step.ErrorHistory.Count > 0 ? JsonSerializer.Serialize(step.ErrorHistory, JsonOptions.Default) : null,
+            MetadataJson = step?.Metadata,
             StateOut = step.StateOut,
         };
     }
 
-    public Step ToDomainModel(string? traceContext = null)
+    public Step ToDomainModel()
     {
         var command =
-            JsonSerializer.Deserialize<Command>(CommandJson)
+            JsonSerializer.Deserialize<Command>(CommandJson, JsonOptions.Default)
             ?? throw new InvalidOperationException("Failed to deserialize CommandJson");
         var retryStrategy =
-            RetryStrategyJson != null ? JsonSerializer.Deserialize<RetryStrategy>(RetryStrategyJson) : null;
+            RetryStrategyJson != null
+                ? JsonSerializer.Deserialize<RetryStrategy>(RetryStrategyJson, JsonOptions.Default)
+                : null;
+
+        List<ErrorEntry> errorHistory = ErrorHistoryJson is not null
+            ? JsonSerializer.Deserialize<List<ErrorEntry>>(ErrorHistoryJson, JsonOptions.Default) ?? []
+            : [];
 
         return new Step
         {
             DatabaseId = Id,
-            IdempotencyKey = IdempotencyKey,
             OperationId = OperationId,
+            IdempotencyKey = IdempotencyKey,
             Status = Status,
             ProcessingOrder = ProcessingOrder,
             CreatedAt = CreatedAt,
             UpdatedAt = UpdatedAt,
             BackoffUntil = BackoffUntil,
             RequeueCount = RequeueCount,
+            ErrorHistory = errorHistory,
             Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             Command = command,
             RetryStrategy = retryStrategy,
-            DistributedTraceContext = traceContext,
             StateOut = StateOut,
         };
     }

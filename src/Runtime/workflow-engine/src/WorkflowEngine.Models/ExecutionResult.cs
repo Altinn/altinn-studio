@@ -1,11 +1,15 @@
 namespace WorkflowEngine.Models;
 
-public record struct ExecutionResult(ExecutionStatus Status, string? Message = null, Exception? Exception = null)
+public record struct ExecutionResult(
+    ExecutionStatus Status,
+    string? Message = null,
+    Exception? Exception = null,
+    int? HttpStatusCode = null
+)
 {
     /// <summary>
     /// Creates a successful execution result.
     /// </summary>
-    /// <returns></returns>
     public static ExecutionResult Success() => new(ExecutionStatus.Success);
 
     /// <summary>
@@ -16,8 +20,11 @@ public record struct ExecutionResult(ExecutionStatus Status, string? Message = n
     /// <summary>
     /// Creates a retryable error execution result. This indicates a failure that may succeed when retried.
     /// </summary>
-    public static ExecutionResult RetryableError(string message, Exception? exception = null) =>
-        new(ExecutionStatus.RetryableError, message, exception);
+    public static ExecutionResult RetryableError(
+        string message,
+        Exception? exception = null,
+        int? httpStatusCode = null
+    ) => new(ExecutionStatus.RetryableError, message, exception, httpStatusCode);
 
     /// <summary>
     /// Creates a retryable error execution result. This indicates a failure that may succeed when retried.
@@ -28,8 +35,11 @@ public record struct ExecutionResult(ExecutionStatus Status, string? Message = n
     /// <summary>
     /// Creates a critical error execution result. This is a non-recoverable error that should not be retried.
     /// </summary>
-    public static ExecutionResult CriticalError(string message, Exception? exception = null) =>
-        new(ExecutionStatus.CriticalError, message, exception);
+    public static ExecutionResult CriticalError(
+        string message,
+        Exception? exception = null,
+        int? httpStatusCode = null
+    ) => new(ExecutionStatus.CriticalError, message, exception, httpStatusCode);
 
     /// <summary>
     /// Creates a critical error execution result. This is a non-recoverable error that should not be retried.

@@ -82,9 +82,28 @@ public interface IEngineRepository
     Task<int> CountFailedWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the status of a workflow by its database ID, or null if not found.
+    /// </summary>
+    Task<PersistentItemStatus?> GetWorkflowStatus(long workflowId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Adds a new workflow to the repository.
     /// </summary>
-    Task<Workflow> AddWorkflow(EngineRequest engineRequest, CancellationToken cancellationToken = default);
+    Task<Workflow> AddWorkflow(
+        WorkflowRequest request,
+        WorkflowRequestMetadata metadata,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Inserts a batch of workflows in a single transaction. Requests must be in topological dependency order.
+    /// Within-batch <c>DependsOn</c> refs are resolved to database IDs as each item is inserted.
+    /// </summary>
+    Task<IReadOnlyList<Workflow>> AddWorkflowBatch(
+        IReadOnlyList<WorkflowRequest> orderedRequests,
+        WorkflowRequestMetadata metadata,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Updates a workflow in the repository.
@@ -106,4 +125,17 @@ public interface IEngineRepository
         bool updateStepTimestamps = true,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Gets all active (incomplete) workflows for the given instance GUID.
+    /// </summary>
+    Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForInstance(
+        Guid instanceGuid,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets the full workflow (with steps) by database ID, or null if not found.
+    /// </summary>
+    Task<Workflow?> GetWorkflow(long workflowId, CancellationToken cancellationToken = default);
 }

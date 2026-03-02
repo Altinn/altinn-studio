@@ -56,10 +56,11 @@ public static class Hosting
         /// <summary>
         /// Configures the application to use camelCase for JSON serialization, with case-insensitive deserialization support.
         /// </summary>
-        public WebApplicationBuilder UseCaseInsensitiveCamelCaseJson()
+        public WebApplicationBuilder UseCaseInsensitiveCamelCaseJson(bool allowOutOfOrderMetadataProperties = true)
         {
             builder.Services.ConfigureHttpJsonOptions(options =>
             {
+                options.SerializerOptions.AllowOutOfOrderMetadataProperties = allowOutOfOrderMetadataProperties;
                 options.SerializerOptions.PropertyNameCaseInsensitive = true;
                 options.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Tests.Fixtures;
@@ -98,7 +99,7 @@ public class WorkflowExecutorTests
 
         // Assert
         Assert.Equal(ExecutionStatus.RetryableError, result.Status);
-        Assert.Contains("InternalServerError", result.Message, StringComparison.Ordinal);
+        Assert.Contains("AppCommand failed with HTTP 500", result.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -213,7 +214,7 @@ public class WorkflowExecutorTests
 
         // Assert
         Assert.Equal(ExecutionStatus.RetryableError, result.Status);
-        Assert.Contains("Webhook execution failed", result.Message, StringComparison.Ordinal);
+        Assert.Contains("Webhook failed with HTTP 502", result.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -305,193 +306,6 @@ public class WorkflowExecutorTests
         Assert.Contains("Delegate failed", result.Message, StringComparison.Ordinal);
     }
 
-    // === Non-Retryable Error Classification Tests (AppCommand) ===
-
-    [Fact]
-    public async Task Execute_AppCommand_NonRetryableAppSignal_ReturnsCriticalError()
-    {
-        // Arrange — app returns { "nonRetryable": true } in body
-        using var fixture = WorkflowEngineTestFixture.Create(
-            engineSettings: CreateEngineSettingsWithNonRetryableCodes()
-        );
-        fixture.HttpHandler.ResponseStatusCode = HttpStatusCode.InternalServerError;
-        fixture.HttpHandler.ResponseContent =
-            """{"type":"https://example.com/errors/permanent","title":"Permanent Failure","detail":"This cannot be retried","status":500,"nonRetryable":true}""";
-        var executor = new WorkflowExecutor(fixture.ServiceProvider);
-        var step = WorkflowEngineTestFixture.CreateStep(new Command.AppCommand("test-command"));
-        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
-
-        // Act
-        var result = await executor.Execute(workflow, step, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
-        Assert.Contains("[non-retryable: app response]", result.Message, StringComparison.Ordinal);
-        Assert.Contains("Permanent Failure: This cannot be retried", result.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task Execute_AppCommand_NotFoundStatus_ReturnsCriticalError()
-    {
-        // Arrange — 404 is in the default non-retryable list, app returns Problem Details
-        using var fixture = WorkflowEngineTestFixture.Create(
-            engineSettings: CreateEngineSettingsWithNonRetryableCodes()
-        );
-        fixture.HttpHandler.ResponseStatusCode = HttpStatusCode.NotFound;
-        fixture.HttpHandler.ResponseContent =
-            """{"type":"https://example.com/errors/not-found","title":"Not Found","detail":"Instance does not exist","status":404}""";
-        var executor = new WorkflowExecutor(fixture.ServiceProvider);
-        var step = WorkflowEngineTestFixture.CreateStep(new Command.AppCommand("test-command"));
-        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
-
-        // Act
-        var result = await executor.Execute(workflow, step, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
-        Assert.Contains("[non-retryable: status code 404]", result.Message, StringComparison.Ordinal);
-        Assert.Contains("Not Found: Instance does not exist", result.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task Execute_AppCommand_ServiceUnavailable_ReturnsRetryableError()
-    {
-        // Arrange — 503 is NOT in the default non-retryable list
-        using var fixture = WorkflowEngineTestFixture.Create(
-            engineSettings: CreateEngineSettingsWithNonRetryableCodes()
-        );
-        fixture.HttpHandler.ResponseStatusCode = HttpStatusCode.ServiceUnavailable;
-        fixture.HttpHandler.ResponseContent = "Service Unavailable";
-        var executor = new WorkflowExecutor(fixture.ServiceProvider);
-        var step = WorkflowEngineTestFixture.CreateStep(new Command.AppCommand("test-command"));
-        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
-
-        // Act
-        var result = await executor.Execute(workflow, step, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(ExecutionStatus.RetryableError, result.Status);
-    }
-
-    [Fact]
-    public async Task Execute_AppCommand_NotFoundWithAppSignal_AppSignalTakesPriority()
-    {
-        // Arrange — both 404 (in list) and nonRetryable: true — app signal wins
-        using var fixture = WorkflowEngineTestFixture.Create(
-            engineSettings: CreateEngineSettingsWithNonRetryableCodes()
-        );
-        fixture.HttpHandler.ResponseStatusCode = HttpStatusCode.NotFound;
-        fixture.HttpHandler.ResponseContent =
-            """{"type":"https://example.com/errors/not-found","title":"Not Found","status":404,"nonRetryable":true}""";
-        var executor = new WorkflowExecutor(fixture.ServiceProvider);
-        var step = WorkflowEngineTestFixture.CreateStep(new Command.AppCommand("test-command"));
-        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
-
-        // Act
-        var result = await executor.Execute(workflow, step, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
-        Assert.Contains("[non-retryable: app response]", result.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task Execute_AppCommand_NonJsonBody_FallsToStatusCodeCheck()
-    {
-        // Arrange — body is not JSON, but 404 is in the non-retryable list
-        using var fixture = WorkflowEngineTestFixture.Create(
-            engineSettings: CreateEngineSettingsWithNonRetryableCodes()
-        );
-        fixture.HttpHandler.ResponseStatusCode = HttpStatusCode.NotFound;
-        fixture.HttpHandler.ResponseContent = "Not Found - plain text";
-        var executor = new WorkflowExecutor(fixture.ServiceProvider);
-        var step = WorkflowEngineTestFixture.CreateStep(new Command.AppCommand("test-command"));
-        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
-
-        // Act
-        var result = await executor.Execute(workflow, step, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
-        Assert.Contains("[non-retryable: status code 404]", result.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task Execute_AppCommand_StepLevelStrategyWithoutCodes_OverridesDefault()
-    {
-        // Arrange — step has its own RetryStrategy with no NonRetryableHttpStatusCodes
-        // so 404 should be retryable even though the default strategy has it as non-retryable
-        using var fixture = WorkflowEngineTestFixture.Create(
-            engineSettings: CreateEngineSettingsWithNonRetryableCodes()
-        );
-        fixture.HttpHandler.ResponseStatusCode = HttpStatusCode.NotFound;
-        fixture.HttpHandler.ResponseContent = "Not Found";
-        var executor = new WorkflowExecutor(fixture.ServiceProvider);
-        var step = new Step
-        {
-            IdempotencyKey = Guid.NewGuid().ToString(),
-            OperationId = "test-op",
-            ProcessingOrder = 0,
-            Command = new Command.AppCommand("test-command"),
-            Actor = WorkflowEngineTestFixture.DefaultActor,
-            RetryStrategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1)), // no codes
-        };
-        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
-
-        // Act
-        var result = await executor.Execute(workflow, step, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(ExecutionStatus.RetryableError, result.Status);
-    }
-
-    // === Non-Retryable Error Classification Tests (Webhook) ===
-
-    [Fact]
-    public async Task Execute_Webhook_NotFoundStatus_ReturnsCriticalError()
-    {
-        // Arrange
-        using var fixture = WorkflowEngineTestFixture.Create(
-            engineSettings: CreateEngineSettingsWithNonRetryableCodes()
-        );
-        fixture.HttpHandler.ResponseStatusCode = HttpStatusCode.NotFound;
-        fixture.HttpHandler.ResponseContent = "Not Found";
-        var executor = new WorkflowExecutor(fixture.ServiceProvider);
-        var command = new Command.Webhook("https://webhook.example.com/hook");
-        var step = WorkflowEngineTestFixture.CreateStep(command);
-        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
-
-        // Act
-        var result = await executor.Execute(workflow, step, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
-        Assert.Contains("[non-retryable: status code 404]", result.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task Execute_Webhook_NonRetryableAppSignal_ReturnsCriticalError()
-    {
-        // Arrange
-        using var fixture = WorkflowEngineTestFixture.Create(
-            engineSettings: CreateEngineSettingsWithNonRetryableCodes()
-        );
-        fixture.HttpHandler.ResponseStatusCode = HttpStatusCode.BadRequest;
-        fixture.HttpHandler.ResponseContent =
-            """{"type":"https://example.com/errors/bad-input","title":"Bad Request","detail":"Invalid payload","status":400,"nonRetryable":true}""";
-        var executor = new WorkflowExecutor(fixture.ServiceProvider);
-        var command = new Command.Webhook("https://webhook.example.com/hook", Payload: "data");
-        var step = WorkflowEngineTestFixture.CreateStep(command);
-        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
-
-        // Act
-        var result = await executor.Execute(workflow, step, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
-        Assert.Contains("[non-retryable: app response]", result.Message, StringComparison.Ordinal);
-    }
-
     // === GetAuthorizedAppClient Tests ===
 
     [Fact]
@@ -516,21 +330,154 @@ public class WorkflowExecutorTests
         Assert.Equal("test-api-key", apiKeyValues[0]);
     }
 
-    // === Helpers ===
+    // === ClassifyHttpError Tests ===
 
-    private static EngineSettings CreateEngineSettingsWithNonRetryableCodes() =>
-        new()
+    [Fact]
+    public async Task ClassifyHttpError_ProblemDetailsWithNonRetryable_ReturnsCritical()
+    {
+        // Arrange
+        var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
         {
-            QueueCapacity = 10,
-            MaxDegreeOfParallelism = 5,
-            DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
-            DefaultStepRetryStrategy = RetryStrategy.Exponential(
-                TimeSpan.FromSeconds(1),
-                nonRetryableHttpStatusCodes: RetryStrategy.DefaultNonRetryableHttpStatusCodes
+            Content = new StringContent(
+                """{"type":"about:blank","title":"Bad Request","status":400,"nonRetryable":true}""",
+                Encoding.UTF8,
+                "application/problem+json"
             ),
-            DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
-            DatabaseRetryStrategy = RetryStrategy.None(),
-            MaxConcurrentDbOperations = 5,
-            MaxConcurrentHttpCalls = 5,
         };
+        var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1));
+
+        // Act
+        var result = await WorkflowExecutor.ClassifyHttpError(response, strategy, "AppCommand", CancellationToken.None);
+
+        // Assert
+        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
+        Assert.Equal(400, result.HttpStatusCode);
+        Assert.Contains("HTTP 400", result.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ClassifyHttpError_NonRetryableStatusCode_ReturnsCritical()
+    {
+        // Arrange
+        var response = new HttpResponseMessage(HttpStatusCode.NotFound) { Content = new StringContent("Not Found") };
+        var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1), nonRetryableHttpStatusCodes: [404]);
+
+        // Act
+        var result = await WorkflowExecutor.ClassifyHttpError(response, strategy, "Webhook", CancellationToken.None);
+
+        // Assert
+        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
+        Assert.Equal(404, result.HttpStatusCode);
+    }
+
+    [Fact]
+    public async Task ClassifyHttpError_DefaultNonRetryableStatusCode_ReturnsCritical()
+    {
+        // Arrange — strategy without explicit nonRetryableHttpStatusCodes uses defaults
+        var response = new HttpResponseMessage(HttpStatusCode.Unauthorized)
+        {
+            Content = new StringContent("Unauthorized"),
+        };
+        var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1));
+
+        // Act
+        var result = await WorkflowExecutor.ClassifyHttpError(response, strategy, "AppCommand", CancellationToken.None);
+
+        // Assert
+        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
+        Assert.Equal(401, result.HttpStatusCode);
+    }
+
+    [Fact]
+    public async Task ClassifyHttpError_ServerError_ReturnsRetryable()
+    {
+        // Arrange
+        var response = new HttpResponseMessage(HttpStatusCode.InternalServerError)
+        {
+            Content = new StringContent("Internal Server Error"),
+        };
+        var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1));
+
+        // Act
+        var result = await WorkflowExecutor.ClassifyHttpError(response, strategy, "AppCommand", CancellationToken.None);
+
+        // Assert
+        Assert.Equal(ExecutionStatus.RetryableError, result.Status);
+        Assert.Equal(500, result.HttpStatusCode);
+    }
+
+    [Fact]
+    public async Task ClassifyHttpError_AppSignalTakesPrecedenceOverStatusCode()
+    {
+        // Arrange — 500 is normally retryable, but app signals nonRetryable
+        var response = new HttpResponseMessage(HttpStatusCode.InternalServerError)
+        {
+            Content = new StringContent(
+                """{"type":"about:blank","title":"Internal Error","status":500,"nonRetryable":true}""",
+                Encoding.UTF8,
+                "application/problem+json"
+            ),
+        };
+        var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1));
+
+        // Act
+        var result = await WorkflowExecutor.ClassifyHttpError(response, strategy, "Webhook", CancellationToken.None);
+
+        // Assert
+        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
+        Assert.Equal(500, result.HttpStatusCode);
+    }
+
+    [Fact]
+    public async Task ClassifyHttpError_NonJsonBody_FallsThrough()
+    {
+        // Arrange
+        var response = new HttpResponseMessage(HttpStatusCode.BadGateway)
+        {
+            Content = new StringContent("Bad Gateway"),
+        };
+        var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1));
+
+        // Act
+        var result = await WorkflowExecutor.ClassifyHttpError(response, strategy, "Webhook", CancellationToken.None);
+
+        // Assert — 502 is not in the default non-retryable list, so it's retryable
+        Assert.Equal(ExecutionStatus.RetryableError, result.Status);
+        Assert.Equal(502, result.HttpStatusCode);
+    }
+
+    [Fact]
+    public async Task Execute_AppCommand_NonRetryableStatusCode_ReturnsCriticalError()
+    {
+        // Arrange
+        using var fixture = WorkflowEngineTestFixture.Create(
+            engineSettings: new EngineSettings
+            {
+                QueueCapacity = 10,
+                MaxDegreeOfParallelism = 5,
+                DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
+                DefaultStepRetryStrategy = RetryStrategy.Exponential(
+                    TimeSpan.FromSeconds(1),
+                    nonRetryableHttpStatusCodes: [400, 404]
+                ),
+                DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
+                DatabaseRetryStrategy = RetryStrategy.None(),
+                MaxConcurrentDbOperations = 5,
+                MaxConcurrentHttpCalls = 5,
+            }
+        );
+        fixture.HttpHandler.ResponseStatusCode = HttpStatusCode.NotFound;
+        fixture.HttpHandler.ResponseContent = "Not Found";
+        var executor = new WorkflowExecutor(fixture.ServiceProvider);
+        var command = new Command.AppCommand("test-command");
+        var step = WorkflowEngineTestFixture.CreateStep(command);
+        var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
+
+        // Act
+        var result = await executor.Execute(workflow, step, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(ExecutionStatus.CriticalError, result.Status);
+        Assert.Equal(404, result.HttpStatusCode);
+    }
 }

@@ -73,102 +73,73 @@ public class RetryStrategyTests
         Assert.Equal(TimeSpan.Zero, strategy.MaxDelay);
     }
 
-    // === NonRetryableHttpStatusCodes Tests ===
+    [Fact]
+    public void Exponential_WithNonRetryableHttpStatusCodes_SetsProperty()
+    {
+        // Act
+        var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1), nonRetryableHttpStatusCodes: [400, 404, 422]);
+
+        // Assert
+        Assert.NotNull(strategy.NonRetryableHttpStatusCodes);
+        Assert.Equal([400, 404, 422], strategy.NonRetryableHttpStatusCodes);
+    }
+
+    [Fact]
+    public void Linear_WithNonRetryableHttpStatusCodes_SetsProperty()
+    {
+        var strategy = RetryStrategy.Linear(TimeSpan.FromSeconds(1), nonRetryableHttpStatusCodes: [401, 403]);
+
+        Assert.NotNull(strategy.NonRetryableHttpStatusCodes);
+        Assert.Equal([401, 403], strategy.NonRetryableHttpStatusCodes);
+    }
+
+    [Fact]
+    public void Constant_WithNonRetryableHttpStatusCodes_SetsProperty()
+    {
+        var strategy = RetryStrategy.Constant(TimeSpan.FromSeconds(1), nonRetryableHttpStatusCodes: [400]);
+
+        Assert.NotNull(strategy.NonRetryableHttpStatusCodes);
+        Assert.Single(strategy.NonRetryableHttpStatusCodes);
+        Assert.Equal(400, strategy.NonRetryableHttpStatusCodes[0]);
+    }
+
+    [Fact]
+    public void Fixed_WithNonRetryableHttpStatusCodes_SetsProperty()
+    {
+        var strategy = RetryStrategy.Fixed(TimeSpan.FromSeconds(1), nonRetryableHttpStatusCodes: [400, 422]);
+
+        Assert.NotNull(strategy.NonRetryableHttpStatusCodes);
+        Assert.Equal([400, 422], strategy.NonRetryableHttpStatusCodes);
+    }
+
+    [Fact]
+    public void NonRetryableHttpStatusCodes_RoundTrips_ThroughJsonSerialization()
+    {
+        // Arrange
+        var strategy = RetryStrategy.Exponential(
+            TimeSpan.FromSeconds(1),
+            maxDelay: TimeSpan.FromMinutes(1),
+            nonRetryableHttpStatusCodes: [400, 401, 403, 404, 422]
+        );
+
+        // Act
+        string json = JsonSerializer.Serialize(strategy);
+        RetryStrategy? deserialized = JsonSerializer.Deserialize<RetryStrategy>(json);
+
+        // Assert
+        Assert.NotNull(deserialized);
+        Assert.NotNull(deserialized.NonRetryableHttpStatusCodes);
+        Assert.Equal([400, 401, 403, 404, 422], deserialized.NonRetryableHttpStatusCodes);
+    }
 
     [Fact]
     public void DefaultNonRetryableHttpStatusCodes_ContainsExpectedCodes()
     {
-        // Assert
-        Assert.Equal([400, 401, 403, 404, 422], RetryStrategy.DefaultNonRetryableHttpStatusCodes);
-    }
-
-    [Fact]
-    public void Exponential_WithNonRetryableHttpStatusCodes_IncludesCodes()
-    {
-        // Act
-        var strategy = RetryStrategy.Exponential(
-            TimeSpan.FromSeconds(1),
-            nonRetryableHttpStatusCodes: RetryStrategy.DefaultNonRetryableHttpStatusCodes
-        );
-
-        // Assert
-        Assert.Equal(RetryStrategy.DefaultNonRetryableHttpStatusCodes, strategy.NonRetryableHttpStatusCodes);
-    }
-
-    [Fact]
-    public void Linear_WithNonRetryableHttpStatusCodes_IncludesCodes()
-    {
-        // Act
-        var strategy = RetryStrategy.Linear(TimeSpan.FromSeconds(1), nonRetryableHttpStatusCodes: [404, 422]);
-
-        // Assert
-        Assert.Equal([404, 422], strategy.NonRetryableHttpStatusCodes);
-    }
-
-    [Fact]
-    public void Constant_WithNonRetryableHttpStatusCodes_IncludesCodes()
-    {
-        // Act
-        var strategy = RetryStrategy.Constant(TimeSpan.FromSeconds(1), nonRetryableHttpStatusCodes: [400]);
-
-        // Assert
-        Assert.Equal([400], strategy.NonRetryableHttpStatusCodes);
-    }
-
-    [Fact]
-    public void Fixed_WithNonRetryableHttpStatusCodes_IncludesCodes()
-    {
-        // Act
-        var strategy = RetryStrategy.Fixed(TimeSpan.FromSeconds(1), nonRetryableHttpStatusCodes: [403, 422]);
-
-        // Assert
-        Assert.Equal([403, 422], strategy.NonRetryableHttpStatusCodes);
-    }
-
-    [Fact]
-    public void NonRetryableHttpStatusCodes_IsNullByDefault()
-    {
-        // Act
-        var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1));
-
-        // Assert
-        Assert.Null(strategy.NonRetryableHttpStatusCodes);
-    }
-
-    [Fact]
-    public void NonRetryableHttpStatusCodes_JsonRoundTrip()
-    {
-        // Arrange
-        var strategy = RetryStrategy.Exponential(
-            TimeSpan.FromSeconds(2),
-            maxRetries: 3,
-            nonRetryableHttpStatusCodes: [400, 404, 422]
-        );
-
-        // Act
-        var json = JsonSerializer.Serialize(strategy);
-        var deserialized = JsonSerializer.Deserialize<RetryStrategy>(json);
-
-        // Assert
-        Assert.NotNull(deserialized);
-        Assert.Equal(strategy.BackoffType, deserialized.BackoffType);
-        Assert.Equal(strategy.BaseInterval, deserialized.BaseInterval);
-        Assert.Equal(strategy.MaxRetries, deserialized.MaxRetries);
-        Assert.Equal([400, 404, 422], deserialized.NonRetryableHttpStatusCodes);
-    }
-
-    [Fact]
-    public void NonRetryableHttpStatusCodes_NullProperty_JsonRoundTrip()
-    {
-        // Arrange
-        var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1));
-
-        // Act
-        var json = JsonSerializer.Serialize(strategy);
-        var deserialized = JsonSerializer.Deserialize<RetryStrategy>(json);
-
-        // Assert
-        Assert.NotNull(deserialized);
-        Assert.Null(deserialized.NonRetryableHttpStatusCodes);
+        Assert.Contains(400, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
+        Assert.Contains(401, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
+        Assert.Contains(403, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
+        Assert.Contains(404, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
+        Assert.Contains(422, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
+        Assert.DoesNotContain(500, RetryStrategy.DefaultNonRetryableHttpStatusCodes);
     }
 }

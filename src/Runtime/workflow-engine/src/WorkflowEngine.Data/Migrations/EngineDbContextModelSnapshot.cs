@@ -22,6 +22,21 @@ namespace WorkflowEngine.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("WorkflowDependency", b =>
+                {
+                    b.Property<long>("WorkflowId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("DependsOnWorkflowId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("WorkflowId", "DependsOnWorkflowId");
+
+                    b.HasIndex("DependsOnWorkflowId");
+
+                    b.ToTable("WorkflowDependency");
+                });
+
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -49,13 +64,18 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ErrorHistoryJson")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("IdempotencyKey")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("text");
 
                     b.Property<long>("JobId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("OperationId")
                         .IsRequired()
@@ -85,8 +105,6 @@ namespace WorkflowEngine.Data.Migrations
                     b.HasIndex("BackoffUntil");
 
                     b.HasIndex("CreatedAt");
-
-                    b.HasIndex("IdempotencyKey");
 
                     b.HasIndex("JobId");
 
@@ -123,8 +141,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.Property<string>("IdempotencyKey")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("text");
 
                     b.Property<string>("InitialState")
                         .HasColumnType("text");
@@ -149,6 +166,9 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<int>("InstanceOwnerPartyId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("OperationId")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -164,6 +184,9 @@ namespace WorkflowEngine.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -171,13 +194,43 @@ namespace WorkflowEngine.Data.Migrations
 
                     b.HasIndex("CreatedAt");
 
-                    b.HasIndex("IdempotencyKey");
-
                     b.HasIndex("Status");
+
+                    b.HasIndex("InstanceGuid", "Type", "Status");
 
                     b.HasIndex("InstanceOrg", "InstanceApp", "InstanceGuid");
 
                     b.ToTable("Workflows");
+                });
+
+            modelBuilder.Entity("WorkflowLink", b =>
+                {
+                    b.Property<long>("WorkflowId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LinkedWorkflowId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("WorkflowId", "LinkedWorkflowId");
+
+                    b.HasIndex("LinkedWorkflowId");
+
+                    b.ToTable("WorkflowLink");
+                });
+
+            modelBuilder.Entity("WorkflowDependency", b =>
+                {
+                    b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", null)
+                        .WithMany()
+                        .HasForeignKey("DependsOnWorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", null)
+                        .WithMany()
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
@@ -189,6 +242,21 @@ namespace WorkflowEngine.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Job");
+                });
+
+            modelBuilder.Entity("WorkflowLink", b =>
+                {
+                    b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", null)
+                        .WithMany()
+                        .HasForeignKey("LinkedWorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WorkflowEngine.Data.Entities.WorkflowEntity", null)
+                        .WithMany()
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowEntity", b =>

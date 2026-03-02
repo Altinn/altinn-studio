@@ -131,6 +131,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 workflow.InstanceLockKey
                 ?? throw new InvalidOperationException("Missing InstanceLockKey for app callback payload"),
             Payload = command.Payload,
+            WorkflowId = workflow.DatabaseId,
             State = stateIn,
         };
         var endpoint = command.CommandKey.ToUri(UriKind.Relative);
@@ -159,8 +160,12 @@ internal class WorkflowExecutor : IWorkflowExecutor
             return ExecutionResult.Success();
         }
 
-        string errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
-        return ClassifyHttpError(response, errorBody, "AppCommand execution failed", ResolveRetryStrategy(step));
+        return await ClassifyHttpError(
+            response,
+            step.RetryStrategy ?? _engineSettings.DefaultStepRetryStrategy,
+            "AppCommand",
+            cancellationToken
+        );
     }
 
     private static async Task<ExecutionResult> Timeout(
@@ -222,16 +227,18 @@ internal class WorkflowExecutor : IWorkflowExecutor
             response = await httpClient.GetAsync(command.Uri.ToUri(UriKind.Absolute), cancellationToken);
         }
 
-        ExecutionResult result;
         if (response.IsSuccessStatusCode)
         {
-            result = ExecutionResult.Success();
+            response.Dispose();
+            return ExecutionResult.Success();
         }
-        else
-        {
-            string errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
-            result = ClassifyHttpError(response, errorBody, "Webhook execution failed", ResolveRetryStrategy(step));
-        }
+
+        var result = await ClassifyHttpError(
+            response,
+            step.RetryStrategy ?? _engineSettings.DefaultStepRetryStrategy,
+            "Webhook",
+            cancellationToken
+        );
         response.Dispose();
 
         return result;
@@ -264,64 +271,64 @@ internal class WorkflowExecutor : IWorkflowExecutor
         }
     }
 
-    private RetryStrategy ResolveRetryStrategy(Step step) =>
-        step.RetryStrategy ?? _engineSettings.DefaultStepRetryStrategy;
-
-    private static ExecutionResult ClassifyHttpError(
+    /// <summary>
+    /// Classifies an HTTP error response as retryable or non-retryable.
+    /// Gate 1: ProblemDetails with "nonRetryable" extension → CriticalError
+    /// Gate 2: Status code in NonRetryableHttpStatusCodes → CriticalError
+    /// Default: RetryableError
+    /// </summary>
+    internal static async Task<ExecutionResult> ClassifyHttpError(
         HttpResponseMessage response,
-        string body,
-        string errorPrefix,
-        RetryStrategy strategy
+        RetryStrategy retryStrategy,
+        string commandType,
+        CancellationToken cancellationToken
     )
     {
-        var statusCode = (int)response.StatusCode;
-        ProblemDetails? problem = null;
+        int statusCode = (int)response.StatusCode;
+        string body = await response.Content.ReadAsStringAsync(cancellationToken);
+        string message = FormatErrorDetail(commandType, statusCode, body);
 
-        // Try to parse as Problem Details (RFC 9457)
-        if (body.Length > 0)
+        // Gate 1: Parse as RFC 9457 ProblemDetails and check for nonRetryable extension
+        if (!string.IsNullOrEmpty(body))
         {
             try
             {
-                problem = JsonSerializer.Deserialize<ProblemDetails>(body);
+                ProblemDetails? problem = JsonSerializer.Deserialize<ProblemDetails>(body);
+                if (
+                    problem?.Extensions.TryGetValue("nonRetryable", out object? value) == true
+                    && value is JsonElement { ValueKind: JsonValueKind.True }
+                )
+                {
+                    return ExecutionResult.CriticalError(message, httpStatusCode: statusCode);
+                }
             }
             catch (JsonException)
             {
-                // Body isn't valid JSON — fall through with problem = null
+                // Not valid ProblemDetails JSON — fall through to status code check
             }
         }
 
-        string errorDetail = FormatErrorDetail(problem, body);
-
-        // Gate 1: App response signal via Problem Details extension (highest priority)
-        if (
-            problem?.Extensions.TryGetValue("nonRetryable", out object? value) == true
-            && value is JsonElement { ValueKind: JsonValueKind.True }
-        )
-        {
-            return ExecutionResult.CriticalError($"[non-retryable] {errorDetail}");
-        }
-
         // Gate 2: Status code in non-retryable list
-        if (strategy.NonRetryableHttpStatusCodes?.Contains(statusCode) == true)
+        IReadOnlyList<int> nonRetryableCodes =
+            retryStrategy.NonRetryableHttpStatusCodes ?? RetryStrategy.DefaultNonRetryableHttpStatusCodes;
+
+        if (nonRetryableCodes.Contains(statusCode))
         {
-            return ExecutionResult.CriticalError($"[non-retryable: HTTP {statusCode}] {errorDetail}");
+            return ExecutionResult.CriticalError(message, httpStatusCode: statusCode);
         }
 
         // Default: retryable
-        return ExecutionResult.RetryableError($"[HTTP {response.StatusCode}] {errorDetail}");
+        return ExecutionResult.RetryableError(message, httpStatusCode: statusCode);
     }
 
-    private static string FormatErrorDetail(ProblemDetails? problem, string body)
+    private static string FormatErrorDetail(string commandType, int statusCode, string body)
     {
-        // Prefer Detail (the specific occurrence message) over Title (the generic type name).
-        // Title is often just an exception class name which adds noise.
-        if (problem?.Detail is not null)
-            return problem.Detail;
+        string bodySnippet =
+            string.IsNullOrEmpty(body) ? "<no body content>"
+            : body.Length > 500 ? body[..500] + "..."
+            : body;
 
-        if (problem?.Title is not null)
-            return problem.Title;
-
-        return body.Length > 0 ? body : "<no body content>";
+        return $"{commandType} failed with HTTP {statusCode}: {bodySnippet}";
     }
 
     internal HttpClient GetAuthorizedAppClient(InstanceInformation instanceInformation)

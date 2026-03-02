@@ -107,14 +107,14 @@ export const restoreUrl = () => {
     document.getElementById('live-section')?.classList.remove('collapsed');
     document.getElementById('recent-section')?.classList.remove('collapsed');
     for (const s of Object.keys(state.compactSections)) state.compactSections[s] = s === 'query';
-    state.sectionStatus = { live: '', recent: '', query: '' };
+    state.sectionStatus = { live: '', recent: '', query: 'failed' };
     queryTimeRange = 0;
     customTimeRange = null;
     const rc = /** @type {HTMLInputElement | null} */ (document.getElementById('retried-check'));
     if (rc) rc.checked = false;
     for (const s of ['enqueued', 'processing', 'requeued', 'completed', 'failed', 'canceled']) {
       const el = /** @type {HTMLInputElement | null} */ (document.getElementById(`${s}-check`));
-      if (el) el.checked = false;
+      if (el) el.checked = s === 'failed';
     }
     for (const bar of document.querySelectorAll('.section-chips')) {
       for (const c of bar.querySelectorAll('.chip')) {

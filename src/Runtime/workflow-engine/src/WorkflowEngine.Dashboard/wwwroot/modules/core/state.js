@@ -6,12 +6,17 @@
  */
 
 /**
+ * @typedef {{ timestamp: string, message: string, httpStatusCode: number | null, wasRetryable: boolean }} ErrorEntry
+ */
+
+/**
  * @typedef {{
  *   idempotencyKey: string,
  *   operationId:    string,
  *   commandType:    CommandType,
  *   commandDetail:  string,
  *   commandPayload: string | null,
+ *   errorHistory:   ErrorEntry[] | null,
  *   status:         StepStatus,
  *   processingOrder: number,
  *   retryCount:     number,
@@ -144,7 +149,7 @@ export const state = {
   queryLoaded:        false,
   liveFilter:           '',
   querySearch:          '',
-  sectionStatus:        { scheduled: '', live: '', recent: '', query: '' },
+  sectionStatus:        { scheduled: '', live: '', recent: '', query: 'failed' },
   orgFilter:            new Set(),
   appFilter:            new Set(),
   partyFilter:          new Set(),

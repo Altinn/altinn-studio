@@ -3,6 +3,7 @@ import React from 'react';
 import { PencilIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { translationKey } from 'src/AppComponentsBridge';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
@@ -109,7 +110,7 @@ export function EditButton({
   };
   return (
     <Button
-      aria-label={isMobile ? langAsString('general.edit') : undefined}
+      aria-label={isMobile ? translationKey('general.edit') : undefined}
       onClick={onChangeClick}
       variant='tertiary'
       className={className}

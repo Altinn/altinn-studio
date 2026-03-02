@@ -4,8 +4,12 @@ namespace WorkflowEngine.Api;
 
 internal static partial class EngineLogs
 {
-    [LoggerMessage(LogLevel.Debug, "Enqueuing workflow request {engineRequest}")]
-    internal static partial void EnqueuingWorkflow(this ILogger<Engine> logger, EngineRequest engineRequest);
+    [LoggerMessage(LogLevel.Debug, "Enqueuing batch of {WorkflowCount} workflows for {InstanceInformation}")]
+    internal static partial void EnqueuingWorkflowBatch(
+        this ILogger<Engine> logger,
+        int workflowCount,
+        InstanceInformation instanceInformation
+    );
 
     [LoggerMessage(LogLevel.Debug, "Restored workflow {WorkflowIdentifier} from database")]
     internal static partial void RestoredWorkflowFromDb(this ILogger<Engine> logger, string workflowIdentifier);
@@ -128,12 +132,9 @@ internal static partial class EngineLogs
     [LoggerMessage(LogLevel.Information, "Stopping workflow engine")]
     internal static partial void StoppingEngine(this ILogger<Engine> logger);
 
-    [LoggerMessage(LogLevel.Trace, "Acquiring queue slot")]
-    internal static partial void AcquiringQueueSlot(this ILogger<Engine> logger);
+    [LoggerMessage(LogLevel.Information, "Workflow {Workflow} retried — re-entered inbox")]
+    internal static partial void WorkflowRetried(this ILogger<Engine> logger, Workflow workflow);
 
-    [LoggerMessage(LogLevel.Trace, "Status after acquiring slot: {Status}")]
-    internal static partial void StatusAfterAcquiringSlot(this ILogger<Engine> logger, EngineHealthStatus status);
-
-    [LoggerMessage(LogLevel.Trace, "Releasing queue slot")]
-    internal static partial void ReleasingQueueSlot(this ILogger<Engine> logger);
+    [LoggerMessage(LogLevel.Information, "Backoff skipped for step {Step}")]
+    internal static partial void StepBackoffSkipped(this ILogger<Engine> logger, Step step);
 }

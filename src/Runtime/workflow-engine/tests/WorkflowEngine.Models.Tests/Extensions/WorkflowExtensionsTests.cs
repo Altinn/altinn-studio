@@ -18,8 +18,8 @@ public class WorkflowExtensionsTests
     private static Step CreateStep(PersistentItemStatus status, int order = 0) =>
         new()
         {
-            IdempotencyKey = $"key-{order}",
             OperationId = "op",
+            IdempotencyKey = $"step-key-{order}",
             Actor = _defaultActor,
             ProcessingOrder = order,
             Command = new Command.Debug.Noop(),
@@ -29,8 +29,8 @@ public class WorkflowExtensionsTests
     private static Workflow CreateWorkflow(params Step[] steps) =>
         new()
         {
-            IdempotencyKey = "workflow-key",
             OperationId = "test-op",
+            IdempotencyKey = "wf-key",
             Actor = _defaultActor,
             InstanceInformation = _defaultInstance,
             Steps = steps.ToList(),

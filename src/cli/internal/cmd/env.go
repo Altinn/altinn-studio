@@ -38,6 +38,7 @@ func (c *EnvCommand) Synopsis() string { return "Manage development environment"
 
 // Usage returns the full help text.
 func (c *EnvCommand) Usage() string {
+	defaultPort := envlocaltest.DefaultLoadBalancerPort
 	return fmt.Sprintf(`Usage: %s env <subcommand> [options]
 
 Manage development environments.
@@ -52,13 +53,13 @@ Common options:
   -r, --runtime    Runtime to use (default: localtest)
 
 Options for 'env up':
-  -p, --port       Loadbalancer port (default: 8000)
+  -p, --port       Loadbalancer port (default: %d)
   -d, --detach     Run in background (default: true)
   --monitoring     Start monitoring stack
   --open           Open localtest in browser after starting
 
 Run '%s env <subcommand> --help' for more information.
-`, osutil.CurrentBin(), osutil.CurrentBin())
+`, osutil.CurrentBin(), defaultPort, osutil.CurrentBin())
 }
 
 // Run executes the command.
@@ -137,8 +138,9 @@ func (c *EnvCommand) parseUpFlags(args []string) (envUpFlags, bool, error) {
 	fs.BoolVar(&f.detach, "d", true, "Run in background")
 	fs.BoolVar(&f.detach, "detach", true, "Run in background")
 	fs.BoolVar(&f.monitoring, "monitoring", false, "Start monitoring stack")
-	fs.IntVar(&f.port, "p", 0, "Loadbalancer port (default: 8000)")
-	fs.IntVar(&f.port, "port", 0, "Loadbalancer port (default: 8000)")
+	portHelp := fmt.Sprintf("Loadbalancer port (default: %d)", envlocaltest.DefaultLoadBalancerPort)
+	fs.IntVar(&f.port, "p", 0, portHelp)
+	fs.IntVar(&f.port, "port", 0, portHelp)
 	fs.BoolVar(&f.openBrowser, "open", false, "Open localtest in browser after starting")
 
 	if err := fs.Parse(args); err != nil {
@@ -314,8 +316,15 @@ func (c *EnvCommand) runLocaltestStatus(
 		return nil
 	}
 
-	if !status.Running {
+	if !status.AnyRunning {
 		c.out.Printf("%s is not running.\n", runtimeLocaltest)
+		return nil
+	}
+
+	if !status.Running {
+		c.out.Printf("%s is running with issues.\n", runtimeLocaltest)
+		c.out.Println("")
+		c.renderLocaltestStatus(status)
 		return nil
 	}
 
