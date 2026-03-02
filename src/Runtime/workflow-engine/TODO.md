@@ -1,0 +1,39 @@
+## Refactoring and chore list
+
+### Data model / misc
+- [ ] Remove concurrency rules and associated stored procedure. Nested process/next is now disallowed, replaced by server-side "waiting" for async operations.
+  - [ ] Stored procedure can be removed: [check_active_workflow_constraint.sql](src/WorkflowEngine.Data/Sql/Functions/check_active_workflow_constraint.sql).
+    - [ ] Remove `EnginePgRepository.CheckActiveWorkflowConstraint` and all references to it.
+  - [ ] [WorkflowType](src/WorkflowEngine.Models/WorkflowType.cs) and [ConcurrencyPolicy](src/WorkflowEngine.Models/ConcurrencyPolicy.cs) can be removed.
+- [ ] Cascading failures will be handled by the engine organically, the stored procedure should be removed: [cascade_dependency_failures.sql](src/WorkflowEngine.Data/Sql/Functions/cascade_dependency_failures.sql)
+  - [ ] Remove `EnginePgRepository.CascadeDependencyFailures` and all references to it.
+- [ ] Remove [ConcurrentBuffer](src/WorkflowEngine.Api/ConcurrentBuffer.cs) and its usages.
+  - [ ] This includes removing the whole Engine.ShouldRun concept.
+- [ ] Remove the `Engine.HaveWork` check. This is now replaced by the result of the db query.
+- [ ] Add a timestamp to the `Workflow`, which is used to determine if a workflow is "stuck" in a processing state (worker has crashed)
+  - Worker will be required to update this column periodically.
+  - The engine will consume stale workflows eventually, even if they are in a `processing` state.
+    - Suggested timeout for stale workflows: 10 seconds. Eg. the worker needs a < 10 second update cycle back to the db.
+- Remove most of the `ILogger` logging? We can use Grafana for almost all of this...
+
+### [Repository](src/WorkflowEngine.Data/Repository/EnginePgRepository.cs)
+- [ ] It doesn't make sense that `GetFinishedWorkflows` takes a list of statuses to check. This method should know what the relevant statuses are.
+- [ ] It doesn't make sense that `GetFinishedWorkflowsWithCount` takes a list of statuses to check. This method should know what the relevant statuses are.
+
+#### Tests
+- [ ] `GetSuccessfulWorkflows` is currently not covered.
+- [ ] `ToDomainModel<Step>` is currently not covered.
+- [ ] `GetDistinctOrgsAndApps` is currently not covered.
+- [ ] `GetWorkflow by idempotency key` may or may not be required. If keeping it, it also needs testing.
+- [ ] `GetFinishedWorkflowsWithCount` is currently not covered.
+- [ ] `RetryErrorHandler` is currently not covered, because we never trigger a database communication failure during testing.
+
+### [Telemetry and health collectors](src/WorkflowEngine.Api)
+- [ ] `HealthEngineChecks` and `MetricsCollector` should use their own separate db-concurrency mechanism, disconnected from the API and workflow processing.
+
+#### Tests
+- [ ] Add collection of telemetry during testing. We have good coverage, but are never checking that we emit events. This is probably best done in the `Integration.Tests` project.
+
+### [Resilience](src/WorkflowEngine.Resilience)
+#### Tests
+- [ ] Expand on [RetryStrategyExtensionsTests](tests/WorkflowEngine.Resilience.Tests/Extensions/RetryStrategyExtensionsTests.cs) to cover all possible failure scenarios in `Execute`.
