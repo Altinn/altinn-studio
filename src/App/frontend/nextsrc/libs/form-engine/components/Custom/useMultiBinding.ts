@@ -6,7 +6,7 @@ import { useShallow } from 'zustand/shallow';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 
-import type { FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
+import type { FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 
 interface MultiBindingResult {
   formData: Record<string, FormDataPrimitive>;

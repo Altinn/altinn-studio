@@ -7,7 +7,7 @@ import { createFormDataStore } from 'nextsrc/libs/form-client/stores/formDataSto
 import { createTextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
 import { createValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
 
-import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
+import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 import type {
   ExpressionValidationConfig,
   ResolvedExpressionValidations,

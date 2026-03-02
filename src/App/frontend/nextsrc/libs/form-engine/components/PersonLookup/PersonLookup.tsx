@@ -10,8 +10,8 @@ import {
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 
-import { LookupApi } from 'nextsrc/core/apiClient/lookupApi';
-import type { PersonDetails } from 'nextsrc/core/apiClient/lookupApi';
+import { LookupApi } from 'nextsrc/core/api-client/lookupApi';
+import type { PersonDetails } from 'nextsrc/core/api-client/lookupApi';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';

@@ -235,4 +235,22 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ['nextsrc/**/*.{ts,tsx}'],
+    ignores: ['nextsrc/core/queries/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: 'nextsrc/core/queries/[^/]+/(?!index$)',
+              message:
+                'Only explicit exports from the index.ts in each nextsrc/core/queries/ folder can be imported outside the the folder itself. Do not import internal files directly.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { ProcessApi } from 'nextsrc/core/apiClient/processApi';
+import { ProcessApi } from 'nextsrc/core/api-client/processApi';
 import { routeBuilders } from 'nextsrc/routesBuilder';
 
 const UNSAVED_POLL_INTERVAL = 50;

@@ -4,7 +4,7 @@ import { Table } from '@digdir/designsystemet-react';
 
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
-import { useIsMobile } from 'nextsrc/utils/useDeviceWidths';
+import { useIsMobile } from 'nextsrc/core/hooks/useDeviceWidths';
 import classes from 'nextsrc/libs/form-engine/components/Grid/Grid.module.css';
 import {
   getColumnStyles,

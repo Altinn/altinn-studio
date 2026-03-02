@@ -1,7 +1,7 @@
 import dot from 'dot-object';
 import { createStore } from 'zustand/vanilla';
 
-import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
+import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 
 function deepEqual(a: FormDataNode, b: FormDataNode): boolean {
   if (a === b) {

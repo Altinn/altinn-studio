@@ -1,4 +1,4 @@
-import type { FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
+import type { FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 
 export interface ExpressionDataSources {
   formDataGetter: (path: string) => FormDataPrimitive;

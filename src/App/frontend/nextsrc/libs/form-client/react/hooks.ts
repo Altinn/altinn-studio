@@ -8,7 +8,7 @@ import { expressionValidationPath } from 'nextsrc/libs/form-client/react/useExpr
 import { schemaValidationPath } from 'nextsrc/libs/form-client/react/useSchemaValidation';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 
-import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/apiClient/dataApi';
+import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 import type { ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
 import type { FieldValidation } from 'nextsrc/libs/form-client/stores/validationStore';
 

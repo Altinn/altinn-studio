@@ -10,7 +10,7 @@ import {
 } from '@digdir/designsystemet-react';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
-import { LookupApi } from 'nextsrc/core/apiClient/lookupApi';
+import { LookupApi } from 'nextsrc/core/api-client/lookupApi';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
