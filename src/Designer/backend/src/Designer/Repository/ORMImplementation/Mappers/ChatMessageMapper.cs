@@ -10,7 +10,7 @@ public static class ChatMessageMapper
         return new ChatMessageDbModel
         {
             Id = entity.Id,
-            CreatedAt = entity.CreatedAt,
+            CreatedAt = entity.CreatedAt.ToUniversalTime(),
             Role = entity.Role,
             Content = entity.Content,
             ActionMode = entity.ActionMode,
@@ -24,7 +24,7 @@ public static class ChatMessageMapper
         return new ChatMessageEntity
         {
             Id = dbModel.Id,
-            CreatedAt = dbModel.CreatedAt,
+            CreatedAt = dbModel.CreatedAt.ToUniversalTime(),
             Role = dbModel.Role,
             Content = dbModel.Content,
             ActionMode = dbModel.ActionMode,

@@ -14,7 +14,7 @@ public static class ChatThreadMapper
             Org = entity.Org,
             App = entity.App,
             CreatedBy = entity.CreatedBy,
-            CreatedAt = entity.CreatedAt,
+            CreatedAt = entity.CreatedAt.ToUniversalTime(),
         };
     }
 
@@ -27,7 +27,7 @@ public static class ChatThreadMapper
             Org = dbModel.Org,
             App = dbModel.App,
             CreatedBy = dbModel.CreatedBy,
-            CreatedAt = dbModel.CreatedAt,
+            CreatedAt = dbModel.CreatedAt.ToUniversalTime(),
         };
     }
 }
