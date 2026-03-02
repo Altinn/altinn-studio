@@ -172,13 +172,19 @@ export const workflowData = {};
 
 /* ── BPMN transition parsing & step phase mapping ────────── */
 
-/** Parse BPMN transition from a "next" workflow's idempotencyKey.
+/** Parse BPMN transition from a workflow's operationId.
+ *  Expects format like "Process next: Data -> Signing".
  *  @param {Workflow} wf
  *  @returns {{ from: string, to: string } | null} */
 export const parseTransition = (wf) => {
-  if (wf.operationId !== 'next') return null;
-  const m = wf.idempotencyKey.match(/\/next\/from-(.*?)-to-(.*)$/);
-  return m ? { from: m[1], to: m[2] || 'End Event' } : null;
+  const colon = wf.operationId.indexOf(':');
+  if (colon < 0) return null;
+  const rest = wf.operationId.slice(colon + 1);
+  let arrow = rest.indexOf('\u2192');
+  let len = 1;
+  if (arrow < 0) { arrow = rest.indexOf('->'); len = 2; }
+  if (arrow < 0) return null;
+  return { from: rest.slice(0, arrow).trim() || 'Start Event', to: rest.slice(arrow + len).trim() || 'End Event' };
 };
 
 const TASK_END_COMMANDS = new Set([
