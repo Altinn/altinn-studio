@@ -1,17 +1,22 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { Button, Table } from '@digdir/designsystemet-react';
-
+import { Pagination } from 'nextsrc/core/components/Pagination/Pagination';
+import {
+  useGroupArray,
+  usePushArrayItem,
+  useRemoveArrayItem,
+  useTextResource,
+} from 'nextsrc/libs/form-client/react/hooks';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
-import { useGroupArray, usePushArrayItem, useRemoveArrayItem, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
-import { FormEngine } from 'nextsrc/libs/form-engine/FormEngine';
-import { Pagination } from 'nextsrc/core/components/Pagination/Pagination';
-import { useRowCellValue } from 'nextsrc/libs/form-engine/components/RepeatingGroup/useRowDisplay';
 import classes from 'nextsrc/libs/form-engine/components/RepeatingGroup/RepeatingGroup.module.css';
-import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
+import { useRowCellValue } from 'nextsrc/libs/form-engine/components/RepeatingGroup/useRowDisplay';
+import { FormEngine } from 'nextsrc/libs/form-engine/FormEngine';
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
+
 import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/config.generated';
 
 export const RepeatingGroup = ({ component, parentBinding, itemIndex }: ComponentProps) => {
@@ -35,26 +40,26 @@ export const RepeatingGroup = ({ component, parentBinding, itemIndex }: Componen
       : groupField;
 
   // Text resources
-  const addButtonText = useTextResource(
-    typeof props.textResourceBindings?.add_button === 'string'
-      ? props.textResourceBindings.add_button
-      : undefined,
-  ) || langAsString('general.add_new');
-  const editButtonOpenText = useTextResource(
-    typeof props.textResourceBindings?.edit_button_open === 'string'
-      ? props.textResourceBindings.edit_button_open
-      : undefined,
-  ) || langAsString('general.edit');
-  const editButtonCloseText = useTextResource(
-    typeof props.textResourceBindings?.edit_button_close === 'string'
-      ? props.textResourceBindings.edit_button_close
-      : undefined,
-  ) || langAsString('general.save_and_close');
-  const saveButtonText = useTextResource(
-    typeof props.textResourceBindings?.save_button === 'string'
-      ? props.textResourceBindings.save_button
-      : undefined,
-  ) || langAsString('general.save_and_close');
+  const addButtonText =
+    useTextResource(
+      typeof props.textResourceBindings?.add_button === 'string' ? props.textResourceBindings.add_button : undefined,
+    ) || langAsString('general.add_new');
+  const editButtonOpenText =
+    useTextResource(
+      typeof props.textResourceBindings?.edit_button_open === 'string'
+        ? props.textResourceBindings.edit_button_open
+        : undefined,
+    ) || langAsString('general.edit');
+  const editButtonCloseText =
+    useTextResource(
+      typeof props.textResourceBindings?.edit_button_close === 'string'
+        ? props.textResourceBindings.edit_button_close
+        : undefined,
+    ) || langAsString('general.save_and_close');
+  const saveButtonText =
+    useTextResource(
+      typeof props.textResourceBindings?.save_button === 'string' ? props.textResourceBindings.save_button : undefined,
+    ) || langAsString('general.save_and_close');
 
   // Pagination config
   const rowsPerPage = props.pagination?.rowsPerPage;
@@ -95,25 +100,19 @@ export const RepeatingGroup = ({ component, parentBinding, itemIndex }: Componen
     [removeItem, editingIndex, resolvedGroupPath, client],
   );
 
-  const handleEdit = useCallback(
-    (absoluteIndex: number) => {
-      setEditingIndex((prev) => (prev === absoluteIndex ? null : absoluteIndex));
-    },
-    [],
-  );
+  const handleEdit = useCallback((absoluteIndex: number) => {
+    setEditingIndex((prev) => (prev === absoluteIndex ? null : absoluteIndex));
+  }, []);
 
   const handleSave = useCallback(() => {
     setEditingIndex(null);
   }, []);
 
-  const handleSetCurrentPage = useCallback(
-    (page: number) => {
-      // Close edit when changing page
-      setEditingIndex(null);
-      setCurrentPage(page);
-    },
-    [],
-  );
+  const handleSetCurrentPage = useCallback((page: number) => {
+    // Close edit when changing page
+    setEditingIndex(null);
+    setCurrentPage(page);
+  }, []);
 
   // Number of columns: children + actions column
   const totalColumns = children.length + 1;

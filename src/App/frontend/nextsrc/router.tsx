@@ -16,8 +16,8 @@ import { instanceSelectionLoader } from 'nextsrc/features/instantiate/pages/inst
 import { InstanceSelectionPage } from 'nextsrc/features/instantiate/pages/instance-selection/InstanceSelectionPage';
 import { partySelectionLoader } from 'nextsrc/features/instantiate/pages/party-selection/partySelectionLoader';
 import { PartySelectionPage } from 'nextsrc/features/instantiate/pages/party-selection/PartySelectionPage';
-import { ProcessEndPage } from 'nextsrc/features/process/pages/ProcessEndPage';
 import { StatelessPage } from 'nextsrc/features/instantiate/pages/stateless/StatelessPage';
+import { ProcessEndPage } from 'nextsrc/features/process/pages/ProcessEndPage';
 import { routes } from 'nextsrc/routesBuilder';
 
 export const router = createBrowserRouter(

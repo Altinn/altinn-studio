@@ -24,9 +24,9 @@ export const formClient = new FormClient({
   applicationSettings: GlobalData.frontendSettings ?? null,
 });
 
-formClient.onFormDataChange((event) => {
-  console.log('[form-data-change]', event.path, event.previousValue, '->', event.value);
-});
+// formClient.onFormDataChange((event) => {
+//   console.log('[form-data-change]', event.path, event.previousValue, '->', event.value);
+// });
 
 function App() {
   useEffect(() => {

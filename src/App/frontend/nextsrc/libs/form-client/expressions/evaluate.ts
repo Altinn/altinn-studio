@@ -19,10 +19,10 @@ export function evaluateExpression(expr: Expression, dataSources: ExpressionData
 
   switch (func) {
     case 'equals':
-      return evaluateExpression(args[0], dataSources) === evaluateExpression(args[1], dataSources);
+      return typeSafeEquals(evaluateExpression(args[0], dataSources), evaluateExpression(args[1], dataSources));
 
     case 'notEquals':
-      return evaluateExpression(args[0], dataSources) !== evaluateExpression(args[1], dataSources);
+      return !typeSafeEquals(evaluateExpression(args[0], dataSources), evaluateExpression(args[1], dataSources));
 
     case 'not':
       return !toBoolean(evaluateExpression(args[0], dataSources));
@@ -214,6 +214,26 @@ function toNumber(value: unknown): number | null {
     return value ? 1 : 0;
   }
   return null;
+}
+
+/**
+ * Type-aware equality for expression comparison. When both operands are the
+ * same type, uses strict equality. When types differ (e.g. boolean `false` vs
+ * string `"false"`), converts both to strings before comparing. This handles
+ * the common case where form data is coerced to a native type (boolean/number)
+ * by convertData but the expression literal is still a string.
+ */
+function typeSafeEquals(a: unknown, b: unknown): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (a === null || a === undefined || b === null || b === undefined) {
+    return a == b; // null == undefined → true
+  }
+  if (typeof a === typeof b) {
+    return false; // same type, already failed strict equality
+  }
+  return String(a) === String(b);
 }
 
 function toBoolean(value: unknown): boolean {
