@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WorkflowEngine.EndToEndTests.Fixtures;
+namespace WorkflowEngine.Integration.Tests.Fixtures;
 
 /// <summary>
 /// Inner WebApplicationFactory that wires test-specific configuration into the running ASP.NET Core application.

@@ -9,7 +9,7 @@ using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
 
-namespace WorkflowEngine.EndToEndTests.Fixtures;
+namespace WorkflowEngine.Integration.Tests.Fixtures;
 
 /// <summary>
 /// Shared fixture that boots a real PostgreSQL container, a WireMock server, and the full

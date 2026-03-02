@@ -23,8 +23,8 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    <InternalsVisibleTo Include="WorkflowEngine.Repository.Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.Integration.Tests" />
-    <InternalsVisibleTo Include="WorkflowEngine.EndToEndTests" />
   </ItemGroup>
 
 </Project>

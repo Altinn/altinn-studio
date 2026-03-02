@@ -5,7 +5,7 @@ using WireMock.ResponseBuilders;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 
-namespace WorkflowEngine.EndToEndTests;
+namespace WorkflowEngine.Integration.Tests;
 
 public partial class EngineEndToEndTests
 {
