@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
@@ -35,8 +34,4 @@ public class ChatThreadDbModel
     /// </summary>
     public required DateTime CreatedAt { get; set; }
 
-    /// <summary>
-    /// Navigation property for messages.
-    /// </summary>
-    public List<ChatMessageDbModel> Messages { get; set; } = [];
 }

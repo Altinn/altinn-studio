@@ -14,7 +14,7 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
 
         builder
             .HasOne<ChatThreadDbModel>()
-            .WithMany(t => t.Messages)
+            .WithMany()
             .HasForeignKey(e => e.ThreadId)
             .OnDelete(DeleteBehavior.Cascade);
 
