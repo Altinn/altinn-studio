@@ -71,23 +71,25 @@ function DialogContent({ orgName, ...rest }: DialogProps): React.ReactNode {
       return <StudioError>{t('ux_editor.options.published_code_list.loading_error')}</StudioError>;
     case 'success':
       Guard.againstUndefined(data);
-      return <DialogContentWithData orgName={orgName} publishedCodeListFiles={data} {...rest} />;
+      return (
+        <DialogContentWithData orgName={orgName} publishedCodeListFileNames={data} {...rest} />
+      );
     default:
       return null; // No need to display any "pending" state since the data is probably already loaded when the user opens the dialog
   }
 }
 
 type DialogContentWithDataProps = DialogProps & {
-  readonly publishedCodeListFiles: string[];
+  readonly publishedCodeListFileNames: string[];
 };
 
 function DialogContentWithData({
-  publishedCodeListFiles,
+  publishedCodeListFileNames,
   ...rest
 }: DialogContentWithDataProps): React.ReactElement {
   const publishedCodeLists = React.useMemo(
-    () => new PublishedElements(publishedCodeListFiles),
-    [publishedCodeListFiles],
+    () => new PublishedElements(publishedCodeListFileNames),
+    [publishedCodeListFileNames],
   );
   if (publishedCodeLists.hasAtLeastOneElement()) {
     return <Form {...rest} publishedCodeLists={publishedCodeLists} />;
