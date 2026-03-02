@@ -25,17 +25,30 @@ export function createValidationStore() {
   return createStore<ValidationStore>()((set, get) => ({
     fieldValidations: {},
     setFieldValidations: (path, validations) =>
-      set((state) => ({
-        fieldValidations: { ...state.fieldValidations, [path]: validations },
-      })),
+      set((state) => {
+        const existing = state.fieldValidations[path];
+        // Skip update if validations are identical to avoid unnecessary store notifications
+        if (existing && existing.length === validations.length &&
+            existing.every((v, i) => v.severity === validations[i].severity && v.message === validations[i].message)) {
+          return state;
+        }
+        return { fieldValidations: { ...state.fieldValidations, [path]: validations } };
+      }),
     clearField: (path) =>
       set((state) => {
+        if (!(path in state.fieldValidations)) {
+          return state;
+        }
         const { [path]: _, ...rest } = state.fieldValidations;
         return { fieldValidations: rest };
       }),
     clearAll: () => set({ fieldValidations: {} }),
     clearByPathPrefix: (prefix) =>
       set((state) => {
+        const hasMatch = Object.keys(state.fieldValidations).some((key) => key.startsWith(prefix));
+        if (!hasMatch) {
+          return state;
+        }
         const kept: Record<string, FieldValidation[]> = {};
         for (const [key, value] of Object.entries(state.fieldValidations)) {
           if (!key.startsWith(prefix)) {
@@ -46,6 +59,10 @@ export function createValidationStore() {
       }),
     clearBackend: () =>
       set((state) => {
+        const hasBackend = Object.keys(state.fieldValidations).some((key) => !key.includes(':__'));
+        if (!hasBackend) {
+          return state;
+        }
         const kept: Record<string, FieldValidation[]> = {};
         for (const [key, value] of Object.entries(state.fieldValidations)) {
           if (key.includes(':__')) {

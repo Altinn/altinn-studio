@@ -16,55 +16,57 @@ Our implementation had broad `state.data` subscriptions at multiple levels causi
 
 ## Fixes Applied
 
-### 1. ComponentRenderer in FormEngine.tsx — DONE
+### Round 1: Broad form data subscriptions
+
+#### 1. ComponentRenderer in FormEngine.tsx — DONE
 - **Was:** `useStore(client.formDataStore, (s) => s.data)` — every component subscribed to the entire data tree
 - **Fix:** Removed subscription. Hidden evaluation moved into a Zustand selector returning a boolean (only re-renders when hidden state flips). Added `memo()` wrapper and `useCallback` for `renderChildren`.
 
-### 2. useLanguage() in useLanguage.ts — DONE
+#### 2. useLanguage() in useLanguage.ts — DONE
 - **Was:** `useStore(client.formDataStore, (state) => state.data)` — used by ~15 components
 - **Why it existed:** `resolveTextResource` can replace variables from form data
 - **Fix:** Removed subscription. `langAsString` now reads form data lazily via `client.textResourceDataSources.formDataGetter` (uses `getState()` at call time). Components only re-render when text resources or language change.
 - **Trade-off:** Text resources with dataModel variables won't reactively update on screen when the referenced field changes. If this becomes a problem, a targeted subscription for only those text resources would be needed.
 
-### 3. useIsRequired() in hooks.ts — DONE
+#### 3. useIsRequired() in hooks.ts — DONE
 - **Was:** `useStore(client.formDataStore, (state) => state.data)` + `useMemo` — every input component subscribed to all data
 - **Fix:** Expression evaluated inside a Zustand selector returning a boolean.
 
-### 4. usePageOrder() in hooks.ts — DONE
+#### 4. usePageOrder() in hooks.ts — DONE
 - **Was:** `useStore(client.formDataStore, (state) => state.data)` + `useMemo`
 - **Fix:** Evaluated inside a `useShallow` selector returning the filtered page array.
 
-### 5. DataTask in task.tsx — DONE
+### Round 2: Parent re-render cascades
+
+#### 5. DataTask in task.tsx — DONE
 - **Was:** `useExpressionValidation()`, `useSchemaValidation()`, `useFormDataPersistence()` all subscribe to `state.data`, causing DataTask to re-render → Outlet → Page → FormEngine → all components
 - **Fix:** Extracted into renderless `<DataTaskSideEffects />` component. Re-renders are isolated and don't cascade into the component tree.
 
-### 6. Page in page.tsx — DONE
+#### 6. Page in page.tsx — DONE
 - **Was:** `useFormData()` for debug display caused Page to re-render on every keystroke, breaking memo on FormEngine's children
-- **Fix:** Removed debug display (was commented out by user). Page no longer subscribes to form data.
+- **Fix:** Debug display removed/commented out. Page no longer subscribes to form data.
 
-## Remaining Work
+### Round 3: Validation store thrashing
 
-The fixes above significantly reduced re-renders but didn't fully achieve per-component isolation. Areas to investigate:
+#### 7. validationStore setFieldValidations/clearField — DONE
+- **Was:** `setFieldValidations` always spread a new `fieldValidations` object even when the validations were identical. `clearField` always spread even when the path didn't exist. `useExpressionValidation` and `useSchemaValidation` call these on every data change for every field, causing the validation store to update on every keystroke, which notified all `useFieldValidations` subscribers.
+- **Fix:** Both methods now compare before updating — `setFieldValidations` checks if severity+message are identical, `clearField` checks if the path exists. Also fixed `clearBackend` and `clearByPathPrefix` to skip no-op updates.
 
-### Remaining broad subscriptions to audit
-- **`useExpressionValidation`** and **`useSchemaValidation`** write to the validation store on every data change. If validation store updates cause components to re-render via `useFieldValidations`, this could still cascade. Check if validation store writes produce new references even when validations haven't changed.
-- **`useFormDataPersistence`** — verify it doesn't cause cascading effects.
+## Verified: Not Causing Issues
 
-### Zustand selector behavior
-- Our formDataStore is created without `subscribeWithSelector` middleware. The POC uses `subscribeWithSelector`. Without it, Zustand still runs selectors on every store update, but the selector return value comparison may behave differently. Investigate whether adding `subscribeWithSelector` middleware helps.
-- The `useStore(store, () => { ... })` pattern (used in ComponentRenderer for hidden, and useIsRequired) runs the selector on every store update to compare the result. This is correct behavior — it evaluates but only triggers re-render if the result changed. However, verify Zustand is actually comparing the return values properly without the middleware.
+- **`useBoundValue`** — uses `useShallow` but returns a primitive; `Object.is` short-circuits in `shallow()`. Only re-renders when that specific field's value changes.
+- **`useFieldValidations`** — the `[...spread]` creates a new array, but `useShallow` compares items by reference. Since validation store now skips no-op updates, the stored `FieldValidation[]` arrays are reference-stable.
+- **`useFormDataPersistence`** — uses `onFormDataChange` callback subscription, not `useStore`. Does not cause React re-renders.
+- **`subscribeWithSelector` middleware** — not needed. Zustand's `useStore` (React binding) uses `useSyncExternalStore` which already compares selector results with `Object.is`. The middleware adds subscription-level filtering on the vanilla store, but the React hook already handles this.
+- **`useFormClient()` Context** — returns a stable `FormClient` instance. The Context value never changes, so it never triggers re-renders.
 
-### Component-level subscriptions to verify
-- Components using `useBoundValue` with `useShallow` — these should be fine since they select a single primitive value
-- Components using `useMultiBinding` (Custom) — uses `useShallow` on an object, verify shallow comparison works correctly
-- Components using `useFieldValidations` — returns a new array on every call if any validation exists (the `[...spread]` creates a new reference). Consider returning a stable reference when validations haven't changed.
+## Remaining Investigation (if still not fully resolved)
 
-### POC patterns we haven't adopted yet
-- The POC reads the bound value AND evaluates hidden AND validates all inside `RenderComponent` via selectors, then passes results down as props. Our architecture delegates these to individual component hooks. Both approaches can work, but the POC's approach gives tighter control over what triggers re-renders.
-- The POC uses a single global store (`layoutStore`) rather than a client instance via Context. Our Context-based approach is fine but means `useFormClient()` adds an extra layer.
+### Possible remaining issues
+- **`useRequiredValidation`** calls `useEffect` that writes to validation store. If `hasError`/`title`/`langAsString` deps change unnecessarily, it could trigger extra store writes. `langAsString` reference stability depends on `resources` and `language` from textResourceStore — if those are stable (they should be), `langAsString` via `useCallback` should be stable too.
+- **Components that call multiple hooks** — even if each hook is individually correct, React batches hook updates. If multiple hooks trigger at once (e.g. `useBoundValue` + `useIsRequired` + `useFieldValidations`), the component renders once but that's expected.
 
-## How to Debug Re-renders
-
+### How to debug further
 Use React DevTools Profiler:
 1. Enable "Record why each component rendered" in Profiler settings
 2. Type in a field and stop the profiler
@@ -72,7 +74,7 @@ Use React DevTools Profiler:
 
 Or add temporary logging:
 ```typescript
-// In ComponentRenderer, before the memo wrapper:
+// In ComponentRenderer, after the memo wrapper opens:
 console.log('Render:', component.id, component.type);
 ```
 
