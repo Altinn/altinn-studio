@@ -6,6 +6,8 @@ export interface ExpressionDataSources {
   frontendSettings: Record<string, string | undefined> | null;
   textResourceResolver?: (key: string) => string;
   positionalArguments?: unknown[];
+  /** Resolve a component ID to its current form data value (row-aware for repeating groups) */
+  componentLookup?: (componentId: string) => FormDataPrimitive | undefined;
 }
 
 type Expression = unknown;
@@ -81,8 +83,12 @@ export function evaluateExpression(expr: Expression, dataSources: ExpressionData
     }
 
     case 'component': {
-      const componentPath = String(evaluateExpression(args[0], dataSources) ?? '');
-      return dataSources.formDataGetter(componentPath);
+      const componentId = String(evaluateExpression(args[0], dataSources) ?? '');
+      if (dataSources.componentLookup) {
+        return dataSources.componentLookup(componentId);
+      }
+      // Fallback: treat as data model path (won't work for repeating groups)
+      return dataSources.formDataGetter(componentId);
     }
 
     case 'concat': {

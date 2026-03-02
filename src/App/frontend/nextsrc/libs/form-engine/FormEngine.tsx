@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useStore } from 'zustand';
 
 import { evaluateBoolean } from 'nextsrc/libs/form-client/expressions/evaluate';
+import type { ExpressionDataSources } from 'nextsrc/libs/form-client/expressions/evaluate';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { ComponentErrorBoundary } from 'nextsrc/libs/form-engine/ComponentErrorBoundary';
 import { Accordion } from 'nextsrc/libs/form-engine/components/Accordion/Accordion';
@@ -47,6 +48,7 @@ import { Text } from 'nextsrc/libs/form-engine/components/Text/Text';
 import { TextArea } from 'nextsrc/libs/form-engine/components/TextArea/TextArea';
 import { TimePicker } from 'nextsrc/libs/form-engine/components/TimePicker/TimePicker';
 import { Video } from 'nextsrc/libs/form-engine/components/Video/Video';
+import { findComponentById, getSimpleBinding } from 'nextsrc/libs/form-engine/utils/findComponent';
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
 import type { ComponentMap } from 'nextsrc/libs/form-engine/components';
 
@@ -140,6 +142,41 @@ const ComponentRenderer = memo(function ComponentRenderer({
 }: ComponentRendererProps) {
   const client = useFormClient();
 
+  // Build expression data sources with component lookup for repeating group support
+  const buildDataSources = (): ExpressionDataSources => {
+    const formDataGetter = (path: string) => client.formDataStore.getState().getValue(path);
+
+    const componentLookup = (componentId: string) => {
+      const target = findComponentById(client, componentId);
+      if (!target) {
+        return undefined;
+      }
+      const rawBinding = getSimpleBinding(target);
+      if (!rawBinding) {
+        return undefined;
+      }
+      // If we're inside a repeating group row, transpose the binding path
+      // e.g. "rapport.rapportering.agentforetak.opphoerEllerBekreftelse"
+      //    → "rapport.rapportering.agentforetak[0].opphoerEllerBekreftelse"
+      if (parentBinding !== undefined && itemIndex !== undefined) {
+        const groupBase = parentBinding;
+        if (rawBinding === groupBase || rawBinding.startsWith(`${groupBase}.`)) {
+          const indexed = `${groupBase}[${itemIndex}]`;
+          const transposed = rawBinding === groupBase ? indexed : indexed + rawBinding.slice(groupBase.length);
+          return formDataGetter(transposed);
+        }
+      }
+      return formDataGetter(rawBinding);
+    };
+
+    return {
+      formDataGetter,
+      instanceDataSources: client.textResourceDataSources.instanceDataSources,
+      frontendSettings: client.textResourceDataSources.applicationSettings,
+      componentLookup,
+    };
+  };
+
   // Evaluate hidden expression inside a Zustand selector so this component
   // only re-renders when the boolean result actually changes, not on every
   // form data update.
@@ -147,15 +184,7 @@ const ComponentRenderer = memo(function ComponentRenderer({
     if (!component.hidden) {
       return false;
     }
-    return evaluateBoolean(
-      component.hidden,
-      {
-        formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
-        instanceDataSources: client.textResourceDataSources.instanceDataSources,
-        frontendSettings: client.textResourceDataSources.applicationSettings,
-      },
-      false,
-    );
+    return evaluateBoolean(component.hidden, buildDataSources(), false);
   });
 
   // Stabilize renderChildren so child components don't lose memo benefits
