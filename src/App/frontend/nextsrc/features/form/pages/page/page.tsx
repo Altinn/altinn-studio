@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams } from 'react-router';
 
 import { useLayout } from 'nextsrc/libs/form-client/react/hooks';
+import { AppComponentsBridge } from 'nextsrc/libs/form-engine/AppComponentsBridge';
 import { FormEngine } from 'nextsrc/libs/form-engine/FormEngine';
 
 /**
@@ -29,7 +30,9 @@ export const Page = () => {
 
   return (
     <div style={{ fontFamily: 'arial' }}>
-      <FormEngine components={layout.data.layout} />
+      <AppComponentsBridge>
+        <FormEngine components={layout.data.layout} />
+      </AppComponentsBridge>
       {/*<FormDataDebug />*/}
     </div>
   );

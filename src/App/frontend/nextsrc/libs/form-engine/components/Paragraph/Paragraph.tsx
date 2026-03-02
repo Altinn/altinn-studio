@@ -1,8 +1,10 @@
 import React from 'react';
 
 import { marked } from 'marked';
-import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 
+import { HelpText } from 'src/app-components/HelpText/HelpText';
+import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
+import { asTranslationKey } from 'nextsrc/libs/form-engine/AppComponentsBridge';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompParagraphExternal } from 'src/layout/Paragraph/config.generated';
 
@@ -14,16 +16,16 @@ export const Paragraph = ({ component }: ComponentProps) => {
 
   const helpKey = typeof props.textResourceBindings?.help === 'string' ? props.textResourceBindings.help : undefined;
   const helpText = useTextResource(helpKey);
-  const helpHtml = helpText ? marked(helpText, { async: false }) : '';
 
   return (
-    <div>
+    <div style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
       <div dangerouslySetInnerHTML={{ __html: html }} />
       {helpText && (
-        <details>
-          <summary>Hjelp</summary>
-          <div dangerouslySetInnerHTML={{ __html: helpHtml }} />
-        </details>
+        <HelpText
+          title={asTranslationKey(titleKey ?? 'helptext.button_title')}
+        >
+          {helpText}
+        </HelpText>
       )}
     </div>
   );

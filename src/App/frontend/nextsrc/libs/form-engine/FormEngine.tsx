@@ -1,10 +1,7 @@
 import React, { memo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
-import { useStore } from 'zustand';
-
 import { evaluateBoolean } from 'nextsrc/libs/form-client/expressions/evaluate';
-import type { ExpressionDataSources } from 'nextsrc/libs/form-client/expressions/evaluate';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { ComponentErrorBoundary } from 'nextsrc/libs/form-engine/ComponentErrorBoundary';
 import { Accordion } from 'nextsrc/libs/form-engine/components/Accordion/Accordion';
@@ -49,8 +46,13 @@ import { TextArea } from 'nextsrc/libs/form-engine/components/TextArea/TextArea'
 import { TimePicker } from 'nextsrc/libs/form-engine/components/TimePicker/TimePicker';
 import { Video } from 'nextsrc/libs/form-engine/components/Video/Video';
 import { findComponentById, getSimpleBinding } from 'nextsrc/libs/form-engine/utils/findComponent';
+import { useStore } from 'zustand';
+import type { ExpressionDataSources } from 'nextsrc/libs/form-client/expressions/evaluate';
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
 import type { ComponentMap } from 'nextsrc/libs/form-engine/components';
+
+import { Flex } from 'src/app-components/Flex/Flex';
+import type { IGrid } from 'src/layout/common.generated';
 
 export const defaultComponentMap: ComponentMap = {
   Accordion,
@@ -108,24 +110,26 @@ export const FormEngine = ({
   componentMap = defaultComponentMap,
   parentBinding,
   itemIndex,
-}: FormEngineProps) => {
-  return (
-    <div data-testid='AppHeader'>
-      <div id='finishedLoading' />
-      <div>
-        {components.map((component) => (
-          <ComponentRenderer
-            key={component.id}
-            component={component}
-            componentMap={componentMap}
-            parentBinding={parentBinding}
-            itemIndex={itemIndex}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
+}: FormEngineProps) => (
+  <div data-testid='AppHeader'>
+    <div id='finishedLoading' />
+    <Flex
+      container
+      spacing={6}
+      alignItems='flex-start'
+    >
+      {components.map((component) => (
+        <ComponentRenderer
+          key={component.id}
+          component={component}
+          componentMap={componentMap}
+          parentBinding={parentBinding}
+          itemIndex={itemIndex}
+        />
+      ))}
+    </Flex>
+  </div>
+);
 
 interface ComponentRendererProps {
   component: ResolvedCompExternal;
@@ -189,16 +193,23 @@ const ComponentRenderer = memo(function ComponentRenderer({
 
   // Stabilize renderChildren so child components don't lose memo benefits
   const renderChildren = useCallback(
-    (children: ResolvedCompExternal[]): ReactNode =>
-      children.map((child) => (
-        <ComponentRenderer
-          key={child.id}
-          component={child}
-          componentMap={componentMap}
-          parentBinding={parentBinding}
-          itemIndex={itemIndex}
-        />
-      )),
+    (children: ResolvedCompExternal[]): ReactNode => (
+      <Flex
+        container
+        spacing={6}
+        alignItems='flex-start'
+      >
+        {children.map((child) => (
+          <ComponentRenderer
+            key={child.id}
+            component={child}
+            componentMap={componentMap}
+            parentBinding={parentBinding}
+            itemIndex={itemIndex}
+          />
+        ))}
+      </Flex>
+    ),
     [componentMap, parentBinding, itemIndex],
   );
 
@@ -208,17 +219,33 @@ const ComponentRenderer = memo(function ComponentRenderer({
 
   const Component = componentMap[component.type];
   if (!Component) {
-    return <div>Component not implemented: {component.type} ID: {component.id}</div>;
+    return (
+      <div>
+        Component not implemented: {component.type} ID: {component.id}
+      </div>
+    );
   }
 
+  const grid = (component as Record<string, unknown>).grid as IGrid | undefined;
+
   return (
-    <ComponentErrorBoundary componentId={component.id} componentType={component.type}>
-      <Component
-        component={component}
-        renderChildren={renderChildren}
-        parentBinding={parentBinding}
-        itemIndex={itemIndex}
-      />
-    </ComponentErrorBoundary>
+    <Flex
+      item
+      container
+      size={grid}
+      key={`grid-${component.id}`}
+    >
+      <ComponentErrorBoundary
+        componentId={component.id}
+        componentType={component.type}
+      >
+        <Component
+          component={component}
+          renderChildren={renderChildren}
+          parentBinding={parentBinding}
+          itemIndex={itemIndex}
+        />
+      </ComponentErrorBoundary>
+    </Flex>
   );
 });

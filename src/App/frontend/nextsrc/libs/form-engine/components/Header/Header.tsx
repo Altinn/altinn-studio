@@ -1,8 +1,10 @@
 import React from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
-import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 
+import { HelpText } from 'src/app-components/HelpText/HelpText';
+import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
+import { asTranslationKey } from 'nextsrc/libs/form-engine/AppComponentsBridge';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompHeaderExternal } from 'src/layout/Header/config.generated';
 
@@ -19,7 +21,20 @@ export const Header = ({ component }: ComponentProps) => {
   const props = component as CompHeaderExternal;
   const titleKey = typeof props.textResourceBindings?.title === 'string' ? props.textResourceBindings.title : undefined;
   const title = useTextResource(titleKey);
+  const helpKey = typeof props.textResourceBindings?.help === 'string' ? props.textResourceBindings.help : undefined;
+  const helpText = useTextResource(helpKey);
   const level = sizeToLevel[props.size] ?? 2;
 
-  return <Heading level={level}>{title}</Heading>;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <Heading level={level}>{title}</Heading>
+      {helpText && (
+        <HelpText
+          title={asTranslationKey(titleKey ?? 'helptext.button_title')}
+        >
+          {helpText}
+        </HelpText>
+      )}
+    </div>
+  );
 };

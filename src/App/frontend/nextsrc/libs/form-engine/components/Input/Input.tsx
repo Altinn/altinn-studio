@@ -1,17 +1,26 @@
 import React from 'react';
 
 import { Textfield } from '@digdir/designsystemet-react';
-import { NumericFormat, PatternFormat } from 'react-number-format';
-import { useStore } from 'zustand';
-
 import { useBoundValue, useRequiredValidation, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
-import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
+import { asTranslationKey } from 'nextsrc/libs/form-engine/AppComponentsBridge';
 import classes from 'nextsrc/libs/form-engine/components/Input/Input.module.css';
-import { isNumericFormat, isPatternFormat, useNumberFormatConfig } from 'nextsrc/libs/form-engine/components/Input/numberFormat';
+import {
+  isNumericFormat,
+  isPatternFormat,
+  useNumberFormatConfig,
+} from 'nextsrc/libs/form-engine/components/Input/numberFormat';
+import { useLabelProps } from 'nextsrc/libs/form-engine/components/useLabelProps';
+import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
+import { useStore } from 'zustand';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
+import { Flex } from 'src/app-components/Flex/Flex';
+import { FormattedInput } from 'src/app-components/Input/FormattedInput';
+import { Input as AppInput } from 'src/app-components/Input/Input';
+import { NumericInput } from 'src/app-components/Input/NumericInput';
+import { Label } from 'src/app-components/Label/Label';
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
 
 export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) => {
@@ -21,19 +30,23 @@ export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) =
   const titleKey = typeof props.textResourceBindings?.title === 'string' ? props.textResourceBindings.title : undefined;
   const title = useTextResource(titleKey);
   const required = useRequiredValidation(props.required, simpleBinding, value, title);
+  const { help, description, requiredIndicator } = useLabelProps(props.textResourceBindings);
 
-  const descriptionKey =
-    typeof props.textResourceBindings?.description === 'string' ? props.textResourceBindings.description : undefined;
-  const description = useTextResource(descriptionKey);
-  const prefixKey = typeof props.textResourceBindings?.prefix === 'string' ? props.textResourceBindings.prefix : undefined;
-  const prefixText = useTextResource(prefixKey);
-  const suffixKey = typeof props.textResourceBindings?.suffix === 'string' ? props.textResourceBindings.suffix : undefined;
-  const suffixText = useTextResource(suffixKey);
+  const prefixKey =
+    typeof props.textResourceBindings?.prefix === 'string' ? props.textResourceBindings.prefix : undefined;
+  const suffixKey =
+    typeof props.textResourceBindings?.suffix === 'string' ? props.textResourceBindings.suffix : undefined;
 
   const client = useFormClient();
   const language = useStore(client.textResourceStore, (state) => state.language);
   const formatting = props.formatting as
-    | { number?: Record<string, unknown>; currency?: string; unit?: string; position?: 'prefix' | 'suffix'; align?: 'left' | 'center' | 'right' }
+    | {
+        number?: Record<string, unknown>;
+        currency?: string;
+        unit?: string;
+        position?: 'prefix' | 'suffix';
+        align?: 'left' | 'center' | 'right';
+      }
     | undefined;
   const numberFormatConfig = useNumberFormatConfig(formatting, String(value ?? ''), language);
   const numberFormat = numberFormatConfig?.number;
@@ -50,85 +63,114 @@ export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) =
     );
   }
 
+  const labelProps = titleKey ? { 'aria-label': asTranslationKey(titleKey)! } : { label: title as React.ReactNode };
+
   // Number format variant
   if (numberFormat && isNumericFormat(numberFormat)) {
     return (
-      <div className={alignClass}>
-        <NumericFormat
-          customInput={Textfield}
-          label={title || ''}
-          description={description || undefined}
-          prefix={numberFormat.prefix || prefixText || undefined}
-          suffix={numberFormat.suffix || suffixText || undefined}
-          required={required}
-          readOnly={props.readOnly as boolean | undefined}
-          id={props.id}
-          value={formValue}
-          thousandSeparator={numberFormat.thousandSeparator}
-          decimalSeparator={numberFormat.decimalSeparator}
-          decimalScale={numberFormat.decimalScale}
-          allowNegative={numberFormat.allowNegative}
-          allowLeadingZeros={numberFormat.allowLeadingZeros}
-          onValueChange={(values, sourceInfo) => {
-            if (sourceInfo.source === 'prop') {
-              return;
-            }
-            setValue(values.value);
-          }}
-          autoComplete={props.autocomplete}
-        />
-        <ComponentValidations bindingPath={simpleBinding} />
-      </div>
+      <Label
+        label={title}
+        htmlFor={props.id}
+        required={required}
+        requiredIndicator={requiredIndicator}
+        help={help}
+        description={description}
+        grid={props.grid?.labelGrid}
+      >
+        <Flex item size={{ xs: 12 }} className={alignClass}>
+          <NumericInput
+            {...labelProps}
+            id={props.id}
+            prefix={asTranslationKey(numberFormat.prefix || prefixKey)}
+            suffix={asTranslationKey(numberFormat.suffix || suffixKey)}
+            required={required}
+            readOnly={props.readOnly as boolean | undefined}
+            value={formValue}
+            thousandSeparator={numberFormat.thousandSeparator}
+            decimalSeparator={numberFormat.decimalSeparator}
+            decimalScale={numberFormat.decimalScale}
+            allowNegative={numberFormat.allowNegative}
+            allowLeadingZeros={numberFormat.allowLeadingZeros}
+            onValueChange={(values, sourceInfo) => {
+              if (sourceInfo.source === 'prop') {
+                return;
+              }
+              setValue(values.value);
+            }}
+            autoComplete={props.autocomplete}
+            maxLength={props.maxLength ?? undefined}
+          />
+          <ComponentValidations bindingPath={simpleBinding} />
+        </Flex>
+      </Label>
     );
   }
 
   // Pattern format variant
   if (numberFormat && isPatternFormat(numberFormat)) {
     return (
-      <div className={alignClass}>
-        <PatternFormat
-          customInput={Textfield}
-          label={title || ''}
-          description={description || undefined}
-          prefix={prefixText || undefined}
-          suffix={suffixText || undefined}
-          required={required}
-          readOnly={props.readOnly as boolean | undefined}
-          id={props.id}
-          value={formValue}
-          format={numberFormat.format}
-          mask={numberFormat.mask}
-          onValueChange={(values, sourceInfo) => {
-            if (sourceInfo.source === 'prop') {
-              return;
-            }
-            setValue(values.value);
-          }}
-          autoComplete={props.autocomplete}
-        />
-        <ComponentValidations bindingPath={simpleBinding} />
-      </div>
+      <Label
+        label={title}
+        htmlFor={props.id}
+        required={required}
+        requiredIndicator={requiredIndicator}
+        help={help}
+        description={description}
+        grid={props.grid?.labelGrid}
+      >
+        <Flex item size={{ xs: 12 }} className={alignClass}>
+          <FormattedInput
+            {...labelProps}
+            id={props.id}
+            prefix={asTranslationKey(prefixKey)}
+            suffix={asTranslationKey(suffixKey)}
+            required={required}
+            readOnly={props.readOnly as boolean | undefined}
+            value={formValue}
+            format={numberFormat.format}
+            mask={numberFormat.mask}
+            onValueChange={(values, sourceInfo) => {
+              if (sourceInfo.source === 'prop') {
+                return;
+              }
+              setValue(values.value);
+            }}
+            autoComplete={props.autocomplete}
+            maxLength={props.maxLength ?? undefined}
+          />
+          <ComponentValidations bindingPath={simpleBinding} />
+        </Flex>
+      </Label>
     );
   }
 
   // Text/search variant
   return (
-    <div className={alignClass}>
-      <Textfield
-        label={title || ''}
-        description={description || undefined}
-        prefix={prefixText || undefined}
-        suffix={suffixText || undefined}
-        id={props.id}
-        type={props.variant === 'search' ? 'search' : 'text'}
-        required={required}
-        readOnly={props.readOnly as boolean | undefined}
-        value={formValue}
-        onChange={(e) => setValue(e.target.value)}
-        autoComplete={props.autocomplete}
-        counter={props.maxLength ?? undefined}
-      />
-      <ComponentValidations bindingPath={simpleBinding} />
-    </div>
+    <Label
+      label={title}
+      htmlFor={props.id}
+      required={required}
+      requiredIndicator={requiredIndicator}
+      help={help}
+      description={description}
+      grid={props.grid?.labelGrid}
+    >
+      <div className={alignClass}>
+        <AppInput
+          {...labelProps}
+          id={props.id}
+          type={props.variant === 'search' ? 'search' : 'text'}
+          prefix={asTranslationKey(prefixKey)}
+          suffix={asTranslationKey(suffixKey)}
+          required={required}
+          readOnly={props.readOnly as boolean | undefined}
+          value={formValue}
+          onChange={(e) => setValue(e.target.value)}
+          autoComplete={props.autocomplete}
+          maxLength={props.maxLength ?? undefined}
+        />
+        <ComponentValidations bindingPath={simpleBinding} />
+      </div>
+    </Label>
   );
 };

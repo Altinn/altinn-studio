@@ -1,27 +1,13 @@
 import React from 'react';
 
-import { Heading } from '@digdir/designsystemet-react';
-import {
-  CheckmarkCircleIcon,
-  ExclamationmarkTriangleIcon,
-  InformationSquareIcon,
-  XMarkOctagonIcon,
-} from '@navikt/aksel-icons';
 import { marked } from 'marked';
-import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 
-import classes from 'nextsrc/libs/form-engine/components/Panel/Panel.module.css';
+import { Panel as AppPanel } from 'src/app-components/Panel/Panel';
+import type { PanelVariant } from 'src/app-components/Panel/Panel';
+import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
+import { asTranslationKey } from 'nextsrc/libs/form-engine/AppComponentsBridge';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompPanelExternal } from 'src/layout/Panel/config.generated';
-
-type PanelVariant = 'info' | 'warning' | 'error' | 'success';
-
-const iconMap: Record<PanelVariant, React.ComponentType<{ fontSize: string }>> = {
-  info: InformationSquareIcon,
-  warning: ExclamationmarkTriangleIcon,
-  error: XMarkOctagonIcon,
-  success: CheckmarkCircleIcon,
-};
 
 export const Panel = ({ component }: ComponentProps) => {
   const props = component as CompPanelExternal;
@@ -35,28 +21,13 @@ export const Panel = ({ component }: ComponentProps) => {
 
   const bodyHtml = body ? marked(body, { async: false }) : '';
 
-  const Icon = iconMap[variant];
-
   return (
-    <div className={classes.panel}>
-      <div className={`${classes.panelContentWrapper} ${classes[`panelContentWrapper_${variant}`]}`}>
-        {showIcon && (
-          <div className={`${classes.panelIconWrapper} ${classes[`panelIconWrapper_${variant}`]}`}>
-            <Icon fontSize='2rem' />
-          </div>
-        )}
-        <div className={classes.panelContent}>
-          {title && (
-            <Heading
-              level={2}
-              data-size='sm'
-            >
-              {title}
-            </Heading>
-          )}
-          {body && <div dangerouslySetInnerHTML={{ __html: bodyHtml }} />}
-        </div>
-      </div>
-    </div>
+    <AppPanel
+      variant={variant}
+      showIcon={showIcon}
+      title={title ? asTranslationKey(titleKey) : undefined}
+    >
+      {body && <div dangerouslySetInnerHTML={{ __html: bodyHtml }} />}
+    </AppPanel>
   );
 };

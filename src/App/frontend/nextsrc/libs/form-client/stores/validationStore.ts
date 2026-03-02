@@ -28,8 +28,11 @@ export function createValidationStore() {
       set((state) => {
         const existing = state.fieldValidations[path];
         // Skip update if validations are identical to avoid unnecessary store notifications
-        if (existing && existing.length === validations.length &&
-            existing.every((v, i) => v.severity === validations[i].severity && v.message === validations[i].message)) {
+        if (
+          existing &&
+          existing.length === validations.length &&
+          existing.every((v, i) => v.severity === validations[i].severity && v.message === validations[i].message)
+        ) {
           return state;
         }
         return { fieldValidations: { ...state.fieldValidations, [path]: validations } };

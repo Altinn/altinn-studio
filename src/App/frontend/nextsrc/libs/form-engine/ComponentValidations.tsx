@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { ValidationMessage } from '@digdir/designsystemet-react';
+
 import { useFieldValidations } from 'nextsrc/libs/form-client/react/hooks';
 
 interface ComponentValidationsProps {
@@ -13,16 +15,28 @@ export const ComponentValidations = ({ bindingPath }: ComponentValidationsProps)
     return null;
   }
 
+  const errors = validations.filter((v) => v.severity === 'error');
+  const others = validations.filter((v) => v.severity !== 'error');
+
   return (
     <div data-testid='field-validation-messages'>
-      {validations.map((v, i) => (
-        <div
+      {errors.map((v, i) => (
+        <ValidationMessage
           key={i}
-          role={v.severity === 'error' ? 'alert' : 'status'}
+          data-size='sm'
+          asChild
+        >
+          <span role='alert'>{v.message}</span>
+        </ValidationMessage>
+      ))}
+      {others.map((v, i) => (
+        <div
+          key={`other-${i}`}
+          role='status'
+          data-color={v.severity === 'warning' ? 'warning' : v.severity === 'info' ? 'info' : 'success'}
           style={{
-            color: v.severity === 'error' ? '#d32f2f' : v.severity === 'warning' ? '#ed6300' : '#0062ba',
-            fontSize: '0.875rem',
-            marginTop: '0.25rem',
+            fontSize: 'var(--ds-font-size-sm)',
+            marginTop: 'var(--ds-spacing-1)',
           }}
         >
           {v.message}
