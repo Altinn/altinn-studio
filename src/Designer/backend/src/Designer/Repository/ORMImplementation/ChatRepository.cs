@@ -21,7 +21,7 @@ public class ChatRepository : IChatRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<ChatThreadEntity>> GetThreadsAsync(
+    public async Task<List<ChatThreadEntity>> GetThreadsAsync(
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     )
@@ -32,7 +32,7 @@ public class ChatRepository : IChatRepository
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return threads.Select(ChatThreadMapper.MapToModel);
+        return threads.Select(ChatThreadMapper.MapToModel).ToList();
     }
 
     /// <inheritdoc />
@@ -62,6 +62,21 @@ public class ChatRepository : IChatRepository
     }
 
     /// <inheritdoc />
+    public async Task<List<ChatMessageEntity>> GetMessagesAsync(
+        Guid threadId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var messages = await _dbContext
+            .ChatMessages.AsNoTracking()
+            .Where(m => m.ThreadId == threadId)
+            .OrderBy(m => m.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return messages.Select(ChatMessageMapper.MapToModel).ToList();
+    }
+
+    /// <inheritdoc />
     public async Task<ChatMessageEntity> CreateMessageAsync(
         Guid threadId,
         ChatMessageEntity message,
@@ -73,20 +88,5 @@ public class ChatRepository : IChatRepository
         _dbContext.ChatMessages.Add(dbModel);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return ChatMessageMapper.MapToModel(dbModel);
-    }
-
-    /// <inheritdoc />
-    public async Task<IEnumerable<ChatMessageEntity>> GetMessagesAsync(
-        Guid threadId,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var messages = await _dbContext
-            .ChatMessages.AsNoTracking()
-            .Where(m => m.ThreadId == threadId)
-            .OrderBy(m => m.CreatedAt)
-            .ToListAsync(cancellationToken);
-
-        return messages.Select(ChatMessageMapper.MapToModel);
     }
 }

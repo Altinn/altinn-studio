@@ -17,7 +17,7 @@ public interface IChatRepository
     /// </summary>
     /// <param name="context">An <see cref="AltinnRepoEditingContext"/>.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
-    Task<IEnumerable<ChatThreadEntity>> GetThreadsAsync(
+    Task<List<ChatThreadEntity>> GetThreadsAsync(
         AltinnRepoEditingContext context,
         CancellationToken cancellationToken = default
     );
@@ -45,6 +45,13 @@ public interface IChatRepository
     Task DeleteThreadAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets all messages for a given thread, ordered by creation time.
+    /// </summary>
+    /// <param name="threadId">The thread id.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
+    Task<List<ChatMessageEntity>> GetMessagesAsync(Guid threadId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates a new message in an existing thread.
     /// </summary>
     /// <param name="threadId">The id of the thread.</param>
@@ -56,11 +63,4 @@ public interface IChatRepository
         ChatMessageEntity message,
         CancellationToken cancellationToken = default
     );
-
-    /// <summary>
-    /// Gets all messages for a given thread, ordered by creation time.
-    /// </summary>
-    /// <param name="threadId">The thread id.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
-    Task<IEnumerable<ChatMessageEntity>> GetMessagesAsync(Guid threadId, CancellationToken cancellationToken = default);
 }
