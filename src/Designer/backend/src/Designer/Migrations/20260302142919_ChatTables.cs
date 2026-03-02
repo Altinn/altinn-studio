@@ -22,12 +22,13 @@ namespace Altinn.Studio.Designer.Migrations
                     app = table.Column<string>(type: "character varying", nullable: false),
                     created_by = table.Column<string>(type: "character varying", nullable: false),
                     title = table.Column<string>(type: "character varying", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamptz", nullable: false)
+                    created_at = table.Column<DateTime>(type: "timestamptz", nullable: false),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_chat_threads", x => x.id);
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "chat_messages",
@@ -41,7 +42,7 @@ namespace Altinn.Studio.Designer.Migrations
                     content = table.Column<string>(type: "character varying", nullable: false),
                     action_mode = table.Column<int>(type: "integer", nullable: true),
                     attachment_file_names = table.Column<List<string>>(type: "jsonb", nullable: true),
-                    files_changed = table.Column<List<string>>(type: "jsonb", nullable: true)
+                    files_changed = table.Column<List<string>>(type: "jsonb", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -52,32 +53,32 @@ namespace Altinn.Studio.Designer.Migrations
                         principalSchema: "designer",
                         principalTable: "chat_threads",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "idx_chat_messages_thread_id",
                 schema: "designer",
                 table: "chat_messages",
-                column: "thread_id");
+                column: "thread_id"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "idx_chat_threads_org_app_created_by",
                 schema: "designer",
                 table: "chat_threads",
-                columns: new[] { "org", "app", "created_by" });
+                columns: new[] { "org", "app", "created_by" }
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "chat_messages",
-                schema: "designer");
+            migrationBuilder.DropTable(name: "chat_messages", schema: "designer");
 
-            migrationBuilder.DropTable(
-                name: "chat_threads",
-                schema: "designer");
+            migrationBuilder.DropTable(name: "chat_threads", schema: "designer");
         }
     }
 }
