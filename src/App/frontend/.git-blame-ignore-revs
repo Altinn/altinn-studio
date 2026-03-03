@@ -1,0 +1,29 @@
+# Run this command to always ignore formatting commits in `git blame`
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# More info:
+# https://www.stefanjudis.com/today-i-learned/how-to-exclude-commits-from-git-blame/
+# Also, a horrible bash script to list out the 20 commits with the most files changed:
+# git log --pretty='@%h' --shortstat |grep -v \| |  tr "\n" " "  |  tr "@" "\n" | sed 's/,.*//' | sort -k2 -n | tail -n 20 | awk '{print "echo $(git log -1 --format=\'%H # %s\' " $1 ")" " - " $2 " files changed"}' | bash
+
+10a60c8c511223e02fc550df5528ba68b92bdbca # Chore/6401 minor repo cleanup and lint rule updates (#7387) - 74 files changed
+591d8f8f515266da2ed7f824246c2090a0cc2b08 # Repo cleanup: Cypress -> TypeScript (#735) - 76 files changed
+8b5c575aef57f5b847b568a60a74f1ea449e0196 # Feature/app frontend cleanup (#3711) - 78 files changed
+4c53b875182ed010076eb72a43b45ffe4e5f6224 # Feature/4745 replace atl app (#5205) - 108 files changed
+158d85b0c006f8e94698cf4e05d8a2b3fba1e686 # chore: move tests next to implementation (#7999) - 113 files changed
+7e8929c28b74b4fc48852c856c11b2073b6bc664 # Moving files related to layout components (#746) - 194 files changed
+1d3ab9a22be46c3b19080b8d2bd623a60afb2123 # Eslint import cleanup (#732) - 252 files changed
+140e818090835bfbaf33fa74540e5fde1769c42e # Automatic import sorting (#340) - 280 files changed
+04e51454bfbe57fdd2631f68d5935405a38a0cf1 # Prettier: 120 character printWidth (#621) - 327 files changed
+aa34ee9044fd5d0462f719cb66871df31e2ceb56 # chore: remove local prettier config for altinn-app-frontend (#302) - 377 files changed
+6cf5c1bcb6b83b9d7af0055654fdd3111f79b54d # moved app frontend to new structure (#3504) - 384 files changed
+f61775b410b61bf0e7ddcba094723764f275fab8 # Running prettier on commit (#86) - 424 files changed
+1f7b7bfaac08101cef657856f8cd304776634139 # Cleanup in repo (#724) - 888 files changed
+
+# Optional ignores. Stuff that absolutely do make code changes, but make a lot of code changes (which you might want
+# to ignore, depending on what you're looking for). Comment these in if you need them to be ignored:
+
+# 965f064df6b69767ffef0d841e4e31c25928de84 # Rewrite unit tests from Enzyme to React-testing-library (#335) - 92 files changed
+# 7f88ac44b86529b40602bcef3c7f68d7e37689e6 # Wrapping createSlice() to include saga references (#336) - 99 files changed
+# 0092a025066496d335dbbb33a8447c8ee8bc6db9 # Rewriting to use redux-toolkit (#329) - 199 files changed
+# b23f80b7f0c058e150d528817259eab1cacd0709 # Strict null-checks (#597) - 246 files changed

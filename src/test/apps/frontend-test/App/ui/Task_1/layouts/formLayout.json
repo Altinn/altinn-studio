@@ -111,7 +111,6 @@
       },
       {
         "id": "sendInButton",
-        "mode": "submit",
         "type": "Button",
         "textResourceBindings": {
           "title": "Send inn"
