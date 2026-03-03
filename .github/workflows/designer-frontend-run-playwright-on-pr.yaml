@@ -4,18 +4,18 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/Designer/frontend/**'
-      - '!src/Designer/frontend/admin/**'
-      - '!src/Designer/frontend/stats/**'
-      - 'src/Designer/backend/**'
-      - '.github/workflows/designer-frontend-run-playwright-on-pr.yaml'
-      - 'src/Designer/compose.yaml'
-      - 'src/Designer/Dockerfile'
-      - 'src/gitea/**'
-      - 'package.json'
-      - 'src/Designer/development/**'
-      - 'src/App/template/**'
-      - 'yarn.lock'
+      - "src/Designer/frontend/**"
+      - "!src/Designer/frontend/admin/**"
+      - "!src/Designer/frontend/stats/**"
+      - "src/Designer/backend/**"
+      - ".github/workflows/designer-frontend-run-playwright-on-pr.yaml"
+      - "src/Designer/compose.yaml"
+      - "src/Designer/Dockerfile"
+      - "src/gitea/**"
+      - "package.json"
+      - "src/Designer/development/**"
+      - "src/App/template/**"
+      - "yarn.lock"
   workflow_dispatch:
 
 concurrency:
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 'Checking Out Code'
+      - name: "Checking Out Code"
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
@@ -42,6 +42,7 @@ jobs:
           echo DEVELOP_BACKEND=0 >> .env
           echo DEVELOP_DASHBOARD=0 >> .env
           echo DEVELOP_PREVIEW=0 >> .env
+          echo DEVELOP_PROFILE=0 >> .env
           echo GITEA_ADMIN_PASS=g9wDIG@6gf >> .env
           echo GITEA_ADMIN_USER=localg1iteaadmin >> .env
           echo GITEA_CYPRESS_USER=cypress_testuser >> .env
@@ -56,7 +57,7 @@ jobs:
         run: |
           node src/Designer/development/setup.js
 
-      - name: 'Installing Dependencies'
+      - name: "Installing Dependencies"
         uses: ./.github/actions/yarn-install
 
       - name: Playwright run

@@ -15,7 +15,7 @@ services:
     build:
       context: ./development/azure-devops-mock
     ports:
-      - '6161:6161'
+      - "6161:6161"
     environment:
       - DESIGNER_HOST=studio-loadbalancer
 
@@ -24,7 +24,7 @@ services:
     container_name: studio-loadbalancer
     restart: always
     ports:
-      - '80:80'
+      - "80:80"
     environment:
       - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
       - DEVELOP_RESOURCE_ADMIN=${DEVELOP_RESOURCE_ADMIN:-0}
@@ -33,6 +33,7 @@ services:
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
       - DEVELOP_PREVIEW=${DEVELOP_PREVIEW:-0}
       - DEVELOP_STUDIO_ROOT=${DEVELOP_STUDIO_ROOT:-0}
+      - DEVELOP_PROFILE=${DEVELOP_PROFILE:-0}
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
       - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
       - NGINX_HOST=localhost
@@ -43,7 +44,7 @@ services:
       studio_designer:
         condition: service_healthy
     extra_hosts:
-      - 'host.docker.internal:host-gateway'
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./development/load-balancer/templates:/etc/nginx/templates:ro
       - ./development/load-balancer/www:/www:ro
@@ -53,8 +54,8 @@ services:
     image: designer:${COMMIT:-latest}
     restart: always
     volumes:
-      - 'designer-git-data:/AltinnCore/Repos'
-      - 'keys:/mnt/keys'
+      - "designer-git-data:/AltinnCore/Repos"
+      - "keys:/mnt/keys"
     environment:
       - OTEL_SERVICE_NAME=studio-designer
       - ASPNETCORE_ENVIRONMENT=Development
@@ -97,7 +98,7 @@ services:
       - SchedulingSettings:AddHostedService=true
       - GitOpsSettings:BotPersonalAccessToken=${GITOPS_BOT_PERSONAL_ACCESS_TOKEN:-}
     ports:
-      - '6000:6000'
+      - "6000:6000"
     depends_on:
       studio_db:
         condition: service_healthy
@@ -105,10 +106,10 @@ services:
       context: ./../..
       dockerfile: src/Designer/Dockerfile
     extra_hosts:
-      - 'host.docker.internal:host-gateway'
-      - 'studio.localhost:host-gateway'
+      - "host.docker.internal:host-gateway"
+      - "studio.localhost:host-gateway"
     healthcheck:
-      test: [ "CMD", "curl", "--fail", "http://localhost:6000/health" ]
+      test: ["CMD", "curl", "--fail", "http://localhost:6000/health"]
       interval: 5s
       timeout: 10s
       retries: 5
@@ -118,9 +119,9 @@ services:
     image: repositories:latest
     restart: always
     volumes:
-      - 'gitea-git-data:/var/lib/gitea/git'
-      - 'gitea-avatars-data:/var/lib/gitea/avatars'
-      - 'gitea-attachments-data:/var/lib/gitea/attachments'
+      - "gitea-git-data:/var/lib/gitea/git"
+      - "gitea-avatars-data:/var/lib/gitea/avatars"
+      - "gitea-attachments-data:/var/lib/gitea/attachments"
     environment:
       - GITEA____RUN_MODE=prod
       - GITEA__database__DB_TYPE=postgres
@@ -144,17 +145,17 @@ services:
       - USER_GID=1000
       - USER_UID=1000
     ports:
-      - '3000:3000'
-      - '222:22'
+      - "3000:3000"
+      - "222:22"
     build:
       context: ./../gitea/
     extra_hosts:
-      - 'host.docker.internal:host-gateway'
+      - "host.docker.internal:host-gateway"
     depends_on:
       studio_db:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "--fail", "http://localhost:3000/api/healthz" ]
+      test: ["CMD", "curl", "--fail", "http://localhost:3000/api/healthz"]
       interval: 5s
       timeout: 10s
       retries: 5
@@ -184,12 +185,12 @@ services:
       POSTGRES_USER: designer_admin
       POSTGRES_DB: designerdb
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - ./development/db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U designer_admin -d designerdb" ]
+      test: ["CMD-SHELL", "pg_isready -U designer_admin -d designerdb"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -216,11 +217,11 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_SERVER_MODE: "False"
     volumes:
-       - pgadmindata:/var/lib/pgadmin
+      - pgadmindata:/var/lib/pgadmin
     extra_hosts:
-      - 'host.docker.internal:host-gateway'
+      - "host.docker.internal:host-gateway"
 
   redis:
     image: redis:alpine
@@ -237,8 +238,6 @@ services:
     image: rediscommander/redis-commander:latest
     restart: always
     environment:
-        - REDIS_HOSTS=redis
+      - REDIS_HOSTS=redis
     ports:
-        - "8081:8081"
-
-
+      - "8081:8081"

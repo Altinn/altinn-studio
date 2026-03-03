@@ -11074,6 +11074,14 @@ __metadata:
   languageName: node
   linkType: hard
 
+"profile@workspace:src/Designer/frontend/profile":
+  version: 0.0.0-use.local
+  resolution: "profile@workspace:src/Designer/frontend/profile"
+  dependencies:
+    vite: "npm:^6.3.2"
+  languageName: unknown
+  linkType: soft
+
 "promise-retry@npm:^2.0.1":
   version: 2.0.1
   resolution: "promise-retry@npm:2.0.1"
