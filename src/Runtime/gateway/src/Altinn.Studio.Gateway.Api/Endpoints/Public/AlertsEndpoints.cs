@@ -1,4 +1,3 @@
-using Altinn.Studio.Runtime.Common;
 using Altinn.Studio.Gateway.Api.Application;
 using Altinn.Studio.Gateway.Api.Authentication;
 

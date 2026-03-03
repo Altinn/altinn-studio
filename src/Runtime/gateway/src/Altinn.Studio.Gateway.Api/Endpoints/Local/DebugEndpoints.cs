@@ -1,5 +1,3 @@
-using Altinn.Studio.Runtime.Common;
-
 namespace Altinn.Studio.Gateway.Api.Endpoints.Local;
 
 internal sealed record ClientIpResponse(

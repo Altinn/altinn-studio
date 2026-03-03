@@ -1,5 +1,3 @@
-using Altinn.Studio.Runtime.Common;
-
 namespace Altinn.Studio.Gateway.Api.Endpoints.Public;
 
 internal sealed record HealthResponse(string Status);

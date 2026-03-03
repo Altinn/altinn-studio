@@ -1,4 +1,4 @@
-using Altinn.Studio.Gateway.Api.Hosting;
+using Altinn.Studio.Runtime.Common;
 
 namespace Altinn.Studio.Gateway.Api.Endpoints.Internal;
 

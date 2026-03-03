@@ -37,7 +37,7 @@ public static class Ports
         }
     }
 
-    extension(RouteHandlerBuilder builder)
+    extension<T>(T builder) where T : IEndpointConventionBuilder
     {
         /// <summary>
         /// Adds an endpoint filter that restricts the endpoint to only accept requests on the internal port.
@@ -46,7 +46,7 @@ public static class Ports
         /// <remarks>
         /// Requires a call to <see cref="ConfigureKestrelPorts"/> to configure Kestrel to listen on the internal port.
         /// </remarks>
-        public RouteHandlerBuilder RequireInternalPort() => builder.RequirePort(InternalPort, PortScope.Internal);
+        public T RequireInternalPort() => builder.RequirePort(InternalPort, PortScope.Internal);
 
         /// <summary>
         /// Adds an endpoint filter that restricts the endpoint to only accept requests on the public port.
@@ -55,7 +55,7 @@ public static class Ports
         /// <remarks>
         /// Requires a call to <see cref="ConfigureKestrelPorts"/> to configure Kestrel to listen on the public port.
         /// </remarks>
-        public RouteHandlerBuilder RequirePublicPort() => builder.RequirePort(PublicPort, PortScope.Public);
+        public T RequirePublicPort() => builder.RequirePort(PublicPort, PortScope.Public);
 
         /// <summary>
         /// Adds an endpoint filter that restricts the endpoint to only accept requests on the specified port.
@@ -65,18 +65,17 @@ public static class Ports
         /// </remarks>
         /// <param name="port">The port to restrict the endpoint to.</param>
         /// <param name="scope">The port scope (used for OpenAPI filtering).</param>
-        public RouteHandlerBuilder RequirePort(int port, PortScope scope) =>
-            builder
-                .AddEndpointFilter(
-                    async (context, next) =>
-                    {
-                        if (context.HttpContext.Connection.LocalPort != port)
-                            return Results.NotFound();
+        public T RequirePort(int port, PortScope scope) => builder
+            .AddEndpointFilter(
+                async (context, next) =>
+                {
+                    if (context.HttpContext.Connection.LocalPort != port)
+                        return Results.NotFound();
 
-                        return await next(context);
-                    }
-                )
-                .WithMetadata(new PortScopeMetadata(scope));
+                    return await next(context);
+                }
+            )
+            .WithMetadata(new PortScopeMetadata(scope));
     }
 }
 
