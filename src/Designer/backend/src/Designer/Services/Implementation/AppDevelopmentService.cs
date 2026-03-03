@@ -401,6 +401,52 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return layoutSetsModel;
         }
 
+        public async Task<ValidationOnNavigation> GetValidationOnNavigationLayoutSets(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            CancellationToken cancellationToken
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
+
+            if (!altinnAppGitRepository.AppUsesLayoutSets())
+            {
+                throw new NoLayoutSetsFileFoundException("No layout set found for this app.");
+            }
+
+            LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            return layoutSetsFile.ValidationOnNavigation;
+        }
+
+        public async Task SaveValidationOnNavigationLayoutSets(
+            AltinnRepoEditingContext altinnRepoEditingContext,
+            ValidationOnNavigation validationOnNavigation,
+            CancellationToken cancellationToken
+        )
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo,
+                altinnRepoEditingContext.Developer
+            );
+
+            if (!altinnAppGitRepository.AppUsesLayoutSets())
+            {
+                throw new NoLayoutSetsFileFoundException("No layout set found for this app.");
+            }
+
+            LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            layoutSetsFile.ValidationOnNavigation = validationOnNavigation;
+
+            await altinnAppGitRepository.SaveLayoutSets(layoutSetsFile);
+        }
+
         /// <inheritdoc />
         public async Task<LayoutSetConfig> GetLayoutSetConfig(
             AltinnRepoEditingContext altinnRepoEditingContext,

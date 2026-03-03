@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-preview.3] - 2026-02-27
+
+### Fixed
+
+- Update to latest PDF container image, to resolve connectivity issues (#17988)
+
+## [0.1.0-preview.2] - 2026-02-27
+
 ### Added
 
-- Initial implementation of studioctl CLI tool
+- Support `self update` and `self uninstall` for Linux, macOS
+
+### Fixed
+
+- PDF connectivity when running `env localtest` (#17959)
+- Handle partial "up" state in `env up` (#17959)
+
+## [0.1.0-preview.1] - 2026-02-25
+
+### Added
+
+- Initial implementation of studioctl CLI tool (#17841)

@@ -1,5 +1,4 @@
 import react from '@vitejs/plugin-react-swc';
-import alias from '@rollup/plugin-alias';
 import aliases from './studio.alias.js';
 import type { UserConfig } from 'vite';
 import colors from 'picocolors';
@@ -39,12 +38,5 @@ export default {
   },
   build: {
     cssMinify: 'lightningcss',
-    rollupOptions: {
-      plugins: [
-        alias({
-          entries: aliases,
-        }),
-      ],
-    },
   },
 } satisfies UserConfig;

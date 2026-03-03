@@ -72,11 +72,13 @@ func TestRunWorkflow_SelectsLatestPrereleaseForMain(t *testing.T) {
 ## [1.2.0-preview.2] - 2025-01-02
 
 ### Added
+
 - Latest preview notes
 
 ## [1.2.0-preview.1] - 2025-01-01
 
 ### Added
+
 - Old preview notes
 `)
 	t.Chdir(repo)
@@ -100,6 +102,10 @@ func TestRunWorkflow_SelectsLatestPrereleaseForMain(t *testing.T) {
 	if !strings.Contains(string(content), "Latest preview notes") {
 		t.Fatalf("release notes did not use latest prerelease:\n%s", string(content))
 	}
+	const prereleaseCompare = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/studioctl/v1.2.0-preview.1...studioctl/v1.2.0-preview.2"
+	if !strings.Contains(string(content), prereleaseCompare) {
+		t.Fatalf("release notes missing compare link %q:\n%s", prereleaseCompare, string(content))
+	}
 }
 
 func TestRunWorkflow_SelectsLatestStableForReleaseLine(t *testing.T) {
@@ -110,16 +116,19 @@ func TestRunWorkflow_SelectsLatestStableForReleaseLine(t *testing.T) {
 ## [1.1.0] - 2025-01-03
 
 ### Added
+
 - Other line
 
 ## [1.0.2] - 2025-01-02
 
 ### Fixed
+
 - Latest patch notes
 
 ## [1.0.1] - 2025-01-01
 
 ### Fixed
+
 - Old patch notes
 `)
 	createReleaseBranch(t, repo, "release/studioctl/v1.0")
@@ -144,6 +153,44 @@ func TestRunWorkflow_SelectsLatestStableForReleaseLine(t *testing.T) {
 	if !strings.Contains(string(content), "Latest patch notes") {
 		t.Fatalf("release notes did not use latest stable patch:\n%s", string(content))
 	}
+	const patchCompare = "**Full Changelog**: https://github.com/Altinn/altinn-studio/compare/studioctl/v1.0.1...studioctl/v1.0.2"
+	if !strings.Contains(string(content), patchCompare) {
+		t.Fatalf("release notes missing compare link %q:\n%s", patchCompare, string(content))
+	}
+}
+
+func TestRunWorkflow_NonDraftReleaseNotesExcludeFullChangelog(t *testing.T) {
+	repo := createStudioctlWorkflowRepo(t, `# Changelog
+
+## [Unreleased]
+
+## [1.2.0-preview.1] - 2025-01-01
+
+### Added
+
+- Preview notes
+`)
+	t.Chdir(repo)
+
+	err := internal.RunWorkflow(t.Context(), internal.WorkflowRequest{
+		Component:             "studioctl",
+		BaseBranch:            "main",
+		DryRun:                true,
+		Draft:                 false,
+		UnsafeSkipBranchCheck: true,
+	}, internal.NopLogger{})
+	if err != nil {
+		t.Fatalf("RunWorkflow() error = %v", err)
+	}
+
+	notesPath := filepath.Join(repo, "build", "release", "release-notes.md")
+	content, readErr := os.ReadFile(notesPath)
+	if readErr != nil {
+		t.Fatalf("read release notes: %v", readErr)
+	}
+	if strings.Contains(string(content), "**Full Changelog**:") {
+		t.Fatalf("release notes unexpectedly included compare link:\n%s", string(content))
+	}
 }
 
 func TestRunWorkflow_NoReleasedVersions(t *testing.T) {
@@ -152,6 +199,7 @@ func TestRunWorkflow_NoReleasedVersions(t *testing.T) {
 ## [Unreleased]
 
 ### Added
+
 - Pending only
 `)
 	t.Chdir(repo)
@@ -178,6 +226,7 @@ func TestRunWorkflow_NoMatchingReleaseLine(t *testing.T) {
 ## [1.0.1] - 2025-01-01
 
 ### Fixed
+
 - Existing line
 `)
 	createReleaseBranch(t, repo, "release/studioctl/v2.0")

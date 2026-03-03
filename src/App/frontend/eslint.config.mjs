@@ -211,4 +211,21 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  {
+    files: ['src/app-components/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: 'src/(?!app-components)',
+              message:
+                'app-components should not import from outside src/app-components/. Keep these components self-contained.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

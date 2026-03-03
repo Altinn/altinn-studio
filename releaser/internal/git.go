@@ -140,13 +140,22 @@ func (g *GitCLI) Run(ctx context.Context, args ...string) (string, error) {
 // RepoRoot returns the git repository root directory.
 // The result is cached after the first call per GitCLI instance.
 func (g *GitCLI) RepoRoot(ctx context.Context) (string, error) {
+	if g.repoRoot != "" {
+		return g.repoRoot, nil
+	}
+
 	g.repoRootOnce.Do(func() {
-		root, err := g.Run(ctx, "rev-parse", "--show-toplevel")
+		root, err := g.resolveRepoRoot(ctx)
 		if err != nil {
 			g.repoRootErr = fmt.Errorf("get repo root: %w", err)
 			return
 		}
 		g.repoRoot = root
+		if g.workdir == "" {
+			// Default callers may run from nested directories; pin to repository
+			// root so pathspec operations resolve against a stable base.
+			g.workdir = root
+		}
 	})
 	return g.repoRoot, g.repoRootErr
 }
@@ -166,6 +175,10 @@ func (g *GitCLI) RunWrite(ctx context.Context, args ...string) error {
 }
 
 func (g *GitCLI) run(ctx context.Context, args ...string) (string, error) {
+	if err := g.ensureWorkdir(ctx); err != nil {
+		return "", err
+	}
+
 	g.log.Command("git", args)
 
 	cmd := exec.CommandContext(ctx, "git", args...)
@@ -195,6 +208,10 @@ func (g *GitCLI) runWrite(ctx context.Context, args ...string) error {
 
 // runExitCode runs a command and returns exit code. Returns -1 on non-exit errors.
 func (g *GitCLI) runExitCode(ctx context.Context, args ...string) (int, error) {
+	if err := g.ensureWorkdir(ctx); err != nil {
+		return -1, err
+	}
+
 	g.log.Command("git", args)
 
 	cmd := exec.CommandContext(ctx, "git", args...)
@@ -212,4 +229,39 @@ func (g *GitCLI) runExitCode(ctx context.Context, args ...string) (int, error) {
 		return exitErr.ExitCode(), nil
 	}
 	return -1, fmt.Errorf("%w: %s: %w", ErrGitCommandFailed, strings.Join(args, " "), err)
+}
+
+func (g *GitCLI) ensureWorkdir(ctx context.Context) error {
+	if g.workdir != "" {
+		return nil
+	}
+	root, err := g.resolveRepoRoot(ctx)
+	if err != nil {
+		return fmt.Errorf("get repo root: %w", err)
+	}
+	g.repoRoot = root
+	g.workdir = root
+	return nil
+}
+
+func (g *GitCLI) resolveRepoRoot(ctx context.Context) (string, error) {
+	const (
+		repoRootArg    = "rev-parse"
+		repoRootArgOpt = "--show-toplevel"
+	)
+	g.log.Command("git", []string{repoRootArg, repoRootArgOpt})
+
+	cmd := exec.CommandContext(ctx, "git", repoRootArg, repoRootArgOpt)
+	if g.workdir != "" {
+		cmd.Dir = g.workdir
+	}
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("%w: %s %s: %s", ErrGitCommandFailed, repoRootArg, repoRootArgOpt, stderr.String())
+	}
+	return strings.TrimSpace(stdout.String()), nil
 }

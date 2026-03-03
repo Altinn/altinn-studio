@@ -21,4 +21,8 @@ var (
 	errBackportInvalidVersion = errors.New("invalid branch version format (expected vX.Y)")
 	errUnsafeCleanDirPath     = errors.New("refusing to clean unsafe directory path")
 	errNoExistingParentPath   = errors.New("path has no existing parent directory")
+	errPromptIORequired       = errors.New("prompt input/output is required")
+
+	// ErrActionNotConfirmed indicates a user declined a confirmation prompt.
+	ErrActionNotConfirmed = errors.New("action not confirmed")
 )

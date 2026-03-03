@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Models.App;
 
@@ -15,6 +16,10 @@ public class ApplicationMetadata(string id) : Altinn.App.Core.Models.Application
     /// Overrides the base class property to initialize with null value
     /// </summary>
     public new string? AltinnNugetVersion { get; set; }
+
+    public string? Homepage { get; set; }
+
+    public List<Keyword>? Keywords { get; set; }
 
     public AppMetadataTranslatedString? Description { get; set; }
 

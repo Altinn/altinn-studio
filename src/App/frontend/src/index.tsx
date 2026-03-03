@@ -16,6 +16,7 @@ import 'src/features/toggles';
 
 import { useQueryClient } from '@tanstack/react-query';
 
+import { AppComponentsBridge } from 'src/AppComponentsBridge';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
@@ -170,29 +171,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function AppLayout() {
   return (
-    <NavigationEffectProvider>
-      <ErrorBoundary>
-        <ViewportWrapper>
-          <UiConfigProvider>
-            <InstantiationUrlReset />
-            <GlobalFormDataReadersProvider>
-              <PartyProvider>
-                <KeepAliveProvider>
-                  <Outlet />
-                  <ToastContainer
-                    position='top-center'
-                    theme='colored'
-                    transition={Slide}
-                    draggable={false}
-                  />
-                </KeepAliveProvider>
-              </PartyProvider>
-              <PartyPrefetcher />
-            </GlobalFormDataReadersProvider>
-          </UiConfigProvider>
-        </ViewportWrapper>
-      </ErrorBoundary>
-    </NavigationEffectProvider>
+    <AppComponentsBridge>
+      <NavigationEffectProvider>
+        <ErrorBoundary>
+          <ViewportWrapper>
+            <UiConfigProvider>
+              <InstantiationUrlReset />
+              <GlobalFormDataReadersProvider>
+                <PartyProvider>
+                  <KeepAliveProvider>
+                    <Outlet />
+                    <ToastContainer
+                      position='top-center'
+                      theme='colored'
+                      transition={Slide}
+                      draggable={false}
+                    />
+                  </KeepAliveProvider>
+                </PartyProvider>
+                <PartyPrefetcher />
+              </GlobalFormDataReadersProvider>
+            </UiConfigProvider>
+          </ViewportWrapper>
+        </ErrorBoundary>
+      </NavigationEffectProvider>
+    </AppComponentsBridge>
   );
 }
 

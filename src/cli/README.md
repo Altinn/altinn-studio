@@ -20,6 +20,18 @@ Install `studioctl`:
 curl -sSL https://altinn.studio/designer/api/v1/studioctl/install.sh | sh
 ```
 
+Windows (PowerShell):
+
+```powershell
+iwr https://altinn.studio/designer/api/v1/studioctl/install.ps1 -useb | iex
+```
+
+Pin to a specific version:
+
+```sh
+curl -sSL https://altinn.studio/designer/api/v1/studioctl/install.sh | sh -s -- --version v0.1.0-preview.1
+```
+
 Log in, clone, start localtest, and run the app:
 
 ```sh

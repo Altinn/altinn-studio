@@ -136,6 +136,9 @@ func runPrepare(args []string) error {
 	component := fs.String("component", "", "Component name (required, e.g., studioctl)")
 	version := fs.String("version", "", "Version to release (required, e.g., v1.2.3)")
 	dryRun := fs.Bool("dry-run", false, "Show what would be done without making changes")
+	yes := fs.Bool("yes", false, "Skip confirmation prompts")
+	yesShort := fs.Bool("y", false, "Alias for -yes")
+	open := fs.Bool("open", false, "Open created PR in browser")
 	fs.Usage = func() {
 		fmt.Print(`Usage: releaser prepare -component <name> -version <version> [options]
 
@@ -150,9 +153,10 @@ Version behavior:
 Steps performed:
   1. Creates branch 'release-prep/<component>-<version>'
   2. Promotes [Unreleased] to [<version>] in CHANGELOG.md
-  3. Commits the change
-  4. Pushes the branch
-  5. Creates PR with 'release/<component>' label
+  3. Prompts before commit/push/PR actions (unless -y/-yes)
+  4. Commits the change
+  5. Pushes the branch
+  6. Creates PR with 'release/<component>' label
 
 Options:
 `)
@@ -170,11 +174,19 @@ Options:
 		return errReleaseVersionRequired
 	}
 
+	assumeYes := *yes || *yesShort
+	var prompter internal.ConfirmationPrompter
+	if shouldPromptPrepare(*dryRun, assumeYes, isInteractiveInput(os.Stdin)) {
+		prompter = internal.NewConsolePrompter()
+	}
+
 	req := internal.PrepareRequest{
 		Component:     *component,
 		Version:       *version,
 		ChangelogPath: "",
+		Open:          *open,
 		DryRun:        *dryRun,
+		Prompter:      prompter,
 	}
 	if err := internal.RunPrepare(context.Background(), req, internal.NewConsoleLogger()); err != nil {
 		return fmt.Errorf("prepare: %w", err)
@@ -188,6 +200,9 @@ func runBackport(args []string) error {
 	commit := fs.String("commit", "", "Commit SHA to backport (required)")
 	branch := fs.String("branch", "", "Release branch version (required, e.g., v1.0)")
 	dryRun := fs.Bool("dry-run", false, "Show what would be done without making changes")
+	yes := fs.Bool("yes", false, "Skip confirmation prompts")
+	yesShort := fs.Bool("y", false, "Alias for -yes")
+	open := fs.Bool("open", false, "Open created PR in browser")
 	fs.Usage = func() {
 		fmt.Print(`Usage: releaser backport -component <name> -commit <sha> -branch <version> [options]
 
@@ -195,14 +210,15 @@ Cherry-picks a commit from main to a backport branch, handling changelog entries
 
 Steps performed:
   1. Extracts changelog entries from the commit's diff
-  2. Fetches and checks out the release branch
-  3. Creates a backport branch
-  4. Cherry-picks the commit without auto-committing
-  5. Restores the release branch's CHANGELOG.md (undoes cherry-picked changelog)
-  6. Inserts extracted entries into [Unreleased] section
-  7. Creates commit referencing original SHA
-  8. Pushes the backport branch
-  9. Creates a PR targeting the release branch (label: backport)
+  2. Prompts if current branch is not main (unless -y/-yes)
+  3. Fetches and checks out the release branch
+  4. Creates a backport branch
+  5. Cherry-picks the commit without auto-committing
+  6. Restores the release branch's CHANGELOG.md (undoes cherry-picked changelog)
+  7. Inserts extracted entries into [Unreleased] section
+  8. Creates commit referencing original SHA
+  9. Pushes the backport branch
+ 10. Creates a PR targeting the release branch (label: backport)
 
 After merging the backport PR, use 'releaser prepare -component <name> -version vX.Y.Z'
 to create the release PR (then CI can run the release workflow if configured).
@@ -223,12 +239,20 @@ Options:
 		return errReleaseCommitBranchRequired
 	}
 
+	assumeYes := *yes || *yesShort
+	var prompter internal.ConfirmationPrompter
+	if shouldPromptPrepare(*dryRun, assumeYes, isInteractiveInput(os.Stdin)) {
+		prompter = internal.NewConsolePrompter()
+	}
+
 	req := internal.BackportRequest{
 		Component:     *component,
 		Commit:        *commit,
 		Branch:        *branch,
 		ChangelogPath: "",
+		Open:          *open,
 		DryRun:        *dryRun,
+		Prompter:      prompter,
 	}
 	if err := internal.RunBackport(context.Background(), req, internal.NewConsoleLogger()); err != nil {
 		return fmt.Errorf("backport: %w", err)
@@ -280,6 +304,21 @@ Options:
 
 	fmt.Println("changelog validated")
 	return nil
+}
+
+func shouldPromptPrepare(dryRun, assumeYes, interactive bool) bool {
+	return !dryRun && !assumeYes && interactive
+}
+
+func isInteractiveInput(in *os.File) bool {
+	if in == nil {
+		return false
+	}
+	info, err := in.Stat()
+	if err != nil {
+		return false
+	}
+	return info.Mode()&os.ModeCharDevice != 0
 }
 
 func validateWorkflowExecutionContext(dryRun bool) error {

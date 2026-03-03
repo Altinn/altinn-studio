@@ -86,7 +86,7 @@ const renderValidateCardContent = ({
   };
 
   renderWithProviders(
-    <ValidateCardContent scope={scope} config={mockConfig} onChange={onChange} />,
+    <ValidateCardContent scope={scope} newConfig={mockConfig} onChange={onChange} />,
     { queryClient },
   );
 };
