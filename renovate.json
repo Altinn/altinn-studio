@@ -45,6 +45,11 @@
       "ignoreDeps": ["yarn"]
     },
     {
+      "matchFileNames": ["src/Designer/**"],
+      "matchPackageNames": ["/^@digdir/designsystemet-/"],
+      "groupName": "Design system in Designer"
+    },
+    {
       "matchFileNames": ["src/App/**"],
       "additionalBranchPrefix": "app/",
       "commitMessageSuffix": " (app)"
