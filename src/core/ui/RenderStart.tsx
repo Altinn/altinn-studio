@@ -7,7 +7,7 @@ import { useIsLoading } from 'src/core/loading/LoadingContext';
 import { DevTools } from 'src/features/devtools/DevTools';
 import { DataModelFetcher } from 'src/features/formData/FormDataReaders';
 import { LangDataSourcesProvider } from 'src/features/language/LangDataSourcesProvider';
-import { useNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
+import { useNavigationEffect, useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 
 interface Props extends PropsWithChildren {
   devTools?: boolean;
@@ -34,6 +34,7 @@ function RunNavigationEffect() {
   const isLoading = useIsLoading();
   const hasLoaders = useHasElementsByAttribute(loadingAttribute);
   const navigationEffect = useNavigationEffect();
+  const setNavigationEffect = useSetNavigationEffect();
   const location = useLocation().pathname;
 
   const targetLocation = navigationEffect?.targetLocation?.split('?')[0];
@@ -45,9 +46,13 @@ function RunNavigationEffect() {
 
   useEffect(() => {
     if (shouldRun && navigationEffect) {
-      navigationEffect.callback();
+      try {
+        navigationEffect.callback();
+      } finally {
+        setNavigationEffect(null);
+      }
     }
-  }, [navigationEffect, shouldRun]);
+  }, [navigationEffect, shouldRun, setNavigationEffect]);
 
   return null;
 }
