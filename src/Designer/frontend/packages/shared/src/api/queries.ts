@@ -131,7 +131,6 @@ import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourc
 import type { AppValidationResult } from 'app-development/hooks/queries/useAppValidationQuery';
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
-import type { UserKeysResponse } from 'app-shared/types/api/UserKeysResponse';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
