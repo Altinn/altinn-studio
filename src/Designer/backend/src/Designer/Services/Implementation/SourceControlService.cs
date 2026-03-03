@@ -896,6 +896,84 @@ public class SourceControlService(
     }
 
     /// <inheritdoc/>
+    public RebaseResult RebaseOntoRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName
+    )
+    {
+        using var activity = StartActivity(authenticatedContext);
+        activity?.SetTag("branch", branchName);
+        return ExecuteWithTelemetry(
+            activity,
+            (activity, authenticatedContext, branchName),
+            static (self, ctx) =>
+            {
+                self.FetchRemoteChanges(ctx.authenticatedContext);
+                using LibGit2Sharp.Repository repo = self.CreateLocalRepo(ctx.authenticatedContext);
+                RebaseStatus rebaseStatus = default;
+                bool conflictsAborted = false;
+                bool stopAborted = false;
+                bool dirtyWorktreeBlocked = false;
+
+                Identity identity = GetDefaultIdentity(ctx.authenticatedContext.Developer);
+                RebaseOptions rebaseOptions = new() { FileConflictStrategy = CheckoutFileConflictStrategy.Ours };
+
+                Branch upstream =
+                    repo.Branches[$"refs/remotes/origin/{ctx.branchName}"]
+                    ?? throw new BranchNotFoundException($"Remote branch 'origin/{ctx.branchName}' not found locally.");
+
+                try
+                {
+                    if (repo.RetrieveStatus(new StatusOptions()).IsDirty)
+                    {
+                        dirtyWorktreeBlocked = true;
+                        SetErrorStatus(ctx.activity, "rebase_dirty_worktree");
+                        throw new NonFastForwardException("Cannot rebase onto remote branch with uncommitted changes.");
+                    }
+
+                    RebaseResult rebaseResult = repo.Rebase.Start(repo.Head, upstream, null, identity, rebaseOptions);
+                    rebaseStatus = rebaseResult.Status;
+
+                    if (rebaseResult.Status == RebaseStatus.Conflicts)
+                    {
+                        repo.Rebase.Abort();
+                        conflictsAborted = true;
+                        SetErrorStatus(ctx.activity, "rebase_conflicts");
+                    }
+
+                    if (rebaseResult.Status == RebaseStatus.Stop)
+                    {
+                        repo.Rebase.Abort();
+                        stopAborted = true;
+                        SetErrorStatus(ctx.activity, "rebase_stopped");
+                        throw new InvalidOperationException(
+                            $"Rebase onto remote branch '{ctx.branchName}' was stopped by user."
+                        );
+                    }
+
+                    return rebaseResult;
+                }
+                finally
+                {
+                    ctx.activity?.SetTag("rebase.status", rebaseStatus.ToString());
+                    ctx.activity?.AddEvent(
+                        new ActivityEvent(
+                            "rebase_remote.summary",
+                            tags: new ActivityTagsCollection
+                            {
+                                { "working_directory", repo.Info.WorkingDirectory },
+                                { "conflicts_aborted", conflictsAborted },
+                                { "stop_aborted", stopAborted },
+                                { "dirty_worktree_blocked", dirtyWorktreeBlocked },
+                            }
+                        )
+                    );
+                }
+            }
+        );
+    }
+
+    /// <inheritdoc/>
     public void CreateLocalBranch(AltinnRepoEditingContext editingContext, string branchName, string commitSha = null!)
     {
         using var activity = StartActivity(editingContext);

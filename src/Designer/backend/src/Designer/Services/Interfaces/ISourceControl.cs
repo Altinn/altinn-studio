@@ -193,6 +193,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext);
 
         /// <summary>
+        /// Rebases the current local branch onto its corresponding remote branch.
+        /// </summary>
+        /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>
+        /// <param name="branchName">The branch to rebase onto from origin</param>
+        RebaseResult RebaseOntoRemoteBranch(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            string branchName
+        );
+
+        /// <summary>
         /// Deletes a local branch based on the specified name.
         /// </summary>
         /// <param name="editingContext">The altinn repo editing context</param>
