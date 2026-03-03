@@ -19,5 +19,6 @@ public static class ModuleInitializer
 
         // Scrub volatile fields that change between test runs
         VerifierSettings.ScrubMembers("databaseId", "createdAt", "updatedAt", "backoffUntil", "traceId");
+        VerifierSettings.ScrubInlineGuids();
     }
 }

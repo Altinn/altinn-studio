@@ -1,6 +1,8 @@
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Repository.Tests.Fixtures;
+using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Repository.Tests;
 
@@ -810,5 +812,341 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var count = await queryRepo.CountScheduledWorkflows(TestContext.Current.CancellationToken);
 
         Assert.Equal(3, count);
+    }
+
+    [Fact]
+    public async Task GetSuccessfulWorkflows_ReturnsOnlyCompleted()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+        var instanceGuid = Guid.NewGuid();
+
+        var completed = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Completed,
+            instanceGuid: instanceGuid,
+            finalType: WorkflowType.Generic
+        );
+        var failed = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Failed,
+            instanceGuid: instanceGuid,
+            finalType: WorkflowType.Generic
+        );
+        var enqueued = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Enqueued,
+            instanceGuid: instanceGuid,
+            finalType: WorkflowType.Generic
+        );
+        var depFailed = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.DependencyFailed,
+            instanceGuid: instanceGuid,
+            finalType: WorkflowType.Generic
+        );
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        var results = await queryRepo.GetFinishedWorkflows(
+            PersistentItemStatusMap.Successful.ToList(),
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+
+        Assert.Single(results);
+        Assert.Equal(completed.DatabaseId, results[0].DatabaseId);
+        Assert.DoesNotContain(results, w => w.DatabaseId == failed.DatabaseId);
+        Assert.DoesNotContain(results, w => w.DatabaseId == enqueued.DatabaseId);
+        Assert.DoesNotContain(results, w => w.DatabaseId == depFailed.DatabaseId);
+    }
+
+    [Fact]
+    public async Task ToDomainModel_Step_ConvertsCorrectly()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+        var instanceGuid = Guid.NewGuid();
+        var retryStrategy = RetryStrategy.Exponential(
+            baseInterval: TimeSpan.FromSeconds(2),
+            maxRetries: 5,
+            maxDelay: TimeSpan.FromMinutes(1)
+        );
+        var request = new WorkflowRequest
+        {
+            OperationId = "op-domain-model",
+            IdempotencyKey = $"test-key-{Guid.NewGuid()}",
+            Type = WorkflowType.Generic,
+            Metadata = """{"customField":"value"}""",
+            Steps =
+            [
+                new StepRequest
+                {
+                    Command = new Command.AppCommand("step-one", "payload-1"),
+                    RetryStrategy = retryStrategy,
+                    Metadata = """{"stepMeta":"one"}""",
+                },
+                new StepRequest
+                {
+                    Command = new Command.Webhook("http://example.com/hook", "body", "application/json"),
+                },
+                new StepRequest { Command = new Command.AppCommand("step-three") },
+            ],
+        };
+        var metadata = new WorkflowRequestMetadata(
+            InstanceInformation: new InstanceInformation
+            {
+                Org = "ttd",
+                App = "test-app",
+                InstanceOwnerPartyId = 50001234,
+                InstanceGuid = instanceGuid,
+            },
+            Actor: new Actor { UserIdOrOrgNumber = "12345" },
+            CreatedAt: DateTimeOffset.UtcNow,
+            TraceContext: null,
+            InstanceLockKey: null
+        );
+
+        var workflow = await repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
+
+        // Fetch from DB via a fresh context to ensure full round-trip through EF
+        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
+        Assert.NotNull(dbWorkflow);
+        Assert.Equal(3, dbWorkflow.Steps.Count);
+
+        // Step 0: AppCommand with retry strategy
+        var step0 = dbWorkflow.Steps[0];
+        Assert.Equal(0, step0.ProcessingOrder);
+        Assert.IsType<Command.AppCommand>(step0.Command);
+        var appCmd = (Command.AppCommand)step0.Command;
+        Assert.Equal("step-one", appCmd.CommandKey);
+        Assert.Equal("payload-1", appCmd.Payload);
+        Assert.NotNull(step0.RetryStrategy);
+        Assert.Equal(BackoffType.Exponential, step0.RetryStrategy.BackoffType);
+        Assert.Equal(5, step0.RetryStrategy.MaxRetries);
+        Assert.Equal(PersistentItemStatus.Enqueued, step0.Status);
+        Assert.NotNull(step0.IdempotencyKey);
+        Assert.Equal("12345", step0.Actor.UserIdOrOrgNumber);
+
+        // Step 1: Webhook
+        var step1 = dbWorkflow.Steps[1];
+        Assert.Equal(1, step1.ProcessingOrder);
+        Assert.IsType<Command.Webhook>(step1.Command);
+        var webhook = (Command.Webhook)step1.Command;
+        Assert.Equal("http://example.com/hook", webhook.Uri);
+        Assert.Equal("body", webhook.Payload);
+        Assert.Equal("application/json", webhook.ContentType);
+        Assert.Null(step1.RetryStrategy);
+
+        // Step 2: Another AppCommand (no retry strategy, no payload)
+        var step2 = dbWorkflow.Steps[2];
+        Assert.Equal(2, step2.ProcessingOrder);
+        Assert.IsType<Command.AppCommand>(step2.Command);
+        var appCmd2 = (Command.AppCommand)step2.Command;
+        Assert.Equal("step-three", appCmd2.CommandKey);
+        Assert.Null(appCmd2.Payload);
+        Assert.Null(step2.RetryStrategy);
+    }
+
+    [Fact]
+    public async Task GetDistinctOrgsAndApps_ReturnsUniqueOrgAppPairs()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        // Insert workflows across multiple (org, app) combinations, including duplicates
+        await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Completed,
+            finalType: WorkflowType.Generic
+        ); // ttd / test-app (default)
+        await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Completed,
+            finalType: WorkflowType.Generic
+        ); // ttd / test-app (duplicate)
+
+        var (req2, meta2) = WorkflowTestHelper.CreateRequest(
+            org: "digdir",
+            app: "beta-app",
+            type: WorkflowType.Generic
+        );
+        await repo.AddWorkflow(req2, meta2, TestContext.Current.CancellationToken);
+
+        var (req3, meta3) = WorkflowTestHelper.CreateRequest(org: "ttd", app: "other-app", type: WorkflowType.Generic);
+        await repo.AddWorkflow(req3, meta3, TestContext.Current.CancellationToken);
+
+        var (req4, meta4) = WorkflowTestHelper.CreateRequest(
+            org: "digdir",
+            app: "beta-app",
+            type: WorkflowType.Generic
+        );
+        await repo.AddWorkflow(req4, meta4, TestContext.Current.CancellationToken);
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        var pairs = await queryRepo.GetDistinctOrgsAndApps(TestContext.Current.CancellationToken);
+
+        Assert.Equal(3, pairs.Count);
+        // Ordered by org then app
+        Assert.Equal(("digdir", "beta-app"), pairs[0]);
+        Assert.Equal(("ttd", "other-app"), pairs[1]);
+        Assert.Equal(("ttd", "test-app"), pairs[2]);
+    }
+
+    [Fact]
+    public async Task GetWorkflow_ByIdempotencyKey_ReturnsMatch()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+        var (request, metadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflow = await repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        var found = await queryRepo.GetWorkflow(
+            workflow.IdempotencyKey,
+            workflow.CreatedAt,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.NotNull(found);
+        Assert.Equal(workflow.DatabaseId, found.DatabaseId);
+        Assert.Equal(workflow.IdempotencyKey, found.IdempotencyKey);
+        Assert.Equal(workflow.OperationId, found.OperationId);
+        Assert.NotEmpty(found.Steps);
+    }
+
+    [Fact]
+    public async Task GetWorkflow_ByIdempotencyKey_NoMatch_ReturnsNull()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+        var (request, metadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var workflow = await repo.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        // Wrong key
+        var wrongKey = await queryRepo.GetWorkflow(
+            "nonexistent-key",
+            workflow.CreatedAt,
+            TestContext.Current.CancellationToken
+        );
+        Assert.Null(wrongKey);
+
+        // Wrong createdAt
+        var wrongDate = await queryRepo.GetWorkflow(
+            workflow.IdempotencyKey,
+            workflow.CreatedAt.AddDays(-1),
+            TestContext.Current.CancellationToken
+        );
+        Assert.Null(wrongDate);
+    }
+
+    [Fact]
+    public async Task GetFinishedWorkflowsWithCount_ReturnsWorkflowsAndTotalCount()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+        var instanceGuid = Guid.NewGuid();
+
+        // Insert 4 completed workflows and 1 failed
+        for (int i = 0; i < 4; i++)
+        {
+            await WorkflowTestHelper.InsertAndSetStatus(
+                repo,
+                context,
+                PersistentItemStatus.Completed,
+                instanceGuid: instanceGuid,
+                finalType: WorkflowType.Generic
+            );
+        }
+
+        await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Failed,
+            instanceGuid: instanceGuid,
+            finalType: WorkflowType.Generic
+        );
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        // Page of 2 from completed workflows
+        var statuses = PersistentItemStatusMap.Successful.ToList();
+        var (workflows, totalCount) = await queryRepo.GetFinishedWorkflowsWithCount(
+            statuses,
+            take: 2,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(4, totalCount);
+        Assert.Equal(2, workflows.Count);
+        Assert.All(workflows, w => Assert.Equal(PersistentItemStatus.Completed, w.Status));
+    }
+
+    [Fact]
+    public async Task GetFinishedWorkflowsWithCount_FiltersCorrectly()
+    {
+        await using var context = fixture.CreateDbContext();
+        var repo = fixture.CreateRepository(context);
+
+        // InsertAndSetStatus sets DB status via raw SQL. We also call UpdateWorkflow to set UpdatedAt.
+        var wf1 = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Completed,
+            finalType: WorkflowType.Generic,
+            org: "org-a",
+            app: "app-a"
+        );
+        wf1.Status = PersistentItemStatus.Completed;
+        await repo.UpdateWorkflow(wf1, cancellationToken: TestContext.Current.CancellationToken);
+
+        var wf2 = await WorkflowTestHelper.InsertAndSetStatus(
+            repo,
+            context,
+            PersistentItemStatus.Completed,
+            finalType: WorkflowType.Generic,
+            org: "org-b",
+            app: "app-b"
+        );
+        wf2.Status = PersistentItemStatus.Completed;
+        await repo.UpdateWorkflow(wf2, cancellationToken: TestContext.Current.CancellationToken);
+
+        await using var queryContext = fixture.CreateDbContext();
+        var queryRepo = fixture.CreateRepository(queryContext);
+
+        var statuses = PersistentItemStatusMap.Successful.ToList();
+
+        // Filter by org
+        var (byOrg, orgCount) = await queryRepo.GetFinishedWorkflowsWithCount(
+            statuses,
+            org: "org-a",
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(1, orgCount);
+        Assert.Single(byOrg);
+        Assert.Equal(wf1.DatabaseId, byOrg[0].DatabaseId);
+
+        // Search
+        var (bySearch, searchCount) = await queryRepo.GetFinishedWorkflowsWithCount(
+            statuses,
+            search: "org-b",
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(1, searchCount);
+        Assert.Single(bySearch);
     }
 }

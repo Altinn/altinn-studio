@@ -54,14 +54,18 @@ internal static class WorkflowTestHelper
         PersistentItemStatus status,
         Guid? instanceGuid = null,
         WorkflowType finalType = WorkflowType.AppProcessChange,
-        IEnumerable<long>? dependencies = null
+        IEnumerable<long>? dependencies = null,
+        string org = "ttd",
+        string app = "test-app"
     )
     {
         // Insert as Generic to bypass constraint checks
         var (request, metadata) = CreateRequest(
             instanceGuid: instanceGuid,
             type: WorkflowType.Generic,
-            dependencies: dependencies
+            dependencies: dependencies,
+            org: org,
+            app: app
         );
 
         var workflow = await repository.AddWorkflow(request, metadata);

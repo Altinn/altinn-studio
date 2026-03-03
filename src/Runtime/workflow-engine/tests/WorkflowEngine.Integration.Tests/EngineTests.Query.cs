@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Data.Repository;
+using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Integration.Tests;
@@ -13,14 +14,16 @@ public partial class EngineTests
     public async Task GetWorkflow_AfterCompletion_ReturnsFullDetails()
     {
         // Arrange
-        var request = CreateEnqueueRequest(CreateWorkflow("wf", WorkflowType.Generic, [CreateWebhookStep("/hook")]));
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook")])
+        );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
-        var workflow = await _client.GetWorkflow(Org, App, PartyId, _instanceGuid, workflowId);
+        var workflow = await _client.GetWorkflow(_instanceGuid, workflowId);
 
         // Assert
         Assert.NotNull(workflow);
@@ -36,21 +39,23 @@ public partial class EngineTests
     public async Task GetWorkflow_WrongInstance_Returns404()
     {
         // Arrange
-        var request = CreateEnqueueRequest(CreateWorkflow("wf", WorkflowType.Generic, [CreateWebhookStep("/hook")]));
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook")])
+        );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
-        var resultForCorrectInstance = await _client.GetWorkflowRaw(Org, App, PartyId, _instanceGuid, workflowId);
-        var resultForIncorrectInstance = await _client.GetWorkflowRaw(Org, App, PartyId, Guid.NewGuid(), workflowId);
+        var resultForCorrectInstance = await _client.GetWorkflowRaw(_instanceGuid, workflowId);
+        var resultForIncorrectInstance = await _client.GetWorkflowRaw(Guid.NewGuid(), workflowId);
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, resultForIncorrectInstance.StatusCode);
         Assert.Equal(HttpStatusCode.OK, resultForCorrectInstance.StatusCode);
 
-        await AssertDbWorkflowCount(1);
+        await _testHelpers.AssertDbWorkflowCount(1);
 
         var parsedResult = await Fixtures.EngineApiClient.AssertSuccessAndDeserialize<WorkflowStatusResponse>(
             resultForCorrectInstance
@@ -69,12 +74,12 @@ public partial class EngineTests
             .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(10)));
         fixture.SetupDefaultStub();
 
-        var request = CreateEnqueueRequest(
-            CreateWorkflow("wf", WorkflowType.Generic, [CreateWebhookStep("/slow-list")])
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/slow-list")])
         );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
 
         // Poll until the engine picks up the workflow (Enqueued or Processing).
@@ -82,7 +87,7 @@ public partial class EngineTests
         List<WorkflowStatusResponse> active;
         do
         {
-            active = await _client.ListActiveWorkflows(Org, App, PartyId, _instanceGuid);
+            active = await _client.ListActiveWorkflows(_instanceGuid);
             if (active.Count > 0)
                 break;
             await Task.Delay(100, TestContext.Current.CancellationToken);
@@ -98,16 +103,18 @@ public partial class EngineTests
     public async Task ListActiveWorkflows_ReturnsNoContent_AfterCompletion()
     {
         // Arrange
-        var request = CreateEnqueueRequest(CreateWorkflow("wf", WorkflowType.Generic, [CreateWebhookStep("/hook")]));
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook")])
+        );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
 
-        await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
         // After completion the workflow is no longer "active".
-        var active = await _client.ListActiveWorkflows(Org, App, PartyId, _instanceGuid);
+        var active = await _client.ListActiveWorkflows(_instanceGuid);
         Assert.Empty(active);
     }
 
@@ -117,7 +124,7 @@ public partial class EngineTests
         // Arrange
         await using var context = fixture.GetDbContext();
         var startAt = DateTimeOffset.UtcNow.AddSeconds(3);
-        var request = CreateEnqueueRequest(
+        var request = _testHelpers.CreateEnqueueRequest(
             new WorkflowRequest
             {
                 Ref = "wf",
@@ -125,20 +132,20 @@ public partial class EngineTests
                 IdempotencyKey = $"key-{Guid.NewGuid()}",
                 Type = WorkflowType.Generic,
                 StartAt = startAt,
-                Steps = [CreateWebhookStep("/scheduled")],
+                Steps = [_testHelpers.CreateWebhookStep("/scheduled")],
             }
         );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var activeFromApi = await _client.ListActiveWorkflows(Org, App, PartyId, _instanceGuid);
+        var activeFromApi = await _client.ListActiveWorkflows(_instanceGuid);
         var scheduledFromDb = await context.GetScheduledWorkflows().ToListAsync(TestContext.Current.CancellationToken);
 
-        await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
         // Assert
-        await AssertDbWorkflowCount(1);
+        await _testHelpers.AssertDbWorkflowCount(1);
 
         Assert.Empty(activeFromApi);
         Assert.Equal(workflowId, scheduledFromDb.Single().Id);

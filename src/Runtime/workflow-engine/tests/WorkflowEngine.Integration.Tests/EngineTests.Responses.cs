@@ -53,9 +53,11 @@ public partial class EngineTests
     [Fact]
     public async Task Response_Enqueue_SingleWebhookWorkflow_ReturnsAcceptedShape()
     {
-        var request = CreateEnqueueRequest(CreateWorkflow("wf-1", WorkflowType.Generic, [CreateWebhookStep("/ping")]));
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf-1", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping")])
+        );
 
-        using var response = await _client.EnqueueRaw(Org, App, PartyId, _instanceGuid, request);
+        using var response = await _client.EnqueueRaw(_instanceGuid, request);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -68,12 +70,12 @@ public partial class EngineTests
     {
         var workflows = new[]
         {
-            CreateWorkflow("wf-a", WorkflowType.Generic, [CreateWebhookStep("/ping-a")]),
-            CreateWorkflow("wf-b", WorkflowType.Generic, [CreateWebhookStep("/ping-b")]),
+            _testHelpers.CreateWorkflow("wf-a", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping-a")]),
+            _testHelpers.CreateWorkflow("wf-b", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping-b")]),
         };
-        var request = CreateEnqueueRequest(workflows);
+        var request = _testHelpers.CreateEnqueueRequest(workflows);
 
-        using var response = await _client.EnqueueRaw(Org, App, PartyId, _instanceGuid, request);
+        using var response = await _client.EnqueueRaw(_instanceGuid, request);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -87,10 +89,12 @@ public partial class EngineTests
         using var unauthenticatedClient = fixture.CreateEngineClient();
         unauthenticatedClient.DefaultRequestHeaders.Remove("X-API-Key");
 
-        var request = CreateEnqueueRequest(CreateWorkflow("wf", WorkflowType.Generic, [CreateWebhookStep("/ping")]));
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping")])
+        );
 
         using var response = await unauthenticatedClient.PostAsJsonAsync(
-            $"{EngineAppFixture.ApiBasePath}/{Org}/{App}/{PartyId}/{_instanceGuid}",
+            EngineApiClient.GetInstancePath(_instanceGuid),
             request,
             TestContext.Current.CancellationToken
         );
@@ -118,7 +122,7 @@ public partial class EngineTests
             ],
         };
 
-        using var response = await _client.EnqueueRaw(Org, App, PartyId, _instanceGuid, request);
+        using var response = await _client.EnqueueRaw(_instanceGuid, request);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
@@ -136,18 +140,26 @@ public partial class EngineTests
             .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(5)));
         fixture.SetupDefaultStub();
 
-        var requestA = CreateEnqueueRequest(
-            CreateWorkflow("wf-a", WorkflowType.AppProcessChange, [CreateWebhookStep("/slow")]),
-            lockToken: LockToken
+        var requestA = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-a",
+                WorkflowType.AppProcessChange,
+                [_testHelpers.CreateWebhookStep("/slow")]
+            ),
+            lockToken: InstanceLockToken
         );
-        var requestB = CreateEnqueueRequest(
-            CreateWorkflow("wf-b", WorkflowType.AppProcessChange, [CreateWebhookStep("/quick")]),
-            lockToken: LockToken
+        var requestB = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-b",
+                WorkflowType.AppProcessChange,
+                [_testHelpers.CreateWebhookStep("/quick")]
+            ),
+            lockToken: InstanceLockToken
         );
 
         // Act - enqueue A, then B while A is still processing
-        await _client.Enqueue(Org, App, PartyId, _instanceGuid, requestA);
-        using var responseB = await _client.EnqueueRaw(Org, App, PartyId, _instanceGuid, requestB);
+        await _client.Enqueue(_instanceGuid, requestA);
+        using var responseB = await _client.EnqueueRaw(_instanceGuid, requestB);
 
         Assert.Equal(HttpStatusCode.Conflict, responseB.StatusCode);
 
@@ -160,67 +172,77 @@ public partial class EngineTests
     [Fact]
     public async Task Response_GetWorkflow_CompletedWebhook_ReturnsFullDetailsShape()
     {
-        var request = CreateEnqueueRequest(CreateWorkflow("wf-1", WorkflowType.Generic, [CreateWebhookStep("/ping")]));
-        var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf-1", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping")])
+        );
+        var accepted = await _client.Enqueue(_instanceGuid, request);
         var workflowId = accepted.Workflows.Single().DatabaseId;
 
-        await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
-        using var response = await _client.GetWorkflowRaw(Org, App, PartyId, _instanceGuid, workflowId);
+        using var response = await _client.GetWorkflowRaw(_instanceGuid, workflowId);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body).ScrubInlineGuids();
+        await VerifyJson(body);
     }
 
     [Fact]
     public async Task Response_GetWorkflow_CompletedAppCommand_ReturnsFullDetailsShape()
     {
-        var request = CreateEnqueueRequest(
-            CreateWorkflow("wf-1", WorkflowType.AppProcessChange, [CreateAppCommandStep("do-something")]),
-            lockToken: LockToken
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-1",
+                WorkflowType.AppProcessChange,
+                [_testHelpers.CreateAppCommandStep("do-something")]
+            ),
+            lockToken: InstanceLockToken
         );
-        var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var accepted = await _client.Enqueue(_instanceGuid, request);
         var workflowId = accepted.Workflows.Single().DatabaseId;
 
-        await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
-        using var response = await _client.GetWorkflowRaw(Org, App, PartyId, _instanceGuid, workflowId);
+        using var response = await _client.GetWorkflowRaw(_instanceGuid, workflowId);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body).ScrubInlineGuids();
+        await VerifyJson(body);
     }
 
     [Fact]
     public async Task Response_GetWorkflow_MultipleSteps_ReturnsAllSteps()
     {
-        var request = CreateEnqueueRequest(
-            CreateWorkflow(
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
                 "wf-1",
                 WorkflowType.Generic,
-                [CreateWebhookStep("/step-1"), CreateWebhookStep("/step-2"), CreateWebhookStep("/step-3")]
+                [
+                    _testHelpers.CreateWebhookStep("/step-1"),
+                    _testHelpers.CreateWebhookStep("/step-2"),
+                    _testHelpers.CreateWebhookStep("/step-3"),
+                ]
             )
         );
-        var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var accepted = await _client.Enqueue(_instanceGuid, request);
         var workflowId = accepted.Workflows.Single().DatabaseId;
 
-        await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
-        using var response = await _client.GetWorkflowRaw(Org, App, PartyId, _instanceGuid, workflowId);
+        using var response = await _client.GetWorkflowRaw(_instanceGuid, workflowId);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body).ScrubInlineGuids();
+        await VerifyJson(body);
     }
 
     [Fact]
     public async Task Response_GetWorkflow_NonExistent_Returns404()
     {
-        using var response = await _client.GetWorkflowRaw(Org, App, PartyId, _instanceGuid, 999999);
+        using var response = await _client.GetWorkflowRaw(_instanceGuid, 999999);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -228,14 +250,16 @@ public partial class EngineTests
     [Fact]
     public async Task Response_GetWorkflow_WrongInstance_Returns404()
     {
-        var request = CreateEnqueueRequest(CreateWorkflow("wf-1", WorkflowType.Generic, [CreateWebhookStep("/ping")]));
-        var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf-1", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping")])
+        );
+        var accepted = await _client.Enqueue(_instanceGuid, request);
         var workflowId = accepted.Workflows.Single().DatabaseId;
 
-        await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
         var wrongGuid = Guid.NewGuid();
-        using var response = await _client.GetWorkflowRaw(Org, App, PartyId, wrongGuid, workflowId);
+        using var response = await _client.GetWorkflowRaw(wrongGuid, workflowId);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -243,27 +267,35 @@ public partial class EngineTests
     [Fact]
     public async Task Response_GetWorkflow_WithDependencies_ShowsDependencyStatus()
     {
-        var workflowA = CreateWorkflow("wf-a", WorkflowType.Generic, [CreateWebhookStep("/ping-a")]);
-        var workflowB = CreateWorkflow(
+        var workflowA = _testHelpers.CreateWorkflow(
+            "wf-a",
+            WorkflowType.Generic,
+            [_testHelpers.CreateWebhookStep("/ping-a")]
+        );
+        var workflowB = _testHelpers.CreateWorkflow(
             "wf-b",
             WorkflowType.Generic,
-            [CreateWebhookStep("/ping-b")],
+            [_testHelpers.CreateWebhookStep("/ping-b")],
             dependsOn: ["wf-a"]
         );
-        var request = CreateEnqueueRequest([workflowA, workflowB]);
+        var request = _testHelpers.CreateEnqueueRequest([workflowA, workflowB]);
 
-        var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var accepted = await _client.Enqueue(_instanceGuid, request);
         var workflowBId = accepted.Workflows.First(w => w.Ref == "wf-b").DatabaseId;
 
-        await WaitForWorkflowStatus(accepted.Workflows.Select(w => w.DatabaseId), PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(
+            _instanceGuid,
+            accepted.Workflows.Select(w => w.DatabaseId),
+            PersistentItemStatus.Completed
+        );
 
-        using var response = await _client.GetWorkflowRaw(Org, App, PartyId, _instanceGuid, workflowBId);
+        using var response = await _client.GetWorkflowRaw(_instanceGuid, workflowBId);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         body = Regex.Replace(body, @"""(\d{1,})"":", @"""{Scrubbed}"":"); // Scrub the workflow IDs from the `dependencies` dict
-        await VerifyJson(body).ScrubInlineGuids();
+        await VerifyJson(body);
     }
 
     // ── ListActiveWorkflows endpoint responses ────────────────────────────────
@@ -278,8 +310,10 @@ public partial class EngineTests
             .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(5)));
         fixture.SetupDefaultStub();
 
-        var request = CreateEnqueueRequest(CreateWorkflow("wf-1", WorkflowType.Generic, [CreateWebhookStep("/slow")]));
-        await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf-1", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/slow")])
+        );
+        await _client.Enqueue(_instanceGuid, request);
 
         // Small delay to ensure the workflow is picked up and in-flight
         await Task.Delay(200, TestContext.Current.CancellationToken);
@@ -287,14 +321,14 @@ public partial class EngineTests
         // Act
         using var client = fixture.CreateEngineClient();
         using var response = await client.GetAsync(
-            $"{EngineAppFixture.ApiBasePath}/{Org}/{App}/{PartyId}/{_instanceGuid}",
+            EngineApiClient.GetInstancePath(_instanceGuid),
             TestContext.Current.CancellationToken
         );
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body).ScrubInlineGuids();
+        await VerifyJson(body);
     }
 
     [Fact]
@@ -302,7 +336,7 @@ public partial class EngineTests
     {
         using var client = fixture.CreateEngineClient();
         using var response = await client.GetAsync(
-            $"{EngineAppFixture.ApiBasePath}/{Org}/{App}/{PartyId}/{_instanceGuid}",
+            EngineApiClient.GetInstancePath(_instanceGuid),
             TestContext.Current.CancellationToken
         );
 
@@ -312,15 +346,17 @@ public partial class EngineTests
     [Fact]
     public async Task Response_ListActiveWorkflows_AfterCompletion_Returns204()
     {
-        var request = CreateEnqueueRequest(CreateWorkflow("wf-1", WorkflowType.Generic, [CreateWebhookStep("/ping")]));
-        var accepted = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf-1", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping")])
+        );
+        var accepted = await _client.Enqueue(_instanceGuid, request);
         var workflowId = accepted.Workflows.Single().DatabaseId;
 
-        await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
         using var client = fixture.CreateEngineClient();
         using var response = await client.GetAsync(
-            $"{EngineAppFixture.ApiBasePath}/{Org}/{App}/{PartyId}/{_instanceGuid}",
+            EngineApiClient.GetInstancePath(_instanceGuid),
             TestContext.Current.CancellationToken
         );
 

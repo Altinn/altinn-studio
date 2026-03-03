@@ -31,11 +31,11 @@ public partial class EngineTests
         };
 
         // Act
-        using var response = await _client.EnqueueRaw(Org, App, PartyId, _instanceGuid, request);
+        using var response = await _client.EnqueueRaw(_instanceGuid, request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        await AssertDbEmpty();
+        await _testHelpers.AssertDbEmpty();
     }
 
     [Fact]
@@ -45,18 +45,20 @@ public partial class EngineTests
         using var unauthenticatedClient = fixture.CreateEngineClient();
         unauthenticatedClient.DefaultRequestHeaders.Remove("X-API-Key");
 
-        var request = CreateEnqueueRequest(CreateWorkflow("wf", WorkflowType.Generic, [CreateWebhookStep("/ping-1")]));
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping-1")])
+        );
 
         // Act
         using var response = await unauthenticatedClient.PostAsJsonAsync(
-            $"{EngineAppFixture.ApiBasePath}/{Org}/{App}/{PartyId}/{_instanceGuid}",
+            EngineApiClient.GetInstancePath(_instanceGuid),
             request,
             cancellationToken: TestContext.Current.CancellationToken
         );
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-        await AssertDbEmpty();
+        await _testHelpers.AssertDbEmpty();
     }
 
     [Fact]
@@ -70,25 +72,33 @@ public partial class EngineTests
             .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(5)));
         fixture.SetupDefaultStub();
 
-        var requestA = CreateEnqueueRequest(
-            CreateWorkflow("wf-a", WorkflowType.AppProcessChange, [CreateWebhookStep("/slow")]),
-            lockToken: LockToken
+        var requestA = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-a",
+                WorkflowType.AppProcessChange,
+                [_testHelpers.CreateWebhookStep("/slow")]
+            ),
+            lockToken: InstanceLockToken
         );
-        var requestB = CreateEnqueueRequest(
-            CreateWorkflow("wf-b", WorkflowType.AppProcessChange, [CreateWebhookStep("/quick")]),
-            lockToken: LockToken
+        var requestB = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow(
+                "wf-b",
+                WorkflowType.AppProcessChange,
+                [_testHelpers.CreateWebhookStep("/quick")]
+            ),
+            lockToken: InstanceLockToken
         );
 
         // Act
-        var responseA = await _client.Enqueue(Org, App, PartyId, _instanceGuid, requestA);
-        var responseB = await _client.EnqueueRaw(Org, App, PartyId, _instanceGuid, requestB);
+        var responseA = await _client.Enqueue(_instanceGuid, requestA);
+        var responseB = await _client.EnqueueRaw(_instanceGuid, requestB);
 
         var workflowAId = responseA.Workflows.Single().DatabaseId;
-        await WaitForWorkflowStatus(workflowAId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowAId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, responseB.StatusCode);
-        await AssertDbWorkflowCount(1);
+        await _testHelpers.AssertDbWorkflowCount(1);
     }
 
     [Fact]
@@ -102,49 +112,62 @@ public partial class EngineTests
             .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(1)));
         fixture.SetupDefaultStub();
 
-        var workflowA = CreateWorkflow("wf-a", WorkflowType.AppProcessChange, [CreateWebhookStep("/slow")]);
-        var workflowB = CreateWorkflow("wf-b", WorkflowType.AppProcessChange, [CreateWebhookStep("/quick")]);
+        var workflowA = _testHelpers.CreateWorkflow(
+            "wf-a",
+            WorkflowType.AppProcessChange,
+            [_testHelpers.CreateWebhookStep("/slow")]
+        );
+        var workflowB = _testHelpers.CreateWorkflow(
+            "wf-b",
+            WorkflowType.AppProcessChange,
+            [_testHelpers.CreateWebhookStep("/quick")]
+        );
 
         // Act
-        var responseA = await _client.Enqueue(Org, App, PartyId, _instanceGuid, CreateEnqueueRequest(workflowA));
+        var responseA = await _client.Enqueue(_instanceGuid, _testHelpers.CreateEnqueueRequest(workflowA));
         var workflowAId = responseA.Workflows.Single().DatabaseId;
-        await WaitForWorkflowStatus(workflowAId, PersistentItemStatus.Processing);
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowAId, PersistentItemStatus.Processing);
 
         var responseB = await _client.Enqueue(
-            Org,
-            App,
-            PartyId,
             _instanceGuid,
-            CreateEnqueueRequest(workflowB with { DependsOn = [workflowAId] })
+            _testHelpers.CreateEnqueueRequest(workflowB with { DependsOn = [workflowAId] })
         );
         var workflowBId = responseB.Workflows.Single().DatabaseId;
 
-        var statuses = await WaitForWorkflowStatus([workflowAId, workflowBId], PersistentItemStatus.Completed);
+        var statuses = await _client.WaitForWorkflowStatus(
+            _instanceGuid,
+            [workflowAId, workflowBId],
+            PersistentItemStatus.Completed
+        );
 
         // Assert
         Assert.Equal(2, statuses.Count);
         Assert.All(statuses, status => Assert.Equal(PersistentItemStatus.Completed, status.OverallStatus));
-        await AssertDbWorkflowCount(2);
+        await _testHelpers.AssertDbWorkflowCount(2);
     }
 
     [Fact]
     public async Task ConcurrencyConstraint_DependentMultipleProcessChange_Staggered_Simultaneous_RejectedWith409()
     {
         // Arrange
-        var workflowA = CreateWorkflow("wf-a", WorkflowType.AppProcessChange, [CreateWebhookStep("/something")]);
-        var workflowB = CreateWorkflow(
+        var workflowA = _testHelpers.CreateWorkflow(
+            "wf-a",
+            WorkflowType.AppProcessChange,
+            [_testHelpers.CreateWebhookStep("/something")]
+        );
+        var workflowB = _testHelpers.CreateWorkflow(
             "wf-b",
             WorkflowType.AppProcessChange,
-            [CreateWebhookStep("/something-else")],
+            [_testHelpers.CreateWebhookStep("/something-else")],
             dependsOn: ["wf-a"]
         );
-        var request = CreateEnqueueRequest([workflowA, workflowB]);
+        var request = _testHelpers.CreateEnqueueRequest([workflowA, workflowB]);
 
         // Act
-        using var response = await _client.EnqueueRaw(Org, App, PartyId, _instanceGuid, request);
+        using var response = await _client.EnqueueRaw(_instanceGuid, request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-        await AssertDbEmpty();
+        await _testHelpers.AssertDbEmpty();
     }
 }

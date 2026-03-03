@@ -1,0 +1,12 @@
+﻿{
+  workflows: [
+    {
+      ref: wf-a,
+      databaseId: {Scrubbed}
+    },
+    {
+      ref: wf-b,
+      databaseId: {Scrubbed}
+    }
+  ]
+}

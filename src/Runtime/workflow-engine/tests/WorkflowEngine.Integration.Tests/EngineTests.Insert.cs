@@ -1,6 +1,7 @@
 using WireMock;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
+using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
@@ -19,16 +20,19 @@ public partial class EngineTests
         var stubs = Enumerable.Range(1, numSteps).Select(i => $"/{stepType}-{i}").ToList();
         var steps = stepType switch
         {
-            "webhook" => stubs.Select(x => CreateWebhookStep(x)).ToList(),
-            "app-command" => stubs.Select(x => CreateAppCommandStep(x)).ToList(),
+            "webhook" => stubs.Select(x => _testHelpers.CreateWebhookStep(x)).ToList(),
+            "app-command" => stubs.Select(x => _testHelpers.CreateAppCommandStep(x)).ToList(),
             _ => throw new ArgumentOutOfRangeException(nameof(stepType)),
         };
-        var request = CreateEnqueueRequest(CreateWorkflow("wf", WorkflowType.Generic, steps), lockToken: LockToken);
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, steps),
+            lockToken: InstanceLockToken
+        );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Equal(numSteps, status.Steps.Count);
@@ -38,8 +42,8 @@ public partial class EngineTests
         var logs = fixture.WireMock.LogEntries;
         Assert.Equal(numSteps, logs.Count);
         Assert.Equal(stubs.Count, logs.Count);
-        await AssertDbWorkflowCount(1);
-        await AssertDbStepCount(numSteps);
+        await _testHelpers.AssertDbWorkflowCount(1);
+        await _testHelpers.AssertDbStepCount(numSteps);
 
         for (int i = 0; i < stubs.Count; i++)
         {
@@ -53,13 +57,17 @@ public partial class EngineTests
     public async Task Webhook_UsesCorrectMethod(string? payload, string expectedHttpMethod)
     {
         // Arrange
-        var step = payload is null ? CreateWebhookStep("/hook-callback") : CreateWebhookStep("/hook-callback", payload);
-        var request = CreateEnqueueRequest(CreateWorkflow("wf", WorkflowType.Generic, [step]));
+        var step = payload is null
+            ? _testHelpers.CreateWebhookStep("/hook-callback")
+            : _testHelpers.CreateWebhookStep("/hook-callback", payload);
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [step])
+        );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Single(status.Steps);
@@ -76,13 +84,16 @@ public partial class EngineTests
     public async Task AppCommand_UsesCorrectMethod()
     {
         // Arrange
-        var step = CreateAppCommandStep("/app-command-callback");
-        var request = CreateEnqueueRequest(CreateWorkflow("wf", WorkflowType.Generic, [step]), lockToken: LockToken);
+        var step = _testHelpers.CreateAppCommandStep("/app-command-callback");
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [step]),
+            lockToken: InstanceLockToken
+        );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Single(status.Steps);
@@ -118,20 +129,20 @@ public partial class EngineTests
 
         var step = stepType switch
         {
-            "webhook" => CreateWebhookStep("/hook-callback"),
-            "app-command" => CreateAppCommandStep("/app-command-callback"),
+            "webhook" => _testHelpers.CreateWebhookStep("/hook-callback"),
+            "app-command" => _testHelpers.CreateAppCommandStep("/app-command-callback"),
             _ => throw new ArgumentOutOfRangeException(nameof(stepType)),
         };
 
-        var request = CreateEnqueueRequest(
-            CreateWorkflow("wf", WorkflowType.AppProcessChange, [step]),
-            lockToken: LockToken
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.AppProcessChange, [step]),
+            lockToken: InstanceLockToken
         );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Completed, status.OverallStatus);
@@ -152,21 +163,21 @@ public partial class EngineTests
             .Select(i =>
                 stepType switch
                 {
-                    "webhook" => CreateWebhookStep($"/hook-callback-{i}"),
-                    "app-command" => CreateAppCommandStep($"/app-command-callback-{i}"),
+                    "webhook" => _testHelpers.CreateWebhookStep($"/hook-callback-{i}"),
+                    "app-command" => _testHelpers.CreateAppCommandStep($"/app-command-callback-{i}"),
                     _ => throw new InvalidOperationException(),
                 }
             );
 
-        var request = CreateEnqueueRequest(
-            CreateWorkflow("wf", WorkflowType.AppProcessChange, steps),
-            lockToken: LockToken
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.AppProcessChange, steps),
+            lockToken: InstanceLockToken
         );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
+        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Failed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Failed, status.OverallStatus);
@@ -189,12 +200,14 @@ public partial class EngineTests
                 ContentType: "application/json"
             ),
         };
-        var request = CreateEnqueueRequest(CreateWorkflow("wf", WorkflowType.Generic, [step]));
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [step])
+        );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
         // Assert
         var logs = fixture.WireMock.LogEntries;
@@ -231,12 +244,12 @@ public partial class EngineTests
 
         var step = stepType switch
         {
-            "webhook" => CreateWebhookStep(
+            "webhook" => _testHelpers.CreateWebhookStep(
                 $"/{stepType}-callback",
                 maxExecutionTime: TimeSpan.FromSeconds(0.5),
                 retryStrategy: RetryStrategy.None()
             ),
-            "app-command" => CreateAppCommandStep(
+            "app-command" => _testHelpers.CreateAppCommandStep(
                 $"/{stepType}-callback",
                 maxExecutionTime: TimeSpan.FromSeconds(0.5),
                 retryStrategy: RetryStrategy.None()
@@ -244,15 +257,15 @@ public partial class EngineTests
             _ => throw new InvalidOperationException(),
         };
 
-        var request = CreateEnqueueRequest(
-            CreateWorkflow("wf", WorkflowType.AppProcessChange, [step]),
-            lockToken: LockToken
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", WorkflowType.AppProcessChange, [step]),
+            lockToken: InstanceLockToken
         );
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
+        var response = await _client.Enqueue(_instanceGuid, request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
+        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Failed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Failed, status.OverallStatus);
@@ -269,16 +282,32 @@ public partial class EngineTests
     {
         // Arrange
         // A → B, A → C, B + C → D
-        var request = CreateEnqueueRequest([
-            CreateWorkflow("a", WorkflowType.Generic, [CreateWebhookStep("/hook-a")]),
-            CreateWorkflow("b", WorkflowType.Generic, [CreateWebhookStep("/hook-b")], dependsOn: ["a"]),
-            CreateWorkflow("c", WorkflowType.Generic, [CreateWebhookStep("/hook-c")], dependsOn: ["a"]),
-            CreateWorkflow("d", WorkflowType.Generic, [CreateWebhookStep("/hook-d")], dependsOn: ["b", "c"]),
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook-a")]),
+            _testHelpers.CreateWorkflow(
+                "b",
+                WorkflowType.Generic,
+                [_testHelpers.CreateWebhookStep("/hook-b")],
+                dependsOn: ["a"]
+            ),
+            _testHelpers.CreateWorkflow(
+                "c",
+                WorkflowType.Generic,
+                [_testHelpers.CreateWebhookStep("/hook-c")],
+                dependsOn: ["a"]
+            ),
+            _testHelpers.CreateWorkflow(
+                "d",
+                WorkflowType.Generic,
+                [_testHelpers.CreateWebhookStep("/hook-d")],
+                dependsOn: ["b", "c"]
+            ),
         ]);
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var statuses = await WaitForWorkflowStatus(
+        var response = await _client.Enqueue(_instanceGuid, request);
+        var statuses = await _client.WaitForWorkflowStatus(
+            _instanceGuid,
             response.Workflows.Select(w => w.DatabaseId),
             PersistentItemStatus.Completed
         );
@@ -288,8 +317,8 @@ public partial class EngineTests
         Assert.Equal(4, statuses.Count);
         Assert.All(statuses, wf => Assert.Equal(PersistentItemStatus.Completed, wf.OverallStatus));
 
-        await AssertDbWorkflowCount(4);
-        await AssertDbStepCount(4);
+        await _testHelpers.AssertDbWorkflowCount(4);
+        await _testHelpers.AssertDbStepCount(4);
 
         var logs = fixture.WireMock.LogEntries;
         Assert.Equal(4, logs.Count);
@@ -302,15 +331,26 @@ public partial class EngineTests
     {
         // Arrange
         // A → B → C
-        var request = CreateEnqueueRequest([
-            CreateWorkflow("a", WorkflowType.Generic, [CreateWebhookStep("/hook-a")]),
-            CreateWorkflow("b", WorkflowType.Generic, [CreateWebhookStep("/hook-b")], dependsOn: ["a"]),
-            CreateWorkflow("c", WorkflowType.Generic, [CreateWebhookStep("/hook-c")], dependsOn: ["b"]),
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook-a")]),
+            _testHelpers.CreateWorkflow(
+                "b",
+                WorkflowType.Generic,
+                [_testHelpers.CreateWebhookStep("/hook-b")],
+                dependsOn: ["a"]
+            ),
+            _testHelpers.CreateWorkflow(
+                "c",
+                WorkflowType.Generic,
+                [_testHelpers.CreateWebhookStep("/hook-c")],
+                dependsOn: ["b"]
+            ),
         ]);
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var statuses = await WaitForWorkflowStatus(
+        var response = await _client.Enqueue(_instanceGuid, request);
+        var statuses = await _client.WaitForWorkflowStatus(
+            _instanceGuid,
             response.Workflows.Select(w => w.DatabaseId),
             PersistentItemStatus.Completed
         );
@@ -320,8 +360,8 @@ public partial class EngineTests
         Assert.Equal(3, statuses.Count);
         Assert.All(statuses, wf => Assert.Equal(PersistentItemStatus.Completed, wf.OverallStatus));
 
-        await AssertDbWorkflowCount(3);
-        await AssertDbStepCount(3);
+        await _testHelpers.AssertDbWorkflowCount(3);
+        await _testHelpers.AssertDbStepCount(3);
 
         var logs = fixture.WireMock.LogEntries;
         Assert.Equal(3, logs.Count);
@@ -342,27 +382,39 @@ public partial class EngineTests
             .RespondWith(Response.Create().WithStatusCode(500));
         fixture.SetupDefaultStub();
 
-        var workflowA = CreateWorkflow("wf-a", WorkflowType.Generic, [CreateWebhookStep("/always-fail")]);
-        var workflowB = CreateWorkflow("wf-b", WorkflowType.Generic, [CreateWebhookStep("/always-succeed")]);
+        var workflowA = _testHelpers.CreateWorkflow(
+            "wf-a",
+            WorkflowType.Generic,
+            [_testHelpers.CreateWebhookStep("/always-fail")]
+        );
+        var workflowB = _testHelpers.CreateWorkflow(
+            "wf-b",
+            WorkflowType.Generic,
+            [_testHelpers.CreateWebhookStep("/always-succeed")]
+        );
 
         // Act
-        var requestA = CreateEnqueueRequest(workflowA);
-        var responseA = await _client.Enqueue(Org, App, PartyId, _instanceGuid, requestA);
+        var requestA = _testHelpers.CreateEnqueueRequest(workflowA);
+        var responseA = await _client.Enqueue(_instanceGuid, requestA);
         var workflowAIdA = responseA.Workflows.Single().DatabaseId;
 
-        var requestB = CreateEnqueueRequest(workflowB with { DependsOn = [workflowAIdA] });
-        var responseB = await _client.Enqueue(Org, App, PartyId, _instanceGuid, requestB);
+        var requestB = _testHelpers.CreateEnqueueRequest(workflowB with { DependsOn = [workflowAIdA] });
+        var responseB = await _client.Enqueue(_instanceGuid, requestB);
         var workflowIdB = responseB.Workflows.Single().DatabaseId;
 
-        var statusA = await WaitForWorkflowStatus(workflowAIdA, PersistentItemStatus.Failed);
-        var statusB = await WaitForWorkflowStatus(workflowIdB, PersistentItemStatus.DependencyFailed);
+        var statusA = await _client.WaitForWorkflowStatus(_instanceGuid, workflowAIdA, PersistentItemStatus.Failed);
+        var statusB = await _client.WaitForWorkflowStatus(
+            _instanceGuid,
+            workflowIdB,
+            PersistentItemStatus.DependencyFailed
+        );
 
         // Assert
         Assert.Equal(PersistentItemStatus.Failed, statusA.OverallStatus);
         Assert.Equal(PersistentItemStatus.DependencyFailed, statusB.OverallStatus);
 
-        await AssertDbWorkflowCount(2);
-        await AssertDbStepCount(2);
+        await _testHelpers.AssertDbWorkflowCount(2);
+        await _testHelpers.AssertDbStepCount(2);
 
         var logs = fixture.WireMock.LogEntries;
         Assert.Contains(
@@ -398,10 +450,10 @@ public partial class EngineTests
         const string request = $$"""
             {
                 "actor": {
-                    "userIdOrOrgNumber": "{{PartyId}}",
+                    "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}",
                     "language": "nb"
                 },
-                "lockToken": "{{LockToken}}",
+                "lockToken": "{{InstanceLockToken}}",
                 "workflows": [
                     {
                         "ref": "wf-root",
@@ -549,8 +601,9 @@ public partial class EngineTests
             """;
 
         // Act
-        var response = await _client.Enqueue(Org, App, PartyId, _instanceGuid, request);
-        var statuses = await WaitForWorkflowStatus(
+        var response = await _client.Enqueue(_instanceGuid, request);
+        var statuses = await _client.WaitForWorkflowStatus(
+            _instanceGuid,
             response.Workflows.Select(w => w.DatabaseId),
             PersistentItemStatus.Completed
         );
@@ -561,8 +614,8 @@ public partial class EngineTests
         Assert.All(statuses, wf => Assert.Equal(PersistentItemStatus.Completed, wf.OverallStatus));
         Assert.All(statuses, wf => Assert.All(wf.Steps, s => Assert.Equal(PersistentItemStatus.Completed, s.Status)));
 
-        await AssertDbWorkflowCount(8);
-        await AssertDbStepCount(9); // The last workflow has two steps
+        await _testHelpers.AssertDbWorkflowCount(8);
+        await _testHelpers.AssertDbStepCount(9); // The last workflow has two steps
 
         var logs = fixture.WireMock.LogEntries;
         Assert.Equal(9, logs.Count); // The last workflow has two steps

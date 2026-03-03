@@ -47,7 +47,7 @@ internal partial class EnginePgRepository
         );
     }
 
-    private static RetryDecision RetryErrorHandler(Exception exception)
+    internal static RetryDecision RetryErrorHandler(Exception exception)
     {
         var decision = exception switch
         {
