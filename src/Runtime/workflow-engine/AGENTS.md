@@ -4,14 +4,14 @@ Async workflow processing engine for Altinn Studio. Processes workflows through 
 
 ## Projects
 
-| Project | Purpose |
-|---------|---------|
-| `WorkflowEngine.Api` | Core engine, inbox queue, main loop, HTTP endpoints, workflow executor |
-| `WorkflowEngine.Models` | Domain models: `Workflow`, `Step`, `EngineRequest`, status enums |
-| `WorkflowEngine.Data` | EF Core persistence, `IEngineRepository`, Postgres via `EnginePgRepository` |
-| `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP semaphore pools), retry strategies |
-| `WorkflowEngine.Telemetry` | `Metrics` class (OpenTelemetry counters, histograms, activity source) |
-| `WorkflowEngine.Dashboard` | Static file server + `/api/config` + `/api/hot-reload` for monitoring UI |
+| Project                     | Purpose                                                                     |
+|-----------------------------|-----------------------------------------------------------------------------|
+| `WorkflowEngine.Api`        | Core engine, inbox queue, main loop, HTTP endpoints, workflow executor      |
+| `WorkflowEngine.Models`     | Domain models: `Workflow`, `Step`, `EngineRequest`, status enums            |
+| `WorkflowEngine.Data`       | EF Core persistence, `IEngineRepository`, Postgres via `EnginePgRepository` |
+| `WorkflowEngine.Resilience` | `IConcurrencyLimiter` (DB/HTTP semaphore pools), retry strategies           |
+| `WorkflowEngine.Telemetry`  | `Metrics` class (OpenTelemetry counters, histograms, activity source)       |
+| `WorkflowEngine.Dashboard`  | Static file server + `/api/config` + `/api/hot-reload` for monitoring UI    |
 
 ## Architecture
 
@@ -33,16 +33,16 @@ Async workflow processing engine for Altinn Studio. Processes workflows through 
 docker-compose.yaml          # Profiles: "app" (engine+dashboard+postgres), "full" (adds observability)
 ```
 
-| Container | Port | Purpose |
-|-----------|------|---------|
-| `workflow-engine` | 8080, 8081 | API |
-| `dashboard` | 8090 | Monitoring UI (wwwroot bind-mounted for hot-reload) |
-| `postgres` | 5432 | Database |
-| `pgadmin` | 5050 | PostgreSQL admin UI |
-| `lgtm` | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP |
-| `blackbox-exporter` | — | Prometheus blackbox exporter |
-| `postgres-exporter` | 9187 | Prometheus PostgreSQL exporter |
-| `wiremock` | 6060 | Mock app callbacks |
+| Container           | Port             | Purpose                                             |
+|---------------------|------------------|-----------------------------------------------------|
+| `workflow-engine`   | 8080, 8081       | API                                                 |
+| `dashboard`         | 8090             | Monitoring UI (wwwroot bind-mounted for hot-reload) |
+| `postgres`          | 5432             | Database                                            |
+| `pgadmin`           | 5050             | PostgreSQL admin UI                                 |
+| `lgtm`              | 7070, 4317, 4318 | Grafana + Prometheus + Loki + Tempo + OTLP          |
+| `blackbox-exporter` | —                | Prometheus blackbox exporter                        |
+| `postgres-exporter` | 9187             | Prometheus PostgreSQL exporter                      |
+| `wiremock`          | 6060             | Mock app callbacks                                  |
 
 **Deploy engine**: `docker compose build workflow-engine && docker compose --profile app up -d --no-deps workflow-engine`
 **Deploy dashboard**: `docker compose build dashboard && docker compose --profile app up -d --no-deps dashboard`
