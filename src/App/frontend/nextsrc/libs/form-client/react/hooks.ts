@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
-import { useStore } from 'zustand';
-import { useShallow } from 'zustand/shallow';
 
 import { evaluateBoolean } from 'nextsrc/libs/form-client/expressions/evaluate';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { expressionValidationPath } from 'nextsrc/libs/form-client/react/useExpressionValidation';
-import { schemaValidationPath } from 'nextsrc/libs/form-client/react/useSchemaValidation';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
-
+import { schemaValidationPath } from 'nextsrc/libs/form-client/react/useSchemaValidation';
+import { useStore } from 'zustand';
+import { useShallow } from 'zustand/shallow';
 import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 import type { ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
 import type { FieldValidation } from 'nextsrc/libs/form-client/stores/validationStore';
@@ -40,11 +39,7 @@ export function useBoundValue(
   return { value, setValue };
 }
 
-export function useGroupArray(
-  binding: string,
-  parentBinding?: string,
-  itemIndex?: number,
-): FormDataNode[] {
+export function useGroupArray(binding: string, parentBinding?: string, itemIndex?: number): FormDataNode[] {
   const client = useFormClient();
   return useStore(
     client.formDataStore,
@@ -134,7 +129,8 @@ export function useRequiredValidation(
     const store = client.validationStore.getState();
     if (hasError) {
       const fieldName = title || bindingPath;
-      const message = langAsString('form_filler.error_required')?.replace('{0}', fieldName) ?? `${fieldName} is required`;
+      const message =
+        langAsString('form_filler.error_required')?.replace('{0}', fieldName) ?? `${fieldName} is required`;
       store.setFieldValidations(validationPath, [{ severity: 'error', message }]);
     } else {
       store.clearField(validationPath);
@@ -174,10 +170,9 @@ export function useLayout(layoutId: string): ResolvedLayoutFile {
   const client = useFormClient();
 
   const subscribe = useCallback(
-    (_cb: () => void) => {
+    (_cb: () => void) =>
       // Layouts don't change at runtime after being set, so no subscription needed
-      return () => {};
-    },
+      () => {},
     [client],
   );
 
@@ -187,12 +182,7 @@ export function useLayout(layoutId: string): ResolvedLayoutFile {
 export function useRawPageOrder(): string[] {
   const client = useFormClient();
 
-  const subscribe = useCallback(
-    (_cb: () => void) => {
-      return () => {};
-    },
-    [client],
-  );
+  const subscribe = useCallback((_cb: () => void) => () => {}, [client]);
 
   return useSyncExternalStore(subscribe, () => client.getPageOrder());
 }
@@ -230,12 +220,7 @@ export function usePageOrder(): string[] {
 export function useLayoutNames(): string[] {
   const client = useFormClient();
 
-  const subscribe = useCallback(
-    (_cb: () => void) => {
-      return () => {};
-    },
-    [client],
-  );
+  const subscribe = useCallback((_cb: () => void) => () => {}, [client]);
 
   return useSyncExternalStore(subscribe, () => client.getLayoutNames());
 }
