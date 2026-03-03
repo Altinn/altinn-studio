@@ -100,11 +100,105 @@ npx cypress open --env environment=docker
 
 ## Architecture Principle
 
+### Layered File Structure (ADR 2026-02-17)
+
+The app shell follows a **layered (technical separation)** architecture as decided in [ADR: v10 frontend file structure](docs/adr/2026-02-17-v10-frontend-file-structure.md) (PR #17809). Code is organized by technical concern, not by domain feature.
+
+**Three layers and their contracts:**
+
+1. **`core/api-client/`** — Raw HTTP calls only. One file per resource. No React, no query keys.
+2. **`core/queries/`** — Owns query keys and `queryOptions` definitions. Imported by loaders and components, never the reverse. TanStack Query implementations do not bleed into UI components.
+3. **`routes/`** — Each route folder is self-contained: loader, action, component, and styles live together. Loaders import from `core/queries/`, components receive data as props.
+
+**Additional layers:**
+
+- **`features/`** — Feature UI components (e.g. `FormEngine/` with its layout components)
+- **`layouts/`** — Shared shell layouts (`RootLayout.tsx`, error boundary UI)
+- **`libs/`** — Self-contained, app-agnostic libraries (`form-client`, `form-engine`)
+- **`core/hooks/`** — Shared hooks (e.g. `useDeviceWidths`)
+
+```
+nextsrc/
+  core/
+    api-client/          # Raw HTTP calls — one file per resource
+      data.api.ts
+      instance.api.ts
+      layout.api.ts
+      parties.api.ts
+    queries/             # React Query definitions — one folder per resource
+      instance/
+        instance.queries.ts
+        utils.ts
+        index.ts
+      parties/
+        parties.queries.ts
+        index.ts
+    hooks/               # Shared hooks (e.g. useDeviceWidths)
+  features/
+    FormEngine/          # Feature UI — layout component registry + renderer
+      FormEngine.tsx
+      layout-components/
+        Input/
+        Button/
+        ButtonGroup/
+        RepeatingGroup/
+        index.tsx        # Component registry
+      types.ts
+  routes/
+    index/               # Entry redirect logic
+      index.loader.ts
+    instance/            # Instance route + loader + styles, co-located
+      instance.loader.ts
+      instance.route.tsx
+      instance.route.module.css
+      task/
+        task.loader.ts
+        $taskId.route.tsx
+        $pageId/
+          page.loader.tsx
+          $pageId.route.tsx
+    instance-selection/
+      instance-selection.loader.ts
+      instance-selection.route.tsx
+      instance-selection.route.module.css
+    party-selection/     # Includes loader, action, route, and styles
+      party-selection.loader.ts
+      party-selection.action.ts
+      party-selection.route.tsx
+      party-selection.route.module.css
+    stateless/
+      stateless.route.tsx
+      stateless.route.module.css
+  layouts/
+    AppLayout.tsx        # Shell shared across routes
+    error/
+      ErrorPage.tsx
+      ErrorPage.module.css
+  libs/
+    form-client/         # Self-contained form data library
+    form-engine/         # Self-contained form rendering library
+  router.tsx
+  QueryClient.ts
+```
+
+**Key design rules:**
+
+- Technical implementations should not bleed out to consumers (e.g. TanStack Query internals stay in `core/queries/`, not in UI components)
+- Layout Components belong in `features/FormEngine/` (or `libs/form-engine/`)
+- App Components belong in `libs/`
+- Routes only import from `core/queries/` for data — they never import from other routes
+- Multiple routes sharing the same query import from the same `core/queries/` location — no duplication
+- ESLint rules enforce layer boundaries (configured in PR #17809)
+
+**When this might evolve:** The ADR notes a hybrid approach — start layered for simplicity, extract into feature-based folders as individual features grow complex enough to justify their own internal structure.
+
+### Form Library Separation
+
 **The form library (`libs/form-client` + `libs/form-engine`) is reusable and app-agnostic.** It manages in-memory form state, renders components, evaluates expressions, and notifies the consuming app of changes via callbacks/events. It does NOT handle persistence, API calls, or app-specific concerns.
 
 **The app shell (`nextsrc/` outside `libs/`) is responsible for:**
-- Fetching/saving data (API clients, TanStack Query)
-- Routing and navigation
+- Fetching/saving data (API clients in `core/api-client/`, TanStack Query in `core/queries/`)
+- Routing and navigation (co-located in `routes/`)
 - Auth/session management
 - Process workflow
 - Wiring the form library into the app via providers and event handlers
@@ -112,30 +206,32 @@ npx cypress open --env environment=docker
 This separation means the form library can be used in other apps (e.g., Altinn Studio preview, other frontends) without modification.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  App Shell (nextsrc/)                               │
-│  - Routing, API clients, auth, process management   │
-│  - Listens to form library change events            │
-│  - Calls save/validate APIs in response             │
-│  - Feeds fetched data into form library             │
-│                                                     │
-│  ┌───────────────────────────────────────────────┐  │
-│  │  libs/form-client                             │  │
-│  │  - In-memory stores (formData, textResources, │  │
-│  │    validation)                                 │  │
-│  │  - Expression evaluation                      │  │
-│  │  - Binding resolution                         │  │
-│  │  - Change notification callbacks              │  │
-│  │  - NO persistence, NO API calls               │  │
-│  ├───────────────────────────────────────────────┤  │
-│  │  libs/form-engine                             │  │
-│  │  - FormEngine component renderer              │  │
-│  │  - All form components (Input, Dropdown, etc) │  │
-│  │  - Component registry                         │  │
-│  │  - React hooks for form-client integration    │  │
-│  │  - NO persistence, NO API calls               │  │
-│  └───────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  App Shell (nextsrc/)                                    │
+│                                                          │
+│  core/api-client/  → Raw HTTP calls (no React)           │
+│  core/queries/     → TanStack Query definitions          │
+│  routes/           → Co-located route + loader + styles   │
+│  layouts/          → Shared shell layouts                 │
+│  features/         → Feature UI (FormEngine)              │
+│                                                          │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │  libs/form-client                                  │  │
+│  │  - In-memory stores (formData, textResources,      │  │
+│  │    validation)                                      │  │
+│  │  - Expression evaluation                           │  │
+│  │  - Binding resolution                              │  │
+│  │  - Change notification callbacks                   │  │
+│  │  - NO persistence, NO API calls                    │  │
+│  ├────────────────────────────────────────────────────┤  │
+│  │  libs/form-engine                                  │  │
+│  │  - FormEngine component renderer                   │  │
+│  │  - All form components (Input, Dropdown, etc)      │  │
+│  │  - Component registry                              │  │
+│  │  - React hooks for form-client integration         │  │
+│  │  - NO persistence, NO API calls                    │  │
+│  └────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -146,7 +242,7 @@ This separation means the form library can be used in other apps (e.g., Altinn S
 - **FormClient library** with 3 Zustand stores (formData, textResources, validation)
 - **23 form components**: Input, TextArea, Number, Datepicker, Dropdown, RadioButtons, Checkboxes, MultipleSelect, RepeatingGroup, Group, Header, Paragraph, Image, Divider, Link, Alert, Button, ButtonGroup, Panel, Accordion, AccordionGroup, NavigationBar
 - **Basic expression evaluator**: equals, notEquals, not, and, or, if, dataModel, instanceContext, frontendSettings
-- **API clients**: dataApi, instanceApi, layoutApi, partiesApi
+- **API clients**: `core/api-client/` (data, instance, layout, parties) + `core/queries/` (TanStack Query definitions)
 - **App layout**: header (with profile menu, org logo), footer (contact info)
 - **Router with loaders** for pages and tasks
 - **Instantiation flow**: entry redirect, party selection (complete with tests), instance selection, instance page, stateless page (placeholder)
@@ -180,7 +276,7 @@ This separation means the form library can be used in other apps (e.g., Altinn S
 - Move `nextsrc/features/form/FormEngine/` → `nextsrc/libs/form-engine/`
 - Move `nextsrc/features/form/components/` → `nextsrc/libs/form-engine/components/`
 - Move React hooks from `nextsrc/libs/form-client/react/` → `nextsrc/libs/form-engine/hooks/` (or keep shared hooks in form-client, component-specific hooks in form-engine)
-- Ensure form-engine depends on form-client but NOT on app shell code (no imports from `core/apiClient/`, `features/instantiate/`, etc.)
+- Ensure form-engine depends on form-client but NOT on app shell code (no imports from `core/api-client/`, `core/queries/`, `features/`, `routes/`, etc.)
 - **Files**: restructure `nextsrc/libs/` directory
 
 ### 0.2 - Define change notification API on FormClient
@@ -194,26 +290,26 @@ This separation means the form library can be used in other apps (e.g., Altinn S
 - Add root `ErrorBoundary` wrapping the router
 - Add error boundaries around individual form components in `FormEngine` (one broken component shouldn't crash the page)
 - Standardize error handling in API clients -- consistent error types, retry logic via TanStack Query
-- **Files**: `nextsrc/index.tsx`, `nextsrc/libs/form-engine/FormEngine.tsx`, `nextsrc/core/apiClient/*.ts`
+- **Files**: `nextsrc/index.tsx`, `nextsrc/libs/form-engine/FormEngine.tsx`, `nextsrc/core/api-client/*.ts`
 
 ### 0.4 - Loading states
 - Add loading indicators to route transitions (React Router `useNavigation`)
 - Add skeleton/spinner states in `FormEngine` while layout data loads
-- **Files**: `nextsrc/libs/form-engine/FormEngine.tsx`, `nextsrc/features/form/pages/page/page.tsx`
+- **Files**: `nextsrc/libs/form-engine/FormEngine.tsx`, `nextsrc/routes/instance/task/$pageId/$pageId.route.tsx`
 
 ### 0.5 - Auth and session keep-alive
 - Implement JWT refresh polling (old codebase calls `refreshJwtTokenUrl` periodically)
 - Add 401/403 interceptor on axios instance
 - **Reference**: `src/core/auth/KeepAliveProvider.tsx`
-- **Files**: `nextsrc/core/axiosInstance.ts`, new `nextsrc/core/auth/keepAlive.ts`
+- **Files**: `nextsrc/core/api-client/client.ts`, new `nextsrc/core/auth/keepAlive.ts`
 
 ### 0.6 - Migrate options fetching to TanStack Query
 - Current `useOptions` hook uses raw `fetch` + `useState`/`useEffect`
 - Options fetching is an app shell concern -- the form library only needs to receive option lists
-- Create `optionsApi` client in app shell, feed resolved options into form-client/form-engine
+- Create `options.api.ts` client in `core/api-client/`, query definitions in `core/queries/options/`
 - Add an options store or callback pattern in form-client so components can request options
 - **Reference**: `src/features/options/useGetOptionsQuery.ts`
-- **Files**: `nextsrc/libs/form-engine/components/useOptions.ts`, new `nextsrc/core/apiClient/optionsApi.ts`
+- **Files**: `nextsrc/libs/form-engine/components/useOptions.ts`, new `nextsrc/core/api-client/options.api.ts`, new `nextsrc/core/queries/options/`
 
 **Cypress tests to validate Phase 0:**
 - `component-library/dropdown.ts`, `component-library/checkboxes.ts`, `component-library/radio-buttons.ts`, `component-library/multiple-select.ts` -- options rendering
@@ -239,20 +335,20 @@ This separation means the form library can be used in other apps (e.g., Altinn S
   - Feeds server-calculated values back via `formClient.setFormData()`
 - The `formDataStore` itself only tracks in-memory state and emits change notifications
 - **Reference**: `src/features/formData/FormDataWriteStateMachine.tsx`, `src/features/formData/jsonPatch/createPatch.ts`
-- **Files**: new `nextsrc/features/form/persistence/formDataPersistence.ts`, `nextsrc/core/apiClient/dataApi.ts`
+- **Files**: new `nextsrc/core/queries/formData/`, `nextsrc/core/api-client/data.api.ts`
 
 ### 1.2 - Dirty tracking and unsaved changes warning
 - App shell tracks dirty state (has data changed since last save?)
 - `beforeunload` event to warn before leaving
 - React Router `useBlocker` for in-app navigation warnings
 - **Reference**: `src/features/alertOnChange/`
-- **Files**: new `nextsrc/features/form/persistence/useDirtyTracking.ts`
+- **Files**: new `nextsrc/core/hooks/useDirtyTracking.ts`
 
 ### 1.3 - Stateless form data
 - Support stateless apps (no instance, different endpoints)
 - App shell uses different persistence strategy for stateless apps (POST instead of PATCH)
 - **Reference**: `src/features/stateless/`
-- **Files**: `nextsrc/features/instantiate/pages/stateless/StatelessPage.tsx`, `nextsrc/features/form/persistence/formDataPersistence.ts`
+- **Files**: `nextsrc/routes/stateless/stateless.route.tsx`, `nextsrc/core/queries/formData/`
 
 **Cypress tests to validate Phase 1:**
 - `frontend-test/auto-save-behavior.ts` -- auto-save debouncing and persistence
@@ -273,7 +369,7 @@ This separation means the form library can be used in other apps (e.g., Altinn S
 - Maps backend validation issues to field paths
 - Feeds results into form-client via `formClient.setValidations()`
 - **Reference**: `src/features/validation/backendValidation/backendValidationQuery.ts`
-- **Files**: new `nextsrc/core/apiClient/validationApi.ts`, new `nextsrc/features/form/persistence/backendValidation.ts`
+- **Files**: new `nextsrc/core/api-client/validation.api.ts`, new `nextsrc/core/queries/validation/`
 
 ### 2.2 - Schema validation (form-client library)
 - Client-side validation against JSON schema -- this CAN live in the form library since it's pure logic
@@ -327,26 +423,26 @@ This separation means the form library can be used in other apps (e.g., Altinn S
 - **Files**: new `nextsrc/libs/form-engine/components/NavigationButtons.tsx`, app shell navigation handler
 
 ### 3.2 - Layout settings integration
-- App shell fetches layout settings (page order, nav style) via `layoutApi`
+- App shell fetches layout settings (page order, nav style) via `core/api-client/layout.api.ts`
 - Feeds page order info to form-client/form-engine
 - Support `showNavigationBar` / sidebar navigation
 - **Expression-based page hiding**: Each page layout has a `data.hidden` expression. Pages where `hidden` evaluates to `true` must be filtered from the page order, NavigationBar, and NavigationButtons (skip hidden pages when navigating next/prev). The old codebase does this in `usePageOrder()` → `useHiddenPages()` which evaluates each layout's `hidden` expression reactively.
 - **Reference**: `src/features/form/layoutSettings/LayoutSettingsContext.tsx`
-- **Files**: `nextsrc/core/apiClient/layoutApi.ts`, `nextsrc/features/form/pages/task/taskLoader.ts`
+- **Files**: `nextsrc/core/api-client/layout.api.ts`, `nextsrc/routes/instance/task/task.loader.ts`
 
 ### 3.3 - Process management (app shell)
-- Add `processApi` client for `getProcessState` and `processNext`
+- Add `process.api.ts` client in `core/api-client/` for `getProcessState` and `processNext`
 - Implement process step transitions (data → confirm → feedback)
 - Handle process state in router -- redirect based on process state
 - **Reference**: `src/features/process/`, `src/features/instance/useProcessQuery.ts`
-- **Files**: new `nextsrc/core/apiClient/processApi.ts`, `nextsrc/router.tsx`
+- **Files**: new `nextsrc/core/api-client/process.api.ts`, new `nextsrc/core/queries/process/`, `nextsrc/router.tsx`
 
 ### 3.4 - Confirmation and receipt pages
 - Implement confirmation step (shows summary, allows going back or completing)
 - Implement receipt/completion page
 - Support custom receipt layouts
 - **Reference**: `src/features/receipt/`
-- **Files**: new `nextsrc/features/form/pages/confirm/`, new `nextsrc/features/form/pages/receipt/`
+- **Files**: new `nextsrc/routes/confirm/`, new `nextsrc/routes/receipt/`
 
 **Cypress tests to validate Phase 3:**
 - `frontend-test/navigation.ts` -- page navigation
@@ -380,7 +476,7 @@ This separation means the form library can be used in other apps (e.g., Altinn S
 - `FileUploadWithTag` -- file upload with tagging
 - `ImageUpload` -- image-specific upload
 - `AttachmentList` -- display uploaded files
-- Components emit upload/delete events; app shell handles actual API calls via `attachmentsApi`
+- Components emit upload/delete events; app shell handles actual API calls via `core/api-client/attachments.api.ts`
 - **Reference**: `src/features/attachments/`, `src/layout/FileUpload/`
 
 ### 4.3 - Lookup components
@@ -614,10 +710,13 @@ Phases 4 and 5 can largely proceed in parallel once Phases 1-3 are solid.
 
 ## Cross-Cutting Concerns (Apply Throughout)
 
-### Library boundary enforcement
-- `libs/form-client` and `libs/form-engine` must NEVER import from `nextsrc/core/apiClient/`, `nextsrc/features/instantiate/`, or other app shell code
-- Use callbacks, events, or dependency injection for anything that requires app-specific behavior
-- Consider ESLint rules or TypeScript path restrictions to enforce boundaries
+### Library and layer boundary enforcement
+- `libs/form-client` and `libs/form-engine` must NEVER import from `nextsrc/core/`, `nextsrc/features/`, `nextsrc/routes/`, or other app shell code
+- `core/api-client/` must NOT import from React or query keys — raw HTTP only
+- `core/queries/` owns query keys and `queryOptions` — imported by loaders and components, never the reverse
+- `routes/` must not import from other routes — use `core/queries/` for shared data access
+- ESLint rules are configured (PR #17809) to enforce these layer boundaries
+- Use callbacks, events, or dependency injection for anything that requires app-specific behavior in libs
 
 ### Testing
 - Form library: unit tests with mock data (no API mocking needed since it doesn't call APIs)
@@ -629,9 +728,11 @@ Phases 4 and 5 can largely proceed in parallel once Phases 1-3 are solid.
 - Use generated types from `config.generated.ts` properly
 - Improve component registry typing (current casts like `component as CompInputExternal`)
 
-### API client pattern (app shell only)
-- All API clients in `nextsrc/core/apiClient/`
-- Use TanStack Query `queryOptions` for sharing query configs
+### API client pattern (layered)
+- Raw HTTP clients in `nextsrc/core/api-client/` (one file per resource, e.g. `data.api.ts`, `instance.api.ts`, `parties.api.ts`)
+- TanStack Query definitions in `nextsrc/core/queries/` (one folder per resource, e.g. `queries/instance/`, `queries/parties/`)
+- Use `queryOptions` for sharing query configs across loaders and components
+- Query definitions import from `core/api-client/` — never the reverse
 - Reference TkDodo's blog for best practices
 
 ### Styling strategy
@@ -714,16 +815,24 @@ Phases 4 and 5 can largely proceed in parallel once Phases 1-3 are solid.
 
 | File | Role | Layer | Phases |
 |------|------|-------|--------|
-| `nextsrc/libs/form-client/form-client.ts` | Core orchestrator -- add change notification/callback API | form-client | 0 |
-| `nextsrc/libs/form-client/stores/formDataStore.ts` | In-memory data only -- emit change events, NO persistence | form-client | 0, 1 |
-| `nextsrc/libs/form-client/stores/validationStore.ts` | Multiple validation sources, visibility rules | form-client | 2 |
-| `nextsrc/libs/form-client/expressions/evaluate.ts` | Extend for full expression language | form-client | 5 |
-| `nextsrc/libs/form-engine/FormEngine.tsx` | Component renderer -- error boundaries, validation display | form-engine | 0, 2, 4 |
-| `nextsrc/libs/form-engine/components/index.ts` | Component registry -- add all new components | form-engine | 3-7 |
-| new `nextsrc/features/form/persistence/` | App shell persistence layer (debounce, JSON patch, save) | app shell | 1 |
-| `nextsrc/core/apiClient/dataApi.ts` | PATCH/save endpoints, schema fetching | app shell | 1, 2 |
-| `nextsrc/router.tsx` | Process-aware routing, confirmation/receipt pages | app shell | 3 |
-| `nextsrc/index.tsx` | Error boundaries, auth provider, wiring | app shell | 0 |
+| `nextsrc/libs/form-client/form-client.ts` | Core orchestrator -- add change notification/callback API | form-client (libs) | 0 |
+| `nextsrc/libs/form-client/stores/formDataStore.ts` | In-memory data only -- emit change events, NO persistence | form-client (libs) | 0, 1 |
+| `nextsrc/libs/form-client/stores/validationStore.ts` | Multiple validation sources, visibility rules | form-client (libs) | 2 |
+| `nextsrc/libs/form-client/expressions/evaluate.ts` | Extend for full expression language | form-client (libs) | 5 |
+| `nextsrc/libs/form-engine/FormEngine.tsx` | Component renderer -- error boundaries, validation display | form-engine (libs) | 0, 2, 4 |
+| `nextsrc/libs/form-engine/components/index.ts` | Component registry -- add all new components | form-engine (libs) | 3-7 |
+| `nextsrc/features/FormEngine/` | Feature UI wrapper, layout component registry | features | 0, 4 |
+| `nextsrc/core/api-client/data.api.ts` | Raw HTTP: PATCH/save endpoints, schema fetching | core/api-client | 1, 2 |
+| `nextsrc/core/api-client/instance.api.ts` | Raw HTTP: instance lifecycle | core/api-client | 1, 3 |
+| `nextsrc/core/api-client/parties.api.ts` | Raw HTTP: party endpoints | core/api-client | 0 |
+| `nextsrc/core/queries/instance/` | TanStack Query definitions for instances | core/queries | 1, 3 |
+| `nextsrc/core/queries/parties/` | TanStack Query definitions for parties | core/queries | 0 |
+| new `nextsrc/core/queries/formData/` | TanStack Query definitions for form data persistence | core/queries | 1 |
+| `nextsrc/router.tsx` | Process-aware routing, confirmation/receipt pages | routes | 3 |
+| `nextsrc/routes/*/` | Co-located route + loader + action + styles | routes | all |
+| `nextsrc/layouts/AppLayout.tsx` | Shared shell layout across routes | layouts | 0 |
+| `nextsrc/layouts/error/ErrorPage.tsx` | Error boundary UI | layouts | 0 |
+| `nextsrc/QueryClient.ts` | TanStack Query client configuration | core | 0 |
 
 ---
 

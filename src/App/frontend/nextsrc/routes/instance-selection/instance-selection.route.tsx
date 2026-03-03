@@ -12,8 +12,8 @@ import {
   useActiveInstances,
   useCreateInstance,
 } from 'nextsrc/core/queries/instance';
-import classes from 'nextsrc/routes/instance-selection/instance-selection.route.module.css';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
+import classes from 'nextsrc/routes/instance-selection/instance-selection.route.module.css';
 import { routeBuilders } from 'nextsrc/routesBuilder';
 
 import type { ISimpleInstance } from 'src/types';
