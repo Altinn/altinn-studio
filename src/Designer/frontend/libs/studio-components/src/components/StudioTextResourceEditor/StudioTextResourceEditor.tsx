@@ -10,6 +10,7 @@ import {
 import classes from './StudioTextResourceEditor.module.css';
 import type { TextResource } from '@studio/pure-functions';
 import type { Override } from '../../types/Override';
+import type { DSTabElement } from '@digdir/designsystemet-web';
 
 export type StudioTextResourceEditorTexts = {
   pickerLabel: string;
@@ -49,7 +50,7 @@ function StudioTextResourceEditor(
     textResources,
     ...rest
   }: StudioTextResourceEditorProps,
-  ref: Ref<HTMLDivElement>,
+  ref: Ref<DSTabElement>,
 ): React.ReactElement {
   const [activeTab, setActiveTab] = useState<StudioTextResourceTab>('type');
 

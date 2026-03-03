@@ -37,6 +37,8 @@ Object.defineProperty(window, 'scrollTo', {
   value: jest.fn(),
 });
 
+Object.defineProperty(global.CSS, 'supports', { value: () => true });
+
 // polyfill for jsdom (taken from https://stackoverflow.com/questions/68468203/why-am-i-getting-textencoder-is-not-defined-in-jest)
 Object.assign(global, { TextDecoder, TextEncoder });
 
