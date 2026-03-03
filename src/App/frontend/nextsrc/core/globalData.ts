@@ -54,8 +54,16 @@ export class GlobalData {
     return GlobalData.typedWindow.altinnAppGlobalData.ui;
   }
 
+  public static get frontendSettings(): IApplicationSettings {
+    return GlobalData.typedWindow.altinnAppGlobalData.frontendSettings;
+  }
+
   public static get textResources(): ITextResourceResult | undefined {
     return GlobalData.typedWindow.altinnAppGlobalData.textResources;
+  }
+
+  public static get footer(): IFooterLayout {
+    return GlobalData.typedWindow.altinnAppGlobalData.footer;
   }
 
   public static get orgName(): OrgName | undefined {

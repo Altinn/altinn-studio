@@ -1,0 +1,5 @@
+.readOnly > div {
+  background: var(--ds-color-neutral-surface-tinted);
+  border-color: var(--ds-color-neutral-border-subtle);
+  color: var(--ds-color-neutral-text-default);
+}

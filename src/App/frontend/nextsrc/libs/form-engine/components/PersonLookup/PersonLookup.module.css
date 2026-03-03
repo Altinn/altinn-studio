@@ -1,0 +1,56 @@
+/* breakpoints-xs */
+@media only screen and (min-width: 0) {
+  .componentWrapper {
+    grid-template-areas: 'ssnLabel' 'ssn' 'nameLabel' 'name' 'submit' 'apiError';
+  }
+
+  .nameLabel,
+  .submit {
+    margin-top: var(--ds-size-6);
+  }
+}
+
+/* breakpoints-md */
+@media only screen and (min-width: 840px) {
+  .componentWrapper {
+    grid-template-columns: minmax(100px, 200px) auto min-content;
+    grid-template-areas: 'ssnLabel nameLabel .' 'ssn name submit' 'apiError apiError .';
+    align-items: start;
+    column-gap: var(--ds-size-6);
+  }
+  .nameLabel,
+  .submit {
+    margin-top: 0;
+  }
+}
+
+.componentWrapper {
+  display: grid;
+  align-items: start;
+
+  .ssnLabel {
+    grid-area: ssnLabel;
+  }
+
+  .ssn {
+    grid-area: ssn;
+  }
+
+  .nameLabel {
+    grid-area: nameLabel;
+  }
+
+  .name {
+    grid-area: name;
+  }
+
+  .submit {
+    grid-area: submit;
+    white-space: nowrap;
+  }
+
+  .apiError {
+    grid-area: apiError;
+    padding-top: var(--ds-size-2);
+  }
+}

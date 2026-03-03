@@ -7,6 +7,7 @@ export const routes = {
   instance: '/instance/:instanceOwnerPartyId/:instanceGuid',
   task: '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId',
   page: '/instance/:instanceOwnerPartyId/:instanceGuid/:taskId/:pageId',
+  processEnd: '/instance/:instanceOwnerPartyId/:instanceGuid/ended',
   instanceSelection: '/instance-selection',
   stateless: '/:pageId',
 } as const;

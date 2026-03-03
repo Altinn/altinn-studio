@@ -1,0 +1,11 @@
+.text-align-left input {
+  text-align: left;
+}
+
+.text-align-center input {
+  text-align: center;
+}
+
+.text-align-right input {
+  text-align: right;
+}
