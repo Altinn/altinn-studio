@@ -41,8 +41,8 @@ namespace Altinn.Studio.Designer.Migrations
                     role = table.Column<int>(type: "integer", nullable: false),
                     content = table.Column<string>(type: "character varying", nullable: false),
                     action_mode = table.Column<int>(type: "integer", nullable: true),
-                    attachment_file_names = table.Column<List<string>>(type: "jsonb", nullable: true),
-                    files_changed = table.Column<List<string>>(type: "jsonb", nullable: true),
+                    attachment_file_names = table.Column<List<string>>(type: "text[]", nullable: true),
+                    files_changed = table.Column<List<string>>(type: "text[]", nullable: true),
                 },
                 constraints: table =>
                 {

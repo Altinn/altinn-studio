@@ -28,8 +28,8 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageDbMo
 
         builder.Property(e => e.ActionMode).HasColumnType("integer").HasColumnName("action_mode");
 
-        builder.Property(e => e.FilesChanged).HasColumnType("jsonb").HasColumnName("files_changed");
+        builder.Property(e => e.FilesChanged).HasColumnType("text[]").HasColumnName("files_changed");
 
-        builder.Property(e => e.AttachmentFileNames).HasColumnType("jsonb").HasColumnName("attachment_file_names");
+        builder.Property(e => e.AttachmentFileNames).HasColumnType("text[]").HasColumnName("attachment_file_names");
     }
 }
