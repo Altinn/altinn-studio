@@ -1,18 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import {
-  Scope,
-  convertToExternalConfig,
-  dummyDataPages,
-  withUniqueIds,
-} from '../utils/ValidateNavigationUtils';
-import type { ExternalConfigWithId, InternalConfigState } from '../utils/ValidateNavigationTypes';
+import { Scope, convertToExternalConfig, withUniqueIds } from '../utils/ValidateNavigationUtils';
+import type {
+  ExternalConfigWithId,
+  ExternalConfigState,
+  InternalConfigState,
+} from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useValidationOnNavigationPageSettingsQuery } from '@altinn/ux-editor/hooks/queries/usePageValidationOnNavigationLayoutSettingsQuery';
+import { useValidationOnNavigationPageSettingsMutation } from '@altinn/ux-editor/hooks/mutations/useValidationOnNavigationPageSettingsMutation';
+import type { IValidationOnNavigationPageSettings } from 'app-shared/types/global';
+
+const toExternalConfig = (setting: IValidationOnNavigationPageSettings): ExternalConfigState => ({
+  show: setting.show ?? [],
+  page: setting.page ?? '',
+  task: setting.task,
+  pages: setting.pages,
+});
+
+const toPageSettings = (config: ExternalConfigWithId): IValidationOnNavigationPageSettings => ({
+  task: config.task,
+  pages: config.pages ?? [],
+  show: config.show.length > 0 ? config.show : undefined,
+  page: config.page || undefined,
+});
 
 export const ValidateSelectedPagesConfig = () => {
-  const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigWithId[]>(
-    withUniqueIds(dummyDataPages),
-  );
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: pageValidationData } = useValidationOnNavigationPageSettingsQuery(org, app);
+  const { mutate } = useValidationOnNavigationPageSettingsMutation(org, app);
+  const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigWithId[]>([]);
+
+  useEffect(() => {
+    if (pageValidationData) {
+      setTempExtConfigs(withUniqueIds(pageValidationData.map(toExternalConfig)));
+    }
+  }, [pageValidationData]);
+
   const internalConfigs = useConvertToInternalConfig(tempExtConfigs)?.map((conf, i) => ({
     ...conf,
     id: tempExtConfigs[i].id,
@@ -20,16 +45,18 @@ export const ValidateSelectedPagesConfig = () => {
 
   const handleSave = (updatedConfig: InternalConfigState, id?: string) => {
     const newExternal = convertToExternalConfig(updatedConfig);
+    const newConfigs = id
+      ? tempExtConfigs.map((config) => (config.id === id ? { ...newExternal, id } : config))
+      : [...tempExtConfigs, { ...newExternal, id: crypto.randomUUID() }];
 
-    setTempExtConfigs((prevConfigs) =>
-      id
-        ? prevConfigs.map((config) => (config.id === id ? { ...newExternal, id } : config))
-        : [...prevConfigs, { ...newExternal, id: crypto.randomUUID() }],
-    );
+    setTempExtConfigs(newConfigs);
+    mutate(newConfigs.map(toPageSettings));
   };
 
   const handleDelete = (id: string) => {
-    setTempExtConfigs((prev) => prev.filter((config) => config.id !== id));
+    const newConfigs = tempExtConfigs.filter((config) => config.id !== id);
+    setTempExtConfigs(newConfigs);
+    mutate(newConfigs.map(toPageSettings));
   };
 
   return (

@@ -21,6 +21,7 @@ import {
   layoutSetsExtendedPath,
   layoutSettingsPath,
   validateNavigationLayoutSettingsPath,
+  validateNavigationPageSettingsPath,
   optionListIdsPath,
   optionListsPath,
   orgsListPath,
@@ -90,7 +91,7 @@ import type { DataModelMetadataJson, DataModelMetadataXsd } from 'app-shared/typ
 import type { Environment } from 'app-shared/types/Environment';
 import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import type { ILayoutSettings, IValidationOnNavigationLayoutSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets } from 'app-shared/types/global';
+import type { ILayoutSettings, IValidationOnNavigationLayoutSettings, IValidationOnNavigationPageSettings, ITextResourcesWithLanguage, IFrontEndSettings, IValidationOnNavigationLayoutSets } from 'app-shared/types/global';
 import type { Organization } from 'app-shared/types/Organization';
 import type { OrgList } from 'app-shared/types/OrgList';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
@@ -154,6 +155,7 @@ export const getDeployments = (owner: string, app: string) => get<DeploymentsRes
 export const getEnvironments = () => get<Environment[]>(envConfigPath());
 export const getFormLayoutSettings = (owner: string, app: string, layoutSetName: string) => get<ILayoutSettings>(layoutSettingsPath(owner, app, layoutSetName));
 export const getValidationOnNavigationLayoutSettings = (owner: string, app: string) => get<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(owner, app));
+export const getValidationOnNavigationPageSettings = (owner: string, app: string) => get<IValidationOnNavigationPageSettings[]>(validateNavigationPageSettingsPath(owner, app));
 export const getFormLayouts = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponse>(formLayoutsPath(owner, app, layoutSetName));
 export const getFormLayoutsV3 = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponseV3>(formLayoutsPath(owner, app, layoutSetName));
 export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));

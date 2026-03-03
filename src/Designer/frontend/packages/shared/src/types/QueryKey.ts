@@ -22,6 +22,7 @@ export enum QueryKey {
   FormComponent = 'FormComponent',
   FormLayoutSettings = 'FormLayoutSettings',
   ValidationOnNavigationLayoutSettings = 'ValidationOnNavigationLayoutSettings',
+  ValidationOnNavigationPageSettings = 'ValidationOnNavigationPageSettings',
   FormLayouts = 'FormLayouts',
   FrontEndSettings = 'FrontEndSettings',
   ImageFileNames = 'ImageFileNames',

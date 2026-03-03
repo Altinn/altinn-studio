@@ -5,11 +5,11 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
 import {
-  dummyDataPages,
   dummyDataTasks,
   getAvailablePages,
   getAvailableTasks,
 } from '../utils/ValidateNavigationUtils';
+import { useValidationOnNavigationPageSettingsQuery } from '@altinn/ux-editor/hooks/queries/usePageValidationOnNavigationLayoutSettingsQuery';
 
 type RenderTaskOptionsProps = {
   tasksWithRules?: string[];
@@ -83,11 +83,22 @@ export const PagesSelector = ({ selectedPages, taskName, onChange }: PagesSelect
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, taskName);
+  const { data: pageValidationData } = useValidationOnNavigationPageSettingsQuery(org, app);
+
+  const configsForTask = (pageValidationData ?? [])
+    .filter((config) => config.task === taskName)
+    .map((config) => ({
+      show: config.show ?? [],
+      page: config.page ?? '',
+      task: config.task,
+      pages: config.pages,
+    }));
+
   const availablePages = getAvailablePages(
     formLayouts,
-    dummyDataPages,
+    configsForTask,
     selectedPages?.map((p) => p.value),
-  ); // dummyDataPages is just to simulate the rules that are already set, in real implementation this will be replaced with fetched query data
+  );
 
   const noAvailablePages = taskName && availablePages.length === 0;
   const emptyText = noAvailablePages

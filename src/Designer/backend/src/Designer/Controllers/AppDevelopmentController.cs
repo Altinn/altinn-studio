@@ -430,6 +430,158 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Gets pages in each layout set grouped by their shared validationOnNavigation settings.
+        /// Each page's validationOnNavigation is read from the top-level property of its layout file.
+        /// Only pages that have validationOnNavigation configured are included.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>A list of page groups per layout set, each sharing the same validationOnNavigation settings</returns>
+        [HttpGet("layout-settings/validation-on-navigation/pages")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> GetValidationOnNavigationPageSettings(
+            string org,
+            string app,
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+                LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(
+                    editingContext,
+                    cancellationToken
+                );
+
+                var result = new List<PageValidationOnNavigationDto>();
+
+                foreach (var layoutSet in layoutSetsModel.Sets)
+                {
+                    Dictionary<string, JsonNode> layouts = await _appDevelopmentService.GetFormLayouts(
+                        editingContext,
+                        layoutSet.Id,
+                        cancellationToken
+                    );
+
+                    IEnumerable<PageValidationOnNavigationDto> groups = layouts
+                        .Where(kvp => kvp.Value?["data"]?["validationOnNavigation"] != null)
+                        .GroupBy(kvp => kvp.Value["data"]["validationOnNavigation"].ToJsonString())
+                        .Select(group =>
+                        {
+                            JsonNode nav = group.First().Value["data"]["validationOnNavigation"];
+                            return new PageValidationOnNavigationDto
+                            {
+                                Task = layoutSet.Id,
+                                Pages = [.. group.Select(kvp => kvp.Key)],
+                                Page = nav["page"]?.GetValue<string>(),
+                                Show = nav["show"]?.AsArray().Select(s => s.GetValue<string>()).ToList(),
+                            };
+                        });
+
+                    result.AddRange(groups);
+                }
+
+                return Ok(result);
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
+            catch (BadHttpRequestException exception)
+            {
+                return BadRequest(exception);
+            }
+        }
+
+        /// <summary>
+        /// Saves validationOnNavigation settings for individual pages by writing to each page's layout file.
+        /// Pages included in a group get their data.validationOnNavigation set; pages not in any group have it removed.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="pageSettings">List of page validation groups to save.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        [HttpPost("layout-settings/validation-on-navigation/pages")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> SaveValidationOnNavigationPageSettings(
+            string org,
+            string app,
+            [FromBody] List<PageValidationOnNavigationDto> pageSettings,
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {
+                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+                var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+                LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(
+                    editingContext,
+                    cancellationToken
+                );
+
+                foreach (var layoutSet in layoutSetsModel.Sets)
+                {
+                    Dictionary<string, JsonNode> layouts = await _appDevelopmentService.GetFormLayouts(
+                        editingContext,
+                        layoutSet.Id,
+                        cancellationToken
+                    );
+
+                    List<PageValidationOnNavigationDto> groupsForSet = [.. pageSettings.Where(g => g.Task == layoutSet.Id)];
+
+                    foreach ((string pageName, JsonNode layoutNode) in layouts)
+                    {
+                        PageValidationOnNavigationDto matchingGroup = groupsForSet.FirstOrDefault(g => g.Pages.Contains(pageName));
+
+                        JsonObject dataNode = layoutNode?["data"]?.AsObject();
+                        if (dataNode == null)
+                        {
+                            continue;
+                        }
+
+                        if (matchingGroup != null)
+                        {
+                            JsonObject navNode = [];
+                            navNode["page"] = matchingGroup.Page;
+                            if (matchingGroup.Show != null)
+                            {
+                                JsonArray showArray = [.. matchingGroup.Show];
+                                navNode["show"] = showArray;
+                            }
+                            dataNode["validationOnNavigation"] = navNode;
+                        }
+                        else
+                        {
+                            dataNode.Remove("validationOnNavigation");
+                        }
+
+                        await _appDevelopmentService.SaveFormLayout(
+                            editingContext,
+                            layoutSet.Id,
+                            pageName,
+                            layoutNode,
+                            cancellationToken
+                        );
+                    }
+                }
+
+                return Ok();
+            }
+            catch (FileNotFoundException exception)
+            {
+                return NotFound(exception.Message);
+            }
+            catch (BadHttpRequestException exception)
+            {
+                return BadRequest(exception);
+            }
+        }
+
+        /// <summary>
         /// Get all names of layouts across layoutSets
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
