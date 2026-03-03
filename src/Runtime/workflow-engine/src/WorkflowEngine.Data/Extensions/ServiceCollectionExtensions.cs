@@ -41,6 +41,7 @@ public static class ServiceCollectionExtensions
             });
 
             services.AddTransient<IEngineRepository, EnginePgRepository>();
+            services.AddSingleton<IEngineNpgsqlRepository, EngineNpgsqlRepository>();
             services.AddDbContext<EngineDbContext>(
                 (sp, options) =>
                 {
@@ -50,6 +51,14 @@ public static class ServiceCollectionExtensions
                 },
                 contextLifetime: ServiceLifetime.Transient,
                 optionsLifetime: ServiceLifetime.Singleton
+            );
+            services.AddDbContextFactory<EngineDbContext>(
+                (sp, options) =>
+                {
+                    options.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>());
+                    if (enableSensitiveDataLogging)
+                        options.EnableSensitiveDataLogging();
+                }
             );
             services.AddScoped<DbMigrationService>();
             services.AddScoped<DbConnectionResetService>();

@@ -25,13 +25,14 @@ public sealed record Step : PersistentItem
         WorkflowRequest parent,
         StepRequest request,
         WorkflowRequestMetadata metadata,
+        string idempotencyKey,
         int index
     ) =>
         new()
         {
-            DatabaseId = 0,
+            DatabaseId = Guid.CreateVersion7(),
             OperationId = request.Command.OperationId,
-            IdempotencyKey = request.IdempotencyKey ?? $"{parent.IdempotencyKey}/{request.Command}",
+            IdempotencyKey = $"{idempotencyKey}/{request.Command}",
             Actor = metadata.Actor,
             CreatedAt = metadata.CreatedAt,
             ProcessingOrder = index,

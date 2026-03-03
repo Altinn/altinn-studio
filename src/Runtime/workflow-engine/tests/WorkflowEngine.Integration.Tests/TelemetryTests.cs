@@ -135,33 +135,12 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // === Enqueue phase ===
-        Assert.NotEmpty(collector.GetActivities("Engine.EnqueueBatch"));
+        Assert.NotEmpty(collector.GetActivities("Engine.FlushBatch"));
         Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateAndSortWorkflowGraph"));
-        Assert.NotEmpty(collector.GetActivities("Engine.AcquireQueueSlots"));
-        Assert.NotEmpty(collector.GetActivities("EnginePgRepository.AddWorkflowBatch"));
-
-        var dbSlotActivities = collector.GetActivities("ConcurrencyLimiter.AcquireDbSlot");
-        Assert.True(
-            dbSlotActivities.Count >= 1,
-            $"Expected at least 1 ConcurrencyLimiter.AcquireDbSlot activity, got {dbSlotActivities.Count}"
-        );
-
-        Assert.NotEmpty(collector.GetActivities("EnginePgRepository.InsertWorkflowEntity"));
+        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchEnqueueWorkflows"));
 
         // === Processing phase ===
         Assert.NotEmpty(collector.GetActivities("Engine.ProcessWorkflow"));
-
-        var updateWorkflowActivities = collector.GetActivities("Engine.UpdateWorkflowInDb");
-        Assert.True(
-            updateWorkflowActivities.Count >= 1,
-            $"Expected at least 1 Engine.UpdateWorkflowInDb activity, got {updateWorkflowActivities.Count}"
-        );
-
-        var repoUpdateActivities = collector.GetActivities("EnginePgRepository.UpdateWorkflow");
-        Assert.True(
-            repoUpdateActivities.Count >= 1,
-            $"Expected at least 1 EnginePgRepository.UpdateWorkflow activity, got {repoUpdateActivities.Count}"
-        );
 
         var processStepActivities = collector.GetActivitiesStartingWith("Engine.ProcessStep");
         Assert.True(
@@ -193,23 +172,10 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
             $"Expected at least 2 ConcurrencyLimiter.ReleaseHttpSlot activities, got {httpSlotReleaseActivities.Count}"
         );
 
-        // === Batch write phase ===
-        var batchUpdateEngineActivities = collector.GetActivities("Engine.UpdateWorkflowAndStepsInDb");
-        Assert.True(
-            batchUpdateEngineActivities.Count >= 1,
-            $"Expected at least 1 Engine.UpdateWorkflowAndStepsInDb activity, got {batchUpdateEngineActivities.Count}"
-        );
-
-        Assert.NotEmpty(collector.GetActivities("EnginePgRepository.BatchUpdateWorkflowAndSteps"));
-
-        // === Finalization phase ===
-        Assert.NotEmpty(collector.GetActivities("Engine.ReleaseQueueSlot"));
-
-        var dbSlotReleaseActivities = collector.GetActivities("ConcurrencyLimiter.ReleaseDbSlot");
-        Assert.True(
-            dbSlotReleaseActivities.Count >= 1,
-            $"Expected at least 1 ConcurrencyLimiter.ReleaseDbSlot activity, got {dbSlotReleaseActivities.Count}"
-        );
+        // === Status write phase ===
+        Assert.NotEmpty(collector.GetActivities("Engine.SubmitStatusUpdate"));
+        Assert.NotEmpty(collector.GetActivities("Engine.FlushStatusBatch"));
+        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps"));
     }
 
     [Fact]
@@ -310,28 +276,28 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
     /// <summary>
     /// Verifies the distributed trace hierarchy and cross-trace links for a single workflow.
     /// <para>
-    /// The engine produces two distinct traces per workflow. The enqueue trace lives
-    /// in the HTTP request context, while processing starts a new root trace that
-    /// links back to the original request:
+    /// The engine produces multiple traces per workflow lifecycle. Validation runs in
+    /// the HTTP request context. The write buffer flushes in standalone background traces.
+    /// Processing starts a new root trace that links back to the original request:
     /// </para>
     /// <code>
-    /// Trace A — Enqueue (child of HTTP server span):
-    ///   Engine.EnqueueBatch
-    ///     ├── ValidationUtils.ValidateAndSortWorkflowGraph
-    ///     ├── Engine.AcquireQueueSlots
-    ///     └── EnginePgRepository.AddWorkflowBatch
-    ///           └── EnginePgRepository.InsertWorkflowEntity
+    /// Trace A — HTTP request:
+    ///   ValidationUtils.ValidateAndSortWorkflowGraph   (child of HTTP server span)
+    ///
+    /// Background — Write buffer (standalone traces):
+    ///   Engine.FlushBatch
+    ///     └── EngineNpgsqlRepository.BatchEnqueueWorkflows
     ///
     /// Trace B — Processing (new root, linked → Trace A):
     ///   Engine.ProcessWorkflow
-    ///     ├── Engine.UpdateWorkflowInDb
-    ///     │     └── EnginePgRepository.UpdateWorkflow
     ///     ├── Engine.ProcessStep.{operationId}
     ///     │     └── WorkflowExecutor.Execute
     ///     │           └── WorkflowExecutor.AppCommand
-    ///     ├── Engine.UpdateWorkflowAndStepsInDb
-    ///     │     └── EnginePgRepository.BatchUpdateWorkflowAndSteps
-    ///     └── Engine.ReleaseQueueSlot
+    ///     └── Engine.SubmitStatusUpdate
+    ///
+    /// Background — Status write buffer (standalone traces):
+    ///   Engine.FlushStatusBatch
+    ///     └── EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps
     /// </code>
     /// </summary>
     [Fact]
@@ -353,13 +319,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // Resolve key span instances
-        var enqueueBatch = Single(collector, "Engine.EnqueueBatch");
         var processWorkflow = Single(collector, "Engine.ProcessWorkflow");
-
-        // ───────────────────────────────────────────────────────────
-        // Trace separation: enqueue and processing live in different traces
-        // ───────────────────────────────────────────────────────────
-        Assert.NotEqual(enqueueBatch.TraceId, processWorkflow.TraceId);
 
         // ───────────────────────────────────────────────────────────
         // Cross-trace link: ProcessWorkflow is a new root that links
@@ -368,45 +328,12 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         Assert.Equal(default, processWorkflow.ParentSpanId);
 
         var link = Assert.Single(processWorkflow.Links);
-        Assert.Equal(enqueueBatch.TraceId, link.Context.TraceId);
-
-        // The link points to the HTTP server span, which is the parent of EnqueueBatch
-        Assert.Equal(enqueueBatch.ParentSpanId, link.Context.SpanId);
-
-        // ───────────────────────────────────────────────────────────
-        // Trace A — Enqueue tree (HTTP request trace)
-        // ───────────────────────────────────────────────────────────
-
-        //   Engine.EnqueueBatch
-        //     ├── ValidationUtils.ValidateAndSortWorkflowGraph
-        var validation = Single(collector, "ValidationUtils.ValidateAndSortWorkflowGraph");
-        AssertChildOf(enqueueBatch, validation);
-
-        //     ├── Engine.AcquireQueueSlots
-        var acquireSlots = Single(collector, "Engine.AcquireQueueSlots");
-        AssertChildOf(enqueueBatch, acquireSlots);
-
-        //     └── EnginePgRepository.AddWorkflowBatch
-        var addBatch = Single(collector, "EnginePgRepository.AddWorkflowBatch");
-        AssertChildOf(enqueueBatch, addBatch);
-
-        //           └── EnginePgRepository.InsertWorkflowEntity
-        var insertEntity = Single(collector, "EnginePgRepository.InsertWorkflowEntity");
-        AssertChildOf(addBatch, insertEntity);
 
         // ───────────────────────────────────────────────────────────
         // Trace B — Processing tree (new root trace)
         // ───────────────────────────────────────────────────────────
 
         //   Engine.ProcessWorkflow
-        //     ├── Engine.UpdateWorkflowInDb
-        var updateWorkflowInDb = FirstInTrace(collector, processWorkflow.TraceId, "Engine.UpdateWorkflowInDb");
-        AssertChildOf(processWorkflow, updateWorkflowInDb);
-
-        //     │     └── EnginePgRepository.UpdateWorkflow
-        var repoUpdateWorkflow = FirstInTrace(collector, processWorkflow.TraceId, "EnginePgRepository.UpdateWorkflow");
-        AssertChildOf(updateWorkflowInDb, repoUpdateWorkflow);
-
         //     ├── Engine.ProcessStep.{operationId}
         var processStep = SingleStartingWith(collector, processWorkflow.TraceId, "Engine.ProcessStep");
         AssertChildOf(processWorkflow, processStep);
@@ -419,21 +346,17 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         var appCommand = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowExecutor.AppCommand");
         AssertChildOf(execute, appCommand);
 
-        //     ├── Engine.UpdateWorkflowAndStepsInDb
-        var batchUpdateEngine = FirstInTrace(collector, processWorkflow.TraceId, "Engine.UpdateWorkflowAndStepsInDb");
-        AssertChildOf(processWorkflow, batchUpdateEngine);
+        //     └── Engine.SubmitStatusUpdate
+        var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "Engine.SubmitStatusUpdate");
+        AssertChildOf(processWorkflow, submitStatus);
 
-        //     │     └── EnginePgRepository.BatchUpdateWorkflowAndSteps
-        var batchUpdateRepo = FirstInTrace(
-            collector,
-            processWorkflow.TraceId,
-            "EnginePgRepository.BatchUpdateWorkflowAndSteps"
-        );
-        AssertChildOf(batchUpdateEngine, batchUpdateRepo);
-
-        //     └── Engine.ReleaseQueueSlot
-        var releaseSlot = SingleInTrace(collector, processWorkflow.TraceId, "Engine.ReleaseQueueSlot");
-        AssertChildOf(processWorkflow, releaseSlot);
+        // ───────────────────────────────────────────────────────────
+        // Standalone background activities (exist but not in workflow traces)
+        // ───────────────────────────────────────────────────────────
+        Assert.NotEmpty(collector.GetActivities("Engine.FlushBatch"));
+        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchEnqueueWorkflows"));
+        Assert.NotEmpty(collector.GetActivities("Engine.FlushStatusBatch"));
+        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps"));
     }
 
     // ─── Span hierarchy helpers ────────────────────────────────────
@@ -461,14 +384,6 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
             matches.Count == 1,
             $"Expected exactly 1 '{operationName}' in trace {traceId}, got {matches.Count}"
         );
-        return matches[0];
-    }
-
-    /// <summary>Returns the first activity matching <paramref name="operationName"/> within the given trace.</summary>
-    private static Activity FirstInTrace(TelemetryCollector collector, ActivityTraceId traceId, string operationName)
-    {
-        var matches = collector.GetActivities(operationName).Where(a => a.TraceId == traceId).ToList();
-        Assert.True(matches.Count >= 1, $"Expected at least 1 '{operationName}' in trace {traceId}, got 0");
         return matches[0];
     }
 

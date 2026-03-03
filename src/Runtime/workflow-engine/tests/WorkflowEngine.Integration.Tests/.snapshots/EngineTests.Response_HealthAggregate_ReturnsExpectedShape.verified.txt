@@ -1,4 +1,4 @@
-﻿{
+{
   status: Healthy,
   checks: [
     {
@@ -7,9 +7,9 @@
       description: Engine is operational,
       data: {
         status: Healthy, Running,
-        queue: {
-          count: 0,
-          limit: 100
+        workers: {
+          active: 0,
+          max: 300
         },
         http_connections: {
           count: 0,

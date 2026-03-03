@@ -8,7 +8,7 @@ public class WorkflowEntityTests
     private static WorkflowEntity CreateWorkflowEntity(params StepEntity[] steps) =>
         new()
         {
-            Id = 42,
+            Id = Guid.Parse("11111111-2222-3333-4444-555555555555"),
             IdempotencyKey = "wf-key",
             InstanceLockKey = "lock-key-1",
             OperationId = "next",
@@ -30,7 +30,7 @@ public class WorkflowEntityTests
     private static StepEntity CreateStepEntity(int order = 0) =>
         new()
         {
-            Id = 100 + order,
+            Id = Guid.NewGuid(),
             OperationId = "noop",
             IdempotencyKey = $"step-key-{order}",
             Status = PersistentItemStatus.Enqueued,

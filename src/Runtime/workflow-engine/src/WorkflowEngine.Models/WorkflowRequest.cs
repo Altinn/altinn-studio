@@ -21,12 +21,6 @@ public sealed record WorkflowRequest
     public required string OperationId { get; init; }
 
     /// <summary>
-    /// An idempotency key for this workflow.
-    /// </summary>
-    [JsonPropertyName("idempotencyKey")]
-    public required string IdempotencyKey { get; init; }
-
-    /// <summary>
     /// The type of workflow this request is for.
     /// </summary>
     [JsonPropertyName("type")]

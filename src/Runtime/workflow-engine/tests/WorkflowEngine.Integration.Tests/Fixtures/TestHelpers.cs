@@ -48,7 +48,6 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
         {
             Ref = wfRef,
             OperationId = $"op-{wfRef}",
-            IdempotencyKey = $"key-{wfRef}-{Guid.NewGuid()}",
             Type = type,
             Steps = steps.ToArray(),
             DependsOn = dependsOn?.ToList(),
@@ -61,6 +60,7 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
         new()
         {
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            IdempotencyKey = $"idem-{Guid.NewGuid()}",
             LockToken = lockToken,
             Workflows = [workflow],
         };
@@ -75,6 +75,7 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
         new()
         {
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            IdempotencyKey = $"idem-{Guid.NewGuid()}",
             LockToken = lockToken,
             Workflows = [.. workflows],
         };

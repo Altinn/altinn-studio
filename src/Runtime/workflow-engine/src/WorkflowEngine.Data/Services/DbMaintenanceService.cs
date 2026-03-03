@@ -21,7 +21,7 @@ public sealed class DbMaintenanceService(ILogger<DbMaintenanceService> logger, T
 
             try
             {
-                // TODO: Add maintenance tasks here (e.g. cascade_dependency_failures)??
+                // TODO: Add maintenance tasks here
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

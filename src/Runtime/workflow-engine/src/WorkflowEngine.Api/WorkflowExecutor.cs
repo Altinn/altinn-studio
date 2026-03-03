@@ -73,7 +73,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
             return result;
         }
-        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw; // handle this gracefully upstream
         }

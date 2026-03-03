@@ -127,7 +127,7 @@ internal static class EnginePgRepositoryQueries
         }
 
         public IQueryable<WorkflowEntity> GetWorkflowById(
-            long workflowId,
+            Guid workflowId,
             bool includeSteps = true,
             bool includeDependencies = true,
             bool includeLinks = true

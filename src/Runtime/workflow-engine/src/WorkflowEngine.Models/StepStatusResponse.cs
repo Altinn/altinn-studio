@@ -12,7 +12,7 @@ public sealed record StepStatusResponse
     /// The database ID of the step.
     /// </summary>
     [JsonPropertyName("databaseId")]
-    public long DatabaseId { get; init; }
+    public Guid DatabaseId { get; init; }
 
     /// <summary>
     /// An idempotency key for this workflow.

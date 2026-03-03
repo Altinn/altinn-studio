@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -13,15 +12,39 @@ namespace WorkflowEngine.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "idempotency_keys",
+                columns: table => new
+                {
+                    idempotency_key = table.Column<string>(type: "text", nullable: false),
+                    instance_org = table.Column<string>(type: "text", nullable: false),
+                    instance_app = table.Column<string>(type: "text", nullable: false),
+                    instance_owner_party_id = table.Column<int>(type: "integer", nullable: false),
+                    instance_guid = table.Column<Guid>(type: "uuid", nullable: false),
+                    request_body_hash = table.Column<byte[]>(type: "bytea", nullable: false),
+                    workflow_ids = table.Column<Guid[]>(type: "uuid[]", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey(
+                        "PK_idempotency_keys",
+                        x => new
+                        {
+                            x.idempotency_key,
+                            x.instance_org,
+                            x.instance_app,
+                            x.instance_owner_party_id,
+                            x.instance_guid,
+                        }
+                    );
+                }
+            );
+
+            migrationBuilder.CreateTable(
                 name: "Workflows",
                 columns: table => new
                 {
-                    Id = table
-                        .Column<long>(type: "bigint", nullable: false)
-                        .Annotation(
-                            "Npgsql:ValueGenerationStrategy",
-                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
-                        ),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     OperationId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     IdempotencyKey = table.Column<string>(type: "text", nullable: false),
                     InstanceLockKey = table.Column<string>(
@@ -63,12 +86,7 @@ namespace WorkflowEngine.Data.Migrations
                 name: "Steps",
                 columns: table => new
                 {
-                    Id = table
-                        .Column<long>(type: "bigint", nullable: false)
-                        .Annotation(
-                            "Npgsql:ValueGenerationStrategy",
-                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
-                        ),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     OperationId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     IdempotencyKey = table.Column<string>(type: "text", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
@@ -87,7 +105,7 @@ namespace WorkflowEngine.Data.Migrations
                     RetryStrategyJson = table.Column<string>(type: "jsonb", nullable: true),
                     MetadataJson = table.Column<string>(type: "jsonb", nullable: true),
                     StateOut = table.Column<string>(type: "text", nullable: true),
-                    JobId = table.Column<long>(type: "bigint", nullable: false),
+                    JobId = table.Column<Guid>(type: "uuid", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -106,8 +124,8 @@ namespace WorkflowEngine.Data.Migrations
                 name: "WorkflowDependency",
                 columns: table => new
                 {
-                    WorkflowId = table.Column<long>(type: "bigint", nullable: false),
-                    DependsOnWorkflowId = table.Column<long>(type: "bigint", nullable: false),
+                    WorkflowId = table.Column<Guid>(type: "uuid", nullable: false),
+                    DependsOnWorkflowId = table.Column<Guid>(type: "uuid", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -133,8 +151,8 @@ namespace WorkflowEngine.Data.Migrations
                 name: "WorkflowLink",
                 columns: table => new
                 {
-                    WorkflowId = table.Column<long>(type: "bigint", nullable: false),
-                    LinkedWorkflowId = table.Column<long>(type: "bigint", nullable: false),
+                    WorkflowId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LinkedWorkflowId = table.Column<Guid>(type: "uuid", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -198,6 +216,8 @@ namespace WorkflowEngine.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(name: "idempotency_keys");
+
             migrationBuilder.DropTable(name: "Steps");
 
             migrationBuilder.DropTable(name: "WorkflowDependency");

@@ -19,12 +19,14 @@ public sealed record Workflow : PersistentItem
     public static Workflow FromRequest(
         WorkflowRequest request,
         WorkflowRequestMetadata metadata,
+        string idempotencyKey,
         IEnumerable<Workflow>? dependencies,
         IEnumerable<Workflow>? links
     ) =>
         new()
         {
-            IdempotencyKey = request.IdempotencyKey,
+            DatabaseId = Guid.CreateVersion7(),
+            IdempotencyKey = idempotencyKey,
             InstanceLockKey = metadata.InstanceLockKey,
             InstanceInformation = metadata.InstanceInformation,
             Actor = metadata.Actor,
@@ -35,7 +37,9 @@ public sealed record Workflow : PersistentItem
             Type = request.Type,
             Dependencies = dependencies,
             Links = links,
-            Steps = request.Steps.Select((step, i) => Step.FromRequest(request, step, metadata, i)).ToList(),
+            Steps = request
+                .Steps.Select((step, i) => Step.FromRequest(request, step, metadata, idempotencyKey, i))
+                .ToList(),
             InitialState = request.State,
         };
 

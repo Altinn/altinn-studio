@@ -7,19 +7,21 @@ namespace WorkflowEngine.Api.Tests;
 
 public class EngineHealthCheckTests
 {
-    private static (EngineHealthCheck HealthCheck, Mock<IEngine> EngineMock) CreateHealthCheck(
+    private static (EngineHealthCheck HealthCheck, Mock<IEngineStatus> StatusMock) CreateHealthCheck(
         EngineHealthStatus status,
-        int inboxCount = 0
+        int activeWorkerCount = 0,
+        int maxWorkers = 300
     )
     {
-        var engineMock = new Mock<IEngine>();
-        engineMock.Setup(e => e.Status).Returns(status);
-        engineMock.Setup(e => e.InboxCount).Returns(inboxCount);
+        var statusMock = new Mock<IEngineStatus>();
+        statusMock.Setup(e => e.Status).Returns(status);
+        statusMock.Setup(e => e.ActiveWorkerCount).Returns(activeWorkerCount);
+        statusMock.Setup(e => e.MaxWorkers).Returns(maxWorkers);
         var concurrencyLimiterMock = new Mock<IConcurrencyLimiter>();
         concurrencyLimiterMock.Setup(x => x.DbSlotStatus).Returns(new ConcurrencyLimiter.SlotStatus(50, 50, 100));
         concurrencyLimiterMock.Setup(x => x.HttpSlotStatus).Returns(new ConcurrencyLimiter.SlotStatus(50, 50, 100));
 
-        return (new EngineHealthCheck(engineMock.Object, concurrencyLimiterMock.Object), engineMock);
+        return (new EngineHealthCheck(statusMock.Object, concurrencyLimiterMock.Object), statusMock);
     }
 
     [Fact]
@@ -122,12 +124,13 @@ public class EngineHealthCheckTests
     }
 
     [Fact]
-    public async Task CheckHealthAsync_IncludesStatusAndQueueInData()
+    public async Task CheckHealthAsync_IncludesStatusAndWorkerCountInData()
     {
         // Arrange
         var (healthCheck, _) = CreateHealthCheck(
             EngineHealthStatus.Healthy | EngineHealthStatus.Running,
-            inboxCount: 42
+            activeWorkerCount: 42,
+            maxWorkers: 300
         );
 
         // Act
@@ -139,6 +142,6 @@ public class EngineHealthCheckTests
         // Assert
         Assert.NotNull(result.Data);
         Assert.Equal("Healthy, Running", result.Data["status"]);
-        Assert.True(result.Data["queue"] is Dictionary<string, int> dict && dict["count"] == 42);
+        Assert.True(result.Data["workers"] is Dictionary<string, int> dict && dict["active"] == 42);
     }
 }

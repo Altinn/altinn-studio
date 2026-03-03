@@ -36,7 +36,7 @@ public sealed record AppCallbackPayload
     /// The workflow database ID.
     /// </summary>
     [JsonPropertyName("workflowId")]
-    public required long WorkflowId { get; init; }
+    public required Guid WorkflowId { get; init; }
 
     /// <summary>
     /// Opaque state sent to the app. The engine never inspects this.

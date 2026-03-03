@@ -5,7 +5,6 @@ using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
-using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -342,7 +341,7 @@ internal partial class EnginePgRepository : IEngineRepository
 
     /// <inheritdoc/>
     public async Task<PersistentItemStatus?> GetWorkflowStatus(
-        long workflowId,
+        Guid workflowId,
         CancellationToken cancellationToken = default
     )
     {
@@ -366,135 +365,6 @@ internal partial class EnginePgRepository : IEngineRepository
         {
             activity?.Errored(ex);
             _logger.FailedToFetchWorkflows(ex.Message, ex);
-            throw;
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task<Workflow> AddWorkflow(
-        WorkflowRequest request,
-        WorkflowRequestMetadata metadata,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = Metrics.Source.StartActivity("EnginePgRepository.AddWorkflow");
-        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
-
-        try
-        {
-            _logger.AddingWorkflow(request);
-            var policy = request.Type.GetConcurrencyPolicy();
-
-            return policy switch
-            {
-                ConcurrencyPolicy.SingleActive => await AddWorkflowConstrained(request, metadata, cancellationToken),
-                ConcurrencyPolicy.Unrestricted => await AddWorkflowUnconstrained(request, metadata, cancellationToken),
-                _ => throw new InvalidOperationException($"Unknown concurrency policy: {policy}"),
-            };
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            _logger.FailedToAddWorkflows(ex.Message, ex);
-            throw;
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> AddWorkflowBatch(
-        IReadOnlyList<WorkflowRequest> orderedRequests,
-        WorkflowRequestMetadata metadata,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = Metrics.Source.StartActivity("EnginePgRepository.AddWorkflowBatch");
-        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
-
-        try
-        {
-            _logger.AddingWorkflowBatch(orderedRequests.Count);
-
-            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-
-            // Maps batch ref → inserted WorkflowEntity (within-batch dep resolution)
-            var refToEntity = new Dictionary<string, WorkflowEntity>(orderedRequests.Count);
-            var results = new List<Workflow>(orderedRequests.Count);
-
-            foreach (var request in orderedRequests)
-            {
-                // Resolve DependsOn: ref entries -> already-inserted batch entities; ID entries -> DB lookup
-                var allDepEntities = await ResolveWorkflowRefs(
-                    request.DependsOn,
-                    refToEntity,
-                    "dependency",
-                    metadata.InstanceInformation.InstanceGuid,
-                    cancellationToken
-                );
-
-                // Resolve Links: same pattern
-                var allLinkEntities = await ResolveWorkflowRefs(
-                    request.Links,
-                    refToEntity,
-                    "link",
-                    metadata.InstanceInformation.InstanceGuid,
-                    cancellationToken
-                );
-
-                // Insert the entity
-                var (_, entity) = await InsertWorkflowEntity(
-                    request,
-                    metadata,
-                    cancellationToken,
-                    preFetchedDependencies: allDepEntities,
-                    preFetchedLinks: allLinkEntities
-                );
-
-                // Flush to get the DB-assigned ID before inserting dependent items
-                await _context.SaveChangesAsync(cancellationToken);
-
-                // Enforce the concurrency constraint for SingleActive workflows
-                if (request.Type.GetConcurrencyPolicy() == ConcurrencyPolicy.SingleActive)
-                {
-                    var violation = await CheckActiveWorkflowConstraint(
-                        workflowId: entity.Id,
-                        workflowType: request.Type,
-                        metadata.InstanceInformation.InstanceGuid,
-                        cancellationToken
-                    );
-                    if (violation is not null)
-                    {
-                        await transaction.RollbackAsync(cancellationToken);
-                        throw new EngineWorkflowConcurrencyException(
-                            request.Type,
-                            violation.RejectionReason,
-                            violation.BlockingWorkflowId
-                        );
-                    }
-                }
-
-                if (request.Ref is not null)
-                    refToEntity[request.Ref] = entity;
-                results.Add(entity.ToDomainModel());
-            }
-
-            await transaction.CommitAsync(cancellationToken);
-
-            _logger.SuccessfullyAddedWorkflowBatch(results.Count);
-
-            return results;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            _logger.FailedToAddWorkflows(ex.Message, ex);
             throw;
         }
     }
@@ -534,7 +404,7 @@ internal partial class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<Workflow?> GetWorkflow(long workflowId, CancellationToken cancellationToken = default)
+    public async Task<Workflow?> GetWorkflow(Guid workflowId, CancellationToken cancellationToken = default)
     {
         using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetWorkflow");
         using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);

@@ -91,11 +91,11 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         string app,
         string partyId,
         Guid instanceGuid,
-        long workflowId
+        Guid workflowId
     ) => _client.GetAsync($"{GetInstancePath(org, app, partyId, instanceGuid)}/{workflowId}", CancellationToken.None);
 
-    /// <inheritdoc cref="GetWorkflowRaw(string, string, string, Guid, long)" />
-    public Task<HttpResponseMessage> GetWorkflowRaw(Guid instanceGuid, long workflowId) =>
+    /// <inheritdoc cref="GetWorkflowRaw(string, string, string, Guid, Guid)" />
+    public Task<HttpResponseMessage> GetWorkflowRaw(Guid instanceGuid, Guid workflowId) =>
         GetWorkflowRaw(
             EngineAppFixture.DefaultOrg,
             EngineAppFixture.DefaultApp,
@@ -112,7 +112,7 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         string app,
         string partyId,
         Guid instanceGuid,
-        long workflowId
+        Guid workflowId
     )
     {
         using var response = await GetWorkflowRaw(org, app, partyId, instanceGuid, workflowId);
@@ -133,8 +133,8 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         return await AssertSuccessAndDeserialize<WorkflowStatusResponse>(response);
     }
 
-    /// <inheritdoc cref="GetWorkflow(string, string, string, Guid, long)" />
-    public Task<WorkflowStatusResponse?> GetWorkflow(Guid instanceGuid, long workflowId) =>
+    /// <inheritdoc cref="GetWorkflow(string, string, string, Guid, Guid)" />
+    public Task<WorkflowStatusResponse?> GetWorkflow(Guid instanceGuid, Guid workflowId) =>
         GetWorkflow(
             EngineAppFixture.DefaultOrg,
             EngineAppFixture.DefaultApp,
@@ -171,7 +171,7 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         );
 
     /// <summary>
-    /// Polls <see cref="GetWorkflow(string,string,string,System.Guid,long)"/> every 100 ms until the workflow reaches
+    /// Polls <see cref="GetWorkflow(string,string,string,System.Guid,System.Guid)"/> every 100 ms until the workflow reaches
     /// <paramref name="expectedStatus"/> or the <paramref name="timeout"/> expires.
     /// </summary>
     public async Task<WorkflowStatusResponse> WaitForWorkflowStatus(
@@ -179,7 +179,7 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         string app,
         string partyId,
         Guid instanceGuid,
-        long workflowId,
+        Guid workflowId,
         PersistentItemStatus expectedStatus,
         TimeSpan? timeout = null
     )
@@ -201,7 +201,7 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
     /// <inheritdoc cref="WaitForWorkflowStatus"/>
     public Task<WorkflowStatusResponse> WaitForWorkflowStatus(
         Guid instanceGuid,
-        long workflowId,
+        Guid workflowId,
         PersistentItemStatus expectedStatus,
         TimeSpan? timeout = null
     ) =>
@@ -224,7 +224,7 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         string app,
         string partyId,
         Guid instanceGuid,
-        IEnumerable<long> workflowIds,
+        IEnumerable<Guid> workflowIds,
         PersistentItemStatus expectedStatus,
         TimeSpan? timeout = null
     )
@@ -235,10 +235,10 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         return [.. await Task.WhenAll(tasks)];
     }
 
-    /// <inheritdoc cref="WaitForWorkflowStatus(string,string,string,System.Guid,System.Collections.Generic.IEnumerable{long},WorkflowEngine.Models.PersistentItemStatus,System.TimeSpan?)"/>
+    /// <inheritdoc cref="WaitForWorkflowStatus(string,string,string,System.Guid,System.Collections.Generic.IEnumerable{System.Guid},WorkflowEngine.Models.PersistentItemStatus,System.TimeSpan?)"/>
     public Task<List<WorkflowStatusResponse>> WaitForWorkflowStatus(
         Guid instanceGuid,
-        IEnumerable<long> workflowIds,
+        IEnumerable<Guid> workflowIds,
         PersistentItemStatus expectedStatus,
         TimeSpan? timeout = null
     ) =>

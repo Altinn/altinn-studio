@@ -129,7 +129,6 @@ public partial class EngineTests
             {
                 Ref = "wf",
                 OperationId = $"op-{Guid.NewGuid()}",
-                IdempotencyKey = $"key-{Guid.NewGuid()}",
                 Type = WorkflowType.Generic,
                 StartAt = startAt,
                 Steps = [_testHelpers.CreateWebhookStep("/scheduled")],
