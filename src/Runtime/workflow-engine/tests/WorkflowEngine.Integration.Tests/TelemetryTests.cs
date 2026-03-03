@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Integration.Tests.Fixtures;
@@ -304,5 +305,181 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // Assert repository activities for query operations
         Assert.NotEmpty(collector.GetActivities("EnginePgRepository.GetActiveWorkflowsForInstance"));
         Assert.NotEmpty(collector.GetActivities("EnginePgRepository.GetWorkflow"));
+    }
+
+    /// <summary>
+    /// Verifies the distributed trace hierarchy and cross-trace links for a single workflow.
+    /// <para>
+    /// The engine produces two distinct traces per workflow. The enqueue trace lives
+    /// in the HTTP request context, while processing starts a new root trace that
+    /// links back to the original request:
+    /// </para>
+    /// <code>
+    /// Trace A — Enqueue (child of HTTP server span):
+    ///   Engine.EnqueueBatch
+    ///     ├── ValidationUtils.ValidateAndSortWorkflowGraph
+    ///     ├── Engine.AcquireQueueSlots
+    ///     └── EnginePgRepository.AddWorkflowBatch
+    ///           └── EnginePgRepository.InsertWorkflowEntity
+    ///
+    /// Trace B — Processing (new root, linked → Trace A):
+    ///   Engine.ProcessWorkflow
+    ///     ├── Engine.UpdateWorkflowInDb
+    ///     │     └── EnginePgRepository.UpdateWorkflow
+    ///     ├── Engine.ProcessStep.{operationId}
+    ///     │     └── WorkflowExecutor.Execute
+    ///     │           └── WorkflowExecutor.AppCommand
+    ///     ├── Engine.UpdateWorkflowAndStepsInDb
+    ///     │     └── EnginePgRepository.BatchUpdateWorkflowAndSteps
+    ///     └── Engine.ReleaseQueueSlot
+    /// </code>
+    /// </summary>
+    [Fact]
+    public async Task SingleWorkflow_SpanHierarchyAndLinks()
+    {
+        // Arrange — single workflow with one step keeps the hierarchy unambiguous
+        using var collector = new TelemetryCollector();
+
+        var request = _testHelpers.CreateEnqueueRequest(
+            [_testHelpers.CreateWorkflow("a", WorkflowType.Generic, [_testHelpers.CreateAppCommandStep("/cmd")])],
+            lockToken: InstanceLockToken
+        );
+
+        // Act
+        var response = await _client.Enqueue(_instanceGuid, request);
+        var workflowId = response.Workflows.Single().DatabaseId;
+        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+
+        // Resolve key span instances
+        var enqueueBatch = Single(collector, "Engine.EnqueueBatch");
+        var processWorkflow = Single(collector, "Engine.ProcessWorkflow");
+
+        // ───────────────────────────────────────────────────────────
+        // Trace separation: enqueue and processing live in different traces
+        // ───────────────────────────────────────────────────────────
+        Assert.NotEqual(enqueueBatch.TraceId, processWorkflow.TraceId);
+
+        // ───────────────────────────────────────────────────────────
+        // Cross-trace link: ProcessWorkflow is a new root that links
+        // back to the HTTP request trace (captured during enqueue)
+        // ───────────────────────────────────────────────────────────
+        Assert.Equal(default, processWorkflow.ParentSpanId);
+
+        var link = Assert.Single(processWorkflow.Links);
+        Assert.Equal(enqueueBatch.TraceId, link.Context.TraceId);
+
+        // The link points to the HTTP server span, which is the parent of EnqueueBatch
+        Assert.Equal(enqueueBatch.ParentSpanId, link.Context.SpanId);
+
+        // ───────────────────────────────────────────────────────────
+        // Trace A — Enqueue tree (HTTP request trace)
+        // ───────────────────────────────────────────────────────────
+
+        //   Engine.EnqueueBatch
+        //     ├── ValidationUtils.ValidateAndSortWorkflowGraph
+        var validation = Single(collector, "ValidationUtils.ValidateAndSortWorkflowGraph");
+        AssertChildOf(enqueueBatch, validation);
+
+        //     ├── Engine.AcquireQueueSlots
+        var acquireSlots = Single(collector, "Engine.AcquireQueueSlots");
+        AssertChildOf(enqueueBatch, acquireSlots);
+
+        //     └── EnginePgRepository.AddWorkflowBatch
+        var addBatch = Single(collector, "EnginePgRepository.AddWorkflowBatch");
+        AssertChildOf(enqueueBatch, addBatch);
+
+        //           └── EnginePgRepository.InsertWorkflowEntity
+        var insertEntity = Single(collector, "EnginePgRepository.InsertWorkflowEntity");
+        AssertChildOf(addBatch, insertEntity);
+
+        // ───────────────────────────────────────────────────────────
+        // Trace B — Processing tree (new root trace)
+        // ───────────────────────────────────────────────────────────
+
+        //   Engine.ProcessWorkflow
+        //     ├── Engine.UpdateWorkflowInDb
+        var updateWorkflowInDb = FirstInTrace(collector, processWorkflow.TraceId, "Engine.UpdateWorkflowInDb");
+        AssertChildOf(processWorkflow, updateWorkflowInDb);
+
+        //     │     └── EnginePgRepository.UpdateWorkflow
+        var repoUpdateWorkflow = FirstInTrace(collector, processWorkflow.TraceId, "EnginePgRepository.UpdateWorkflow");
+        AssertChildOf(updateWorkflowInDb, repoUpdateWorkflow);
+
+        //     ├── Engine.ProcessStep.{operationId}
+        var processStep = SingleStartingWith(collector, processWorkflow.TraceId, "Engine.ProcessStep");
+        AssertChildOf(processWorkflow, processStep);
+
+        //     │     └── WorkflowExecutor.Execute
+        var execute = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowExecutor.Execute");
+        AssertChildOf(processStep, execute);
+
+        //     │           └── WorkflowExecutor.AppCommand
+        var appCommand = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowExecutor.AppCommand");
+        AssertChildOf(execute, appCommand);
+
+        //     ├── Engine.UpdateWorkflowAndStepsInDb
+        var batchUpdateEngine = FirstInTrace(collector, processWorkflow.TraceId, "Engine.UpdateWorkflowAndStepsInDb");
+        AssertChildOf(processWorkflow, batchUpdateEngine);
+
+        //     │     └── EnginePgRepository.BatchUpdateWorkflowAndSteps
+        var batchUpdateRepo = FirstInTrace(
+            collector,
+            processWorkflow.TraceId,
+            "EnginePgRepository.BatchUpdateWorkflowAndSteps"
+        );
+        AssertChildOf(batchUpdateEngine, batchUpdateRepo);
+
+        //     └── Engine.ReleaseQueueSlot
+        var releaseSlot = SingleInTrace(collector, processWorkflow.TraceId, "Engine.ReleaseQueueSlot");
+        AssertChildOf(processWorkflow, releaseSlot);
+    }
+
+    // ─── Span hierarchy helpers ────────────────────────────────────
+
+    /// <summary>Asserts that <paramref name="child"/> is a direct child of <paramref name="parent"/>.</summary>
+    private static void AssertChildOf(Activity parent, Activity child)
+    {
+        Assert.Equal(parent.TraceId, child.TraceId);
+        Assert.Equal(parent.SpanId, child.ParentSpanId);
+    }
+
+    /// <summary>Returns the single activity matching <paramref name="operationName"/>.</summary>
+    private static Activity Single(TelemetryCollector collector, string operationName)
+    {
+        var matches = collector.GetActivities(operationName);
+        Assert.True(matches.Count == 1, $"Expected exactly 1 '{operationName}' activity, got {matches.Count}");
+        return matches[0];
+    }
+
+    /// <summary>Returns the single activity matching <paramref name="operationName"/> within the given trace.</summary>
+    private static Activity SingleInTrace(TelemetryCollector collector, ActivityTraceId traceId, string operationName)
+    {
+        var matches = collector.GetActivities(operationName).Where(a => a.TraceId == traceId).ToList();
+        Assert.True(
+            matches.Count == 1,
+            $"Expected exactly 1 '{operationName}' in trace {traceId}, got {matches.Count}"
+        );
+        return matches[0];
+    }
+
+    /// <summary>Returns the first activity matching <paramref name="operationName"/> within the given trace.</summary>
+    private static Activity FirstInTrace(TelemetryCollector collector, ActivityTraceId traceId, string operationName)
+    {
+        var matches = collector.GetActivities(operationName).Where(a => a.TraceId == traceId).ToList();
+        Assert.True(matches.Count >= 1, $"Expected at least 1 '{operationName}' in trace {traceId}, got 0");
+        return matches[0];
+    }
+
+    /// <summary>Returns the single activity whose name starts with <paramref name="prefix"/> within the given trace.</summary>
+    private static Activity SingleStartingWith(TelemetryCollector collector, ActivityTraceId traceId, string prefix)
+    {
+        var matches = collector.GetActivitiesStartingWith(prefix).Where(a => a.TraceId == traceId).ToList();
+        Assert.True(
+            matches.Count == 1,
+            $"Expected exactly 1 activity starting with '{prefix}' in trace {traceId}, got {matches.Count}"
+        );
+        return matches[0];
     }
 }

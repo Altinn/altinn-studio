@@ -41,4 +41,4 @@
 
 ### [Resilience](src/WorkflowEngine.Resilience)
 #### Tests
-- [ ] Expand on [RetryStrategyExtensionsTests](tests/WorkflowEngine.Resilience.Tests/Extensions/RetryStrategyExtensionsTests.cs) to cover all possible failure scenarios in `Execute`.
+- [x] Expand on [RetryStrategyExtensionsTests](tests/WorkflowEngine.Resilience.Tests/Extensions/RetryStrategyExtensionsTests.cs) to cover all possible failure scenarios in `Execute`.
