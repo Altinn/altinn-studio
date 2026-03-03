@@ -48,7 +48,11 @@ public sealed class XsdUnhandledAttributesKeyword : IJsonSchemaKeyword, IEquatab
         Properties = values as List<(string, string)> ?? values.ToList();
     }
 
-    public KeywordConstraint GetConstraint(SchemaConstraint schemaConstraint, IReadOnlyList<KeywordConstraint> localConstraints, EvaluationContext context)
+    public KeywordConstraint GetConstraint(
+        SchemaConstraint schemaConstraint,
+        IReadOnlyList<KeywordConstraint> localConstraints,
+        EvaluationContext context
+    )
     {
         return new KeywordConstraint(Name, (e, c) => { });
     }
@@ -89,7 +93,11 @@ public sealed class XsdUnhandledAttributesKeyword : IJsonSchemaKeyword, IEquatab
         /// <summary>
         /// Read @xsdUnhandledAttributes keyword from json schema
         /// </summary>
-        public override XsdUnhandledAttributesKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdUnhandledAttributesKeyword Read(
+            ref Utf8JsonReader reader,
+            Type typeToConvert,
+            JsonSerializerOptions options
+        )
         {
             JsonDocument document = JsonDocument.ParseValue(ref reader);
 
@@ -98,13 +106,19 @@ public sealed class XsdUnhandledAttributesKeyword : IJsonSchemaKeyword, IEquatab
                 throw new JsonException("Expected object");
             }
 
-            return new XsdUnhandledAttributesKeyword(document.RootElement.EnumerateObject().Select(p => (p.Name, p.Value.GetString())));
+            return new XsdUnhandledAttributesKeyword(
+                document.RootElement.EnumerateObject().Select(p => (p.Name, p.Value.GetString()))
+            );
         }
 
         /// <summary>
         /// Write @xsdUnhandledAttributes keyword to json
         /// </summary>
-        public override void Write(Utf8JsonWriter writer, XsdUnhandledAttributesKeyword value, JsonSerializerOptions options)
+        public override void Write(
+            Utf8JsonWriter writer,
+            XsdUnhandledAttributesKeyword value,
+            JsonSerializerOptions options
+        )
         {
             writer.WritePropertyName(Name);
             writer.WriteStartObject();

@@ -4,6 +4,7 @@ import { render, renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { PreviewConnectionContextProvider } from 'app-shared/providers/PreviewConnectionContext';
+import { FeatureFlagsContextProvider, type FeatureFlag } from '@studio/feature-flags';
 
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
@@ -18,28 +19,11 @@ export const renderWithProviders =
     previewContextProps: Partial<PreviewContextProps> = {},
     path?: string,
     pathTemplate?: string,
+    featureFlags: FeatureFlag[] = [],
   ) =>
   (component: ReactNode) => {
-    const renderResult = render(
-      <TestAppRouter initialPath={path} pathTemplate={pathTemplate}>
-        <ServicesContextProvider
-          {...queriesMock}
-          {...queries}
-          client={queryClient}
-          clientConfig={queryClientConfigMock}
-        >
-          <PreviewConnectionContextProvider>
-            <PreviewContext.Provider
-              value={{ ...defaultPreviewContextProps, ...previewContextProps }}
-            >
-              {component}
-            </PreviewContext.Provider>
-          </PreviewConnectionContextProvider>
-        </ServicesContextProvider>
-      </TestAppRouter>,
-    );
-    const rerender = (rerenderedComponent: ReactNode) =>
-      renderResult.rerender(
+    const Wrapper = ({ children }: { children: ReactNode }) => (
+      <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
         <TestAppRouter initialPath={path} pathTemplate={pathTemplate}>
           <ServicesContextProvider
             {...queriesMock}
@@ -51,30 +35,41 @@ export const renderWithProviders =
               <PreviewContext.Provider
                 value={{ ...defaultPreviewContextProps, ...previewContextProps }}
               >
-                {rerenderedComponent}
+                {children}
               </PreviewContext.Provider>
             </PreviewConnectionContextProvider>
           </ServicesContextProvider>
-        </TestAppRouter>,
-      );
+        </TestAppRouter>
+      </FeatureFlagsContextProvider>
+    );
+
+    const renderResult = render(<Wrapper>{component}</Wrapper>);
+    const rerender = (rerenderedComponent: ReactNode) =>
+      renderResult.rerender(<Wrapper>{rerenderedComponent}</Wrapper>);
     return { renderResult: { ...renderResult, rerender } };
   };
 
 export const renderHookWithProviders =
-  (queries: Partial<ServicesContextProps> = {}, queryClient?: QueryClient) =>
+  (
+    queries: Partial<ServicesContextProps> = {},
+    queryClient?: QueryClient,
+    featureFlags: FeatureFlag[] = [],
+  ) =>
   (hook: () => any) => {
     const renderHookResult = renderHook(hook, {
       wrapper: ({ children }) => (
-        <TestAppRouter>
-          <ServicesContextProvider
-            {...queriesMock}
-            {...queries}
-            client={queryClient}
-            clientConfig={queryClientConfigMock}
-          >
-            <PreviewConnectionContextProvider>{children}</PreviewConnectionContextProvider>
-          </ServicesContextProvider>
-        </TestAppRouter>
+        <FeatureFlagsContextProvider value={{ flags: featureFlags }}>
+          <TestAppRouter>
+            <ServicesContextProvider
+              {...queriesMock}
+              {...queries}
+              client={queryClient}
+              clientConfig={queryClientConfigMock}
+            >
+              <PreviewConnectionContextProvider>{children}</PreviewConnectionContextProvider>
+            </ServicesContextProvider>
+          </TestAppRouter>
+        </FeatureFlagsContextProvider>
       ),
     });
     return { renderHookResult };

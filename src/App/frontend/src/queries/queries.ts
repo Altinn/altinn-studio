@@ -22,7 +22,6 @@ import {
   getInstanceLayoutsUrl,
   getInstantiateUrl,
   getJsonSchemaUrl,
-  getLayoutSettingsUrl,
   getLayoutsUrl,
   getOrderDetailsUrl,
   getPaymentInformationUrl,
@@ -34,7 +33,6 @@ import {
   getValidationUrl,
   instancesControllerUrl,
   postalCodesUrl,
-  profileApiUrl,
   refreshJwtTokenUrl,
   textResourcesUrl,
   validPartiesUrl,
@@ -52,11 +50,11 @@ import type {
   BackendValidationIssuesWithSource,
   IExpressionValidationConfig,
 } from 'src/features/validation';
-import type { ILayoutSettings, IRawOption } from 'src/layout/common.generated';
+import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { ISimpleInstance, LooseAutocomplete } from 'src/types';
-import type { IActionType, IData, IInstance, IParty, IProcess, IProfile, PostalCodesRegistry } from 'src/types/shared';
+import type { IActionType, IData, IInstance, IParty, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
 export const doSetSelectedParty = (partyId: number | string) =>
   putWithoutConfig<LooseAutocomplete<'Party successfully updated'> | null>(getSetSelectedPartyUrl(partyId));
@@ -205,13 +203,10 @@ export const fetchInstanceData = async (partyId: string, instanceGuid: string): 
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
 
-export const fetchLayouts = (layoutSetId: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(layoutSetId));
+export const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
 
-export const fetchLayoutsForInstance = (layoutSetId: string, instanceId: string): Promise<ILayoutCollection> =>
-  httpGet(getInstanceLayoutsUrl(layoutSetId, instanceId));
-
-export const fetchLayoutSettings = (layoutSetId: string): Promise<ILayoutSettings> =>
-  httpGet(getLayoutSettingsUrl(layoutSetId));
+export const fetchLayoutsForInstance = (uiFolder: string, instanceId: string): Promise<ILayoutCollection> =>
+  httpGet(getInstanceLayoutsUrl(uiFolder, instanceId));
 
 export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
 
@@ -223,8 +218,6 @@ export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTo
 
 export const fetchCustomValidationConfig = (dataTypeId: string): Promise<IExpressionValidationConfig | null> =>
   httpGet(getCustomValidationConfigUrl(dataTypeId));
-
-export const fetchUserProfile = (): Promise<IProfile> => httpGet(profileApiUrl);
 
 export const fetchDataModelSchema = (dataTypeName: string): Promise<JSONSchema7> =>
   httpGet(getJsonSchemaUrl() + dataTypeName);

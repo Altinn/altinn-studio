@@ -6,12 +6,13 @@ import { v4 as uuidv4 } from 'uuid';
 import type { JSONSchema7 } from 'json-schema';
 
 import { DynamicForm } from 'src/app-components/DynamicForm/DynamicForm';
+import { translationKey } from 'src/AppComponentsBridge';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
+import { getDatepickerFormat } from 'src/utils/dateUtils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
 import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -63,8 +64,6 @@ export function AddToListModal({
 
   const [tempFormData, setTempFormData] = useState<FormDataObject | undefined>(initialData);
 
-  const { langAsString } = useLanguage();
-
   useEffect(() => {
     if (!initialData) {
       const uuid = uuidv4();
@@ -97,10 +96,11 @@ export function AddToListModal({
         <DynamicForm
           schema={schema?.items}
           onChange={onFormDataUpdate}
+          getDatepickerFormat={getDatepickerFormat}
           initialData={tempFormData}
           DropdownCaption={DropdownCaption}
-          buttonAriaLabel={langAsString('date_picker.aria_label_icon')}
-          calendarIconTitle={langAsString('date_picker.aria_label_icon')}
+          buttonAriaLabel={translationKey('date_picker.aria_label_icon')}
+          calendarIconTitle={translationKey('date_picker.aria_label_icon')}
         />
       </Dialog.Block>
       <Dialog.Block>

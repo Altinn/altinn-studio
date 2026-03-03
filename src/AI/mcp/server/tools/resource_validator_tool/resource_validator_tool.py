@@ -191,24 +191,52 @@ class ResourceValidator(BaseValidator):
 @register_tool(
     name="resource_validator_tool",
     description="""
-Validates Altinn text resource JSON with schema validation and business rules.
+Validates Altinn text resource JSON against schema and business rules.
 
-This tool checks:
-- JSON schema compliance (using official Altinn schemas)
-- Duplicate resource IDs
-- Unused resources (not referenced in layouts)
-- Missing translations between language files
-- Empty values
-- Suggests next IDs based on pattern
+## Purpose
+Check text resource files for schema compliance, duplicates, unused resources, and missing translations.
 
-Args:
-    resource_json: JSON string of text resources
-    language: Language code (nb, nn, en) - default: nb
-    layout_files: Optional list of layout file paths to check usage
-    repo_path: Optional path to repository root for cross-language validation
+## Required Parameters
+- `resource_json`: JSON string of the text resource file content
 
-Returns:
-    Validation results with errors, warnings, and suggestions
+## Optional Parameters
+- `language`: Language code (nb, nn, en) - default: "nb"
+- `layout_files`: List of layout file paths to check if resources are used
+- `repo_path`: Repository root path for cross-language validation
+
+## Validation Checks
+1. **Schema compliance**: Valid JSON structure per Altinn schema
+2. **Duplicate IDs**: No duplicate resource IDs
+3. **Unused resources**: Resources not referenced in layouts (if layout_files provided)
+4. **Missing translations**: Resources missing in other language files (if repo_path provided)
+5. **Empty values**: Resources with empty text values
+6. **ID patterns**: Suggests next ID based on detected naming pattern
+
+## Returns
+- `valid`: true | false
+- `errors`: Critical issues that must be fixed
+- `warnings`: Non-critical issues to review
+- `suggestions`: Helpful recommendations (e.g., next ID suggestion)
+
+## ⚠️ MANDATORY: Must Run After Creating/Modifying Resources
+This validation is REQUIRED - not optional. A task is incomplete without it.
+
+If you created or modified ANY resource file (resource.nb.json, etc.), you MUST call this tool before finishing.
+
+## When to Use
+✅ **REQUIRED** after creating any resource file
+✅ **REQUIRED** after modifying any existing resource file (e.g., resource.nb.json)
+✅ To find unused or missing resources
+✅ To check translation completeness across languages
+
+## When NOT to Use
+❌ To understand resource format (use `resource_tool` instead)
+❌ To validate layout JSON (use `schema_validator_tool` instead)
+
+## Common Errors
+- "Invalid JSON" → The resource_json is malformed
+- "Duplicate resource IDs" → Same ID used multiple times
+- "Resources referenced but not defined" → Layout uses missing resource ID
 """,
     annotations=ToolAnnotations(
         title="Resource Validator Tool",
@@ -232,10 +260,13 @@ def resource_validator_tool(
         except json.JSONDecodeError as e:
             return {
                 "valid": False,
-                "errors": [f"Invalid JSON: {str(e)}"],
+                "error_code": "INVALID_JSON",
+                "errors": [f"JSON_PARSE_ERROR: The resource_json is not valid JSON. Error: {str(e)}"],
                 "warnings": [],
                 "suggestions": {},
-                "schema_url": None
+                "schema_url": None,
+                "hint": "Check for: missing quotes, trailing commas, unescaped characters in the JSON.",
+                "retry_allowed": False
             }
         
         # Create validator and run validation

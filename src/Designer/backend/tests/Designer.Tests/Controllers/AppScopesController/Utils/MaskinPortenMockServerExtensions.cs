@@ -10,31 +10,38 @@ public static class MaskinPortenMockServerExtensions
     public static void PrepareMaskinPortenScopesResponse(
         this MockServerFixture mockServerFixture,
         string allScopesJson,
-        string accessScopesJson)
+        string accessScopesJson
+    )
     {
-        var allScopesRequest = Request.Create()
+        var allScopesRequest = Request
+            .Create()
             .UsingGet()
             .WithPath("/api/v1/scopes/all")
-            .WithParam("accessible_for_all", "true");
+            .WithParam("accessible_for_all", "true")
+            .WithParam("integration_type", "maskinporten")
+            .WithParam("inactive", "false");
 
-        var allScopesResponse = Response.Create()
+        var allScopesResponse = Response
+            .Create()
             .WithStatusCode(200)
             .WithHeader("content-type", MediaTypeNames.Application.Json)
             .WithBody(allScopesJson);
 
-        mockServerFixture.MockApi.Given(allScopesRequest)
-            .RespondWith(allScopesResponse);
+        mockServerFixture.MockApi.Given(allScopesRequest).RespondWith(allScopesResponse);
 
-        var accessScopesRequest = Request.Create()
+        var accessScopesRequest = Request
+            .Create()
             .UsingGet()
-            .WithPath("/api/v1/scopes/access/all");
+            .WithPath("/api/v1/scopes/access/all")
+            .WithParam("integration_type", "maskinporten")
+            .WithParam("inactive", "false");
 
-        var accessScopesResponse = Response.Create()
+        var accessScopesResponse = Response
+            .Create()
             .WithStatusCode(200)
             .WithHeader("content-type", MediaTypeNames.Application.Json)
             .WithBody(accessScopesJson);
 
-        mockServerFixture.MockApi.Given(accessScopesRequest)
-            .RespondWith(accessScopesResponse);
+        mockServerFixture.MockApi.Given(accessScopesRequest).RespondWith(accessScopesResponse);
     }
 }

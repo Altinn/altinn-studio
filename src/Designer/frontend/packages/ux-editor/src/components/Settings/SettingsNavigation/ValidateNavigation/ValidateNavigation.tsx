@@ -2,19 +2,15 @@ import React from 'react';
 import { StudioHeading, StudioParagraph } from '@studio/components';
 import classes from './ValidateNavigation.module.css';
 import { useTranslation } from 'react-i18next';
-// import { ValidationConfig } from './ValidateNavigationConfig';
-
-export enum Scope {
-  AllTasks = 'allTasks',
-  PerTask = 'perTask',
-  PerPage = 'perPage',
-}
+import { ValidateAllTasksConfig } from './TargetVariants/ValidateAllTasksConfig';
+import { ValidateSelectedPagesConfig } from './TargetVariants/ValidateSelectedPagesConfig';
+import { ValidateSelectedTasksConfig } from './TargetVariants/ValidateSelectedTasksConfig';
 
 export const ValidateNavigation = () => {
   const { t } = useTranslation();
 
   return (
-    <div className={classes.validationContent}>
+    <div className={classes.validateContent}>
       <div>
         <StudioHeading level={3} data-size='xs' spacing>
           {t('ux_editor.settings.navigation_validation_header')}
@@ -30,7 +26,7 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_all_tasks_description')}
         </StudioParagraph>
-        {/* <ValidationConfig propertyLabel='Lag validering' scope={Scope.AllTasks} /> */}
+        <ValidateAllTasksConfig />
       </div>
       <div>
         <StudioHeading level={4} data-size='2xs'>
@@ -39,7 +35,7 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_specific_task_description')}
         </StudioParagraph>
-        {/* <ValidationConfig propertyLabel='Lag en ny validering' scope={Scope.PerTask} /> */}
+        <ValidateSelectedTasksConfig />
       </div>
       <div>
         <StudioHeading level={4} data-size='2xs'>
@@ -48,7 +44,7 @@ export const ValidateNavigation = () => {
         <StudioParagraph>
           {t('ux_editor.settings.navigation_validation_specific_page_description')}
         </StudioParagraph>
-        {/* <ValidationConfig propertyLabel='Lag en ny validering' scope={Scope.PerPage} /> */}
+        <ValidateSelectedPagesConfig />
       </div>
     </div>
   );

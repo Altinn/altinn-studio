@@ -7,11 +7,12 @@
     "test": "jest",
     "lint": "eslint \"src/components/**/*.ts*\"",
     "storybook": "storybook dev -p 6007",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "typecheck": "tsc --noEmit -p ./"
   },
   "dependencies": {
-    "@digdir/designsystemet-css": "1.11.0",
-    "@digdir/designsystemet-react": "1.11.0",
+    "@digdir/designsystemet-css": "1.11.1",
+    "@digdir/designsystemet-react": "1.11.1",
     "@digdir/designsystemet-theme": "1.11.0",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
@@ -23,19 +24,19 @@
     "react-dom": "18.2.0 || 19.0.0 || 19.1 || 19.2"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^4.0.0",
-    "@storybook/addon-docs": "9.1.17",
-    "@storybook/addon-links": "9.1.17",
-    "@storybook/builder-vite": "9.1.17",
-    "@storybook/react-vite": "9.1.17",
+    "@chromatic-com/storybook": "^5.0.1",
+    "@storybook/addon-docs": "10.2.11",
+    "@storybook/addon-links": "10.2.11",
+    "@storybook/builder-vite": "10.2.11",
+    "@storybook/react-vite": "10.2.11",
     "@testing-library/jest-dom": "6.9.1",
-    "@testing-library/react": "16.3.1",
-    "@types/jest": "^29.5.5",
+    "@testing-library/react": "16.3.2",
+    "@types/jest": "^30.0.0",
     "eslint": "8.57.1",
-    "eslint-plugin-storybook": "^9.0.10",
+    "eslint-plugin-storybook": "^10.2.11",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "storybook": "^9.0.10",
+    "storybook": "^10.2.11",
     "ts-jest": "^29.1.1",
     "typescript": "5.9.3"
   }

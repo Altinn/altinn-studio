@@ -33,7 +33,7 @@ public class OrgCodeListService : IOrgCodeListService
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
-        AllowTrailingCommas = true
+        AllowTrailingCommas = true,
     };
 
     /// <summary>
@@ -41,14 +41,21 @@ public class OrgCodeListService : IOrgCodeListService
     /// </summary>
     /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
     /// <param name="sharedContentClient">the shared content client</param>
-    public OrgCodeListService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ISharedContentClient sharedContentClient)
+    public OrgCodeListService(
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        ISharedContentClient sharedContentClient
+    )
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _sharedContentClient = sharedContentClient;
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListData>> GetCodeLists(string org, string developer, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> GetCodeLists(
+        string org,
+        string developer,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -63,7 +70,7 @@ public class OrgCodeListService : IOrgCodeListService
                 {
                     Title = codeListId,
                     Data = codeList,
-                    HasError = false
+                    HasError = false,
                 };
                 codeLists.Add(codeListData);
             }
@@ -73,7 +80,7 @@ public class OrgCodeListService : IOrgCodeListService
                 {
                     Title = codeListId,
                     Data = null,
-                    HasError = true
+                    HasError = true,
                 };
                 codeLists.Add(codeListData);
             }
@@ -83,11 +90,21 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListData>> CreateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> CreateCodeList(
+        string org,
+        string developer,
+        string codeListId,
+        List<Option> codeList,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
+            org,
+            repo,
+            developer
+        );
 
         await altinnOrgGitRepository.CreateCodeList(codeListId, codeList, cancellationToken);
 
@@ -96,11 +113,21 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListData>> UpdateCodeList(string org, string developer, string codeListId, List<Option> codeList, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> UpdateCodeList(
+        string org,
+        string developer,
+        string codeListId,
+        List<Option> codeList,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
+            org,
+            repo,
+            developer
+        );
 
         await altinnOrgGitRepository.UpdateCodeList(codeListId, codeList, cancellationToken);
 
@@ -109,7 +136,11 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<string> PublishCodeList(string org, PublishCodeListRequest request, CancellationToken cancellationToken = default)
+    public async Task<string> PublishCodeList(
+        string org,
+        PublishCodeListRequest request,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         Guard.AssertValidateOrganization(org);
@@ -125,21 +156,38 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListData>> UploadCodeList(string org, string developer, IFormFile payload, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> UploadCodeList(
+        string org,
+        string developer,
+        IFormFile payload,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
         string codeListId = Path.GetFileNameWithoutExtension(payload.FileName);
 
-        List<Option>? deserializedCodeList = await JsonSerializer.DeserializeAsync<List<Option>>(payload.OpenReadStream(), s_jsonOptions, cancellationToken);
+        List<Option>? deserializedCodeList = await JsonSerializer.DeserializeAsync<List<Option>>(
+            payload.OpenReadStream(),
+            s_jsonOptions,
+            cancellationToken
+        );
 
-        bool codeListHasInvalidNullFields = deserializedCodeList is not null && deserializedCodeList.Exists(item => item.Value == null || item.Label == null);
+        bool codeListHasInvalidNullFields =
+            deserializedCodeList is not null
+            && deserializedCodeList.Exists(item => item.Value == null || item.Label == null);
         if (deserializedCodeList is null || codeListHasInvalidNullFields)
         {
-            throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
+            throw new InvalidOptionsFormatException(
+                "Uploaded file is missing one of the following attributes for an option: value or label."
+            );
         }
 
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
+            org,
+            repo,
+            developer
+        );
         await altinnOrgGitRepository.CreateCodeList(codeListId, deserializedCodeList, cancellationToken);
 
         List<OptionListData> codeLists = await GetCodeLists(org, developer, cancellationToken);
@@ -147,11 +195,20 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<List<OptionListData>> DeleteCodeList(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
+    public async Task<List<OptionListData>> DeleteCodeList(
+        string org,
+        string developer,
+        string codeListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
+            org,
+            repo,
+            developer
+        );
 
         altinnOrgGitRepository.DeleteCodeList(codeListId, cancellationToken);
 
@@ -160,7 +217,12 @@ public class OrgCodeListService : IOrgCodeListService
     }
 
     /// <inheritdoc />
-    public async Task<bool> CodeListExists(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
+    public async Task<bool> CodeListExists(
+        string org,
+        string developer,
+        string codeListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -180,7 +242,11 @@ public class OrgCodeListService : IOrgCodeListService
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
+            org,
+            repo,
+            developer
+        );
 
         List<string> codeListIds = altinnOrgGitRepository.GetCodeListIds(cancellationToken);
         return codeListIds;
@@ -190,16 +256,29 @@ public class OrgCodeListService : IOrgCodeListService
     public void UpdateCodeListId(string org, string developer, string codeListId, string newCodeListId)
     {
         string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
+            org,
+            repo,
+            developer
+        );
 
         altinnOrgGitRepository.UpdateCodeListId(codeListId, newCodeListId);
     }
 
-    private async Task<List<Option>> GetCodeList(string org, string developer, string codeListId, CancellationToken cancellationToken = default)
+    private async Task<List<Option>> GetCodeList(
+        string org,
+        string developer,
+        string codeListId,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string repo = GetStaticContentRepo(org);
-        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(org, repo, developer);
+        AltinnOrgGitRepository altinnOrgGitRepository = _altinnGitRepositoryFactory.GetAltinnOrgGitRepository(
+            org,
+            repo,
+            developer
+        );
 
         try
         {
@@ -209,7 +288,9 @@ public class OrgCodeListService : IOrgCodeListService
         }
         catch (Exception ex) when (ex is ValidationException || ex is JsonException)
         {
-            throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in code list: {codeListId}.");
+            throw new InvalidOptionsFormatException(
+                $"One or more of the options have an invalid format in code list: {codeListId}."
+            );
         }
     }
 

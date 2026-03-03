@@ -5,7 +5,7 @@ const appFrontend = new AppFrontend();
 describe('Calculate Page Order', () => {
   it('Testing pageOrder with hidden next page via dynamics', () => {
     cy.interceptLayout(
-      'group',
+      'Task_3',
       () => {},
       (layoutSet) => {
         layoutSet.hide.data.hidden = ['equals', ['component', 'choose-group-prefills'], 'stor'];

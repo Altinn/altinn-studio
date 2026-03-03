@@ -11,11 +11,12 @@ namespace Designer.Tests.Services;
 public class UserOrganizationServiceTests
 {
     [Fact]
-    public async Task UserIsMemberOfAnyOrganization_ShouldReturnTrue_WhenOrganizationsExist()
+    public async Task UserIsMemberOfAnyOrganization_ShouldReturnTrue_WhenUserOrganizationsExist()
     {
         var giteaMock = new Mock<IGiteaClient>();
-        giteaMock.Setup(g => g.GetUserOrganizations())
-            .ReturnsAsync(new List<Organization> { new Organization { FullName = "Org1" } });
+        giteaMock
+            .Setup(g => g.GetUserOrganizations())
+            .ReturnsAsync(new List<Organization> { new Organization { Username = "Org1" } });
 
         var service = new UserOrganizationService(giteaMock.Object);
 
@@ -25,11 +26,10 @@ public class UserOrganizationServiceTests
     }
 
     [Fact]
-    public async Task UserIsMemberOfAnyOrganization_ShouldReturnFalse_WhenNoOrganizationsExist()
+    public async Task UserIsMemberOfAnyOrganization_ShouldReturnFalse_WhenNoUserOrganizationsExist()
     {
         var giteaMock = new Mock<IGiteaClient>();
-        giteaMock.Setup(g => g.GetUserOrganizations())
-            .ReturnsAsync(new List<Organization>());
+        giteaMock.Setup(g => g.GetUserOrganizations()).ReturnsAsync(new List<Organization>());
 
         var service = new UserOrganizationService(giteaMock.Object);
 
@@ -42,7 +42,8 @@ public class UserOrganizationServiceTests
     public async Task UserIsMemberOfOrganization_ShouldReturnTrue_WhenMember()
     {
         var giteaMock = new Mock<IGiteaClient>();
-        giteaMock.Setup(g => g.GetUserOrganizations())
+        giteaMock
+            .Setup(g => g.GetUserOrganizations())
             .ReturnsAsync(new List<Organization> { new Organization { Username = "ttd" } });
 
         var service = new UserOrganizationService(giteaMock.Object);
@@ -56,7 +57,8 @@ public class UserOrganizationServiceTests
     public async Task UserIsMemberOfOrganization_ShouldReturnFalse_WhenNotMember()
     {
         var giteaMock = new Mock<IGiteaClient>();
-        giteaMock.Setup(g => g.GetUserOrganizations())
+        giteaMock
+            .Setup(g => g.GetUserOrganizations())
             .ReturnsAsync(new List<Organization> { new Organization { Username = "ttd" } });
 
         var service = new UserOrganizationService(giteaMock.Object);
@@ -67,15 +69,60 @@ public class UserOrganizationServiceTests
     }
 
     [Fact]
-    public async Task UserIsMemberOfOrganization_ShouldReturnFalse_WhenNoOrganizationsExist()
+    public async Task UserIsMemberOfOrganization_ShouldReturnFalse_WhenNoUserOrganizationsExist()
     {
         var giteaMock = new Mock<IGiteaClient>();
-        giteaMock.Setup(g => g.GetUserOrganizations())
-            .ReturnsAsync(new List<Organization>());
+        giteaMock.Setup(g => g.GetUserOrganizations()).ReturnsAsync(new List<Organization>());
 
         var service = new UserOrganizationService(giteaMock.Object);
 
         bool isMember = await service.UserIsMemberOfOrganization("ttd");
+
+        Assert.False(isMember);
+    }
+
+    [Fact]
+    public async Task UserIsMemberOfAnyOf_ShouldReturnTrue_WhenMatchingOrgInList()
+    {
+        var giteaMock = new Mock<IGiteaClient>();
+        giteaMock
+            .Setup(g => g.GetUserOrganizations())
+            .ReturnsAsync(new List<Organization> { new Organization { Username = "Org1" } });
+
+        var service = new UserOrganizationService(giteaMock.Object);
+        List<string> allowedOrgs = ["Org1", "Org2"];
+
+        bool isMember = await service.UserIsMemberOfAnyOf(allowedOrgs);
+
+        Assert.True(isMember);
+    }
+
+    [Fact]
+    public async Task UserIsMemberOfAnyOf_ShouldReturnFalse_WhenNotMatchingOrgInList()
+    {
+        var giteaMock = new Mock<IGiteaClient>();
+        giteaMock
+            .Setup(g => g.GetUserOrganizations())
+            .ReturnsAsync(new List<Organization> { new Organization { Username = "Org1" } });
+
+        var service = new UserOrganizationService(giteaMock.Object);
+        List<string> allowedOrgs = ["Org2", "Org3"];
+
+        bool isMember = await service.UserIsMemberOfAnyOf(allowedOrgs);
+
+        Assert.False(isMember);
+    }
+
+    [Fact]
+    public async Task UserIsMemberOfAnyOf_ShouldReturnFalse_WhenNoUserOrganizationsExist()
+    {
+        var giteaMock = new Mock<IGiteaClient>();
+        giteaMock.Setup(g => g.GetUserOrganizations()).ReturnsAsync(new List<Organization>());
+
+        var service = new UserOrganizationService(giteaMock.Object);
+        List<string> allowedOrgs = ["Org1", "Org2"];
+
+        bool isMember = await service.UserIsMemberOfAnyOf(allowedOrgs);
 
         Assert.False(isMember);
     }

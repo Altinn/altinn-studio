@@ -30,9 +30,9 @@ namespace Altinn.Studio.Designer.Controllers.Organisation;
 [ApiController]
 [Authorize(Policy = AltinnPolicy.MustHaveOrganizationPermission)]
 [Route("designer/api/{org}/shared-resources")]
-public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<OrgLibraryController> logger) : ControllerBase
+public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<OrgLibraryController> logger)
+    : ControllerBase
 {
-
     /// <summary>
     /// Gets the latest commit sha for a given branch.
     /// </summary>
@@ -45,7 +45,11 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<LatestCommitShaResponse>> GetLatestCommitOnBranch(string org, [FromQuery] string branchName = General.DefaultBranch, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<LatestCommitShaResponse>> GetLatestCommitOnBranch(
+        string org,
+        [FromQuery] string branchName = General.DefaultBranch,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -56,7 +60,12 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unexpected error fetching latest commit for {Org} on branch {BranchName}.", org, branchName);
+            logger.LogError(
+                ex,
+                "Unexpected error fetching latest commit for {Org} on branch {BranchName}.",
+                org,
+                branchName
+            );
             throw;
         }
     }
@@ -73,13 +82,23 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<GetSharedResourcesResponse>> GetSharedResources(string org, [FromQuery] string? path, [FromQuery] string? reference = null, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<GetSharedResourcesResponse>> GetSharedResources(
+        string org,
+        [FromQuery] string? path,
+        [FromQuery] string? reference = null,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         try
         {
-            GetSharedResourcesResponse response = await orgLibraryService.GetSharedResourcesByPath(org, path, reference, cancellationToken);
+            GetSharedResourcesResponse response = await orgLibraryService.GetSharedResourcesByPath(
+                org,
+                path,
+                reference,
+                cancellationToken
+            );
             return Ok(response);
         }
         catch (Exception ex)
@@ -101,7 +120,11 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult> UpdateSharedResources(string org, [FromBody] UpdateSharedResourceRequest requestBody, CancellationToken cancellationToken = default)
+    public async Task<ActionResult> UpdateSharedResources(
+        string org,
+        [FromBody] UpdateSharedResourceRequest requestBody,
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -115,32 +138,48 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
         catch (Exception ex) when (ex is InvalidOperationException or IllegalCommitMessageException)
         {
             logger.LogWarning(ex, "Error updating shared resources for {Org} by {Developer}.", org, developer);
-            return BadRequest(new ProblemDetails
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Unable to update shared resources",
-                Detail = ex.Message
-            });
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Unable to update shared resources",
+                    Detail = ex.Message,
+                }
+            );
         }
         catch (Exception ex) when (ex is NonFastForwardException)
         {
-            logger.LogWarning(ex, "Merge conflict when updating shared resources for {Org} by {Developer}.", org, developer);
-            return Conflict(new ProblemDetails
-            {
-                Status = StatusCodes.Status409Conflict,
-                Title = "Merge conflict when updating shared resources",
-                Detail = ex.Message
-            });
+            logger.LogWarning(
+                ex,
+                "Merge conflict when updating shared resources for {Org} by {Developer}.",
+                org,
+                developer
+            );
+            return Conflict(
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Merge conflict when updating shared resources",
+                    Detail = ex.Message,
+                }
+            );
         }
         catch (Exception ex) when (ex is BranchNotFoundException)
         {
-            logger.LogWarning(ex, "Branch not found when updating shared resources for {Org} by {Developer}.", org, developer);
-            return BadRequest(new ProblemDetails
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "The local branch was not found",
-                Detail = ex.Message
-            });
+            logger.LogWarning(
+                ex,
+                "Branch not found when updating shared resources for {Org} by {Developer}.",
+                org,
+                developer
+            );
+            return BadRequest(
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "The local branch was not found",
+                    Detail = ex.Message,
+                }
+            );
         }
         catch (Exception ex)
         {
@@ -159,7 +198,11 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<List<string>>> GetPublishedResources(string org, [FromQuery] string path = "", CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<string>>> GetPublishedResources(
+        string org,
+        [FromQuery] string path = "",
+        CancellationToken cancellationToken = default
+    )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -180,7 +223,7 @@ public class OrgLibraryController(IOrgLibraryService orgLibraryService, ILogger<
                 {
                     Status = StatusCodes.Status400BadRequest,
                     Title = "Error fetching published resources",
-                    Detail = ex.Message
+                    Detail = ex.Message,
                 }
             );
         }

@@ -6,7 +6,7 @@ describe('useAppSettingsMenuTabConfigs', () => {
   it('returns correct tab configurations with translated names and icons', () => {
     const { result } = renderHook(() => useAppSettingsMenuTabConfigs());
 
-    expect(result.current).toHaveLength(5);
+    expect(result.current).toHaveLength(6);
 
     expect(result.current).toEqual([
       {
@@ -27,6 +27,11 @@ describe('useAppSettingsMenuTabConfigs', () => {
       {
         tabId: 'access_control',
         tabName: textMock('app_settings.left_nav_tab_access_control'),
+        icon: expect.any(Object),
+      },
+      {
+        tabId: 'run',
+        tabName: textMock('app_settings.left_nav_tab_run'),
         icon: expect.any(Object),
       },
       {

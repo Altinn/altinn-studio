@@ -5,7 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/Runtime/pdf3/**'
-      - 'src/Runtime/test/fixture/**'
+      - 'src/Runtime/devenv/**'
       - '.github/workflows/runtime-pdf3-build.yml'
   workflow_dispatch:
 
@@ -20,11 +20,11 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
         with:
           go-version-file: src/Runtime/pdf3/go.mod
           cache-dependency-path: src/Runtime/pdf3/go.sum
@@ -46,7 +46,7 @@ jobs:
 
       - name: Upload test logs
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: runtime-pdf3-test-logs
           path: src/Runtime/pdf3/test/logs/

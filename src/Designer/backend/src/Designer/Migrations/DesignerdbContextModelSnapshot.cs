@@ -73,6 +73,65 @@ namespace Altinn.Studio.Designer.Migrations
                     b.ToTable("app_scopes", "designer");
                 });
 
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppSettingsDbModel", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("App")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("app");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("character varying")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Environment")
+                        .HasColumnType("character varying")
+                        .HasColumnName("environment");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("character varying")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.Property<bool>("UndeployOnInactivity")
+                        .HasColumnType("boolean")
+                        .HasColumnName("undeploy_on_inactivity");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("app_settings_pkey");
+
+                    b.HasIndex(new[] { "Org", "App", "Environment" }, "idx_app_settings_org_app_environment")
+                        .IsUnique()
+                        .HasFilter("\"environment\" IS NOT NULL");
+
+                    b.HasIndex(new[] { "Org", "App" }, "idx_app_settings_org_app_global")
+                        .IsUnique()
+                        .HasFilter("\"environment\" IS NULL");
+
+                    b.ToTable("app_settings", "designer");
+                });
+
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel", b =>
                 {
                     b.Property<long>("Id")

@@ -1,5 +1,4 @@
 import React from 'react';
-import type { RouteProps } from 'react-router-dom';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { AltinnError } from 'src/components/altinnError';
@@ -10,7 +9,7 @@ export type IInstantiationErrorPageProps = {
   content: React.ReactNode;
   statusCode?: React.ReactNode;
   showContactInfo?: boolean;
-} & RouteProps;
+};
 
 export function InstantiationErrorPage({ content, statusCode, title, showContactInfo }: IInstantiationErrorPageProps) {
   return (

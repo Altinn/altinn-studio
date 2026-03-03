@@ -4,5 +4,5 @@ namespace Altinn.Studio.Gateway.Api.Clients.AlertsClient;
 
 internal interface IAlertsClient
 {
-    public Task<IEnumerable<GrafanaAlertRule>> GetAlertRulesAsync(CancellationToken cancellationToken);
+    public Task<IEnumerable<GrafanaAlertRule>> GetAlertRules(CancellationToken cancellationToken);
 }

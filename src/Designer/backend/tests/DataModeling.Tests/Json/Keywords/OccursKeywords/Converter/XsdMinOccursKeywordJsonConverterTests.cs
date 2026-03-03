@@ -5,7 +5,8 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
 {
-    public class XsdMinOccursKeywordJsonConverterTests : ValueKeywordConverterTestBase<XsdMinOccursKeywordJsonConverterTests, XsdMinOccursKeyword, int>
+    public class XsdMinOccursKeywordJsonConverterTests
+        : ValueKeywordConverterTestBase<XsdMinOccursKeywordJsonConverterTests, XsdMinOccursKeyword, int>
     {
         private const string KeywordPlaceholder = "@xsdMinOccurs";
 
@@ -17,13 +18,12 @@ namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
         [InlineData(100)]
         public void Read_ValidJson_FromSchema(int value)
         {
-            var jsonSchema = @$"{{
+            var jsonSchema =
+                @$"{{
                 ""{KeywordPlaceholder}"": {value}
             }}";
 
-            Given.That.JsonSchemaLoaded(jsonSchema)
-                .When.KeywordReadFromSchema()
-                .Then.KeywordShouldNotBeNull();
+            Given.That.JsonSchemaLoaded(jsonSchema).When.KeywordReadFromSchema().Then.KeywordShouldNotBeNull();
 
             Assert.Equal(Keyword.Value, value);
         }
@@ -34,7 +34,8 @@ namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
         [InlineData(100)]
         public void Write_ValidStructure_ShouldWriteToJson(int value)
         {
-            Given.That.KeywordCreatedWithValue(value)
+            Given
+                .That.KeywordCreatedWithValue(value)
                 .When.KeywordSerializedAsJson()
                 .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":{value}}}");
         }
@@ -43,13 +44,13 @@ namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
         [InlineData(1)]
         public void Read_InvalidJson_ShouldThrow(int value)
         {
-            var jsonSchema = @$"{{
+            var jsonSchema =
+                @$"{{
                     ""{KeywordPlaceholder}"": {{
                         ""value"": ""{value}""
                 }}";
 
-            var ex = Assert.Throws<JsonException>(() =>
-                Given.That.JsonSchemaLoaded(jsonSchema));
+            var ex = Assert.Throws<JsonException>(() => Given.That.JsonSchemaLoaded(jsonSchema));
 
             Assert.Equal("Expected number", ex.Message);
         }
