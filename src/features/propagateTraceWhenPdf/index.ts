@@ -34,13 +34,8 @@ export function propagateTraceWhenPdf() {
           if (traceparent) {
             config.headers['traceparent'] = traceparent;
           }
-          if (typeof tracestate === 'string' && tracestate.length > 0) {
-            try {
-              config.headers['tracestate'] = atob(tracestate);
-            } catch (err) {
-              config.headers['tracestate'] = tracestate;
-              console.error('Error decoding tracestate from cookie', err);
-            }
+          if (tracestate) {
+            config.headers['tracestate'] = tracestate;
           }
           return config;
         } catch (err) {
