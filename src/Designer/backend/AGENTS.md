@@ -67,7 +67,7 @@ The backend consists of three main projects in a Visual Studio solution:
 
 ## Coding guidelines
 
-- Use AltinnRepoEditingContext instead of `org`, `repo`/`app` and `developer`/`user` as individual parameters.
+- Instead of passing the combination of `org`, `repo`/`app` and `developer`/`user` parameters into functions separately, look for suitable classes that join them into one, e.g. AltinnRepoEditingContext.
 
 ## Testing Guidelines
 
