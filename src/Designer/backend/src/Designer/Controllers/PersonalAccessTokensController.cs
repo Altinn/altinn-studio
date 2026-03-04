@@ -59,7 +59,7 @@ public class PersonalAccessTokensController(IPersonalAccessTokenService personal
         );
 
         var response = tokens
-            .Select(t => new PersonalAccessTokenResponse(t.Id, t.DisplayName, t.ExpiresAt, t.Revoked, t.CreatedAt))
+            .Select(t => new PersonalAccessTokenResponse(t.Id, t.DisplayName, t.ExpiresAt, t.CreatedAt))
             .ToList();
 
         return Ok(response);

@@ -6,6 +6,5 @@ public record PersonalAccessTokenResponse(
     long Id,
     string DisplayName,
     DateTimeOffset ExpiresAt,
-    bool Revoked,
     DateTimeOffset CreatedAt
 );
