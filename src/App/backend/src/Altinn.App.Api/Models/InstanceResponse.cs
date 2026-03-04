@@ -113,6 +113,7 @@ public sealed class InstanceResponse
                 PersonNumber = instance.InstanceOwner.PersonNumber,
                 OrganisationNumber = instance.InstanceOwner.OrganisationNumber,
                 Username = instance.InstanceOwner.Username,
+                ExternalIdentifier = instance.InstanceOwner.ExternalIdentifier,
                 Party = PartyResponse.From(instanceOwnerParty),
             },
             AppId = instance.AppId,
@@ -158,6 +159,11 @@ public sealed class InstanceOwnerResponse
     /// The username of the party. Null if the party is not self identified.
     /// </summary>
     public required string Username { get; init; }
+
+    /// <summary>
+    /// The external identifier of a self identified party. Null if the party is not self identified.
+    /// </summary>
+    public string ExternalIdentifier { get; init; }
 
     /// <summary>
     /// Party information for the instance owner.
