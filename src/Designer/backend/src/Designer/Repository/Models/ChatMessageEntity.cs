@@ -9,7 +9,7 @@ public class ChatMessageEntity
     /// <summary>
     /// Unique identifier for the message.
     /// </summary>
-    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public required Guid Id { get; set; } = Guid.CreateVersion7();
 
     /// <summary>
     /// Creation timestamp.
