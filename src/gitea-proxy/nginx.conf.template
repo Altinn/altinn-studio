@@ -15,11 +15,11 @@ http {
   js_var $auth_fullname;
 
   upstream designer {
-    server host.docker.internal:5000;
+    server ${DESIGNER_HOST};
   }
 
   upstream gitea {
-    server studio-repositories:3000;
+    server ${GITEA_HOST};
   }
 
   server {
