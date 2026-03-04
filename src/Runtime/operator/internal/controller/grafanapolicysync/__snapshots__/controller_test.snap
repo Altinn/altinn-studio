@@ -1,0 +1,197 @@
+
+[TestReconciler_SyncAll_AppendsManagedRouteAndPreservesUnrelated - 1]
+{
+ "receiver": "grafana-default-email",
+ "routes": [
+  {
+   "object_matchers": [
+    [
+     "Type",
+     "=",
+     "Unrelated"
+    ]
+   ],
+   "receiver": "team-a"
+  },
+  {
+   "group_by": [
+    "grafana_folder",
+    "alertname"
+   ],
+   "object_matchers": [
+    [
+     "Type",
+     "=",
+     "Altinn"
+    ]
+   ],
+   "receiver": "altinn-studio-gateway",
+   "repeat_interval": "5m"
+  }
+ ]
+}
+---
+
+[TestReconciler_SyncAll_PreservesUnknownFieldsOnRoundTrip - 1]
+{
+ "group_by": [
+  "grafana_folder",
+  "alertname"
+ ],
+ "receiver": "grafana-default-email",
+ "routes": [
+  {
+   "continue": true,
+   "object_matchers": [
+    [
+     "Type",
+     "=",
+     "Unrelated"
+    ]
+   ],
+   "receiver": "team-a"
+  },
+  {
+   "group_by": [
+    "grafana_folder",
+    "alertname"
+   ],
+   "object_matchers": [
+    [
+     "Type",
+     "=",
+     "Altinn"
+    ]
+   ],
+   "receiver": "altinn-studio-gateway",
+   "repeat_interval": "5m"
+  }
+ ]
+}
+---
+
+[TestReconciler_SyncAll_UpdatesManagedRoute - 1]
+{
+ "receiver": "grafana-default-email",
+ "routes": [
+  {
+   "group_by": [
+    "grafana_folder",
+    "alertname"
+   ],
+   "object_matchers": [
+    [
+     "Type",
+     "=",
+     "Altinn"
+    ]
+   ],
+   "receiver": "altinn-studio-gateway",
+   "repeat_interval": "5m"
+  }
+ ]
+}
+---
+
+[TestReconciler_SyncAll_DoesNotOverwriteUnmanagedAltinnMatcherRoute - 1]
+{
+ "receiver": "grafana-default-email",
+ "routes": [
+  {
+   "object_matchers": [
+    [
+     "Type",
+     "=",
+     "Altinn"
+    ]
+   ],
+   "receiver": "team-a",
+   "repeat_interval": "10m"
+  },
+  {
+   "group_by": [
+    "grafana_folder",
+    "alertname"
+   ],
+   "object_matchers": [
+    [
+     "Type",
+     "=",
+     "Altinn"
+    ]
+   ],
+   "receiver": "altinn-studio-gateway",
+   "repeat_interval": "5m"
+  }
+ ]
+}
+---
+
+[TestReconciler_SyncAll_RemovesDuplicateManagedRoutes - 1]
+{
+ "receiver": "grafana-default-email",
+ "routes": [
+  {
+   "group_by": [
+    "grafana_folder",
+    "alertname"
+   ],
+   "object_matchers": [
+    [
+     "Type",
+     "=",
+     "Altinn"
+    ]
+   ],
+   "receiver": "altinn-studio-gateway",
+   "repeat_interval": "5m"
+  }
+ ]
+}
+---
+
+[TestReconciler_SyncAll_AppendsManagedRouteWhenRoutesMissing - 1]
+{
+ "receiver": "grafana-default-email",
+ "routes": [
+  {
+   "group_by": [
+    "grafana_folder",
+    "alertname"
+   ],
+   "object_matchers": [
+    [
+     "Type",
+     "=",
+     "Altinn"
+    ]
+   ],
+   "receiver": "altinn-studio-gateway",
+   "repeat_interval": "5m"
+  }
+ ]
+}
+---
+
+[TestReconciler_SyncAll_OverwritesSameReceiverWithOtherMatcher - 1]
+{
+ "receiver": "grafana-default-email",
+ "routes": [
+  {
+   "group_by": [
+    "grafana_folder",
+    "alertname"
+   ],
+   "object_matchers": [
+    [
+     "Type",
+     "=",
+     "Altinn"
+    ]
+   ],
+   "receiver": "altinn-studio-gateway",
+   "repeat_interval": "5m"
+  }
+ ]
+}
+---
