@@ -400,7 +400,7 @@ namespace Designer.Tests.Services
                 "remote update"
             );
             File.WriteAllText(
-                Path.Combine(localRepoPath, trackedFilePath),
+                Path.Join(localRepoPath, trackedFilePath),
                 """
                 line one
                 local line two
@@ -422,7 +422,7 @@ namespace Designer.Tests.Services
 
             // Assert
             Assert.Equal(DesignerRepositoryStatus.Ok, status.RepositoryStatus);
-            string pulledFile = File.ReadAllText(Path.Combine(localRepoPath, trackedFilePath));
+            string pulledFile = File.ReadAllText(Path.Join(localRepoPath, trackedFilePath));
             Assert.Contains("local line two", pulledFile);
             Assert.Contains("remote line eleven", pulledFile);
             using Repository localRepo = new(localRepoPath);
@@ -466,7 +466,7 @@ namespace Designer.Tests.Services
                 "remote conflicting update"
             );
             File.WriteAllText(
-                Path.Combine(localRepoPath, trackedFilePath),
+                Path.Join(localRepoPath, trackedFilePath),
                 """
                 line one
                 local line two
@@ -493,7 +493,7 @@ namespace Designer.Tests.Services
             Assert.True(localRepo.RetrieveStatus(new StatusOptions()).IsDirty);
             Assert.Empty(localRepo.Index.Conflicts);
             Assert.Empty(localRepo.Stashes);
-            string pulledFile = File.ReadAllText(Path.Combine(localRepoPath, trackedFilePath));
+            string pulledFile = File.ReadAllText(Path.Join(localRepoPath, trackedFilePath));
             Assert.Contains("local line two", pulledFile);
             Assert.DoesNotContain("remote line two", pulledFile);
         }
@@ -527,7 +527,7 @@ namespace Designer.Tests.Services
             var repoSettings = new ServiceRepositorySettings()
             {
                 RepositoryLocation =
-                    Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
+                    Path.Join(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
                     + Path.DirectorySeparatorChar,
             };
 
@@ -567,7 +567,7 @@ namespace Designer.Tests.Services
             Repository.Init(seedRepoPath);
             using (Repository seedRepo = new(seedRepoPath))
             {
-                string filePath = Path.Combine(seedRepoPath, "test.txt");
+                string filePath = Path.Join(seedRepoPath, "test.txt");
                 File.WriteAllText(
                     filePath,
                     """
@@ -616,7 +616,7 @@ namespace Designer.Tests.Services
         )
         {
             using var collaboratorRepo = new Repository(collaboratorRepoPath);
-            File.WriteAllText(Path.Combine(collaboratorRepoPath, filePath), content);
+            File.WriteAllText(Path.Join(collaboratorRepoPath, filePath), content);
             Commands.Stage(collaboratorRepo, filePath);
             var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
             collaboratorRepo.Commit(commitMessage, signature, signature);
