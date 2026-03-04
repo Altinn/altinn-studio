@@ -161,7 +161,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     if (canonicalPolicyPath.EndsWith(".xml"))
                     {
                         policyFileContentBytes = File.ReadAllBytes(policyPath);
-                        policyContent = policyFileContentBytes;
+                        string policyFileContent = Encoding.UTF8.GetString(policyFileContentBytes);
+                        // replace [org] with orgcode before publishing resource
+                        policyFileContent = policyFileContent
+                            .Replace("[ORG]", serviceResource.HasCompetentAuthority.Orgcode)
+                            .Replace("[org]", serviceResource.HasCompetentAuthority.Orgcode);
+                        policyFileContentBytes = Encoding.UTF8.GetBytes(policyFileContent);
                     }
                     else
                     {
