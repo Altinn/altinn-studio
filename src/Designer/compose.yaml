@@ -19,6 +19,7 @@ services:
     environment:
       - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
       - ISSUER=http://fake-ansattporten:8443
+      - BROWSER_BASE_URL=http://localhost:8443
 
   studio_azure_mock:
     image: studio-azure-mock:${COMMIT:-latest}

@@ -106,6 +106,11 @@ public static class StudioOidcAuthenticationExtensions
                     options.ClientId = oidcSettings.ClientId;
                     options.ClientSecret = oidcSettings.ClientSecret;
 
+                    if (!string.IsNullOrEmpty(oidcSettings.ValidIssuer))
+                    {
+                        options.TokenValidationParameters.ValidIssuer = oidcSettings.ValidIssuer;
+                    }
+
                     options.ResponseType = OpenIdConnectResponseType.Code;
                     options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     options.AuthenticationMethod = OpenIdConnectRedirectBehavior.RedirectGet;

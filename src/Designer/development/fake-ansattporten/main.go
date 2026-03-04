@@ -25,8 +25,8 @@ type TestUser struct {
 }
 
 var testUsers = []TestUser{
-	{PID: "29922149761", Sub: "sub-29922149761", GivenName: "Ola", FamilyName: "Nordmann"},
-	{PID: "09858398468", Sub: "sub-09858398468", GivenName: "Kari", FamilyName: "Hansen"},
+	{PID: "29922149761", Sub: "sub-29922149761", GivenName: "localgiteaadmin", FamilyName: "admin"},
+	{PID: "09858398468", Sub: "sub-09858398468", GivenName: "Ola", FamilyName: "Nordmann"},
 	{PID: "10866898516", Sub: "sub-10866898516", GivenName: "Per", FamilyName: "Olsen"},
 	{PID: "15076500565", Sub: "sub-15076500565", GivenName: "Ingrid", FamilyName: "Berg"},
 	{PID: "02056260016", Sub: "sub-02056260016", GivenName: "Erik", FamilyName: "Larsen"},
@@ -71,22 +71,32 @@ func main() {
 }
 
 func issuer() string {
-	if os.Getenv("DEVELOP_BACKEND") != "1" {
-		if v := os.Getenv("ISSUER"); v != "" {
-			return v
-		}
+	if v := os.Getenv("ISSUER"); v != "" {
+		return v
 	}
 	return "http://localhost:8443"
 }
 
-func handleDiscovery(w http.ResponseWriter, _ *http.Request) {
+func browserBaseURL() string {
+	if v := os.Getenv("BROWSER_BASE_URL"); v != "" {
+		return v
+	}
+	return "http://localhost:8443"
+}
+
+func baseURL(r *http.Request) string {
+	return "http://" + r.Host
+}
+
+func handleDiscovery(w http.ResponseWriter, r *http.Request) {
 	iss := issuer()
+	base := baseURL(r)
 	doc := map[string]any{
 		"issuer":                                iss,
-		"authorization_endpoint":                iss + "/authorize",
-		"token_endpoint":                        iss + "/token",
-		"userinfo_endpoint":                     iss + "/userinfo",
-		"jwks_uri":                              iss + "/jwks",
+		"authorization_endpoint":                browserBaseURL() + "/authorize",
+		"token_endpoint":                        base + "/token",
+		"userinfo_endpoint":                     base + "/userinfo",
+		"jwks_uri":                              base + "/jwks",
 		"response_types_supported":              []string{"code"},
 		"subject_types_supported":               []string{"public"},
 		"id_token_signing_alg_values_supported": []string{"RS256"},
