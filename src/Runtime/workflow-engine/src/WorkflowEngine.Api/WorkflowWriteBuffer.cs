@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -38,7 +39,7 @@ internal class WorkflowWriteBuffer : BackgroundService
             new BoundedChannelOptions(_options.MaxQueueSize)
             {
                 FullMode = BoundedChannelFullMode.Wait,
-                SingleReader = false,
+                SingleReader = true,
                 SingleWriter = false,
             }
         );
@@ -48,7 +49,7 @@ internal class WorkflowWriteBuffer : BackgroundService
     /// Submit workflows for batched insertion. The returned task completes when the
     /// batch containing this request has been flushed to the database.
     /// </summary>
-    public virtual async Task<Guid[]> EnqueueAsync(
+    public async Task<Guid[]> EnqueueAsync(
         WorkflowEnqueueRequest request,
         WorkflowRequestMetadata metadata,
         byte[] requestBodyHash,
@@ -70,64 +71,30 @@ internal class WorkflowWriteBuffer : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation(
-            "WorkflowWriteBuffer started (MaxBatchSize={MaxBatchSize}, FlushIntervalMs={FlushIntervalMs}, Concurrency={Concurrency})",
+            "WorkflowWriteBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})",
             _options.MaxBatchSize,
-            _options.FlushIntervalMs,
             _options.FlushConcurrency
         );
 
-        // Use a semaphore to limit concurrent flush operations.
-        // This allows us to assemble the next batch while the previous one is flushing.
-        var flushSemaphore = new SemaphoreSlim(_options.FlushConcurrency);
+        using var flushSemaphore = new SemaphoreSlim(_options.FlushConcurrency);
         var batch = new List<BufferedEnqueueRequest>(_options.MaxBatchSize);
 
         try
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                batch.Clear();
-
-                // Block until at least one item is available
                 if (!await _channel.Reader.WaitToReadAsync(stoppingToken))
+                {
                     break;
-
-                // Read the first item immediately (we know there's at least one)
-                if (_channel.Reader.TryRead(out var first))
-                    batch.Add(first);
-
-                // Drain more items up to MaxBatchSize, waiting up to FlushIntervalMs
-                if (batch.Count < _options.MaxBatchSize)
-                {
-                    using var flushCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-                    flushCts.CancelAfter(_options.FlushIntervalMs);
-
-                    try
-                    {
-                        while (batch.Count < _options.MaxBatchSize)
-                        {
-                            var item = await _channel.Reader.ReadAsync(flushCts.Token);
-                            batch.Add(item);
-                        }
-                    }
-                    catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
-                    {
-                        // Flush interval expired — flush what we have
-                    }
                 }
 
-                // Also drain any remaining immediately-available items
-                while (batch.Count < _options.MaxBatchSize && _channel.Reader.TryRead(out var extra))
+                while (batch.Count < _options.MaxBatchSize && _channel.Reader.TryRead(out var item))
                 {
-                    batch.Add(extra);
+                    batch.Add(item);
                 }
 
-                if (batch.Count == 0)
-                    continue;
-
-                // Wait for a flush slot
                 await flushSemaphore.WaitAsync(stoppingToken);
 
-                // Hand off the batch to a flush task (take ownership of the list)
                 var batchToFlush = batch;
                 batch = new List<BufferedEnqueueRequest>(_options.MaxBatchSize);
 
@@ -141,10 +108,11 @@ internal class WorkflowWriteBuffer : BackgroundService
 
         // Wait for all in-flight flushes to complete
         for (int i = 0; i < _options.FlushConcurrency; i++)
+        {
             await flushSemaphore.WaitAsync(CancellationToken.None);
+        }
 
-        // Drain remaining items on shutdown
-        batch.Clear();
+        batch = [];
         while (_channel.Reader.TryRead(out var remaining))
         {
             batch.Add(remaining);
@@ -185,7 +153,9 @@ internal class WorkflowWriteBuffer : BackgroundService
         }
 
         if (active.Count == 0)
+        {
             return;
+        }
 
         using var activity = Metrics.Source.StartActivity("Engine.FlushBatch", tags: [("batch.size", active.Count)]);
 
@@ -209,14 +179,16 @@ internal class WorkflowWriteBuffer : BackgroundService
                 switch (result.Status)
                 {
                     case BatchEnqueueResultStatus.Created:
+                        Assert.That(result.WorkflowIds is not null);
                         anyNewWorkflows = true;
                         totalWorkflowsCreated += item.Request.Workflows.Count;
                         totalStepsCreated += item.Request.Workflows.Sum(w => w.Steps.Count());
-                        item.Completion.TrySetResult(result.WorkflowIds!);
+                        item.Completion.TrySetResult(result.WorkflowIds);
                         break;
 
                     case BatchEnqueueResultStatus.Duplicate:
-                        item.Completion.TrySetResult(result.WorkflowIds!);
+                        Assert.That(result.WorkflowIds is not null);
+                        item.Completion.TrySetResult(result.WorkflowIds);
                         break;
 
                     case BatchEnqueueResultStatus.Conflict:
@@ -224,21 +196,26 @@ internal class WorkflowWriteBuffer : BackgroundService
                         break;
 
                     case BatchEnqueueResultStatus.InvalidReference:
-                        item.Completion.TrySetException(new InvalidWorkflowReferenceException(result.ErrorMessage!));
+                        Assert.That(result.ErrorMessage is not null);
+                        item.Completion.TrySetException(new InvalidWorkflowReferenceException(result.ErrorMessage));
                         break;
                 }
             }
 
-            // Record telemetry for created workflows/steps
             if (totalWorkflowsCreated > 0)
+            {
                 Metrics.WorkflowRequestsAccepted.Add(totalWorkflowsCreated);
+            }
 
             if (totalStepsCreated > 0)
+            {
                 Metrics.StepRequestsAccepted.Add(totalStepsCreated);
+            }
 
-            // Signal the workflow processor that new workflows are available
             if (anyNewWorkflows)
+            {
                 _workflowSignal.Signal();
+            }
         }
         catch (Exception ex)
         {
@@ -246,7 +223,6 @@ internal class WorkflowWriteBuffer : BackgroundService
 
             activity?.Errored(ex);
 
-            // Fault all waiting callers
             foreach (var item in active)
             {
                 item.Completion.TrySetException(ex);
@@ -262,9 +238,6 @@ internal sealed class WorkflowWriteBufferOptions
 {
     /// <summary>Maximum number of enqueue requests per batch flush.</summary>
     public int MaxBatchSize { get; set; } = 100;
-
-    /// <summary>Maximum time (ms) to wait for the batch to fill before flushing.</summary>
-    public int FlushIntervalMs { get; set; } = 5;
 
     /// <summary>Maximum number of pending requests in the channel before backpressure is applied.</summary>
     public int MaxQueueSize { get; set; } = 10_000;

@@ -75,61 +75,34 @@ internal sealed class StatusWriteBuffer : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation(
-            "StatusWriteBuffer started (MaxBatchSize={MaxBatchSize}, FlushIntervalMs={FlushIntervalMs})",
+            "StatusWriteBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})",
             _options.MaxBatchSize,
-            _options.FlushIntervalMs
+            _options.FlushConcurrency
         );
 
+        using var flushSemaphore = new SemaphoreSlim(_options.FlushConcurrency);
         var batch = new List<StatusUpdateRequest>(_options.MaxBatchSize);
 
         try
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                batch.Clear();
-
                 if (!await _channel.Reader.WaitToReadAsync(stoppingToken))
                 {
                     break;
                 }
 
-                if (_channel.Reader.TryRead(out var first))
+                while (batch.Count < _options.MaxBatchSize && _channel.Reader.TryRead(out var item))
                 {
-                    batch.Add(first);
+                    batch.Add(item);
                 }
 
-                // Drain more items up to MaxBatchSize, waiting up to FlushIntervalMs
-                if (batch.Count < _options.MaxBatchSize)
-                {
-                    using var flushCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-                    flushCts.CancelAfter(_options.FlushIntervalMs);
+                await flushSemaphore.WaitAsync(stoppingToken);
 
-                    try
-                    {
-                        while (batch.Count < _options.MaxBatchSize)
-                        {
-                            var item = await _channel.Reader.ReadAsync(flushCts.Token);
-                            batch.Add(item);
-                        }
-                    }
-                    catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
-                    {
-                        // Flush interval expired — flush what we have
-                    }
-                }
+                var batchToFlush = batch;
+                batch = new List<StatusUpdateRequest>(_options.MaxBatchSize);
 
-                // Also drain any remaining immediately-available items
-                while (batch.Count < _options.MaxBatchSize && _channel.Reader.TryRead(out var extra))
-                {
-                    batch.Add(extra);
-                }
-
-                if (batch.Count == 0)
-                {
-                    continue;
-                }
-
-                await FlushBatchAsync(batch, stoppingToken);
+                _ = FlushBatchAsync(batchToFlush, flushSemaphore, stoppingToken);
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -137,8 +110,7 @@ internal sealed class StatusWriteBuffer : BackgroundService
             // Expected on shutdown
         }
 
-        // Drain remaining items on shutdown
-        batch.Clear();
+        batch = [];
         while (_channel.Reader.TryRead(out var remaining))
         {
             batch.Add(remaining);
@@ -146,13 +118,25 @@ internal sealed class StatusWriteBuffer : BackgroundService
 
         if (batch.Count > 0)
         {
-            await FlushBatchAsync(batch, CancellationToken.None);
+            await FlushBatchCoreAsync(batch, CancellationToken.None);
         }
 
         _logger.LogInformation("StatusWriteBuffer shutdown complete");
     }
 
-    private async Task FlushBatchAsync(List<StatusUpdateRequest> batch, CancellationToken ct)
+    private async Task FlushBatchAsync(List<StatusUpdateRequest> batch, SemaphoreSlim semaphore, CancellationToken ct)
+    {
+        try
+        {
+            await FlushBatchCoreAsync(batch, ct);
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+    }
+
+    private async Task FlushBatchCoreAsync(List<StatusUpdateRequest> batch, CancellationToken ct)
     {
         // Filter out items whose callers have already cancelled
         for (int i = batch.Count - 1; i >= 0; i--)
@@ -223,4 +207,7 @@ internal sealed class StatusWriteBufferOptions
 
     /// <summary>Maximum number of pending requests in the channel before backpressure is applied.</summary>
     public int MaxQueueSize { get; set; } = 5_000;
+
+    /// <summary>Number of concurrent flush operations (each uses its own DB connection).</summary>
+    public int FlushConcurrency { get; set; } = 8;
 }
