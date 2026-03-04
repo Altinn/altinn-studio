@@ -19,6 +19,7 @@ using Altinn.Studio.Designer.Exceptions;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
+using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -34,6 +35,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly PlatformSettings _platformSettings;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
+        private readonly IResourceRegistryRepository _resourceRegistryRepository;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
         {
             PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
@@ -49,7 +51,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IClientDefinition maskinPortenClientDefinition,
             PlatformSettings platformSettings,
             IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment,
-            IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings
+            IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings,
+            IResourceRegistryRepository resourceRegistryRepository
         )
         {
             _httpClient = httpClient;
@@ -59,6 +62,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _platformSettings = platformSettings;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _maskinportenIntegrationSettings = maskinportenIntegrationSettings.Value;
+            _resourceRegistryRepository = resourceRegistryRepository;
+        }
+
+        private string GetResourceRegistryUrl(string env)
+        {
+            return !env.ToLower().Equals("dev")
+                ? $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}"
+                : $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}";
+        }
+
+        public async Task<List<ServiceResource>> GetServiceResourceList(
+            string env,
+            bool includeApps = false,
+            bool includeAltinn2 = false
+        )
+        {
+            return await _resourceRegistryRepository.GetServiceResources(env, includeApps, includeAltinn2);
+        }
+
+        public async Task<bool> ServiceResourceExists(string id, string env)
+        {
+            var resourceList = await GetServiceResourceList(env, true, true);
+            return resourceList.Any((serviceResource) => serviceResource.Identifier.Equals(id));
         }
 
         public async Task<ActionResult> PublishServiceResource(
@@ -71,7 +97,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
             string publishResourceToResourceRegistryUrl;
-            string getResourceRegistryUrl;
             string fullWritePolicyToResourceRegistryUrl;
 
             if (string.IsNullOrEmpty(env))
@@ -84,7 +109,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 publishResourceToResourceRegistryUrl =
                     $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}";
-                getResourceRegistryUrl = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
                 fullWritePolicyToResourceRegistryUrl =
                     $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
             }
@@ -92,8 +116,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 publishResourceToResourceRegistryUrl =
                     $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}";
-                getResourceRegistryUrl =
-                    $"{string.Format(_platformSettings.ResourceRegistryDefaultBaseUrl, env)}/{serviceResource.Identifier}";
                 fullWritePolicyToResourceRegistryUrl =
                     $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
             }
@@ -108,11 +130,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 tokenResponse.AccessToken
             );
 
-            HttpResponseMessage getResourceResponse = await _httpClient.GetAsync(getResourceRegistryUrl);
+            var serviceResourceExists = await ServiceResourceExists(serviceResource.Identifier, env);
 
             HttpResponseMessage response;
-
-            if (getResourceResponse.IsSuccessStatusCode && getResourceResponse.StatusCode.Equals(HttpStatusCode.OK))
+            if (serviceResourceExists)
             {
                 string putRequest = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
                 using (
