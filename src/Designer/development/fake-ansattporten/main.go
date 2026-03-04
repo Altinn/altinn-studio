@@ -18,9 +18,9 @@ import (
 )
 
 type TestUser struct {
-	PID       string `json:"pid"`
-	Sub       string `json:"sub"`
-	GivenName string `json:"given_name"`
+	PID        string `json:"pid"`
+	Sub        string `json:"sub"`
+	GivenName  string `json:"given_name"`
 	FamilyName string `json:"family_name"`
 }
 
@@ -41,6 +41,7 @@ type pendingAuth struct {
 var pendingCodes = map[string]pendingAuth{}
 
 var signingKey *rsa.PrivateKey
+
 const keyID = "fake-ansattporten-key-1"
 
 func main() {
@@ -81,11 +82,11 @@ func issuer() string {
 func handleDiscovery(w http.ResponseWriter, _ *http.Request) {
 	iss := issuer()
 	doc := map[string]any{
-		"issuer":                 iss,
-		"authorization_endpoint": iss + "/authorize",
-		"token_endpoint":         iss + "/token",
-		"userinfo_endpoint":      iss + "/userinfo",
-		"jwks_uri":               iss + "/jwks",
+		"issuer":                                iss,
+		"authorization_endpoint":                iss + "/authorize",
+		"token_endpoint":                        iss + "/token",
+		"userinfo_endpoint":                     iss + "/userinfo",
+		"jwks_uri":                              iss + "/jwks",
 		"response_types_supported":              []string{"code"},
 		"subject_types_supported":               []string{"public"},
 		"id_token_signing_alg_values_supported": []string{"RS256"},
