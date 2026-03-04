@@ -42,9 +42,6 @@ const (
 	matcherLabel          = "Type"
 	matcherOperator       = "="
 	matcherValue          = "Altinn"
-
-	managedGroupByFolder = "grafana_folder"
-	managedGroupByAlert  = "alertname"
 )
 
 type rawObject map[string]json.RawMessage
@@ -454,15 +451,6 @@ func applyManagedRoute(route rawObject) (bool, error) {
 		route["object_matchers"] = matchersRaw
 		changed = true
 	}
-
-	if !hasOnlyManagedGroupBy(getStringSlice(route["group_by"])) {
-		groupByRaw, err := marshalRaw(managedGroupBy())
-		if err != nil {
-			return false, err
-		}
-		route["group_by"] = groupByRaw
-		changed = true
-	}
 	return changed, nil
 }
 
@@ -475,17 +463,6 @@ func getMatchers(raw json.RawMessage) [][]string {
 		return nil
 	}
 	return matchers
-}
-
-func getStringSlice(raw json.RawMessage) []string {
-	if len(raw) == 0 {
-		return nil
-	}
-	values := make([]string, 0)
-	if err := json.Unmarshal(raw, &values); err != nil {
-		return nil
-	}
-	return values
 }
 
 func hasOnlyManagedMatcher(matchers [][]string) bool {
@@ -501,13 +478,6 @@ func hasOnlyManagedMatcher(matchers [][]string) bool {
 		matcher[2] == matcherValue
 }
 
-func hasOnlyManagedGroupBy(groupBy []string) bool {
-	if len(groupBy) != 2 {
-		return false
-	}
-	return groupBy[0] == managedGroupByFolder && groupBy[1] == managedGroupByAlert
-}
-
 func newManagedRouteObject() rawObject {
 	receiverRaw := mustMarshalRaw(managedReceiver)
 	repeatRaw := mustMarshalRaw(managedRepeatInterval)
@@ -516,7 +486,6 @@ func newManagedRouteObject() rawObject {
 		"receiver":        receiverRaw,
 		"repeat_interval": repeatRaw,
 		"object_matchers": matchersRaw,
-		"group_by":        mustMarshalRaw(managedGroupBy()),
 	}
 }
 
@@ -528,10 +497,6 @@ func mustMarshalRaw(value any) json.RawMessage {
 
 func managedMatchers() [][]string {
 	return [][]string{{matcherLabel, matcherOperator, matcherValue}}
-}
-
-func managedGroupBy() []string {
-	return []string{managedGroupByFolder, managedGroupByAlert}
 }
 
 func validateRequiredPolicyFields(root rawObject) error {

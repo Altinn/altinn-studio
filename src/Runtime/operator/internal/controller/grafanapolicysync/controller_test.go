@@ -191,7 +191,7 @@ func TestReconciler_SyncAll_NoChangesDoesNotPut(t *testing.T) {
 			map[string]any{
 				"receiver":        managedReceiver,
 				"repeat_interval": managedRepeatInterval,
-				"group_by":        []any{managedGroupByFolder, managedGroupByAlert},
+				"group_by":        []any{"grafana_folder", "alertname"},
 				"object_matchers": []any{
 					[]any{matcherLabel, matcherOperator, matcherValue},
 				},

@@ -14,10 +14,6 @@
    "receiver": "team-a"
   },
   {
-   "group_by": [
-    "grafana_folder",
-    "alertname"
-   ],
    "object_matchers": [
     [
      "Type",
@@ -52,10 +48,6 @@
    "receiver": "team-a"
   },
   {
-   "group_by": [
-    "grafana_folder",
-    "alertname"
-   ],
    "object_matchers": [
     [
      "Type",
@@ -75,10 +67,6 @@
  "receiver": "grafana-default-email",
  "routes": [
   {
-   "group_by": [
-    "grafana_folder",
-    "alertname"
-   ],
    "object_matchers": [
     [
      "Type",
@@ -109,10 +97,6 @@
    "repeat_interval": "10m"
   },
   {
-   "group_by": [
-    "grafana_folder",
-    "alertname"
-   ],
    "object_matchers": [
     [
      "Type",
@@ -132,10 +116,6 @@
  "receiver": "grafana-default-email",
  "routes": [
   {
-   "group_by": [
-    "grafana_folder",
-    "alertname"
-   ],
    "object_matchers": [
     [
      "Type",
@@ -155,10 +135,6 @@
  "receiver": "grafana-default-email",
  "routes": [
   {
-   "group_by": [
-    "grafana_folder",
-    "alertname"
-   ],
    "object_matchers": [
     [
      "Type",
@@ -178,10 +154,6 @@
  "receiver": "grafana-default-email",
  "routes": [
   {
-   "group_by": [
-    "grafana_folder",
-    "alertname"
-   ],
    "object_matchers": [
     [
      "Type",
