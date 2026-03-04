@@ -1,4 +1,5 @@
 import { CG } from 'src/codegen/CG';
+import { ExprVal } from 'src/features/expressions/types';
 import { CompCategory } from 'src/layout/common';
 
 export const Config = new CG.component({
@@ -13,7 +14,7 @@ export const Config = new CG.component({
     renderInTabs: true,
   },
   functionality: {
-    customExpressions: false,
+    customExpressions: true,
   },
 })
   .addDataModelBinding(
@@ -38,6 +39,14 @@ export const Config = new CG.component({
         new CG.dataModelBinding()
           .optional()
           .setDescription('Should point to a string (defaults to a "data" property on the geometries array objects)'),
+      ),
+      new CG.prop(
+        'geometryIsEditable',
+        new CG.dataModelBinding()
+          .optional()
+          .setDescription(
+            'Should point to a boolean indicating if this geometry is editable. This has no default value, geometries will not be editable if this is not specified.',
+          ),
       ),
     ).exportAs('IDataModelBindingsForMap'),
   )
@@ -150,7 +159,10 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'centerLocation',
-      new CG.obj(new CG.prop('latitude', new CG.num()), new CG.prop('longitude', new CG.num()))
+      new CG.obj(
+        new CG.prop('latitude', new CG.expr(ExprVal.Number)),
+        new CG.prop('longitude', new CG.expr(ExprVal.Number)),
+      )
         .optional()
         .exportAs('Location')
         .setTitle('Center location')
@@ -162,6 +174,47 @@ export const Config = new CG.component({
     new CG.prop(
       'geometryType',
       new CG.enum('GeoJSON', 'WKT').optional({ default: 'GeoJSON' }).exportAs('IGeometryType'),
+    ),
+  )
+  .addProperty(
+    new CG.prop(
+      'toolbar',
+      new CG.obj(
+        new CG.prop(
+          'polyline',
+          new CG.expr(ExprVal.Boolean)
+            .optional({ default: false })
+            .setDescription('Expression or boolean allowing the user to draw lines on the map'),
+        ),
+        new CG.prop(
+          'polygon',
+          new CG.expr(ExprVal.Boolean)
+            .optional({ default: false })
+            .setDescription('Expression or boolean allowing the user to draw a polygon on the map'),
+        ),
+        new CG.prop(
+          'rectangle',
+          new CG.expr(ExprVal.Boolean)
+            .optional({ default: false })
+            .setDescription('Expression or boolean allowing the user to draw a rectangle on the map'),
+        ),
+        new CG.prop(
+          'circle',
+          new CG.expr(ExprVal.Boolean)
+            .optional({ default: false })
+            .setDescription('Expression or boolean allowing the user to draw a circle on the map'),
+        ),
+        new CG.prop(
+          'marker',
+          new CG.expr(ExprVal.Boolean)
+            .optional({ default: false })
+            .setDescription('Expression or boolean allowing the user to place multiple markers on the map'),
+        ),
+      )
+        .optional()
+        .exportAs('Toolbar')
+        .setTitle('Toolbar')
+        .setDescription('Sets which geometries the user is allowed to draw'),
     ),
   )
   .extends(CG.common('LabeledComponentProps'))

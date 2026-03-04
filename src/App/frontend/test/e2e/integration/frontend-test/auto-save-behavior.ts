@@ -163,7 +163,7 @@ describe('Auto save behavior', () => {
       // and stopped by the error message.
       cy.navPage('form').should('have.attr', 'aria-current', 'page');
 
-      let expectedErrors: string[] = [];
+      let expectedErrors: string[];
       if (pages == 'current') {
         expectedErrors = ['Du må fylle ut nytt etternavn', texts.testIsNotValidValue];
       } else if (pages == 'all') {
@@ -256,7 +256,7 @@ describe('Auto save behavior', () => {
         cy.navPage('form').should('have.attr', 'aria-current', 'page');
       }
 
-      let expectedErrors: string[] = [];
+      let expectedErrors: string[];
       if (validateOnNext == 'current' || validateOnNext === 'currentAndPrevious') {
         expectedErrors = ['Du må fylle ut nytt etternavn', texts.testIsNotValidValue];
       } else if (validateOnNext == 'all') {

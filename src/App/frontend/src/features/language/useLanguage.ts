@@ -339,7 +339,7 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
           ? transposeDataBinding({ subject: rawReference, currentLocation: dataModelPath })
           : { dataType: dataTypeToRead, field: value };
         if (transposed) {
-          let readValue: unknown = undefined;
+          let readValue: unknown;
           let modelReader: DataModelReader | undefined = undefined;
 
           const dataFromDataModel = tryReadFromDataModel(transposed, formDataTypes, formDataSelector);
