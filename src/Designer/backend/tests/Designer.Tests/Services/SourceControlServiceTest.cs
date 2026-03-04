@@ -9,6 +9,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
@@ -50,7 +51,11 @@ namespace Designer.Tests.Services
             _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(_httpContextMock.Object);
 
             // Create the service under test
-            _sourceControlService = new SourceControlService(_settings, _giteaClientMock.Object);
+            _sourceControlService = new SourceControlService(
+                _settings,
+                _giteaClientMock.Object,
+                new Mock<IGitServerAuthHeadersProvider>().Object
+            );
         }
 
         [Fact]
@@ -399,7 +404,11 @@ namespace Designer.Tests.Services
                     + Path.DirectorySeparatorChar,
             };
 
-            SourceControlService service = new(repoSettings, giteaMock.Object);
+            SourceControlService service = new(
+                repoSettings,
+                giteaMock.Object,
+                new Mock<IGitServerAuthHeadersProvider>().Object
+            );
 
             return service;
         }
