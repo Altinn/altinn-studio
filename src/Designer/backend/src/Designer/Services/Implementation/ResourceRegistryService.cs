@@ -83,7 +83,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public async Task<bool> ServiceResourceExists(string id, string env)
         {
-            var resourceList = await GetServiceResourceList(env, true, true);
+            var resourceList = await GetServiceResourceList(env, false, false);
             return resourceList.Any((serviceResource) => serviceResource.Identifier.Equals(id));
         }
 
