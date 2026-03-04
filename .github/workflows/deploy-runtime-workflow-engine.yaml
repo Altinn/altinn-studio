@@ -3,13 +3,8 @@ name: Runtime - deploy workflow-engine
 on:
   workflow_dispatch:
     inputs:
-      ref:
-        description: 'Branch, tag, or SHA to build from'
-        required: false
-        default: 'main'
-        type: string
       tag-latest:
-        description: 'Also tag the image as latest'
+        description: 'Tag the image as "latest"'
         required: false
         default: false
         type: boolean
@@ -28,8 +23,6 @@ jobs:
         working-directory: src
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-        with:
-          ref: ${{ inputs.ref }}
 
       - name: Set up Docker
         uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
