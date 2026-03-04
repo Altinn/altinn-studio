@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public class CreateApiKeyRequest
+public class CreatePersonalAccessTokenRequest
 {
     [Required]
     [MaxLength(100)]

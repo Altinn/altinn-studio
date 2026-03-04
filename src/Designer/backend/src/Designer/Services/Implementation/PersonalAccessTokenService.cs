@@ -5,35 +5,29 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class ApiKeyService : IApiKeyService
+public class PersonalAccessTokenService(
+    IPersonalAccessTokenRepository repository,
+    PersonalAccessTokenSettings settings,
+    TimeProvider timeProvider) : IPersonalAccessTokenService
 {
     private const int RawKeyLengthBytes = 32;
 
-    private readonly IApiKeyRepository _repository;
-    private readonly ApiKeySettings _settings;
-    private readonly TimeProvider _timeProvider;
-
-    public ApiKeyService(IApiKeyRepository repository, ApiKeySettings settings, TimeProvider timeProvider)
-    {
-        _repository = repository;
-        _settings = settings;
-        _timeProvider = timeProvider;
-    }
-
-    public async Task<(string RawKey, ApiKeyDbModel Model)> CreateAsync(
-        string username,
+    public async Task<(string RawKey, PersonalAccessTokenDbModel Model)> CreateAsync(
+        Guid userAccountId,
         string displayName,
+        PersonalAccessTokenType tokenType,
         DateTimeOffset expiresAt,
         CancellationToken cancellationToken = default)
     {
-        int maxExpiry = _settings.MaxExpiryDays;
-        DateTimeOffset maxAllowed = _timeProvider.GetUtcNow().AddDays(maxExpiry);
+        int maxExpiry = settings.MaxExpiryDays;
+        DateTimeOffset maxAllowed = timeProvider.GetUtcNow().AddDays(maxExpiry);
         if (expiresAt > maxAllowed)
         {
             throw new ArgumentException($"Expiry cannot exceed {maxExpiry} days.");
@@ -42,31 +36,32 @@ public class ApiKeyService : IApiKeyService
         string rawKey = GenerateRawKey();
         string keyHash = ComputeHash(rawKey);
 
-        var model = new ApiKeyDbModel
+        var model = new PersonalAccessTokenDbModel
         {
             KeyHash = keyHash,
-            Username = username,
+            UserAccountId = userAccountId,
             DisplayName = displayName,
+            TokenType = tokenType,
             ExpiresAt = expiresAt,
             Revoked = false,
-            CreatedAt = _timeProvider.GetUtcNow()
+            CreatedAt = timeProvider.GetUtcNow()
         };
 
-        var created = await _repository.CreateAsync(model, cancellationToken);
+        var created = await repository.CreateAsync(model, cancellationToken);
         return (rawKey, created);
     }
 
-    public async Task<ApiKeyDbModel?> ValidateAsync(string rawKey, CancellationToken cancellationToken = default)
+    public async Task<PersonalAccessTokenDbModel?> ValidateAsync(string rawKey, CancellationToken cancellationToken = default)
     {
         string keyHash = ComputeHash(rawKey);
-        var model = await _repository.GetByKeyHashAsync(keyHash, cancellationToken);
+        var model = await repository.GetByKeyHashAsync(keyHash, cancellationToken);
 
         if (model is null)
         {
             return null;
         }
 
-        if (model.Revoked || model.ExpiresAt <= _timeProvider.GetUtcNow())
+        if (model.Revoked || model.ExpiresAt <= timeProvider.GetUtcNow())
         {
             return null;
         }
@@ -74,19 +69,19 @@ public class ApiKeyService : IApiKeyService
         return model;
     }
 
-    public Task<List<ApiKeyDbModel>> ListByUsernameAsync(string username, CancellationToken cancellationToken = default)
+    public Task<List<PersonalAccessTokenDbModel>> ListByUserAccountIdAsync(Guid userAccountId, PersonalAccessTokenType? tokenType = null, CancellationToken cancellationToken = default)
     {
-        return _repository.GetByUsernameAsync(username, cancellationToken);
+        return repository.GetByUserAccountIdAsync(userAccountId, tokenType, cancellationToken);
     }
 
-    public Task RevokeAsync(long id, string username, CancellationToken cancellationToken = default)
+    public Task RevokeAsync(long id, Guid userAccountId, CancellationToken cancellationToken = default)
     {
-        return _repository.RevokeAsync(id, username, cancellationToken);
+        return repository.RevokeAsync(id, userAccountId, cancellationToken);
     }
 
     private string ComputeHash(string rawKey)
     {
-        byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(_settings.HashSalt + rawKey));
+        byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(settings.HashSalt + rawKey));
         return Convert.ToHexStringLower(bytes);
     }
 

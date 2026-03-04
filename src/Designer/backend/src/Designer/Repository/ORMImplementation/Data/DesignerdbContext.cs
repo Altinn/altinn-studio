@@ -15,8 +15,8 @@ public class DesignerdbContext : DbContext
     public virtual DbSet<ReleaseDbModel> Releases { get; set; }
     public virtual DbSet<AppScopesDbModel> AppScopes { get; set; }
     public virtual DbSet<AppSettingsDbModel> AppSettings { get; set; }
-    public virtual DbSet<DeveloperIdentityMappingDbModel> DeveloperIdentityMappings { get; set; }
-    public virtual DbSet<ApiKeyDbModel> ApiKeys { get; set; }
+    public virtual DbSet<UserAccountDbModel> UserAccounts { get; set; }
+    public virtual DbSet<PersonalAccessTokenDbModel> PersonalAccessTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,8 +27,8 @@ public class DesignerdbContext : DbContext
         modelBuilder.ApplyConfiguration(new ReleaseConfiguration());
         modelBuilder.ApplyConfiguration(new AppScopesConfiguration());
         modelBuilder.ApplyConfiguration(new AppSettingsConfiguration());
-        modelBuilder.ApplyConfiguration(new DeveloperIdentityMappingConfiguration());
-        modelBuilder.ApplyConfiguration(new ApiKeyConfiguration());
+        modelBuilder.ApplyConfiguration(new UserAccountConfiguration());
+        modelBuilder.ApplyConfiguration(new PersonalAccessTokenConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

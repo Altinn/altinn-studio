@@ -2,7 +2,7 @@ using System;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public record ApiKeyResponse(
+public record PersonalAccessTokenResponse(
     long Id,
     string DisplayName,
     DateTimeOffset ExpiresAt,

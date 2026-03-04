@@ -4,13 +4,19 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
 
-public class DeveloperIdentityMappingConfiguration : IEntityTypeConfiguration<DeveloperIdentityMappingDbModel>
+public class UserAccountConfiguration : IEntityTypeConfiguration<UserAccountDbModel>
 {
-    public void Configure(EntityTypeBuilder<DeveloperIdentityMappingDbModel> builder)
+    public void Configure(EntityTypeBuilder<UserAccountDbModel> builder)
     {
-        builder.ToTable("developer_identity_mappings", "designer");
+        builder.ToTable("user_accounts", "designer");
 
-        builder.HasKey(e => e.PidHash).HasName("developer_identity_mappings_pkey");
+        builder.HasKey(e => e.Id).HasName("user_accounts_pkey");
+
+        builder.Property(e => e.Id)
+            .HasColumnType("uuid")
+            .HasColumnName("id")
+            .HasDefaultValueSql("gen_random_uuid()")
+            .IsRequired();
 
         builder.Property(e => e.PidHash)
             .HasColumnType("character varying")
@@ -27,7 +33,10 @@ public class DeveloperIdentityMappingConfiguration : IEntityTypeConfiguration<De
             .HasColumnName("created")
             .IsRequired();
 
-        builder.HasIndex(e => e.Username, "idx_developer_identity_mappings_username")
+        builder.HasIndex(e => e.PidHash, "idx_user_accounts_pid_hash")
+            .IsUnique();
+
+        builder.HasIndex(e => e.Username, "idx_user_accounts_username")
             .IsUnique();
     }
 }

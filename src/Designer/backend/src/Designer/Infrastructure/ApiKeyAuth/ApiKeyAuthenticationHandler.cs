@@ -8,20 +8,13 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 
-public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class ApiKeyAuthenticationHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder,
+    IPersonalAccessTokenService personalAccessTokenService)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    private readonly IApiKeyService _apiKeyService;
-
-    public ApiKeyAuthenticationHandler(
-        IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger,
-        UrlEncoder encoder,
-        IApiKeyService apiKeyService)
-        : base(options, logger, encoder)
-    {
-        _apiKeyService = apiKeyService;
-    }
-
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         if (!Request.Headers.TryGetValue(ApiKeyAuthenticationDefaults.HeaderName, out var headerValue))
@@ -35,16 +28,16 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
             return AuthenticateResult.Fail("API key header is empty.");
         }
 
-        var apiKey = await _apiKeyService.ValidateAsync(rawKey);
-        if (apiKey is null)
+        var token = await personalAccessTokenService.ValidateAsync(rawKey);
+        if (token is null)
         {
-            return AuthenticateResult.Fail("Invalid or expired API key.");
+            return AuthenticateResult.Fail("Invalid or expired token.");
         }
 
         var claims = new[]
         {
-            new Claim(ClaimTypes.Name, apiKey.Username),
-            new Claim("preferred_username", apiKey.Username),
+            new Claim(ClaimTypes.Name, token.UserAccount.Username),
+            new Claim("preferred_username", token.UserAccount.Username),
         };
 
         var identity = new ClaimsIdentity(claims, ApiKeyAuthenticationDefaults.AuthenticationScheme);

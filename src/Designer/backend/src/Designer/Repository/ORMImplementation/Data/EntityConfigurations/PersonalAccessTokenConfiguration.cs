@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
 
-public class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKeyDbModel>
+public class PersonalAccessTokenConfiguration : IEntityTypeConfiguration<PersonalAccessTokenDbModel>
 {
-    public void Configure(EntityTypeBuilder<ApiKeyDbModel> builder)
+    public void Configure(EntityTypeBuilder<PersonalAccessTokenDbModel> builder)
     {
-        builder.ToTable("api_keys", "designer");
+        builder.ToTable("personal_access_tokens", "designer");
 
-        builder.HasKey(e => e.Id).HasName("api_keys_pkey");
+        builder.HasKey(e => e.Id).HasName("personal_access_tokens_pkey");
 
         builder.Property(e => e.Id)
             .HasColumnName("id")
@@ -21,14 +21,19 @@ public class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKeyDbModel>
             .HasColumnName("key_hash")
             .IsRequired();
 
-        builder.Property(e => e.Username)
-            .HasColumnType("character varying")
-            .HasColumnName("username")
+        builder.Property(e => e.UserAccountId)
+            .HasColumnType("uuid")
+            .HasColumnName("user_account_id")
             .IsRequired();
 
         builder.Property(e => e.DisplayName)
             .HasColumnType("character varying")
             .HasColumnName("display_name")
+            .IsRequired();
+
+        builder.Property(e => e.TokenType)
+            .HasColumnName("token_type")
+            .HasDefaultValue(Enums.PersonalAccessTokenType.User)
             .IsRequired();
 
         builder.Property(e => e.ExpiresAt)
@@ -46,9 +51,14 @@ public class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKeyDbModel>
             .HasColumnName("created_at")
             .IsRequired();
 
-        builder.HasIndex(e => e.KeyHash, "idx_api_keys_key_hash")
+        builder.HasIndex(e => e.KeyHash, "idx_personal_access_tokens_key_hash")
             .IsUnique();
 
-        builder.HasIndex(e => e.Username, "idx_api_keys_username");
+        builder.HasIndex(e => e.UserAccountId, "idx_personal_access_tokens_user_account_id");
+
+        builder.HasOne(e => e.UserAccount)
+            .WithMany()
+            .HasForeignKey(e => e.UserAccountId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

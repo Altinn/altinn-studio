@@ -30,7 +30,7 @@ public class GiteaDbStudioOidcUsernameProvider(
         string pidHash = ComputePidHash(pid);
 
         // Step 1: Check Designer DB mapping
-        var mapping = await designerDb.DeveloperIdentityMappings
+        var mapping = await designerDb.UserAccounts
             .FirstOrDefaultAsync(m => m.PidHash == pidHash);
 
         if (mapping != null)
@@ -66,7 +66,7 @@ public class GiteaDbStudioOidcUsernameProvider(
 
     private async Task StoreMapping(string pidHash, string username)
     {
-        designerDb.DeveloperIdentityMappings.Add(new DeveloperIdentityMappingDbModel
+        designerDb.UserAccounts.Add(new UserAccountDbModel
         {
             PidHash = pidHash,
             Username = username,
@@ -81,7 +81,7 @@ public class GiteaDbStudioOidcUsernameProvider(
         for (int i = 0; i < MaxAttempts; i++)
         {
             string candidate = $"{mappingSettings.UsernamePrefix}-{GenerateRandomString(8)}";
-            bool exists = await designerDb.DeveloperIdentityMappings
+            bool exists = await designerDb.UserAccounts
                 .AnyAsync(m => m.Username == candidate);
 
             if (!exists)
