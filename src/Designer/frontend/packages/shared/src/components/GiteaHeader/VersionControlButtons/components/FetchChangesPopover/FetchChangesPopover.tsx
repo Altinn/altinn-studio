@@ -55,7 +55,11 @@ export const FetchChangesPopover = (): React.ReactElement => {
           return queryKey.includes(owner) && queryKey.includes(repoName);
         },
       });
-    } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
+    } else if (
+      result.hasMergeConflict ||
+      result.repositoryStatus === 'MergeConflict' ||
+      result.repositoryStatus === 'CheckoutConflict'
+    ) {
       const conflictStatus: RepoStatus = { ...result, hasMergeConflict: true };
       queryClient.setQueryData([QueryKey.RepoStatus, owner, repoName], conflictStatus);
       setHasMergeConflict?.(true);
