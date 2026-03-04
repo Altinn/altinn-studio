@@ -70,16 +70,16 @@ def flush_langfuse():
 def score_validation(
     name: str,
     passed: bool,
-    trace_id: str,
+    trace_id: str | None,
     observation_id: str | None = None,
     config_id: str | None = None,
     comment: str | None = None,
 ) -> None:
     """Write a boolean validation result as a Langfuse score (1 = pass, 0 = fail)."""
     client = get_langfuse_client()
-    if not is_langfuse_enabled():
+    if not config.LANGFUSE_ENABLED:
         return
-    if not client:
+    if not client or not trace_id:
         return
     try:
         kwargs: dict = {
