@@ -157,6 +157,9 @@ services:
       - DEVELOP_BACKEND=${DEVELOP_BACKEND:-0}
       - GITEA_HOST=studio-repositories:3000
       - STUDIO_OIDC_ENABLED=${FEATUREFLAGS_STUDIOOIDC:-true}
+      - OTEL_ENDPOINT=localhost:4317
+      - OTEL_SERVICE_NAME=gitea-proxy
+      - OTEL_TRACE=off
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     depends_on:
