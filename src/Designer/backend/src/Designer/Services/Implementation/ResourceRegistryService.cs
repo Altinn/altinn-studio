@@ -64,7 +64,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<ActionResult> PublishServiceResource(
             ServiceResource serviceResource,
             string env,
-            string policyPath = null
+            string policyPath = null,
+            byte[] policyContent = null
         )
         {
             _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
@@ -146,53 +147,52 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (policyPath != null)
             {
-                using MultipartFormDataContent content = new MultipartFormDataContent();
-
-                if (ResourceAdminHelper.ValidFilePath(policyPath))
+                if (!ResourceAdminHelper.ValidFilePath(policyPath))
                 {
-                    byte[] policyFileContentBytes;
+                    Console.WriteLine($"Invalid filepath for policyfile. Path: {policyPath}");
+                    return new StatusCodeResult(400);
+                }
+                byte[] policyFileContentBytes;
 
-                    try
+                try
+                {
+                    string canonicalPolicyPath = Path.GetFullPath(policyPath);
+
+                    if (canonicalPolicyPath.EndsWith(".xml"))
                     {
-                        string canonicalPolicyPath = Path.GetFullPath(policyPath);
-
-                        if (canonicalPolicyPath.EndsWith(".xml"))
-                        {
-                            policyFileContentBytes = File.ReadAllBytes(policyPath);
-                        }
-                        else
-                        {
-                            return new StatusCodeResult(400);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine($"Error while reading policy from path {policyPath}");
-                        return new StatusCodeResult(400);
-                    }
-
-                    ByteArrayContent fileContent = new ByteArrayContent(policyFileContentBytes);
-                    content.Add(fileContent, "policyFile", "policy.xml");
-                    HttpResponseMessage writePolicyResponse = await _httpClient.PostAsync(
-                        fullWritePolicyToResourceRegistryUrl,
-                        content
-                    );
-
-                    if (writePolicyResponse.IsSuccessStatusCode)
-                    {
-                        Console.WriteLine("Policy written successfully!");
+                        policyFileContentBytes = File.ReadAllBytes(policyPath);
+                        policyContent = policyFileContentBytes;
                     }
                     else
                     {
-                        Console.WriteLine($"Error writing policy. Status code: {writePolicyResponse.StatusCode}");
-                        string responseContent = await writePolicyResponse.Content.ReadAsStringAsync();
-                        Console.WriteLine($"Response content: {responseContent}");
                         return new StatusCodeResult(400);
                     }
                 }
+                catch (Exception)
+                {
+                    Console.WriteLine($"Error while reading policy from path {policyPath}");
+                    return new StatusCodeResult(400);
+                }
+            }
+            if (policyContent != null)
+            {
+                using MultipartFormDataContent content = new();
+                ByteArrayContent fileContent = new(policyContent);
+                content.Add(fileContent, "policyFile", "policy.xml");
+                HttpResponseMessage writePolicyResponse = await _httpClient.PostAsync(
+                    fullWritePolicyToResourceRegistryUrl,
+                    content
+                );
+
+                if (writePolicyResponse.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Policy written successfully!");
+                }
                 else
                 {
-                    Console.WriteLine($"Invalid filepath for policyfile. Path: {policyPath}");
+                    Console.WriteLine($"Error writing policy. Status code: {writePolicyResponse.StatusCode}");
+                    string responseContent = await writePolicyResponse.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Response content: {responseContent}");
                     return new StatusCodeResult(400);
                 }
             }

@@ -54,7 +54,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await _authorizationPolicyClient.SavePolicy(org, app, policyFileContent, envName);
         }
 
-        private async Task<FileSystemObject> GetAuthorizationPolicyFileFromGitea(
+        public async Task<FileSystemObject> GetAuthorizationPolicyFileFromGitea(
             string org,
             string app,
             string shortCommitId
