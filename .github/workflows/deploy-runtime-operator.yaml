@@ -91,15 +91,15 @@ jobs:
       - name: docker build
         run: docker build --platform linux/amd64,linux/arm64 -t ${{ steps.vars.outputs.ghcr-image-repo }} -f Dockerfile .
 
-      # - name: scan image - proxy
-      #   uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518 # 0.34.1
-      #   with:
-      #     image-ref: '${{ steps.vars.outputs.ghcr-image-repo }}'
-      #     format: 'table'
-      #     exit-code: '1'
-      #     ignore-unfixed: true
-      #     vuln-type: 'os,library'
-      #     severity: 'CRITICAL,HIGH'
+      - name: scan image - proxy
+        uses: aquasecurity/trivy-action@97e0b3872f55f89b95b2f65b3dbab56962816478 # 0.34.2
+        with:
+          image-ref: '${{ steps.vars.outputs.ghcr-image-repo }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
       - name: push images
         run: docker push ${{ steps.vars.outputs.ghcr-image-repo }}
