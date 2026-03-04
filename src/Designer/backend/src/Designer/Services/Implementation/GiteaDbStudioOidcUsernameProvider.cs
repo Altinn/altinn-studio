@@ -15,7 +15,8 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class GiteaDbStudioOidcUsernameProvider(
     DesignerdbContext designerDb,
     GiteaDbSettings giteaDbSettings,
-    DeveloperMappingSettings mappingSettings
+    DeveloperMappingSettings mappingSettings,
+    TimeProvider timeProvider
 ) : IStudioOidcUsernameProvider
 {
     private const string GiteaLookupQuery = """
@@ -71,7 +72,7 @@ public class GiteaDbStudioOidcUsernameProvider(
             {
                 PidHash = pidHash,
                 Username = username,
-                Created = DateTimeOffset.UtcNow,
+                Created = timeProvider.GetUtcNow(),
             }
         );
         await designerDb.SaveChangesAsync();
