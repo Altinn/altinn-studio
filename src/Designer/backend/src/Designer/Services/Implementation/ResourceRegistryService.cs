@@ -42,8 +42,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             WriteIndented = true,
         };
 
-        public ResourceRegistryService() { }
-
         public ResourceRegistryService(
             HttpClient httpClient,
             IHttpClientFactory httpClientFactory,
@@ -63,13 +61,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _maskinportenIntegrationSettings = maskinportenIntegrationSettings.Value;
             _resourceRegistryRepository = resourceRegistryRepository;
-        }
-
-        private string GetResourceRegistryUrl(string env)
-        {
-            return !env.ToLower().Equals("dev")
-                ? $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}"
-                : $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}";
         }
 
         public async Task<List<ServiceResource>> GetServiceResourceList(

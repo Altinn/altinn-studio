@@ -15,9 +15,7 @@ public class ResourceRegistryRepository(
     IMaskinportenService maskinPortenService,
     IClientDefinition maskinportenClientDefinition,
     IOptions<ResourceRegistryIntegrationSettings> resourceRegistrySettings,
-    IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings,
-    HttpClient httpClient,
-    IHttpClientFactory httpClientFactory
+    IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings
 ) : IResourceRegistryRepository
 {
     public async Task<List<ServiceResource>> GetServiceResources(
@@ -29,15 +27,17 @@ public class ResourceRegistryRepository(
         maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(env);
         TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
 
-        httpClientFactory.CreateClient();
-        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
-            "Bearer",
-            tokenResponse.AccessToken
-        );
-        string resourceListUrl = GetResourceRegistryResourceListUrl(env, includeApps, includeAltinn2);
-        HttpResponseMessage getResourceResponse = await httpClient.GetAsync(resourceListUrl);
-        getResourceResponse.EnsureSuccessStatusCode();
-        return await getResourceResponse.Content.ReadAsAsync<List<ServiceResource>>();
+        using (HttpClient httpClient = new HttpClient())
+        {
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Bearer",
+                tokenResponse.AccessToken
+            );
+            string resourceListUrl = GetResourceRegistryResourceListUrl(env, includeApps, includeAltinn2);
+            HttpResponseMessage getResourceResponse = await httpClient.GetAsync(resourceListUrl);
+            getResourceResponse.EnsureSuccessStatusCode();
+            return await getResourceResponse.Content.ReadAsAsync<List<ServiceResource>>();
+        }
     }
 
     private string GetResourceRegistryBaseUrl(string env)
@@ -49,7 +49,7 @@ public class ResourceRegistryRepository(
 
     private string GetResourceRegistryResourceListUrl(string env, bool includeApps, bool includeAltinn2)
     {
-        return $"{GetResourceRegistryBaseUrl(env)}{platformSettings.ResourceRegistryUrl}/resourcelist?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
+        return $"{GetResourceRegistryBaseUrl(env)}/resourcelist?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
     }
 
     private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
