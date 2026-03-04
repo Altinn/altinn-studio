@@ -2,26 +2,21 @@ namespace WorkflowEngine.Models.Tests;
 
 public class ExecutionResultTests
 {
-    [Fact]
-    public void Success_CreatesResultWithSuccessStatus()
+    [Theory]
+    [InlineData(ExecutionStatus.Success)]
+    [InlineData(ExecutionStatus.Canceled)]
+    public void FactoryMethod_WithNoArgs_CreatesResultWithNullMessageAndException(ExecutionStatus status)
     {
         // Act
-        var result = ExecutionResult.Success();
+        var result = status switch
+        {
+            ExecutionStatus.Success => ExecutionResult.Success(),
+            ExecutionStatus.Canceled => ExecutionResult.Canceled(),
+            _ => throw new ArgumentOutOfRangeException(nameof(status)),
+        };
 
         // Assert
-        Assert.Equal(ExecutionStatus.Success, result.Status);
-        Assert.Null(result.Message);
-        Assert.Null(result.Exception);
-    }
-
-    [Fact]
-    public void Canceled_CreatesResultWithCanceledStatus()
-    {
-        // Act
-        var result = ExecutionResult.Canceled();
-
-        // Assert
-        Assert.Equal(ExecutionStatus.Canceled, result.Status);
+        Assert.Equal(status, result.Status);
         Assert.Null(result.Message);
         Assert.Null(result.Exception);
     }

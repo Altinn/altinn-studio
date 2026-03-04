@@ -54,6 +54,11 @@ public sealed class EngineAppFixture : IAsyncLifetime
     public HttpClient CreateEngineClient() => _factory.CreateEngineClient();
 
     /// <summary>
+    /// Creates an <see cref="HttpClient"/> without any pre-populated headers (no API key).
+    /// </summary>
+    public HttpClient CreateRawClient() => _factory.CreateClient();
+
+    /// <summary>
     /// Provides access to the engine's service provider.
     /// </summary>
     public IServiceProvider Services => _factory.Services;

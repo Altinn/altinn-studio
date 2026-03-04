@@ -4,94 +4,31 @@ namespace WorkflowEngine.Models.Tests.Extensions;
 
 public class HealthStatusExtensionsTests
 {
-    [Fact]
-    public void IsDisabled_ReturnsTrue_WhenDisabledFlagSet()
+    [Theory]
+    [InlineData(EngineHealthStatus.Disabled | EngineHealthStatus.Running, true)]
+    [InlineData(EngineHealthStatus.Running | EngineHealthStatus.Healthy, false)]
+    public void IsDisabled_ReturnsExpected(EngineHealthStatus status, bool expected)
     {
-        // Arrange
-        var status = EngineHealthStatus.Disabled | EngineHealthStatus.Running;
-
-        // Act
-        var result = status.IsDisabled();
-
-        // Assert
-        Assert.True(result);
+        // Act & Assert
+        Assert.Equal(expected, status.IsDisabled());
     }
 
-    [Fact]
-    public void IsDisabled_ReturnsFalse_WhenDisabledFlagNotSet()
+    [Theory]
+    [InlineData(EngineHealthStatus.Running | EngineHealthStatus.Healthy, true)]
+    [InlineData(EngineHealthStatus.Running | EngineHealthStatus.Unhealthy, false)]
+    [InlineData(EngineHealthStatus.Stopped, false)]
+    public void IsHealthy_ReturnsExpected(EngineHealthStatus status, bool expected)
     {
-        // Arrange
-        var status = EngineHealthStatus.Running | EngineHealthStatus.Healthy;
-
-        // Act
-        var result = status.IsDisabled();
-
-        // Assert
-        Assert.False(result);
+        // Act & Assert
+        Assert.Equal(expected, status.IsHealthy());
     }
 
-    [Fact]
-    public void IsHealthy_ReturnsTrue_WhenRunningWithoutUnhealthy()
+    [Theory]
+    [InlineData(EngineHealthStatus.Running | EngineHealthStatus.QueueFull, true)]
+    [InlineData(EngineHealthStatus.Running | EngineHealthStatus.Healthy, false)]
+    public void HasFullQueue_ReturnsExpected(EngineHealthStatus status, bool expected)
     {
-        // Arrange
-        var status = EngineHealthStatus.Running | EngineHealthStatus.Healthy;
-
-        // Act
-        var result = status.IsHealthy();
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void IsHealthy_ReturnsFalse_WhenRunningWithUnhealthy()
-    {
-        // Arrange
-        var status = EngineHealthStatus.Running | EngineHealthStatus.Unhealthy;
-
-        // Act
-        var result = status.IsHealthy();
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void IsHealthy_ReturnsFalse_WhenNotRunning()
-    {
-        // Arrange
-        var status = EngineHealthStatus.Stopped;
-
-        // Act
-        var result = status.IsHealthy();
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void HasFullQueue_ReturnsTrue_WhenQueueFullFlagSet()
-    {
-        // Arrange
-        var status = EngineHealthStatus.Running | EngineHealthStatus.QueueFull;
-
-        // Act
-        var result = status.HasFullQueue();
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void HasFullQueue_ReturnsFalse_WhenQueueFullFlagNotSet()
-    {
-        // Arrange
-        var status = EngineHealthStatus.Running | EngineHealthStatus.Healthy;
-
-        // Act
-        var result = status.HasFullQueue();
-
-        // Assert
-        Assert.False(result);
+        // Act & Assert
+        Assert.Equal(expected, status.HasFullQueue());
     }
 }
