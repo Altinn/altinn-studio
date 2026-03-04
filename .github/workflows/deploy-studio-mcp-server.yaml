@@ -63,7 +63,7 @@ jobs:
         run: docker build -t ${{ env.IMAGE_REPO }} -f dockerfile .
 
       # - name: scan image
-      #   uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
+      #   uses: aquasecurity/trivy-action@97e0b3872f55f89b95b2f65b3dbab56962816478 # 0.34.2
       #   with:
       #     image-ref: '${{ env.IMAGE_REPO }}'
       #     format: 'table'
