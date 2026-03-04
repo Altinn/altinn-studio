@@ -17,59 +17,10 @@ namespace Altinn.Studio.Designer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.13")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
-
-            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ApiKeyDbModel", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("display_name");
-
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("expires_at");
-
-                    b.Property<string>("KeyHash")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("key_hash");
-
-                    b.Property<bool>("Revoked")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("revoked");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("username");
-
-                    b.HasKey("Id")
-                        .HasName("api_keys_pkey");
-
-                    b.HasIndex(new[] { "KeyHash" }, "idx_api_keys_key_hash")
-                        .IsUnique();
-
-                    b.HasIndex(new[] { "Username" }, "idx_api_keys_username");
-
-                    b.ToTable("api_keys", "designer");
-                });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbModel", b =>
                 {
@@ -330,30 +281,6 @@ namespace Altinn.Studio.Designer.Migrations
                     b.HasIndex(new[] { "Org", "App" }, "idx_deployments_org_app");
 
                     b.ToTable("deployments", "designer");
-                });
-
-            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeveloperIdentityMappingDbModel", b =>
-                {
-                    b.Property<string>("PidHash")
-                        .HasColumnType("character varying")
-                        .HasColumnName("pid_hash");
-
-                    b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("created");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("username");
-
-                    b.HasKey("PidHash")
-                        .HasName("developer_identity_mappings_pkey");
-
-                    b.HasIndex(new[] { "Username" }, "idx_developer_identity_mappings_username")
-                        .IsUnique();
-
-                    b.ToTable("developer_identity_mappings", "designer");
                 });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ReleaseDbModel", b =>
