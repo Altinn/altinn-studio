@@ -6,7 +6,7 @@ export const formatDateAndTime = (timestamp: number, locale: string = 'en-US') =
   const datePart = DateUtils.formatDateDDMMYYYY(isoString);
 
   const timePart = date
-    .toLocaleTimeString('en-US', {
+    .toLocaleTimeString(locale, {
       hour12: true,
       hour: 'numeric',
       minute: '2-digit',
