@@ -53,7 +53,6 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IBlobContainerClientFactory, AzureBlobContainerClientFactory>();
 
             services.AddTransient<ISourceControl, SourceControlService>();
-            services.Decorate<ISourceControl, SourceControlLoggingDecorator>();
 
             services.AddSingleton(configuration);
 
