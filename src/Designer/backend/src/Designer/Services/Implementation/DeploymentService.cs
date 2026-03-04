@@ -57,6 +57,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IRuntimeGatewayClient _runtimeGatewayClient;
         private readonly ISlackClient _slackClient;
         private readonly AlertsSettings _alertsSettings;
+        private readonly IPersonalAccessTokenService _personalAccessTokenService;
 
         /// <summary>
         /// Constructor
@@ -79,6 +80,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IRuntimeGatewayClient runtimeGatewayClient,
             ISlackClient slackClient,
             AlertsSettings alertsSettings,
+            IPersonalAccessTokenService personalAccessTokenService,
             GitOpsSettings gitOpsSettings = null
         )
         {
@@ -100,6 +102,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _runtimeGatewayClient = runtimeGatewayClient;
             _slackClient = slackClient;
             _alertsSettings = alertsSettings;
+            _personalAccessTokenService = personalAccessTokenService;
         }
 
         /// <inheritdoc/>
@@ -255,10 +258,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CancellationToken cancellationToken = default
         )
         {
+            var (token, authHeaderName) = await GetDeployTokenAsync(authenticatedContext.Developer);
             await UndeployInternalAsync(
                 authenticatedContext,
                 env,
-                authenticatedContext.DeveloperAppToken,
+                token,
+                authHeaderName,
                 cancellationToken: cancellationToken
             );
         }
@@ -273,7 +278,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 editingContext,
                 env,
                 _gitOpsSettings.BotPersonalAccessToken,
-                cancellationToken,
+                appAuthHeaderName: null,
+                cancellationToken: cancellationToken,
                 isSystemContext: true
             );
         }
@@ -282,6 +288,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             AltinnRepoEditingContext editingContext,
             string env,
             string appDeployToken,
+            string appAuthHeaderName = null,
             CancellationToken cancellationToken = default,
             bool isSystemContext = false
         )
@@ -332,6 +339,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppEnvironment = env,
                 AltinnStudioHostname = _generalSettings.HostName,
                 AppDeployToken = appDeployToken,
+                AppAuthHeaderName = appAuthHeaderName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
                 TraceParent = traceContext.TraceParent,
                 TraceState = traceContext.TraceState,
@@ -535,12 +543,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             // This particular multi-step process starts mutating state by queueing the ADO build
             cancellationToken = CancellationToken.None;
             var traceContext = GetCurrentTraceContext();
+            var (deployToken, authHeaderName) = await GetDeployTokenAsync(editingContext.Developer);
             GitOpsManagementBuildParameters buildParameters = new()
             {
                 AppOwner = editingContext.Org,
                 AppEnvironment = environment.Name,
                 AltinnStudioHostname = _generalSettings.HostName,
-                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
+                AppDeployToken = deployToken,
+                AppAuthHeaderName = authHeaderName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
                 TraceParent = traceContext.TraceParent,
                 TraceState = traceContext.TraceState,
@@ -564,6 +574,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CancellationToken cancellationToken
         )
         {
+            var (deployToken, authHeaderName) = await GetDeployTokenAsync(deploymentEntity.CreatedBy);
             QueueBuildParameters queueBuildParameters = new()
             {
                 AppCommitId = release.TargetCommitish,
@@ -573,7 +584,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Hostname = await _environmentsService.GetHostNameByEnvName(envName),
                 TagName = deploymentEntity.TagName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
-                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
+                AppDeployToken = deployToken,
+                AppAuthHeaderName = authHeaderName,
                 AltinnStudioHostname = _generalSettings.HostName,
                 TraceParent = traceParent,
                 TraceState = traceState,
@@ -588,6 +600,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 : _azureDevOpsSettings.DeployDefinitionId;
 
             return await _azureDevOpsBuildClient.QueueAsync(queueBuildParameters, definitionId, cancellationToken);
+        }
+
+        private async Task<(string Token, string AuthHeaderName)> GetDeployTokenAsync(string username)
+        {
+            if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.ApiKeyAuth))
+            {
+                var (rawKey, _) = await _personalAccessTokenService.CreateAsync(
+                    username,
+                    "deploy",
+                    Enums.PersonalAccessTokenType.System,
+                    _timeProvider.GetUtcNow().AddHours(1)
+                );
+                return (rawKey, "X-Api-Key");
+            }
+
+            return (await _httpContext.GetDeveloperAppTokenAsync(), null);
         }
 
         private static (string TraceParent, string TraceState) GetCurrentTraceContext()

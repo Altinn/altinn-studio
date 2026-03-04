@@ -22,6 +22,7 @@ variables:
   # GITEA_ENVIRONMENT: ''
   # HOSTNAME: ''
   # TAGNAME: ''
+  # APP_AUTH_HEADER_NAME: '' # Optional header name for token auth (e.g. "X-Api-Key"). When set, uses header instead of URL-embedded token.
   # TRACEPARENT: '' # Optional W3C traceparent for correlation
   # TRACESTATE: '' # Optional W3C tracestate for correlation
   # PUSH_SYNCROOT_GITOPS_IMAGE: 'false' # Set to 'true' to enable pushing sync-root artifact
@@ -133,9 +134,12 @@ steps:
     condition: and(succeeded(), ne(variables['PUSH_APPS_OCI_IMAGE'], 'false'))
     inputs:
       script: |
-        # Should use oauth token when authenticating to private repo
-
-        git clone --recurse-submodules https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        # Clone private repo using either header-based or URL-embedded token auth
+        if [ -n "$APP_AUTH_HEADER_NAME" ]; then
+          git -c http.extraHeader="$APP_AUTH_HEADER_NAME: $APP_DEPLOY_TOKEN" clone --recurse-submodules https://$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        else
+          git clone --recurse-submodules https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        fi
         cd $APP_COMMIT_ID
 
         ## Ensure we use correct commit
@@ -196,7 +200,11 @@ steps:
     condition: and(succeeded(), eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true'))
     inputs:
       script: |
-        git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
+        if [ -n "$APP_AUTH_HEADER_NAME" ]; then
+          git -c http.extraHeader="$APP_AUTH_HEADER_NAME: $APP_DEPLOY_TOKEN" clone https://$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
+        else
+          git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
+        fi
 
   - task: Bash@3
     displayName: 'Process custom IngressRoute for staf org'
