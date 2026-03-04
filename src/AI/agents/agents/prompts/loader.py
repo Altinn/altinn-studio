@@ -1,7 +1,7 @@
 """Prompt loader utility for managing system prompts"""
 import yaml
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -9,35 +9,63 @@ log = get_logger(__name__)
 PROMPTS_DIR = Path(__file__).parent
 
 
+def _try_langfuse_prompt(prompt_name: str) -> Optional[str]:
+    """Try to fetch a prompt from Langfuse. Returns None on any failure."""
+    try:
+        from shared.utils.langfuse_utils import is_langfuse_enabled, fetch_langfuse_prompt
+        if not is_langfuse_enabled():
+            return None
+        content = fetch_langfuse_prompt(prompt_name)
+        log.debug(f"Loaded prompt '{prompt_name}' from Langfuse")
+        return content
+    except Exception as e:
+        log.debug(f"Langfuse prompt '{prompt_name}' not available, using local file: {e}")
+        return None
+
+
+def _try_langfuse_template(template_name: str, variables: dict) -> Optional[str]:
+    """Try to fetch and render a template from Langfuse. Returns None on any failure."""
+    try:
+        from shared.utils.langfuse_utils import is_langfuse_enabled, fetch_langfuse_template
+        if not is_langfuse_enabled():
+            return None
+        content = fetch_langfuse_template(template_name, variables)
+        log.debug(f"Rendered template '{template_name}' from Langfuse")
+        return content
+    except Exception as e:
+        log.debug(f"Langfuse template '{template_name}' not available, using local file: {e}")
+        return None
+
+
 def load_prompt(prompt_name: str) -> Dict[str, Any]:
     """
     Load a prompt from a markdown file with YAML frontmatter.
-    
+
     Args:
         prompt_name: Name of the prompt file (without .md extension)
-        
+
     Returns:
         Dict with keys: content, role, version, name
-        
+
     Example:
         >>> prompt = load_prompt("general_planning")
         >>> print(prompt["content"])
         >>> print(prompt["role"])  # "planner"
     """
     prompt_file = PROMPTS_DIR / f"{prompt_name}.md"
-    
+
     if not prompt_file.exists():
         raise FileNotFoundError(f"Prompt file not found: {prompt_file}")
-    
+
     content = prompt_file.read_text(encoding="utf-8")
-    
+
     # Parse YAML frontmatter
     if content.startswith("---"):
         parts = content.split("---", 2)
         if len(parts) >= 3:
             frontmatter_text = parts[1].strip()
             prompt_content = parts[2].strip()
-            
+
             try:
                 metadata = yaml.safe_load(frontmatter_text) or {}
             except yaml.YAMLError as e:
@@ -51,7 +79,7 @@ def load_prompt(prompt_name: str) -> Dict[str, Any]:
         # No frontmatter at all
         metadata = {}
         prompt_content = content
-    
+
     return {
         "content": prompt_content,
         "role": metadata.get("role", "assistant"),
@@ -62,43 +90,56 @@ def load_prompt(prompt_name: str) -> Dict[str, Any]:
 
 def get_prompt_content(prompt_name: str) -> str:
     """
-    Convenience function to get just the prompt content as a string.
-    
+    Get prompt content as a string.
+
+    When Langfuse is enabled, tries to fetch from Langfuse first.
+    Falls back to the local .md file if the prompt doesn't exist in Langfuse
+    or Langfuse is unavailable. Check trace or debug to see where prompt was loaded from.
+
     Args:
-        prompt_name: Name of the prompt file (without .md extension)
-        
+        prompt_name: Name of the prompt (without .md extension)
+
     Returns:
         Prompt content as string
     """
+    langfuse_content = _try_langfuse_prompt(prompt_name)
+    if langfuse_content is not None:
+        return langfuse_content
+
     return load_prompt(prompt_name)["content"]
 
 
 def render_template(template_name: str, **variables) -> str:
     """
     Load and render a template with variable substitution.
-    
-    Templates are located in the templates/ subdirectory.
-    Uses Python's str.format() for variable substitution.
-    
+
+    When Langfuse is enabled, tries to fetch and render from Langfuse first
+    (using Langfuse's {{variable}} syntax). Falls back to the local template
+    file (using Python's str.format() with {variable} syntax).
+
     Args:
         template_name: Name of the template file (without .md extension)
         **variables: Keyword arguments to substitute into the template
-        
+
     Returns:
         Rendered template string
-        
+
     Example:
-        >>> text = render_template("general_planning_user", 
+        >>> text = render_template("general_planning_user",
         ...                        user_goal="Add a field",
         ...                        planner_step="Step 1")
     """
+    langfuse_content = _try_langfuse_template(template_name, variables)
+    if langfuse_content is not None:
+        return langfuse_content
+
     template_file = PROMPTS_DIR / "templates" / f"{template_name}.md"
-    
+
     if not template_file.exists():
         raise FileNotFoundError(f"Template file not found: {template_file}")
-    
+
     template_content = template_file.read_text(encoding="utf-8")
-    
+
     try:
         return template_content.format(**variables)
     except KeyError as e:
