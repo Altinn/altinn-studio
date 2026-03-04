@@ -1,4 +1,5 @@
 #nullable disable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -99,6 +100,28 @@ public class DeploymentRepository : IDeploymentRepository
 
         var dbObjects = await deploymentsQuery.ToListAsync();
         return DeploymentMapper.MapToModels(dbObjects);
+    }
+
+    public async Task<IReadOnlyList<string>> GetAppsWithRecentDeployments(
+        string org,
+        string environment,
+        DateTimeOffset sinceUtc
+    )
+    {
+        Guard.AssertArgumentNotNullOrWhiteSpace(environment, nameof(environment));
+        Guard.AssertArgumentNotNullOrWhiteSpace(org, nameof(org));
+
+        return await _dbContext
+            .Deployments.AsNoTracking()
+            .Where(d =>
+                d.Org == org
+                && d.EnvName == environment
+                && d.DeploymentType == Models.DeploymentType.Deploy
+                && d.Created >= sinceUtc.UtcDateTime
+            )
+            .Select(d => d.App)
+            .Distinct()
+            .ToArrayAsync();
     }
 
     public async Task Update(DeploymentEntity deploymentEntity)

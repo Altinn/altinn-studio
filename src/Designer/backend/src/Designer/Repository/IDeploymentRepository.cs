@@ -1,4 +1,5 @@
 #nullable disable
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
@@ -41,6 +42,15 @@ namespace Altinn.Studio.Designer.Repository
             string app,
             string environment,
             DocumentQueryModel query
+        );
+
+        /// <summary>
+        /// Gets app names with a recent deploy in the given environment.
+        /// </summary>
+        Task<IReadOnlyList<string>> GetAppsWithRecentDeployments(
+            string org,
+            string environment,
+            DateTimeOffset sinceUtc
         );
 
         /// <summary>
