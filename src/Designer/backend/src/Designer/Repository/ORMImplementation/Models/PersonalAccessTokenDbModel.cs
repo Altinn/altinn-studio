@@ -14,5 +14,5 @@ public class PersonalAccessTokenDbModel
     public bool Revoked { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 
-    public UserAccountDbModel UserAccount { get; set; }
+    public UserAccountDbModel UserAccount { get; set; } = null!;
 }

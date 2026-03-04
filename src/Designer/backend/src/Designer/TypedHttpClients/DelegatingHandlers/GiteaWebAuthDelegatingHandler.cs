@@ -11,7 +11,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 /// </summary>
 public class GiteaWebAuthDelegatingHandler(IGitServerAuthHeadersProvider authHeadersProvider) : DelegatingHandler
 {
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken
+    )
     {
         foreach (KeyValuePair<string, string> header in authHeadersProvider.GetAuthHeaders())
         {

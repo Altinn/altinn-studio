@@ -4,7 +4,8 @@ using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class GiteaAuthHeadersProvider(IDeveloperContextProvider developerContextProvider) : IGitServerAuthHeadersProvider
+public class GiteaAuthHeadersProvider(IDeveloperContextProvider developerContextProvider)
+    : IGitServerAuthHeadersProvider
 {
     public Dictionary<string, string> GetAuthHeaders()
     {

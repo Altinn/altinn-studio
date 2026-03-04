@@ -27,7 +27,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// </remarks>
 /// <param name="repositorySettings">The settings for the service repository.</param>
 /// <param name="giteaClient">The gitea client.</param>
-/// <param name="cookieProvider">The designer cookie provider.</param>
+/// <param name="authHeadersProvider">The git server auth headers provider.</param>
 public class SourceControlService(
     ServiceRepositorySettings repositorySettings,
     IGiteaClient giteaClient,
@@ -201,7 +201,11 @@ public class SourceControlService(
             {
                 string logMessage = string.Empty;
                 using var repo = new LibGit2Sharp.Repository(self.FindLocalRepoLocation(authenticatedContext));
-                FetchOptions fetchOptions = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext), CustomHeaders = self.GetAuthCustomHeaders() };
+                FetchOptions fetchOptions = new()
+                {
+                    CredentialsProvider = GetCredentialsHandler(authenticatedContext),
+                    CustomHeaders = self.GetAuthCustomHeaders(),
+                };
 
                 foreach (Remote remote in repo.Network.Remotes)
                 {
@@ -728,7 +732,11 @@ public class SourceControlService(
                 NoteCollection notes = repo.Notes;
                 notes.Add(commit.Id, "studio-commit", signature, signature, notes.DefaultNamespace);
 
-                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext), CustomHeaders = GetAuthCustomHeaders() };
+                PushOptions options = new()
+                {
+                    CredentialsProvider = GetCredentialsHandler(authenticatedContext),
+                    CustomHeaders = GetAuthCustomHeaders(),
+                };
 
                 if (branchName == DefaultBranch)
                 {
@@ -799,7 +807,11 @@ public class SourceControlService(
                         updater.UpstreamBranch = $"refs/heads/{ctx.branchName}";
                     }
                 );
-                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext), CustomHeaders = self.GetAuthCustomHeaders() };
+                PushOptions options = new()
+                {
+                    CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext),
+                    CustomHeaders = self.GetAuthCustomHeaders(),
+                };
                 repo.Network.Push(branch, options);
                 repo.Network.Push(remote, "refs/notes/commits", options);
             }
@@ -958,7 +970,11 @@ public class SourceControlService(
                 }
 
                 Remote remote = repo.Network.Remotes["origin"];
-                PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext), CustomHeaders = self.GetAuthCustomHeaders() };
+                PushOptions options = new()
+                {
+                    CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext),
+                    CustomHeaders = self.GetAuthCustomHeaders(),
+                };
                 string pushRefSpec = $":refs/heads/{ctx.branchName}";
                 repo.Network.Push(remote, pushRefSpec, options);
                 ctx.activity?.SetTag("branch.deleted", true);
@@ -1366,15 +1382,17 @@ public class SourceControlService(
     )
     {
         using LibGit2Sharp.Repository repo = new(localRepositoryPath);
-        FetchOptions options = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext), CustomHeaders = GetAuthCustomHeaders() };
+        FetchOptions options = new()
+        {
+            CredentialsProvider = GetCredentialsHandler(authenticatedContext),
+            CustomHeaders = GetAuthCustomHeaders(),
+        };
         Commands.Fetch(repo, "origin", ["refs/notes/*:refs/notes/*"], options, "fetch notes");
     }
 
     private string[] GetAuthCustomHeaders()
     {
-        return authHeadersProvider.GetAuthHeaders()
-            .Select(h => $"{h.Key}: {h.Value}")
-            .ToArray();
+        return authHeadersProvider.GetAuthHeaders().Select(h => $"{h.Key}: {h.Value}").ToArray();
     }
 
     private static Activity? StartActivityCore(string methodName) =>

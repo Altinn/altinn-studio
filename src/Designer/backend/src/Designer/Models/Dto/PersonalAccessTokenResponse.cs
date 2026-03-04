@@ -7,4 +7,5 @@ public record PersonalAccessTokenResponse(
     string DisplayName,
     DateTimeOffset ExpiresAt,
     bool Revoked,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt
+);

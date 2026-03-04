@@ -7,24 +7,29 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Repository;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
 public class PersonalAccessTokenService(
     IPersonalAccessTokenRepository repository,
+    DesignerdbContext dbContext,
     PersonalAccessTokenSettings settings,
-    TimeProvider timeProvider) : IPersonalAccessTokenService
+    TimeProvider timeProvider
+) : IPersonalAccessTokenService
 {
     private const int RawKeyLengthBytes = 32;
 
     public async Task<(string RawKey, PersonalAccessTokenDbModel Model)> CreateAsync(
-        Guid userAccountId,
+        string username,
         string displayName,
         PersonalAccessTokenType tokenType,
         DateTimeOffset expiresAt,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         int maxExpiry = settings.MaxExpiryDays;
         DateTimeOffset maxAllowed = timeProvider.GetUtcNow().AddDays(maxExpiry);
@@ -32,6 +37,8 @@ public class PersonalAccessTokenService(
         {
             throw new ArgumentException($"Expiry cannot exceed {maxExpiry} days.");
         }
+
+        Guid userAccountId = await ResolveUserAccountIdAsync(username, cancellationToken);
 
         string rawKey = GenerateRawKey();
         string keyHash = ComputeHash(rawKey);
@@ -44,14 +51,17 @@ public class PersonalAccessTokenService(
             TokenType = tokenType,
             ExpiresAt = expiresAt,
             Revoked = false,
-            CreatedAt = timeProvider.GetUtcNow()
+            CreatedAt = timeProvider.GetUtcNow(),
         };
 
         var created = await repository.CreateAsync(model, cancellationToken);
         return (rawKey, created);
     }
 
-    public async Task<PersonalAccessTokenDbModel?> ValidateAsync(string rawKey, CancellationToken cancellationToken = default)
+    public async Task<PersonalAccessTokenDbModel?> ValidateAsync(
+        string rawKey,
+        CancellationToken cancellationToken = default
+    )
     {
         string keyHash = ComputeHash(rawKey);
         var model = await repository.GetByKeyHashAsync(keyHash, cancellationToken);
@@ -69,14 +79,34 @@ public class PersonalAccessTokenService(
         return model;
     }
 
-    public Task<List<PersonalAccessTokenDbModel>> ListByUserAccountIdAsync(Guid userAccountId, PersonalAccessTokenType? tokenType = null, CancellationToken cancellationToken = default)
+    public async Task<List<PersonalAccessTokenDbModel>> ListAsync(
+        string username,
+        PersonalAccessTokenType? tokenType = null,
+        CancellationToken cancellationToken = default
+    )
     {
-        return repository.GetByUserAccountIdAsync(userAccountId, tokenType, cancellationToken);
+        Guid userAccountId = await ResolveUserAccountIdAsync(username, cancellationToken);
+        return await repository.GetByUserAccountIdAsync(userAccountId, tokenType, cancellationToken);
     }
 
-    public Task RevokeAsync(long id, Guid userAccountId, CancellationToken cancellationToken = default)
+    public async Task RevokeAsync(long id, string username, CancellationToken cancellationToken = default)
     {
-        return repository.RevokeAsync(id, userAccountId, cancellationToken);
+        Guid userAccountId = await ResolveUserAccountIdAsync(username, cancellationToken);
+        await repository.RevokeAsync(id, userAccountId, cancellationToken);
+    }
+
+    private async Task<Guid> ResolveUserAccountIdAsync(string username, CancellationToken cancellationToken)
+    {
+        var userAccount = await dbContext
+            .UserAccounts.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
+
+        if (userAccount is null)
+        {
+            throw new InvalidOperationException($"User account not found for username '{username}'.");
+        }
+
+        return userAccount.Id;
     }
 
     private string ComputeHash(string rawKey)
@@ -88,9 +118,6 @@ public class PersonalAccessTokenService(
     private static string GenerateRawKey()
     {
         byte[] keyBytes = RandomNumberGenerator.GetBytes(RawKeyLengthBytes);
-        return Convert.ToBase64String(keyBytes)
-            .Replace("+", "-")
-            .Replace("/", "_")
-            .TrimEnd('=');
+        return Convert.ToBase64String(keyBytes).Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
 }

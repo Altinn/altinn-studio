@@ -14,10 +14,10 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class GiteaDbStudioOidcUsernameProvider(
     DesignerdbContext designerDb,
     GiteaDbSettings giteaDbSettings,
-    DeveloperMappingSettings mappingSettings) : IStudioOidcUsernameProvider
+    DeveloperMappingSettings mappingSettings
+) : IStudioOidcUsernameProvider
 {
-    private const string GiteaLookupQuery =
-        """
+    private const string GiteaLookupQuery = """
         SELECT u.lower_name
         FROM external_login_user elu
         JOIN "user" u ON elu.user_id = u.id
@@ -30,8 +30,7 @@ public class GiteaDbStudioOidcUsernameProvider(
         string pidHash = ComputePidHash(pid);
 
         // Step 1: Check Designer DB mapping
-        var mapping = await designerDb.UserAccounts
-            .FirstOrDefaultAsync(m => m.PidHash == pidHash);
+        var mapping = await designerDb.UserAccounts.FirstOrDefaultAsync(m => m.PidHash == pidHash);
 
         if (mapping != null)
         {
@@ -66,12 +65,14 @@ public class GiteaDbStudioOidcUsernameProvider(
 
     private async Task StoreMapping(string pidHash, string username)
     {
-        designerDb.UserAccounts.Add(new UserAccountDbModel
-        {
-            PidHash = pidHash,
-            Username = username,
-            Created = DateTimeOffset.UtcNow
-        });
+        designerDb.UserAccounts.Add(
+            new UserAccountDbModel
+            {
+                PidHash = pidHash,
+                Username = username,
+                Created = DateTimeOffset.UtcNow,
+            }
+        );
         await designerDb.SaveChangesAsync();
     }
 
@@ -81,8 +82,7 @@ public class GiteaDbStudioOidcUsernameProvider(
         for (int i = 0; i < MaxAttempts; i++)
         {
             string candidate = $"{mappingSettings.UsernamePrefix}-{GenerateRandomString(8)}";
-            bool exists = await designerDb.UserAccounts
-                .AnyAsync(m => m.Username == candidate);
+            bool exists = await designerDb.UserAccounts.AnyAsync(m => m.Username == candidate);
 
             if (!exists)
             {

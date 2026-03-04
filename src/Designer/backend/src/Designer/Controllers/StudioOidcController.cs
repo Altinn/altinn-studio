@@ -39,10 +39,7 @@ public class StudioOidcController(IStudioOidcUsernameProvider usernameProvider) 
         AuthenticateResult authenticateResult = await HttpContext.AuthenticateAsync();
         AuthenticationProperties? properties = authenticateResult.Properties;
 
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.Name, computedUsername),
-        };
+        var claims = new List<Claim> { new(ClaimTypes.Name, computedUsername) };
 
         if (pid != null)
         {
@@ -69,10 +66,7 @@ public class StudioOidcController(IStudioOidcUsernameProvider usernameProvider) 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
 
-        await HttpContext.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            principal,
-            properties);
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, properties);
 
         return LocalRedirect(redirectTo);
     }
@@ -84,6 +78,7 @@ public class StudioOidcController(IStudioOidcUsernameProvider usernameProvider) 
         return new UserInfoResponse(
             User.Identity?.Name,
             User.FindFirst("given_name")?.Value,
-            User.FindFirst("family_name")?.Value);
+            User.FindFirst("family_name")?.Value
+        );
     }
 }

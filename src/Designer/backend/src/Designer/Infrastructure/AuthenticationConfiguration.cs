@@ -37,9 +37,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             IWebHostEnvironment env
         )
         {
-            bool studioOidcEnabled = config
-                .GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}")
-                .Get<bool?>() ?? false;
+            bool studioOidcEnabled =
+                config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
 
             if (studioOidcEnabled)
             {

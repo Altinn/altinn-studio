@@ -78,9 +78,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
-            bool studioOidcEnabled = config
-                .GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}")
-                .Get<bool?>() ?? false;
+            bool studioOidcEnabled =
+                config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
 
             if (studioOidcEnabled)
             {
@@ -133,9 +132,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             IConfiguration config
         )
         {
-            bool studioOidcEnabled = config
-                .GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}")
-                .Get<bool?>() ?? false;
+            bool studioOidcEnabled =
+                config.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
 
             var builder = services
                 .AddHttpClient<IGiteaClient, GiteaClient>(

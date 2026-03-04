@@ -12,51 +12,36 @@ public class PersonalAccessTokenConfiguration : IEntityTypeConfiguration<Persona
 
         builder.HasKey(e => e.Id).HasName("personal_access_tokens_pkey");
 
-        builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .UseIdentityAlwaysColumn();
+        builder.Property(e => e.Id).HasColumnName("id").UseIdentityAlwaysColumn();
 
-        builder.Property(e => e.KeyHash)
-            .HasColumnType("character varying")
-            .HasColumnName("key_hash")
-            .IsRequired();
+        builder.Property(e => e.KeyHash).HasColumnType("character varying").HasColumnName("key_hash").IsRequired();
 
-        builder.Property(e => e.UserAccountId)
-            .HasColumnType("uuid")
-            .HasColumnName("user_account_id")
-            .IsRequired();
+        builder.Property(e => e.UserAccountId).HasColumnType("uuid").HasColumnName("user_account_id").IsRequired();
 
-        builder.Property(e => e.DisplayName)
+        builder
+            .Property(e => e.DisplayName)
             .HasColumnType("character varying")
             .HasColumnName("display_name")
             .IsRequired();
 
-        builder.Property(e => e.TokenType)
+        builder
+            .Property(e => e.TokenType)
             .HasColumnName("token_type")
             .HasDefaultValue(Enums.PersonalAccessTokenType.User)
             .IsRequired();
 
-        builder.Property(e => e.ExpiresAt)
-            .HasColumnType("timestamptz")
-            .HasColumnName("expires_at")
-            .IsRequired();
+        builder.Property(e => e.ExpiresAt).HasColumnType("timestamptz").HasColumnName("expires_at").IsRequired();
 
-        builder.Property(e => e.Revoked)
-            .HasColumnName("revoked")
-            .HasDefaultValue(false)
-            .IsRequired();
+        builder.Property(e => e.Revoked).HasColumnName("revoked").HasDefaultValue(false).IsRequired();
 
-        builder.Property(e => e.CreatedAt)
-            .HasColumnType("timestamptz")
-            .HasColumnName("created_at")
-            .IsRequired();
+        builder.Property(e => e.CreatedAt).HasColumnType("timestamptz").HasColumnName("created_at").IsRequired();
 
-        builder.HasIndex(e => e.KeyHash, "idx_personal_access_tokens_key_hash")
-            .IsUnique();
+        builder.HasIndex(e => e.KeyHash, "idx_personal_access_tokens_key_hash").IsUnique();
 
         builder.HasIndex(e => e.UserAccountId, "idx_personal_access_tokens_user_account_id");
 
-        builder.HasOne(e => e.UserAccount)
+        builder
+            .HasOne(e => e.UserAccount)
             .WithMany()
             .HasForeignKey(e => e.UserAccountId)
             .OnDelete(DeleteBehavior.Cascade);
