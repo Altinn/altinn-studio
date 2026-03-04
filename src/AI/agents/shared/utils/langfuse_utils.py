@@ -75,17 +75,7 @@ def score_validation(
     config_id: str | None = None,
     comment: str | None = None,
 ) -> None:
-    """Write a boolean validation result as a Langfuse score (1 = pass, 0 = fail).
-
-    Args:
-        name: Score name matching the span (e.g. 'layout_schema_validation').
-        passed: True if validation passed, False if it failed.
-        trace_id: Langfuse trace ID to attach the score to.
-        observation_id: Optional span/observation ID to link the score to.
-        config_id: Optional Langfuse score config UUID
-                   (from LANGFUSE_SCORE_CONFIG_LAYOUT_SCHEMA etc.).
-        comment: Optional detail — error messages on failure, 'Passed' on success.
-    """
+    """Write a boolean validation result as a Langfuse score (1 = pass, 0 = fail)."""
     client = get_langfuse_client()
     if not is_langfuse_enabled():
         return
