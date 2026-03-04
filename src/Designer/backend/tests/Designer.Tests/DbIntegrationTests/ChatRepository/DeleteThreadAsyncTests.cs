@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Enums;
 using Designer.Tests.Fixtures;
@@ -39,13 +40,11 @@ public class DeleteThreadAsyncTests : DbIntegrationTestsBase
     }
 
     [Fact]
-    public async Task DeleteThreadAsync_WithNonExistentThread_ShouldNotThrow()
+    public async Task DeleteThreadAsync_WithNonExistentThread_ShouldThrowKeyNotFoundException()
     {
         var nonExistentThreadId = Guid.NewGuid();
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(DbFixture.DbContext);
 
-        var exception = await Record.ExceptionAsync(() => repository.DeleteThreadAsync(nonExistentThreadId));
-
-        Assert.Null(exception);
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => repository.DeleteThreadAsync(nonExistentThreadId));
     }
 }

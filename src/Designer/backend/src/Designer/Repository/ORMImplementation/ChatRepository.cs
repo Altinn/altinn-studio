@@ -58,7 +58,12 @@ public class ChatRepository : IChatRepository
     /// <inheritdoc />
     public async Task DeleteThreadAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _dbContext.ChatThreads.Where(t => t.Id == id).ExecuteDeleteAsync(cancellationToken);
+        int rowsAffected = await _dbContext.ChatThreads.Where(t => t.Id == id).ExecuteDeleteAsync(cancellationToken);
+
+        if (rowsAffected == 0)
+        {
+            throw new KeyNotFoundException($"Chat thread with id '{id}' was not found.");
+        }
     }
 
     /// <inheritdoc />
