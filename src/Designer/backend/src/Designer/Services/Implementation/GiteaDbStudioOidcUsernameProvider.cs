@@ -92,11 +92,7 @@ public class GiteaDbStudioOidcUsernameProvider(
             return "dev";
         }
 
-        string sanitized = givenName
-            .ToLowerInvariant()
-            .Replace("æ", "ae")
-            .Replace("ø", "o")
-            .Replace("å", "a");
+        string sanitized = givenName.ToLowerInvariant().Replace("æ", "ae").Replace("ø", "o").Replace("å", "a");
 
         sanitized = Regex.Replace(sanitized, "[^a-z]", "");
 
