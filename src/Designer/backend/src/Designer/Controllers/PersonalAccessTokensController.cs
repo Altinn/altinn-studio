@@ -35,7 +35,7 @@ public class PersonalAccessTokensController(IPersonalAccessTokenService personal
 
         var (rawKey, model) = await personalAccessTokenService.CreateAsync(
             username,
-            request.DisplayName,
+            request.Name,
             PersonalAccessTokenType.User,
             request.ExpiresAt,
             cancellationToken
@@ -43,7 +43,7 @@ public class PersonalAccessTokensController(IPersonalAccessTokenService personal
 
         return Created(
             string.Empty,
-            new CreatePersonalAccessTokenResponse(model.Id, rawKey, model.DisplayName, model.ExpiresAt)
+            new CreatePersonalAccessTokenResponse(model.Id, rawKey, model.Name, model.ExpiresAt)
         );
     }
 
@@ -59,7 +59,7 @@ public class PersonalAccessTokensController(IPersonalAccessTokenService personal
         );
 
         var response = tokens
-            .Select(t => new PersonalAccessTokenResponse(t.Id, t.DisplayName, t.ExpiresAt, t.CreatedAt))
+            .Select(t => new PersonalAccessTokenResponse(t.Id, t.Name, t.ExpiresAt, t.CreatedAt))
             .ToList();
 
         return Ok(response);

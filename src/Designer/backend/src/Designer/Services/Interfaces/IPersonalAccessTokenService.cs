@@ -10,7 +10,7 @@ public interface IPersonalAccessTokenService
 {
     Task<(string RawKey, PersonalAccessTokenDbModel Model)> CreateAsync(
         string username,
-        string displayName,
+        string name,
         PersonalAccessTokenType tokenType,
         System.DateTimeOffset expiresAt,
         CancellationToken cancellationToken = default

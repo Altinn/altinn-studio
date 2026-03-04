@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     [DbContext(typeof(DesignerdbContext))]
-    [Migration("20260304095629_UserAccountsAndPersonalAccessTokens")]
+    [Migration("20260304122617_UserAccountsAndPersonalAccessTokens")]
     partial class UserAccountsAndPersonalAccessTokens
     {
         /// <inheritdoc />
@@ -299,11 +299,6 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasColumnType("character varying")
-                        .HasColumnName("display_name");
-
                     b.Property<DateTimeOffset>("ExpiresAt")
                         .HasColumnType("timestamptz")
                         .HasColumnName("expires_at");
@@ -312,6 +307,11 @@ namespace Altinn.Studio.Designer.Migrations
                         .IsRequired()
                         .HasColumnType("character varying")
                         .HasColumnName("key_hash");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("name");
 
                     b.Property<bool>("Revoked")
                         .ValueGeneratedOnAdd()
@@ -334,6 +334,10 @@ namespace Altinn.Studio.Designer.Migrations
 
                     b.HasIndex(new[] { "KeyHash" }, "idx_personal_access_tokens_key_hash")
                         .IsUnique();
+
+                    b.HasIndex(new[] { "UserAccountId", "Name" }, "idx_personal_access_tokens_unique_name_per_user")
+                        .IsUnique()
+                        .HasFilter("revoked = false");
 
                     b.HasIndex(new[] { "UserAccountId" }, "idx_personal_access_tokens_user_account_id");
 

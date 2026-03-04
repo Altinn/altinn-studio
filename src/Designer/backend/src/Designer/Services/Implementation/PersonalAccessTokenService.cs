@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Exceptions.PersonalAccessToken;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
@@ -25,7 +26,7 @@ public class PersonalAccessTokenService(
 
     public async Task<(string RawKey, PersonalAccessTokenDbModel Model)> CreateAsync(
         string username,
-        string displayName,
+        string name,
         PersonalAccessTokenType tokenType,
         DateTimeOffset expiresAt,
         CancellationToken cancellationToken = default
@@ -40,6 +41,15 @@ public class PersonalAccessTokenService(
 
         Guid userAccountId = await ResolveUserAccountIdAsync(username, cancellationToken);
 
+        bool nameExists = await dbContext
+            .PersonalAccessTokens.AsNoTracking()
+            .AnyAsync(t => t.UserAccountId == userAccountId && t.Name == name && !t.Revoked, cancellationToken);
+
+        if (nameExists)
+        {
+            throw new DuplicateTokenNameException($"A non-revoked token with name '{name}' already exists.");
+        }
+
         string rawKey = GenerateRawKey();
         string keyHash = ComputeHash(rawKey);
 
@@ -47,7 +57,7 @@ public class PersonalAccessTokenService(
         {
             KeyHash = keyHash,
             UserAccountId = userAccountId,
-            DisplayName = displayName,
+            Name = name,
             TokenType = tokenType,
             ExpiresAt = expiresAt,
             Revoked = false,

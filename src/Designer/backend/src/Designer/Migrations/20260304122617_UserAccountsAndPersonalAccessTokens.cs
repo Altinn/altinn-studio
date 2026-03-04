@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.Migrations
                         ),
                     key_hash = table.Column<string>(type: "character varying", nullable: false),
                     user_account_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    display_name = table.Column<string>(type: "character varying", nullable: false),
+                    name = table.Column<string>(type: "character varying", nullable: false),
                     token_type = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     expires_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false),
                     revoked = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
@@ -68,6 +68,15 @@ namespace Altinn.Studio.Designer.Migrations
                 table: "personal_access_tokens",
                 column: "key_hash",
                 unique: true
+            );
+
+            migrationBuilder.CreateIndex(
+                name: "idx_personal_access_tokens_unique_name_per_user",
+                schema: "designer",
+                table: "personal_access_tokens",
+                columns: new[] { "user_account_id", "name" },
+                unique: true,
+                filter: "revoked = false"
             );
 
             migrationBuilder.CreateIndex(

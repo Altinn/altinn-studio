@@ -18,11 +18,7 @@ public class PersonalAccessTokenConfiguration : IEntityTypeConfiguration<Persona
 
         builder.Property(e => e.UserAccountId).HasColumnType("uuid").HasColumnName("user_account_id").IsRequired();
 
-        builder
-            .Property(e => e.DisplayName)
-            .HasColumnType("character varying")
-            .HasColumnName("display_name")
-            .IsRequired();
+        builder.Property(e => e.Name).HasColumnType("character varying").HasColumnName("name").IsRequired();
 
         builder
             .Property(e => e.TokenType)
@@ -39,6 +35,11 @@ public class PersonalAccessTokenConfiguration : IEntityTypeConfiguration<Persona
         builder.HasIndex(e => e.KeyHash, "idx_personal_access_tokens_key_hash").IsUnique();
 
         builder.HasIndex(e => e.UserAccountId, "idx_personal_access_tokens_user_account_id");
+
+        builder
+            .HasIndex(e => new { e.UserAccountId, e.Name }, "idx_personal_access_tokens_unique_name_per_user")
+            .IsUnique()
+            .HasFilter("revoked = false");
 
         builder
             .HasOne(e => e.UserAccount)
