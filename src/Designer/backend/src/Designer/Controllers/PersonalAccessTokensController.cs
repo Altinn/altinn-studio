@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [Authorize]
 [AutoValidateAntiforgeryToken]
 [FeatureGate(StudioFeatureFlags.ApiKeyAuth)]
-[Route("/designer/api/user/personal-access-tokens")]
+[Route("/designer/api/v1/user/personal-access-tokens")]
 public class PersonalAccessTokensController(IPersonalAccessTokenService personalAccessTokenService) : ControllerBase
 {
     [HttpPost]
