@@ -52,16 +52,16 @@ public static class StudioOidcAuthenticationExtensions
             return services;
         }
 
-        const string dynamicScheme = "DynamicScheme";
+        const string DynamicScheme = "DynamicScheme";
 
         services
             .AddAuthentication(options =>
             {
-                options.DefaultScheme = dynamicScheme;
+                options.DefaultScheme = DynamicScheme;
                 options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
             .AddPolicyScheme(
-                dynamicScheme,
+                DynamicScheme,
                 "Dynamic Auth",
                 options =>
                 {

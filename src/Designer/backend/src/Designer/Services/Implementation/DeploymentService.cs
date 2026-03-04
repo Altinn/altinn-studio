@@ -604,7 +604,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task<(string Token, string AuthHeaderName)> GetDeployTokenAsync(string username)
         {
-            if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.ApiKeyAuth))
+            if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
             {
                 var (rawKey, _) = await _personalAccessTokenService.CreateAsync(
                     username,
