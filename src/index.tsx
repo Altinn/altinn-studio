@@ -8,7 +8,7 @@ import { createHashRouter, RouterProvider, useLocation } from 'react-router-dom'
 import { Slide, ToastContainer } from 'react-toastify';
 
 import '@digdir/designsystemet-css';
-import '@digdir/designsystemet-theme';
+import '@digdir/designsystemet-css/theme';
 import 'src/features/baseurlinjection';
 import 'src/features/logging';
 import 'src/features/styleInjection';

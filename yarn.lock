@@ -2097,16 +2097,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-theme@npm:1.11.0":
-  version: 1.11.0
-  resolution: "@digdir/designsystemet-theme@npm:1.11.0"
-  dependencies:
-    "@digdir/designsystemet-types": "npm:^1.11.0"
-  checksum: 10c0/c94aa7eb135981a15780e3aaa2f636eb299ad1477c2a5d0e505a6b9fbe8d595afb20257f00d976d5c8000880b406f5bde29d4a20e76329f8c540580e0e16750c
-  languageName: node
-  linkType: hard
-
-"@digdir/designsystemet-types@npm:^1.11.0, @digdir/designsystemet-types@npm:^1.11.1":
+"@digdir/designsystemet-types@npm:^1.11.1":
   version: 1.12.1
   resolution: "@digdir/designsystemet-types@npm:1.12.1"
   checksum: 10c0/91f349e666a2d2f7471d3fd03c66489ea5e47754c04d58e810a154f1b949f3c82c05fefd9a715f6ddb90bb5ef277fe2a4f935c5bf434cd76791cc6de08b5fd8c
@@ -4638,24 +4629,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/marked@npm:6.0.0":
-  version: 6.0.0
-  resolution: "@types/marked@npm:6.0.0"
-  dependencies:
-    marked: "npm:*"
-  checksum: 10c0/1a831af52413b1a208c91539d3bdda9be83d5451dc094c3cbc07e3e07186970673b9ec3ad5edd6c136b1249875c41e22c39eacb3c00ea7c59d0873c35c273035
-  languageName: node
-  linkType: hard
-
-"@types/mime@npm:4.0.0":
-  version: 4.0.0
-  resolution: "@types/mime@npm:4.0.0"
-  dependencies:
-    mime: "npm:*"
-  checksum: 10c0/c544ca670c2cb53b96c7e4a1b4ecfdf3777dad4b74f7bb305680eed82c753a7ccfdf03c8b06c9fba48bb10d2a96ae95c9a4007b6c83bc5fdc9cfa7250c07b85b
-  languageName: node
-  linkType: hard
-
 "@types/mime@npm:^1":
   version: 1.3.5
   resolution: "@types/mime@npm:1.3.5"
@@ -5702,7 +5675,6 @@ __metadata:
     "@date-fns/tz": "npm:1.4.1"
     "@digdir/designsystemet-css": "npm:1.11.1"
     "@digdir/designsystemet-react": "npm:1.11.1"
-    "@digdir/designsystemet-theme": "npm:1.11.0"
     "@eslint/compat": "npm:2.0.2"
     "@eslint/js": "npm:^10.0.1"
     "@navikt/aksel-icons": "npm:8.6.0"
@@ -5723,8 +5695,6 @@ __metadata:
     "@types/json-schema": "npm:7.0.15"
     "@types/leaflet": "npm:1"
     "@types/leaflet-draw": "npm:1.0.13"
-    "@types/marked": "npm:6.0.0"
-    "@types/mime": "npm:4.0.0"
     "@types/node": "npm:24.11.0"
     "@types/react": "npm:19.2.14"
     "@types/react-dom": "npm:19.2.3"
@@ -12971,15 +12941,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:*":
-  version: 15.0.11
-  resolution: "marked@npm:15.0.11"
-  bin:
-    marked: bin/marked.js
-  checksum: 10c0/d532db4955c1f2ac6efc65a644725e9e12e7944cb6af40c7148baecfd3b3c2f3564229b3daf12d2125635466448fb9b367ce52357be3aea0273e3d152efdbdcf
-  languageName: node
-  linkType: hard
-
 "marked@npm:17.0.3":
   version: 17.0.3
   resolution: "marked@npm:17.0.3"
@@ -13089,15 +13050,6 @@ __metadata:
   dependencies:
     mime-db: "npm:1.52.0"
   checksum: 10c0/82fb07ec56d8ff1fc999a84f2f217aa46cb6ed1033fefaabd5785b9a974ed225c90dc72fff460259e66b95b73648596dbcc50d51ed69cdf464af2d237d3149b2
-  languageName: node
-  linkType: hard
-
-"mime@npm:*":
-  version: 4.0.7
-  resolution: "mime@npm:4.0.7"
-  bin:
-    mime: bin/cli.js
-  checksum: 10c0/2fd22ee2012a3f1dcac7dd06b7dc314dd677ebcefb14355b7c9453f0092af6eabbe9d754d9849d2a1f346ddd53d716a851379be05386f7a6ccb40af4bd61f32b
   languageName: node
   linkType: hard
 
