@@ -46,7 +46,7 @@
     },
     {
       "matchFileNames": ["src/Designer/**"],
-      "matchPackageNames": ["/^@digdir/designsystemet-/"],
+      "matchPackageNames": ["/^@digdir\\/designsystemet-/"],
       "groupName": "Design system in Designer"
     },
     {
