@@ -190,7 +190,11 @@ func (r *Reconciler) SyncAll(ctx context.Context) error {
 	if !changed {
 		return nil
 	}
-	span.SetAttributes(attribute.Int("policy.updated_bytes", len(updatedTree)))
+
+	span.SetAttributes(
+		attribute.String("altinn.studio.sampling", "always"),
+		attribute.Int("policy.updated_bytes", len(updatedTree)),
+	)
 
 	if err := r.putPolicyTree(ctx, grafanaURL, token, updatedTree); err != nil {
 		return withErrorStatus(err, "put policy tree")
