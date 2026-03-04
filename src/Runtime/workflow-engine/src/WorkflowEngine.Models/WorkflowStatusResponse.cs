@@ -11,7 +11,7 @@ public sealed record WorkflowStatusResponse
     /// The database ID of the workflow.
     /// </summary>
     [JsonPropertyName("databaseId")]
-    public long DatabaseId { get; init; }
+    public Guid DatabaseId { get; init; }
 
     /// <summary>
     /// An identifier for this operation.
@@ -77,14 +77,14 @@ public sealed record WorkflowStatusResponse
     /// </summary>
     [JsonPropertyName("dependencies")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IReadOnlyDictionary<long, PersistentItemStatus>? Dependencies { get; init; }
+    public IReadOnlyDictionary<Guid, PersistentItemStatus>? Dependencies { get; init; }
 
     /// <summary>
     /// Optional links for this workflow, presented as a dictionary of workflow ID and corresponding processing status.
     /// </summary>
     [JsonPropertyName("links")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IReadOnlyDictionary<long, PersistentItemStatus>? Links { get; init; }
+    public IReadOnlyDictionary<Guid, PersistentItemStatus>? Links { get; init; }
 
     /// <summary>
     /// Details about each step in the workflow.

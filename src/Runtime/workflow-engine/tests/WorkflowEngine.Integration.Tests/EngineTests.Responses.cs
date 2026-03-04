@@ -108,6 +108,7 @@ public partial class EngineTests
         var request = new WorkflowEnqueueRequest
         {
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            IdempotencyKey = $"idem-{Guid.NewGuid()}",
             LockToken = null,
             Workflows =
             [
@@ -115,7 +116,6 @@ public partial class EngineTests
                 {
                     Ref = "wf",
                     OperationId = $"op-{Guid.NewGuid()}",
-                    IdempotencyKey = $"key-{Guid.NewGuid()}",
                     Type = WorkflowType.AppProcessChange,
                     Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
                 },
@@ -128,43 +128,6 @@ public partial class EngineTests
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body);
-    }
-
-    [Fact]
-    public async Task Response_Enqueue_ConcurrencyViolation_Returns409WithProblemDetails()
-    {
-        // Arrange - first workflow stays in Processing via slow WireMock
-        fixture.WireMock.Reset();
-        fixture
-            .WireMock.Given(Request.Create().WithPath("/slow").UsingGet())
-            .RespondWith(Response.Create().WithStatusCode(200).WithDelay(TimeSpan.FromSeconds(5)));
-        fixture.SetupDefaultStub();
-
-        var requestA = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow(
-                "wf-a",
-                WorkflowType.AppProcessChange,
-                [_testHelpers.CreateWebhookStep("/slow")]
-            ),
-            lockToken: InstanceLockToken
-        );
-        var requestB = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow(
-                "wf-b",
-                WorkflowType.AppProcessChange,
-                [_testHelpers.CreateWebhookStep("/quick")]
-            ),
-            lockToken: InstanceLockToken
-        );
-
-        // Act - enqueue A, then B while A is still processing
-        await _client.Enqueue(_instanceGuid, requestA);
-        using var responseB = await _client.EnqueueRaw(_instanceGuid, requestB);
-
-        Assert.Equal(HttpStatusCode.Conflict, responseB.StatusCode);
-
-        var body = await responseB.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body).ScrubMembers("detail");
     }
 
     // ── GetWorkflow endpoint responses ────────────────────────────────────────
@@ -242,7 +205,7 @@ public partial class EngineTests
     [Fact]
     public async Task Response_GetWorkflow_NonExistent_Returns404()
     {
-        using var response = await _client.GetWorkflowRaw(_instanceGuid, 999999);
+        using var response = await _client.GetWorkflowRaw(_instanceGuid, Guid.NewGuid());
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -294,8 +257,8 @@ public partial class EngineTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        body = Regex.Replace(body, @"""(\d{1,})"":", @"""{Scrubbed}"":"); // Scrub the workflow IDs from the `dependencies` dict
-        await VerifyJson(body);
+        body = Regex.Replace(body, @"""[0-9a-f\-]{36}"":", @"""{Scrubbed}"":"); // Scrub the workflow GUIDs from the `dependencies` dict
+        await VerifyJson(body).ScrubInlineGuids();
     }
 
     // ── ListActiveWorkflows endpoint responses ────────────────────────────────

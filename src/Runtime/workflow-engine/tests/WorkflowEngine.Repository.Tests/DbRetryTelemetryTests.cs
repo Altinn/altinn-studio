@@ -37,7 +37,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
         var (context, repository) = CreateRepositoryWithRetry(maxRetries: 3);
         await using var _ = context;
 
-        var workflow = await InsertWorkflow(repository);
+        var workflow = await InsertWorkflow();
 
         // Arm the interceptor to fail on the first 2 non-query commands, then succeed
         _interceptor.ArmFaults(2, () => new TimeoutException("Simulated transient DB timeout"));
@@ -67,7 +67,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
         var (context, repository) = CreateRepositoryWithRetry(maxRetries: 3);
         await using var _ = context;
 
-        var workflow = await InsertWorkflow(repository);
+        var workflow = await InsertWorkflow();
 
         // Arm with ArgumentException — the error handler classifies this as Abort
         _interceptor.ArmFaults(1, () => new ArgumentException("Simulated permanent DB error"));
@@ -94,7 +94,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
         var (context, repository) = CreateRepositoryWithRetry(maxRetries: 2);
         await using var _ = context;
 
-        var workflow = await InsertWorkflow(repository);
+        var workflow = await InsertWorkflow();
 
         // Arm with more faults than retries — all attempts will fail
         _interceptor.ArmFaults(10, () => new SocketException());
@@ -115,10 +115,12 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
         Assert.Equal(0, collector.GetCounterTotal("engine.db.operations.success"));
     }
 
-    private static async Task<Workflow> InsertWorkflow(EnginePgRepository repository)
+    private async Task<Workflow> InsertWorkflow()
     {
-        var (request, metadata) = WorkflowTestHelper.CreateRequest();
-        return await repository.AddWorkflow(request, metadata, TestContext.Current.CancellationToken);
+        var npgsqlRepository = postgres.CreateNpgsqlRepository();
+        await using var context = postgres.CreateDbContext();
+        var (request, metadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        return await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepository, context, request, metadata);
     }
 
     private (EngineDbContext Context, EnginePgRepository Repository) CreateRepositoryWithRetry(int maxRetries)

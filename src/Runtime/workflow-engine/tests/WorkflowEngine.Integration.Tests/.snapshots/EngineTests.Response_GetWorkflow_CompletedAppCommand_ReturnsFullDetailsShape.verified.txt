@@ -1,7 +1,7 @@
-﻿{
+{
   databaseId: {Scrubbed},
   operationId: op-wf-1,
-  idempotencyKey: key-wf-1-Guid_1,
+  idempotencyKey: idem-Guid_1,
   createdAt: {Scrubbed},
   updatedAt: {Scrubbed},
   actor: {
@@ -13,7 +13,7 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: key-wf-1-Guid_1/do-something,
+      idempotencyKey: idem-Guid_1/do-something,
       processingOrder: 0,
       updatedAt: {Scrubbed},
       command: {

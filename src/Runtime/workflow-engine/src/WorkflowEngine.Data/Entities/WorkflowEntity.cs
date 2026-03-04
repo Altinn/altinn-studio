@@ -9,8 +9,8 @@ namespace WorkflowEngine.Data.Entities;
 internal sealed class WorkflowEntity : IHasCommonMetadata
 {
     [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public long Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
+    public Guid Id { get; set; }
 
     [MaxLength(100)]
     public required string OperationId { get; set; }

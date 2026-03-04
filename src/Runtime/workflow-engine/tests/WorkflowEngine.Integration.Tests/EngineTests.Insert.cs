@@ -453,11 +453,11 @@ public partial class EngineTests
                     "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}",
                     "language": "nb"
                 },
+                "idempotencyKey": "complex-dag-raw-json",
                 "lockToken": "{{InstanceLockToken}}",
                 "workflows": [
                     {
                         "ref": "wf-root",
-                        "idempotencyKey": "root",
                         "operationId": "process-root",
                         "type": "Generic",
                         "steps": [
@@ -471,7 +471,6 @@ public partial class EngineTests
                     },
                     {
                         "ref": "wf-a-first",
-                        "idempotencyKey": "a-first",
                         "operationId": "process-a-1",
                         "type": "Generic",
                         "dependsOn": [
@@ -488,7 +487,6 @@ public partial class EngineTests
                     },
                     {
                         "ref": "wf-a-second",
-                        "idempotencyKey": "a-second",
                         "operationId": "process-a-2",
                         "type": "Generic",
                         "dependsOn": [
@@ -505,7 +503,6 @@ public partial class EngineTests
                     },
                     {
                         "ref": "wf-a-third",
-                        "idempotencyKey": "a-third",
                         "operationId": "process-a-3",
                         "type": "Generic",
                         "dependsOn": [
@@ -522,7 +519,6 @@ public partial class EngineTests
                     },
                     {
                         "ref": "wf-b-first",
-                        "idempotencyKey": "b-first",
                         "operationId": "process-b-1",
                         "type": "Generic",
                         "dependsOn": [
@@ -539,7 +535,6 @@ public partial class EngineTests
                     },
                     {
                         "ref": "wf-c-first",
-                        "idempotencyKey": "c-first",
                         "operationId": "process-c-1",
                         "type": "Generic",
                         "dependsOn": [
@@ -556,7 +551,6 @@ public partial class EngineTests
                     },
                     {
                         "ref": "wf-join-2-3",
-                        "idempotencyKey": "join-2-3",
                         "operationId": "process-join-2-3",
                         "type": "Generic",
                         "dependsOn": [
@@ -574,7 +568,6 @@ public partial class EngineTests
                     },
                     {
                         "ref": "wf-join-all",
-                        "idempotencyKey": "join-all",
                         "operationId": "process-join-all",
                         "type": "AppProcessChange",
                         "dependsOn": [

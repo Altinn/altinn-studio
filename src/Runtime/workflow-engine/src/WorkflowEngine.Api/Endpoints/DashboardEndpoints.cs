@@ -1,8 +1,6 @@
 using System.Diagnostics;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
@@ -30,9 +28,8 @@ internal static class DashboardEndpoints
         app.MapGet(
                 "/dashboard/stream",
                 async (
-                    IEngine engine,
+                    IEngineStatus engineStatus,
                     IConcurrencyLimiter limiter,
-                    IOptions<EngineSettings> settings,
                     IServiceProvider sp,
                     HttpContext ctx,
                     CancellationToken ct
@@ -64,27 +61,20 @@ internal static class DashboardEndpoints
                         }
                         iteration++;
 
-                        EngineHealthStatus status = engine.Status;
+                        EngineHealthStatus status = engineStatus.Status;
                         ConcurrencyLimiter.SlotStatus dbSlot = limiter.DbSlotStatus;
                         ConcurrencyLimiter.SlotStatus httpSlot = limiter.HttpSlotStatus;
-                        int inboxCount = engine.InboxCount;
-                        IReadOnlyList<Workflow> workflows = engine.GetAllInboxWorkflows();
+                        int activeWorkers = engineStatus.ActiveWorkerCount;
+                        int maxWorkers = engineStatus.MaxWorkers;
 
-                        string fingerprint = BuildStreamFingerprint(
-                            status,
-                            inboxCount,
-                            dbSlot,
-                            httpSlot,
-                            scheduledCount,
-                            workflows
-                        );
+                        string fingerprint =
+                            $"{(int)status}|{activeWorkers}|{dbSlot.Used}|{httpSlot.Used}|{scheduledCount}";
 
                         long elapsed = Stopwatch.GetTimestamp() - lastSendTime;
                         if (fingerprint != previousFingerprint && elapsed >= minSendIntervalTicks)
                         {
                             previousFingerprint = fingerprint;
                             lastSendTime = Stopwatch.GetTimestamp();
-                            EngineSettings engineSettings = settings.Value;
 
                             var payload = new
                             {
@@ -93,17 +83,17 @@ internal static class DashboardEndpoints
                                 {
                                     running = status.HasFlag(EngineHealthStatus.Running),
                                     healthy = status.HasFlag(EngineHealthStatus.Healthy),
-                                    idle = status.HasFlag(EngineHealthStatus.Idle),
+                                    idle = activeWorkers == 0,
                                     disabled = status.HasFlag(EngineHealthStatus.Disabled),
                                     queueFull = status.HasFlag(EngineHealthStatus.QueueFull),
                                 },
                                 capacity = new
                                 {
-                                    inbox = new
+                                    workers = new
                                     {
-                                        used = inboxCount,
-                                        available = engineSettings.QueueCapacity - inboxCount,
-                                        total = engineSettings.QueueCapacity,
+                                        used = activeWorkers,
+                                        available = maxWorkers - activeWorkers,
+                                        total = maxWorkers,
                                     },
                                     db = new
                                     {
@@ -119,7 +109,6 @@ internal static class DashboardEndpoints
                                     },
                                 },
                                 scheduledCount,
-                                workflows = workflows.Select(DashboardMapper.MapWorkflow),
                             };
 
                             string json = JsonSerializer.Serialize(payload, _jsonCompact);
@@ -135,7 +124,7 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/stream/recent",
-                async (IEngine engine, HttpContext ctx, CancellationToken ct) =>
+                async (IEngineStatus engineStatus, HttpContext ctx, CancellationToken ct) =>
                 {
                     ctx.Response.ContentType = "text/event-stream";
                     ctx.Response.Headers.CacheControl = "no-cache";
@@ -145,7 +134,7 @@ internal static class DashboardEndpoints
 
                     while (!ct.IsCancellationRequested)
                     {
-                        IReadOnlyList<DashboardWorkflowDto> recent = engine.GetRecentWorkflows(100);
+                        IReadOnlyList<DashboardWorkflowDto> recent = engineStatus.GetRecentWorkflows(100);
                         string fingerprint = string.Join(",", recent.Select(r => r.IdempotencyKey));
 
                         if (fingerprint != previousFingerprint)
@@ -255,7 +244,7 @@ internal static class DashboardEndpoints
         app.MapGet(
                 "/dashboard/step",
                 async (
-                    IEngine engine,
+                    IEngineStatus engineStatus,
                     IServiceProvider sp,
                     string wf,
                     string step,
@@ -263,10 +252,10 @@ internal static class DashboardEndpoints
                     CancellationToken ct
                 ) =>
                 {
-                    // Try inbox first (live workflows), then DB
-                    Workflow? workflow = engine.GetAllInboxWorkflows().FirstOrDefault(w => w.IdempotencyKey == wf);
+                    // Try DB first
+                    Workflow? workflow = null;
 
-                    if (workflow is null && createdAt.HasValue)
+                    if (createdAt.HasValue)
                     {
                         using IServiceScope scope = sp.CreateScope();
                         var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
@@ -281,7 +270,7 @@ internal static class DashboardEndpoints
 
                         // Merge lastError from recent cache if the DB doesn't have it
                         DashboardWorkflowDto? cached = s.LastError is null
-                            ? engine.GetRecentWorkflows(100).FirstOrDefault(c => c.IdempotencyKey == wf)
+                            ? engineStatus.GetRecentWorkflows(100).FirstOrDefault(c => c.IdempotencyKey == wf)
                             : null;
                         string? lastError =
                             s.LastError ?? cached?.Steps.FirstOrDefault(cs => cs.IdempotencyKey == step)?.LastError;
@@ -320,7 +309,7 @@ internal static class DashboardEndpoints
                     }
 
                     // Fall back to recent cache only (has lastError but no state)
-                    DashboardWorkflowDto? recentCached = engine
+                    DashboardWorkflowDto? recentCached = engineStatus
                         .GetRecentWorkflows(100)
                         .FirstOrDefault(c => c.IdempotencyKey == wf);
                     if (recentCached is not null)
@@ -363,19 +352,11 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/state",
-                async (
-                    IEngine engine,
-                    IServiceProvider sp,
-                    string wf,
-                    DateTimeOffset? createdAt,
-                    CancellationToken ct
-                ) =>
+                async (IServiceProvider sp, string wf, DateTimeOffset? createdAt, CancellationToken ct) =>
                 {
-                    // Try inbox first (has full Workflow with state)
-                    Workflow? workflow = engine.GetAllInboxWorkflows().FirstOrDefault(w => w.IdempotencyKey == wf);
+                    Workflow? workflow = null;
 
-                    // Fall back to DB (recent cache only has DTOs without state)
-                    if (workflow is null && createdAt.HasValue)
+                    if (createdAt.HasValue)
                     {
                         using IServiceScope scope = sp.CreateScope();
                         var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
@@ -409,43 +390,5 @@ internal static class DashboardEndpoints
             .ExcludeFromDescription();
 
         return app;
-    }
-
-    private static string BuildStreamFingerprint(
-        EngineHealthStatus status,
-        int inboxCount,
-        ConcurrencyLimiter.SlotStatus dbSlot,
-        ConcurrencyLimiter.SlotStatus httpSlot,
-        int scheduledCount,
-        IReadOnlyList<Workflow> workflows
-    )
-    {
-        var sb = new StringBuilder();
-        sb.Append((int)status)
-            .Append('|')
-            .Append(inboxCount)
-            .Append('|')
-            .Append(dbSlot.Used)
-            .Append('|')
-            .Append(httpSlot.Used)
-            .Append('|')
-            .Append(scheduledCount);
-
-        foreach (var wf in workflows.OrderBy(w => w.IdempotencyKey, StringComparer.Ordinal))
-        {
-            sb.Append('|').Append(wf.IdempotencyKey).Append(':').Append((int)wf.Status);
-
-            foreach (var step in wf.Steps.OrderBy(s => s.ProcessingOrder))
-            {
-                sb.Append(':')
-                    .Append((int)step.Status)
-                    .Append(':')
-                    .Append(step.RequeueCount)
-                    .Append(':')
-                    .Append(step.BackoffUntil?.Ticks ?? 0);
-            }
-        }
-
-        return sb.ToString();
     }
 }

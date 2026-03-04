@@ -12,7 +12,7 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    [Migration("20260227133451_Initial")]
+    [Migration("20260303121347_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -27,11 +27,11 @@ namespace WorkflowEngine.Data.Migrations
 
             modelBuilder.Entity("WorkflowDependency", b =>
                 {
-                    b.Property<long>("WorkflowId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("WorkflowId")
+                        .HasColumnType("uuid");
 
-                    b.Property<long>("DependsOnWorkflowId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("DependsOnWorkflowId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("WorkflowId", "DependsOnWorkflowId");
 
@@ -40,13 +40,51 @@ namespace WorkflowEngine.Data.Migrations
                     b.ToTable("WorkflowDependency");
                 });
 
+            modelBuilder.Entity("WorkflowEngine.Data.Entities.IdempotencyKeyEntity", b =>
+                {
+                    b.Property<string>("IdempotencyKey")
+                        .HasColumnType("text")
+                        .HasColumnName("idempotency_key");
+
+                    b.Property<string>("InstanceOrg")
+                        .HasColumnType("text")
+                        .HasColumnName("instance_org");
+
+                    b.Property<string>("InstanceApp")
+                        .HasColumnType("text")
+                        .HasColumnName("instance_app");
+
+                    b.Property<int>("InstanceOwnerPartyId")
+                        .HasColumnType("integer")
+                        .HasColumnName("instance_owner_party_id");
+
+                    b.Property<Guid>("InstanceGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_guid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<byte[]>("RequestBodyHash")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("request_body_hash");
+
+                    b.PrimitiveCollection<Guid[]>("WorkflowIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("workflow_ids");
+
+                    b.HasKey("IdempotencyKey", "InstanceOrg", "InstanceApp", "InstanceOwnerPartyId", "InstanceGuid");
+
+                    b.ToTable("idempotency_keys", (string)null);
+                });
+
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ActorLanguage")
                         .HasMaxLength(10)
@@ -71,8 +109,8 @@ namespace WorkflowEngine.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("JobId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("MetadataJson")
                         .HasColumnType("jsonb");
@@ -117,11 +155,8 @@ namespace WorkflowEngine.Data.Migrations
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.WorkflowEntity", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ActorLanguage")
                         .HasMaxLength(10)
@@ -205,11 +240,11 @@ namespace WorkflowEngine.Data.Migrations
 
             modelBuilder.Entity("WorkflowLink", b =>
                 {
-                    b.Property<long>("WorkflowId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("WorkflowId")
+                        .HasColumnType("uuid");
 
-                    b.Property<long>("LinkedWorkflowId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("LinkedWorkflowId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("WorkflowId", "LinkedWorkflowId");
 

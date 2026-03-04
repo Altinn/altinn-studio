@@ -13,6 +13,12 @@ public sealed record WorkflowEnqueueRequest
     [JsonPropertyName("actor")]
     public required Actor Actor { get; init; }
 
+    /// <summary>
+    /// An idempotency key for this entire enqueue request (all workflows in the batch).
+    /// </summary>
+    [JsonPropertyName("idempotencyKey")]
+    public required string IdempotencyKey { get; init; }
+
     // TODO: This is named 'InstanceLockKey' elsewhere, unify to one or the other
     /// <summary>
     /// Optional instance lock key shared by all workflows in this batch.
