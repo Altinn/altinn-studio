@@ -667,6 +667,9 @@ func TestReconciler_CreatesBackupResourcesWhenEnabled(t *testing.T) {
 	g.Expect(cronJob.Spec.Schedule).To(Equal("0 2 * * *"))
 	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Volumes).To(HaveLen(1))
 	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).To(Equal("test-pgdump-backups-testapp"))
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.SecurityContext).NotTo(BeNil())
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.SecurityContext.FSGroup).NotTo(BeNil())
+	g.Expect(*cronJob.Spec.JobTemplate.Spec.Template.Spec.SecurityContext.FSGroup).To(Equal(backupFSGroup))
 }
 
 func TestReconciler_CleansUpBackupCronJobsButKeepsStorage(t *testing.T) {

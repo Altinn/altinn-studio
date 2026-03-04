@@ -53,15 +53,16 @@ const (
 	backupStorageClass  = "cnpg-backup-standard"
 	backupPGVersion     = 18
 
-	postgresqlJsonKey        = "postgresql.json"
-	maxUpdateRetries         = 3
-	passwordSecretNameFormat = "pg-apps-cluster-%s-password"
-	databaseNameFormat       = "db-%s"
-	backupCronJobNameFormat  = "pgdump-%s"
-	managedByLabelValue      = "altinn-studio-operator"
-	managedByLabelKey        = "app.kubernetes.io/managed-by"
-	backupRoleLabelValue     = "pgdump-backup"
-	backupRoleLabelKey       = "altinn.studio/component"
+	postgresqlJsonKey              = "postgresql.json"
+	maxUpdateRetries               = 3
+	passwordSecretNameFormat       = "pg-apps-cluster-%s-password"
+	databaseNameFormat             = "db-%s"
+	backupCronJobNameFormat        = "pgdump-%s"
+	managedByLabelValue            = "altinn-studio-operator"
+	managedByLabelKey              = "app.kubernetes.io/managed-by"
+	backupRoleLabelValue           = "pgdump-backup"
+	backupRoleLabelKey             = "altinn.studio/component"
+	backupFSGroup            int64 = 102
 
 	connectionsPerApp   = 40
 	reservedConnections = 3  // superuser_reserved_connections
@@ -1109,6 +1110,7 @@ find "${out_dir}" -type f -name '*.sha256' -mtime +%d -delete
 	backoffLimit := int32(1)
 	ttlSecondsAfterFinished := int32(86400)
 	automountServiceAccountToken := false
+	fsGroupChangePolicy := corev1.FSGroupChangeOnRootMismatch
 
 	return &batchv1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
@@ -1140,6 +1142,12 @@ find "${out_dir}" -type f -name '*.sha256' -mtime +%d -delete
 						Spec: corev1.PodSpec{
 							RestartPolicy:                corev1.RestartPolicyNever,
 							AutomountServiceAccountToken: &automountServiceAccountToken,
+							SecurityContext: &corev1.PodSecurityContext{
+								// pg_dump container runs as non-root in the postgres image.
+								// Ensure mounted backup PVC is group-writable for the pod.
+								FSGroup:             ptr.To(backupFSGroup),
+								FSGroupChangePolicy: &fsGroupChangePolicy,
+							},
 							Containers: []corev1.Container{
 								{
 									Name:            "pgdump",
