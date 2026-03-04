@@ -1,0 +1,83 @@
+name: Runtime - deploy workflow-engine
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag, or SHA to build from'
+        required: false
+        default: 'main'
+        type: string
+      tag-latest:
+        description: 'Also tag the image as latest'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  push-workflow-engine:
+    name: Push workflow-engine image to GHCR
+    runs-on: ubuntu-latest
+    environment: dev
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@e43656e248c0bd0647d3f5c195d116aacf6fcaf4 # v4.7.0
+        with:
+          daemon-config: |
+            {
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+
+      - name: Set vars
+        id: vars
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          GHCR_BASE="ghcr.io/altinn/altinn-studio"
+          echo "image=${GHCR_BASE}/runtime-workflow-engine:${SHORT_SHA}" >> $GITHUB_OUTPUT
+          if [ "${{ inputs.tag-latest }}" = "true" ]; then
+            echo "latest-tag=${GHCR_BASE}/runtime-workflow-engine:latest" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build image
+        run: |
+          TAGS="-t ${{ steps.vars.outputs.image }}"
+          if [ -n "${{ steps.vars.outputs.latest-tag }}" ]; then
+            TAGS="$TAGS -t ${{ steps.vars.outputs.latest-tag }}"
+          fi
+          docker build --platform linux/amd64,linux/arm64 $TAGS -f Runtime/workflow-engine/Dockerfile .
+
+      - name: Scan image
+        uses: aquasecurity/trivy-action@97e0b3872f55f89b95b2f65b3dbab56962816478 # 0.34.2
+        with:
+          image-ref: '${{ steps.vars.outputs.image }}'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+      - name: Push image
+        run: |
+          docker push ${{ steps.vars.outputs.image }}
+          if [ -n "${{ steps.vars.outputs.latest-tag }}" ]; then
+            docker push ${{ steps.vars.outputs.latest-tag }}
+          fi
