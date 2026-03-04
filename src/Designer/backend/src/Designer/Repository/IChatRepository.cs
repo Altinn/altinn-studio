@@ -31,9 +31,9 @@ public interface IChatRepository
     Task<ChatThreadEntity> CreateThreadAsync(ChatThreadEntity thread, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates the title of an existing chat thread.
+    /// Updates an existing chat thread.
     /// </summary>
-    /// <param name="thread">The thread with updated title.</param>
+    /// <param name="thread">The thread with updated values.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
     Task UpdateThreadAsync(ChatThreadEntity thread, CancellationToken cancellationToken = default);
 
@@ -54,12 +54,10 @@ public interface IChatRepository
     /// <summary>
     /// Creates a new message in an existing thread.
     /// </summary>
-    /// <param name="threadId">The id of the thread.</param>
     /// <param name="message">The message to create.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/>.</param>
     /// <returns>The created message with generated id.</returns>
     Task<ChatMessageEntity> CreateMessageAsync(
-        Guid threadId,
         ChatMessageEntity message,
         CancellationToken cancellationToken = default
     );

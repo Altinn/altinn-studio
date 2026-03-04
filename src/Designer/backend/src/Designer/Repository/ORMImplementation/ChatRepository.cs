@@ -50,9 +50,9 @@ public class ChatRepository : IChatRepository
     /// <inheritdoc />
     public async Task UpdateThreadAsync(ChatThreadEntity thread, CancellationToken cancellationToken = default)
     {
-        await _dbContext
-            .ChatThreads.Where(t => t.Id == thread.Id)
-            .ExecuteUpdateAsync(s => s.SetProperty(t => t.Title, thread.Title), cancellationToken);
+        var dbModel = ChatThreadMapper.MapToDbModel(thread);
+        _dbContext.ChatThreads.Update(dbModel);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -78,13 +78,11 @@ public class ChatRepository : IChatRepository
 
     /// <inheritdoc />
     public async Task<ChatMessageEntity> CreateMessageAsync(
-        Guid threadId,
         ChatMessageEntity message,
         CancellationToken cancellationToken = default
     )
     {
         var dbModel = ChatMessageMapper.MapToDbModel(message);
-        dbModel.ThreadId = threadId;
         _dbContext.ChatMessages.Add(dbModel);
         await _dbContext.SaveChangesAsync(cancellationToken);
         return ChatMessageMapper.MapToModel(dbModel);

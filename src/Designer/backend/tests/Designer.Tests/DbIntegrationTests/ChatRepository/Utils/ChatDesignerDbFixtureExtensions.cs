@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
@@ -17,14 +16,9 @@ public static class ChatDesignerDbFixtureExtensions
         dbFixture.DbContext.Entry(dbModel).State = EntityState.Detached;
     }
 
-    public static async Task PrepareMessageInDatabase(
-        this DesignerDbFixture dbFixture,
-        Guid threadId,
-        ChatMessageEntity messageEntity
-    )
+    public static async Task PrepareMessageInDatabase(this DesignerDbFixture dbFixture, ChatMessageEntity messageEntity)
     {
         var dbModel = ChatMessageMapper.MapToDbModel(messageEntity);
-        dbModel.ThreadId = threadId;
         await dbFixture.DbContext.ChatMessages.AddAsync(dbModel);
         await dbFixture.DbContext.SaveChangesAsync();
         dbFixture.DbContext.Entry(dbModel).State = EntityState.Detached;

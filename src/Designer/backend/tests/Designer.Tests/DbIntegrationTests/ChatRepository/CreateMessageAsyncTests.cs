@@ -26,6 +26,7 @@ public class CreateMessageAsyncTests : DbIntegrationTestsBase
         var expectedFilesChanged = new List<string> { "App/ui/layout.json" };
 
         var messageEntity = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
+            threadId: threadEntity.Id,
             role: Role.User,
             actionMode: ActionMode.Edit,
             attachmentFileNames: expectedAttachments,
@@ -33,7 +34,7 @@ public class CreateMessageAsyncTests : DbIntegrationTestsBase
         );
 
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(DbFixture.DbContext);
-        var createdMessage = await repository.CreateMessageAsync(threadEntity.Id, messageEntity);
+        var createdMessage = await repository.CreateMessageAsync(messageEntity);
 
         var retrievedMessage = await DbFixture
             .DbContext.ChatMessages.AsNoTracking()
@@ -55,10 +56,13 @@ public class CreateMessageAsyncTests : DbIntegrationTestsBase
         var threadEntity = EntityGenerationUtils.Chat.GenerateChatThreadEntity();
         await DbFixture.PrepareThreadInDatabase(threadEntity);
 
-        var messageEntity = EntityGenerationUtils.Chat.GenerateChatMessageEntity(role: Role.Assistant);
+        var messageEntity = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
+            threadId: threadEntity.Id,
+            role: Role.Assistant
+        );
 
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(DbFixture.DbContext);
-        var createdMessage = await repository.CreateMessageAsync(threadEntity.Id, messageEntity);
+        var createdMessage = await repository.CreateMessageAsync(messageEntity);
 
         var retrievedMessage = await DbFixture
             .DbContext.ChatMessages.AsNoTracking()
@@ -73,14 +77,14 @@ public class CreateMessageAsyncTests : DbIntegrationTestsBase
     [Fact]
     public async Task CreateMessageAsync_WithNonExistentThread_ShouldThrowDbUpdateException()
     {
-        var nonExistentThreadId = Guid.NewGuid();
-        var messageEntity = EntityGenerationUtils.Chat.GenerateChatMessageEntity(role: Role.User);
+        var messageEntity = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
+            threadId: Guid.NewGuid(),
+            role: Role.User
+        );
 
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(DbFixture.DbContext);
 
-        await Assert.ThrowsAsync<DbUpdateException>(() =>
-            repository.CreateMessageAsync(nonExistentThreadId, messageEntity)
-        );
+        await Assert.ThrowsAsync<DbUpdateException>(() => repository.CreateMessageAsync(messageEntity));
 
         DbFixture.DbContext.ChangeTracker.Clear();
     }

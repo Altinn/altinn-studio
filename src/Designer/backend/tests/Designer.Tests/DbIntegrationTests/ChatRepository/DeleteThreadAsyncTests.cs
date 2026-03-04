@@ -18,8 +18,11 @@ public class DeleteThreadAsyncTests : DbIntegrationTestsBase
         var threadEntity = EntityGenerationUtils.Chat.GenerateChatThreadEntity();
         await DbFixture.PrepareThreadInDatabase(threadEntity);
 
-        var messageEntity = EntityGenerationUtils.Chat.GenerateChatMessageEntity(Role.User);
-        await DbFixture.PrepareMessageInDatabase(threadEntity.Id, messageEntity);
+        var messageEntity = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
+            threadId: threadEntity.Id,
+            role: Role.User
+        );
+        await DbFixture.PrepareMessageInDatabase(messageEntity);
 
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(DbFixture.DbContext);
         await repository.DeleteThreadAsync(threadEntity.Id);

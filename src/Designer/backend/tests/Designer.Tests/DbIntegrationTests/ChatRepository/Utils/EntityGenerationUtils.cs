@@ -23,6 +23,7 @@ public static partial class EntityGenerationUtils
         {
             return new ChatThreadEntity
             {
+                Id = Guid.CreateVersion7(),
                 Title = $"Thread-{Guid.NewGuid()}",
                 Org = org,
                 App = app ?? GenerateUniqueAppName(),
@@ -32,6 +33,7 @@ public static partial class EntityGenerationUtils
         }
 
         public static ChatMessageEntity GenerateChatMessageEntity(
+            Guid? threadId = null,
             Role role = Role.User,
             ActionMode? actionMode = null,
             List<string> attachmentFileNames = null,
@@ -41,6 +43,8 @@ public static partial class EntityGenerationUtils
         {
             return new ChatMessageEntity
             {
+                Id = Guid.CreateVersion7(),
+                ThreadId = threadId ?? Guid.NewGuid(),
                 CreatedAt = createdAt ?? DateTime.UtcNow,
                 Role = role,
                 Content = $"Message-{Guid.NewGuid()}",

@@ -12,6 +12,11 @@ public class ChatMessageEntity
     public required Guid Id { get; set; } = Guid.CreateVersion7();
 
     /// <summary>
+    /// Foreign key for thread where message belongs.
+    /// </summary>
+    public required Guid ThreadId { get; set; }
+
+    /// <summary>
     /// Creation timestamp.
     /// </summary>
     public required DateTime CreatedAt { get; set; }

@@ -18,19 +18,25 @@ public class GetMessagesAsyncTests : DbIntegrationTestsBase
         await DbFixture.PrepareThreadInDatabase(threadEntity);
 
         var baseTime = DateTime.UtcNow;
-        var firstMessage = EntityGenerationUtils.Chat.GenerateChatMessageEntity(Role.User, createdAt: baseTime);
+        var firstMessage = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
+            threadId: threadEntity.Id,
+            role: Role.User,
+            createdAt: baseTime
+        );
         var secondMessage = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
-            Role.Assistant,
+            threadId: threadEntity.Id,
+            role: Role.Assistant,
             createdAt: baseTime.AddSeconds(1)
         );
         var thirdMessage = EntityGenerationUtils.Chat.GenerateChatMessageEntity(
-            Role.User,
+            threadId: threadEntity.Id,
+            role: Role.User,
             createdAt: baseTime.AddSeconds(2)
         );
 
-        await DbFixture.PrepareMessageInDatabase(threadEntity.Id, firstMessage);
-        await DbFixture.PrepareMessageInDatabase(threadEntity.Id, secondMessage);
-        await DbFixture.PrepareMessageInDatabase(threadEntity.Id, thirdMessage);
+        await DbFixture.PrepareMessageInDatabase(firstMessage);
+        await DbFixture.PrepareMessageInDatabase(secondMessage);
+        await DbFixture.PrepareMessageInDatabase(thirdMessage);
 
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(DbFixture.DbContext);
 

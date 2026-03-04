@@ -16,20 +16,19 @@ public class UpdateThreadAsyncTests : DbIntegrationTestsBase
         : base(dbFixture) { }
 
     [Fact]
-    public async Task UpdateThreadAsync_ShouldUpdateOnlyTitle()
+    public async Task UpdateThreadAsync_ShouldUpdateAllFields()
     {
         var threadEntity = EntityGenerationUtils.Chat.GenerateChatThreadEntity();
         await DbFixture.PrepareThreadInDatabase(threadEntity);
 
-        string updatedTitle = "Updated Thread Title";
         var updateEntity = new ChatThreadEntity
         {
             Id = threadEntity.Id,
-            Title = updatedTitle,
-            Org = threadEntity.Org,
-            App = threadEntity.App,
-            CreatedBy = threadEntity.CreatedBy,
-            CreatedAt = threadEntity.CreatedAt,
+            Title = "updated-title",
+            Org = "updated-org",
+            App = "updated-app",
+            CreatedBy = "updated-user",
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
         };
 
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(DbFixture.DbContext);
@@ -40,15 +39,15 @@ public class UpdateThreadAsyncTests : DbIntegrationTestsBase
             .FirstOrDefaultAsync(t => t.Id == threadEntity.Id);
 
         Assert.NotNull(retrievedThread);
-        Assert.Equal(updatedTitle, retrievedThread.Title);
-        Assert.Equal(threadEntity.Org, retrievedThread.Org);
-        Assert.Equal(threadEntity.App, retrievedThread.App);
-        Assert.Equal(threadEntity.CreatedBy, retrievedThread.CreatedBy);
-        AssertionUtil.AssertCloseTo(threadEntity.CreatedAt, retrievedThread.CreatedAt, TimestampTolerance);
+        Assert.Equal(updateEntity.Title, retrievedThread.Title);
+        Assert.Equal(updateEntity.Org, retrievedThread.Org);
+        Assert.Equal(updateEntity.App, retrievedThread.App);
+        Assert.Equal(updateEntity.CreatedBy, retrievedThread.CreatedBy);
+        AssertionUtil.AssertCloseTo(updateEntity.CreatedAt, retrievedThread.CreatedAt, TimestampTolerance);
     }
 
     [Fact]
-    public async Task UpdateThreadAsync_WithNonExistentThread_ShouldNotThrow()
+    public async Task UpdateThreadAsync_WithNonExistentThread_ShouldThrowDbUpdateConcurrencyException()
     {
         var nonExistentUpdateEntity = new ChatThreadEntity
         {
@@ -62,8 +61,10 @@ public class UpdateThreadAsyncTests : DbIntegrationTestsBase
 
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.ChatRepository(DbFixture.DbContext);
 
-        var exception = await Record.ExceptionAsync(() => repository.UpdateThreadAsync(nonExistentUpdateEntity));
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() =>
+            repository.UpdateThreadAsync(nonExistentUpdateEntity)
+        );
 
-        Assert.Null(exception);
+        DbFixture.DbContext.ChangeTracker.Clear();
     }
 }
