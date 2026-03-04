@@ -44,7 +44,6 @@ public abstract record WorkflowEnqueueResponse
         Duplicate,
         Unavailable,
         AtCapacity,
-        ConcurrencyViolation,
     }
 
     /// <summary>

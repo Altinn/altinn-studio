@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace WorkflowEngine.Models;
@@ -31,4 +33,10 @@ public sealed record WorkflowEnqueueRequest
     /// </summary>
     [JsonPropertyName("workflows")]
     public required IReadOnlyList<WorkflowRequest> Workflows { get; init; }
+
+    internal byte[] ComputeHash()
+    {
+        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(this);
+        return SHA256.HashData(jsonBytes);
+    }
 }

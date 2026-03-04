@@ -1,17 +1,9 @@
-using System.Text;
-using System.Text.Json;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Api.Tests.Fixtures;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
-using WorkflowEngine.Models.Exceptions;
-using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 namespace WorkflowEngine.Api.Tests.Endpoints;
 
@@ -42,33 +34,6 @@ public class EngineEndpointTests
             ],
         };
 
-    private static readonly IOptions<JsonOptions> _jsonOptions = CreateJsonOptions();
-
-    private static IOptions<JsonOptions> CreateJsonOptions()
-    {
-        var options = new JsonOptions();
-        options.SerializerOptions.PropertyNameCaseInsensitive = true;
-        options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        return Options.Create(options);
-    }
-
-    /// <summary>
-    /// Creates a fake <see cref="HttpRequest"/> with the given request body serialized as JSON.
-    /// </summary>
-    private static HttpRequest CreateHttpRequest(WorkflowEnqueueRequest request)
-    {
-        var json = JsonSerializer.Serialize(request, _jsonOptions.Value.SerializerOptions);
-        var bytes = Encoding.UTF8.GetBytes(json);
-        var stream = new MemoryStream(bytes);
-
-        var httpContext = new DefaultHttpContext();
-        httpContext.Request.Body = stream;
-        httpContext.Request.ContentType = "application/json";
-        httpContext.Request.ContentLength = bytes.Length;
-
-        return httpContext.Request;
-    }
-
     // === EnqueueWorkflows Handler Tests ===
 
     [Fact]
@@ -76,30 +41,27 @@ public class EngineEndpointTests
     {
         // Arrange
         var workflowId = Guid.NewGuid();
-        var writeBufferMock = new Mock<WorkflowWriteBuffer>(
-            Mock.Of<IServiceScopeFactory>(),
-            Mock.Of<ILogger<WorkflowWriteBuffer>>(),
-            Options.Create(new WorkflowWriteBufferOptions()),
-            new AsyncSignal()
-        );
-        writeBufferMock
-            .Setup(wb =>
-                wb.EnqueueAsync(
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<WorkflowRequestMetadata>(),
-                    It.IsAny<byte[]>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync([workflowId]);
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Accept([
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = workflowId },
+                ])
+            );
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            CreateHttpRequest(_defaultWorkflowRequest),
-            writeBufferMock.Object,
+            _defaultWorkflowRequest,
+            engineMock.Object,
             TimeProvider.System,
-            _jsonOptions,
             CancellationToken.None
         );
 
@@ -107,37 +69,31 @@ public class EngineEndpointTests
         var ok = Assert.IsType<Ok<WorkflowEnqueueResponse.Accepted>>(result.Result);
         Assert.NotNull(ok.Value);
         Assert.Single(ok.Value.Workflows);
+        Assert.Equal("wf-1", ok.Value.Workflows[0].Ref);
         Assert.Equal(workflowId, ok.Value.Workflows[0].DatabaseId);
     }
 
     [Fact]
-    public async Task Enqueue_IdempotencyConflict_Returns409()
+    public async Task Enqueue_Duplicate_Returns409()
     {
         // Arrange
-        var writeBufferMock = new Mock<WorkflowWriteBuffer>(
-            Mock.Of<IServiceScopeFactory>(),
-            Mock.Of<ILogger<WorkflowWriteBuffer>>(),
-            Options.Create(new WorkflowWriteBufferOptions()),
-            new AsyncSignal()
-        );
-        writeBufferMock
-            .Setup(wb =>
-                wb.EnqueueAsync(
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<WorkflowRequestMetadata>(),
-                    It.IsAny<byte[]>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ThrowsAsync(new IdempotencyConflictException("default-idempotency-key"));
+            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Duplicate));
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            CreateHttpRequest(_defaultWorkflowRequest),
-            writeBufferMock.Object,
+            _defaultWorkflowRequest,
+            engineMock.Object,
             TimeProvider.System,
-            _jsonOptions,
             CancellationToken.None
         );
 
@@ -147,33 +103,26 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task Enqueue_InvalidReference_Returns400()
+    public async Task Enqueue_Invalid_Returns400()
     {
         // Arrange
-        var writeBufferMock = new Mock<WorkflowWriteBuffer>(
-            Mock.Of<IServiceScopeFactory>(),
-            Mock.Of<ILogger<WorkflowWriteBuffer>>(),
-            Options.Create(new WorkflowWriteBufferOptions()),
-            new AsyncSignal()
-        );
-        writeBufferMock
-            .Setup(wb =>
-                wb.EnqueueAsync(
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<WorkflowRequestMetadata>(),
-                    It.IsAny<byte[]>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ThrowsAsync(new InvalidWorkflowReferenceException("Unknown workflow reference 'wf-missing'"));
+            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid));
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            CreateHttpRequest(_defaultWorkflowRequest),
-            writeBufferMock.Object,
+            _defaultWorkflowRequest,
+            engineMock.Object,
             TimeProvider.System,
-            _jsonOptions,
             CancellationToken.None
         );
 
@@ -211,36 +160,29 @@ public class EngineEndpointTests
             ],
         };
 
-        var writeBufferMock = new Mock<WorkflowWriteBuffer>(
-            Mock.Of<IServiceScopeFactory>(),
-            Mock.Of<ILogger<WorkflowWriteBuffer>>(),
-            Options.Create(new WorkflowWriteBufferOptions()),
-            new AsyncSignal()
-        );
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid));
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            CreateHttpRequest(request),
-            writeBufferMock.Object,
+            request,
+            engineMock.Object,
             TimeProvider.System,
-            _jsonOptions,
             CancellationToken.None
         );
 
-        // Assert — rejected before the write buffer is called
+        // Assert
         var problem = Assert.IsType<ProblemHttpResult>(result.Result);
         Assert.Equal(400, problem.StatusCode);
-        writeBufferMock.Verify(
-            wb =>
-                wb.EnqueueAsync(
-                    It.IsAny<WorkflowEnqueueRequest>(),
-                    It.IsAny<WorkflowRequestMetadata>(),
-                    It.IsAny<byte[]>(),
-                    It.IsAny<CancellationToken>()
-                ),
-            Times.Never
-        );
     }
 
     [Fact]
@@ -264,32 +206,25 @@ public class EngineEndpointTests
             ],
         };
 
-        var writeBufferMock = new Mock<WorkflowWriteBuffer>(
-            Mock.Of<IServiceScopeFactory>(),
-            Mock.Of<ILogger<WorkflowWriteBuffer>>(),
-            Options.Create(new WorkflowWriteBufferOptions()),
-            new AsyncSignal()
-        );
+        var engineMock = new Mock<IEngine>();
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            CreateHttpRequest(request),
-            writeBufferMock.Object,
+            request,
+            engineMock.Object,
             TimeProvider.System,
-            _jsonOptions,
             CancellationToken.None
         );
 
-        // Assert — rejected before the write buffer is even called
+        // Assert — rejected before the engine is even called
         var problem = Assert.IsType<ProblemHttpResult>(result.Result);
         Assert.Equal(400, problem.StatusCode);
-        writeBufferMock.Verify(
-            wb =>
-                wb.EnqueueAsync(
+        engineMock.Verify(
+            e =>
+                e.EnqueueWorkflow(
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<WorkflowRequestMetadata>(),
-                    It.IsAny<byte[]>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Never
@@ -297,9 +232,9 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task Enqueue_AppCommandWithLockToken_ProceedsToWriteBuffer()
+    public async Task Enqueue_AppCommandWithLockToken_ProceedsToEngine()
     {
-        // Arrange — AppCommand step with a LockToken present should reach the write buffer
+        // Arrange — AppCommand step with a LockToken present should reach the engine
         var request = new WorkflowEnqueueRequest
         {
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
@@ -317,40 +252,36 @@ public class EngineEndpointTests
             ],
         };
 
-        var writeBufferMock = new Mock<WorkflowWriteBuffer>(
-            Mock.Of<IServiceScopeFactory>(),
-            Mock.Of<ILogger<WorkflowWriteBuffer>>(),
-            Options.Create(new WorkflowWriteBufferOptions()),
-            new AsyncSignal()
-        );
-        writeBufferMock
-            .Setup(wb =>
-                wb.EnqueueAsync(
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<WorkflowRequestMetadata>(),
-                    It.IsAny<byte[]>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync([Guid.NewGuid()]);
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Accept([
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = Guid.NewGuid() },
+                ])
+            );
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            CreateHttpRequest(request),
-            writeBufferMock.Object,
+            request,
+            engineMock.Object,
             TimeProvider.System,
-            _jsonOptions,
             CancellationToken.None
         );
 
-        // Assert — write buffer was called and returned 200
-        writeBufferMock.Verify(
-            wb =>
-                wb.EnqueueAsync(
+        // Assert — engine was called and returned 200
+        engineMock.Verify(
+            e =>
+                e.EnqueueWorkflow(
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<WorkflowRequestMetadata>(),
-                    It.IsAny<byte[]>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -361,35 +292,32 @@ public class EngineEndpointTests
     [Fact]
     public async Task Enqueue_MetadataIsBuiltFromRequestAndRouteParams()
     {
-        // Arrange — capture the metadata passed to the write buffer to verify it was built correctly
+        // Arrange — capture the metadata passed to the engine to verify it was built correctly
         WorkflowRequestMetadata? capturedMetadata = null;
-        var writeBufferMock = new Mock<WorkflowWriteBuffer>(
-            Mock.Of<IServiceScopeFactory>(),
-            Mock.Of<ILogger<WorkflowWriteBuffer>>(),
-            Options.Create(new WorkflowWriteBufferOptions()),
-            new AsyncSignal()
-        );
-        writeBufferMock
-            .Setup(wb =>
-                wb.EnqueueAsync(
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
                     It.IsAny<WorkflowEnqueueRequest>(),
                     It.IsAny<WorkflowRequestMetadata>(),
-                    It.IsAny<byte[]>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<WorkflowEnqueueRequest, WorkflowRequestMetadata, byte[], CancellationToken>(
-                (_, meta, _, _) => capturedMetadata = meta
+            .Callback<WorkflowEnqueueRequest, WorkflowRequestMetadata, CancellationToken>(
+                (_, meta, _) => capturedMetadata = meta
             )
-            .ReturnsAsync([Guid.NewGuid()]);
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Accept([
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = Guid.NewGuid() },
+                ])
+            );
 
         // Act
         await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            CreateHttpRequest(_defaultWorkflowRequest),
-            writeBufferMock.Object,
+            _defaultWorkflowRequest,
+            engineMock.Object,
             TimeProvider.System,
-            _jsonOptions,
             CancellationToken.None
         );
 
@@ -404,69 +332,6 @@ public class EngineEndpointTests
         Assert.Equal(_defaultRouteParams.InstanceGuid, capturedMetadata.InstanceInformation.InstanceGuid);
         Assert.Equal(_defaultWorkflowRequest.Actor.UserIdOrOrgNumber, capturedMetadata.Actor.UserIdOrOrgNumber);
         Assert.Equal(_defaultWorkflowRequest.LockToken, capturedMetadata.InstanceLockKey);
-    }
-
-    [Fact]
-    public async Task Enqueue_InvalidJsonBody_Returns400()
-    {
-        // Arrange — provide an invalid JSON body
-        var bytes = Encoding.UTF8.GetBytes("not valid json {{{");
-        var httpContext = new DefaultHttpContext();
-        httpContext.Request.Body = new MemoryStream(bytes);
-        httpContext.Request.ContentType = "application/json";
-        httpContext.Request.ContentLength = bytes.Length;
-
-        var writeBufferMock = new Mock<WorkflowWriteBuffer>(
-            Mock.Of<IServiceScopeFactory>(),
-            Mock.Of<ILogger<WorkflowWriteBuffer>>(),
-            Options.Create(new WorkflowWriteBufferOptions()),
-            new AsyncSignal()
-        );
-
-        // Act
-        var result = await EngineRequestHandlers.EnqueueWorkflows(
-            _defaultRouteParams,
-            httpContext.Request,
-            writeBufferMock.Object,
-            TimeProvider.System,
-            _jsonOptions,
-            CancellationToken.None
-        );
-
-        // Assert
-        var problem = Assert.IsType<ProblemHttpResult>(result.Result);
-        Assert.Equal(400, problem.StatusCode);
-    }
-
-    [Fact]
-    public async Task Enqueue_EmptyBody_Returns400()
-    {
-        // Arrange — provide an empty body
-        var httpContext = new DefaultHttpContext();
-        httpContext.Request.Body = new MemoryStream([]);
-        httpContext.Request.ContentType = "application/json";
-        httpContext.Request.ContentLength = 0;
-
-        var writeBufferMock = new Mock<WorkflowWriteBuffer>(
-            Mock.Of<IServiceScopeFactory>(),
-            Mock.Of<ILogger<WorkflowWriteBuffer>>(),
-            Options.Create(new WorkflowWriteBufferOptions()),
-            new AsyncSignal()
-        );
-
-        // Act
-        var result = await EngineRequestHandlers.EnqueueWorkflows(
-            _defaultRouteParams,
-            httpContext.Request,
-            writeBufferMock.Object,
-            TimeProvider.System,
-            _jsonOptions,
-            CancellationToken.None
-        );
-
-        // Assert
-        var problem = Assert.IsType<ProblemHttpResult>(result.Result);
-        Assert.Equal(400, problem.StatusCode);
     }
 
     // === ListActiveWorkflows Handler Tests ===
