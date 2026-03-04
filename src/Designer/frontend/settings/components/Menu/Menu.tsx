@@ -14,7 +14,7 @@ export function Menu(): ReactElement {
   const menuTabs = [
     {
       tabId: 'keys',
-      tabName: t('user.profile.keys.keys'),
+      tabName: t('user.settings.keys.keys'),
       icon: <ShieldLockIcon />,
     },
   ];

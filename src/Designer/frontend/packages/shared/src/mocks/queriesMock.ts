@@ -261,7 +261,7 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
 
-  // Queries - User profile
+  // Queries - User settings
   getUserKeys: jest.fn().mockImplementation(() => Promise.resolve([])),
 
   // Mutations
@@ -363,6 +363,6 @@ export const queriesMock: ServicesContextProps = {
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
   updateProcessDataTypes: jest.fn().mockImplementation(() => Promise.resolve()),
 
-  // Mutations - User profile
+  // Mutations - User settings
   deleteUserKey: jest.fn().mockImplementation(() => Promise.resolve()),
 };

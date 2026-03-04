@@ -106,6 +106,6 @@ export enum QueryKey {
   UpdateDataType = 'UpdateDataType',
   ConsentResourceTemplates = 'ConsentResourceTemplates',
 
-  // User profile
+  // User settings
   UserKeys = 'UserKeys',
 }

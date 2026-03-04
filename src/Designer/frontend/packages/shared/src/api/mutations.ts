@@ -225,5 +225,5 @@ export const createBranch = async (org: string, app: string, branchName: string)
 export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> => post(checkoutBranchPath(org, app), { branchName });
 export const discardChanges = async (org: string, app: string): Promise<RepoStatus> => post(discardChangesPath(org, app), {});
 
-// User profile
+// User settings
 export const deleteUserKey = (userKey: string) => del(userKeyPath(userKey));

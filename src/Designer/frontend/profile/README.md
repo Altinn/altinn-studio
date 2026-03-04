@@ -1,1 +1,0 @@
-# Altinn Studio User Profile

@@ -4,7 +4,7 @@ import { Outlet } from 'react-router-dom';
 import { StudioHeading, StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import './PageLayout.css';
-import { Menu } from 'profile/components/Menu/Menu';
+import { Menu } from '../../components/Menu/Menu';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
@@ -18,7 +18,7 @@ export const PageLayout = () => {
       </StudioPageHeader>
       <div className={classes.content}>
         <StudioHeading level={2} className={classes.settingsHeading}>
-          {t('user.profile')}
+          {t('user.settings')}
         </StudioHeading>
         <div className={classes.pageContentWrapper}>
           <div className={classes.leftNavWrapper}>

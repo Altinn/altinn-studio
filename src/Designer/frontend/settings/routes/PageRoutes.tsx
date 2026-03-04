@@ -5,15 +5,15 @@ import {
   createRoutesFromElements,
   Route,
 } from 'react-router-dom';
-import { PROFILE_BASENAME } from 'app-shared/constants';
+import { SETTINGS_BASENAME } from 'app-shared/constants';
 import {
   AppRouteErrorBoundary,
   NotFoundRouteErrorBoundary,
   RouteErrorBoundary,
 } from './PageRouterErrorBoundary';
 import { routerRoutes } from './routes';
-import { NotFound } from 'profile/pages/NotFound/NotFound';
-import { PageLayout } from 'profile/pages/PageLayout';
+import { NotFound } from '../pages/NotFound/NotFound';
+import { PageLayout } from '../pages/PageLayout';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -30,7 +30,7 @@ const router = createBrowserRouter(
     </Route>,
   ),
   {
-    basename: PROFILE_BASENAME,
+    basename: SETTINGS_BASENAME,
   },
 );
 

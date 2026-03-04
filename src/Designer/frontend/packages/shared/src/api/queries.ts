@@ -233,5 +233,5 @@ export const getOrgTextLanguages = (org: string): Promise<string[] | null> => ge
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
 
-// User profile
+// User settings
 export const getUserKeys = () => get<string[]>(userKeysPath());

@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 import { Navigate } from 'react-router-dom';
 import { RoutePaths } from './RoutePaths';
-import { Keys } from 'profile/pages/Keys/Keys';
+import { Keys } from '../pages/Keys/Keys';
 
 interface RouterRoute {
   path: RoutePaths;

@@ -43,7 +43,7 @@
     "src/Designer/frontend/app-development",
     "src/Designer/frontend/app-preview",
     "src/Designer/frontend/dashboard",
-    "src/Designer/frontend/profile",
+    "src/Designer/frontend/settings",
     "src/Designer/frontend/resourceadm",
     "src/Designer/frontend/resourceadm/testing/playwright",
     "src/Designer/frontend/language",

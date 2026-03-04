@@ -43,7 +43,7 @@ The frontend consists of several React packages in the following directories:
   - `text-editor` - Handles editing of texts and their translations.
   - `ux-editor` - Layout and form component configurations.
   - `ux-editor-v3` - Legacy package, not maintained.
-- `./profile` - The user profile.
+- `./settings` - The user settings.
 - `./resourceadm` - Altinn resource register.
 - `./scripts` - Independent scripts for configuration of form components.
 - `./studio-root` - The root of the frontend.

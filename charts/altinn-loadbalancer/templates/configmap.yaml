@@ -58,7 +58,7 @@ data:
       }
 
       map $uri $spa_path {
-        ~^/(dashboard|editor|preview|admin|resourceadm|info|profile)(/.*)?$ $1;
+        ~^/(dashboard|editor|preview|admin|resourceadm|info|settings)(/.*)?$ $1;
         default                                               none;
       }
 
@@ -140,11 +140,11 @@ data:
           proxy_cache         off;
         }
 
-        location ~ ^/(dashboard|editor|preview|admin|resourceadm|info|profile)/assets(/.*)?$ {
+        location ~ ^/(dashboard|editor|preview|admin|resourceadm|info|settings)/assets(/.*)?$ {
             proxy_pass http://designer;
         }
 
-        location ~ ^/(dashboard|editor|preview|admin|resourceadm|info|profile)(/.*)?$ {
+        location ~ ^/(dashboard|editor|preview|admin|resourceadm|info|settings)(/.*)?$ {
           rewrite ^/[^/]+(/.*)?$ /$spa_path/index.html break;
           proxy_pass http://designer;
           proxy_set_header 	  Host $host;

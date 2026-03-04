@@ -11074,14 +11074,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"profile@workspace:src/Designer/frontend/profile":
-  version: 0.0.0-use.local
-  resolution: "profile@workspace:src/Designer/frontend/profile"
-  dependencies:
-    vite: "npm:^6.3.2"
-  languageName: unknown
-  linkType: soft
-
 "promise-retry@npm:^2.0.1":
   version: 2.0.1
   resolution: "promise-retry@npm:2.0.1"
@@ -12176,6 +12168,14 @@ __metadata:
   checksum: 10/fde1630422502fbbc19e6844346778f99d449986b2f9cdcceb8326730d2f3d9964dbcb03c02aaadaefffecd0f2c063315ebea8b3ad895914bf1afc1747fc172e
   languageName: node
   linkType: hard
+
+"settings@workspace:src/Designer/frontend/settings":
+  version: 0.0.0-use.local
+  resolution: "settings@workspace:src/Designer/frontend/settings"
+  dependencies:
+    vite: "npm:^6.3.2"
+  languageName: unknown
+  linkType: soft
 
 "shebang-command@npm:^2.0.0":
   version: 2.0.0

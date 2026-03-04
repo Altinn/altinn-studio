@@ -17,7 +17,9 @@ export const Keys = (): React.ReactElement => {
     data: userKeys,
     isPending: isUserKeysPending,
     isError: isUserKeysError,
-  } = useUserKeysQuery();
+  } = useUserKeysQuery({
+    hideDefaultError: true,
+  });
   const {
     mutate: deleteUserKey,
     isPending: pendingDeleteUserKey,
@@ -26,22 +28,22 @@ export const Keys = (): React.ReactElement => {
 
   const renderContent = () => {
     if (isUserKeysPending) {
-      return <StudioSpinner aria-hidden spinnerTitle={t('user.profile.keys.loading')} />;
+      return <StudioSpinner aria-hidden spinnerTitle={t('user.settings.keys.loading')} />;
     }
 
     if (isUserKeysError) {
-      return <StudioError>{t('user.profile.keys.error')}</StudioError>;
+      return <StudioError>{t('user.settings.keys.error')}</StudioError>;
     }
 
     if (userKeys?.length === 0) {
-      return <StudioParagraph>{t('user.profile.keys.no_keys')}</StudioParagraph>;
+      return <StudioParagraph>{t('user.settings.keys.no_keys')}</StudioParagraph>;
     }
 
     return (
       <StudioTable>
         <StudioTable.Head>
           <StudioTable.Row>
-            <StudioTable.Cell>{t('user.profile.keys.key')}</StudioTable.Cell>
+            <StudioTable.Cell>{t('user.settings.keys.key')}</StudioTable.Cell>
             <StudioTable.Cell></StudioTable.Cell>
           </StudioTable.Row>
         </StudioTable.Head>
@@ -55,7 +57,7 @@ export const Keys = (): React.ReactElement => {
                   onClick={() => deleteUserKey(userKey)}
                   disabled={pendingDeleteUserKey && deletingUserKey === userKey}
                 >
-                  {t('user.profile.keys.delete')}
+                  {t('user.settings.keys.delete')}
                 </StudioButton>
               </StudioTable.Cell>
             </StudioTable.Row>
@@ -69,7 +71,7 @@ export const Keys = (): React.ReactElement => {
     <div>
       <div>
         <StudioHeading level={2} spacing>
-          {t('user.profile.keys.keys')}
+          {t('user.settings.keys.keys')}
         </StudioHeading>
         {renderContent()}
       </div>
