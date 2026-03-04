@@ -11,9 +11,10 @@ type CnpgTarget struct {
 
 // PgDumpBackupConfig configures pg_dump backup jobs for a target.
 type PgDumpBackupConfig struct {
-	Enabled          bool
-	Schedule         string
-	RetentionDays    int
+	Enabled       bool
+	Schedule      string
+	RetentionDays int
+	// PvcName is the base name used to derive per-app PVC names: "<PvcName>-<appId>".
 	PvcName          string
 	PvcSize          string
 	StorageClassName string

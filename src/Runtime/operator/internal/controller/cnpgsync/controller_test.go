@@ -659,14 +659,14 @@ func TestReconciler_CreatesBackupResourcesWhenEnabled(t *testing.T) {
 	g.Expect(backupSc.Parameters["skuName"]).To(Equal("StandardSSD_ZRS"))
 
 	pvc := &corev1.PersistentVolumeClaim{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups", Namespace: cnpgNamespace}, pvc)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, pvc)).To(Succeed())
 	g.Expect(*pvc.Spec.StorageClassName).To(Equal(backupStorageClass))
 
 	cronJob := &batchv1.CronJob{}
 	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-testapp", Namespace: cnpgNamespace}, cronJob)).To(Succeed())
 	g.Expect(cronJob.Spec.Schedule).To(Equal("0 2 * * *"))
 	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Volumes).To(HaveLen(1))
-	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).To(Equal("test-pgdump-backups"))
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).To(Equal("test-pgdump-backups-testapp"))
 }
 
 func TestReconciler_CleansUpBackupCronJobsButKeepsStorage(t *testing.T) {
@@ -693,7 +693,7 @@ func TestReconciler_CleansUpBackupCronJobsButKeepsStorage(t *testing.T) {
 	_, _ = h.reconciler.SyncAll(h.ctx)
 
 	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-testapp", Namespace: cnpgNamespace}, &batchv1.CronJob{})).To(Succeed())
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
 
 	h.reconciler.targets = []CnpgTarget{{
 		ServiceOwnerId: "ttd",
@@ -707,8 +707,43 @@ func TestReconciler_CleansUpBackupCronJobsButKeepsStorage(t *testing.T) {
 
 	err = h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-testapp", Namespace: cnpgNamespace}, &batchv1.CronJob{})
 	g.Expect(err).To(HaveOccurred())
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
 	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: backupStorageClass}, &storagev1.StorageClass{})).To(Succeed())
+}
+
+func TestReconciler_CreatesOneBackupPVCPerApp(t *testing.T) {
+	g := NewWithT(t)
+
+	backupCfg := &PgDumpBackupConfig{
+		Enabled:          true,
+		Schedule:         "0 2 * * *",
+		RetentionDays:    7,
+		PvcName:          "test-pgdump-backups",
+		PvcSize:          "10Gi",
+		StorageClassName: backupStorageClass,
+	}
+	targets := []CnpgTarget{{
+		ServiceOwnerId: "ttd",
+		Environment:    "tt02",
+		Apps:           []string{"app-one", "app-two"},
+		Backup:         backupCfg,
+	}}
+	h := newTestHarness(t, "tt02", targets)
+
+	_, _ = h.reconciler.SyncAll(h.ctx)
+	h.setHelmReleaseReady(t)
+	_, _ = h.reconciler.SyncAll(h.ctx)
+
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-app-one", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-app-two", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
+
+	cronJobOne := &batchv1.CronJob{}
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-app-one", Namespace: cnpgNamespace}, cronJobOne)).To(Succeed())
+	g.Expect(cronJobOne.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).To(Equal("test-pgdump-backups-app-one"))
+
+	cronJobTwo := &batchv1.CronJob{}
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-app-two", Namespace: cnpgNamespace}, cronJobTwo)).To(Succeed())
+	g.Expect(cronJobTwo.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).To(Equal("test-pgdump-backups-app-two"))
 }
 
 func TestReconciler_FailsWhenBackupConfigIsUnderspecified(t *testing.T) {

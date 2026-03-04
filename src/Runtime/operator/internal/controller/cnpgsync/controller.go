@@ -29,6 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/diff"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -892,8 +893,8 @@ func (r *CnpgSyncReconciler) ensureBackupResources(ctx context.Context) error {
 	if err := r.ensureBackupStorageClass(ctx, cfg); err != nil {
 		return fmt.Errorf("ensure backup StorageClass: %w", err)
 	}
-	if err := r.ensureBackupPVC(ctx, cfg); err != nil {
-		return fmt.Errorf("ensure backup PVC: %w", err)
+	if err := r.ensureBackupPVCs(ctx, cfg); err != nil {
+		return fmt.Errorf("ensure backup PVCs: %w", err)
 	}
 	if err := r.ensureBackupCronJobs(ctx, cfg); err != nil {
 		return fmt.Errorf("ensure backup CronJobs: %w", err)
@@ -958,20 +959,35 @@ func (r *CnpgSyncReconciler) buildBackupStorageClass(name string) *storagev1.Sto
 	return sc
 }
 
-func (r *CnpgSyncReconciler) ensureBackupPVC(ctx context.Context, cfg *resolvedBackupConfig) error {
+func (r *CnpgSyncReconciler) ensureBackupPVCs(ctx context.Context, cfg *resolvedBackupConfig) error {
+	for _, appId := range r.getTargetApps() {
+		if err := r.ensureBackupPVC(ctx, appId, cfg); err != nil {
+			return fmt.Errorf("ensure backup PVC for app %s: %w", appId, err)
+		}
+	}
+	return nil
+}
+
+func (r *CnpgSyncReconciler) ensureBackupPVC(ctx context.Context, appId string, cfg *resolvedBackupConfig) error {
+	pvcName, err := backupPVCName(cfg.PvcName, appId)
+	if err != nil {
+		return err
+	}
+
 	pvc := &corev1.PersistentVolumeClaim{}
-	key := client.ObjectKey{Name: cfg.PvcName, Namespace: cnpgNamespace}
-	err := r.k8sClient.Get(ctx, key, pvc)
+	key := client.ObjectKey{Name: pvcName, Namespace: cnpgNamespace}
+	err = r.k8sClient.Get(ctx, key, pvc)
 
 	if apierrors.IsNotFound(err) {
 		size := resource.MustParse(cfg.PvcSize)
 		pvc = &corev1.PersistentVolumeClaim{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      cfg.PvcName,
+				Name:      pvcName,
 				Namespace: cnpgNamespace,
 				Labels: map[string]string{
-					managedByLabelKey:  managedByLabelValue,
-					backupRoleLabelKey: backupRoleLabelValue,
+					managedByLabelKey:      managedByLabelValue,
+					backupRoleLabelKey:     backupRoleLabelValue,
+					"altinn.studio/app-id": appId,
 				},
 			},
 			Spec: corev1.PersistentVolumeClaimSpec{
@@ -987,7 +1003,7 @@ func (r *CnpgSyncReconciler) ensureBackupPVC(ctx context.Context, cfg *resolvedB
 		if err := r.k8sClient.Create(ctx, pvc); err != nil {
 			return fmt.Errorf("create PVC: %w", err)
 		}
-		r.logger.Info("created backup PVC", "name", cfg.PvcName, "namespace", cnpgNamespace)
+		r.logger.Info("created backup PVC", "name", pvcName, "namespace", cnpgNamespace, "appId", appId)
 		return nil
 	}
 	if err != nil {
@@ -1000,7 +1016,7 @@ func (r *CnpgSyncReconciler) ensureBackupPVC(ctx context.Context, cfg *resolvedB
 	}
 	if existingSC != cfg.StorageClassName {
 		r.logger.Info("backup PVC uses different StorageClass than configured, leaving as-is",
-			"pvc", cfg.PvcName, "currentStorageClass", existingSC, "desiredStorageClass", cfg.StorageClassName)
+			"pvc", pvcName, "currentStorageClass", existingSC, "desiredStorageClass", cfg.StorageClassName)
 	}
 
 	return nil
@@ -1066,6 +1082,10 @@ func (r *CnpgSyncReconciler) buildBackupCronJob(appId string, cfg *resolvedBacku
 	imageRef, err := r.getImageRef(backupPGVersion)
 	if err != nil {
 		return nil, fmt.Errorf("get backup image: %w", err)
+	}
+	pvcName, err := backupPVCName(cfg.PvcName, appId)
+	if err != nil {
+		return nil, fmt.Errorf("build backup PVC name: %w", err)
 	}
 
 	pgName := sanitizePostgresIdentifier(appId)
@@ -1160,7 +1180,7 @@ find "${out_dir}" -type f -name '*.sha256' -mtime +%d -delete
 									Name: "backups",
 									VolumeSource: corev1.VolumeSource{
 										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-											ClaimName: cfg.PvcName,
+											ClaimName: pvcName,
 										},
 									},
 								},
@@ -1202,6 +1222,14 @@ func (r *CnpgSyncReconciler) cleanupRemovedBackupCronJobs(ctx context.Context, t
 	}
 
 	return nil
+}
+
+func backupPVCName(baseName, appId string) (string, error) {
+	name := fmt.Sprintf("%s-%s", baseName, appId)
+	if errs := validation.IsDNS1123Label(name); len(errs) > 0 {
+		return "", fmt.Errorf("invalid backup PVC name %q: %s", name, strings.Join(errs, ", "))
+	}
+	return name, nil
 }
 
 // getTargetApps returns the apps for the current operator context, or nil if not targeted.
