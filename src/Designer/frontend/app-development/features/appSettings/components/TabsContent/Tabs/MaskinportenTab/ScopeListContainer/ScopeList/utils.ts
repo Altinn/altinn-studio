@@ -21,7 +21,21 @@ export function combineSelectedAndMaskinportenScopes(
     maskinportenScopes,
     selectedScopes,
   );
-  return combinedScopesList;
+
+  const selectedScopeNames = new Set<string>(
+    selectedScopes.map((scope: MaskinportenScope) => scope.scope),
+  );
+
+  return combinedScopesList.sort((left: MaskinportenScope, right: MaskinportenScope) => {
+    const leftIsSelected = selectedScopeNames.has(left.scope);
+    const rightIsSelected = selectedScopeNames.has(right.scope);
+
+    if (leftIsSelected !== rightIsSelected) {
+      return leftIsSelected ? -1 : 1;
+    }
+
+    return left.scope.localeCompare(right.scope, undefined, { sensitivity: 'base' });
+  });
 }
 
 const mergeTwoScopeListsToOne = (

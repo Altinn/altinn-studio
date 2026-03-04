@@ -132,7 +132,7 @@ describe('ScopeList', () => {
     await user.click(saveButton);
 
     const allSelectedScopes: MaskinportenScopes = {
-      scopes: [...maskinportenScopesMock, ...selectedScopesMock],
+      scopes: [...selectedScopesMock, ...maskinportenScopesMock],
     };
 
     expect(queriesMock.updateSelectedMaskinportenScopes).toHaveBeenCalledTimes(1);

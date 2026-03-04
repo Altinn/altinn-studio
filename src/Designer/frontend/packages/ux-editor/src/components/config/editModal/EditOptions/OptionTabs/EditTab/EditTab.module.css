@@ -6,7 +6,6 @@
   display: flex;
   width: 60%;
   min-width: 12rem;
-  white-space: nowrap;
   flex-direction: column;
   gap: var(--fds-spacing-2);
 }

@@ -69,6 +69,7 @@ public class GetScopesFromMaskinPortenTests
                 {
                     "prefix": "altinn",
                     "subscope": "cached.scope",
+                    "name": "altinn:cached.scope",
                     "description": "Cached scope",
                     "active": true,
                     "allowed_integration_types": [
@@ -81,13 +82,8 @@ public class GetScopesFromMaskinPortenTests
         const string AccessScopesResponse = """
             [
                 {
-                    "prefix": "altinn",
-                    "subscope": "access.scope",
-                    "description": "Access scope",
-                    "active": true,
-                    "allowed_integration_types": [
-                        "maskinporten"
-                    ]
+                    "scope": "altinn:access.scope",
+                    "state": "APPROVED"
                 }
             ]
             """;
@@ -113,13 +109,105 @@ public class GetScopesFromMaskinPortenTests
                 entry.RequestMessage.Method == HttpMethod.Get.Method
                 && entry.RequestMessage.Path == "/api/v1/scopes/all"
                 && entry.RequestMessage.RawQuery.Contains("accessible_for_all=true")
+                && entry.RequestMessage.RawQuery.Contains("integration_type=maskinporten")
+                && entry.RequestMessage.RawQuery.Contains("inactive=false")
             );
 
         int CountAccessScopesCalls() =>
             _mockServerFixture.MockApi.LogEntries.Count(entry =>
                 entry.RequestMessage.Method == HttpMethod.Get.Method
                 && entry.RequestMessage.Path == "/api/v1/scopes/access/all"
+                && entry.RequestMessage.RawQuery.Contains("integration_type=maskinporten")
+                && entry.RequestMessage.RawQuery.Contains("inactive=false")
             );
+    }
+
+    [Fact]
+    public async Task GetScopesFromMaskinPortens_Should_PreferAllScopeDescription_WhenScopeExistsInBothResponses()
+    {
+        const string AllScopesResponse = """
+            [
+                {
+                    "prefix": "altinn",
+                    "subscope": "duplicate.scope",
+                    "name": "altinn:duplicate.scope",
+                    "description": "Description from all scopes",
+                    "allowed_integration_types": [
+                        "maskinporten"
+                    ]
+                }
+            ]
+            """;
+
+        const string AccessScopesResponse = """
+            [
+                {
+                    "scope": "altinn:duplicate.scope",
+                    "state": "APPROVED"
+                }
+            ]
+            """;
+
+        _mockServerFixture.PrepareMaskinPortenScopesResponse(AllScopesResponse, AccessScopesResponse);
+        using var request = new HttpRequestMessage(HttpMethod.Get, VersionPrefix("ttd", "duplicate-test"));
+
+        using var response = await HttpClient.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        AppScopesResponse responseContent = await response.Content.ReadAsAsync<AppScopesResponse>();
+        Assert.Contains(
+            responseContent.Scopes,
+            scope => scope.Scope == "altinn:duplicate.scope" && scope.Description == "Description from all scopes"
+        );
+    }
+
+    [Fact]
+    public async Task GetScopesFromMaskinPortens_Should_FilterInvalidAccessScopes_AndUseNameFromAllScopes()
+    {
+        const string AllScopesResponse = """
+            [
+                {
+                    "name": "altinn:name-only.scope",
+                    "description": "Name-only scope",
+                    "allowed_integration_types": [
+                        "maskinporten"
+                    ]
+                }
+            ]
+            """;
+
+        const string AccessScopesResponse = """
+            [
+                {
+                    "scope": "altinn:approved.scope",
+                    "state": "APPROVED"
+                },
+                {
+                    "scope": "altinn:pending.scope",
+                    "state": "PENDING"
+                },
+                {
+                    "scope": "",
+                    "state": "APPROVED"
+                },
+                null
+            ]
+            """;
+
+        _mockServerFixture.PrepareMaskinPortenScopesResponse(AllScopesResponse, AccessScopesResponse);
+        using var request = new HttpRequestMessage(HttpMethod.Get, VersionPrefix("ttd", "fallback-test"));
+
+        using var response = await HttpClient.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        AppScopesResponse responseContent = await response.Content.ReadAsAsync<AppScopesResponse>();
+        Assert.Equal(2, responseContent.Scopes.Count);
+        Assert.Contains(responseContent.Scopes, scope => scope.Scope == "altinn:approved.scope");
+        Assert.Contains(
+            responseContent.Scopes,
+            scope => scope.Scope == "altinn:name-only.scope" && scope.Description == "Name-only scope"
+        );
+        Assert.DoesNotContain(responseContent.Scopes, scope => scope.Scope == "altinn:pending.scope");
     }
 
     public static IEnumerable<object[]> TestData()
@@ -134,6 +222,7 @@ public class GetScopesFromMaskinPortenTests
                     {
                         "prefix": "altinn",
                         "subscope": "demo.torsdag",
+                        "name": "altinn:demo.torsdag",
                         "description": "Dette er en test",
                         "active": true,
                         "allowed_integration_types": [
@@ -145,13 +234,8 @@ public class GetScopesFromMaskinPortenTests
             """
                 [
                     {
-                        "prefix": "altinn",
-                        "subscope": "mirko.dan.test",
-                        "description": "Dette er bare en test for Altinn Studio integrasjon",
-                        "active": true,
-                        "allowed_integration_types": [
-                            "maskinporten"
-                        ]
+                        "scope": "altinn:mirko.dan.test",
+                        "state": "APPROVED"
                     }
                 ]
                 """,
@@ -168,6 +252,7 @@ public class GetScopesFromMaskinPortenTests
                     {
                         "prefix": "altinn",
                         "subscope": "duplicate.scope",
+                        "name": "altinn:duplicate.scope",
                         "description": "First occurrence",
                         "active": true,
                         "allowed_integration_types": [
@@ -177,6 +262,7 @@ public class GetScopesFromMaskinPortenTests
                     {
                         "prefix": "altinn",
                         "subscope": "unique.scope1",
+                        "name": "altinn:unique.scope1",
                         "description": "Unique scope 1",
                         "active": true,
                         "allowed_integration_types": [
@@ -188,22 +274,12 @@ public class GetScopesFromMaskinPortenTests
             """
                 [
                     {
-                        "prefix": "altinn",
-                        "subscope": "duplicate.scope",
-                        "description": "Second occurrence (should be ignored)",
-                        "active": true,
-                        "allowed_integration_types": [
-                            "maskinporten"
-                        ]
+                        "scope": "altinn:duplicate.scope",
+                        "state": "APPROVED"
                     },
                     {
-                        "prefix": "altinn",
-                        "subscope": "unique.scope2",
-                        "description": "Unique scope 2",
-                        "active": true,
-                        "allowed_integration_types": [
-                            "maskinporten"
-                        ]
+                        "scope": "altinn:unique.scope2",
+                        "state": "APPROVED"
                     }
                 ]
                 """,
@@ -219,13 +295,8 @@ public class GetScopesFromMaskinPortenTests
             """
                 [
                     {
-                        "prefix": "altinn",
-                        "subscope": "single.scope",
-                        "description": "Single scope",
-                        "active": true,
-                        "allowed_integration_types": [
-                            "maskinporten"
-                        ]
+                        "scope": "altinn:single.scope",
+                        "state": "APPROVED"
                     }
                 ]
                 """,
@@ -242,6 +313,7 @@ public class GetScopesFromMaskinPortenTests
                     {
                         "prefix": "altinn",
                         "subscope": "maskinporten.scope",
+                        "name": "altinn:maskinporten.scope",
                         "description": "Maskinporten scope",
                         "active": true,
                         "allowed_integration_types": [
@@ -251,6 +323,7 @@ public class GetScopesFromMaskinPortenTests
                     {
                         "prefix": "altinn",
                         "subscope": "idporten.scope",
+                        "name": "altinn:idporten.scope",
                         "description": "IDporten scope",
                         "active": true,
                         "allowed_integration_types": [
@@ -259,19 +332,7 @@ public class GetScopesFromMaskinPortenTests
                     }
                 ]
                 """,
-            """
-                [
-                    {
-                        "prefix": "altinn",
-                        "subscope": "another.idporten.scope",
-                        "description": "Another IDporten scope",
-                        "active": true,
-                        "allowed_integration_types": [
-                            "idporten"
-                        ]
-                    }
-                ]
-                """,
+            "[]",
             1,
         ];
 
@@ -285,6 +346,7 @@ public class GetScopesFromMaskinPortenTests
                     {
                         "prefix": "altinn",
                         "subscope": "both.types.scope",
+                        "name": "altinn:both.types.scope",
                         "description": "Both integration types",
                         "active": true,
                         "allowed_integration_types": [
@@ -295,6 +357,7 @@ public class GetScopesFromMaskinPortenTests
                     {
                         "prefix": "altinn",
                         "subscope": "only.idporten",
+                        "name": "altinn:only.idporten",
                         "description": "IDporten only",
                         "active": true,
                         "allowed_integration_types": [
@@ -306,13 +369,8 @@ public class GetScopesFromMaskinPortenTests
             """
                 [
                     {
-                        "prefix": "altinn",
-                        "subscope": "maskinporten.only",
-                        "description": "Maskinporten only",
-                        "active": true,
-                        "allowed_integration_types": [
-                            "maskinporten"
-                        ]
+                        "scope": "altinn:maskinporten.only",
+                        "state": "APPROVED"
                     }
                 ]
                 """,
@@ -329,6 +387,7 @@ public class GetScopesFromMaskinPortenTests
                     {
                         "prefix": "altinn",
                         "subscope": "idporten.scope1",
+                        "name": "altinn:idporten.scope1",
                         "description": "IDporten scope 1",
                         "active": true,
                         "allowed_integration_types": [
@@ -337,19 +396,7 @@ public class GetScopesFromMaskinPortenTests
                     }
                 ]
                 """,
-            """
-                [
-                    {
-                        "prefix": "altinn",
-                        "subscope": "idporten.scope2",
-                        "description": "IDporten scope 2",
-                        "active": true,
-                        "allowed_integration_types": [
-                            "idporten"
-                        ]
-                    }
-                ]
-                """,
+            "[]",
             0,
         ];
     }

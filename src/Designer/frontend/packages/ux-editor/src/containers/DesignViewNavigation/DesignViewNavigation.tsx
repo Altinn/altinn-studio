@@ -35,12 +35,7 @@ export const DesignViewNavigation = () => {
         }}
         menu={
           <div className={classes.menu}>
-            <DropdownMenu
-              open={dropdownOpen}
-              onClose={() => setDropdownOpen(false)}
-              portal
-              size='small'
-            >
+            <DropdownMenu open={dropdownOpen} onClose={() => setDropdownOpen(false)} portal>
               <DropdownMenu.Trigger asChild>
                 <StudioButton
                   icon={<MenuElipsisVerticalIcon />}
