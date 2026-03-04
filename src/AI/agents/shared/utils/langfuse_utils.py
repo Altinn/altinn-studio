@@ -86,9 +86,9 @@ def score_validation(
                    (from LANGFUSE_SCORE_CONFIG_LAYOUT_SCHEMA etc.).
         comment: Optional detail — error messages on failure, 'Passed' on success.
     """
+    client = get_langfuse_client()
     if not is_langfuse_enabled():
         return
-    client = get_langfuse_client()
     if not client:
         return
     try:

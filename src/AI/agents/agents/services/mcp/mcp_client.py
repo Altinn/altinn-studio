@@ -401,7 +401,6 @@ async def check_mcp_server_startup(server_url: str = None, expected_version: str
 
     Exits the application with code 1 if MCP server check fails.
     """
-    import os
     from shared.config import get_config
 
     config = get_config()
