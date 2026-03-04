@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
-using Altinn.ApiClients.Maskinporten.Services;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
 using Microsoft.Extensions.Options;
@@ -21,11 +20,6 @@ public class ResourceRegistryRepository(
     IHttpClientFactory httpClientFactory
 ) : IResourceRegistryRepository
 {
-    public ServiceResource GetServiceResource(string env, string resourceId)
-    {
-        throw new System.NotImplementedException();
-    }
-
     public async Task<List<ServiceResource>> GetServiceResources(
         string env,
         bool includeApps = false,
@@ -55,9 +49,7 @@ public class ResourceRegistryRepository(
 
     private string GetResourceRegistryResourceListUrl(string env, bool includeApps, bool includeAltinn2)
     {
-        return !resourceRegistrySettings.Value.TryGetValue(env, out ResourceRegistryEnvironmentSettings? envSettings)
-            ? throw new ArgumentException($"Invalid environment. Missing environment config for {env}")
-            : $"{envSettings.ResourceRegistryEnvBaseUrl}{platformSettings.ResourceRegistryUrl}/resourcelist?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
+        return $"{GetResourceRegistryBaseUrl(env)}{platformSettings.ResourceRegistryUrl}/resourcelist?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
     }
 
     private async Task<TokenResponse> GetBearerTokenFromMaskinporten()
