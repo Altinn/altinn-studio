@@ -60,36 +60,38 @@ export const ConfirmUndeployDialog = ({
             {t('app_deployment.undeploy_confirmation_dialog_title')}
           </StudioHeading>
         </StudioDialog.Block>
-        <StudioParagraph spacing>
-          {t('app_deployment.undeploy_confirmation_dialog_description')}
-        </StudioParagraph>
-        <StudioTextfield
-          label={t('app_deployment.undeploy_confirmation_input_label')}
-          description={t('app_deployment.undeploy_confirmation_input_description', {
-            appName,
-          })}
-          onChange={onAppNameInputChange}
-        />
-        {undeployError && (
-          <StudioAlert className={classes.errorContainer}>
-            <StudioParagraph>
-              <Trans
-                i18nKey={'app_deployment.error_unknown.message'}
-                components={{
-                  a: <StudioLink href='/info/contact'> </StudioLink>,
-                }}
-              />
-            </StudioParagraph>
-          </StudioAlert>
-        )}
-        <StudioButton
-          disabled={!isAppNameConfirmed || isPendingUndeploy}
-          data-color='danger'
-          className={classes.confirmUndeployButton}
-          onClick={onUndeployClicked}
-        >
-          {t('app_deployment.undeploy_confirmation_button')}
-        </StudioButton>
+        <StudioDialog.Block>
+          <StudioParagraph spacing>
+            {t('app_deployment.undeploy_confirmation_dialog_description')}
+          </StudioParagraph>
+          <StudioTextfield
+            label={t('app_deployment.undeploy_confirmation_input_label')}
+            description={t('app_deployment.undeploy_confirmation_input_description', {
+              appName,
+            })}
+            onChange={onAppNameInputChange}
+          />
+          {undeployError && (
+            <StudioAlert className={classes.errorContainer}>
+              <StudioParagraph>
+                <Trans
+                  i18nKey={'app_deployment.error_unknown.message'}
+                  components={{
+                    a: <StudioLink href='/info/contact'> </StudioLink>,
+                  }}
+                />
+              </StudioParagraph>
+            </StudioAlert>
+          )}
+          <StudioButton
+            disabled={!isAppNameConfirmed || isPendingUndeploy}
+            data-color='danger'
+            className={classes.confirmUndeployButton}
+            onClick={onUndeployClicked}
+          >
+            {t('app_deployment.undeploy_confirmation_button')}
+          </StudioButton>
+        </StudioDialog.Block>
       </StudioDialog>
     </>
   );
