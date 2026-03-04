@@ -48,7 +48,7 @@ def is_langfuse_enabled() -> bool:
     return config.LANGFUSE_ENABLED and _initialized
 
 
-def get_langfuse_client() -> Langfuse:
+def get_langfuse_client() -> Langfuse | None:
     """Get or initialize Langfuse client"""
     global _client
 
