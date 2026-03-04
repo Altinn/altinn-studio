@@ -971,7 +971,7 @@ public class SourceControlService(
                         repo.Rebase.Abort();
                         stopAborted = true;
                         SetErrorStatus(ctx.activity, "rebase_stopped");
-                        throw new InvalidOperationException(
+                        throw new NonFastForwardException(
                             $"Rebase onto remote branch '{ctx.branchName}' was stopped by user."
                         );
                     }
