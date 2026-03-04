@@ -1,6 +1,7 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
@@ -25,7 +26,7 @@ public class GiteaDbStudioOidcUsernameProvider(
         LIMIT 1
         """;
 
-    public async Task<string> ResolveUsernameAsync(string sub, string pid)
+    public async Task<string> ResolveUsernameAsync(string sub, string pid, string? givenName)
     {
         string pidHash = ComputePidHash(pid);
 
@@ -46,7 +47,7 @@ public class GiteaDbStudioOidcUsernameProvider(
         }
 
         // Step 3: Generate new username
-        string generatedUsername = await GenerateUniqueUsername();
+        string generatedUsername = GenerateUsername(givenName);
         await StoreMapping(pidHash, generatedUsername);
         return generatedUsername;
     }
@@ -76,32 +77,34 @@ public class GiteaDbStudioOidcUsernameProvider(
         await designerDb.SaveChangesAsync();
     }
 
-    private async Task<string> GenerateUniqueUsername()
+    private static string GenerateUsername(string? givenName)
     {
-        const int MaxAttempts = 10;
-        for (int i = 0; i < MaxAttempts; i++)
-        {
-            string candidate = $"{mappingSettings.UsernamePrefix}-{GenerateRandomString(8)}";
-            bool exists = await designerDb.UserAccounts.AnyAsync(m => m.Username == candidate);
+        string prefix = SanitizeNamePrefix(givenName);
+        string suffix = Guid.NewGuid().ToString("N")[..8];
+        return $"{prefix}_{suffix}";
+    }
 
-            if (!exists)
-            {
-                return candidate;
-            }
+    private static string SanitizeNamePrefix(string? givenName)
+    {
+        if (string.IsNullOrWhiteSpace(givenName))
+        {
+            return "dev";
         }
 
-        throw new InvalidOperationException("Failed to generate a unique username after multiple attempts.");
+        string sanitized = givenName
+            .ToLowerInvariant()
+            .Replace("æ", "ae")
+            .Replace("ø", "o")
+            .Replace("å", "a");
+
+        sanitized = Regex.Replace(sanitized, "[^a-z]", "");
+
+        return sanitized.Length > 0 ? sanitized : "dev";
     }
 
     private string ComputePidHash(string pid)
     {
         byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(mappingSettings.PidHashSalt + pid));
         return Convert.ToHexStringLower(bytes);
-    }
-
-    private static string GenerateRandomString(int length)
-    {
-        const string Chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-        return RandomNumberGenerator.GetString(Chars, length);
     }
 }

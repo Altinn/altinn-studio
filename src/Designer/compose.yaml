@@ -115,7 +115,6 @@ services:
       - GitOpsSettings:BotPersonalAccessToken=${GITOPS_BOT_PERSONAL_ACCESS_TOKEN:-}
       - GiteaDbSettings:ConnectionString=Host=studio_db;Port=5432;Username=gitea;Password=gitea;Database=giteadb
       - DeveloperMappingSettings:PidHashSalt=${PID_HASH_SALT:-local-dev-salt}
-      - DeveloperMappingSettings:UsernamePrefix=dev
     ports:
       - '6000:6000'
     depends_on:

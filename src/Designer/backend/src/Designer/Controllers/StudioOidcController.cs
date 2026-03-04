@@ -34,7 +34,8 @@ public class StudioOidcController(IStudioOidcUsernameProvider usernameProvider) 
             return Unauthorized();
         }
 
-        string computedUsername = await usernameProvider.ResolveUsernameAsync(sub, pid);
+        string? givenName = User.FindFirst("given_name")?.Value;
+        string computedUsername = await usernameProvider.ResolveUsernameAsync(sub, pid, givenName);
 
         AuthenticateResult authenticateResult = await HttpContext.AuthenticateAsync();
         AuthenticationProperties? properties = authenticateResult.Properties;
@@ -51,7 +52,6 @@ public class StudioOidcController(IStudioOidcUsernameProvider usernameProvider) 
             claims.Add(new Claim("sub", sub));
         }
 
-        string? givenName = User.FindFirst("given_name")?.Value;
         if (givenName != null)
         {
             claims.Add(new Claim("given_name", givenName));
