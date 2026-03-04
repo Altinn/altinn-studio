@@ -1,17 +1,12 @@
 using System.Diagnostics;
-using System.Security.Cryptography;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Utils;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
-using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
-using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 namespace WorkflowEngine.Api.Endpoints;
 
