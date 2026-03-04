@@ -167,6 +167,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             .Replace("[ORG]", serviceResource.HasCompetentAuthority.Orgcode)
                             .Replace("[org]", serviceResource.HasCompetentAuthority.Orgcode);
                         policyFileContentBytes = Encoding.UTF8.GetBytes(policyFileContent);
+                        policyContent = policyFileContentBytes;
                     }
                     else
                     {
