@@ -3,16 +3,6 @@
   "extends": ["local>Altinn/renovate-config"],
   "labels": ["kind/dependencies", "backport-ignore"],
   "baseBranchPatterns": ["main"],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/^snapshots\\.js$/"],
-      "matchStrings": ["\"__version\": \"(?<currentValue>[^\"]+)\""],
-      "datasourceTemplate": "npm",
-      "depNameTemplate": "cypress",
-      "autoReplaceStringTemplate": "\"__version\": \"{{{newValue}}}\""
-    }
-  ],
   "packageRules": [
     {
       "matchPackageNames": [
@@ -23,11 +13,6 @@
       "groupName": "Digdir design system",
       "schedule": ["* 0-7 * * 1-5"],
       "minimumReleaseAge": "0"
-    },
-    {
-      "matchPackageNames": ["cypress"],
-      "matchManagers": ["npm", "custom.regex"],
-      "groupName": "cypress"
     }
   ]
 }

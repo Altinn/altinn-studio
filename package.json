@@ -122,7 +122,6 @@
     "webpack-dev-server": "5.2.3"
   },
   "dependencies": {
-    "@cypress/snapshot": "^2.1.7",
     "@date-fns/tz": "1.4.1",
     "@digdir/designsystemet-css": "1.11.1",
     "@digdir/designsystemet-react": "1.11.1",

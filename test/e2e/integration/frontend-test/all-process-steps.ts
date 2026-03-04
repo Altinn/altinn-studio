@@ -192,19 +192,20 @@ function testInstanceData() {
 
     cy.request({ url: instanceUrl }).then((response) => {
       const instanceData = response.body as IInstance;
-      for (const dataElement of instanceData.data) {
-        if (dataElement.contentType === 'application/xml') {
-          const dataModelUrlParsed = new URL(dataElement.selfLinks!.apps);
-          const dataModelUrl =
-            Cypress.env('type') === 'localtest' ? dataModelUrlParsed.pathname : dataElement.selfLinks!.apps;
-          cy.request({
-            url: dataModelUrl,
-          }).then((response) => {
-            cy.log(`Testing data model "${dataElement.dataType}"`);
-            cy.wrap(replaceVariableData(response.body)).snapshot({ name: dataElement.dataType });
-          });
-        }
+      const xmlElements = instanceData.data.filter((el) => el.contentType === 'application/xml');
+      const dataModels: Record<string, unknown> = {};
+
+      for (const dataElement of xmlElements) {
+        const parsed = new URL(dataElement.selfLinks!.apps);
+        const url = Cypress.env('type') === 'localtest' ? parsed.pathname : dataElement.selfLinks!.apps;
+
+        cy.request({ url }).then((res) => {
+          cy.log(`Collecting data model "${dataElement.dataType}"`);
+          dataModels[dataElement.dataType] = replaceVariableData(res.body);
+        });
       }
+
+      cy.then(() => cy.wrap(dataModels).toMatchSnapshot());
     });
   });
 }

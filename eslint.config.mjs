@@ -32,7 +32,6 @@ export default defineConfig([
     'schemas/**/*.json',
     'webpack*.js', // FIXME: should this be included?
     '.yarn/*',
-    'snapshots.js',
   ]),
   js.configs.recommended,
   ...fixupConfigRules(pluginImport.flatConfigs.recommended),
