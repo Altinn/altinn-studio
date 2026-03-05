@@ -611,7 +611,7 @@ body{min-height:100vh;padding:0}
   flex-shrink:0;width:140px;color:var(--text-dim);font-size:12px;
 }
 .detail-value{
-  color:var(--text);word-break:break-word;
+  flex:1;min-width:0;color:var(--text);word-break:break-word;
 }
 .detail-ago{
   color:var(--text-dim);font-size:11px;margin-left:8px;
@@ -672,6 +672,22 @@ body{min-height:100vh;padding:0}
 pre.diff-add{background:rgba(var(--green-rgb),0.12);color:var(--green)}
 pre.diff-remove{background:rgba(var(--red-rgb),0.12);color:var(--red)}
 .diff-unchanged{font-size:12px;color:var(--text-dim);font-style:italic;padding:8px 0}
+
+/* ── Step modal retry / skip-backoff badge ───────────────── */
+.step-retry-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  margin-top:6px;padding:3px 10px;
+  border-radius:12px;border:1px solid var(--orange);
+  background:rgba(var(--orange-rgb),0.12);color:var(--orange);
+  font-size:11px;font-weight:700;letter-spacing:0.3px;
+  cursor:pointer;user-select:none;text-decoration:none;
+  transition:background 0.15s,box-shadow 0.15s;
+}
+.step-retry-badge:hover{background:rgba(var(--orange-rgb),0.25);box-shadow:0 0 8px rgba(var(--orange-rgb),0.4)}
+.step-retry-badge.retrying{opacity:0.5;pointer-events:none;border-color:var(--amber);color:var(--amber);background:rgba(var(--amber-rgb),0.1)}
+.step-retry-badge.retried{border-color:var(--green);color:var(--green);background:rgba(var(--green-rgb),0.12)}
+.step-retry-badge.retry-failed{border-color:var(--red);color:var(--red);background:rgba(var(--red-rgb),0.12)}
+.modal-error-hint{font-size:12px;color:var(--text-dim);margin-bottom:12px;font-style:italic}
 
 /* ── State button ────────────────────────────────────────── */
 .state-btn{font-size:11px;font-weight:700;font-family:var(--font);letter-spacing:0}

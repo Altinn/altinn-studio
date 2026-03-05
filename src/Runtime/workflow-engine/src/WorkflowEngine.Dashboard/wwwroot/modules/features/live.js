@@ -4,6 +4,7 @@ import { dom, state } from '../core/state.js';
 import { cssId } from '../core/helpers.js';
 import { buildCardHTML, buildCompactCardHTML, createWorkflowCard, setCardFilterData } from '../shared/cards.js';
 import { scrollPipelineToActive } from '../shared/pipeline.js';
+import { notifyStepChanged } from './modal.js';
 import { notifyWorkflowChanged } from './state-modal.js';
 
 /** Late-bound references */
@@ -51,6 +52,8 @@ export const updateLiveWorkflows = (workflows) => {
       delete state.previousWorkflows[key];
       delete state.workflowFingerprints[key];
       delete state.workflowTimers[key];
+      notifyStepChanged(key);
+      notifyWorkflowChanged(key);
     }
   }
 
@@ -71,6 +74,7 @@ export const updateLiveWorkflows = (workflows) => {
       setCardFilterData(card, wf);
       if (!isCompact) scrollPipelineToActive(card);
       state.workflowFingerprints[wf.idempotencyKey] = fp;
+      notifyStepChanged(wf.idempotencyKey);
       notifyWorkflowChanged(wf.idempotencyKey);
     }
 

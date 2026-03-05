@@ -694,6 +694,7 @@ internal partial class EnginePgRepository : IEngineRepository
                         stepEntry.Property(e => e.RequeueCount).IsModified = true;
                         stepEntry.Property(e => e.UpdatedAt).IsModified = true;
                         stepEntry.Property(e => e.StateOut).IsModified = true;
+                        stepEntry.Property(e => e.ErrorHistoryJson).IsModified = true;
                     }
 
                     await _context.SaveChangesAsync(ct);
