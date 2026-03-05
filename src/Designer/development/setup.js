@@ -209,6 +209,7 @@ const createContentRepo = async (user, pass, org) => {
 const setupEnvironment = async (env) => {
   buildAndStartComposeService('studio_db');
   buildAndStartComposeService('studio_repositories');
+  buildAndStartComposeService('fake_ansattporten');
   await waitForHealthy('studio-repositories');
 
   createUser(env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS, true);
