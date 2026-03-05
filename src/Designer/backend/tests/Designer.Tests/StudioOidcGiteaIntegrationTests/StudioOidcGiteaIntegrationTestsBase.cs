@@ -168,7 +168,7 @@ public abstract class StudioOidcGiteaIntegrationTestsBase<TControllerTest> : Api
                             ""profile""
                         ],
                         ""RequireHttpsMetadata"": false,
-                        ""CookieExpiryTimeInMinutes"": 59
+                        ""CookieExpiryTimeInMinutes"": 120
                     }},
                     ""DeveloperMappingSettings"": {{
                         ""PidHashSalt"": ""{StudioOidcGiteaFixture.PidHashSalt}""

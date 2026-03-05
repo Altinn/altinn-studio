@@ -19,6 +19,8 @@ namespace Designer.Tests.Fixtures
     internal class StudioOidcAuthDelegatingHandler : DelegatingHandler
     {
         private readonly StudioOidcGiteaFixture _fixture;
+        private List<string> _cachedAuthCookies = [];
+        private string _cachedXsrfToken;
 
         public StudioOidcAuthDelegatingHandler(StudioOidcGiteaFixture fixture)
         {
@@ -30,7 +32,22 @@ namespace Designer.Tests.Fixtures
             CancellationToken cancellationToken
         )
         {
+            // Add cached auth cookies to every request (Secure cookies aren't sent by CookieContainer over HTTP)
+            if (_cachedAuthCookies.Count > 0)
+            {
+                request.AddCookies(_cachedAuthCookies);
+                request.AddXsrfToken(_cachedXsrfToken);
+            }
+
             var response = await base.SendAsync(request, cancellationToken);
+
+            // Update cached cookies if server re-issued them (e.g., after token refresh)
+            var updatedAuthCookies = response.GetCookies("AltinnStudioDesigner");
+            if (updatedAuthCookies.Any())
+            {
+                _cachedAuthCookies = updatedAuthCookies.ToList();
+            }
+
             if (response.StatusCode != HttpStatusCode.Unauthorized)
             {
                 return response;
@@ -144,6 +161,10 @@ namespace Designer.Tests.Fixtures
                 designerAuthCookies,
                 cancellationToken
             );
+
+            // Cache auth cookies so they're added to subsequent requests
+            _cachedAuthCookies = designerAuthCookies;
+            _cachedXsrfToken = xsrfToken;
 
             return await RetryInitialRequestAfterSigningIn(request, designerAuthCookies, xsrfToken, cancellationToken);
         }
