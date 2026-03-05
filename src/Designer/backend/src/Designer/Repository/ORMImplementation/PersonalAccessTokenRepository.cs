@@ -30,7 +30,9 @@ public class PersonalAccessTokenRepository(DesignerdbContext dbContext) : IPerso
         CancellationToken cancellationToken = default
     )
     {
-        var query = dbContext.PersonalAccessTokens.AsNoTracking().Where(t => t.UserAccountId == userAccountId);
+        var query = dbContext
+            .PersonalAccessTokens.AsNoTracking()
+            .Where(t => t.UserAccountId == userAccountId && !t.Revoked);
 
         if (tokenType.HasValue)
         {
