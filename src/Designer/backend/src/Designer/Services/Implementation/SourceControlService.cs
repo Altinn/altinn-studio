@@ -16,6 +16,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -28,14 +29,17 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// <param name="repositorySettings">The settings for the service repository.</param>
 /// <param name="giteaClient">The gitea client.</param>
 /// <param name="authHeadersProvider">The git server auth headers provider.</param>
+/// <param name="httpContextAccessor">The HTTP context accessor.</param>
 public class SourceControlService(
     ServiceRepositorySettings repositorySettings,
     IGiteaClient giteaClient,
-    IGitServerAuthHeadersProvider authHeadersProvider
+    IGitServerAuthHeadersProvider authHeadersProvider,
+    IHttpContextAccessor? httpContextAccessor = null
 ) : ISourceControl
 {
     private readonly ServiceRepositorySettings _repositorySettings = repositorySettings;
     private readonly IGiteaClient _giteaClient = giteaClient;
+    private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor;
 
     private const string DefaultBranch = General.DefaultBranch;
 
@@ -1439,9 +1443,11 @@ public class SourceControlService(
     private static void SetRepositoryStatusTag(Activity? activity, Enums.RepositoryStatus repositoryStatus) =>
         activity?.SetTag("repository_status", repositoryStatus.ToString());
 
-    private static void AddActivityEvent(string eventName, ActivityTagsCollection? tags = null)
+    private void AddActivityEvent(string eventName, ActivityTagsCollection? tags = null)
     {
-        Activity.Current?.AddEvent(new ActivityEvent(eventName, tags: tags));
+        var activity =
+            _httpContextAccessor?.HttpContext?.Features.Get<IHttpActivityFeature>()?.Activity ?? Activity.Current;
+        activity?.AddEvent(new ActivityEvent(eventName, tags: tags));
     }
 
     private static void AddIndexedPushErrors(
