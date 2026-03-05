@@ -4,7 +4,8 @@ using WorkflowEngine.Resilience;
 
 namespace WorkflowEngine.Api;
 
-internal sealed class EngineHealthCheck(IEngine engine, IConcurrencyLimiter concurrencyLimiter) : IHealthCheck
+internal sealed class EngineHealthCheck(IEngineStatus engineStatus, IConcurrencyLimiter concurrencyLimiter)
+    : IHealthCheck
 {
     /// <summary>
     /// Unhealthy: engine is stopped or explicitly unhealthy.
@@ -26,11 +27,11 @@ internal sealed class EngineHealthCheck(IEngine engine, IConcurrencyLimiter conc
 
         var data = new Dictionary<string, object>
         {
-            ["status"] = engine.Status.ToString(),
-            ["queue"] = new Dictionary<string, int>
+            ["status"] = engineStatus.Status.ToString(),
+            ["workers"] = new Dictionary<string, int>
             {
-                ["count"] = engine.InboxCount,
-                ["limit"] = engine.InboxCapacityLimit,
+                ["active"] = engineStatus.ActiveWorkerCount,
+                ["max"] = engineStatus.MaxWorkers,
             },
             ["http_connections"] = new Dictionary<string, int>
             {
@@ -46,8 +47,8 @@ internal sealed class EngineHealthCheck(IEngine engine, IConcurrencyLimiter conc
 
         var status = new
         {
-            IsUnhealthy = (engine.Status & UnhealthyMask) != 0,
-            IsDegraded = (engine.Status & DegradedMask) != 0,
+            IsUnhealthy = (engineStatus.Status & UnhealthyMask) != 0,
+            IsDegraded = (engineStatus.Status & DegradedMask) != 0,
         };
 
         var result = status switch

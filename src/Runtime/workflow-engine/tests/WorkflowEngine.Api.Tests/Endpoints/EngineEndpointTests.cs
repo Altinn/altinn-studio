@@ -22,14 +22,13 @@ public class EngineEndpointTests
         new()
         {
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            IdempotencyKey = "default-idempotency-key",
             Workflows =
             [
                 new WorkflowRequest
                 {
                     OperationId = "op-1",
-                    IdempotencyKey = "wf-1-key",
-                    Type = WorkflowType.Generic,
-                    Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
+                    Steps = [new StepRequest { Command = new Command.Webhook("/test") }],
                 },
             ],
         };
@@ -40,6 +39,7 @@ public class EngineEndpointTests
     public async Task Enqueue_Accepted_ReturnsOkWithRefMap()
     {
         // Arrange
+        var workflowId = Guid.NewGuid();
         var engineMock = new Mock<IEngine>();
         engineMock
             .Setup(e =>
@@ -51,7 +51,7 @@ public class EngineEndpointTests
             )
             .ReturnsAsync(
                 WorkflowEnqueueResponse.Accept([
-                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = 42L },
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = workflowId },
                 ])
             );
 
@@ -69,11 +69,11 @@ public class EngineEndpointTests
         Assert.NotNull(ok.Value);
         Assert.Single(ok.Value.Workflows);
         Assert.Equal("wf-1", ok.Value.Workflows[0].Ref);
-        Assert.Equal(42L, ok.Value.Workflows[0].DatabaseId);
+        Assert.Equal(workflowId, ok.Value.Workflows[0].DatabaseId);
     }
 
     [Fact]
-    public async Task Enqueue_RejectedAtCapacity_Returns429()
+    public async Task Enqueue_Duplicate_Returns409()
     {
         // Arrange
         var engineMock = new Mock<IEngine>();
@@ -85,69 +85,7 @@ public class EngineEndpointTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.AtCapacity, "Queue full"));
-
-        // Act
-        var result = await EngineRequestHandlers.EnqueueWorkflows(
-            _defaultRouteParams,
-            _defaultWorkflowRequest,
-            engineMock.Object,
-            TimeProvider.System,
-            CancellationToken.None
-        );
-
-        // Assert
-        var problem = Assert.IsType<ProblemHttpResult>(result.Result);
-        Assert.Equal(429, problem.StatusCode);
-    }
-
-    [Fact]
-    public async Task Enqueue_RejectedUnavailable_Returns503()
-    {
-        // Arrange
-        var engineMock = new Mock<IEngine>();
-        engineMock
-            .Setup(e =>
-                e.EnqueueWorkflow(
-                    It.IsAny<WorkflowEnqueueRequest>(),
-                    It.IsAny<WorkflowRequestMetadata>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Unavailable, "Engine unavailable")
-            );
-
-        // Act
-        var result = await EngineRequestHandlers.EnqueueWorkflows(
-            _defaultRouteParams,
-            _defaultWorkflowRequest,
-            engineMock.Object,
-            TimeProvider.System,
-            CancellationToken.None
-        );
-
-        // Assert
-        var problem = Assert.IsType<ProblemHttpResult>(result.Result);
-        Assert.Equal(503, problem.StatusCode);
-    }
-
-    [Fact]
-    public async Task Enqueue_RejectedDuplicate_Returns409()
-    {
-        // Arrange
-        var engineMock = new Mock<IEngine>();
-        engineMock
-            .Setup(e =>
-                e.EnqueueWorkflow(
-                    It.IsAny<WorkflowEnqueueRequest>(),
-                    It.IsAny<WorkflowRequestMetadata>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Duplicate, "Duplicate workflow")
-            );
+            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Duplicate));
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
@@ -164,7 +102,7 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task Enqueue_RejectedConcurrencyViolation_Returns409()
+    public async Task Enqueue_Invalid_Returns400()
     {
         // Arrange
         var engineMock = new Mock<IEngine>();
@@ -176,12 +114,7 @@ public class EngineEndpointTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(
-                WorkflowEnqueueResponse.Reject(
-                    WorkflowEnqueueResponse.Rejection.ConcurrencyViolation,
-                    "Concurrency violation"
-                )
-            );
+            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid));
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
@@ -194,13 +127,36 @@ public class EngineEndpointTests
 
         // Assert
         var problem = Assert.IsType<ProblemHttpResult>(result.Result);
-        Assert.Equal(409, problem.StatusCode);
+        Assert.Equal(400, problem.StatusCode);
     }
 
     [Fact]
-    public async Task Enqueue_RejectedInvalid_Returns400()
+    public async Task Enqueue_InvalidGraphCycle_Returns400()
     {
-        // Arrange
+        // Arrange — create a request with a dependency cycle
+        var request = new WorkflowEnqueueRequest
+        {
+            Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            IdempotencyKey = "cycle-key",
+            Workflows =
+            [
+                new WorkflowRequest
+                {
+                    Ref = "wf-a",
+                    OperationId = "op-a",
+                    DependsOn = [WorkflowRef.FromRefString("wf-b")],
+                    Steps = [new StepRequest { Command = new Command.Webhook("/test-a") }],
+                },
+                new WorkflowRequest
+                {
+                    Ref = "wf-b",
+                    OperationId = "op-b",
+                    DependsOn = [WorkflowRef.FromRefString("wf-a")],
+                    Steps = [new StepRequest { Command = new Command.Webhook("/test-b") }],
+                },
+            ],
+        };
+
         var engineMock = new Mock<IEngine>();
         engineMock
             .Setup(e =>
@@ -210,12 +166,12 @@ public class EngineEndpointTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, "Invalid request"));
+            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid));
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
             _defaultRouteParams,
-            _defaultWorkflowRequest,
+            request,
             engineMock.Object,
             TimeProvider.System,
             CancellationToken.None
@@ -233,6 +189,7 @@ public class EngineEndpointTests
         var request = new WorkflowEnqueueRequest
         {
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            IdempotencyKey = "lock-test-key",
             LockToken = null,
             Workflows =
             [
@@ -240,8 +197,6 @@ public class EngineEndpointTests
                 {
                     Ref = "wf-1",
                     OperationId = "op-1",
-                    IdempotencyKey = "wf-1-key",
-                    Type = WorkflowType.AppProcessChange,
                     Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
                 },
             ],
@@ -279,6 +234,7 @@ public class EngineEndpointTests
         var request = new WorkflowEnqueueRequest
         {
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            IdempotencyKey = "lock-test-key",
             LockToken = "some-lock-token",
             Workflows =
             [
@@ -286,8 +242,6 @@ public class EngineEndpointTests
                 {
                     Ref = "wf-1",
                     OperationId = "op-1",
-                    IdempotencyKey = "wf-1-key",
-                    Type = WorkflowType.AppProcessChange,
                     Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
                 },
             ],
@@ -304,7 +258,7 @@ public class EngineEndpointTests
             )
             .ReturnsAsync(
                 WorkflowEnqueueResponse.Accept([
-                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = 1L },
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = Guid.NewGuid() },
                 ])
             );
 
@@ -349,7 +303,7 @@ public class EngineEndpointTests
             )
             .ReturnsAsync(
                 WorkflowEnqueueResponse.Accept([
-                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = 1L },
+                    new WorkflowEnqueueResponse.WorkflowResult { Ref = "wf-1", DatabaseId = Guid.NewGuid() },
                 ])
             );
 
@@ -468,13 +422,14 @@ public class EngineEndpointTests
             Steps = [step],
         };
 
+        var workflowGuid = Guid.NewGuid();
         var repositoryMock = new Mock<IEngineRepository>();
-        repositoryMock.Setup(r => r.GetWorkflow(99L, It.IsAny<CancellationToken>())).ReturnsAsync(workflow);
+        repositoryMock.Setup(r => r.GetWorkflow(workflowGuid, It.IsAny<CancellationToken>())).ReturnsAsync(workflow);
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
             _defaultRouteParams,
-            99L,
+            workflowGuid,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -492,13 +447,13 @@ public class EngineEndpointTests
         // Arrange
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetWorkflow(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetWorkflow(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Workflow?)null);
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
             _defaultRouteParams,
-            999L,
+            Guid.NewGuid(),
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -527,13 +482,14 @@ public class EngineEndpointTests
             Steps = [step],
         };
 
+        var workflowGuid = Guid.NewGuid();
         var repositoryMock = new Mock<IEngineRepository>();
-        repositoryMock.Setup(r => r.GetWorkflow(99L, It.IsAny<CancellationToken>())).ReturnsAsync(workflow);
+        repositoryMock.Setup(r => r.GetWorkflow(workflowGuid, It.IsAny<CancellationToken>())).ReturnsAsync(workflow);
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
             _defaultRouteParams,
-            99L,
+            workflowGuid,
             repositoryMock.Object,
             CancellationToken.None
         );

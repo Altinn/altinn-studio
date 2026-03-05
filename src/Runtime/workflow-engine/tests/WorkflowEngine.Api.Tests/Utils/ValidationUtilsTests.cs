@@ -13,8 +13,6 @@ public class ValidationUtilsTests
         {
             Ref = workflowRef,
             OperationId = $"op-{workflowRef}",
-            IdempotencyKey = $"key-{workflowRef}",
-            Type = WorkflowType.Generic,
             Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
             DependsOn = dependsOnRefs?.Select(d => (WorkflowRef)d).ToList(),
         };
@@ -89,7 +87,7 @@ public class ValidationUtilsTests
         {
             CreateWorkflowRequest("a") with
             {
-                DependsOn = [99L],
+                DependsOn = [Guid.NewGuid()],
             },
             CreateWorkflowRequest("b", ["a"]),
         };
@@ -111,7 +109,7 @@ public class ValidationUtilsTests
             CreateWorkflowRequest("c"),
             CreateWorkflowRequest("a") with
             {
-                DependsOn = [99L, (WorkflowRef)"c"],
+                DependsOn = [Guid.NewGuid(), (WorkflowRef)"c"],
             },
             CreateWorkflowRequest("b", ["a"]),
         };
@@ -212,7 +210,14 @@ public class ValidationUtilsTests
     public void ValidateAndSort_NullRefWorkflow_WithExternalIdDependency_Succeeds()
     {
         // A workflow without a ref can still depend on external DB IDs
-        var requests = new List<WorkflowRequest> { CreateWorkflowRequest("a") with { Ref = null, DependsOn = [99L] } };
+        var requests = new List<WorkflowRequest>
+        {
+            CreateWorkflowRequest("a") with
+            {
+                Ref = null,
+                DependsOn = [Guid.NewGuid()],
+            },
+        };
 
         var result = ValidationUtils.ValidateAndSortWorkflowGraph(requests);
 
@@ -230,8 +235,6 @@ public class ValidationUtilsTests
             {
                 Ref = "b",
                 OperationId = "op-b",
-                IdempotencyKey = "key-b",
-                Type = WorkflowType.Generic,
                 Steps = [],
             },
         };
@@ -267,13 +270,7 @@ public class ValidationUtilsTests
     public static TheoryData<WorkflowRequest, ExpectedResult> WorkflowRequestCases()
     {
         var validStep = new StepRequest { Command = new Command.Debug.Noop() };
-        var validWorkflow = new WorkflowRequest
-        {
-            OperationId = "op",
-            IdempotencyKey = "wf-key",
-            Type = WorkflowType.Generic,
-            Steps = [validStep],
-        };
+        var validWorkflow = new WorkflowRequest { OperationId = "op", Steps = [validStep] };
 
         return new TheoryData<WorkflowRequest, ExpectedResult>
         {
@@ -383,14 +380,7 @@ public class ValidationUtilsTests
         var webhookStep = new StepRequest { Command = new Command.Webhook("https://example.com") };
         var appStep = new StepRequest { Command = new Command.AppCommand("cmd") };
 
-        WorkflowRequest Wf(params StepRequest[] steps) =>
-            new()
-            {
-                OperationId = "op",
-                IdempotencyKey = "wf-key",
-                Type = WorkflowType.Generic,
-                Steps = steps,
-            };
+        WorkflowRequest Wf(params StepRequest[] steps) => new() { OperationId = "op", Steps = steps };
 
         return new TheoryData<IReadOnlyList<WorkflowRequest>, bool>
         {

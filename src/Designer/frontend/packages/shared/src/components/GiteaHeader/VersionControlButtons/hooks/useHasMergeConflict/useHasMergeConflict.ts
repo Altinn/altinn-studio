@@ -6,7 +6,12 @@ export const useHasMergeConflict = (repoStatus: RepoStatus) => {
 
   useEffect(() => {
     if (repoStatus) {
-      setHasMergeConflict(repoStatus.hasMergeConflict);
+      const repoHasMergeConflict =
+        repoStatus.hasMergeConflict ||
+        repoStatus.repositoryStatus === 'MergeConflict' ||
+        repoStatus.repositoryStatus === 'CheckoutConflict';
+
+      setHasMergeConflict(repoHasMergeConflict);
     }
   }, [repoStatus]);
 

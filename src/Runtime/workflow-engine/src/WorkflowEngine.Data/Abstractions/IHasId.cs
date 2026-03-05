@@ -2,5 +2,5 @@ namespace WorkflowEngine.Data.Abstractions;
 
 internal interface IHasId
 {
-    long Id { get; set; }
+    Guid Id { get; set; }
 }

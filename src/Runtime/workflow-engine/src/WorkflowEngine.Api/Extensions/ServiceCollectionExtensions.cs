@@ -43,8 +43,28 @@ internal static class ServiceCollectionExtensions
             });
             services.AddSingleton<IEngine, Engine>();
             services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
-            services.AddHostedService<EngineHost>();
+
+            services.AddSingleton<AsyncSignal>();
+
+            services.AddOptions<WorkflowWriteBufferOptions>().BindConfiguration("WorkflowWriteBuffer");
+            services.AddSingleton<WorkflowWriteBuffer>();
+            services.AddHostedService(sp => sp.GetRequiredService<WorkflowWriteBuffer>());
+
+            services.AddOptions<StatusWriteBufferOptions>().BindConfiguration("StatusWriteBuffer");
+            services.AddSingleton<StatusWriteBuffer>();
+            services.AddHostedService(sp => sp.GetRequiredService<StatusWriteBuffer>());
+
+            services.AddOptions<WorkflowProcessorOptions>().BindConfiguration("WorkflowProcessor");
+            services.AddHostedService<WorkflowProcessor>();
+
+            services.AddScoped<WorkflowHandler>();
+
+            services.AddSingleton<EngineStatusProvider>();
+            services.AddSingleton<IEngineStatus>(sp => sp.GetRequiredService<EngineStatusProvider>());
+
             services.AddHostedService<MetricsCollector>();
+
+            services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromMinutes(2));
 
             return services;
         }

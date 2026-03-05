@@ -12,8 +12,8 @@ namespace WorkflowEngine.Data.Entities;
 internal sealed class StepEntity : IHasCommonMetadata
 {
     [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public long Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
+    public Guid Id { get; set; }
 
     [MaxLength(100)]
     public required string OperationId { get; set; }
@@ -54,7 +54,7 @@ internal sealed class StepEntity : IHasCommonMetadata
 
     // Foreign key and navigation property
     [ForeignKey(nameof(Job))]
-    public long JobId { get; set; }
+    public Guid JobId { get; set; }
     public WorkflowEntity? Job { get; set; }
 
     public static StepEntity FromDomainModel(Step step)

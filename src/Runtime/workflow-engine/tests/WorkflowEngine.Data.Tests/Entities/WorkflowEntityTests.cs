@@ -8,7 +8,7 @@ public class WorkflowEntityTests
     private static WorkflowEntity CreateWorkflowEntity(params StepEntity[] steps) =>
         new()
         {
-            Id = 42,
+            Id = Guid.Parse("11111111-2222-3333-4444-555555555555"),
             IdempotencyKey = "wf-key",
             InstanceLockKey = "lock-key-1",
             OperationId = "next",
@@ -23,14 +23,13 @@ public class WorkflowEntityTests
             InstanceOwnerPartyId = 50001,
             InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
             TraceContext = "trace-ctx-abc",
-            Type = WorkflowType.AppProcessChange,
             Steps = steps.ToList(),
         };
 
     private static StepEntity CreateStepEntity(int order = 0) =>
         new()
         {
-            Id = 100 + order,
+            Id = Guid.NewGuid(),
             OperationId = "noop",
             IdempotencyKey = $"step-key-{order}",
             Status = PersistentItemStatus.Enqueued,
@@ -66,7 +65,6 @@ public class WorkflowEntityTests
         Assert.Equal(entity.InstanceApp, roundTripped.InstanceApp);
         Assert.Equal(entity.InstanceOwnerPartyId, roundTripped.InstanceOwnerPartyId);
         Assert.Equal(entity.InstanceGuid, roundTripped.InstanceGuid);
-        Assert.Equal(entity.Type, roundTripped.Type);
         Assert.Equal(entity.Steps.Count, roundTripped.Steps.Count);
     }
 

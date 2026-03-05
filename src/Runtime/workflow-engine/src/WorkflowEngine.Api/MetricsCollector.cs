@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
@@ -9,11 +8,10 @@ namespace WorkflowEngine.Api;
 
 internal sealed class MetricsCollector(
     ILogger<MetricsCollector> logger,
-    IEngine engine,
+    IEngineStatus engineStatus,
     IEngineRepository engineRepository,
     IConcurrencyLimiter concurrencyLimiter,
-    TimeProvider timeProvider,
-    IOptions<EngineSettings> engineSettings
+    TimeProvider timeProvider
 ) : BackgroundService
 {
     private static readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(10);
@@ -30,10 +28,10 @@ internal sealed class MetricsCollector(
 
             try
             {
-                var inboxCount = engine.InboxCount;
-                var inboxLimit = engineSettings.Value.QueueCapacity;
-                Metrics.SetAvailableInboxSlots(inboxLimit - inboxCount);
-                Metrics.SetUsedInboxSlots(inboxCount);
+                var activeWorkers = engineStatus.ActiveWorkerCount;
+                var maxWorkers = engineStatus.MaxWorkers;
+                Metrics.SetUsedInboxSlots(activeWorkers);
+                Metrics.SetAvailableInboxSlots(maxWorkers - activeWorkers);
 
                 var active = await engineRepository.CountActiveWorkflows(cancellationToken: stoppingToken);
                 var scheduled = await engineRepository.CountScheduledWorkflows(cancellationToken: stoppingToken);

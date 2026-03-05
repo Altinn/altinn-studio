@@ -44,7 +44,6 @@ public abstract record WorkflowEnqueueResponse
         Duplicate,
         Unavailable,
         AtCapacity,
-        ConcurrencyViolation,
     }
 
     /// <summary>
@@ -57,6 +56,6 @@ public abstract record WorkflowEnqueueResponse
         public string? Ref { get; init; }
 
         [JsonPropertyName("databaseId")]
-        public required long DatabaseId { get; init; }
+        public required Guid DatabaseId { get; init; }
     }
 }

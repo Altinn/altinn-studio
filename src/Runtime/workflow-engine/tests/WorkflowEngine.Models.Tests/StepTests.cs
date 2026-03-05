@@ -12,9 +12,11 @@ public class StepTests
     {
         // Arrange
 
+        var sharedGuid = Guid.NewGuid();
+
         var sharedId1 = new Step
         {
-            DatabaseId = 42,
+            DatabaseId = sharedGuid,
             OperationId = "step-1-command",
             IdempotencyKey = "key-1",
             Actor = _randomActor,
@@ -23,7 +25,7 @@ public class StepTests
         };
         var sharedId2 = new Step
         {
-            DatabaseId = 42,
+            DatabaseId = sharedGuid,
             OperationId = "step-2-command",
             IdempotencyKey = "key-2",
             Actor = _randomActor,
@@ -32,7 +34,7 @@ public class StepTests
         };
         var uniqueId = new Step
         {
-            DatabaseId = 99,
+            DatabaseId = Guid.NewGuid(),
             OperationId = "step-3-command",
             IdempotencyKey = "key-3",
             Actor = _randomActor,
@@ -85,18 +87,12 @@ public class StepTests
         var stepRequest = new StepRequest { Command = command, RetryStrategy = retryStrategy };
 
         // Act
-        var parentRequest = new WorkflowRequest
-        {
-            OperationId = "op-1",
-            IdempotencyKey = "parent-key",
-            Type = WorkflowType.Generic,
-            Steps = [stepRequest],
-        };
+        var parentRequest = new WorkflowRequest { OperationId = "op-1", Steps = [stepRequest] };
 
-        var step = Step.FromRequest(parentRequest, stepRequest, metadata, index: 2);
+        var step = Step.FromRequest(parentRequest, stepRequest, metadata, "parent-key", index: 2);
 
         // Assert
-        Assert.Equal(0, step.DatabaseId);
+        Assert.NotEqual(Guid.Empty, step.DatabaseId);
         Assert.Equal("process-payment", step.OperationId);
         Assert.Same(actor, step.Actor);
         Assert.Equal(createdAt, step.CreatedAt);
@@ -126,16 +122,10 @@ public class StepTests
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
-        var parentRequest = new WorkflowRequest
-        {
-            OperationId = "op-1",
-            IdempotencyKey = "parent-key",
-            Type = WorkflowType.Generic,
-            Steps = [stepRequest],
-        };
+        var parentRequest = new WorkflowRequest { OperationId = "op-1", Steps = [stepRequest] };
 
         // Act
-        var step = Step.FromRequest(parentRequest, stepRequest, metadata, index: 0);
+        var step = Step.FromRequest(parentRequest, stepRequest, metadata, "parent-key", index: 0);
 
         // Assert
         Assert.Same(actor, step.Actor);
@@ -160,16 +150,10 @@ public class StepTests
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
-        var parentRequest = new WorkflowRequest
-        {
-            OperationId = "op-1",
-            IdempotencyKey = "parent-key",
-            Type = WorkflowType.Generic,
-            Steps = [stepRequest],
-        };
+        var parentRequest = new WorkflowRequest { OperationId = "op-1", Steps = [stepRequest] };
 
         // Act
-        var step = Step.FromRequest(parentRequest, stepRequest, metadata, index: 0);
+        var step = Step.FromRequest(parentRequest, stepRequest, metadata, "parent-key", index: 0);
 
         // Assert
         Assert.Null(step.RetryStrategy);

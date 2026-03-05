@@ -91,7 +91,7 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 
 | Endpoint | Method | Used by |
 |----------|--------|---------|
-| `/dashboard/stream` | SSE | Main loop — engine status, capacity, inbox workflows, scheduled count |
+| `/dashboard/stream` | SSE | Main loop — engine status, capacity, active workflows, scheduled count |
 | `/dashboard/stream/recent` | SSE | Recent workflows (deduped by fingerprint on backend) |
 | `/dashboard/orgs-and-apps` | GET | Populate org/app dropdowns on connect |
 | `/dashboard/scheduled` | GET | Scheduled section (on-demand) |
@@ -110,8 +110,8 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 **Live tab** — all sections collapsible (collapse state persisted to `localStorage` and URL):
 
 - **Scheduled** (collapsed by default) — workflows with future `startAt`, live countdown, time-bucket chips (10s/1m/5m/later)
-- **Inbox** — current engine inbox, real-time via SSE, status chips (Processing/Retrying)
-- **Recent** — workflows that just left the inbox, via SSE, status chips (Completed/Failed)
+- **Inbox** — currently active workflows, real-time via SSE, status chips (Processing/Retrying)
+- **Recent** — recently completed/failed workflows, via SSE, status chips (Completed/Failed)
 
 **Query tab** — loads from DB on-demand:
 - Toggle chips for Completed/Failed status (multi-select)

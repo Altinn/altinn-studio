@@ -4,7 +4,7 @@ namespace WorkflowEngine.Models;
 
 public abstract record PersistentItem
 {
-    public long DatabaseId { get; internal set; }
+    public Guid DatabaseId { get; internal set; }
     public required string OperationId { get; init; }
 
     public required string IdempotencyKey { get; set; }

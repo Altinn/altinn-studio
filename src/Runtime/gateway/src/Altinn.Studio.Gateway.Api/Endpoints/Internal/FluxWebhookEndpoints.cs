@@ -1,4 +1,3 @@
-using Altinn.Studio.Runtime.Common;
 using System.Diagnostics;
 using Altinn.Studio.Gateway.Api.Clients.Designer.Contracts;
 using Altinn.Studio.Gateway.Api.Clients.K8s;

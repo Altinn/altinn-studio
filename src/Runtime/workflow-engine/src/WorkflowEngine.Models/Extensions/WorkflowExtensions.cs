@@ -48,6 +48,9 @@ public static class WorkflowExtensions
             if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.Canceled))
                 return PersistentItemStatus.Canceled;
 
+            if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.Requeued))
+                return PersistentItemStatus.Requeued;
+
             return workflow.Steps.Any(t => t.Status != PersistentItemStatus.Enqueued)
                 ? PersistentItemStatus.Processing
                 : PersistentItemStatus.Enqueued;

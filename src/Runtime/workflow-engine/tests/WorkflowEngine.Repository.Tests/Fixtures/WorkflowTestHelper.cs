@@ -7,11 +7,57 @@ namespace WorkflowEngine.Repository.Tests.Fixtures;
 
 internal static class WorkflowTestHelper
 {
+    public static async Task<BatchEnqueueResult[]> EnqueueWorkflows(
+        IEngineNpgsqlRepository repository,
+        WorkflowRequestMetadata metadata,
+        IReadOnlyList<WorkflowRequest> workflows,
+        string? idempotencyKey = null
+    )
+    {
+        var request = new WorkflowEnqueueRequest
+        {
+            Actor = metadata.Actor,
+            IdempotencyKey = idempotencyKey ?? Guid.NewGuid().ToString("N"),
+            LockToken = metadata.InstanceLockKey,
+            Workflows = workflows,
+        };
+
+        var buffered = new BufferedEnqueueRequest(
+            request,
+            metadata,
+            Guid.NewGuid().ToByteArray(),
+            new TaskCompletionSource<Guid[]>(TaskCreationOptions.RunContinuationsAsynchronously)
+        );
+
+        return await repository.BatchEnqueueWorkflowsAsync([buffered], TestContext.Current.CancellationToken);
+    }
+
+    public static async Task<Workflow> EnqueueWorkflow(
+        IEngineNpgsqlRepository repository,
+        EngineDbContext context,
+        WorkflowRequest request,
+        WorkflowRequestMetadata metadata,
+        string? idempotencyKey = null
+    )
+    {
+        var results = await EnqueueWorkflows(repository, metadata, [request], idempotencyKey);
+        var result = Assert.Single(results);
+        Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
+
+        var workflowId = Assert.Single(result.WorkflowIds!);
+        var entity = await context
+            .Workflows.Include(w => w.Steps)
+            .Include(w => w.Dependencies)
+            .Include(w => w.Links)
+            .SingleAsync(w => w.Id == workflowId, TestContext.Current.CancellationToken);
+
+        return entity.ToDomainModel();
+    }
+
     public static (WorkflowRequest Request, WorkflowRequestMetadata Metadata) CreateRequest(
         Guid? instanceGuid = null,
-        WorkflowType type = WorkflowType.AppProcessChange,
-        IEnumerable<long>? dependencies = null,
-        IEnumerable<long>? links = null,
+        IEnumerable<Guid>? dependencies = null,
+        IEnumerable<Guid>? links = null,
         string org = "ttd",
         string app = "test-app",
         int instanceOwnerPartyId = 50001234,
@@ -23,8 +69,6 @@ internal static class WorkflowTestHelper
         var request = new WorkflowRequest
         {
             OperationId = "next",
-            IdempotencyKey = $"test-key-{Guid.NewGuid()}",
-            Type = type,
             Steps = [new StepRequest { Command = new Command.AppCommand("test-step") }],
             StartAt = startAt,
             DependsOn = dependencies?.Select(id => (WorkflowRef)id).ToList(),
@@ -49,28 +93,28 @@ internal static class WorkflowTestHelper
     }
 
     public static async Task<Workflow> InsertAndSetStatus(
-        IEngineRepository repository,
+        IEngineNpgsqlRepository repository,
         EngineDbContext context,
         PersistentItemStatus status,
         Guid? instanceGuid = null,
-        WorkflowType finalType = WorkflowType.AppProcessChange,
-        IEnumerable<long>? dependencies = null
+        IEnumerable<Guid>? dependencies = null,
+        string org = "ttd",
+        string app = "test-app"
     )
     {
-        // Insert as Generic to bypass constraint checks
         var (request, metadata) = CreateRequest(
             instanceGuid: instanceGuid,
-            type: WorkflowType.Generic,
-            dependencies: dependencies
+            dependencies: dependencies,
+            org: org,
+            app: app
         );
 
-        var workflow = await repository.AddWorkflow(request, metadata);
+        var workflow = await EnqueueWorkflow(repository, context, request, metadata);
 
-        // Update status and type directly via raw SQL
-        var typeInt = (int)finalType;
+        // Update status directly via raw SQL
         var statusInt = (int)status;
         await context.Database.ExecuteSqlAsync(
-            $"""UPDATE "Workflows" SET "Status" = {statusInt}, "Type" = {typeInt} WHERE "Id" = {workflow.DatabaseId}""",
+            $"""UPDATE "Workflows" SET "Status" = {statusInt} WHERE "Id" = {workflow.DatabaseId}""",
             TestContext.Current.CancellationToken
         );
 

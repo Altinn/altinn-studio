@@ -12,14 +12,21 @@ using WorkflowEngine.Data.Services;
 namespace WorkflowEngine.Integration.Tests.Fixtures;
 
 /// <summary>
-/// Shared fixture that boots a real PostgreSQL container, a WireMock server, and the full
-/// ASP.NET Core application (via WebApplicationFactory).  All end-to-end tests share one
-/// fixture instance; each test calls <see cref="ResetAsync"/> to restore a clean state.
+/// Shared fixture that boots a real PostgreSQL container, an in-memory WireMock server,
+/// and the full ASP.NET Core application (via WebApplicationFactory).
+///
+/// All tests within the same collection share one fixture instance;
+/// each test calls <see cref="ResetAsync"/> to restore a clean state.
 /// </summary>
 public sealed class EngineAppFixture : IAsyncLifetime
 {
     public const string ApiBasePath = "/api/v1/workflows";
     public const string TestApiKey = "e2e-test-api-key-00000001";
+    public const string DefaultOrg = "ttd";
+    public const string DefaultApp = "e2e-tests";
+    public const string DefaultPartyId = "50001";
+    public const string DefaultInstanceLockToken = "e2e-lock-token-abc123";
+
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18").Build();
     private EngineWebApplicationFactory _factory = null!;
     private int _wireMockPort;
@@ -45,6 +52,11 @@ public sealed class EngineAppFixture : IAsyncLifetime
     /// Creates an <see cref="HttpClient"/> pre-populated with the test API key and pointing to the locally running engine.
     /// </summary>
     public HttpClient CreateEngineClient() => _factory.CreateEngineClient();
+
+    /// <summary>
+    /// Creates an <see cref="HttpClient"/> without any pre-populated headers (no API key).
+    /// </summary>
+    public HttpClient CreateRawClient() => _factory.CreateClient();
 
     /// <summary>
     /// Provides access to the engine's service provider.

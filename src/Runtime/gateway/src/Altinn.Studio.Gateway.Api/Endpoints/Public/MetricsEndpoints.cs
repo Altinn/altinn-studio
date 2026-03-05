@@ -1,4 +1,3 @@
-using Altinn.Studio.Runtime.Common;
 using Altinn.Studio.Gateway.Api.Application;
 
 namespace Altinn.Studio.Gateway.Api.Endpoints.Public;

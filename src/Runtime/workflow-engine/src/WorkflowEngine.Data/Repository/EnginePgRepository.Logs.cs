@@ -49,10 +49,10 @@ internal static partial class EnginePgRepositoryLogs
     );
 
     [LoggerMessage(LogLevel.Debug, "Fetching workflow by ID {WorkflowId}")]
-    internal static partial void FetchingWorkflowById(this ILogger<EnginePgRepository> logger, long workflowId);
+    internal static partial void FetchingWorkflowById(this ILogger<EnginePgRepository> logger, Guid workflowId);
 
     [LoggerMessage(LogLevel.Debug, "Workflow with ID {WorkflowId} not found")]
-    internal static partial void WorkflowNotFound(this ILogger<EnginePgRepository> logger, long workflowId);
+    internal static partial void WorkflowNotFound(this ILogger<EnginePgRepository> logger, Guid workflowId);
 
     [LoggerMessage(LogLevel.Debug, "Successfully added workflow to database: {Workflow}")]
     internal static partial void SuccessfullyAddedWorkflow(this ILogger<EnginePgRepository> logger, Workflow workflow);
@@ -80,7 +80,7 @@ internal static partial class EnginePgRepositoryLogs
     internal static partial void FailedToUpdateWorkflow(
         this ILogger<EnginePgRepository> logger,
         string workflowIdentifier,
-        long databaseId,
+        Guid databaseId,
         string message,
         Exception ex
     );
@@ -112,7 +112,7 @@ internal static partial class EnginePgRepositoryLogs
     internal static partial void FailedToUpdateStep(
         this ILogger<EnginePgRepository> logger,
         string stepIdentifier,
-        long databaseId,
+        Guid databaseId,
         string message,
         Exception ex
     );

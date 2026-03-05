@@ -78,5 +78,5 @@ if (!app.Environment.IsProduction())
 
 await app.RunAsync();
 
-// Exposed for WebApplicationFactory in end-to-end tests
+// Exposed for WebApplicationFactory in integration tests
 public partial class Program { }

@@ -29,7 +29,7 @@ internal static class EngineEndpoints
             .WithDescription("Lists all active workflows for the given instance");
 
         group
-            .MapGet("/{workflowId:long}", EngineRequestHandlers.GetWorkflow)
+            .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
             .WithName("GetWorkflow")
             .WithDescription("Gets details of a single workflow by database ID");
 
@@ -74,13 +74,12 @@ internal static class EngineRequestHandlers
                 statusCode: rejected.Reason switch
                 {
                     WorkflowEnqueueResponse.Rejection.Duplicate => StatusCodes.Status409Conflict,
-                    WorkflowEnqueueResponse.Rejection.AtCapacity => StatusCodes.Status429TooManyRequests,
+                    WorkflowEnqueueResponse.Rejection.Invalid => StatusCodes.Status400BadRequest,
                     WorkflowEnqueueResponse.Rejection.Unavailable => StatusCodes.Status503ServiceUnavailable,
-                    WorkflowEnqueueResponse.Rejection.ConcurrencyViolation => StatusCodes.Status409Conflict,
-                    _ => StatusCodes.Status400BadRequest,
+                    _ => throw new UnreachableException(),
                 }
             ),
-            _ => TypedResults.Problem(statusCode: StatusCodes.Status500InternalServerError),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -102,7 +101,7 @@ internal static class EngineRequestHandlers
 
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
         [AsParameters] InstanceRouteParams instanceParams,
-        [FromRoute] long workflowId,
+        [FromRoute] Guid workflowId,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )

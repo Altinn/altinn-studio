@@ -19,9 +19,11 @@ public class WorkflowTests
     {
         // Arrange
 
+        var sharedGuid = Guid.NewGuid();
+
         var sharedId1 = new Workflow
         {
-            DatabaseId = 42,
+            DatabaseId = sharedGuid,
             OperationId = "workflow-1-operation",
             IdempotencyKey = "key-1",
             Actor = _randomActor,
@@ -30,7 +32,7 @@ public class WorkflowTests
         };
         var sharedId2 = new Workflow
         {
-            DatabaseId = 42,
+            DatabaseId = sharedGuid,
             OperationId = "workflow-2-operation",
             IdempotencyKey = "key-2",
             Actor = _randomActor,
@@ -39,7 +41,7 @@ public class WorkflowTests
         };
         var uniqueId = new Workflow
         {
-            DatabaseId = 99,
+            DatabaseId = Guid.NewGuid(),
             OperationId = "workflow-3-operation",
             IdempotencyKey = "key-3",
             Actor = _randomActor,
@@ -86,8 +88,6 @@ public class WorkflowTests
         var workflowRequest = new WorkflowRequest
         {
             OperationId = "next",
-            IdempotencyKey = "wf-1-key",
-            Type = WorkflowType.AppProcessChange,
             StartAt = startAt,
             Steps =
             [
@@ -105,7 +105,7 @@ public class WorkflowTests
         );
 
         // Act
-        var workflow = Workflow.FromRequest(workflowRequest, metadata, dependencies: null, links: null);
+        var workflow = Workflow.FromRequest(workflowRequest, metadata, "wf-1-key", dependencies: null, links: null);
 
         // Assert — Workflow fields
         Assert.Equal("next", workflow.OperationId);
@@ -116,7 +116,6 @@ public class WorkflowTests
         Assert.Equal(traceContext, workflow.DistributedTraceContext);
         Assert.Equal("lock-key-1", workflow.InstanceLockKey);
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Status);
-        Assert.Equal(WorkflowType.AppProcessChange, workflow.Type);
         Assert.Null(workflow.Dependencies);
         Assert.Null(workflow.Links);
 
@@ -139,8 +138,6 @@ public class WorkflowTests
         var workflowRequest = new WorkflowRequest
         {
             OperationId = "op-1",
-            IdempotencyKey = "wf-1-key",
-            Type = WorkflowType.Generic,
             Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
         };
 
@@ -159,13 +156,12 @@ public class WorkflowTests
         );
 
         // Act
-        var workflow = Workflow.FromRequest(workflowRequest, metadata, dependencies: null, links: null);
+        var workflow = Workflow.FromRequest(workflowRequest, metadata, "wf-1-key", dependencies: null, links: null);
 
         // Assert
         Assert.Null(workflow.StartAt);
         Assert.Null(workflow.DistributedTraceContext);
         Assert.Null(workflow.InstanceLockKey);
-        Assert.Equal(WorkflowType.Generic, workflow.Type);
         Assert.Null(workflow.Dependencies);
         Assert.Null(workflow.Links);
     }
@@ -174,9 +170,12 @@ public class WorkflowTests
     public void FromRequest_WithDependenciesAndLinks_MapsCorrectly()
     {
         // Arrange
+        var depGuid = Guid.NewGuid();
+        var linkGuid = Guid.NewGuid();
+
         var dependency = new Workflow
         {
-            DatabaseId = 10,
+            DatabaseId = depGuid,
             OperationId = "dep-op",
             IdempotencyKey = "dep-key",
             Actor = _randomActor,
@@ -185,7 +184,7 @@ public class WorkflowTests
         };
         var link = new Workflow
         {
-            DatabaseId = 20,
+            DatabaseId = linkGuid,
             OperationId = "link-op",
             IdempotencyKey = "link-key",
             Actor = _randomActor,
@@ -196,8 +195,6 @@ public class WorkflowTests
         var workflowRequest = new WorkflowRequest
         {
             OperationId = "op-1",
-            IdempotencyKey = "wf-1-key",
-            Type = WorkflowType.Generic,
             Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
         };
 
@@ -210,15 +207,21 @@ public class WorkflowTests
         );
 
         // Act
-        var workflow = Workflow.FromRequest(workflowRequest, metadata, dependencies: [dependency], links: [link]);
+        var workflow = Workflow.FromRequest(
+            workflowRequest,
+            metadata,
+            "wf-1-key",
+            dependencies: [dependency],
+            links: [link]
+        );
 
         // Assert
         Assert.NotNull(workflow.Dependencies);
         Assert.Single(workflow.Dependencies);
-        Assert.Equal(10, workflow.Dependencies.First().DatabaseId);
+        Assert.Equal(depGuid, workflow.Dependencies.First().DatabaseId);
 
         Assert.NotNull(workflow.Links);
         Assert.Single(workflow.Links);
-        Assert.Equal(20, workflow.Links.First().DatabaseId);
+        Assert.Equal(linkGuid, workflow.Links.First().DatabaseId);
     }
 }

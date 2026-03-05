@@ -32,13 +32,13 @@ k6 run .k6/stress-test.js -e ITERATIONS=1000 -e VUS=25
 2. Polls the health endpoint until the engine's queue is fully drained, reporting the drain time.
 3. Prints latency percentiles (p50/p95/p99), throughput, and error rates.
 
-| Variable     | Default                                                         | Description                     |
-|--------------|-----------------------------------------------------------------|---------------------------------|
-| `ITERATIONS` | `5000`                                                          | Total number of requests        |
-| `VUS`        | `100`                                                           | Concurrent virtual users        |
-| `BASE_URL`   | `http://localhost:8080/api/v1/workflows/test-org/test-app/12345`| Workflow engine base URL        |
-| `HEALTH_URL` | `http://localhost:8080/api/v1/health`                           | Health endpoint for queue drain |
-| `API_KEY`    | `0544ba8b-2d8a-4ec9-b93a-47cdbd220293`                         | API key for authentication      |
+| Variable     | Default                                                          | Description                     |
+|--------------|------------------------------------------------------------------|---------------------------------|
+| `ITERATIONS` | `5000`                                                           | Total number of requests        |
+| `VUS`        | `100`                                                            | Concurrent virtual users        |
+| `BASE_URL`   | `http://localhost:8080/api/v1/workflows/test-org/test-app/12345` | Workflow engine base URL        |
+| `HEALTH_URL` | `http://localhost:8080/api/v1/health`                            | Health endpoint for queue drain |
+| `API_KEY`    | `0544ba8b-2d8a-4ec9-b93a-47cdbd220293`                           | API key for authentication      |
 
 ### continuous-process-next.js
 
@@ -52,12 +52,12 @@ k6 run .k6/continuous-process-next.js
 k6 run .k6/continuous-process-next.js -e INTERVAL=5 -e INSTANCE_GUID=some-guid
 ```
 
-| Variable        | Default                                                         | Description                  |
-|-----------------|-----------------------------------------------------------------|------------------------------|
-| `INTERVAL`      | `2`                                                             | Seconds between requests     |
-| `INSTANCE_GUID` | `f13f515d-17b2-4f86-9c7a-a955583c4a1c`                         | Instance GUID to target      |
-| `BASE_URL`      | `http://localhost:8080/api/v1/workflows/test-org/test-app/12345`| Workflow engine base URL     |
-| `API_KEY`       | `0544ba8b-2d8a-4ec9-b93a-47cdbd220293`                         | API key for authentication   |
+| Variable        | Default                                                          | Description                |
+|-----------------|------------------------------------------------------------------|----------------------------|
+| `INTERVAL`      | `2`                                                              | Seconds between requests   |
+| `INSTANCE_GUID` | `f13f515d-17b2-4f86-9c7a-a955583c4a1c`                           | Instance GUID to target    |
+| `BASE_URL`      | `http://localhost:8080/api/v1/workflows/test-org/test-app/12345` | Workflow engine base URL   |
+| `API_KEY`       | `0544ba8b-2d8a-4ec9-b93a-47cdbd220293`                           | API key for authentication |
 
 ### constant-rate.js
 
@@ -74,14 +74,14 @@ k6 run .k6/constant-rate.js -e RATE=50
 k6 run .k6/constant-rate.js -e RATE=500 -e MAX_VUS=1000 -e POLL_INTERVAL=5
 ```
 
-| Variable        | Default                                                         | Description                                       |
-|-----------------|-----------------------------------------------------------------|---------------------------------------------------|
-| `RATE`          | `100`                                                           | Requests per second                               |
-| `MAX_VUS`       | `200`                                                           | Max virtual users (increase if VUs become scarce)  |
-| `POLL_INTERVAL` | `2`                                                             | Seconds between health endpoint polls              |
-| `BASE_URL`      | `http://localhost:8080/api/v1/workflows/test-org/test-app/12345`| Workflow engine base URL                          |
-| `HEALTH_URL`    | `http://localhost:8080/api/v1/health`                           | Health endpoint for queue monitoring               |
-| `API_KEY`       | `0544ba8b-2d8a-4ec9-b93a-47cdbd220293`                         | API key for authentication                        |
+| Variable        | Default                                                          | Description                                       |
+|-----------------|------------------------------------------------------------------|---------------------------------------------------|
+| `RATE`          | `100`                                                            | Requests per second                               |
+| `MAX_VUS`       | `200`                                                            | Max virtual users (increase if VUs become scarce) |
+| `POLL_INTERVAL` | `2`                                                              | Seconds between health endpoint polls             |
+| `BASE_URL`      | `http://localhost:8080/api/v1/workflows/test-org/test-app/12345` | Workflow engine base URL                          |
+| `HEALTH_URL`    | `http://localhost:8080/api/v1/health`                            | Health endpoint for queue monitoring              |
+| `API_KEY`       | `0544ba8b-2d8a-4ec9-b93a-47cdbd220293`                           | API key for authentication                        |
 
 ## Payload
 

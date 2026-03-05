@@ -11,7 +11,7 @@ public sealed record WorkflowStatusResponse
     /// The database ID of the workflow.
     /// </summary>
     [JsonPropertyName("databaseId")]
-    public long DatabaseId { get; init; }
+    public Guid DatabaseId { get; init; }
 
     /// <summary>
     /// An identifier for this operation.
@@ -66,25 +66,18 @@ public sealed record WorkflowStatusResponse
     public required PersistentItemStatus OverallStatus { get; init; }
 
     /// <summary>
-    /// The type of workflow.
-    /// </summary>
-    [JsonPropertyName("type")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required WorkflowType Type { get; init; }
-
-    /// <summary>
     /// Optional dependencies for this workflow, presented as a dictionary of workflow ID and corresponding processing status.
     /// </summary>
     [JsonPropertyName("dependencies")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IReadOnlyDictionary<long, PersistentItemStatus>? Dependencies { get; init; }
+    public IReadOnlyDictionary<Guid, PersistentItemStatus>? Dependencies { get; init; }
 
     /// <summary>
     /// Optional links for this workflow, presented as a dictionary of workflow ID and corresponding processing status.
     /// </summary>
     [JsonPropertyName("links")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IReadOnlyDictionary<long, PersistentItemStatus>? Links { get; init; }
+    public IReadOnlyDictionary<Guid, PersistentItemStatus>? Links { get; init; }
 
     /// <summary>
     /// Details about each step in the workflow.
@@ -104,7 +97,6 @@ public sealed record WorkflowStatusResponse
             Metadata = workflow.Metadata,
             Actor = workflow.Actor,
             OverallStatus = workflow.Status,
-            Type = workflow.Type,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Steps = workflow.Steps.Select(StepStatusResponse.FromStep).ToList(),

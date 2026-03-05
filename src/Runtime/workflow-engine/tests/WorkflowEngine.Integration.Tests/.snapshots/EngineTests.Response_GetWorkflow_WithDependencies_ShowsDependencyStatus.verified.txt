@@ -1,0 +1,29 @@
+﻿{
+  databaseId: {Scrubbed},
+  operationId: op-wf-b,
+  idempotencyKey: idem-Guid_1,
+  createdAt: {Scrubbed},
+  updatedAt: {Scrubbed},
+  actor: {
+    userIdOrOrgNumber: test-user,
+    language: null
+  },
+  overallStatus: Completed,
+  dependencies: {
+    {Scrubbed}: Completed
+  },
+  steps: [
+    {
+      databaseId: {Scrubbed},
+      idempotencyKey: idem-Guid_1/webhook,
+      processingOrder: 0,
+      updatedAt: {Scrubbed},
+      command: {
+        type: Webhook,
+        operationId: webhook
+      },
+      status: Completed,
+      retryCount: 0
+    }
+  ]
+}

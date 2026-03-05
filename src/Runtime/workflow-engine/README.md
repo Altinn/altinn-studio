@@ -33,11 +33,26 @@ To run everything in Docker, including the API itself:
 docker compose --profile app up -d
 ```
 
+To also include the monitoring dashboard:
+
+```sh
+docker compose --profile app --profile dashboard up -d
+```
+
+Or use the `full` profile for everything (engine, dashboard, and observability stack):
+
+```sh
+docker compose --profile full up -d
+```
+
+The dashboard's `wwwroot/` directory is bind-mounted into the container, so frontend file edits are reflected immediately without rebuilding — just refresh the browser (or let hot-reload do it automatically).
+
 ### Ports & URLs
 
 | Service    | URL                                                             | Notes                                                   |
 |------------|-----------------------------------------------------------------|---------------------------------------------------------|
 | Engine API | [http://localhost:8080](http://localhost:8080)                  | Swagger UI at [/swagger](http://localhost:8080/swagger) |
+| Dashboard  | [http://localhost:8090](http://localhost:8090)                  | Real-time monitoring UI                                 |
 | Grafana    | [http://localhost:7070](http://localhost:7070)                  | Dashboards, logs, traces, metrics                       |
 | WireMock   | [http://localhost:6060](http://localhost:6060/__admin/requests) | Mock app/webhook target                                 |
 | PgAdmin    | [http://localhost:5050](http://localhost:5050)                  | Db password: postgres123                                |
@@ -69,6 +84,10 @@ dotnet ef migrations add <Name> \
   --project src/WorkflowEngine.Data \
   --startup-project src/WorkflowEngine.Api
 ```
+
+## Load testing
+
+k6 scripts for stress testing and benchmarking are available in the [`.k6/`](.k6/) directory. See the [k6 README](.k6/README.md) for setup instructions, available scripts, and configuration options.
 
 ## Further reading
 

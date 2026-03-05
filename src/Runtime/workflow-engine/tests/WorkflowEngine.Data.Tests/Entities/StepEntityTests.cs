@@ -13,7 +13,7 @@ public class StepEntityTests
     ) =>
         new()
         {
-            Id = 99,
+            Id = Guid.Parse("99999999-aaaa-bbbb-cccc-dddddddddddd"),
             OperationId = "send-email",
             IdempotencyKey = "step-key",
             Status = PersistentItemStatus.Processing,

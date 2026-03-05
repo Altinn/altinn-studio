@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Npgsql;
 using Testcontainers.PostgreSql;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
@@ -58,7 +60,20 @@ public sealed class PostgresFixture : IAsyncLifetime
         return new EnginePgRepository(context, _settings, NullLogger<EnginePgRepository>.Instance, _limiter);
     }
 
-    internal async Task<Workflow?> GetWorkflow(long workflowId)
+    internal EngineNpgsqlRepository CreateNpgsqlRepository()
+    {
+        var dataSource = NpgsqlDataSource.Create(ConnectionString);
+        var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
+        var factory = new PooledDbContextFactory<EngineDbContext>(options);
+        return new EngineNpgsqlRepository(
+            dataSource,
+            TimeProvider.System,
+            NullLogger<EngineNpgsqlRepository>.Instance,
+            factory
+        );
+    }
+
+    internal async Task<Workflow?> GetWorkflow(Guid workflowId)
     {
         await using var context = CreateDbContext();
         var entity = await context
@@ -70,7 +85,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         return entity?.ToDomainModel();
     }
 
-    internal async Task<Step?> GetStep(long stepId)
+    internal async Task<Step?> GetStep(Guid stepId)
     {
         await using var context = CreateDbContext();
         var entity = await context.Steps.SingleOrDefaultAsync(s => s.Id == stepId);
