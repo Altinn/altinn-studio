@@ -85,10 +85,10 @@ services:
       - PostgreSQLSettings:DesignerDbAdminPwd=${POSTGRES_PASSWORD}
       - PostgreSQLSettings:DesignerDbPwd=designer
       - PostgreSQLSettings:EnableDBConnection=true
-      - ServiceRepositorySettings:ApiEndPoint=http://studio-repositories:3000/api/v1/
-      - ServiceRepositorySettings:ApiEndPointHost=studio-repositories
+      - ServiceRepositorySettings:ApiEndPoint=http://gitea-proxy:81/api/v1/
+      - ServiceRepositorySettings:ApiEndPointHost=gitea-proxy
       - ServiceRepositorySettings:GiteaLoginUrl=http://studio.localhost/repos/user/login
-      - ServiceRepositorySettings:RepositoryBaseURL=http://studio-repositories:3000
+      - ServiceRepositorySettings:RepositoryBaseURL=http://gitea-proxy:81
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
       - Integrations:AzureDevOpsSettings:BaseUri=http://studio-azure-mock:6161/_apis/
