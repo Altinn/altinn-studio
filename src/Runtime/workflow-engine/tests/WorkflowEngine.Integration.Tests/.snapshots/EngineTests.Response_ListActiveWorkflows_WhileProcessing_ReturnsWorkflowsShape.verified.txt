@@ -15,11 +15,12 @@
         databaseId: {Scrubbed},
         idempotencyKey: idem-Guid_1/webhook,
         processingOrder: 0,
+        updatedAt: {Scrubbed},
         command: {
           type: Webhook,
           operationId: webhook
         },
-        status: Enqueued,
+        status: Processing,
         retryCount: 0
       }
     ]

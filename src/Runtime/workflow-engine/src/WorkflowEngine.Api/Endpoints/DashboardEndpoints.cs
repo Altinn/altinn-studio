@@ -65,7 +65,6 @@ internal static class DashboardEndpoints
                         ConcurrencyLimiter.SlotStatus dbSlot = limiter.DbSlotStatus;
                         ConcurrencyLimiter.SlotStatus httpSlot = limiter.HttpSlotStatus;
                         int activeWorkers = engineStatus.ActiveWorkerCount;
-                        int maxWorkers = engineStatus.MaxWorkers;
 
                         string fingerprint =
                             $"{(int)status}|{activeWorkers}|{dbSlot.Used}|{httpSlot.Used}|{scheduledCount}";
@@ -89,12 +88,6 @@ internal static class DashboardEndpoints
                                 },
                                 capacity = new
                                 {
-                                    workers = new
-                                    {
-                                        used = activeWorkers,
-                                        available = maxWorkers - activeWorkers,
-                                        total = maxWorkers,
-                                    },
                                     db = new
                                     {
                                         used = dbSlot.Used,
@@ -355,9 +348,168 @@ internal static class DashboardEndpoints
             )
             .ExcludeFromDescription();
 
-        // TODO: Reimplement retry/skip-backoff endpoints against DB-based architecture
-        // The old implementation operated on the in-memory inbox which no longer exists.
-        // These need to update workflow/step status directly in the DB and signal the processor.
+        app.MapGet(
+                "/dashboard/stream/active",
+                async (
+                    StatusChangeSignal statusChangeSignal,
+                    IServiceProvider sp,
+                    HttpContext ctx,
+                    CancellationToken ct
+                ) =>
+                {
+                    ctx.Response.ContentType = "text/event-stream";
+                    ctx.Response.Headers.CacheControl = "no-cache";
+                    ctx.Response.Headers.Connection = "keep-alive";
+
+                    string? previousFingerprint = null;
+
+                    while (!ct.IsCancellationRequested)
+                    {
+                        // Arm the signal before querying so changes during the query aren't lost
+                        statusChangeSignal.Reset();
+
+                        try
+                        {
+                            using IServiceScope scope = sp.CreateScope();
+                            var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                            IReadOnlyList<Workflow> active = await repo.GetActiveWorkflows(ct);
+
+                            List<DashboardWorkflowDto> mapped = active.Select(DashboardMapper.MapWorkflow).ToList();
+
+                            string fingerprint = string.Join(
+                                ",",
+                                mapped.Select(w =>
+                                    $"{w.IdempotencyKey}|{w.Status}|"
+                                    + string.Join(
+                                        ";",
+                                        w.Steps.Select(s => $"{s.Status}:{s.RetryCount}:{s.BackoffUntil}")
+                                    )
+                                )
+                            );
+
+                            if (fingerprint != previousFingerprint)
+                            {
+                                previousFingerprint = fingerprint;
+                                string json = JsonSerializer.Serialize(mapped, _jsonCompact);
+                                await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
+                                await ctx.Response.Body.FlushAsync(ct);
+                            }
+                        }
+                        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                        {
+                            break;
+                        }
+                        catch
+                        { /* transient DB error — keep SSE alive */
+                        }
+
+                        // Wait for a status change (near-instant via PG NOTIFY) or 2s timeout (idle fallback)
+                        try
+                        {
+                            await statusChangeSignal.WaitAsync(ct).WaitAsync(TimeSpan.FromSeconds(2), ct);
+                        }
+                        catch (TimeoutException)
+                        { /* expected when idle */
+                        }
+                    }
+                }
+            )
+            .ExcludeFromDescription();
+
+        app.MapPost(
+                "/dashboard/retry",
+                async (
+                    IEngineStatus engineStatus,
+                    AsyncSignal workflowSignal,
+                    IServiceProvider sp,
+                    HttpContext ctx,
+                    CancellationToken ct
+                ) =>
+                {
+                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
+                    JsonElement root = doc.RootElement;
+
+                    if (
+                        !root.TryGetProperty("idempotencyKey", out JsonElement keyEl)
+                        || !root.TryGetProperty("createdAt", out JsonElement createdAtEl)
+                    )
+                    {
+                        return Results.BadRequest("Missing idempotencyKey or createdAt");
+                    }
+
+                    string idempotencyKey = keyEl.GetString()!;
+                    DateTimeOffset createdAt = createdAtEl.GetDateTimeOffset();
+
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    Workflow? workflow = await repo.GetWorkflow(idempotencyKey, createdAt, ct);
+
+                    if (workflow is null)
+                        return Results.NotFound();
+
+                    if (workflow.Status != PersistentItemStatus.Failed)
+                        return Results.BadRequest($"Workflow status is {workflow.Status}, expected Failed");
+
+                    workflow.Status = PersistentItemStatus.Enqueued;
+                    List<Step> stepsToUpdate = [];
+
+                    foreach (Step step in workflow.Steps)
+                    {
+                        if (step.Status == PersistentItemStatus.Failed || step.Status == PersistentItemStatus.Requeued)
+                        {
+                            step.Status = PersistentItemStatus.Enqueued;
+                            step.BackoffUntil = null;
+                            stepsToUpdate.Add(step);
+                        }
+                    }
+
+                    await repo.BatchUpdateWorkflowAndSteps(workflow, stepsToUpdate, cancellationToken: ct);
+                    engineStatus.RemoveFromRecent(idempotencyKey);
+                    workflowSignal.Signal();
+
+                    return Results.Ok();
+                }
+            )
+            .ExcludeFromDescription();
+
+        app.MapPost(
+                "/dashboard/skip-backoff",
+                async (AsyncSignal workflowSignal, IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
+                {
+                    using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
+                    JsonElement root = doc.RootElement;
+
+                    if (
+                        !root.TryGetProperty("idempotencyKey", out JsonElement keyEl)
+                        || !root.TryGetProperty("stepIdempotencyKey", out JsonElement stepKeyEl)
+                    )
+                    {
+                        return Results.BadRequest("Missing idempotencyKey or stepIdempotencyKey");
+                    }
+
+                    string idempotencyKey = keyEl.GetString()!;
+                    string stepIdempotencyKey = stepKeyEl.GetString()!;
+
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    IReadOnlyList<Workflow> active = await repo.GetActiveWorkflows(ct);
+                    Workflow? workflow = active.FirstOrDefault(w => w.IdempotencyKey == idempotencyKey);
+
+                    if (workflow is null)
+                        return Results.NotFound();
+
+                    Step? step = workflow.Steps.FirstOrDefault(s => s.IdempotencyKey == stepIdempotencyKey);
+                    if (step is null)
+                        return Results.NotFound();
+
+                    step.BackoffUntil = null;
+                    await repo.BatchUpdateWorkflowAndSteps(workflow, [step], cancellationToken: ct);
+                    workflowSignal.Signal();
+
+                    return Results.Ok();
+                }
+            )
+            .ExcludeFromDescription();
 
         app.MapGet(
                 "/dashboard/state",

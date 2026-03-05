@@ -354,7 +354,7 @@ body{min-height:100vh;padding:0}
 .error-history-header:hover{background:rgba(var(--red-rgb),0.1)}
 .error-history-chevron{display:inline-block;transition:transform 0.2s;font-size:14px}
 .error-history.expanded .error-history-chevron{transform:rotate(90deg)}
-.error-history-list{display:none;max-height:400px;overflow-y:auto}
+.error-history-list{display:none;max-height:200px;overflow-y:auto}
 .error-history.expanded .error-history-list{display:block}
 .error-entry{padding:10px 12px;border-top:1px solid var(--border);font-size:12px}
 .error-entry-meta{display:flex;align-items:center;gap:8px;margin-bottom:4px}

@@ -68,9 +68,8 @@
  * @typedef {{
  *   timestamp:    string,
  *   engineStatus: EngineStatus,
- *   capacity:       { inbox: SlotStatus, db: SlotStatus, http: SlotStatus },
+ *   capacity:       { db: SlotStatus, http: SlotStatus },
  *   scheduledCount: number,
- *   workflows:      Workflow[],
  * }} DashboardPayload
  */
 

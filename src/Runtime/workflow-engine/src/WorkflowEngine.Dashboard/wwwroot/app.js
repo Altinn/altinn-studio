@@ -38,7 +38,6 @@ const updateDashboard = (data) => {
   updateStatusBadges(data.engineStatus);
   updateCapacity(data.capacity);
   updateScheduledBadge(data.scheduledCount);
-  updateLiveWorkflows(data.workflows);
 };
 
 /* ── Init ────────────────────────────────────────────────── */
@@ -54,6 +53,7 @@ const init = async () => {
 
   restoreUrl();
   connectSSE(`${engineUrl}/dashboard/stream`, updateDashboard, { showStatus: true, onConnect: fetchOrgsAndApps });
+  connectSSE(`${engineUrl}/dashboard/stream/active`, (data) => updateLiveWorkflows(/** @type {import('./modules/core/state.js').Workflow[]} */ (data)));
   connectSSE(`${engineUrl}/dashboard/stream/recent`, (data) => updateRecentWorkflows(/** @type {import('./modules/core/state.js').Workflow[]} */ (data)));
   requestAnimationFrame(updateTimers);
   watchForChanges();

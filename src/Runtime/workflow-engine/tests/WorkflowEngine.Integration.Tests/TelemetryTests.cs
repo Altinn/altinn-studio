@@ -292,7 +292,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
     ///     ├── Engine.ProcessStep.{operationId}
     ///     │     └── WorkflowExecutor.Execute
     ///     │           └── WorkflowExecutor.AppCommand
-    ///     └── Engine.SubmitStatusUpdate
+    ///     └── Engine.SubmitStatusUpdate (×N: per-step + final)
     ///
     /// Background — Status write buffer (standalone traces):
     ///   Engine.FlushStatusBatch
@@ -317,8 +317,11 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
-        // Resolve key span instances
-        var processWorkflow = Single(collector, "Engine.ProcessWorkflow");
+        // Resolve key span instances — take the latest ProcessWorkflow activity
+        // (other tests in the collection may have left earlier activities in the collector)
+        var processWorkflows = collector.GetActivities("Engine.ProcessWorkflow");
+        Assert.NotEmpty(processWorkflows);
+        var processWorkflow = processWorkflows[^1];
 
         // ───────────────────────────────────────────────────────────
         // Cross-trace link: ProcessWorkflow is a new root that links
@@ -345,9 +348,17 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         var appCommand = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowExecutor.AppCommand");
         AssertChildOf(execute, appCommand);
 
-        //     └── Engine.SubmitStatusUpdate
-        var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "Engine.SubmitStatusUpdate");
-        AssertChildOf(processWorkflow, submitStatus);
+        //     └── Engine.SubmitStatusUpdate (per-step + final)
+        var submitStatuses = collector
+            .GetActivities("Engine.SubmitStatusUpdate")
+            .Where(a => a.TraceId == processWorkflow.TraceId)
+            .ToList();
+        Assert.True(
+            submitStatuses.Count >= 1,
+            $"Expected at least 1 'Engine.SubmitStatusUpdate', got {submitStatuses.Count}"
+        );
+        foreach (Activity submitStatus in submitStatuses)
+            AssertChildOf(processWorkflow, submitStatus);
 
         // ───────────────────────────────────────────────────────────
         // Standalone background activities (exist but not in workflow traces)

@@ -146,6 +146,10 @@ internal sealed class WorkflowHandler(
 
             step.Status = PersistentItemStatus.Processing;
             step.ExecutionStartedAt = timeProvider.GetUtcNow();
+            step.HasPendingChanges = true;
+
+            // Flush "Processing" status so the dashboard shows the active step
+            await statusWriteBuffer.SubmitAsync(workflow, CancellationToken.None);
 
             ExecutionResult result;
             try
@@ -166,6 +170,11 @@ internal sealed class WorkflowHandler(
 
             step.UpdatedAt = timeProvider.GetUtcNow();
             step.HasPendingChanges = true;
+
+            // TODO: Discuss with colleagues — persisting per-step adds ~1-5ms amortized per step
+            // (batched by StatusWriteBuffer) but gives dashboard real-time step visibility and
+            // prevents lost progress on crash. Remove if throughput impact is unacceptable.
+            await statusWriteBuffer.SubmitAsync(workflow, CancellationToken.None);
 
             RecordStepServiceTime(step);
             RecordStepTotalTime(step, previous);

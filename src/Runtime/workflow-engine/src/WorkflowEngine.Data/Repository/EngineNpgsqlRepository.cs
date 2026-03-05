@@ -711,16 +711,26 @@ internal sealed class EngineNpgsqlRepository(
                 var stepBackoffUntils = steps.Select(s => (object?)s.BackoffUntil ?? DBNull.Value).ToArray();
                 var stepRequeueCounts = steps.Select(s => s.RequeueCount).ToArray();
                 var stepStateOuts = steps.Select(s => (object?)s.StateOut ?? DBNull.Value).ToArray();
+                var stepErrorHistories = steps
+                    .Select(s =>
+                        (object?)(
+                            s.ErrorHistory.Count > 0
+                                ? JsonSerializer.Serialize(s.ErrorHistory, JsonOptions.Default)
+                                : null
+                        ) ?? DBNull.Value
+                    )
+                    .ToArray();
 
                 const string updateStepsSql = """
                     UPDATE "Steps" AS s
-                    SET "Status"       = v.status,
-                        "BackoffUntil" = v.backoff_until,
-                        "RequeueCount" = v.requeue_count,
-                        "StateOut"     = v.state_out,
-                        "UpdatedAt"    = @now
-                    FROM unnest(@ids, @statuses, @backoff_untils, @requeue_counts, @state_outs)
-                        AS v(id, status, backoff_until, requeue_count, state_out)
+                    SET "Status"           = v.status,
+                        "BackoffUntil"     = v.backoff_until,
+                        "RequeueCount"     = v.requeue_count,
+                        "StateOut"         = v.state_out,
+                        "ErrorHistoryJson" = v.error_history,
+                        "UpdatedAt"        = @now
+                    FROM unnest(@ids, @statuses, @backoff_untils, @requeue_counts, @state_outs, @error_histories)
+                        AS v(id, status, backoff_until, requeue_count, state_out, error_history)
                     WHERE s."Id" = v.id
                     """;
 
@@ -743,10 +753,19 @@ internal sealed class EngineNpgsqlRepository(
                             Value = steps.Select(s => (object?)s.StateOut ?? DBNull.Value).ToArray(),
                         }
                     );
+                    cmd.Parameters.Add(
+                        new NpgsqlParameter("error_histories", NpgsqlDbType.Array | NpgsqlDbType.Jsonb)
+                        {
+                            Value = stepErrorHistories,
+                        }
+                    );
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
                     await cmd.ExecuteNonQueryAsync(ct);
                 }
             }
+
+            await using (var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn, tx))
+                await notifyCmd.ExecuteNonQueryAsync(ct);
 
             await tx.CommitAsync(ct);
 
@@ -834,6 +853,7 @@ internal sealed class EngineNpgsqlRepository(
                 var stepBackoffUntils = new object[allSteps.Count];
                 var stepRequeueCounts = new int[allSteps.Count];
                 var stepStateOuts = new object[allSteps.Count];
+                var stepErrorHistories = new object[allSteps.Count];
 
                 for (int i = 0; i < allSteps.Count; i++)
                 {
@@ -843,17 +863,22 @@ internal sealed class EngineNpgsqlRepository(
                     stepBackoffUntils[i] = s.BackoffUntil.HasValue ? (object)s.BackoffUntil.Value : DBNull.Value;
                     stepRequeueCounts[i] = s.RequeueCount;
                     stepStateOuts[i] = (object?)s.StateOut ?? DBNull.Value;
+                    stepErrorHistories[i] =
+                        s.ErrorHistory.Count > 0
+                            ? JsonSerializer.Serialize(s.ErrorHistory, JsonOptions.Default)
+                            : DBNull.Value;
                 }
 
                 const string updateStepsSql = """
                     UPDATE "Steps" AS s
-                    SET "Status"       = v.status,
-                        "BackoffUntil" = v.backoff_until,
-                        "RequeueCount" = v.requeue_count,
-                        "StateOut"     = v.state_out,
-                        "UpdatedAt"    = @now
-                    FROM unnest(@ids, @statuses, @backoff_untils, @requeue_counts, @state_outs)
-                        AS v(id, status, backoff_until, requeue_count, state_out)
+                    SET "Status"           = v.status,
+                        "BackoffUntil"     = v.backoff_until,
+                        "RequeueCount"     = v.requeue_count,
+                        "StateOut"         = v.state_out,
+                        "ErrorHistoryJson" = v.error_history,
+                        "UpdatedAt"        = @now
+                    FROM unnest(@ids, @statuses, @backoff_untils, @requeue_counts, @state_outs, @error_histories)
+                        AS v(id, status, backoff_until, requeue_count, state_out, error_history)
                     WHERE s."Id" = v.id
                     """;
 
@@ -870,9 +895,18 @@ internal sealed class EngineNpgsqlRepository(
                 cmd.Parameters.Add(
                     new NpgsqlParameter("state_outs", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = stepStateOuts }
                 );
+                cmd.Parameters.Add(
+                    new NpgsqlParameter("error_histories", NpgsqlDbType.Array | NpgsqlDbType.Jsonb)
+                    {
+                        Value = stepErrorHistories,
+                    }
+                );
                 cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
                 await cmd.ExecuteNonQueryAsync(ct);
             }
+
+            await using (var notifyCmd = new NpgsqlCommand("NOTIFY status_changed", conn, tx))
+                await notifyCmd.ExecuteNonQueryAsync(ct);
 
             await tx.CommitAsync(ct);
 

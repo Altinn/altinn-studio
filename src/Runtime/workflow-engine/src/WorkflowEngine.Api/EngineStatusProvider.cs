@@ -22,6 +22,9 @@ internal interface IEngineStatus
 
     /// <summary>Records a completed workflow into the recent cache.</summary>
     void RecordCompletion(Workflow workflow);
+
+    /// <summary>Removes a workflow from the recent cache (e.g. after manual retry).</summary>
+    void RemoveFromRecent(string idempotencyKey);
 }
 
 /// <summary>
@@ -65,4 +68,6 @@ internal sealed class EngineStatusProvider : IEngineStatus
     public IReadOnlyList<DashboardWorkflowDto> GetRecentWorkflows(int count) => _recentWorkflows.GetRecent(count);
 
     public void RecordCompletion(Workflow workflow) => _recentWorkflows.Add(workflow);
+
+    public void RemoveFromRecent(string idempotencyKey) => _recentWorkflows.Remove(idempotencyKey);
 }
