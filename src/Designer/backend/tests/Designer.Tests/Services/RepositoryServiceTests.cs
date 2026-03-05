@@ -675,7 +675,7 @@ namespace Designer.Tests.Services
 
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);
 
-            ResourceRegistryService resourceRegistryService = new();
+            IResourceRegistry resourceRegistryService = new Mock<IResourceRegistry>().Object;
 
             RepositoryService service = new(
                 repoSettings,

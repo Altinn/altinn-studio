@@ -122,15 +122,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     .ToServiceResource()
                     .WithOrgInformation(org, orgListOrg);
 
-                var policyFile = await _authorizationPolicyService.GetAuthorizationPolicyFileFromGitea(
+                string policyString = await _authorizationPolicyService.GetAuthorizationPolicyFileFromGitea(
                     org,
                     app,
                     shortCommitId
                 );
-                string policyString = Encoding.UTF8.GetString(Convert.FromBase64String(policyFile.Content));
-                policyString = policyString.Replace("[ORG]", org).Replace("[org]", org);
-                policyString = policyString.Replace("[APP]", app).Replace("[app]", app);
+                policyString = _authorizationPolicyService.ReplacePolicyPlaceholderTokens(policyString, org, app);
                 byte[] policyBytes = Encoding.UTF8.GetBytes(policyString);
+
                 ActionResult publishResponse = await _resourceRegistryService.PublishServiceResource(
                     serviceResource,
                     envName,
