@@ -278,8 +278,8 @@ void Configure(IConfiguration configuration)
     }
 
     app.UseAuthentication();
-    app.UseAuthorization();
     app.UseMiddleware<DeveloperContextMiddleware>();
+    app.UseAuthorization();
 
     app.UseResponseCompression();
     app.UseRequestLocalization();
