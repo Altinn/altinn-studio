@@ -58,7 +58,14 @@ def get_langfuse_client() -> Langfuse | None:
     return _client
 
 
-def fetch_langfuse_prompt(prompt_name: str, variables: dict | None = None, *, label: str = None, version: int = None, cache_ttl_seconds: int = None) -> str:
+def fetch_langfuse_prompt(
+    prompt_name: str,
+    variables: dict | None = None,
+    *,
+    label: str | None = None,
+    version: int | None = None,
+    cache_ttl_seconds: int | None = None,
+) -> str:
     """
     Fetch a prompt from Langfuse by name.
 
