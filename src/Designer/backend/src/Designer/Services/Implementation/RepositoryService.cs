@@ -779,7 +779,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return new StatusCodeResult(400);
             }
 
-            byte[] policyContent = null; 
+            byte[] policyContent = null;
             if (policyPath != null)
             {
                 if (!ResourceAdminHelper.ValidFilePath(policyPath))
