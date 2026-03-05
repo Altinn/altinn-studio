@@ -36,6 +36,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
         private readonly IResourceRegistryRepository _resourceRegistryRepository;
+        private readonly IAuthorizationPolicyService _authorizationPolicyService;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
         {
             PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
@@ -50,7 +51,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             PlatformSettings platformSettings,
             IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment,
             IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings,
-            IResourceRegistryRepository resourceRegistryRepository
+            IResourceRegistryRepository resourceRegistryRepository,
+            IAuthorizationPolicyService authorizationPolicyService
         )
         {
             _httpClient = httpClient;
@@ -60,6 +62,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _platformSettings = platformSettings;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _maskinportenIntegrationSettings = maskinportenIntegrationSettings.Value;
+            _authorizationPolicyService = authorizationPolicyService;
             _resourceRegistryRepository = resourceRegistryRepository;
         }
 
@@ -174,9 +177,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         byte[] policyFileContentBytes = File.ReadAllBytes(policyPath);
                         string policyFileContent = Encoding.UTF8.GetString(policyFileContentBytes);
                         // replace [org] with orgcode before publishing resource
-                        policyFileContent = policyFileContent
-                            .Replace("[ORG]", serviceResource.HasCompetentAuthority.Orgcode)
-                            .Replace("[org]", serviceResource.HasCompetentAuthority.Orgcode);
+                        policyFileContent = _authorizationPolicyService.ReplacePolicyPlaceholderTokens(
+                            policyFileContent,
+                            serviceResource.HasCompetentAuthority.Orgcode,
+                            $"{serviceResource.HasCompetentAuthority.Orgcode}-resources"
+                        );
                         policyContent = Encoding.UTF8.GetBytes(policyFileContent);
                     }
                     else
