@@ -615,7 +615,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     const taskId = this.dataSources.process?.currentTask?.elementId;
     const instanceId = this.dataSources.instanceDataSources?.instanceId;
 
-    let url = '';
+    let url: string;
     if (taskId && instanceId) {
       url = `/instance/${instanceId}/${taskId}/${pageKey}`;
     } else {
@@ -648,7 +648,7 @@ export const ExprFunctionImplementations: { [K in ExprFunctionName]: Implementat
     const taskId = this.dataSources.process?.currentTask?.elementId;
     const instanceId = this.dataSources.instanceDataSources?.instanceId;
 
-    let url = '';
+    let url: string;
     if (taskId && instanceId) {
       url = `/instance/${instanceId}/${taskId}/${pageId}`;
     } else {

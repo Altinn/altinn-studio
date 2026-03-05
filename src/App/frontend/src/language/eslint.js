@@ -64,7 +64,7 @@ module.exports = {
     return {
       FunctionDeclaration(node) {
         if (node.id.name === 'en' && node.params.length === 0) {
-          getValidLanguageKeys(`export ${context.getSourceCode().getText(node)}`);
+          getValidLanguageKeys(`export ${context.sourceCode.getText(node)}`);
         }
       },
       JSXOpeningElement(node) {
