@@ -760,7 +760,7 @@ func (r *CnpgSyncReconciler) buildCluster(numApps int) *cnpgv1.Cluster {
 	opCtx := r.runtime.GetOperatorContext()
 	var cluster *cnpgv1.Cluster = nil
 	switch opCtx.Environment {
-	case operatorcontext.EnvironmentLocal, "tt02":
+	case operatorcontext.EnvironmentLocal, "tt02", "prod":
 		cluster = &cnpgv1.Cluster{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      clusterName,
