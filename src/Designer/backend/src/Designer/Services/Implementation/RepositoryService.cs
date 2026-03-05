@@ -53,6 +53,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ITextsService _textsService;
         private readonly IResourceRegistry _resourceRegistryService;
         private readonly ICustomTemplateService _templateService;
+        private readonly IAuthorizationPolicyService _authorizationPolicyService;
         private readonly JsonSerializerOptions _serializerOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -73,6 +74,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="textsService">The service for handling texts</param>
         /// <param name="resourceRegistryService">The service for publishing resource in the ResourceRegistry</param>
         /// <param name="templateService">The service for handling custom templates</param>
+        /// <param name="authorizationPolicyService">The service for policy files</param>
         public RepositoryService(
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
@@ -84,7 +86,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IApplicationMetadataService applicationMetadataService,
             ITextsService textsService,
             IResourceRegistry resourceRegistryService,
-            ICustomTemplateService templateService
+            ICustomTemplateService templateService,
+            IAuthorizationPolicyService authorizationPolicyService
         )
         {
             _settings = repositorySettings;
@@ -98,6 +101,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _textsService = textsService;
             _resourceRegistryService = resourceRegistryService;
             _templateService = templateService;
+            _authorizationPolicyService = authorizationPolicyService;
         }
 
         /// <summary>
@@ -765,7 +769,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string repository,
             string id,
             string env,
-            string policy = null
+            string policyPath = null
         )
         {
             ServiceResource resource = await GetServiceResourceById(org, repository, id);
@@ -775,7 +779,44 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return new StatusCodeResult(400);
             }
 
-            return await _resourceRegistryService.PublishServiceResource(resource, env, policy);
+            byte[] policyContent = null; 
+            if (policyPath != null)
+            {
+                if (!ResourceAdminHelper.ValidFilePath(policyPath))
+                {
+                    Console.WriteLine($"Invalid filepath for policyfile. Path: {policyPath}");
+                    return new StatusCodeResult(400);
+                }
+
+                try
+                {
+                    string canonicalPolicyPath = Path.GetFullPath(policyPath);
+
+                    if (canonicalPolicyPath.EndsWith(".xml"))
+                    {
+                        byte[] policyFileContentBytes = File.ReadAllBytes(policyPath);
+                        string policyFileContent = Encoding.UTF8.GetString(policyFileContentBytes);
+                        // replace [org] with orgcode before publishing resource
+                        policyFileContent = _authorizationPolicyService.ReplacePolicyPlaceholderTokens(
+                            policyFileContent,
+                            org,
+                            $"{org}-resources"
+                        );
+                        policyContent = Encoding.UTF8.GetBytes(policyFileContent);
+                    }
+                    else
+                    {
+                        return new StatusCodeResult(400);
+                    }
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"Error while reading policy from path {policyPath}");
+                    return new StatusCodeResult(400);
+                }
+            }
+
+            return await _resourceRegistryService.PublishServiceResource(resource, env, policyContent);
         }
 
         private List<FileSystemObject> GetResourceFiles(string org, string repository, string path = "")

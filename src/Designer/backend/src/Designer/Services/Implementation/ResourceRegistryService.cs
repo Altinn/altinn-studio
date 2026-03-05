@@ -16,7 +16,6 @@ using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository;
@@ -36,7 +35,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
         private readonly IResourceRegistryRepository _resourceRegistryRepository;
-        private readonly IAuthorizationPolicyService _authorizationPolicyService;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions()
         {
             PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
@@ -51,8 +49,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             PlatformSettings platformSettings,
             IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment,
             IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings,
-            IResourceRegistryRepository resourceRegistryRepository,
-            IAuthorizationPolicyService authorizationPolicyService
+            IResourceRegistryRepository resourceRegistryRepository
         )
         {
             _httpClient = httpClient;
@@ -62,7 +59,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _platformSettings = platformSettings;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _maskinportenIntegrationSettings = maskinportenIntegrationSettings.Value;
-            _authorizationPolicyService = authorizationPolicyService;
             _resourceRegistryRepository = resourceRegistryRepository;
         }
 
@@ -84,7 +80,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<ActionResult> PublishServiceResource(
             ServiceResource serviceResource,
             string env,
-            string policyPath = null,
             byte[] policyContent = null
         )
         {
@@ -160,41 +155,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return await GetPublishResponse(response);
             }
 
-            if (policyPath != null)
-            {
-                if (!ResourceAdminHelper.ValidFilePath(policyPath))
-                {
-                    Console.WriteLine($"Invalid filepath for policyfile. Path: {policyPath}");
-                    return new StatusCodeResult(400);
-                }
-
-                try
-                {
-                    string canonicalPolicyPath = Path.GetFullPath(policyPath);
-
-                    if (canonicalPolicyPath.EndsWith(".xml"))
-                    {
-                        byte[] policyFileContentBytes = File.ReadAllBytes(policyPath);
-                        string policyFileContent = Encoding.UTF8.GetString(policyFileContentBytes);
-                        // replace [org] with orgcode before publishing resource
-                        policyFileContent = _authorizationPolicyService.ReplacePolicyPlaceholderTokens(
-                            policyFileContent,
-                            serviceResource.HasCompetentAuthority.Orgcode,
-                            $"{serviceResource.HasCompetentAuthority.Orgcode}-resources"
-                        );
-                        policyContent = Encoding.UTF8.GetBytes(policyFileContent);
-                    }
-                    else
-                    {
-                        return new StatusCodeResult(400);
-                    }
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine($"Error while reading policy from path {policyPath}");
-                    return new StatusCodeResult(400);
-                }
-            }
             if (policyContent != null)
             {
                 using MultipartFormDataContent content = new();
