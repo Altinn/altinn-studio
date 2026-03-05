@@ -35,4 +35,5 @@
   padding: var(--ds-size-7);
   border-top: 1px solid var(--ds-color-neutral-surface-tinted);
   overflow-y: auto;
+  max-width: 1200px;
 }

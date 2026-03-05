@@ -65,7 +65,8 @@ import {
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
   orgCodeListPublishPath,
-  userKeyPath,
+  userPersonalAccessTokenPath,
+  userPersonalAccessTokensPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -102,6 +103,8 @@ import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeList
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 import type { AppSettings } from 'app-shared/types/AppSettings';
+import type { CreatePersonalAccessTokenRequest } from 'app-shared/types/api/CreatePersonalAccessTokenRequest';
+import type { CreatePersonalAccessTokenResponse } from 'app-shared/types/api/CreatePersonalAccessTokenResponse';
 
 const headers = {
   Accept: 'application/json',
@@ -226,4 +229,5 @@ export const checkoutBranch = async (org: string, app: string, branchName: strin
 export const discardChanges = async (org: string, app: string): Promise<RepoStatus> => post(discardChangesPath(org, app), {});
 
 // User settings
-export const deleteUserKey = (userKey: string) => del(userKeyPath(userKey));
+export const addUserPersonalAccessToken = (payload: CreatePersonalAccessTokenRequest) => post<CreatePersonalAccessTokenResponse, CreatePersonalAccessTokenRequest>(userPersonalAccessTokensPath(), payload);
+export const deleteUserPersonalAccessToken = (id: number) => del(userPersonalAccessTokenPath(id));

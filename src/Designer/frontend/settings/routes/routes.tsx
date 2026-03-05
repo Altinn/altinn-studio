@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 import { Navigate } from 'react-router-dom';
 import { RoutePaths } from './RoutePaths';
-import { Keys } from '../pages/Keys/Keys';
+import { PersonalAccessTokens } from '../pages/PersonalAccessTokens/PersonalAccessTokens';
 
 interface RouterRoute {
   path: RoutePaths;
@@ -11,10 +11,10 @@ interface RouterRoute {
 export const routerRoutes: RouterRoute[] = [
   {
     path: RoutePaths.Root,
-    page: () => <Navigate to={RoutePaths.Keys} />,
+    page: () => <Navigate to={RoutePaths.PersonalAccessTokens} />,
   },
   {
-    path: RoutePaths.Keys,
-    page: Keys,
+    path: RoutePaths.PersonalAccessTokens,
+    page: PersonalAccessTokens,
   },
 ];

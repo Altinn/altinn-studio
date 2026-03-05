@@ -1,4 +1,4 @@
 export enum RoutePaths {
   Root = '',
-  Keys = 'keys',
+  PersonalAccessTokens = 'personal-access-tokens',
 }

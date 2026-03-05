@@ -10,11 +10,11 @@ export function Menu(): ReactElement {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   let selectedTabId = pathname.split('/').at(-1);
-  selectedTabId = selectedTabId === '' ? 'keys' : selectedTabId;
+  selectedTabId = selectedTabId === '' ? 'personal-access-tokens' : selectedTabId;
   const menuTabs = [
     {
-      tabId: 'keys',
-      tabName: t('user.settings.keys.keys'),
+      tabId: 'personal-access-tokens',
+      tabName: t('user.settings.personal_access_tokens.personal_access_tokens'),
       icon: <ShieldLockIcon />,
     },
   ];
