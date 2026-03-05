@@ -48,7 +48,7 @@ def is_langfuse_enabled() -> bool:
     return config.LANGFUSE_ENABLED and _initialized
 
 
-def get_langfuse_client() -> Langfuse:
+def get_langfuse_client() -> Langfuse | None:
     """Get or initialize Langfuse client"""
     global _client
 
@@ -136,6 +136,37 @@ def flush_langfuse():
         except Exception as e:
             log.debug(f"Failed to flush Langfuse: {e}")
 
+def score_validation(
+    name: str,
+    passed: bool,
+    trace_id: str | None,
+    observation_id: str | None = None,
+    config_id: str | None = None,
+    comment: str | None = None,
+) -> None:
+    """Write a boolean validation result as a Langfuse score (1 = pass, 0 = fail)."""
+    client = get_langfuse_client()
+    if not config.LANGFUSE_ENABLED:
+        return
+    if not client or not trace_id:
+        return
+    try:
+        kwargs: dict = {
+            "trace_id": trace_id,
+            "name": name,
+            "value": 1.0 if passed else 0.0,
+            "data_type": "BOOLEAN",
+        }
+        if config_id:
+            kwargs["config_id"] = config_id
+        if observation_id:
+            kwargs["observation_id"] = observation_id
+        if comment:
+            kwargs["comment"] = comment
+        client.create_score(**kwargs)
+        log.debug("Langfuse score '%s' = %s written to trace %s", name, passed, trace_id)
+    except Exception as e:
+        log.debug("Failed to create Langfuse score '%s': %s", name, e)
 
 # For backward compatibility with code that expects these functions
 # These are no-ops now since Langfuse handles things differently
