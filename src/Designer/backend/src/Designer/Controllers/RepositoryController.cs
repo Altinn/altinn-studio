@@ -373,25 +373,23 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (LibGit2Sharp.NonFastForwardException)
             {
+                CurrentBranchInfo currentBranch = _sourceControl.GetCurrentBranch(authenticatedContext);
                 string branchName = !string.IsNullOrWhiteSpace(commitInfo.BranchName)
                     ? commitInfo.BranchName
-                    : _sourceControl.GetCurrentBranch(authenticatedContext).BranchName;
-                LibGit2Sharp.RebaseResult rebaseResult = _sourceControl.RebaseOntoRemoteBranch(
-                    authenticatedContext,
-                    branchName
-                );
-                if (rebaseResult.Status == LibGit2Sharp.RebaseStatus.Conflicts)
-                {
-                    throw new LibGit2Sharp.NonFastForwardException(
-                        $"Rebase onto remote branch '{branchName}' failed with conflicts."
-                    );
-                }
+                    : currentBranch.BranchName;
+                string headBeforeRebase = currentBranch.CommitSha;
+                _sourceControl.RebaseOntoRemoteBranch(authenticatedContext, branchName);
 
                 _sourceControl.PublishBranch(authenticatedContext, branchName);
-                RepoStatus repoStatus = _sourceControl.RepositoryStatus(authenticatedContext);
-                foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
+                string headAfterRebase = _sourceControl.GetCurrentBranch(authenticatedContext).CommitSha;
+                List<string> changedFilePaths = _sourceControl.GetChangedFilesBetweenCommits(
+                    authenticatedContext,
+                    headBeforeRebase,
+                    headAfterRebase
+                );
+                foreach (string changedFilePath in changedFilePaths)
                 {
-                    Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
+                    Source source = new(Path.GetFileName(changedFilePath), changedFilePath);
                     SyncSuccess syncSuccess = new(source);
                     await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
                 }

@@ -137,6 +137,15 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public List<string> GetChangedFilesBetweenCommits(
+            AltinnRepoEditingContext editingContext,
+            string oldCommitSha,
+            string newCommitSha
+        )
+        {
+            throw new NotImplementedException();
+        }
+
         public bool Push(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             throw new NotImplementedException();

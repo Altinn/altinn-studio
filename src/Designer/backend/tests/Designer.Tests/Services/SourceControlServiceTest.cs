@@ -369,6 +369,61 @@ namespace Designer.Tests.Services
         }
 
         [Fact]
+        public void GetChangedFilesBetweenCommits_ReturnsChangedPaths()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnRepoEditingContext editingContext = CreateTestRepository(repoName);
+            string commitBeforeChanges;
+            string commitAfterChanges;
+            using (var repo = new Repository(_repoDir))
+            {
+                commitBeforeChanges = repo.Head.Tip.Sha;
+                File.WriteAllText(Path.Join(_repoDir, "test.txt"), "Updated content");
+                File.WriteAllText(Path.Join(_repoDir, "new-file.txt"), "New content");
+                Commands.Stage(repo, "*");
+                var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
+                repo.Commit("Update files", signature, signature);
+                commitAfterChanges = repo.Head.Tip.Sha;
+            }
+
+            // Act
+            List<string> changedFiles = _sourceControlService.GetChangedFilesBetweenCommits(
+                editingContext,
+                commitBeforeChanges,
+                commitAfterChanges
+            );
+
+            // Assert
+            Assert.Equal(2, changedFiles.Count);
+            Assert.Contains("new-file.txt", changedFiles);
+            Assert.Contains("test.txt", changedFiles);
+        }
+
+        [Fact]
+        public void GetChangedFilesBetweenCommits_SameCommit_ReturnsEmptyList()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnRepoEditingContext editingContext = CreateTestRepository(repoName);
+            string commitSha;
+            using (var repo = new Repository(_repoDir))
+            {
+                commitSha = repo.Head.Tip.Sha;
+            }
+
+            // Act
+            List<string> changedFiles = _sourceControlService.GetChangedFilesBetweenCommits(
+                editingContext,
+                commitSha,
+                commitSha
+            );
+
+            // Assert
+            Assert.Empty(changedFiles);
+        }
+
+        [Fact]
         public void PullRemoteChanges_CheckoutConflict_AutoStashAppliesAndPullsWhenNoConflict()
         {
             // Arrange

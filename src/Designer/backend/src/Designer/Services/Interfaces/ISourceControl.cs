@@ -118,6 +118,19 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Dictionary<string, string> GetChangedContent(AltinnAuthenticatedRepoEditingContext authenticatedContext);
 
         /// <summary>
+        /// Gets changed file paths between two commits.
+        /// </summary>
+        /// <param name="editingContext">The altinn repo editing context</param>
+        /// <param name="oldCommitSha">The old commit SHA</param>
+        /// <param name="newCommitSha">The new commit SHA</param>
+        /// <returns>Changed file paths</returns>
+        List<string> GetChangedFilesBetweenCommits(
+            AltinnRepoEditingContext editingContext,
+            string oldCommitSha,
+            string newCommitSha
+        );
+
+        /// <summary>
         /// Push commits to repository
         /// </summary>
         /// <param name="authenticatedContext">The authenticated altinn repo editing context</param>

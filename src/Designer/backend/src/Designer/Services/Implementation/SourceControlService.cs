@@ -551,6 +551,64 @@ public class SourceControlService(
     }
 
     /// <inheritdoc/>
+    public List<string> GetChangedFilesBetweenCommits(
+        AltinnRepoEditingContext editingContext,
+        string oldCommitSha,
+        string newCommitSha
+    )
+    {
+        using var activity = StartActivity(editingContext);
+        activity?.SetTag("old_commit_sha", oldCommitSha);
+        activity?.SetTag("new_commit_sha", newCommitSha);
+        return ExecuteWithTelemetry(
+            activity,
+            (activity, editingContext, oldCommitSha, newCommitSha),
+            static (self, ctx) =>
+            {
+                if (
+                    string.IsNullOrWhiteSpace(ctx.oldCommitSha)
+                    || string.IsNullOrWhiteSpace(ctx.newCommitSha)
+                    || string.Equals(ctx.oldCommitSha, ctx.newCommitSha, StringComparison.Ordinal)
+                )
+                {
+                    return new List<string>();
+                }
+
+                using LibGit2Sharp.Repository repo = self.CreateLocalRepo(ctx.editingContext);
+                LibGit2Sharp.Commit oldCommit =
+                    repo.Lookup<LibGit2Sharp.Commit>(ctx.oldCommitSha)
+                    ?? throw new ArgumentException(
+                        $"Commit '{ctx.oldCommitSha}' was not found in repository.",
+                        "oldCommitSha"
+                    );
+                LibGit2Sharp.Commit newCommit =
+                    repo.Lookup<LibGit2Sharp.Commit>(ctx.newCommitSha)
+                    ?? throw new ArgumentException(
+                        $"Commit '{ctx.newCommitSha}' was not found in repository.",
+                        "newCommitSha"
+                    );
+
+                TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(oldCommit.Tree, newCommit.Tree);
+                HashSet<string> changedFilePaths = new(StringComparer.Ordinal);
+                foreach (TreeEntryChanges change in treeChanges)
+                {
+                    if (!string.IsNullOrWhiteSpace(change.OldPath))
+                    {
+                        changedFilePaths.Add(change.OldPath);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(change.Path))
+                    {
+                        changedFilePaths.Add(change.Path);
+                    }
+                }
+
+                return changedFilePaths.OrderBy(static path => path, StringComparer.Ordinal).ToList();
+            }
+        );
+    }
+
+    /// <inheritdoc/>
     public Designer.Models.Commit? GetLatestCommitForCurrentUser(AltinnRepoEditingContext editingContext)
     {
         using var activity = StartActivity(editingContext);
@@ -964,6 +1022,9 @@ public class SourceControlService(
                         repo.Rebase.Abort();
                         conflictsAborted = true;
                         SetErrorStatus(ctx.activity, "rebase_conflicts");
+                        throw new NonFastForwardException(
+                            $"Rebase onto remote branch '{ctx.branchName}' failed with conflicts."
+                        );
                     }
 
                     if (rebaseResult.Status == RebaseStatus.Stop)
