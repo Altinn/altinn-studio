@@ -58,12 +58,16 @@ def get_langfuse_client() -> Langfuse | None:
     return _client
 
 
-def fetch_langfuse_prompt(prompt_name: str, *, label: str = None, version: int = None, cache_ttl_seconds: int = None) -> str:
+def fetch_langfuse_prompt(prompt_name: str, variables: dict | None = None, *, label: str = None, version: int = None, cache_ttl_seconds: int = None) -> str:
     """
-    Fetch a text prompt from Langfuse by name.
+    Fetch a prompt from Langfuse by name.
+
+    When variables are provided, they are substituted into the prompt using
+    Langfuse's {{variable}} syntax.
 
     Args:
         prompt_name: Name of the prompt in Langfuse
+        variables: Optional dictionary of variables to substitute into the prompt
         label: Optional label (e.g. "production", "latest"). Defaults to "production" in Langfuse.
         version: Optional specific version number to fetch
         cache_ttl_seconds: Optional cache TTL override in seconds
@@ -88,43 +92,7 @@ def fetch_langfuse_prompt(prompt_name: str, *, label: str = None, version: int =
         kwargs["cache_ttl_seconds"] = cache_ttl_seconds
 
     prompt = client.get_prompt(prompt_name, type="text", **kwargs)
-    return prompt.compile()
-
-
-def fetch_langfuse_template(prompt_name: str, variables: dict, *, label: str = None, version: int = None, cache_ttl_seconds: int = None) -> str:
-    """
-    Fetch a text prompt from Langfuse and compile it with variables.
-
-    Langfuse templates use {{variable}} syntax for substitution.
-
-    Args:
-        prompt_name: Name of the prompt in Langfuse
-        variables: Dictionary of variables to substitute into the template
-        label: Optional label (e.g. "production", "latest")
-        version: Optional specific version number to fetch
-        cache_ttl_seconds: Optional cache TTL override in seconds
-
-    Returns:
-        Compiled prompt content with variables substituted
-
-    Raises:
-        RuntimeError: If Langfuse client is not initialized
-        Exception: If prompt not found in Langfuse
-    """
-    client = get_langfuse_client()
-    if client is None:
-        raise RuntimeError("Langfuse client not initialized")
-
-    kwargs = {}
-    if label is not None:
-        kwargs["label"] = label
-    if version is not None:
-        kwargs["version"] = version
-    if cache_ttl_seconds is not None:
-        kwargs["cache_ttl_seconds"] = cache_ttl_seconds
-
-    prompt = client.get_prompt(prompt_name, type="text", **kwargs)
-    return prompt.compile(**variables)
+    return prompt.compile(**(variables or {}))
 
 
 def flush_langfuse():

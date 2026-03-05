@@ -26,10 +26,10 @@ def _try_langfuse_prompt(prompt_name: str) -> Optional[str]:
 def _try_langfuse_template(template_name: str, variables: dict) -> Optional[str]:
     """Try to fetch and render a template from Langfuse. Returns None on any failure."""
     try:
-        from shared.utils.langfuse_utils import is_langfuse_enabled, fetch_langfuse_template
+        from shared.utils.langfuse_utils import is_langfuse_enabled, fetch_langfuse_prompt
         if not is_langfuse_enabled():
             return None
-        content = fetch_langfuse_template(template_name, variables)
+        content = fetch_langfuse_prompt(template_name, variables)
         log.debug(f"Rendered template '{template_name}' from Langfuse")
         return content
     except Exception as e:
