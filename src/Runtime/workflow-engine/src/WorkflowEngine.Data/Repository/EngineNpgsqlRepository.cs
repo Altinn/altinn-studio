@@ -619,17 +619,17 @@ internal sealed class EngineNpgsqlRepository(
             )
             .ToListAsync(ct);
 
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
         var entities = await context
             .Workflows.AsNoTracking()
             .Include(w => w.Steps.OrderBy(s => s.ProcessingOrder))
             .Include(w => w.Dependencies)
             .Where(w => ids.Contains(w.Id))
             .ToListAsync(ct);
-
-        if (entities.Count == 0)
-        {
-            return [];
-        }
 
         var workflows = entities.Select(x => x.ToDomainModel()).ToList();
 
