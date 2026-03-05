@@ -35,5 +35,6 @@ func DefaultTargets() []CnpgTarget {
 		{ServiceOwnerId: "ttd", Environment: "localtest", Apps: []string{"localtestapp"}},
 		{ServiceOwnerId: "ttd", Environment: "tt02", Apps: []string{"martinotest"}, Backup: backup},
 		{ServiceOwnerId: "nhn", Environment: "tt02", Apps: []string{"mottak-adapter"}, Backup: backup},
+		{ServiceOwnerId: "nhn", Environment: "prod", Apps: []string{"mottak-adapter"}, Backup: backup},
 	}
 }
