@@ -237,11 +237,17 @@ export default tseslint.config(
   },
   {
     files: ['nextsrc/**/*.{ts,tsx}'],
-    ignores: ['nextsrc/core/queries/**'],
+    ignores: ['nextsrc/core/**', 'nextsrc/index.tsx'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
+          paths: [
+            {
+              name: '@tanstack/react-query',
+              message: 'Import hooks from nextsrc/core/queries/ instead of using React Query directly.',
+            },
+          ],
           patterns: [
             {
               regex: 'nextsrc/core/queries/[^/]+/(?!index$)',

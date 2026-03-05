@@ -1,7 +1,7 @@
-import { partiesAllowedToInstantiateQuery } from 'nextsrc/core/queries/parties';
-import type { QueryClient } from '@tanstack/react-query';
+import { prefetchPartiesAllowedToInstantiate } from 'nextsrc/core/queries/parties';
+import type { QueryClient } from 'nextsrc/core/queries/types';
 
 export const partySelectionLoader = (queryClient: QueryClient) => () => {
-  queryClient.ensureQueryData(partiesAllowedToInstantiateQuery);
+  prefetchPartiesAllowedToInstantiate(queryClient);
   return null;
 };

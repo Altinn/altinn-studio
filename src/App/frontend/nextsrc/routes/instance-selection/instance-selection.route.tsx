@@ -83,7 +83,7 @@ export const InstanceSelectionPage = () => {
     selectedIndex !== undefined && selectedIndex >= 0 && selectedIndex < rowsPerPageOptions.length ? selectedIndex : 0;
 
   const sortDirection = instanceSelectionOptions?.sortDirection ?? 'asc';
-  const { data: instances, isPending } = useActiveInstances({
+  const { instances, isLoading } = useActiveInstances({
     instanceOwnerPartyId: selectedPartyId.toString(),
     sortDirection,
   });
@@ -91,7 +91,7 @@ export const InstanceSelectionPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[defaultSelectedOption]);
 
-  if (isPending) {
+  if (isLoading) {
     return <div>loading</div>;
   }
 
@@ -266,14 +266,14 @@ export const InstanceSelectionPage = () => {
 function CreateInstanceButton() {
   const { langAsString } = useLanguage();
   const navigate = useNavigate();
-  const createInstanceMutation = useCreateInstance();
+  const { createInstanceAsync, isPending, error } = useCreateInstance();
 
   return (
     <div className={classes.startNewButtonContainer}>
-      {createInstanceMutation.error && <p>{createInstanceMutation.error.message}</p>}
+      {error && <p>{error.message}</p>}
       <Button
         onClick={async () => {
-          const result = await createInstanceMutation.mutateAsync();
+          const result = await createInstanceAsync();
 
           const { instanceGuid, instanceOwnerPartyId } = extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId(
             result.id,
@@ -281,10 +281,10 @@ function CreateInstanceButton() {
 
           return navigate(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
         }}
-        disabled={createInstanceMutation.isPending}
+        disabled={isPending}
         size='md'
       >
-        {createInstanceMutation.isPending ? 'Oppretter...' : langAsString('instance_selection.new_instance')}
+        {isPending ? 'Oppretter...' : langAsString('instance_selection.new_instance')}
       </Button>
     </div>
   );

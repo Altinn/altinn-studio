@@ -72,7 +72,8 @@ function getPartyTypesString(langAsString: (key: string) => string): string {
 export const PartySelectionPage = () => {
   const { langAsString } = useLanguage();
   const { errorCode } = useParams<{ errorCode?: string }>();
-  const { data: parties = [], isLoading } = usePartiesAllowedToInstantiate();
+  const { parties: partiesData, isLoading } = usePartiesAllowedToInstantiate();
+  const parties = partiesData ?? [];
 
   const defaultShowDeleted = parties.length > 0 && parties.every((party) => party.isDeleted);
 

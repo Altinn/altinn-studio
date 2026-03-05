@@ -4,10 +4,10 @@ import type { LoaderFunctionArgs } from 'react-router';
 import { isAxiosError } from 'axios';
 import { InstanceApi } from 'nextsrc/core/api-client/instance.api';
 import { GlobalData } from 'nextsrc/core/globalData';
-import { activeInstancesQuery } from 'nextsrc/core/queries/instance';
+import { prefetchActiveInstances } from 'nextsrc/core/queries/instance';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
 import { routeBuilders } from 'nextsrc/routesBuilder';
-import type { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from 'nextsrc/core/queries/types';
 
 import type { IInstance } from 'src/types/shared';
 
@@ -32,9 +32,7 @@ export const loader = (queryClient: QueryClient) => async (_: LoaderFunctionArgs
   }
 
   if (entryType === 'select-instance' && GlobalData.selectedParty) {
-    const activeInstances = await queryClient.ensureQueryData(
-      activeInstancesQuery(GlobalData.selectedParty.partyId.toString()),
-    );
+    const activeInstances = await prefetchActiveInstances(queryClient, GlobalData.selectedParty.partyId.toString());
 
     if (activeInstances.length === 0) {
       const instance = await createNewInstanceOrRedirect();
