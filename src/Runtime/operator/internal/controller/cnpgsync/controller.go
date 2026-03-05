@@ -68,6 +68,9 @@ const (
 	reservedConnections = 3  // superuser_reserved_connections
 	adminConnections    = 10 // buffer for admin/monitoring
 	minBaseConnections  = 50 // minimum even with 0 apps
+
+	baseClusterScale = 1
+	prodClusterScale = 2
 )
 
 const cnpgChartVersion = "0.27.0"
@@ -748,134 +751,211 @@ func (r *CnpgSyncReconciler) deleteClusterIfExists(ctx context.Context, cluster 
 }
 
 func (r *CnpgSyncReconciler) buildCluster(numApps int) *cnpgv1.Cluster {
+	scale, ok := clusterScaleForEnvironment(r.runtime.GetOperatorContext().Environment)
+	if !ok {
+		return nil
+	}
+
+	cfg, err := newBuildClusterConfig(numApps, scale)
+	if err != nil {
+		r.logger.Error(err, "invalid cluster scaling config", "scale", scale, "numApps", numApps)
+		return nil
+	}
+
 	storageClass := storageClassName
 	apiGroup := "postgresql.cnpg.io"
-
-	baseConnections := numApps * connectionsPerApp
-	if baseConnections < minBaseConnections {
-		baseConnections = minBaseConnections
-	}
-	maxConnections := baseConnections + reservedConnections + adminConnections
-
-	opCtx := r.runtime.GetOperatorContext()
-	var cluster *cnpgv1.Cluster = nil
-	switch opCtx.Environment {
-	case operatorcontext.EnvironmentLocal, "tt02", "prod":
-		cluster = &cnpgv1.Cluster{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      clusterName,
-				Namespace: cnpgNamespace,
-				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": "altinn-studio-operator",
+	return &cnpgv1.Cluster{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      clusterName,
+			Namespace: cnpgNamespace,
+			Labels: map[string]string{
+				"app.kubernetes.io/managed-by": "altinn-studio-operator",
+			},
+		},
+		Spec: cnpgv1.ClusterSpec{
+			Instances: cfg.Instances,
+			EnablePDB: ptr.To(cfg.EnablePDB),
+			Bootstrap: &cnpgv1.BootstrapConfiguration{
+				InitDB: &cnpgv1.BootstrapInitDB{
+					DataChecksums: ptr.To(true),
+					Encoding:      "UTF8",
+					LocaleCollate: "nb_NO.UTF8",
+					LocaleCType:   "nb_NO.UTF8",
 				},
 			},
-			Spec: cnpgv1.ClusterSpec{
-				Instances: 1,
-				EnablePDB: ptr.To(false), // PDB for single instance cluster would prevent node drain during upgrades
-				Bootstrap: &cnpgv1.BootstrapConfiguration{
-					InitDB: &cnpgv1.BootstrapInitDB{
-						DataChecksums: ptr.To(true),
-						Encoding:      "UTF8",
-						LocaleCollate: "nb_NO.UTF8",
-						LocaleCType:   "nb_NO.UTF8",
-					},
+			Env: []corev1.EnvVar{
+				{Name: "TZ", Value: "Europe/Oslo"},
+			},
+			EnableSuperuserAccess: ptr.To(true),
+			PostgresConfiguration: cnpgv1.PostgresConfiguration{
+				// Azure docs: https://learn.microsoft.com/en-us/azure/aks/deploy-postgresql-ha?tabs=azuredisk#postgresql-performance-parameters
+				// pgtune: https://pgtune.leopard.in.ua/?dbVersion=18&osType=linux&dbType=web&cpuNum=1&totalMemory=1&totalMemoryUnit=GB&connectionNum=100&hdType=ssd
+				Parameters: map[string]string{
+					"timezone":                       "Europe/Oslo",
+					"max_connections":                strconv.Itoa(cfg.MaxConnections),
+					"superuser_reserved_connections": strconv.Itoa(cfg.SuperuserReservedConnections),
+					// Memory
+					"shared_buffers":       cfg.SharedBuffers,
+					"effective_cache_size": cfg.EffectiveCacheSize,
+					"work_mem":             cfg.WorkMem,
+					"maintenance_work_mem": cfg.MaintenanceWorkMem,
+					"huge_pages":           "off",
+					// WAL
+					"wal_compression":        "lz4",
+					"wal_buffers":            cfg.WalBuffers,
+					"min_wal_size":           cfg.MinWalSize,
+					"max_wal_size":           cfg.MaxWalSize,
+					"wal_writer_flush_after": cfg.WalWriterFlushAfter,
+					// Checkpoints
+					"checkpoint_completion_target": "0.9",
+					"checkpoint_flush_after":       cfg.CheckpointFlushAfter,
+					"checkpoint_timeout":           "15min",
+					// IO
+					"effective_io_concurrency":   "128",
+					"maintenance_io_concurrency": "128",
+					// Other
+					"default_toast_compression": "lz4",
+					// SSD cost tuning
+					"random_page_cost": "1.1",
+					// Autovacuum
+					"autovacuum_vacuum_cost_limit": cfg.AutovacuumVacuumCostLimit,
+					// Monitoring
+					"pg_stat_statements.track":      "all",
+					"pg_stat_statements.max":        cfg.PgStatStatementsMax,
+					"default_statistics_target":     "100",
+					"log_checkpoints":               "on",
+					"log_lock_waits":                "on",
+					"log_min_duration_statement":    "1000",
+					"log_statement":                 "ddl",
+					"log_temp_files":                "1024",
+					"log_autovacuum_min_duration":   "1s",
+					"auto_explain.log_min_duration": "10s",
+					// TCP Keepalive (detect dead connections holding locks)
+					"tcp_keepalives_idle":              "60",
+					"tcp_keepalives_interval":          "10",
+					"tcp_keepalives_count":             "6",
+					"client_connection_check_interval": "10000", // ms, poll socket during long queries
 				},
-				Env: []corev1.EnvVar{
-					{Name: "TZ", Value: "Europe/Oslo"},
+			},
+			ImageCatalogRef: &cnpgv1.ImageCatalogRef{
+				TypedLocalObjectReference: corev1.TypedLocalObjectReference{
+					APIGroup: &apiGroup,
+					Kind:     "ImageCatalog",
+					Name:     imageCatalogName,
 				},
-				EnableSuperuserAccess: ptr.To(true),
-				PostgresConfiguration: cnpgv1.PostgresConfiguration{
-					// Azure docs: https://learn.microsoft.com/en-us/azure/aks/deploy-postgresql-ha?tabs=azuredisk#postgresql-performance-parameters
-					// pgtune: https://pgtune.leopard.in.ua/?dbVersion=18&osType=linux&dbType=web&cpuNum=1&totalMemory=1&totalMemoryUnit=GB&connectionNum=100&hdType=ssd
-					Parameters: map[string]string{
-						"timezone":                       "Europe/Oslo",
-						"max_connections":                strconv.Itoa(maxConnections),
-						"superuser_reserved_connections": strconv.Itoa(reservedConnections),
-						// Memory
-						"shared_buffers":       "256MB",
-						"effective_cache_size": "768MB",
-						"work_mem":             "2427kB",
-						"maintenance_work_mem": "64MB",
-						"huge_pages":           "off",
-						// WAL
-						"wal_compression":        "lz4",
-						"wal_buffers":            "7864kB",
-						"min_wal_size":           "512MB",
-						"max_wal_size":           "1GB",
-						"wal_writer_flush_after": "2MB",
-						// Checkpoints
-						"checkpoint_completion_target": "0.9",
-						"checkpoint_flush_after":       "2MB",
-						"checkpoint_timeout":           "15min",
-						// IO
-						"effective_io_concurrency":   "128",
-						"maintenance_io_concurrency": "128",
-						// Other
-						"default_toast_compression": "lz4",
-						// SSD cost tuning
-						"random_page_cost": "1.1",
-						// Autovacuum
-						"autovacuum_vacuum_cost_limit": "2400",
-						// Monitoring
-						"pg_stat_statements.track":      "all",
-						"pg_stat_statements.max":        "1000",
-						"default_statistics_target":     "100",
-						"log_checkpoints":               "on",
-						"log_lock_waits":                "on",
-						"log_min_duration_statement":    "1000",
-						"log_statement":                 "ddl",
-						"log_temp_files":                "1024",
-						"log_autovacuum_min_duration":   "1s",
-						"auto_explain.log_min_duration": "10s",
-						// TCP Keepalive (detect dead connections holding locks)
-						"tcp_keepalives_idle":              "60",
-						"tcp_keepalives_interval":          "10",
-						"tcp_keepalives_count":             "6",
-						"client_connection_check_interval": "10000", // ms, poll socket during long queries
-					},
+				Major: 18,
+			},
+			StorageConfiguration: cnpgv1.StorageConfiguration{
+				StorageClass: &storageClass,
+				Size:         cfg.StorageSize,
+			},
+			WalStorage: &cnpgv1.StorageConfiguration{
+				StorageClass: &storageClass,
+				Size:         cfg.WalStorageSize,
+			},
+			Resources: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse(cfg.CPURequest),
+					corev1.ResourceMemory: resource.MustParse(cfg.MemoryRequest),
 				},
-				ImageCatalogRef: &cnpgv1.ImageCatalogRef{
-					TypedLocalObjectReference: corev1.TypedLocalObjectReference{
-						APIGroup: &apiGroup,
-						Kind:     "ImageCatalog",
-						Name:     imageCatalogName,
-					},
-					Major: 18,
-				},
-				StorageConfiguration: cnpgv1.StorageConfiguration{
-					StorageClass: &storageClass,
-					Size:         "4Gi",
-				},
-				WalStorage: &cnpgv1.StorageConfiguration{
-					StorageClass: &storageClass,
-					Size:         "2Gi",
-				},
-				Resources: corev1.ResourceRequirements{
-					Requests: corev1.ResourceList{
-						corev1.ResourceCPU:    resource.MustParse("100m"),
-						corev1.ResourceMemory: resource.MustParse("1Gi"),
-					},
-				},
-				Affinity: cnpgv1.AffinityConfiguration{
-					EnablePodAntiAffinity: ptr.To(false),
-				},
-				TopologySpreadConstraints: []corev1.TopologySpreadConstraint{
-					{
-						MaxSkew:           1,
-						TopologyKey:       "topology.kubernetes.io/zone",
-						WhenUnsatisfiable: corev1.DoNotSchedule,
-						LabelSelector: &metav1.LabelSelector{
-							MatchLabels: map[string]string{
-								"cnpg.io/cluster": clusterName,
-							},
+			},
+			Affinity: cnpgv1.AffinityConfiguration{
+				EnablePodAntiAffinity: ptr.To(false),
+			},
+			TopologySpreadConstraints: []corev1.TopologySpreadConstraint{
+				{
+					MaxSkew:           1,
+					TopologyKey:       "topology.kubernetes.io/zone",
+					WhenUnsatisfiable: corev1.DoNotSchedule,
+					LabelSelector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"cnpg.io/cluster": clusterName,
 						},
 					},
 				},
 			},
-		}
+		},
+	}
+}
+
+func clusterScaleForEnvironment(environment string) (int, bool) {
+	switch environment {
+	case operatorcontext.EnvironmentLocal, "tt02":
+		return baseClusterScale, true
+	case operatorcontext.EnvironmentProd:
+		return prodClusterScale, true
+	default:
+		return 0, false
+	}
+}
+
+type buildClusterConfig struct {
+	Instances                    int
+	EnablePDB                    bool
+	MaxConnections               int
+	SuperuserReservedConnections int
+	StorageSize                  string
+	WalStorageSize               string
+	CPURequest                   string
+	MemoryRequest                string
+	SharedBuffers                string
+	EffectiveCacheSize           string
+	WorkMem                      string
+	MaintenanceWorkMem           string
+	WalBuffers                   string
+	MinWalSize                   string
+	MaxWalSize                   string
+	WalWriterFlushAfter          string
+	CheckpointFlushAfter         string
+	AutovacuumVacuumCostLimit    string
+	PgStatStatementsMax          string
+}
+
+func newBuildClusterConfig(numApps, scale int) (*buildClusterConfig, error) {
+	if scale < 1 {
+		return nil, fmt.Errorf("cluster scale must be >= 1, got %d", scale)
 	}
 
-	return cluster
+	connectionsPerAppScaled := scaleInt(connectionsPerApp, scale)
+	baseConnections := numApps * connectionsPerAppScaled
+	minConnections := scaleInt(minBaseConnections, scale)
+	if baseConnections < minConnections {
+		baseConnections = minConnections
+	}
+
+	superuserReservedConnections := scaleInt(reservedConnections, scale)
+	adminConnectionsScaled := scaleInt(adminConnections, scale)
+	maxConnections := baseConnections + superuserReservedConnections + adminConnectionsScaled
+
+	return &buildClusterConfig{
+		Instances:                    1,
+		EnablePDB:                    false,
+		MaxConnections:               maxConnections,
+		SuperuserReservedConnections: superuserReservedConnections,
+		StorageSize:                  scaleSizeWithUnit(4, scale, "Gi"),
+		WalStorageSize:               "2Gi",
+		CPURequest:                   scaleSizeWithUnit(100, scale, "m"),
+		MemoryRequest:                scaleSizeWithUnit(1, scale, "Gi"),
+		SharedBuffers:                scaleSizeWithUnit(256, scale, "MB"),
+		EffectiveCacheSize:           scaleSizeWithUnit(768, scale, "MB"),
+		WorkMem:                      scaleSizeWithUnit(2427, scale, "kB"),
+		MaintenanceWorkMem:           scaleSizeWithUnit(64, scale, "MB"),
+		WalBuffers:                   "7864kB",
+		MinWalSize:                   "512MB",
+		MaxWalSize:                   "1GB",
+		WalWriterFlushAfter:          "2MB",
+		CheckpointFlushAfter:         "2MB",
+		AutovacuumVacuumCostLimit:    "2400",
+		PgStatStatementsMax:          "1000",
+	}, nil
+}
+
+func scaleInt(base, scale int) int {
+	return base * scale
+}
+
+func scaleSizeWithUnit(base, scale int, unit string) string {
+	return fmt.Sprintf("%d%s", scaleInt(base, scale), unit)
 }
 
 func (r *CnpgSyncReconciler) ensureBackupResources(ctx context.Context) error {
@@ -1431,6 +1511,10 @@ func sanitizePostgresIdentifier(s string) string {
 // Returns ready=true if the role has been reconciled by CNPG.
 func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string) (ready bool, err error) {
 	pgRole := sanitizePostgresIdentifier(appId)
+	connectionLimit := int64(connectionsPerApp)
+	if scale, ok := clusterScaleForEnvironment(r.runtime.GetOperatorContext().Environment); ok {
+		connectionLimit = int64(scaleInt(connectionsPerApp, scale))
+	}
 
 	cluster := &cnpgv1.Cluster{}
 	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster); err != nil {
@@ -1453,7 +1537,7 @@ func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string
 		role := cnpgv1.RoleConfiguration{
 			Name:            pgRole,
 			Login:           true,
-			ConnectionLimit: connectionsPerApp,
+			ConnectionLimit: connectionLimit,
 			PasswordSecret: &cnpgv1.LocalObjectReference{
 				Name: secretName,
 			},
