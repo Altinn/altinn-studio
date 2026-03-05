@@ -1,15 +1,15 @@
 ## Refactoring and chore list
 
 ### Data model / misc
-- [ ] Remove concurrency rules and associated stored procedure. Nested process/next is now disallowed, replaced by server-side "waiting" for async operations.
-  - [ ] Stored procedure can be removed: [check_active_workflow_constraint.sql](src/WorkflowEngine.Data/Sql/Functions/check_active_workflow_constraint.sql).
-    - [ ] Remove `EnginePgRepository.CheckActiveWorkflowConstraint` and all references to it.
-  - [ ] [WorkflowType](src/WorkflowEngine.Models/WorkflowType.cs) and [ConcurrencyPolicy](src/WorkflowEngine.Models/ConcurrencyPolicy.cs) can be removed.
-- [ ] Cascading failures will be handled by the engine organically, the stored procedure should be removed: [cascade_dependency_failures.sql](src/WorkflowEngine.Data/Sql/Functions/cascade_dependency_failures.sql)
-  - [ ] Remove `EnginePgRepository.CascadeDependencyFailures` and all references to it.
-- [ ] Remove [ConcurrentBuffer](src/WorkflowEngine.Api/ConcurrentBuffer.cs) and its usages.
-  - [ ] This includes removing the whole Engine.ShouldRun concept.
-- [ ] Remove the `Engine.HaveWork` check. This is now replaced by the result of the db query.
+- [x] Remove concurrency rules and associated stored procedure. Nested process/next is now disallowed, replaced by server-side "waiting" for async operations.
+  - [x] Stored procedure can be removed: [check_active_workflow_constraint.sql](src/WorkflowEngine.Data/Sql/Functions/check_active_workflow_constraint.sql).
+    - [x] Remove `EnginePgRepository.CheckActiveWorkflowConstraint` and all references to it.
+  - [x] [WorkflowType](src/WorkflowEngine.Models/WorkflowType.cs) and [ConcurrencyPolicy](src/WorkflowEngine.Models/ConcurrencyPolicy.cs) can be removed.
+- [x] Cascading failures will be handled by the engine organically, the stored procedure should be removed: [cascade_dependency_failures.sql](src/WorkflowEngine.Data/Sql/Functions/cascade_dependency_failures.sql)
+  - [x] Remove `EnginePgRepository.CascadeDependencyFailures` and all references to it.
+- [x] Remove [ConcurrentBuffer](src/WorkflowEngine.Api/ConcurrentBuffer.cs) and its usages.
+  - [x] This includes removing the whole Engine.ShouldRun concept.
+- [x] Remove the `Engine.HaveWork` check. This is now replaced by the result of the db query.
 - [ ] Add a timestamp to the `Workflow`, which is used to determine if a workflow is "stuck" in a processing state (worker has crashed)
   - Worker will be required to update this column periodically.
   - The engine will consume stale workflows eventually, even if they are in a `processing` state.
