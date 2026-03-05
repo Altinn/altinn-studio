@@ -145,6 +145,40 @@ func TestReconciler_UsesLocalStorageClassForLocal(t *testing.T) {
 	g.Expect(*cluster.Spec.StorageConfiguration.StorageClass).To(Equal(storageClassName))
 }
 
+func TestReconciler_UsesScaledClusterConfigForProd(t *testing.T) {
+	g := NewWithT(t)
+	h := newTestHarness(t, "prod", []CnpgTarget{{ServiceOwnerId: "ttd", Environment: "prod", Apps: []string{"testapp"}}})
+
+	_, _ = h.reconciler.SyncAll(h.ctx)
+	h.setHelmReleaseReady(t)
+	_, _ = h.reconciler.SyncAll(h.ctx)
+
+	cluster := &cnpgv1.Cluster{}
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
+
+	g.Expect(cluster.Spec.Instances).To(Equal(1))
+	g.Expect(cluster.Spec.EnablePDB).NotTo(BeNil())
+	g.Expect(*cluster.Spec.EnablePDB).To(BeFalse())
+	g.Expect(cluster.Spec.StorageConfiguration.Size).To(Equal("8Gi"))
+	g.Expect(cluster.Spec.WalStorage).NotTo(BeNil())
+	g.Expect(cluster.Spec.WalStorage.Size).To(Equal("2Gi"))
+	g.Expect(cluster.Spec.Resources.Requests.Cpu().String()).To(Equal("200m"))
+	g.Expect(cluster.Spec.Resources.Requests.Memory().String()).To(Equal("2Gi"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["max_connections"]).To(Equal("126"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["superuser_reserved_connections"]).To(Equal("6"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["shared_buffers"]).To(Equal("512MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["effective_cache_size"]).To(Equal("1536MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["work_mem"]).To(Equal("4854kB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["maintenance_work_mem"]).To(Equal("128MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["wal_buffers"]).To(Equal("7864kB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["min_wal_size"]).To(Equal("512MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["max_wal_size"]).To(Equal("1GB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["wal_writer_flush_after"]).To(Equal("2MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["checkpoint_flush_after"]).To(Equal("2MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["autovacuum_vacuum_cost_limit"]).To(Equal("2400"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["pg_stat_statements.max"]).To(Equal("1000"))
+}
+
 func TestReconciler_UsesProxyRegistryForNonLocal(t *testing.T) {
 	g := NewWithT(t)
 	h := newTestHarness(t, "tt02", []CnpgTarget{{ServiceOwnerId: "ttd", Environment: "tt02"}})
@@ -268,18 +302,18 @@ func TestReconciler_DeletesClusterWhenBuildClusterReturnsNil(t *testing.T) {
 	k8sClient := newFakeK8sClient(ns, cluster)
 	clock := clockwork.NewFakeClock()
 
-	// Use prod environment where buildCluster returns nil
+	// Use unsupported environment where buildCluster returns nil
 	rt, err := internal.NewRuntime(
 		context.Background(),
 		internal.WithClock(clock),
 		internal.WithOperatorContext(&operatorcontext.Context{
 			ServiceOwner: operatorcontext.ServiceOwner{Id: "ttd"},
-			Environment:  "prod",
+			Environment:  "staging",
 		}),
 	)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	targets := []CnpgTarget{{ServiceOwnerId: "ttd", Environment: "prod"}}
+	targets := []CnpgTarget{{ServiceOwnerId: "ttd", Environment: "staging"}}
 	reconciler := NewReconcilerForTesting(rt, k8sClient, targets)
 
 	// First sync - creates HelmRelease
@@ -291,7 +325,7 @@ func TestReconciler_DeletesClusterWhenBuildClusterReturnsNil(t *testing.T) {
 	release.Status.Conditions = []metav1.Condition{{Type: "Ready", Status: metav1.ConditionTrue}}
 	g.Expect(k8sClient.Status().Update(context.Background(), release)).To(Succeed())
 
-	// Second sync - should delete cluster since buildCluster returns nil for prod
+	// Second sync - should delete cluster since buildCluster returns nil for unsupported env
 	needsRetry, err := reconciler.SyncAll(context.Background())
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(needsRetry).To(BeFalse())
