@@ -1,39 +1,51 @@
 import React from 'react';
-import { createBrowserRouter, Navigate, Outlet } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
+
+import type { QueryClient } from '@tanstack/react-query';
 
 import { AppLayout } from 'src/AppLayout';
 import { ErrorPage } from 'src/components/ErrorPage';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
-import { ComponentRouting, NavigateToStartUrl, ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';
-import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
-import { FormProvider } from 'src/features/form/FormContext';
-import { InstanceProvider } from 'src/features/instance/InstanceContext';
-import { PartySelection } from 'src/features/instantiate/containers/PartySelection';
-import { InstanceSelectionWrapper } from 'src/features/instantiate/selection/InstanceSelection';
-import { PdfWrapper } from 'src/features/pdf/PdfWrapper';
-import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
-import { DefaultReceipt } from 'src/features/receipt/ReceiptContainer';
+import { ComponentRouting, NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
 import { GlobalData } from 'src/GlobalData';
+import { indexLoader } from 'src/routes/index/index.loader';
+import { Component as IndexRoute } from 'src/routes/index/index.route';
+import { instanceLoader } from 'src/routes/instance/instance.loader';
+import { Component as InstanceRoute } from 'src/routes/instance/instance.route';
+import { instanceSelectionLoader } from 'src/routes/instance-selection/instance-selection.loader';
+import { Component as InstanceSelectionRoute } from 'src/routes/instance-selection/instance-selection.route';
+import { Component as PageRoute } from 'src/routes/page/page.route';
+import { partySelectionLoader } from 'src/routes/party-selection/party-selection.loader';
+import { Component as PartySelectionRoute } from 'src/routes/party-selection/party-selection.route';
+import { Component as ProcessEndRoute } from 'src/routes/process-end/process-end.route';
+import { taskLoader } from 'src/routes/task/task.loader';
+import { Component as TaskRoute } from 'src/routes/task/task.route';
 import { routes } from 'src/routesBuilder';
 
-export function createRouter() {
+export function createRouter(queryClient: QueryClient) {
   return createBrowserRouter(
     [
       {
         Component: AppLayout,
         errorElement: <ErrorPage />,
         children: [
-          { path: routes.instanceSelection, element: <InstanceSelectionWrapper /> },
+          {
+            path: routes.instanceSelection,
+            Component: InstanceSelectionRoute,
+            loader: instanceSelectionLoader(queryClient),
+          },
           {
             path: routes.partySelection,
+            loader: partySelectionLoader(queryClient),
             children: [
-              { index: true, element: <PartySelection /> },
-              { path: '*', element: <PartySelection /> },
+              { index: true, Component: PartySelectionRoute },
+              { path: '*', Component: PartySelectionRoute },
             ],
           },
           {
-            element: <Entrypoint />,
+            Component: IndexRoute,
+            loader: indexLoader(queryClient),
             children: [
               {
                 path: routes.statelessPage,
@@ -48,25 +60,15 @@ export function createRouter() {
           },
           {
             path: routes.instance,
-            Component: () => (
-              <InstanceProvider>
-                <Outlet />
-              </InstanceProvider>
-            ),
+            Component: InstanceRoute,
+            loader: instanceLoader(queryClient),
             children: [
               { index: true, element: <NavigateToStartUrl /> },
-              { path: 'ProcessEnd', element: <DefaultReceipt /> },
+              { path: 'ProcessEnd', Component: ProcessEndRoute },
               {
                 path: routes.task,
-                Component: () => (
-                  <FixWrongReceiptType>
-                    <ProcessWrapper>
-                      <FormProvider>
-                        <Outlet />
-                      </FormProvider>
-                    </ProcessWrapper>
-                  </FixWrongReceiptType>
-                ),
+                Component: TaskRoute,
+                loader: taskLoader(queryClient),
                 children: [
                   { index: true, element: <NavigateToStartUrl forceCurrentTask={false} /> },
                   {
@@ -74,13 +76,7 @@ export function createRouter() {
                     children: [
                       {
                         index: true,
-                        Component: () => (
-                          <PdfWrapper>
-                            <PresentationComponent>
-                              <Form />
-                            </PresentationComponent>
-                          </PdfWrapper>
-                        ),
+                        Component: PageRoute,
                       },
                       {
                         path: routes.component,

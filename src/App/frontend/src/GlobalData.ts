@@ -1,8 +1,8 @@
-import type { AltinnAppGlobalData, OrgName } from 'src/global';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { UiConfig } from 'src/features/form/ui/types';
 import type { ITextResourceResult } from 'src/features/language/textResources';
+import type { OrgName } from 'src/global';
 import type { IAppLanguage, IApplicationSettings, IParty, IProfile } from 'src/types/shared';
 
 /**
