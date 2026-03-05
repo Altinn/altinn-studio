@@ -8781,7 +8781,10 @@
           "staticOptions": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/components/schemas/StaticOptionsInfo"
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/AppOption"
+              }
             },
             "nullable": true
           },
@@ -10505,46 +10508,6 @@
         },
         "additionalProperties": false,
         "description": "A simplified instance model used for presentation of key instance information."
-      },
-      "StaticOptionsInfo": {
-        "required": [
-          "variants"
-        ],
-        "type": "object",
-        "properties": {
-          "variants": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/StaticOptionsVariant"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "StaticOptionsVariant": {
-        "required": [
-          "options",
-          "queryParameters"
-        ],
-        "type": "object",
-        "properties": {
-          "queryParameters": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "nullable": true
-          },
-          "options": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AppOption"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
       },
       "Substatus": {
         "type": "object",

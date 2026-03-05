@@ -464,24 +464,10 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         [System.Text.Json.Serialization.JsonPropertyName("layouts")]
         public required object Layouts { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("staticOptions")]
-        public required System.Collections.Generic.Dictionary<string, Altinn.App.Core.Features.Bootstrap.Models.StaticOptionsInfo> StaticOptions { get; init; }
+        public required System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<Altinn.App.Core.Models.AppOption>> StaticOptions { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? ValidationIssues { get; init; }
-    }
-    public sealed class StaticOptionsInfo
-    {
-        public StaticOptionsInfo() { }
-        [System.Text.Json.Serialization.JsonPropertyName("variants")]
-        public required System.Collections.Generic.List<Altinn.App.Core.Features.Bootstrap.Models.StaticOptionsVariant> Variants { get; init; }
-    }
-    public sealed class StaticOptionsVariant
-    {
-        public StaticOptionsVariant() { }
-        [System.Text.Json.Serialization.JsonPropertyName("options")]
-        public required System.Collections.Generic.List<Altinn.App.Core.Models.AppOption> Options { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("queryParameters")]
-        public required System.Collections.Generic.Dictionary<string, string> QueryParameters { get; init; }
     }
 }
 namespace Altinn.App.Core.Features.Correspondence.Builder
