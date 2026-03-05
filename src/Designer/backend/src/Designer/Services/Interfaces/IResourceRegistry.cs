@@ -25,6 +25,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
             byte[] policyContent = null
         );
 
+        Task<List<ServiceResource>> GetServiceResourceList(
+            string env,
+            bool includeApps = false,
+            bool includeAltinn2 = false
+        );
+
+        Task<bool> ServiceResourceExists(string id, string env);
+
         /// <summary>
         ///
         /// </summary>
