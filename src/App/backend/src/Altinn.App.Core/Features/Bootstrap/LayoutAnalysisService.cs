@@ -3,12 +3,10 @@ using System.Text.Json;
 namespace Altinn.App.Core.Features.Bootstrap;
 
 /// <summary>
-/// Implementation of <see cref="ILayoutAnalysisService"/> that analyzes layout JSON
-/// to extract referenced data types and static options.
+/// Analyzes layout JSON to extract referenced data types and static options.
 /// </summary>
-internal sealed class LayoutAnalysisService : ILayoutAnalysisService
+internal sealed class LayoutAnalysisService
 {
-    /// <inheritdoc />
     public HashSet<string> GetReferencedDataTypes(object layoutsJson, string defaultDataType)
     {
         var dataTypes = new HashSet<string> { defaultDataType };
@@ -19,7 +17,6 @@ internal sealed class LayoutAnalysisService : ILayoutAnalysisService
         return dataTypes;
     }
 
-    /// <inheritdoc />
     public Dictionary<string, List<Dictionary<string, string>>> GetStaticOptions(object layoutsJson)
     {
         var staticOptions = new Dictionary<string, List<Dictionary<string, string>>>();

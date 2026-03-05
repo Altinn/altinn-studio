@@ -1,6 +1,5 @@
-using Altinn.App.Core.Features;
+using System.Text.Json;
 using Altinn.App.Core.Features.Bootstrap;
-using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -17,7 +16,6 @@ public class FormBootstrapServiceTests
 {
     private readonly Mock<IAppResources> _appResources = new();
     private readonly Mock<IAppMetadata> _appMetadata = new();
-    private readonly Mock<ILayoutAnalysisService> _layoutAnalysis = new();
     private readonly Mock<IAppOptionsService> _appOptionsService = new();
     private readonly Mock<IInitialValidationService> _initialValidationService = new();
     private readonly Mock<IDataClient> _dataClient = new();
@@ -28,7 +26,7 @@ public class FormBootstrapServiceTests
         new(
             _appResources.Object,
             _appMetadata.Object,
-            _layoutAnalysis.Object,
+            new LayoutAnalysisService(),
             _appOptionsService.Object,
             _initialValidationService.Object,
             _dataClient.Object,
@@ -353,9 +351,7 @@ public class FormBootstrapServiceTests
         Dictionary<string, List<Dictionary<string, string>>>? staticOptions = null
     )
     {
-        _appResources
-            .Setup(x => x.GetLayoutsInFolder(It.IsAny<string>()))
-            .Returns("""{"page1": {"data": {"layout": []}}}""");
+        _appResources.Setup(x => x.GetLayoutsInFolder(It.IsAny<string>())).Returns(CreateLayoutsJson(staticOptions));
         _appResources.Setup(x => x.GetModelJsonSchema(It.IsAny<string>())).Returns("""{"type": "object"}""");
         _appResources
             .Setup(x => x.GetValidationConfiguration(It.IsAny<string>()))
@@ -365,11 +361,6 @@ public class FormBootstrapServiceTests
             .Returns(new LayoutSettings { DefaultDataType = dataType });
 
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
-
-        _layoutAnalysis
-            .Setup(x => x.GetReferencedDataTypes(It.IsAny<object>(), It.IsAny<string>()))
-            .Returns(new HashSet<string> { dataType });
-        _layoutAnalysis.Setup(x => x.GetStaticOptions(It.IsAny<object>())).Returns(staticOptions ?? []);
 
         _appOptionsService
             .Setup(x =>
@@ -405,9 +396,7 @@ public class FormBootstrapServiceTests
         string dataType = "model"
     )
     {
-        _appResources
-            .Setup(x => x.GetLayoutsInFolder(It.IsAny<string>()))
-            .Returns("""{"page1": {"data": {"layout": []}}}""");
+        _appResources.Setup(x => x.GetLayoutsInFolder(It.IsAny<string>())).Returns(CreateLayoutsJson());
         _appResources.Setup(x => x.GetModelJsonSchema(It.IsAny<string>())).Returns("""{"type": "object"}""");
         _appResources.Setup(x => x.GetValidationConfiguration(It.IsAny<string>())).Returns((string?)null);
         _appResources
@@ -415,11 +404,6 @@ public class FormBootstrapServiceTests
             .Returns(new LayoutSettings { DefaultDataType = dataType });
 
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
-
-        _layoutAnalysis
-            .Setup(x => x.GetReferencedDataTypes(It.IsAny<object>(), It.IsAny<string>()))
-            .Returns(new HashSet<string> { dataType });
-        _layoutAnalysis.Setup(x => x.GetStaticOptions(It.IsAny<object>())).Returns([]);
         _appOptionsService
             .Setup(x =>
                 x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())
@@ -427,5 +411,42 @@ public class FormBootstrapServiceTests
             .ReturnsAsync(new AppOptions { Options = [] });
 
         _appModel.Setup(x => x.Create(It.IsAny<string>())).Returns(new object());
+    }
+
+    private static string CreateLayoutsJson(Dictionary<string, List<Dictionary<string, string>>>? staticOptions = null)
+    {
+        var components = new List<Dictionary<string, object?>>();
+        if (staticOptions is not null)
+        {
+            foreach (var (optionsId, variants) in staticOptions)
+            {
+                foreach (var queryParameters in variants)
+                {
+                    var component = new Dictionary<string, object?>
+                    {
+                        ["id"] = Guid.NewGuid().ToString("N"),
+                        ["type"] = "Dropdown",
+                        ["optionsId"] = optionsId,
+                    };
+
+                    if (queryParameters.Count > 0)
+                    {
+                        component["queryParameters"] = queryParameters;
+                    }
+
+                    components.Add(component);
+                }
+            }
+        }
+
+        var layout = new Dictionary<string, object?>
+        {
+            ["page1"] = new Dictionary<string, object?>
+            {
+                ["data"] = new Dictionary<string, object?> { ["layout"] = components },
+            },
+        };
+
+        return JsonSerializer.Serialize(layout);
     }
 }

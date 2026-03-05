@@ -16,7 +16,7 @@ namespace Altinn.App.Api.Controllers;
 [ApiController]
 public class FormBootstrapController : ControllerBase
 {
-    private readonly IFormBootstrapService _formBootstrapService;
+    private readonly FormBootstrapService _formBootstrapService;
     private readonly IInstanceClient _instanceClient;
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
@@ -26,14 +26,14 @@ public class FormBootstrapController : ControllerBase
     /// Initializes a new instance of the <see cref="FormBootstrapController"/> class.
     /// </summary>
     public FormBootstrapController(
-        IFormBootstrapService formBootstrapService,
+        IServiceProvider serviceProvider,
         IInstanceClient instanceClient,
         IAppResources appResources,
         IAppMetadata appMetadata,
         ILogger<FormBootstrapController> logger
     )
     {
-        _formBootstrapService = formBootstrapService;
+        _formBootstrapService = serviceProvider.GetRequiredService<FormBootstrapService>();
         _instanceClient = instanceClient;
         _appResources = appResources;
         _appMetadata = appMetadata;

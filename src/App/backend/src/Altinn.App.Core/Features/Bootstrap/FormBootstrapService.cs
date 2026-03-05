@@ -12,10 +12,9 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Features.Bootstrap;
 
 /// <summary>
-/// Implementation of <see cref="IFormBootstrapService"/> that aggregates all form data
-/// into a single response.
+/// Aggregates all form bootstrap data into a single response.
 /// </summary>
-internal sealed class FormBootstrapService : IFormBootstrapService
+internal sealed class FormBootstrapService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -24,7 +23,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
 
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
-    private readonly ILayoutAnalysisService _layoutAnalysis;
+    private readonly LayoutAnalysisService _layoutAnalysis;
     private readonly IAppOptionsService _appOptionsService;
     private readonly IInitialValidationService _initialValidationService;
     private readonly IDataClient _dataClient;
@@ -34,7 +33,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
     public FormBootstrapService(
         IAppResources appResources,
         IAppMetadata appMetadata,
-        ILayoutAnalysisService layoutAnalysis,
+        LayoutAnalysisService layoutAnalysis,
         IAppOptionsService appOptionsService,
         IInitialValidationService initialValidationService,
         IDataClient dataClient,
