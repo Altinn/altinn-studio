@@ -102,13 +102,16 @@ src/routes/
 
 **Verified:** `tsc --noEmit` clean, `yarn test` 152/152 suites pass, `yarn lint` clean
 
-## Step 8: Clean up `index.tsx` — TODO
+## Step 8: Clean up `index.tsx` — DONE (partial)
 
-**Modify:** `src/index.tsx`
+**Modified:** `src/index.tsx`
 
-- Remove `AppPrefetcher` (replaced by route loaders)
-- Eventually remove `AppQueriesProvider` wrapping (once components are migrated off `useAppQueries`)
-- Final shape: `ErrorBoundary > QueryClientProvider > RouterProvider`
+- Removed `AppPrefetcher` (replaced by route loaders)
+- `AppQueriesProvider` stays — still used by 24 files via `useAppQueries`/`useAppMutations`
+- Current shape: `AppQueriesProvider > ErrorBoundary > RouterProvider`
+- Future: migrate off `useAppQueries`, then simplify to `ErrorBoundary > QueryClientProvider > RouterProvider`
+
+**Verified:** `tsc --noEmit` clean, `yarn lint` clean
 
 ---
 

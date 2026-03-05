@@ -16,7 +16,6 @@ import 'src/features/toggles';
 import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
 import { propagateTraceWhenPdf } from 'src/features/propagateTraceWhenPdf';
-import { AppPrefetcher } from 'src/queries/appPrefetcher';
 import * as queries from 'src/queries/queries';
 import { queryClient } from 'src/queryClient';
 import { createRouter } from 'src/router';
@@ -33,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
   root?.render(
     <AppQueriesProvider {...queries}>
       <ErrorBoundary>
-        <AppPrefetcher />
         <RouterProvider router={createRouter(queryClient)} />
       </ErrorBoundary>
     </AppQueriesProvider>,
