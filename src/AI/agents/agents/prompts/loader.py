@@ -9,31 +9,20 @@ log = get_logger(__name__)
 PROMPTS_DIR = Path(__file__).parent
 
 
-def _try_langfuse_prompt(prompt_name: str) -> Optional[str]:
-    """Try to fetch a prompt from Langfuse. Returns None on any failure."""
+def _try_langfuse_prompt(prompt_name: str, variables: dict | None = None) -> Optional[str]:
+    """
+    Try to fetch a prompt from Langfuse, optionally substituting variables into {{placeholders}}.
+    Returns None if Langfuse is disabled or unavailable.
+    """
     try:
         from shared.utils.langfuse_utils import is_langfuse_enabled, fetch_langfuse_prompt
         if not is_langfuse_enabled():
             return None
-        content = fetch_langfuse_prompt(prompt_name)
+        content = fetch_langfuse_prompt(prompt_name, variables)
         log.debug(f"Loaded prompt '{prompt_name}' from Langfuse")
         return content
     except Exception as e:
         log.debug(f"Langfuse prompt '{prompt_name}' not available, using local file: {e}")
-        return None
-
-
-def _try_langfuse_template(template_name: str, variables: dict) -> Optional[str]:
-    """Try to fetch and render a template from Langfuse. Returns None on any failure."""
-    try:
-        from shared.utils.langfuse_utils import is_langfuse_enabled, fetch_langfuse_prompt
-        if not is_langfuse_enabled():
-            return None
-        content = fetch_langfuse_prompt(template_name, variables)
-        log.debug(f"Rendered template '{template_name}' from Langfuse")
-        return content
-    except Exception as e:
-        log.debug(f"Langfuse template '{template_name}' not available, using local file: {e}")
         return None
 
 
@@ -129,7 +118,7 @@ def render_template(template_name: str, **variables) -> str:
         ...                        user_goal="Add a field",
         ...                        planner_step="Step 1")
     """
-    langfuse_content = _try_langfuse_template(template_name, variables)
+    langfuse_content = _try_langfuse_prompt(template_name, variables)
     if langfuse_content is not None:
         return langfuse_content
 
