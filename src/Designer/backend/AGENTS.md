@@ -65,6 +65,10 @@ The backend consists of three main projects in a Visual Studio solution:
 - `dotnet test` - Run all tests
 - `dotnet test --filter "FullyQualifiedName~PartlyMatchingTestName"` - Run specific tests
 
+## Coding guidelines
+
+- Instead of passing the combination of `org`, `repo`/`app` and `developer`/`user` parameters into functions separately, look for suitable classes that join them into one, e.g. AltinnRepoEditingContext.
+
 ## Testing Guidelines
 
 - Mock external dependencies using `Moq`
