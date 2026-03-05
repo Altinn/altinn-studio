@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react';
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
+import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
 import { FormBootstrapProvider } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
@@ -23,7 +24,7 @@ export interface FormContext {
 }
 
 interface FormProviderProps extends FormContext {
-  layoutSetIdOverride?: string;
+  uiFolderOverride?: string;
   dataElementIdOverride?: string;
 }
 
@@ -42,7 +43,7 @@ export function useIsInFormContext() {
 export function FormProvider({
   children,
   readOnly = false,
-  layoutSetIdOverride,
+  uiFolderOverride,
   dataElementIdOverride,
 }: React.PropsWithChildren<FormProviderProps>) {
   const isEmbedded = useIsInFormContext();
@@ -50,17 +51,19 @@ export function FormProvider({
   const instanceGuid = useNavigationParam('instanceGuid');
   const hasProcess = !!(instanceOwnerPartyId && instanceGuid);
   const taskOverrides = useTaskOverrides();
-  const hasValidTaskOverridePair = !!(taskOverrides.uiFolder && taskOverrides.dataModelElementId);
+  const folderNameFromUrl = useCurrentUiFolderNameFromUrl();
 
-  const bootstrapUiFolderOverride =
-    layoutSetIdOverride ?? (hasValidTaskOverridePair ? taskOverrides.uiFolder : undefined);
-  const bootstrapDataElementIdOverride =
-    dataElementIdOverride ?? (hasValidTaskOverridePair ? taskOverrides.dataModelElementId : undefined);
+  const uiFolder = uiFolderOverride ?? taskOverrides.uiFolder ?? folderNameFromUrl ?? undefined;
+  const dataElementId = dataElementIdOverride ?? taskOverrides.dataModelElementId ?? undefined;
+
+  if (!uiFolder) {
+    throw new Error('uiFolder is not defined');
+  }
 
   return (
     <FormBootstrapProvider
-      uiFolderOverride={bootstrapUiFolderOverride}
-      dataElementIdOverride={bootstrapDataElementIdOverride}
+      uiFolder={uiFolder}
+      dataElementIdOverride={dataElementId}
     >
       <FormDataWriteProvider>
         <ValidationProvider>

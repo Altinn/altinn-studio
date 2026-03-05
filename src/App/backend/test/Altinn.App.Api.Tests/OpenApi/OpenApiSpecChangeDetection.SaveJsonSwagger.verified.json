@@ -2486,6 +2486,299 @@
         }
       }
     },
+    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/bootstrap-form/{uiFolder}": {
+      "get": {
+        "tags": [
+          "FormBootstrap"
+        ],
+        "summary": "Gets all data needed to bootstrap a form for an instance.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "Unique identifier of the organisation responsible for the app.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "Application identifier which is unique within an organisation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "instanceOwnerPartyId",
+            "in": "path",
+            "description": "The party id of the instance owner.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "instanceGuid",
+            "in": "path",
+            "description": "The unique identifier of the instance.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "uiFolder",
+            "in": "path",
+            "description": "The UI folder to use (matches the task ID or subform folder name).",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dataElementId",
+            "in": "query",
+            "description": "Optional data element ID override (for subforms).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pdf",
+            "in": "query",
+            "description": "Whether this is for PDF generation (skips validation).",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "Language code for text resources.",
+            "schema": {
+              "type": "string",
+              "default": "nb"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{org}/{app}/api/bootstrap-form/{uiFolder}": {
+      "get": {
+        "tags": [
+          "FormBootstrap"
+        ],
+        "summary": "Gets all data needed to bootstrap a stateless form.",
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "description": "Unique identifier of the organisation responsible for the app.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "description": "Application identifier which is unique within an organisation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uiFolder",
+            "in": "path",
+            "description": "The layout set ID to use.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "description": "Language code for text resources.",
+            "schema": {
+              "type": "string",
+              "default": "nb"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/{org}/{app}": {
       "get": {
         "tags": [
@@ -8060,6 +8353,40 @@
         },
         "additionalProperties": false
       },
+      "DataModelInfo": {
+        "required": [
+          "initialData",
+          "isWritable",
+          "schema"
+        ],
+        "type": "object",
+        "properties": {
+          "schema": {
+            "nullable": true
+          },
+          "initialData": {
+            "nullable": true
+          },
+          "dataElementId": {
+            "type": "string",
+            "nullable": true
+          },
+          "isWritable": {
+            "type": "boolean"
+          },
+          "expressionValidationConfig": {
+            "nullable": true
+          },
+          "initialValidationIssues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssueWithSource"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "DataModelPairResponse": {
         "required": [
           "data",
@@ -8432,6 +8759,41 @@
           "Infected"
         ],
         "type": "string"
+      },
+      "FormBootstrapResponse": {
+        "required": [
+          "dataModels",
+          "layouts",
+          "staticOptions"
+        ],
+        "type": "object",
+        "properties": {
+          "layouts": {
+            "nullable": true
+          },
+          "dataModels": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DataModelInfo"
+            },
+            "nullable": true
+          },
+          "staticOptions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/StaticOptionsInfo"
+            },
+            "nullable": true
+          },
+          "validationIssues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssueWithSource"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "HideSettings": {
         "type": "object",
@@ -10138,6 +10500,46 @@
         },
         "additionalProperties": false,
         "description": "A simplified instance model used for presentation of key instance information."
+      },
+      "StaticOptionsInfo": {
+        "required": [
+          "variants"
+        ],
+        "type": "object",
+        "properties": {
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StaticOptionsVariant"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "StaticOptionsVariant": {
+        "required": [
+          "options",
+          "queryParameters"
+        ],
+        "type": "object",
+        "properties": {
+          "queryParameters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppOption"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "Substatus": {
         "type": "object",

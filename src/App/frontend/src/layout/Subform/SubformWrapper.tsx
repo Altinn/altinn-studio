@@ -26,7 +26,7 @@ export function SubformWrapper({ baseComponentId, children }: PropsWithChildren<
       providedDataElementId={dataElementId}
     >
       <FormProvider
-        layoutSetIdOverride={layoutSet}
+        uiFolderOverride={layoutSet}
         dataElementIdOverride={dataElementId}
       >
         {children}

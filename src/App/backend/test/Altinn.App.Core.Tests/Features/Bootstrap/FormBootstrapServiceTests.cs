@@ -41,22 +41,16 @@ public class FormBootstrapServiceTests
     {
         // Arrange
         var instance = CreateTestInstance("Task_1");
-        var layoutSet = new LayoutSet
-        {
-            Id = "form",
-            DataType = "model",
-            Tasks = ["Task_1"],
-        };
         var appMetadata = CreateAppMetadata("model");
 
-        SetupMocks(instance, layoutSet, appMetadata);
+        SetupMocks(appMetadata);
 
         var service = CreateService();
 
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            uiFolder: null,
+            uiFolder: "Task_1",
             dataElementIdOverride: null,
             isPdf: false,
             language: "nb"
@@ -73,15 +67,9 @@ public class FormBootstrapServiceTests
     {
         var dataElementId = Guid.NewGuid().ToString();
         var instance = CreateTestInstance("Task_1", dataElementId: dataElementId);
-        var layoutSet = new LayoutSet
-        {
-            Id = "form",
-            DataType = "model",
-            Tasks = ["Task_1"],
-        };
         var appMetadata = CreateAppMetadata("model");
 
-        SetupMocks(instance, layoutSet, appMetadata);
+        SetupMocks(appMetadata);
         _initialValidationService
             .Setup(x => x.Validate(instance, "Task_1", "nb", It.IsAny<CancellationToken>()))
             .ReturnsAsync([
@@ -105,7 +93,7 @@ public class FormBootstrapServiceTests
 
         var service = CreateService();
 
-        var result = await service.GetInstanceFormBootstrap(instance, null, null, false, "nb");
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
 
         Assert.Single(result.ValidationIssues!);
         Assert.Equal("task.error", result.ValidationIssues![0].Code);
@@ -117,10 +105,9 @@ public class FormBootstrapServiceTests
     public async Task GetStatelessFormBootstrap_ReturnsExpectedShape()
     {
         // Arrange
-        var layoutSet = new LayoutSet { Id = "stateless", DataType = "model" };
         var appMetadata = CreateAppMetadata("model");
 
-        SetupStatelessMocks(layoutSet, appMetadata);
+        SetupStatelessMocks(appMetadata);
 
         var service = CreateService();
 
@@ -139,18 +126,12 @@ public class FormBootstrapServiceTests
     public async Task GetInstanceFormBootstrap_PdfMode_DoesNotIncludeInitialValidationIssues()
     {
         var instance = CreateTestInstance("Task_1");
-        var layoutSet = new LayoutSet
-        {
-            Id = "form",
-            DataType = "model",
-            Tasks = ["Task_1"],
-        };
         var appMetadata = CreateAppMetadata("model");
 
-        SetupMocks(instance, layoutSet, appMetadata);
+        SetupMocks(appMetadata);
         var service = CreateService();
 
-        var result = await service.GetInstanceFormBootstrap(instance, null, null, true, "nb");
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, true, "nb");
 
         Assert.Null(result.ValidationIssues);
         Assert.All(result.DataModels.Values, dataModel => Assert.Null(dataModel.InitialValidationIssues));
@@ -166,22 +147,16 @@ public class FormBootstrapServiceTests
     {
         // Arrange
         var instance = CreateTestInstance("Task_1");
-        var layoutSet = new LayoutSet
-        {
-            Id = "form",
-            DataType = "model",
-            Tasks = ["Task_1"],
-        };
         var appMetadata = CreateAppMetadata("model");
 
-        SetupMocks(instance, layoutSet, appMetadata, hasValidationConfig: true);
+        SetupMocks(appMetadata, hasValidationConfig: true);
 
         var service = CreateService();
 
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            uiFolder: null,
+            uiFolder: "Task_1",
             dataElementIdOverride: null,
             isPdf: true,
             language: "nb"
@@ -197,22 +172,16 @@ public class FormBootstrapServiceTests
     {
         // Arrange
         var instance = CreateTestInstance("Task_1", locked: true);
-        var layoutSet = new LayoutSet
-        {
-            Id = "form",
-            DataType = "model",
-            Tasks = ["Task_1"],
-        };
         var appMetadata = CreateAppMetadata("model");
 
-        SetupMocks(instance, layoutSet, appMetadata, hasValidationConfig: true);
+        SetupMocks(appMetadata, hasValidationConfig: true);
 
         var service = CreateService();
 
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            uiFolder: null,
+            uiFolder: "Task_1",
             dataElementIdOverride: null,
             isPdf: false,
             language: "nb"
@@ -229,17 +198,9 @@ public class FormBootstrapServiceTests
     {
         // Arrange
         var instance = CreateTestInstance("Task_1");
-        var layoutSet = new LayoutSet
-        {
-            Id = "form",
-            DataType = "model",
-            Tasks = ["Task_1"],
-        };
         var appMetadata = CreateAppMetadata("model");
 
         SetupMocks(
-            instance,
-            layoutSet,
             appMetadata,
             staticOptions: new Dictionary<string, List<Dictionary<string, string>>>
             {
@@ -268,7 +229,7 @@ public class FormBootstrapServiceTests
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            uiFolder: null,
+            uiFolder: "Task_1",
             dataElementIdOverride: null,
             isPdf: false,
             language: "nb"
@@ -286,17 +247,9 @@ public class FormBootstrapServiceTests
     {
         // Arrange
         var instance = CreateTestInstance("Task_1");
-        var layoutSet = new LayoutSet
-        {
-            Id = "form",
-            DataType = "model",
-            Tasks = ["Task_1"],
-        };
         var appMetadata = CreateAppMetadata("model");
 
         SetupMocks(
-            instance,
-            layoutSet,
             appMetadata,
             staticOptions: new Dictionary<string, List<Dictionary<string, string>>>
             {
@@ -316,7 +269,7 @@ public class FormBootstrapServiceTests
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            uiFolderOverride: null,
+            uiFolder: "Task_1",
             dataElementIdOverride: null,
             isPdf: false,
             language: "nb"
@@ -333,22 +286,16 @@ public class FormBootstrapServiceTests
         // Arrange
         var dataElementId = Guid.NewGuid().ToString();
         var instance = CreateTestInstance("Task_1", dataElementId: dataElementId);
-        var layoutSet = new LayoutSet
-        {
-            Id = "subform",
-            DataType = "submodel",
-            Tasks = ["Task_1"],
-        };
         var appMetadata = CreateAppMetadata("model", "submodel");
 
-        SetupMocks(instance, layoutSet, appMetadata, layoutSetId: "subform", dataType: "submodel");
+        SetupMocks(appMetadata, uiFolder: "subform", dataType: "submodel");
 
         var service = CreateService();
 
         // Act
         var result = await service.GetInstanceFormBootstrap(
             instance,
-            uiFolderOverride: "subform",
+            uiFolder: "subform",
             dataElementIdOverride: dataElementId,
             isPdf: false,
             language: "nb"
@@ -364,7 +311,7 @@ public class FormBootstrapServiceTests
         var elementId = dataElementId ?? Guid.NewGuid().ToString();
         return new Instance
         {
-            Id = "12345/abcdef",
+            Id = "12345/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
             Data =
             [
@@ -400,16 +347,22 @@ public class FormBootstrapServiceTests
 
     private void SetupMocks(
         ApplicationMetadata appMetadata,
+        string uiFolder = "Task_1",
         string dataType = "model",
         bool hasValidationConfig = false,
         Dictionary<string, List<Dictionary<string, string>>>? staticOptions = null
     )
     {
-        _appResources.Setup(x => x.GetLayoutsInFolder(It.IsAny<string>())).Returns("""{"page1": {"data": {"layout": []}}}""");
+        _appResources
+            .Setup(x => x.GetLayoutsInFolder(It.IsAny<string>()))
+            .Returns("""{"page1": {"data": {"layout": []}}}""");
         _appResources.Setup(x => x.GetModelJsonSchema(It.IsAny<string>())).Returns("""{"type": "object"}""");
         _appResources
             .Setup(x => x.GetValidationConfiguration(It.IsAny<string>()))
             .Returns(hasValidationConfig ? """{"validations": []}""" : null);
+        _appResources
+            .Setup(x => x.GetLayoutSettingsForFolder(uiFolder))
+            .Returns(new LayoutSettings { DefaultDataType = dataType });
 
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
 
@@ -446,17 +399,26 @@ public class FormBootstrapServiceTests
             .ReturnsAsync(new object());
     }
 
-    private void SetupStatelessMocks(LayoutSet layoutSet, ApplicationMetadata appMetadata)
+    private void SetupStatelessMocks(
+        ApplicationMetadata appMetadata,
+        string uiFolder = "stateless",
+        string dataType = "model"
+    )
     {
-        _appResources.Setup(x => x.GetLayoutsInFolder(It.IsAny<string>())).Returns("""{"page1": {"data": {"layout": []}}}""");
+        _appResources
+            .Setup(x => x.GetLayoutsInFolder(It.IsAny<string>()))
+            .Returns("""{"page1": {"data": {"layout": []}}}""");
         _appResources.Setup(x => x.GetModelJsonSchema(It.IsAny<string>())).Returns("""{"type": "object"}""");
         _appResources.Setup(x => x.GetValidationConfiguration(It.IsAny<string>())).Returns((string?)null);
+        _appResources
+            .Setup(x => x.GetLayoutSettingsForFolder(uiFolder))
+            .Returns(new LayoutSettings { DefaultDataType = dataType });
 
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
 
         _layoutAnalysis
             .Setup(x => x.GetReferencedDataTypes(It.IsAny<object>(), It.IsAny<string>()))
-            .Returns(new HashSet<string> { layoutSet.DataType });
+            .Returns(new HashSet<string> { dataType });
         _layoutAnalysis.Setup(x => x.GetStaticOptions(It.IsAny<object>())).Returns([]);
         _appOptionsService
             .Setup(x =>

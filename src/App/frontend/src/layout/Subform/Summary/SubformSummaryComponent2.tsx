@@ -116,7 +116,7 @@ const DoSummaryWrapper = ({
       >
         <FormProvider
           readOnly={true}
-          layoutSetIdOverride={uiFolder} // TODO: Fix naming
+          uiFolderOverride={uiFolder}
           dataElementIdOverride={dataElement.id}
         >
           <Flex

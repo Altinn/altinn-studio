@@ -47,7 +47,7 @@ public class FormBootstrapController : ControllerBase
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
     /// <param name="instanceGuid">The unique identifier of the instance.</param>
-    /// <param name="layoutSetId">Optional layout set ID override (for subforms).</param>
+    /// <param name="uiFolder">The UI folder to use (matches the task ID or subform folder name).</param>
     /// <param name="dataElementId">Optional data element ID override (for subforms).</param>
     /// <param name="pdf">Whether this is for PDF generation (skips validation).</param>
     /// <param name="language">Language code for text resources.</param>
@@ -59,13 +59,13 @@ public class FormBootstrapController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/bootstrap-form")]
+    [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/bootstrap-form/{uiFolder}")]
     public async Task<ActionResult<FormBootstrapResponse>> GetInstanceFormBootstrap(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
-        [FromQuery] string? layoutSetId = null,
+        [FromRoute] string uiFolder,
         [FromQuery] string? dataElementId = null,
         [FromQuery] bool pdf = false,
         [FromQuery] string language = "nb",
@@ -85,17 +85,26 @@ public class FormBootstrapController : ControllerBase
             );
         }
 
-        var subformValidation = ValidateSubformParameters(instance, layoutSetId, dataElementId);
-        if (subformValidation != null)
+        var folderValidation = ValidateUiFolder(uiFolder);
+        if (folderValidation != null)
         {
-            return subformValidation;
+            return folderValidation;
+        }
+
+        if (dataElementId != null)
+        {
+            var subformValidation = ValidateSubformDataElement(instance, uiFolder, dataElementId);
+            if (subformValidation != null)
+            {
+                return subformValidation;
+            }
         }
 
         try
         {
             var response = await _formBootstrapService.GetInstanceFormBootstrap(
                 instance,
-                layoutSetId,
+                uiFolder,
                 dataElementId,
                 pdf,
                 language,
@@ -138,7 +147,7 @@ public class FormBootstrapController : ControllerBase
         CancellationToken cancellationToken = default
     )
     {
-        var validationResult = ValidateLayoutSetId(uiFolder);
+        var validationResult = ValidateUiFolder(uiFolder);
         if (validationResult != null)
         {
             return validationResult;
@@ -155,11 +164,7 @@ public class FormBootstrapController : ControllerBase
 
         try
         {
-            var response = await _formBootstrapService.GetStatelessFormBootstrap(
-                uiFolder,
-                language,
-                cancellationToken
-            );
+            var response = await _formBootstrapService.GetStatelessFormBootstrap(uiFolder, language, cancellationToken);
 
             return Ok(response);
         }
@@ -170,70 +175,33 @@ public class FormBootstrapController : ControllerBase
         }
     }
 
-    private NotFoundObjectResult? ValidateLayoutSetId(string layoutSetId)
+    private NotFoundObjectResult? ValidateUiFolder(string uiFolder)
     {
-        var layoutSets = _appResources.GetLayoutSets();
-        if (layoutSets?.Sets.Any(s => s.Id == layoutSetId) != true)
+        var uiConfig = _appResources.GetUiConfiguration();
+        if (uiConfig?.Folders.ContainsKey(uiFolder) != true)
         {
             return NotFound(
                 new ProblemDetails
                 {
-                    Title = "Layout set not found",
+                    Title = "UI folder not found",
                     Status = StatusCodes.Status404NotFound,
-                    Detail = $"Layout set '{layoutSetId}' not found",
+                    Detail = $"UI folder '{uiFolder}' not found",
                 }
             );
         }
         return null;
     }
 
-    private ActionResult? ValidateSubformParameters(
+    private ActionResult? ValidateSubformDataElement(
         Altinn.Platform.Storage.Interface.Models.Instance instance,
-        string? layoutSetId,
-        string? dataElementId
+        string uiFolder,
+        string dataElementId
     )
     {
-        if (layoutSetId == null && dataElementId == null)
+        var uiConfig = _appResources.GetUiConfiguration();
+        if (uiConfig is null || !uiConfig.Folders.TryGetValue(uiFolder, out var layoutSettings))
         {
-            return null;
-        }
-
-        if (layoutSetId != null && dataElementId == null)
-        {
-            return BadRequest(
-                new ProblemDetails
-                {
-                    Title = "Missing data element ID",
-                    Status = StatusCodes.Status400BadRequest,
-                    Detail = "When providing layoutSetId for a subform, dataElementId is also required.",
-                }
-            );
-        }
-
-        if (dataElementId != null && layoutSetId == null)
-        {
-            return BadRequest(
-                new ProblemDetails
-                {
-                    Title = "Missing layout set ID",
-                    Status = StatusCodes.Status400BadRequest,
-                    Detail = "When providing dataElementId for a subform, layoutSetId is also required.",
-                }
-            );
-        }
-
-        var layoutSets = _appResources.GetLayoutSets();
-        var layoutSet = layoutSets?.Sets.FirstOrDefault(s => s.Id == layoutSetId);
-        if (layoutSet == null)
-        {
-            return NotFound(
-                new ProblemDetails
-                {
-                    Title = "Layout set not found",
-                    Status = StatusCodes.Status404NotFound,
-                    Detail = $"Layout set '{layoutSetId}' not found.",
-                }
-            );
+            return null; // unreachable: caller already validated the folder via ValidateUiFolder
         }
 
         var dataElement = instance.Data.FirstOrDefault(d => d.Id == dataElementId);
@@ -249,7 +217,7 @@ public class FormBootstrapController : ControllerBase
             );
         }
 
-        if (layoutSet.DataType != null && dataElement.DataType != layoutSet.DataType)
+        if (layoutSettings.DefaultDataType != null && dataElement.DataType != layoutSettings.DefaultDataType)
         {
             return BadRequest(
                 new ProblemDetails
@@ -257,7 +225,7 @@ public class FormBootstrapController : ControllerBase
                     Title = "Data type mismatch",
                     Status = StatusCodes.Status400BadRequest,
                     Detail =
-                        $"Data element type '{dataElement.DataType}' does not match layout set data type '{layoutSet.DataType}'.",
+                        $"Data element type '{dataElement.DataType}' does not match expected data type '{layoutSettings.DefaultDataType}'.",
                 }
             );
         }
@@ -268,15 +236,18 @@ public class FormBootstrapController : ControllerBase
     private async Task<bool> IsAnonymousAllowedForLayoutSet(string layoutSetId)
     {
         var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var layoutSets = _appResources.GetLayoutSets();
-        var layoutSet = layoutSets?.Sets.FirstOrDefault(s => s.Id == layoutSetId);
-
-        if (layoutSet?.DataType == null)
+        var uiConfig = _appResources.GetUiConfiguration();
+        if (uiConfig?.Folders.TryGetValue(layoutSetId, out var layoutSettings) != true)
         {
             return false;
         }
 
-        var dataType = appMetadata.DataTypes.FirstOrDefault(dt => dt.Id == layoutSet.DataType);
+        if (layoutSettings.DefaultDataType == null)
+        {
+            return false;
+        }
+
+        var dataType = appMetadata.DataTypes.FirstOrDefault(dt => dt.Id == layoutSettings.DefaultDataType);
         return dataType?.AppLogic?.AllowAnonymousOnStateless ?? false;
     }
 }

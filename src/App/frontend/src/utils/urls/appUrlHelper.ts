@@ -260,8 +260,8 @@ export const getDataListsUrl = ({
 
 export const getFormBootstrapUrl = (
   instanceId: string,
+  uiFolder: string,
   options?: {
-    layoutSetId?: string;
     dataElementId?: string;
     pdf?: boolean;
     language?: string;
@@ -269,9 +269,6 @@ export const getFormBootstrapUrl = (
 ): string => {
   const params = new URLSearchParams();
 
-  if (options?.layoutSetId) {
-    params.set('layoutSetId', options.layoutSetId);
-  }
   if (options?.dataElementId) {
     params.set('dataElementId', options.dataElementId);
   }
@@ -282,12 +279,12 @@ export const getFormBootstrapUrl = (
     params.set('language', options.language);
   }
 
-  const queryString = params.toString();
-  return `${appPath}/instances/${instanceId}/bootstrap-form${queryString ? `?${queryString}` : ''}`;
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return `${appPath}/instances/${instanceId}/bootstrap-form/${uiFolder}${queryString}`;
 };
 
 export const getStatelessFormBootstrapUrl = (
-  layoutSetId: string,
+  uiFolder: string,
   options?: {
     language?: string;
   },
@@ -298,6 +295,6 @@ export const getStatelessFormBootstrapUrl = (
     params.set('language', options.language);
   }
 
-  const queryString = params.toString();
-  return `${appPath}/api/bootstrap-form/${layoutSetId}${queryString ? `?${queryString}` : ''}`;
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return `${appPath}/api/bootstrap-form/${uiFolder}${queryString}`;
 };

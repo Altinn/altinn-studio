@@ -19,7 +19,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
     private readonly IAppResources _appResources;
@@ -88,9 +88,10 @@ internal sealed class FormBootstrapService : IFormBootstrapService
         );
 
         var taskId = instance.Process?.CurrentTask?.ElementId;
-        var initialValidationTask = isPdf || taskId == null
-            ? Task.FromResult<PartitionedInitialValidations?>(null)
-            : LoadAndPartitionInitialValidations(instance, taskId, language, defaultDataType, cancellationToken);
+        var initialValidationTask =
+            isPdf || taskId == null
+                ? Task.FromResult<PartitionedInitialValidations?>(null)
+                : LoadAndPartitionInitialValidations(instance, taskId, language, defaultDataType, cancellationToken);
 
         await Task.WhenAll(dataModelsTask, optionsTask, initialValidationTask);
         var dataModels = await dataModelsTask;
@@ -102,7 +103,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
             Layouts = layouts,
             DataModels = dataModels,
             StaticOptions = await optionsTask,
-            ValidationIssues = initialValidations?.TaskIssues
+            ValidationIssues = initialValidations?.TaskIssues,
         };
     }
 
@@ -135,7 +136,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
             Layouts = layouts,
             DataModels = await dataModelsTask,
             StaticOptions = await optionsTask,
-            ValidationIssues = null // No validation for stateless
+            ValidationIssues = null, // No validation for stateless
         };
     }
 
@@ -209,7 +210,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
                             InitialData = formData,
                             DataElementId = dataElement.Id,
                             IsWritable = dataElement.Locked != true,
-                            ExpressionValidationConfig = validationConfig
+                            ExpressionValidationConfig = validationConfig,
                         }
                 );
             }
@@ -265,7 +266,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
                     InitialData = defaultData,
                     DataElementId = null,
                     IsWritable = true,
-                    ExpressionValidationConfig = validationConfig
+                    ExpressionValidationConfig = validationConfig,
                 };
             }
             catch (Exception ex)
@@ -400,7 +401,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
         return new PartitionedInitialValidations
         {
             TaskIssues = taskIssues.Count == 0 ? null : taskIssues,
-            DataModelIssues = dataModelIssues
+            DataModelIssues = dataModelIssues,
         };
     }
 
@@ -419,7 +420,7 @@ internal sealed class FormBootstrapService : IFormBootstrapService
 #pragma warning disable CS0618
             CustomTextParams = issue.CustomTextParams,
 #pragma warning restore CS0618
-            CustomTextParameters = issue.CustomTextParameters
+            CustomTextParameters = issue.CustomTextParameters,
         };
     }
 

@@ -2,10 +2,9 @@ import type { JSONSchema7 } from 'json-schema';
 
 import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import type { GlobalPageSettings } from 'src/features/form/ui/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { BackendValidationIssue, IExpressionValidations } from 'src/features/validation';
-import type { ILayoutSettings, NavigationPageGroup } from 'src/layout/common.generated';
+import type { ILayoutSettings } from 'src/layout/common.generated';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
 
@@ -27,28 +26,12 @@ export interface StaticOptionsInfo {
   variants: StaticOptionsVariant[];
 }
 
-export interface FormBootstrapMetadata {
-  layoutSetId: string;
-  defaultDataType: string;
-  isSubform?: boolean;
-  isPdf?: boolean;
-}
-
 export interface FormBootstrapResponse {
-  schemaVersion: number;
   layouts: ILayoutCollection;
   layoutSettings: ILayoutSettings | null;
   dataModels: Record<string, DataModelInfo>;
   staticOptions: Record<string, StaticOptionsInfo>;
   validationIssues?: BackendValidationIssue[] | null;
-  metadata: FormBootstrapMetadata;
-}
-
-export interface ProcessedLayoutSettings {
-  order: string[];
-  groups?: NavigationPageGroup[];
-  pageSettings: Partial<GlobalPageSettings>;
-  pdfLayoutName?: string;
 }
 
 export interface ProcessedDataModelInfo extends DataModelInfo {
@@ -56,15 +39,14 @@ export interface ProcessedDataModelInfo extends DataModelInfo {
 }
 
 export interface FormBootstrapContextValue {
+  uiFolder: string;
   layouts: ILayouts;
   layoutLookups: LayoutLookups;
   hiddenLayoutsExpressions: IHiddenLayoutsExternal;
   expandedWidthLayouts: IExpandedWidthLayouts;
   dataModels: Record<string, ProcessedDataModelInfo>;
-  defaultDataType: string;
   allDataTypes: string[];
   writableDataTypes: string[];
   staticOptions: Record<string, StaticOptionsInfo>;
   initialValidationIssues?: BackendValidationIssue[] | null;
-  metadata: FormBootstrapMetadata;
 }

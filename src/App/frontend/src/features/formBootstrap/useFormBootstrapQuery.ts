@@ -1,7 +1,6 @@
 import { skipToken, useQuery } from '@tanstack/react-query';
 
 import { useIsStateless } from 'src/features/applicationMetadata';
-import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsPdf } from 'src/hooks/useIsPdf';
@@ -10,27 +9,24 @@ import { getFormBootstrapUrl, getStatelessFormBootstrapUrl } from 'src/utils/url
 import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 
 export interface FormBootstrapQueryOptions {
-  uiFolderOverride?: string;
+  uiFolder: string;
   dataElementIdOverride?: string;
 }
 
-export function useFormBootstrapQuery(options?: FormBootstrapQueryOptions) {
+export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
   const isStateless = useIsStateless();
   const instanceId = useLaxInstanceId();
-  const layoutSetIdFromUrl = useCurrentUiFolderNameFromUrl();
   const language = useCurrentLanguage();
   const isPdf = useIsPdf();
 
-  const effectiveLayoutSetId = options?.uiFolderOverride ?? layoutSetIdFromUrl;
-  const enabled = isStateless ? !!effectiveLayoutSetId : !!instanceId;
+  const enabled = isStateless || !!instanceId;
 
   return useQuery({
     queryKey: [
       'formBootstrap',
+      options.uiFolder,
       isStateless ? 'stateless' : 'instance',
-      isStateless ? effectiveLayoutSetId : instanceId,
-      layoutSetIdFromUrl,
-      options?.uiFolderOverride,
+      instanceId,
       options?.dataElementIdOverride,
       isPdf,
       language,
@@ -38,9 +34,8 @@ export function useFormBootstrapQuery(options?: FormBootstrapQueryOptions) {
     queryFn: enabled
       ? async () => {
           const url = isStateless
-            ? getStatelessFormBootstrapUrl(effectiveLayoutSetId!, { language })
-            : getFormBootstrapUrl(instanceId!, {
-                layoutSetId: options?.uiFolderOverride,
+            ? getStatelessFormBootstrapUrl(options.uiFolder, { language })
+            : getFormBootstrapUrl(instanceId!, options.uiFolder, {
                 dataElementId: options?.dataElementIdOverride,
                 pdf: isPdf,
                 language,
