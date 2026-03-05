@@ -766,7 +766,7 @@ describe('createPatch', () => {
   describe('createPatch with complex sequential actions', () => {
     function testActions<T extends object>(actions: Action<T>[]) {
       const currentModel = {} as T;
-      let currentCopy = {} as T;
+      let currentCopy: T;
       const lastSavedModel = {} as T;
       for (const action of actions) {
         switch (action.type) {

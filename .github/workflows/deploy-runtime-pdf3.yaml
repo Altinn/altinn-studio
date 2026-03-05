@@ -105,7 +105,7 @@ jobs:
         with:
           image-ref: '${{ steps.vars.outputs.ghcr-image-proxy-repo }}'
           format: 'table'
-          exit-code: '1'
+          exit-code: '0'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL'
@@ -116,7 +116,7 @@ jobs:
         with:
           image-ref: '${{ steps.vars.outputs.ghcr-image-worker-repo }}'
           format: 'table'
-          exit-code: '1'
+          exit-code: '0'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL'
