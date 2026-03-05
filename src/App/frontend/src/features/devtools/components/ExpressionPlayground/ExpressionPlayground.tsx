@@ -248,16 +248,7 @@ function ExpressionRunner({ outputs, setOutputs, showAllSteps }: RunnerProps) {
         return undefined;
       }
 
-      let maybeExpression: unknown;
-      try {
-        maybeExpression = JSON.parse(input);
-      } catch (e) {
-        if (e instanceof Error) {
-          throw new Error(`Ugyldig JSON: ${e.message}`);
-        } else {
-          throw new Error('Ugyldig JSON');
-        }
-      }
+      const maybeExpression: unknown = JSON.parse(input);
       ExprValidation.throwIfInvalid(maybeExpression);
 
       return maybeExpression as Expression;

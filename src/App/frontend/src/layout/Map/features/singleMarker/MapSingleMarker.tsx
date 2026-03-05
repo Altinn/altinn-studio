@@ -10,7 +10,7 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { useSingleMarker } from 'src/layout/Map/features/singleMarker/hooks';
 import { isLocationValid, locationToTuple } from 'src/layout/Map/utils';
 import { useDataModelBindingsFor } from 'src/utils/layout/hooks';
-import type { Location } from 'src/layout/Map/config.generated';
+import type { Location } from 'src/layout/Map/types';
 
 const markerIcon = icon({
   iconUrl: Icon,

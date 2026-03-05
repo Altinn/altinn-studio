@@ -37,10 +37,12 @@ namespace Altinn.App.Core.Configuration
         public string RuntimeAppFileName { get; set; }
         public string RuntimeCookieName { get; set; }
         public string RuntimeCssFileName { get; set; }
+        public string RuntimeSecretsDirectory { get; set; }
         public string ServiceStylesConfigFileName { get; set; }
         public string TextFolder { get; set; }
         public string UiFolder { get; set; }
         public bool UseOpenTelemetry { get; set; }
+        public bool UseOpenTelemetryCollector { get; set; }
         public string ValidationConfigurationFileName { get; set; }
     }
     public class CacheSettings
@@ -239,6 +241,7 @@ namespace Altinn.App.Core.Extensions
         public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> DeleteAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
         public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
         public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> GetStreamingAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PatchAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
         public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PostAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
         public static System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> PutAsync(this System.Net.Http.HttpClient httpClient, string authorizationToken, string requestUri, System.Net.Http.HttpContent? content, string? platformAccessToken = null, System.Threading.CancellationToken cancellationToken = default) { }
     }
@@ -2234,6 +2237,7 @@ namespace Altinn.App.Core.Helpers
         public static Altinn.Platform.Register.Models.Party? GetPartyByPartyId(System.Collections.Generic.List<Altinn.Platform.Register.Models.Party>? partyList, int partyId) { }
         public static bool IsPartyAllowedToInstantiate(Altinn.Platform.Register.Models.Party? party, Altinn.Platform.Storage.Interface.Models.PartyTypesAllowed? partyTypesAllowed) { }
         public static Altinn.Platform.Storage.Interface.Models.InstanceOwner PartyToInstanceOwner(Altinn.Platform.Register.Models.Party party) { }
+        public static System.Threading.Tasks.Task<Altinn.Platform.Storage.Interface.Models.InstanceOwner> PartyToInstanceOwner(Altinn.Platform.Register.Models.Party party, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext) { }
     }
     public static class JsonHelper
     {
@@ -2556,6 +2560,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
     {
         public AltinnPartyClient(Microsoft.Extensions.Options.IOptions<Altinn.App.Core.Configuration.PlatformSettings> platformSettings, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Infrastructure.Clients.Register.AltinnPartyClient> logger, System.Net.Http.HttpClient httpClient, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Internal.Auth.IUserTokenProvider userTokenProvider, Altinn.Common.AccessTokenClient.Services.IAccessTokenGenerator accessTokenGenerator, Altinn.App.Core.Features.Telemetry? telemetry = null) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party?> GetParty(int partyId) { }
+        public System.Threading.Tasks.Task<int?> GetPartyIdByUrn(string urn) { }
         public System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party> LookupParty(Altinn.Platform.Register.Models.PartyLookup partyLookup) { }
     }
     public class PersonClient : Altinn.App.Core.Internal.Registers.IPersonClient
@@ -3965,6 +3970,7 @@ namespace Altinn.App.Core.Internal.Registers
     public interface IAltinnPartyClient
     {
         System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party?> GetParty(int partyId);
+        System.Threading.Tasks.Task<int?> GetPartyIdByUrn(string urn);
         System.Threading.Tasks.Task<Altinn.Platform.Register.Models.Party> LookupParty(Altinn.Platform.Register.Models.PartyLookup partyLookup);
     }
     public interface IOrganizationClient
@@ -4204,7 +4210,7 @@ namespace Altinn.App.Core.Models
     {
         public CloudEvent() { }
         [System.Text.Json.Serialization.JsonPropertyName("alternativesubject")]
-        public string AlternativeSubject { get; set; }
+        public string? AlternativeSubject { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("data")]
         public object Data { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("contenttype")]

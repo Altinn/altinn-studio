@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -121,9 +122,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     .ToServiceResource()
                     .WithOrgInformation(org, orgListOrg);
 
+                string policyString = await _authorizationPolicyService.GetAuthorizationPolicyFileFromGitea(
+                    org,
+                    app,
+                    shortCommitId
+                );
+                policyString = _authorizationPolicyService.ReplacePolicyPlaceholderTokens(policyString, org, app);
+                byte[] policyBytes = Encoding.UTF8.GetBytes(policyString);
+
                 ActionResult publishResponse = await _resourceRegistryService.PublishServiceResource(
                     serviceResource,
-                    envName
+                    envName,
+                    null,
+                    policyBytes
                 );
 
                 if (publishResponse is ObjectResult { Value: ValidationProblemDetails validationProblemDetails })

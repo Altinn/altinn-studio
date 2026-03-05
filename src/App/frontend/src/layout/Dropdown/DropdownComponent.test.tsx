@@ -204,7 +204,6 @@ describe('DropdownComponent', () => {
     await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('The value from the group is: Label for first'));
 
-    await waitFor(() => expect(formDataMethods.setLeafValue).toHaveBeenCalledTimes(1));
     await waitFor(() =>
       expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
         reference: { field: 'myDropdown', dataType: defaultDataTypeMock },

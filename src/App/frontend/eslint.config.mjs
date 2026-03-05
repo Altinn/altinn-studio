@@ -1,9 +1,14 @@
 import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
-import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
-import pluginCypress from 'eslint-plugin-cypress/flat';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import pluginCypress from 'eslint-plugin-cypress';
+import pluginImport from 'eslint-plugin-import';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import preferredImportPath from 'eslint-plugin-preferred-import-path';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import reactPlugin from 'eslint-plugin-react';
 import reactCompiler from 'eslint-plugin-react-compiler';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -12,58 +17,42 @@ import sonarjs from 'eslint-plugin-sonarjs';
 import testingLibrary from 'eslint-plugin-testing-library';
 import unusedImports from 'eslint-plugin-unused-imports';
 import globals from 'globals';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import tseslint from 'typescript-eslint';
 
 // eslint-disable-next-line no-relative-import-paths/no-relative-import-paths
 import langKey from './src/language/eslint.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
-
 // eslint-disable-next-line import/no-default-export
-export default tseslint.config(
+export default defineConfig([
+  globalIgnores([
+    '**/node_modules',
+    '**/coverage',
+    '**/dist',
+    '**/*.snap',
+    'src/features/expressions/shared-tests/**/*.json',
+    'schemas/**/*.json',
+    'webpack*.js', // FIXME: should this be included?
+    '.yarn/*',
+    'test/e2e/k6-browser/**/*',
+  ]),
   js.configs.recommended,
-  ...tseslint.configs.recommended,
-  ...fixupConfigRules(
-    compat.extends(
-      'eslint:recommended',
-      'plugin:import/recommended',
-      'plugin:import/typescript',
-      'plugin:jsx-a11y/recommended',
-      'plugin:react/recommended',
-      'plugin:prettier/recommended',
-    ),
-  ),
+  ...fixupConfigRules(pluginImport.flatConfigs.recommended),
+  ...fixupConfigRules(pluginImport.flatConfigs.typescript),
+  jsxA11y.flatConfigs.recommended,
+  ...fixupConfigRules(reactPlugin.configs.flat.recommended),
+  ...tsPlugin.configs['flat/recommended'],
+  eslintPluginPrettierRecommended,
+
   {
-    ignores: [
-      '**/node_modules',
-      '**/coverage',
-      '**/dist',
-      '**/*.snap',
-      'src/features/expressions/shared-tests/**/*.json',
-      'schemas/**/*.json',
-      'webpack*.js', // FIXME: should this be included?
-      '.yarn/*',
-      'test/e2e/k6-browser/**/*',
-    ],
-  },
-  {
+    files: ['**/*.{js,cjs,mjs,jsx,ts,tsx}'],
     plugins: {
-      sonarjs: fixupPluginRules(sonarjs),
-      'no-relative-import-paths': noRelativeImportPaths,
+      'no-relative-import-paths': fixupPluginRules(noRelativeImportPaths),
       'preferred-import-path': preferredImportPath,
       'simple-import-sort': simpleImportSort,
       'unused-imports': unusedImports,
-      react: fixupPluginRules(reactPlugin),
+      '@typescript-eslint': tsPlugin,
       'react-hooks': reactHooks,
       'react-compiler': reactCompiler,
+      sonarjs,
       local: {
         rules: {
           'language-key': langKey,
@@ -71,6 +60,7 @@ export default tseslint.config(
       },
     },
     languageOptions: {
+      parser: tsParser,
       globals: {
         ...globals.browser,
         ...globals.node,
@@ -179,7 +169,7 @@ export default tseslint.config(
   {
     files: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'src/**/test/**/*.ts', 'src/**/test/**/*.tsx'],
     plugins: {
-      'testing-library': fixupPluginRules(testingLibrary),
+      'testing-library': testingLibrary,
     },
     languageOptions: {
       globals: {
@@ -228,4 +218,4 @@ export default tseslint.config(
       ],
     },
   },
-);
+]);

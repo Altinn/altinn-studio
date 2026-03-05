@@ -27,7 +27,6 @@
 [basic/default] [INFO] IDataElementValidator.ValidateDataElement
 [basic/default] [INFO] IFormDataValidator.ValidateFormData
 [basic/default] [INFO] IProcessTaskEnd.End
-[basic/default] [INFO] IDataProcessor.ProcessDataRead
 [basic/default] [INFO] IExternalApiClient.GetExternalApiDataAsync
 [basic/default] [INFO] IProcessEnd.End
 [basic/default] [INFO] ### Response: Process.NextElement - OkObjectResult, StatusCode: 200
