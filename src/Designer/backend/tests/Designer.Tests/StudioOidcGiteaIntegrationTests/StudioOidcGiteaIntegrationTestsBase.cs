@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -16,21 +16,21 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Designer.Tests.GiteaIntegrationTests;
+namespace Designer.Tests.StudioOidcGiteaIntegrationTests;
 
 [Trait("Category", "GiteaIntegrationTest")]
-[Collection(nameof(GiteaIntegrationTestsCollection))]
-public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
+[Collection(nameof(StudioOidcGiteaIntegrationTestsCollection))]
+public abstract class StudioOidcGiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
     where TControllerTest : class
 {
-    protected readonly GiteaFixture GiteaFixture;
+    protected readonly StudioOidcGiteaFixture GiteaFixture;
 
     protected string CreatedFolderPath { get; set; }
 
     private CookieContainer CookieContainer { get; } = new();
 
-    /// On some systems path too long error occurs if repo is nested deep in file system.
-    protected override string TestRepositoriesLocation => Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos");
+    protected override string TestRepositoriesLocation =>
+        Path.Combine(Path.GetTempPath(), "altinn", "tests", "repos-oidc");
 
     protected override void Dispose(bool disposing)
     {
@@ -62,10 +62,10 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
 
     protected sealed override void ConfigureTestServices(IServiceCollection services) { }
 
-    protected GiteaIntegrationTestsBase(
-        GiteaWebAppApplicationFactoryFixture<Program> factory,
-        GiteaFixture giteaFixture,
-        SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider
+    protected StudioOidcGiteaIntegrationTestsBase(
+        StudioOidcGiteaWebAppApplicationFactoryFixture<Program> factory,
+        StudioOidcGiteaFixture giteaFixture,
+        StudioOidcSharedDesignerHttpClientProvider sharedDesignerHttpClientProvider
     )
         : base(factory)
     {
@@ -73,9 +73,8 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
         _sharedDesignerHttpClientProvider = sharedDesignerHttpClientProvider;
     }
 
-    private readonly SharedDesignerHttpClientProvider _sharedDesignerHttpClientProvider;
+    private readonly StudioOidcSharedDesignerHttpClientProvider _sharedDesignerHttpClientProvider;
 
-    // Only ones per collection the http client will be created and it will be used for all integration tests
     protected override HttpClient GetTestClient()
     {
         if (_sharedDesignerHttpClientProvider.SharedHttpClient is not null)
@@ -89,9 +88,12 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
 
         IConfiguration configuration = new ConfigurationBuilder()
             .AddJsonFile(configPath, false, false)
-            .AddJsonStream(GenerateGiteaOverrideConfigStream())
+            .AddJsonStream(GenerateStudioOidcOverrideConfigStream())
             .AddEnvironmentVariables()
             .Build();
+
+        var factoryFixture = (StudioOidcGiteaWebAppApplicationFactoryFixture<Program>)Factory;
+        factoryFixture.DesignerUrl = GiteaFixture.DesignerUrl;
 
         Factory
             .WithWebHostBuilder(builder =>
@@ -101,7 +103,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                     (t, conf) =>
                     {
                         conf.AddJsonFile(configPath, false, false);
-                        conf.AddJsonStream(GenerateGiteaOverrideConfigStream());
+                        conf.AddJsonStream(GenerateStudioOidcOverrideConfigStream());
                         conf.AddEnvironmentVariables();
                     }
                 );
@@ -111,7 +113,7 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
             .CreateDefaultClient();
 
         _sharedDesignerHttpClientProvider.SharedHttpClient = new HttpClient(
-            new GiteaAuthDelegatingHandler()
+            new StudioOidcAuthDelegatingHandler(GiteaFixture)
             {
                 InnerHandler = new CookieContainerHandler(CookieContainer)
                 {
@@ -120,13 +122,13 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
             }
         )
         {
-            BaseAddress = new Uri(TestUrlsProvider.Instance.DesignerUrl),
+            BaseAddress = new Uri(GiteaFixture.DesignerUrl),
         };
 
         return _sharedDesignerHttpClientProvider.SharedHttpClient;
     }
 
-    protected Stream GenerateGiteaOverrideConfigStream()
+    protected Stream GenerateStudioOidcOverrideConfigStream()
     {
         string reposLocation = new Uri(TestRepositoriesLocation).AbsolutePath;
         string templateLocationPath = Path.Combine(
@@ -142,39 +144,37 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
             $@"
               {{
                     ""FeatureManagement"": {{
-                        ""StudioOidc"": false
+                        ""StudioOidc"": true
                     }},
                     ""ServiceRepositorySettings"": {{
                         ""RepositoryLocation"": ""{reposLocation}"",
                         ""ApiEndPointHost"": ""localhost"",
-                        ""GiteaLoginUrl"": ""{TestUrlsProvider.Instance.GiteaUrl + "/user/login"}"",
-                        ""ApiEndPoint"": ""{TestUrlsProvider.Instance.GiteaUrl + "/api/v1/"}"",
-                        ""RepositoryBaseURL"": ""{TestUrlsProvider.Instance.GiteaUrl}""
+                        ""GiteaLoginUrl"": ""{GiteaFixture.GiteaUrl + "/user/login"}"",
+                        ""ApiEndPoint"": ""{GiteaFixture.GiteaUrl + "/api/v1/"}"",
+                        ""RepositoryBaseURL"": ""{GiteaFixture.GiteaUrl}""
                     }},
                     ""GeneralSettings"": {{
                         ""TemplateLocation"": ""{templateLocation}"",
                         ""DeploymentLocation"": ""{templateLocation}/deployment"",
                         ""AppLocation"": ""{templateLocation}/App""
                     }},
-                    ""OidcLoginSettings"": {{
-                        ""ClientId"": ""{GiteaFixture.OAuthApplicationClientId}"",
-                        ""ClientSecret"": ""{GiteaFixture.OAuthApplicationClientSecret}"",
-                        ""Authority"": ""{TestUrlsProvider.Instance.GiteaUrl}"",
+                    ""StudioOidcLoginSettings"": {{
+                        ""ClientId"": ""fake-client"",
+                        ""ClientSecret"": ""fake-secret"",
+                        ""Authority"": ""{GiteaFixture.FakeAnsattportenUrl}"",
+                        ""ValidIssuer"": ""{GiteaFixture.FakeAnsattportenUrl}"",
                         ""Scopes"": [
                             ""openid"",
-                            ""profile"",
-                            ""write:activitypub"",
-                            ""write:admin"",
-                            ""write:issue"",
-                            ""write:misc"",
-                            ""write:notification"",
-                            ""write:organization"",
-                            ""write:package"",
-                            ""write:repository"",
-                            ""write:user""
+                            ""profile""
                         ],
                         ""RequireHttpsMetadata"": false,
-                        ""CookieExpiryTimeInMinutes"" : 59
+                        ""CookieExpiryTimeInMinutes"": 59
+                    }},
+                    ""DeveloperMappingSettings"": {{
+                        ""PidHashSalt"": ""{StudioOidcGiteaFixture.PidHashSalt}""
+                    }},
+                    ""GiteaDbSettings"": {{
+                        ""ConnectionString"": ""{GiteaFixture.DbConnectionString}""
                     }},
                     ""PostgreSQLSettings"": {{
                         ""ConnectionString"": ""{GiteaFixture.DbConnectionString}"",
@@ -194,7 +194,6 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
     protected async Task CreateAppUsingDesigner(string org, string repoName)
     {
         CreatedFolderPath = $"{TestRepositoriesLocation}/{GiteaConstants.TestUser}/{org}/{repoName}";
-        // Create repo with designer
         using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
             HttpMethod.Post,
             $"designer/api/repos/create-app"

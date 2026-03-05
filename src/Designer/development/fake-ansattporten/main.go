@@ -26,7 +26,7 @@ type TestUser struct {
 
 var testUsers = []TestUser{
 	{PID: "29922149761", Sub: "sub-29922149761", GivenName: "localgiteaadmin", FamilyName: "admin"},
-	{PID: "09858398468", Sub: "sub-09858398468", GivenName: "Ola", FamilyName: "Nordmann"},
+	{PID: "09858398468", Sub: "sub-09858398468", GivenName: "testUser", FamilyName: "test"},
 	{PID: "10866898516", Sub: "sub-10866898516", GivenName: "Per", FamilyName: "Olsen"},
 	{PID: "15076500565", Sub: "sub-15076500565", GivenName: "Ingrid", FamilyName: "Berg"},
 	{PID: "02056260016", Sub: "sub-02056260016", GivenName: "Erik", FamilyName: "Larsen"},

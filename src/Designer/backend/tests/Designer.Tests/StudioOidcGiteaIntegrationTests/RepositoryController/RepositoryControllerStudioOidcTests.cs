@@ -1,0 +1,245 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Mime;
+using System.Text;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
+using Designer.Tests.Fixtures;
+using Designer.Tests.Utils;
+using Polly;
+using Polly.Retry;
+using Xunit;
+
+namespace Designer.Tests.StudioOidcGiteaIntegrationTests.RepositoryController
+{
+    public class RepositoryControllerStudioOidcTests
+        : StudioOidcGiteaIntegrationTestsBase<RepositoryControllerStudioOidcTests>
+    {
+        private readonly AsyncRetryPolicy<HttpResponseMessage> _giteaRetryPolicy = Policy
+            .HandleResult<HttpResponseMessage>(x => x.StatusCode != HttpStatusCode.OK)
+            .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
+
+        public RepositoryControllerStudioOidcTests(
+            StudioOidcGiteaWebAppApplicationFactoryFixture<Program> factory,
+            StudioOidcGiteaFixture giteaFixture,
+            StudioOidcSharedDesignerHttpClientProvider sharedDesignerHttpClientProvider
+        )
+            : base(factory, giteaFixture, sharedDesignerHttpClientProvider) { }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task CreateRepo_ShouldBeAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            var giteaResponse = await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}");
+            Assert.Equal(HttpStatusCode.OK, giteaResponse.StatusCode);
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task Commit_AndPush_AndContents_ShouldBeAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            await File.WriteAllTextAsync($"{CreatedFolderPath}/test.txt", "I am a new file");
+
+            using var commitAndPushContent = new StringContent(
+                GetCommitInfoJson("test commit", org, targetRepo),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push",
+                commitAndPushContent
+            );
+            Assert.Equal(HttpStatusCode.OK, commitAndPushResponse.StatusCode);
+
+            var giteaFileResponse = await GiteaFixture.GiteaClient.Value.GetAsync(
+                $"repos/{org}/{targetRepo}/contents/test.txt"
+            );
+            Assert.Equal(HttpStatusCode.OK, giteaFileResponse.StatusCode);
+
+            using HttpResponseMessage contentsResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/contents?path=test.txt"
+            );
+            Assert.Equal(HttpStatusCode.OK, contentsResponse.StatusCode);
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task Commit_AndPush_Separate_ShouldBeAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            await File.WriteAllTextAsync($"{CreatedFolderPath}/test3.txt", "I am a new file");
+            using var commitContent = new StringContent(
+                GetCommitInfoJson("test commit", org, targetRepo),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage commitResponse = await HttpClient.PostAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/commit",
+                commitContent
+            );
+            Assert.Equal(HttpStatusCode.OK, commitResponse.StatusCode);
+
+            using HttpResponseMessage pushResponse = await HttpClient.PostAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/push",
+                null
+            );
+            Assert.Equal(HttpStatusCode.OK, pushResponse.StatusCode);
+
+            var giteaFileResponse2 = await GiteaFixture.GiteaClient.Value.GetAsync(
+                $"repos/{org}/{targetRepo}/contents/test3.txt"
+            );
+            Assert.Equal(HttpStatusCode.OK, giteaFileResponse2.StatusCode);
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task Pull_ShouldBeAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            using var createFileContent = new StringContent(
+                GenerateCommitJsonPayload("I am a new file created in gitea", "test commit"),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync(
+                $"repos/{org}/{targetRepo}/contents/test2.txt",
+                createFileContent
+            );
+            Assert.Equal(HttpStatusCode.Created, createFileResponse.StatusCode);
+
+            using HttpResponseMessage pullResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/pull"
+            );
+            Assert.Equal(HttpStatusCode.OK, pullResponse.StatusCode);
+
+            Assert.True(File.Exists($"{CreatedFolderPath}/test2.txt"));
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task MetadataAndStatus_ShouldBehaveAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            using HttpResponseMessage metadataResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/metadata"
+            );
+            Assert.Equal(HttpStatusCode.OK, metadataResponse.StatusCode);
+            var deserializedRepositoryModel = await metadataResponse.Content.ReadAsAsync<Repository>();
+            Assert.Equal(targetRepo, deserializedRepositoryModel.Name);
+
+            using HttpResponseMessage statusResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/status"
+            );
+            Assert.Equal(HttpStatusCode.OK, statusResponse.StatusCode);
+            var deserializedRepoStatusModel = await statusResponse.Content.ReadAsAsync<RepoStatus>();
+            Assert.Equal(RepositoryStatus.Ok, deserializedRepoStatusModel.RepositoryStatus);
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task RepoStatus_ShouldReturn404NotFoundWhenInvalidRepo(string org)
+        {
+            using HttpResponseMessage statusResponse = await HttpClient.GetAsync(
+                $"designer/api/repos/repo/{org}/123/status"
+            );
+            Assert.Equal(HttpStatusCode.NotFound, statusResponse.StatusCode);
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task GetOrgRepos_ShouldBehaveAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            using HttpResponseMessage getOrgReposResponse = await HttpClient.GetAsync($"designer/api/repos/org/{org}");
+            Assert.Equal(HttpStatusCode.OK, getOrgReposResponse.StatusCode);
+            var deserializedRepositoryModel = await getOrgReposResponse.Content.ReadAsAsync<List<Repository>>();
+
+            Assert.NotEmpty(deserializedRepositoryModel);
+            Assert.Contains(deserializedRepositoryModel, x => x.Name == targetRepo);
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task GetBranch_ShouldBehaveAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () =>
+                await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches/branch?branch=master")
+            );
+            var deserializedBranchModel = await branchResponse.Content.ReadAsAsync<Branch>();
+            Assert.Equal(HttpStatusCode.OK, branchResponse.StatusCode);
+            Assert.Equal("master", deserializedBranchModel.Name);
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task GetBranches_ShouldBehaveAsExpected(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            using HttpResponseMessage branchResponse = await _giteaRetryPolicy.ExecuteAsync(async () =>
+                await HttpClient.GetAsync($"designer/api/repos/repo/{org}/{targetRepo}/branches")
+            );
+            var deserializedBranchModel = await branchResponse.Content.ReadAsAsync<Branch[]>();
+            Assert.Equal(HttpStatusCode.OK, branchResponse.StatusCode);
+            Assert.NotEmpty(deserializedBranchModel);
+            Assert.Contains(deserializedBranchModel, x => x.Name == "master");
+        }
+
+        [Theory]
+        [InlineData(GiteaConstants.TestOrgUsername)]
+        public async Task PushWithConflictingChangesRemotely_ShouldReturnConflict(string org)
+        {
+            string targetRepo = TestDataHelper.GenerateTestRepoName("-oidc");
+            await CreateAppUsingDesigner(org, targetRepo);
+
+            using var createFileContent = new StringContent(
+                GenerateCommitJsonPayload("I am a new file created in gitea", "test commit"),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync(
+                $"repos/{org}/{targetRepo}/contents/fileAlreadyInRepository.txt",
+                createFileContent
+            );
+            Assert.Equal(HttpStatusCode.Created, createFileResponse.StatusCode);
+
+            await File.WriteAllTextAsync(
+                $"{CreatedFolderPath}/fileAlreadyInRepository.txt",
+                "I am a new file from studio."
+            );
+            using var commitAndPushContent = new StringContent(
+                GetCommitInfoJson("test commit", org, targetRepo),
+                Encoding.UTF8,
+                MediaTypeNames.Application.Json
+            );
+            using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync(
+                $"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push",
+                commitAndPushContent
+            );
+            Assert.Equal(HttpStatusCode.Conflict, commitAndPushResponse.StatusCode);
+        }
+    }
+}
