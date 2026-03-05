@@ -59,6 +59,16 @@ public class DeploymentRepository : IDeploymentRepository
         return DeploymentMapper.MapToModel(dbObject);
     }
 
+    public async Task<DeploymentEntity> GetByExternalBuildId(string org, string externalBuildId)
+    {
+        var dbObject = await _dbContext
+            .Deployments.Include(d => d.Build)
+            .Include(d => d.Events)
+            .AsNoTracking()
+            .SingleAsync(d => d.Org == org && d.Build.ExternalId == externalBuildId);
+        return DeploymentMapper.MapToModel(dbObject);
+    }
+
     public async Task<DeploymentEntity> GetLastDeployed(string org, string app, string environment)
     {
         var dbObject = await _dbContext

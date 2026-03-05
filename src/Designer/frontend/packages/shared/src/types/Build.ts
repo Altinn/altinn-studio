@@ -17,6 +17,7 @@ export enum BuildResult {
 
 export interface Build {
   id: string;
+  externalId?: string;
   status: BuildStatus;
   result: BuildResult;
   started: string;

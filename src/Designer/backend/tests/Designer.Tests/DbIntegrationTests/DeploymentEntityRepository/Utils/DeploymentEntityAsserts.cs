@@ -28,7 +28,7 @@ public static partial class EntityAssertions
         AssertionUtil.AssertEqualTo(deploymentEntity, entityFromColumn);
 
         Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel buildDbModel = dbRecord.Build;
-        Assert.Equal(buildDbModel.ExternalId, deploymentEntity.Build.Id);
+        Assert.Equal(buildDbModel.ExternalId, deploymentEntity.Build.ExternalId ?? deploymentEntity.Build.Id);
         Assert.Equal(buildDbModel.Status, deploymentEntity.Build.Status.ToString());
         Assert.Equal(buildDbModel.Result, deploymentEntity.Build.Result.ToString());
         Assert.Equal(BuildType.Deployment, buildDbModel.BuildType);
@@ -62,6 +62,7 @@ public static partial class EntityAssertions
         Assert.Equal(expected.TagName, actual.TagName);
         Assert.Equal(expected.EnvName, actual.EnvName);
         Assert.Equal(expected.Build.Id, actual.Build.Id);
+        Assert.Equal(expected.Build.ExternalId ?? expected.Build.Id, actual.Build.ExternalId);
         Assert.Equal(expected.Build.Status, actual.Build.Status);
         Assert.Equal(expected.Build.Result, actual.Build.Result);
 

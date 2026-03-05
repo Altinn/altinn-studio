@@ -30,6 +30,11 @@ namespace Altinn.Studio.Designer.Repository
         Task<DeploymentEntity> Get(string org, string buildId);
 
         /// <summary>
+        /// Calls a procedure to retrieve deployment entity based on the external executor build id.
+        /// </summary>
+        Task<DeploymentEntity> GetByExternalBuildId(string org, string externalBuildId);
+
+        /// <summary>
         /// Gets the last deployed entity on environment
         /// </summary>
         Task<DeploymentEntity> GetLastDeployed(string org, string app, string environment);

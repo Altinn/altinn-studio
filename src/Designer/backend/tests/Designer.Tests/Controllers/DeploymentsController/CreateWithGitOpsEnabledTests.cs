@@ -140,7 +140,7 @@ public class CreateWithGitOpsEnabledTests
         // Verify event was created in the database
         var events = await DesignerDbFixture
             .DbContext.DeployEvents.AsNoTracking()
-            .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == buildId)
+            .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == deploymentEntity.Build.Id)
             .ToListAsync();
 
         Assert.Single(events);
@@ -248,7 +248,7 @@ public class CreateWithGitOpsEnabledTests
         // Verify event was created in the database
         var events = await DesignerDbFixture
             .DbContext.DeployEvents.AsNoTracking()
-            .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == buildId)
+            .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == deploymentEntity.Build.Id)
             .ToListAsync();
 
         Assert.Single(events);

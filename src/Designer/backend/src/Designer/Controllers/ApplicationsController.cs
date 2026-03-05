@@ -165,7 +165,7 @@ public class ApplicationsController : ControllerBase
                 ct
             );
 
-            var deploymentEntity = await _deploymentRepository.Get(org, runtimeAppDeployment.BuildId);
+            var deploymentEntity = await _deploymentRepository.GetByExternalBuildId(org, runtimeAppDeployment.BuildId);
 
             var indexFile = await indexFileTask;
             var applicationMetadata = await applicationMetadataTask;

@@ -18,6 +18,7 @@ using Altinn.Studio.Designer.Services.Interfaces.GitOps;
 using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.Telemetry;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
@@ -40,6 +41,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static readonly TimeSpan s_pendingDecommissionSkipThreshold = TimeSpan.FromMinutes(10);
 
         private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
+        private readonly IDeployPipelineExecutor _deployPipelineExecutor;
         private readonly IDeploymentRepository _deploymentRepository;
         private readonly IDeployEventRepository _deployEventRepository;
         private readonly IReleaseRepository _releaseRepository;
@@ -58,12 +60,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly ISlackClient _slackClient;
         private readonly AlertsSettings _alertsSettings;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
         public DeploymentService(
             AzureDevOpsSettings azureDevOpsOptions,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
+            IDeployPipelineExecutor deployPipelineExecutor,
             IHttpContextAccessor httpContextAccessor,
             IDeploymentRepository deploymentRepository,
             IDeployEventRepository deployEventRepository,
@@ -83,6 +83,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         )
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
+            _deployPipelineExecutor = deployPipelineExecutor;
             _deploymentRepository = deploymentRepository;
             _deployEventRepository = deployEventRepository;
             _releaseRepository = releaseRepository;
@@ -116,6 +117,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.PopulateBaseProperties(authenticatedContext.Org, authenticatedContext.Repo, _httpContext);
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvName = deployment.EnvName;
+            deploymentEntity.Build = CreatePendingWorkflowBuild();
 
             ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(
                 authenticatedContext.Org,
@@ -147,23 +149,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             bool useGitOpsDefinition = await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy);
-            Build queuedBuild = await QueueDeploymentBuild(
-                release,
-                deploymentEntity,
-                deployment.EnvName,
-                shouldPushSyncRootImage,
-                useGitOpsDefinition,
-                traceContext.TraceParent,
-                traceContext.TraceState,
+            Build queuedBuild = await _deployPipelineExecutor.QueueAsync(
+                new DeployPipelineQueueRequest
+                {
+                    Org = deploymentEntity.Org,
+                    App = deploymentEntity.App,
+                    Environment = deployment.EnvName,
+                    TagName = deploymentEntity.TagName,
+                    AppCommitId = release.TargetCommitish,
+                    Hostname = await _environmentsService.GetHostNameByEnvName(deployment.EnvName),
+                    AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
+                    GiteaEnvironment = $"{_generalSettings.HostName}/repos",
+                    AltinnStudioHostname = _generalSettings.HostName,
+                    UseGitOpsDefinition = useGitOpsDefinition,
+                    ShouldPushSyncRootImage = shouldPushSyncRootImage,
+                    TraceParent = traceContext.TraceParent,
+                    TraceState = traceContext.TraceState,
+                },
                 cancellationToken
             );
 
-            deploymentEntity.Build = new BuildEntity
-            {
-                Id = queuedBuild.Id.ToString(),
-                Status = queuedBuild.Status,
-                Started = queuedBuild.StartTime,
-            };
+            deploymentEntity.Build.ExternalId = queuedBuild.Id.ToString();
+            deploymentEntity.Build.Status = queuedBuild.Status;
+            deploymentEntity.Build.Started = queuedBuild.StartTime;
 
             var createdEntity = await _deploymentRepository.Create(deploymentEntity);
 
@@ -173,7 +181,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 new DeployEvent
                 {
                     EventType = DeployEventType.PipelineScheduled,
-                    Message = $"Pipeline {queuedBuild.Id} scheduled",
+                    Message = $"Pipeline {deploymentEntity.Build.ExternalId} scheduled",
                     Timestamp = _timeProvider.GetUtcNow(),
                 }
             );
@@ -184,6 +192,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     authenticatedContext.Repo,
                     deploymentEntity.CreatedBy
                 ),
+                deploymentEntity.Build.Id,
                 queuedBuild,
                 PipelineType.Deploy,
                 deployment.EnvName,
@@ -348,13 +357,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 EnvName = env,
                 DeploymentType = DeploymentType.Decommission,
                 TagName = lastDeployed.TagName,
-                Build = new BuildEntity
-                {
-                    Id = build.Id.ToString(),
-                    Status = build.Status,
-                    Started = build.StartTime,
-                },
+                Build = CreatePendingWorkflowBuild(),
             };
+            deploymentEntity.Build.ExternalId = build.Id.ToString();
+            deploymentEntity.Build.Status = build.Status;
+            deploymentEntity.Build.Started = build.StartTime;
             deploymentEntity.PopulateBaseProperties(editingContext, _timeProvider);
 
             await _deploymentRepository.Create(deploymentEntity);
@@ -367,13 +374,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     EventType = useGitOpsDecommission
                         ? DeployEventType.PipelineScheduled
                         : DeployEventType.DeprecatedPipelineScheduled,
-                    Message = $"Undeploy pipeline {build.Id} scheduled",
+                    Message = $"Undeploy pipeline {deploymentEntity.Build.ExternalId} scheduled",
                     Timestamp = _timeProvider.GetUtcNow(),
                 }
             );
 
             await PublishDeploymentPipelineQueued(
                 editingContext,
+                deploymentEntity.Build.Id,
                 build,
                 PipelineType.Undeploy,
                 env,
@@ -504,6 +512,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private async Task PublishDeploymentPipelineQueued(
             AltinnRepoEditingContext editingContext,
+            string workflowId,
             Build build,
             PipelineType pipelineType,
             string environment,
@@ -514,13 +523,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 new DeploymentPipelineQueued
                 {
                     EditingContext = editingContext,
-                    BuildId = build.Id,
+                    WorkflowId = workflowId,
+                    ExternalBuildId = build.Id,
                     PipelineType = pipelineType,
                     Environment = environment,
                     TraceParent = traceParent,
                     TraceState = traceState,
                 }
             );
+
+        private static BuildEntity CreatePendingWorkflowBuild() =>
+            new()
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Status = BuildStatus.NotStarted,
+                Result = BuildResult.None,
+            };
 
         /// <inheritdoc/>
         public async Task PublishSyncRootAsync(
@@ -551,43 +569,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 _azureDevOpsSettings.GitOpsManagerDefinitionId,
                 cancellationToken
             );
-        }
-
-        private async Task<Build> QueueDeploymentBuild(
-            ReleaseEntity release,
-            DeploymentEntity deploymentEntity,
-            string envName,
-            bool shouldPushSyncRootImage,
-            bool useGitOpsDefinition,
-            string traceParent,
-            string traceState,
-            CancellationToken cancellationToken
-        )
-        {
-            QueueBuildParameters queueBuildParameters = new()
-            {
-                AppCommitId = release.TargetCommitish,
-                AppOwner = deploymentEntity.Org,
-                AppRepo = deploymentEntity.App,
-                AppEnvironment = deploymentEntity.EnvName,
-                Hostname = await _environmentsService.GetHostNameByEnvName(envName),
-                TagName = deploymentEntity.TagName,
-                GiteaEnvironment = $"{_generalSettings.HostName}/repos",
-                AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
-                AltinnStudioHostname = _generalSettings.HostName,
-                TraceParent = traceParent,
-                TraceState = traceState,
-            };
-            if (shouldPushSyncRootImage)
-            {
-                queueBuildParameters.PushSyncRootGitopsImage = "true";
-            }
-
-            int definitionId = useGitOpsDefinition
-                ? _azureDevOpsSettings.GitOpsManagerDefinitionId
-                : _azureDevOpsSettings.DeployDefinitionId;
-
-            return await _azureDevOpsBuildClient.QueueAsync(queueBuildParameters, definitionId, cancellationToken);
         }
 
         private static (string TraceParent, string TraceState) GetCurrentTraceContext()

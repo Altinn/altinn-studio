@@ -75,7 +75,8 @@ public class DeploymentWebhooksController : ControllerBase
         }
 
         var deployment = resolveResult.Deployment!;
-        var buildId = resolveResult.BuildId!;
+        var workflowId = resolveResult.BuildId!;
+        var externalBuildId = deployment.Build.ExternalId ?? workflowId;
 
         if (deployment.HasFinalEvent)
         {
@@ -84,14 +85,14 @@ public class DeploymentWebhooksController : ControllerBase
 
         var deployEvent = CreateDeployEvent(eventType, request);
 
-        await _deployEventRepository.AddAsync(org, buildId, deployEvent, cancellationToken);
+        await _deployEventRepository.AddAsync(org, workflowId, deployEvent, cancellationToken);
 
         await _deploymentService.SendToSlackAsync(
             org,
             AltinnEnvironment.FromName(request.Environment),
             app,
             eventType,
-            buildId,
+            externalBuildId,
             deployment.Events.FirstOrDefault()?.Created,
             cancellationToken
         );
@@ -146,17 +147,17 @@ public class DeploymentWebhooksController : ControllerBase
                 );
             }
 
-            var deployment = await _deploymentRepository.Get(org, request.BuildId);
+            var deployment = await _deploymentRepository.GetByExternalBuildId(org, request.BuildId);
             if (deployment == null)
             {
                 return new DeploymentResolveResult(
                     null,
                     null,
-                    NotFound($"Deployment with build ID {request.BuildId} not found")
+                    NotFound($"Deployment with external build ID {request.BuildId} not found")
                 );
             }
 
-            return new DeploymentResolveResult(deployment, request.BuildId, null);
+            return new DeploymentResolveResult(deployment, deployment.Build.Id, null);
         }
     }
 

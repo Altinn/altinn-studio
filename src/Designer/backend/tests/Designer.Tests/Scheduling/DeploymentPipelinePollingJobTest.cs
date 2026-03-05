@@ -175,7 +175,8 @@ public class DeploymentPipelinePollingJobTest
             [SchedulerConstants.Org] = "testorg",
             [SchedulerConstants.App] = "testapp",
             [SchedulerConstants.Developer] = "testdeveloper",
-            [SchedulerConstants.BuildId] = "12345",
+            [SchedulerConstants.WorkflowId] = "workflow-12345",
+            [SchedulerConstants.ExternalBuildId] = "12345",
             [SchedulerConstants.PipelineType] = pipelineType.ToString(),
             [SchedulerConstants.Environment] = "tt02",
         };

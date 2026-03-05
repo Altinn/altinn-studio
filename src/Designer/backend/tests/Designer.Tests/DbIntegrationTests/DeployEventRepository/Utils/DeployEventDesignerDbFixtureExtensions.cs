@@ -19,7 +19,7 @@ public static class DeployEventDesignerDbFixtureExtensions
         long deploymentSequenceNo = await dbFixture
             .DbContext.Deployments.Include(d => d.Build)
             .AsNoTracking()
-            .Where(d => d.Org == org && d.Build.ExternalId == buildId)
+            .Where(d => d.Org == org && d.Buildid == buildId)
             .Select(d => d.Sequenceno)
             .SingleAsync();
 

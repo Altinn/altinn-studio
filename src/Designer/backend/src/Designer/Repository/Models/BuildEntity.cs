@@ -18,6 +18,12 @@ namespace Altinn.Studio.Designer.Repository.Models
         public string Id { get; set; }
 
         /// <summary>
+        /// External executor identifier, for example an Azure DevOps build id.
+        /// </summary>
+        [JsonProperty("externalId")]
+        public string ExternalId { get; set; }
+
+        /// <summary>
         /// Status
         /// </summary>
         [JsonProperty("status")]

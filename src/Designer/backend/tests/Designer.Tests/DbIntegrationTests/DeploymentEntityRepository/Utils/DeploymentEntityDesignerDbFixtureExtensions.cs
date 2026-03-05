@@ -72,7 +72,7 @@ public static class DeploymentEntityDesignerDbFixtureExtensions
     ) =>
         new()
         {
-            ExternalId = buildEntity.Id,
+            ExternalId = buildEntity.ExternalId ?? buildEntity.Id,
             Status = buildEntity.Status.ToString(),
             Result = buildEntity.Result.ToString(),
             Started = buildEntity.Started?.ToUniversalTime(),

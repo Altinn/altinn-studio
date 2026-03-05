@@ -89,6 +89,7 @@ export const DeploymentEnvironmentLogList = ({
               {pipelineDeploymentList.map((deploy: PipelineDeployment) => {
                 const deploymentStatus = getDeployStatus(deploy);
                 const areLogsAvailable = DateUtils.isDateWithinDays(deploy.build.started, 30);
+                const executorBuildId = deploy.build.externalId ?? deploy.build.id;
 
                 const tableCellStatusClassName = classes[deploymentStatus];
 
@@ -153,7 +154,7 @@ export const DeploymentEnvironmentLogList = ({
                               })(),
                               buildLog: (
                                 <StudioLink
-                                  href={getAzureDevopsBuildResultUrl(deploy.build.id)}
+                                  href={getAzureDevopsBuildResultUrl(executorBuildId)}
                                   rel='noopener noreferrer'
                                   target='_blank'
                                   icon={
@@ -221,9 +222,9 @@ export const DeploymentEnvironmentLogList = ({
                       )}
                     >
                       {deploy.build.started &&
-                        (areLogsAvailable ? (
+                        (areLogsAvailable && executorBuildId ? (
                           <Link
-                            href={getAzureDevopsBuildResultUrl(deploy.build.id)}
+                            href={getAzureDevopsBuildResultUrl(executorBuildId)}
                             target='_newTab'
                             rel='noopener noreferrer'
                           >

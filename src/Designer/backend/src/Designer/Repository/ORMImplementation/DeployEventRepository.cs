@@ -39,7 +39,7 @@ public class DeployEventRepository : IDeployEventRepository
         long deploymentSequenceNo = await _dbContext
             .Deployments.Include(d => d.Build)
             .AsNoTracking()
-            .Where(d => d.Org == org && d.Build.ExternalId == buildId)
+            .Where(d => d.Org == org && d.Buildid == buildId)
             .Select(d => d.Sequenceno)
             .SingleAsync(cancellationToken);
 

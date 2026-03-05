@@ -15,9 +15,11 @@ public static partial class EntityGenerationUtils
             DateTime? finished = null
         )
         {
+            string id = buildId ?? Guid.NewGuid().ToString();
             return new BuildEntity
             {
-                Id = buildId ?? Guid.NewGuid().ToString(),
+                Id = id,
+                ExternalId = id,
                 Status = buildStatus,
                 Result = buildResult,
                 Started = DateTime.UtcNow,

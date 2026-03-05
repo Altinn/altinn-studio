@@ -59,7 +59,8 @@ public static class DeploymentMapper
                 deploymentEntity.Build,
                 deploymentEntity.DeploymentType == Altinn.Studio.Designer.Repository.Models.DeploymentType.Deploy
                     ? BuildType.Deployment
-                    : BuildType.Decommission
+                    : BuildType.Decommission,
+                useIdAsExternalId: false
             ),
         };
     }
@@ -79,13 +80,16 @@ public static class DeploymentMapper
 
     public static DeploymentEntity MapToModel(DeploymentDbModel dbObject)
     {
+        var build = BuildMapper.MapToModel(dbObject.Build);
+        build.Id = dbObject.Buildid;
+
         return new DeploymentEntity
         {
             App = dbObject.App,
             Org = dbObject.Org,
             EnvName = dbObject.EnvName,
             TagName = dbObject.Tagname,
-            Build = BuildMapper.MapToModel(dbObject.Build),
+            Build = build,
             Created = dbObject.Created.ToUniversalTime(),
             CreatedBy = dbObject.CreatedBy,
             DeploymentType = (Altinn.Studio.Designer.Repository.Models.DeploymentType)(int)dbObject.DeploymentType,

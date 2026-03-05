@@ -105,7 +105,8 @@ public class CreateTests
         Assert.Equal(envName, deploymentEntity.EnvName);
         Assert.Equal(tagName, deploymentEntity.TagName);
         Assert.NotNull(deploymentEntity.Build);
-        Assert.Equal(buildId, deploymentEntity.Build.Id);
+        Assert.NotEqual(buildId, deploymentEntity.Build.Id);
+        Assert.Equal(buildId, deploymentEntity.Build.ExternalId);
         Assert.Equal(BuildStatus.NotStarted, deploymentEntity.Build.Status);
     }
 
@@ -290,7 +291,7 @@ public class CreateTests
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(deploymentEntity);
-        Assert.Equal(buildId, deploymentEntity.Build.Id);
+        Assert.Equal(buildId, deploymentEntity.Build.ExternalId);
 
         // Verify that the mock server received the expected calls
         var logEntries = _mockServerFixture.MockApi.LogEntries;

@@ -65,7 +65,12 @@ public class DeploymentPipelinePollingJob : IJob
             string app = jobDataMap.GetRequiredString(DeploymentPipelinePollingJobConstants.Arguments.App);
             string developer = jobDataMap.GetRequiredString(DeploymentPipelinePollingJobConstants.Arguments.Developer);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            string buildId = jobDataMap.GetRequiredString(DeploymentPipelinePollingJobConstants.Arguments.BuildId);
+            string workflowId = jobDataMap.GetRequiredString(
+                DeploymentPipelinePollingJobConstants.Arguments.WorkflowId
+            );
+            string externalBuildId = jobDataMap.GetRequiredString(
+                DeploymentPipelinePollingJobConstants.Arguments.ExternalBuildId
+            );
             PipelineType type = Enum.Parse<PipelineType>(
                 jobDataMap.GetRequiredString(DeploymentPipelinePollingJobConstants.Arguments.PipelineType),
                 true
@@ -74,9 +79,9 @@ public class DeploymentPipelinePollingJob : IJob
                 DeploymentPipelinePollingJobConstants.Arguments.Environment
             );
 
-            var build = await _azureDevOpsBuildClient.Get(buildId, context.CancellationToken);
+            var build = await _azureDevOpsBuildClient.Get(externalBuildId, context.CancellationToken);
 
-            var deploymentEntity = await _deploymentRepository.Get(editingContext.Org, buildId);
+            var deploymentEntity = await _deploymentRepository.Get(editingContext.Org, workflowId);
 
             if (deploymentEntity.Build.Status == BuildStatus.Completed)
             {
@@ -95,7 +100,7 @@ public class DeploymentPipelinePollingJob : IJob
                 )
             )
             {
-                await AddDeployEventIfNotExist(build.Status, build, org, buildId);
+                await AddDeployEventIfNotExist(build, org, workflowId, externalBuildId);
             }
 
             await _deploymentRepository.Update(deploymentEntity);
@@ -139,8 +144,13 @@ public class DeploymentPipelinePollingJob : IJob
         string traceState = jobDataMap.GetOptionalString(DeploymentPipelinePollingJobConstants.Arguments.TraceState);
         if (!ActivityContext.TryParse(traceParent, traceState, out var parentContext))
         {
-            string buildId = jobDataMap.GetOptionalString(DeploymentPipelinePollingJobConstants.Arguments.BuildId);
-            _logger.LogWarning("Invalid trace context in polling job for build {BuildId}", buildId ?? "<unknown>");
+            string workflowId = jobDataMap.GetOptionalString(
+                DeploymentPipelinePollingJobConstants.Arguments.WorkflowId
+            );
+            _logger.LogWarning(
+                "Invalid trace context in polling job for workflow {WorkflowId}",
+                workflowId ?? "<unknown>"
+            );
             return null;
         }
 
@@ -160,18 +170,23 @@ public class DeploymentPipelinePollingJob : IJob
         return activity;
     }
 
-    private async Task AddDeployEventIfNotExist(BuildStatus buildStatus, BuildEntity build, string org, string buildId)
+    private async Task AddDeployEventIfNotExist(
+        BuildEntity build,
+        string org,
+        string workflowId,
+        string externalBuildId
+    )
     {
         var eventType =
             build.Result == BuildResult.Succeeded ? DeployEventType.PipelineSucceeded : DeployEventType.PipelineFailed;
 
         await _deployEventRepository.AddAsync(
             org,
-            buildId,
+            workflowId,
             new DeployEvent
             {
                 EventType = eventType,
-                Message = $"Pipeline {buildId} {build.Result.ToEnumMemberAttributeValue()}",
+                Message = $"Pipeline {externalBuildId} {build.Result.ToEnumMemberAttributeValue()}",
                 Timestamp = _timeProvider.GetUtcNow(),
                 Origin = DeployEventOrigin.PollingJob,
             }

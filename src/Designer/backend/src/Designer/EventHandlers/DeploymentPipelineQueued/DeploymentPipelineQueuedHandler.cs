@@ -24,7 +24,11 @@ public class DeploymentPipelineQueuedHandler : INotificationHandler<Events.Deplo
             { DeploymentPipelinePollingJobConstants.Arguments.Org, notification.EditingContext.Org },
             { DeploymentPipelinePollingJobConstants.Arguments.App, notification.EditingContext.Repo },
             { DeploymentPipelinePollingJobConstants.Arguments.Developer, notification.EditingContext.Developer },
-            { DeploymentPipelinePollingJobConstants.Arguments.BuildId, notification.BuildId.ToString() },
+            { DeploymentPipelinePollingJobConstants.Arguments.WorkflowId, notification.WorkflowId },
+            {
+                DeploymentPipelinePollingJobConstants.Arguments.ExternalBuildId,
+                notification.ExternalBuildId.ToString()
+            },
             { DeploymentPipelinePollingJobConstants.Arguments.PipelineType, notification.PipelineType.ToString() },
             { DeploymentPipelinePollingJobConstants.Arguments.Environment, notification.Environment },
         };
@@ -42,7 +46,7 @@ public class DeploymentPipelineQueuedHandler : INotificationHandler<Events.Deplo
         var job = JobBuilder
             .Create<Scheduling.DeploymentPipelinePollingJob>()
             .WithIdentity(
-                DeploymentPipelinePollingJobConstants.JobIdentity(notification.EditingContext, notification.BuildId),
+                DeploymentPipelinePollingJobConstants.JobIdentity(notification.EditingContext, notification.WorkflowId),
                 DeploymentPipelinePollingJobConstants.DeploymentPipelineGroup
             )
             .UsingJobData(jobData)
@@ -53,7 +57,7 @@ public class DeploymentPipelineQueuedHandler : INotificationHandler<Events.Deplo
             .WithIdentity(
                 DeploymentPipelinePollingJobConstants.TriggerIdentity(
                     notification.EditingContext,
-                    notification.BuildId
+                    notification.WorkflowId
                 ),
                 DeploymentPipelinePollingJobConstants.DeploymentPipelineGroup
             )

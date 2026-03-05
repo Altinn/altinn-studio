@@ -91,6 +91,28 @@ namespace Designer.Tests.Services
             _alertsSettings = new AlertsSettings();
         }
 
+        private DeploymentService CreateDeploymentService() =>
+            new(
+                GetAzureDevOpsSettings(),
+                _azureDevOpsBuildClient.Object,
+                new AzureDevOpsDeployPipelineExecutor(_azureDevOpsBuildClient.Object, GetAzureDevOpsSettings()),
+                _httpContextAccessor.Object,
+                _deploymentRepository.Object,
+                _deployEventRepository.Object,
+                _releaseRepository.Object,
+                _environementsService.Object,
+                _applicationInformationService.Object,
+                _deploymentLogger.Object,
+                _mediatrMock.Object,
+                _generalSettings,
+                _fakeTimeProvider,
+                _gitOpsConfigurationManager.Object,
+                _featureManager.Object,
+                _runtimeGatewayClient.Object,
+                _slackClient.Object,
+                _alertsSettings
+            );
+
         [Theory]
         [InlineData("ttd", "apps-test-tba")]
         [InlineData("ttd", "new-app")]
@@ -129,25 +151,7 @@ namespace Designer.Tests.Services
                 .Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
 
-            DeploymentService deploymentService = new(
-                GetAzureDevOpsSettings(),
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
@@ -242,25 +246,7 @@ namespace Designer.Tests.Services
                 .Setup(r => r.Get(Org, App, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == Org && d.App == App));
 
-            DeploymentService deploymentService = new(
-                GetAzureDevOpsSettings(),
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(Org, App, "testUser", "dummyToken");
@@ -289,25 +275,7 @@ namespace Designer.Tests.Services
                 .Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(pipelineDeployments);
 
-            DeploymentService deploymentService = new(
-                GetAzureDevOpsSettings(),
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             // Act
             SearchResults<DeploymentEntity> results = await deploymentService.GetAsync(
@@ -397,25 +365,7 @@ namespace Designer.Tests.Services
                 .Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
 
-            DeploymentService deploymentService = new(
-                GetAzureDevOpsSettings(),
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
@@ -538,25 +488,7 @@ namespace Designer.Tests.Services
                 .Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
 
-            DeploymentService deploymentService = new(
-                GetAzureDevOpsSettings(),
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
@@ -657,25 +589,7 @@ namespace Designer.Tests.Services
                 .Setup(r => r.Get(org, app, It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(GetDeployments("createdDeployment.json").Where(d => d.Org == org && d.App == app));
 
-            DeploymentService deploymentService = new(
-                GetAzureDevOpsSettings(),
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
@@ -835,25 +749,7 @@ namespace Designer.Tests.Services
 
             var azureDevOpsSettings = GetAzureDevOpsSettings();
 
-            DeploymentService deploymentService = new(
-                azureDevOpsSettings,
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
@@ -937,25 +833,7 @@ namespace Designer.Tests.Services
                     }
                 );
 
-            DeploymentService deploymentService = new(
-                GetAzureDevOpsSettings(),
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
@@ -1041,25 +919,7 @@ namespace Designer.Tests.Services
 
             var azureDevOpsSettings = GetAzureDevOpsSettings();
 
-            DeploymentService deploymentService = new(
-                azureDevOpsSettings,
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
@@ -1150,25 +1010,7 @@ namespace Designer.Tests.Services
 
             var azureDevOpsSettings = GetAzureDevOpsSettings();
 
-            DeploymentService deploymentService = new(
-                azureDevOpsSettings,
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
@@ -1296,25 +1138,7 @@ namespace Designer.Tests.Services
 
             var azureDevOpsSettings = GetAzureDevOpsSettings();
 
-            DeploymentService deploymentService = new(
-                azureDevOpsSettings,
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
@@ -1422,25 +1246,7 @@ namespace Designer.Tests.Services
 
             var azureDevOpsSettings = GetAzureDevOpsSettings();
 
-            DeploymentService deploymentService = new(
-                azureDevOpsSettings,
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
@@ -1579,25 +1385,7 @@ namespace Designer.Tests.Services
 
             var azureDevOpsSettings = GetAzureDevOpsSettings();
 
-            DeploymentService deploymentService = new(
-                azureDevOpsSettings,
-                _azureDevOpsBuildClient.Object,
-                _httpContextAccessor.Object,
-                _deploymentRepository.Object,
-                _deployEventRepository.Object,
-                _releaseRepository.Object,
-                _environementsService.Object,
-                _applicationInformationService.Object,
-                _deploymentLogger.Object,
-                _mediatrMock.Object,
-                _generalSettings,
-                _fakeTimeProvider,
-                _gitOpsConfigurationManager.Object,
-                _featureManager.Object,
-                _runtimeGatewayClient.Object,
-                _slackClient.Object,
-                _alertsSettings
-            );
+            DeploymentService deploymentService = CreateDeploymentService();
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
                 AltinnAuthenticatedRepoEditingContext.FromOrgRepoDeveloperToken(org, app, "testUser", "dummyToken");
