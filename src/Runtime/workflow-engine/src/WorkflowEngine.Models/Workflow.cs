@@ -7,7 +7,6 @@ public sealed record Workflow : PersistentItem
     public required InstanceInformation InstanceInformation { get; init; }
     public DateTimeOffset? StartAt { get; init; }
     public required IReadOnlyList<Step> Steps { get; init; }
-    public WorkflowType Type { get; init; }
     public string? DistributedTraceContext { get; set; }
     public IEnumerable<Workflow>? Dependencies { get; init; }
     public IEnumerable<Workflow>? Links { get; init; }
@@ -34,7 +33,6 @@ public sealed record Workflow : PersistentItem
             StartAt = request.StartAt,
             DistributedTraceContext = metadata.TraceContext,
             OperationId = request.OperationId,
-            Type = request.Type,
             Dependencies = dependencies,
             Links = links,
             Steps = request

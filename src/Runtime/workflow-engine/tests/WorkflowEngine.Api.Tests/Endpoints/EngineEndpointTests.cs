@@ -28,7 +28,6 @@ public class EngineEndpointTests
                 new WorkflowRequest
                 {
                     OperationId = "op-1",
-                    Type = WorkflowType.Generic,
                     Steps = [new StepRequest { Command = new Command.Webhook("/test") }],
                 },
             ],
@@ -145,7 +144,6 @@ public class EngineEndpointTests
                 {
                     Ref = "wf-a",
                     OperationId = "op-a",
-                    Type = WorkflowType.Generic,
                     DependsOn = [WorkflowRef.FromRefString("wf-b")],
                     Steps = [new StepRequest { Command = new Command.Webhook("/test-a") }],
                 },
@@ -153,7 +151,6 @@ public class EngineEndpointTests
                 {
                     Ref = "wf-b",
                     OperationId = "op-b",
-                    Type = WorkflowType.Generic,
                     DependsOn = [WorkflowRef.FromRefString("wf-a")],
                     Steps = [new StepRequest { Command = new Command.Webhook("/test-b") }],
                 },
@@ -200,7 +197,6 @@ public class EngineEndpointTests
                 {
                     Ref = "wf-1",
                     OperationId = "op-1",
-                    Type = WorkflowType.AppProcessChange,
                     Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
                 },
             ],
@@ -246,7 +242,6 @@ public class EngineEndpointTests
                 {
                     Ref = "wf-1",
                     OperationId = "op-1",
-                    Type = WorkflowType.AppProcessChange,
                     Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
                 },
             ],

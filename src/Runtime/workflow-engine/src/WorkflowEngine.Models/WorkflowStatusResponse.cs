@@ -66,13 +66,6 @@ public sealed record WorkflowStatusResponse
     public required PersistentItemStatus OverallStatus { get; init; }
 
     /// <summary>
-    /// The type of workflow.
-    /// </summary>
-    [JsonPropertyName("type")]
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public required WorkflowType Type { get; init; }
-
-    /// <summary>
     /// Optional dependencies for this workflow, presented as a dictionary of workflow ID and corresponding processing status.
     /// </summary>
     [JsonPropertyName("dependencies")]
@@ -104,7 +97,6 @@ public sealed record WorkflowStatusResponse
             Metadata = workflow.Metadata,
             Actor = workflow.Actor,
             OverallStatus = workflow.Status,
-            Type = workflow.Type,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Steps = workflow.Steps.Select(StepStatusResponse.FromStep).ToList(),

@@ -61,7 +61,7 @@ public sealed class EngineStatusTests(EngineAppFixture fixture) : IAsyncLifetime
         var status = fixture.Services.GetRequiredService<IEngineStatus>();
         var instanceGuid = Guid.NewGuid();
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/slow-status")])
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/slow-status")])
         );
 
         // Act
@@ -96,7 +96,7 @@ public sealed class EngineStatusTests(EngineAppFixture fixture) : IAsyncLifetime
         var status = fixture.Services.GetRequiredService<IEngineStatus>();
         var instanceGuid = Guid.NewGuid();
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/recent-hook")])
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/recent-hook")])
         );
 
         // Act

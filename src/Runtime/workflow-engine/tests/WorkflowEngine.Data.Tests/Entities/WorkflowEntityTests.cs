@@ -23,7 +23,6 @@ public class WorkflowEntityTests
             InstanceOwnerPartyId = 50001,
             InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
             TraceContext = "trace-ctx-abc",
-            Type = WorkflowType.AppProcessChange,
             Steps = steps.ToList(),
         };
 
@@ -66,7 +65,6 @@ public class WorkflowEntityTests
         Assert.Equal(entity.InstanceApp, roundTripped.InstanceApp);
         Assert.Equal(entity.InstanceOwnerPartyId, roundTripped.InstanceOwnerPartyId);
         Assert.Equal(entity.InstanceGuid, roundTripped.InstanceGuid);
-        Assert.Equal(entity.Type, roundTripped.Type);
         Assert.Equal(entity.Steps.Count, roundTripped.Steps.Count);
     }
 

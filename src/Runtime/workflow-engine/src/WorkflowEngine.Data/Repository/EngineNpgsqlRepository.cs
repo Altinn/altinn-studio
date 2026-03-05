@@ -353,7 +353,7 @@ internal sealed class EngineNpgsqlRepository(
                             "Id", "OperationId", "IdempotencyKey", "InstanceLockKey", "Status", "CreatedAt", "StartAt",
                             "ActorUserIdOrOrgNumber", "ActorLanguage",
                             "InstanceOrg", "InstanceApp", "InstanceOwnerPartyId", "InstanceGuid",
-                            "TraceContext", "MetadataJson", "Type", "EngineTraceId", "InitialState"
+                            "TraceContext", "MetadataJson", "EngineTraceId", "InitialState"
                         ) FROM STDIN (FORMAT BINARY)
                         """,
                         ct
@@ -408,7 +408,6 @@ internal sealed class EngineNpgsqlRepository(
                             else
                                 await writer.WriteNullAsync(ct);
 
-                            await writer.WriteAsync((int)wf.Type, NpgsqlDbType.Integer, ct); // Type
                             await writer.WriteNullAsync(ct); // EngineTraceId (null at creation)
 
                             if (wf.State != null) // InitialState

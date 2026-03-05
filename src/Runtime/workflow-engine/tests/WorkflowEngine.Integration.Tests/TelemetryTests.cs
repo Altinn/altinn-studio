@@ -37,7 +37,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         using var collector = new TelemetryCollector();
 
         var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", WorkflowType.Generic, [_testHelpers.CreateAppCommandStep("/cmd")])],
+            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
             lockToken: InstanceLockToken
         );
 
@@ -120,7 +120,6 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
             [
                 _testHelpers.CreateWorkflow(
                     "a",
-                    WorkflowType.Generic,
                     [_testHelpers.CreateAppCommandStep("/cmd-1"), _testHelpers.CreateAppCommandStep("/cmd-2")]
                 ),
             ],
@@ -188,7 +187,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         fixture.WireMock.Given(Request.Create().UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(500));
 
         var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", WorkflowType.Generic, [_testHelpers.CreateAppCommandStep("/cmd")])],
+            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
             lockToken: InstanceLockToken
         );
 
@@ -242,7 +241,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         using var collector = new TelemetryCollector();
 
         var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", WorkflowType.Generic, [_testHelpers.CreateAppCommandStep("/cmd")])],
+            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
             lockToken: InstanceLockToken
         );
 
@@ -307,7 +306,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         using var collector = new TelemetryCollector();
 
         var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", WorkflowType.Generic, [_testHelpers.CreateAppCommandStep("/cmd")])],
+            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
             lockToken: InstanceLockToken
         );
 

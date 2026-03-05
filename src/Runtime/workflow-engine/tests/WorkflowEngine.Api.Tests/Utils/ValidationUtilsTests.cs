@@ -13,7 +13,6 @@ public class ValidationUtilsTests
         {
             Ref = workflowRef,
             OperationId = $"op-{workflowRef}",
-            Type = WorkflowType.Generic,
             Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
             DependsOn = dependsOnRefs?.Select(d => (WorkflowRef)d).ToList(),
         };
@@ -236,7 +235,6 @@ public class ValidationUtilsTests
             {
                 Ref = "b",
                 OperationId = "op-b",
-                Type = WorkflowType.Generic,
                 Steps = [],
             },
         };
@@ -272,12 +270,7 @@ public class ValidationUtilsTests
     public static TheoryData<WorkflowRequest, ExpectedResult> WorkflowRequestCases()
     {
         var validStep = new StepRequest { Command = new Command.Debug.Noop() };
-        var validWorkflow = new WorkflowRequest
-        {
-            OperationId = "op",
-            Type = WorkflowType.Generic,
-            Steps = [validStep],
-        };
+        var validWorkflow = new WorkflowRequest { OperationId = "op", Steps = [validStep] };
 
         return new TheoryData<WorkflowRequest, ExpectedResult>
         {
@@ -387,13 +380,7 @@ public class ValidationUtilsTests
         var webhookStep = new StepRequest { Command = new Command.Webhook("https://example.com") };
         var appStep = new StepRequest { Command = new Command.AppCommand("cmd") };
 
-        WorkflowRequest Wf(params StepRequest[] steps) =>
-            new()
-            {
-                OperationId = "op",
-                Type = WorkflowType.Generic,
-                Steps = steps,
-            };
+        WorkflowRequest Wf(params StepRequest[] steps) => new() { OperationId = "op", Steps = steps };
 
         return new TheoryData<IReadOnlyList<WorkflowRequest>, bool>
         {

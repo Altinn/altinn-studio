@@ -88,7 +88,6 @@ public class WorkflowTests
         var workflowRequest = new WorkflowRequest
         {
             OperationId = "next",
-            Type = WorkflowType.AppProcessChange,
             StartAt = startAt,
             Steps =
             [
@@ -117,7 +116,6 @@ public class WorkflowTests
         Assert.Equal(traceContext, workflow.DistributedTraceContext);
         Assert.Equal("lock-key-1", workflow.InstanceLockKey);
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Status);
-        Assert.Equal(WorkflowType.AppProcessChange, workflow.Type);
         Assert.Null(workflow.Dependencies);
         Assert.Null(workflow.Links);
 
@@ -140,7 +138,6 @@ public class WorkflowTests
         var workflowRequest = new WorkflowRequest
         {
             OperationId = "op-1",
-            Type = WorkflowType.Generic,
             Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
         };
 
@@ -165,7 +162,6 @@ public class WorkflowTests
         Assert.Null(workflow.StartAt);
         Assert.Null(workflow.DistributedTraceContext);
         Assert.Null(workflow.InstanceLockKey);
-        Assert.Equal(WorkflowType.Generic, workflow.Type);
         Assert.Null(workflow.Dependencies);
         Assert.Null(workflow.Links);
     }
@@ -199,7 +195,6 @@ public class WorkflowTests
         var workflowRequest = new WorkflowRequest
         {
             OperationId = "op-1",
-            Type = WorkflowType.Generic,
             Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
         };
 

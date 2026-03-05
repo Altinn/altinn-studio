@@ -15,7 +15,7 @@ public partial class EngineTests
     {
         // Arrange
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook")])
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
         );
 
         // Act
@@ -30,7 +30,6 @@ public partial class EngineTests
         Assert.Equal(workflowId, workflow.DatabaseId);
         Assert.Equal(PersistentItemStatus.Completed, workflow.OverallStatus);
         Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
-        Assert.Equal(WorkflowType.Generic, workflow.Type);
         Assert.NotNull(workflow.UpdatedAt);
         Assert.Single(workflow.Steps);
     }
@@ -40,7 +39,7 @@ public partial class EngineTests
     {
         // Arrange
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook")])
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
         );
 
         // Act
@@ -75,7 +74,7 @@ public partial class EngineTests
         fixture.SetupDefaultStub();
 
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/slow-list")])
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/slow-list")])
         );
 
         // Act
@@ -104,7 +103,7 @@ public partial class EngineTests
     {
         // Arrange
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook")])
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
         );
 
         // Act
@@ -129,7 +128,6 @@ public partial class EngineTests
             {
                 Ref = "wf",
                 OperationId = $"op-{Guid.NewGuid()}",
-                Type = WorkflowType.Generic,
                 StartAt = startAt,
                 Steps = [_testHelpers.CreateWebhookStep("/scheduled")],
             }

@@ -54,7 +54,7 @@ public partial class EngineTests
     public async Task Response_Enqueue_SingleWebhookWorkflow_ReturnsAcceptedShape()
     {
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping")])
+            _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateWebhookStep("/ping")])
         );
 
         using var response = await _client.EnqueueRaw(_instanceGuid, request);
@@ -70,8 +70,8 @@ public partial class EngineTests
     {
         var workflows = new[]
         {
-            _testHelpers.CreateWorkflow("wf-a", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping-a")]),
-            _testHelpers.CreateWorkflow("wf-b", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping-b")]),
+            _testHelpers.CreateWorkflow("wf-a", [_testHelpers.CreateWebhookStep("/ping-a")]),
+            _testHelpers.CreateWorkflow("wf-b", [_testHelpers.CreateWebhookStep("/ping-b")]),
         };
         var request = _testHelpers.CreateEnqueueRequest(workflows);
 
@@ -90,7 +90,7 @@ public partial class EngineTests
         unauthenticatedClient.DefaultRequestHeaders.Remove("X-API-Key");
 
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping")])
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/ping")])
         );
 
         using var response = await unauthenticatedClient.PostAsJsonAsync(
@@ -116,7 +116,6 @@ public partial class EngineTests
                 {
                     Ref = "wf",
                     OperationId = $"op-{Guid.NewGuid()}",
-                    Type = WorkflowType.AppProcessChange,
                     Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
                 },
             ],
@@ -136,7 +135,7 @@ public partial class EngineTests
     public async Task Response_GetWorkflow_CompletedWebhook_ReturnsFullDetailsShape()
     {
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping")])
+            _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateWebhookStep("/ping")])
         );
         var accepted = await _client.Enqueue(_instanceGuid, request);
         var workflowId = accepted.Workflows.Single().DatabaseId;
@@ -155,11 +154,7 @@ public partial class EngineTests
     public async Task Response_GetWorkflow_CompletedAppCommand_ReturnsFullDetailsShape()
     {
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow(
-                "wf-1",
-                WorkflowType.AppProcessChange,
-                [_testHelpers.CreateAppCommandStep("do-something")]
-            ),
+            _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateAppCommandStep("do-something")]),
             lockToken: InstanceLockToken
         );
         var accepted = await _client.Enqueue(_instanceGuid, request);
@@ -181,7 +176,6 @@ public partial class EngineTests
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow(
                 "wf-1",
-                WorkflowType.Generic,
                 [
                     _testHelpers.CreateWebhookStep("/step-1"),
                     _testHelpers.CreateWebhookStep("/step-2"),
@@ -214,7 +208,7 @@ public partial class EngineTests
     public async Task Response_GetWorkflow_WrongInstance_Returns404()
     {
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping")])
+            _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateWebhookStep("/ping")])
         );
         var accepted = await _client.Enqueue(_instanceGuid, request);
         var workflowId = accepted.Workflows.Single().DatabaseId;
@@ -230,14 +224,9 @@ public partial class EngineTests
     [Fact]
     public async Task Response_GetWorkflow_WithDependencies_ShowsDependencyStatus()
     {
-        var workflowA = _testHelpers.CreateWorkflow(
-            "wf-a",
-            WorkflowType.Generic,
-            [_testHelpers.CreateWebhookStep("/ping-a")]
-        );
+        var workflowA = _testHelpers.CreateWorkflow("wf-a", [_testHelpers.CreateWebhookStep("/ping-a")]);
         var workflowB = _testHelpers.CreateWorkflow(
             "wf-b",
-            WorkflowType.Generic,
             [_testHelpers.CreateWebhookStep("/ping-b")],
             dependsOn: ["wf-a"]
         );
@@ -274,7 +263,7 @@ public partial class EngineTests
         fixture.SetupDefaultStub();
 
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/slow")])
+            _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateWebhookStep("/slow")])
         );
         await _client.Enqueue(_instanceGuid, request);
 
@@ -310,7 +299,7 @@ public partial class EngineTests
     public async Task Response_ListActiveWorkflows_AfterCompletion_Returns204()
     {
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping")])
+            _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateWebhookStep("/ping")])
         );
         var accepted = await _client.Enqueue(_instanceGuid, request);
         var workflowId = accepted.Workflows.Single().DatabaseId;

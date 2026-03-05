@@ -49,7 +49,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
     {
         // Arrange
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook")])
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
         );
         var enqueueResponse = await _client.Enqueue(_instanceGuid, request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
@@ -78,7 +78,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
     {
         // Arrange
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook")])
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
         );
         var enqueueResponse = await _client.Enqueue(_instanceGuid, request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
@@ -104,7 +104,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
     {
         // Arrange — create a completed workflow
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook")])
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
         );
         var enqueueResponse = await _client.Enqueue(_instanceGuid, request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
@@ -130,7 +130,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         {
             var instanceGuid = Guid.NewGuid();
             var request = _testHelpers.CreateEnqueueRequest(
-                _testHelpers.CreateWorkflow($"wf-{i}", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook")])
+                _testHelpers.CreateWorkflow($"wf-{i}", [_testHelpers.CreateWebhookStep("/hook")])
             );
             var enqueueResponse = await _client.Enqueue(instanceGuid, request);
             var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
@@ -178,7 +178,6 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         {
             Ref = "wf-scheduled",
             OperationId = $"op-{Guid.NewGuid()}",
-            Type = WorkflowType.Generic,
             StartAt = startAt,
             Steps = [_testHelpers.CreateWebhookStep("/scheduled-hook")],
         };
@@ -206,11 +205,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
     public async Task Step_CompletedWorkflow_ReturnsStepDetail()
     {
         // Arrange
-        var wfRequest = _testHelpers.CreateWorkflow(
-            "wf",
-            WorkflowType.Generic,
-            [_testHelpers.CreateWebhookStep("/hook")]
-        );
+        var wfRequest = _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")]);
         var request = _testHelpers.CreateEnqueueRequest(wfRequest);
         var enqueueResponse = await _client.Enqueue(_instanceGuid, request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
@@ -255,11 +250,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
     public async Task State_CompletedWorkflow_ReturnsStateData()
     {
         // Arrange
-        var wfRequest = _testHelpers.CreateWorkflow(
-            "wf",
-            WorkflowType.Generic,
-            [_testHelpers.CreateWebhookStep("/hook")]
-        );
+        var wfRequest = _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")]);
         var request = _testHelpers.CreateEnqueueRequest(wfRequest);
         var enqueueResponse = await _client.Enqueue(_instanceGuid, request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;

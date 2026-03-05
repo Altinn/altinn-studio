@@ -50,8 +50,6 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [Column(TypeName = "jsonb")]
     public string? MetadataJson { get; set; }
 
-    public WorkflowType Type { get; set; }
-
     [MaxLength(100)]
     public string? EngineTraceId { get; set; }
 
@@ -79,7 +77,6 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             InstanceOwnerPartyId = workflow.InstanceInformation.InstanceOwnerPartyId,
             InstanceGuid = workflow.InstanceInformation.InstanceGuid,
             TraceContext = workflow.DistributedTraceContext,
-            Type = workflow.Type,
             MetadataJson = workflow.Metadata,
             EngineTraceId = workflow.EngineTraceId,
             InitialState = workflow.InitialState,
@@ -108,7 +105,6 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
                 InstanceGuid = InstanceGuid,
             },
             DistributedTraceContext = TraceContext,
-            Type = Type,
             Metadata = MetadataJson,
             EngineTraceId = EngineTraceId,
             InitialState = InitialState,

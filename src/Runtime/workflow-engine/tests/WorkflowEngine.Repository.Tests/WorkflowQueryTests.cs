@@ -21,7 +21,7 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         await using var context = fixture.CreateDbContext();
         var npgsqlRepo = fixture.CreateNpgsqlRepository();
         var repo = fixture.CreateRepository(context);
-        var (request, metadata) = WorkflowTestHelper.CreateRequest(type: WorkflowType.Generic);
+        var (request, metadata) = WorkflowTestHelper.CreateRequest();
         var workflow = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request, metadata);
 
         // Act

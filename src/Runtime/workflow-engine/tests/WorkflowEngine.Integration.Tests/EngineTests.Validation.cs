@@ -22,7 +22,6 @@ public partial class EngineTests
                 {
                     Ref = "wf",
                     OperationId = $"op-{Guid.NewGuid()}",
-                    Type = WorkflowType.AppProcessChange,
                     Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
                 },
             ],
@@ -44,7 +43,7 @@ public partial class EngineTests
         unauthenticatedClient.DefaultRequestHeaders.Remove("X-API-Key");
 
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/ping-1")])
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/ping-1")])
         );
 
         // Act

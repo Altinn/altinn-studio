@@ -25,7 +25,7 @@ public partial class EngineTests
             _ => throw new ArgumentOutOfRangeException(nameof(stepType)),
         };
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, steps),
+            _testHelpers.CreateWorkflow("wf", steps),
             lockToken: InstanceLockToken
         );
 
@@ -60,9 +60,7 @@ public partial class EngineTests
         var step = payload is null
             ? _testHelpers.CreateWebhookStep("/hook-callback")
             : _testHelpers.CreateWebhookStep("/hook-callback", payload);
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [step])
-        );
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
 
         // Act
         var response = await _client.Enqueue(_instanceGuid, request);
@@ -86,7 +84,7 @@ public partial class EngineTests
         // Arrange
         var step = _testHelpers.CreateAppCommandStep("/app-command-callback");
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [step]),
+            _testHelpers.CreateWorkflow("wf", [step]),
             lockToken: InstanceLockToken
         );
 
@@ -135,7 +133,7 @@ public partial class EngineTests
         };
 
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.AppProcessChange, [step]),
+            _testHelpers.CreateWorkflow("wf", [step]),
             lockToken: InstanceLockToken
         );
 
@@ -170,7 +168,7 @@ public partial class EngineTests
             );
 
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.AppProcessChange, steps),
+            _testHelpers.CreateWorkflow("wf", steps),
             lockToken: InstanceLockToken
         );
 
@@ -200,9 +198,7 @@ public partial class EngineTests
                 ContentType: "application/json"
             ),
         };
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.Generic, [step])
-        );
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
 
         // Act
         var response = await _client.Enqueue(_instanceGuid, request);
@@ -258,7 +254,7 @@ public partial class EngineTests
         };
 
         var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", WorkflowType.AppProcessChange, [step]),
+            _testHelpers.CreateWorkflow("wf", [step]),
             lockToken: InstanceLockToken
         );
 
@@ -283,25 +279,10 @@ public partial class EngineTests
         // Arrange
         // A → B, A → C, B + C → D
         var request = _testHelpers.CreateEnqueueRequest([
-            _testHelpers.CreateWorkflow("a", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook-a")]),
-            _testHelpers.CreateWorkflow(
-                "b",
-                WorkflowType.Generic,
-                [_testHelpers.CreateWebhookStep("/hook-b")],
-                dependsOn: ["a"]
-            ),
-            _testHelpers.CreateWorkflow(
-                "c",
-                WorkflowType.Generic,
-                [_testHelpers.CreateWebhookStep("/hook-c")],
-                dependsOn: ["a"]
-            ),
-            _testHelpers.CreateWorkflow(
-                "d",
-                WorkflowType.Generic,
-                [_testHelpers.CreateWebhookStep("/hook-d")],
-                dependsOn: ["b", "c"]
-            ),
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/hook-a")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/hook-b")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/hook-c")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("d", [_testHelpers.CreateWebhookStep("/hook-d")], dependsOn: ["b", "c"]),
         ]);
 
         // Act
@@ -332,19 +313,9 @@ public partial class EngineTests
         // Arrange
         // A → B → C
         var request = _testHelpers.CreateEnqueueRequest([
-            _testHelpers.CreateWorkflow("a", WorkflowType.Generic, [_testHelpers.CreateWebhookStep("/hook-a")]),
-            _testHelpers.CreateWorkflow(
-                "b",
-                WorkflowType.Generic,
-                [_testHelpers.CreateWebhookStep("/hook-b")],
-                dependsOn: ["a"]
-            ),
-            _testHelpers.CreateWorkflow(
-                "c",
-                WorkflowType.Generic,
-                [_testHelpers.CreateWebhookStep("/hook-c")],
-                dependsOn: ["b"]
-            ),
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/hook-a")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/hook-b")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/hook-c")], dependsOn: ["b"]),
         ]);
 
         // Act
@@ -382,16 +353,8 @@ public partial class EngineTests
             .RespondWith(Response.Create().WithStatusCode(500));
         fixture.SetupDefaultStub();
 
-        var workflowA = _testHelpers.CreateWorkflow(
-            "wf-a",
-            WorkflowType.Generic,
-            [_testHelpers.CreateWebhookStep("/always-fail")]
-        );
-        var workflowB = _testHelpers.CreateWorkflow(
-            "wf-b",
-            WorkflowType.Generic,
-            [_testHelpers.CreateWebhookStep("/always-succeed")]
-        );
+        var workflowA = _testHelpers.CreateWorkflow("wf-a", [_testHelpers.CreateWebhookStep("/always-fail")]);
+        var workflowB = _testHelpers.CreateWorkflow("wf-b", [_testHelpers.CreateWebhookStep("/always-succeed")]);
 
         // Act
         var requestA = _testHelpers.CreateEnqueueRequest(workflowA);
@@ -459,7 +422,6 @@ public partial class EngineTests
                     {
                         "ref": "wf-root",
                         "operationId": "process-root",
-                        "type": "Generic",
                         "steps": [
                             {
                                 "command": {
@@ -472,7 +434,6 @@ public partial class EngineTests
                     {
                         "ref": "wf-a-first",
                         "operationId": "process-a-1",
-                        "type": "Generic",
                         "dependsOn": [
                             "wf-root"
                         ],
@@ -488,7 +449,6 @@ public partial class EngineTests
                     {
                         "ref": "wf-a-second",
                         "operationId": "process-a-2",
-                        "type": "Generic",
                         "dependsOn": [
                             "wf-a-first"
                         ],
@@ -504,7 +464,6 @@ public partial class EngineTests
                     {
                         "ref": "wf-a-third",
                         "operationId": "process-a-3",
-                        "type": "Generic",
                         "dependsOn": [
                             "wf-a-second"
                         ],
@@ -520,7 +479,6 @@ public partial class EngineTests
                     {
                         "ref": "wf-b-first",
                         "operationId": "process-b-1",
-                        "type": "Generic",
                         "dependsOn": [
                             "wf-root"
                         ],
@@ -536,7 +494,6 @@ public partial class EngineTests
                     {
                         "ref": "wf-c-first",
                         "operationId": "process-c-1",
-                        "type": "Generic",
                         "dependsOn": [
                             "wf-root"
                         ],
@@ -552,7 +509,6 @@ public partial class EngineTests
                     {
                         "ref": "wf-join-2-3",
                         "operationId": "process-join-2-3",
-                        "type": "Generic",
                         "dependsOn": [
                             "wf-b-first",
                             "wf-c-first"
@@ -569,7 +525,6 @@ public partial class EngineTests
                     {
                         "ref": "wf-join-all",
                         "operationId": "process-join-all",
-                        "type": "AppProcessChange",
                         "dependsOn": [
                             "wf-a-third",
                             "wf-join-2-3"

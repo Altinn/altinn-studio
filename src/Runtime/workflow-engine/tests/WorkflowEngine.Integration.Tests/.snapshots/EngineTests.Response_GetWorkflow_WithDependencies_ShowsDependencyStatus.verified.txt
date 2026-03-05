@@ -1,4 +1,4 @@
-{
+﻿{
   databaseId: {Scrubbed},
   operationId: op-wf-b,
   idempotencyKey: idem-Guid_1,
@@ -9,7 +9,6 @@
     language: null
   },
   overallStatus: Completed,
-  type: Generic,
   dependencies: {
     {Scrubbed}: Completed
   },

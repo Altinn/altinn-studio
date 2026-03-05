@@ -40,7 +40,6 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
     /// <summary>Builds a <see cref="WorkflowRequest"/> with the supplied steps.</summary>
     public WorkflowRequest CreateWorkflow(
         string wfRef,
-        WorkflowType type,
         IEnumerable<StepRequest> steps,
         IEnumerable<WorkflowRef>? dependsOn = null
     ) =>
@@ -48,7 +47,6 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
         {
             Ref = wfRef,
             OperationId = $"op-{wfRef}",
-            Type = type,
             Steps = steps.ToArray(),
             DependsOn = dependsOn?.ToList(),
         };

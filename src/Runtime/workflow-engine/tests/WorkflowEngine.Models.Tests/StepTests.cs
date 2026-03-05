@@ -87,12 +87,7 @@ public class StepTests
         var stepRequest = new StepRequest { Command = command, RetryStrategy = retryStrategy };
 
         // Act
-        var parentRequest = new WorkflowRequest
-        {
-            OperationId = "op-1",
-            Type = WorkflowType.Generic,
-            Steps = [stepRequest],
-        };
+        var parentRequest = new WorkflowRequest { OperationId = "op-1", Steps = [stepRequest] };
 
         var step = Step.FromRequest(parentRequest, stepRequest, metadata, "parent-key", index: 2);
 
@@ -127,12 +122,7 @@ public class StepTests
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
-        var parentRequest = new WorkflowRequest
-        {
-            OperationId = "op-1",
-            Type = WorkflowType.Generic,
-            Steps = [stepRequest],
-        };
+        var parentRequest = new WorkflowRequest { OperationId = "op-1", Steps = [stepRequest] };
 
         // Act
         var step = Step.FromRequest(parentRequest, stepRequest, metadata, "parent-key", index: 0);
@@ -160,12 +150,7 @@ public class StepTests
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
-        var parentRequest = new WorkflowRequest
-        {
-            OperationId = "op-1",
-            Type = WorkflowType.Generic,
-            Steps = [stepRequest],
-        };
+        var parentRequest = new WorkflowRequest { OperationId = "op-1", Steps = [stepRequest] };
 
         // Act
         var step = Step.FromRequest(parentRequest, stepRequest, metadata, "parent-key", index: 0);

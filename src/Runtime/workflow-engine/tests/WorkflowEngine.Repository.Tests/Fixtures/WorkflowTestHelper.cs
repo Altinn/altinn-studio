@@ -56,7 +56,6 @@ internal static class WorkflowTestHelper
 
     public static (WorkflowRequest Request, WorkflowRequestMetadata Metadata) CreateRequest(
         Guid? instanceGuid = null,
-        WorkflowType type = WorkflowType.AppProcessChange,
         IEnumerable<Guid>? dependencies = null,
         IEnumerable<Guid>? links = null,
         string org = "ttd",
@@ -70,7 +69,6 @@ internal static class WorkflowTestHelper
         var request = new WorkflowRequest
         {
             OperationId = "next",
-            Type = type,
             Steps = [new StepRequest { Command = new Command.AppCommand("test-step") }],
             StartAt = startAt,
             DependsOn = dependencies?.Select(id => (WorkflowRef)id).ToList(),
@@ -99,16 +97,13 @@ internal static class WorkflowTestHelper
         EngineDbContext context,
         PersistentItemStatus status,
         Guid? instanceGuid = null,
-        WorkflowType finalType = WorkflowType.AppProcessChange,
         IEnumerable<Guid>? dependencies = null,
         string org = "ttd",
         string app = "test-app"
     )
     {
-        // Insert as Generic to bypass constraint checks
         var (request, metadata) = CreateRequest(
             instanceGuid: instanceGuid,
-            type: WorkflowType.Generic,
             dependencies: dependencies,
             org: org,
             app: app
@@ -116,11 +111,10 @@ internal static class WorkflowTestHelper
 
         var workflow = await EnqueueWorkflow(repository, context, request, metadata);
 
-        // Update status and type directly via raw SQL
-        var typeInt = (int)finalType;
+        // Update status directly via raw SQL
         var statusInt = (int)status;
         await context.Database.ExecuteSqlAsync(
-            $"""UPDATE "Workflows" SET "Status" = {statusInt}, "Type" = {typeInt} WHERE "Id" = {workflow.DatabaseId}""",
+            $"""UPDATE "Workflows" SET "Status" = {statusInt} WHERE "Id" = {workflow.DatabaseId}""",
             TestContext.Current.CancellationToken
         );
 
