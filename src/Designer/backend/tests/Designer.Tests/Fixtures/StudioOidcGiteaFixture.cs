@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
-using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using Designer.Tests.Utils;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
@@ -46,7 +45,7 @@ namespace Designer.Tests.Fixtures
         {
             get =>
                 _giteaClient ??= new Lazy<HttpClient>(() =>
-                    new HttpClient(new EnsureSuccessHandler() { InnerHandler = new HttpClientHandler() })
+                    new HttpClient()
                     {
                         BaseAddress = new Uri(GiteaUrl + "/api/v1/"),
                         DefaultRequestHeaders =

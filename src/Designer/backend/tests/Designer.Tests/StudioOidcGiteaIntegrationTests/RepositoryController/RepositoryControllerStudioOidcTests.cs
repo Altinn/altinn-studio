@@ -98,8 +98,8 @@ namespace Designer.Tests.StudioOidcGiteaIntegrationTests.RepositoryController
             );
             Assert.Equal(HttpStatusCode.OK, pushResponse.StatusCode);
 
-            var giteaFileResponse2 = await GiteaFixture.GiteaClient.Value.GetAsync(
-                $"repos/{org}/{targetRepo}/contents/test3.txt"
+            var giteaFileResponse2 = await _giteaRetryPolicy.ExecuteAsync(async () =>
+                await GiteaFixture.GiteaClient.Value.GetAsync($"repos/{org}/{targetRepo}/contents/test3.txt")
             );
             Assert.Equal(HttpStatusCode.OK, giteaFileResponse2.StatusCode);
         }
