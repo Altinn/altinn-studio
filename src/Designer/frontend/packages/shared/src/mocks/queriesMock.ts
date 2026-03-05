@@ -44,6 +44,7 @@ import type {
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
+import type { PersonalAccessTokenResponse } from 'app-shared/types/api/PersonalAccessTokenResponse';
 import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
@@ -262,7 +263,9 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
 
   // Queries - User settings
-  getUserKeys: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getUserPersonalAccessTokens: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<PersonalAccessTokenResponse[]>([])),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -364,5 +367,6 @@ export const queriesMock: ServicesContextProps = {
   updateProcessDataTypes: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - User settings
-  deleteUserKey: jest.fn().mockImplementation(() => Promise.resolve()),
+  addUserPersonalAccessToken: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteUserPersonalAccessToken: jest.fn().mockImplementation(() => Promise.resolve()),
 };
