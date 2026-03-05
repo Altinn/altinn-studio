@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -36,19 +38,9 @@ public static class Hosting
         /// </remarks>
         public WebApplicationBuilder UseProblemDetailsForBadRequests()
         {
-            builder.Services.AddProblemDetails(options =>
-            {
-                options.CustomizeProblemDetails = context =>
-                {
-                    if (
-                        context.HttpContext.Features.Get<IExceptionHandlerFeature>()?.Error
-                        is BadHttpRequestException badRequest
-                    )
-                    {
-                        context.ProblemDetails.Detail = badRequest.InnerException?.Message ?? badRequest.Message;
-                    }
-                };
-            });
+            builder.Services.AddProblemDetails();
+            builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
+            builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
 
             return builder;
         }
@@ -140,6 +132,33 @@ public static class Hosting
             builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = shutdownTimeout);
 
             return builder;
+        }
+    }
+
+    private sealed class BadRequestExceptionHandler : IExceptionHandler
+    {
+        public async ValueTask<bool> TryHandleAsync(
+            HttpContext httpContext,
+            Exception exception,
+            CancellationToken cancellationToken
+        )
+        {
+            if (exception is not BadHttpRequestException badRequest)
+                return false;
+
+            var problemDetails = new ProblemDetails
+            {
+                Status = badRequest.StatusCode,
+                Title = "Bad Request",
+                Detail = badRequest.InnerException?.Message ?? badRequest.Message,
+                Extensions = { ["traceId"] = Activity.Current?.Id ?? httpContext.TraceIdentifier },
+            };
+
+            httpContext.Response.StatusCode = badRequest.StatusCode;
+            httpContext.Response.ContentType = "application/problem+json";
+            await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+
+            return true;
         }
     }
 
