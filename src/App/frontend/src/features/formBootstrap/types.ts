@@ -17,20 +17,11 @@ export interface DataModelInfo {
   initialValidationIssues?: BackendValidationIssue[] | null;
 }
 
-export interface StaticOptionsVariant {
-  queryParameters: Record<string, string>;
-  options: IOptionInternal[];
-}
-
-export interface StaticOptionsInfo {
-  variants: StaticOptionsVariant[];
-}
-
 export interface FormBootstrapResponse {
   layouts: ILayoutCollection;
   layoutSettings: ILayoutSettings | null;
   dataModels: Record<string, DataModelInfo>;
-  staticOptions: Record<string, StaticOptionsInfo>;
+  staticOptions: Record<string, IOptionInternal[]>;
   validationIssues?: BackendValidationIssue[] | null;
 }
 
@@ -47,6 +38,6 @@ export interface FormBootstrapContextValue {
   dataModels: Record<string, ProcessedDataModelInfo>;
   allDataTypes: string[];
   writableDataTypes: string[];
-  staticOptions: Record<string, StaticOptionsInfo>;
+  staticOptions: Record<string, IOptionInternal[]>;
   initialValidationIssues?: BackendValidationIssue[] | null;
 }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Internal.App;
@@ -7,6 +8,8 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -17,6 +20,7 @@ public class FormBootstrapServiceTests
     private readonly Mock<IAppResources> _appResources = new();
     private readonly Mock<IAppMetadata> _appMetadata = new();
     private readonly Mock<IAppOptionsService> _appOptionsService = new();
+    private readonly Mock<IAppOptionsFileHandler> _appOptionsFileHandler = new();
     private readonly Mock<IInitialValidationService> _initialValidationService = new();
     private readonly Mock<IDataClient> _dataClient = new();
     private readonly Mock<IAppModel> _appModel = new();
@@ -26,13 +30,21 @@ public class FormBootstrapServiceTests
         new(
             _appResources.Object,
             _appMetadata.Object,
-            new LayoutAnalysisService(),
             _appOptionsService.Object,
+            CreateAppImplementationFactory(),
             _initialValidationService.Object,
             _dataClient.Object,
             _appModel.Object,
             _logger.Object
         );
+
+    private AppImplementationFactory CreateAppImplementationFactory()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+        services.AddSingleton(_appOptionsFileHandler.Object);
+        return new AppImplementationFactory(services.BuildServiceProvider());
+    }
 
     [Fact]
     public async Task GetInstanceFormBootstrap_ReturnsExpectedShape()
@@ -237,7 +249,7 @@ public class FormBootstrapServiceTests
         Assert.Equal(2, result.StaticOptions.Count);
         Assert.True(result.StaticOptions.ContainsKey("countries"));
         Assert.True(result.StaticOptions.ContainsKey("regions"));
-        Assert.Equal(2, result.StaticOptions["countries"].Variants[0].Options.Count);
+        Assert.Equal(2, result.StaticOptions["countries"].Count);
     }
 
     [Fact]
@@ -276,6 +288,34 @@ public class FormBootstrapServiceTests
         // Assert - Should return valid options, not fail entirely
         Assert.Single(result.StaticOptions);
         Assert.True(result.StaticOptions.ContainsKey("valid"));
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_IncludesOptionsFromJsonFile_WhenComponentConfigIsDynamic()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+
+        var dynamicReference = new Dictionary<string, List<Dictionary<string, string>>>
+        {
+            ["fileBased"] = [new Dictionary<string, string> { ["region"] = "europe" }],
+        };
+        SetupMocks(appMetadata, staticOptions: dynamicReference);
+
+        _appOptionsFileHandler
+            .Setup(x => x.ReadOptionsFromFileAsync("fileBased"))
+            .ReturnsAsync([new AppOption { Value = "1", Label = "From file" }]);
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.True(result.StaticOptions.ContainsKey("fileBased"));
+        Assert.Single(result.StaticOptions["fileBased"]);
+        _appOptionsService.Verify(
+            x => x.GetOptionsAsync("fileBased", It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -361,6 +401,9 @@ public class FormBootstrapServiceTests
             .Returns(new LayoutSettings { DefaultDataType = dataType });
 
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        _appOptionsFileHandler
+            .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
+            .ReturnsAsync((List<AppOption>?)null);
 
         _appOptionsService
             .Setup(x =>
@@ -404,6 +447,9 @@ public class FormBootstrapServiceTests
             .Returns(new LayoutSettings { DefaultDataType = dataType });
 
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        _appOptionsFileHandler
+            .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
+            .ReturnsAsync((List<AppOption>?)null);
         _appOptionsService
             .Setup(x =>
                 x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())

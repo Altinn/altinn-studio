@@ -24,10 +24,9 @@ public sealed class FormBootstrapResponse
 
     /// <summary>
     /// Static options (code lists) keyed by optionsId.
-    /// Each optionsId can contain multiple static query parameter variants.
     /// </summary>
     [JsonPropertyName("staticOptions")]
-    public required Dictionary<string, StaticOptionsInfo> StaticOptions { get; init; }
+    public required Dictionary<string, List<AppOption>> StaticOptions { get; init; }
 
     /// <summary>
     /// Initial validation issues for instance mode.
@@ -82,34 +81,4 @@ public sealed class DataModelInfo
     [JsonPropertyName("initialValidationIssues")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<ValidationIssueWithSource>? InitialValidationIssues { get; set; }
-}
-
-/// <summary>
-/// Static options metadata for a single optionsId.
-/// </summary>
-public sealed class StaticOptionsInfo
-{
-    /// <summary>
-    /// Static options variants for this optionsId.
-    /// </summary>
-    [JsonPropertyName("variants")]
-    public required List<StaticOptionsVariant> Variants { get; init; }
-}
-
-/// <summary>
-/// A static options variant keyed by resolved static query parameters.
-/// </summary>
-public sealed class StaticOptionsVariant
-{
-    /// <summary>
-    /// Static query parameters for this variant.
-    /// </summary>
-    [JsonPropertyName("queryParameters")]
-    public required Dictionary<string, string> QueryParameters { get; init; }
-
-    /// <summary>
-    /// Options for this variant.
-    /// </summary>
-    [JsonPropertyName("options")]
-    public required List<AppOption> Options { get; init; }
 }

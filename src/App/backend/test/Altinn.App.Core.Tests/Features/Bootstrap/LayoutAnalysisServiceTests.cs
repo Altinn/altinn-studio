@@ -4,19 +4,14 @@ namespace Altinn.App.Core.Tests.Features.Bootstrap;
 
 public class LayoutAnalysisServiceTests
 {
-    private readonly LayoutAnalysisService _service = new();
-
     [Fact]
     public void GetReferencedDataTypes_ReturnsDefaultDataType()
     {
-        // Arrange
         var layoutsJson = """{"page1": {"data": {"layout": []}}}""";
         var defaultDataType = "default";
 
-        // Act
-        var result = _service.GetReferencedDataTypes(layoutsJson, defaultDataType);
+        var result = LayoutAnalysisService.GetReferencedDataTypes(layoutsJson, defaultDataType);
 
-        // Assert
         Assert.Single(result);
         Assert.Contains("default", result);
     }
@@ -24,7 +19,6 @@ public class LayoutAnalysisServiceTests
     [Fact]
     public void GetReferencedDataTypes_ExtractsDataTypeFromBindings()
     {
-        // Arrange
         var layoutsJson = """
             {
                 "page1": {
@@ -47,19 +41,16 @@ public class LayoutAnalysisServiceTests
             """;
         var defaultDataType = "default";
 
-        // Act
-        var result = _service.GetReferencedDataTypes(layoutsJson, defaultDataType);
+        var result = LayoutAnalysisService.GetReferencedDataTypes(layoutsJson, defaultDataType);
 
-        // Assert
         Assert.Equal(2, result.Count);
         Assert.Contains("default", result);
         Assert.Contains("model2", result);
     }
 
     [Fact]
-    public void GetStaticOptions_ExtractsOptionsId()
+    public void GetStaticOptionsReferences_ExtractsOptionsId_AndMarksStaticWhenNoConfig()
     {
-        // Arrange
         var layoutsJson = """
             {
                 "page1": {
@@ -76,20 +67,15 @@ public class LayoutAnalysisServiceTests
             }
             """;
 
-        // Act
-        var result = _service.GetStaticOptions(layoutsJson);
+        var result = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
-        // Assert
-        Assert.Single(result.Keys);
-        Assert.Contains("countries", result.Keys);
-        Assert.Single(result["countries"]);
-        Assert.Empty(result["countries"][0]);
+        Assert.Contains("countries", result.AllReferencedOptionIds);
+        Assert.Contains("countries", result.StaticallyConfiguredOptionIds);
     }
 
     [Fact]
-    public void GetStaticOptions_ExcludesOptionsWithMapping()
+    public void GetStaticOptionsReferences_NonEmptyMapping_IsNotStaticByConfig()
     {
-        // Arrange
         var layoutsJson = """
             {
                 "page1": {
@@ -107,17 +93,15 @@ public class LayoutAnalysisServiceTests
             }
             """;
 
-        // Act
-        var result = _service.GetStaticOptions(layoutsJson);
+        var result = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
-        // Assert
-        Assert.Empty(result);
+        Assert.Contains("dynamic", result.AllReferencedOptionIds);
+        Assert.DoesNotContain("dynamic", result.StaticallyConfiguredOptionIds);
     }
 
     [Fact]
-    public void GetStaticOptions_ExcludesOptionsWithDynamicQueryParameters()
+    public void GetStaticOptionsReferences_NonEmptyQueryParameters_IsNotStaticByConfig()
     {
-        // Arrange
         var layoutsJson = """
             {
                 "page1": {
@@ -128,36 +112,6 @@ public class LayoutAnalysisServiceTests
                                 "type": "Dropdown",
                                 "optionsId": "dynamic",
                                 "queryParameters": {
-                                    "param1": ["component", "someField"]
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
-            """;
-
-        // Act
-        var result = _service.GetStaticOptions(layoutsJson);
-
-        // Assert
-        Assert.Empty(result);
-    }
-
-    [Fact]
-    public void GetStaticOptions_IncludesOptionsWithStaticQueryParameters()
-    {
-        // Arrange
-        var layoutsJson = """
-            {
-                "page1": {
-                    "data": {
-                        "layout": [
-                            {
-                                "id": "dropdown1",
-                                "type": "Dropdown",
-                                "optionsId": "filteredCountries",
-                                "queryParameters": {
                                     "region": "europe"
                                 }
                             }
@@ -167,20 +121,42 @@ public class LayoutAnalysisServiceTests
             }
             """;
 
-        // Act
-        var result = _service.GetStaticOptions(layoutsJson);
+        var result = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
-        // Assert
-        Assert.Single(result.Keys);
-        Assert.Contains("filteredCountries", result.Keys);
-        Assert.Single(result["filteredCountries"]);
-        Assert.Equal("europe", result["filteredCountries"][0]["region"]);
+        Assert.Contains("dynamic", result.AllReferencedOptionIds);
+        Assert.DoesNotContain("dynamic", result.StaticallyConfiguredOptionIds);
     }
 
     [Fact]
-    public void GetStaticOptions_ExtractsOptionLabelExpressions()
+    public void GetStaticOptionsReferences_EmptyMappingAndQueryParameters_AreStaticByConfig()
     {
-        // Arrange
+        var layoutsJson = """
+            {
+                "page1": {
+                    "data": {
+                        "layout": [
+                            {
+                                "id": "dropdown1",
+                                "type": "Dropdown",
+                                "optionsId": "countries",
+                                "mapping": {},
+                                "queryParameters": {}
+                            }
+                        ]
+                    }
+                }
+            }
+            """;
+
+        var result = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
+
+        Assert.Contains("countries", result.AllReferencedOptionIds);
+        Assert.Contains("countries", result.StaticallyConfiguredOptionIds);
+    }
+
+    [Fact]
+    public void GetStaticOptionsReferences_ExtractsOptionLabelExpressions_AndMarksStatic()
+    {
         var layoutsJson = """
             {
                 "page1": {
@@ -199,18 +175,14 @@ public class LayoutAnalysisServiceTests
             }
             """;
 
-        // Act
-        var result = _service.GetStaticOptions(layoutsJson);
+        var result = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
-        // Assert
-        Assert.Single(result.Keys);
-        Assert.Contains("countries", result.Keys);
-        Assert.Single(result["countries"]);
-        Assert.Empty(result["countries"][0]);
+        Assert.Contains("countries", result.AllReferencedOptionIds);
+        Assert.Contains("countries", result.StaticallyConfiguredOptionIds);
     }
 
     [Fact]
-    public void GetStaticOptions_IncludesMultipleStaticVariantsForSameOptionsId()
+    public void GetStaticOptionsReferences_StaticAndDynamicReferencesForSameId_MarkedStatic()
     {
         var layoutsJson = """
             {
@@ -221,17 +193,12 @@ public class LayoutAnalysisServiceTests
                                 "id": "dropdown1",
                                 "type": "Dropdown",
                                 "optionsId": "countries",
-                                "queryParameters": {
-                                    "region": "europe"
-                                }
+                                "mapping": {"a": "b"}
                             },
                             {
                                 "id": "dropdown2",
                                 "type": "Dropdown",
-                                "optionsId": "countries",
-                                "queryParameters": {
-                                    "region": "asia"
-                                }
+                                "optionsId": "countries"
                             }
                         ]
                     }
@@ -239,11 +206,9 @@ public class LayoutAnalysisServiceTests
             }
             """;
 
-        var result = _service.GetStaticOptions(layoutsJson);
+        var result = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
-        Assert.Single(result.Keys);
-        Assert.Equal(2, result["countries"].Count);
-        Assert.Contains(result["countries"], v => v.TryGetValue("region", out var value) && value == "europe");
-        Assert.Contains(result["countries"], v => v.TryGetValue("region", out var value) && value == "asia");
+        Assert.Contains("countries", result.AllReferencedOptionIds);
+        Assert.Contains("countries", result.StaticallyConfiguredOptionIds);
     }
 }

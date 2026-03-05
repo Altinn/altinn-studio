@@ -23,8 +23,8 @@ internal sealed class FormBootstrapService
 
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
-    private readonly LayoutAnalysisService _layoutAnalysis;
     private readonly IAppOptionsService _appOptionsService;
+    private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IInitialValidationService _initialValidationService;
     private readonly IDataClient _dataClient;
     private readonly IAppModel _appModel;
@@ -33,8 +33,8 @@ internal sealed class FormBootstrapService
     public FormBootstrapService(
         IAppResources appResources,
         IAppMetadata appMetadata,
-        LayoutAnalysisService layoutAnalysis,
         IAppOptionsService appOptionsService,
+        AppImplementationFactory appImplementationFactory,
         IInitialValidationService initialValidationService,
         IDataClient dataClient,
         IAppModel appModel,
@@ -43,15 +43,14 @@ internal sealed class FormBootstrapService
     {
         _appResources = appResources;
         _appMetadata = appMetadata;
-        _layoutAnalysis = layoutAnalysis;
         _appOptionsService = appOptionsService;
+        _appImplementationFactory = appImplementationFactory;
         _initialValidationService = initialValidationService;
         _dataClient = dataClient;
         _appModel = appModel;
         _logger = logger;
     }
 
-    /// <inheritdoc />
     public async Task<FormBootstrapResponse> GetInstanceFormBootstrap(
         Instance instance,
         string uiFolder,
@@ -69,8 +68,8 @@ internal sealed class FormBootstrapService
 
         var layoutsJson = _appResources.GetLayoutsInFolder(uiFolder);
         var layouts = DeserializeJson(layoutsJson);
-        var referencedDataTypes = _layoutAnalysis.GetReferencedDataTypes(layoutsJson, defaultDataType);
-        var staticOptions = _layoutAnalysis.GetStaticOptions(layoutsJson);
+        var referencedDataTypes = LayoutAnalysisService.GetReferencedDataTypes(layoutsJson, defaultDataType);
+        var staticOptionsReferences = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
         var dataModelsTask = LoadInstanceDataModels(
             instance,
@@ -80,7 +79,7 @@ internal sealed class FormBootstrapService
             cancellationToken
         );
         var optionsTask = LoadStaticOptions(
-            staticOptions,
+            staticOptionsReferences,
             language,
             new InstanceIdentifier(instance),
             cancellationToken
@@ -106,7 +105,6 @@ internal sealed class FormBootstrapService
         };
     }
 
-    /// <inheritdoc />
     public async Task<FormBootstrapResponse> GetStatelessFormBootstrap(
         string uiFolder,
         string language,
@@ -122,11 +120,16 @@ internal sealed class FormBootstrapService
         var layoutsJson = _appResources.GetLayoutsInFolder(uiFolder);
         var layouts = DeserializeJson(layoutsJson);
 
-        var referencedDataTypes = _layoutAnalysis.GetReferencedDataTypes(layoutsJson, defaultDataType);
-        var staticOptions = _layoutAnalysis.GetStaticOptions(layoutsJson);
+        var referencedDataTypes = LayoutAnalysisService.GetReferencedDataTypes(layoutsJson, defaultDataType);
+        var staticOptionsReferences = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
         var dataModelsTask = LoadStatelessDataModels(referencedDataTypes, cancellationToken);
-        var optionsTask = LoadStaticOptions(staticOptions, language, instanceIdentifier: null, cancellationToken);
+        var optionsTask = LoadStaticOptions(
+            staticOptionsReferences,
+            language,
+            instanceIdentifier: null,
+            cancellationToken
+        );
 
         await Task.WhenAll(dataModelsTask, optionsTask);
 
@@ -277,41 +280,43 @@ internal sealed class FormBootstrapService
         return result;
     }
 
-    private async Task<Dictionary<string, StaticOptionsInfo>> LoadStaticOptions(
-        Dictionary<string, List<Dictionary<string, string>>> staticOptions,
+    private async Task<Dictionary<string, List<AppOption>>> LoadStaticOptions(
+        StaticOptionsAnalysisResult optionsAnalysis,
         string language,
         InstanceIdentifier? instanceIdentifier,
         CancellationToken cancellationToken
     )
     {
         _ = cancellationToken;
-        var result = new Dictionary<string, StaticOptionsInfo>();
-        var tasks = staticOptions.Select(async kvp =>
+        var appOptionsFileHandler = _appImplementationFactory.GetRequired<IAppOptionsFileHandler>();
+        var result = new Dictionary<string, List<AppOption>>();
+        var tasks = optionsAnalysis.AllReferencedOptionIds.Select(async optionsId =>
         {
-            var optionsId = kvp.Key;
-            var variants = new List<StaticOptionsVariant>();
-
-            foreach (var queryParameters in kvp.Value)
+            try
             {
-                try
-                {
-                    var appOptions = await GetAppOptions(optionsId, language, queryParameters, instanceIdentifier);
-                    if (appOptions?.Options is null)
-                    {
-                        continue;
-                    }
+                var isStaticallyConfigured = optionsAnalysis.StaticallyConfiguredOptionIds.Contains(optionsId);
+                var optionsFromFile = await appOptionsFileHandler.ReadOptionsFromFileAsync(optionsId);
+                var isPlainJsonFile = optionsFromFile is not null;
 
-                    variants.Add(
-                        new StaticOptionsVariant { QueryParameters = queryParameters, Options = appOptions.Options }
-                    );
-                }
-                catch (Exception ex)
+                if (!isStaticallyConfigured && !isPlainJsonFile)
                 {
-                    _logger.LogWarning(ex, "Failed to load options {OptionsId}", optionsId);
+                    return (optionsId, null);
                 }
+
+                var options = optionsFromFile;
+                if (options is null)
+                {
+                    var appOptions = await GetAppOptions(optionsId, language, [], instanceIdentifier);
+                    options = appOptions?.Options;
+                }
+
+                return (optionsId, options);
             }
-
-            return (optionsId, variants.Count > 0 ? new StaticOptionsInfo { Variants = variants } : null);
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load options {OptionsId}", optionsId);
+                return (optionsId, null);
+            }
         });
 
         foreach (var (optionsId, info) in await Task.WhenAll(tasks))

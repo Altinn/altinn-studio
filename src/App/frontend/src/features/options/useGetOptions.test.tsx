@@ -228,14 +228,7 @@ describe('useGetOptions', () => {
 
   it('uses bootstrap static options and does not fetch options', async () => {
     jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: {
-        variants: [
-          {
-            queryParameters: {},
-            options: [{ label: 'Bootstrap', value: 'bootstrap' }],
-          },
-        ],
-      },
+      myOptions: [{ label: 'Bootstrap', value: 'bootstrap' }],
     });
 
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
@@ -255,16 +248,9 @@ describe('useGetOptions', () => {
     expect(fetchOptionsMock).not.toHaveBeenCalled();
   });
 
-  it('still fetches options when mapping is configured', async () => {
+  it('uses bootstrap static options when mapping is configured', async () => {
     jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: {
-        variants: [
-          {
-            queryParameters: {},
-            options: [{ label: 'Bootstrap', value: 'bootstrap' }],
-          },
-        ],
-      },
+      myOptions: [{ label: 'Bootstrap', value: 'bootstrap' }],
     });
 
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
@@ -279,19 +265,15 @@ describe('useGetOptions', () => {
       fetchOptions: fetchOptionsMock,
     });
 
-    await waitFor(() => expect(fetchOptionsMock).toHaveBeenCalledTimes(1));
+    expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
+      { label: 'Bootstrap', value: 'bootstrap' },
+    ]);
+    expect(fetchOptionsMock).not.toHaveBeenCalled();
   });
 
-  it('still fetches options when query parameters are dynamic', async () => {
+  it('uses bootstrap static options when query parameters are dynamic', async () => {
     jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: {
-        variants: [
-          {
-            queryParameters: { someParam: 'value' },
-            options: [{ label: 'Bootstrap', value: 'bootstrap' }],
-          },
-        ],
-      },
+      myOptions: [{ label: 'Bootstrap', value: 'bootstrap' }],
     });
 
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
@@ -306,23 +288,15 @@ describe('useGetOptions', () => {
       fetchOptions: fetchOptionsMock,
     });
 
-    await waitFor(() => expect(fetchOptionsMock).toHaveBeenCalledTimes(1));
+    expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
+      { label: 'Bootstrap', value: 'bootstrap' },
+    ]);
+    expect(fetchOptionsMock).not.toHaveBeenCalled();
   });
 
-  it('uses matching static options variant for the same optionsId', async () => {
+  it('uses bootstrap static options regardless of query parameter values', async () => {
     jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: {
-        variants: [
-          {
-            queryParameters: { region: 'europe' },
-            options: [{ label: 'Europe', value: 'eu' }],
-          },
-          {
-            queryParameters: { region: 'asia' },
-            options: [{ label: 'Asia', value: 'asia' }],
-          },
-        ],
-      },
+      myOptions: [{ label: 'Static list', value: 'static' }],
     });
 
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
@@ -337,7 +311,9 @@ describe('useGetOptions', () => {
       fetchOptions: fetchOptionsMock,
     });
 
-    expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([{ label: 'Asia', value: 'asia' }]);
+    expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
+      { label: 'Static list', value: 'static' },
+    ]);
     expect(fetchOptionsMock).not.toHaveBeenCalled();
   });
 
