@@ -1095,15 +1095,28 @@ func (r *CnpgSyncReconciler) buildBackupCronJob(appId string, cfg *resolvedBacku
 	cronJobName := fmt.Sprintf(backupCronJobNameFormat, appId)
 
 	script := fmt.Sprintf(`
+app_id="%s"
 ts="$(date -u +%%Y%%m%%dT%%H%%M%%SZ)"
+start_epoch="$(date +%%s)"
 out_dir="/backups/%s"
 mkdir -p "${out_dir}"
 dump_file="${out_dir}/%s-${ts}.dump"
+
+echo "[pgdump] start app=${app_id} db=${PGDATABASE} host=${PGHOST}:${PGPORT} retention_days=%d ts=${ts}"
 pg_dump --host="${PGHOST}" --port="${PGPORT}" --username="${PGUSER}" --dbname="${PGDATABASE}" --format=custom --file="${dump_file}"
+dump_size_bytes="$(wc -c < "${dump_file}")"
+echo "[pgdump] dump_complete app=${app_id} file=${dump_file} bytes=${dump_size_bytes}"
+
 sha256sum "${dump_file}" > "${dump_file}.sha256"
-find "${out_dir}" -type f -name '*.dump' -mtime +%d -delete
-find "${out_dir}" -type f -name '*.sha256' -mtime +%d -delete
-`, appId, appId, cfg.RetentionDays, cfg.RetentionDays)
+echo "[pgdump] checksum_complete app=${app_id} file=${dump_file}.sha256"
+
+deleted_dumps="$(find "${out_dir}" -type f -name '*.dump' -mtime +%d -print -delete | wc -l)"
+deleted_checksums="$(find "${out_dir}" -type f -name '*.sha256' -mtime +%d -print -delete | wc -l)"
+echo "[pgdump] retention_cleanup app=${app_id} deleted_dumps=${deleted_dumps} deleted_checksums=${deleted_checksums}"
+
+elapsed="$(( $(date +%%s) - start_epoch ))"
+echo "[pgdump] done app=${app_id} seconds=${elapsed} file=${dump_file}"
+`, appId, appId, appId, cfg.RetentionDays, cfg.RetentionDays, cfg.RetentionDays)
 
 	successfulJobsHistoryLimit := int32(1)
 	failedJobsHistoryLimit := int32(3)
