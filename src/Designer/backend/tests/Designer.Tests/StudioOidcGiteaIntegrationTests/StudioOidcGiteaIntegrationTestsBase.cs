@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Designer.Tests.StudioOidcGiteaIntegrationTests;
 
-[Trait("Category", "GiteaIntegrationTest")]
+[Trait("Category", "StudioOidcGiteaIntegrationTest")]
 [Collection(nameof(StudioOidcGiteaIntegrationTestsCollection))]
 public abstract class StudioOidcGiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<TControllerTest>
     where TControllerTest : class
