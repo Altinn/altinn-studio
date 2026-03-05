@@ -78,6 +78,13 @@ export class LoginPage extends BasePage {
     await this.page.getByRole('menuitem', { name: Language.Norwegian }).click();
   }
 
+  public async loginViaFakeAnsattporten(): Promise<void> {
+    await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
+    await this.page.waitForURL(/\/authorize/);
+    await this.page.getByRole('button', { name: /cypress_testuser test playwright/ }).click();
+    await this.confirmSuccessfulLogin();
+  }
+
   public async addSessionToSharableStorage() {
     await this.removeSecureFlagOnCookies(); // This is necessary because secure cookies won't be added on requests that don't use HTTPS
     return await this.page.context().storageState({ path: this.authStorageFile });

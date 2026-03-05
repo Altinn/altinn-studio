@@ -215,6 +215,7 @@ const setupEnvironment = async (env) => {
   createUser(env.GITEA_CYPRESS_USER, env.GITEA_CYPRESS_PASS, false);
   createFakeAnsattportenAuthSource();
   linkAdminToFakeAnsattporten();
+  linkCypressUserToFakeAnsattporten(env.GITEA_CYPRESS_USER);
   await createOrganization(
     env.GITEA_ADMIN_USER,
     env.GITEA_ADMIN_PASS,
@@ -264,6 +265,11 @@ const createFakeAnsattportenAuthSource = () => {
 const linkAdminToFakeAnsattporten = () =>
   runCommand(
     `docker exec studio-db psql -U gitea -d giteadb -c "INSERT INTO external_login_user (external_id, user_id, login_source_id) SELECT 'sub-29922149761', id, (SELECT id FROM login_source WHERE name = 'fake-ansattporten') FROM \\"user\\" WHERE lower_name = 'localgiteaadmin' ON CONFLICT DO NOTHING;"`,
+  );
+
+const linkCypressUserToFakeAnsattporten = (cypressUser) =>
+  runCommand(
+    `docker exec studio-db psql -U gitea -d giteadb -c "INSERT INTO external_login_user (external_id, user_id, login_source_id) SELECT 'sub-10866898516', id, (SELECT id FROM login_source WHERE name = 'fake-ansattporten') FROM \\"user\\" WHERE lower_name = '${cypressUser.toLowerCase()}' ON CONFLICT DO NOTHING;"`,
   );
 
 const setupRunnersToken = async (env) => {
