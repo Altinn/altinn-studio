@@ -136,7 +136,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // === Enqueue phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCoreAsync"));
         Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateAndSortWorkflowGraph"));
-        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflows"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
 
         // === Processing phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowHandler.HandleAsync"));
@@ -353,7 +353,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // Standalone background activities (exist but not in workflow traces)
         // ───────────────────────────────────────────────────────────
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCoreAsync"));
-        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflows"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
         Assert.NotEmpty(collector.GetActivities("StatusWriteBuffer.FlushBatchCoreAsync"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }
