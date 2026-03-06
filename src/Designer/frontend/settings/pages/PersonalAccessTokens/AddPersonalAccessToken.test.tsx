@@ -8,6 +8,12 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { PersonalAccessTokenResponse } from 'app-shared/types/api/PersonalAccessTokenResponse';
 import type { CreatePersonalAccessTokenResponse } from 'app-shared/types/api/CreatePersonalAccessTokenResponse';
+import { toast } from 'react-toastify';
+
+jest.mock('react-toastify', () => ({
+  ...jest.requireActual('react-toastify'),
+  toast: { success: jest.fn() },
+}));
 
 const validExpiresAt = (() => {
   const d = new Date();
@@ -77,6 +83,21 @@ describe('AddPersonalAccessToken', () => {
     expect(screen.getAllByText(textMock('validation_errors.required'))).toHaveLength(2);
   });
 
+  it('shows expiry too long error when expiry date exceeds 365 days', async () => {
+    const tooLongExpiresAt = (() => {
+      const d = new Date();
+      d.setDate(d.getDate() + 366);
+      return d.toISOString().split('T')[0];
+    })();
+    const user = userEvent.setup();
+    renderAddPersonalAccessToken();
+    await fillForm(user, 'New token', tooLongExpiresAt);
+    await user.click(getAddButton());
+    expect(
+      screen.getByText(textMock('user.settings.personal_access_tokens.error_expiry_too_long')),
+    ).toBeInTheDocument();
+  });
+
   it('shows duplicate name error when name already exists', async () => {
     const user = userEvent.setup();
     renderAddPersonalAccessToken();
@@ -127,5 +148,26 @@ describe('AddPersonalAccessToken', () => {
     await screen.findByDisplayValue('secret-key-value');
     await user.click(screen.getByRole('button', { name: textMock('general.close') }));
     expect(screen.queryByDisplayValue('secret-key-value')).not.toBeInTheDocument();
+  });
+
+  it('copies the token key to clipboard and shows success toast when copy button is clicked', async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined);
+    jest.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
+    const user = userEvent.setup();
+    const addUserPersonalAccessToken = jest.fn().mockResolvedValue(mockCreatedToken);
+    renderAddPersonalAccessToken({ addUserPersonalAccessToken });
+    await fillForm(user, 'New token', validExpiresAt);
+    await user.click(getAddButton());
+    await screen.findByDisplayValue('secret-key-value');
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: textMock('user.settings.personal_access_tokens.copy'),
+      }),
+    );
+    expect(writeText).toHaveBeenCalledWith('secret-key-value');
+    expect(toast.success).toHaveBeenCalledWith(
+      textMock('user.settings.personal_access_tokens.copy_success'),
+      expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_success' }),
+    );
   });
 });

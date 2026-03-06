@@ -24,10 +24,16 @@ const mockTokens: PersonalAccessTokenResponse[] = [
   },
 ];
 
-const renderPersonalAccessTokensList = (newTokenId: number | null = null) => {
+const renderPersonalAccessTokensList = (
+  newTokenId: number | null = null,
+  queries: Parameters<typeof renderWithProviders>[1]['queries'] = {},
+) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.UserPersonalAccessTokens], mockTokens);
-  return renderWithProviders(<PersonalAccessTokensList newTokenId={newTokenId} />, { queryClient });
+  return renderWithProviders(<PersonalAccessTokensList newTokenId={newTokenId} />, {
+    queryClient,
+    queries,
+  });
 };
 
 describe('PersonalAccessTokensList', () => {
@@ -91,6 +97,28 @@ describe('PersonalAccessTokensList', () => {
     await user.click(deleteButtons[0]);
 
     expect(queriesMock.deleteUserPersonalAccessToken).toHaveBeenCalled();
+    jest.restoreAllMocks();
+  });
+
+  it('applies new row highlight to the row matching newTokenId', () => {
+    renderPersonalAccessTokensList(1);
+    expect(screen.getByText('My token').closest('tr')).toHaveClass('newRow');
+    expect(screen.getByText('Expired token').closest('tr')).not.toHaveClass('newRow');
+  });
+
+  it('disables the delete button for the token currently being deleted', async () => {
+    const user = userEvent.setup();
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    renderPersonalAccessTokensList(null, {
+      deleteUserPersonalAccessToken: jest.fn().mockReturnValue(new Promise(() => {})),
+    });
+
+    const deleteButtons = screen.getAllByRole('button', {
+      name: textMock('user.settings.personal_access_tokens.delete'),
+    });
+    await user.click(deleteButtons[0]);
+
+    expect(deleteButtons[0]).toBeDisabled();
     jest.restoreAllMocks();
   });
 });

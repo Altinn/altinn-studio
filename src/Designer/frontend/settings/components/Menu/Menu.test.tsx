@@ -28,6 +28,11 @@ describe('Menu', () => {
     expect(getTab()).toBeInTheDocument();
   });
 
+  it('selects personal-access-tokens tab when pathname ends with empty string', () => {
+    renderMenu(['/settings/']);
+    expect(getTab()).toHaveAttribute('tabindex', '0');
+  });
+
   it('navigates preserving search params when a tab is clicked', async () => {
     const user = userEvent.setup();
     renderMenu(['/personal-access-tokens?returnTo=%2Fdashboard']);
