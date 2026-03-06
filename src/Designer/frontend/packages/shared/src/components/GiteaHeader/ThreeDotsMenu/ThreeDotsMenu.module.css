@@ -3,5 +3,8 @@
   box-sizing: border-box;
   color: var(--ds-color-text-subtle) !important;
   font-weight: var(--ds-font-weight-regular);
-  padding-block: var(--ds-spacing-1);
+}
+
+.linkButton:hover {
+  color: var(--ds-color-text) !important;
 }
