@@ -1,3 +1,17 @@
 query-filters:
+  # Not security-related, better covered by Roslyn analyzers
+  # Warnings:
   - exclude:
-      id: cs/catch-of-all-exceptions
+      id: cs/useless-assignment-to-local
+  - exclude:
+      id: cs/constant-condition
+  - exclude:
+      id: cs/call-to-obsolete-method
+  - exclude:
+      id: cs/useless-cast-to-self
+  - exclude:
+      id: cs/local-not-disposed
+  # All low-severity recommendations ("Note" in the UI)
+  - exclude:
+      problem.severity:
+        - recommendation

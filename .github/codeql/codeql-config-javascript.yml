@@ -5,6 +5,10 @@ query-filters:
       id: js/ml-powered/sql-injection
   - exclude:
       id: js/ml-powered/nosql-injection
+  # All low-severity recommendations ("Note" in the UI)
+  - exclude:
+      problem.severity:
+        - recommendation
 paths-ignore:
   - '**/*.test.js'
   - '**/*.test.jsx'
