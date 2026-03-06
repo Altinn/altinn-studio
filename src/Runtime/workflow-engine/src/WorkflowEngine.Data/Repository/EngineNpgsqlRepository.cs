@@ -699,7 +699,7 @@ internal sealed class EngineNpgsqlRepository(
                 cmd.Parameters.AddWithValue(workflow.DatabaseId);
                 cmd.Parameters.AddWithValue((int)workflow.Status);
                 cmd.Parameters.AddWithValue(now);
-                cmd.Parameters.AddWithValue((object?)workflow.EngineTraceId ?? DBNull.Value);
+                cmd.Parameters.AddWithValue((object?)workflow.EngineTraceContext ?? DBNull.Value);
                 await cmd.ExecuteNonQueryAsync(ct);
             }
 
@@ -797,7 +797,7 @@ internal sealed class EngineNpgsqlRepository(
                 var w = updates[i].Workflow;
                 ids[i] = w.DatabaseId;
                 statuses[i] = (int)w.Status;
-                engineTraceIds[i] = (object?)w.EngineTraceId ?? DBNull.Value;
+                engineTraceIds[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
             }
 
             const string updateWorkflowsSql = """

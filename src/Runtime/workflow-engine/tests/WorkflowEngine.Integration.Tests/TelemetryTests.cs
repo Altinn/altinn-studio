@@ -134,14 +134,14 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // === Enqueue phase ===
-        Assert.NotEmpty(collector.GetActivities("Engine.FlushBatch"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCoreAsync"));
         Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateAndSortWorkflowGraph"));
         Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchEnqueueWorkflows"));
 
         // === Processing phase ===
-        Assert.NotEmpty(collector.GetActivities("Engine.ProcessWorkflow"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowHandler.HandleAsync"));
 
-        var processStepActivities = collector.GetActivitiesStartingWith("Engine.ProcessStep");
+        var processStepActivities = collector.GetActivitiesStartingWith("WorkflowHandler.ProcessStep");
         Assert.True(
             processStepActivities.Count >= 2,
             $"Expected at least 2 ProcessStep activities, got {processStepActivities.Count}"
@@ -172,8 +172,8 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         );
 
         // === Status write phase ===
-        Assert.NotEmpty(collector.GetActivities("Engine.SubmitStatusUpdate"));
-        Assert.NotEmpty(collector.GetActivities("Engine.FlushStatusBatch"));
+        Assert.NotEmpty(collector.GetActivities("StatusWriteBuffer.SubmitAsync"));
+        Assert.NotEmpty(collector.GetActivities("StatusWriteBuffer.FlushBatchCoreAsync"));
         Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps"));
     }
 
@@ -318,7 +318,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // Resolve key span instances
-        var processWorkflow = Single(collector, "Engine.ProcessWorkflow");
+        var processWorkflow = Single(collector, "WorkflowHandler.HandleAsync");
 
         // ───────────────────────────────────────────────────────────
         // Cross-trace link: ProcessWorkflow is a new root that links
@@ -334,7 +334,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
 
         //   Engine.ProcessWorkflow
         //     ├── Engine.ProcessStep.{operationId}
-        var processStep = SingleStartingWith(collector, processWorkflow.TraceId, "Engine.ProcessStep");
+        var processStep = SingleStartingWith(collector, processWorkflow.TraceId, "WorkflowHandler.ProcessStep");
         AssertChildOf(processWorkflow, processStep);
 
         //     │     └── WorkflowExecutor.Execute
@@ -346,15 +346,15 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         AssertChildOf(execute, appCommand);
 
         //     └── Engine.SubmitStatusUpdate
-        var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "Engine.SubmitStatusUpdate");
+        var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "StatusWriteBuffer.SubmitAsync");
         AssertChildOf(processWorkflow, submitStatus);
 
         // ───────────────────────────────────────────────────────────
         // Standalone background activities (exist but not in workflow traces)
         // ───────────────────────────────────────────────────────────
-        Assert.NotEmpty(collector.GetActivities("Engine.FlushBatch"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCoreAsync"));
         Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchEnqueueWorkflows"));
-        Assert.NotEmpty(collector.GetActivities("Engine.FlushStatusBatch"));
+        Assert.NotEmpty(collector.GetActivities("StatusWriteBuffer.FlushBatchCoreAsync"));
         Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps"));
     }
 

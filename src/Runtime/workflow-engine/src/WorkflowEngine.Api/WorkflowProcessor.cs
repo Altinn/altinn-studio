@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
+using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Api;
 
@@ -24,6 +25,9 @@ internal sealed class WorkflowProcessor(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        using var activity = Metrics.Source.StartActivity("WorkflowProcessor.ExecuteAsync");
+        activity?.DontRecord();
+
         logger.ProcessorStarted(_maxWorkers);
 
         // TODO: Replace by UpDownCounter?

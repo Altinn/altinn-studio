@@ -1,4 +1,5 @@
 using WorkflowEngine.Models;
+using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Api;
 
@@ -78,11 +79,12 @@ internal static class DashboardMapper
                 prevState = step.StateOut;
         }
 
-        return new(
+        return new DashboardWorkflowDto(
             workflow.IdempotencyKey,
             workflow.OperationId,
             workflow.Status.ToString(),
-            workflow.EngineTraceId ?? workflow.EngineActivity?.TraceId.ToString(),
+            Metrics.ParseTraceContext(workflow.EngineTraceContext)?.TraceId.ToString()
+                ?? workflow.EngineActivity?.TraceId.ToString(),
             MapInstance(workflow.InstanceInformation),
             workflow.CreatedAt,
             workflow.ExecutionStartedAt,

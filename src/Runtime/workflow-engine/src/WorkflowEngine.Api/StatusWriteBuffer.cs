@@ -49,7 +49,7 @@ internal sealed class StatusWriteBuffer : BackgroundService
         var dirtySteps = workflow.Steps.Where(s => s.HasPendingChanges).ToList();
 
         using var activity = Metrics.Source.StartActivity(
-            "Engine.SubmitStatusUpdate",
+            "StatusWriteBuffer.SubmitAsync",
             parentContext: workflow.EngineActivity?.Context,
             tags:
             [
@@ -153,8 +153,9 @@ internal sealed class StatusWriteBuffer : BackgroundService
         }
 
         using var activity = Metrics.Source.StartActivity(
-            "Engine.FlushStatusBatch",
-            tags: [("batch.size", batch.Count)]
+            "StatusWriteBuffer.FlushBatchCoreAsync",
+            tags: [("batch.size", batch.Count)],
+            links: batch.Select(x => Metrics.ParseTraceContext(x.Workflow.EngineTraceContext)).ToActivityLinks()
         );
 
         try

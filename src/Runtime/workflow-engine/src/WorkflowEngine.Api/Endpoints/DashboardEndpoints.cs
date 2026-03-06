@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
+using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Api.Endpoints;
 
@@ -300,7 +301,8 @@ internal static class DashboardEndpoints
                                 actor = s.Actor,
                                 command = s.Command,
                                 retryStrategy = s.RetryStrategy,
-                                traceId = workflow.EngineTraceId ?? workflow.EngineActivity?.TraceId.ToString(),
+                                traceId = Metrics.ParseTraceContext(workflow.EngineTraceContext)?.TraceId.ToString()
+                                    ?? workflow.EngineActivity?.TraceId.ToString(),
                                 stateIn,
                                 stateOut = s.StateOut,
                             },

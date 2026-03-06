@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -12,6 +13,14 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async ValueTask InitializeAsync() => await fixture.ResetAsync();
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    private static string GetRandomTraceContext()
+    {
+        using var activity = new Activity("testing");
+        activity.Start();
+
+        return activity.Id ?? throw new Exception("This will never be null");
+    }
 
     [Fact]
     public async Task EnqueueBatch_WithInBatchRefLink_PersistsLinks()
@@ -590,7 +599,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Act: mutate in-memory state and call the new batch method
         workflow1.Status = PersistentItemStatus.Completed;
-        workflow1.EngineTraceId = "trace-1";
+        workflow1.EngineTraceContext = GetRandomTraceContext();
         var step1a = workflow1.Steps[0];
         step1a.Status = PersistentItemStatus.Completed;
         var step1b = workflow1.Steps[1];
@@ -599,7 +608,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         step1b.StateOut = """{"error":"timeout"}""";
 
         workflow2.Status = PersistentItemStatus.Failed;
-        workflow2.EngineTraceId = "trace-2";
+        workflow2.EngineTraceContext = GetRandomTraceContext();
         var step2a = workflow2.Steps[0];
         step2a.Status = PersistentItemStatus.Failed;
         step2a.BackoffUntil = DateTimeOffset.UtcNow.AddMinutes(5);

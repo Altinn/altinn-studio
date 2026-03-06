@@ -14,11 +14,17 @@
   - Worker will be required to update this column periodically.
   - The engine will consume stale workflows eventually, even if they are in a `processing` state.
     - Suggested timeout for stale workflows: 10 seconds. Eg. the worker needs a < 10 second update cycle back to the db.
-- Remove most of the `ILogger` logging? We can use Grafana for almost all of this...
-- [ ] Rename TraceContext to DistributedTraceId, to coexist with EngineTraceId.
-- Use the EngineTraceId to rebuild the context in the event we're picking up a failed workflow.
+- [ ] Remove most of the `ILogger` logging? We can use Grafana for almost all of this...
 
-- Update and improve Grafana dashboards.
+- [ ] Database schema:
+  - [ ] Rename TraceContext to DistributedTraceContext.
+  - [ ] Rename EngineTraceId to EngineTraceContext -- also add to StepEntity.
+  - ~~Use the EngineTraceId to rebuild the context in the event we're picking up a failed workflow.~~
+    - [ ] When resuming a failed workflow, we should clear out the EngineTraceContext property which will trigger a new activity id to be generated.
+
+- [ ] Update and improve Grafana dashboards.
+
+- [ ] Get rid of all `Async` suffixes?
 
 ### [Repository](src/WorkflowEngine.Data/Repository/EnginePgRepository.cs)
 - [ ] It doesn't make sense that `GetFinishedWorkflows` takes a list of statuses to check. This method should know what the relevant statuses are.

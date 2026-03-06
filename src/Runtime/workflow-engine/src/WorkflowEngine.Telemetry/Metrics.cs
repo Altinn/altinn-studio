@@ -168,13 +168,18 @@ public static class Metrics
 
     public static void SetUsedHttpSlots(int count) => _usedHttpSlotsCount = count;
 
-    public static IEnumerable<ActivityLink>? ParseSourceContext(string? traceContext)
+    public static ActivityContext? ParseTraceContext(string? traceContext)
     {
-        if (traceContext is not null && ActivityContext.TryParse(traceContext, null, out var context))
-        {
-            return [new ActivityLink(context)];
-        }
+        if (traceContext is null)
+            return null;
 
-        return null;
+        ActivityContext.TryParse(traceContext, null, out var context);
+        return context;
     }
+
+    public static IEnumerable<ActivityLink> ToActivityLinks(this ActivityContext? context) =>
+        context is null ? [] : [new ActivityLink(context.Value)];
+
+    public static IEnumerable<ActivityLink> ToActivityLinks(this IEnumerable<ActivityContext?> contexts) =>
+        contexts.OfType<ActivityContext>().Select(x => new ActivityLink(x));
 }

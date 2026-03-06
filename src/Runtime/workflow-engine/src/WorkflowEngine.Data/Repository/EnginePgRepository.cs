@@ -460,7 +460,7 @@ internal partial class EnginePgRepository : IEngineRepository
                                 setters
                                     .SetProperty(t => t.Status, workflow.Status)
                                     .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt)
-                                    .SetProperty(t => t.EngineTraceId, workflow.EngineTraceId),
+                                    .SetProperty(t => t.EngineTraceId, workflow.EngineTraceContext),
                             ct
                         );
                 },

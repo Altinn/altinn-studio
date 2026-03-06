@@ -51,6 +51,7 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, ("endpoint", "enqueue"));
 
+        // TODO: Move to `EnqueueWorkflow`? Logic should be validated even if bypassing the API
         if (ValidationUtils.HasAppCommandSteps(request.Workflows) && string.IsNullOrWhiteSpace(request.LockToken))
             return TypedResults.Problem(
                 detail: "A LockToken is required when any workflow step uses an AppCommand.",

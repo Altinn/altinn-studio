@@ -253,22 +253,24 @@ internal sealed class WorkflowHandler(
     private static void StartProcessWorkflowActivity(Workflow workflow)
     {
         workflow.EngineActivity ??= Metrics.Source.StartLinkedRootActivity(
-            "Engine.ProcessWorkflow",
+            "WorkflowHandler.HandleAsync",
             kind: ActivityKind.Consumer,
-            links: Metrics.ParseSourceContext(workflow.DistributedTraceContext),
-            tags: workflow.GetActivityTags()
+            links: Metrics.ParseTraceContext(workflow.DistributedTraceContext).ToActivityLinks(),
+            tags: workflow.GetActivityTags(),
+            includeCurrentContext: false
         );
-        workflow.EngineTraceId ??= workflow.EngineActivity?.TraceId.ToString();
+        workflow.EngineTraceContext ??= workflow.EngineActivity?.Id;
     }
 
     private static void StartProcessStepActivity(Workflow workflow, Step step)
     {
         step.EngineActivity ??= Metrics.Source.StartActivity(
-            $"Engine.ProcessStep.{step.OperationId}",
+            $"WorkflowHandler.ProcessStep.{step.OperationId}",
             ActivityKind.Consumer,
             workflow.EngineActivity?.Context ?? default,
             step.GetActivityTags()
         );
+        step.EngineTraceContext ??= step.EngineActivity?.Id;
     }
 
     private static void StopActivity(PersistentItem item)

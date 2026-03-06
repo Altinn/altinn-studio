@@ -49,12 +49,10 @@ internal sealed class Engine(WorkflowWriteBuffer _writeBuffer) : IEngine
             );
         }
 
-        var hash = request.ComputeHash();
-
         try
         {
+            var hash = request.ComputeHash();
             var workflowIds = await _writeBuffer.EnqueueAsync(request, metadata, hash, cancellationToken);
-
             var results = sortedRequests
                 .Zip(
                     workflowIds,
@@ -66,6 +64,7 @@ internal sealed class Engine(WorkflowWriteBuffer _writeBuffer) : IEngine
         }
         catch (IdempotencyConflictException)
         {
+            activity?.Errored(errorMessage: $"Idempotency conflict for key '{request.IdempotencyKey}'");
             return WorkflowEnqueueResponse.Reject(
                 WorkflowEnqueueResponse.Rejection.Duplicate,
                 $"Idempotency conflict: the key '{request.IdempotencyKey}' was already used with a different request body."
@@ -73,6 +72,7 @@ internal sealed class Engine(WorkflowWriteBuffer _writeBuffer) : IEngine
         }
         catch (InvalidWorkflowReferenceException ex)
         {
+            activity?.Errored(ex);
             return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, ex.Message);
         }
     }

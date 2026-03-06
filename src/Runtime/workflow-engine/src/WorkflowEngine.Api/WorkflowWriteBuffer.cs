@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Channels;
 using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.Options;
@@ -56,8 +57,9 @@ internal class WorkflowWriteBuffer : BackgroundService
         CancellationToken ct
     )
     {
-        var tcs = new TaskCompletionSource<Guid[]>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var activity = Metrics.Source.StartActivity("WorkflowWriteBuffer.EnqueueAsync");
 
+        var tcs = new TaskCompletionSource<Guid[]>(TaskCreationOptions.RunContinuationsAsynchronously);
         var item = new BufferedEnqueueRequest(request, metadata, requestBodyHash, tcs);
 
         await _channel.Writer.WriteAsync(item, ct);
@@ -144,6 +146,7 @@ internal class WorkflowWriteBuffer : BackgroundService
 
     private async Task FlushBatchCoreAsync(List<BufferedEnqueueRequest> batch, CancellationToken ct)
     {
+        // TODO: Get rid of the `active` alias and just mutate `batch`, since that's what's happening anyway
         // Filter out items whose callers have already cancelled
         var active = batch;
         for (int i = active.Count - 1; i >= 0; i--)
@@ -157,7 +160,11 @@ internal class WorkflowWriteBuffer : BackgroundService
             return;
         }
 
-        using var activity = Metrics.Source.StartActivity("Engine.FlushBatch", tags: [("batch.size", active.Count)]);
+        using var activity = Metrics.Source.StartActivity(
+            "WorkflowWriteBuffer.FlushBatchCoreAsync",
+            tags: [("batch.size", active.Count)],
+            links: active.Select(x => Metrics.ParseTraceContext(x.Metadata.TraceContext)).ToActivityLinks()
+        );
 
         try
         {
