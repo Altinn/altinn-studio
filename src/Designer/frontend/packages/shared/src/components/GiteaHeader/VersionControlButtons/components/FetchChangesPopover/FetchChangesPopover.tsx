@@ -12,13 +12,15 @@ import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 export const FetchChangesPopover = (): React.ReactElement => {
   const {
     isLoading,
     setIsLoading,
     hasMergeConflict,
-    commitAndPushChanges,
+    setHasMergeConflict,
     repoStatus,
     onPullSuccess,
   } = useVersionControlButtonsContext();
@@ -53,8 +55,14 @@ export const FetchChangesPopover = (): React.ReactElement => {
           return queryKey.includes(owner) && queryKey.includes(repoName);
         },
       });
-    } else if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
-      await commitAndPushChanges('');
+    } else if (
+      result.hasMergeConflict ||
+      result.repositoryStatus === 'MergeConflict' ||
+      result.repositoryStatus === 'CheckoutConflict'
+    ) {
+      const conflictStatus: RepoStatus = { ...result, hasMergeConflict: true };
+      queryClient.setQueryData([QueryKey.RepoStatus, owner, repoName], conflictStatus);
+      setHasMergeConflict?.(true);
       setPopoverOpen(false);
     }
     setIsLoading(false);
@@ -62,9 +70,6 @@ export const FetchChangesPopover = (): React.ReactElement => {
 
   return (
     <StudioPopover.TriggerContext>
-      {/* Used StudioPopover insted of StudioPageHeader because StudioPageHeader has not replaced with v1 yet,
-       and the component maybe needs some style before migration to v1.
-       */}
       <StudioPopover.Trigger
         className={classes.fetchButton}
         onClick={handleOpenPopover}

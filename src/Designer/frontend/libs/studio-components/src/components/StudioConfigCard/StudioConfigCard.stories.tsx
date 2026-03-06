@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioConfigCard } from './';
-import { action } from 'storybook/internal/actions';
+import { action } from 'storybook/actions';
 
 type StoryArgs = {
   cardLabel: string;

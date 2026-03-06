@@ -10,6 +10,7 @@ from agents.services.mcp.mcp_client import get_mcp_client
 from agents.services.llm import LLMClient
 from agents.schemas.plan_schema import PlanStep
 from shared.utils.logging_utils import get_logger
+from shared.utils.langfuse_utils import score_validation
 
 log = get_logger(__name__)
 
@@ -22,50 +23,50 @@ class MCPVerificationResult:
         self.warnings: List[str] = []
         self.checks: Dict[str, bool] = {}
         self.tool_results: List[Dict] = []
-    
+
     def add_error(self, check_name: str, message: str):
         self.passed = False
         self.errors.append(f"{check_name}: {message}")
         self.checks[check_name] = False
-    
+
     def add_warning(self, check_name: str, message: str):
         self.warnings.append(f"{check_name}: {message}")
-    
+
     def add_success(self, check_name: str):
         self.checks[check_name] = True
 
 
 class MCPVerifier:
     """MCP-based verifier that calls validation tools"""
-    
+
     def __init__(self, repo_path: str):
         self.repo_path = repo_path
-    
+
     async def verify_with_tools(self, patch: Dict, plan_step: PlanStep) -> MCPVerificationResult:
         """
         Run verification using MCP validation tools.
         This will show up in Langfuse traces as tool calls.
-        
+
         Args:
             patch: The patch data with changes
             plan_step: The plan step being verified
         """
         langfuse = get_client()
         result = MCPVerificationResult()
-        
+
         with langfuse.start_as_current_span(name="verification_phase", metadata={"span_type": "TOOL"}) as main_span:
             main_span.update(metadata={
                 "changed_files_count": len([f.get('file', '') for f in patch.get('changes', [])]),
                 "plan_step_id": plan_step.id if hasattr(plan_step, "id") else "unknown"
             })
-        
+
             try:
                 mcp_client = get_mcp_client()
-                
+
                 # Only call validation tools for files that actually changed
                 changed_files = [f.get('file', '') for f in patch.get('changes', [])]
                 log.info(f"Running selective verification for {len(changed_files)} changed files: {changed_files}")
-                
+
                 # 1. Layout validation (only if layout files changed)
                 layout_files = [f for f in patch.get('changes', []) if 'layout' in f.get('file', '')]
                 if layout_files:
@@ -73,7 +74,7 @@ class MCPVerifier:
                     await self._verify_layout(mcp_client, layout_files, plan_step, result)
                 else:
                     result.add_success("layout_validation_skipped")
-                
+
                 # 2. Resource validation (only if resource files changed)
                 resource_files = [f for f in patch.get('changes', []) if 'resource.' in f.get('file', '')]
                 if resource_files:
@@ -81,7 +82,7 @@ class MCPVerifier:
                     await self._verify_resources(mcp_client, resource_files, plan_step, result)
                 else:
                     result.add_success("resource_validation_skipped")
-                
+
                 # 4. Policy validation (only if actual policy files are being modified)
                 policy_files = [f for f in changed_files if 'policy' in f.lower() or 'rule' in f.lower()]
                 if policy_files:
@@ -90,10 +91,10 @@ class MCPVerifier:
                 else:
                     log.info("Skipping policy validation - no policy files changed")
                     result.add_success("policy_validation_skipped")
-                
+
                 icon = "✅" if result.passed else "⚠️"
                 log.info(f"{icon} MCP verification complete: {len(result.errors)} errors, {len(result.warnings)} warnings")
-                
+
                 # Add final verification summary
                 main_span.update(output={
                     "verification_summary": {
@@ -105,7 +106,7 @@ class MCPVerifier:
                         "warnings": result.warnings
                     }
                 })
-                
+
             except Exception as e:
                 log.error(f"MCP verification failed: {e}")
                 result.add_error("mcp_verification", f"Tool execution failed: {e}")
@@ -116,9 +117,9 @@ class MCPVerifier:
                         "error": str(e)
                     }
                 })
-        
+
         return result
-    
+
     async def _verify_layout(self, mcp_client, layout_files: List[Dict], plan_step: PlanStep, result: MCPVerificationResult):
         """Call schema_validator_tool for layout validation"""
         langfuse = get_client()
@@ -128,12 +129,12 @@ class MCPVerifier:
                 layout_file_path = Path(self.repo_path) / layout_files[0]['file']
                 with open(layout_file_path, 'r') as f:
                     layout_content = f.read()
-                
+
                 tool_input = {
                     "json_obj": layout_content,
                     "schema_path": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json"
                 }
-                
+
                 # Set detailed metadata
                 span.update(metadata={
                     "file_path": layout_files[0]['file'],
@@ -144,10 +145,10 @@ class MCPVerifier:
                     "tool_parameters": tool_input,
                     "file_content": layout_content[:500] + "..." if len(layout_content) > 500 else layout_content,
                 })
-                
+
                 # Call the tool
                 layout_result = await mcp_client.call_tool("schema_validator_tool", tool_input)
-                
+
                 # Format the output for multiple views
                 # Handle CallToolResult objects with structured_content
                 if hasattr(layout_result, 'structured_content') and layout_result.structured_content:
@@ -168,12 +169,12 @@ class MCPVerifier:
                 else:
                     result_text = str(layout_result)
                     result_json = layout_result if isinstance(layout_result, dict) else None
-                    
+
                 span.update(output={
                     "result": result_json if result_json else result_text
                 })
                 result.tool_results.append({"tool": "schema_validator_tool", "result": layout_result})
-                
+
                 # Handle various MCP response formats (list, dict, TextContent, CallToolResult)
                 if hasattr(layout_result, 'structured_content') and layout_result.structured_content:
                     layout_data = layout_result.structured_content
@@ -188,16 +189,28 @@ class MCPVerifier:
                     layout_data = json.loads(layout_result.text)
                 else:
                     layout_data = layout_result
-                
-                if layout_data.get("valid", True):
+
+                layout_passed = layout_data.get("valid", True)
+                if layout_passed:
                     result.add_success("layout_validation")
                 else:
                     for error in layout_data.get("errors", []):
                         result.add_error("layout_validation", error)
-                        
+
+                from shared.config.base_config import get_config as _get_config
+                _cfg = _get_config()
+                score_validation(
+                    name="layout_schema_validation",
+                    passed=layout_passed,
+                    trace_id=span.trace_id,
+                    observation_id=span.id,
+                    config_id=_cfg.LANGFUSE_SCORE_CONFIG_LAYOUT_SCHEMA or None,
+                    comment="; ".join(layout_data.get("errors", [])) if not layout_passed else "Passed",
+                )
+
             except Exception as e:
                 result.add_error("layout_validation", f"Tool call failed: {e}")
-    
+
     async def _verify_resources(self, mcp_client, resource_files: List[Dict], plan_step: PlanStep, result: MCPVerificationResult):
         """Call resource_validator_tool"""
         langfuse = get_client()
@@ -207,7 +220,7 @@ class MCPVerifier:
                 resource_file_path = Path(self.repo_path) / resource_files[0]['file']
                 with open(resource_file_path, 'r') as f:
                     resource_content = f.read()
-                
+
                 # Determine language from filename (e.g., resource.nb.json -> nb)
                 filename = resource_files[0]['file'].split('/')[-1]
                 language = "nb"  # default
@@ -215,13 +228,13 @@ class MCPVerifier:
                     parts = filename.split('.')
                     if len(parts) >= 3:
                         language = parts[1]
-                
+
                 tool_input = {
                     "resource_json": resource_content,
                     "language": language,
                     "repo_path": self.repo_path
                 }
-                
+
                 # Set detailed metadata
                 span.update(metadata={
                     "file_path": resource_files[0]['file'],
@@ -233,10 +246,10 @@ class MCPVerifier:
                     "tool_parameters": tool_input,
                     "resource_content": resource_content[:500] + "..." if len(resource_content) > 500 else resource_content,
                 })
-                
+
                 # Call the tool
                 resource_result = await mcp_client.call_tool("resource_validator_tool", tool_input)
-                
+
                 # Format the output for multiple views
                 # Handle CallToolResult objects with structured_content
                 if hasattr(resource_result, 'structured_content') and resource_result.structured_content:
@@ -257,12 +270,12 @@ class MCPVerifier:
                 else:
                     result_text = str(resource_result)
                     result_json = resource_result if isinstance(resource_result, dict) else None
-                    
+
                 span.update(output={
                     "result": result_json if result_json else result_text
                 })
                 result.tool_results.append({"tool": "resource_validator_tool", "result": resource_result})
-                
+
                 # Handle various MCP response formats (list, dict, TextContent, CallToolResult)
                 if hasattr(resource_result, 'structured_content') and resource_result.structured_content:
                     resource_data = resource_result.structured_content
@@ -274,16 +287,28 @@ class MCPVerifier:
                     resource_data = json.loads(resource_result.text)
                 else:
                     resource_data = resource_result
-                
-                if resource_data.get("valid", True):
+
+                resource_passed = resource_data.get("valid", True)
+                if resource_passed:
                     result.add_success("resource_validation")
                 else:
                     for error in resource_data.get("errors", []):
                         result.add_error("resource_validation", error)
-                        
+
+                from shared.config.base_config import get_config as _get_config
+                _cfg = _get_config()
+                score_validation(
+                    name="resource_text_validation",
+                    passed=resource_passed,
+                    trace_id=span.trace_id,
+                    observation_id=span.id,
+                    config_id=_cfg.LANGFUSE_SCORE_CONFIG_RESOURCE_TEXT or None,
+                    comment="; ".join(resource_data.get("errors", [])) if not resource_passed else "Passed",
+                )
+
             except Exception as e:
                 result.add_error("resource_validation", f"Tool call failed: {e}")
-    
+
     async def _verify_policies(self, mcp_client, patch: Dict, plan_step: PlanStep, result: MCPVerificationResult):
         """Call policy_validation_tool for generated files and constraint checks"""
         langfuse = get_client()
@@ -293,7 +318,7 @@ class MCPVerifier:
                     "changed_files": [f['file'] for f in patch.get('changes', [])],
                     "repository_path": self.repo_path
                 }
-                
+
                 # Add plan constraints
                 if plan_step and getattr(plan_step, "constraints", None):
                     tool_input["constraints"] = {
@@ -304,22 +329,22 @@ class MCPVerifier:
 
                 span.update(input=tool_input)
                 policy_result = await mcp_client.call_tool("policy_validation_tool", tool_input)
-                
+
                 # Handle CallToolResult objects with structured_content
                 if hasattr(policy_result, 'structured_content') and policy_result.structured_content:
                     policy_data = policy_result.structured_content
                 else:
                     policy_data = policy_result
-                
+
                 span.update(output={"result": policy_data})
                 result.tool_results.append({"tool": "policy_validation_tool", "result": policy_data})
-                
+
                 if policy_data.get("valid", True):
                     result.add_success("policy_validation")
                 else:
                     for error in policy_data.get("errors", []):
                         result.add_error("policy_validation", error)
-                        
+
             except Exception as e:
                 result.add_error("policy_validation", f"Tool call failed: {e}")
 

@@ -675,7 +675,8 @@ namespace Designer.Tests.Services
 
             TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);
 
-            ResourceRegistryService resourceRegistryService = new();
+            IResourceRegistry resourceRegistryService = new Mock<IResourceRegistry>().Object;
+            IAuthorizationPolicyService authorizationPolicyServiceMock = new Mock<IAuthorizationPolicyService>().Object;
 
             RepositoryService service = new(
                 repoSettings,
@@ -688,7 +689,8 @@ namespace Designer.Tests.Services
                 applicationInformationService,
                 textsService,
                 resourceRegistryService,
-                customTemplateServiceMock
+                customTemplateServiceMock,
+                authorizationPolicyServiceMock
             );
 
             return service;

@@ -87,7 +87,6 @@ internal sealed class LocaltestValidation : BackgroundService
                         case VersionResult.Ok { Version: var version }:
                         {
                             _logger.LogInformation("Localtest version: {Version}", version);
-
                             if (version < 2)
                             {
                                 _logger.LogError(

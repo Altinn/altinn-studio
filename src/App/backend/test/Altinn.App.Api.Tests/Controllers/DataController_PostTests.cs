@@ -96,23 +96,47 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
             $"/{_org}/{_app}/instances/{_instanceOwnerPartyId}/{_instanceGuid}/data/{dataTypeString}",
             content
         );
+
         var parsedResponse = await VerifyStatusAndDeserialize<DataPostResponse>(response, HttpStatusCode.OK);
-        parsedResponse.NewDataModels.Should().HaveCount(2);
-        var original = parsedResponse
-            .NewDataModels.Should()
-            .ContainSingle(d => d.DataElementId.ToString() == _formElementId)
-            .Which.Data.Should()
-            .BeOfType<JsonElement>()
-            .Which.Deserialize<Skjema>()!;
-        original.Melding!.Name.Should().Be("FromDataWriteProcessor");
-        var posted = parsedResponse
-            .NewDataModels.Should()
-            .ContainSingle(d => d.DataElementId.ToString() != _formElementId)
-            .Which.Data.Should()
-            .BeOfType<JsonElement>()
-            .Which.Deserialize<Skjema>()!;
-        posted.Melding?.Name.Should().Be("FromDataProcessor");
-        posted.Melding!.Random.Should().Be("fromClient");
+        Assert.Equal(2, parsedResponse.NewDataModels.Count);
+
+        var existingResponse = Assert.Single(
+            parsedResponse.NewDataModels,
+            r => r.DataElementId.ToString() == _formElementId
+        );
+        var newResponse = Assert.Single(
+            parsedResponse.NewDataModels,
+            r => r.DataElementId.ToString() != _formElementId
+        );
+
+        var existingData = existingResponse.Data.Should().BeOfType<JsonElement>().Which.Deserialize<Skjema>()!;
+        existingData.Melding!.Name.Should().Be("FromDataWriteProcessor");
+        var newData = newResponse.Data.Should().BeOfType<JsonElement>().Which.Deserialize<Skjema>()!;
+        newData.Melding?.Name.Should().Be("FromDataProcessor");
+        newData.Melding!.Random.Should().Be("fromClient");
+
+        // Verify stored data
+        var newDataStored = TestData.GetDataElementBlobContnet(
+            _org,
+            _app,
+            _instanceOwnerPartyId,
+            _instanceGuid,
+            parsedResponse.NewDataElementId
+        );
+        Assert.NotNull(newDataStored);
+        Assert.Contains("fromClient", newDataStored);
+        Assert.Contains("FromDataProcessor", newDataStored);
+
+        var oldDataStored = TestData.GetDataElementBlobContnet(
+            _org,
+            _app,
+            _instanceOwnerPartyId,
+            _instanceGuid,
+            Guid.Parse(_formElementId)
+        );
+        Assert.NotNull(oldDataStored);
+        Assert.Contains("FromDataWriteProcessor", oldDataStored);
+
         _dataProcessor.Verify();
         _dataWriteProcessor.Verify();
     }

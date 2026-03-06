@@ -1,8 +1,8 @@
 import type { LatLngBounds, LatLngExpression, PointExpression } from 'leaflet';
 
-import type { Location, MapLayer } from 'src/layout/Map/config.generated';
+import type { MapLayer } from 'src/layout/Map/config.generated';
+import type { Location } from 'src/layout/Map/types';
 
-// Default is center of Norway
 export const DefaultCenterLocation: Location = {
   latitude: 64.888996,
   longitude: 12.8186054,
