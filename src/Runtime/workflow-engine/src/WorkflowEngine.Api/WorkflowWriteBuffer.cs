@@ -169,7 +169,7 @@ internal class WorkflowWriteBuffer : BackgroundService
         try
         {
             using var scope = _scopeFactory.CreateScope();
-            var repo = scope.ServiceProvider.GetRequiredService<IEngineNpgsqlRepository>();
+            var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
             var results = await repo.BatchEnqueueWorkflowsAsync(active, ct);
 

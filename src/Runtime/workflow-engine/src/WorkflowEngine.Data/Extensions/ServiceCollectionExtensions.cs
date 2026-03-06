@@ -40,8 +40,7 @@ public static class ServiceCollectionExtensions
                 return dataSourceBuilder.Build();
             });
 
-            services.AddTransient<IEngineRepository, EnginePgRepository>();
-            services.AddSingleton<IEngineNpgsqlRepository, EngineNpgsqlRepository>();
+            services.AddSingleton<IEngineRepository, EngineRepository>();
             services.AddDbContext<EngineDbContext>(
                 (sp, options) =>
                 {

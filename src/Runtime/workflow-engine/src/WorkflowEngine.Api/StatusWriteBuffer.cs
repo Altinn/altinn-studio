@@ -161,7 +161,7 @@ internal sealed class StatusWriteBuffer : BackgroundService
         try
         {
             using var scope = _scopeFactory.CreateScope();
-            var repo = scope.ServiceProvider.GetRequiredService<IEngineNpgsqlRepository>();
+            var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
             var updates = batch.Select(r => new BatchWorkflowStatusUpdate(r.Workflow, r.DirtySteps)).ToList();
 

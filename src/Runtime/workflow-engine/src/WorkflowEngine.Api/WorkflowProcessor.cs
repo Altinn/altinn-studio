@@ -12,7 +12,7 @@ namespace WorkflowEngine.Api;
 /// dispatches workflows to fire-and-forget workers via <see cref="WorkflowHandler"/>.
 /// </summary>
 internal sealed class WorkflowProcessor(
-    IEngineNpgsqlRepository repo,
+    IEngineRepository repo,
     IServiceScopeFactory scopeFactory,
     AsyncSignal workflowSignal,
     IOptions<WorkflowProcessorOptions> options,

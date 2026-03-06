@@ -26,7 +26,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task EnqueueBatch_WithInBatchRefLink_PersistsLinks()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
 
         var (_, metadata) = WorkflowTestHelper.CreateRequest(instanceGuid: Guid.NewGuid());
 
@@ -47,7 +47,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             },
         };
 
-        var results = await WorkflowTestHelper.EnqueueWorkflows(npgsqlRepo, metadata, requests);
+        var results = await WorkflowTestHelper.EnqueueWorkflows(repo, metadata, requests);
         var result = Assert.Single(results);
         Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
         Assert.NotNull(result.WorkflowIds);
@@ -67,10 +67,10 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task EnqueueBatch_WithCrossInstanceLink_ReturnsInvalidReference()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
 
         var (requestA, metadataA) = WorkflowTestHelper.CreateRequest();
-        var workflowA = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, requestA, metadataA);
+        var workflowA = await WorkflowTestHelper.EnqueueWorkflow(repo, context, requestA, metadataA);
 
         var (_, metadataB) = WorkflowTestHelper.CreateRequest();
         var requestB = new WorkflowRequest
@@ -80,7 +80,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             Links = [(WorkflowRef)workflowA.DatabaseId],
         };
 
-        var results = await WorkflowTestHelper.EnqueueWorkflows(npgsqlRepo, metadataB, [requestB]);
+        var results = await WorkflowTestHelper.EnqueueWorkflows(repo, metadataB, [requestB]);
         var result = Assert.Single(results);
         Assert.Equal(BatchEnqueueResultStatus.InvalidReference, result.Status);
         Assert.Null(result.WorkflowIds);
@@ -90,31 +90,30 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetActiveWorkflows_ReturnsNonTerminal()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
-        var repo = fixture.CreateRepository(context);
+        var repo = fixture.CreateRepository();
         var instanceGuid = Guid.NewGuid();
 
         // Insert one workflow in each relevant status
         var enqueued = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Enqueued,
             instanceGuid: instanceGuid
         );
         var processing = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Processing,
             instanceGuid: instanceGuid
         );
         var completed = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Completed,
             instanceGuid: instanceGuid
         );
         var failed = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Failed,
             instanceGuid: instanceGuid
@@ -133,7 +132,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         }
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var active = await queryRepo.GetActiveWorkflows(TestContext.Current.CancellationToken);
 
@@ -149,42 +148,42 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetFailedWorkflows_ReturnsFailed()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
         var instanceGuid = Guid.NewGuid();
 
         var requeued = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Requeued,
             instanceGuid: instanceGuid
         );
         var failed = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Failed,
             instanceGuid: instanceGuid
         );
         var dependencyFailed = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.DependencyFailed,
             instanceGuid: instanceGuid
         );
         var completed = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Completed,
             instanceGuid: instanceGuid
         );
         var canceled = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Canceled,
             instanceGuid: instanceGuid
         );
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var failedStatuses = new List<PersistentItemStatus>
         {
@@ -209,10 +208,9 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task UpdateWorkflow_ChangesStatus()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
-        var repo = fixture.CreateRepository(context);
+        var repo = fixture.CreateRepository();
         var (request, metadata) = WorkflowTestHelper.CreateRequest();
-        var workflow = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request, metadata);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
 
         workflow.Status = PersistentItemStatus.Processing;
         await repo.UpdateWorkflow(workflow, cancellationToken: TestContext.Current.CancellationToken);
@@ -230,10 +228,9 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetWorkflowStatus_ReturnsCorrectStatus()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
-        var repo = fixture.CreateRepository(context);
+        var repo = fixture.CreateRepository();
         var (request, metadata) = WorkflowTestHelper.CreateRequest();
-        var workflow = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request, metadata);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
 
         var status = await repo.GetWorkflowStatus(workflow.DatabaseId, TestContext.Current.CancellationToken);
 
@@ -248,7 +245,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetWorkflowStatus_NonExistent_ReturnsNull()
     {
         await using var context = fixture.CreateDbContext();
-        var repo = fixture.CreateRepository(context);
+        var repo = fixture.CreateRepository();
 
         var nonExistentId = Guid.NewGuid();
         var status = await repo.GetWorkflowStatus(nonExistentId, TestContext.Current.CancellationToken);
@@ -261,10 +258,9 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task UpdateStep_ChangesStatus()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
-        var repo = fixture.CreateRepository(context);
+        var repo = fixture.CreateRepository();
         var (request, metadata) = WorkflowTestHelper.CreateRequest();
-        var workflow = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request, metadata);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
         var step = workflow.Steps[0];
 
         step.Status = PersistentItemStatus.Processing;
@@ -281,73 +277,14 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task BatchUpdateWorkflowAndSteps_UpdatesWorkflowAndSteps()
-    {
-        await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
-        var repo = fixture.CreateRepository(context);
-        var request = new WorkflowRequest
-        {
-            OperationId = "next",
-            Steps =
-            [
-                new StepRequest { Command = new Command.AppCommand("step-one") },
-                new StepRequest { Command = new Command.AppCommand("step-two") },
-            ],
-        };
-        var metadata = new WorkflowRequestMetadata(
-            InstanceInformation: new InstanceInformation
-            {
-                Org = "ttd",
-                App = "test-app",
-                InstanceOwnerPartyId = 50001234,
-                InstanceGuid = Guid.NewGuid(),
-            },
-            Actor: new Actor { UserIdOrOrgNumber = "12345" },
-            CreatedAt: DateTimeOffset.UtcNow,
-            TraceContext: null,
-            InstanceLockKey: null
-        );
-        var workflow = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request, metadata);
-        var step0 = workflow.Steps[0];
-        var step1 = workflow.Steps[1];
-
-        workflow.Status = PersistentItemStatus.Completed;
-        step0.Status = PersistentItemStatus.Completed;
-        step1.Status = PersistentItemStatus.Failed;
-        step1.RequeueCount = 2;
-        await repo.BatchUpdateWorkflowAndSteps(
-            workflow,
-            [step0, step1],
-            cancellationToken: TestContext.Current.CancellationToken
-        );
-
-        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
-        Assert.NotNull(dbWorkflow);
-        Assert.Equal(PersistentItemStatus.Completed, dbWorkflow.Status);
-        Assert.NotNull(dbWorkflow.UpdatedAt);
-
-        var dbStep0 = await fixture.GetStep(step0.DatabaseId);
-        Assert.NotNull(dbStep0);
-        Assert.Equal(PersistentItemStatus.Completed, dbStep0.Status);
-        Assert.NotNull(dbStep0.UpdatedAt);
-
-        var dbStep1 = await fixture.GetStep(step1.DatabaseId);
-        Assert.NotNull(dbStep1);
-        Assert.Equal(PersistentItemStatus.Failed, dbStep1.Status);
-        Assert.Equal(2, dbStep1.RequeueCount);
-        Assert.NotNull(dbStep1.UpdatedAt);
-    }
-
-    [Fact]
     public async Task EnqueueWorkflow_WithFutureStartAt_PersistsStartAt()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
         var startAt = DateTimeOffset.UtcNow.AddHours(1);
         var (request, metadata) = WorkflowTestHelper.CreateRequest(startAt: startAt);
 
-        var workflow = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request, metadata);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
 
         Assert.NotNull(workflow.StartAt);
         Assert.Equal(startAt.ToUnixTimeSeconds(), workflow.StartAt.Value.ToUnixTimeSeconds());
@@ -362,16 +299,15 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetActiveWorkflows_IncludesRequeuedStep()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
-        var repo = fixture.CreateRepository(context);
+        var repo = fixture.CreateRepository();
         var (request, metadata) = WorkflowTestHelper.CreateRequest();
-        var workflow = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request, metadata);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
         var step = workflow.Steps[0];
         step.Status = PersistentItemStatus.Requeued;
         await repo.UpdateStep(step, cancellationToken: TestContext.Current.CancellationToken);
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var active = await queryRepo.GetActiveWorkflows(TestContext.Current.CancellationToken);
 
@@ -383,26 +319,21 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetScheduledWorkflows_ReturnsFutureDated()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
         var (futureRequest, futureMetadata) = WorkflowTestHelper.CreateRequest(
             startAt: DateTimeOffset.UtcNow.AddHours(1)
         );
-        var futureWorkflow = await WorkflowTestHelper.EnqueueWorkflow(
-            npgsqlRepo,
-            context,
-            futureRequest,
-            futureMetadata
-        );
+        var futureWorkflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, futureRequest, futureMetadata);
         var (immediateRequest, immediateMetadata) = WorkflowTestHelper.CreateRequest();
         var immediateWorkflow = await WorkflowTestHelper.EnqueueWorkflow(
-            npgsqlRepo,
+            repo,
             context,
             immediateRequest,
             immediateMetadata
         );
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
 
@@ -415,21 +346,21 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetScheduledWorkflows_ReturnsWorkflowBlockedByDependency()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
 
         // A: Enqueued (non-terminal) — its dependents should appear as scheduled
         var (requestA, metadataA) = WorkflowTestHelper.CreateRequest();
-        var workflowA = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, requestA, metadataA);
+        var workflowA = await WorkflowTestHelper.EnqueueWorkflow(repo, context, requestA, metadataA);
 
         // B: depends on A (blocked by non-terminal dependency)
         var (requestB, metadataB) = WorkflowTestHelper.CreateRequest(
             instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, requestB, metadataB);
+        var workflowB = await WorkflowTestHelper.EnqueueWorkflow(repo, context, requestB, metadataB);
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
 
@@ -440,14 +371,10 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetScheduledWorkflows_ExcludesTerminalDependency()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
 
         // A: Completed (terminal) — dependents should NOT be blocked
-        var workflowA = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
-            context,
-            PersistentItemStatus.Completed
-        );
+        var workflowA = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed);
 
         // B: depends on A (dependency is terminal, no future StartAt)
         await using var context2 = fixture.CreateDbContext();
@@ -455,10 +382,10 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             instanceGuid: workflowA.InstanceInformation.InstanceGuid,
             dependencies: [workflowA.DatabaseId]
         );
-        var workflowB = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context2, requestB, metadataB);
+        var workflowB = await WorkflowTestHelper.EnqueueWorkflow(repo, context2, requestB, metadataB);
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
         var active = await queryRepo.GetActiveWorkflows(TestContext.Current.CancellationToken);
@@ -471,12 +398,11 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task CountActiveWorkflows_ReturnsCorrectCount()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
-        var repo = fixture.CreateRepository(context);
+        var repo = fixture.CreateRepository();
 
-        await WorkflowTestHelper.InsertAndSetStatus(npgsqlRepo, context, PersistentItemStatus.Enqueued);
-        await WorkflowTestHelper.InsertAndSetStatus(npgsqlRepo, context, PersistentItemStatus.Processing);
-        var terminal = await WorkflowTestHelper.InsertAndSetStatus(npgsqlRepo, context, PersistentItemStatus.Completed);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Processing);
+        var terminal = await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed);
         foreach (var step in terminal.Steps)
         {
             step.Status = PersistentItemStatus.Completed;
@@ -484,7 +410,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         }
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var count = await queryRepo.CountActiveWorkflows(TestContext.Current.CancellationToken);
 
@@ -495,16 +421,16 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task CountFailedWorkflows_ReturnsCorrectCount()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
 
-        await WorkflowTestHelper.InsertAndSetStatus(npgsqlRepo, context, PersistentItemStatus.Failed);
-        await WorkflowTestHelper.InsertAndSetStatus(npgsqlRepo, context, PersistentItemStatus.Requeued);
-        await WorkflowTestHelper.InsertAndSetStatus(npgsqlRepo, context, PersistentItemStatus.DependencyFailed);
-        await WorkflowTestHelper.InsertAndSetStatus(npgsqlRepo, context, PersistentItemStatus.Completed);
-        await WorkflowTestHelper.InsertAndSetStatus(npgsqlRepo, context, PersistentItemStatus.Enqueued);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Failed);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Requeued);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.DependencyFailed);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued);
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var count = await queryRepo.CountFailedWorkflows(TestContext.Current.CancellationToken);
 
@@ -515,31 +441,31 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task CountScheduledWorkflows_ReturnsCorrectCount()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
 
         // Can start immediately (no scheduling, no dependencies)
         var (parentRequest, parentMetadata) = WorkflowTestHelper.CreateRequest();
-        var parent = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, parentRequest, parentMetadata);
+        var parent = await WorkflowTestHelper.EnqueueWorkflow(repo, context, parentRequest, parentMetadata);
 
         // Have to wait for either dependencies, start time, or both
         var (futureReq, futureMeta) = WorkflowTestHelper.CreateRequest(startAt: DateTimeOffset.UtcNow.AddHours(1));
-        await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, futureReq, futureMeta);
+        await WorkflowTestHelper.EnqueueWorkflow(repo, context, futureReq, futureMeta);
 
         var (depReq, depMeta) = WorkflowTestHelper.CreateRequest(
             instanceGuid: parent.InstanceInformation.InstanceGuid,
             dependencies: [parent.DatabaseId]
         );
-        await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, depReq, depMeta);
+        await WorkflowTestHelper.EnqueueWorkflow(repo, context, depReq, depMeta);
 
         var (bothReq, bothMeta) = WorkflowTestHelper.CreateRequest(
             instanceGuid: parent.InstanceInformation.InstanceGuid,
             startAt: DateTimeOffset.UtcNow.AddHours(2),
             dependencies: [parent.DatabaseId]
         );
-        await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, bothReq, bothMeta);
+        await WorkflowTestHelper.EnqueueWorkflow(repo, context, bothReq, bothMeta);
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var count = await queryRepo.CountScheduledWorkflows(TestContext.Current.CancellationToken);
 
@@ -551,7 +477,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     {
         // Arrange: create two workflows via npgsql enqueue
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
 
         var request1 = new WorkflowRequest
         {
@@ -575,7 +501,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             TraceContext: null,
             InstanceLockKey: null
         );
-        var workflow1 = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request1, metadata1);
+        var workflow1 = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request1, metadata1);
 
         var request2 = new WorkflowRequest
         {
@@ -595,7 +521,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             TraceContext: null,
             InstanceLockKey: null
         );
-        var workflow2 = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request2, metadata2);
+        var workflow2 = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request2, metadata2);
 
         // Act: mutate in-memory state and call the new batch method
         workflow1.Status = PersistentItemStatus.Completed;
@@ -619,7 +545,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             new(workflow2, [step2a]),
         };
 
-        await npgsqlRepo.BatchUpdateWorkflowsAndSteps(updates, TestContext.Current.CancellationToken);
+        await repo.BatchUpdateWorkflowsAndSteps(updates, TestContext.Current.CancellationToken);
 
         // Assert: verify all changes persisted
         var dbWorkflow1 = await fixture.GetWorkflow(workflow1.DatabaseId);
@@ -656,36 +582,36 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetSuccessfulWorkflows_ReturnsOnlyCompleted()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
         var instanceGuid = Guid.NewGuid();
 
         var completed = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Completed,
             instanceGuid: instanceGuid
         );
         var failed = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Failed,
             instanceGuid: instanceGuid
         );
         var enqueued = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Enqueued,
             instanceGuid: instanceGuid
         );
         var depFailed = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.DependencyFailed,
             instanceGuid: instanceGuid
         );
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var results = await queryRepo.GetFinishedWorkflows(
             PersistentItemStatusMap.Successful.ToList(),
@@ -703,7 +629,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task ToDomainModel_Step_ConvertsCorrectly()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
         var instanceGuid = Guid.NewGuid();
         var retryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(2),
@@ -743,7 +669,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             InstanceLockKey: null
         );
 
-        var workflow = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request, metadata);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
 
         // Fetch from DB via a fresh context to ensure full round-trip through EF
         var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
@@ -788,24 +714,23 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetDistinctOrgsAndApps_ReturnsUniqueOrgAppPairs()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
-        var repo = fixture.CreateRepository(context);
+        var repo = fixture.CreateRepository();
 
         // Insert workflows across multiple (org, app) combinations, including duplicates
-        await WorkflowTestHelper.InsertAndSetStatus(npgsqlRepo, context, PersistentItemStatus.Completed); // ttd / test-app (default)
-        await WorkflowTestHelper.InsertAndSetStatus(npgsqlRepo, context, PersistentItemStatus.Completed); // ttd / test-app (duplicate)
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed); // ttd / test-app (default)
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed); // ttd / test-app (duplicate)
 
         var (req2, meta2) = WorkflowTestHelper.CreateRequest(org: "digdir", app: "beta-app");
-        await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, req2, meta2);
+        await WorkflowTestHelper.EnqueueWorkflow(repo, context, req2, meta2);
 
         var (req3, meta3) = WorkflowTestHelper.CreateRequest(org: "ttd", app: "other-app");
-        await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, req3, meta3);
+        await WorkflowTestHelper.EnqueueWorkflow(repo, context, req3, meta3);
 
         var (req4, meta4) = WorkflowTestHelper.CreateRequest(org: "digdir", app: "beta-app");
-        await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, req4, meta4);
+        await WorkflowTestHelper.EnqueueWorkflow(repo, context, req4, meta4);
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var pairs = await queryRepo.GetDistinctOrgsAndApps(TestContext.Current.CancellationToken);
 
@@ -820,13 +745,12 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetWorkflow_ByIdempotencyKey_ReturnsMatch()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
-        var repo = fixture.CreateRepository(context);
+        var repo = fixture.CreateRepository();
         var (request, metadata) = WorkflowTestHelper.CreateRequest();
-        var workflow = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request, metadata);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var found = await queryRepo.GetWorkflow(
             workflow.IdempotencyKey,
@@ -845,13 +769,12 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetWorkflow_ByIdempotencyKey_NoMatch_ReturnsNull()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
-        var repo = fixture.CreateRepository(context);
+        var repo = fixture.CreateRepository();
         var (request, metadata) = WorkflowTestHelper.CreateRequest();
-        var workflow = await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, request, metadata);
+        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         // Wrong key
         var wrongKey = await queryRepo.GetWorkflow(
@@ -874,14 +797,14 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetFinishedWorkflowsWithCount_ReturnsWorkflowsAndTotalCount()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
+        var repo = fixture.CreateRepository();
         var instanceGuid = Guid.NewGuid();
 
         // Insert 4 completed workflows and 1 failed
         for (int i = 0; i < 4; i++)
         {
             await WorkflowTestHelper.InsertAndSetStatus(
-                npgsqlRepo,
+                repo,
                 context,
                 PersistentItemStatus.Completed,
                 instanceGuid: instanceGuid
@@ -889,14 +812,14 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         }
 
         await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Failed,
             instanceGuid: instanceGuid
         );
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         // Page of 2 from completed workflows
         var statuses = PersistentItemStatusMap.Successful.ToList();
@@ -915,12 +838,11 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     public async Task GetFinishedWorkflowsWithCount_FiltersCorrectly()
     {
         await using var context = fixture.CreateDbContext();
-        var npgsqlRepo = fixture.CreateNpgsqlRepository();
-        var repo = fixture.CreateRepository(context);
+        var repo = fixture.CreateRepository();
 
         // InsertAndSetStatus sets DB status via raw SQL. We also call UpdateWorkflow to set UpdatedAt.
         var wf1 = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Completed,
             org: "org-a",
@@ -930,7 +852,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await repo.UpdateWorkflow(wf1, cancellationToken: TestContext.Current.CancellationToken);
 
         var wf2 = await WorkflowTestHelper.InsertAndSetStatus(
-            npgsqlRepo,
+            repo,
             context,
             PersistentItemStatus.Completed,
             org: "org-b",
@@ -940,7 +862,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await repo.UpdateWorkflow(wf2, cancellationToken: TestContext.Current.CancellationToken);
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateRepository();
 
         var statuses = PersistentItemStatusMap.Successful.ToList();
 

@@ -6,7 +6,7 @@ using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Data.Repository;
 
-internal partial class EnginePgRepository
+internal sealed partial class EngineRepository
 {
     private async Task ExecuteWithRetry(
         Func<CancellationToken, Task> operation,
@@ -15,33 +15,30 @@ internal partial class EnginePgRepository
     )
     {
         using CancellationTokenSource dbTokenSource = CreateDbTokenSource(cancellationToken);
-        await _settings.DatabaseRetryStrategy.Execute(
+        await settings.Value.DatabaseRetryStrategy.Execute(
             operation,
             () => Metrics.DbOperationsSucceeded.Add(1),
             RetryErrorHandler,
-            _timeProvider,
-            _logger,
+            timeProvider,
+            logger,
             dbTokenSource.Token,
             operationName
         );
     }
 
-    // Keep this unused method for now, we will probably need it later
-#pragma warning disable S1144
     private async Task<T> ExecuteWithRetry<T>(
-#pragma warning restore S1144
         Func<CancellationToken, Task<T>> operation,
         CancellationToken cancellationToken = default,
         [CallerMemberName] string operationName = ""
     )
     {
         using CancellationTokenSource dbTokenSource = CreateDbTokenSource(cancellationToken);
-        return await _settings.DatabaseRetryStrategy.Execute(
+        return await settings.Value.DatabaseRetryStrategy.Execute(
             operation,
             (_) => Metrics.DbOperationsSucceeded.Add(1),
             RetryErrorHandler,
-            _timeProvider,
-            _logger,
+            timeProvider,
+            logger,
             dbTokenSource.Token,
             operationName
         );
@@ -84,7 +81,7 @@ internal partial class EnginePgRepository
     private CancellationTokenSource CreateDbTokenSource(CancellationToken cancellationToken)
     {
         CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(_settings.DatabaseCommandTimeout);
+        cts.CancelAfter(settings.Value.DatabaseCommandTimeout);
 
         return cts;
     }

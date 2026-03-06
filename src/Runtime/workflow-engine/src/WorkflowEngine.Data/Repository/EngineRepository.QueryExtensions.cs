@@ -9,7 +9,7 @@ namespace WorkflowEngine.Data.Repository;
 // EFCore deals with nullable props appropriately
 #pragma warning disable CS8604
 
-internal static class EnginePgRepositoryQueries
+internal static class EngineRepositoryQueryExtensions
 {
     extension(EngineDbContext dbContext)
     {

@@ -1,11 +1,9 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Npgsql;
 using NpgsqlTypes;
 using WorkflowEngine.Data.Constants;
-using WorkflowEngine.Data.Context;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -16,20 +14,106 @@ using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Data.Repository;
 
-internal sealed class EngineNpgsqlRepository(
-    NpgsqlDataSource dataSource,
-    TimeProvider timeProvider,
-    ILogger<EngineNpgsqlRepository> logger,
-    IDbContextFactory<EngineDbContext> _dbContextFactory
-) : IEngineNpgsqlRepository
+internal sealed partial class EngineRepository
 {
     /// <inheritdoc/>
-    public async Task<BatchEnqueueResult[]> BatchEnqueueWorkflowsAsync(
-        List<BufferedEnqueueRequest> requests,
-        CancellationToken ct
+    public async Task UpdateWorkflow(
+        Workflow workflow,
+        bool updateTimestamp = true,
+        CancellationToken cancellationToken = default
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineNpgsqlRepository.BatchEnqueueWorkflows");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.UpdateWorkflow");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.UpdatingWorkflow(workflow);
+            workflow.UpdatedAt = updateTimestamp ? timeProvider.GetUtcNow() : workflow.UpdatedAt;
+
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var context = await dbContextFactory.CreateDbContextAsync(ct);
+                    await context
+                        .Workflows.Where(t => t.Id == workflow.DatabaseId)
+                        .ExecuteUpdateAsync(
+                            setters =>
+                                setters
+                                    .SetProperty(t => t.Status, workflow.Status)
+                                    .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt)
+                                    .SetProperty(t => t.EngineTraceId, workflow.EngineTraceContext),
+                            ct
+                        );
+                },
+                cancellationToken
+            );
+
+            logger.SuccessfullyUpdatedWorkflow(workflow);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToUpdateWorkflow(workflow.OperationId, workflow.DatabaseId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task UpdateStep(Step step, bool updateTimestamp = true, CancellationToken cancellationToken = default)
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.UpdateStep");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.UpdatingStep(step);
+            step.UpdatedAt = updateTimestamp ? timeProvider.GetUtcNow() : step.UpdatedAt;
+
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var context = await dbContextFactory.CreateDbContextAsync(ct);
+                    await context
+                        .Steps.Where(t => t.Id == step.DatabaseId)
+                        .ExecuteUpdateAsync(
+                            setters =>
+                                setters
+                                    .SetProperty(t => t.Status, step.Status)
+                                    .SetProperty(t => t.BackoffUntil, step.BackoffUntil)
+                                    .SetProperty(t => t.RequeueCount, step.RequeueCount)
+                                    .SetProperty(t => t.UpdatedAt, step.UpdatedAt),
+                            ct
+                        );
+                },
+                cancellationToken
+            );
+
+            logger.SuccessfullyUpdatedStep(step);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToUpdateStep(step.OperationId, step.DatabaseId, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<BatchEnqueueResult[]> BatchEnqueueWorkflowsAsync(
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        CancellationToken cancellationToken
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchEnqueueWorkflowsAsync");
 
         var results = new BatchEnqueueResult[requests.Count];
 
@@ -67,8 +151,8 @@ internal sealed class EngineNpgsqlRepository(
 
         var now = timeProvider.GetUtcNow();
 
-        await using var conn = await dataSource.OpenConnectionAsync(ct);
-        await using var tx = await conn.BeginTransactionAsync(ct);
+        await using var conn = await dataSource.OpenConnectionAsync(cancellationToken);
+        await using var tx = await conn.BeginTransactionAsync(cancellationToken);
 
         try
         {
@@ -103,8 +187,8 @@ internal sealed class EngineNpgsqlRepository(
                 cmd.Parameters.Add(new NpgsqlParameter<string[]>("wfIdTexts", idempWfIdTexts));
                 cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
 
-                await using var reader = await cmd.ExecuteReaderAsync(ct);
-                while (await reader.ReadAsync(ct))
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
                     insertedIndices.Add(reader.GetInt32(0));
             }
 
@@ -147,8 +231,8 @@ internal sealed class EngineNpgsqlRepository(
                     cmd.Parameters.Add(new NpgsqlParameter<int[]>("ownerPartyIds", existOwnerIds));
                     cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("instanceGuids", existInstGuids));
 
-                    await using var reader = await cmd.ExecuteReaderAsync(ct);
-                    while (await reader.ReadAsync(ct))
+                    await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+                    while (await reader.ReadAsync(cancellationToken))
                     {
                         var key = (
                             reader.GetString(0),
@@ -223,8 +307,8 @@ internal sealed class EngineNpgsqlRepository(
                         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", extIds));
                         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("instanceGuids", extInstanceGuids));
 
-                        await using var reader = await cmd.ExecuteReaderAsync(ct);
-                        while (await reader.ReadAsync(ct))
+                        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+                        while (await reader.ReadAsync(cancellationToken))
                             verifiedPairs.Add((reader.GetGuid(0), reader.GetGuid(1)));
                     }
 
@@ -271,7 +355,7 @@ internal sealed class EngineNpgsqlRepository(
                         cmd.Parameters.Add(new NpgsqlParameter<string[]>("apps", delApps));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("ownerPartyIds", delOwnerIds));
                         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("instanceGuids", delInstGuids));
-                        await cmd.ExecuteNonQueryAsync(ct);
+                        await cmd.ExecuteNonQueryAsync(cancellationToken);
                     }
                 }
             }
@@ -291,12 +375,12 @@ internal sealed class EngineNpgsqlRepository(
 
                 // Flatten workflow IDs
                 var workflowIds = new Guid[totalNewWorkflows];
-                int wi = 0;
+                int workflowOffset = 0;
                 foreach (var reqIdx in newRequestIndices)
                 {
                     var ids = perRequestWorkflowIds[reqIdx];
-                    Array.Copy(ids, 0, workflowIds, wi, ids.Length);
-                    wi += ids.Length;
+                    Array.Copy(ids, 0, workflowIds, workflowOffset, ids.Length);
+                    workflowOffset += ids.Length;
                 }
 
                 var stepIds = new Guid[totalNewSteps];
@@ -316,7 +400,7 @@ internal sealed class EngineNpgsqlRepository(
                     string? metadata
                 )>(totalNewSteps);
 
-                wi = 0;
+                workflowOffset = 0;
                 foreach (var reqIdx in newRequestIndices)
                 {
                     var req = requests[reqIdx];
@@ -327,7 +411,7 @@ internal sealed class EngineNpgsqlRepository(
                         {
                             stepEntries.Add(
                                 (
-                                    wi,
+                                    workflowOffset,
                                     step.Command.OperationId,
                                     $"{req.Request.IdempotencyKey}/{step.Command}",
                                     order++,
@@ -341,7 +425,7 @@ internal sealed class EngineNpgsqlRepository(
                                 )
                             );
                         }
-                        wi++;
+                        workflowOffset++;
                     }
                 }
 
@@ -356,11 +440,11 @@ internal sealed class EngineNpgsqlRepository(
                             "TraceContext", "MetadataJson", "EngineTraceId", "InitialState"
                         ) FROM STDIN (FORMAT BINARY)
                         """,
-                        ct
+                        cancellationToken
                     )
                 )
                 {
-                    wi = 0;
+                    workflowOffset = 0;
                     foreach (var reqIdx in newRequestIndices)
                     {
                         var req = requests[reqIdx];
@@ -368,58 +452,70 @@ internal sealed class EngineNpgsqlRepository(
 
                         foreach (var wf in req.Request.Workflows)
                         {
-                            await writer.StartRowAsync(ct);
-                            await writer.WriteAsync(workflowIds[wi], NpgsqlDbType.Uuid, ct); // Id
-                            await writer.WriteAsync(wf.OperationId, NpgsqlDbType.Varchar, ct); // OperationId
-                            await writer.WriteAsync(req.Request.IdempotencyKey, NpgsqlDbType.Text, ct); // IdempotencyKey
+                            await writer.StartRowAsync(cancellationToken);
+                            await writer.WriteAsync(workflowIds[workflowOffset], NpgsqlDbType.Uuid, cancellationToken); // Id
+                            await writer.WriteAsync(wf.OperationId, NpgsqlDbType.Varchar, cancellationToken); // OperationId
+                            await writer.WriteAsync(req.Request.IdempotencyKey, NpgsqlDbType.Text, cancellationToken); // IdempotencyKey
 
                             if (req.Request.LockToken != null) // InstanceLockKey
-                                await writer.WriteAsync(req.Request.LockToken, NpgsqlDbType.Varchar, ct);
+                                await writer.WriteAsync(req.Request.LockToken, NpgsqlDbType.Varchar, cancellationToken);
                             else
-                                await writer.WriteNullAsync(ct);
+                                await writer.WriteNullAsync(cancellationToken);
 
-                            await writer.WriteAsync((int)PersistentItemStatus.Enqueued, NpgsqlDbType.Integer, ct); // Status (integer enum)
-                            await writer.WriteAsync(now, NpgsqlDbType.TimestampTz, ct); // CreatedAt
+                            await writer.WriteAsync(
+                                (int)PersistentItemStatus.Enqueued,
+                                NpgsqlDbType.Integer,
+                                cancellationToken
+                            ); // Status (integer enum)
+                            await writer.WriteAsync(now, NpgsqlDbType.TimestampTz, cancellationToken); // CreatedAt
 
                             if (wf.StartAt.HasValue) // StartAt
-                                await writer.WriteAsync(wf.StartAt.Value, NpgsqlDbType.TimestampTz, ct);
+                                await writer.WriteAsync(wf.StartAt.Value, NpgsqlDbType.TimestampTz, cancellationToken);
                             else
-                                await writer.WriteNullAsync(ct);
+                                await writer.WriteNullAsync(cancellationToken);
 
-                            await writer.WriteAsync(req.Request.Actor.UserIdOrOrgNumber, NpgsqlDbType.Varchar, ct); // ActorUserIdOrOrgNumber
+                            await writer.WriteAsync(
+                                req.Request.Actor.UserIdOrOrgNumber,
+                                NpgsqlDbType.Varchar,
+                                cancellationToken
+                            ); // ActorUserIdOrOrgNumber
 
                             if (req.Request.Actor.Language != null) // ActorLanguage
-                                await writer.WriteAsync(req.Request.Actor.Language, NpgsqlDbType.Varchar, ct);
+                                await writer.WriteAsync(
+                                    req.Request.Actor.Language,
+                                    NpgsqlDbType.Varchar,
+                                    cancellationToken
+                                );
                             else
-                                await writer.WriteNullAsync(ct);
+                                await writer.WriteNullAsync(cancellationToken);
 
-                            await writer.WriteAsync(info.Org, NpgsqlDbType.Varchar, ct); // InstanceOrg
-                            await writer.WriteAsync(info.App, NpgsqlDbType.Varchar, ct); // InstanceApp
-                            await writer.WriteAsync(info.InstanceOwnerPartyId, NpgsqlDbType.Integer, ct); // InstanceOwnerPartyId
-                            await writer.WriteAsync(info.InstanceGuid, NpgsqlDbType.Uuid, ct); // InstanceGuid
+                            await writer.WriteAsync(info.Org, NpgsqlDbType.Varchar, cancellationToken); // InstanceOrg
+                            await writer.WriteAsync(info.App, NpgsqlDbType.Varchar, cancellationToken); // InstanceApp
+                            await writer.WriteAsync(info.InstanceOwnerPartyId, NpgsqlDbType.Integer, cancellationToken); // InstanceOwnerPartyId
+                            await writer.WriteAsync(info.InstanceGuid, NpgsqlDbType.Uuid, cancellationToken); // InstanceGuid
 
                             if (req.Metadata.TraceContext != null) // TraceContext
-                                await writer.WriteAsync(req.Metadata.TraceContext, NpgsqlDbType.Varchar, ct);
+                                await writer.WriteAsync(req.Metadata.TraceContext, NpgsqlDbType.Varchar, cancellationToken);
                             else
-                                await writer.WriteNullAsync(ct);
+                                await writer.WriteNullAsync(cancellationToken);
 
                             if (wf.Metadata != null) // MetadataJson
-                                await writer.WriteAsync(wf.Metadata, NpgsqlDbType.Jsonb, ct);
+                                await writer.WriteAsync(wf.Metadata, NpgsqlDbType.Jsonb, cancellationToken);
                             else
-                                await writer.WriteNullAsync(ct);
+                                await writer.WriteNullAsync(cancellationToken);
 
-                            await writer.WriteNullAsync(ct); // EngineTraceId (null at creation)
+                            await writer.WriteNullAsync(cancellationToken); // EngineTraceId (null at creation)
 
                             if (wf.State != null) // InitialState
-                                await writer.WriteAsync(wf.State, NpgsqlDbType.Text, ct);
+                                await writer.WriteAsync(wf.State, NpgsqlDbType.Text, cancellationToken);
                             else
-                                await writer.WriteNullAsync(ct);
+                                await writer.WriteNullAsync(cancellationToken);
 
-                            wi++;
+                            workflowOffset++;
                         }
                     }
 
-                    await writer.CompleteAsync(ct);
+                    await writer.CompleteAsync(cancellationToken);
                 }
 
                 // -- COPY steps (with engine-specific columns) --
@@ -435,9 +531,9 @@ internal sealed class EngineNpgsqlRepository(
                             "StateOut", "JobId"
                         ) FROM STDIN (FORMAT BINARY)
                         """,
-                        ct
+                        cancellationToken
                     );
-                    for (int si = 0; si < stepEntries.Count; si++)
+                    for (int stepIndex = 0; stepIndex < stepEntries.Count; stepIndex++)
                     {
                         var (
                             workflowIndex,
@@ -449,41 +545,45 @@ internal sealed class EngineNpgsqlRepository(
                             commandJson,
                             retryJson,
                             metadata
-                        ) = stepEntries[si];
+                        ) = stepEntries[stepIndex];
 
-                        await writer.StartRowAsync(ct);
-                        await writer.WriteAsync(stepIds[si], NpgsqlDbType.Uuid, ct); // Id
-                        await writer.WriteAsync(operationId, NpgsqlDbType.Varchar, ct); // OperationId
-                        await writer.WriteAsync(idempotencyKey, NpgsqlDbType.Text, ct); // IdempotencyKey
-                        await writer.WriteAsync((int)PersistentItemStatus.Enqueued, NpgsqlDbType.Integer, ct); // Status
-                        await writer.WriteAsync(now, NpgsqlDbType.TimestampTz, ct); // CreatedAt
-                        await writer.WriteAsync(order, NpgsqlDbType.Integer, ct); // ProcessingOrder
-                        await writer.WriteNullAsync(ct); // BackoffUntil (null at creation)
-                        await writer.WriteAsync(0, NpgsqlDbType.Integer, ct); // RequeueCount (0 at creation)
-                        await writer.WriteAsync(actorUserId, NpgsqlDbType.Varchar, ct); // ActorUserIdOrOrgNumber
+                        await writer.StartRowAsync(cancellationToken);
+                        await writer.WriteAsync(stepIds[stepIndex], NpgsqlDbType.Uuid, cancellationToken); // Id
+                        await writer.WriteAsync(operationId, NpgsqlDbType.Varchar, cancellationToken); // OperationId
+                        await writer.WriteAsync(idempotencyKey, NpgsqlDbType.Text, cancellationToken); // IdempotencyKey
+                        await writer.WriteAsync(
+                            (int)PersistentItemStatus.Enqueued,
+                            NpgsqlDbType.Integer,
+                            cancellationToken
+                        ); // Status
+                        await writer.WriteAsync(now, NpgsqlDbType.TimestampTz, cancellationToken); // CreatedAt
+                        await writer.WriteAsync(order, NpgsqlDbType.Integer, cancellationToken); // ProcessingOrder
+                        await writer.WriteNullAsync(cancellationToken); // BackoffUntil (null at creation)
+                        await writer.WriteAsync(0, NpgsqlDbType.Integer, cancellationToken); // RequeueCount (0 at creation)
+                        await writer.WriteAsync(actorUserId, NpgsqlDbType.Varchar, cancellationToken); // ActorUserIdOrOrgNumber
 
                         if (actorLanguage != null) // ActorLanguage
-                            await writer.WriteAsync(actorLanguage, NpgsqlDbType.Varchar, ct);
+                            await writer.WriteAsync(actorLanguage, NpgsqlDbType.Varchar, cancellationToken);
                         else
-                            await writer.WriteNullAsync(ct);
+                            await writer.WriteNullAsync(cancellationToken);
 
-                        await writer.WriteAsync(commandJson, NpgsqlDbType.Jsonb, ct); // CommandJson
+                        await writer.WriteAsync(commandJson, NpgsqlDbType.Jsonb, cancellationToken); // CommandJson
 
                         if (retryJson != null) // RetryStrategyJson
-                            await writer.WriteAsync(retryJson, NpgsqlDbType.Jsonb, ct);
+                            await writer.WriteAsync(retryJson, NpgsqlDbType.Jsonb, cancellationToken);
                         else
-                            await writer.WriteNullAsync(ct);
+                            await writer.WriteNullAsync(cancellationToken);
 
                         if (metadata != null) // MetadataJson
-                            await writer.WriteAsync(metadata, NpgsqlDbType.Jsonb, ct);
+                            await writer.WriteAsync(metadata, NpgsqlDbType.Jsonb, cancellationToken);
                         else
-                            await writer.WriteNullAsync(ct);
+                            await writer.WriteNullAsync(cancellationToken);
 
-                        await writer.WriteNullAsync(ct); // StateOut (null at creation)
-                        await writer.WriteAsync(workflowIds[workflowIndex], NpgsqlDbType.Uuid, ct); // JobId (FK)
+                        await writer.WriteNullAsync(cancellationToken); // StateOut (null at creation)
+                        await writer.WriteAsync(workflowIds[workflowIndex], NpgsqlDbType.Uuid, cancellationToken); // JobId (FK)
                     }
 
-                    await writer.CompleteAsync(ct);
+                    await writer.CompleteAsync(cancellationToken);
                 }
 
                 // -- COPY workflow dependencies and links --
@@ -533,34 +633,34 @@ internal sealed class EngineNpgsqlRepository(
                 {
                     await using var depWriter = await conn.BeginBinaryImportAsync(
                         """COPY "WorkflowDependency" ("WorkflowId", "DependsOnWorkflowId") FROM STDIN (FORMAT BINARY)""",
-                        ct
+                        cancellationToken
                     );
 
                     foreach (var (workflowId, dependencyId) in depEdges)
                     {
-                        await depWriter.StartRowAsync(ct);
-                        await depWriter.WriteAsync(workflowId, NpgsqlDbType.Uuid, ct);
-                        await depWriter.WriteAsync(dependencyId, NpgsqlDbType.Uuid, ct);
+                        await depWriter.StartRowAsync(cancellationToken);
+                        await depWriter.WriteAsync(workflowId, NpgsqlDbType.Uuid, cancellationToken);
+                        await depWriter.WriteAsync(dependencyId, NpgsqlDbType.Uuid, cancellationToken);
                     }
 
-                    await depWriter.CompleteAsync(ct);
+                    await depWriter.CompleteAsync(cancellationToken);
                 }
 
                 if (linkEdges.Count > 0)
                 {
                     await using var linkWriter = await conn.BeginBinaryImportAsync(
                         """COPY "WorkflowLink" ("WorkflowId", "LinkedWorkflowId") FROM STDIN (FORMAT BINARY)""",
-                        ct
+                        cancellationToken
                     );
 
                     foreach (var (workflowId, linkId) in linkEdges)
                     {
-                        await linkWriter.StartRowAsync(ct);
-                        await linkWriter.WriteAsync(workflowId, NpgsqlDbType.Uuid, ct);
-                        await linkWriter.WriteAsync(linkId, NpgsqlDbType.Uuid, ct);
+                        await linkWriter.StartRowAsync(cancellationToken);
+                        await linkWriter.WriteAsync(workflowId, NpgsqlDbType.Uuid, cancellationToken);
+                        await linkWriter.WriteAsync(linkId, NpgsqlDbType.Uuid, cancellationToken);
                     }
 
-                    await linkWriter.CompleteAsync(ct);
+                    await linkWriter.CompleteAsync(cancellationToken);
                 }
 
                 // Set results for new requests
@@ -568,14 +668,18 @@ internal sealed class EngineNpgsqlRepository(
                     results[reqIdx] = BatchEnqueueResult.Created(perRequestWorkflowIds[reqIdx]);
             }
 
-            await tx.CommitAsync(ct);
+            await tx.CommitAsync(cancellationToken);
 
             Metrics.DbOperationsSucceeded.Add(1);
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
         {
             activity?.Errored(ex);
-            logger.LogError(ex, "Failed to batch enqueue workflows: {Message}", ex.Message);
+            logger.FailedToBatchEnqueueWorkflows(ex.Message, ex);
             throw;
         }
 
@@ -583,13 +687,14 @@ internal sealed class EngineNpgsqlRepository(
     }
 
     /// <inheritdoc/>
-    public async Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken ct)
+    public async Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken)
     {
-        using var activity = Metrics.Source.StartActivity("EngineNpgsqlRepository.FetchAndLockWorkflows");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.FetchAndLockWorkflows");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         var now = timeProvider.GetUtcNow();
 
-        using var context = await _dbContextFactory.CreateDbContextAsync(ct);
+        await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         // TODO: Check BackoffUntil?
         var ids = await context
@@ -616,7 +721,7 @@ internal sealed class EngineNpgsqlRepository(
                 RETURNING "Id"
                 """
             )
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         if (ids.Count == 0)
         {
@@ -625,10 +730,11 @@ internal sealed class EngineNpgsqlRepository(
 
         var entities = await context
             .Workflows.AsNoTracking()
+            .AsSplitQuery()
             .Include(w => w.Steps.OrderBy(s => s.ProcessingOrder))
             .Include(w => w.Dependencies)
             .Where(w => ids.Contains(w.Id))
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         var workflows = entities.Select(x => x.ToDomainModel()).ToList();
 
@@ -638,13 +744,17 @@ internal sealed class EngineNpgsqlRepository(
     }
 
     /// <inheritdoc/>
-    public async Task BatchUpdateWorkflowStatuses(List<WorkflowResult> results, CancellationToken ct)
+    public async Task BatchUpdateWorkflowStatuses(
+        IReadOnlyList<WorkflowResult> results,
+        CancellationToken cancellationToken
+    )
     {
         if (results.Count == 0)
             return;
 
-        using var activity = Metrics.Source.StartActivity("EngineNpgsqlRepository.BatchUpdateWorkflowStatuses");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateWorkflowStatuses");
 
+        var now = timeProvider.GetUtcNow();
         var ids = results.Select(r => r.WorkflowId).ToArray();
         var statuses = results.Select(r => (int)r.Status).ToArray();
 
@@ -652,245 +762,170 @@ internal sealed class EngineNpgsqlRepository(
         const string sql = """
             UPDATE "Workflows" AS w
             SET "Status"     = v.status,
-                "UpdatedAt"  = now()
+                "UpdatedAt"  = v.now
             FROM unnest(@ids, @statuses) AS v(id, status)
             WHERE w."Id" = v.id
             """;
 
         try
         {
-            await using var conn = await dataSource.OpenConnectionAsync(ct);
-            await using var cmd = new NpgsqlCommand(sql, conn);
-            cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
-            cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", statuses));
-            await cmd.ExecuteNonQueryAsync(ct);
-
-            Metrics.DbOperationsSucceeded.Add(1);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            activity?.Errored(ex);
-            logger.LogError(ex, "Failed to batch update workflow statuses: {Message}", ex.Message);
-            throw;
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task BatchUpdateWorkflowAndSteps(Workflow workflow, IReadOnlyList<Step> steps, CancellationToken ct)
-    {
-        using var activity = Metrics.Source.StartActivity("EngineNpgsqlRepository.BatchUpdateWorkflowAndSteps");
-
-        var now = timeProvider.GetUtcNow();
-
-        try
-        {
-            await using var conn = await dataSource.OpenConnectionAsync(ct);
-            await using var tx = await conn.BeginTransactionAsync(ct);
-
-            // Update workflow status, timestamp, and engine trace ID
-            const string updateWorkflowSql = """
-                UPDATE "Workflows"
-                SET "Status" = $2, "UpdatedAt" = $3, "EngineTraceId" = $4
-                WHERE "Id" = $1
-                """;
-
-            await using (var cmd = new NpgsqlCommand(updateWorkflowSql, conn, tx))
-            {
-                cmd.Parameters.AddWithValue(workflow.DatabaseId);
-                cmd.Parameters.AddWithValue((int)workflow.Status);
-                cmd.Parameters.AddWithValue(now);
-                cmd.Parameters.AddWithValue((object?)workflow.EngineTraceContext ?? DBNull.Value);
-                await cmd.ExecuteNonQueryAsync(ct);
-            }
-
-            // Batch update steps using unnest
-            if (steps.Count > 0)
-            {
-                var stepIds = steps.Select(s => s.DatabaseId).ToArray();
-                var stepStatuses = steps.Select(s => (int)s.Status).ToArray();
-                var stepBackoffUntils = steps.Select(s => (object?)s.BackoffUntil ?? DBNull.Value).ToArray();
-                var stepRequeueCounts = steps.Select(s => s.RequeueCount).ToArray();
-                var stepStateOuts = steps.Select(s => (object?)s.StateOut ?? DBNull.Value).ToArray();
-
-                const string updateStepsSql = """
-                    UPDATE "Steps" AS s
-                    SET "Status"       = v.status,
-                        "BackoffUntil" = v.backoff_until,
-                        "RequeueCount" = v.requeue_count,
-                        "StateOut"     = v.state_out,
-                        "UpdatedAt"    = @now
-                    FROM unnest(@ids, @statuses, @backoff_untils, @requeue_counts, @state_outs)
-                        AS v(id, status, backoff_until, requeue_count, state_out)
-                    WHERE s."Id" = v.id
-                    """;
-
-                await using (var cmd = new NpgsqlCommand(updateStepsSql, conn, tx))
+            await ExecuteWithRetry(
+                async ct =>
                 {
-                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", stepIds));
-                    cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", stepStatuses));
-                    cmd.Parameters.Add(
-                        new NpgsqlParameter("backoff_untils", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
-                        {
-                            Value = steps
-                                .Select(s => s.BackoffUntil.HasValue ? (object)s.BackoffUntil.Value : DBNull.Value)
-                                .ToArray(),
-                        }
-                    );
-                    cmd.Parameters.Add(new NpgsqlParameter<int[]>("requeue_counts", stepRequeueCounts));
-                    cmd.Parameters.Add(
-                        new NpgsqlParameter("state_outs", NpgsqlDbType.Array | NpgsqlDbType.Text)
-                        {
-                            Value = steps.Select(s => (object?)s.StateOut ?? DBNull.Value).ToArray(),
-                        }
-                    );
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+                    cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", statuses));
                     cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
                     await cmd.ExecuteNonQueryAsync(ct);
-                }
-            }
-
-            await tx.CommitAsync(ct);
-
-            Metrics.DbOperationsSucceeded.Add(1);
-
-            // Clear pending changes flag
-            foreach (var step in steps)
-                step.HasPendingChanges = false;
+                },
+                cancellationToken
+            );
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
         {
             activity?.Errored(ex);
-            logger.LogError(
-                ex,
-                "Failed to batch update workflow {WorkflowId} and {StepCount} steps: {Message}",
-                workflow.DatabaseId,
-                steps.Count,
-                ex.Message
-            );
+            logger.FailedToBatchUpdateWorkflowStatuses(ex.Message, ex);
             throw;
         }
     }
 
     /// <inheritdoc/>
-    public async Task BatchUpdateWorkflowsAndSteps(List<BatchWorkflowStatusUpdate> updates, CancellationToken ct)
+    public async Task BatchUpdateWorkflowsAndSteps(
+        IReadOnlyList<BatchWorkflowStatusUpdate> updates,
+        CancellationToken cancellationToken
+    )
     {
         if (updates.Count == 0)
         {
             return;
         }
 
-        using var activity = Metrics.Source.StartActivity("EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateWorkflowsAndSteps");
 
         var now = timeProvider.GetUtcNow();
 
         try
         {
-            await using var conn = await dataSource.OpenConnectionAsync(ct);
-            await using var tx = await conn.BeginTransactionAsync(ct);
-
-            // 1. Bulk update all workflows
-            var ids = new Guid[updates.Count];
-            var statuses = new int[updates.Count];
-            var engineTraceIds = new object[updates.Count];
-
-            for (int i = 0; i < updates.Count; i++)
-            {
-                var w = updates[i].Workflow;
-                ids[i] = w.DatabaseId;
-                statuses[i] = (int)w.Status;
-                engineTraceIds[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
-            }
-
-            const string updateWorkflowsSql = """
-                UPDATE "Workflows" AS w
-                SET "Status"        = v.status,
-                    "UpdatedAt"     = @now,
-                    "EngineTraceId" = v.engine_trace_id
-                FROM unnest(@ids, @statuses, @engine_trace_ids)
-                    AS v(id, status, engine_trace_id)
-                WHERE w."Id" = v.id
-                """;
-
-            await using (var cmd = new NpgsqlCommand(updateWorkflowsSql, conn, tx))
-            {
-                cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
-                cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", statuses));
-                cmd.Parameters.Add(
-                    new NpgsqlParameter("engine_trace_ids", NpgsqlDbType.Array | NpgsqlDbType.Text)
-                    {
-                        Value = engineTraceIds,
-                    }
-                );
-                cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-                await cmd.ExecuteNonQueryAsync(ct);
-            }
-
-            // 2. Bulk update all dirty steps across all workflows
-            var allSteps = updates.SelectMany(u => u.DirtySteps).ToList();
-
-            if (allSteps.Count > 0)
-            {
-                var stepIds = new Guid[allSteps.Count];
-                var stepStatuses = new int[allSteps.Count];
-                var stepBackoffUntils = new object[allSteps.Count];
-                var stepRequeueCounts = new int[allSteps.Count];
-                var stepStateOuts = new object[allSteps.Count];
-
-                for (int i = 0; i < allSteps.Count; i++)
+            await ExecuteWithRetry(
+                async ct =>
                 {
-                    var s = allSteps[i];
-                    stepIds[i] = s.DatabaseId;
-                    stepStatuses[i] = (int)s.Status;
-                    stepBackoffUntils[i] = s.BackoffUntil.HasValue ? (object)s.BackoffUntil.Value : DBNull.Value;
-                    stepRequeueCounts[i] = s.RequeueCount;
-                    stepStateOuts[i] = (object?)s.StateOut ?? DBNull.Value;
-                }
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    await using var tx = await conn.BeginTransactionAsync(ct);
 
-                const string updateStepsSql = """
-                    UPDATE "Steps" AS s
-                    SET "Status"       = v.status,
-                        "BackoffUntil" = v.backoff_until,
-                        "RequeueCount" = v.requeue_count,
-                        "StateOut"     = v.state_out,
-                        "UpdatedAt"    = @now
-                    FROM unnest(@ids, @statuses, @backoff_untils, @requeue_counts, @state_outs)
-                        AS v(id, status, backoff_until, requeue_count, state_out)
-                    WHERE s."Id" = v.id
+                    // 1. Bulk update all workflows
+                    var ids = new Guid[updates.Count];
+                    var statuses = new int[updates.Count];
+                    var engineTraceIds = new object[updates.Count];
+
+                    for (int i = 0; i < updates.Count; i++)
+                    {
+                        var w = updates[i].Workflow;
+                        ids[i] = w.DatabaseId;
+                        statuses[i] = (int)w.Status;
+                        engineTraceIds[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
+                    }
+
+                    const string updateWorkflowsSql = """
+                    UPDATE "Workflows" AS w
+                    SET "Status"        = v.status,
+                        "UpdatedAt"     = @now,
+                        "EngineTraceId" = v.engine_trace_id
+                    FROM unnest(@ids, @statuses, @engine_trace_ids)
+                        AS v(id, status, engine_trace_id)
+                    WHERE w."Id" = v.id
                     """;
 
-                await using var cmd = new NpgsqlCommand(updateStepsSql, conn, tx);
-                cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", stepIds));
-                cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", stepStatuses));
-                cmd.Parameters.Add(
-                    new NpgsqlParameter("backoff_untils", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                    await using (var cmd = new NpgsqlCommand(updateWorkflowsSql, conn, tx))
                     {
-                        Value = stepBackoffUntils,
+                        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+                        cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", statuses));
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("engine_trace_ids", NpgsqlDbType.Array | NpgsqlDbType.Text)
+                            {
+                                Value = engineTraceIds,
+                            }
+                        );
+                        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+                        await cmd.ExecuteNonQueryAsync(ct);
                     }
-                );
-                cmd.Parameters.Add(new NpgsqlParameter<int[]>("requeue_counts", stepRequeueCounts));
-                cmd.Parameters.Add(
-                    new NpgsqlParameter("state_outs", NpgsqlDbType.Array | NpgsqlDbType.Text) { Value = stepStateOuts }
-                );
-                cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-                await cmd.ExecuteNonQueryAsync(ct);
-            }
 
-            await tx.CommitAsync(ct);
+                    // 2. Bulk update all dirty steps across all workflows
+                    var allSteps = updates.SelectMany(u => u.DirtySteps).ToList();
 
-            Metrics.DbOperationsSucceeded.Add(1);
+                    if (allSteps.Count > 0)
+                    {
+                        var stepIds = new Guid[allSteps.Count];
+                        var stepStatuses = new int[allSteps.Count];
+                        var stepBackoffUntils = new object[allSteps.Count];
+                        var stepRequeueCounts = new int[allSteps.Count];
+                        var stepStateOuts = new object[allSteps.Count];
 
-            // Clear pending changes flags
-            foreach (var step in allSteps)
-                step.HasPendingChanges = false;
+                        for (int i = 0; i < allSteps.Count; i++)
+                        {
+                            var s = allSteps[i];
+                            stepIds[i] = s.DatabaseId;
+                            stepStatuses[i] = (int)s.Status;
+                            stepBackoffUntils[i] = s.BackoffUntil.HasValue
+                                ? (object)s.BackoffUntil.Value
+                                : DBNull.Value;
+                            stepRequeueCounts[i] = s.RequeueCount;
+                            stepStateOuts[i] = (object?)s.StateOut ?? DBNull.Value;
+                        }
+
+                        const string updateStepsSql = """
+                        UPDATE "Steps" AS s
+                        SET "Status"       = v.status,
+                            "BackoffUntil" = v.backoff_until,
+                            "RequeueCount" = v.requeue_count,
+                            "StateOut"     = v.state_out,
+                            "UpdatedAt"    = @now
+                        FROM unnest(@ids, @statuses, @backoff_untils, @requeue_counts, @state_outs)
+                            AS v(id, status, backoff_until, requeue_count, state_out)
+                        WHERE s."Id" = v.id
+                        """;
+
+                        await using var cmd = new NpgsqlCommand(updateStepsSql, conn, tx);
+                        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", stepIds));
+                        cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", stepStatuses));
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("backoff_untils", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = stepBackoffUntils,
+                            }
+                        );
+                        cmd.Parameters.Add(new NpgsqlParameter<int[]>("requeue_counts", stepRequeueCounts));
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("state_outs", NpgsqlDbType.Array | NpgsqlDbType.Text)
+                            {
+                                Value = stepStateOuts,
+                            }
+                        );
+                        cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+                        await cmd.ExecuteNonQueryAsync(ct);
+
+                        // Clear pending changes flags
+                        foreach (var step in allSteps)
+                            step.HasPendingChanges = false;
+                    }
+
+                    await tx.CommitAsync(ct);
+                },
+                cancellationToken
+            );
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
         {
             activity?.Errored(ex);
-            logger.LogError(
-                ex,
-                "Failed to batch update {WorkflowCount} workflows and steps: {Message}",
-                updates.Count,
-                ex.Message
-            );
+            logger.FailedToBatchUpdateWorkflowsAndSteps(updates.Count, ex.Message, ex);
             throw;
         }
     }
@@ -912,12 +947,12 @@ internal sealed class EngineNpgsqlRepository(
     }
 
     private static Guid? FindMissingExternalRef(
-        BufferedEnqueueRequest req,
+        BufferedEnqueueRequest request,
         HashSet<(Guid id, Guid instanceGuid)> verifiedPairs
     )
     {
-        var instanceGuid = req.Metadata.InstanceInformation.InstanceGuid;
-        foreach (var wf in req.Request.Workflows)
+        var instanceGuid = request.Metadata.InstanceInformation.InstanceGuid;
+        foreach (var wf in request.Request.Workflows)
         {
             var missing =
                 FindMissingInRefs(wf.DependsOn, instanceGuid, verifiedPairs)
