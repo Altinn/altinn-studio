@@ -22,6 +22,7 @@ internal sealed record DashboardStepDto(
 );
 
 internal sealed record DashboardWorkflowDto(
+    Guid Id,
     string IdempotencyKey,
     string OperationId,
     string Status,
@@ -79,6 +80,7 @@ internal static class DashboardMapper
         }
 
         return new(
+            workflow.DatabaseId,
             workflow.IdempotencyKey,
             workflow.OperationId,
             workflow.Status.ToString(),

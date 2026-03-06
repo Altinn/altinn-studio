@@ -26,7 +26,7 @@ export const traceIconHTML = (traceId) => traceLink(traceId, 'Engine trace in Gr
 
 /** @param {import('../core/state.js').Workflow} wf @returns {string} */
 export const stateIconHTML = (wf) =>
-  `<a class="open-btn state-btn" onclick="openStateModal('${esc(wf.idempotencyKey)}','${esc(wf.createdAt)}')" title="View state trail">&#123;&#125;</a>`;
+  `<a class="open-btn state-btn" onclick="openStateModal('${esc(wf.id)}')" title="View state trail">&#123;&#125;</a>`;
 
 /** @param {Event} e @param {string} guid */
 window.copyGuid = async (e, guid) => {
@@ -120,7 +120,7 @@ export const buildCardHTML = (wf, isStatic) => {
   html += `<span class="status-pill ${wf.status}"${isStatic ? ' style="animation:none"' : ''}>${wf.status}</span>`;
   html += buildTimestampsHTML(wf, isStatic);
   if (wf.status === 'Failed') {
-    html += `<button class="retry-btn" onclick="retryWorkflow(event,'${esc(wf.idempotencyKey)}','${esc(wf.createdAt)}')" title="Retry this workflow">&#8635; Retry</button>`;
+    html += `<button class="retry-btn" onclick="retryWorkflow(event,'${esc(wf.id)}')" title="Retry this workflow">&#8635; Retry</button>`;
   }
   html += copyIconHTML(inst.instanceGuid);
   html += openIconHTML(inst);
@@ -150,7 +150,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
   for (const step of wf.steps) {
     const sub = stepSubLabel(step);
     const dotTitle = sub ? `${step.commandDetail} [${sub}] (${step.status})` : `${step.commandDetail} (${step.status})`;
-    html += `<span class="compact-dot ${step.status}" onclick="openStepModal('${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','${esc(wf.createdAt)}')" title="${esc(dotTitle)}"></span>`;
+    html += `<span class="compact-dot ${step.status}" onclick="openStepModal('${esc(wf.id)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}')" title="${esc(dotTitle)}"></span>`;
   }
   html += `</div>`;
 
@@ -158,7 +158,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
   html += `<span class="status-pill ${wf.status} compact-pill">${wf.status}</span>`;
   html += buildTimestampsHTML(wf, isStatic);
   if (wf.status === 'Failed') {
-    html += `<button class="retry-btn compact-retry" onclick="retryWorkflow(event,'${esc(wf.idempotencyKey)}','${esc(wf.createdAt)}')" title="Retry this workflow">&#8635;</button>`;
+    html += `<button class="retry-btn compact-retry" onclick="retryWorkflow(event,'${esc(wf.id)}')" title="Retry this workflow">&#8635;</button>`;
   }
   html += copyIconHTML(inst.instanceGuid);
   html += openIconHTML(inst);

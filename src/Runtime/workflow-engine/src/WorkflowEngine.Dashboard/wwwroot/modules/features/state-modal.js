@@ -3,9 +3,8 @@
 import { dom, engineUrl } from '../core/state.js';
 import { esc, expandJsonStrings, syntaxHighlight } from '../core/helpers.js';
 
-/** Currently open workflow key + createdAt (for refresh) */
-let _openWfKey = '';
-let _openCreatedAt = '';
+/** Currently open workflow id (for refresh) */
+let _openWfId = '';
 
 /** Debounce timer id */
 let _refreshTimer = 0;
@@ -67,45 +66,41 @@ window.copyPre = async (e) => {
 
 /**
  * Fetch and render the state trail.
- * @param {string} wfKey
- * @param {string} [createdAt]
+ * @param {string} wfId
  */
-const fetchAndRender = async (wfKey, createdAt) => {
+const fetchAndRender = async (wfId) => {
   try {
-    let url = `${engineUrl}/dashboard/state?wf=${encodeURIComponent(wfKey)}`;
-    if (createdAt) url += `&createdAt=${encodeURIComponent(createdAt)}`;
+    const url = `${engineUrl}/dashboard/state?wfId=${encodeURIComponent(wfId)}`;
     const res = await fetch(url);
-    if (_openWfKey !== wfKey) return; // modal changed while fetching
+    if (_openWfId !== wfId) return; // modal changed while fetching
     if (!res.ok) throw new Error('State not found');
     const data = await res.json();
-    if (_openWfKey !== wfKey) return;
+    if (_openWfId !== wfId) return;
     dom.stateBody.innerHTML = buildStateTrailHTML(data);
   } catch (err) {
-    if (_openWfKey !== wfKey) return;
+    if (_openWfId !== wfId) return;
     dom.stateBody.innerHTML = `<div class="modal-loading">${esc(/** @type {Error} */ (err).message)}</div>`;
   }
 };
 
-window.openStateModal = async (wfKey, createdAt) => {
-  _openWfKey = wfKey;
-  _openCreatedAt = createdAt || '';
+window.openStateModal = async (wfId) => {
+  _openWfId = wfId;
   dom.stateTitle.textContent = 'State Trail';
   dom.stateBody.innerHTML = '<div class="modal-loading">Loading...</div>';
   dom.stateModal.classList.add('open');
-  await fetchAndRender(wfKey, createdAt);
+  await fetchAndRender(wfId);
 };
 
 window.closeStateModal = () => {
   dom.stateModal.classList.remove('open');
-  _openWfKey = '';
-  _openCreatedAt = '';
+  _openWfId = '';
 };
 
 /** Called by live.js when a workflow fingerprint changes. Debounced refresh. */
-export const notifyWorkflowChanged = (/** @type {string} */ wfKey) => {
-  if (!_openWfKey || wfKey !== _openWfKey) return;
+export const notifyWorkflowChanged = (/** @type {string} */ wfId) => {
+  if (!_openWfId || wfId !== _openWfId) return;
   clearTimeout(_refreshTimer);
-  _refreshTimer = window.setTimeout(() => fetchAndRender(_openWfKey, _openCreatedAt), 1000);
+  _refreshTimer = window.setTimeout(() => fetchAndRender(_openWfId), 1000);
 };
 
 document.addEventListener('keydown', (e) => {

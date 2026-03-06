@@ -52,7 +52,7 @@ internal static class DashboardEndpoints
                             try
                             {
                                 using IServiceScope scope = sp.CreateScope();
-                                var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                                var repo = scope.ServiceProvider.GetRequiredService<IDashboardRepository>();
                                 scheduledCount = await repo.CountScheduledWorkflows(ct);
                             }
                             catch
@@ -120,7 +120,7 @@ internal static class DashboardEndpoints
                 async (IServiceProvider sp, CancellationToken ct) =>
                 {
                     using IServiceScope scope = sp.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    var repo = scope.ServiceProvider.GetRequiredService<IDashboardRepository>();
                     IReadOnlyList<(string Org, string App)> pairs = await repo.GetDistinctOrgsAndApps(ct);
                     var result = pairs.Select(p => new { org = p.Org, app = p.App });
                     return Results.Json(result, _jsonCompact);
@@ -146,7 +146,7 @@ internal static class DashboardEndpoints
                 ) =>
                 {
                     using IServiceScope scope = sp.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    var repo = scope.ServiceProvider.GetRequiredService<IDashboardRepository>();
                     int maxResults = Math.Min(limit ?? 100, 200);
 
                     PersistentItemStatus[] statuses = string.IsNullOrWhiteSpace(status)
@@ -197,7 +197,7 @@ internal static class DashboardEndpoints
                 async (IServiceProvider sp, CancellationToken ct) =>
                 {
                     using IServiceScope scope = sp.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    var repo = scope.ServiceProvider.GetRequiredService<IDashboardRepository>();
                     IReadOnlyList<Workflow> workflows = await repo.GetScheduledWorkflows(ct);
                     return Results.Json(workflows.Select(DashboardMapper.MapWorkflow), _jsonCompact);
                 }
@@ -206,14 +206,11 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/step",
-                async (IServiceProvider sp, string wf, string step, DateTimeOffset? createdAt, CancellationToken ct) =>
+                async (IServiceProvider sp, Guid wfId, string step, CancellationToken ct) =>
                 {
-                    if (!createdAt.HasValue)
-                        return Results.BadRequest("createdAt is required");
-
                     using IServiceScope scope = sp.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    Workflow? workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
+                    var repo = scope.ServiceProvider.GetRequiredService<IDashboardRepository>();
+                    Workflow? workflow = await repo.GetWorkflow(wfId, ct);
 
                     if (workflow is null)
                         return Results.NotFound();
@@ -258,7 +255,7 @@ internal static class DashboardEndpoints
             .ExcludeFromDescription();
 
         app.MapGet(
-                "/dashboard/stream/active",
+                "/dashboard/stream/live",
                 async (
                     StatusChangeSignal statusChangeSignal,
                     IServiceProvider sp,
@@ -281,7 +278,7 @@ internal static class DashboardEndpoints
                         try
                         {
                             using IServiceScope scope = sp.CreateScope();
-                            var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                            var repo = scope.ServiceProvider.GetRequiredService<IDashboardRepository>();
 
                             IReadOnlyList<Workflow> active = await repo.GetActiveWorkflows(ct);
                             IReadOnlyList<Workflow> recent = await repo.GetFinishedWorkflows(
@@ -341,7 +338,7 @@ internal static class DashboardEndpoints
                         }
 
                         // Debounce: coalesce rapid step transitions
-                        await Task.Delay(150, ct);
+                        await Task.Delay(100, ct);
 
                         // Wait for a status change (near-instant via PG NOTIFY) or 2s timeout (idle fallback)
                         try
@@ -363,20 +360,16 @@ internal static class DashboardEndpoints
                     using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
                     JsonElement root = doc.RootElement;
 
-                    if (
-                        !root.TryGetProperty("idempotencyKey", out JsonElement keyEl)
-                        || !root.TryGetProperty("createdAt", out JsonElement createdAtEl)
-                    )
+                    if (!root.TryGetProperty("workflowId", out JsonElement idEl))
                     {
-                        return Results.BadRequest("Missing idempotencyKey or createdAt");
+                        return Results.BadRequest("Missing workflowId");
                     }
 
-                    string idempotencyKey = keyEl.GetString()!;
-                    DateTimeOffset createdAt = createdAtEl.GetDateTimeOffset();
+                    Guid workflowId = idEl.GetGuid();
 
                     using IServiceScope scope = sp.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    Workflow? workflow = await repo.GetWorkflow(idempotencyKey, createdAt, ct);
+                    var repo = scope.ServiceProvider.GetRequiredService<IDashboardRepository>();
+                    Workflow? workflow = await repo.GetWorkflow(workflowId, ct);
 
                     if (workflow is null)
                         return Results.NotFound();
@@ -413,20 +406,19 @@ internal static class DashboardEndpoints
                     JsonElement root = doc.RootElement;
 
                     if (
-                        !root.TryGetProperty("idempotencyKey", out JsonElement keyEl)
+                        !root.TryGetProperty("workflowId", out JsonElement idEl)
                         || !root.TryGetProperty("stepIdempotencyKey", out JsonElement stepKeyEl)
                     )
                     {
-                        return Results.BadRequest("Missing idempotencyKey or stepIdempotencyKey");
+                        return Results.BadRequest("Missing workflowId or stepIdempotencyKey");
                     }
 
-                    string idempotencyKey = keyEl.GetString()!;
+                    Guid workflowId = idEl.GetGuid();
                     string stepIdempotencyKey = stepKeyEl.GetString()!;
 
                     using IServiceScope scope = sp.CreateScope();
-                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    IReadOnlyList<Workflow> active = await repo.GetActiveWorkflows(ct);
-                    Workflow? workflow = active.FirstOrDefault(w => w.IdempotencyKey == idempotencyKey);
+                    var repo = scope.ServiceProvider.GetRequiredService<IDashboardRepository>();
+                    Workflow? workflow = await repo.GetWorkflow(workflowId, ct);
 
                     if (workflow is null)
                         return Results.NotFound();
@@ -446,16 +438,11 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/state",
-                async (IServiceProvider sp, string wf, DateTimeOffset? createdAt, CancellationToken ct) =>
+                async (IServiceProvider sp, Guid wfId, CancellationToken ct) =>
                 {
-                    Workflow? workflow = null;
-
-                    if (createdAt.HasValue)
-                    {
-                        using IServiceScope scope = sp.CreateScope();
-                        var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                        workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
-                    }
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IDashboardRepository>();
+                    Workflow? workflow = await repo.GetWorkflow(wfId, ct);
 
                     if (workflow is null)
                         return Results.NotFound();

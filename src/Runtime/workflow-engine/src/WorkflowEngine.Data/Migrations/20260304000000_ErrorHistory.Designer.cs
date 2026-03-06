@@ -12,7 +12,7 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    [Migration("20260302091838_ErrorHistory")]
+    [Migration("20260304000000_ErrorHistory")]
     partial class ErrorHistory
     {
         /// <inheritdoc />

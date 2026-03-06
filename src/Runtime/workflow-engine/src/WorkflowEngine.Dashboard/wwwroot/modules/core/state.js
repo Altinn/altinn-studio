@@ -39,6 +39,7 @@
 
 /**
  * @typedef {{
+ *   id:             string,
  *   idempotencyKey: string,
  *   operationId:    string,
  *   status:         string,

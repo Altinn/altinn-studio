@@ -172,9 +172,9 @@ const buildDetailsContent = (data) => {
   if (data.retryCount) statusParts += ` <span class="step-retry" style="margin-left:4px;margin-top:0">&#8635;${esc(String(data.retryCount))}</span>`;
   const showSkipBackoff = data.backoffUntil && status === 'Requeued' && (new Date(/** @type {string} */ (data.backoffUntil)) - Date.now()) > 5000;
   if (status === 'Failed') {
-    statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${esc(_openWfKey)}','${esc(_openCreatedAt)}')">&#8635; Retry</a>`;
+    statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="retryWorkflow(event,'${esc(_openWfId)}')">&#8635; Retry</a>`;
   } else if (showSkipBackoff) {
-    statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="skipBackoff(event,'${esc(_openWfKey)}','${esc(/** @type {string} */ (data.idempotencyKey))}')">&#9654; Retry now</a>`;
+    statusParts += `<a class="step-retry-badge" style="margin-left:auto" onclick="skipBackoff(event,'${esc(_openWfId)}','${esc(/** @type {string} */ (data.idempotencyKey))}')">&#9654; Retry now</a>`;
   }
   html += `<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" style="display:flex;align-items:center;gap:6px">${statusParts}</span></div>`;
   html += row('Idempotency Key', data.idempotencyKey);
@@ -256,10 +256,10 @@ const buildDetailsContent = (data) => {
 let _hasStateDiff = false;
 
 /** Currently open modal context (for SSE-driven refresh) */
+let _openWfId = '';
 let _openWfKey = '';
 let _openStepKey = '';
 let _openStepName = '';
-let _openCreatedAt = '';
 let _refreshTimer = 0;
 let _errorExpanded = true;
 
@@ -336,16 +336,15 @@ const activeStateView = () =>
   dom.modalSubtabs.querySelector('.state-tab.active')?.getAttribute('onclick')?.match(/'(\w+)'\)$/)?.[1] || 'diff';
 
 /** Fetch step data and render (or re-render) the modal */
-const fetchAndRender = async (wfKey, stepKey, stepName, createdAt, initialTab) => {
-  let url = `${engineUrl}/dashboard/step?wf=${encodeURIComponent(wfKey)}&step=${encodeURIComponent(stepKey)}`;
-  if (createdAt) url += `&createdAt=${encodeURIComponent(createdAt)}`;
+const fetchAndRender = async (wfId, stepKey, stepName, initialTab) => {
+  const url = `${engineUrl}/dashboard/step?wfId=${encodeURIComponent(wfId)}&step=${encodeURIComponent(stepKey)}`;
 
   try {
     const res = await fetch(url);
-    if (_openWfKey !== wfKey || _openStepKey !== stepKey) return; // modal changed while fetching
+    if (_openWfId !== wfId || _openStepKey !== stepKey) return; // modal changed while fetching
     if (!res.ok) throw new Error('Step not found (may have left inbox)');
     const data = await res.json();
-    if (_openWfKey !== wfKey || _openStepKey !== stepKey) return;
+    if (_openWfId !== wfId || _openStepKey !== stepKey) return;
 
     // Enrich title for ExecuteServiceTask with the service task type
     if (stepName === 'ExecuteServiceTask' && data.command?.payload) {
@@ -368,16 +367,16 @@ const fetchAndRender = async (wfKey, stepKey, stepName, createdAt, initialTab) =
       if (stateBtn) stateBtn.click();
     }
   } catch (err) {
-    if (_openWfKey !== wfKey || _openStepKey !== stepKey) return;
+    if (_openWfId !== wfId || _openStepKey !== stepKey) return;
     dom.modalBody.innerHTML = `<div class="modal-loading">${esc(/** @type {Error} */ (err).message)}</div>`;
   }
 };
 
-window.openStepModal = async (wfKey, stepKey, stepName, createdAt, initialTab) => {
-  _openWfKey = wfKey;
+window.openStepModal = async (wfId, stepKey, stepName, initialTab) => {
+  _openWfId = wfId;
+  _openWfKey = '';
   _openStepKey = stepKey;
   _openStepName = stepName || '';
-  _openCreatedAt = createdAt || '';
 
   dom.modalTitle.textContent = stepName || 'Step Details';
   dom.modalTabs.innerHTML = '';
@@ -387,20 +386,21 @@ window.openStepModal = async (wfKey, stepKey, stepName, createdAt, initialTab) =
   dom.modalBody.innerHTML = '<div class="modal-loading">Loading...</div>';
   dom.modal.classList.add('open');
 
-  await fetchAndRender(wfKey, stepKey, stepName, createdAt, initialTab);
+  await fetchAndRender(wfId, stepKey, stepName, initialTab);
 };
 
 /** Called by live.js when a workflow fingerprint changes. Debounced refresh. */
-export const notifyStepChanged = (/** @type {string} */ wfKey) => {
-  if (!_openWfKey || wfKey !== _openWfKey) return;
+export const notifyStepChanged = (/** @type {string} */ wfId) => {
+  if (!_openWfId || wfId !== _openWfId) return;
   clearTimeout(_refreshTimer);
   _refreshTimer = window.setTimeout(
-    () => fetchAndRender(_openWfKey, _openStepKey, _openStepName, _openCreatedAt),
+    () => fetchAndRender(_openWfId, _openStepKey, _openStepName),
     300
   );
 };
 
 window.closeModal = () => {
+  _openWfId = '';
   _openWfKey = '';
   _openStepKey = '';
   clearTimeout(_refreshTimer);
@@ -410,7 +410,7 @@ window.closeModal = () => {
 };
 
 /** Retry a failed workflow — called from card retry buttons */
-window.retryWorkflow = async (e, idempotencyKey, createdAt) => {
+window.retryWorkflow = async (e, workflowId) => {
   e.stopPropagation();
   const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
   btn.disabled = true;
@@ -419,7 +419,7 @@ window.retryWorkflow = async (e, idempotencyKey, createdAt) => {
     const res = await fetch(`${engineUrl}/dashboard/retry`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idempotencyKey, createdAt }),
+      body: JSON.stringify({ workflowId }),
     });
     if (res.ok) {
       btn.textContent = 'Retried';
@@ -439,7 +439,7 @@ window.retryWorkflow = async (e, idempotencyKey, createdAt) => {
 };
 
 /** Skip backoff timer for a step — called from pipeline skip buttons */
-window.skipBackoff = async (e, idempotencyKey, stepIdempotencyKey) => {
+window.skipBackoff = async (e, workflowId, stepIdempotencyKey) => {
   e.stopPropagation();
   const btn = /** @type {HTMLButtonElement} */ (e.currentTarget);
   btn.disabled = true;
@@ -448,7 +448,7 @@ window.skipBackoff = async (e, idempotencyKey, stepIdempotencyKey) => {
     const res = await fetch(`${engineUrl}/dashboard/skip-backoff`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idempotencyKey, stepIdempotencyKey }),
+      body: JSON.stringify({ workflowId, stepIdempotencyKey }),
     });
     if (res.ok) {
       btn.textContent = 'Skipped';

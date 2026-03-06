@@ -41,6 +41,7 @@ public static class ServiceCollectionExtensions
             });
 
             services.AddTransient<IEngineRepository, EnginePgRepository>();
+            services.AddTransient<IDashboardRepository, DashboardPgRepository>();
             services.AddSingleton<IEngineNpgsqlRepository, EngineNpgsqlRepository>();
             services.AddDbContext<EngineDbContext>(
                 (sp, options) =>

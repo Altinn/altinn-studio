@@ -211,15 +211,13 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
         var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
-        var wfKey = status.IdempotencyKey;
         var stepKey = status.Steps[0].IdempotencyKey;
-        var createdAt = status.CreatedAt.ToString("o");
 
         using var client = fixture.CreateEngineClient();
 
         // Act
         using var response = await client.GetAsync(
-            $"/dashboard/step?wf={Uri.EscapeDataString(wfKey)}&step={Uri.EscapeDataString(stepKey)}&createdAt={Uri.EscapeDataString(createdAt)}"
+            $"/dashboard/step?wfId={workflowId}&step={Uri.EscapeDataString(stepKey)}"
         );
 
         // Assert
@@ -238,7 +236,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/step?wf=nonexistent&step=nonexistent");
+        using var response = await client.GetAsync($"/dashboard/step?wfId={Guid.Empty}&step=nonexistent");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -256,15 +254,10 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
         var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
 
-        var wfKey = status.IdempotencyKey;
-        var createdAt = status.CreatedAt.ToString("o");
-
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var response = await client.GetAsync(
-            $"/dashboard/state?wf={Uri.EscapeDataString(wfKey)}&createdAt={Uri.EscapeDataString(createdAt)}"
-        );
+        using var response = await client.GetAsync($"/dashboard/state?wfId={workflowId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -281,7 +274,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/state?wf=nonexistent");
+        using var response = await client.GetAsync($"/dashboard/state?wfId={Guid.Empty}");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

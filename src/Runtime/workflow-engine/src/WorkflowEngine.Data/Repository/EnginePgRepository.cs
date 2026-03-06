@@ -91,43 +91,6 @@ internal partial class EnginePgRepository : IEngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<(string Org, string App)>> GetDistinctOrgsAndApps(
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = Metrics.Source.StartActivity("EnginePgRepository.GetDistinctOrgsAndApps");
-        using var slot = await _limiter.AcquireDbSlot(activity?.Context, cancellationToken);
-
-        try
-        {
-            _logger.FetchingWorkflows("dimensions");
-
-            var rows = await _context
-                .Workflows.Select(x => new { x.InstanceOrg, x.InstanceApp })
-                .Distinct()
-                .OrderBy(x => x.InstanceOrg)
-                .ThenBy(x => x.InstanceApp)
-                .ToListAsync(cancellationToken);
-
-            var result = rows.Select(x => (x.InstanceOrg, x.InstanceApp)).ToList();
-
-            _logger.SuccessfullyFetchedWorkflows(result.Count);
-
-            return result;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            _logger.FailedToFetchWorkflows(ex.Message, ex);
-            throw;
-        }
-    }
-
-    /// <inheritdoc/>
     public async Task<Workflow?> GetWorkflow(
         string idempotencyKey,
         DateTimeOffset createdAt,

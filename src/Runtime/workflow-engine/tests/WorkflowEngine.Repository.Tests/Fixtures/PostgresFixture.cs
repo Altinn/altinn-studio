@@ -60,6 +60,11 @@ public sealed class PostgresFixture : IAsyncLifetime
         return new EnginePgRepository(context, _settings, NullLogger<EnginePgRepository>.Instance, _limiter);
     }
 
+    internal DashboardPgRepository CreateDashboardRepository(EngineDbContext context)
+    {
+        return new DashboardPgRepository(context, _limiter, NullLogger<DashboardPgRepository>.Instance);
+    }
+
     internal EngineNpgsqlRepository CreateNpgsqlRepository()
     {
         var dataSource = NpgsqlDataSource.Create(ConnectionString);

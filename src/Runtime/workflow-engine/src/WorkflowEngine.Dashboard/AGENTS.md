@@ -5,7 +5,7 @@ Real-time monitoring UI for the workflow engine. Vanilla JS ES Modules (no build
 ## Architecture
 
 - **Static file server**: ASP.NET Core minimal API serving `wwwroot/` + a single `/api/config` endpoint returning the engine URL.
-- **Data flow**: Frontend connects via SSE to the engine's `/dashboard/stream` and `/dashboard/stream/recent` endpoints. Scheduled and query data are fetched on-demand.
+- **Data flow**: Frontend connects via SSE to the engine's `/dashboard/stream` (header metrics) and `/dashboard/stream/live` (active + recent workflows) endpoints. Scheduled and query data are fetched on-demand.
 - **CORS**: Engine allows dashboard origin (`http://localhost:8090`) via `CorsSettings:AllowedOrigins` in the Api project's appsettings.
 - **Hot-reload**: Dashboard server polls `wwwroot/` for file changes (Docker bind mounts on Windows don't propagate inotify) and pushes SSE events via `/api/hot-reload`. Frontend listens and reloads.
 
@@ -91,12 +91,15 @@ Some modules have circular call dependencies (e.g., `filters.js` calls `loadQuer
 
 | Endpoint | Method | Used by |
 |----------|--------|---------|
-| `/dashboard/stream` | SSE | Main loop — engine status, capacity, active workflows, scheduled count |
-| `/dashboard/stream/recent` | SSE | Recent workflows (deduped by fingerprint on backend) |
+| `/dashboard/stream` | SSE | Header metrics — engine status, capacity, scheduled count |
+| `/dashboard/stream/live` | SSE | Unified active + recent workflows (fingerprint-deduped, PG NOTIFY-driven) |
 | `/dashboard/orgs-and-apps` | GET | Populate org/app dropdowns on connect |
 | `/dashboard/scheduled` | GET | Scheduled section (on-demand) |
 | `/dashboard/query?status=&search=&limit=&before=&since=&org=&app=&party=&instanceGuid=&retried=` | GET | Query tab (on-demand, paginated) |
-| `/dashboard/step?wf=&step=` | GET | Step detail modal |
+| `/dashboard/step?wfId=&step=` | GET | Step detail modal |
+| `/dashboard/state?wfId=` | GET | State trail modal |
+| `/dashboard/retry` | POST | Retry a failed workflow (body: `{ workflowId }`) |
+| `/dashboard/skip-backoff` | POST | Skip backoff timer on a step (body: `{ workflowId, stepIdempotencyKey }`) |
 
 ## Dashboard Server Endpoints
 

@@ -796,7 +796,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await WorkflowTestHelper.EnqueueWorkflow(npgsqlRepo, context, req4, meta4);
 
         await using var queryContext = fixture.CreateDbContext();
-        var queryRepo = fixture.CreateRepository(queryContext);
+        var queryRepo = fixture.CreateDashboardRepository(queryContext);
 
         var pairs = await queryRepo.GetDistinctOrgsAndApps(TestContext.Current.CancellationToken);
 

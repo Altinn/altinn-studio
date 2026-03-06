@@ -56,13 +56,13 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
 
   html += `<div class="step-circle ${step.status}"`
     + ` style="cursor:pointer${isStatic ? ';animation:none;box-shadow:none' : ''}"`
-    + ` onclick="openStepModal('${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','${esc(wf.createdAt)}')">`
+    + ` onclick="openStepModal('${esc(wf.id)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}')">`
     + `${stepIcon(step.status)}</div>`;
 
   if (step.stateChanged) {
     html += `<div class="step-state-badge"`
       + ` title="State mutated"`
-      + ` onclick="openStepModal('${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','${esc(wf.createdAt)}','state')">`
+      + ` onclick="openStepModal('${esc(wf.id)}','${esc(step.idempotencyKey)}','${esc(step.commandDetail)}','state')">`
       + `</div>`;
   }
 
@@ -81,7 +81,7 @@ export const buildStepNodeHTML = (wf, step, isStatic, phaseOpts) => {
     const isRequeued = step.status === 'Requeued' && step.backoffUntil;
     const vis = isRequeued ? '' : ' style="visibility:hidden"';
     html += `<span class="step-backoff"${isRequeued ? ` data-backoff="${step.backoffUntil}"` : ''}${vis}>retry 0.0s</span>`;
-    html += `<button class="skip-backoff-btn"${vis}${isRequeued ? ` onclick="skipBackoff(event,'${esc(wf.idempotencyKey)}','${esc(step.idempotencyKey)}')" title="Skip backoff timer"` : ' disabled'}>skip</button>`;
+    html += `<button class="skip-backoff-btn"${vis}${isRequeued ? ` onclick="skipBackoff(event,'${esc(wf.id)}','${esc(step.idempotencyKey)}')" title="Skip backoff timer"` : ' disabled'}>skip</button>`;
   }
   html += buildStepTimingHTML(step, isStatic);
   html += `</div></div>`;

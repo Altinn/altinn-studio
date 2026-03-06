@@ -62,11 +62,6 @@ public interface IEngineRepository
     );
 
     /// <summary>
-    /// Gets all distinct org+app pairs.
-    /// </summary>
-    Task<IReadOnlyList<(string Org, string App)>> GetDistinctOrgsAndApps(CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Gets the number of active workflows.
     /// </summary>
     Task<int> CountActiveWorkflows(CancellationToken cancellationToken = default);

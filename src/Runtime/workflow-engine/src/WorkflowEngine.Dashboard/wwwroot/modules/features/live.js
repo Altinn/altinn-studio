@@ -56,12 +56,12 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
           card.remove();
         }
       }
+      const prevId = state.previousWorkflows[key]?.id;
       delete state.previousWorkflows[key];
       delete state.workflowFingerprints[key];
       delete state.workflowTimers[key];
       delete _processingIdx[key];
-      notifyStepChanged(key);
-      notifyWorkflowChanged(key);
+      if (prevId) { notifyStepChanged(prevId); notifyWorkflowChanged(prevId); }
     }
   }
 
@@ -97,8 +97,8 @@ export const updateLiveWorkflows = (workflows, recentKeys) => {
       }
 
       state.workflowFingerprints[wf.idempotencyKey] = fp;
-      notifyStepChanged(wf.idempotencyKey);
-      notifyWorkflowChanged(wf.idempotencyKey);
+      notifyStepChanged(wf.id);
+      notifyWorkflowChanged(wf.id);
     }
 
     state.previousWorkflows[wf.idempotencyKey] = wf;
