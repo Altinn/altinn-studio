@@ -375,12 +375,12 @@ internal sealed partial class EngineRepository
 
                 // Flatten workflow IDs
                 var workflowIds = new Guid[totalNewWorkflows];
-                int wi = 0;
+                int workflowOffset = 0;
                 foreach (var reqIdx in newRequestIndices)
                 {
                     var ids = perRequestWorkflowIds[reqIdx];
-                    Array.Copy(ids, 0, workflowIds, wi, ids.Length);
-                    wi += ids.Length;
+                    Array.Copy(ids, 0, workflowIds, workflowOffset, ids.Length);
+                    workflowOffset += ids.Length;
                 }
 
                 var stepIds = new Guid[totalNewSteps];
@@ -400,7 +400,7 @@ internal sealed partial class EngineRepository
                     string? metadata
                 )>(totalNewSteps);
 
-                wi = 0;
+                workflowOffset = 0;
                 foreach (var reqIdx in newRequestIndices)
                 {
                     var req = requests[reqIdx];
@@ -411,7 +411,7 @@ internal sealed partial class EngineRepository
                         {
                             stepEntries.Add(
                                 (
-                                    wi,
+                                    workflowOffset,
                                     step.Command.OperationId,
                                     $"{req.Request.IdempotencyKey}/{step.Command}",
                                     order++,
@@ -425,7 +425,7 @@ internal sealed partial class EngineRepository
                                 )
                             );
                         }
-                        wi++;
+                        workflowOffset++;
                     }
                 }
 
@@ -444,7 +444,7 @@ internal sealed partial class EngineRepository
                     )
                 )
                 {
-                    wi = 0;
+                    workflowOffset = 0;
                     foreach (var reqIdx in newRequestIndices)
                     {
                         var req = requests[reqIdx];
@@ -453,7 +453,7 @@ internal sealed partial class EngineRepository
                         foreach (var wf in req.Request.Workflows)
                         {
                             await writer.StartRowAsync(cancellationToken);
-                            await writer.WriteAsync(workflowIds[wi], NpgsqlDbType.Uuid, cancellationToken); // Id
+                            await writer.WriteAsync(workflowIds[workflowOffset], NpgsqlDbType.Uuid, cancellationToken); // Id
                             await writer.WriteAsync(wf.OperationId, NpgsqlDbType.Varchar, cancellationToken); // OperationId
                             await writer.WriteAsync(req.Request.IdempotencyKey, NpgsqlDbType.Text, cancellationToken); // IdempotencyKey
 
@@ -511,7 +511,7 @@ internal sealed partial class EngineRepository
                             else
                                 await writer.WriteNullAsync(cancellationToken);
 
-                            wi++;
+                            workflowOffset++;
                         }
                     }
 
@@ -533,7 +533,7 @@ internal sealed partial class EngineRepository
                         """,
                         cancellationToken
                     );
-                    for (int si = 0; si < stepEntries.Count; si++)
+                    for (int stepIndex = 0; stepIndex < stepEntries.Count; stepIndex++)
                     {
                         var (
                             workflowIndex,
@@ -545,10 +545,10 @@ internal sealed partial class EngineRepository
                             commandJson,
                             retryJson,
                             metadata
-                        ) = stepEntries[si];
+                        ) = stepEntries[stepIndex];
 
                         await writer.StartRowAsync(cancellationToken);
-                        await writer.WriteAsync(stepIds[si], NpgsqlDbType.Uuid, cancellationToken); // Id
+                        await writer.WriteAsync(stepIds[stepIndex], NpgsqlDbType.Uuid, cancellationToken); // Id
                         await writer.WriteAsync(operationId, NpgsqlDbType.Varchar, cancellationToken); // OperationId
                         await writer.WriteAsync(idempotencyKey, NpgsqlDbType.Text, cancellationToken); // IdempotencyKey
                         await writer.WriteAsync(
