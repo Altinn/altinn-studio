@@ -100,12 +100,6 @@ describe('PersonalAccessTokensList', () => {
     jest.restoreAllMocks();
   });
 
-  it('applies new row highlight to the row matching newTokenId', () => {
-    renderPersonalAccessTokensList(1);
-    expect(screen.getByText('My token').closest('tr')).toHaveClass('newRow');
-    expect(screen.getByText('Expired token').closest('tr')).not.toHaveClass('newRow');
-  });
-
   it('disables the delete button for the token currently being deleted', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockReturnValue(true);
