@@ -10,7 +10,8 @@ import { ArrowLeftIcon } from '@studio/icons';
 export const PageLayout = () => {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
-  const returnTo = searchParams.get('returnTo') ?? '/';
+  const rawReturnTo = searchParams.get('returnTo') ?? '/';
+  const returnTo = rawReturnTo.startsWith('/') && !rawReturnTo.startsWith('//') ? rawReturnTo : '/';
 
   return (
     <div className={classes.container}>

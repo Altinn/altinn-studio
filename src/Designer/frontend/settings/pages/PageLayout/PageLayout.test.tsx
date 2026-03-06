@@ -48,4 +48,26 @@ describe('PageLayout', () => {
 
     expect(locationMock.href).toBe('/');
   });
+
+  it('navigates to / when returnTo is an absolute external URL', async () => {
+    const user = userEvent.setup();
+    const locationMock = { href: '' };
+    Object.defineProperty(window, 'location', { configurable: true, value: locationMock });
+
+    renderPageLayout(['/?returnTo=https%3A%2F%2Fexternal.example']);
+    await user.click(screen.getByRole('button', { name: textMock('shared.header_go_back') }));
+
+    expect(locationMock.href).toBe('/');
+  });
+
+  it('navigates to / when returnTo is a relative URL', async () => {
+    const user = userEvent.setup();
+    const locationMock = { href: '' };
+    Object.defineProperty(window, 'location', { configurable: true, value: locationMock });
+
+    renderPageLayout(['/?returnTo=%2F%2Fexternal.example']);
+    await user.click(screen.getByRole('button', { name: textMock('shared.header_go_back') }));
+
+    expect(locationMock.href).toBe('/');
+  });
 });
