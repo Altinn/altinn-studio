@@ -3,7 +3,7 @@ import React from 'react';
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
 import { translationKey } from 'src/AppComponentsBridge';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';

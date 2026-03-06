@@ -1,4 +1,4 @@
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsDisplayData } from 'src/layout';
 import { useExternalItem } from 'src/utils/layout/hooks';

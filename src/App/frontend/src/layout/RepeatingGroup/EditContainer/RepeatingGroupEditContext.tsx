@@ -3,8 +3,8 @@ import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { SearchParams } from 'src/core/routing/types';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useRepeatingGroupComponentId } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';

@@ -6,7 +6,7 @@ import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import {

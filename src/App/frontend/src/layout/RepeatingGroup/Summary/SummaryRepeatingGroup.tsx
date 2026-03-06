@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';

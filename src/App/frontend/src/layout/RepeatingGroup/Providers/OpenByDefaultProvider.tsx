@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { SearchParams } from 'src/core/routing/types';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useAsRef } from 'src/hooks/useAsRef';
 import {
   RepGroupContext,

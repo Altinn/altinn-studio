@@ -1,7 +1,10 @@
+import { useMemo } from 'react';
+
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { layoutQueryDef } from 'src/core/queries/layouts/layouts.queries';
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
 import { useCurrentDataModelDataElementId, useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema';
 import { useIsInFormContext } from 'src/features/form/FormContext';
-import { useLayoutQueryDef } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useOrderDetailsQueryDef } from 'src/features/payment/OrderDetailsProvider';
@@ -18,9 +21,11 @@ export function FormPrefetcher() {
   const isPDF = useIsPdf();
   const dataTypeId = useCurrentDataModelName() ?? 'unknown';
   const instanceId = useLaxInstanceId();
+  const { fetchLayouts, fetchLayoutsForInstance } = useAppQueries();
+  const fetchFns = useMemo(() => ({ fetchLayouts, fetchLayoutsForInstance }), [fetchLayouts, fetchLayoutsForInstance]);
 
   // Prefetch layouts
-  usePrefetchQuery(useLayoutQueryDef(true, dataTypeId, uiFolder));
+  usePrefetchQuery(layoutQueryDef(true, dataTypeId, uiFolder, instanceId, fetchFns));
 
   // Prefetch payment data if applicable
   usePrefetchQuery(usePaymentInformationQueryDef(useIsPayment(), instanceId));

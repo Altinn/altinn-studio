@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useLayoutLookups, useLayoutLookupsLax } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups, useLayoutLookupsLax } from 'src/core/queries/layouts';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
 import { selectValidations } from 'src/features/validation/utils';
 import { nodesProduce } from 'src/utils/layout/NodesContext';

@@ -11,7 +11,7 @@ import type { ResponseFuzzing, Size, SnapshotOptions, SnapshotViewport } from 't
 
 import { breakpoints } from 'src/hooks/useDeviceWidths';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
+import type { LayoutQueryData as LayoutContextValue } from 'src/core/queries/layouts/layouts.queries';
 import type { IFeatureToggles } from 'src/features/toggles';
 import type { ILayoutFile } from 'src/layout/common.generated';
 import JQueryWithSelector = Cypress.JQueryWithSelector;

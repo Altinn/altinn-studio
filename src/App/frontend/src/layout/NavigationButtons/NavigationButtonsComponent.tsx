@@ -2,10 +2,10 @@ import React from 'react';
 import { useSearchParams } from 'react-router';
 
 import { Button } from 'src/app-components/Button/Button';
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { SearchParams } from 'src/core/routing/types';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { useReturnToView, useSummaryNodeIdOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

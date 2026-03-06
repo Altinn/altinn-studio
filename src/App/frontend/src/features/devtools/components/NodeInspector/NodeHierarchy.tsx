@@ -5,9 +5,9 @@ import React, { useEffect, useRef } from 'react';
 import { EyeSlashIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { useComponentHighlighter } from 'src/features/devtools/hooks/useComponentHighlighter';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { baseIdsFromGridRow } from 'src/layout/Grid/tools';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { DataModelLocationProvider, useIndexedId } from 'src/utils/layout/DataModelLocation';

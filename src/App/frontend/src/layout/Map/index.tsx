@@ -1,8 +1,8 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { MapDef } from 'src/layout/Map/config.def.generated';
 import { useValidateGeometriesBindings } from 'src/layout/Map/features/geometries/useValidateGeometriesBindings';
 import { MapComponent } from 'src/layout/Map/MapComponent';

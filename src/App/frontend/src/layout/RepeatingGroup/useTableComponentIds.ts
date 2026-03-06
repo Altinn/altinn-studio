@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { getComponentDef } from 'src/layout';
 import { CompCategory } from 'src/layout/common';
 import type { CompTypes } from 'src/layout/layout';

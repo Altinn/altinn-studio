@@ -3,8 +3,8 @@ import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
 import { LikertGeneratorChildren } from 'src/layout/Likert/Generator/LikertGeneratorChildren';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';

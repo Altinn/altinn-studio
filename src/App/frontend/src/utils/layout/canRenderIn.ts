@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { getComponentCapabilities } from 'src/layout';
 import type { CompCapabilities } from 'src/codegen/Config';
 

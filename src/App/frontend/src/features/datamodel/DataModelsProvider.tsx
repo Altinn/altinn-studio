@@ -9,6 +9,7 @@ import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
+import { useLayouts } from 'src/core/queries/layouts';
 import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { useCustomValidationConfigQuery } from 'src/features/customValidation/useCustomValidationQuery';
 import { UpdateDataElementIdsForCypress } from 'src/features/datamodel/DataElementIdsForCypress';
@@ -22,7 +23,6 @@ import {
   MissingDataElementException,
   MissingDataTypeException,
 } from 'src/features/datamodel/utils';
-import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentUiFolderName } from 'src/features/form/ui/hooks';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useInstanceDataElements, useInstanceDataQuery } from 'src/features/instance/InstanceContext';

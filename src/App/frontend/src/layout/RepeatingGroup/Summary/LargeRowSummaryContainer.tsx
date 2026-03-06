@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 import { Fieldset, Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/RepeatingGroup/Summary/LargeGroupSummaryContainer.module.css';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';

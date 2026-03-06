@@ -1,9 +1,9 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { FrontendValidationSource } from 'src/features/validation';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TimePickerDef } from 'src/layout/TimePicker/config.def.generated';

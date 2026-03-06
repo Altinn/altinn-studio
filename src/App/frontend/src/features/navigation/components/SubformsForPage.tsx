@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { ExprVal } from 'src/features/expressions/types';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';

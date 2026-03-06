@@ -3,8 +3,8 @@ import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { SearchParams } from 'src/core/routing/types';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { isRepeatingComponentType } from 'src/features/form/layout/utils/repeating';
 import { FD } from 'src/features/formData/FormDataWrite';
 import {

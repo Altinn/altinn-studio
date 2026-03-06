@@ -1,5 +1,5 @@
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { isDataModelBindingsRequired } from 'src/layout';
 import {
   validateDataModelBindingsList,

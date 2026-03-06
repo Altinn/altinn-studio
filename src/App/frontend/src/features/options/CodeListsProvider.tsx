@@ -5,7 +5,7 @@ import { createStore } from 'zustand';
 
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useMarkAsLoading } from 'src/core/loading/LoadingRegistry';
-import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useLayouts } from 'src/core/queries/layouts';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useGetOptionsQuery } from 'src/features/options/useGetOptionsQuery';

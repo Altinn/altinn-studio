@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { JSX } from 'react';
 
-import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useLayouts } from 'src/core/queries/layouts';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { NodesInternal } from 'src/utils/layout/NodesContext';

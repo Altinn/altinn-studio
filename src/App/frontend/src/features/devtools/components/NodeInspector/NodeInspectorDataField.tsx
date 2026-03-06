@@ -3,12 +3,12 @@ import React from 'react';
 import cn from 'classnames';
 import dot from 'dot-object';
 
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import classes from 'src/features/devtools/components/NodeInspector/NodeInspector.module.css';
 import { useNodeInspectorContext } from 'src/features/devtools/components/NodeInspector/NodeInspectorContext';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { canBeExpression } from 'src/features/expressions/validation';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
 import { useIntermediateItem } from 'src/utils/layout/hooks';
 import { splitDashedKey } from 'src/utils/splitDashedKey';

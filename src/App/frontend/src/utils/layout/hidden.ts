@@ -2,11 +2,11 @@ import { useMemo, useRef } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
+import { useHiddenLayoutsExpressions, useLayoutLookups, useLayouts } from 'src/core/queries/layouts';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { useHiddenLayoutsExpressions, useLayoutLookups, useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useRawPageOrder } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { getComponentDef, implementsIsChildHidden } from 'src/layout';

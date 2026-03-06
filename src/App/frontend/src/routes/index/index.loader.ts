@@ -1,11 +1,12 @@
 import { redirect } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
-import { isAxiosError } from 'src/utils/isAxiosError';
+import type { QueryClient } from '@tanstack/react-query';
+
 import { GlobalData } from 'src/GlobalData';
 import { doInstantiate, fetchActiveInstances } from 'src/queries/queries';
 import { buildInstanceUrl, buildPartySelectionUrl } from 'src/routesBuilder';
-import type { QueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'src/utils/isAxiosError';
 import type { IInstance } from 'src/types/shared';
 
 function isStateless() {

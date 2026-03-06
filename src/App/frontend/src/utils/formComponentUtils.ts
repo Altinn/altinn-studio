@@ -1,7 +1,7 @@
 import type React from 'react';
 
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import printStyles from 'src/styles/print.module.css';
 import type { IAttachment } from 'src/features/attachments';
 import type { ExprResolved } from 'src/features/expressions/types';

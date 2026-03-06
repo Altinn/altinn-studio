@@ -6,16 +6,16 @@ import { XMarkIcon } from '@navikt/aksel-icons';
 
 import { Button } from 'src/app-components/Button/Button';
 import { translationKey } from 'src/AppComponentsBridge';
+import { useLayouts } from 'src/core/queries/layouts';
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { LayoutInspectorItem } from 'src/features/devtools/components/LayoutInspector/LayoutInspectorItem';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useLayoutValidationForPage } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { parseAndCleanText } from 'src/language/sharedLanguage';
-import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
+import type { LayoutQueryData as LayoutContextValue } from 'src/core/queries/layouts/layouts.queries';
 
 export const LayoutInspector = () => {
   const selectedComponent = useDevToolsStore((state) => state.layoutInspector.selectedComponentId);

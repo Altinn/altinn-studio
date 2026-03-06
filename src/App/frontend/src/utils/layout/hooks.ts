@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { useComponentIdMutator, useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import type { IDataModelReference, IMapping } from 'src/layout/common.generated';
 import type { CompIntermediate, CompTypes, IDataModelBindings } from 'src/layout/layout';

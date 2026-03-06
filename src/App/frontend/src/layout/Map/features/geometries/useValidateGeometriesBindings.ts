@@ -1,6 +1,6 @@
+import { useLayoutLookups } from 'src/core/queries/layouts';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { validateDataModelBindingsAny } from 'src/utils/layout/generator/validation/hooks';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { IDataModelReference } from 'src/layout/common.generated';
