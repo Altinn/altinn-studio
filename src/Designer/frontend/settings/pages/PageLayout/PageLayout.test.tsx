@@ -15,6 +15,12 @@ const renderPageLayout = (initialEntries: string[] = ['/']) =>
   renderWithProviders(<PageLayout />, { initialEntries });
 
 describe('PageLayout', () => {
+  const originalLocation = window.location;
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
+  });
+
   it('renders the settings heading', () => {
     renderPageLayout();
     expect(screen.getByText(textMock('user.settings'))).toBeInTheDocument();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AddPersonalAccessToken } from './AddPersonalAccessToken';
 import { renderWithProviders } from '../../testing/mocks';
@@ -12,7 +12,7 @@ import { toast } from 'react-toastify';
 
 jest.mock('react-toastify', () => ({
   ...jest.requireActual('react-toastify'),
-  toast: { success: jest.fn() },
+  toast: { success: jest.fn(), error: jest.fn() },
 }));
 
 const todayUtc = new Date().toISOString().split('T')[0];
@@ -196,9 +196,30 @@ describe('AddPersonalAccessToken', () => {
       }),
     );
     expect(writeText).toHaveBeenCalledWith('secret-key-value');
-    expect(toast.success).toHaveBeenCalledWith(
-      textMock('user.settings.personal_access_tokens.copy_success'),
-      expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_success' }),
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        textMock('user.settings.personal_access_tokens.copy_success'),
+        expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_success' }),
+      ),
+    );
+  });
+
+  it('shows error toast when clipboard write fails', async () => {
+    jest.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Permission denied'));
+    const addUserPersonalAccessToken = jest.fn().mockResolvedValue(mockCreatedToken);
+    renderAddPersonalAccessToken({ addUserPersonalAccessToken });
+    await fillForm(userEvent.setup(), 'New token', validExpiresAt);
+    await userEvent.setup().click(getAddButton());
+    await screen.findByDisplayValue('secret-key-value');
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: textMock('user.settings.personal_access_tokens.copy'),
+      }),
+    );
+    await screen.findByDisplayValue('secret-key-value');
+    expect(toast.error).toHaveBeenCalledWith(
+      textMock('user.settings.personal_access_tokens.copy_error'),
+      expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_error' }),
     );
   });
 });

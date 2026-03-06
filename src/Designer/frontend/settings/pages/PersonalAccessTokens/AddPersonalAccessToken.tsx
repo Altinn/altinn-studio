@@ -97,10 +97,18 @@ export const AddPersonalAccessToken = ({
         <StudioButton
           icon={<ClipboardIcon />}
           onClick={() => {
-            navigator.clipboard.writeText(newTokenKey);
-            toast.success(t('user.settings.personal_access_tokens.copy_success'), {
-              toastId: 'user.settings.personal_access_tokens.copy_success',
-            });
+            navigator.clipboard.writeText(newTokenKey).then(
+              () => {
+                toast.success(t('user.settings.personal_access_tokens.copy_success'), {
+                  toastId: 'user.settings.personal_access_tokens.copy_success',
+                });
+              },
+              () => {
+                toast.error(t('user.settings.personal_access_tokens.copy_error'), {
+                  toastId: 'user.settings.personal_access_tokens.copy_error',
+                });
+              },
+            );
           }}
         >
           {t('user.settings.personal_access_tokens.copy')}

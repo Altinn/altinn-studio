@@ -1,7 +1,6 @@
 import React, { type ReactElement } from 'react';
-import { StudioParagraph, StudioPageError } from '@studio/components';
+import { StudioParagraph, StudioPageError, StudioLink } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
-import { Link } from '@digdir/designsystemet-react';
 
 export const ErrorBoundary = (): ReactElement => {
   const { t } = useTranslation();
@@ -13,7 +12,7 @@ export const ErrorBoundary = (): ReactElement => {
           <Trans
             i18nKey={'general.page_error_message'}
             components={{
-              a: <Link href='/info/contact'> </Link>,
+              a: <StudioLink href='/info/contact'> </StudioLink>,
             }}
           />
         </StudioParagraph>
