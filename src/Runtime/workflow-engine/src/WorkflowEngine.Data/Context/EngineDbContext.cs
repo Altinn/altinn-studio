@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkflowEngine.Data.Entities;
 
 namespace WorkflowEngine.Data.Context;
@@ -29,6 +30,11 @@ internal sealed class EngineDbContext : DbContext
                 e.InstanceGuid,
             });
             entity.HasIndex(e => new { e.InstanceGuid, e.Status });
+
+            entity
+                .HasIndex(e => new { e.StartAt, e.CreatedAt })
+                .HasFilter("\"Status\" IN (0, 2)")
+                .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
 
             // Self-referencing many-to-many: a workflow can depend on many other workflows
             entity
@@ -64,10 +70,7 @@ internal sealed class EngineDbContext : DbContext
         // Configure Step entity
         modelBuilder.Entity<StepEntity>(entity =>
         {
-            entity.HasIndex(e => e.Status);
-            entity.HasIndex(e => e.BackoffUntil);
-            entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => e.ProcessingOrder);
+            entity.HasIndex(e => new { e.JobId, e.Status });
         });
 
         // Configure idempotency key entity

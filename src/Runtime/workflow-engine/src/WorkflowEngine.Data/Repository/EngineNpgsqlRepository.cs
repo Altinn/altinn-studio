@@ -609,7 +609,7 @@ internal sealed class EngineNpgsqlRepository(
                             AND dep."Status" <> {PersistentItemStatus.Failed}
                             AND dep."Status" <> {PersistentItemStatus.DependencyFailed}
                       )
-                    ORDER BY w."CreatedAt"
+                    ORDER BY w."StartAt" NULLS FIRST, w."CreatedAt"
                     FOR UPDATE SKIP LOCKED
                     LIMIT {count}
                 )
