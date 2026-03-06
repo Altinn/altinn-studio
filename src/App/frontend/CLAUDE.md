@@ -1,1 +1,3 @@
-See @AGENTS.md for shared project context.
+# CLAUDE.md
+
+@AGENTS.md
