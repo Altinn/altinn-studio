@@ -36,6 +36,8 @@ describe('objectUtils', () => {
       expect(ObjectUtils.areObjectsEqual({ a: 1 }, { a: 2 })).toBe(false);
       expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2 }, { a: 1, b: 3 })).toBe(false);
       expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2, c: 3 }, { a: 1, b: 2, c: 4 })).toBe(false);
+      expect(ObjectUtils.areObjectsEqual(null, { a: 1, b: 2 })).toBe(false);
+      expect(ObjectUtils.areObjectsEqual(undefined, { a: 1, b: 2 })).toBe(false);
     });
 
     it('should return true for two empty objects', () => {
@@ -49,6 +51,38 @@ describe('objectUtils', () => {
 
     it('should return false if the length of the objects are not equally length', () => {
       expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2 }, { a: 1 })).toBe(false);
+    });
+
+    it('should return true if both objects are null', () => {
+      expect(ObjectUtils.areObjectsEqual(null, null)).toBe(true);
+    });
+
+    it('should return true if both objects are undefined', () => {
+      expect(ObjectUtils.areObjectsEqual(null, null)).toBe(true);
+    });
+
+    it('should return true if nested objects are equal', () => {
+      expect(ObjectUtils.areObjectsEqual({ a: 1, b: { c: 2 } }, { a: 1, b: { c: 2 } })).toBe(true);
+      expect(
+        ObjectUtils.areObjectsEqual({ a: 1, b: { c: undefined } }, { a: 1, b: { c: undefined } }),
+      ).toBe(true);
+      expect(ObjectUtils.areObjectsEqual({ a: 1, b: { c: null } }, { a: 1, b: { c: null } })).toBe(
+        true,
+      );
+    });
+
+    it('should return false if nested objects are not equal', () => {
+      expect(ObjectUtils.areObjectsEqual({ a: 1, b: { c: 2 } }, { a: 1, b: { c: 3 } })).toBe(false);
+      expect(ObjectUtils.areObjectsEqual({ a: 1, b: { c: 2 } }, { a: 1, b: { c: '3' } })).toBe(
+        false,
+      );
+      expect(
+        ObjectUtils.areObjectsEqual({ a: 1, b: { c: 2 } }, { a: 1, b: { c: undefined } }),
+      ).toBe(false);
+      expect(
+        ObjectUtils.areObjectsEqual({ a: 1, b: { c: undefined } }, { a: 1, b: { c: null } }),
+      ).toBe(false);
+      expect(ObjectUtils.areObjectsEqual({ a: { b: 1 } }, { a: 5 })).toBe(false);
     });
   });
 
