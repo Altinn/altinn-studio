@@ -40,13 +40,16 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"altinn.studio/devenv/pkg/container/dockerapi"
 	"altinn.studio/devenv/pkg/container/podman"
 	"altinn.studio/devenv/pkg/container/types"
 )
 
-// Cached detection result.
+const dockerContextTimeout = 5 * time.Second
+
+// Cached detection result
 var (
 	detectMu              sync.Mutex
 	detectionSucceeded    bool
@@ -255,6 +258,19 @@ func detectRuntime(ctx context.Context) (runtimeType, string, error) {
 		// Neither CLI available - fall through to other detection methods
 	}
 
+	// Try active docker context endpoint.
+	// The Docker Go SDK's client.FromEnv does not read docker contexts, only
+	// DOCKER_HOST. On macOS, Colima and Docker Desktop register themselves as
+	// docker contexts, so we query the active context for the socket endpoint.
+	if rt, socketPath, ok := tryDockerContext(ctx); ok {
+		return rt, socketPath, nil
+	}
+
+	// Try well-known Docker-compatible socket paths (Colima, Docker Desktop)
+	if socketPath := findDockerSocket(ctx); socketPath != "" {
+		return runtimeDocker, socketPath, nil
+	}
+
 	// Try Podman sockets (Docker-compat API)
 	if socketPath := findPodmanSocket(ctx); socketPath != "" {
 		return runtimePodmanSocket, socketPath, nil
@@ -266,7 +282,7 @@ func detectRuntime(ctx context.Context) (runtimeType, string, error) {
 	}
 
 	return runtimeUnknown, "", fmt.Errorf(
-		"%w (tried Docker API, Podman socket, Podman CLI)",
+		"%w (tried Docker API, docker context, Docker-compatible sockets, Podman socket, Podman CLI)",
 		errNoContainerRuntime,
 	)
 }
@@ -276,6 +292,13 @@ func newClientForType(ctx context.Context, rt runtimeType) (ContainerClient, err
 	install := rt.installation()
 	switch rt {
 	case runtimeDocker:
+		if detectedSocketPath != "" {
+			client, err := dockerapi.NewWithHost(ctx, "unix://"+detectedSocketPath)
+			if err != nil {
+				return nil, fmt.Errorf("create docker client: %w", err)
+			}
+			return client, nil
+		}
 		client, err := dockerapi.NewWithInstallation(ctx, install)
 		if err != nil {
 			return nil, fmt.Errorf("create docker client: %w", err)
@@ -307,7 +330,81 @@ func newClientForType(ctx context.Context, rt runtimeType) (ContainerClient, err
 	}
 }
 
-// findPodmanSocket checks for available Podman sockets and returns the first working one.
+// tryDockerContext queries the active docker context for its endpoint and tries to connect.
+// This handles Colima, Docker Desktop, and other runtimes that register as docker contexts.
+func tryDockerContext(ctx context.Context) (runtimeType, string, bool) {
+	if _, err := exec.LookPath("docker"); err != nil {
+		return runtimeUnknown, "", false
+	}
+
+	ctxTimeout, cancel := context.WithTimeout(ctx, dockerContextTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctxTimeout, "docker", "context", "inspect", "--format", "{{.Endpoints.docker.Host}}")
+	output, err := cmd.Output()
+	if err != nil {
+		return runtimeUnknown, "", false
+	}
+
+	endpoint := strings.TrimSpace(string(output))
+	if endpoint == "" || !strings.HasPrefix(endpoint, "unix://") {
+		return runtimeUnknown, "", false
+	}
+
+	cli, err := dockerapi.NewWithHost(ctx, endpoint)
+	if err != nil {
+		return runtimeUnknown, "", false
+	}
+	closeClient(cli)
+
+	socketPath := strings.TrimPrefix(endpoint, "unix://")
+	return runtimeDocker, socketPath, true
+}
+
+// findDockerSocket checks well-known Docker-compatible socket paths and returns the first working one.
+// This covers Colima and Docker Desktop on macOS when docker CLI is not installed
+// (and thus docker context is unavailable).
+func findDockerSocket(ctx context.Context) string {
+	for _, socketPath := range dockerSocketPaths() {
+		if !fileExists(socketPath) {
+			continue
+		}
+
+		cli, err := dockerapi.NewWithHost(ctx, "unix://"+socketPath)
+		if err == nil {
+			closeClient(cli)
+			return socketPath
+		}
+	}
+	return ""
+}
+
+// dockerSocketPaths returns Docker-compatible socket locations to check on macOS.
+func dockerSocketPaths() []string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil
+	}
+
+	var paths []string
+
+	// Colima: ~/.colima/<profile>/docker.sock
+	colimaDir := filepath.Join(home, ".colima")
+	if entries, err := os.ReadDir(colimaDir); err == nil {
+		for _, e := range entries {
+			if e.IsDir() {
+				paths = append(paths, filepath.Join(colimaDir, e.Name(), "docker.sock"))
+			}
+		}
+	}
+
+	// Docker Desktop (newer macOS path): ~/.docker/run/docker.sock
+	paths = append(paths, filepath.Join(home, ".docker", "run", "docker.sock"))
+
+	return paths
+}
+
+// findPodmanSocket checks for available Podman sockets and returns the first working one
 func findPodmanSocket(ctx context.Context) string {
 	for _, socketPath := range podmanSocketPaths() {
 		if !fileExists(socketPath) {

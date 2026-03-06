@@ -48,6 +48,10 @@ namespace LocalTest.Services.LocalApp.Implementation
         private HttpClient CreateClient(string? appId = null)
         {
             var client = _httpClientFactory.CreateClient();
+            // Keep timeout short so localtest stays responsive when no app is running.
+            // Podman on macOS drops packets to unreachable host ports instead of sending
+            // TCP RST, which would otherwise hang for the default 100-second timeout.
+            client.Timeout = TimeSpan.FromSeconds(5);
 
             // Try to get registered app first
             if (appId != null)
