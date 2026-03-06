@@ -11,9 +11,9 @@ import type { ResponseFuzzing, Size, SnapshotOptions, SnapshotViewport } from 't
 
 import { breakpoints } from 'src/hooks/useDeviceWidths';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { LayoutContextValue } from 'src/features/form/layout/LayoutsContext';
 import type { IFeatureToggles } from 'src/features/toggles';
 import type { ILayoutFile } from 'src/layout/common.generated';
+import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
 
 const appFrontend = new AppFrontend();
@@ -256,7 +256,7 @@ Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
   cy.window().then((win) => {
     const layoutCache = win.queryClient.getQueriesData({
       queryKey: ['formLayouts'],
-    })?.[0]?.[1] as LayoutContextValue | undefined;
+    })?.[0]?.[1] as { layouts?: ILayouts } | undefined;
     const layouts = layoutCache?.layouts;
     cy.waitUntil(() => {
       const allDropdowns = win.document.querySelectorAll('[data-componenttype="Dropdown"]');
@@ -493,9 +493,11 @@ Cypress.Commands.add('moveProcessNext', () => {
 
 Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, _options) => {
   const options = _options ?? { times: 1 };
-  cy.intercept({ method: 'GET', url: `**/api/layouts/${taskName}`, ...options }, (req) => {
+  cy.intercept({ method: 'GET', url: `**/bootstrap-form/${taskName}*`, ...options }, (req) => {
     req.reply((res) => {
-      const set = JSON.parse(res.body);
+      const response = typeof res.body === 'string' ? JSON.parse(res.body) : res.body;
+      const set = response?.layouts as ILayoutCollection;
+
       if (mutator) {
         for (const layout of Object.values(set)) {
           (layout as ILayoutFile).data.layout.map(mutator);
@@ -504,7 +506,8 @@ Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, 
       if (wholeLayoutMutator) {
         wholeLayoutMutator(set);
       }
-      res.send(JSON.stringify(set));
+
+      res.send({ ...response, layouts: set });
     });
   }).as(`interceptLayout(${taskName})`);
 });
@@ -514,26 +517,42 @@ Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
   cy.window().then((win) => {
     const activeData = win.queryClient.getQueryCache().findAll({ type: 'active' });
     for (const query of activeData) {
-      if (Array.isArray(query.queryKey) && query.queryKey[0] === 'formLayouts') {
-        const copy = structuredClone(query.state.data) as LayoutContextValue | undefined;
-        if (copy) {
-          if (mutator) {
-            for (const page of Object.values(copy.layouts)) {
-              for (const component of page || []) {
-                mutator(component);
-              }
+      if (!Array.isArray(query.queryKey) || query.queryKey[0] !== 'formBootstrap') {
+        throw new Error('Expected query to be active: form bootstrap');
+      }
+
+      win.queryClient.setQueryData(query.queryKey, (current: { layouts?: Record<string, ILayoutFile> } | undefined) => {
+        if (!current?.layouts) {
+          throw new Error('Expected query to have layouts');
+        }
+
+        const nextLayouts = structuredClone(current.layouts);
+        const layouts = Object.fromEntries(
+          Object.entries(nextLayouts).map(([pageKey, page]) => [pageKey, page?.data?.layout ?? []]),
+        ) as ILayouts;
+
+        if (mutator) {
+          for (const page of Object.values(layouts)) {
+            for (const component of page || []) {
+              mutator(component);
             }
           }
-          if (wholeLayoutMutator) {
-            wholeLayoutMutator(copy.layouts);
-          }
-
-          win.queryClient.setQueryData(query.queryKey, copy);
         }
-      }
+        if (wholeLayoutMutator) {
+          wholeLayoutMutator(layouts);
+        }
+        for (const [pageKey, layout] of Object.entries(layouts)) {
+          if (nextLayouts[pageKey]?.data) {
+            nextLayouts[pageKey].data.layout = layout!;
+          }
+        }
+
+        return { ...current, layouts: nextLayouts };
+      });
     }
   });
 
+  cy.findByTestId('presentation').should('exist');
   cy.findByRole('progressbar').should('not.exist');
 });
 
