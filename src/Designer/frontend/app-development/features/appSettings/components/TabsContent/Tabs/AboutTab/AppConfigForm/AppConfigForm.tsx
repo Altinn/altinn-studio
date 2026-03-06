@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
+import { useUnsavedChangesWarning } from '@studio/hooks';
 import { StudioTextfield, StudioInlineTextField } from '@studio/components';
 import type { ContactPoint, Keyword } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
@@ -44,6 +45,12 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
+
+  const hasUnsavedChanges = !ObjectUtils.areObjectsEqual(updatedAppConfig, appConfigWithDefaults);
+  useUnsavedChangesWarning(
+    hasUnsavedChanges,
+    t('app_settings.about_tab_unsaved_changes_navigation_warning'),
+  );
 
   const saveUpdatedAppConfig = (): void => {
     setShowAppConfigErrors(false);
@@ -193,7 +200,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
       <ActionButtons
         onSave={saveUpdatedAppConfig}
         onReset={resetAppConfig}
-        areButtonsDisabled={ObjectUtils.areObjectsEqual(updatedAppConfig, appConfigWithDefaults)}
+        areButtonsDisabled={!hasUnsavedChanges}
       />
     </div>
   );
