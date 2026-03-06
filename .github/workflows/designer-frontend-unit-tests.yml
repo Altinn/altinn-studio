@@ -8,6 +8,8 @@ on:
       - 'src/Designer/frontend/testing/cypress/**'
       - '!src/Designer/frontend/stats/**'
       - 'src/Designer/testdata/**'
+      - '.github/actions/codeql-config/**'
+      - '.github/codeql/**'
       - '.github/workflows/designer-frontend-unit-tests.yml'
       - 'package.json'
       - 'yarn.lock'
@@ -34,12 +36,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 'Generate CodeQL config'
+        id: codeql-config
+        uses: ./.github/actions/codeql-config
+        with:
+          language: javascript
+          paths: |
+            src/Designer/frontend
+
       - name: 'Initialize CodeQL'
         uses: github/codeql-action/init@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
         with:
           languages: javascript
-          queries: +security-and-quality
-          config-file: .github/codeql/codeql-config.yml
+          queries: ${{ steps.codeql-config.outputs.queries }}
+          config-file: ${{ steps.codeql-config.outputs.config-file }}
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
