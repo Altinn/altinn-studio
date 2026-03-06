@@ -111,9 +111,7 @@ export function useComponentIdMutator(skipLastMutator = false): IdMutator {
  * belong here, according to the layout structure.
  */
 export function useIndexedId(baseId: string, skipLastMutator?: boolean): string;
-// eslint-disable-next-line no-redeclare
 export function useIndexedId(baseId: string | undefined, skipLastMutator?: boolean): string | undefined;
-// eslint-disable-next-line no-redeclare
 export function useIndexedId(baseId: unknown, skipLastMutator = false) {
   const idMutator = useComponentIdMutator(skipLastMutator);
   return useMemo(() => (typeof baseId === 'string' ? idMutator(baseId) : baseId), [baseId, idMutator]);

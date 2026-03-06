@@ -4,7 +4,7 @@ import 'core-js/stable/structured-clone'; // https://github.com/jsdom/jsdom/issu
 import 'jest';
 // Importing CSS for jest-preview to look nicer
 import '@digdir/designsystemet-css';
-import '@digdir/designsystemet-theme';
+import '@digdir/designsystemet-css/theme';
 
 import { jest } from '@jest/globals';
 import { configure as testingLibraryConfigure } from '@testing-library/dom';
@@ -71,7 +71,7 @@ window.org = 'ttd';
 window.app = 'test';
 
 // Set up altinnAppGlobalData with default mocks before each test to prevent pollution between tests
-// eslint-disable-next-line no-undef
+
 beforeEach(() => {
   window.altinnAppGlobalData = {
     applicationMetadata: getApplicationMetadataMock(),

@@ -16,6 +16,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Telemetry;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -27,11 +28,16 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// </remarks>
 /// <param name="repositorySettings">The settings for the service repository.</param>
 /// <param name="giteaClient">The gitea client.</param>
-public class SourceControlService(ServiceRepositorySettings repositorySettings, IGiteaClient giteaClient)
-    : ISourceControl
+/// <param name="httpContextAccessor">The HTTP context accessor.</param>
+public class SourceControlService(
+    ServiceRepositorySettings repositorySettings,
+    IGiteaClient giteaClient,
+    IHttpContextAccessor? httpContextAccessor = null
+) : ISourceControl
 {
     private readonly ServiceRepositorySettings _repositorySettings = repositorySettings;
     private readonly IGiteaClient _giteaClient = giteaClient;
+    private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor;
 
     private const string DefaultBranch = General.DefaultBranch;
 
@@ -162,22 +168,20 @@ public class SourceControlService(ServiceRepositorySettings repositorySettings, 
                 {
                     SetRepositoryStatusTag(ctx.activity, status.RepositoryStatus);
                     ctx.activity?.SetTag("pull.merge_status", mergeStatus);
-                    ctx.activity?.AddEvent(
-                        new ActivityEvent(
-                            "pull.summary",
-                            tags: new ActivityTagsCollection
-                            {
-                                { "head_branch_before", headBranchBefore },
-                                { "head_branch_after", repo.Head.FriendlyName },
-                                { "is_dirty_before", isDirtyBefore },
-                                { "conflict_count_before", conflictCountBefore },
-                                { "content_status_count", status.ContentStatus.Count },
-                                { "merge_conflict", mergeConflict },
-                                { "checkout_conflict", checkoutConflict },
-                                { "merge_conflict_count", mergeConflictCount },
-                                { "repo.path", repo.Info.WorkingDirectory },
-                            }
-                        )
+                    self.AddActivityEvent(
+                        "pull.summary",
+                        new ActivityTagsCollection
+                        {
+                            { "head_branch_before", headBranchBefore },
+                            { "head_branch_after", repo.Head.FriendlyName },
+                            { "is_dirty_before", isDirtyBefore },
+                            { "conflict_count_before", conflictCountBefore },
+                            { "content_status_count", status.ContentStatus.Count },
+                            { "merge_conflict", mergeConflict },
+                            { "checkout_conflict", checkoutConflict },
+                            { "merge_conflict_count", mergeConflictCount },
+                            { "repo.path", repo.Info.WorkingDirectory },
+                        }
                     );
                 }
                 return status;
@@ -340,7 +344,7 @@ public class SourceControlService(ServiceRepositorySettings repositorySettings, 
                         { "push_completed", pushCompleted },
                     };
                     AddIndexedPushErrors(summaryTags, pushErrors);
-                    ctx.activity?.AddEvent(new ActivityEvent("push.summary", tags: summaryTags));
+                    self.AddActivityEvent("push.summary", summaryTags);
                 }
             }
         );
@@ -464,18 +468,16 @@ public class SourceControlService(ServiceRepositorySettings repositorySettings, 
                 finally
                 {
                     SetRepositoryStatusTag(ctx.activity, repoStatus.RepositoryStatus);
-                    ctx.activity?.AddEvent(
-                        new ActivityEvent(
-                            "repo_status.summary",
-                            tags: new ActivityTagsCollection
-                            {
-                                { "current_branch", repoStatus.CurrentBranch },
-                                { "content_status_count", repoStatus.ContentStatus.Count },
-                                { "ahead_by", repoStatus.AheadBy ?? -1 },
-                                { "behind_by", repoStatus.BehindBy ?? -1 },
-                                { "repo.path", repo.Info.WorkingDirectory },
-                            }
-                        )
+                    self.AddActivityEvent(
+                        "repo_status.summary",
+                        new ActivityTagsCollection
+                        {
+                            { "current_branch", repoStatus.CurrentBranch },
+                            { "content_status_count", repoStatus.ContentStatus.Count },
+                            { "ahead_by", repoStatus.AheadBy ?? -1 },
+                            { "behind_by", repoStatus.BehindBy ?? -1 },
+                            { "repo.path", repo.Info.WorkingDirectory },
+                        }
                     );
                 }
             }
@@ -671,15 +673,13 @@ public class SourceControlService(ServiceRepositorySettings repositorySettings, 
                 {
                     ctx.activity?.SetTag("cloned", cloned);
                     ctx.activity?.SetTag("clone.failed_handled", cloneFailedHandled);
-                    ctx.activity?.AddEvent(
-                        new ActivityEvent(
-                            "clone_if_not_exists.summary",
-                            tags: new ActivityTagsCollection
-                            {
-                                { "repo.path", repoLocation },
-                                { "repo_exists_before", repoExistsBefore },
-                            }
-                        )
+                    self.AddActivityEvent(
+                        "clone_if_not_exists.summary",
+                        new ActivityTagsCollection
+                        {
+                            { "repo.path", repoLocation },
+                            { "repo_exists_before", repoExistsBefore },
+                        }
                     );
                 }
             }
@@ -753,15 +753,9 @@ public class SourceControlService(ServiceRepositorySettings repositorySettings, 
                     : pushedFeatureBranch ? "feature"
                     : "none"
             );
-            activity?.AddEvent(
-                new ActivityEvent(
-                    "commit_and_push_to_branch.summary",
-                    tags: new ActivityTagsCollection
-                    {
-                        { "created_commit_sha", createdCommitSha },
-                        { "local.path", localPath },
-                    }
-                )
+            AddActivityEvent(
+                "commit_and_push_to_branch.summary",
+                new ActivityTagsCollection { { "created_commit_sha", createdCommitSha }, { "local.path", localPath } }
             );
         }
     }
@@ -887,16 +881,14 @@ public class SourceControlService(ServiceRepositorySettings repositorySettings, 
                 finally
                 {
                     ctx.activity?.SetTag("rebase.status", rebaseStatus.ToString());
-                    ctx.activity?.AddEvent(
-                        new ActivityEvent(
-                            "rebase.summary",
-                            tags: new ActivityTagsCollection
-                            {
-                                { "working_directory", repo.Info.WorkingDirectory },
-                                { "conflicts_aborted", conflictsAborted },
-                                { "stop_aborted", stopAborted },
-                            }
-                        )
+                    self.AddActivityEvent(
+                        "rebase.summary",
+                        new ActivityTagsCollection
+                        {
+                            { "working_directory", repo.Info.WorkingDirectory },
+                            { "conflicts_aborted", conflictsAborted },
+                            { "stop_aborted", stopAborted },
+                        }
                     );
                 }
             }
@@ -1419,6 +1411,13 @@ public class SourceControlService(ServiceRepositorySettings repositorySettings, 
 
     private static void SetRepositoryStatusTag(Activity? activity, Enums.RepositoryStatus repositoryStatus) =>
         activity?.SetTag("repository_status", repositoryStatus.ToString());
+
+    private void AddActivityEvent(string eventName, ActivityTagsCollection? tags = null)
+    {
+        var activity =
+            _httpContextAccessor?.HttpContext?.Features.Get<IHttpActivityFeature>()?.Activity ?? Activity.Current;
+        activity?.AddEvent(new ActivityEvent(eventName, tags: tags));
+    }
 
     private static void AddIndexedPushErrors(
         ActivityTagsCollection tags,
