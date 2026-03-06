@@ -2,7 +2,7 @@
   "name": "admin",
   "version": "0.0.0",
   "author": "Altinn",
-  "license": "3-Clause BSD",
+  "license": "MIT",
   "private": true,
   "browserslist": [
     ">0.2%",
