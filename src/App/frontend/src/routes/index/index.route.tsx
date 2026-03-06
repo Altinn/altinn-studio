@@ -1,5 +1,10 @@
-import { Entrypoint } from 'src/features/entrypoint/Entrypoint';
+import React from 'react';
+import { Outlet } from 'react-router';
 
-// These are temporary re-exports that lets us have the new structure without moving the components yet to limit
-// merge conflicts
-export const Component = Entrypoint;
+import { FormProvider } from 'src/features/form/FormContext';
+
+export const Component = () => (
+  <FormProvider>
+    <Outlet />
+  </FormProvider>
+);
