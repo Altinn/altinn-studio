@@ -303,4 +303,5 @@ lifecycle:
         - -c
         - >
           mkdir -p wwwroot/designer/config &&
-          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\"}" > wwwroot/designer/config/env.json
+          STUDIO_OIDC_FLAG=$([ "${FeatureManagement__StudioOidc}" = "true" ] && echo true || echo false) &&
+          echo "{\"aiConnectionString\": \"${AI_CONNECTION_STRING}\", \"postHogApiKey\": \"${POSTHOG_API_KEY}\", \"postHogApiHost\": \"${POSTHOG_API_HOST}\", \"featureFlags\": {\"studioOidc\": ${STUDIO_OIDC_FLAG}}}" > wwwroot/designer/config/env.json
