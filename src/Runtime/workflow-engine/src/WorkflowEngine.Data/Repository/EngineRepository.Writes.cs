@@ -690,6 +690,7 @@ internal sealed partial class EngineRepository
     public async Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken)
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.FetchAndLockWorkflows");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         var now = timeProvider.GetUtcNow();
 
@@ -780,8 +781,6 @@ internal sealed partial class EngineRepository
                 },
                 cancellationToken
             );
-
-            Metrics.DbOperationsSucceeded.Add(1);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -918,8 +917,6 @@ internal sealed partial class EngineRepository
                 },
                 cancellationToken
             );
-
-            Metrics.DbOperationsSucceeded.Add(1);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

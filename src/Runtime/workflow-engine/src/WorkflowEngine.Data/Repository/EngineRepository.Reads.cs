@@ -411,14 +411,28 @@ internal sealed partial class EngineRepository
     )
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.GetWorkflow");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
-        await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var entity = await context
-            .Workflows.Include(w => w.Steps)
-            .FirstOrDefaultAsync(
-                w => w.IdempotencyKey == idempotencyKey && w.CreatedAt == createdAt,
-                cancellationToken
-            );
-        return entity?.ToDomainModel();
+        try
+        {
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var entity = await context
+                .Workflows.Include(w => w.Steps)
+                .FirstOrDefaultAsync(
+                    w => w.IdempotencyKey == idempotencyKey && w.CreatedAt == createdAt,
+                    cancellationToken
+                );
+            return entity?.ToDomainModel();
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
     }
 }
