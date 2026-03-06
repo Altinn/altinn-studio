@@ -7,12 +7,12 @@ import { FixWrongReceiptType } from 'src/features/receipt/FixWrongReceiptType';
 
 export function Component() {
   return (
-    <FixWrongReceiptType>
-      <ProcessWrapper>
-        <FormProvider>
+    <FormProvider>
+      <FixWrongReceiptType>
+        <ProcessWrapper>
           <Outlet />
-        </FormProvider>
-      </ProcessWrapper>
-    </FixWrongReceiptType>
+        </ProcessWrapper>
+      </FixWrongReceiptType>
+    </FormProvider>
   );
 }
