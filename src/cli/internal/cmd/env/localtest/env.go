@@ -11,6 +11,7 @@ import (
 	containertypes "altinn.studio/devenv/pkg/container/types"
 	"altinn.studio/devenv/pkg/resource"
 	envtypes "altinn.studio/studioctl/internal/cmd/env"
+	localtestrenderer "altinn.studio/studioctl/internal/cmd/env/localtest/renderer"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
 	"altinn.studio/studioctl/internal/install"
@@ -118,19 +119,11 @@ func (e *Env) Down(ctx context.Context) error {
 		return envtypes.ErrAlreadyStopped
 	}
 
-	opts := e.buildDestroyOptions()
-
-	spinner := ui.NewSpinner(e.out, "Stopping localtest environment...")
-	if !e.cfg.Verbose {
-		spinner.Start()
-	}
-
-	if err := e.destroyResources(ctx, opts); err != nil {
-		spinner.StopWithError("Failed to stop environment")
+	if err := e.destroyResources(ctx, e.buildDestroyOptions()); err != nil {
 		return fmt.Errorf("stop environment: %w", err)
 	}
 
-	spinner.StopWithSuccess("Environment stopped")
+	e.out.Success("Environment stopped")
 	return nil
 }
 
@@ -225,43 +218,108 @@ func (e *Env) runForeground(
 }
 
 func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) error {
-	graph, err := buildResourceGraph(BuildResources(opts))
+	resources := BuildResources(opts)
+	graph, err := buildResourceGraph(resources)
 	if err != nil {
 		return err
 	}
 
+	executor := resource.NewExecutor(e.client)
 	spinnerMsg := "Starting localtest environment..."
 	if opts.ImageMode == DevMode {
 		spinnerMsg = "Building and starting localtest environment (dev mode)..."
 	}
 
-	spinner := ui.NewSpinner(e.out, spinnerMsg)
-	if !e.cfg.Verbose {
-		spinner.Start()
+	var renderer localtestrenderer.Renderer
+	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
+	case localtestrenderer.ModeTable:
+		renderer = localtestrenderer.NewTable(e.out, resources, localtestrenderer.OperationApply)
+	case localtestrenderer.ModeCompact:
+		renderer = localtestrenderer.NewCompact(e.out, resources, localtestrenderer.OperationApply)
+	case localtestrenderer.ModeLog:
+		renderer = localtestrenderer.NewLog(e.out, resources, localtestrenderer.OperationApply, spinnerMsg)
 	}
+	renderer.Start()
+	executor.SetObserver(renderer)
 
-	executor := resource.NewExecutor(e.client)
 	if err := executor.Apply(ctx, graph); err != nil {
-		spinner.StopWithError("Failed to start environment")
+		renderer.FailAll(err.Error())
+		renderer.Stop()
 		return fmt.Errorf("start environment: %w", err)
 	}
 
-	spinner.StopWithSuccess("Environment started")
+	renderer.Stop()
+	e.out.Success("Environment started")
 	return nil
 }
 
 func (e *Env) destroyResources(ctx context.Context, opts ResourceDestroyOptions) error {
 	// TODO: we should probably load resources as "current state" instead
-	graph, err := buildResourceGraph(BuildResourcesForDestroy(opts))
+	resources := BuildResourcesForDestroy(opts)
+	graph, err := buildResourceGraph(resources)
 	if err != nil {
 		return err
 	}
 
 	executor := resource.NewExecutor(e.client)
+	renderResources, err := currentDestroyRenderResources(ctx, executor, graph, resources)
+	if err != nil {
+		return err
+	}
+	var renderer localtestrenderer.Renderer
+	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
+	case localtestrenderer.ModeTable:
+		renderer = localtestrenderer.NewTable(e.out, renderResources, localtestrenderer.OperationDestroy)
+	case localtestrenderer.ModeCompact:
+		renderer = localtestrenderer.NewCompact(e.out, renderResources, localtestrenderer.OperationDestroy)
+	case localtestrenderer.ModeLog:
+		renderer = localtestrenderer.NewLog(
+			e.out,
+			renderResources,
+			localtestrenderer.OperationDestroy,
+			"Stopping localtest environment...",
+		)
+	}
+	renderer.Start()
+	executor.SetObserver(renderer)
+
 	if err := executor.Destroy(ctx, graph); err != nil {
+		renderer.FailAll(err.Error())
+		renderer.Stop()
 		return fmt.Errorf("destroy resources: %w", err)
 	}
+
+	renderer.Stop()
 	return nil
+}
+
+func currentDestroyRenderResources(
+	ctx context.Context,
+	executor *resource.Executor,
+	graph *resource.Graph,
+	resources []resource.Resource,
+) ([]resource.Resource, error) {
+	statuses, err := executor.Status(ctx, graph)
+	if err != nil {
+		return nil, fmt.Errorf("get resource status: %w", err)
+	}
+
+	return filterRenderResources(resources, statuses), nil
+}
+
+func filterRenderResources(
+	resources []resource.Resource,
+	statuses map[resource.ResourceID]resource.Status,
+) []resource.Resource {
+	filtered := make([]resource.Resource, 0, len(resources))
+	for _, res := range resources {
+		status, ok := statuses[res.ID()]
+		if ok && status == resource.StatusDestroyed {
+			continue
+		}
+		filtered = append(filtered, res)
+	}
+	return filtered
 }
 
 func (e *Env) buildDestroyOptions() ResourceDestroyOptions {
