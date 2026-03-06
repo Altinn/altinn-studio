@@ -206,20 +206,22 @@ describe('AddPersonalAccessToken', () => {
 
   it('shows error toast when clipboard write fails', async () => {
     jest.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Permission denied'));
+    const user = userEvent.setup();
     const addUserPersonalAccessToken = jest.fn().mockResolvedValue(mockCreatedToken);
     renderAddPersonalAccessToken({ addUserPersonalAccessToken });
-    await fillForm(userEvent.setup(), 'New token', validExpiresAt);
-    await userEvent.setup().click(getAddButton());
+    await fillForm(user, 'New token', validExpiresAt);
+    await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
     fireEvent.click(
       screen.getByRole('button', {
         name: textMock('user.settings.personal_access_tokens.copy'),
       }),
     );
-    await screen.findByDisplayValue('secret-key-value');
-    expect(toast.error).toHaveBeenCalledWith(
-      textMock('user.settings.personal_access_tokens.copy_error'),
-      expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_error' }),
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        textMock('user.settings.personal_access_tokens.copy_error'),
+        expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_error' }),
+      ),
     );
   });
 });
