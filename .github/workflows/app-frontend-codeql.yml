@@ -45,7 +45,7 @@ jobs:
         uses: github/codeql-action/init@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
         with:
           languages: ${{ matrix.language }}
-          queries: +security-and-quality
+          queries: ${{ steps.codeql-config.outputs.queries }}
           config-file: ${{ steps.codeql-config.outputs.config-file }}
 
       - name: Autobuild

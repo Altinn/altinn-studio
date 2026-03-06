@@ -4,6 +4,10 @@ inputs:
   language:
     description: "CodeQL language"
     required: true
+  queries:
+    description: "CodeQL query suites"
+    required: false
+    default: "security-extended,security-and-quality"
   paths:
     description: "Newline-separated repository paths to include in analysis"
     required: false
@@ -12,6 +16,9 @@ outputs:
   config-file:
     description: "Path to the generated CodeQL config file"
     value: ${{ steps.generate.outputs.config-file }}
+  queries:
+    description: "CodeQL query suites to pass to init"
+    value: ${{ steps.generate.outputs.queries }}
 runs:
   using: "composite"
   steps:
@@ -43,3 +50,4 @@ runs:
         fi
 
         echo "config-file=$config_file" >> "$GITHUB_OUTPUT"
+        echo "queries=${{ inputs.queries }}" >> "$GITHUB_OUTPUT"
