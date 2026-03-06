@@ -1,3 +1,3 @@
-import type { GetRadioProps } from '@digdir/designsystemet-react/dist/types/utilities/hooks/use-radio-group/use-radio-group';
+import type { useRadioGroup } from '@digdir/designsystemet-react';
 
-export type StudioGetRadioProps = GetRadioProps;
+export type StudioGetRadioProps = ReturnType<ReturnType<typeof useRadioGroup>['getRadioProps']>;

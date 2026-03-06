@@ -79,6 +79,16 @@
       HasParent: false
     },
     {
+      Name: PartyClient.GetParty,
+      IdFormat: W3C,
+      Tags: [
+        {
+          instance.owner.party.id: 500600
+        }
+      ],
+      HasParent: true
+    },
+    {
       Name: Process.End,
       IdFormat: W3C,
       Tags: [

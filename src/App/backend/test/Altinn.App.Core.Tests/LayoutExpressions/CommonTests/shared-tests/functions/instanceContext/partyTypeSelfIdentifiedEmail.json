@@ -1,5 +1,5 @@
 {
-  "name": "PartyType is Self Identified",
+  "name": "PartyType is Self Identified with email",
   "expression": ["instanceContext", "instanceOwnerPartyType"],
   "expects": "selfIdentified",
   "instance": {
@@ -7,7 +7,8 @@
     "appId": "org/app-name",
     "instanceOwner": {
       "partyId": "12345",
-      "username": "1234567"
+      "username": "epost:test@test.com",
+      "externalIdentifier": "urn:altinn:person:idporten-email:test@test.com"
     }
   }
 }

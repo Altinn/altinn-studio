@@ -36,7 +36,10 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
   const rows = RepGroupHooks.useVisibleRows(baseComponentId);
   const validations = useUnifiedValidationsForNode(baseComponentId);
   const errors = validationsOfSeverity(validations, 'error');
-  const { textResourceBindings, dataModelBindings, tableColumns } = useItemWhenType(baseComponentId, 'RepeatingGroup');
+  const { textResourceBindings, dataModelBindings, tableColumns, rowsAfter } = useItemWhenType(
+    baseComponentId,
+    'RepeatingGroup',
+  );
   const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
   const tableIds = useTableComponentIds(baseComponentId);
   const columnSettings = tableColumns ? structuredClone(tableColumns) : ({} as ITableColumnFormatting);
@@ -85,6 +88,18 @@ export const RepeatingGroupTableSummary = ({ baseComponentId }: { baseComponentI
                 columnSettings={columnSettings}
               />
             </DataModelLocationProvider>
+          ))}
+          {rowsAfter?.map((row, rowIdx) => (
+            <Table.Row key={`row-after-${rowIdx}`}>
+              {row.cells.map((cell, cellIdx) => (
+                <Table.Cell key={cellIdx}>
+                  {cell && 'text' in cell && cell.text !== undefined && <Lang id={cell.text} />}
+                  {cell && 'component' in cell && cell.component && (
+                    <ComponentSummary targetBaseComponentId={cell.component} />
+                  )}
+                </Table.Cell>
+              ))}
+            </Table.Row>
           ))}
         </Table.Body>
       </Table>

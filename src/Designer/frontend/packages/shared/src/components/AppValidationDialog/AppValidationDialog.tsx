@@ -12,6 +12,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
+import { formatDateAndTime } from '../../utils/formatDateAndTime';
 import classes from './AppValidationDialog.module.css';
 
 export const AppValidationDialog = () => {
@@ -33,7 +34,7 @@ export const AppValidationDialog = () => {
       <StudioDialog.Block>
         <StudioHeading>{t('app_validation.heading')}</StudioHeading>
         <StudioParagraph>
-          {t('general.updatedAt')} {new Date(validationUpdatedAt).toLocaleString()}
+          {t('general.updatedAt')} {formatDateAndTime(validationUpdatedAt)}
         </StudioParagraph>
       </StudioDialog.Block>
       <StudioDialog.Block>
@@ -74,9 +75,6 @@ const AltinnAppServiceResourceValidation = ({ validationResult }: { validationRe
 
   return (
     <div>
-      <StudioHeading className={classes.validationHeader}>
-        {t('app_validation.app_metadata.errors_need_fixing')}
-      </StudioHeading>
       <StudioAlert data-color='warning'>
         <StudioHeading className={classes.validationHeader}>
           {t('app_validation.app_metadata.warnings')}
