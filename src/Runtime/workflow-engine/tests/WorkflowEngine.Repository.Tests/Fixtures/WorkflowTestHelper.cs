@@ -8,7 +8,7 @@ namespace WorkflowEngine.Repository.Tests.Fixtures;
 internal static class WorkflowTestHelper
 {
     public static async Task<BatchEnqueueResult[]> EnqueueWorkflows(
-        IEngineNpgsqlRepository repository,
+        IEngineRepository repository,
         WorkflowRequestMetadata metadata,
         IReadOnlyList<WorkflowRequest> workflows,
         string? idempotencyKey = null
@@ -33,7 +33,7 @@ internal static class WorkflowTestHelper
     }
 
     public static async Task<Workflow> EnqueueWorkflow(
-        IEngineNpgsqlRepository repository,
+        IEngineRepository repository,
         EngineDbContext context,
         WorkflowRequest request,
         WorkflowRequestMetadata metadata,
@@ -93,7 +93,7 @@ internal static class WorkflowTestHelper
     }
 
     public static async Task<Workflow> InsertAndSetStatus(
-        IEngineNpgsqlRepository repository,
+        IEngineRepository repository,
         EngineDbContext context,
         PersistentItemStatus status,
         Guid? instanceGuid = null,

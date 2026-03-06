@@ -55,21 +55,54 @@ public sealed class PostgresFixture : IAsyncLifetime
         return new EngineDbContext(options);
     }
 
-    internal EnginePgRepository CreateRepository(EngineDbContext context)
-    {
-        return new EnginePgRepository(context, _settings, NullLogger<EnginePgRepository>.Instance, _limiter);
-    }
-
-    internal EngineNpgsqlRepository CreateNpgsqlRepository()
+    internal EngineRepository CreateRepository()
     {
         var dataSource = NpgsqlDataSource.Create(ConnectionString);
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
-        return new EngineNpgsqlRepository(
+        return new EngineRepository(
             dataSource,
+            factory,
+            _settings,
+            _limiter,
             TimeProvider.System,
-            NullLogger<EngineNpgsqlRepository>.Instance,
-            factory
+            NullLogger<EngineRepository>.Instance
+        );
+    }
+
+    internal EngineRepository CreateRepository(IOptions<EngineSettings> settings)
+    {
+        var dataSource = NpgsqlDataSource.Create(ConnectionString);
+        var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
+        var factory = new PooledDbContextFactory<EngineDbContext>(options);
+        return new EngineRepository(
+            dataSource,
+            factory,
+            settings,
+            _limiter,
+            TimeProvider.System,
+            NullLogger<EngineRepository>.Instance
+        );
+    }
+
+    internal EngineRepository CreateRepositoryWithInterceptor(
+        Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor interceptor,
+        IOptions<EngineSettings>? settings = null
+    )
+    {
+        var dataSource = NpgsqlDataSource.Create(ConnectionString);
+        var options = new DbContextOptionsBuilder<EngineDbContext>()
+            .UseNpgsql(ConnectionString)
+            .AddInterceptors(interceptor)
+            .Options;
+        var factory = new PooledDbContextFactory<EngineDbContext>(options);
+        return new EngineRepository(
+            dataSource,
+            factory,
+            settings ?? _settings,
+            _limiter,
+            TimeProvider.System,
+            NullLogger<EngineRepository>.Instance
         );
     }
 

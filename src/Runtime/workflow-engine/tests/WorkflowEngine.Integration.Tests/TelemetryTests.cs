@@ -136,7 +136,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // === Enqueue phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCoreAsync"));
         Assert.NotEmpty(collector.GetActivities("ValidationUtils.ValidateAndSortWorkflowGraph"));
-        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchEnqueueWorkflows"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflows"));
 
         // === Processing phase ===
         Assert.NotEmpty(collector.GetActivities("WorkflowHandler.HandleAsync"));
@@ -174,7 +174,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // === Status write phase ===
         Assert.NotEmpty(collector.GetActivities("StatusWriteBuffer.SubmitAsync"));
         Assert.NotEmpty(collector.GetActivities("StatusWriteBuffer.FlushBatchCoreAsync"));
-        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }
 
     [Fact]
@@ -268,8 +268,8 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         );
 
         // Assert repository activities for query operations
-        Assert.NotEmpty(collector.GetActivities("EnginePgRepository.GetActiveWorkflowsForInstance"));
-        Assert.NotEmpty(collector.GetActivities("EnginePgRepository.GetWorkflow"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetActiveWorkflowsForInstance"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetWorkflow"));
     }
 
     /// <summary>
@@ -285,7 +285,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
     ///
     /// Background — Write buffer (standalone traces):
     ///   Engine.FlushBatch
-    ///     └── EngineNpgsqlRepository.BatchEnqueueWorkflows
+    ///     └── EngineRepository.BatchEnqueueWorkflows
     ///
     /// Trace B — Processing (new root, linked → Trace A):
     ///   Engine.ProcessWorkflow
@@ -296,7 +296,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
     ///
     /// Background — Status write buffer (standalone traces):
     ///   Engine.FlushStatusBatch
-    ///     └── EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps
+    ///     └── EngineRepository.BatchUpdateWorkflowsAndSteps
     /// </code>
     /// </summary>
     [Fact]
@@ -353,9 +353,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // Standalone background activities (exist but not in workflow traces)
         // ───────────────────────────────────────────────────────────
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCoreAsync"));
-        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchEnqueueWorkflows"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflows"));
         Assert.NotEmpty(collector.GetActivities("StatusWriteBuffer.FlushBatchCoreAsync"));
-        Assert.NotEmpty(collector.GetActivities("EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }
 
     // ─── Span hierarchy helpers ────────────────────────────────────

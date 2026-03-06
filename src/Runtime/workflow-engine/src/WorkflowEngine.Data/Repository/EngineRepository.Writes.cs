@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 using NpgsqlTypes;
 using WorkflowEngine.Data.Constants;
-using WorkflowEngine.Data.Context;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -16,12 +15,7 @@ using WorkflowEngine.Telemetry.Extensions;
 
 namespace WorkflowEngine.Data.Repository;
 
-internal sealed class EngineNpgsqlRepository(
-    NpgsqlDataSource dataSource,
-    TimeProvider timeProvider,
-    ILogger<EngineNpgsqlRepository> logger,
-    IDbContextFactory<EngineDbContext> _dbContextFactory
-) : IEngineNpgsqlRepository
+internal sealed partial class EngineRepository
 {
     /// <inheritdoc/>
     public async Task<BatchEnqueueResult[]> BatchEnqueueWorkflowsAsync(
@@ -29,7 +23,7 @@ internal sealed class EngineNpgsqlRepository(
         CancellationToken ct
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineNpgsqlRepository.BatchEnqueueWorkflows");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchEnqueueWorkflows");
 
         var results = new BatchEnqueueResult[requests.Count];
 
@@ -585,11 +579,11 @@ internal sealed class EngineNpgsqlRepository(
     /// <inheritdoc/>
     public async Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken ct)
     {
-        using var activity = Metrics.Source.StartActivity("EngineNpgsqlRepository.FetchAndLockWorkflows");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.FetchAndLockWorkflows");
 
         var now = timeProvider.GetUtcNow();
 
-        using var context = await _dbContextFactory.CreateDbContextAsync(ct);
+        await using var context = await dbContextFactory.CreateDbContextAsync(ct);
 
         // TODO: Check BackoffUntil?
         var ids = await context
@@ -643,7 +637,7 @@ internal sealed class EngineNpgsqlRepository(
         if (results.Count == 0)
             return;
 
-        using var activity = Metrics.Source.StartActivity("EngineNpgsqlRepository.BatchUpdateWorkflowStatuses");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateWorkflowStatuses");
 
         var ids = results.Select(r => r.WorkflowId).ToArray();
         var statuses = results.Select(r => (int)r.Status).ToArray();
@@ -678,7 +672,7 @@ internal sealed class EngineNpgsqlRepository(
     /// <inheritdoc/>
     public async Task BatchUpdateWorkflowAndSteps(Workflow workflow, IReadOnlyList<Step> steps, CancellationToken ct)
     {
-        using var activity = Metrics.Source.StartActivity("EngineNpgsqlRepository.BatchUpdateWorkflowAndSteps");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateWorkflowAndSteps");
 
         var now = timeProvider.GetUtcNow();
 
@@ -778,7 +772,7 @@ internal sealed class EngineNpgsqlRepository(
             return;
         }
 
-        using var activity = Metrics.Source.StartActivity("EngineNpgsqlRepository.BatchUpdateWorkflowsAndSteps");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateWorkflowsAndSteps");
 
         var now = timeProvider.GetUtcNow();
 
