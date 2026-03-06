@@ -9,14 +9,23 @@ export class ObjectUtils {
    * @param obj2 The second object.
    * @returns True if the objects are equal and false otherwise.
    */
-  static areObjectsEqual = <T extends object>(obj1: T, obj2: T): boolean => {
-    if (Object.keys(obj1).length !== Object.keys(obj2).length) return false;
-    for (const key in obj1) {
-      if (obj1[key] !== obj2[key]) {
-        return false;
+  static areObjectsEqual = <T extends object>(
+    obj1: T | null | undefined,
+    obj2: T | null | undefined,
+  ): boolean => {
+    if (obj1 === obj2) return true;
+    if (obj1 === null || obj2 === null) return false;
+    if (obj1 === undefined || obj2 === undefined) return false;
+    const keys = Object.getOwnPropertyNames(obj1);
+    if (keys.length !== Object.getOwnPropertyNames(obj2).length) return false;
+    return keys.every((key) => {
+      const value1 = obj1[key];
+      const value2 = obj2[key];
+      if (typeof value1 === 'object' && typeof value2 === 'object') {
+        return ObjectUtils.areObjectsEqual(value1, value2);
       }
-    }
-    return true;
+      return value1 === value2;
+    });
   };
 
   /**
