@@ -516,11 +516,13 @@ Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
   cy.log('Changing current layout');
   cy.window().then((win) => {
     const activeData = win.queryClient.getQueryCache().findAll({ type: 'active' });
+    let found = false;
     for (const query of activeData) {
       if (!Array.isArray(query.queryKey) || query.queryKey[0] !== 'formBootstrap') {
-        throw new Error('Expected query to be active: form bootstrap');
+        continue;
       }
 
+      found = true;
       win.queryClient.setQueryData(query.queryKey, (current: { layouts?: Record<string, ILayoutFile> } | undefined) => {
         if (!current?.layouts) {
           throw new Error('Expected query to have layouts');
@@ -549,6 +551,10 @@ Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
 
         return { ...current, layouts: nextLayouts };
       });
+    }
+
+    if (!found) {
+      throw new Error('Could not find active query (for cy.changeLayout)');
     }
   });
 
