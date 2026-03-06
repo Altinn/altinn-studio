@@ -78,6 +78,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddScoped<ICanUseFeatureEvaluator, CanUseUploadDataModelEvaluator>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
+            services.AddTransient<IDeploymentDispatchService, DeploymentDispatchService>();
             services.AddTransient<IDeployPipelineExecutor, AzureDevOpsDeployPipelineExecutor>();
             services.AddTransient<IAppScopesService, AppScopesService>();
             services.AddTransient<IAppSettingsService, AppSettingsService>();

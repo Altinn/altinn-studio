@@ -106,7 +106,7 @@ public class CreateTests
         Assert.Equal(tagName, deploymentEntity.TagName);
         Assert.NotNull(deploymentEntity.Build);
         Assert.NotEqual(buildId, deploymentEntity.Build.Id);
-        Assert.Equal(buildId, deploymentEntity.Build.ExternalId);
+        Assert.Null(deploymentEntity.Build.ExternalId);
         Assert.Equal(BuildStatus.NotStarted, deploymentEntity.Build.Status);
     }
 
@@ -263,7 +263,7 @@ public class CreateTests
 
     [Theory]
     [InlineData("ttd", "queue-build-test", "at22", "1.0.0", "30001")]
-    public async Task Create_Calls_UpdateApplicationInformation_And_QueueBuild(
+    public async Task Create_DoesNotCall_ExternalSideEffects_InRequestPath(
         string org,
         string app,
         string envName,
@@ -291,13 +291,12 @@ public class CreateTests
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(deploymentEntity);
-        Assert.Equal(buildId, deploymentEntity.Build.ExternalId);
+        Assert.Null(deploymentEntity.Build.ExternalId);
 
         // Verify that the mock server received the expected calls
         var logEntries = _mockServerFixture.MockApi.LogEntries;
 
-        // Assert application metadata update was called
-        Assert.Contains(
+        Assert.DoesNotContain(
             logEntries,
             entry =>
                 entry.RequestMessage.Path.Contains("/storage/api/v1/applications")
@@ -305,14 +304,12 @@ public class CreateTests
                 && entry.RequestMessage.RawQuery.Contains($"appId={org}/{app}")
         );
 
-        // Assert text resources update was called
-        Assert.Contains(
+        Assert.DoesNotContain(
             logEntries,
             entry => entry.RequestMessage.Path.EndsWith($"/{org}/{app}/texts") && entry.RequestMessage.Method == "POST"
         );
 
-        // Assert policy update was called
-        Assert.Contains(
+        Assert.DoesNotContain(
             logEntries,
             entry =>
                 entry.RequestMessage.Path.Contains("/authorization/api/v1/policy")
@@ -321,11 +318,7 @@ public class CreateTests
                 && entry.RequestMessage.RawQuery.Contains($"app={app}")
         );
 
-        // Assert build was queued
-        Assert.Contains(
-            logEntries,
-            entry => entry.RequestMessage.Path.Contains("/build/builds") && entry.RequestMessage.Method == "POST"
-        );
+        Assert.DoesNotContain(logEntries, entry => entry.RequestMessage.Path.Contains("/build/builds"));
     }
 
     [Theory]
@@ -352,14 +345,17 @@ public class CreateTests
 
         // Act
         using var response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseBody = await response.Content.ReadAsStringAsync();
+        var deploymentEntity = JsonSerializer.Deserialize<DeploymentEntity>(responseBody, JsonSerializerOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.NotNull(deploymentEntity);
 
         // Verify no events were created in the database
         var events = await DesignerDbFixture
             .DbContext.DeployEvents.AsNoTracking()
-            .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == buildId)
+            .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == deploymentEntity.Build.Id)
             .ToListAsync();
 
         Assert.Empty(events);

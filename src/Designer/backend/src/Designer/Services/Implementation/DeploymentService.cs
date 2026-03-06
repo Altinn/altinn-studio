@@ -25,6 +25,7 @@ using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using MediatR;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
@@ -41,13 +42,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static readonly TimeSpan s_pendingDecommissionSkipThreshold = TimeSpan.FromMinutes(10);
 
         private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
-        private readonly IDeployPipelineExecutor _deployPipelineExecutor;
         private readonly IDeploymentRepository _deploymentRepository;
         private readonly IDeployEventRepository _deployEventRepository;
         private readonly IReleaseRepository _releaseRepository;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
-        private readonly IApplicationInformationService _applicationInformationService;
         private readonly IEnvironmentsService _environmentsService;
         private readonly ILogger<DeploymentService> _logger;
         private readonly IPublisher _mediatr;
@@ -59,17 +58,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IRuntimeGatewayClient _runtimeGatewayClient;
         private readonly ISlackClient _slackClient;
         private readonly AlertsSettings _alertsSettings;
+        private readonly IDataProtector _deploymentDispatchTokenProtector;
 
         public DeploymentService(
             AzureDevOpsSettings azureDevOpsOptions,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
-            IDeployPipelineExecutor deployPipelineExecutor,
             IHttpContextAccessor httpContextAccessor,
             IDeploymentRepository deploymentRepository,
             IDeployEventRepository deployEventRepository,
             IReleaseRepository releaseRepository,
             IEnvironmentsService environmentsService,
-            IApplicationInformationService applicationInformationService,
             ILogger<DeploymentService> logger,
             IPublisher mediatr,
             GeneralSettings generalSettings,
@@ -78,16 +76,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IFeatureManager featureManager,
             IRuntimeGatewayClient runtimeGatewayClient,
             ISlackClient slackClient,
+            IDataProtectionProvider dataProtectionProvider,
             AlertsSettings alertsSettings,
             GitOpsSettings gitOpsSettings = null
         )
         {
             _azureDevOpsBuildClient = azureDevOpsBuildClient;
-            _deployPipelineExecutor = deployPipelineExecutor;
             _deploymentRepository = deploymentRepository;
             _deployEventRepository = deployEventRepository;
             _releaseRepository = releaseRepository;
-            _applicationInformationService = applicationInformationService;
             _environmentsService = environmentsService;
             _azureDevOpsSettings = azureDevOpsOptions;
             _httpContext = httpContextAccessor.HttpContext;
@@ -101,6 +98,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _runtimeGatewayClient = runtimeGatewayClient;
             _slackClient = slackClient;
             _alertsSettings = alertsSettings;
+            _deploymentDispatchTokenProtector = dataProtectionProvider.CreateProtector(
+                DeploymentDispatchTokenProtection.Purpose
+            );
         }
 
         /// <inheritdoc/>
@@ -119,119 +119,32 @@ namespace Altinn.Studio.Designer.Services.Implementation
             deploymentEntity.EnvName = deployment.EnvName;
             deploymentEntity.Build = CreatePendingWorkflowBuild();
 
-            ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(
+            await _releaseRepository.GetSucceededReleaseFromDb(
                 authenticatedContext.Org,
                 authenticatedContext.Repo,
                 deploymentEntity.TagName
             );
 
-            await _applicationInformationService.UpdateApplicationInformationAsync(
-                authenticatedContext.Org,
-                authenticatedContext.Repo,
-                release.TargetCommitish,
-                deployment.EnvName
+            var createdEntity = await _deploymentRepository.Create(
+                deploymentEntity,
+                _deploymentDispatchTokenProtector.Protect(authenticatedContext.DeveloperAppToken)
             );
 
-            // NOTE: these codepaths are sensitive to leaving partial state/progress if the user/caller
-            // cancels the request, but we prefer to at least attempt completion once we've started mutating state
-            // This particular multi-step process can start mutating state via `AddAppToGitOpsRepoIfNotExists`
+            // Once the pending deployment exists, continue dispatch even if the client disconnects.
             cancellationToken = CancellationToken.None;
 
-            bool shouldPushSyncRootImage = false;
-
-            if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy))
-            {
-                shouldPushSyncRootImage = await AddAppToGitOpsRepoIfNotExists(
-                    authenticatedContext,
-                    AltinnRepoName.FromName(authenticatedContext.Repo),
-                    AltinnEnvironment.FromName(deployment.EnvName)
-                );
-            }
-
-            bool useGitOpsDefinition = await _featureManager.IsEnabledAsync(StudioFeatureFlags.GitOpsDeploy);
-            Build queuedBuild = await _deployPipelineExecutor.QueueAsync(
-                new DeployPipelineQueueRequest
+            await _mediatr.Publish(
+                new DeploymentDispatchRequested
                 {
-                    Org = deploymentEntity.Org,
-                    App = deploymentEntity.App,
-                    Environment = deployment.EnvName,
-                    TagName = deploymentEntity.TagName,
-                    AppCommitId = release.TargetCommitish,
-                    Hostname = await _environmentsService.GetHostNameByEnvName(deployment.EnvName),
-                    AppDeployToken = await _httpContext.GetDeveloperAppTokenAsync(),
-                    GiteaEnvironment = $"{_generalSettings.HostName}/repos",
-                    AltinnStudioHostname = _generalSettings.HostName,
-                    UseGitOpsDefinition = useGitOpsDefinition,
-                    ShouldPushSyncRootImage = shouldPushSyncRootImage,
+                    EditingContext = authenticatedContext.RepoEditingContext,
+                    WorkflowId = createdEntity.Build.Id,
                     TraceParent = traceContext.TraceParent,
                     TraceState = traceContext.TraceState,
                 },
                 cancellationToken
             );
 
-            deploymentEntity.Build.ExternalId = queuedBuild.Id.ToString();
-            deploymentEntity.Build.Status = queuedBuild.Status;
-            deploymentEntity.Build.Started = queuedBuild.StartTime;
-
-            var createdEntity = await _deploymentRepository.Create(deploymentEntity);
-
-            await _deployEventRepository.AddAsync(
-                authenticatedContext.Org,
-                deploymentEntity.Build.Id,
-                new DeployEvent
-                {
-                    EventType = DeployEventType.PipelineScheduled,
-                    Message = $"Pipeline {deploymentEntity.Build.ExternalId} scheduled",
-                    Timestamp = _timeProvider.GetUtcNow(),
-                }
-            );
-
-            await PublishDeploymentPipelineQueued(
-                AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                    authenticatedContext.Org,
-                    authenticatedContext.Repo,
-                    deploymentEntity.CreatedBy
-                ),
-                deploymentEntity.Build.Id,
-                queuedBuild,
-                PipelineType.Deploy,
-                deployment.EnvName,
-                traceContext.TraceParent,
-                traceContext.TraceState
-            );
             return createdEntity;
-        }
-
-        private async Task<bool> AddAppToGitOpsRepoIfNotExists(
-            AltinnAuthenticatedRepoEditingContext authenticatedContext,
-            AltinnRepoName app,
-            AltinnEnvironment environment
-        )
-        {
-            AltinnOrgEditingContext orgContext = authenticatedContext.OrgEditingContext;
-            AltinnRepoEditingContext repoContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
-                orgContext.Org,
-                app.Name,
-                orgContext.Developer
-            );
-
-            await _gitOpsConfigurationManager.EnsureGitOpsConfigurationExistsAsync(orgContext, environment);
-
-            bool appAlreadyExists = await _gitOpsConfigurationManager.AppExistsInGitOpsConfigurationAsync(
-                orgContext,
-                app,
-                environment
-            );
-
-            if (appAlreadyExists)
-            {
-                return false;
-            }
-
-            await _gitOpsConfigurationManager.AddAppToGitOpsConfigurationAsync(repoContext, environment);
-
-            _gitOpsConfigurationManager.PersistGitOpsConfiguration(orgContext, environment);
-            return true;
         }
 
         /// <inheritdoc/>

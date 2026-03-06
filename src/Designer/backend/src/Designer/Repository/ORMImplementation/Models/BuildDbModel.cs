@@ -18,6 +18,10 @@ public class BuildDbModel
     public DateTimeOffset? Started { get; set; }
 
     public DateTimeOffset? Finished { get; set; }
+
+    public string DispatchToken { get; set; }
+
+    public DateTimeOffset? DispatchClaimedAt { get; set; }
 }
 
 public enum BuildType

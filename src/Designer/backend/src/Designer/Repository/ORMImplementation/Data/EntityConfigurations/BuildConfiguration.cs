@@ -27,6 +27,10 @@ public class BuildConfiguration : IEntityTypeConfiguration<BuildDbModel>
 
         builder.Property(e => e.Finished).HasColumnType("timestamptz").HasColumnName("finished");
 
+        builder.Property(e => e.DispatchToken).HasColumnType("text").HasColumnName("dispatch_token");
+
+        builder.Property(e => e.DispatchClaimedAt).HasColumnType("timestamptz").HasColumnName("dispatch_claimed_at");
+
         builder.HasIndex(b => new { b.ExternalId, b.BuildType }).IsUnique();
 
         builder.HasIndex(b => b.BuildType);

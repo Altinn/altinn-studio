@@ -89,7 +89,7 @@ public class CreateWithGitOpsEnabledTests
 
     [Theory]
     [InlineData("ttd", "gitops-app-exists", "at22", "1.0.0", "80001")]
-    public async Task Create_WhenAppExistsInGitOps_ShouldCreateDeployEventAndNotAddApp(
+    public async Task Create_WhenGitOpsEnabled_ShouldNotRunGitOpsWorkInRequestPath_WhenAppExists(
         string org,
         string app,
         string envName,
@@ -136,52 +136,20 @@ public class CreateWithGitOpsEnabledTests
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(deploymentEntity);
+        Assert.Null(deploymentEntity.Build.ExternalId);
 
-        // Verify event was created in the database
         var events = await DesignerDbFixture
             .DbContext.DeployEvents.AsNoTracking()
             .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == deploymentEntity.Build.Id)
             .ToListAsync();
 
-        Assert.Single(events);
-        Assert.Equal(DeployEventType.PipelineScheduled.ToString(), events[0].EventType);
-
-        // Verify GitOps methods were called correctly
-        _gitOpsConfigurationManagerMock.Verify(
-            m =>
-                m.EnsureGitOpsConfigurationExistsAsync(
-                    It.IsAny<AltinnOrgEditingContext>(),
-                    It.Is<AltinnEnvironment>(e => e.Name == envName)
-                ),
-            Times.Once
-        );
-
-        _gitOpsConfigurationManagerMock.Verify(
-            m =>
-                m.AppExistsInGitOpsConfigurationAsync(
-                    It.IsAny<AltinnOrgEditingContext>(),
-                    It.Is<AltinnRepoName>(r => r.Name == app),
-                    It.Is<AltinnEnvironment>(e => e.Name == envName)
-                ),
-            Times.Once
-        );
-
-        // Should NOT add app since it already exists
-        _gitOpsConfigurationManagerMock.Verify(
-            m =>
-                m.AddAppToGitOpsConfigurationAsync(It.IsAny<AltinnRepoEditingContext>(), It.IsAny<AltinnEnvironment>()),
-            Times.Never
-        );
-
-        _gitOpsConfigurationManagerMock.Verify(
-            m => m.PersistGitOpsConfiguration(It.IsAny<AltinnOrgEditingContext>(), It.IsAny<AltinnEnvironment>()),
-            Times.Never
-        );
+        Assert.Empty(events);
+        _gitOpsConfigurationManagerMock.VerifyNoOtherCalls();
     }
 
     [Theory]
     [InlineData("ttd", "gitops-app-new", "at22", "2.0.0", "80002")]
-    public async Task Create_WhenAppDoesNotExistInGitOps_ShouldCreateDeployEventAndAddApp(
+    public async Task Create_WhenGitOpsEnabled_ShouldNotRunGitOpsWorkInRequestPath_WhenAppIsMissing(
         string org,
         string app,
         string envName,
@@ -244,54 +212,15 @@ public class CreateWithGitOpsEnabledTests
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(deploymentEntity);
+        Assert.Null(deploymentEntity.Build.ExternalId);
 
-        // Verify event was created in the database
         var events = await DesignerDbFixture
             .DbContext.DeployEvents.AsNoTracking()
             .Where(e => e.Deployment.Org == org && e.Deployment.Buildid == deploymentEntity.Build.Id)
             .ToListAsync();
 
-        Assert.Single(events);
-        Assert.Equal(DeployEventType.PipelineScheduled.ToString(), events[0].EventType);
-
-        // Verify GitOps methods were called correctly
-        _gitOpsConfigurationManagerMock.Verify(
-            m =>
-                m.EnsureGitOpsConfigurationExistsAsync(
-                    It.IsAny<AltinnOrgEditingContext>(),
-                    It.Is<AltinnEnvironment>(e => e.Name == envName)
-                ),
-            Times.Once
-        );
-
-        _gitOpsConfigurationManagerMock.Verify(
-            m =>
-                m.AppExistsInGitOpsConfigurationAsync(
-                    It.IsAny<AltinnOrgEditingContext>(),
-                    It.Is<AltinnRepoName>(r => r.Name == app),
-                    It.Is<AltinnEnvironment>(e => e.Name == envName)
-                ),
-            Times.Once
-        );
-
-        // Should add app since it doesn't exist
-        _gitOpsConfigurationManagerMock.Verify(
-            m =>
-                m.AddAppToGitOpsConfigurationAsync(
-                    It.IsAny<AltinnRepoEditingContext>(),
-                    It.Is<AltinnEnvironment>(e => e.Name == envName)
-                ),
-            Times.Once
-        );
-
-        _gitOpsConfigurationManagerMock.Verify(
-            m =>
-                m.PersistGitOpsConfiguration(
-                    It.IsAny<AltinnOrgEditingContext>(),
-                    It.Is<AltinnEnvironment>(e => e.Name == envName)
-                ),
-            Times.Once
-        );
+        Assert.Empty(events);
+        _gitOpsConfigurationManagerMock.VerifyNoOtherCalls();
     }
 
     private async Task PrepareReleaseInDb(string org, string app, string tagName)

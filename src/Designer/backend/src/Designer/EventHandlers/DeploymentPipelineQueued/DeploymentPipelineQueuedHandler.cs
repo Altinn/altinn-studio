@@ -67,6 +67,14 @@ public class DeploymentPipelineQueuedHandler : INotificationHandler<Events.Deplo
             )
             .Build();
 
+        if (
+            await scheduler.CheckExists(job.Key, cancellationToken)
+            || await scheduler.CheckExists(trigger.Key, cancellationToken)
+        )
+        {
+            return;
+        }
+
         await scheduler.ScheduleJob(job, trigger, cancellationToken);
     }
 }

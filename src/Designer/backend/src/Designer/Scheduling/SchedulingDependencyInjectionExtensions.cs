@@ -39,6 +39,52 @@ public static class SchedulingDependencyInjectionExtensions
                     .WithCronSchedule(AppInactivityUndeployJobConstants.CronScheduleNightlyMidnight)
             );
 
+            configure.AddJob<DeploymentDispatchSweeperJob>(options =>
+                options.WithIdentity(
+                    DeploymentDispatchSweeperJobConstants.JobName,
+                    DeploymentDispatchSweeperJobConstants.JobGroup
+                )
+            );
+
+            configure.AddTrigger(options =>
+                options
+                    .ForJob(
+                        DeploymentDispatchSweeperJobConstants.JobName,
+                        DeploymentDispatchSweeperJobConstants.JobGroup
+                    )
+                    .WithIdentity(
+                        DeploymentDispatchSweeperJobConstants.TriggerName,
+                        DeploymentDispatchSweeperJobConstants.TriggerGroup
+                    )
+                    .StartNow()
+                    .WithSimpleSchedule(x =>
+                        x.WithIntervalInSeconds(DeploymentDispatchSweeperJobConstants.IntervalInSeconds).RepeatForever()
+                    )
+            );
+
+            configure.AddJob<DeploymentPollingRecoveryJob>(options =>
+                options.WithIdentity(
+                    DeploymentPollingRecoveryJobConstants.JobName,
+                    DeploymentPollingRecoveryJobConstants.JobGroup
+                )
+            );
+
+            configure.AddTrigger(options =>
+                options
+                    .ForJob(
+                        DeploymentPollingRecoveryJobConstants.JobName,
+                        DeploymentPollingRecoveryJobConstants.JobGroup
+                    )
+                    .WithIdentity(
+                        DeploymentPollingRecoveryJobConstants.TriggerName,
+                        DeploymentPollingRecoveryJobConstants.TriggerGroup
+                    )
+                    .StartNow()
+                    .WithSimpleSchedule(x =>
+                        x.WithIntervalInSeconds(DeploymentPollingRecoveryJobConstants.IntervalInSeconds).RepeatForever()
+                    )
+            );
+
             if (schedulingSettings.UsePersistentScheduling)
             {
                 PostgreSQLSettings postgresSettings = configuration
