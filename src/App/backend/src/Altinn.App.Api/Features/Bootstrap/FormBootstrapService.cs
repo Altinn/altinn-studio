@@ -467,6 +467,7 @@ internal sealed class FormBootstrapService
         var formData = await _formDataReader.ReadInstanceFormData(
             instance,
             dataElement,
+            includeRowId: true,
             language: language,
             cancellationToken: cancellationToken
         );
