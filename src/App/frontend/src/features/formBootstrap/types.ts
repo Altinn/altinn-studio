@@ -4,7 +4,6 @@ import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupT
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { BackendValidationIssue, IExpressionValidations } from 'src/features/validation';
-import type { ILayoutSettings } from 'src/layout/common.generated';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
 
@@ -19,7 +18,6 @@ export interface DataModelInfo {
 
 export interface FormBootstrapResponse {
   layouts: ILayoutCollection;
-  layoutSettings: ILayoutSettings | null;
   dataModels: Record<string, DataModelInfo>;
   staticOptions: Record<string, IOptionInternal[]>;
   validationIssues?: BackendValidationIssue[] | null;

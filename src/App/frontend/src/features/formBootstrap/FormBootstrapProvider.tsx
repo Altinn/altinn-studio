@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo, useRef } from 'react';
+import React, { createContext, useCallback, useContext, useMemo } from 'react';
 import type { PropsWithChildren as ReactPropsWithChildren } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
@@ -8,7 +8,6 @@ import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
-import { processLayoutSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { getUiFolderSettings } from 'src/features/form/ui';
 import { type FormBootstrapContextValue } from 'src/features/formBootstrap/types';
 import { useFormBootstrapQuery } from 'src/features/formBootstrap/useFormBootstrapQuery';
@@ -41,22 +40,21 @@ export function FormBootstrapProvider({
     throw new Error(`defaultDataType not found for uiFolder: ${uiFolder}`);
   }
 
-  const prevData = useRef(data);
-  const dataCounter = useRef(0);
-  if (data !== prevData.current) {
-    dataCounter.current += 1;
-    prevData.current = data;
-  }
-
-  const contextValue = useMemo<FormBootstrapContextValue | null>(() => {
-    if (!data) {
-      return null;
+  const processedLayouts = useMemo(() => {
+    if (data?.layouts) {
+      return processLayouts(data.layouts, defaultDataType);
     }
 
-    const { layouts, hiddenLayoutsExpressions, expandedWidthLayouts } = processLayouts(data.layouts, defaultDataType);
+    return undefined;
+  }, [data?.layouts, defaultDataType]);
+
+  const dataModels = useMemo(() => {
+    if (!data?.dataModels) {
+      return undefined;
+    }
 
     const appMetadata = getApplicationMetadata();
-    const dataModels = Object.fromEntries(
+    return Object.fromEntries(
       Object.entries(data.dataModels).map(([dataType, value]) => {
         const dataTypeDef = appMetadata.dataTypes.find((dt) => dt.id === dataType);
         const rootElementPath = getRootElementPath(value.schema, dataTypeDef);
@@ -77,30 +75,39 @@ export function FormBootstrapProvider({
         ];
       }),
     );
+  }, [data?.dataModels]);
 
-    const allDataTypes = Object.keys(dataModels);
-    const writableDataTypes = allDataTypes.filter((dt) => dataModels[dt].isWritable);
-    const staticOptions = Object.fromEntries(
+  const staticOptions = useMemo(() => {
+    if (!data?.staticOptions) {
+      return undefined;
+    }
+
+    return Object.fromEntries(
       Object.entries(data.staticOptions ?? {}).map(([optionsId, options]) => [
         optionsId,
         castOptionsToStrings(options),
       ]),
     );
+  }, [data?.staticOptions]);
 
-    return {
-      uiFolder,
-      layouts,
-      layoutLookups: makeLayoutLookups(layouts),
-      hiddenLayoutsExpressions,
-      expandedWidthLayouts,
-      layoutSettings: processLayoutSettings(data.layoutSettings),
-      dataModels,
-      allDataTypes,
-      writableDataTypes,
-      staticOptions,
-      initialValidationIssues: data.validationIssues,
-    };
-  }, [data, defaultDataType, uiFolder]);
+  const contextValue = useMemo<FormBootstrapContextValue | null>(() => {
+    if (data && processedLayouts && dataModels && staticOptions) {
+      return {
+        uiFolder,
+        layouts: processedLayouts.layouts,
+        layoutLookups: makeLayoutLookups(processedLayouts.layouts),
+        hiddenLayoutsExpressions: processedLayouts.hiddenLayoutsExpressions,
+        expandedWidthLayouts: processedLayouts.expandedWidthLayouts,
+        dataModels,
+        allDataTypes: Object.keys(dataModels),
+        writableDataTypes: Object.keys(dataModels).filter((dt) => dataModels[dt].isWritable),
+        staticOptions,
+        initialValidationIssues: data?.validationIssues,
+      };
+    }
+
+    return null;
+  }, [data, processedLayouts, dataModels, staticOptions, uiFolder]);
 
   if (isLoading || !data || !contextValue) {
     return <Loader reason='form-bootstrap' />;
@@ -114,14 +121,7 @@ export function FormBootstrapProvider({
     return <DisplayError error={error ?? new Error('Failed to load form bootstrap data')} />;
   }
 
-  return (
-    <FormBootstrapContext.Provider
-      key={dataCounter.current}
-      value={contextValue}
-    >
-      {children}
-    </FormBootstrapContext.Provider>
-  );
+  return <FormBootstrapContext.Provider value={contextValue}>{children}</FormBootstrapContext.Provider>;
 }
 
 function useFormBootstrap() {
