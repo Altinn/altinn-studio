@@ -51,7 +51,9 @@ function InstantiationUrlReset() {
   useEffect(() => {
     if (!location.pathname.includes('/instance/')) {
       const mutations = queryClient.getMutationCache().findAll({ mutationKey: ['instantiate'] });
-      mutations.forEach((mutation) => queryClient.getMutationCache().remove(mutation));
+      mutations.forEach((mutation) => {
+        queryClient.getMutationCache().remove(mutation);
+      });
     }
   }, [location.pathname, queryClient]);
 
