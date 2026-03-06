@@ -138,7 +138,7 @@ describe('AppConfigForm', () => {
   it('displays correct value in delegation when app is hidden, and updates the value on change', async () => {
     const user = userEvent.setup();
     renderAppConfigForm({
-      appConfig: { ...mockAppConfig, visible: false, access: { delegable: false } },
+      appConfig: { ...mockAppConfig, access: { visible: false, delegable: false } },
     });
 
     const delegableSwitch = getSwitch(

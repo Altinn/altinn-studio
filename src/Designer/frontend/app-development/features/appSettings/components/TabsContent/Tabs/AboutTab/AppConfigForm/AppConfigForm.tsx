@@ -24,8 +24,11 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const appConfigWithDefaults: ApplicationMetadata = useMemo(
     () => ({
       ...appConfig,
-      visible: appConfig.visible ?? true,
-      access: { ...appConfig.access, delegable: appConfig.access?.delegable ?? true },
+      access: {
+        ...appConfig.access,
+        visible: appConfig.access?.visible ?? true,
+        delegable: appConfig.access?.delegable ?? true,
+      },
     }),
     [appConfig],
   );
@@ -167,7 +170,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           cancelAriaLabel={t('general.cancel')}
         />
         <AppVisibilityAndDelegationCard
-          visible={updatedAppConfig.visible ?? false}
+          visible={updatedAppConfig.access.visible ?? false}
           delegable={updatedAppConfig.access?.delegable ?? false}
           descriptionValue={updatedAppConfig.access?.rightDescription ?? defaultDescriptionValue}
           onChangeVisible={onChangeVisible}
