@@ -15,9 +15,23 @@ jest.mock('react-toastify', () => ({
   toast: { success: jest.fn() },
 }));
 
+const todayUtc = new Date().toISOString().split('T')[0];
+
 const validExpiresAt = (() => {
-  const d = new Date();
-  d.setDate(d.getDate() + 100);
+  const d = new Date(todayUtc);
+  d.setUTCDate(d.getUTCDate() + 100);
+  return d.toISOString().split('T')[0];
+})();
+
+const pastExpiresAt = (() => {
+  const d = new Date(todayUtc);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().split('T')[0];
+})();
+
+const tooLongExpiresAt = (() => {
+  const d = new Date(todayUtc);
+  d.setUTCDate(d.getUTCDate() + 365);
   return d.toISOString().split('T')[0];
 })();
 
@@ -76,6 +90,18 @@ describe('AddPersonalAccessToken', () => {
     expect(getAddButton()).toBeInTheDocument();
   });
 
+  it('sets min to today and max to 364 days from today on the expiry input', () => {
+    const maxUtc = (() => {
+      const d = new Date(todayUtc);
+      d.setUTCDate(d.getUTCDate() + 364);
+      return d.toISOString().split('T')[0];
+    })();
+    renderAddPersonalAccessToken();
+    const expiryInput = getExpiryInput();
+    expect(expiryInput).toHaveAttribute('min', todayUtc);
+    expect(expiryInput).toHaveAttribute('max', maxUtc);
+  });
+
   it('shows required error when submitting empty form', async () => {
     const user = userEvent.setup();
     renderAddPersonalAccessToken();
@@ -83,18 +109,23 @@ describe('AddPersonalAccessToken', () => {
     expect(screen.getAllByText(textMock('validation_errors.required'))).toHaveLength(2);
   });
 
-  it('shows expiry too long error when expiry date exceeds 365 days', async () => {
-    const tooLongExpiresAt = (() => {
-      const d = new Date();
-      d.setDate(d.getDate() + 366);
-      return d.toISOString().split('T')[0];
-    })();
+  it('shows expiry too long error when expiry date exceeds 364 days', async () => {
     const user = userEvent.setup();
     renderAddPersonalAccessToken();
     await fillForm(user, 'New token', tooLongExpiresAt);
     await user.click(getAddButton());
     expect(
       screen.getByText(textMock('user.settings.personal_access_tokens.error_expiry_too_long')),
+    ).toBeInTheDocument();
+  });
+
+  it('shows expiry in past error when expiry date is in the past', async () => {
+    const user = userEvent.setup();
+    renderAddPersonalAccessToken();
+    await fillForm(user, 'New token', pastExpiresAt);
+    await user.click(getAddButton());
+    expect(
+      screen.getByText(textMock('user.settings.personal_access_tokens.error_expiry_in_past')),
     ).toBeInTheDocument();
   });
 
@@ -116,7 +147,7 @@ describe('AddPersonalAccessToken', () => {
     await user.click(getAddButton());
     expect(addUserPersonalAccessToken).toHaveBeenCalledWith({
       name: 'New token',
-      expiresAt: validExpiresAt,
+      expiresAt: `${validExpiresAt}T23:59:59Z`,
     });
   });
 

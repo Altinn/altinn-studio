@@ -37,13 +37,15 @@ export const AddPersonalAccessToken = ({
   } = useAddUserPersonalAccessTokenMutation();
   const { data: existingTokens } = useUserPersonalAccessTokensQuery();
 
-  const maxExpiresAt = new Date();
-  maxExpiresAt.setDate(maxExpiresAt.getDate() + 365);
+  const todayUtc = new Date().toISOString().split('T')[0];
+  const maxExpiresAt = new Date(todayUtc);
+  maxExpiresAt.setUTCDate(maxExpiresAt.getUTCDate() + 364);
   const maxExpiresAtString = maxExpiresAt.toISOString().split('T')[0];
 
   const isDuplicateName =
     (submitted && existingTokens?.some((token) => token.name === name)) ||
     error?.response?.status === ServerCodes.Conflict;
+  const isExpiryInPast = expiresAt < todayUtc;
   const isExpiryTooLong = expiresAt > maxExpiresAtString;
 
   const handleAdd = () => {
@@ -52,12 +54,13 @@ export const AddPersonalAccessToken = ({
     if (
       !name ||
       !expiresAt ||
+      isExpiryInPast ||
       isExpiryTooLong ||
       existingTokens?.some((token) => token.name === name)
     )
       return;
     addUserPersonalAccessToken(
-      { name, expiresAt },
+      { name, expiresAt: `${expiresAt}T23:59:59Z` },
       {
         onSuccess: (response) => {
           setNewTokenKey(response.key);
@@ -131,11 +134,15 @@ export const AddPersonalAccessToken = ({
           type='date'
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
+          min={todayUtc}
           max={maxExpiresAtString}
           required
           tagText={t('general.required')}
           error={
             (submitted && !expiresAt ? t('validation_errors.required') : undefined) ??
+            (submitted && isExpiryInPast
+              ? t('user.settings.personal_access_tokens.error_expiry_in_past')
+              : undefined) ??
             (submitted && isExpiryTooLong
               ? t('user.settings.personal_access_tokens.error_expiry_too_long')
               : undefined)
