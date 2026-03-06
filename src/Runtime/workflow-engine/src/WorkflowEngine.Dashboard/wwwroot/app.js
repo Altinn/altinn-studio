@@ -53,8 +53,13 @@ const init = async () => {
 
   restoreUrl();
   connectSSE(`${engineUrl}/dashboard/stream`, updateDashboard, { showStatus: true, onConnect: fetchOrgsAndApps });
-  connectSSE(`${engineUrl}/dashboard/stream/active`, (data) => updateLiveWorkflows(/** @type {import('./modules/core/state.js').Workflow[]} */ (data)));
-  connectSSE(`${engineUrl}/dashboard/stream/recent`, (data) => updateRecentWorkflows(/** @type {import('./modules/core/state.js').Workflow[]} */ (data)));
+  connectSSE(`${engineUrl}/dashboard/stream/active`, (data) => {
+    const d = /** @type {{ active?: import('./modules/core/state.js').Workflow[], recent?: import('./modules/core/state.js').Workflow[] }} */ (data);
+    // Recent keys needed so active exit animation is skipped for workflows moving to recent
+    const recentKeys = d.recent ? new Set(d.recent.map(w => w.idempotencyKey)) : null;
+    if (d.active !== undefined) updateLiveWorkflows(d.active, recentKeys);
+    if (d.recent !== undefined) updateRecentWorkflows(d.recent);
+  });
   requestAnimationFrame(updateTimers);
   watchForChanges();
 };

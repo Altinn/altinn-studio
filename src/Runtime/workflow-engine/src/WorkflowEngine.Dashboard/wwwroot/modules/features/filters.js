@@ -62,7 +62,7 @@ export const refreshAppDropdown = () => {
   const noOrg = state.orgFilter.size === 0;
   dom.appDropdown.classList.toggle('disabled', noOrg);
 
-  if (availableApps.size > 0 && availableApps.size <= 10 && state.appFilter.size === 0) {
+  if (state.orgsAndAppsLoaded && availableApps.size > 0 && availableApps.size <= 10 && state.appFilter.size === 0) {
     for (const a of availableApps) state.appFilter.add(a);
     rebuildDropdown(dom.appList, availableApps, state.appFilter);
     updateDropdownToggle('app');
@@ -76,7 +76,7 @@ export const refreshOrgAppDropdowns = () => {
   rebuildDropdown(dom.orgList, allOrgs, state.orgFilter);
   updateDropdownToggle('org');
 
-  if (allOrgs.size === 1 && state.orgFilter.size === 0) {
+  if (state.orgsAndAppsLoaded && allOrgs.size === 1 && state.orgFilter.size === 0) {
     const sole = [...allOrgs][0];
     state.orgFilter.add(sole);
     rebuildDropdown(dom.orgList, allOrgs, state.orgFilter);

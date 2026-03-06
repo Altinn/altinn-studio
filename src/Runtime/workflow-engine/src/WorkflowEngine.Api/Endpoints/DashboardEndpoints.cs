@@ -116,36 +116,6 @@ internal static class DashboardEndpoints
             .ExcludeFromDescription();
 
         app.MapGet(
-                "/dashboard/stream/recent",
-                async (IEngineStatus engineStatus, HttpContext ctx, CancellationToken ct) =>
-                {
-                    ctx.Response.ContentType = "text/event-stream";
-                    ctx.Response.Headers.CacheControl = "no-cache";
-                    ctx.Response.Headers.Connection = "keep-alive";
-
-                    string? previousFingerprint = null;
-
-                    while (!ct.IsCancellationRequested)
-                    {
-                        IReadOnlyList<DashboardWorkflowDto> recent = engineStatus.GetRecentWorkflows(100);
-                        string fingerprint = string.Join(",", recent.Select(r => r.IdempotencyKey));
-
-                        if (fingerprint != previousFingerprint)
-                        {
-                            previousFingerprint = fingerprint;
-
-                            string json = JsonSerializer.Serialize(recent, _jsonCompact);
-                            await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
-                            await ctx.Response.Body.FlushAsync(ct);
-                        }
-
-                        await Task.Delay(500, ct);
-                    }
-                }
-            )
-            .ExcludeFromDescription();
-
-        app.MapGet(
                 "/dashboard/orgs-and-apps",
                 async (IServiceProvider sp, CancellationToken ct) =>
                 {
@@ -236,114 +206,53 @@ internal static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/step",
-                async (
-                    IEngineStatus engineStatus,
-                    IServiceProvider sp,
-                    string wf,
-                    string step,
-                    DateTimeOffset? createdAt,
-                    CancellationToken ct
-                ) =>
+                async (IServiceProvider sp, string wf, string step, DateTimeOffset? createdAt, CancellationToken ct) =>
                 {
-                    // Try DB first
-                    Workflow? workflow = null;
+                    if (!createdAt.HasValue)
+                        return Results.BadRequest("createdAt is required");
 
-                    if (createdAt.HasValue)
-                    {
-                        using IServiceScope scope = sp.CreateScope();
-                        var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                        workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
-                    }
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    Workflow? workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
 
-                    if (workflow is not null)
-                    {
-                        Step? s = workflow.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
-                        if (s is null)
-                            return Results.NotFound();
+                    if (workflow is null)
+                        return Results.NotFound();
 
-                        // Merge error history from recent cache if the DB doesn't have it
-                        IReadOnlyList<ErrorEntry>? errorHistoryFromCache =
-                            s.ErrorHistory.Count == 0
-                                ? engineStatus
-                                    .GetRecentWorkflows(100)
-                                    .FirstOrDefault(c => c.IdempotencyKey == wf)
-                                    ?.Steps.FirstOrDefault(cs => cs.IdempotencyKey == step)
-                                    ?.ErrorHistory
-                                : null;
+                    Step? s = workflow.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
+                    if (s is null)
+                        return Results.NotFound();
 
-                        var stateIn =
-                            s.ProcessingOrder == 0
-                                ? workflow.InitialState
-                                : workflow
-                                    .Steps.Where(st => st.ProcessingOrder < s.ProcessingOrder)
-                                    .OrderByDescending(st => st.ProcessingOrder)
-                                    .Select(st => st.StateOut)
-                                    .FirstOrDefault(st => st is not null);
+                    var stateIn =
+                        s.ProcessingOrder == 0
+                            ? workflow.InitialState
+                            : workflow
+                                .Steps.Where(st => st.ProcessingOrder < s.ProcessingOrder)
+                                .OrderByDescending(st => st.ProcessingOrder)
+                                .Select(st => st.StateOut)
+                                .FirstOrDefault(st => st is not null);
 
-                        object? errorHistory = s.ErrorHistory.Count > 0 ? s.ErrorHistory : errorHistoryFromCache;
-
-                        return Results.Json(
-                            new
-                            {
-                                idempotencyKey = s.IdempotencyKey,
-                                operationId = s.OperationId,
-                                status = s.Status.ToString(),
-                                processingOrder = s.ProcessingOrder,
-                                retryCount = s.RequeueCount,
-                                errorHistory,
-                                createdAt = s.CreatedAt,
-                                executionStartedAt = s.ExecutionStartedAt,
-                                updatedAt = s.UpdatedAt,
-                                backoffUntil = s.BackoffUntil,
-                                actor = s.Actor,
-                                command = s.Command,
-                                retryStrategy = s.RetryStrategy,
-                                traceId = workflow.EngineTraceId ?? workflow.EngineActivity?.TraceId.ToString(),
-                                stateIn,
-                                stateOut = s.StateOut,
-                            },
-                            _jsonIndented
-                        );
-                    }
-
-                    // Fall back to recent cache (has errorHistory but no state)
-                    DashboardWorkflowDto? recentCached = engineStatus
-                        .GetRecentWorkflows(100)
-                        .FirstOrDefault(c => c.IdempotencyKey == wf);
-                    if (recentCached is not null)
-                    {
-                        DashboardStepDto? cs = recentCached.Steps.FirstOrDefault(s => s.IdempotencyKey == step);
-                        if (cs is null)
-                            return Results.NotFound();
-
-                        return Results.Json(
-                            new
-                            {
-                                cs.IdempotencyKey,
-                                cs.OperationId,
-                                cs.Status,
-                                cs.ProcessingOrder,
-                                cs.RetryCount,
-                                cs.ErrorHistory,
-                                cs.CreatedAt,
-                                cs.ExecutionStartedAt,
-                                cs.UpdatedAt,
-                                cs.BackoffUntil,
-                                recentCached.TraceId,
-                                command = new
-                                {
-                                    type = cs.CommandType,
-                                    operationId = cs.CommandDetail,
-                                    payload = cs.CommandPayload,
-                                },
-                                stateIn = (string?)null,
-                                stateOut = (string?)null,
-                            },
-                            _jsonIndented
-                        );
-                    }
-
-                    return Results.NotFound();
+                    return Results.Json(
+                        new
+                        {
+                            idempotencyKey = s.IdempotencyKey,
+                            operationId = s.OperationId,
+                            status = s.Status.ToString(),
+                            processingOrder = s.ProcessingOrder,
+                            retryCount = s.RequeueCount,
+                            errorHistory = s.ErrorHistory.Count > 0 ? s.ErrorHistory : null,
+                            createdAt = s.CreatedAt,
+                            executionStartedAt = s.ExecutionStartedAt,
+                            updatedAt = s.UpdatedAt,
+                            backoffUntil = s.BackoffUntil,
+                            actor = s.Actor,
+                            command = s.Command,
+                            retryStrategy = s.RetryStrategy,
+                            traceId = workflow.EngineTraceId ?? workflow.EngineActivity?.TraceId.ToString(),
+                            stateIn,
+                            stateOut = s.StateOut,
+                        },
+                        _jsonIndented
+                    );
                 }
             )
             .ExcludeFromDescription();
@@ -361,7 +270,8 @@ internal static class DashboardEndpoints
                     ctx.Response.Headers.CacheControl = "no-cache";
                     ctx.Response.Headers.Connection = "keep-alive";
 
-                    string? previousFingerprint = null;
+                    string? previousActiveFingerprint = null;
+                    string? previousRecentFingerprint = null;
 
                     while (!ct.IsCancellationRequested)
                     {
@@ -372,13 +282,24 @@ internal static class DashboardEndpoints
                         {
                             using IServiceScope scope = sp.CreateScope();
                             var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+
                             IReadOnlyList<Workflow> active = await repo.GetActiveWorkflows(ct);
+                            IReadOnlyList<Workflow> recent = await repo.GetFinishedWorkflows(
+                                statuses: [PersistentItemStatus.Completed, PersistentItemStatus.Failed],
+                                take: 100,
+                                cancellationToken: ct
+                            );
 
-                            List<DashboardWorkflowDto> mapped = active.Select(DashboardMapper.MapWorkflow).ToList();
+                            List<DashboardWorkflowDto> activeMapped = active
+                                .Select(DashboardMapper.MapWorkflow)
+                                .ToList();
+                            List<DashboardWorkflowDto> recentMapped = recent
+                                .Select(DashboardMapper.MapWorkflow)
+                                .ToList();
 
-                            string fingerprint = string.Join(
+                            string activeFingerprint = string.Join(
                                 ",",
-                                mapped.Select(w =>
+                                activeMapped.Select(w =>
                                     $"{w.IdempotencyKey}|{w.Status}|"
                                     + string.Join(
                                         ";",
@@ -386,11 +307,27 @@ internal static class DashboardEndpoints
                                     )
                                 )
                             );
+                            string recentFingerprint = string.Join(
+                                ",",
+                                recentMapped.Select(w => $"{w.IdempotencyKey}|{w.UpdatedAt}")
+                            );
 
-                            if (fingerprint != previousFingerprint)
+                            bool activeChanged = activeFingerprint != previousActiveFingerprint;
+                            bool recentChanged = recentFingerprint != previousRecentFingerprint;
+
+                            if (activeChanged || recentChanged)
                             {
-                                previousFingerprint = fingerprint;
-                                string json = JsonSerializer.Serialize(mapped, _jsonCompact);
+                                previousActiveFingerprint = activeFingerprint;
+                                previousRecentFingerprint = recentFingerprint;
+
+                                string json = JsonSerializer.Serialize(
+                                    new
+                                    {
+                                        active = activeChanged ? activeMapped : null,
+                                        recent = recentChanged ? recentMapped : null,
+                                    },
+                                    _jsonCompact
+                                );
                                 await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
                                 await ctx.Response.Body.FlushAsync(ct);
                             }
@@ -402,6 +339,9 @@ internal static class DashboardEndpoints
                         catch
                         { /* transient DB error — keep SSE alive */
                         }
+
+                        // Debounce: coalesce rapid step transitions
+                        await Task.Delay(150, ct);
 
                         // Wait for a status change (near-instant via PG NOTIFY) or 2s timeout (idle fallback)
                         try
@@ -418,13 +358,7 @@ internal static class DashboardEndpoints
 
         app.MapPost(
                 "/dashboard/retry",
-                async (
-                    IEngineStatus engineStatus,
-                    AsyncSignal workflowSignal,
-                    IServiceProvider sp,
-                    HttpContext ctx,
-                    CancellationToken ct
-                ) =>
+                async (AsyncSignal workflowSignal, IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
                 {
                     using var doc = await JsonDocument.ParseAsync(ctx.Request.Body, cancellationToken: ct);
                     JsonElement root = doc.RootElement;
@@ -464,7 +398,6 @@ internal static class DashboardEndpoints
                     }
 
                     await repo.BatchUpdateWorkflowAndSteps(workflow, stepsToUpdate, cancellationToken: ct);
-                    engineStatus.RemoveFromRecent(idempotencyKey);
                     workflowSignal.Signal();
 
                     return Results.Ok();

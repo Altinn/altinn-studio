@@ -23,8 +23,14 @@ export const bindLiveCallbacks = (fns) => {
 const fingerprint = (wf) =>
   `${wf.status}|${wf.steps.map(s => `${s.status}:${s.retryCount}:${s.backoffUntil || ''}`).join(',')}`;
 
-/** @param {import('../core/state.js').Workflow[]} workflows */
-export const updateLiveWorkflows = (workflows) => {
+/** Index of the currently-processing step (for scroll-on-change). */
+const _processingIdx = /** @type {Record<string, number>} */ ({});
+
+/**
+ * @param {import('../core/state.js').Workflow[]} workflows
+ * @param {Set<string>|null} [recentKeys] — keys present in the recent list (skip exit animation for these)
+ */
+export const updateLiveWorkflows = (workflows, recentKeys) => {
   const currentKeys = new Set(workflows.map(w => w.idempotencyKey));
 
   // Animate out cards for workflows no longer in inbox
@@ -33,7 +39,8 @@ export const updateLiveWorkflows = (workflows) => {
       const card = document.getElementById(`wf-${cssId(key)}`);
       if (card && !card.dataset.exiting) {
         const visible = card.offsetParent !== null;
-        if (visible) {
+        const movingToRecent = recentKeys?.has(key);
+        if (visible && !movingToRecent) {
           const failed = state.previousWorkflows[key]?.status === 'Failed';
           if (failed) card.classList.add('exit-fail');
           card.dataset.exiting = '1';
@@ -52,6 +59,7 @@ export const updateLiveWorkflows = (workflows) => {
       delete state.previousWorkflows[key];
       delete state.workflowFingerprints[key];
       delete state.workflowTimers[key];
+      delete _processingIdx[key];
       notifyStepChanged(key);
       notifyWorkflowChanged(key);
     }
@@ -72,7 +80,22 @@ export const updateLiveWorkflows = (workflows) => {
       const isCompact = card.classList.contains('compact');
       card.innerHTML = isCompact ? buildCompactCardHTML(wf) : buildCardHTML(wf);
       setCardFilterData(card, wf);
-      if (!isCompact) scrollPipelineToActive(card);
+
+      // Sync pulse animations so they don't restart from frame 0 on every innerHTML rebuild
+      const phase = performance.now() % 2000;
+      card.querySelectorAll('.step-circle.Processing, .status-pill.Processing').forEach(el => {
+        el.style.animationDelay = `-${phase}ms`;
+      });
+
+      // Only scroll the pipeline when the active step actually changes
+      if (!isCompact) {
+        const curIdx = wf.steps.findIndex(s => s.status === 'Processing' || s.status === 'Requeued');
+        if (curIdx !== _processingIdx[wf.idempotencyKey]) {
+          _processingIdx[wf.idempotencyKey] = curIdx;
+          scrollPipelineToActive(card);
+        }
+      }
+
       state.workflowFingerprints[wf.idempotencyKey] = fp;
       notifyStepChanged(wf.idempotencyKey);
       notifyWorkflowChanged(wf.idempotencyKey);

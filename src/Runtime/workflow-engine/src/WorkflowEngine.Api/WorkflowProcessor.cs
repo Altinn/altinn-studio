@@ -91,11 +91,6 @@ internal sealed class WorkflowProcessor(
             using var scope = scopeFactory.CreateScope();
             var handler = scope.ServiceProvider.GetRequiredService<WorkflowHandler>();
             await handler.HandleAsync(workflow, ct);
-
-            if (workflow.Status is PersistentItemStatus.Completed or PersistentItemStatus.Failed)
-            {
-                engineStatus.RecordCompletion(workflow);
-            }
         }
         finally
         {

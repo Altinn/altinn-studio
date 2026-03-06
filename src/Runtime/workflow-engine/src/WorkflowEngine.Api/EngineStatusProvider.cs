@@ -16,15 +16,6 @@ internal interface IEngineStatus
 
     /// <summary>Maximum number of concurrent workers.</summary>
     int MaxWorkers { get; }
-
-    /// <summary>Returns recently completed workflows for the dashboard.</summary>
-    IReadOnlyList<DashboardWorkflowDto> GetRecentWorkflows(int count);
-
-    /// <summary>Records a completed workflow into the recent cache.</summary>
-    void RecordCompletion(Workflow workflow);
-
-    /// <summary>Removes a workflow from the recent cache (e.g. after manual retry).</summary>
-    void RemoveFromRecent(string idempotencyKey);
 }
 
 /// <summary>
@@ -33,7 +24,6 @@ internal interface IEngineStatus
 internal sealed class EngineStatusProvider : IEngineStatus
 {
     private readonly int _maxWorkers;
-    private readonly RecentWorkflowCache _recentWorkflows = new();
     private volatile SemaphoreSlim? _processorSemaphore;
 
     public EngineStatusProvider(IOptions<WorkflowProcessorOptions> options)
@@ -64,10 +54,4 @@ internal sealed class EngineStatusProvider : IEngineStatus
     public int ActiveWorkerCount => _processorSemaphore is { } sem ? _maxWorkers - sem.CurrentCount : 0;
 
     public int MaxWorkers => _maxWorkers;
-
-    public IReadOnlyList<DashboardWorkflowDto> GetRecentWorkflows(int count) => _recentWorkflows.GetRecent(count);
-
-    public void RecordCompletion(Workflow workflow) => _recentWorkflows.Add(workflow);
-
-    public void RemoveFromRecent(string idempotencyKey) => _recentWorkflows.Remove(idempotencyKey);
 }
