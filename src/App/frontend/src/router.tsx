@@ -4,7 +4,6 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import type { QueryClient } from '@tanstack/react-query';
 
 import { AppLayout } from 'src/AppLayout';
-import { ErrorPage } from 'src/components/ErrorPage';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ComponentRouting, NavigateToStartUrl } from 'src/components/wrappers/ProcessWrapper';
@@ -28,7 +27,6 @@ export function createRouter(queryClient: QueryClient) {
     [
       {
         Component: AppLayout,
-        errorElement: <ErrorPage />,
         children: [
           {
             path: routes.instanceSelection,

@@ -1,13 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query';
 
-import { fetchPartiesAllowedToInstantiate } from 'src/queries/queries';
-
-export function indexLoader(queryClient: QueryClient) {
+export function indexLoader(_: QueryClient) {
   return function loader() {
-    queryClient.prefetchQuery({
-      queryKey: ['parties', 'allowedToInstantiate'],
-      queryFn: fetchPartiesAllowedToInstantiate,
-    });
+    // this is a placeholder, will move redirection logic here in next PR
     return null;
   };
 }
