@@ -104,25 +104,6 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<Workflow?> GetWorkflow(
-        string idempotencyKey,
-        DateTimeOffset createdAt,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetWorkflow");
-
-        await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-        var entity = await context
-            .Workflows.Include(w => w.Steps)
-            .FirstOrDefaultAsync(
-                w => w.IdempotencyKey == idempotencyKey && w.CreatedAt == createdAt,
-                cancellationToken
-            );
-        return entity?.ToDomainModel();
-    }
-
-    /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetFinishedWorkflows(
         IReadOnlyList<PersistentItemStatus> statuses,
         string? search = null,
@@ -423,93 +404,21 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task UpdateWorkflow(
-        Workflow workflow,
-        bool updateTimestamp = true,
+    public async Task<Workflow?> GetWorkflow(
+        string idempotencyKey,
+        DateTimeOffset createdAt,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.UpdateWorkflow");
-        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetWorkflow");
 
-        try
-        {
-            logger.UpdatingWorkflow(workflow);
-            workflow.UpdatedAt = updateTimestamp ? timeProvider.GetUtcNow() : workflow.UpdatedAt;
-
-            await ExecuteWithRetry(
-                async ct =>
-                {
-                    await using var context = await dbContextFactory.CreateDbContextAsync(ct);
-                    await context
-                        .Workflows.Where(t => t.Id == workflow.DatabaseId)
-                        .ExecuteUpdateAsync(
-                            setters =>
-                                setters
-                                    .SetProperty(t => t.Status, workflow.Status)
-                                    .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt)
-                                    .SetProperty(t => t.EngineTraceId, workflow.EngineTraceContext),
-                            ct
-                        );
-                },
+        await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var entity = await context
+            .Workflows.Include(w => w.Steps)
+            .FirstOrDefaultAsync(
+                w => w.IdempotencyKey == idempotencyKey && w.CreatedAt == createdAt,
                 cancellationToken
             );
-
-            logger.SuccessfullyUpdatedWorkflow(workflow);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            logger.FailedToUpdateWorkflow(workflow.OperationId, workflow.DatabaseId, ex.Message, ex);
-            throw;
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task UpdateStep(Step step, bool updateTimestamp = true, CancellationToken cancellationToken = default)
-    {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.UpdateStep");
-        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
-
-        try
-        {
-            logger.UpdatingStep(step);
-            step.UpdatedAt = updateTimestamp ? timeProvider.GetUtcNow() : step.UpdatedAt;
-
-            await ExecuteWithRetry(
-                async ct =>
-                {
-                    await using var context = await dbContextFactory.CreateDbContextAsync(ct);
-                    await context
-                        .Steps.Where(t => t.Id == step.DatabaseId)
-                        .ExecuteUpdateAsync(
-                            setters =>
-                                setters
-                                    .SetProperty(t => t.Status, step.Status)
-                                    .SetProperty(t => t.BackoffUntil, step.BackoffUntil)
-                                    .SetProperty(t => t.RequeueCount, step.RequeueCount)
-                                    .SetProperty(t => t.UpdatedAt, step.UpdatedAt),
-                            ct
-                        );
-                },
-                cancellationToken
-            );
-
-            logger.SuccessfullyUpdatedStep(step);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            logger.FailedToUpdateStep(step.OperationId, step.DatabaseId, ex.Message, ex);
-            throw;
-        }
+        return entity?.ToDomainModel();
     }
 }

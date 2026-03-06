@@ -82,4 +82,26 @@ internal static partial class EngineRepositoryLogs
         string message,
         Exception ex
     );
+
+    [LoggerMessage(LogLevel.Error, "Failed to batch enqueue workflows: {message}")]
+    internal static partial void FailedToBatchEnqueueWorkflows(
+        this ILogger<EngineRepository> logger,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Error, "Failed to batch update workflow statuses: {message}")]
+    internal static partial void FailedToBatchUpdateWorkflowStatuses(
+        this ILogger<EngineRepository> logger,
+        string message,
+        Exception ex
+    );
+
+    [LoggerMessage(LogLevel.Error, "Failed to batch update {workflowCount} workflows and steps: {message}")]
+    internal static partial void FailedToBatchUpdateWorkflowsAndSteps(
+        this ILogger<EngineRepository> logger,
+        int workflowCount,
+        string message,
+        Exception ex
+    );
 }

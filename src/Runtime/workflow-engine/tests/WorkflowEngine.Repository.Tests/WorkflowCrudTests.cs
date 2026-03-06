@@ -277,60 +277,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task BatchUpdateWorkflowAndSteps_UpdatesWorkflowAndSteps()
-    {
-        await using var context = fixture.CreateDbContext();
-        var repo = fixture.CreateRepository();
-        var request = new WorkflowRequest
-        {
-            OperationId = "next",
-            Steps =
-            [
-                new StepRequest { Command = new Command.AppCommand("step-one") },
-                new StepRequest { Command = new Command.AppCommand("step-two") },
-            ],
-        };
-        var metadata = new WorkflowRequestMetadata(
-            InstanceInformation: new InstanceInformation
-            {
-                Org = "ttd",
-                App = "test-app",
-                InstanceOwnerPartyId = 50001234,
-                InstanceGuid = Guid.NewGuid(),
-            },
-            Actor: new Actor { UserIdOrOrgNumber = "12345" },
-            CreatedAt: DateTimeOffset.UtcNow,
-            TraceContext: null,
-            InstanceLockKey: null
-        );
-        var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
-        var step0 = workflow.Steps[0];
-        var step1 = workflow.Steps[1];
-
-        workflow.Status = PersistentItemStatus.Completed;
-        step0.Status = PersistentItemStatus.Completed;
-        step1.Status = PersistentItemStatus.Failed;
-        step1.RequeueCount = 2;
-        await repo.BatchUpdateWorkflowAndSteps(workflow, [step0, step1], ct: TestContext.Current.CancellationToken);
-
-        var dbWorkflow = await fixture.GetWorkflow(workflow.DatabaseId);
-        Assert.NotNull(dbWorkflow);
-        Assert.Equal(PersistentItemStatus.Completed, dbWorkflow.Status);
-        Assert.NotNull(dbWorkflow.UpdatedAt);
-
-        var dbStep0 = await fixture.GetStep(step0.DatabaseId);
-        Assert.NotNull(dbStep0);
-        Assert.Equal(PersistentItemStatus.Completed, dbStep0.Status);
-        Assert.NotNull(dbStep0.UpdatedAt);
-
-        var dbStep1 = await fixture.GetStep(step1.DatabaseId);
-        Assert.NotNull(dbStep1);
-        Assert.Equal(PersistentItemStatus.Failed, dbStep1.Status);
-        Assert.Equal(2, dbStep1.RequeueCount);
-        Assert.NotNull(dbStep1.UpdatedAt);
-    }
-
-    [Fact]
     public async Task EnqueueWorkflow_WithFutureStartAt_PersistsStartAt()
     {
         await using var context = fixture.CreateDbContext();

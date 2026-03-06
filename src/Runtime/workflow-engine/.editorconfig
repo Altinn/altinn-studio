@@ -111,6 +111,8 @@ csharp_style_namespace_declarations = file_scoped:error
 
 # S2325: Methods and properties that don't access instance data should be static
 dotnet_diagnostic.S2325.severity = none
+# S2139: Either log this exception and handle it, or rethrow it with some contextual information
+dotnet_diagnostic.S2139.severity = none
 # CA1034: Nested types should not be visible
 dotnet_diagnostic.CA1034.severity = none
 # CA2007: Do not directly await a Task without ConfigureAwait

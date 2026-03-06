@@ -7,8 +7,6 @@ namespace WorkflowEngine.Data.Repository;
 
 public interface IEngineRepository
 {
-    // ── Read / query methods ─────────────────────────────────────────────
-
     /// <summary>
     /// Gets all active workflows.
     /// </summary>
@@ -55,15 +53,6 @@ public interface IEngineRepository
     );
 
     /// <summary>
-    /// Gets a workflow by idempotency key and creation time.
-    /// </summary>
-    Task<Workflow?> GetWorkflow(
-        string idempotencyKey,
-        DateTimeOffset createdAt,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
     /// Gets all distinct org+app pairs.
     /// </summary>
     Task<IReadOnlyList<(string Org, string App)>> GetDistinctOrgsAndApps(CancellationToken cancellationToken = default);
@@ -101,7 +90,14 @@ public interface IEngineRepository
     /// </summary>
     Task<Workflow?> GetWorkflow(Guid workflowId, CancellationToken cancellationToken = default);
 
-    // ── Single-entity update methods ─────────────────────────────────────
+    /// <summary>
+    /// Gets a workflow by idempotency key and creation time.
+    /// </summary>
+    Task<Workflow?> GetWorkflow(
+        string idempotencyKey,
+        DateTimeOffset createdAt,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Updates a workflow in the repository.
@@ -113,33 +109,34 @@ public interface IEngineRepository
     /// </summary>
     Task UpdateStep(Step step, bool updateTimestamp = true, CancellationToken cancellationToken = default);
 
-    // ── Batch / raw SQL methods (engine hot path) ────────────────────────
-
     /// <summary>
     /// Batch-enqueues workflows with idempotency checking, COPY BINARY bulk insert, and dependency validation.
     /// </summary>
-    Task<BatchEnqueueResult[]> BatchEnqueueWorkflowsAsync(List<BufferedEnqueueRequest> requests, CancellationToken ct);
+    Task<BatchEnqueueResult[]> BatchEnqueueWorkflowsAsync(
+        IReadOnlyList<BufferedEnqueueRequest> requests,
+        CancellationToken cancellationToken
+    );
 
     /// <summary>
     /// Atomically fetches and locks available workflows for processing using FOR UPDATE SKIP LOCKED.
     /// </summary>
-    Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken ct);
+    Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken);
 
     /// <summary>
     /// Batch-updates workflow statuses using unnest.
     /// </summary>
-    Task BatchUpdateWorkflowStatuses(List<WorkflowResult> results, CancellationToken ct);
-
-    /// <summary>
-    /// Updates a single workflow and its dirty steps in a single transaction using raw SQL.
-    /// </summary>
-    Task BatchUpdateWorkflowAndSteps(Workflow workflow, IReadOnlyList<Step> steps, CancellationToken ct);
+    Task BatchUpdateWorkflowStatuses(IReadOnlyList<WorkflowResult> results, CancellationToken cancellationToken);
 
     /// <summary>
     /// Batch-updates multiple workflows and their dirty steps in a single transaction using raw SQL.
     /// </summary>
-    Task BatchUpdateWorkflowsAndSteps(List<BatchWorkflowStatusUpdate> updates, CancellationToken ct);
+    Task BatchUpdateWorkflowsAndSteps(
+        IReadOnlyList<BatchWorkflowStatusUpdate> updates,
+        CancellationToken cancellationToken
+    );
 }
+
+// TODO: These models should live somewhere else
 
 /// <summary>
 /// A single caller's enqueue request waiting in the write buffer.
@@ -173,16 +170,24 @@ public sealed record BatchEnqueueResult(
 
 public enum BatchEnqueueResultStatus
 {
-    /// <summary>New workflows were created.</summary>
+    /// <summary>
+    /// New workflows were created.
+    /// </summary>
     Created,
 
-    /// <summary>Idempotency key matched — returning previously stored workflow IDs.</summary>
+    /// <summary>
+    /// Idempotency key matched — returning previously stored workflow IDs.
+    /// </summary>
     Duplicate,
 
-    /// <summary>Idempotency key matched but request body hash differs.</summary>
+    /// <summary>
+    /// Idempotency key matched but request body hash differs.
+    /// </summary>
     Conflict,
 
-    /// <summary>One or more workflow dependency/link references could not be resolved.</summary>
+    /// <summary>
+    /// One or more workflow dependency/link references could not be resolved.
+    /// </summary>
     InvalidReference,
 }
 
