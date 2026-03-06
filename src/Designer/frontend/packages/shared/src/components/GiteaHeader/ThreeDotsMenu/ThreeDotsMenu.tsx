@@ -2,10 +2,11 @@ import React from 'react';
 import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { StudioPopover, StudioDropdown } from '@studio/components';
+import { StudioPopover, StudioDropdown, StudioLinkButton } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useGiteaHeaderContext } from '../context/GiteaHeaderContext';
+import classes from './ThreeDotsMenu.module.css';
 
 export type ThreeDotsMenuProps = {
   isClonePossible?: boolean;
@@ -14,10 +15,6 @@ export type ThreeDotsMenuProps = {
 export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) => {
   const { owner, repoName } = useGiteaHeaderContext();
   const { t } = useTranslation();
-
-  const handleNavigateToGitea = () => {
-    window.location.href = repositoryPath(owner, repoName);
-  };
 
   return (
     <StudioDropdown
@@ -38,9 +35,15 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
           </StudioDropdown.Item>
         )}
         <StudioDropdown.Item>
-          <StudioDropdown.Button icon={<GiteaIcon />} onClick={handleNavigateToGitea}>
+          <StudioLinkButton
+            icon={<GiteaIcon />}
+            className={classes.linkButton}
+            href={repositoryPath(owner, repoName)}
+            variant='tertiary'
+            data-color='subtle'
+          >
             {t('sync_header.repository')}
-          </StudioDropdown.Button>
+          </StudioLinkButton>
         </StudioDropdown.Item>
         <StudioDropdown.Item>
           <LocalChangesModal />
