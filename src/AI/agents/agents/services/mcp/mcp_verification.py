@@ -4,7 +4,7 @@ Similar to patch_generator.py but for verification phase.
 """
 import json
 from pathlib import Path
-from langfuse import get_client
+from shared.utils.langfuse_utils import trace_span
 from typing import Dict, List, Any
 from agents.services.mcp.mcp_client import get_mcp_client
 from agents.services.llm import LLMClient
@@ -50,10 +50,9 @@ class MCPVerifier:
             patch: The patch data with changes
             plan_step: The plan step being verified
         """
-        langfuse = get_client()
         result = MCPVerificationResult()
         
-        with langfuse.start_as_current_span(name="verification_phase", metadata={"span_type": "TOOL"}) as main_span:
+        with trace_span("verification_phase", metadata={"span_type": "TOOL"}) as main_span:
             main_span.update(metadata={
                 "changed_files_count": len([f.get('file', '') for f in patch.get('changes', [])]),
                 "plan_step_id": plan_step.id if hasattr(plan_step, "id") else "unknown"
@@ -129,10 +128,9 @@ class MCPVerifier:
     
     async def _verify_layout(self, mcp_client, layout_files: List[Dict], plan_step: PlanStep, result: MCPVerificationResult):
         """Call altinn_layout_validate for each changed layout file"""
-        langfuse = get_client()
         for layout_entry in layout_files:
             file_path = layout_entry['file']
-            with langfuse.start_as_current_span(name="layout_schema_validation", metadata={"span_type": "TOOL", "file_path": file_path}) as span:
+            with trace_span("layout_schema_validation", metadata={"span_type": "TOOL", "file_path": file_path}) as span:
                 try:
                     layout_file_path = Path(self.repo_path) / file_path
                     with open(layout_file_path, 'r') as f:
@@ -162,10 +160,9 @@ class MCPVerifier:
     
     async def _verify_resources(self, mcp_client, resource_files: List[Dict], plan_step: PlanStep, result: MCPVerificationResult):
         """Call altinn_resource_validate for each changed resource file"""
-        langfuse = get_client()
         for resource_entry in resource_files:
             file_path = resource_entry['file']
-            with langfuse.start_as_current_span(name="resource_text_validation", metadata={"span_type": "TOOL", "file_path": file_path}) as span:
+            with trace_span("resource_text_validation", metadata={"span_type": "TOOL", "file_path": file_path}) as span:
                 try:
                     resource_file_path = Path(self.repo_path) / file_path
                     with open(resource_file_path, 'r') as f:
@@ -206,8 +203,7 @@ class MCPVerifier:
     
     async def _verify_layout_settings(self, layout_settings_files: List[Dict], result: MCPVerificationResult):
         """Validate Settings.json for correct JSON syntax and structure"""
-        langfuse = get_client()
-        with langfuse.start_as_current_span(name="layout_settings_validation", metadata={"span_type": "TOOL"}) as span:
+        with trace_span("layout_settings_validation", metadata={"span_type": "TOOL"}) as span:
             try:
                 # Read the Settings.json file content
                 settings_file_path = Path(self.repo_path) / layout_settings_files[0]['file']
@@ -279,8 +275,7 @@ class MCPVerifier:
     
     async def _verify_policies(self, mcp_client, patch: Dict, plan_step: PlanStep, result: MCPVerificationResult):
         """Call altinn_policy_validate for generated files and constraint checks"""
-        langfuse = get_client()
-        with langfuse.start_as_current_span(name="policy_validation", metadata={"span_type": "TOOL"}) as span:
+        with trace_span("policy_validation", metadata={"span_type": "TOOL"}) as span:
             try:
                 tool_input = {
                     "changed_files": [f['file'] for f in patch.get('changes', [])],

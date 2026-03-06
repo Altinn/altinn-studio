@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from typing import Dict, List, Optional, Any
 
-from langfuse import get_client
+from shared.utils.langfuse_utils import trace_span
 
 from agents.graph.state import FormSpec, FormSpecPage, FormSpecField
 from agents.services.llm import LLMClient
@@ -32,10 +32,8 @@ def run_spec_pipeline(
     user_prompt = render_template("spec_extraction_user", user_goal=user_goal)
 
     client = LLMClient(role="planner")  # Vision-capable model
-    langfuse = get_client()
-
-    with langfuse.start_as_current_span(
-        name="spec_extraction_llm",
+    with trace_span(
+        "spec_extraction_llm",
         metadata={
             "span_type": "GENERATION",
             "attachment_count": len(attachments),

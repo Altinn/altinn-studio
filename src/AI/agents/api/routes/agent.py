@@ -31,10 +31,15 @@ class StartReq(BaseModel):
 async def start_agent(req: StartReq, request: Request):
     """Start an agent workflow for a single atomic change"""
     try:
-        # Extract Gitea token from headers (passed by Designer backend)
+        # Extract headers passed by Designer backend
         gitea_token = request.headers.get("X-User-Token")
         if not gitea_token:
             log.warning("No X-User-Token header found - git operations may fail if authentication is required")
+
+        developer = request.headers.get("X-Developer")
+        if developer:
+            sink.register_developer_session(developer, req.session_id)
+            log.info(f"🔗 Pre-registered session {req.session_id} -> developer {developer}")
         
         # Translate Docker internal hostnames to host-accessible URLs
         repo_url = req.repo_url
@@ -84,51 +89,106 @@ async def start_agent(req: StartReq, request: Request):
             # Run chat query in background so API returns immediately
             # This allows frontend to subscribe to events before they're sent
             async def _run_chat():
-                # Send starting event
-                sink.send(AgentEvent(
-                    type="status",
-                    session_id=req.session_id,
-                    data={
-                        "message": "Chat mode: I'll help answer your questions without making changes.",
-                        "mode": "chat"
-                    }
-                ))
-                
-                try:
-                    # Create state for assistant node
-                    state = AgentState(
-                        session_id=req.session_id,
-                        user_goal=req.goal,
-                        repo_path=str(repo_path),
-                        attachments=saved_attachments
-                    )
-                    
-                    # Run assistant node
-                    result_state = await assistant(state)
-                    
-                    # Send completion event - include mode so frontend knows not to do branch operations
+                from shared.utils.langfuse_utils import init_langfuse, is_langfuse_enabled
+                from langfuse import get_client as get_langfuse_client
+
+                init_langfuse()
+                langfuse = get_langfuse_client() if is_langfuse_enabled() else None
+
+                async def _run_chat_inner():
                     sink.send(AgentEvent(
                         type="status",
                         session_id=req.session_id,
                         data={
-                            "message": "Chat query completed",
-                            "status": "completed",
-                            "mode": "chat",
-                            "no_branch_operations": True  # Explicit flag for frontend
+                            "message": "Tenker...",
+                            "mode": "chat"
                         }
                     ))
-                    
-                    log.info(f"✅ Chat query completed for session {req.session_id}")
-                    
-                except Exception as chat_error:
-                    log.error(f"Chat query failed for session {req.session_id}: {chat_error}")
+
+                    try:
+                        from agents.graph.state import ConversationMessage
+                        stored_history = sink.get_conversation_history(req.session_id)
+                        conversation_history = [
+                            ConversationMessage(role=msg["role"], content=msg["content"], sources=msg.get("sources"))
+                            for msg in stored_history
+                        ]
+
+                        sink.add_to_conversation_history(req.session_id, "user", req.goal)
+
+                        state = AgentState(
+                            session_id=req.session_id,
+                            user_goal=req.goal,
+                            repo_path=str(repo_path),
+                            attachments=saved_attachments,
+                            conversation_history=conversation_history,
+                        )
+
+                        result_state = await assistant(state)
+
+                        if (result_state.assistant_response or {}).get("cancelled"):
+                            log.info(f"🛑 Chat query cancelled for session {req.session_id}, skipping completion event")
+                            return result_state
+
+                        reply = (result_state.assistant_response or {}).get("response", "")
+                        cited_sources = (result_state.assistant_response or {}).get("sources")
+                        if reply:
+                            sink.add_to_conversation_history(
+                                req.session_id, "assistant", reply, sources=cited_sources
+                            )
+
+                        sink.send(AgentEvent(
+                            type="status",
+                            session_id=req.session_id,
+                            data={
+                                "message": "Chat query completed",
+                                "status": "completed",
+                                "mode": "chat",
+                                "no_branch_operations": True
+                            }
+                        ))
+
+                        log.info(f"✅ Chat query completed for session {req.session_id}")
+                        return result_state
+
+                    except Exception as chat_error:
+                        log.error(f"Chat query failed for session {req.session_id}: {chat_error}")
+                        sink.send(AgentEvent(
+                            type="error",
+                            session_id=req.session_id,
+                            data={
+                                "message": f"Chat query failed: {str(chat_error)}",
+                                "mode": "chat"
+                            }
+                        ))
+                        return None
+
+                try:
+                    if langfuse:
+                        history_for_trace = [
+                            {"role": msg["role"], "content": msg["content"][:300]}
+                            for msg in sink.get_conversation_history(req.session_id)
+                        ]
+                        with langfuse.start_as_current_span(
+                            name="Altinity Assistant Query",
+                            input={
+                                "user_goal": str(req.goal)[:500],
+                                "session_id": req.session_id,
+                                "conversation_history": history_for_trace,
+                            },
+                            metadata={"span_type": "AGENT", "session_id": req.session_id},
+                        ) as root_span:
+                            result_state_ref = await _run_chat_inner()
+                            if result_state_ref is not None:
+                                reply = (result_state_ref.assistant_response or {}).get("response", "")
+                                root_span.update(output={"response": reply[:1000] if reply else ""})
+                    else:
+                        await _run_chat_inner()
+                except Exception as outer_error:
+                    log.error(f"Unexpected error in chat task for session {req.session_id}: {outer_error}")
                     sink.send(AgentEvent(
                         type="error",
                         session_id=req.session_id,
-                        data={
-                            "message": f"Chat query failed: {str(chat_error)}",
-                            "mode": "chat"
-                        }
+                        data={"message": f"Chat query failed: {str(outer_error)}", "mode": "chat"}
                     ))
             
             # Mark session as started and create background task - API returns immediately
@@ -234,12 +294,11 @@ async def start_agent(req: StartReq, request: Request):
 async def cancel_session(session_id: str):
     """Cancel a running session. Sends a terminal event so the frontend stops loading."""
     status = sink.get_session_status(session_id)
-    if status is None:
-        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
 
-    current_status = status.get("status")
-    if current_status in ("done", "cancelled", "error"):
-        return {"session_id": session_id, "status": current_status, "message": "Session already finished"}
+    if status is not None:
+        current_status = status.get("status")
+        if current_status in ("done", "cancelled", "error"):
+            return {"session_id": session_id, "status": current_status, "message": "Session already finished"}
 
     sink.cancel_session(session_id)
     log.info(f"🛑 Session {session_id} cancelled via API")

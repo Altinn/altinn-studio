@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from langfuse import get_client
+from shared.utils.langfuse_utils import trace_span
 from agents.services.llm import LLMClient
 from agents.prompts import get_prompt_content, render_template
 from shared.utils.logging_utils import get_logger
@@ -28,15 +28,13 @@ async def extract_semantic_query(user_input: str, context: str = "general") -> s
         Input: "For noen skjemaer kan det være ønskelig at virksomhet kan fylle ut skjema uavhengig av rolle"
         Output: "authorization policy configuration skip role requirement organization access"
     """
-    langfuse = get_client()
     llm = LLMClient(role="planner")
     
     system_prompt = get_prompt_content("semantic_query_extraction")
     user_prompt = render_template("semantic_query_user", user_input=user_input)
     
-    with langfuse.start_as_current_observation(
-        name="semantic_query_extraction",
-        as_type="generation",
+    with trace_span(
+        "semantic_query_extraction",
         input={
             "user_input": user_input,
             "context": context,
@@ -65,5 +63,5 @@ async def extract_semantic_query(user_input: str, context: str = "general") -> s
                 "error": str(e),
                 "fallback_query": user_input
             })
-            span.set_attribute("error", True)
+            span.update(metadata={"error": True})
             return user_input

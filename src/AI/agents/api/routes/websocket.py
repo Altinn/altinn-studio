@@ -3,14 +3,19 @@
 Architecture
 ------------
 The .NET Designer backend (AltinityProxyHub) opens a raw WebSocket to ``/ws``,
-sends a ``{"type": "session", "session_id": "..."}`` message, and then listens
-for JSON frames that it forwards to the frontend via SignalR.
+sends a ``{"type": "session", "session_id": "...", "developer": "..."}`` message,
+and then listens for JSON frames that it forwards to the frontend via SignalR.
 
 This module:
 1. Accepts the WebSocket and waits for the ``session`` registration message.
-2. Starts an **event-streaming loop** that reads from the per-session event
+2. Starts an **event-streaming loop** that reads from the per-**developer** event
    buffer in ``EventSink`` and sends each event as a JSON frame.
-3. Concurrently listens for incoming messages (ping, close, etc.).
+3. Concurrently listens for incoming messages (ping, more session registrations, etc.).
+
+Key design: events are streamed by *developer*, not by *session*. This means
+that after a page refresh (which creates a new connection-level session ID),
+the WS still delivers all events for any workflow session belonging to that
+developer. The session_id on each event lets the frontend route it correctly.
 
 No callbacks are used — the WebSocket handler *pulls* from the buffer.
 Reconnection after a page reload simply replays all buffered events.
@@ -35,50 +40,49 @@ async def _safe_send_json(ws: WebSocket, data: dict) -> bool:
         return False
 
 
-async def _stream_events(ws: WebSocket, session_id: str):
-    """Read events from the session buffer and push them over *ws*.
+async def _stream_developer_events(ws: WebSocket, developer: str):
+    """Read all events for *developer* and push them over *ws*.
 
-    Runs until the session emits a terminal event (``done`` / ``error``)
-    or the WebSocket disconnects.
+    Streams indefinitely — new workflow sessions for the same developer
+    are automatically included because events fan out to the developer buffer.
+    Only stops when the WebSocket disconnects.
     """
-    cursor = 0  # next event index to send
-    logger.info(f"🎬 _stream_events started for session {session_id}")
+    cursor = sink.developer_event_count(developer)  # start from current tail (skip already-sent history)
+    logger.info(f"🎬 _stream_developer_events started for developer {developer} (cursor={cursor})")
 
     while True:
-        # Grab any new events since our cursor
-        new_events = sink.get_events_since(session_id, cursor)
+        new_events = sink.get_developer_events_since(developer, cursor)
         if new_events:
-            logger.info(f"📦 Found {len(new_events)} new events (cursor={cursor}) for session {session_id}")
+            logger.info(
+                f"📦 Found {len(new_events)} new events (cursor={cursor}) for developer {developer}"
+            )
 
         for event in new_events:
             ok = await _safe_send_json(ws, event.model_dump())
             if not ok:
-                logger.info(f"🔌 WS closed while streaming event {event.type} for session {session_id}")
+                logger.info(
+                    f"🔌 WS closed while streaming event {event.type} "
+                    f"session={event.session_id} developer={developer}"
+                )
                 return
-            logger.info(f"✅ WS sent: type={event.type}, session={session_id}")
+            logger.info(
+                f"✅ WS sent: type={event.type}, session={event.session_id}, developer={developer}"
+            )
             cursor += 1
 
-            # Terminal events — stop streaming after sending
-            if event.type in ("done", "error"):
-                logger.info(f"🏁 Terminal event sent for session {session_id}, stopping stream")
-                return
-
-        # Wait for new events beyond our cursor (race-free)
         try:
-            logger.debug(f"⏳ Waiting for events (cursor={cursor}) for session {session_id}")
-            got_new = await sink.wait_for_events(session_id, known_count=cursor, timeout=30.0)
+            logger.debug(f"⏳ Waiting for developer events (cursor={cursor}) developer={developer}")
+            got_new = await sink.wait_for_developer_events(developer, known_count=cursor, timeout=30.0)
             if not got_new:
-                logger.debug(f"⏰ Wait timed out (cursor={cursor}) for session {session_id}, looping")
+                logger.debug(f"⏰ Wait timed out (cursor={cursor}) developer={developer}, looping")
         except Exception as e:
-            logger.warning(f"Wait error for session {session_id}: {e}")
+            logger.warning(f"Wait error for developer {developer}: {e}")
 
 
-async def _receive_loop(ws: WebSocket):
-    """Read incoming messages from the WebSocket.
+async def _receive_initial_registration(ws: WebSocket):
+    """Wait for the first ``session`` registration message.
 
-    Returns the session_id once a ``session`` message arrives.
-    After that, keeps reading (ping/pong, etc.) until disconnect.
-    Yields ``None`` on disconnect.
+    Returns ``(session_id, developer)`` tuple, or ``(None, None)`` on disconnect.
     """
     try:
         while True:
@@ -91,10 +95,9 @@ async def _receive_loop(ws: WebSocket):
                     "timestamp": data.get("timestamp"),
                 })
             elif msg_type == "session":
-                return data.get("session_id")
-            # Ignore unknown message types
+                return data.get("session_id"), data.get("developer")
     except (WebSocketDisconnect, Exception):
-        return None
+        return None, None
 
 
 def register_websocket_routes(app: FastAPI):
@@ -102,62 +105,78 @@ def register_websocket_routes(app: FastAPI):
 
     @app.websocket("/ws")
     async def websocket_endpoint(websocket: WebSocket):
-        session_id = None
+        developer = None
         stream_task = None
 
         try:
             await websocket.accept()
             logger.info("🔗 WebSocket connected")
 
-            # Send welcome
             await _safe_send_json(websocket, {
                 "type": "connection",
                 "status": "connected",
                 "message": "WebSocket connection established",
             })
 
-            # --- Phase 1: wait for session registration -----------------------
-            session_id = await _receive_loop(websocket)
-            if not session_id:
-                logger.info("🔌 WebSocket closed before session registration")
+            # --- Phase 1: wait for initial registration -----------------------
+            session_id, developer = await _receive_initial_registration(websocket)
+            if not developer:
+                logger.info("🔌 WebSocket closed before developer registration")
                 return
 
-            buffered = sink.event_count(session_id)
-            logger.info(f"📋 Session registered: {session_id} (buffered events: {buffered})")
+            sink.register_developer_session(developer, session_id or "")
+            logger.info(f"📋 Developer registered: {developer}, initial session: {session_id}")
             await _safe_send_json(websocket, {
                 "type": "session",
                 "status": "registered",
                 "session_id": session_id,
+                "developer": developer,
             })
 
-            # --- Phase 2: stream events + keep reading incoming messages ------
-            stream_task = asyncio.create_task(_stream_events(websocket, session_id))
+            # --- Phase 2: stream ALL developer events + keep reading ----------
+            # The stream never restarts on new session registrations — it delivers
+            # events for any session belonging to this developer.
+            stream_task = asyncio.create_task(_stream_developer_events(websocket, developer))
 
-            # Keep reading incoming messages (ping/pong) while streaming
             try:
                 while True:
                     data = await websocket.receive_json()
                     msg_type = data.get("type")
+
                     if msg_type == "ping":
                         await _safe_send_json(websocket, {
                             "type": "pong",
                             "timestamp": data.get("timestamp"),
                         })
+                    elif msg_type == "session":
+                        new_session_id = data.get("session_id")
+                        new_developer = data.get("developer") or developer
+                        if new_session_id:
+                            sink.register_developer_session(new_developer, new_session_id)
+                            logger.info(
+                                f"� Additional session registered: {new_session_id} "
+                                f"-> developer {new_developer}"
+                            )
+                            await _safe_send_json(websocket, {
+                                "type": "session",
+                                "status": "registered",
+                                "session_id": new_session_id,
+                                "developer": new_developer,
+                            })
             except (WebSocketDisconnect, Exception):
-                pass  # Client disconnected — clean up below
+                pass
 
         except Exception as e:
             logger.error(f"WebSocket error: {e}")
 
         finally:
-            # Cancel the streaming task if still running
             if stream_task and not stream_task.done():
                 stream_task.cancel()
                 try:
                     await stream_task
                 except (asyncio.CancelledError, Exception):
                     pass
-            logger.info(f"🔌 WebSocket disconnected (session={session_id})")
+            logger.info(f"🔌 WebSocket disconnected (developer={developer})")
 
     @app.get("/api/ws/status")
     async def get_websocket_status():

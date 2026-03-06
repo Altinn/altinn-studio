@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-from langfuse import get_client
+from shared.utils.langfuse_utils import trace_generation
 
 from agents.services.llm import LLMClient
 from agents.prompts import get_prompt_content, render_template
@@ -57,10 +57,8 @@ def run_intake_pipeline(
         user_prompt = history_context + user_prompt
 
     client = LLMClient(role="planner")
-    langfuse = get_client()
-    with langfuse.start_as_current_observation(
-        name="intake_planning_llm",
-        as_type="generation",
+    with trace_generation(
+        "intake_planning_llm",
         model=client.model,
         input={"user_goal": user_goal},
         metadata={"has_attachments": bool(attachments), **client.get_model_metadata()},

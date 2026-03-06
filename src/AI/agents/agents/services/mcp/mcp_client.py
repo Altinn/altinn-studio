@@ -116,15 +116,12 @@ class MCPClient:
         
         start_time = time.time()
         
-        # Get Langfuse client for tracing
-        from langfuse import get_client
-        langfuse = get_client()
-        
         # This will be nested under the main workflow trace
+        from shared.utils.langfuse_utils import trace_span
         patch_data = None  # Initialize to avoid UnboundLocalError
         try:
             # Step 1: Scan repository - FIRST to understand what files exist
-            with langfuse.start_as_current_span(name="repository_scanning", metadata={"span_type": "TOOL"}) as scan_span:
+            with trace_span("repository_scanning", metadata={"span_type": "TOOL"}) as scan_span:
                 scan_span.update(metadata={
                     "repository_path": repository_path,
                     "tool": "repository_scanner"
@@ -233,7 +230,7 @@ class MCPClient:
                 raise
             
             # Step 5: Normalize patch structure
-            with langfuse.start_as_current_span(name="patch_normalization", metadata={"span_type": "TOOL"}) as norm_span:
+            with trace_span("patch_normalization", metadata={"span_type": "TOOL"}) as norm_span:
                 patch_data = normalize_patch_structure(patch_data)
                 norm_span.update(output={
                     "files_count": len(patch_data.get('files', [])),
@@ -247,7 +244,7 @@ class MCPClient:
             
             log.info(f"Starting validation for {len(patch_data.get('changes', []))} changes")
             
-            with langfuse.start_as_current_span(name="patch_validation", metadata={"span_type": "TOOL"}) as validation_span:
+            with trace_span("patch_validation", metadata={"span_type": "TOOL"}) as validation_span:
                 is_valid, errors, warnings = await validator.validate_patch(patch_data)
                 
                 validation_span.update(output={

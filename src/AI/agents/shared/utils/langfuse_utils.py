@@ -1,5 +1,6 @@
 """Langfuse tracking utilities"""
-from langfuse import Langfuse
+from contextlib import contextmanager
+from langfuse import Langfuse, get_client
 from shared.config.base_config import get_config
 from shared.utils.logging_utils import get_logger
 
@@ -23,20 +24,33 @@ def init_langfuse():
         return None
     
     try:
-        # Initialize Langfuse client (without 'enabled' parameter - control via LANGFUSE_ENABLED env var)
+        from opentelemetry.sdk.trace import TracerProvider as _OtelTracerProvider
+        from opentelemetry import trace as _otel_trace
+
+        # Give Langfuse its own dedicated TracerProvider so it is isolated from
+        # the global OTel provider that third-party libraries (fastmcp) share.
+        langfuse_provider = _OtelTracerProvider()
+
         _client = Langfuse(
             secret_key=config.LANGFUSE_SECRET_KEY,
             public_key=config.LANGFUSE_PUBLIC_KEY,
             host=config.LANGFUSE_HOST,
             release=config.LANGFUSE_RELEASE,
             environment=config.LANGFUSE_ENVIRONMENT,
+            tracer_provider=langfuse_provider,
         )
-        
+
+        # Reset the global OTel provider to a bare no-op (no exporters/processors).
+        # fastmcp's client_span() calls otel_get_tracer() against this global
+        # provider and will now get a no-op tracer, eliminating the duplicate
+        # 'tools/call <name>' child spans and orphan traces from health checks.
+        _otel_trace.set_tracer_provider(_OtelTracerProvider())
+
         _initialized = True
         log.info(f"Langfuse initialized successfully (host: {config.LANGFUSE_HOST}, release: {config.LANGFUSE_RELEASE}, env: {config.LANGFUSE_ENVIRONMENT})")
-        
+
         return _client
-        
+
     except Exception as e:
         log.error(f"Failed to initialize Langfuse: {e}")
         log.warning("Langfuse tracking will be disabled")
@@ -105,3 +119,54 @@ def log_text_safe(text: str, artifact_file: str):
     This is now a no-op - use outputs on spans instead.
     """
     pass
+
+
+class _NoopSpan:
+    """Dummy span returned when there is no active Langfuse trace context."""
+
+    def update(self, **kwargs):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
+
+def _has_active_trace() -> bool:
+    """Return True when a Langfuse trace context is currently active."""
+    try:
+        trace_id = get_client().get_current_trace_id()
+        return trace_id is not None
+    except Exception:
+        return False
+
+
+@contextmanager
+def trace_span(name: str, **kwargs):
+    """
+    Creates a Langfuse span only when an active parent trace exists.
+    Falls back to a no-op when called outside a traced workflow,
+    preventing orphan spans with null input / undefined output.
+    """
+    if not is_langfuse_enabled() or not _has_active_trace():
+        yield _NoopSpan()
+        return
+
+    with get_client().start_as_current_span(name=name, **kwargs) as span:
+        yield span
+
+
+@contextmanager
+def trace_generation(name: str, **kwargs):
+    """
+    Creates a Langfuse generation observation only when an active parent trace exists.
+    Falls back to a no-op otherwise.
+    """
+    if not is_langfuse_enabled() or not _has_active_trace():
+        yield _NoopSpan()
+        return
+
+    with get_client().start_as_current_observation(name=name, as_type="generation", **kwargs) as span:
+        yield span

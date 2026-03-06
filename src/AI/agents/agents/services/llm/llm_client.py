@@ -1,7 +1,7 @@
 """LLM client for Altinity agents"""
 import json
 import asyncio
-from langfuse import get_client
+from shared.utils.langfuse_utils import trace_generation
 from typing import Dict, Any, Optional, List, Tuple
 from langchain_openai import (
     AzureChatOpenAI,
@@ -483,10 +483,8 @@ class LLMClient:
         Returns:
             Response text
         """
-        langfuse = get_client()
-        with langfuse.start_as_current_observation(
-            name=f"llm_call_{self.role}",
-            as_type="generation",
+        with trace_generation(
+            f"llm_call_{self.role}",
             model=self.model,
             input={
                 "system_message": system_message,

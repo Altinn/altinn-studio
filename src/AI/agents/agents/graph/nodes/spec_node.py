@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextvars
 import time
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, sink
@@ -23,9 +24,11 @@ async def handle(state: AgentState) -> AgentState:
     try:
         import asyncio
         loop = asyncio.get_running_loop()
+        ctx = contextvars.copy_context()
         form_spec = await loop.run_in_executor(
             None,
-            lambda: run_spec_pipeline(
+            lambda: ctx.run(
+                run_spec_pipeline,
                 user_goal=state.user_goal,
                 attachments=state.attachments,
             ),

@@ -3,8 +3,8 @@ Enhanced tool execution with better langfuse tracing.
 """
 import json
 from typing import Dict, Any, List, Optional
-from langfuse import get_client
 from agents.services.mcp.mcp_client import get_mcp_client
+from shared.utils.langfuse_utils import trace_span
 from shared.utils.logging_utils import get_logger
 
 log = get_logger(__name__)
@@ -24,8 +24,7 @@ async def execute_tool(tool_name: str, tool_input: Dict[str, Any], display_name:
     """
     span_name = display_name or f"{tool_name.replace('_tool', '')}_generation"
     
-    langfuse = get_client()
-    with langfuse.start_as_current_span(name=span_name, metadata={"span_type": "TOOL"}) as span:
+    with trace_span(span_name, metadata={"span_type": "TOOL"}) as span:
         client = get_mcp_client()
         
         # Set detailed metadata
@@ -34,11 +33,10 @@ async def execute_tool(tool_name: str, tool_input: Dict[str, Any], display_name:
             "parameter_count": len(tool_input)
         })
         
-        # Set detailed inputs
-        span.set_inputs({
+        span.update(input={
             "tool_parameters": tool_input,
-            "parameter_summary": {k: str(v)[:100] + "..." if isinstance(v, str) and len(v) > 100 else v 
-                                for k, v in tool_input.items()}
+            "parameter_summary": {k: str(v)[:100] + "..." if isinstance(v, str) and len(v) > 100 else v
+                                   for k, v in tool_input.items()}
         })
         
         try:

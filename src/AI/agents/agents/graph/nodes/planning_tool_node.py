@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-from langfuse import get_client
+from shared.utils.langfuse_utils import trace_span
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent, sink
 from shared.utils.logging_utils import get_logger
@@ -74,9 +74,8 @@ async def handle(state: AgentState) -> AgentState:
     log.info(f"⏱️ [PLANNING_TOOL NODE] Starting at {time.time()}")
     log.info("📋 Planning tool node executing")
     
-    langfuse = get_client()
-    with langfuse.start_as_current_span(
-        name="planning_tool_node",
+    with trace_span(
+        "planning_tool_node",
         metadata={"span_type": "AGENT"},
         input={
             "user_goal": state.user_goal,
@@ -99,8 +98,8 @@ async def handle(state: AgentState) -> AgentState:
             client = get_mcp_client()
             await client.connect()
             
-            with langfuse.start_as_current_span(
-                name="altinn_route_mcp_call",
+            with trace_span(
+                "altinn_route_mcp_call",
                 metadata={
                     "span_type": "TOOL",
                     "semantic_query_length": len(semantic_query),
@@ -111,7 +110,7 @@ async def handle(state: AgentState) -> AgentState:
                 },
                 input={
                     "tool": "altinn_route",
-                    "semantic_query": semantic_query,  # Focused English query for semantic search
+                    "semantic_query": semantic_query,
                     "original_user_goal": state.user_goal[:200] + "..." if len(state.user_goal) > 200 else state.user_goal,
                     "query_length": len(semantic_query),
                     "repository_facts_summary": {

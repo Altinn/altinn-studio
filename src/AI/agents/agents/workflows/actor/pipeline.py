@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-from langfuse import get_client
+from shared.utils.langfuse_utils import trace_span, trace_generation
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 from textwrap import dedent
@@ -164,10 +164,8 @@ async def run_actor_pipeline(
 ) -> Dict[str, Any]:
     """Execute the full actor workflow pipeline."""
     
-    langfuse = get_client()
-    
     # Wrap entire pipeline in a span for proper trace nesting
-    with langfuse.start_as_current_span(
+    with trace_span(
         name="actor_pipeline",
         metadata={"span_type": "AGENT"},
         input={
@@ -258,10 +256,8 @@ async def create_general_plan(user_goal: str, planner_step: Optional[str] = None
         form_spec=form_spec_summary or "Not available (no attachment-based form spec)"
     )
 
-    langfuse = get_client()
-    with langfuse.start_as_current_observation(
-        name="general_planning_llm",
-        as_type="generation",
+    with trace_generation(
+        "general_planning_llm",
         model=client.model,
         input={"user_goal": user_goal, "planner_step_present": bool(planner_step)},
         metadata={**client.get_model_metadata(), "user_goal_length": len(user_goal)}
@@ -378,10 +374,8 @@ async def create_tool_plan(
         attachments_hint=attachments_hint
     )
 
-    langfuse = get_client()
-    with langfuse.start_as_current_observation(
-        name="tool_strategy_llm",
-        as_type="generation",
+    with trace_generation(
+        "tool_strategy_llm",
         model=client.model,
         input={
             "general_plan_keys": list(general_plan.keys()),
@@ -476,9 +470,8 @@ async def execute_tool_plan(
     general_plan: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     results: List[Dict[str, Any]] = []
-    langfuse = get_client()
-    with langfuse.start_as_current_span(
-        name="tool_execution_phase",
+    with trace_span(
+        "tool_execution_phase",
         input={
             "tool_names": [entry.get("tool") for entry in tool_plan],
             "planner_step_present": bool(planner_step),
@@ -550,8 +543,8 @@ async def execute_tool_plan(
             entry["arguments"] = arguments
 
             objective = entry.get("objective", "")
-            with langfuse.start_as_current_span(
-                name=f"tool::{tool_name}",
+            with trace_span(
+                f"tool::{tool_name}",
                 input={"arguments": arguments},
                 metadata={"span_type": "TOOL", "tool": tool_name, "objective": objective}
             ) as tool_span:
@@ -781,10 +774,8 @@ async def synthesize_patch(
         repo_summary=json.dumps(repo_summary, indent=2)
     )
 
-    langfuse = get_client()
-    with langfuse.start_as_current_observation(
-        name="patch_synthesis",
-        as_type="generation",
+    with trace_generation(
+        "patch_synthesis",
         model=client.model,
         input={
             "general_plan_keys": list(general_plan.keys()) if general_plan else [],

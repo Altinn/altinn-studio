@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { StudioButton, StudioSwitch, StudioTextarea } from '@studio/components';
 import { PaperclipIcon, PaperplaneFillIcon, XMarkIcon } from '@studio/icons';
@@ -11,6 +11,8 @@ export type UserInputProps = {
   texts: AssistantTexts;
   onSubmitMessage: (message: UserMessage) => void;
   onCancelWorkflow?: () => void;
+  cancelledMessageContent?: string | null;
+  onCancelledMessageConsumed?: () => void;
   workflowIsActive?: boolean;
   enableCompactInterface: boolean;
 };
@@ -19,6 +21,8 @@ export function UserInput({
   texts,
   onSubmitMessage,
   onCancelWorkflow,
+  cancelledMessageContent,
+  onCancelledMessageConsumed,
   workflowIsActive = false,
   enableCompactInterface,
 }: UserInputProps): ReactElement {
@@ -26,6 +30,13 @@ export function UserInput({
   const [allowAppChanges, setAllowAppChanges] = useState<boolean>(false);
   const [attachments, setAttachments] = useState<UserAttachment[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (cancelledMessageContent) {
+      setMessageContent(cancelledMessageContent);
+      onCancelledMessageConsumed?.();
+    }
+  }, [cancelledMessageContent, onCancelledMessageConsumed]);
 
   const hasTextContent = messageContent.trim().length > 0;
   const canSubmit = hasTextContent || attachments.length > 0;

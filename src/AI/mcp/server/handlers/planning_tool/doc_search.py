@@ -314,7 +314,8 @@ class DocumentIndex:
         sorted_docs = sorted(doc_scores.items(), key=lambda x: x[1], reverse=True)
         
         # Filter by minimum score and apply result diversity
-        min_score = 3.0  # Lowered threshold to catch synonym matches
+        min_score = 8.0  # High enough to require meaningful keyword matches
+        min_coverage = 0.5  # At least 50% of query terms must match
         results = []
         seen_titles = set()  # Track titles to avoid duplicates
         
@@ -324,6 +325,10 @@ class DocumentIndex:
                 break
                 
             if score < min_score:
+                continue
+            
+            coverage = doc_direct_matches.get(doc_id, 0) / len(query_terms) if query_terms else 0
+            if coverage < min_coverage:
                 continue
             
             doc = self.documents[doc_id]

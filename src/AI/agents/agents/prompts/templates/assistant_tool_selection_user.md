@@ -1,4 +1,4 @@
-{history_context}USER QUESTION:
+USER QUESTION:
 {query}
 
 SEMANTIC SEARCH QUERY (for reference):
@@ -12,15 +12,15 @@ AVAILABLE TOOLS:
 
 Select tools to answer the question. Remember:
 
-- ALWAYS start with altinn_route (pass user_goal parameter with the user's question)
+- ALWAYS start with altinn_planning (pass query parameter with the user's question)
 - Think about which DOMAIN the question belongs to and call complementary tools:
-  - Authorization → altinn_route + altinn_policy_docs
-  - Data binding → altinn_route + altinn_datamodel_docs
-  - Prefill → altinn_route + altinn_prefill_docs
-  - Expressions → altinn_route + altinn_expression_docs
+  - Authorization → altinn_planning + altinn_policy_docs
+  - Data binding → altinn_planning + altinn_datamodel_docs
+  - Prefill → altinn_planning + altinn_prefill_docs
+  - Expressions → altinn_planning + altinn_expression_docs
 - Only add layout/resource tools if question is about THEIR specific app
 - Documentation tools (altinn\_\*\_docs) need NO parameters
-- altinn_route takes user_goal parameter
+- altinn_planning takes query parameter
 - When in doubt, call MORE tools rather than fewer
 
 Respond with JSON array only.

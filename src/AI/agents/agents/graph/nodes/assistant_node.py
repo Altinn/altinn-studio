@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from langfuse import get_client
+from shared.utils.langfuse_utils import trace_span
 import re
 import json
 from typing import Dict, Any, List, Optional
@@ -35,9 +35,8 @@ async def handle(state: AgentState) -> AgentState:
     """
     log.info(f"💬 Assistant node: handling query for session {state.session_id}")
     
-    langfuse = get_client()
-    with langfuse.start_as_current_span(
-        name="assistant_query",
+    with trace_span(
+        "assistant_query",
         metadata={
             "span_type": "CHAIN",
             "session_id": state.session_id,
@@ -56,31 +55,42 @@ async def handle(state: AgentState) -> AgentState:
     ) as main_span:
         
         try:
+            from agents.services.events import sink as _sink
+
+            def _check_cancelled():
+                if _sink.is_cancelled(state.session_id):
+                    raise InterruptedError(f"Session {state.session_id} was cancelled")
+
             # Step 1: Scan repository for context
             log.info("📂 Scanning repository for context...")
+            _check_cancelled()
             repo_summary = await _scan_repository(state)
-            
+
             # Step 2: Connect to MCP and get available tools
             log.info("🔧 Connecting to MCP tools...")
+            _check_cancelled()
             tool_names = await _get_available_tools()
-            
+
             # Step 3: Plan tool execution (LLM-based, always includes planning_tool)
             log.info("🎯 Planning tool execution...")
+            _check_cancelled()
             tool_plan = await _select_relevant_tools(
                 state.user_goal,
                 tool_names,
                 repo_summary,
-                state.conversation_history  # Include conversation history for context
+                state.conversation_history
             )
-            
+
             # Step 4: Execute tool plan
             tool_results = {}
             if tool_plan:
+                _check_cancelled()
                 log.info(f"📊 Executing {len(tool_plan)} tools according to plan...")
                 tool_results = await _execute_tools(tool_plan)
-            
+
             # Step 5: Generate response
             log.info("🤖 Generating response...")
+            _check_cancelled()
             response = await _generate_response(
                 state.user_goal,
                 repo_summary,
@@ -94,8 +104,10 @@ async def handle(state: AgentState) -> AgentState:
             log.info(f"📚 Extracted {len(all_sources)} sources available: {[s.get('title') for s in all_sources]}")
             
             # Step 7: Parse which sources LLM actually cited and clean response
-            clean_response, cited_sources = _extract_cited_sources_from_response(response, all_sources)
-            log.info(f"✅ LLM cited {len(cited_sources)}/{len(all_sources)} sources: {[s.get('title') for s in cited_sources]}")
+            # Only keep sources that have a real URL (not internal tool instructions)
+            linkable_sources = [s for s in all_sources if s.get("url")]
+            clean_response, cited_sources = _extract_cited_sources_from_response(response, linkable_sources)
+            log.info(f"✅ LLM cited {len(cited_sources)}/{len(linkable_sources)} sources: {[s.get('title') for s in cited_sources]}")
             
             # Set outputs on main span
             main_span.update(output={
@@ -138,18 +150,20 @@ async def handle(state: AgentState) -> AgentState:
             
             return state
             
+        except InterruptedError:
+            log.info(f"🛑 Assistant query cancelled for session {state.session_id}")
+            state.assistant_response = {"cancelled": True}
+            return state
         except Exception as e:
             log.error(f"Assistant query failed: {e}")
-            main_span.set_attribute("error", True)
-            main_span.set_attribute("error_message", str(e))
+            main_span.update(metadata={"error": True, "error_message": str(e)})
             raise
 
 
 async def _scan_repository(state: AgentState) -> Dict[str, Any]:
     """Scan repository and extract context."""
-    langfuse = get_client()
-    with langfuse.start_as_current_span(name="repository_scan", metadata={"span_type": "TOOL"}) as span:
-        span.set_inputs({"repo_path": state.repo_path})
+    with trace_span("repository_scan", metadata={"span_type": "TOOL"}) as span:
+        span.update(input={"repo_path": state.repo_path})
         
         repo_context = discover_repository_context(state.repo_path)
         repo_summary = {
@@ -167,8 +181,7 @@ async def _scan_repository(state: AgentState) -> Dict[str, Any]:
 
 async def _get_available_tools() -> List[str]:
     """Connect to MCP and get available tools."""
-    langfuse = get_client()
-    with langfuse.start_as_current_span(name="mcp_connection", metadata={"span_type": "TOOL"}) as span:
+    with trace_span("mcp_connection", metadata={"span_type": "TOOL"}) as span:
         mcp_client = get_mcp_client()
         await mcp_client.connect()
         
@@ -184,6 +197,7 @@ async def _get_available_tools() -> List[str]:
         return tool_names
 
 
+
 async def _select_relevant_tools(
     query: str,
     tool_names: List[str],
@@ -191,55 +205,47 @@ async def _select_relevant_tools(
     conversation_history: List[Any] = None
 ) -> List[Dict[str, Any]]:
     """Use LLM to intelligently select relevant tools, always starting with planning_tool."""
-    langfuse = get_client()
-    with langfuse.start_as_current_span(name="tool_selection", metadata={"span_type": "AGENT"}) as span:
-        span.set_inputs({
+    with trace_span("tool_selection", metadata={"span_type": "AGENT"}) as span:
+        span.update(input={
             "query": query,
             "available_tools": tool_names,
             "has_conversation_history": bool(conversation_history)
         })
-        
+
         from agents.services.llm import LLMClient, extract_semantic_query
         import json
         
-        # STEP 1: Generate semantic query from user's question using shared utility
+        # STEP 1: Generate semantic query fresh for this turn
         semantic_query = await extract_semantic_query(query, context="chat")
         
-        # STEP 2: Use tool planner to select tools (with semantic query for planning_tool)
+        # STEP 2: Use tool planner to select tools
         client = LLMClient(role="tool_planner")
         
         system_prompt = get_prompt_content("assistant_tool_orchestration")
         
         repo_context = f"""Repository: {repo_summary.get('layouts', []).__len__()} layouts, {repo_summary.get('locales', []).__len__()} locales"""
         
-        # Add conversation history context if available
-        history_context = ""
-        if conversation_history and len(conversation_history) > 0:
-            # Include last 3 messages for context
-            recent_history = conversation_history[-3:]
-            history_lines = []
-            for msg in recent_history:
-                role = "User" if msg.role == "user" else "Assistant"
-                history_lines.append(f"{role}: {msg.content[:200]}")  # Truncate long messages
-            history_context = "CONVERSATION HISTORY:\n" + "\n".join(history_lines) + "\n\n"
-        
         user_prompt = render_template(
             "assistant_tool_selection_user",
-            history_context=history_context,
+            history_context="",
             query=query,
             semantic_query=semantic_query,
             repo_context=repo_context,
             tool_names=', '.join(tool_names)
         )
         
-        span.set_inputs({
+        span.update(input={
             "system_prompt": system_prompt,
             "user_prompt": user_prompt[:500] + "...",
             "semantic_query": semantic_query
         })
         
         try:
-            response = client.call_sync(system_prompt, user_prompt)
+            response = client.call_sync(
+                system_prompt,
+                user_prompt,
+                conversation_history=conversation_history,
+            )
             
             # Parse JSON response
             response_clean = response.strip()
@@ -252,20 +258,19 @@ async def _select_relevant_tools(
             
             tool_plan = json.loads(response_clean.strip())
             
-            # Ensure altinn_route is first with user goal
-            altinn_route_exists = False
+            # Ensure altinn_planning is first, using semantic_query (English keywords) for better doc search
+            altinn_planning_exists = False
             for tool_spec in tool_plan:
-                if tool_spec.get("tool") == "altinn_route":
-                    # Update with user goal
-                    tool_spec["user_goal"] = query
-                    altinn_route_exists = True
+                if tool_spec.get("tool") == "altinn_planning":
+                    tool_spec["query"] = semantic_query or query
+                    altinn_planning_exists = True
                     break
-            
-            if not altinn_route_exists:
+
+            if not altinn_planning_exists:
                 tool_plan.insert(0, {
-                    "tool": "altinn_route",
-                    "user_goal": query,
-                    "objective": "Get planning context and routing guidance"
+                    "tool": "altinn_planning",
+                    "query": semantic_query or query,
+                    "objective": "Search official Altinn documentation"
                 })
             
             span.update(output={
@@ -279,8 +284,8 @@ async def _select_relevant_tools(
             return tool_plan
             
         except Exception as e:
-            log.warning(f"Tool planning failed: {e}, falling back to altinn_route")
-            fallback = [{"tool": "altinn_route", "arguments": {"query": query}, "objective": "Get planning context"}]
+            log.warning(f"Tool planning failed: {e}, falling back to altinn_planning")
+            fallback = [{"tool": "altinn_planning", "query": semantic_query or query, "objective": "Search official documentation"}]
             span.update(output={
                 "selected_tools": ["planning_tool"],
                 "selection_strategy": "fallback",
@@ -291,9 +296,8 @@ async def _select_relevant_tools(
 
 async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Execute selected MCP tools according to the plan."""
-    langfuse = get_client()
-    with langfuse.start_as_current_span(name="tool_execution", metadata={"span_type": "TOOL"}) as span:
-        span.set_inputs({"tool_plan": tool_plan})
+    with trace_span("tool_execution", metadata={"span_type": "TOOL"}) as span:
+        span.update(input={"tool_plan": tool_plan})
         
         mcp_client = get_mcp_client()
         tool_results = {}
@@ -320,9 +324,9 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 if not arguments["component_type"]:
                     log.warning(f"Skipping {tool_name} - missing component_type")
                     continue
-            elif tool_name == "altinn_route":
-                # Router tool takes user_goal
-                arguments = {"user_goal": tool_spec.get("user_goal", query)}
+            elif tool_name == "altinn_planning":
+                # Planning tool requires query parameter for semantic doc search
+                arguments = {"query": tool_spec.get("query", query) or query}
             elif tool_name == "altinn_layout_list":
                 # Layout list tool - no parameters
                 arguments = {}
@@ -330,8 +334,8 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 # Other tools may take query parameter
                 arguments = {"query": query or ""}
             
-            with langfuse.start_as_current_span(name=f"call_{tool_name}", metadata={"span_type": "TOOL"}) as tool_span:
-                tool_span.set_inputs({
+            with trace_span(f"call_{tool_name}", metadata={"span_type": "TOOL"}) as tool_span:
+                tool_span.update(input={
                     "tool": tool_name,
                     "arguments": arguments,
                     "objective": objective
@@ -339,8 +343,9 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                 
                 try:
                     result = await mcp_client.call_tool(tool_name, arguments)
-                    
+
                     # Handle CallToolResult objects
+                    extracted = None
                     if hasattr(result, 'structured_content') and result.structured_content:
                         extracted = result.structured_content
                         tool_results[tool_name] = extracted
@@ -358,8 +363,9 @@ async def _execute_tools(tool_plan: List[Dict[str, Any]]) -> Dict[str, Any]:
                             extracted = content
                         tool_results[tool_name] = extracted
                     else:
+                        extracted = result
                         tool_results[tool_name] = result
-                    
+
                     result_size = len(str(extracted)) if extracted else 0
                     
                     # Extract text content for markdown display
@@ -571,126 +577,46 @@ def _extract_sources(tool_results: Dict[str, Any]) -> List[Dict[str, Any]]:
         if not text_content:
             continue
         
-        # Special handling for altinn_route - extract from "## Relevant Documentation" section
-        if tool_name == "altinn_route":
-            # Find the "## Relevant Documentation" section
-            # Handle both real newlines and escaped newlines (\\n in the string)
-            relevant_doc_match = re.search(r'##\s+Relevant Documentation(?:\\n|\n)(?:\\n|\n)(.+)', text_content, re.DOTALL)
-            
-            if relevant_doc_match:
-                relevant_section = relevant_doc_match.group(1)
-                
-                # Extract individual numbered sections from the relevant documentation
-                # The format from MCP has escaped newlines: \\n\\n
-                # Example: "### 1. Data elements\\n\\n**URL:** https://...\\n\\n**Relevance:** 1.00\\n\\n**Matched Terms:** json, xml"
-                section_pattern = r'###\s+(\d+)\.\s+(.+?)\\n\\n\*\*URL:\*\*\s+(.+?)\\n\\n\*\*Relevance:\*\*\s+([\d.]+)\\n\\n\*\*Matched Terms:\*\*\s+(.+?)\\n'
-                sections = re.finditer(section_pattern, relevant_section)
-                
+        # Special handling for altinn_planning - extract from "## Documentation Search" section
+        if tool_name == "altinn_planning":
+            # altinn_planning returns: ## Documentation Search: 'query'\n### 1. Title\n**URL:** ...\n**Relevance:** ...\n**Matched Terms:** ...\n**Excerpt:** ...
+            search_section_match = re.search(r'##\s+Documentation Search.*?\n(.+)', text_content, re.DOTALL)
+
+            if search_section_match:
+                search_section = search_section_match.group(1)
+
+                # Each result starts with ### N. Title
+                section_pattern = re.compile(r'###\s+\d+\.\s+(.+?)\n\*\*URL:\*\*\s+(.+?)\n\*\*Relevance:\*\*\s+([\d.]+)\n(?:\*\*Matched Terms:\*\*\s+(.+?)\n)?(?:\*\*Excerpt:\*\*\s+(.+?)(?:\n|$))?', re.DOTALL)
+
                 sections_found = 0
-                for match in sections:
+                for match in section_pattern.finditer(search_section):
                     sections_found += 1
-                    section_num = match.group(1)
-                    section_title_raw = match.group(2).strip()
-                    url = match.group(3).strip()
-                    relevance = match.group(4).strip()
-                    matched_terms = match.group(5).strip()
-                    
-                    # Clean section title - remove subsection details
-                    # "Dynamic expressions – Introduction, Structure and syntax, Use Cases..."
-                    # becomes "Dynamic expressions"
-                    section_title = section_title_raw.split('–')[0].split('-')[0].strip()
-                    
-                    # Extract preview text after the header, skipping metadata
-                    section_start = match.end()
-                    # Find next section or end of text
-                    next_section = relevant_section.find("\n### ", section_start)
-                    if next_section == -1:
-                        section_text = relevant_section[section_start:section_start + 2000]
-                    else:
-                        section_text = relevant_section[section_start:min(section_start + 2000, next_section)]
-                    
-                    # Clean the preview - skip frontmatter, metadata, and warnings
-                    preview = _clean_documentation_preview(section_text)
-                    
+                    title_raw = match.group(1).strip()
+                    url = match.group(2).strip()
+                    relevance = match.group(3).strip()
+                    matched_terms = (match.group(4) or "").strip()
+                    excerpt = (match.group(5) or "").strip()
+
+                    title = title_raw.split('–')[0].split(' - ')[0].strip()
+                    preview = excerpt[:200] if excerpt else _clean_documentation_preview(text_content)
+
                     sources.append({
-                        "title": section_title,
+                        "title": title,
                         "url": url,
                         "preview": preview,
                         "relevance": float(relevance),
                         "matched_terms": matched_terms,
-                        "tool": tool_name
+                        "tool": tool_name,
                     })
-                
+
                 if sections_found > 0:
-                    log.info(f"📖 Extracted {sections_found} sections from altinn_route")
+                    log.info(f"📖 Extracted {sections_found} sections from altinn_planning")
                 else:
-                    log.warning(f"⚠️ No numbered sections found in Relevant Documentation section")
+                    log.warning(f"⚠️ No numbered sections found in Documentation Search section")
             else:
-                log.warning(f"⚠️ No '## Relevant Documentation' section found in altinn_route (length: {len(text_content)})")
+                log.warning(f"⚠️ No '## Documentation Search' section in altinn_planning result (length: {len(text_content)})")
         
-        # Special handling for altinn_expression_docs - extract clean content
-        elif tool_name == "altinn_expression_docs":
-            # Parse JSON if it's wrapped
-            try:
-                if text_content.strip().startswith("{"):
-                    parsed = json.loads(text_content)
-                    if "expressions" in parsed:
-                        text_content = parsed["expressions"]
-            except:
-                pass
-            
-            # Extract title from markdown frontmatter or content
-            title_match = re.search(r'(?:title:|##\s+)(.+?)(?:\n|$)', text_content, re.IGNORECASE)
-            title = title_match.group(1).strip() if title_match else "Dynamic Expression Documentation"
-            
-            # Extract URL from markdown frontmatter or inline
-            # Try multiple patterns: frontmatter (url:), inline (**URL:**), or link format
-            url = None
-            url_patterns = [
-                r'url:\s*(.+?)(?:\n|$)',  # Frontmatter: url: https://...
-                r'\*\*URL:\*\*\s*(.+?)(?:\n|$)',  # Inline: **URL:** https://...
-                r'\[.+?\]\((.+?)\)',  # Markdown link: [text](url)
-            ]
-            for pattern in url_patterns:
-                url_match = re.search(pattern, text_content, re.IGNORECASE)
-                if url_match:
-                    url = url_match.group(1).strip()
-                    break
-            
-            # Create clean preview from content
-            preview = _clean_documentation_preview(text_content)
-            
-            source_entry = {
-                "title": title,
-                "preview": preview,
-                "tool": tool_name
-            }
-            if url:
-                source_entry["url"] = url
-            
-            sources.append(source_entry)
-        
-        # Generic handling for other tools
-        else:
-            title_map = {
-                "altinn_datamodel_docs": "Data Model Documentation",
-                "altinn_prefill_docs": "Prefill Documentation",
-                "altinn_policy_docs": "Authorization Policy Documentation",
-                "altinn_layout_list": "Layout Components",
-                "altinn_resource_docs": "Text Resources",
-                "altinn_layout_props": "Component Properties"
-            }
-            
-            title = title_map.get(tool_name, tool_name.replace("_", " ").title())
-            
-            # Use cleaning function for consistent preview extraction
-            preview = _clean_documentation_preview(text_content)
-            
-            sources.append({
-                "title": title,
-                "preview": preview,
-                "tool": tool_name
-            })
+        # All other tools (docs, layout, etc.) are internal context — not user-facing sources
     
     return sources
 
@@ -703,9 +629,8 @@ async def _generate_response(
     conversation_history: Optional[List[Any]] = None
 ) -> str:
     """Generate natural language response using LLM."""
-    langfuse = get_client()
-    with langfuse.start_as_current_span(name="response_generation", metadata={"span_type": "LLM"}) as span:
-        span.set_inputs({
+    with trace_span("response_generation", metadata={"span_type": "LLM"}) as span:
+        span.update(input={
             "query": query,
             "repo_summary": repo_summary,
             "tools_used": list(tool_results.keys()),
@@ -748,23 +673,20 @@ REPOSITORY CONTEXT:
                         text_content = result['text']
                         tool_context += f"\n[{tool_name}]:\n{text_content}\n\n"
                         
-                        # Extract section titles from planning_tool
-                        if tool_name == "planning_tool":
-                            section_pattern = r'###\s+\d+\.\s+(.+?)\n\nURL:'
+                        # Extract section titles for citation hints
+                        if tool_name == "altinn_planning":
+                            section_pattern = r'###\s+\d+\.\s+(.+?)\n'
                             for match in re.finditer(section_pattern, text_content, re.MULTILINE):
-                                # Clean title
                                 raw_title = match.group(1).strip()
-                                clean_title = raw_title.split('–')[0].split('-')[0].strip()
+                                clean_title = raw_title.split('–')[0].split(' - ')[0].strip()
                                 available_sections.append(clean_title)
-                        
-                        # Extract title from other documentation tools
-                        elif tool_name == "dynamic_expression":
+                        elif tool_name == "altinn_expression_docs":
                             available_sections.append("Dynamic expressions")
-                        elif tool_name == "datamodel_tool":
+                        elif tool_name == "altinn_datamodel_docs":
                             available_sections.append("Data Model")
-                        elif tool_name == "prefill_tool":
+                        elif tool_name == "altinn_prefill_docs":
                             available_sections.append("Prefill")
-                        elif tool_name == "policy_tool":
+                        elif tool_name == "altinn_policy_docs":
                             available_sections.append("Authorization policies")
                                 
                     elif "content" in result:
@@ -791,7 +713,7 @@ REPOSITORY CONTEXT:
             citation_note=citation_note
         )
         
-        span.set_inputs({
+        span.update(input={
             "system_prompt": system_prompt,
             "user_prompt": user_prompt[:500] + "...",  # Truncate for logging
             "model": client.model,

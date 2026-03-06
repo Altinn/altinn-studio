@@ -21,6 +21,9 @@ export interface AssistantMessageData {
 
 export interface WorkflowStatusData {
   message?: string;
+  status?: string;
+  done?: boolean;
+  mode?: string;
 }
 
 export interface WorkflowEventBase {

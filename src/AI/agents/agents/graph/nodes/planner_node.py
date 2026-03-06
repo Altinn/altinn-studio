@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from langfuse import get_client
+from shared.utils.langfuse_utils import trace_span
 from agents.graph.state import AgentState
 from agents.services.events import AgentEvent
 from agents.services.events import sink
@@ -32,8 +32,7 @@ async def handle(state: AgentState) -> AgentState:
 
         client = get_mcp_client()
 
-        langfuse = get_client()
-        with langfuse.start_as_current_span(
+        with trace_span(
             name="detailed_planning_phase",
             metadata={
                 "implementation_plan_length": len(state.implementation_plan) if state.implementation_plan else 0,

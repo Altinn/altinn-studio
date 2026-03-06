@@ -151,9 +151,8 @@ async def _sync_single_file(
     log.debug(f"Calling altinn_datamodel_sync with: {sync_request}")
     
     # Call MCP tool with langfuse tracking
-    from langfuse import get_client
-    langfuse = get_client()
-    with langfuse.start_as_current_span(name="tool_altinn_datamodel_sync", metadata={"span_type": "TOOL"}, input=sync_request) as span:
+    from shared.utils.langfuse_utils import trace_span
+    with trace_span("tool_altinn_datamodel_sync", metadata={"span_type": "TOOL"}, input=sync_request) as span:
         try:
             result = await mcp_client.call_tool("altinn_datamodel_sync", sync_request)
             span.update(output={"result": result})

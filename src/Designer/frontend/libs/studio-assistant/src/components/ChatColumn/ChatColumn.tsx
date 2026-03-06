@@ -5,7 +5,7 @@ import { Messages } from './Messages/Messages';
 import { UserInput } from './UserInput/UserInput';
 import classes from './ChatColumn.module.css';
 import { StudioParagraph } from '@studio/components';
-import type { Message, UserMessage } from '../../types/ChatThread';
+import type { Message } from '../../types/ChatThread';
 import type { AssistantTexts } from '../../types/AssistantTexts';
 import type { User } from '../../types/User';
 
@@ -14,6 +14,8 @@ export type ChatColumnProps = {
   messages: Message[];
   onSubmitMessage: (message: Message) => void;
   onCancelWorkflow?: () => void;
+  cancelledMessageContent?: string | null;
+  onCancelledMessageConsumed?: () => void;
   workflowIsActive?: boolean;
   enableCompactInterface: boolean;
   currentUser?: User;
@@ -24,6 +26,8 @@ export function ChatColumn({
   messages,
   onSubmitMessage,
   onCancelWorkflow,
+  cancelledMessageContent,
+  onCancelledMessageConsumed,
   workflowIsActive = false,
   enableCompactInterface,
   currentUser,
@@ -74,6 +78,8 @@ export function ChatColumn({
         texts={texts}
         onSubmitMessage={onSubmitMessage}
         onCancelWorkflow={onCancelWorkflow}
+        cancelledMessageContent={cancelledMessageContent}
+        onCancelledMessageConsumed={onCancelledMessageConsumed}
         workflowIsActive={workflowIsActive}
         enableCompactInterface={enableCompactInterface}
       />
