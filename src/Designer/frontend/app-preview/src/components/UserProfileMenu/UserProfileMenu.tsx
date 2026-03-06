@@ -12,6 +12,7 @@ import {
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 
 export type UserProfileMenuProps = {
   user: User;
@@ -24,18 +25,30 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { mutate: logout } = useLogoutMutation();
+  const { environment } = useEnvironmentConfig();
+  const studioOidc = environment?.featureFlags?.studioOidc;
 
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl() },
     itemName: t('sync_header.documentation'),
   };
+
+  const settingsMenuItem: StudioProfileMenuItem = {
+    action: {
+      type: 'link',
+      href: `/settings?returnTo=${encodeURIComponent(window.location.pathname)}`,
+      openInNewTab: false,
+    },
+    itemName: t('user.settings'),
+  };
+
   const logOutMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
   };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: [docsMenuItem] },
+    { items: studioOidc ? [docsMenuItem, settingsMenuItem] : [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

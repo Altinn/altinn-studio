@@ -17,6 +17,7 @@ import type { User } from 'app-shared/types/Repository';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAppName } from '../../utils/stringUtils';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 
 interface ResourceAdmHeaderProps {
   organizations: Organization[];
@@ -58,6 +59,8 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   const { mutate: logout } = useLogoutMutation();
   const navigate = useNavigate();
   const selectableOrgs = organizations;
+  const { environment } = useEnvironmentConfig();
+  const studioOidc = environment?.featureFlags?.studioOidc;
 
   const triggerButtonText = t('shared.header_user_for_org', {
     user: user?.full_name || user?.login,
@@ -82,14 +85,29 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
     itemName: t('shared.header_go_to_gitea'),
   };
 
+  const settingsMenuItem: StudioProfileMenuItem = {
+    action: {
+      type: 'link',
+      href: `/settings?returnTo=${encodeURIComponent(window.location.pathname)}`,
+      openInNewTab: false,
+    },
+    itemName: t('user.settings'),
+  };
+
   const logOutMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
   };
 
+  const otherMenuItems: StudioProfileMenuItem[] = [
+    giteaMenuItem,
+    ...(studioOidc ? [settingsMenuItem] : []),
+  ];
+
   const profileMenuGroups: StudioProfileMenuGroup[] = [
     { items: selectableOrgMenuItems },
-    { items: [giteaMenuItem, logOutMenuItem] },
+    { items: otherMenuItems },
+    { items: [logOutMenuItem] },
   ];
 
   return (
