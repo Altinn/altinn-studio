@@ -165,8 +165,8 @@ test('That it is possible to push the changes to Gitea and verify that the chang
   await header.waitForPushToGiteaSpinnerToDisappear();
   await header.checkThatUploadSuccessMessageIsVisible();
   await header.clickOnThreeDotsMenu();
-  await header.clickOnGoToGiteaRepository();
-
+  const newTab = await header.clickOnGoToGiteaRepository();
+  await giteaPage.useNewTab(newTab);
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
   await giteaPage.clickOnUiFilesButton();
