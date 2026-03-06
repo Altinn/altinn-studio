@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
 import {
   Scope,
-  convertInternalToExternalConfig,
+  convertToExternalConfig,
   dummyDataPages,
   withUniqueIds,
 } from '../utils/ValidateNavigationUtils';
@@ -19,7 +19,7 @@ export const ValidateSelectedPagesConfig = () => {
   }));
 
   const handleSave = (updatedConfig: InternalConfigState, id?: string) => {
-    const newExternal = convertInternalToExternalConfig(updatedConfig);
+    const newExternal = convertToExternalConfig(updatedConfig);
 
     setTempExtConfigs((prevConfigs) =>
       id

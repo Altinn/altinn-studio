@@ -1,17 +1,12 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import {
-  Scope,
-  convertInternalToExternalConfig,
-  convertExternalToBackendSetting,
-  convertBackendToExternalConfig,
-  withUniqueIds,
-} from '../utils/ValidateNavigationUtils';
-import type { ExternalConfigWithId, InternalConfigState } from '../utils/ValidateNavigationTypes';
+import { Scope, convertToExternalConfig } from '../utils/ValidateNavigationUtils';
+import type { InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationGroupedSettingsQuery';
 import { useUpdateValidationOnNavigationLayoutSettingsMutation } from '@altinn/ux-editor/hooks/mutations/useUpdateValidationOnNavigationLayoutSettingsMutation';
+import type { IValidationOnNavigationLayoutSettings } from 'app-shared/types/global';
 
 export const ValidateSelectedTasksConfig = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -21,27 +16,29 @@ export const ValidateSelectedTasksConfig = () => {
     app,
   );
 
-  const extConfigs = useMemo<ExternalConfigWithId[]>(
-    () => withUniqueIds((settings ?? []).map(convertBackendToExternalConfig)),
-    [settings],
-  );
+  const extConfigs: (IValidationOnNavigationLayoutSettings & { id: string })[] = (
+    settings ?? []
+  ).map((setting) => ({ ...setting, id: crypto.randomUUID() }));
 
-  const internalConfigs = useConvertToInternalConfig(extConfigs)?.map((conf, i) => ({
+  const internalConfigs = useConvertToInternalConfig(settings ?? []).map((conf, i) => ({
     ...conf,
     id: extConfigs[i].id,
   }));
 
   const handleSave = (updatedConfig: InternalConfigState, id?: string) => {
-    const newExternal = convertInternalToExternalConfig(updatedConfig);
-    const newExtConfigs: ExternalConfigWithId[] = id
-      ? extConfigs.map((config) => (config.id === id ? { ...newExternal, id } : config))
-      : [...extConfigs, { ...newExternal, id: crypto.randomUUID() }];
-    updateSettings(newExtConfigs.map(convertExternalToBackendSetting));
+    const internalConfig: InternalConfigState[] = id
+      ? internalConfigs.map((config) => (config.id === id ? { ...updatedConfig, id } : config))
+      : [...internalConfigs, { ...updatedConfig, id: crypto.randomUUID() }];
+
+    const newExternal = internalConfig.map(convertToExternalConfig);
+
+    updateSettings(newExternal);
   };
 
   const handleDelete = (id: string) => {
-    const newExtConfigs = extConfigs.filter((config) => config.id !== id);
-    updateSettings(newExtConfigs.map(convertExternalToBackendSetting));
+    // const newExtConfigs = extConfigs.filter((config) => config.id !== id);
+    const newIntConfigs = internalConfigs.filter((config) => config.id !== id);
+    updateSettings(newIntConfigs.map(convertToExternalConfig));
   };
 
   return (

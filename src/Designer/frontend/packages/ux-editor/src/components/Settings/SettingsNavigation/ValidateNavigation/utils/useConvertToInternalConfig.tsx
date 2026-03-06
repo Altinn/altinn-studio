@@ -23,7 +23,7 @@ export function useConvertToInternalConfig(
   });
 
   const convert = (item: ExternalConfigState): InternalConfigState => ({
-    types: item.show.map(toOption),
+    types: item.show?.map(toOption),
     pageScope: toOption(item.page),
     tasks: item.tasks?.map(toOption),
     task: item.task ? toOption(item.task) : undefined,

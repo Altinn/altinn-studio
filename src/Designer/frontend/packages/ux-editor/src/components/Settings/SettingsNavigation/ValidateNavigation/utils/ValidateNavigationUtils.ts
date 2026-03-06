@@ -6,7 +6,6 @@ import type {
 import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
 import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
-import type { IValidationOnNavigationLayoutSettings } from 'app-shared/types/global';
 
 export enum Scope {
   AllTasks = 'allTasks',
@@ -47,7 +46,7 @@ export const getRuleEnums = (ruleType: RuleType) => {
   return [];
 };
 
-export const convertInternalToExternalConfig = (
+export const convertToExternalConfig = (
   internalConfig: InternalConfigState,
 ): ExternalConfigState => ({
   show: internalConfig.types.map((type) => type.value),
@@ -71,22 +70,6 @@ export const getValuesToDisplay = (config: InternalConfigState) => {
 
 export const withUniqueIds = (configs: ExternalConfigState[]): ExternalConfigWithId[] =>
   configs.map((config) => ({ ...config, id: crypto.randomUUID() }));
-
-export const convertBackendToExternalConfig = (
-  setting: IValidationOnNavigationLayoutSettings,
-): ExternalConfigState => ({
-  show: setting.show ?? [],
-  page: setting.page ?? '',
-  tasks: setting.tasks,
-});
-
-export const convertExternalToBackendSetting = (
-  config: ExternalConfigState,
-): IValidationOnNavigationLayoutSettings => ({
-  tasks: config.tasks ?? [],
-  show: config.show,
-  page: config.page || undefined,
-});
 
 // Temporary dummy data before integration with backend, to be replaced with actual data fetching and saving logic where it is used in upcoming PRs
 export const dummyDataPages: ExternalConfigState[] = [
@@ -176,8 +159,8 @@ export const isRuleDuplicateInScope = ({
   const newTaskValue = newConfig.task?.value;
 
   return existingConfigs.some((existingConfig) => {
-    const existingTypeValues = existingConfig.types.map((type) => type.value);
-    const existingPageScopeValue = existingConfig.pageScope.value;
+    const existingTypeValues = existingConfig.types?.map((type) => type.value);
+    const existingPageScopeValue = existingConfig.pageScope?.value;
     const existingTaskValue = existingConfig.task?.value;
 
     if (scope === Scope.SelectedPages && existingTaskValue !== newTaskValue) {
@@ -191,8 +174,8 @@ export const isRuleDuplicateInScope = ({
   });
 };
 
-const arraysEqualUnordered = (existingTypes: string[], newTypes: string[]) => {
-  if (existingTypes.length !== newTypes.length) return false;
+const arraysEqualUnordered = (existingTypes: string[] | undefined, newTypes: string[]) => {
+  if (!existingTypes || existingTypes.length !== newTypes.length) return false;
   const setA = new Set(existingTypes);
   return newTypes.every((value) => setA.has(value));
 };

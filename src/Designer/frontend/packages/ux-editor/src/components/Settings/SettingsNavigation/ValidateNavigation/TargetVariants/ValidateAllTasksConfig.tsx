@@ -1,6 +1,6 @@
 import React from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import { convertInternalToExternalConfig, Scope } from '../utils/ValidateNavigationUtils';
+import { convertToExternalConfig, Scope } from '../utils/ValidateNavigationUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';

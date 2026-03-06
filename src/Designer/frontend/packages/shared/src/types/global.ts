@@ -17,7 +17,7 @@ export interface IValidationOnNavigationLayoutSets {
 }
 
 export interface IValidationOnNavigationLayoutSettings {
-  tasks: string[];
+  tasks?: string[];
   show?: string[];
   page?: string;
 }
