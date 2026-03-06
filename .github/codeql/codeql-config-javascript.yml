@@ -5,5 +5,3 @@ query-filters:
       id: js/ml-powered/sql-injection
   - exclude:
       id: js/ml-powered/nosql-injection
-  - exclude:
-      id: cs/catch-of-all-exceptions
