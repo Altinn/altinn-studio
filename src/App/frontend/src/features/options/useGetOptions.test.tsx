@@ -228,7 +228,7 @@ describe('useGetOptions', () => {
 
   it('uses bootstrap static options and does not fetch options', async () => {
     jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: [{ label: 'Bootstrap', value: 'bootstrap' }],
+      myOptions: { options: [{ label: 'Bootstrap', value: 'bootstrap' }] },
     });
 
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
@@ -250,7 +250,7 @@ describe('useGetOptions', () => {
 
   it('uses bootstrap static options when mapping is configured', async () => {
     jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: [{ label: 'Bootstrap', value: 'bootstrap' }],
+      myOptions: { options: [{ label: 'Bootstrap', value: 'bootstrap' }] },
     });
 
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
@@ -273,7 +273,7 @@ describe('useGetOptions', () => {
 
   it('uses bootstrap static options when query parameters are dynamic', async () => {
     jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: [{ label: 'Bootstrap', value: 'bootstrap' }],
+      myOptions: { options: [{ label: 'Bootstrap', value: 'bootstrap' }] },
     });
 
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
@@ -296,7 +296,7 @@ describe('useGetOptions', () => {
 
   it('uses bootstrap static options regardless of query parameter values', async () => {
     jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: [{ label: 'Static list', value: 'static' }],
+      myOptions: { options: [{ label: 'Static list', value: 'static' }] },
     });
 
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({

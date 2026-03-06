@@ -26,7 +26,7 @@ public sealed class FormBootstrapResponse
     /// Static options (code lists) keyed by optionsId.
     /// </summary>
     [JsonPropertyName("staticOptions")]
-    public required Dictionary<string, List<AppOption>> StaticOptions { get; init; }
+    public required Dictionary<string, StaticOptionSet> StaticOptions { get; init; }
 
     /// <summary>
     /// Initial validation issues for instance mode.
@@ -35,6 +35,25 @@ public sealed class FormBootstrapResponse
     [JsonPropertyName("validationIssues")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<ValidationIssueWithSource>? ValidationIssues { get; init; }
+}
+
+/// <summary>
+/// Static options payload for a single optionsId.
+/// </summary>
+public sealed class StaticOptionSet
+{
+    /// <summary>
+    /// Option list payload.
+    /// </summary>
+    [JsonPropertyName("options")]
+    public required List<AppOption> Options { get; init; }
+
+    /// <summary>
+    /// Downstream parameters encoded as key=value pairs separated by comma.
+    /// </summary>
+    [JsonPropertyName("downstreamParameters")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DownstreamParameters { get; init; }
 }
 
 /// <summary>

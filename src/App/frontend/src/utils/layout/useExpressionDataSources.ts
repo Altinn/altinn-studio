@@ -1,5 +1,5 @@
 /* eslint-disable react-compiler/react-compiler, react-hooks/rules-of-hooks */
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
@@ -12,7 +12,6 @@ import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/featur
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
-import { useCodeListSelector } from 'src/features/options/CodeListsProvider';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
@@ -26,7 +25,7 @@ import type { ExprFunctionName } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { CodeListSelector } from 'src/features/options/CodeListsProvider';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { DSProps, DSPropsMatching } from 'src/hooks/delayedSelectors';
 import type { FormDataSelectorLax } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -45,7 +44,7 @@ export interface ExpressionDataSources {
   defaultDataType: string | null;
   externalApis: ExternalApisResult;
   currentDataModelPath: IDataModelReference | undefined;
-  codeListSelector: CodeListSelector;
+  codeListSelector: (optionsId: string) => IOptionInternal[] | undefined;
   layoutLookups: LayoutLookups;
   displayValues: Record<string, string | undefined>;
   hiddenComponents: Record<string, boolean | undefined>;
@@ -65,7 +64,10 @@ const directHooks = {
   currentLanguage: () => useCurrentLanguage(),
   currentDataModelPath: () => useCurrentDataModelLocation(),
   layoutLookups: () => FormBootstrap.useLayoutLookups(),
-  codeListSelector: () => useCodeListSelector(),
+  codeListSelector: () => {
+    const staticOptions = FormBootstrap.useStaticOptionsMap();
+    return useCallback((optionsId: string) => staticOptions[optionsId]?.options, [staticOptions]);
+  },
   dataElementSelector: () => useDataElementsSelectorProps(),
   instanceDataSources: (isInGenerator) =>
     isInGenerator ? GeneratorData.useLaxInstanceDataSources() : useInstanceDataSources(),

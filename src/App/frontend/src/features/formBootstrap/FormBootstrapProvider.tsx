@@ -87,9 +87,12 @@ export function FormBootstrapProvider({
     }
 
     return Object.fromEntries(
-      Object.entries(data.staticOptions ?? {}).map(([optionsId, options]) => [
+      Object.entries(data.staticOptions ?? {}).map(([optionsId, optionSet]) => [
         optionsId,
-        castOptionsToStrings(options),
+        {
+          options: castOptionsToStrings(optionSet.options),
+          downstreamParameters: optionSet.downstreamParameters,
+        },
       ]),
     );
   }, [data?.staticOptions]);

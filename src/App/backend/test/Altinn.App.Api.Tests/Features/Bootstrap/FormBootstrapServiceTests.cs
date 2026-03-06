@@ -265,7 +265,7 @@ public class FormBootstrapServiceTests
         Assert.Equal(2, result.StaticOptions.Count);
         Assert.True(result.StaticOptions.ContainsKey("countries"));
         Assert.True(result.StaticOptions.ContainsKey("regions"));
-        Assert.Equal(2, result.StaticOptions["countries"].Count);
+        Assert.Equal(2, result.StaticOptions["countries"].Options.Count);
     }
 
     [Fact]
@@ -327,11 +327,46 @@ public class FormBootstrapServiceTests
         var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
 
         Assert.True(result.StaticOptions.ContainsKey("fileBased"));
-        Assert.Single(result.StaticOptions["fileBased"]);
+        Assert.Single(result.StaticOptions["fileBased"].Options);
         _appOptionsService.Verify(
             x => x.GetOptionsAsync("fileBased", It.IsAny<string>(), It.IsAny<Dictionary<string, string>>()),
             Times.Never
         );
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_IncludesDownstreamParametersForFetchedStaticOptions()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(
+            appMetadata,
+            staticOptions: new Dictionary<string, List<Dictionary<string, string>>>
+            {
+                ["countries"] = [new Dictionary<string, string>()],
+                ["fileBased"] = [new Dictionary<string, string>()],
+            }
+        );
+
+        _appOptionsFileHandler
+            .Setup(x => x.ReadOptionsFromFileAsync("fileBased"))
+            .ReturnsAsync([new AppOption { Value = "1", Label = "From file" }]);
+        _appOptionsService
+            .Setup(x => x.GetOptionsAsync("countries", "nb", It.IsAny<Dictionary<string, string>>()))
+            .ReturnsAsync(
+                new AppOptions
+                {
+                    Options = [new AppOption { Value = "NO", Label = "Norway" }],
+                    Parameters = new Dictionary<string, string?> { ["version"] = "1", ["language"] = "nb" },
+                }
+            );
+
+        var service = CreateService();
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.Equal("version=1,language=nb", result.StaticOptions["countries"].DownstreamParameters);
+        Assert.Null(result.StaticOptions["fileBased"].DownstreamParameters);
     }
 
     [Fact]

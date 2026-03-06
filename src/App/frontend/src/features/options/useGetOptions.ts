@@ -136,8 +136,8 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
     if (bootstrapOptions) {
       return {
         isFetching: false,
-        unsorted: bootstrapOptions,
-        downstreamParameters: undefined,
+        unsorted: bootstrapOptions.options,
+        downstreamParameters: bootstrapOptions.downstreamParameters ?? undefined,
       };
     }
 

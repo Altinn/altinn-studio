@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Bootstrap.Models;
@@ -284,7 +285,7 @@ internal sealed class FormBootstrapService
         return result;
     }
 
-    private async Task<Dictionary<string, List<AppOption>>> LoadStaticOptions(
+    private async Task<Dictionary<string, StaticOptionSet>> LoadStaticOptions(
         StaticOptionsAnalysisResult optionsAnalysis,
         string language,
         InstanceIdentifier? instanceIdentifier,
@@ -293,7 +294,7 @@ internal sealed class FormBootstrapService
     {
         _ = cancellationToken;
         var appOptionsFileHandler = _appImplementationFactory.GetRequired<IAppOptionsFileHandler>();
-        var result = new Dictionary<string, List<AppOption>>();
+        var result = new Dictionary<string, StaticOptionSet>();
         var tasks = optionsAnalysis.AllReferencedOptionIds.Select(async optionsId =>
         {
             try
@@ -308,13 +309,21 @@ internal sealed class FormBootstrapService
                 }
 
                 var options = optionsFromFile;
+                string? downstreamParameters = null;
                 if (options is null)
                 {
                     var appOptions = await GetAppOptions(optionsId, language, [], instanceIdentifier);
                     options = appOptions?.Options;
+                    var encodedParameters = appOptions?.Parameters.ToUrlEncodedNameValueString(',');
+                    downstreamParameters = string.IsNullOrEmpty(encodedParameters) ? null : encodedParameters;
                 }
 
-                return (optionsId, options);
+                return (
+                    optionsId,
+                    options is null
+                        ? null
+                        : new StaticOptionSet { Options = options, DownstreamParameters = downstreamParameters }
+                );
             }
             catch (Exception ex)
             {
