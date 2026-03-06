@@ -181,12 +181,12 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<BootstrapGlobalService>();
         services.AddTransient<LayoutAnalysisService>();
         services.AddTransient<IInitialValidationService, InitialValidationService>();
-        services.AddTransient<FormBootstrapService>();
         services.TryAddTransient<IReturnUrlService, ReturnUrlService>();
         services.TryAddTransient<IAppEvents, DefaultAppEvents>();
         services.TryAddTransient<IInstantiationProcessor, NullInstantiationProcessor>();
         services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
         services.TryAddTransient<IAppModel, DefaultAppModel>();
+        services.AddTransient<IFormDataReader, FormDataReader>();
         services.TryAddTransient<DataListsFactory>();
         services.TryAddTransient<InstanceDataListsFactory>();
         services.TryAddTransient<IDataElementAccessChecker, DataElementAccessChecker>();

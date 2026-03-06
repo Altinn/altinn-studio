@@ -1,15 +1,15 @@
 using System.Text.Json;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.Logging;
 
-namespace Altinn.App.Core.Features.Bootstrap;
+namespace Altinn.App.Api.Features.Bootstrap;
 
 /// <summary>
 /// Aggregates all form bootstrap data into a single response.
@@ -26,7 +26,7 @@ internal sealed class FormBootstrapService
     private readonly IAppOptionsService _appOptionsService;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IInitialValidationService _initialValidationService;
-    private readonly IDataClient _dataClient;
+    private readonly IFormDataReader _formDataReader;
     private readonly IAppModel _appModel;
     private readonly ILogger<FormBootstrapService> _logger;
 
@@ -36,7 +36,7 @@ internal sealed class FormBootstrapService
         IAppOptionsService appOptionsService,
         AppImplementationFactory appImplementationFactory,
         IInitialValidationService initialValidationService,
-        IDataClient dataClient,
+        IFormDataReader formDataReader,
         IAppModel appModel,
         ILogger<FormBootstrapService> logger
     )
@@ -46,7 +46,7 @@ internal sealed class FormBootstrapService
         _appOptionsService = appOptionsService;
         _appImplementationFactory = appImplementationFactory;
         _initialValidationService = initialValidationService;
-        _dataClient = dataClient;
+        _formDataReader = formDataReader;
         _appModel = appModel;
         _logger = logger;
     }
@@ -76,6 +76,7 @@ internal sealed class FormBootstrapService
             referencedDataTypes,
             dataElementIdOverride,
             isPdf,
+            language,
             cancellationToken
         );
         var optionsTask = LoadStaticOptions(
@@ -123,7 +124,7 @@ internal sealed class FormBootstrapService
         var referencedDataTypes = LayoutAnalysisService.GetReferencedDataTypes(layoutsJson, defaultDataType);
         var staticOptionsReferences = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
-        var dataModelsTask = LoadStatelessDataModels(referencedDataTypes, cancellationToken);
+        var dataModelsTask = LoadStatelessDataModels(referencedDataTypes, language, cancellationToken);
         var optionsTask = LoadStaticOptions(
             staticOptionsReferences,
             language,
@@ -157,6 +158,7 @@ internal sealed class FormBootstrapService
         HashSet<string> dataTypes,
         string? specificDataElementId,
         bool isPdf,
+        string language,
         CancellationToken cancellationToken
     )
     {
@@ -200,7 +202,7 @@ internal sealed class FormBootstrapService
 
                 // Load schema, data, and validation config
                 var schema = GetSchema(dataType);
-                var formData = await GetFormDataAsync(instance, dataElement, cancellationToken);
+                var formData = await GetFormDataAsync(instance, dataElement, language, cancellationToken);
                 var validationConfig = isPdf || dataElement.Locked ? null : GetValidationConfig(dataType);
 
                 return (
@@ -237,6 +239,7 @@ internal sealed class FormBootstrapService
 
     private async Task<Dictionary<string, DataModelInfo>> LoadStatelessDataModels(
         HashSet<string> dataTypes,
+        string language,
         CancellationToken cancellationToken
     )
     {
@@ -260,6 +263,7 @@ internal sealed class FormBootstrapService
 
                 var schema = GetSchema(dataType);
                 var defaultData = GetDefaultFormData(dataTypeDef.AppLogic.ClassRef);
+                await _formDataReader.ReadStatelessFormData(defaultData, language);
                 var validationConfig = GetValidationConfig(dataType);
 
                 result[dataType] = new DataModelInfo
@@ -456,10 +460,16 @@ internal sealed class FormBootstrapService
     private async Task<object> GetFormDataAsync(
         Instance instance,
         DataElement dataElement,
+        string language,
         CancellationToken cancellationToken
     )
     {
-        var formData = await _dataClient.GetFormData(instance, dataElement, cancellationToken: cancellationToken);
+        var formData = await _formDataReader.ReadInstanceFormData(
+            instance,
+            dataElement,
+            language: language,
+            cancellationToken: cancellationToken
+        );
         return formData;
     }
 

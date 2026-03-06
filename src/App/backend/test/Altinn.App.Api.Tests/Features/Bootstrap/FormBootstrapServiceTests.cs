@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Altinn.App.Api.Features.Bootstrap;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Options;
@@ -13,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Altinn.App.Core.Tests.Features.Bootstrap;
+namespace Altinn.App.Api.Tests.Features.Bootstrap;
 
 public class FormBootstrapServiceTests
 {
@@ -22,7 +23,7 @@ public class FormBootstrapServiceTests
     private readonly Mock<IAppOptionsService> _appOptionsService = new();
     private readonly Mock<IAppOptionsFileHandler> _appOptionsFileHandler = new();
     private readonly Mock<IInitialValidationService> _initialValidationService = new();
-    private readonly Mock<IDataClient> _dataClient = new();
+    private readonly Mock<IFormDataReader> _formDataReader = new();
     private readonly Mock<IAppModel> _appModel = new();
     private readonly Mock<ILogger<FormBootstrapService>> _logger = new();
 
@@ -33,7 +34,7 @@ public class FormBootstrapServiceTests
             _appOptionsService.Object,
             CreateAppImplementationFactory(),
             _initialValidationService.Object,
-            _dataClient.Object,
+            _formDataReader.Object,
             _appModel.Object,
             _logger.Object
         );
@@ -130,6 +131,21 @@ public class FormBootstrapServiceTests
         Assert.NotNull(result.StaticOptions);
         Assert.Null(result.ValidationIssues); // Stateless should not have validation
         Assert.All(result.DataModels.Values, dataModel => Assert.Null(dataModel.InitialValidationIssues));
+    }
+
+    [Fact]
+    public async Task GetStatelessFormBootstrap_RunsProcessDataRead()
+    {
+        var appMetadata = CreateAppMetadata("model");
+        var model = new object();
+
+        SetupStatelessMocks(appMetadata);
+        _appModel.Setup(x => x.Create(It.IsAny<string>())).Returns(model);
+
+        var service = CreateService();
+        await service.GetStatelessFormBootstrap("stateless", "nn");
+
+        _formDataReader.Verify(x => x.ReadStatelessFormData(model, "nn", null), Times.Once);
     }
 
     [Fact]
@@ -344,6 +360,32 @@ public class FormBootstrapServiceTests
         Assert.Equal(dataElementId, result.DataModels["submodel"].DataElementId);
     }
 
+    [Fact]
+    public async Task GetInstanceFormBootstrap_UsesFormDataReaderWithLanguage()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(appMetadata);
+
+        var service = CreateService();
+        await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nn");
+
+        _formDataReader.Verify(
+            x =>
+                x.ReadInstanceFormData(
+                    instance,
+                    It.Is<DataElement>(d => d.DataType == "model"),
+                    null,
+                    false,
+                    "nn",
+                    true,
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
     private static Instance CreateTestInstance(string taskId, bool locked = false, string? dataElementId = null)
     {
         var elementId = dataElementId ?? Guid.NewGuid().ToString();
@@ -425,10 +467,21 @@ public class FormBootstrapServiceTests
                 x.Validate(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
             )
             .ReturnsAsync([]);
+        _formDataReader
+            .Setup(x => x.ReadStatelessFormData(It.IsAny<object>(), It.IsAny<string?>(), It.IsAny<InstanceOwner?>()))
+            .Returns(Task.CompletedTask);
 
-        _dataClient
+        _formDataReader
             .Setup(x =>
-                x.GetFormData(It.IsAny<Instance>(), It.IsAny<DataElement>(), null, It.IsAny<CancellationToken>())
+                x.ReadInstanceFormData(
+                    It.IsAny<Instance>(),
+                    It.IsAny<DataElement>(),
+                    It.IsAny<Guid?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync(new object());
     }
