@@ -32,6 +32,17 @@ distinctEnvironmentVariables:
       value: dev.altinn.studio
     - name: GITEA__server__ROOT_URL
       value: https://dev.altinn.studio/repos
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION
+      value: "true"
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION_API
+      value: "true"
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTO_REGISTRATION
+      value: "true"
+    - name: GITEA__server__REVERSE_PROXY_AUTHENTICATION_USER
+      value: X-WEBAUTH-USER
+    # AKS subnet CIDR (Azure CNI assigns pod IPs from this range). NetworkPolicy is the primary access control.
+    - name: GITEA__server__REVERSE_PROXY_TRUSTED_PROXIES
+      value: "10.48.0.0/20"
   staging:
     - name: GITEA____RUN_MODE
       value: test
@@ -41,6 +52,17 @@ distinctEnvironmentVariables:
       value: staging.altinn.studio
     - name: GITEA__server__ROOT_URL
       value: https://staging.altinn.studio/repos
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION
+      value: "true"
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION_API
+      value: "true"
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTO_REGISTRATION
+      value: "true"
+    - name: GITEA__server__REVERSE_PROXY_AUTHENTICATION_USER
+      value: X-WEBAUTH-USER
+    # AKS subnet CIDR (Azure CNI assigns pod IPs from this range). NetworkPolicy is the primary access control.
+    - name: GITEA__server__REVERSE_PROXY_TRUSTED_PROXIES
+      value: "10.48.0.0/20"
   prod:
     - name: ALTINN_STUDIO_DOMAIN
       value: altinn.studio
@@ -97,6 +119,44 @@ volumes:
   - name: altinn-gitea-attachments-storage
     persistentVolumeClaim:
       claimName: altinn-storage-gitea-attachments-volume-claim
+
+proxy:
+  image:
+    repository: altinntjenestercontainerregistry.azurecr.io/altinn-gitea-proxy
+    pullPolicy: Always
+  giteaHost: altinn-gitea:3000
+  designerHost: altinn-designer:3000
+  service:
+    internalPort: 3000
+    publicPort: 80
+  distinctEnvironmentVariables:
+    dev:
+      - name: STUDIO_OIDC_ENABLED
+        value: "true"
+      - name: OTEL_ENDPOINT
+        value: http://otel-router.observability.svc.cluster.local:4317
+      - name: OTEL_SERVICE_NAME
+        value: studio-gitea-proxy
+      - name: OTEL_TRACE
+        value: "true"
+    staging:
+      - name: STUDIO_OIDC_ENABLED
+        value: "true"
+      - name: OTEL_ENDPOINT
+        value: http://otel-router.observability.svc.cluster.local:4317
+      - name: OTEL_SERVICE_NAME
+        value: studio-gitea-proxy
+      - name: OTEL_TRACE
+        value: "true"
+    prod:
+      - name: STUDIO_OIDC_ENABLED
+        value: "false"
+      - name: OTEL_ENDPOINT
+        value: http://otel-router.observability.svc.cluster.local:4317
+      - name: OTEL_SERVICE_NAME
+        value: studio-gitea-proxy
+      - name: OTEL_TRACE
+        value: "true"
 
 ingress:
   - metadata:

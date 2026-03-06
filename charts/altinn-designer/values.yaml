@@ -61,7 +61,21 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
+    - name: StudioOidcLoginSettings__Authority
+      value: https://ansattporten.no
+    - name: StudioOidcLoginSettings__RequireHttpsMetadata
+      value: "true"
+    - name: StudioOidcLoginSettings__CookieExpiryTimeInMinutes
+      value: "1440"
+    - name: StudioOidcLoginSettings__Scopes__0
+      value: openid
+    - name: StudioOidcLoginSettings__Scopes__1
+      value: profile
+    - name: StudioOidcLoginSettings__AcrValues
+      value: substantial
     - name: FeatureManagement__AnsattPorten
+      value: "true"
+    - name: FeatureManagement__StudioOidc
       value: "true"
     - name: FeatureManagement__GitOpsDeploy
       value: "false"
@@ -123,8 +137,22 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
+    - name: StudioOidcLoginSettings__Authority
+      value: https://ansattporten.no
+    - name: StudioOidcLoginSettings__RequireHttpsMetadata
+      value: "true"
+    - name: StudioOidcLoginSettings__CookieExpiryTimeInMinutes
+      value: "1440"
+    - name: StudioOidcLoginSettings__Scopes__0
+      value: openid
+    - name: StudioOidcLoginSettings__Scopes__1
+      value: profile
+    - name: StudioOidcLoginSettings__AcrValues
+      value: substantial
     - name: FeatureManagement__AnsattPorten
       value: "false"
+    - name: FeatureManagement__StudioOidc
+      value: "true"
     - name: FeatureManagement__GitOpsDeploy
       value: "true"
     - name: RedisCacheSettings__UseRedisCache
@@ -184,6 +212,8 @@ environmentVariables:
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
     - name: FeatureManagement__AnsattPorten
+      value: "false"
+    - name: FeatureManagement__StudioOidc
       value: "false"
     - name: FeatureManagement__GitOpsDeploy
       value: "false"
