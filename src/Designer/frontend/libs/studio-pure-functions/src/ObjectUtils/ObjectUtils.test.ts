@@ -27,38 +27,11 @@ describe('objectUtils', () => {
   describe('areObjectsEqual', () => {
     it('Returns true if objects are equal', () => {
       expect(ObjectUtils.areObjectsEqual({}, {})).toBe(true);
+      expect(ObjectUtils.areObjectsEqual(null, null)).toBe(true);
+      expect(ObjectUtils.areObjectsEqual(undefined, undefined)).toBe(true);
       expect(ObjectUtils.areObjectsEqual({ a: 1 }, { a: 1 })).toBe(true);
       expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2 }, { a: 1, b: 2 })).toBe(true);
       expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2, c: 3 }, { a: 1, b: 2, c: 3 })).toBe(true);
-    });
-
-    it('Returns false if objects are not equal', () => {
-      expect(ObjectUtils.areObjectsEqual({ a: 1 }, { a: 2 })).toBe(false);
-      expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2 }, { a: 1, b: 3 })).toBe(false);
-      expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2, c: 3 }, { a: 1, b: 2, c: 4 })).toBe(false);
-      expect(ObjectUtils.areObjectsEqual(null, { a: 1, b: 2 })).toBe(false);
-      expect(ObjectUtils.areObjectsEqual(undefined, { a: 1, b: 2 })).toBe(false);
-    });
-
-    it('should return true for two empty objects', () => {
-      expect(ObjectUtils.areObjectsEqual({}, {})).toBe(true);
-    });
-
-    it('should return true for identical objects (reference equality)', () => {
-      const obj1 = { a: 1, b: 'test' };
-      expect(ObjectUtils.areObjectsEqual(obj1, obj1)).toBe(true);
-    });
-
-    it('should return false if the length of the objects are not equally length', () => {
-      expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2 }, { a: 1 })).toBe(false);
-    });
-
-    it('should return true if both objects are null', () => {
-      expect(ObjectUtils.areObjectsEqual(null, null)).toBe(true);
-    });
-
-    it('should return true if both objects are undefined', () => {
-      expect(ObjectUtils.areObjectsEqual(null, null)).toBe(true);
     });
 
     it('should return true if nested objects are equal', () => {
@@ -69,6 +42,16 @@ describe('objectUtils', () => {
       expect(ObjectUtils.areObjectsEqual({ a: 1, b: { c: null } }, { a: 1, b: { c: null } })).toBe(
         true,
       );
+    });
+
+    it('Returns false if objects are not equal', () => {
+      expect(ObjectUtils.areObjectsEqual({ a: 1 }, { a: 2 })).toBe(false);
+      expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2 }, { a: 1, b: 3 })).toBe(false);
+      expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2, c: 3 }, { a: 1, b: 2, c: 4 })).toBe(false);
+      expect(ObjectUtils.areObjectsEqual(null, { a: 1, b: 2 })).toBe(false);
+      expect(ObjectUtils.areObjectsEqual(undefined, { a: 1, b: 2 })).toBe(false);
+      expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2 }, null)).toBe(false);
+      expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2 }, undefined)).toBe(false);
     });
 
     it('should return false if nested objects are not equal', () => {
@@ -83,6 +66,19 @@ describe('objectUtils', () => {
         ObjectUtils.areObjectsEqual({ a: 1, b: { c: undefined } }, { a: 1, b: { c: null } }),
       ).toBe(false);
       expect(ObjectUtils.areObjectsEqual({ a: { b: 1 } }, { a: 5 })).toBe(false);
+    });
+
+    it('should return true for two empty objects', () => {
+      expect(ObjectUtils.areObjectsEqual({}, {})).toBe(true);
+    });
+
+    it('should return true for identical objects (reference equality)', () => {
+      const obj1 = { a: 1, b: 'test' };
+      expect(ObjectUtils.areObjectsEqual(obj1, obj1)).toBe(true);
+    });
+
+    it('should return false if the length of the objects are not equally length', () => {
+      expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2 }, { a: 1 })).toBe(false);
     });
   });
 
