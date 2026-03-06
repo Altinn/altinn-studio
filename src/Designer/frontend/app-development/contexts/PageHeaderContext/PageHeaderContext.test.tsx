@@ -2,6 +2,28 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { PageHeaderContextProvider, usePageHeaderContext } from './PageHeaderContext';
 import { renderWithProviders } from 'app-development/test/mocks';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+
+const mockEnvironment = { environment: null, isLoading: false, error: null };
+
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => mockEnvironment,
+}));
+
+const SettingsLinkConsumer = () => {
+  const { profileMenuGroups } = usePageHeaderContext();
+  const allItems = profileMenuGroups?.flatMap((group) => group.items) ?? [];
+  const settingsItem = allItems.find((item) => item.itemName === textMock('user.settings'));
+  const href = settingsItem?.action.type === 'link' ? settingsItem.action.href : null;
+  return <div data-testid='settings-href'>{href ?? 'none'}</div>;
+};
+
+const renderPageHeaderContext = () =>
+  renderWithProviders()(
+    <PageHeaderContextProvider>
+      <SettingsLinkConsumer />
+    </PageHeaderContextProvider>,
+  );
 
 describe('PageHeaderContext', () => {
   it('should render children', () => {
@@ -41,5 +63,21 @@ describe('PageHeaderContext', () => {
       'usePageHeaderContext must be used within a PageHeaderContextProvider',
     );
     expect(consoleError).toHaveBeenCalled();
+  });
+
+  it('should include settings link in profile menu when studioOidc feature flag is enabled', () => {
+    mockEnvironment.environment = { featureFlags: { studioOidc: true } };
+
+    renderPageHeaderContext();
+
+    expect(screen.getByTestId('settings-href')).not.toHaveTextContent('none');
+  });
+
+  it('should not include settings link in profile menu when studioOidc feature flag is disabled', () => {
+    mockEnvironment.environment = { featureFlags: { studioOidc: false } };
+
+    renderPageHeaderContext();
+
+    expect(screen.getByTestId('settings-href')).toHaveTextContent('none');
   });
 });
