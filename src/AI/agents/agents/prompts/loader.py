@@ -19,10 +19,11 @@ def _try_langfuse_prompt(prompt_name: str, variables: dict | None = None) -> Opt
         if not is_langfuse_enabled():
             return None
         content = fetch_langfuse_prompt(prompt_name, variables)
-        log.debug(f"Loaded prompt '{prompt_name}' from Langfuse")
+        log.info(f"Loaded prompt '{prompt_name}' from Langfuse")
         return content
     except Exception as e:
-        log.debug(f"Langfuse prompt '{prompt_name}' not available, using local file: {e}")
+        log.info(f"Langfuse prompt '{prompt_name}' not available, using local file")
+        log.debug(e)
         return None
 
 
