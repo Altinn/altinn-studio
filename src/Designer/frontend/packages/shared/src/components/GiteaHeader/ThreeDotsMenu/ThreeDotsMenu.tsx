@@ -41,6 +41,8 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
             href={repositoryPath(owner, repoName)}
             variant='tertiary'
             data-color='subtle'
+            target='_blank'
+            rel='noopener noreferrer'
           >
             {t('sync_header.repository')}
           </StudioLinkButton>
