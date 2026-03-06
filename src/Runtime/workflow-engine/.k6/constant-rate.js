@@ -50,7 +50,7 @@ export function enqueueWorkflow() {
     const url = `${BASE_URL}/${guid}`;
 
     const payload = JSON.parse(JSON.stringify(payloadTemplate));
-    payload.workflows[0].idempotencyKey = `k6-${guid}`;
+    payload.idempotencyKey = `k6-${guid}`;
     const payloadString = JSON.stringify(payload);
 
     const res = http.post(url, payloadString, requestParams);

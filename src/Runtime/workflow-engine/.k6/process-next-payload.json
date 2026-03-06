@@ -3,13 +3,12 @@
         "userIdOrOrgNumber": "1337",
         "language": "nb"
     },
+    "idempotencyKey": "__IDEMPOTENCY_KEY__",
     "lockToken": "k6-load-test-lock-token",
     "workflows": [
         {
             "ref": "wf-1",
             "operationId": "next",
-            "idempotencyKey": "__IDEMPOTENCY_KEY__",
-            "type": "AppProcessChange",
             "steps": [
                 { "command": { "type": "app", "commandKey": "ProcessTaskEnd" } },
                 { "command": { "type": "app", "commandKey": "CommonTaskFinalization" } },

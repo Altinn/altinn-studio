@@ -37,7 +37,7 @@ export default function () {
     const url = `${BASE_URL}/${INSTANCE_GUID}`;
 
     const payload = JSON.parse(JSON.stringify(payloadTemplate));
-    payload.workflows[0].idempotencyKey = `k6-${uuidv4()}`;
+    payload.idempotencyKey = `k6-${uuidv4()}`;
     const payloadString = JSON.stringify(payload);
 
     const res = http.post(url, payloadString, requestParams);
