@@ -3,27 +3,32 @@ import type { JSONSchema7 } from 'json-schema';
 import type { DataModelSchemaResult } from 'src/features/datamodel/SchemaLookupTool';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { BackendValidationIssue, IExpressionValidations } from 'src/features/validation';
+import type {
+  BackendValidationIssue,
+  IExpressionValidationConfig,
+  IExpressionValidations,
+} from 'src/features/validation';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
 
-export interface DataModelInfo {
+export interface RawDataModelInfo {
   schema: JSONSchema7;
   initialData: object;
   dataElementId: string | null;
   isWritable: boolean;
-  expressionValidationConfig: IExpressionValidations | null;
+  expressionValidationConfig: IExpressionValidationConfig | null;
   initialValidationIssues?: BackendValidationIssue[] | null;
 }
 
 export interface FormBootstrapResponse {
   layouts: ILayoutCollection;
-  dataModels: Record<string, DataModelInfo>;
+  dataModels: Record<string, RawDataModelInfo>;
   staticOptions: Record<string, IOptionInternal[]>;
   validationIssues?: BackendValidationIssue[] | null;
 }
 
-export interface ProcessedDataModelInfo extends DataModelInfo {
+export interface ProcessedDataModelInfo extends Omit<RawDataModelInfo, 'expressionValidationConfig'> {
+  expressionValidationConfig: IExpressionValidations | null;
   schemaResult: DataModelSchemaResult;
 }
 

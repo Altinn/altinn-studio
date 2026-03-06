@@ -5,11 +5,12 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { resolveExpressionValidationConfig } from 'src/features/customValidation/customValidationUtils';
 import { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { getUiFolderSettings } from 'src/features/form/ui';
-import { type FormBootstrapContextValue } from 'src/features/formBootstrap/types';
+import { type FormBootstrapContextValue, type ProcessedDataModelInfo } from 'src/features/formBootstrap/types';
 import { useFormBootstrapQuery } from 'src/features/formBootstrap/useFormBootstrapQuery';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
@@ -65,13 +66,16 @@ export function FormBootstrapProvider({
           dataType,
           {
             ...value,
+            expressionValidationConfig: value.expressionValidationConfig
+              ? resolveExpressionValidationConfig(value.expressionValidationConfig)
+              : null,
             schemaResult: {
               schema: value.schema,
               rootElementPath,
               lookupTool,
               validator,
             },
-          },
+          } satisfies ProcessedDataModelInfo,
         ];
       }),
     );
