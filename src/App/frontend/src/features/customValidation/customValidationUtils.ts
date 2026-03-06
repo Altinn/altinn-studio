@@ -58,7 +58,7 @@ function resolveExpressionValidation(
   field: string,
   resolvedDefinitions: { [name: string]: IExpressionValidationRefResolved },
 ): IExpressionValidation | null {
-  let expressionValidation: IExpressionValidation | null = null;
+  let expressionValidation: IExpressionValidation;
   if (typeof definition === 'string') {
     const reference = resolvedDefinitions[definition];
     if (!reference) {
@@ -74,7 +74,7 @@ function resolveExpressionValidation(
       ...reference,
     };
   } else {
-    let reference: IExpressionValidationRefResolved | undefined = undefined;
+    let reference: IExpressionValidationRefResolved | undefined;
     let resolvedDefinition = definition;
 
     if ('ref' in definition) {

@@ -7,7 +7,7 @@ import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router';
 
 import '@digdir/designsystemet-css';
-import '@digdir/designsystemet-theme';
+import '@digdir/designsystemet-css/theme';
 import 'src/features/baseurlinjection';
 import 'src/features/logging';
 import 'src/features/styleInjection';
@@ -21,6 +21,7 @@ import { queryClient } from 'src/queryClient';
 import { createRouter } from 'src/router';
 
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-draw/dist/leaflet.draw.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'src/index.css';
 

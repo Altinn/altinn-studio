@@ -4,6 +4,25 @@
   border-bottom-color: var(--ds-color-accent-base-hover);
 }
 
+.table {
+  table-layout: fixed;
+}
+
+.nameWrapper {
+  display: flex;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.extension {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .table tr td:last-child {
   width: 1%;
 }

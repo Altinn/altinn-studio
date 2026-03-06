@@ -394,6 +394,7 @@ steps:
         # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
 
         Write-Host "`nPowerShell script output START`n"
+        Write-Host "Using Az.Accounts $((Get-Module -Name Az.Accounts).Version) from $((Get-Module -Name Az.Accounts).Path)"
 
         $apimSubscriptionId = "$appOwner-$appName"
 
@@ -434,7 +435,8 @@ steps:
 
         Write-Host "`nPowerShell script output END`n"
       FailOnStandardError: true
-      CustomTargetAzurePs: 12.1.0
+      azurePowerShellVersion: LatestVersion
+      TargetAzurePs: LatestVersion
       pwsh: true
 
   - task: AzurePowerShell@4
@@ -456,6 +458,7 @@ steps:
         # PLEASE DON'T USE PIPELINE VARIABLES PAST THIS LINE.
 
         Write-Host "`nPowerShell script output START`n"
+        Write-Host "Using Az.Accounts $((Get-Module -Name Az.Accounts).Version) from $((Get-Module -Name Az.Accounts).Path)"
 
         $apimSubscriptionId = "$appOwner-$appName"
 
@@ -496,7 +499,8 @@ steps:
 
         Write-Host "`nPowerShell script output END`n"
       FailOnStandardError: true
-      CustomTargetAzurePs: 12.1.0
+      azurePowerShellVersion: LatestVersion
+      TargetAzurePs: LatestVersion
       pwsh: true
 
   - task: AzurePowerShell@4
@@ -509,6 +513,7 @@ steps:
         # THIS SCRIPT WILL ONLY BE RUN IF DEPLOYING TO PROD ENV. SEE CONTROL OPTIONS.
 
         if ("$(APP_ENVIRONMENT)" -eq "production"){
+            Write-Host "Using Az.Accounts $((Get-Module -Name Az.Accounts).Version) from $((Get-Module -Name Az.Accounts).Path)"
 
             $apimContext = New-AzApiManagementContext -ResourceId $(APIM_RESOURCE_ID_PROD)
 
@@ -534,7 +539,8 @@ steps:
             Write-Host "##vso[task.setvariable variable=SUBSCRIPTION_KEY;]$subscriptionKey"
         }
       FailOnStandardError: true
-      CustomTargetAzurePs: 12.1.0
+      azurePowerShellVersion: LatestVersion
+      TargetAzurePs: LatestVersion
       pwsh: true
 
   - task: Bash@3

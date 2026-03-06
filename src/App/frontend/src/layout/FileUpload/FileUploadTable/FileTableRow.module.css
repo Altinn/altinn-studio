@@ -6,7 +6,7 @@
 
 .button {
   float: right;
-  padding-right: 0;
+  margin-right: var(--ds-size-1);
 }
 
 tr.noRowSpacing td {
