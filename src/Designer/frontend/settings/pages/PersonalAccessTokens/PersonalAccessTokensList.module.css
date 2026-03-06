@@ -1,8 +1,10 @@
 .nameCell {
+  width: 70%;
   word-break: break-all;
 }
 
 .dateCell {
+  width: 10%;
   white-space: nowrap;
 }
 
@@ -12,6 +14,7 @@
 
 .deleteCell {
   text-align: end;
+  width: 10%;
 }
 
 @keyframes fadeHighlight {

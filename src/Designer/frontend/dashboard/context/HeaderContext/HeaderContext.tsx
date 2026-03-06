@@ -73,7 +73,11 @@ export const HeaderContextProvider = ({
   };
 
   const settingsMenuItem: NavigationMenuItem = {
-    action: { type: 'link', href: '/settings', openInNewTab: false },
+    action: {
+      type: 'link',
+      href: `/settings?returnTo=${encodeURIComponent(window.location.pathname)}`,
+      openInNewTab: false,
+    },
     itemName: t('user.settings'),
   };
 

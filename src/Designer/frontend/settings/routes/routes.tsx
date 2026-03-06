@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { RoutePaths } from './RoutePaths';
 import { PersonalAccessTokens } from '../pages/PersonalAccessTokens/PersonalAccessTokens';
 
@@ -8,10 +8,15 @@ interface RouterRoute {
   page: ComponentType;
 }
 
+const RedirectToPersonalAccessTokens = () => {
+  const { search } = useLocation();
+  return <Navigate to={{ pathname: RoutePaths.PersonalAccessTokens, search }} />;
+};
+
 export const routerRoutes: RouterRoute[] = [
   {
     path: RoutePaths.Root,
-    page: () => <Navigate to={RoutePaths.PersonalAccessTokens} />,
+    page: RedirectToPersonalAccessTokens,
   },
   {
     path: RoutePaths.PersonalAccessTokens,
