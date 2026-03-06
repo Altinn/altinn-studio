@@ -35,7 +35,10 @@ runs:
           exit 1
         fi
 
-        config_file="${RUNNER_TEMP}/codeql-config-${{ inputs.language }}-${GITHUB_RUN_ID}-${GITHUB_JOB}.yml"
+        generated_config_dir="${GITHUB_WORKSPACE}/.github/codeql/generated"
+        mkdir -p "$generated_config_dir"
+
+        config_file="${generated_config_dir}/codeql-config-${{ inputs.language }}-${GITHUB_RUN_ID}-${GITHUB_JOB}.yml"
         cp "$base_config" "$config_file"
 
         if [[ -n "${{ inputs.paths }}" ]]; then
