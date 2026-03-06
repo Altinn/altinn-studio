@@ -55,7 +55,7 @@ jobs:
         # Details on CodeQL's query packs refer to : https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
 
     - name: Build solution
-      run: dotnet build Altinn.Codelists.sln -v m
+      run: dotnet build solutions/Src.sln -v m
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3

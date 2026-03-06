@@ -49,7 +49,7 @@ jobs:
           config-file: ${{ steps.codeql-config.outputs.config-file }}
 
       - name: Build solution
-        run: dotnet build backend/Designer.sln -v m
+        run: dotnet build backend/Src.sln -v m
         shell: bash
         working-directory: src/Designer/
 

@@ -5,3 +5,16 @@ query-filters:
       id: js/ml-powered/sql-injection
   - exclude:
       id: js/ml-powered/nosql-injection
+paths-ignore:
+  - '**/*.test.js'
+  - '**/*.test.jsx'
+  - '**/*.test.ts'
+  - '**/*.test.tsx'
+  - '**/*.spec.js'
+  - '**/*.spec.jsx'
+  - '**/*.spec.ts'
+  - '**/*.spec.tsx'
+  - '**/__snapshots__/**'
+  - '**/test/**'
+  - '**/tests/**'
+  - '**/testing/**'
