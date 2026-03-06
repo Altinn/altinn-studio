@@ -15,6 +15,7 @@ import (
 	cerrdefs "github.com/containerd/errdefs"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
+	dockermount "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
@@ -207,16 +208,6 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 		})
 	}
 
-	// Build volume bindings
-	binds := make([]string, 0, len(cfg.Volumes))
-	for _, v := range cfg.Volumes {
-		bind := fmt.Sprintf("%s:%s", v.HostPath, v.ContainerPath)
-		if v.ReadOnly {
-			bind += ":ro"
-		}
-		binds = append(binds, bind)
-	}
-
 	// Build restart policy
 	restartPolicy := container.RestartPolicy{}
 	switch cfg.RestartPolicy {
@@ -259,7 +250,7 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 	// Host config
 	hostCfg := &container.HostConfig{
 		PortBindings:  portBindings,
-		Binds:         binds,
+		Mounts:        buildBindMounts(cfg.Volumes),
 		ExtraHosts:    cfg.ExtraHosts,
 		RestartPolicy: restartPolicy,
 		NetworkMode:   container.NetworkMode(primaryNetwork),
@@ -291,6 +282,19 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 	}
 
 	return resp.ID, nil
+}
+
+func buildBindMounts(volumes []types.VolumeMount) []dockermount.Mount {
+	mounts := make([]dockermount.Mount, 0, len(volumes))
+	for _, v := range volumes {
+		mounts = append(mounts, dockermount.Mount{
+			Type:     dockermount.TypeBind,
+			Source:   v.HostPath,
+			Target:   v.ContainerPath,
+			ReadOnly: v.ReadOnly,
+		})
+	}
+	return mounts
 }
 
 // ContainerState returns the state of a container.
