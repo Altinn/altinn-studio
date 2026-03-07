@@ -553,6 +553,55 @@ namespace Designer.Tests.Services
             Assert.DoesNotContain("remote line two", pulledFile);
         }
 
+        [Fact]
+        public void Push_RemoteNotesAdvanced_RetriesAndSucceeds()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+            SetRepositoryBaseUrlToLocalRemoteRoot();
+
+            string initialCommitSha;
+            using (Repository collaboratorRepo = new(collaboratorRepoPath))
+            {
+                initialCommitSha = collaboratorRepo.Head.Tip.Sha;
+            }
+
+            AddAndPushGitNote(collaboratorRepoPath, "competing-note");
+
+            File.WriteAllText(Path.Join(localRepoPath, "local-change.txt"), "local change");
+            _sourceControlService.CommitToLocalRepo(authenticatedContext, "local commit");
+            string localCommitSha;
+            using (Repository localRepo = new(localRepoPath))
+            {
+                localCommitSha = localRepo.Head.Tip.Sha;
+            }
+
+            // Act
+            bool pushSucceeded = _sourceControlService.Push(authenticatedContext);
+
+            // Assert
+            Assert.True(pushSucceeded);
+            string remoteRepoPath = $"{TestDataHelper.GetTestDataRemoteRepository(_org, repoName)}.git";
+            using Repository remoteRepo = new(remoteRepoPath);
+
+            LibGit2Sharp.Commit initialCommit = remoteRepo.Lookup<LibGit2Sharp.Commit>(initialCommitSha);
+            LibGit2Sharp.Commit localCommit = remoteRepo.Lookup<LibGit2Sharp.Commit>(localCommitSha);
+            Assert.NotNull(initialCommit);
+            Assert.NotNull(localCommit);
+
+            Note initialCommitNote = remoteRepo.Notes[initialCommit.Id].FirstOrDefault();
+            Note localCommitNote = remoteRepo.Notes[localCommit.Id].FirstOrDefault();
+            Assert.NotNull(initialCommitNote);
+            Assert.NotNull(localCommitNote);
+            Assert.Equal("competing-note", initialCommitNote.Message);
+            Assert.Equal("studio-commit", localCommitNote.Message);
+        }
+
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
             List<Claim> claims = new();
@@ -676,6 +725,23 @@ namespace Designer.Tests.Services
             var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
             collaboratorRepo.Commit(commitMessage, signature, signature);
             collaboratorRepo.Network.Push(collaboratorRepo.Head, new PushOptions());
+        }
+
+        private static void AddAndPushGitNote(string repositoryPath, string noteMessage)
+        {
+            using Repository repo = new(repositoryPath);
+            var signature = new LibGit2Sharp.Signature("collaborator", "collaborator@test.com", DateTimeOffset.Now);
+            NoteCollection notes = repo.Notes;
+            notes.Add(repo.Head.Tip.Id, noteMessage, signature, signature, notes.DefaultNamespace);
+            Remote remote = repo.Network.Remotes["origin"];
+            repo.Network.Push(remote, "refs/notes/commits", new PushOptions());
+        }
+
+        private void SetRepositoryBaseUrlToLocalRemoteRoot()
+        {
+            string remoteRootPath =
+                TestDataHelper.GetTestDataRemoteRepositoryRootDirectory() + Path.DirectorySeparatorChar;
+            _settings.RepositoryBaseURL = new Uri(remoteRootPath).AbsoluteUri;
         }
 
         private AltinnRepoEditingContext CreateTestRepository(string repoName, string additionalBranch = null)

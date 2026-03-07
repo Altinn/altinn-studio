@@ -354,7 +354,7 @@ public class SourceControlService(
                     };
 
                     repo.Network.Push(remote, $"refs/heads/{DefaultBranch}", options);
-                    repo.Network.Push(remote, "refs/notes/commits", options);
+                    PushGitCommitNotesWithRetry(repo, remote, ctx.authenticatedContext, options);
                     pushCompleted = true;
                     return pushSuccess;
                 }
@@ -814,14 +814,14 @@ public class SourceControlService(
                 if (branchName == DefaultBranch)
                 {
                     repo.Network.Push(remote, $"refs/heads/{DefaultBranch}", options);
-                    repo.Network.Push(remote, "refs/notes/commits", options);
+                    PushGitCommitNotesWithRetry(repo, remote, authenticatedContext, options);
                     pushedDefaultBranch = true;
                 }
                 else
                 {
                     Branch b = repo.Branches[branchName];
                     repo.Network.Push(b, options);
-                    repo.Network.Push(remote, "refs/notes/commits", options);
+                    PushGitCommitNotesWithRetry(repo, remote, authenticatedContext, options);
                     pushedFeatureBranch = true;
                 }
             }
@@ -882,7 +882,7 @@ public class SourceControlService(
                 );
                 PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext) };
                 repo.Network.Push(branch, options);
-                repo.Network.Push(remote, "refs/notes/commits", options);
+                PushGitCommitNotesWithRetry(repo, remote, ctx.authenticatedContext, options);
             }
         );
     }
@@ -992,6 +992,7 @@ public class SourceControlService(
             static (self, ctx) =>
             {
                 self.FetchRemoteChanges(ctx.authenticatedContext);
+                self.FetchGitNotes(ctx.authenticatedContext);
                 using LibGit2Sharp.Repository repo = self.CreateLocalRepo(ctx.authenticatedContext);
                 RebaseStatus rebaseStatus = default;
                 bool conflictsAborted = false;
@@ -1770,8 +1771,79 @@ public class SourceControlService(
     )
     {
         using LibGit2Sharp.Repository repo = new(localRepositoryPath);
+        FetchGitNotes(repo, authenticatedContext);
+    }
+
+    private static void FetchGitNotes(
+        LibGit2Sharp.Repository repo,
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        bool force = false
+    )
+    {
         FetchOptions options = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext) };
-        Commands.Fetch(repo, "origin", ["refs/notes/*:refs/notes/*"], options, "fetch notes");
+        string notesRefSpec = force ? "+refs/notes/*:refs/notes/*" : "refs/notes/*:refs/notes/*";
+        Commands.Fetch(repo, "origin", [notesRefSpec], options, "fetch notes");
+    }
+
+    private static void PushGitCommitNotesWithRetry(
+        LibGit2Sharp.Repository repo,
+        Remote remote,
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        PushOptions options
+    )
+    {
+        const int MaxAttempts = 3;
+        for (var attempt = 0; attempt < MaxAttempts; attempt++)
+        {
+            try
+            {
+                repo.Network.Push(remote, "refs/notes/commits", options);
+                return;
+            }
+            catch (LibGit2Sharp.NonFastForwardException) when (attempt < MaxAttempts - 1)
+            {
+                IReadOnlyList<(ObjectId TargetObjectId, string Message)> localNotes = CaptureDefaultGitNotes(
+                    repo.Notes
+                );
+                FetchGitNotes(repo, authenticatedContext, force: true);
+                ReapplyDefaultGitNotes(repo.Notes, localNotes, authenticatedContext.Developer);
+            }
+        }
+    }
+
+    private static IReadOnlyList<(ObjectId TargetObjectId, string Message)> CaptureDefaultGitNotes(NoteCollection notes)
+    {
+        string defaultNamespace = notes.DefaultNamespace;
+        return notes[defaultNamespace].Select(note => (note.TargetObjectId, note.Message)).ToList();
+    }
+
+    private static void ReapplyDefaultGitNotes(
+        NoteCollection notes,
+        IReadOnlyList<(ObjectId TargetObjectId, string Message)> localNotes,
+        string developer
+    )
+    {
+        if (localNotes.Count == 0)
+        {
+            return;
+        }
+
+        string defaultNamespace = notes.DefaultNamespace;
+        var signature = new LibGit2Sharp.Signature(developer, $"{developer}@noreply.altinn.studio", DateTimeOffset.Now);
+
+        foreach (var localNote in localNotes)
+        {
+            Note? existingNote = notes[localNote.TargetObjectId]
+                .FirstOrDefault(note => string.Equals(note.Namespace, defaultNamespace, StringComparison.Ordinal));
+
+            if (
+                existingNote is null
+                || !string.Equals(existingNote.Message, localNote.Message, StringComparison.Ordinal)
+            )
+            {
+                notes.Add(localNote.TargetObjectId, localNote.Message, signature, signature, defaultNamespace);
+            }
+        }
     }
 
     private static Activity? StartActivityCore(string methodName) =>
