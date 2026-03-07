@@ -16,6 +16,8 @@ import { useAddUserPersonalAccessTokenMutation } from '../hooks/mutations/useAdd
 import { useUserPersonalAccessTokensQuery } from '../hooks/queries/useUserPersonalAccessTokensQuery';
 import classes from './AddPersonalAccessToken.module.css';
 
+const MAX_TOKEN_EXPIRY_DAYS = 364;
+
 type AddPersonalAccessTokenProps = {
   onTokenCreated: (id: number) => void;
 };
@@ -39,7 +41,7 @@ export const AddPersonalAccessToken = ({
 
   const todayUtc = new Date().toISOString().split('T')[0];
   const maxExpiresAt = new Date(todayUtc);
-  maxExpiresAt.setUTCDate(maxExpiresAt.getUTCDate() + 364);
+  maxExpiresAt.setUTCDate(maxExpiresAt.getUTCDate() + MAX_TOKEN_EXPIRY_DAYS);
   const maxExpiresAtString = maxExpiresAt.toISOString().split('T')[0];
 
   const isDuplicateName =
