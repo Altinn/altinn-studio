@@ -1551,7 +1551,7 @@
   "user.settings.personal_access_tokens.copy": "Kopier",
   "user.settings.personal_access_tokens.copy_error": "Klarte ikke å kopiere token til utklippstavlen",
   "user.settings.personal_access_tokens.copy_success": "Token kopiert til utklippstavlen",
-  "user.settings.personal_access_tokens.created_at": "Opprettet",
+  "user.settings.personal_access_tokens.created_at": "Opprettingsdato",
   "user.settings.personal_access_tokens.delete": "Slett",
   "user.settings.personal_access_tokens.delete_confirm": "Er du sikker på at du vil slette dette tokenet?",
   "user.settings.personal_access_tokens.error": "Det oppsto en feil ved innlasting av personlige tilgangstokens. Prøv igjen senere.",

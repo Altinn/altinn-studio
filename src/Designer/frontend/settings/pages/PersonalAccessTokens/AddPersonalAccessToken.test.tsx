@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AddPersonalAccessToken } from './AddPersonalAccessToken';
 import { renderWithProviders } from '../../testing/mocks';
@@ -77,7 +77,7 @@ const getAddButton = () =>
 
 const fillForm = async (user: ReturnType<typeof userEvent.setup>, name: string, date: string) => {
   await user.type(getNameInput(), name);
-  fireEvent.change(getExpiryInput(), { target: { value: date } });
+  await user.type(getExpiryInput(), date);
 };
 
 describe('AddPersonalAccessToken', () => {
@@ -190,17 +190,15 @@ describe('AddPersonalAccessToken', () => {
     await fillForm(user, 'New token', validExpiresAt);
     await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', {
         name: textMock('user.settings.personal_access_tokens.copy'),
       }),
     );
     expect(writeText).toHaveBeenCalledWith('secret-key-value');
-    await waitFor(() =>
-      expect(toast.success).toHaveBeenCalledWith(
-        textMock('user.settings.personal_access_tokens.copy_success'),
-        expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_success' }),
-      ),
+    expect(toast.success).toHaveBeenCalledWith(
+      textMock('user.settings.personal_access_tokens.copy_success'),
+      expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_success' }),
     );
   });
 
@@ -212,16 +210,14 @@ describe('AddPersonalAccessToken', () => {
     await fillForm(user, 'New token', validExpiresAt);
     await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', {
         name: textMock('user.settings.personal_access_tokens.copy'),
       }),
     );
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith(
-        textMock('user.settings.personal_access_tokens.copy_error'),
-        expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_error' }),
-      ),
+    expect(toast.error).toHaveBeenCalledWith(
+      textMock('user.settings.personal_access_tokens.copy_error'),
+      expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_error' }),
     );
   });
 });
