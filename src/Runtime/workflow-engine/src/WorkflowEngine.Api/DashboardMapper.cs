@@ -15,7 +15,6 @@ internal sealed record DashboardStepDto(
     string Status,
     int ProcessingOrder,
     int RetryCount,
-    DateTimeOffset? BackoffUntil,
     DateTimeOffset CreatedAt,
     DateTimeOffset? ExecutionStartedAt,
     DateTimeOffset? UpdatedAt,
@@ -32,6 +31,7 @@ internal sealed record DashboardWorkflowDto(
     DateTimeOffset? ExecutionStartedAt,
     DateTimeOffset? UpdatedAt,
     DateTimeOffset? StartAt,
+    DateTimeOffset? BackoffUntil,
     DateTimeOffset? RemovedAt,
     bool HasState,
     IReadOnlyList<DashboardStepDto> Steps
@@ -58,7 +58,6 @@ internal static class DashboardMapper
             step.Status.ToString(),
             step.ProcessingOrder,
             step.RequeueCount,
-            step.BackoffUntil,
             step.CreatedAt,
             step.ExecutionStartedAt,
             step.UpdatedAt,
@@ -90,6 +89,7 @@ internal static class DashboardMapper
             workflow.ExecutionStartedAt,
             workflow.UpdatedAt,
             workflow.StartAt,
+            workflow.BackoffUntil,
             null,
             workflow.InitialState is not null || ordered.Any(s => s.StateOut is not null),
             mapped

@@ -11,13 +11,11 @@ public sealed record Step : PersistentItem
     public required Command Command { get; init; }
     public required Actor Actor { get; init; }
 
-    public DateTimeOffset? BackoffUntil { get; set; }
     public RetryStrategy? RetryStrategy { get; init; }
     public int RequeueCount { get; set; }
     public string? LastError { get; set; }
     public string? StateOut { get; set; }
 
-    internal Task<ExecutionResult>? ExecutionTask { get; set; }
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
     internal bool HasPendingChanges { get; set; }
 

@@ -157,7 +157,6 @@ public class StepTests
 
         // Assert
         Assert.Null(step.RetryStrategy);
-        Assert.Null(step.BackoffUntil);
         Assert.Equal(0, step.RequeueCount);
     }
 }

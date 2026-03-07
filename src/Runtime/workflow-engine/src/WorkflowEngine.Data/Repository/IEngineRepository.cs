@@ -123,11 +123,6 @@ public interface IEngineRepository
     Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Batch-updates workflow statuses using unnest.
-    /// </summary>
-    Task BatchUpdateWorkflowStatuses(IReadOnlyList<WorkflowResult> results, CancellationToken cancellationToken);
-
-    /// <summary>
     /// Batch-updates multiple workflows and their dirty steps in a single transaction using raw SQL.
     /// </summary>
     Task BatchUpdateWorkflowsAndSteps(

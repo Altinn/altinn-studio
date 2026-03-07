@@ -46,6 +46,13 @@ public sealed record WorkflowStatusResponse
     public DateTimeOffset? StartAt { get; init; }
 
     /// <summary>
+    /// When the workflow will next be eligible for execution.
+    /// </summary>
+    [JsonPropertyName("backoffUntil")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? BackoffUntil { get; init; }
+
+    /// <summary>
     /// Optional metadata associated with the workflow (json).
     /// </summary>
     [JsonPropertyName("metadata")]
@@ -94,6 +101,7 @@ public sealed record WorkflowStatusResponse
             CreatedAt = workflow.CreatedAt,
             UpdatedAt = workflow.UpdatedAt,
             StartAt = workflow.StartAt,
+            BackoffUntil = workflow.BackoffUntil,
             Metadata = workflow.Metadata,
             Actor = workflow.Actor,
             OverallStatus = workflow.Status,

@@ -6,6 +6,7 @@ public sealed record Workflow : PersistentItem
     public required Actor Actor { get; init; }
     public required InstanceInformation InstanceInformation { get; init; }
     public DateTimeOffset? StartAt { get; init; }
+    public DateTimeOffset? BackoffUntil { get; set; }
     public required IReadOnlyList<Step> Steps { get; init; }
     public string? DistributedTraceContext { get; set; }
     public IEnumerable<Workflow>? Dependencies { get; init; }

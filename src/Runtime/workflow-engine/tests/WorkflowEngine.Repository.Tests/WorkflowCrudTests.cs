@@ -265,14 +265,12 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
 
         step.Status = PersistentItemStatus.Processing;
         step.RequeueCount = 3;
-        step.BackoffUntil = DateTimeOffset.UtcNow.AddMinutes(5);
         await repo.UpdateStep(step, cancellationToken: TestContext.Current.CancellationToken);
 
         var dbStep = await fixture.GetStep(step.DatabaseId);
         Assert.NotNull(dbStep);
         Assert.Equal(PersistentItemStatus.Processing, dbStep.Status);
         Assert.Equal(3, dbStep.RequeueCount);
-        Assert.NotNull(dbStep.BackoffUntil);
         Assert.NotNull(dbStep.UpdatedAt);
     }
 
@@ -537,7 +535,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         workflow2.EngineTraceContext = GetRandomTraceContext();
         var step2a = workflow2.Steps[0];
         step2a.Status = PersistentItemStatus.Failed;
-        step2a.BackoffUntil = DateTimeOffset.UtcNow.AddMinutes(5);
         step2a.RequeueCount = 1;
         var updates = new List<BatchWorkflowStatusUpdate>
         {
@@ -574,7 +571,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.NotNull(dbStep2a);
         Assert.Equal(PersistentItemStatus.Failed, dbStep2a.Status);
         Assert.Equal(1, dbStep2a.RequeueCount);
-        Assert.NotNull(dbStep2a.BackoffUntil);
         Assert.NotNull(dbStep2a.UpdatedAt);
     }
 

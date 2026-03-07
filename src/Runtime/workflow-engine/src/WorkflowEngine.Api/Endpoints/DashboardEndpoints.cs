@@ -297,7 +297,6 @@ internal static class DashboardEndpoints
                                 createdAt = s.CreatedAt,
                                 executionStartedAt = s.ExecutionStartedAt,
                                 updatedAt = s.UpdatedAt,
-                                backoffUntil = s.BackoffUntil,
                                 actor = s.Actor,
                                 command = s.Command,
                                 retryStrategy = s.RetryStrategy,
@@ -332,7 +331,6 @@ internal static class DashboardEndpoints
                                 cs.CreatedAt,
                                 cs.ExecutionStartedAt,
                                 cs.UpdatedAt,
-                                cs.BackoffUntil,
                                 recentCached.TraceId,
                                 command = new
                                 {

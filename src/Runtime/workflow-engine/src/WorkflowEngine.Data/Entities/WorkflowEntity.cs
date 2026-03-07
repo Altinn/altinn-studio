@@ -28,6 +28,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public DateTimeOffset? UpdatedAt { get; set; }
 
+    public DateTimeOffset? BackoffUntil { get; set; }
+
     [MaxLength(50)]
     public required string ActorUserIdOrOrgNumber { get; set; }
 
@@ -69,6 +71,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             CreatedAt = workflow.CreatedAt,
             StartAt = workflow.StartAt,
             UpdatedAt = workflow.UpdatedAt,
+            BackoffUntil = workflow.BackoffUntil,
             Status = workflow.Status,
             ActorUserIdOrOrgNumber = workflow.Actor.UserIdOrOrgNumber,
             ActorLanguage = workflow.Actor.Language,
@@ -95,6 +98,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             CreatedAt = CreatedAt,
             StartAt = StartAt,
             UpdatedAt = UpdatedAt,
+            BackoffUntil = BackoffUntil,
             Status = Status,
             Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             InstanceInformation = new InstanceInformation

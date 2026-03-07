@@ -32,7 +32,7 @@ internal sealed class EngineDbContext : DbContext
             entity.HasIndex(e => new { e.InstanceGuid, e.Status });
 
             entity
-                .HasIndex(e => new { e.StartAt, e.CreatedAt })
+                .HasIndex(e => new { e.BackoffUntil, e.CreatedAt })
                 .HasFilter("\"Status\" IN (0, 2)")
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
 

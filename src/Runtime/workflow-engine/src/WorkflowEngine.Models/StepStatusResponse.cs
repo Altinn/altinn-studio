@@ -59,13 +59,6 @@ public sealed record StepStatusResponse
     [JsonPropertyName("retryCount")]
     public required int RetryCount { get; init; }
 
-    /// <summary>
-    /// When the step will next be eligible for execution (if backed off).
-    /// </summary>
-    [JsonPropertyName("backoffUntil")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? BackoffUntil { get; init; }
-
     [JsonPropertyName("retryStrategy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public RetryStrategy? RetryStrategy { get; init; }
@@ -91,7 +84,6 @@ public sealed record StepStatusResponse
             UpdatedAt = step.UpdatedAt,
             Metadata = step.Metadata,
             RetryCount = step.RequeueCount,
-            BackoffUntil = step.BackoffUntil,
             RetryStrategy = step.RetryStrategy,
         };
 

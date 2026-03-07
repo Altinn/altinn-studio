@@ -84,7 +84,6 @@ internal sealed partial class EngineRepository
                             setters =>
                                 setters
                                     .SetProperty(t => t.Status, step.Status)
-                                    .SetProperty(t => t.BackoffUntil, step.BackoffUntil)
                                     .SetProperty(t => t.RequeueCount, step.RequeueCount)
                                     .SetProperty(t => t.UpdatedAt, step.UpdatedAt),
                             ct
@@ -434,7 +433,7 @@ internal sealed partial class EngineRepository
                     var writer = await conn.BeginBinaryImportAsync(
                         """
                         COPY "Workflows" (
-                            "Id", "OperationId", "IdempotencyKey", "InstanceLockKey", "Status", "CreatedAt", "StartAt",
+                            "Id", "OperationId", "IdempotencyKey", "InstanceLockKey", "Status", "CreatedAt", "StartAt", "BackoffUntil",
                             "ActorUserIdOrOrgNumber", "ActorLanguage",
                             "InstanceOrg", "InstanceApp", "InstanceOwnerPartyId", "InstanceGuid",
                             "TraceContext", "MetadataJson", "EngineTraceId", "InitialState"
@@ -469,10 +468,16 @@ internal sealed partial class EngineRepository
                             ); // Status (integer enum)
                             await writer.WriteAsync(now, NpgsqlDbType.TimestampTz, cancellationToken); // CreatedAt
 
-                            if (wf.StartAt.HasValue) // StartAt
+                            if (wf.StartAt.HasValue)
+                            {
                                 await writer.WriteAsync(wf.StartAt.Value, NpgsqlDbType.TimestampTz, cancellationToken);
+                                await writer.WriteAsync(wf.StartAt.Value, NpgsqlDbType.TimestampTz, cancellationToken);
+                            }
                             else
+                            {
                                 await writer.WriteNullAsync(cancellationToken);
+                                await writer.WriteNullAsync(cancellationToken);
+                            }
 
                             await writer.WriteAsync(
                                 req.Request.Actor.UserIdOrOrgNumber,
@@ -525,8 +530,7 @@ internal sealed partial class EngineRepository
                         """
                         COPY "Steps" (
                             "Id", "OperationId", "IdempotencyKey", "Status", "CreatedAt", "ProcessingOrder",
-                            "BackoffUntil", "RequeueCount",
-                            "ActorUserIdOrOrgNumber", "ActorLanguage",
+                            "RequeueCount", "ActorUserIdOrOrgNumber", "ActorLanguage",
                             "CommandJson", "RetryStrategyJson", "MetadataJson",
                             "StateOut", "JobId"
                         ) FROM STDIN (FORMAT BINARY)
@@ -558,7 +562,6 @@ internal sealed partial class EngineRepository
                         ); // Status
                         await writer.WriteAsync(now, NpgsqlDbType.TimestampTz, cancellationToken); // CreatedAt
                         await writer.WriteAsync(order, NpgsqlDbType.Integer, cancellationToken); // ProcessingOrder
-                        await writer.WriteNullAsync(cancellationToken); // BackoffUntil (null at creation)
                         await writer.WriteAsync(0, NpgsqlDbType.Integer, cancellationToken); // RequeueCount (0 at creation)
                         await writer.WriteAsync(actorUserId, NpgsqlDbType.Varchar, cancellationToken); // ActorUserIdOrOrgNumber
 
@@ -696,7 +699,6 @@ internal sealed partial class EngineRepository
 
         await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        // TODO: Check BackoffUntil?
         var ids = await context
             .Database.SqlQuery<Guid>(
                 $"""
@@ -705,7 +707,7 @@ internal sealed partial class EngineRepository
                 WHERE "Id" IN (
                     SELECT w."Id" FROM "Workflows" w
                     WHERE w."Status" IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued})
-                      AND (w."StartAt" IS NULL OR w."StartAt" <= {now})
+                      AND (w."BackoffUntil" IS NULL OR w."BackoffUntil" <= {now})
                       AND NOT EXISTS (
                           SELECT 1 FROM "WorkflowDependency" wd
                           JOIN "Workflows" dep ON dep."Id" = wd."DependsOnWorkflowId"
@@ -714,7 +716,7 @@ internal sealed partial class EngineRepository
                             AND dep."Status" <> {PersistentItemStatus.Failed}
                             AND dep."Status" <> {PersistentItemStatus.DependencyFailed}
                       )
-                    ORDER BY w."StartAt" NULLS FIRST, w."CreatedAt"
+                    ORDER BY w."BackoffUntil" NULLS FIRST, w."CreatedAt"
                     FOR UPDATE SKIP LOCKED
                     LIMIT {count}
                 )
@@ -744,57 +746,6 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task BatchUpdateWorkflowStatuses(
-        IReadOnlyList<WorkflowResult> results,
-        CancellationToken cancellationToken
-    )
-    {
-        if (results.Count == 0)
-            return;
-
-        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateWorkflowStatuses");
-
-        var now = timeProvider.GetUtcNow();
-        var ids = results.Select(r => r.WorkflowId).ToArray();
-        var statuses = results.Select(r => (int)r.Status).ToArray();
-
-        // Uses integer status enum values
-        const string sql = """
-            UPDATE "Workflows" AS w
-            SET "Status"     = v.status,
-                "UpdatedAt"  = v.now
-            FROM unnest(@ids, @statuses) AS v(id, status)
-            WHERE w."Id" = v.id
-            """;
-
-        try
-        {
-            await ExecuteWithRetry(
-                async ct =>
-                {
-                    await using var conn = await dataSource.OpenConnectionAsync(ct);
-                    await using var cmd = new NpgsqlCommand(sql, conn);
-                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
-                    cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", statuses));
-                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
-                    await cmd.ExecuteNonQueryAsync(ct);
-                },
-                cancellationToken
-            );
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            logger.FailedToBatchUpdateWorkflowStatuses(ex.Message, ex);
-            throw;
-        }
-    }
-
-    /// <inheritdoc/>
     public async Task BatchUpdateWorkflowsAndSteps(
         IReadOnlyList<BatchWorkflowStatusUpdate> updates,
         CancellationToken cancellationToken
@@ -820,6 +771,7 @@ internal sealed partial class EngineRepository
                     // 1. Bulk update all workflows
                     var ids = new Guid[updates.Count];
                     var statuses = new int[updates.Count];
+                    var backoffUntils = new object[updates.Count];
                     var engineTraceIds = new object[updates.Count];
 
                     for (int i = 0; i < updates.Count; i++)
@@ -827,6 +779,7 @@ internal sealed partial class EngineRepository
                         var w = updates[i].Workflow;
                         ids[i] = w.DatabaseId;
                         statuses[i] = (int)w.Status;
+                        backoffUntils[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
                         engineTraceIds[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
                     }
 
@@ -834,9 +787,10 @@ internal sealed partial class EngineRepository
                     UPDATE "Workflows" AS w
                     SET "Status"        = v.status,
                         "UpdatedAt"     = @now,
+                        "BackoffUntil" = v.backoff_until,
                         "EngineTraceId" = v.engine_trace_id
-                    FROM unnest(@ids, @statuses, @engine_trace_ids)
-                        AS v(id, status, engine_trace_id)
+                    FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_ids)
+                        AS v(id, status, backoff_until, engine_trace_id)
                     WHERE w."Id" = v.id
                     """;
 
@@ -844,6 +798,12 @@ internal sealed partial class EngineRepository
                     {
                         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", statuses));
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("backoff_untils", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
+                            {
+                                Value = backoffUntils,
+                            }
+                        );
                         cmd.Parameters.Add(
                             new NpgsqlParameter("engine_trace_ids", NpgsqlDbType.Array | NpgsqlDbType.Text)
                             {
@@ -861,7 +821,6 @@ internal sealed partial class EngineRepository
                     {
                         var stepIds = new Guid[allSteps.Count];
                         var stepStatuses = new int[allSteps.Count];
-                        var stepBackoffUntils = new object[allSteps.Count];
                         var stepRequeueCounts = new int[allSteps.Count];
                         var stepStateOuts = new object[allSteps.Count];
 
@@ -870,9 +829,6 @@ internal sealed partial class EngineRepository
                             var s = allSteps[i];
                             stepIds[i] = s.DatabaseId;
                             stepStatuses[i] = (int)s.Status;
-                            stepBackoffUntils[i] = s.BackoffUntil.HasValue
-                                ? (object)s.BackoffUntil.Value
-                                : DBNull.Value;
                             stepRequeueCounts[i] = s.RequeueCount;
                             stepStateOuts[i] = (object?)s.StateOut ?? DBNull.Value;
                         }
@@ -880,24 +836,17 @@ internal sealed partial class EngineRepository
                         const string updateStepsSql = """
                         UPDATE "Steps" AS s
                         SET "Status"       = v.status,
-                            "BackoffUntil" = v.backoff_until,
                             "RequeueCount" = v.requeue_count,
                             "StateOut"     = v.state_out,
                             "UpdatedAt"    = @now
-                        FROM unnest(@ids, @statuses, @backoff_untils, @requeue_counts, @state_outs)
-                            AS v(id, status, backoff_until, requeue_count, state_out)
+                        FROM unnest(@ids, @statuses, @requeue_counts, @state_outs)
+                            AS v(id, status, requeue_count, state_out)
                         WHERE s."Id" = v.id
                         """;
 
                         await using var cmd = new NpgsqlCommand(updateStepsSql, conn, tx);
                         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", stepIds));
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("statuses", stepStatuses));
-                        cmd.Parameters.Add(
-                            new NpgsqlParameter("backoff_untils", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz)
-                            {
-                                Value = stepBackoffUntils,
-                            }
-                        );
                         cmd.Parameters.Add(new NpgsqlParameter<int[]>("requeue_counts", stepRequeueCounts));
                         cmd.Parameters.Add(
                             new NpgsqlParameter("state_outs", NpgsqlDbType.Array | NpgsqlDbType.Text)
