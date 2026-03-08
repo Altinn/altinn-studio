@@ -1,9 +1,8 @@
 using System;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -15,7 +14,6 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 public class GiteaDbStudioOidcUsernameProvider(
     DesignerdbContext designerDb,
     GiteaDbSettings giteaDbSettings,
-    DeveloperMappingSettings mappingSettings,
     TimeProvider timeProvider
 ) : IStudioOidcUsernameProvider
 {
@@ -27,12 +25,12 @@ public class GiteaDbStudioOidcUsernameProvider(
         LIMIT 1
         """;
 
-    public async Task<string> ResolveUsernameAsync(string sub, string pid, string? givenName)
+    public async Task<string> ResolveUsernameAsync(string sub, PidHash pidHash, string? givenName)
     {
-        string pidHash = ComputePidHash(pid);
+        string pidHashValue = pidHash.Value;
 
         // Step 1: Check Designer DB mapping
-        var mapping = await designerDb.UserAccounts.FirstOrDefaultAsync(m => m.PidHash == pidHash);
+        var mapping = await designerDb.UserAccounts.FirstOrDefaultAsync(m => m.PidHash == pidHashValue);
 
         if (mapping != null)
         {
@@ -65,12 +63,12 @@ public class GiteaDbStudioOidcUsernameProvider(
         return result as string;
     }
 
-    private async Task StoreMapping(string pidHash, string username)
+    private async Task StoreMapping(PidHash pidHash, string username)
     {
         designerDb.UserAccounts.Add(
             new UserAccountDbModel
             {
-                PidHash = pidHash,
+                PidHash = pidHash.Value,
                 Username = username,
                 Created = timeProvider.GetUtcNow(),
             }
@@ -97,11 +95,5 @@ public class GiteaDbStudioOidcUsernameProvider(
         sanitized = Regex.Replace(sanitized, "[^a-z]", "");
 
         return sanitized.Length > 0 ? sanitized : "dev";
-    }
-
-    private string ComputePidHash(string pid)
-    {
-        byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(mappingSettings.PidHashSalt + pid));
-        return Convert.ToHexStringLower(bytes);
     }
 }

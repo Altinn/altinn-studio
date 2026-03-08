@@ -7,11 +7,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Net.Sockets;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Designer.Tests.Utils;
@@ -365,22 +365,16 @@ namespace Designer.Tests.Fixtures
 
         private async Task SeedUserAccountMapping()
         {
-            string pidHash = ComputePidHash(TestUserPid);
+            PidHash pidHash = PidHash.FromPid(TestUserPid, PidHashSalt);
             _dbContext.UserAccounts.Add(
                 new UserAccountDbModel
                 {
-                    PidHash = pidHash,
+                    PidHash = pidHash.Value,
                     Username = GiteaConstants.TestUser,
                     Created = DateTimeOffset.UtcNow,
                 }
             );
             await _dbContext.SaveChangesAsync();
-        }
-
-        private static string ComputePidHash(string pid)
-        {
-            byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(PidHashSalt + pid));
-            return Convert.ToHexStringLower(bytes);
         }
     }
 }

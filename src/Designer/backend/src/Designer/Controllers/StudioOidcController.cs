@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
@@ -15,7 +17,10 @@ namespace Altinn.Studio.Designer.Controllers;
 [FeatureGate(StudioFeatureFlags.StudioOidc)]
 [Route("designer/api/v1/studio-oidc")]
 [ApiController]
-public class StudioOidcController(IStudioOidcUsernameProvider usernameProvider) : ControllerBase
+public class StudioOidcController(
+    IStudioOidcUsernameProvider usernameProvider,
+    DeveloperMappingSettings mappingSettings
+) : ControllerBase
 {
     [Authorize]
     [HttpGet("callback")]
@@ -35,7 +40,8 @@ public class StudioOidcController(IStudioOidcUsernameProvider usernameProvider) 
         }
 
         string? givenName = User.FindFirst("given_name")?.Value;
-        string computedUsername = await usernameProvider.ResolveUsernameAsync(sub, pid, givenName);
+        PidHash pidHash = PidHash.FromPid(pid, mappingSettings);
+        string computedUsername = await usernameProvider.ResolveUsernameAsync(sub, pidHash, givenName);
 
         AuthenticateResult authenticateResult = await HttpContext.AuthenticateAsync();
         AuthenticationProperties? properties = authenticateResult.Properties;
