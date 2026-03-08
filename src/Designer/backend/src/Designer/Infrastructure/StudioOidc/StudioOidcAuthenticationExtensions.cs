@@ -326,12 +326,7 @@ public static class StudioOidcAuthenticationExtensions
         catch (Exception ex)
         {
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            activity?.AddEvent(
-                new ActivityEvent(
-                    "token_refresh_exception",
-                    tags: new ActivityTagsCollection { { "exception.message", ex.Message } }
-                )
-            );
+            activity?.AddException(ex);
             context.RejectPrincipal();
         }
     }
