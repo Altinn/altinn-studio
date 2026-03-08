@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Exceptions.ApiKey;
+using Altinn.Studio.Designer.Models.ApiKey;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
@@ -24,7 +24,7 @@ public class ApiKeyService(
 {
     private const int RawKeyLengthBytes = 32;
 
-    public async Task<(string RawKey, ApiKeyDbModel Model)> CreateAsync(
+    public async Task<(string RawKey, ApiKey ApiKey)> CreateAsync(
         string username,
         string name,
         ApiKeyType tokenType,
@@ -51,11 +51,11 @@ public class ApiKeyService(
         }
 
         string rawKey = GenerateRawKey();
-        string keyHash = ComputeHash(rawKey);
+        ApiKeyHash keyHash = ApiKeyHash.FromRawKey(rawKey, settings);
 
         var model = new ApiKeyDbModel
         {
-            KeyHash = keyHash,
+            KeyHash = keyHash.Value,
             UserAccountId = userAccountId,
             Name = name,
             TokenType = tokenType,
@@ -65,13 +65,13 @@ public class ApiKeyService(
         };
 
         var created = await repository.CreateAsync(model, cancellationToken);
-        return (rawKey, created);
+        return (rawKey, MapToDomain(created, username));
     }
 
-    public async Task<ApiKeyDbModel?> ValidateAsync(string rawKey, CancellationToken cancellationToken = default)
+    public async Task<ApiKey?> ValidateAsync(string rawKey, CancellationToken cancellationToken = default)
     {
-        string keyHash = ComputeHash(rawKey);
-        var model = await repository.GetByKeyHashAsync(keyHash, cancellationToken);
+        ApiKeyHash keyHash = ApiKeyHash.FromRawKey(rawKey, settings);
+        var model = await repository.GetByKeyHashAsync(keyHash.Value, cancellationToken);
 
         if (model is null)
         {
@@ -83,17 +83,18 @@ public class ApiKeyService(
             return null;
         }
 
-        return model;
+        return MapToDomain(model, model.UserAccount.Username);
     }
 
-    public async Task<List<ApiKeyDbModel>> ListAsync(
+    public async Task<List<ApiKey>> ListAsync(
         string username,
         ApiKeyType? tokenType = null,
         CancellationToken cancellationToken = default
     )
     {
         Guid userAccountId = await ResolveUserAccountIdAsync(username, cancellationToken);
-        return await repository.GetByUserAccountIdAsync(userAccountId, tokenType, cancellationToken);
+        var models = await repository.GetByUserAccountIdAsync(userAccountId, tokenType, cancellationToken);
+        return models.Select(m => MapToDomain(m, username)).ToList();
     }
 
     public async Task RevokeAsync(long id, string username, CancellationToken cancellationToken = default)
@@ -116,11 +117,16 @@ public class ApiKeyService(
         return userAccount.Id;
     }
 
-    private string ComputeHash(string rawKey)
-    {
-        byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(settings.HashSalt + rawKey));
-        return Convert.ToHexStringLower(bytes);
-    }
+    private static ApiKey MapToDomain(ApiKeyDbModel model, string username) =>
+        new()
+        {
+            Id = model.Id,
+            Name = model.Name,
+            TokenType = model.TokenType,
+            ExpiresAt = model.ExpiresAt,
+            CreatedAt = model.CreatedAt,
+            Username = username,
+        };
 
     private static string GenerateRawKey()
     {

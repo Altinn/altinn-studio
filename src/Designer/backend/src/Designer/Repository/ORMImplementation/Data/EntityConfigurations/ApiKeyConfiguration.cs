@@ -1,3 +1,4 @@
+using Altinn.Studio.Designer.Models.ApiKey;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -20,11 +21,7 @@ public class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKeyDbModel>
 
         builder.Property(e => e.Name).HasColumnType("character varying").HasColumnName("name").IsRequired();
 
-        builder
-            .Property(e => e.TokenType)
-            .HasColumnName("token_type")
-            .HasDefaultValue(Enums.ApiKeyType.User)
-            .IsRequired();
+        builder.Property(e => e.TokenType).HasColumnName("token_type").HasDefaultValue(ApiKeyType.User).IsRequired();
 
         builder.Property(e => e.ExpiresAt).HasColumnType("timestamptz").HasColumnName("expires_at").IsRequired();
 

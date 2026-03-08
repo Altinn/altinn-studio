@@ -28,16 +28,16 @@ public class ApiKeyAuthenticationHandler(
             return AuthenticateResult.Fail("API key header is empty.");
         }
 
-        var token = await apiKeyService.ValidateAsync(rawKey);
-        if (token is null)
+        var apiKey = await apiKeyService.ValidateAsync(rawKey);
+        if (apiKey is null)
         {
             return AuthenticateResult.Fail("Invalid or expired token.");
         }
 
         var claims = new[]
         {
-            new Claim(ClaimTypes.Name, token.UserAccount.Username),
-            new Claim("preferred_username", token.UserAccount.Username),
+            new Claim(ClaimTypes.Name, apiKey.Username),
+            new Claim("preferred_username", apiKey.Username),
         };
 
         var identity = new ClaimsIdentity(claims, ApiKeyAuthenticationDefaults.AuthenticationScheme);

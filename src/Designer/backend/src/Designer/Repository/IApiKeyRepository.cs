@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Models.ApiKey;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
 namespace Altinn.Studio.Designer.Repository;

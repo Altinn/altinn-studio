@@ -1,4 +1,4 @@
-namespace Altinn.Studio.Designer.Enums;
+namespace Altinn.Studio.Designer.Models.ApiKey;
 
 public enum ApiKeyType
 {

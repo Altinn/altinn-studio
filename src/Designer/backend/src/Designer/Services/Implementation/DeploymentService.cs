@@ -609,7 +609,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 var (rawKey, _) = await _apiKeyService.CreateAsync(
                     username,
                     "deploy",
-                    Enums.ApiKeyType.System,
+                    Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
                     _timeProvider.GetUtcNow().AddHours(1)
                 );
                 return (rawKey, "X-Api-Key");

@@ -1,22 +1,22 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Enums;
-using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
+using Altinn.Studio.Designer.Models.ApiKey;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IApiKeyService
 {
-    Task<(string RawKey, ApiKeyDbModel Model)> CreateAsync(
+    Task<(string RawKey, ApiKey ApiKey)> CreateAsync(
         string username,
         string name,
         ApiKeyType tokenType,
-        System.DateTimeOffset expiresAt,
+        DateTimeOffset expiresAt,
         CancellationToken cancellationToken = default
     );
-    Task<ApiKeyDbModel?> ValidateAsync(string rawKey, CancellationToken cancellationToken = default);
-    Task<List<ApiKeyDbModel>> ListAsync(
+    Task<ApiKey?> ValidateAsync(string rawKey, CancellationToken cancellationToken = default);
+    Task<List<ApiKey>> ListAsync(
         string username,
         ApiKeyType? tokenType = null,
         CancellationToken cancellationToken = default

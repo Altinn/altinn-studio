@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
-using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models.ApiKey;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -33,7 +33,7 @@ public class ApiKeysController(IApiKeyService apiKeyService) : ControllerBase
 
         string username = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        var (rawKey, model) = await apiKeyService.CreateAsync(
+        var (rawKey, apiKey) = await apiKeyService.CreateAsync(
             username,
             request.Name,
             ApiKeyType.User,
@@ -41,7 +41,7 @@ public class ApiKeysController(IApiKeyService apiKeyService) : ControllerBase
             cancellationToken
         );
 
-        return Created(string.Empty, new CreateApiKeyResponse(model.Id, rawKey, model.Name, model.ExpiresAt));
+        return Created(string.Empty, new CreateApiKeyResponse(apiKey.Id, rawKey, apiKey.Name, apiKey.ExpiresAt));
     }
 
     [HttpGet]
@@ -49,9 +49,9 @@ public class ApiKeysController(IApiKeyService apiKeyService) : ControllerBase
     {
         string username = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        var tokens = await apiKeyService.ListAsync(username, ApiKeyType.User, cancellationToken);
+        var apiKeys = await apiKeyService.ListAsync(username, ApiKeyType.User, cancellationToken);
 
-        var response = tokens.Select(t => new ApiKeyResponse(t.Id, t.Name, t.ExpiresAt, t.CreatedAt)).ToList();
+        var response = apiKeys.Select(k => new ApiKeyResponse(k.Id, k.Name, k.ExpiresAt, k.CreatedAt)).ToList();
 
         return Ok(response);
     }

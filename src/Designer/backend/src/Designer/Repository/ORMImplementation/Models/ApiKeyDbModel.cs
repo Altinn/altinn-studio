@@ -1,5 +1,5 @@
 using System;
-using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Models.ApiKey;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
