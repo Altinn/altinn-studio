@@ -4,25 +4,13 @@ namespace WorkflowEngine.Models.Tests.Extensions;
 
 public class WorkflowExtensionsTests
 {
-    private static Actor _defaultActor => new() { UserIdOrOrgNumber = "user-1" };
-
-    private static InstanceInformation _defaultInstance =>
-        new()
-        {
-            Org = "ttd",
-            App = "test-app",
-            InstanceOwnerPartyId = 12345,
-            InstanceGuid = Guid.NewGuid(),
-        };
-
     private static Step CreateStep(PersistentItemStatus status, int order = 0) =>
         new()
         {
             OperationId = "op",
             IdempotencyKey = $"step-key-{order}",
-            Actor = _defaultActor,
             ProcessingOrder = order,
-            Command = new Command.Debug.Noop(),
+            Command = new Command { Type = "noop", OperationId = "noop" },
             Status = status,
         };
 
@@ -31,8 +19,7 @@ public class WorkflowExtensionsTests
         {
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
-            Actor = _defaultActor,
-            InstanceInformation = _defaultInstance,
+            TenantId = "tenant-1",
             Steps = steps.ToList(),
         };
 

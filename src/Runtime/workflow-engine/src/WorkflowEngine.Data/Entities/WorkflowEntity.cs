@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 using WorkflowEngine.Data.Abstractions;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Entities;
@@ -17,8 +19,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public required string IdempotencyKey { get; set; }
 
-    [MaxLength(100)]
-    public string? InstanceLockKey { get; set; }
+    [MaxLength(200)]
+    public required string TenantId { get; set; }
 
     public PersistentItemStatus Status { get; set; }
 
@@ -28,21 +30,11 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public DateTimeOffset? UpdatedAt { get; set; }
 
-    [MaxLength(50)]
-    public required string ActorUserIdOrOrgNumber { get; set; }
+    [Column(TypeName = "jsonb")]
+    public string? LabelsJson { get; set; }
 
-    [MaxLength(10)]
-    public string? ActorLanguage { get; set; }
-
-    [MaxLength(100)]
-    public required string InstanceOrg { get; set; }
-
-    [MaxLength(100)]
-    public required string InstanceApp { get; set; }
-
-    public int InstanceOwnerPartyId { get; set; }
-
-    public Guid InstanceGuid { get; set; }
+    [Column(TypeName = "jsonb")]
+    public string? ContextJson { get; set; }
 
     [MaxLength(100)]
     public string? TraceContext { get; set; }
@@ -63,19 +55,16 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
         new()
         {
             Id = workflow.DatabaseId,
-            InstanceLockKey = workflow.InstanceLockKey,
             OperationId = workflow.OperationId,
             IdempotencyKey = workflow.IdempotencyKey,
+            TenantId = workflow.TenantId,
             CreatedAt = workflow.CreatedAt,
             StartAt = workflow.StartAt,
             UpdatedAt = workflow.UpdatedAt,
             Status = workflow.Status,
-            ActorUserIdOrOrgNumber = workflow.Actor.UserIdOrOrgNumber,
-            ActorLanguage = workflow.Actor.Language,
-            InstanceOrg = workflow.InstanceInformation.Org,
-            InstanceApp = workflow.InstanceInformation.App,
-            InstanceOwnerPartyId = workflow.InstanceInformation.InstanceOwnerPartyId,
-            InstanceGuid = workflow.InstanceInformation.InstanceGuid,
+            LabelsJson =
+                workflow.Labels != null ? JsonSerializer.Serialize(workflow.Labels, JsonOptions.Default) : null,
+            ContextJson = workflow.Context.HasValue ? workflow.Context.Value.GetRawText() : null,
             TraceContext = workflow.DistributedTraceContext,
             MetadataJson = workflow.Metadata,
             EngineTraceId = workflow.EngineTraceContext,
@@ -89,21 +78,19 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
         new()
         {
             DatabaseId = Id,
-            InstanceLockKey = InstanceLockKey,
             IdempotencyKey = IdempotencyKey,
             OperationId = OperationId,
+            TenantId = TenantId,
             CreatedAt = CreatedAt,
             StartAt = StartAt,
             UpdatedAt = UpdatedAt,
             Status = Status,
-            Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
-            InstanceInformation = new InstanceInformation
-            {
-                Org = InstanceOrg,
-                App = InstanceApp,
-                InstanceOwnerPartyId = InstanceOwnerPartyId,
-                InstanceGuid = InstanceGuid,
-            },
+            Labels =
+                LabelsJson != null
+                    ? JsonSerializer.Deserialize<Dictionary<string, string>>(LabelsJson, JsonOptions.Default)
+                    : null,
+            Context =
+                ContextJson != null ? JsonSerializer.Deserialize<JsonElement>(ContextJson, JsonOptions.Default) : null,
             DistributedTraceContext = TraceContext,
             Metadata = MetadataJson,
             EngineTraceContext = EngineTraceId,

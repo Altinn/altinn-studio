@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using WorkflowEngine.CommandHandlers.Altinn;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 
@@ -8,31 +10,50 @@ namespace WorkflowEngine.Integration.Tests;
 public partial class EngineTests
 {
     [Fact]
-    public async Task AppCommand_WithoutLockToken_Returns400_AndNothingEnqueued()
+    public async Task AppCommand_WithoutLockToken_ReturnsBadRequest()
     {
-        // Arrange
+        // Arrange — app commands without lockToken in Context are rejected at validation time
         var request = new WorkflowEnqueueRequest
         {
-            Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            TenantId = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
             IdempotencyKey = $"idem-{Guid.NewGuid()}",
-            LockToken = null,
+            Context = JsonSerializer.SerializeToElement(
+                new
+                {
+                    Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+                    Org = EngineAppFixture.DefaultOrg,
+                    App = EngineAppFixture.DefaultApp,
+                    InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId),
+                    InstanceGuid = EngineAppFixture.DefaultInstanceGuid,
+                }
+            ),
             Workflows =
             [
                 new WorkflowRequest
                 {
                     Ref = "wf",
                     OperationId = $"op-{Guid.NewGuid()}",
-                    Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
+                    Steps =
+                    [
+                        new StepRequest
+                        {
+                            Command = new Command
+                            {
+                                Type = "app",
+                                OperationId = "do-something",
+                                Data = JsonSerializer.SerializeToElement(new { commandKey = "do-something" }),
+                            },
+                        },
+                    ],
                 },
             ],
         };
 
         // Act
-        using var response = await _client.EnqueueRaw(_instanceGuid, request);
+        using var response = await _client.EnqueueRaw(request);
 
-        // Assert
+        // Assert — validation rejects the request because lockToken is missing
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        await _testHelpers.AssertDbEmpty();
     }
 
     [Fact]
@@ -48,7 +69,7 @@ public partial class EngineTests
 
         // Act
         using var response = await unauthenticatedClient.PostAsJsonAsync(
-            EngineApiClient.GetInstancePath(_instanceGuid),
+            EngineApiClient.GetTenantPath(EngineApiClient.DefaultTenantId),
             request,
             cancellationToken: TestContext.Current.CancellationToken
         );

@@ -10,10 +10,10 @@ namespace WorkflowEngine.Models;
 public sealed record WorkflowEnqueueRequest
 {
     /// <summary>
-    /// The actor submitting this batch.
+    /// Primary isolation boundary. Idempotency keys are unique within a tenant.
     /// </summary>
-    [JsonPropertyName("actor")]
-    public required Actor Actor { get; init; }
+    [JsonPropertyName("tenantId")]
+    public required string TenantId { get; init; }
 
     /// <summary>
     /// An idempotency key for this entire enqueue request (all workflows in the batch).
@@ -21,12 +21,19 @@ public sealed record WorkflowEnqueueRequest
     [JsonPropertyName("idempotencyKey")]
     public required string IdempotencyKey { get; init; }
 
-    // TODO: This is named 'InstanceLockKey' elsewhere, unify to one or the other
     /// <summary>
-    /// Optional instance lock key shared by all workflows in this batch.
+    /// Indexed key-value pairs for filtering, grouping, and dashboard queries.
+    /// Applied to all workflows in this batch.
     /// </summary>
-    [JsonPropertyName("lockToken")]
-    public string? LockToken { get; init; }
+    [JsonPropertyName("labels")]
+    public Dictionary<string, string>? Labels { get; init; }
+
+    /// <summary>
+    /// Opaque context passed to command handlers at execution time.
+    /// Applied to all workflows in this batch. The engine never inspects this.
+    /// </summary>
+    [JsonPropertyName("context")]
+    public JsonElement? Context { get; init; }
 
     /// <summary>
     /// The workflows to enqueue.

@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Constants;
+using WorkflowEngine.CommandHandlers;
+using WorkflowEngine.CommandHandlers.Altinn;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
@@ -15,8 +17,7 @@ internal static class ServiceCollectionExtensions
         /// </summary>
         public IServiceCollection AddWorkflowEngineHost(
             string engineConfigSection = "EngineSettings",
-            string apiConfigSection = "ApiSettings",
-            string appCommandConfigSection = "AppCommandSettings"
+            string apiConfigSection = "ApiSettings"
         )
         {
             if (!services.IsConfigured<EngineSettings>())
@@ -24,9 +25,6 @@ internal static class ServiceCollectionExtensions
 
             if (!services.IsConfigured<ApiSettings>())
                 services.ConfigureApi(apiConfigSection);
-
-            if (!services.IsConfigured<AppCommandSettings>())
-                services.ConfigureAppCommand(appCommandConfigSection);
 
             services
                 .AddHttpClient()
@@ -41,6 +39,14 @@ internal static class ServiceCollectionExtensions
                 var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
                 return new ConcurrencyLimiter(settings.MaxConcurrentDbOperations, settings.MaxConcurrentHttpCalls);
             });
+
+            // Command handler plugin system
+            services.AddSingleton<ICommandHandlerRegistry>(sp =>
+            {
+                var handlers = sp.GetServices<ICommandHandler>();
+                return new CommandHandlerRegistry(handlers);
+            });
+
             services.AddSingleton<IEngine, Engine>();
             services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
 
@@ -65,6 +71,54 @@ internal static class ServiceCollectionExtensions
             services.AddHostedService<MetricsCollector>();
 
             services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromMinutes(2));
+
+            return services;
+        }
+
+        /// <summary>
+        /// Registers a command handler with the engine.
+        /// </summary>
+        public IServiceCollection AddCommandHandler<THandler>()
+            where THandler : class, ICommandHandler
+        {
+            services.AddSingleton<ICommandHandler, THandler>();
+            return services;
+        }
+
+        /// <summary>
+        /// Registers command handlers based on the <c>CommandHandlers</c> configuration section.
+        /// Each entry maps a handler key to a known handler type.
+        /// Handlers requiring additional configuration (e.g., "app") will have their
+        /// settings bound automatically.
+        /// </summary>
+        public IServiceCollection AddConfiguredCommandHandlers(IConfiguration configuration)
+        {
+            var enabledHandlers = configuration.GetSection("CommandHandlers").Get<string[]>();
+            if (enabledHandlers is null || enabledHandlers.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    "No command handler configured. Without any handlers, we can't process commands..."
+                );
+            }
+
+            // TODO: This is very static...
+            foreach (var handler in enabledHandlers)
+            {
+                switch (handler.ToUpperInvariant())
+                {
+                    case "APP":
+                        services.ConfigureAppCommand();
+                        services.AddCommandHandler<AppCommandHandler>();
+                        break;
+                    case "WEBHOOK":
+                        services.AddCommandHandler<WebhookCommandHandler>();
+                        break;
+                    default:
+                        throw new InvalidOperationException(
+                            $"Unknown command handler '{handler}'. Known handlers: app, webhook"
+                        );
+                }
+            }
 
             return services;
         }
@@ -108,7 +162,18 @@ internal static class ServiceCollectionExtensions
             return services;
         }
 
-        public IServiceCollection ConfigureAppCommand(string configSectionPath)
+        /// <summary>
+        /// Adds health checks.
+        /// </summary>
+        public IServiceCollection AddEngineHealthChecks()
+        {
+            services.AddHealthChecks().AddCheck<EngineHealthCheck>("Engine", tags: ["ready"]);
+            services.AddDbContextHealthCheck("Database", ["ready", "dependencies"]);
+
+            return services;
+        }
+
+        public IServiceCollection ConfigureAppCommand(string configSectionPath = "AppCommandSettings")
         {
             services
                 .AddOptions<AppCommandSettings>()
@@ -126,18 +191,6 @@ internal static class ServiceCollectionExtensions
                 .Configure(configureOptions)
                 .SetAppCommandDefaults()
                 .ValidateAppCommandSettings();
-
-            return services;
-        }
-
-        /// <summary>
-        /// Adds health checks.
-        /// </summary>
-        /// <returns></returns>
-        public IServiceCollection AddEngineHealthChecks()
-        {
-            services.AddHealthChecks().AddCheck<EngineHealthCheck>("Engine", tags: ["ready"]);
-            services.AddDbContextHealthCheck("Database", ["ready", "dependencies"]);
 
             return services;
         }
@@ -239,7 +292,6 @@ internal static class OptionsBuilderExtensions
 
         public OptionsBuilder<AppCommandSettings> SetAppCommandDefaults()
         {
-            // Note: Don't offer to set API key here, it should always be explicitly set in the config.
             builder.PostConfigure(config =>
             {
                 config.CommandEndpoint ??= Defaults.AppCommandSettings.CommandEndpoint;

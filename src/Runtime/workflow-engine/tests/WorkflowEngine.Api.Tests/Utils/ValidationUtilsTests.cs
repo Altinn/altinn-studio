@@ -5,6 +5,8 @@ namespace WorkflowEngine.Api.Tests.Utils;
 
 public class ValidationUtilsTests
 {
+    private static Command NoopCommand() => new() { Type = "noop", OperationId = "noop" };
+
     private static WorkflowRequest CreateWorkflowRequest(
         string workflowRef,
         IEnumerable<string>? dependsOnRefs = null
@@ -13,7 +15,7 @@ public class ValidationUtilsTests
         {
             Ref = workflowRef,
             OperationId = $"op-{workflowRef}",
-            Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
+            Steps = [new StepRequest { Command = NoopCommand() }],
             DependsOn = dependsOnRefs?.Select(d => (WorkflowRef)d).ToList(),
         };
 
@@ -269,7 +271,10 @@ public class ValidationUtilsTests
 
     public static TheoryData<WorkflowRequest, ExpectedResult> WorkflowRequestCases()
     {
-        var validStep = new StepRequest { Command = new Command.Debug.Noop() };
+        var validStep = new StepRequest
+        {
+            Command = new Command { Type = "noop", OperationId = "noop" },
+        };
         var validWorkflow = new WorkflowRequest { OperationId = "op", Steps = [validStep] };
 
         return new TheoryData<WorkflowRequest, ExpectedResult>
@@ -300,14 +305,26 @@ public class ValidationUtilsTests
             {
                 validWorkflow with
                 {
-                    Steps = [new StepRequest { Command = new Command.AppCommand("") }],
+                    Steps =
+                    [
+                        new StepRequest
+                        {
+                            Command = new Command { Type = "app", OperationId = "" },
+                        },
+                    ],
                 },
                 ExpectedResult.Invalid
             },
             {
                 validWorkflow with
                 {
-                    Steps = [new StepRequest { Command = new Command.AppCommand("   ") }],
+                    Steps =
+                    [
+                        new StepRequest
+                        {
+                            Command = new Command { Type = "app", OperationId = "   " },
+                        },
+                    ],
                 },
                 ExpectedResult.Invalid
             },
@@ -324,7 +341,7 @@ public class ValidationUtilsTests
 
     public static TheoryData<StepRequest, ExpectedResult> StepRequestCases()
     {
-        var validCommand = new Command.Debug.Noop();
+        var validCommand = new Command { Type = "noop", OperationId = "noop" };
 
         return new TheoryData<StepRequest, ExpectedResult>
         {
@@ -347,11 +364,17 @@ public class ValidationUtilsTests
             },
             // Invalid: empty or whitespace command OperationId
             {
-                new StepRequest { Command = new Command.AppCommand("") },
+                new StepRequest
+                {
+                    Command = new Command { Type = "app", OperationId = "" },
+                },
                 ExpectedResult.Invalid
             },
             {
-                new StepRequest { Command = new Command.AppCommand("   ") },
+                new StepRequest
+                {
+                    Command = new Command { Type = "app", OperationId = "   " },
+                },
                 ExpectedResult.Invalid
             },
             // Invalid: non-null Metadata that is not valid JSON
@@ -370,37 +393,5 @@ public class ValidationUtilsTests
     {
         Valid,
         Invalid,
-    }
-
-    // === HasAppCommandSteps ===
-
-    public static TheoryData<IReadOnlyList<WorkflowRequest>, bool> HasAppCommandStepsCases()
-    {
-        var noopStep = new StepRequest { Command = new Command.Debug.Noop() };
-        var webhookStep = new StepRequest { Command = new Command.Webhook("https://example.com") };
-        var appStep = new StepRequest { Command = new Command.AppCommand("cmd") };
-
-        WorkflowRequest Wf(params StepRequest[] steps) => new() { OperationId = "op", Steps = steps };
-
-        return new TheoryData<IReadOnlyList<WorkflowRequest>, bool>
-        {
-            { [], false },
-            { [Wf(noopStep)], false },
-            { [Wf(webhookStep)], false },
-            { [Wf(noopStep, webhookStep)], false },
-            { [Wf(appStep)], true },
-            { [Wf(noopStep, appStep)], true },
-            { [Wf(noopStep), Wf(appStep)], true }, // AppCommand in second workflow
-            { [Wf(appStep), Wf(noopStep)], true }, // AppCommand in first workflow
-            { [Wf(noopStep), Wf(webhookStep)], false }, // Neither has AppCommand
-        };
-    }
-
-    [Theory]
-    [MemberData(nameof(HasAppCommandStepsCases))]
-    public void HasAppCommandSteps_Returns_ExpectedResult(IReadOnlyList<WorkflowRequest> requests, bool expected)
-    {
-        var result = ValidationUtils.HasAppCommandSteps(requests);
-        Assert.Equal(expected, result);
     }
 }

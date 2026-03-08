@@ -1,3 +1,4 @@
+using System.Text.Json;
 using WireMock;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -30,9 +31,9 @@ public partial class EngineTests
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Equal(numSteps, status.Steps.Count);
@@ -63,9 +64,9 @@ public partial class EngineTests
         var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Single(status.Steps);
@@ -89,9 +90,9 @@ public partial class EngineTests
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Single(status.Steps);
@@ -138,9 +139,9 @@ public partial class EngineTests
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Completed, status.OverallStatus);
@@ -173,9 +174,9 @@ public partial class EngineTests
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Failed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Failed, status.OverallStatus);
@@ -192,18 +193,26 @@ public partial class EngineTests
 
         var step = new StepRequest
         {
-            Command = new Command.Webhook(
-                $"http://localhost:{fixture.WireMock.Port}{webhookPath}",
-                Payload: payload,
-                ContentType: "application/json"
-            ),
+            Command = new Command
+            {
+                Type = "webhook",
+                OperationId = webhookPath,
+                Data = JsonSerializer.SerializeToElement(
+                    new
+                    {
+                        uri = $"http://localhost:{fixture.WireMock.Port}{webhookPath}",
+                        payload,
+                        contentType = "application/json",
+                    }
+                ),
+            },
         };
         var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         var logs = fixture.WireMock.LogEntries;
@@ -259,9 +268,9 @@ public partial class EngineTests
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Failed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Failed, status.OverallStatus);
@@ -286,9 +295,8 @@ public partial class EngineTests
         ]);
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var statuses = await _client.WaitForWorkflowStatus(
-            _instanceGuid,
             response.Workflows.Select(w => w.DatabaseId),
             PersistentItemStatus.Completed
         );
@@ -319,9 +327,8 @@ public partial class EngineTests
         ]);
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var statuses = await _client.WaitForWorkflowStatus(
-            _instanceGuid,
             response.Workflows.Select(w => w.DatabaseId),
             PersistentItemStatus.Completed
         );
@@ -358,19 +365,15 @@ public partial class EngineTests
 
         // Act
         var requestA = _testHelpers.CreateEnqueueRequest(workflowA);
-        var responseA = await _client.Enqueue(_instanceGuid, requestA);
+        var responseA = await _client.Enqueue(requestA);
         var workflowAIdA = responseA.Workflows.Single().DatabaseId;
 
         var requestB = _testHelpers.CreateEnqueueRequest(workflowB with { DependsOn = [workflowAIdA] });
-        var responseB = await _client.Enqueue(_instanceGuid, requestB);
+        var responseB = await _client.Enqueue(requestB);
         var workflowIdB = responseB.Workflows.Single().DatabaseId;
 
-        var statusA = await _client.WaitForWorkflowStatus(_instanceGuid, workflowAIdA, PersistentItemStatus.Failed);
-        var statusB = await _client.WaitForWorkflowStatus(
-            _instanceGuid,
-            workflowIdB,
-            PersistentItemStatus.DependencyFailed
-        );
+        var statusA = await _client.WaitForWorkflowStatus(workflowAIdA, PersistentItemStatus.Failed);
+        var statusB = await _client.WaitForWorkflowStatus(workflowIdB, PersistentItemStatus.DependencyFailed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Failed, statusA.OverallStatus);
@@ -412,12 +415,17 @@ public partial class EngineTests
 
         const string request = $$"""
             {
-                "actor": {
-                    "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}",
-                    "language": "nb"
-                },
+                "tenantId": "{{EngineAppFixture.DefaultOrg}}:{{EngineAppFixture.DefaultApp}}",
                 "idempotencyKey": "complex-dag-raw-json",
-                "lockToken": "{{InstanceLockToken}}",
+                "labels": { "org": "{{EngineAppFixture.DefaultOrg}}", "app": "{{EngineAppFixture.DefaultApp}}" },
+                "context": {
+                    "actor": { "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}", "language": "nb" },
+                    "lockToken": "{{InstanceLockToken}}",
+                    "org": "{{EngineAppFixture.DefaultOrg}}",
+                    "app": "{{EngineAppFixture.DefaultApp}}",
+                    "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                },
                 "workflows": [
                     {
                         "ref": "wf-root",
@@ -426,7 +434,8 @@ public partial class EngineTests
                             {
                                 "command": {
                                     "type": "app",
-                                    "commandKey": "process-root"
+                                    "operationId": "process-root",
+                                    "data": { "commandKey": "process-root" }
                                 }
                             }
                         ]
@@ -441,7 +450,8 @@ public partial class EngineTests
                             {
                                 "command": {
                                     "type": "app",
-                                    "commandKey": "process-a-1"
+                                    "operationId": "process-a-1",
+                                    "data": { "commandKey": "process-a-1" }
                                 }
                             }
                         ]
@@ -456,7 +466,8 @@ public partial class EngineTests
                             {
                                 "command": {
                                     "type": "app",
-                                    "commandKey": "process-a-2"
+                                    "operationId": "process-a-2",
+                                    "data": { "commandKey": "process-a-2" }
                                 }
                             }
                         ]
@@ -471,7 +482,8 @@ public partial class EngineTests
                             {
                                 "command": {
                                     "type": "app",
-                                    "commandKey": "process-a-3"
+                                    "operationId": "process-a-3",
+                                    "data": { "commandKey": "process-a-3" }
                                 }
                             }
                         ]
@@ -486,7 +498,8 @@ public partial class EngineTests
                             {
                                 "command": {
                                     "type": "app",
-                                    "commandKey": "process-b-1"
+                                    "operationId": "process-b-1",
+                                    "data": { "commandKey": "process-b-1" }
                                 }
                             }
                         ]
@@ -501,7 +514,8 @@ public partial class EngineTests
                             {
                                 "command": {
                                     "type": "app",
-                                    "commandKey": "process-c-1"
+                                    "operationId": "process-c-1",
+                                    "data": { "commandKey": "process-c-1" }
                                 }
                             }
                         ]
@@ -517,7 +531,8 @@ public partial class EngineTests
                             {
                                 "command": {
                                     "type": "app",
-                                    "commandKey": "process-join-2-3"
+                                    "operationId": "process-join-2-3",
+                                    "data": { "commandKey": "process-join-2-3" }
                                 }
                             }
                         ]
@@ -533,13 +548,15 @@ public partial class EngineTests
                             {
                                 "command": {
                                     "type": "app",
-                                    "commandKey": "process-join-all-1"
+                                    "operationId": "process-join-all-1",
+                                    "data": { "commandKey": "process-join-all-1" }
                                 }
                             },
                             {
                                 "command": {
                                     "type": "app",
-                                    "commandKey": "process-join-all-2"
+                                    "operationId": "process-join-all-2",
+                                    "data": { "commandKey": "process-join-all-2" }
                                 }
                             }
                         ]
@@ -549,9 +566,8 @@ public partial class EngineTests
             """;
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var statuses = await _client.WaitForWorkflowStatus(
-            _instanceGuid,
             response.Workflows.Select(w => w.DatabaseId),
             PersistentItemStatus.Completed
         );

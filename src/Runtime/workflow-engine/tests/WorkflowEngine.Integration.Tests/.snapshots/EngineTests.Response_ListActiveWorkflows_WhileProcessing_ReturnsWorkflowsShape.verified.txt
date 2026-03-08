@@ -3,21 +3,22 @@
     databaseId: {Scrubbed},
     operationId: op-wf-1,
     idempotencyKey: idem-Guid_1,
+    tenantId: ttd:e2e-tests,
     createdAt: {Scrubbed},
     updatedAt: {Scrubbed},
-    actor: {
-      userIdOrOrgNumber: test-user,
-      language: null
+    labels: {
+      app: e2e-tests,
+      org: ttd
     },
     overallStatus: Processing,
     steps: [
       {
         databaseId: {Scrubbed},
-        idempotencyKey: idem-Guid_1/webhook,
+        idempotencyKey: idem-Guid_1/webhook:/slow,
         processingOrder: 0,
         command: {
-          type: Webhook,
-          operationId: webhook
+          type: webhook,
+          operationId: /slow
         },
         status: Enqueued,
         retryCount: 0

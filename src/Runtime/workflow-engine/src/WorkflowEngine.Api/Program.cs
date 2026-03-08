@@ -2,6 +2,7 @@ using Altinn.Studio.Runtime.Common;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Api.Extensions;
+using WorkflowEngine.CommandHandlers;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry.Extensions;
@@ -40,6 +41,9 @@ builder.Services.AddDbRepository(enableSensitiveDataLogging: isDev);
 builder.Services.AddEngineHealthChecks();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
+
+// Register command handlers from configuration
+builder.Services.AddConfiguredCommandHandlers(builder.Configuration);
 
 var app = builder.Build();
 

@@ -27,10 +27,8 @@ public interface IEngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
-        string? org = null,
-        string? app = null,
-        string? party = null,
-        string? instanceGuid = null,
+        Dictionary<string, string>? labelFilters = null,
+        string? tenantFilter = null,
         CancellationToken cancellationToken = default
     );
 
@@ -45,17 +43,15 @@ public interface IEngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
-        string? org = null,
-        string? app = null,
-        string? party = null,
-        string? instanceGuid = null,
+        Dictionary<string, string>? labelFilters = null,
+        string? tenantFilter = null,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Gets all distinct org+app pairs.
+    /// Gets all distinct values for a given label key across all workflows.
     /// </summary>
-    Task<IReadOnlyList<(string Org, string App)>> GetDistinctOrgsAndApps(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<string>> GetDistinctLabelValues(string labelKey, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the number of active workflows.
@@ -78,10 +74,10 @@ public interface IEngineRepository
     Task<PersistentItemStatus?> GetWorkflowStatus(Guid workflowId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all active (incomplete) workflows for the given instance GUID.
+    /// Gets all active (incomplete) workflows for the given tenant.
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForInstance(
-        Guid instanceGuid,
+    Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForTenant(
+        string tenantId,
         CancellationToken cancellationToken = default
     );
 
@@ -92,6 +88,8 @@ public interface IEngineRepository
 
     /// <summary>
     /// Gets a workflow by idempotency key and creation time.
+    /// Used by the internal dashboard to resolve step details from SSE-streamed idempotency keys.
+    /// This method is cross-tenant by design — only expose it through non-production endpoints.
     /// </summary>
     Task<Workflow?> GetWorkflow(
         string idempotencyKey,

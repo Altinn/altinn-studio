@@ -1,6 +1,9 @@
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
+using WorkflowEngine.CommandHandlers;
+using WorkflowEngine.CommandHandlers.Altinn;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Models;
@@ -70,6 +73,12 @@ internal sealed record WorkflowEngineTestFixture(
             new ConcurrencyLimiter(engineSettings.MaxConcurrentDbOperations, engineSettings.MaxConcurrentHttpCalls)
         );
 
+        // Register default command handlers and the registry
+        services.AddSingleton<ICommandHandler, AppCommandHandler>();
+        services.AddSingleton<ICommandHandler, WebhookCommandHandler>();
+        services.AddSingleton<ICommandHandlerRegistry, CommandHandlerRegistry>();
+        services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
+
         configureServices?.Invoke(services);
 
         return new WorkflowEngineTestFixture(
@@ -81,26 +90,27 @@ internal sealed record WorkflowEngineTestFixture(
         );
     }
 
-    public static InstanceInformation DefaultInstanceInformation =>
-        new()
-        {
-            Org = "ttd",
-            App = "test-app",
-            InstanceOwnerPartyId = 12345,
-            InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-        };
+    public static JsonElement DefaultWorkflowContext =>
+        JsonSerializer.SerializeToElement(
+            new
+            {
+                Actor = new Actor { UserIdOrOrgNumber = "test-user-123" },
+                LockToken = "test-lock-key",
+                Org = "ttd",
+                App = "test-app",
+                InstanceOwnerPartyId = 12345,
+                InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            }
+        );
 
-    public static Actor DefaultActor => new() { UserIdOrOrgNumber = "test-user-123" };
-
-    public static Workflow CreateWorkflow(Step? step = null, string? instanceLockKey = "test-lock-key")
+    public static Workflow CreateWorkflow(Step? step = null, string? tenantId = "test-tenant")
     {
         return new Workflow
         {
             OperationId = "test-operation",
             IdempotencyKey = "test-wf-key",
-            Actor = DefaultActor,
-            InstanceInformation = DefaultInstanceInformation,
-            InstanceLockKey = instanceLockKey,
+            TenantId = tenantId ?? "test-tenant",
+            Context = DefaultWorkflowContext,
             Steps = step != null ? [step] : [],
         };
     }
@@ -112,12 +122,42 @@ internal sealed record WorkflowEngineTestFixture(
             IdempotencyKey = $"test-step-key/{command.OperationId}",
             ProcessingOrder = 0,
             Command = command,
-            Actor = DefaultActor,
         };
 
     public void Dispose()
     {
         ServiceProvider.Dispose();
         HttpHandler.Dispose();
+    }
+}
+
+/// <summary>
+/// A test-specific command handler that executes a delegate.
+/// Since delegates cannot be serialized as Command.Data, this handler stores
+/// the delegate externally and the test wires it up before execution.
+/// </summary>
+internal sealed class TestDelegateCommandHandler : ICommandHandler
+{
+    public string CommandType => "test-delegate";
+
+    private Func<Workflow, Step, CancellationToken, Task>? _action;
+
+    public void SetAction(Func<Workflow, Step, CancellationToken, Task> action) => _action = action;
+
+    public Task<ExecutionResult> ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken)
+    {
+        if (_action is null)
+            return Task.FromResult(ExecutionResult.CriticalError("No delegate action was set"));
+
+        return ExecuteInternalAsync(context, cancellationToken);
+    }
+
+    private async Task<ExecutionResult> ExecuteInternalAsync(
+        CommandExecutionContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        await _action!(context.Workflow, context.Step, cancellationToken);
+        return ExecutionResult.Success();
     }
 }

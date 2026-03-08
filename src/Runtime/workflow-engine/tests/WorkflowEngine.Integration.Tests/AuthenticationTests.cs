@@ -6,8 +6,7 @@ namespace WorkflowEngine.Integration.Tests;
 [Collection(EngineAppCollection.Name)]
 public sealed class AuthenticationTests(EngineAppFixture fixture) : IAsyncLifetime
 {
-    private static readonly string ProtectedPath =
-        $"{EngineAppFixture.ApiBasePath}/{EngineAppFixture.DefaultOrg}/{EngineAppFixture.DefaultApp}/{EngineAppFixture.DefaultPartyId}/{Guid.NewGuid()}";
+    private static readonly string ProtectedPath = EngineApiClient.GetTenantPath(EngineApiClient.DefaultTenantId);
 
     public async ValueTask InitializeAsync() => await fixture.ResetAsync();
 
@@ -78,7 +77,7 @@ public sealed class AuthenticationTests(EngineAppFixture fixture) : IAsyncLifeti
         using var client = fixture.CreateRawClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/orgs-and-apps");
+        using var response = await client.GetAsync("/dashboard/labels?key=org");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

@@ -24,7 +24,6 @@ public partial class EngineTests(EngineAppFixture fixture) : IAsyncLifetime
     private const string InstanceLockToken = EngineAppFixture.DefaultInstanceLockToken;
     private readonly EngineApiClient _client = new(fixture);
     private readonly TestHelpers _testHelpers = new(fixture);
-    private readonly Guid _instanceGuid = Guid.NewGuid();
 
     public async ValueTask InitializeAsync()
     {

@@ -83,8 +83,8 @@ internal sealed class WorkflowHandler(
             Metrics.Errors.Add(
                 1,
                 ("operation", "workflowProcessing"),
-                ("target", workflow.InstanceInformation.ToString()),
-                ("operation", workflow.OperationId)
+                ("target", workflow.TenantId),
+                ("operationId", workflow.OperationId)
             );
 
             await statusWriteBuffer.SubmitAsync(workflow, CancellationToken.None);
@@ -207,11 +207,11 @@ internal sealed class WorkflowHandler(
             return;
         }
 
-        if (result.IsCriticalError())
+        if (result.IsCriticalError() || result.IsCanceled())
         {
             currentStep.Status = PersistentItemStatus.Failed;
             currentStep.BackoffUntil = null;
-            currentStep.LastError = result.Message;
+            currentStep.LastError = result.Message ?? (result.IsCanceled() ? "Canceled" : null);
 
             Metrics.StepsFailed.Add(1);
             logger.FailingStepCritical(currentStep, currentStep.RequeueCount);

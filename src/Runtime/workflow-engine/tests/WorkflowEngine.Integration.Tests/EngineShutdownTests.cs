@@ -59,13 +59,12 @@ public sealed class EngineStatusTests(EngineAppFixture fixture) : IAsyncLifetime
         fixture.SetupDefaultStub();
 
         var status = fixture.Services.GetRequiredService<IEngineStatus>();
-        var instanceGuid = Guid.NewGuid();
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/slow-status")])
         );
 
         // Act
-        var enqueueResponse = await _client.Enqueue(instanceGuid, request);
+        var enqueueResponse = await _client.Enqueue(request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
 
         // Wait until the engine picks up the workflow (active workers > 0)
@@ -86,7 +85,7 @@ public sealed class EngineStatusTests(EngineAppFixture fixture) : IAsyncLifetime
         Assert.True(sawActiveWorker, "Expected ActiveWorkerCount > 0 while processing a workflow");
 
         // Cleanup — wait for the workflow to finish
-        await _client.WaitForWorkflowStatus(instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
     }
 
     [Fact]
@@ -94,15 +93,14 @@ public sealed class EngineStatusTests(EngineAppFixture fixture) : IAsyncLifetime
     {
         // Arrange
         var status = fixture.Services.GetRequiredService<IEngineStatus>();
-        var instanceGuid = Guid.NewGuid();
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/recent-hook")])
         );
 
         // Act
-        var enqueueResponse = await _client.Enqueue(instanceGuid, request);
+        var enqueueResponse = await _client.Enqueue(request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert — the completed workflow should appear in the recent cache
         var recent = status.GetRecentWorkflows(10);

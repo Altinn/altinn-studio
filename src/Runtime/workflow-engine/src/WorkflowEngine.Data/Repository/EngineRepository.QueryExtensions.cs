@@ -16,22 +16,22 @@ internal static class EngineRepositoryQueryExtensions
         public IQueryable<WorkflowEntity> GetActiveWorkflows(
             bool includeDependencies = true,
             bool includeLinks = true,
-            Guid? instanceFilter = null
+            string? tenantFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: includeDependencies, links: includeLinks)
-                .MaybeFilterByInstanceGuid(instanceFilter)
+                .MaybeFilterByTenant(tenantFilter)
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
                 .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Incomplete.Contains(step.Status)));
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows(
             bool includeLinks = true,
-            Guid? instanceFilter = null
+            string? tenantFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: true, links: includeLinks)
-                .MaybeFilterByInstanceGuid(instanceFilter)
+                .MaybeFilterByTenant(tenantFilter)
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf =>
                     wf.StartAt > DateTime.UtcNow
@@ -43,7 +43,7 @@ internal static class EngineRepositoryQueryExtensions
             bool includeSteps = true,
             bool includeDependencies = true,
             bool includeLinks = true,
-            Guid? instanceFilter = null
+            string? tenantFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(
@@ -51,14 +51,14 @@ internal static class EngineRepositoryQueryExtensions
                     dependencies: includeDependencies,
                     links: includeLinks
                 )
-                .MaybeFilterByInstanceGuid(instanceFilter)
+                .MaybeFilterByTenant(tenantFilter)
                 .Where(wf => PersistentItemStatusMap.Failed.Contains(wf.Status));
 
         public IQueryable<WorkflowEntity> GetSuccessfulWorkflows(
             bool includeSteps = true,
             bool includeDependencies = true,
             bool includeLinks = true,
-            Guid? instanceFilter = null
+            string? tenantFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(
@@ -66,7 +66,7 @@ internal static class EngineRepositoryQueryExtensions
                     dependencies: includeDependencies,
                     links: includeLinks
                 )
-                .MaybeFilterByInstanceGuid(instanceFilter)
+                .MaybeFilterByTenant(tenantFilter)
                 .Where(wf => PersistentItemStatusMap.Successful.Contains(wf.Status));
 
         public IQueryable<WorkflowEntity> GetFinishedWorkflows(
@@ -76,13 +76,14 @@ internal static class EngineRepositoryQueryExtensions
             DateTimeOffset? before = null,
             DateTimeOffset? since = null,
             bool retriedOnly = false,
-            string? org = null,
-            string? app = null,
-            string? party = null,
-            string? instanceGuid = null
+            Dictionary<string, string>? labelFilters = null,
+            string? tenantFilter = null
         )
         {
-            var query = dbContext.Workflows.Include(j => j.Steps).Where(x => statuses.Contains(x.Status));
+            var query = dbContext
+                .Workflows.Include(j => j.Steps)
+                .MaybeFilterByTenant(tenantFilter)
+                .Where(x => statuses.Contains(x.Status));
 
             if (before.HasValue)
                 query = query.Where(x => x.UpdatedAt < before.Value);
@@ -93,27 +94,23 @@ internal static class EngineRepositoryQueryExtensions
             if (retriedOnly)
                 query = query.Where(x => x.Steps.Any(s => s.RequeueCount > 0));
 
-            if (!string.IsNullOrWhiteSpace(org))
-                query = query.Where(x => x.InstanceOrg == org);
-
-            if (!string.IsNullOrWhiteSpace(app))
-                query = query.Where(x => x.InstanceApp == app);
-
-            if (!string.IsNullOrWhiteSpace(party))
-                query = query.Where(x => x.InstanceOwnerPartyId.ToString() == party);
-
-            if (!string.IsNullOrWhiteSpace(instanceGuid))
-                query = query.Where(x => x.InstanceGuid.ToString() == instanceGuid);
+            if (labelFilters is not null)
+            {
+                foreach (var (key, value) in labelFilters)
+                {
+                    // Uses PostgreSQL JSONB containment operator via EF.Functions
+                    query = query.Where(x =>
+                        x.LabelsJson != null && EF.Functions.JsonContains(x.LabelsJson, $"{{\"{key}\":\"{value}\"}}")
+                    );
+                }
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var s = search.ToLower();
                 query = query.Where(x =>
-                    x.InstanceGuid.ToString().Contains(s)
-                    || x.InstanceOrg.ToLower().Contains(s)
-                    || x.InstanceApp.ToLower().Contains(s)
+                    x.TenantId.ToLower().Contains(s)
                     || x.OperationId.ToLower().Contains(s)
-                    || x.InstanceOwnerPartyId.ToString().Contains(s)
                     || x.Steps.Any(st => st.OperationId.ToLower().Contains(s))
                 );
             }
@@ -163,10 +160,10 @@ internal static class EngineRepositoryQueryExtensions
             return entityQuery.AsSplitQuery();
         }
 
-        private IQueryable<WorkflowEntity> MaybeFilterByInstanceGuid(Guid? instanceGuid)
+        private IQueryable<WorkflowEntity> MaybeFilterByTenant(string? tenantId)
         {
-            if (instanceGuid is not null)
-                entityQuery = entityQuery.Where(wf => wf.InstanceGuid == instanceGuid.Value);
+            if (tenantId is not null)
+                entityQuery = entityQuery.Where(wf => wf.TenantId == tenantId);
 
             return entityQuery;
         }

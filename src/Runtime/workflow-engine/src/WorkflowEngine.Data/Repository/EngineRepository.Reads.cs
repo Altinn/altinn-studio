@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -66,30 +67,48 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<(string Org, string App)>> GetDistinctOrgsAndApps(
+    public async Task<IReadOnlyList<string>> GetDistinctLabelValues(
+        string labelKey,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetDistinctOrgsAndApps");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetDistinctLabelValues");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
-            logger.FetchingWorkflows("dimensions");
+            logger.FetchingWorkflows("label values");
 
-            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var rows = await context
-                .Workflows.Select(x => new { x.InstanceOrg, x.InstanceApp })
-                .Distinct()
-                .OrderBy(x => x.InstanceOrg)
-                .ThenBy(x => x.InstanceApp)
-                .ToListAsync(cancellationToken);
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            await using var conn =
+                dbContext.Database.GetDbConnection() as NpgsqlConnection
+                ?? throw new InvalidOperationException("Expected NpgsqlConnection");
 
-            var result = rows.Select(x => (x.InstanceOrg, x.InstanceApp)).ToList();
+            if (conn.State != System.Data.ConnectionState.Open)
+                await conn.OpenAsync(cancellationToken);
 
-            logger.SuccessfullyFetchedWorkflows(result.Count);
+            // Extract distinct values for the given label key from JSONB
+            const string sql = """
+                SELECT DISTINCT "LabelsJson"->>@key AS val
+                FROM "Workflows"
+                WHERE "LabelsJson" IS NOT NULL AND "LabelsJson" ? @key
+                ORDER BY val
+                """;
 
-            return result;
+            var results = new List<string>();
+            await using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.Add(new NpgsqlParameter<string>("key", labelKey));
+
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                if (!reader.IsDBNull(0))
+                    results.Add(reader.GetString(0));
+            }
+
+            logger.SuccessfullyFetchedWorkflows(results.Count);
+
+            return results;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -111,10 +130,8 @@ internal sealed partial class EngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
-        string? org = null,
-        string? app = null,
-        string? party = null,
-        string? instanceGuid = null,
+        Dictionary<string, string>? labelFilters = null,
+        string? tenantFilter = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -127,7 +144,7 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
-                .GetFinishedWorkflows(statuses, search, take, before, since, retriedOnly, org, app, party, instanceGuid)
+                .GetFinishedWorkflows(statuses, search, take, before, since, retriedOnly, labelFilters, tenantFilter)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 
@@ -155,10 +172,8 @@ internal sealed partial class EngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
-        string? org = null,
-        string? app = null,
-        string? party = null,
-        string? instanceGuid = null,
+        Dictionary<string, string>? labelFilters = null,
+        string? tenantFilter = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -179,10 +194,8 @@ internal sealed partial class EngineRepository
                 before: null,
                 since: since,
                 retriedOnly,
-                org,
-                app,
-                party,
-                instanceGuid
+                labelFilters,
+                tenantFilter
             );
             var totalCount = await baseQuery.CountAsync(cancellationToken);
 
@@ -194,10 +207,8 @@ internal sealed partial class EngineRepository
                 before,
                 since,
                 retriedOnly,
-                org,
-                app,
-                party,
-                instanceGuid
+                labelFilters,
+                tenantFilter
             );
             var workflows = await dataQuery.ToDomainModel().ToListAsync(cancellationToken);
 
@@ -336,21 +347,21 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForInstance(
-        Guid instanceGuid,
+    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForTenant(
+        string tenantId,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflowsForInstance");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflowsForTenant");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
-            logger.FetchingWorkflowsForInstance(instanceGuid);
+            logger.FetchingWorkflowsForTenant(tenantId);
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
-                .GetActiveWorkflows(instanceFilter: instanceGuid)
+                .GetActiveWorkflows(tenantFilter: tenantId)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 

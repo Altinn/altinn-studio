@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace WorkflowEngine.Models;
@@ -24,6 +25,12 @@ public sealed record WorkflowStatusResponse
     /// </summary>
     [JsonPropertyName("idempotencyKey")]
     public required string IdempotencyKey { get; init; }
+
+    /// <summary>
+    /// The tenant this workflow belongs to.
+    /// </summary>
+    [JsonPropertyName("tenantId")]
+    public required string TenantId { get; init; }
 
     /// <summary>
     /// The time the workflow was created.
@@ -53,10 +60,11 @@ public sealed record WorkflowStatusResponse
     public string? Metadata { get; init; }
 
     /// <summary>
-    /// The actor that initiated the workflow.
+    /// Labels associated with this workflow.
     /// </summary>
-    [JsonPropertyName("actor")]
-    public required Actor Actor { get; init; }
+    [JsonPropertyName("labels")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? Labels { get; init; }
 
     /// <summary>
     /// The overall status of the workflow for this instance.
@@ -91,11 +99,12 @@ public sealed record WorkflowStatusResponse
             DatabaseId = workflow.DatabaseId,
             IdempotencyKey = workflow.IdempotencyKey,
             OperationId = workflow.OperationId,
+            TenantId = workflow.TenantId,
             CreatedAt = workflow.CreatedAt,
             UpdatedAt = workflow.UpdatedAt,
             StartAt = workflow.StartAt,
             Metadata = workflow.Metadata,
-            Actor = workflow.Actor,
+            Labels = workflow.Labels,
             OverallStatus = workflow.Status,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),

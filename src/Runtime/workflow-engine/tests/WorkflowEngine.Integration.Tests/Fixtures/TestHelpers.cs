@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using WorkflowEngine.CommandHandlers.Altinn;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
@@ -18,12 +20,20 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
     ) =>
         new()
         {
-            Command = new Command.Webhook(
-                $"http://localhost:{fixture.WireMock.Port}{path}",
-                payload,
-                contentType,
-                maxExecutionTime
-            ),
+            Command = new Command
+            {
+                Type = "webhook",
+                OperationId = path,
+                MaxExecutionTime = maxExecutionTime,
+                Data = JsonSerializer.SerializeToElement(
+                    new
+                    {
+                        uri = $"http://localhost:{fixture.WireMock.Port}{path}",
+                        payload,
+                        contentType,
+                    }
+                ),
+            },
             RetryStrategy = retryStrategy,
         };
 
@@ -35,7 +45,18 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
         string? payload = null,
         TimeSpan? maxExecutionTime = null,
         RetryStrategy? retryStrategy = null
-    ) => new() { Command = new Command.AppCommand(command, payload, maxExecutionTime), RetryStrategy = retryStrategy };
+    ) =>
+        new()
+        {
+            Command = new Command
+            {
+                Type = "app",
+                OperationId = command,
+                MaxExecutionTime = maxExecutionTime,
+                Data = JsonSerializer.SerializeToElement(new { commandKey = command, payload }),
+            },
+            RetryStrategy = retryStrategy,
+        };
 
     /// <summary>Builds a <see cref="WorkflowRequest"/> with the supplied steps.</summary>
     public WorkflowRequest CreateWorkflow(
@@ -57,9 +78,14 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
     public WorkflowEnqueueRequest CreateEnqueueRequest(WorkflowRequest workflow, string? lockToken = null) =>
         new()
         {
-            Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            TenantId = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
             IdempotencyKey = $"idem-{Guid.NewGuid()}",
-            LockToken = lockToken,
+            Context = CreateDefaultContext(lockToken),
+            Labels = new Dictionary<string, string>
+            {
+                ["org"] = EngineAppFixture.DefaultOrg,
+                ["app"] = EngineAppFixture.DefaultApp,
+            },
             Workflows = [workflow],
         };
 
@@ -72,11 +98,29 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
     ) =>
         new()
         {
-            Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+            TenantId = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
             IdempotencyKey = $"idem-{Guid.NewGuid()}",
-            LockToken = lockToken,
+            Context = CreateDefaultContext(lockToken),
+            Labels = new Dictionary<string, string>
+            {
+                ["org"] = EngineAppFixture.DefaultOrg,
+                ["app"] = EngineAppFixture.DefaultApp,
+            },
             Workflows = [.. workflows],
         };
+
+    private static JsonElement CreateDefaultContext(string? lockToken = null) =>
+        JsonSerializer.SerializeToElement(
+            new
+            {
+                Actor = new Actor { UserIdOrOrgNumber = "test-user" },
+                LockToken = lockToken,
+                Org = EngineAppFixture.DefaultOrg,
+                App = EngineAppFixture.DefaultApp,
+                InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId),
+                InstanceGuid = EngineAppFixture.DefaultInstanceGuid,
+            }
+        );
 
     public async Task AssertDbEmpty()
     {

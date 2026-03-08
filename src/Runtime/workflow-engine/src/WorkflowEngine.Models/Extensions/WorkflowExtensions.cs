@@ -78,13 +78,9 @@ public static class WorkflowExtensions
         /// </summary>
         public (string key, object? value)[] GetActivityTags() =>
             [
-                ("workflow.actor.id", workflow.Actor.UserIdOrOrgNumber),
                 ("workflow.database.id", workflow.DatabaseId),
                 ("workflow.operation.id", workflow.OperationId),
-                ("workflow.instance.guid", workflow.InstanceInformation.InstanceGuid),
-                ("workflow.instance.party.id", workflow.InstanceInformation.InstanceOwnerPartyId),
-                ("workflow.instance.lock.key", workflow.InstanceLockKey),
-                ("workflow.instance.app", $"{workflow.InstanceInformation.Org}/{workflow.InstanceInformation.App}"),
+                ("workflow.tenant.id", workflow.TenantId),
             ];
 
         /// <summary>

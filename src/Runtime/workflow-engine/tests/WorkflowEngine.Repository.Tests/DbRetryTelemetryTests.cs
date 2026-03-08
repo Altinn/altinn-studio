@@ -116,7 +116,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
     {
         var repository = postgres.CreateRepository();
         await using var context = postgres.CreateDbContext();
-        var (request, metadata) = WorkflowTestHelper.CreateRequest();
+        var (request, metadata, _, _) = WorkflowTestHelper.CreateRequest();
         return await WorkflowTestHelper.EnqueueWorkflow(repository, context, request, metadata);
     }
 

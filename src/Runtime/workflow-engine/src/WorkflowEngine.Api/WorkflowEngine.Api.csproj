@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../WorkflowEngine.CommandHandlers/WorkflowEngine.CommandHandlers.csproj" />
     <ProjectReference Include="../WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
     <ProjectReference Include="../WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
     <ProjectReference Include="../WorkflowEngine.Telemetry/WorkflowEngine.Telemetry.csproj" />

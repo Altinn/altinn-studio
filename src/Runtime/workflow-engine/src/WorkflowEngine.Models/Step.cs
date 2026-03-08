@@ -9,7 +9,6 @@ public sealed record Step : PersistentItem
 {
     public required int ProcessingOrder { get; init; }
     public required Command Command { get; init; }
-    public required Actor Actor { get; init; }
 
     public DateTimeOffset? BackoffUntil { get; set; }
     public RetryStrategy? RetryStrategy { get; init; }
@@ -21,27 +20,7 @@ public sealed record Step : PersistentItem
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
     internal bool HasPendingChanges { get; set; }
 
-    public static Step FromRequest(
-        WorkflowRequest parent,
-        StepRequest request,
-        WorkflowRequestMetadata metadata,
-        string idempotencyKey,
-        int index
-    ) =>
-        new()
-        {
-            DatabaseId = Guid.CreateVersion7(),
-            OperationId = request.Command.OperationId,
-            IdempotencyKey = $"{idempotencyKey}/{request.Command}",
-            Actor = metadata.Actor,
-            CreatedAt = metadata.CreatedAt,
-            ProcessingOrder = index,
-            Command = request.Command,
-            RetryStrategy = request.RetryStrategy,
-            Metadata = request.Metadata,
-        };
-
-    public override string ToString() => $"[{nameof(Step)}.{Command.GetType().Name}] {OperationId} ({Status})";
+    public override string ToString() => $"[{nameof(Step)}.{Command.Type}] {OperationId} ({Status})";
 
     public override int GetHashCode() => DatabaseId.GetHashCode();
 

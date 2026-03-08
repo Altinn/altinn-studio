@@ -4,8 +4,7 @@ namespace WorkflowEngine.Models.Tests;
 
 public class StepTests
 {
-    private static Command.AppCommand _randomAppCommand => new(Guid.NewGuid().ToString());
-    private static Actor _randomActor => new() { UserIdOrOrgNumber = Guid.NewGuid().ToString() };
+    private static Command _randomCommand => new() { Type = "app", OperationId = Guid.NewGuid().ToString() };
 
     [Fact]
     public void Equality_Uses_DatabaseId()
@@ -19,27 +18,24 @@ public class StepTests
             DatabaseId = sharedGuid,
             OperationId = "step-1-command",
             IdempotencyKey = "key-1",
-            Actor = _randomActor,
             ProcessingOrder = 0,
-            Command = _randomAppCommand,
+            Command = _randomCommand,
         };
         var sharedId2 = new Step
         {
             DatabaseId = sharedGuid,
             OperationId = "step-2-command",
             IdempotencyKey = "key-2",
-            Actor = _randomActor,
             ProcessingOrder = 0,
-            Command = _randomAppCommand,
+            Command = _randomCommand,
         };
         var uniqueId = new Step
         {
             DatabaseId = Guid.NewGuid(),
             OperationId = "step-3-command",
             IdempotencyKey = "key-3",
-            Actor = _randomActor,
             ProcessingOrder = 0,
-            Command = _randomAppCommand,
+            Command = _randomCommand,
         };
 
         // Act
@@ -62,39 +58,27 @@ public class StepTests
     }
 
     [Fact]
-    public void FromRequest_MapsAllFieldsCorrectly()
+    public void Step_ConstructsWithRequiredFields()
     {
         // Arrange
-        var actor = new Actor { UserIdOrOrgNumber = "user-1", Language = "nb" };
-        var command = new Command.AppCommand("process-payment");
+        var command = new Command { Type = "app", OperationId = "process-payment" };
         var retryStrategy = RetryStrategy.Exponential(baseInterval: TimeSpan.FromSeconds(2));
         var createdAt = DateTimeOffset.UtcNow;
 
-        var metadata = new WorkflowRequestMetadata(
-            InstanceInformation: new InstanceInformation
-            {
-                Org = "ttd",
-                App = "test-app",
-                InstanceOwnerPartyId = 12345,
-                InstanceGuid = Guid.NewGuid(),
-            },
-            Actor: actor,
-            CreatedAt: createdAt,
-            TraceContext: null,
-            InstanceLockKey: null
-        );
-
-        var stepRequest = new StepRequest { Command = command, RetryStrategy = retryStrategy };
-
         // Act
-        var parentRequest = new WorkflowRequest { OperationId = "op-1", Steps = [stepRequest] };
-
-        var step = Step.FromRequest(parentRequest, stepRequest, metadata, "parent-key", index: 2);
+        var step = new Step
+        {
+            OperationId = "process-payment",
+            IdempotencyKey = "step-key",
+            CreatedAt = createdAt,
+            ProcessingOrder = 2,
+            Command = command,
+            RetryStrategy = retryStrategy,
+            Status = PersistentItemStatus.Enqueued,
+        };
 
         // Assert
-        Assert.NotEqual(Guid.Empty, step.DatabaseId);
         Assert.Equal("process-payment", step.OperationId);
-        Assert.Same(actor, step.Actor);
         Assert.Equal(createdAt, step.CreatedAt);
         Assert.Equal(2, step.ProcessingOrder);
         Assert.Same(command, step.Command);
@@ -103,57 +87,16 @@ public class StepTests
     }
 
     [Fact]
-    public void FromRequest_UsesMetadataActor()
+    public void Step_DefaultsOptionalFieldsCorrectly()
     {
-        // Arrange
-        var actor = new Actor { UserIdOrOrgNumber = "metadata-user" };
-        var metadata = new WorkflowRequestMetadata(
-            InstanceInformation: new InstanceInformation
-            {
-                Org = "ttd",
-                App = "app",
-                InstanceOwnerPartyId = 1,
-                InstanceGuid = Guid.NewGuid(),
-            },
-            Actor: actor,
-            CreatedAt: DateTimeOffset.UtcNow,
-            TraceContext: null,
-            InstanceLockKey: null
-        );
-
-        var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
-        var parentRequest = new WorkflowRequest { OperationId = "op-1", Steps = [stepRequest] };
-
-        // Act
-        var step = Step.FromRequest(parentRequest, stepRequest, metadata, "parent-key", index: 0);
-
-        // Assert
-        Assert.Same(actor, step.Actor);
-    }
-
-    [Fact]
-    public void FromRequest_DefaultsOptionalFieldsCorrectly()
-    {
-        // Arrange
-        var metadata = new WorkflowRequestMetadata(
-            InstanceInformation: new InstanceInformation
-            {
-                Org = "ttd",
-                App = "app",
-                InstanceOwnerPartyId = 1,
-                InstanceGuid = Guid.NewGuid(),
-            },
-            Actor: new Actor { UserIdOrOrgNumber = "user-1" },
-            CreatedAt: DateTimeOffset.UtcNow,
-            TraceContext: null,
-            InstanceLockKey: null
-        );
-
-        var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
-        var parentRequest = new WorkflowRequest { OperationId = "op-1", Steps = [stepRequest] };
-
-        // Act
-        var step = Step.FromRequest(parentRequest, stepRequest, metadata, "parent-key", index: 0);
+        // Arrange & Act
+        var step = new Step
+        {
+            OperationId = "noop",
+            IdempotencyKey = "step-key",
+            ProcessingOrder = 0,
+            Command = new Command { Type = "noop", OperationId = "noop" },
+        };
 
         // Assert
         Assert.Null(step.RetryStrategy);

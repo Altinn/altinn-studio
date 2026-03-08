@@ -3,14 +3,11 @@ using WorkflowEngine.Telemetry;
 
 namespace WorkflowEngine.Api;
 
-internal sealed record DashboardInstanceDto(string Org, string App, int InstanceOwnerPartyId, Guid InstanceGuid);
-
 internal sealed record DashboardStepDto(
     string IdempotencyKey,
     string OperationId,
     string CommandType,
     string CommandDetail,
-    string? CommandPayload,
     string? LastError,
     string Status,
     int ProcessingOrder,
@@ -27,7 +24,8 @@ internal sealed record DashboardWorkflowDto(
     string OperationId,
     string Status,
     string? TraceId,
-    DashboardInstanceDto Instance,
+    string TenantId,
+    Dictionary<string, string>? Labels,
     DateTimeOffset CreatedAt,
     DateTimeOffset? ExecutionStartedAt,
     DateTimeOffset? UpdatedAt,
@@ -39,21 +37,12 @@ internal sealed record DashboardWorkflowDto(
 
 internal static class DashboardMapper
 {
-    internal static string CommandTypeDiscriminator(Command cmd) =>
-        cmd is Command.AppCommand ? "app"
-        : cmd is Command.Webhook ? "webhook"
-        : cmd.GetType().Name;
-
-    internal static DashboardInstanceDto MapInstance(InstanceInformation info) =>
-        new(info.Org, info.App, info.InstanceOwnerPartyId, info.InstanceGuid);
-
     internal static DashboardStepDto MapStep(Step step, bool stateChanged) =>
         new(
             step.IdempotencyKey,
             step.OperationId,
-            CommandTypeDiscriminator(step.Command),
+            step.Command.Type,
             step.Command.OperationId,
-            (step.Command as Command.AppCommand)?.Payload,
             step.LastError,
             step.Status.ToString(),
             step.ProcessingOrder,
@@ -85,7 +74,8 @@ internal static class DashboardMapper
             workflow.Status.ToString(),
             Metrics.ParseTraceContext(workflow.EngineTraceContext)?.TraceId.ToString()
                 ?? workflow.EngineActivity?.TraceId.ToString(),
-            MapInstance(workflow.InstanceInformation),
+            workflow.TenantId,
+            workflow.Labels,
             workflow.CreatedAt,
             workflow.ExecutionStartedAt,
             workflow.UpdatedAt,

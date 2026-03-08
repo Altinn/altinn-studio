@@ -20,11 +20,12 @@ namespace WorkflowEngine.Integration.Tests.Fixtures;
 /// </summary>
 public sealed class EngineAppFixture : IAsyncLifetime
 {
-    public const string ApiBasePath = "/api/v1/workflows";
+    public const string ApiBasePath = "/api/v1/tenants";
     public const string TestApiKey = "e2e-test-api-key-00000001";
     public const string DefaultOrg = "ttd";
     public const string DefaultApp = "e2e-tests";
     public const string DefaultPartyId = "50001";
+    public static readonly Guid DefaultInstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
     public const string DefaultInstanceLockToken = "e2e-lock-token-abc123";
 
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18").Build();

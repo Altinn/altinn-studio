@@ -24,8 +24,8 @@ internal static partial class EngineRepositoryLogs
         Exception ex
     );
 
-    [LoggerMessage(LogLevel.Debug, "Fetching active workflows for instance {InstanceGuid}")]
-    internal static partial void FetchingWorkflowsForInstance(this ILogger<EngineRepository> logger, Guid instanceGuid);
+    [LoggerMessage(LogLevel.Debug, "Fetching active workflows for tenant {TenantId}")]
+    internal static partial void FetchingWorkflowsForTenant(this ILogger<EngineRepository> logger, string tenantId);
 
     [LoggerMessage(LogLevel.Debug, "Fetching workflow by ID {WorkflowId}")]
     internal static partial void FetchingWorkflowById(this ILogger<EngineRepository> logger, Guid workflowId);

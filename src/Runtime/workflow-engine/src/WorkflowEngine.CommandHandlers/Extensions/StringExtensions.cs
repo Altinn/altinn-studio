@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace WorkflowEngine.Api.Extensions;
+namespace WorkflowEngine.CommandHandlers.Extensions;
 
 internal static partial class StringExtensions
 {

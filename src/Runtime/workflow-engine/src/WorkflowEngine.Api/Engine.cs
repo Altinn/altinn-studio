@@ -15,7 +15,7 @@ internal interface IEngine
     );
 }
 
-internal sealed class Engine(WorkflowWriteBuffer _writeBuffer) : IEngine
+internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandHandlerRegistry registry) : IEngine
 {
     public async Task<WorkflowEnqueueResponse> EnqueueWorkflow(
         WorkflowEnqueueRequest request,
@@ -25,14 +25,7 @@ internal sealed class Engine(WorkflowWriteBuffer _writeBuffer) : IEngine
     {
         using var activity = Metrics.Source.StartActivity(
             "Engine.EnqueueWorkflow",
-            tags:
-            [
-                ("request.actor.id", request.Actor.UserIdOrOrgNumber),
-                ("request.workflows.count", request.Workflows.Count),
-                ("request.instance.guid", metadata.InstanceInformation.InstanceGuid),
-                ("request.instance.party.id", metadata.InstanceInformation.InstanceOwnerPartyId),
-                ("request.instance.app", $"{metadata.InstanceInformation.Org}/{metadata.InstanceInformation.App}"),
-            ]
+            tags: [("request.tenant.id", request.TenantId), ("request.workflows.count", request.Workflows.Count)]
         );
 
         IReadOnlyList<WorkflowRequest> sortedRequests;
@@ -49,10 +42,18 @@ internal sealed class Engine(WorkflowWriteBuffer _writeBuffer) : IEngine
             );
         }
 
+        // Validate command types and handler-specific data before persistence
+        var commandError = ValidateCommands(request);
+        if (commandError is not null)
+        {
+            activity?.Errored(errorMessage: commandError);
+            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, commandError);
+        }
+
         try
         {
             var hash = request.ComputeHash();
-            var workflowIds = await _writeBuffer.EnqueueAsync(request, metadata, hash, cancellationToken);
+            var workflowIds = await writeBuffer.EnqueueAsync(request, metadata, hash, cancellationToken);
             var results = sortedRequests
                 .Zip(
                     workflowIds,
@@ -75,5 +76,38 @@ internal sealed class Engine(WorkflowWriteBuffer _writeBuffer) : IEngine
             activity?.Errored(ex);
             return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Validates that all command types in the request are known to the registry
+    /// and that handler-specific validation passes.
+    /// </summary>
+    private string? ValidateCommands(WorkflowEnqueueRequest request)
+    {
+        for (int workflowIndex = 0; workflowIndex < request.Workflows.Count; workflowIndex++)
+        {
+            var workflow = request.Workflows[workflowIndex];
+            for (int stepIndex = 0; stepIndex < workflow.Steps.Count; stepIndex++)
+            {
+                var step = workflow.Steps[stepIndex];
+                var commandType = step.Command.Type;
+
+                if (!registry.HasHandler(commandType))
+                {
+                    return $"Unknown command type '{commandType}' in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
+                        + $"step #{stepIndex}. Registered types: {string.Join(", ", registry.GetAllHandlers().Select(h => h.CommandType))}";
+                }
+
+                var handler = registry.GetHandler(commandType);
+                var validationError = handler.Validate(step.Command.Data, request.Context);
+                if (validationError is not null)
+                {
+                    return $"Validation failed for '{commandType}' command in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
+                        + $"step #{stepIndex}: {validationError}";
+                }
+            }
+        }
+
+        return null;
     }
 }

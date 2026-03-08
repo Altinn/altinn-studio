@@ -41,15 +41,12 @@ internal sealed partial class EngineRepository
                             setters =>
                                 setters
                                     .SetProperty(t => t.Status, workflow.Status)
-                                    .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt)
-                                    .SetProperty(t => t.EngineTraceId, workflow.EngineTraceContext),
+                                    .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt),
                             ct
                         );
                 },
                 cancellationToken
             );
-
-            logger.SuccessfullyUpdatedWorkflow(workflow);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -84,16 +81,15 @@ internal sealed partial class EngineRepository
                             setters =>
                                 setters
                                     .SetProperty(t => t.Status, step.Status)
+                                    .SetProperty(t => t.UpdatedAt, step.UpdatedAt)
                                     .SetProperty(t => t.BackoffUntil, step.BackoffUntil)
                                     .SetProperty(t => t.RequeueCount, step.RequeueCount)
-                                    .SetProperty(t => t.UpdatedAt, step.UpdatedAt),
+                                    .SetProperty(t => t.StateOut, step.StateOut),
                             ct
                         );
                 },
                 cancellationToken
             );
-
-            logger.SuccessfullyUpdatedStep(step);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -130,10 +126,7 @@ internal sealed partial class EngineRepository
 
         // Build arrays for the idempotency INSERT
         var idempKeys = new string[requests.Count];
-        var idempOrgs = new string[requests.Count];
-        var idempApps = new string[requests.Count];
-        var idempOwnerPartyIds = new int[requests.Count];
-        var idempInstanceGuids = new Guid[requests.Count];
+        var idempTenantIds = new string[requests.Count];
         var idempHashes = new byte[requests.Count][];
         var idempWfIdTexts = new string[requests.Count];
 
@@ -141,10 +134,7 @@ internal sealed partial class EngineRepository
         {
             var req = requests[i];
             idempKeys[i] = req.Request.IdempotencyKey;
-            idempOrgs[i] = req.Metadata.InstanceInformation.Org;
-            idempApps[i] = req.Metadata.InstanceInformation.App;
-            idempOwnerPartyIds[i] = req.Metadata.InstanceInformation.InstanceOwnerPartyId;
-            idempInstanceGuids[i] = req.Metadata.InstanceInformation.InstanceGuid;
+            idempTenantIds[i] = req.Request.TenantId;
             idempHashes[i] = req.RequestBodyHash;
             idempWfIdTexts[i] = "{" + string.Join(",", perRequestWorkflowIds[i]) + "}";
         }
@@ -159,30 +149,27 @@ internal sealed partial class EngineRepository
             // ── Phase 1: Batch idempotency check+insert ──────────────────
             const string insertIdempSql = """
                 WITH input AS (
-                    SELECT * FROM unnest(@keys, @orgs, @apps, @ownerPartyIds, @instanceGuids, @hashes, @wfIdTexts)
+                    SELECT * FROM unnest(@keys, @tenantIds, @hashes, @wfIdTexts)
                         WITH ORDINALITY
-                        AS t(idempotency_key, instance_org, instance_app, instance_owner_party_id, instance_guid, request_body_hash, wf_id_text, idx)
+                        AS t(idempotency_key, tenant_id, request_body_hash, wf_id_text, idx)
                 ),
                 inserted AS (
-                    INSERT INTO idempotency_keys (idempotency_key, instance_org, instance_app, instance_owner_party_id, instance_guid, request_body_hash, workflow_ids, created_at)
-                    SELECT idempotency_key, instance_org, instance_app, instance_owner_party_id::int, instance_guid, request_body_hash, wf_id_text::uuid[], @now
+                    INSERT INTO idempotency_keys (idempotency_key, tenant_id, request_body_hash, workflow_ids, created_at)
+                    SELECT idempotency_key, tenant_id, request_body_hash, wf_id_text::uuid[], @now
                     FROM input
-                    ON CONFLICT (idempotency_key, instance_org, instance_app, instance_owner_party_id, instance_guid) DO NOTHING
-                    RETURNING idempotency_key, instance_org, instance_app, instance_owner_party_id, instance_guid
+                    ON CONFLICT (idempotency_key, tenant_id) DO NOTHING
+                    RETURNING idempotency_key, tenant_id
                 )
                 SELECT (i.idx - 1)::int AS idx
                 FROM inserted ins
-                JOIN input i USING (idempotency_key, instance_org, instance_app, instance_owner_party_id, instance_guid)
+                JOIN input i USING (idempotency_key, tenant_id)
                 """;
 
             var insertedIndices = new HashSet<int>();
             await using (var cmd = new NpgsqlCommand(insertIdempSql, conn, tx))
             {
                 cmd.Parameters.Add(new NpgsqlParameter<string[]>("keys", idempKeys));
-                cmd.Parameters.Add(new NpgsqlParameter<string[]>("orgs", idempOrgs));
-                cmd.Parameters.Add(new NpgsqlParameter<string[]>("apps", idempApps));
-                cmd.Parameters.Add(new NpgsqlParameter<int[]>("ownerPartyIds", idempOwnerPartyIds));
-                cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("instanceGuids", idempInstanceGuids));
+                cmd.Parameters.Add(new NpgsqlParameter<string[]>("tenantIds", idempTenantIds));
                 cmd.Parameters.Add(new NpgsqlParameter<byte[][]>("hashes", idempHashes));
                 cmd.Parameters.Add(new NpgsqlParameter<string[]>("wfIdTexts", idempWfIdTexts));
                 cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
@@ -207,42 +194,28 @@ internal sealed partial class EngineRepository
             if (existingRequestIndices.Count > 0)
             {
                 var existKeys = existingRequestIndices.Select(i => idempKeys[i]).ToArray();
-                var existOrgs = existingRequestIndices.Select(i => idempOrgs[i]).ToArray();
-                var existApps = existingRequestIndices.Select(i => idempApps[i]).ToArray();
-                var existOwnerIds = existingRequestIndices.Select(i => idempOwnerPartyIds[i]).ToArray();
-                var existInstGuids = existingRequestIndices.Select(i => idempInstanceGuids[i]).ToArray();
+                var existTenantIds = existingRequestIndices.Select(i => idempTenantIds[i]).ToArray();
 
                 const string selectExistingSql = """
-                    SELECT ik.idempotency_key, ik.instance_org, ik.instance_app,
-                           ik.instance_owner_party_id, ik.instance_guid,
+                    SELECT ik.idempotency_key, ik.tenant_id,
                            ik.request_body_hash, ik.workflow_ids
-                    FROM unnest(@keys, @orgs, @apps, @ownerPartyIds, @instanceGuids)
-                        AS t(idempotency_key, instance_org, instance_app, instance_owner_party_id, instance_guid)
-                    JOIN idempotency_keys ik USING (idempotency_key, instance_org, instance_app, instance_owner_party_id, instance_guid)
+                    FROM unnest(@keys, @tenantIds)
+                        AS t(idempotency_key, tenant_id)
+                    JOIN idempotency_keys ik USING (idempotency_key, tenant_id)
                     """;
 
-                var existingLookup =
-                    new Dictionary<(string, string, string, int, Guid), (byte[] hash, Guid[] workflowIds)>();
+                var existingLookup = new Dictionary<(string, string), (byte[] hash, Guid[] workflowIds)>();
                 await using (var cmd = new NpgsqlCommand(selectExistingSql, conn, tx))
                 {
                     cmd.Parameters.Add(new NpgsqlParameter<string[]>("keys", existKeys));
-                    cmd.Parameters.Add(new NpgsqlParameter<string[]>("orgs", existOrgs));
-                    cmd.Parameters.Add(new NpgsqlParameter<string[]>("apps", existApps));
-                    cmd.Parameters.Add(new NpgsqlParameter<int[]>("ownerPartyIds", existOwnerIds));
-                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("instanceGuids", existInstGuids));
+                    cmd.Parameters.Add(new NpgsqlParameter<string[]>("tenantIds", existTenantIds));
 
                     await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        var key = (
-                            reader.GetString(0),
-                            reader.GetString(1),
-                            reader.GetString(2),
-                            reader.GetInt32(3),
-                            reader.GetGuid(4)
-                        );
-                        var hash = (byte[])reader.GetValue(5);
-                        var wfIds = (Guid[])reader.GetValue(6);
+                        var key = (reader.GetString(0), reader.GetString(1));
+                        var hash = (byte[])reader.GetValue(2);
+                        var wfIds = (Guid[])reader.GetValue(3);
                         existingLookup[key] = (hash, wfIds);
                     }
                 }
@@ -250,14 +223,7 @@ internal sealed partial class EngineRepository
                 foreach (var i in existingRequestIndices)
                 {
                     var req = requests[i];
-                    var info = req.Metadata.InstanceInformation;
-                    var compositeKey = (
-                        req.Request.IdempotencyKey,
-                        info.Org,
-                        info.App,
-                        info.InstanceOwnerPartyId,
-                        info.InstanceGuid
-                    );
+                    var compositeKey = (req.Request.IdempotencyKey, req.Request.TenantId);
                     if (existingLookup.TryGetValue(compositeKey, out var existing))
                     {
                         if (existing.hash.AsSpan().SequenceEqual(req.RequestBodyHash))
@@ -277,39 +243,39 @@ internal sealed partial class EngineRepository
             // ── Phase 1b: Validate external workflow references ──────────
             if (newRequestIndices.Count > 0)
             {
-                var externalRefPairs = new HashSet<(Guid id, Guid instanceGuid)>();
+                var externalRefPairs = new HashSet<(Guid id, string tenantId)>();
                 foreach (var reqIdx in newRequestIndices)
                 {
                     var req = requests[reqIdx];
-                    var instanceGuid = req.Metadata.InstanceInformation.InstanceGuid;
+                    var tenantId = req.Request.TenantId;
                     foreach (var wf in req.Request.Workflows)
                     {
-                        CollectExternalIds(wf.DependsOn, instanceGuid, externalRefPairs);
-                        CollectExternalIds(wf.Links, instanceGuid, externalRefPairs);
+                        CollectExternalIds(wf.DependsOn, tenantId, externalRefPairs);
+                        CollectExternalIds(wf.Links, tenantId, externalRefPairs);
                     }
                 }
 
-                HashSet<(Guid, Guid)>? verifiedPairs = null;
+                HashSet<(Guid, string)>? verifiedPairs = null;
                 if (externalRefPairs.Count > 0)
                 {
                     var extIds = externalRefPairs.Select(p => p.id).Distinct().ToArray();
-                    var extInstanceGuids = externalRefPairs.Select(p => p.instanceGuid).Distinct().ToArray();
+                    var extTenantIds = externalRefPairs.Select(p => p.tenantId).Distinct().ToArray();
 
                     const string verifyRefsSql = """
-                        SELECT "Id", "InstanceGuid"
+                        SELECT "Id", "TenantId"
                         FROM "Workflows"
-                        WHERE "Id" = ANY(@ids) AND "InstanceGuid" = ANY(@instanceGuids)
+                        WHERE "Id" = ANY(@ids) AND "TenantId" = ANY(@tenantIds)
                         """;
 
                     verifiedPairs = [];
                     await using (var cmd = new NpgsqlCommand(verifyRefsSql, conn, tx))
                     {
                         cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", extIds));
-                        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("instanceGuids", extInstanceGuids));
+                        cmd.Parameters.Add(new NpgsqlParameter<string[]>("tenantIds", extTenantIds));
 
                         await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
                         while (await reader.ReadAsync(cancellationToken))
-                            verifiedPairs.Add((reader.GetGuid(0), reader.GetGuid(1)));
+                            verifiedPairs.Add((reader.GetGuid(0), reader.GetString(1)));
                     }
 
                     // Remove requests with invalid external refs
@@ -322,7 +288,7 @@ internal sealed partial class EngineRepository
                         if (missingRef is not null)
                         {
                             results[reqIdx] = BatchEnqueueResult.InvalidRef(
-                                $"Referenced workflow {missingRef.Value} does not exist for this instance."
+                                $"Referenced workflow {missingRef.Value} does not exist for this tenant."
                             );
                             invalidReqIndices.Add(reqIdx);
                             newRequestIndices.RemoveAt(idx);
@@ -333,28 +299,19 @@ internal sealed partial class EngineRepository
                     if (invalidReqIndices.Count > 0)
                     {
                         var delKeys = invalidReqIndices.Select(i => idempKeys[i]).ToArray();
-                        var delOrgs = invalidReqIndices.Select(i => idempOrgs[i]).ToArray();
-                        var delApps = invalidReqIndices.Select(i => idempApps[i]).ToArray();
-                        var delOwnerIds = invalidReqIndices.Select(i => idempOwnerPartyIds[i]).ToArray();
-                        var delInstGuids = invalidReqIndices.Select(i => idempInstanceGuids[i]).ToArray();
+                        var delTenantIds = invalidReqIndices.Select(i => idempTenantIds[i]).ToArray();
 
                         const string deleteIdempSql = """
                             DELETE FROM idempotency_keys ik
-                            USING unnest(@keys, @orgs, @apps, @ownerPartyIds, @instanceGuids)
-                                AS t(idempotency_key, instance_org, instance_app, instance_owner_party_id, instance_guid)
+                            USING unnest(@keys, @tenantIds)
+                                AS t(idempotency_key, tenant_id)
                             WHERE ik.idempotency_key = t.idempotency_key
-                              AND ik.instance_org = t.instance_org
-                              AND ik.instance_app = t.instance_app
-                              AND ik.instance_owner_party_id = t.instance_owner_party_id::int
-                              AND ik.instance_guid = t.instance_guid
+                              AND ik.tenant_id = t.tenant_id
                             """;
 
                         await using var cmd = new NpgsqlCommand(deleteIdempSql, conn, tx);
                         cmd.Parameters.Add(new NpgsqlParameter<string[]>("keys", delKeys));
-                        cmd.Parameters.Add(new NpgsqlParameter<string[]>("orgs", delOrgs));
-                        cmd.Parameters.Add(new NpgsqlParameter<string[]>("apps", delApps));
-                        cmd.Parameters.Add(new NpgsqlParameter<int[]>("ownerPartyIds", delOwnerIds));
-                        cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("instanceGuids", delInstGuids));
+                        cmd.Parameters.Add(new NpgsqlParameter<string[]>("tenantIds", delTenantIds));
                         await cmd.ExecuteNonQueryAsync(cancellationToken);
                     }
                 }
@@ -393,8 +350,6 @@ internal sealed partial class EngineRepository
                     string operationId,
                     string idempotencyKey,
                     int order,
-                    string actorUserId,
-                    string? actorLanguage,
                     string commandJson,
                     string? retryJson,
                     string? metadata
@@ -415,8 +370,6 @@ internal sealed partial class EngineRepository
                                     step.Command.OperationId,
                                     $"{req.Request.IdempotencyKey}/{step.Command}",
                                     order++,
-                                    req.Request.Actor.UserIdOrOrgNumber,
-                                    req.Request.Actor.Language,
                                     JsonSerializer.Serialize(step.Command, JsonOptions.Default),
                                     step.RetryStrategy != null
                                         ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default)
@@ -429,14 +382,13 @@ internal sealed partial class EngineRepository
                     }
                 }
 
-                // -- COPY workflows (with engine-specific columns) --
+                // -- COPY workflows --
                 await using (
                     var writer = await conn.BeginBinaryImportAsync(
                         """
                         COPY "Workflows" (
-                            "Id", "OperationId", "IdempotencyKey", "InstanceLockKey", "Status", "CreatedAt", "StartAt",
-                            "ActorUserIdOrOrgNumber", "ActorLanguage",
-                            "InstanceOrg", "InstanceApp", "InstanceOwnerPartyId", "InstanceGuid",
+                            "Id", "OperationId", "IdempotencyKey", "TenantId", "Status", "CreatedAt", "StartAt",
+                            "LabelsJson", "ContextJson",
                             "TraceContext", "MetadataJson", "EngineTraceId", "InitialState"
                         ) FROM STDIN (FORMAT BINARY)
                         """,
@@ -448,7 +400,6 @@ internal sealed partial class EngineRepository
                     foreach (var reqIdx in newRequestIndices)
                     {
                         var req = requests[reqIdx];
-                        var info = req.Metadata.InstanceInformation;
 
                         foreach (var wf in req.Request.Workflows)
                         {
@@ -456,17 +407,13 @@ internal sealed partial class EngineRepository
                             await writer.WriteAsync(workflowIds[workflowOffset], NpgsqlDbType.Uuid, cancellationToken); // Id
                             await writer.WriteAsync(wf.OperationId, NpgsqlDbType.Varchar, cancellationToken); // OperationId
                             await writer.WriteAsync(req.Request.IdempotencyKey, NpgsqlDbType.Text, cancellationToken); // IdempotencyKey
-
-                            if (req.Request.LockToken != null) // InstanceLockKey
-                                await writer.WriteAsync(req.Request.LockToken, NpgsqlDbType.Varchar, cancellationToken);
-                            else
-                                await writer.WriteNullAsync(cancellationToken);
+                            await writer.WriteAsync(req.Request.TenantId, NpgsqlDbType.Varchar, cancellationToken); // TenantId
 
                             await writer.WriteAsync(
                                 (int)PersistentItemStatus.Enqueued,
                                 NpgsqlDbType.Integer,
                                 cancellationToken
-                            ); // Status (integer enum)
+                            ); // Status
                             await writer.WriteAsync(now, NpgsqlDbType.TimestampTz, cancellationToken); // CreatedAt
 
                             if (wf.StartAt.HasValue) // StartAt
@@ -474,25 +421,25 @@ internal sealed partial class EngineRepository
                             else
                                 await writer.WriteNullAsync(cancellationToken);
 
-                            await writer.WriteAsync(
-                                req.Request.Actor.UserIdOrOrgNumber,
-                                NpgsqlDbType.Varchar,
-                                cancellationToken
-                            ); // ActorUserIdOrOrgNumber
-
-                            if (req.Request.Actor.Language != null) // ActorLanguage
+                            // LabelsJson
+                            if (req.Request.Labels is { Count: > 0 })
                                 await writer.WriteAsync(
-                                    req.Request.Actor.Language,
-                                    NpgsqlDbType.Varchar,
+                                    JsonSerializer.Serialize(req.Request.Labels, JsonOptions.Default),
+                                    NpgsqlDbType.Jsonb,
                                     cancellationToken
                                 );
                             else
                                 await writer.WriteNullAsync(cancellationToken);
 
-                            await writer.WriteAsync(info.Org, NpgsqlDbType.Varchar, cancellationToken); // InstanceOrg
-                            await writer.WriteAsync(info.App, NpgsqlDbType.Varchar, cancellationToken); // InstanceApp
-                            await writer.WriteAsync(info.InstanceOwnerPartyId, NpgsqlDbType.Integer, cancellationToken); // InstanceOwnerPartyId
-                            await writer.WriteAsync(info.InstanceGuid, NpgsqlDbType.Uuid, cancellationToken); // InstanceGuid
+                            // ContextJson
+                            if (req.Request.Context.HasValue)
+                                await writer.WriteAsync(
+                                    req.Request.Context.Value.GetRawText(),
+                                    NpgsqlDbType.Jsonb,
+                                    cancellationToken
+                                );
+                            else
+                                await writer.WriteNullAsync(cancellationToken);
 
                             if (req.Metadata.TraceContext != null) // TraceContext
                                 await writer.WriteAsync(req.Metadata.TraceContext, NpgsqlDbType.Varchar, cancellationToken);
@@ -518,7 +465,7 @@ internal sealed partial class EngineRepository
                     await writer.CompleteAsync(cancellationToken);
                 }
 
-                // -- COPY steps (with engine-specific columns) --
+                // -- COPY steps --
                 if (stepEntries.Count > 0)
                 {
                     await using var writer = await conn.BeginBinaryImportAsync(
@@ -526,7 +473,6 @@ internal sealed partial class EngineRepository
                         COPY "Steps" (
                             "Id", "OperationId", "IdempotencyKey", "Status", "CreatedAt", "ProcessingOrder",
                             "BackoffUntil", "RequeueCount",
-                            "ActorUserIdOrOrgNumber", "ActorLanguage",
                             "CommandJson", "RetryStrategyJson", "MetadataJson",
                             "StateOut", "JobId"
                         ) FROM STDIN (FORMAT BINARY)
@@ -535,17 +481,8 @@ internal sealed partial class EngineRepository
                     );
                     for (int stepIndex = 0; stepIndex < stepEntries.Count; stepIndex++)
                     {
-                        var (
-                            workflowIndex,
-                            operationId,
-                            idempotencyKey,
-                            order,
-                            actorUserId,
-                            actorLanguage,
-                            commandJson,
-                            retryJson,
-                            metadata
-                        ) = stepEntries[stepIndex];
+                        var (workflowIndex, operationId, idempotencyKey, order, commandJson, retryJson, metadata) =
+                            stepEntries[stepIndex];
 
                         await writer.StartRowAsync(cancellationToken);
                         await writer.WriteAsync(stepIds[stepIndex], NpgsqlDbType.Uuid, cancellationToken); // Id
@@ -560,12 +497,6 @@ internal sealed partial class EngineRepository
                         await writer.WriteAsync(order, NpgsqlDbType.Integer, cancellationToken); // ProcessingOrder
                         await writer.WriteNullAsync(cancellationToken); // BackoffUntil (null at creation)
                         await writer.WriteAsync(0, NpgsqlDbType.Integer, cancellationToken); // RequeueCount (0 at creation)
-                        await writer.WriteAsync(actorUserId, NpgsqlDbType.Varchar, cancellationToken); // ActorUserIdOrOrgNumber
-
-                        if (actorLanguage != null) // ActorLanguage
-                            await writer.WriteAsync(actorLanguage, NpgsqlDbType.Varchar, cancellationToken);
-                        else
-                            await writer.WriteNullAsync(cancellationToken);
 
                         await writer.WriteAsync(commandJson, NpgsqlDbType.Jsonb, cancellationToken); // CommandJson
 
@@ -696,7 +627,6 @@ internal sealed partial class EngineRepository
 
         await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        // TODO: Check BackoffUntil?
         var ids = await context
             .Database.SqlQuery<Guid>(
                 $"""
@@ -758,7 +688,6 @@ internal sealed partial class EngineRepository
         var ids = results.Select(r => r.WorkflowId).ToArray();
         var statuses = results.Select(r => (int)r.Status).ToArray();
 
-        // Uses integer status enum values
         const string sql = """
             UPDATE "Workflows" AS w
             SET "Status"     = v.status,
@@ -932,8 +861,8 @@ internal sealed partial class EngineRepository
 
     private static void CollectExternalIds(
         IEnumerable<WorkflowRef>? refs,
-        Guid instanceGuid,
-        HashSet<(Guid id, Guid instanceGuid)> target
+        string tenantId,
+        HashSet<(Guid id, string tenantId)> target
     )
     {
         if (refs is null)
@@ -942,21 +871,21 @@ internal sealed partial class EngineRepository
         foreach (var r in refs)
         {
             if (r.IsId)
-                target.Add((r.Id, instanceGuid));
+                target.Add((r.Id, tenantId));
         }
     }
 
     private static Guid? FindMissingExternalRef(
         BufferedEnqueueRequest request,
-        HashSet<(Guid id, Guid instanceGuid)> verifiedPairs
+        HashSet<(Guid id, string tenantId)> verifiedPairs
     )
     {
-        var instanceGuid = request.Metadata.InstanceInformation.InstanceGuid;
+        var tenantId = request.Request.TenantId;
         foreach (var wf in request.Request.Workflows)
         {
             var missing =
-                FindMissingInRefs(wf.DependsOn, instanceGuid, verifiedPairs)
-                ?? FindMissingInRefs(wf.Links, instanceGuid, verifiedPairs);
+                FindMissingInRefs(wf.DependsOn, tenantId, verifiedPairs)
+                ?? FindMissingInRefs(wf.Links, tenantId, verifiedPairs);
             if (missing is not null)
                 return missing;
         }
@@ -966,8 +895,8 @@ internal sealed partial class EngineRepository
 
     private static Guid? FindMissingInRefs(
         IEnumerable<WorkflowRef>? refs,
-        Guid instanceGuid,
-        HashSet<(Guid id, Guid instanceGuid)> verifiedPairs
+        string tenantId,
+        HashSet<(Guid id, string tenantId)> verifiedPairs
     )
     {
         if (refs is null)
@@ -975,7 +904,7 @@ internal sealed partial class EngineRepository
 
         foreach (var r in refs)
         {
-            if (r.IsId && !verifiedPairs.Contains((r.Id, instanceGuid)))
+            if (r.IsId && !verifiedPairs.Contains((r.Id, tenantId)))
                 return r.Id;
         }
 

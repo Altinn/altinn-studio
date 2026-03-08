@@ -13,9 +13,8 @@ public class StepExtensionsTests
         {
             OperationId = "test-op",
             IdempotencyKey = "test-key",
-            Actor = new Actor { UserIdOrOrgNumber = "user-1" },
             ProcessingOrder = 0,
-            Command = new Command.Debug.Noop(),
+            Command = new Command { Type = "noop", OperationId = "noop" },
             Status = status,
             BackoffUntil = backoffUntil,
             CreatedAt = createdAt ?? DateTimeOffset.UtcNow,

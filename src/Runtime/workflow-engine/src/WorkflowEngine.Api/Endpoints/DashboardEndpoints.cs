@@ -154,14 +154,13 @@ internal static class DashboardEndpoints
             .ExcludeFromDescription();
 
         app.MapGet(
-                "/dashboard/orgs-and-apps",
-                async (IServiceProvider sp, CancellationToken ct) =>
+                "/dashboard/labels",
+                async (IServiceProvider sp, string key, CancellationToken ct) =>
                 {
                     using IServiceScope scope = sp.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                    IReadOnlyList<(string Org, string App)> pairs = await repo.GetDistinctOrgsAndApps(ct);
-                    var result = pairs.Select(p => new { org = p.Org, app = p.App });
-                    return Results.Json(result, _jsonCompact);
+                    IReadOnlyList<string> values = await repo.GetDistinctLabelValues(key, ct);
+                    return Results.Json(values, _jsonCompact);
                 }
             )
             .ExcludeFromDescription();
@@ -176,10 +175,7 @@ internal static class DashboardEndpoints
                     DateTimeOffset? before,
                     DateTimeOffset? since,
                     bool? retried,
-                    string? org,
-                    string? app,
-                    string? party,
-                    string? instanceGuid,
+                    string? labels,
                     CancellationToken ct
                 ) =>
                 {
@@ -209,6 +205,9 @@ internal static class DashboardEndpoints
 
                     bool retriedOnly = retried == true;
 
+                    // Parse label filters from comma-separated "key:value" pairs
+                    Dictionary<string, string>? labelFilters = ParseLabelFilters(labels);
+
                     (IReadOnlyList<Workflow> workflows, int totalCount) = await repo.GetFinishedWorkflowsWithCount(
                         statuses: statuses,
                         search: search,
@@ -216,10 +215,7 @@ internal static class DashboardEndpoints
                         before: before,
                         since: since,
                         retriedOnly: retriedOnly,
-                        org: org,
-                        app: app,
-                        party: party,
-                        instanceGuid: instanceGuid,
+                        labelFilters: labelFilters,
                         cancellationToken: ct
                     );
 
@@ -298,7 +294,6 @@ internal static class DashboardEndpoints
                                 executionStartedAt = s.ExecutionStartedAt,
                                 updatedAt = s.UpdatedAt,
                                 backoffUntil = s.BackoffUntil,
-                                actor = s.Actor,
                                 command = s.Command,
                                 retryStrategy = s.RetryStrategy,
                                 traceId = Metrics.ParseTraceContext(workflow.EngineTraceContext)?.TraceId.ToString()
@@ -334,12 +329,7 @@ internal static class DashboardEndpoints
                                 cs.UpdatedAt,
                                 cs.BackoffUntil,
                                 recentCached.TraceId,
-                                command = new
-                                {
-                                    type = cs.CommandType,
-                                    operationId = cs.CommandDetail,
-                                    payload = cs.CommandPayload,
-                                },
+                                command = new { type = cs.CommandType, operationId = cs.CommandDetail },
                                 stateIn = (string?)null,
                                 stateOut = (string?)null,
                             },
@@ -392,5 +382,23 @@ internal static class DashboardEndpoints
             .ExcludeFromDescription();
 
         return app;
+    }
+
+    private static Dictionary<string, string>? ParseLabelFilters(string? labels)
+    {
+        if (string.IsNullOrWhiteSpace(labels))
+            return null;
+
+        var filters = new Dictionary<string, string>();
+        foreach (var pair in labels.Split(','))
+        {
+            var parts = pair.Split(':', 2);
+            if (parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]) && !string.IsNullOrWhiteSpace(parts[1]))
+            {
+                filters[parts[0].Trim()] = parts[1].Trim();
+            }
+        }
+
+        return filters.Count > 0 ? filters : null;
     }
 }

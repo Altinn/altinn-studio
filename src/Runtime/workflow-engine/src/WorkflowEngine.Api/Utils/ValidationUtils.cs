@@ -129,6 +129,9 @@ internal static class ValidationUtils
     /// </summary>
     public static bool IsValidStepRequest(StepRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.Command.Type))
+            return false;
+
         if (string.IsNullOrWhiteSpace(request.Command.OperationId))
             return false;
 
@@ -137,13 +140,6 @@ internal static class ValidationUtils
 
         return true;
     }
-
-    /// <summary>
-    /// Returns true if any workflow in the batch contains at least one <see cref="Command.AppCommand"/> step,
-    /// which requires a <c>LockToken</c> to be present on the enqueue request.
-    /// </summary>
-    public static bool HasAppCommandSteps(IEnumerable<WorkflowRequest> requests) =>
-        requests.Any(w => w.Steps.Any(s => s.Command is Command.AppCommand));
 
     private static bool IsValidJsonOrNull(string? json)
     {

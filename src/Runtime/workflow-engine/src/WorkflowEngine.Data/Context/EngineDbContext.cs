@@ -23,18 +23,15 @@ internal sealed class EngineDbContext : DbContext
             // Indexes
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => new
-            {
-                e.InstanceOrg,
-                e.InstanceApp,
-                e.InstanceGuid,
-            });
-            entity.HasIndex(e => new { e.InstanceGuid, e.Status });
+            entity.HasIndex(e => new { e.TenantId, e.Status });
 
             entity
                 .HasIndex(e => new { e.StartAt, e.CreatedAt })
                 .HasFilter("\"Status\" IN (0, 2)")
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
+
+            // GIN index on Labels for flexible filtering
+            entity.HasIndex(e => e.LabelsJson).HasMethod("gin");
 
             // Self-referencing many-to-many: a workflow can depend on many other workflows
             entity
@@ -78,20 +75,10 @@ internal sealed class EngineDbContext : DbContext
         {
             entity.ToTable("idempotency_keys");
 
-            entity.HasKey(e => new
-            {
-                e.IdempotencyKey,
-                e.InstanceOrg,
-                e.InstanceApp,
-                e.InstanceOwnerPartyId,
-                e.InstanceGuid,
-            });
+            entity.HasKey(e => new { e.IdempotencyKey, e.TenantId });
 
             entity.Property(e => e.IdempotencyKey).HasColumnName("idempotency_key");
-            entity.Property(e => e.InstanceOrg).HasColumnName("instance_org");
-            entity.Property(e => e.InstanceApp).HasColumnName("instance_app");
-            entity.Property(e => e.InstanceOwnerPartyId).HasColumnName("instance_owner_party_id");
-            entity.Property(e => e.InstanceGuid).HasColumnName("instance_guid");
+            entity.Property(e => e.TenantId).HasColumnName("tenant_id");
             entity.Property(e => e.RequestBodyHash).HasColumnName("request_body_hash").HasColumnType("bytea");
             entity.Property(e => e.WorkflowIds).HasColumnName("workflow_ids").HasColumnType("uuid[]");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp with time zone");

@@ -1,5 +1,5 @@
 using System.Globalization;
-using WorkflowEngine.Api.Extensions;
+using WorkflowEngine.CommandHandlers.Extensions;
 
 namespace WorkflowEngine.Api.Tests.Extensions;
 

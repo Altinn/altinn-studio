@@ -1,4 +1,4 @@
-namespace WorkflowEngine.Api.Extensions;
+namespace WorkflowEngine.CommandHandlers.Extensions;
 
 internal static class HttpResponseMessageExtensions
 {

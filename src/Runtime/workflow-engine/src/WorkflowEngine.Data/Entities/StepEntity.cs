@@ -32,12 +32,6 @@ internal sealed class StepEntity : IHasCommonMetadata
 
     public int RequeueCount { get; set; }
 
-    [MaxLength(50)]
-    public required string ActorUserIdOrOrgNumber { get; set; }
-
-    [MaxLength(10)]
-    public string? ActorLanguage { get; set; }
-
     [Column(TypeName = "jsonb")]
     public string CommandJson { get; set; } = "{}";
 
@@ -67,8 +61,6 @@ internal sealed class StepEntity : IHasCommonMetadata
             ProcessingOrder = step.ProcessingOrder,
             BackoffUntil = step.BackoffUntil,
             RequeueCount = step.RequeueCount,
-            ActorUserIdOrOrgNumber = step.Actor.UserIdOrOrgNumber,
-            ActorLanguage = step.Actor.Language,
             CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
@@ -98,7 +90,6 @@ internal sealed class StepEntity : IHasCommonMetadata
             UpdatedAt = UpdatedAt,
             BackoffUntil = BackoffUntil,
             RequeueCount = RequeueCount,
-            Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             Command = command,
             RetryStrategy = retryStrategy,
             StateOut = StateOut,
