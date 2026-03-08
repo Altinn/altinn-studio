@@ -10,29 +10,24 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation;
 
-public class PersonalAccessTokenRepository(DesignerdbContext dbContext) : IPersonalAccessTokenRepository
+public class ApiKeyRepository(DesignerdbContext dbContext) : IApiKeyRepository
 {
-    public async Task<PersonalAccessTokenDbModel?> GetByKeyHashAsync(
-        string keyHash,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<ApiKeyDbModel?> GetByKeyHashAsync(string keyHash, CancellationToken cancellationToken = default)
     {
         return await dbContext
-            .PersonalAccessTokens.AsNoTracking()
+            .ApiKeys.AsNoTracking()
             .Include(t => t.UserAccount)
             .Where(t => t.KeyHash == keyHash)
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<List<PersonalAccessTokenDbModel>> GetByUserAccountIdAsync(
+    public async Task<List<ApiKeyDbModel>> GetByUserAccountIdAsync(
         Guid userAccountId,
-        PersonalAccessTokenType? tokenType = null,
+        ApiKeyType? tokenType = null,
         CancellationToken cancellationToken = default
     )
     {
-        var query = dbContext
-            .PersonalAccessTokens.AsNoTracking()
-            .Where(t => t.UserAccountId == userAccountId && !t.Revoked);
+        var query = dbContext.ApiKeys.AsNoTracking().Where(t => t.UserAccountId == userAccountId && !t.Revoked);
 
         if (tokenType.HasValue)
         {
@@ -42,12 +37,9 @@ public class PersonalAccessTokenRepository(DesignerdbContext dbContext) : IPerso
         return await query.OrderByDescending(t => t.CreatedAt).ToListAsync(cancellationToken);
     }
 
-    public async Task<PersonalAccessTokenDbModel> CreateAsync(
-        PersonalAccessTokenDbModel model,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<ApiKeyDbModel> CreateAsync(ApiKeyDbModel model, CancellationToken cancellationToken = default)
     {
-        dbContext.PersonalAccessTokens.Add(model);
+        dbContext.ApiKeys.Add(model);
         await dbContext.SaveChangesAsync(cancellationToken);
         return model;
     }
@@ -55,7 +47,7 @@ public class PersonalAccessTokenRepository(DesignerdbContext dbContext) : IPerso
     public async Task RevokeAsync(long id, Guid userAccountId, CancellationToken cancellationToken = default)
     {
         await dbContext
-            .PersonalAccessTokens.Where(t => t.Id == id && t.UserAccountId == userAccountId)
+            .ApiKeys.Where(t => t.Id == id && t.UserAccountId == userAccountId)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.Revoked, true), cancellationToken);
     }
 }

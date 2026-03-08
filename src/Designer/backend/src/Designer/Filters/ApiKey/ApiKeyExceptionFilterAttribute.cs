@@ -1,12 +1,12 @@
 using System.Net;
-using Altinn.Studio.Designer.Exceptions.PersonalAccessToken;
+using Altinn.Studio.Designer.Exceptions.ApiKey;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Altinn.Studio.Designer.Filters.PersonalAccessToken;
+namespace Altinn.Studio.Designer.Filters.ApiKey;
 
-public class PersonalAccessTokenExceptionFilterAttribute : ExceptionFilterAttribute
+public class ApiKeyExceptionFilterAttribute : ExceptionFilterAttribute
 {
     public override void OnException(ExceptionContext context)
     {
@@ -22,7 +22,7 @@ public class PersonalAccessTokenExceptionFilterAttribute : ExceptionFilterAttrib
             context.Result = new ObjectResult(
                 ProblemDetailsUtils.GenerateProblemDetails(
                     context.Exception,
-                    PersonalAccessTokenErrorCodes.DuplicateTokenName,
+                    ApiKeyErrorCodes.DuplicateTokenName,
                     HttpStatusCode.Conflict
                 )
             )

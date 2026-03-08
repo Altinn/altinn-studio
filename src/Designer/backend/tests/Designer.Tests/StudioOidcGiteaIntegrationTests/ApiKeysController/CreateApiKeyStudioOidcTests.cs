@@ -9,15 +9,15 @@ using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Fixtures;
 using Xunit;
 
-namespace Designer.Tests.StudioOidcGiteaIntegrationTests.PersonalAccessTokensController;
+namespace Designer.Tests.StudioOidcGiteaIntegrationTests.ApiKeysController;
 
-public class CreatePatStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<CreatePatStudioOidcTests>
+public class CreateApiKeyStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<CreateApiKeyStudioOidcTests>
 {
     private static readonly JsonSerializerOptions s_jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    private const string BaseUrl = "designer/api/v1/user/personal-access-tokens";
+    private const string BaseUrl = "designer/api/v1/user/api-keys";
 
-    public CreatePatStudioOidcTests(
+    public CreateApiKeyStudioOidcTests(
         StudioOidcGiteaWebAppApplicationFactoryFixture<Program> factory,
         StudioOidcGiteaFixture giteaFixture,
         StudioOidcSharedDesignerHttpClientProvider sharedDesignerHttpClientProvider
@@ -33,7 +33,7 @@ public class CreatePatStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<Crea
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         string body = await response.Content.ReadAsStringAsync();
-        var token = JsonSerializer.Deserialize<CreatePersonalAccessTokenResponse>(body, s_jsonOptions);
+        var token = JsonSerializer.Deserialize<CreateApiKeyResponse>(body, s_jsonOptions);
         Assert.NotNull(token);
         Assert.Equal("test-token", token.Name);
         Assert.NotEmpty(token.Key);

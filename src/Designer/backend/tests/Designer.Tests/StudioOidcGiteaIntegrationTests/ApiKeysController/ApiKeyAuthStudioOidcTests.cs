@@ -11,15 +11,15 @@ using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Fixtures;
 using Xunit;
 
-namespace Designer.Tests.StudioOidcGiteaIntegrationTests.PersonalAccessTokensController;
+namespace Designer.Tests.StudioOidcGiteaIntegrationTests.ApiKeysController;
 
-public class ApiKeyAuthPatStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<ApiKeyAuthPatStudioOidcTests>
+public class ApiKeyAuthStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<ApiKeyAuthStudioOidcTests>
 {
     private static readonly JsonSerializerOptions s_jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    private const string BaseUrl = "designer/api/v1/user/personal-access-tokens";
+    private const string BaseUrl = "designer/api/v1/user/api-keys";
 
-    public ApiKeyAuthPatStudioOidcTests(
+    public ApiKeyAuthStudioOidcTests(
         StudioOidcGiteaWebAppApplicationFactoryFixture<Program> factory,
         StudioOidcGiteaFixture giteaFixture,
         StudioOidcSharedDesignerHttpClientProvider sharedDesignerHttpClientProvider
@@ -33,7 +33,7 @@ public class ApiKeyAuthPatStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<
         using HttpResponseMessage createResponse = await HttpClient.PostAsync(BaseUrl, createContent);
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
         string createBody = await createResponse.Content.ReadAsStringAsync();
-        var created = JsonSerializer.Deserialize<CreatePersonalAccessTokenResponse>(createBody, s_jsonOptions);
+        var created = JsonSerializer.Deserialize<CreateApiKeyResponse>(createBody, s_jsonOptions);
 
         using var unauthenticatedClient = new HttpClient { BaseAddress = new Uri(GiteaFixture.DesignerUrl) };
         unauthenticatedClient.DefaultRequestHeaders.Add(ApiKeyAuthenticationDefaults.HeaderName, created.Key);
@@ -42,7 +42,7 @@ public class ApiKeyAuthPatStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<
 
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
         string listBody = await listResponse.Content.ReadAsStringAsync();
-        var tokens = JsonSerializer.Deserialize<List<PersonalAccessTokenResponse>>(listBody, s_jsonOptions);
+        var tokens = JsonSerializer.Deserialize<List<ApiKeyResponse>>(listBody, s_jsonOptions);
         Assert.NotNull(tokens);
         Assert.Contains(tokens, t => t.Name == "api-key-token");
     }

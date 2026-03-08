@@ -7,17 +7,14 @@ using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
 namespace Altinn.Studio.Designer.Repository;
 
-public interface IPersonalAccessTokenRepository
+public interface IApiKeyRepository
 {
-    Task<PersonalAccessTokenDbModel?> GetByKeyHashAsync(string keyHash, CancellationToken cancellationToken = default);
-    Task<List<PersonalAccessTokenDbModel>> GetByUserAccountIdAsync(
+    Task<ApiKeyDbModel?> GetByKeyHashAsync(string keyHash, CancellationToken cancellationToken = default);
+    Task<List<ApiKeyDbModel>> GetByUserAccountIdAsync(
         Guid userAccountId,
-        PersonalAccessTokenType? tokenType = null,
+        ApiKeyType? tokenType = null,
         CancellationToken cancellationToken = default
     );
-    Task<PersonalAccessTokenDbModel> CreateAsync(
-        PersonalAccessTokenDbModel model,
-        CancellationToken cancellationToken = default
-    );
+    Task<ApiKeyDbModel> CreateAsync(ApiKeyDbModel model, CancellationToken cancellationToken = default);
     Task RevokeAsync(long id, Guid userAccountId, CancellationToken cancellationToken = default);
 }

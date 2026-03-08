@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
-using Altinn.Studio.Designer.Exceptions.PersonalAccessToken;
+using Altinn.Studio.Designer.Exceptions.ApiKey;
 using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
@@ -15,19 +15,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
-public class PersonalAccessTokenService(
-    IPersonalAccessTokenRepository repository,
+public class ApiKeyService(
+    IApiKeyRepository repository,
     DesignerdbContext dbContext,
-    PersonalAccessTokenSettings settings,
+    ApiKeySettings settings,
     TimeProvider timeProvider
-) : IPersonalAccessTokenService
+) : IApiKeyService
 {
     private const int RawKeyLengthBytes = 32;
 
-    public async Task<(string RawKey, PersonalAccessTokenDbModel Model)> CreateAsync(
+    public async Task<(string RawKey, ApiKeyDbModel Model)> CreateAsync(
         string username,
         string name,
-        PersonalAccessTokenType tokenType,
+        ApiKeyType tokenType,
         DateTimeOffset expiresAt,
         CancellationToken cancellationToken = default
     )
@@ -42,7 +42,7 @@ public class PersonalAccessTokenService(
         Guid userAccountId = await ResolveUserAccountIdAsync(username, cancellationToken);
 
         bool nameExists = await dbContext
-            .PersonalAccessTokens.AsNoTracking()
+            .ApiKeys.AsNoTracking()
             .AnyAsync(t => t.UserAccountId == userAccountId && t.Name == name && !t.Revoked, cancellationToken);
 
         if (nameExists)
@@ -53,7 +53,7 @@ public class PersonalAccessTokenService(
         string rawKey = GenerateRawKey();
         string keyHash = ComputeHash(rawKey);
 
-        var model = new PersonalAccessTokenDbModel
+        var model = new ApiKeyDbModel
         {
             KeyHash = keyHash,
             UserAccountId = userAccountId,
@@ -68,10 +68,7 @@ public class PersonalAccessTokenService(
         return (rawKey, created);
     }
 
-    public async Task<PersonalAccessTokenDbModel?> ValidateAsync(
-        string rawKey,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<ApiKeyDbModel?> ValidateAsync(string rawKey, CancellationToken cancellationToken = default)
     {
         string keyHash = ComputeHash(rawKey);
         var model = await repository.GetByKeyHashAsync(keyHash, cancellationToken);
@@ -89,9 +86,9 @@ public class PersonalAccessTokenService(
         return model;
     }
 
-    public async Task<List<PersonalAccessTokenDbModel>> ListAsync(
+    public async Task<List<ApiKeyDbModel>> ListAsync(
         string username,
-        PersonalAccessTokenType? tokenType = null,
+        ApiKeyType? tokenType = null,
         CancellationToken cancellationToken = default
     )
     {

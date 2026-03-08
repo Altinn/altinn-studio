@@ -55,7 +55,7 @@ namespace Designer.Tests.Services
         private readonly FakeTimeProvider _fakeTimeProvider;
         private readonly Mock<ISlackClient> _slackClient;
         private readonly AlertsSettings _alertsSettings;
-        private readonly Mock<IPersonalAccessTokenService> _personalAccessTokenService;
+        private readonly Mock<IApiKeyService> _apiKeyService;
 
         public DeploymentServiceTest(ITestOutputHelper testOutputHelper)
         {
@@ -90,7 +90,7 @@ namespace Designer.Tests.Services
             _fakeTimeProvider = new FakeTimeProvider();
             _slackClient = new Mock<ISlackClient>();
             _alertsSettings = new AlertsSettings();
-            _personalAccessTokenService = new Mock<IPersonalAccessTokenService>();
+            _apiKeyService = new Mock<IApiKeyService>();
         }
 
         [Theory]
@@ -149,7 +149,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -263,7 +263,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -311,7 +311,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             // Act
@@ -420,7 +420,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -562,7 +562,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -682,7 +682,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -861,7 +861,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -964,7 +964,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1069,7 +1069,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1179,7 +1179,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1326,7 +1326,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1453,7 +1453,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =
@@ -1611,7 +1611,7 @@ namespace Designer.Tests.Services
                 _runtimeGatewayClient.Object,
                 _slackClient.Object,
                 _alertsSettings,
-                _personalAccessTokenService.Object
+                _apiKeyService.Object
             );
 
             AltinnAuthenticatedRepoEditingContext authenticatedContext =

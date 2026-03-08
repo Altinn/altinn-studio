@@ -12,7 +12,7 @@ public class ApiKeyAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    IPersonalAccessTokenService personalAccessTokenService
+    IApiKeyService apiKeyService
 ) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -28,7 +28,7 @@ public class ApiKeyAuthenticationHandler(
             return AuthenticateResult.Fail("API key header is empty.");
         }
 
-        var token = await personalAccessTokenService.ValidateAsync(rawKey);
+        var token = await apiKeyService.ValidateAsync(rawKey);
         if (token is null)
         {
             return AuthenticateResult.Fail("Invalid or expired token.");

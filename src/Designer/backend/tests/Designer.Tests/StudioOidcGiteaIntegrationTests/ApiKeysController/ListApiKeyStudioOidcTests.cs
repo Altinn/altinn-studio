@@ -10,15 +10,15 @@ using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Fixtures;
 using Xunit;
 
-namespace Designer.Tests.StudioOidcGiteaIntegrationTests.PersonalAccessTokensController;
+namespace Designer.Tests.StudioOidcGiteaIntegrationTests.ApiKeysController;
 
-public class ListPatStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<ListPatStudioOidcTests>
+public class ListApiKeyStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<ListApiKeyStudioOidcTests>
 {
     private static readonly JsonSerializerOptions s_jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    private const string BaseUrl = "designer/api/v1/user/personal-access-tokens";
+    private const string BaseUrl = "designer/api/v1/user/api-keys";
 
-    public ListPatStudioOidcTests(
+    public ListApiKeyStudioOidcTests(
         StudioOidcGiteaWebAppApplicationFactoryFixture<Program> factory,
         StudioOidcGiteaFixture giteaFixture,
         StudioOidcSharedDesignerHttpClientProvider sharedDesignerHttpClientProvider
@@ -39,7 +39,7 @@ public class ListPatStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<ListPa
 
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
         string body = await listResponse.Content.ReadAsStringAsync();
-        var tokens = JsonSerializer.Deserialize<List<PersonalAccessTokenResponse>>(body, s_jsonOptions);
+        var tokens = JsonSerializer.Deserialize<List<ApiKeyResponse>>(body, s_jsonOptions);
         Assert.NotNull(tokens);
         Assert.Contains(tokens, t => t.Name == "list-token-1");
         Assert.Contains(tokens, t => t.Name == "list-token-2");

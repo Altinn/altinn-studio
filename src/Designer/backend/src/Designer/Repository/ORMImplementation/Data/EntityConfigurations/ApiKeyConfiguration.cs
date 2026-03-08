@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
 
-public class PersonalAccessTokenConfiguration : IEntityTypeConfiguration<PersonalAccessTokenDbModel>
+public class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKeyDbModel>
 {
-    public void Configure(EntityTypeBuilder<PersonalAccessTokenDbModel> builder)
+    public void Configure(EntityTypeBuilder<ApiKeyDbModel> builder)
     {
-        builder.ToTable("personal_access_tokens", "designer");
+        builder.ToTable("api_keys", "designer");
 
-        builder.HasKey(e => e.Id).HasName("personal_access_tokens_pkey");
+        builder.HasKey(e => e.Id).HasName("api_keys_pkey");
 
         builder.Property(e => e.Id).HasColumnName("id").UseIdentityAlwaysColumn();
 
@@ -23,7 +23,7 @@ public class PersonalAccessTokenConfiguration : IEntityTypeConfiguration<Persona
         builder
             .Property(e => e.TokenType)
             .HasColumnName("token_type")
-            .HasDefaultValue(Enums.PersonalAccessTokenType.User)
+            .HasDefaultValue(Enums.ApiKeyType.User)
             .IsRequired();
 
         builder.Property(e => e.ExpiresAt).HasColumnType("timestamptz").HasColumnName("expires_at").IsRequired();
@@ -32,12 +32,12 @@ public class PersonalAccessTokenConfiguration : IEntityTypeConfiguration<Persona
 
         builder.Property(e => e.CreatedAt).HasColumnType("timestamptz").HasColumnName("created_at").IsRequired();
 
-        builder.HasIndex(e => e.KeyHash, "idx_personal_access_tokens_key_hash").IsUnique();
+        builder.HasIndex(e => e.KeyHash, "idx_api_keys_key_hash").IsUnique();
 
-        builder.HasIndex(e => e.UserAccountId, "idx_personal_access_tokens_user_account_id");
+        builder.HasIndex(e => e.UserAccountId, "idx_api_keys_user_account_id");
 
         builder
-            .HasIndex(e => new { e.UserAccountId, e.Name }, "idx_personal_access_tokens_unique_name_per_user")
+            .HasIndex(e => new { e.UserAccountId, e.Name }, "idx_api_keys_unique_name_per_user")
             .IsUnique()
             .HasFilter("revoked = false");
 

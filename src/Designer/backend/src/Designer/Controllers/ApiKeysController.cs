@@ -17,12 +17,12 @@ namespace Altinn.Studio.Designer.Controllers;
 [Authorize]
 [AutoValidateAntiforgeryToken]
 [FeatureGate(StudioFeatureFlags.StudioOidc)]
-[Route("/designer/api/v1/user/personal-access-tokens")]
-public class PersonalAccessTokensController(IPersonalAccessTokenService personalAccessTokenService) : ControllerBase
+[Route("/designer/api/v1/user/api-keys")]
+public class ApiKeysController(IApiKeyService apiKeyService) : ControllerBase
 {
     [HttpPost]
-    public async Task<ActionResult<CreatePersonalAccessTokenResponse>> Create(
-        [FromBody] CreatePersonalAccessTokenRequest request,
+    public async Task<ActionResult<CreateApiKeyResponse>> Create(
+        [FromBody] CreateApiKeyRequest request,
         CancellationToken cancellationToken
     )
     {
@@ -33,34 +33,25 @@ public class PersonalAccessTokensController(IPersonalAccessTokenService personal
 
         string username = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        var (rawKey, model) = await personalAccessTokenService.CreateAsync(
+        var (rawKey, model) = await apiKeyService.CreateAsync(
             username,
             request.Name,
-            PersonalAccessTokenType.User,
+            ApiKeyType.User,
             request.ExpiresAt,
             cancellationToken
         );
 
-        return Created(
-            string.Empty,
-            new CreatePersonalAccessTokenResponse(model.Id, rawKey, model.Name, model.ExpiresAt)
-        );
+        return Created(string.Empty, new CreateApiKeyResponse(model.Id, rawKey, model.Name, model.ExpiresAt));
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<PersonalAccessTokenResponse>>> List(CancellationToken cancellationToken)
+    public async Task<ActionResult<List<ApiKeyResponse>>> List(CancellationToken cancellationToken)
     {
         string username = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-        var tokens = await personalAccessTokenService.ListAsync(
-            username,
-            PersonalAccessTokenType.User,
-            cancellationToken
-        );
+        var tokens = await apiKeyService.ListAsync(username, ApiKeyType.User, cancellationToken);
 
-        var response = tokens
-            .Select(t => new PersonalAccessTokenResponse(t.Id, t.Name, t.ExpiresAt, t.CreatedAt))
-            .ToList();
+        var response = tokens.Select(t => new ApiKeyResponse(t.Id, t.Name, t.ExpiresAt, t.CreatedAt)).ToList();
 
         return Ok(response);
     }
@@ -69,7 +60,7 @@ public class PersonalAccessTokensController(IPersonalAccessTokenService personal
     public async Task<IActionResult> Revoke(long id, CancellationToken cancellationToken)
     {
         string username = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        await personalAccessTokenService.RevokeAsync(id, username, cancellationToken);
+        await apiKeyService.RevokeAsync(id, username, cancellationToken);
         return NoContent();
     }
 }

@@ -57,7 +57,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IRuntimeGatewayClient _runtimeGatewayClient;
         private readonly ISlackClient _slackClient;
         private readonly AlertsSettings _alertsSettings;
-        private readonly IPersonalAccessTokenService _personalAccessTokenService;
+        private readonly IApiKeyService _apiKeyService;
 
         /// <summary>
         /// Constructor
@@ -80,7 +80,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             IRuntimeGatewayClient runtimeGatewayClient,
             ISlackClient slackClient,
             AlertsSettings alertsSettings,
-            IPersonalAccessTokenService personalAccessTokenService,
+            IApiKeyService apiKeyService,
             GitOpsSettings gitOpsSettings = null
         )
         {
@@ -102,7 +102,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _runtimeGatewayClient = runtimeGatewayClient;
             _slackClient = slackClient;
             _alertsSettings = alertsSettings;
-            _personalAccessTokenService = personalAccessTokenService;
+            _apiKeyService = apiKeyService;
         }
 
         /// <inheritdoc/>
@@ -606,10 +606,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
             {
-                var (rawKey, _) = await _personalAccessTokenService.CreateAsync(
+                var (rawKey, _) = await _apiKeyService.CreateAsync(
                     username,
                     "deploy",
-                    Enums.PersonalAccessTokenType.System,
+                    Enums.ApiKeyType.System,
                     _timeProvider.GetUtcNow().AddHours(1)
                 );
                 return (rawKey, "X-Api-Key");

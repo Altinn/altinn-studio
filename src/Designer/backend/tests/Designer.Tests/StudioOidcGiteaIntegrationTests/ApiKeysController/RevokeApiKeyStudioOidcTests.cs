@@ -10,15 +10,15 @@ using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Fixtures;
 using Xunit;
 
-namespace Designer.Tests.StudioOidcGiteaIntegrationTests.PersonalAccessTokensController;
+namespace Designer.Tests.StudioOidcGiteaIntegrationTests.ApiKeysController;
 
-public class RevokePatStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<RevokePatStudioOidcTests>
+public class RevokeApiKeyStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<RevokeApiKeyStudioOidcTests>
 {
     private static readonly JsonSerializerOptions s_jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-    private const string BaseUrl = "designer/api/v1/user/personal-access-tokens";
+    private const string BaseUrl = "designer/api/v1/user/api-keys";
 
-    public RevokePatStudioOidcTests(
+    public RevokeApiKeyStudioOidcTests(
         StudioOidcGiteaWebAppApplicationFactoryFixture<Program> factory,
         StudioOidcGiteaFixture giteaFixture,
         StudioOidcSharedDesignerHttpClientProvider sharedDesignerHttpClientProvider
@@ -32,7 +32,7 @@ public class RevokePatStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<Revo
         using HttpResponseMessage createResponse = await HttpClient.PostAsync(BaseUrl, content);
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
         string createBody = await createResponse.Content.ReadAsStringAsync();
-        var created = JsonSerializer.Deserialize<CreatePersonalAccessTokenResponse>(createBody, s_jsonOptions);
+        var created = JsonSerializer.Deserialize<CreateApiKeyResponse>(createBody, s_jsonOptions);
 
         using HttpResponseMessage revokeResponse = await HttpClient.DeleteAsync($"{BaseUrl}/{created.Id}");
 
@@ -40,7 +40,7 @@ public class RevokePatStudioOidcTests : StudioOidcGiteaIntegrationTestsBase<Revo
 
         using HttpResponseMessage listResponse = await HttpClient.GetAsync(BaseUrl);
         string listBody = await listResponse.Content.ReadAsStringAsync();
-        var tokens = JsonSerializer.Deserialize<List<PersonalAccessTokenResponse>>(listBody, s_jsonOptions);
+        var tokens = JsonSerializer.Deserialize<List<ApiKeyResponse>>(listBody, s_jsonOptions);
         Assert.DoesNotContain(tokens, t => t.Id == created.Id);
     }
 

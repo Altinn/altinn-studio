@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Altinn.Studio.Designer.Migrations
 {
     /// <inheritdoc />
-    public partial class UserAccountsAndPersonalAccessTokens : Migration
+    public partial class UserAccountsAndApiKeys : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,7 +30,7 @@ namespace Altinn.Studio.Designer.Migrations
             );
 
             migrationBuilder.CreateTable(
-                name: "personal_access_tokens",
+                name: "api_keys",
                 schema: "designer",
                 columns: table => new
                 {
@@ -50,9 +50,9 @@ namespace Altinn.Studio.Designer.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("personal_access_tokens_pkey", x => x.id);
+                    table.PrimaryKey("api_keys_pkey", x => x.id);
                     table.ForeignKey(
-                        name: "FK_personal_access_tokens_user_accounts_user_account_id",
+                        name: "FK_api_keys_user_accounts_user_account_id",
                         column: x => x.user_account_id,
                         principalSchema: "designer",
                         principalTable: "user_accounts",
@@ -63,26 +63,26 @@ namespace Altinn.Studio.Designer.Migrations
             );
 
             migrationBuilder.CreateIndex(
-                name: "idx_personal_access_tokens_key_hash",
+                name: "idx_api_keys_key_hash",
                 schema: "designer",
-                table: "personal_access_tokens",
+                table: "api_keys",
                 column: "key_hash",
                 unique: true
             );
 
             migrationBuilder.CreateIndex(
-                name: "idx_personal_access_tokens_unique_name_per_user",
+                name: "idx_api_keys_unique_name_per_user",
                 schema: "designer",
-                table: "personal_access_tokens",
+                table: "api_keys",
                 columns: new[] { "user_account_id", "name" },
                 unique: true,
                 filter: "revoked = false"
             );
 
             migrationBuilder.CreateIndex(
-                name: "idx_personal_access_tokens_user_account_id",
+                name: "idx_api_keys_user_account_id",
                 schema: "designer",
-                table: "personal_access_tokens",
+                table: "api_keys",
                 column: "user_account_id"
             );
 
@@ -102,15 +102,13 @@ namespace Altinn.Studio.Designer.Migrations
                 unique: true
             );
 
-            migrationBuilder.Sql(
-                SqlScriptsReadHelper.ReadSqlScript("UserAccountsAndPersonalAccessTokens/setup-grants.sql")
-            );
+            migrationBuilder.Sql(SqlScriptsReadHelper.ReadSqlScript("UserAccountsAndApiKeys/setup-grants.sql"));
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "personal_access_tokens", schema: "designer");
+            migrationBuilder.DropTable(name: "api_keys", schema: "designer");
 
             migrationBuilder.DropTable(name: "user_accounts", schema: "designer");
         }
