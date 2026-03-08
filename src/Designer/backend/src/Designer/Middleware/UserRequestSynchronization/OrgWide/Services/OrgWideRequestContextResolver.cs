@@ -19,17 +19,10 @@ public class OrgWideRequestContextResolver : IRequestContextResolver<AltinnOrgCo
     {
         context = null;
 
-        try
+        if (_dataExtractor.TryResolveOrg(httpContext, out string org))
         {
-            if (_dataExtractor.TryResolveOrg(httpContext, out string org))
-            {
-                context = AltinnOrgContext.FromOrg(org);
-                return true;
-            }
-        }
-        catch
-        {
-            return false;
+            context = AltinnOrgContext.FromOrg(org);
+            return true;
         }
 
         return false;

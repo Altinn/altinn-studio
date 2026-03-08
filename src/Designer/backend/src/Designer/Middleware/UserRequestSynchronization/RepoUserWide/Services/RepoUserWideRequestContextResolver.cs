@@ -19,21 +19,14 @@ public class RepoUserWideRequestContextResolver : IRequestContextResolver<Altinn
     {
         context = null;
 
-        try
+        if (
+            _dataExtractor.TryResolveOrg(httpContext, out string org)
+            && _dataExtractor.TryResolveApp(httpContext, out string app)
+            && _dataExtractor.TryResolveDeveloper(httpContext, out string developer)
+        )
         {
-            if (
-                _dataExtractor.TryResolveOrg(httpContext, out string org)
-                && _dataExtractor.TryResolveApp(httpContext, out string app)
-                && _dataExtractor.TryResolveDeveloper(httpContext, out string developer)
-            )
-            {
-                context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-                return true;
-            }
-        }
-        catch
-        {
-            return false;
+            context = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+            return true;
         }
 
         return false;
