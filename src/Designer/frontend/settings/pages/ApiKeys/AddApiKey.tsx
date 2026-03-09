@@ -60,7 +60,7 @@ export const AddApiKey = ({ onTokenCreated }: AddApiKeyProps): React.ReactElemen
     )
       return;
     addUserApiKey(
-      { name, expiresAt: `${expiresAt}T00:00:00Z` },
+      { name, expiresAt: `${expiresAt}T23:59:59Z` },
       {
         onSuccess: (response) => {
           setNewTokenKey(response.key);

@@ -186,7 +186,7 @@ describe('AddApiKey', () => {
     await user.click(getAddButton());
     expect(addUserApiKey).toHaveBeenCalledWith({
       name: 'New token',
-      expiresAt: `${validExpiresAt}T00:00:00Z`,
+      expiresAt: `${validExpiresAt}T23:59:59Z`,
     });
   });
 
