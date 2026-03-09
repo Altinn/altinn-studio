@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
@@ -32,10 +32,12 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   const initialMode: PdfMode = currentLayoutSet ? 'layout-based' : 'automatic';
   const [pdfMode, setPdfMode] = useState<PdfMode>(initialMode);
 
-  // Used to force-reset radio value if user cancels confirm when toggling away from layout-based
-  const setValueRef = useRef<((value: string) => void) | null>(null);
+  const { getRadioProps, setValue } = useStudioRadioGroup({
+    value: pdfMode,
+    onChange: handlePdfModeChange,
+  });
 
-  const handlePdfModeChange = (value: string): void => {
+  function handlePdfModeChange(value: string): void {
     const newMode = value as PdfMode;
 
     if (pdfMode === 'layout-based' && newMode === 'automatic' && currentLayoutSet) {
@@ -47,24 +49,13 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
         deleteLayoutSet({ layoutSetIdToUpdate: currentLayoutSet.id });
         setPdfMode(newMode);
       } else {
-        setTimeout(() => setValueRef.current?.(pdfMode), 0);
+        setValue(pdfMode);
       }
       return;
     }
 
     setPdfMode(newMode);
-  };
-
-  const { getRadioProps, setValue } = useStudioRadioGroup({
-    value: pdfMode,
-    onChange: handlePdfModeChange,
-  });
-
-  useEffect(() => {
-    setValueRef.current = (value: string) => {
-      setValue(value);
-    };
-  }, [setValue]);
+  }
 
   if (
     appVersion &&
