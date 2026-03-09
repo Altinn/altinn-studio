@@ -204,8 +204,8 @@ steps:
     condition: and(succeeded(), eq(variables['PUSH_SYNCROOT_GITOPS_IMAGE'], 'true'))
     inputs:
       script: |
-        if [ -n "$APP_AUTH_HEADER_NAME" ]; then
-          git -c http.extraHeader="$APP_AUTH_HEADER_NAME: $APP_DEPLOY_TOKEN" clone https://$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
+        if [ -n "$(APP_AUTH_HEADER_NAME)" ]; then
+          git -c http.extraHeader="$(APP_AUTH_HEADER_NAME): $(APP_DEPLOY_TOKEN)" clone https://$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
         else
           git clone https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$GITOPS_ORGANIZATION/$APP_OWNER$GITOPS_REPO_SUFFIX $GITOPS_REPO_CLONE_DIR
         fi
