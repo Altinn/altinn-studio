@@ -190,7 +190,7 @@ See also the [list of contributors][25] who participated in this project.
 
 ## License
 
-This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 [1]: https://docs.altinn.studio/
 [2]: https://docs.altinn.studio/altinn-studio/getting-started/
