@@ -87,6 +87,14 @@ describe('ImageUpload component', () => {
     });
     cy.gotoNavPage('Bildeopplasting');
 
+    // FIXME: Layout prefetching was previously handled by FormPrefetcher (removed in the
+    // entrypoint-to-loader refactor). Without it, layouts only start fetching when LayoutsProvider
+    // mounts deeper in the tree, creating a race where validateOnNext finds no validation errors
+    // because layouts/nodes aren't registered yet. This wait is a temporary workaround until
+    // we have the new bootstrap endpoint in place
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(1000);
+
     cy.findByRole('button', { name: /next/i }).click();
     cy.findAllByText('Du må laste opp et bilde').first().should('be.visible');
 
