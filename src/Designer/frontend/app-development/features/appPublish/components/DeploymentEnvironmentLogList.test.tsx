@@ -200,33 +200,39 @@ describe('DeploymentEnvironmentLogList', () => {
         ).toBeInTheDocument();
       });
 
-      it.each(Object.values(FailedEventType))('renders when deployment failed with event %s', (eventType) => {
-        render({
-          pipelineDeploymentList: [
-            {
-              ...pipelineDeployment,
-              events: [{ ...deployEvent, eventType }],
-            },
-          ],
-        });
-        expect(
-          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
-        ).toBeInTheDocument();
-      });
+      it.each(Object.values(FailedEventType))(
+        'renders when deployment failed with event %s',
+        (eventType) => {
+          render({
+            pipelineDeploymentList: [
+              {
+                ...pipelineDeployment,
+                events: [{ ...deployEvent, eventType }],
+              },
+            ],
+          });
+          expect(
+            screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+          ).toBeInTheDocument();
+        },
+      );
 
-      it.each(Object.values(SucceededEventType))('renders when deployment succeeded with event %s', (eventType) => {
-        render({
-          pipelineDeploymentList: [
-            {
-              ...pipelineDeployment,
-              events: [{ ...deployEvent, eventType }],
-            },
-          ],
-        });
-        expect(
-          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
-        ).toBeInTheDocument();
-      });
+      it.each(Object.values(SucceededEventType))(
+        'renders when deployment succeeded with event %s',
+        (eventType) => {
+          render({
+            pipelineDeploymentList: [
+              {
+                ...pipelineDeployment,
+                events: [{ ...deployEvent, eventType }],
+              },
+            ],
+          });
+          expect(
+            screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
+          ).toBeInTheDocument();
+        },
+      );
 
       it('renders when deprecated undeploy pipeline succeeded', () => {
         render({
@@ -245,7 +251,7 @@ describe('DeploymentEnvironmentLogList', () => {
         ).toBeInTheDocument();
       });
 
-      it('shows in-progress status when PipelineSucceeded is recent (< 15m)', () => {
+      it('shows in-progress status when pipeline succeeded and is < 15 minutes old', () => {
         const recentTimestamp = new Date(Date.now() - 5 * 60 * 1000).toISOString();
         render({
           pipelineDeploymentList: [
