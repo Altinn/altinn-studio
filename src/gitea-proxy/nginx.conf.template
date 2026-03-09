@@ -24,6 +24,7 @@ http {
   }
   otel_service_name ${OTEL_SERVICE_NAME};
   otel_trace ${OTEL_TRACE};
+  otel_trace_context propagate;
 
   js_import auth from /etc/nginx/auth.js;
 
