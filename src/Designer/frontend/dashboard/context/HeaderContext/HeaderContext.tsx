@@ -14,6 +14,7 @@ import { type NavigationMenuGroup } from '../../types/NavigationMenuGroup';
 import type { HeaderMenuItem } from '../../types/HeaderMenuItem';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { SETTINGS_BASENAME } from 'app-shared/constants';
 
 export type HeaderContextProps = {
   selectableOrgs?: Organization[];
@@ -75,7 +76,7 @@ export const HeaderContextProvider = ({
   const settingsMenuItem: NavigationMenuItem = {
     action: {
       type: 'link',
-      href: `/settings?returnTo=${encodeURIComponent(window.location.pathname)}`,
+      href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
     itemName: t('user.settings'),

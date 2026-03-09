@@ -33,12 +33,10 @@ describe('Menu', () => {
     expect(getTab()).toHaveAttribute('tabindex', '0');
   });
 
-  it('navigates preserving search params when a tab is clicked', async () => {
+  it('navigates to tab when a tab is clicked', async () => {
     const user = userEvent.setup();
-    renderMenu(['/api-keys?returnTo=%2Fdashboard']);
+    renderMenu(['/api-keys']);
     await user.click(getTab());
-    expect(mockNavigate).toHaveBeenCalledWith(
-      expect.objectContaining({ search: '?returnTo=%2Fdashboard' }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(expect.objectContaining({ pathname: 'api-keys' }));
   });
 });

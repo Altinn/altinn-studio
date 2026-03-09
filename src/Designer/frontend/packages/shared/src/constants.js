@@ -9,6 +9,7 @@ export const ORG_LIBRARY_BASENAME = 'org-library';
 export const PREVIEW_BASENAME = '/preview';
 export const STUDIO_ROOT_BASENAME = '/info';
 export const SETTINGS_BASENAME = '/settings';
+export const DISPLAY_NAME = 'Altinn Studio';
 export const DEFAULT_LANGUAGE = 'nb';
 export const BASE_CONTAINER_ID = '__base__';
 export const AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS = 400;

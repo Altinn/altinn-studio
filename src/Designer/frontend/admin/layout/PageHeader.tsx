@@ -1,4 +1,4 @@
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { MEDIA_QUERY_MAX_WIDTH, SETTINGS_BASENAME } from 'app-shared/constants';
 import type { Org } from 'app-shared/types/OrgList';
 import type { StudioProfileMenuGroup } from '@studio/components-legacy';
 import { StudioPageHeader, useMediaQuery } from '@studio/components-legacy';
@@ -99,7 +99,7 @@ const ProfileMenu = ({ user, org }: ProfileMenuProps): ReactElement => {
   const settingsMenuItem = {
     action: {
       type: 'link' as const,
-      href: `/settings?returnTo=${encodeURIComponent(window.location.pathname)}`,
+      href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
     itemName: t('user.settings'),

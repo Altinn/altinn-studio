@@ -15,6 +15,7 @@ import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation'
 import { useSearchParams } from 'react-router-dom';
 import { useFeatureFlagsContext } from '@studio/feature-flags';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { SETTINGS_BASENAME } from 'app-shared/constants';
 
 export type PageHeaderContextProps = {
   user: User;
@@ -57,7 +58,7 @@ export const PageHeaderContextProvider = ({
   const settingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: `/settings?returnTo=${encodeURIComponent(window.location.pathname)}`,
+      href: SETTINGS_BASENAME,
       openInNewTab: false,
     },
     itemName: t('user.settings'),

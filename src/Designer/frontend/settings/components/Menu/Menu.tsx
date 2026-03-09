@@ -9,7 +9,7 @@ import { RoutePaths } from '../../routes/RoutePaths';
 export function Menu(): ReactElement {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { pathname, search } = useLocation();
+  const { pathname } = useLocation();
   let selectedTabId = pathname.split('/').at(-1);
   selectedTabId = selectedTabId === '' ? RoutePaths.ApiKeys : selectedTabId;
   const menuTabs = [
@@ -22,7 +22,7 @@ export function Menu(): ReactElement {
   return (
     <StudioContentMenu
       selectedTabId={selectedTabId}
-      onChangeTab={(tabId) => navigate({ pathname: tabId, search })}
+      onChangeTab={(tabId) => navigate({ pathname: tabId })}
     >
       {menuTabs.map((tab) => (
         <StudioContentMenu.ButtonTab

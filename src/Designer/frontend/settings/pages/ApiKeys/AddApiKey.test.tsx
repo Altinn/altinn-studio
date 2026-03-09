@@ -76,6 +76,7 @@ const getAddButton = () =>
 
 const fillForm = async (user: ReturnType<typeof userEvent.setup>, name: string, date: string) => {
   await user.type(getNameInput(), name);
+  await user.clear(getExpiryInput());
   await user.type(getExpiryInput(), date);
 };
 
