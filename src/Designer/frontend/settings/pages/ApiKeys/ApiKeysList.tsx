@@ -8,31 +8,29 @@ import {
   StudioTable,
   StudioTag,
 } from '@studio/components';
-import { useUserPersonalAccessTokensQuery } from '../hooks/queries/useUserPersonalAccessTokensQuery';
-import { useDeleteUserPersonalAccessTokenMutation } from '../hooks/mutations/useDeleteUserPersonalAccessTokenMutation';
-import classes from './PersonalAccessTokensList.module.css';
+import { useUserApiKeysQuery } from '../hooks/queries/useUserApiKeysQuery';
+import { useDeleteUserApiKeyMutation } from '../hooks/mutations/useDeleteUserApiKeyMutation';
+import classes from './ApiKeysList.module.css';
 
-type PersonalAccessTokensListProps = {
+type ApiKeysListProps = {
   newTokenId: number | null;
 };
 
-export const PersonalAccessTokensList = ({
-  newTokenId,
-}: PersonalAccessTokensListProps): React.ReactElement => {
+export const ApiKeysList = ({ newTokenId }: ApiKeysListProps): React.ReactElement => {
   const { t } = useTranslation();
 
   const {
     data: tokens,
     isPending,
     isError,
-  } = useUserPersonalAccessTokensQuery({
+  } = useUserApiKeysQuery({
     hideDefaultError: true,
   });
   const {
-    mutate: deleteUserPersonalAccessToken,
-    isPending: pendingDeletePersonalAccessToken,
-    variables: deletingPersonalAccessTokenId,
-  } = useDeleteUserPersonalAccessTokenMutation();
+    mutate: deleteUserApiKey,
+    isPending: pendingDeleteApiKey,
+    variables: deletingApiKeyId,
+  } = useDeleteUserApiKeyMutation();
 
   const sortedTokens = useMemo(
     () => [...(tokens ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
@@ -40,17 +38,15 @@ export const PersonalAccessTokensList = ({
   );
 
   if (isPending) {
-    return (
-      <StudioSpinner aria-hidden spinnerTitle={t('user.settings.personal_access_tokens.loading')} />
-    );
+    return <StudioSpinner aria-hidden spinnerTitle={t('user.settings.api_keys.loading')} />;
   }
 
   if (isError) {
-    return <StudioError>{t('user.settings.personal_access_tokens.error')}</StudioError>;
+    return <StudioError>{t('user.settings.api_keys.error')}</StudioError>;
   }
 
   if (tokens.length === 0) {
-    return <StudioParagraph>{t('user.settings.personal_access_tokens.no_tokens')}</StudioParagraph>;
+    return <StudioParagraph>{t('user.settings.api_keys.no_tokens')}</StudioParagraph>;
   }
 
   const now = new Date();
@@ -59,15 +55,9 @@ export const PersonalAccessTokensList = ({
     <StudioTable>
       <StudioTable.Head>
         <StudioTable.Row>
-          <StudioTable.HeaderCell>
-            {t('user.settings.personal_access_tokens.name')}
-          </StudioTable.HeaderCell>
-          <StudioTable.HeaderCell>
-            {t('user.settings.personal_access_tokens.expires_at')}
-          </StudioTable.HeaderCell>
-          <StudioTable.HeaderCell>
-            {t('user.settings.personal_access_tokens.created_at')}
-          </StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>{t('user.settings.api_keys.name')}</StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>{t('user.settings.api_keys.expires_at')}</StudioTable.HeaderCell>
+          <StudioTable.HeaderCell>{t('user.settings.api_keys.created_at')}</StudioTable.HeaderCell>
           <StudioTable.HeaderCell className={classes.deleteCell}></StudioTable.HeaderCell>
         </StudioTable.Row>
       </StudioTable.Head>
@@ -82,7 +72,7 @@ export const PersonalAccessTokensList = ({
               {new Date(token.expiresAt).toLocaleDateString()}
               {new Date(token.expiresAt) < now && (
                 <StudioTag data-color='danger' className={classes.expiredTag}>
-                  {t('user.settings.personal_access_tokens.expired')}
+                  {t('user.settings.api_keys.expired')}
                 </StudioTag>
               )}
             </StudioTable.Cell>
@@ -91,13 +81,11 @@ export const PersonalAccessTokensList = ({
             </StudioTable.Cell>
             <StudioTable.Cell className={classes.deleteCell}>
               <StudioDeleteButton
-                onDelete={() => deleteUserPersonalAccessToken(token.id)}
-                confirmMessage={t('user.settings.personal_access_tokens.delete_confirm')}
-                disabled={
-                  pendingDeletePersonalAccessToken && deletingPersonalAccessTokenId === token.id
-                }
+                onDelete={() => deleteUserApiKey(token.id)}
+                confirmMessage={t('user.settings.api_keys.delete_confirm')}
+                disabled={pendingDeleteApiKey && deletingApiKeyId === token.id}
               >
-                {t('user.settings.personal_access_tokens.delete')}
+                {t('user.settings.api_keys.delete')}
               </StudioDeleteButton>
             </StudioTable.Cell>
           </StudioTable.Row>

@@ -107,5 +107,5 @@ export enum QueryKey {
   ConsentResourceTemplates = 'ConsentResourceTemplates',
 
   // User settings
-  UserPersonalAccessTokens = 'UserPersonalAccessTokens',
+  UserApiKeys = 'UserApiKeys',
 }

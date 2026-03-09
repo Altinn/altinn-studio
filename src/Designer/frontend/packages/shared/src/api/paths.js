@@ -225,5 +225,5 @@ export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?
 export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GET
 
 // User settings
-export const userPersonalAccessTokenPath = (id) => `${apiBasePath}/v1/user/personal-access-tokens/${id}`; // DELETE
-export const userPersonalAccessTokensPath = () => `${apiBasePath}/v1/user/personal-access-tokens`; // GET, POST
+export const userApiKeyPath = (id) => `${apiBasePath}/v1/user/api-keys/${id}`; // DELETE
+export const userApiKeysPath = () => `${apiBasePath}/v1/user/api-keys`; // GET, POST

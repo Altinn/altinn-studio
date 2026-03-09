@@ -11,11 +11,11 @@ export function Menu(): ReactElement {
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
   let selectedTabId = pathname.split('/').at(-1);
-  selectedTabId = selectedTabId === '' ? RoutePaths.PersonalAccessTokens : selectedTabId;
+  selectedTabId = selectedTabId === '' ? RoutePaths.ApiKeys : selectedTabId;
   const menuTabs = [
     {
-      tabId: RoutePaths.PersonalAccessTokens,
-      tabName: t('user.settings.personal_access_tokens.personal_access_tokens'),
+      tabId: RoutePaths.ApiKeys,
+      tabName: t('user.settings.api_keys.api_keys'),
       icon: <ShieldLockIcon />,
     },
   ];

@@ -12,30 +12,30 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-const renderMenu = (initialEntries: string[] = ['/personal-access-tokens']) =>
+const renderMenu = (initialEntries: string[] = ['/api-keys']) =>
   renderWithProviders(<Menu />, { initialEntries });
 
 const getTab = () =>
   screen.getByRole('tab', {
-    name: textMock('user.settings.personal_access_tokens.personal_access_tokens'),
+    name: textMock('user.settings.api_keys.api_keys'),
   });
 
 describe('Menu', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('renders the personal access tokens tab', () => {
+  it('renders the api keys tab', () => {
     renderMenu();
     expect(getTab()).toBeInTheDocument();
   });
 
-  it('selects personal-access-tokens tab when pathname ends with empty string', () => {
+  it('selects api-keys tab when pathname ends with empty string', () => {
     renderMenu(['/settings/']);
     expect(getTab()).toHaveAttribute('tabindex', '0');
   });
 
   it('navigates preserving search params when a tab is clicked', async () => {
     const user = userEvent.setup();
-    renderMenu(['/personal-access-tokens?returnTo=%2Fdashboard']);
+    renderMenu(['/api-keys?returnTo=%2Fdashboard']);
     await user.click(getTab());
     expect(mockNavigate).toHaveBeenCalledWith(
       expect.objectContaining({ search: '?returnTo=%2Fdashboard' }),

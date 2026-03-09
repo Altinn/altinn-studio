@@ -44,7 +44,7 @@ import type {
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
-import type { PersonalAccessTokenResponse } from 'app-shared/types/api/PersonalAccessTokenResponse';
+import type { ApiKeyResponse } from 'app-shared/types/api/ApiKeyResponse';
 import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
@@ -263,9 +263,7 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
 
   // Queries - User settings
-  getUserPersonalAccessTokens: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<PersonalAccessTokenResponse[]>([])),
+  getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<ApiKeyResponse[]>([])),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -369,6 +367,6 @@ export const queriesMock: ServicesContextProps = {
   updateProcessDataTypes: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - User settings
-  addUserPersonalAccessToken: jest.fn().mockImplementation(() => Promise.resolve()),
-  deleteUserPersonalAccessToken: jest.fn().mockImplementation(() => Promise.resolve()),
+  addUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
+  deleteUserApiKey: jest.fn().mockImplementation(() => Promise.resolve()),
 };

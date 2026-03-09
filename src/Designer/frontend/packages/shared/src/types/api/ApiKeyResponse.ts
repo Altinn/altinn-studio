@@ -1,4 +1,4 @@
-export type PersonalAccessTokenResponse = {
+export type ApiKeyResponse = {
   id: number;
   name: string;
   expiresAt: string;

@@ -1,13 +1,13 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AddPersonalAccessToken } from './AddPersonalAccessToken';
+import { AddApiKey } from './AddApiKey';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { PersonalAccessTokenResponse } from 'app-shared/types/api/PersonalAccessTokenResponse';
-import type { CreatePersonalAccessTokenResponse } from 'app-shared/types/api/CreatePersonalAccessTokenResponse';
+import type { ApiKeyResponse } from 'app-shared/types/api/ApiKeyResponse';
+import type { CreateApiKeyResponse } from 'app-shared/types/api/CreateApiKeyResponse';
 import { toast } from 'react-toastify';
 
 jest.mock('react-toastify', () => ({
@@ -35,7 +35,7 @@ const tooLongExpiresAt = (() => {
   return d.toISOString().split('T')[0];
 })();
 
-const mockExistingTokens: PersonalAccessTokenResponse[] = [
+const mockExistingTokens: ApiKeyResponse[] = [
   {
     id: 1,
     name: 'Existing token',
@@ -44,7 +44,7 @@ const mockExistingTokens: PersonalAccessTokenResponse[] = [
   },
 ];
 
-const mockCreatedToken: CreatePersonalAccessTokenResponse = {
+const mockCreatedToken: CreateApiKeyResponse = {
   id: 2,
   key: 'secret-key-value',
   name: 'New token',
@@ -53,38 +53,36 @@ const mockCreatedToken: CreatePersonalAccessTokenResponse = {
 
 const onTokenCreated = jest.fn();
 
-const renderAddPersonalAccessToken = (
-  queries: Parameters<typeof renderWithProviders>[1]['queries'] = {},
-) => {
+const renderAddApiKey = (queries: Parameters<typeof renderWithProviders>[1]['queries'] = {}) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.UserPersonalAccessTokens], mockExistingTokens);
-  return renderWithProviders(<AddPersonalAccessToken onTokenCreated={onTokenCreated} />, {
+  queryClient.setQueryData([QueryKey.UserApiKeys], mockExistingTokens);
+  return renderWithProviders(<AddApiKey onTokenCreated={onTokenCreated} />, {
     queryClient,
     queries,
   });
 };
 
 const getNameInput = () =>
-  screen.getByLabelText(textMock('user.settings.personal_access_tokens.name'), { exact: false });
+  screen.getByLabelText(textMock('user.settings.api_keys.name'), { exact: false });
 
 const getExpiryInput = () =>
-  screen.getByLabelText(textMock('user.settings.personal_access_tokens.expires_at'), {
+  screen.getByLabelText(textMock('user.settings.api_keys.expires_at'), {
     exact: false,
   });
 
 const getAddButton = () =>
-  screen.getByRole('button', { name: textMock('user.settings.personal_access_tokens.add') });
+  screen.getByRole('button', { name: textMock('user.settings.api_keys.add') });
 
 const fillForm = async (user: ReturnType<typeof userEvent.setup>, name: string, date: string) => {
   await user.type(getNameInput(), name);
   await user.type(getExpiryInput(), date);
 };
 
-describe('AddPersonalAccessToken', () => {
+describe('AddApiKey', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('renders the add form', () => {
-    renderAddPersonalAccessToken();
+    renderAddApiKey();
     expect(getNameInput()).toBeInTheDocument();
     expect(getExpiryInput()).toBeInTheDocument();
     expect(getAddButton()).toBeInTheDocument();
@@ -96,7 +94,7 @@ describe('AddPersonalAccessToken', () => {
       d.setUTCDate(d.getUTCDate() + 364);
       return d.toISOString().split('T')[0];
     })();
-    renderAddPersonalAccessToken();
+    renderAddApiKey();
     const expiryInput = getExpiryInput();
     expect(expiryInput).toHaveAttribute('min', todayUtc);
     expect(expiryInput).toHaveAttribute('max', maxUtc);
@@ -104,48 +102,48 @@ describe('AddPersonalAccessToken', () => {
 
   it('shows required error when submitting empty form', async () => {
     const user = userEvent.setup();
-    renderAddPersonalAccessToken();
+    renderAddApiKey();
     await user.click(getAddButton());
     expect(screen.getAllByText(textMock('validation_errors.required'))).toHaveLength(2);
   });
 
   it('shows expiry too long error when expiry date exceeds 364 days', async () => {
     const user = userEvent.setup();
-    renderAddPersonalAccessToken();
+    renderAddApiKey();
     await fillForm(user, 'New token', tooLongExpiresAt);
     await user.click(getAddButton());
     expect(
-      screen.getByText(textMock('user.settings.personal_access_tokens.error_expiry_too_long')),
+      screen.getByText(textMock('user.settings.api_keys.error_expiry_too_long')),
     ).toBeInTheDocument();
   });
 
   it('shows expiry in past error when expiry date is in the past', async () => {
     const user = userEvent.setup();
-    renderAddPersonalAccessToken();
+    renderAddApiKey();
     await fillForm(user, 'New token', pastExpiresAt);
     await user.click(getAddButton());
     expect(
-      screen.getByText(textMock('user.settings.personal_access_tokens.error_expiry_in_past')),
+      screen.getByText(textMock('user.settings.api_keys.error_expiry_in_past')),
     ).toBeInTheDocument();
   });
 
   it('shows duplicate name error when name already exists', async () => {
     const user = userEvent.setup();
-    renderAddPersonalAccessToken();
+    renderAddApiKey();
     await fillForm(user, 'Existing token', validExpiresAt);
     await user.click(getAddButton());
     expect(
-      screen.getByText(textMock('user.settings.personal_access_tokens.error_duplicate_name')),
+      screen.getByText(textMock('user.settings.api_keys.error_duplicate_name')),
     ).toBeInTheDocument();
   });
 
-  it('calls addUserPersonalAccessToken with correct payload', async () => {
+  it('calls addUserApiKey with correct payload', async () => {
     const user = userEvent.setup();
-    const addUserPersonalAccessToken = jest.fn().mockResolvedValue(mockCreatedToken);
-    renderAddPersonalAccessToken({ addUserPersonalAccessToken });
+    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    renderAddApiKey({ addUserApiKey });
     await fillForm(user, 'New token', validExpiresAt);
     await user.click(getAddButton());
-    expect(addUserPersonalAccessToken).toHaveBeenCalledWith({
+    expect(addUserApiKey).toHaveBeenCalledWith({
       name: 'New token',
       expiresAt: `${validExpiresAt}T23:59:59Z`,
     });
@@ -153,8 +151,8 @@ describe('AddPersonalAccessToken', () => {
 
   it('shows the new token key after successful creation', async () => {
     const user = userEvent.setup();
-    const addUserPersonalAccessToken = jest.fn().mockResolvedValue(mockCreatedToken);
-    renderAddPersonalAccessToken({ addUserPersonalAccessToken });
+    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    renderAddApiKey({ addUserApiKey });
     await fillForm(user, 'New token', validExpiresAt);
     await user.click(getAddButton());
     expect(await screen.findByDisplayValue('secret-key-value')).toBeInTheDocument();
@@ -162,8 +160,8 @@ describe('AddPersonalAccessToken', () => {
 
   it('calls onTokenCreated with the new token id after creation', async () => {
     const user = userEvent.setup();
-    const addUserPersonalAccessToken = jest.fn().mockResolvedValue(mockCreatedToken);
-    renderAddPersonalAccessToken({ addUserPersonalAccessToken });
+    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    renderAddApiKey({ addUserApiKey });
     await fillForm(user, 'New token', validExpiresAt);
     await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
@@ -172,8 +170,8 @@ describe('AddPersonalAccessToken', () => {
 
   it('closes the token alert when close button is clicked', async () => {
     const user = userEvent.setup();
-    const addUserPersonalAccessToken = jest.fn().mockResolvedValue(mockCreatedToken);
-    renderAddPersonalAccessToken({ addUserPersonalAccessToken });
+    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    renderAddApiKey({ addUserApiKey });
     await fillForm(user, 'New token', validExpiresAt);
     await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
@@ -185,39 +183,39 @@ describe('AddPersonalAccessToken', () => {
     const writeText = jest.fn().mockResolvedValue(undefined);
     jest.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
     const user = userEvent.setup();
-    const addUserPersonalAccessToken = jest.fn().mockResolvedValue(mockCreatedToken);
-    renderAddPersonalAccessToken({ addUserPersonalAccessToken });
+    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    renderAddApiKey({ addUserApiKey });
     await fillForm(user, 'New token', validExpiresAt);
     await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
     await user.click(
       screen.getByRole('button', {
-        name: textMock('user.settings.personal_access_tokens.copy'),
+        name: textMock('user.settings.api_keys.copy'),
       }),
     );
     expect(writeText).toHaveBeenCalledWith('secret-key-value');
     expect(toast.success).toHaveBeenCalledWith(
-      textMock('user.settings.personal_access_tokens.copy_success'),
-      expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_success' }),
+      textMock('user.settings.api_keys.copy_success'),
+      expect.objectContaining({ toastId: 'user.settings.api_keys.copy_success' }),
     );
   });
 
   it('shows error toast when clipboard write fails', async () => {
     jest.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Permission denied'));
     const user = userEvent.setup();
-    const addUserPersonalAccessToken = jest.fn().mockResolvedValue(mockCreatedToken);
-    renderAddPersonalAccessToken({ addUserPersonalAccessToken });
+    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    renderAddApiKey({ addUserApiKey });
     await fillForm(user, 'New token', validExpiresAt);
     await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
     await user.click(
       screen.getByRole('button', {
-        name: textMock('user.settings.personal_access_tokens.copy'),
+        name: textMock('user.settings.api_keys.copy'),
       }),
     );
     expect(toast.error).toHaveBeenCalledWith(
-      textMock('user.settings.personal_access_tokens.copy_error'),
-      expect.objectContaining({ toastId: 'user.settings.personal_access_tokens.copy_error' }),
+      textMock('user.settings.api_keys.copy_error'),
+      expect.objectContaining({ toastId: 'user.settings.api_keys.copy_error' }),
     );
   });
 });

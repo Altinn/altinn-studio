@@ -12,32 +12,25 @@ import {
 import { StudioCloseIcon } from '@studio/icons';
 import { ClipboardIcon, PlusIcon } from '@navikt/aksel-icons';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { useAddUserPersonalAccessTokenMutation } from '../hooks/mutations/useAddUserPersonalAccessTokenMutation';
-import { useUserPersonalAccessTokensQuery } from '../hooks/queries/useUserPersonalAccessTokensQuery';
-import classes from './AddPersonalAccessToken.module.css';
+import { useAddUserApiKeyMutation } from '../hooks/mutations/useAddUserApiKeyMutation';
+import { useUserApiKeysQuery } from '../hooks/queries/useUserApiKeysQuery';
+import classes from './AddApiKey.module.css';
 
 const MAX_TOKEN_EXPIRY_DAYS = 364;
 
-type AddPersonalAccessTokenProps = {
+type AddApiKeyProps = {
   onTokenCreated: (id: number) => void;
 };
 
-export const AddPersonalAccessToken = ({
-  onTokenCreated,
-}: AddPersonalAccessTokenProps): React.ReactElement => {
+export const AddApiKey = ({ onTokenCreated }: AddApiKeyProps): React.ReactElement => {
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [newTokenKey, setNewTokenKey] = useState<string | null>(null);
 
-  const {
-    mutate: addUserPersonalAccessToken,
-    isPending,
-    error,
-    reset,
-  } = useAddUserPersonalAccessTokenMutation();
-  const { data: existingTokens } = useUserPersonalAccessTokensQuery();
+  const { mutate: addUserApiKey, isPending, error, reset } = useAddUserApiKeyMutation();
+  const { data: existingTokens } = useUserApiKeysQuery();
 
   const todayUtc = new Date().toISOString().split('T')[0];
   const maxExpiresAt = new Date(todayUtc);
@@ -61,7 +54,7 @@ export const AddPersonalAccessToken = ({
       existingTokens?.some((token) => token.name === name)
     )
       return;
-    addUserPersonalAccessToken(
+    addUserApiKey(
       { name, expiresAt: `${expiresAt}T23:59:59Z` },
       {
         onSuccess: (response) => {
@@ -86,34 +79,32 @@ export const AddPersonalAccessToken = ({
           className={classes.tokenAlertCloseButton}
         />
         <StudioHeading level={3}>
-          {t('user.settings.personal_access_tokens.new_token_dialog_title')}
+          {t('user.settings.api_keys.new_token_dialog_title')}
         </StudioHeading>
-        <StudioParagraph>
-          {t('user.settings.personal_access_tokens.new_token_dialog_warning')}
-        </StudioParagraph>
+        <StudioParagraph>{t('user.settings.api_keys.new_token_dialog_warning')}</StudioParagraph>
         <StudioTextfield
           readOnly
           value={newTokenKey}
-          label={t('user.settings.personal_access_tokens.token_value')}
+          label={t('user.settings.api_keys.token_value')}
         />
         <StudioButton
           icon={<ClipboardIcon />}
           onClick={() => {
             navigator.clipboard.writeText(newTokenKey).then(
               () => {
-                toast.success(t('user.settings.personal_access_tokens.copy_success'), {
-                  toastId: 'user.settings.personal_access_tokens.copy_success',
+                toast.success(t('user.settings.api_keys.copy_success'), {
+                  toastId: 'user.settings.api_keys.copy_success',
                 });
               },
               () => {
-                toast.error(t('user.settings.personal_access_tokens.copy_error'), {
-                  toastId: 'user.settings.personal_access_tokens.copy_error',
+                toast.error(t('user.settings.api_keys.copy_error'), {
+                  toastId: 'user.settings.api_keys.copy_error',
                 });
               },
             );
           }}
         >
-          {t('user.settings.personal_access_tokens.copy')}
+          {t('user.settings.api_keys.copy')}
         </StudioButton>
       </StudioAlert>
     );
@@ -122,25 +113,21 @@ export const AddPersonalAccessToken = ({
   return (
     <StudioCard className={classes.card}>
       <StudioCard.Block className={classes.addForm}>
-        <StudioHeading level={3}>
-          {t('user.settings.personal_access_tokens.add.header')}
-        </StudioHeading>
+        <StudioHeading level={3}>{t('user.settings.api_keys.add.header')}</StudioHeading>
         <StudioTextfield
-          label={t('user.settings.personal_access_tokens.name')}
+          label={t('user.settings.api_keys.name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
           tagText={t('general.required')}
           error={
             (submitted && !name ? t('validation_errors.required') : undefined) ??
-            (isDuplicateName
-              ? t('user.settings.personal_access_tokens.error_duplicate_name')
-              : undefined)
+            (isDuplicateName ? t('user.settings.api_keys.error_duplicate_name') : undefined)
           }
           maxLength={100}
         />
         <StudioTextfield
-          label={t('user.settings.personal_access_tokens.expires_at')}
+          label={t('user.settings.api_keys.expires_at')}
           type='date'
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
@@ -151,10 +138,10 @@ export const AddPersonalAccessToken = ({
           error={
             (submitted && !expiresAt ? t('validation_errors.required') : undefined) ??
             (submitted && isExpiryInPast
-              ? t('user.settings.personal_access_tokens.error_expiry_in_past')
+              ? t('user.settings.api_keys.error_expiry_in_past')
               : undefined) ??
             (submitted && isExpiryTooLong
-              ? t('user.settings.personal_access_tokens.error_expiry_too_long')
+              ? t('user.settings.api_keys.error_expiry_too_long')
               : undefined)
           }
           className={classes.dateInput}
@@ -165,7 +152,7 @@ export const AddPersonalAccessToken = ({
           onClick={handleAdd}
           disabled={isPending}
         >
-          {t('user.settings.personal_access_tokens.add')}
+          {t('user.settings.api_keys.add')}
         </StudioButton>
       </StudioCard.Block>
     </StudioCard>
