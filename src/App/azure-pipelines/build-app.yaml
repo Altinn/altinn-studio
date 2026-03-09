@@ -1,0 +1,116 @@
+
+variables:
+  # Variables to be passed when triggering the pipeline
+  # ALTINN_STUDIO_HOSTNAME: ''
+  # APP_COMMIT_ID: ''
+  # APP_DEPLOY_TOKEN: ''
+  # APP_ENVIRONMENT: ''
+  # APP_MASKINPORTEN_SCOPES: ''
+  # APP_OWNER: ''
+  # APP_REPO: ''
+  # GITEA_ENVIRONMENT: ''
+  # TAGNAME: ''
+
+trigger: none
+pr: none
+
+jobs:
+- job: Build
+  displayName: Build and push app image
+  timeoutInMinutes: 15
+  cancelTimeoutInMinutes: 1
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - checkout: none
+
+  - task: CmdLine@2
+    displayName: Update build status
+    condition: always()
+    inputs:
+      script: >
+        curl -k -X POST
+        "https://$(ALTINN_STUDIO_HOSTNAME)/designer/api/v1/checkreleasebuildstatus"
+        -H "accept: text/plain"
+        -H "Content-Type: application/json-patch+json"
+        -d "{ \"resource\": { \"buildNumber\": \"$(Build.BuildNumber)\", \"resourceOwner\": \"$(APP_OWNER)\"}}"
+
+  - task: CmdLine@2
+    displayName: Pull Repo
+    inputs:
+      script: |
+        git clone --recurse-submodules https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        cd $APP_COMMIT_ID
+
+        ## Ensure we use correct commit
+        latestCommit=$(git rev-parse HEAD)
+
+        if [ "$latestCommit" == "$APP_COMMIT_ID" ]; then
+            echo "Already using latest commit on this branch, moving on."
+        else
+            echo "Target commit ID is not latest commit on this branch. Fetching target commit"
+            git fetch origin $APP_COMMIT_ID
+            git reset --hard FETCH_HEAD
+        fi
+
+  - task: Bash@3
+    displayName: Build docker image
+    inputs:
+      targetType: inline
+      script: |
+        if [ -f "$(APP_COMMIT_ID)/Dockerfile" ]; then
+          echo "Found Dockerfile on root. Navigating to: $(APP_COMMIT_ID)"
+          cd "$(APP_COMMIT_ID)"
+        else
+          echo "Found Dockerfile in App folder. Navigating to: $(APP_COMMIT_ID)/App"
+          cd "$(APP_COMMIT_ID)/App"
+        fi
+
+        SCOPES="${APP_MASKINPORTEN_SCOPES}"
+
+        docker build \
+          --label "studio.altinn.maskinporten.scopes=${SCOPES}" \
+          -t "$(APP_OWNER)altinnregistry01.azurecr.io/$(APP_OWNER)-$(APP_REPO):$(TAGNAME)" .
+
+        if [ $? -ne 0 ]; then
+          echo "Build failed."
+          exit 1
+        fi
+
+        echo "Build succeeded."
+
+  - task: AzureCLI@2
+    displayName: Push docker image to Azure Container Registry
+    inputs:
+      azureSubscription: 'altinn-studio-apps-deploy'
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        ACR_NAME="$(APP_OWNER)altinnregistry01"
+        IMAGE="${ACR_NAME}.azurecr.io/$(APP_OWNER)-$(APP_REPO):$(TAGNAME)"
+
+        az acr login --name ${ACR_NAME}
+
+        docker push ${IMAGE}
+
+        if [ $? -ne 0 ]; then
+          echo "Push failed."
+          exit 1
+        fi
+
+        echo "Push succeeded."
+
+  - task: CmdLine@2
+    displayName: Delete Local Repo
+    condition: always()
+    inputs:
+      script: rm -rf $APP_COMMIT_ID
+      failOnStderr: true
+
+  - task: benjhuser.tfs-extensions-build-tasks.trigger-build-task.TriggerBuild@3
+    displayName: Trigger a new build of altinn-studio-update-deploy-release-db
+    condition: always()
+    inputs:
+      buildDefinition: 85
+      buildParameters: 'TYPE:release,BUILD_NUMBER:$(Build.BuildNumber),ALTINN_STUDIO_HOSTNAME:$(ALTINN_STUDIO_HOSTNAME),APP_OWNER:$(APP_OWNER)'
+      authenticationMethod: OAuth Token
