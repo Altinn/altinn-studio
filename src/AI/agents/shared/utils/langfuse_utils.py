@@ -99,6 +99,12 @@ def fetch_langfuse_prompt(
         kwargs["cache_ttl_seconds"] = cache_ttl_seconds
 
     prompt = client.get_prompt(prompt_name, type="text", **kwargs)
+    try:
+        from langfuse import get_client as _get_lf_client
+        _get_lf_client().update_current_generation(prompt=prompt)
+        log.debug("Linked prompt '%s' v%s to current generation", prompt_name, prompt.version)
+    except Exception as e:
+        log.debug("Could not link prompt '%s' to observation: %s", prompt_name, e)
     return prompt.compile(**(variables or {}))
 
 
