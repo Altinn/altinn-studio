@@ -30,6 +30,7 @@ var testUsers = []TestUser{
 	{PID: "10866898516", Sub: "sub-10866898516", GivenName: "cypress_testuser", FamilyName: "test playwright"},
 	{PID: "15076500565", Sub: "sub-15076500565", GivenName: "Ingrid", FamilyName: "Berg"},
 	{PID: "02056260016", Sub: "sub-02056260016", GivenName: "Erik", FamilyName: "Larsen"},
+	{PID: "15841396828", Sub: "sub-15841396828", GivenName: "Ola", FamilyName: "Mellomnavn Test Lastname"},
 }
 
 type pendingAuth struct {
