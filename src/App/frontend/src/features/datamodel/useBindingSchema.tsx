@@ -122,24 +122,6 @@ export function useDataModelUrl({ dataType, dataElementId, language, prefillFrom
   });
 }
 
-export function useCurrentDataModelName() {
-  const overriddenDataModelType = useTaskOverrides()?.dataModelType;
-  const defaultDataType = useCurrentUiFolderSettings()?.defaultDataType;
-
-  if (overriddenDataModelType) {
-    return overriddenDataModelType;
-  }
-
-  return defaultDataType;
-}
-
-export function useCurrentDataModelType() {
-  const name = useCurrentDataModelName();
-  const application = getApplicationMetadata();
-
-  return application.dataTypes.find((dt) => dt.id === name);
-}
-
 export function useDataModelType(dataType: string) {
   const application = getApplicationMetadata();
 

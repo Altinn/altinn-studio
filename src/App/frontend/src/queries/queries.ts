@@ -14,15 +14,11 @@ import {
   getActionsUrl,
   getActiveInstancesUrl,
   getCreateInstancesUrl,
-  getCustomValidationConfigUrl,
   getDataElementIdUrl,
   getDataElementUrl,
   getDataModelTypeUrl,
   getFileUploadUrl,
-  getInstanceLayoutsUrl,
   getInstantiateUrl,
-  getJsonSchemaUrl,
-  getLayoutsUrl,
   getOrderDetailsUrl,
   getPaymentInformationUrl,
   getPdfFormatUrl,
@@ -45,14 +41,9 @@ import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { OrderDetails, PaymentResponsePayload } from 'src/features/payment/types';
 import type { IPdfFormat } from 'src/features/pdf/types';
-import type {
-  BackendValidationIssue,
-  BackendValidationIssuesWithSource,
-  IExpressionValidationConfig,
-} from 'src/features/validation';
+import type { BackendValidationIssue, BackendValidationIssuesWithSource } from 'src/features/validation';
 import type { IRawOption } from 'src/layout/common.generated';
 import type { ActionResult } from 'src/layout/CustomButton/CustomButtonComponent';
-import type { ILayoutCollection } from 'src/layout/layout';
 import type { ISimpleInstance, LooseAutocomplete } from 'src/types';
 import type { IActionType, IData, IInstance, IParty, IProcess, PostalCodesRegistry } from 'src/types/shared';
 
@@ -203,11 +194,6 @@ export const fetchInstanceData = async (partyId: string, instanceGuid: string): 
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
 
-export const fetchLayouts = (uiFolder: string): Promise<ILayoutCollection> => httpGet(getLayoutsUrl(uiFolder));
-
-export const fetchLayoutsForInstance = (uiFolder: string, instanceId: string): Promise<ILayoutCollection> =>
-  httpGet(getInstanceLayoutsUrl(uiFolder, instanceId));
-
 export const fetchOptions = (url: string): Promise<AxiosResponse<IRawOption[]> | null> => httpGetRaw<IRawOption[]>(url);
 
 export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
@@ -215,12 +201,6 @@ export const fetchDataList = (url: string): Promise<IDataList> => httpGet(url);
 export const fetchPartiesAllowedToInstantiate = (): Promise<IParty[]> => httpGet(validPartiesUrl);
 
 export const fetchRefreshJwtToken = (): Promise<unknown> => httpGet(refreshJwtTokenUrl);
-
-export const fetchCustomValidationConfig = (dataTypeId: string): Promise<IExpressionValidationConfig | null> =>
-  httpGet(getCustomValidationConfigUrl(dataTypeId));
-
-export const fetchDataModelSchema = (dataTypeName: string): Promise<JSONSchema7> =>
-  httpGet(getJsonSchemaUrl() + dataTypeName);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const fetchFormData = (url: string, options?: AxiosRequestConfig): Promise<any> => httpGet(url, options);

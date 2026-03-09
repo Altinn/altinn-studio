@@ -5,7 +5,6 @@ const { org, app } = window;
 const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
-export const profileApiUrl = `${appPath}/api/v1/profile/user`;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
 export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const instancesControllerUrl = `${appPath}/instances`;
@@ -152,11 +151,6 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
   window.location.href = getUpgradeAuthLevelUrl(reqAuthLevel);
 };
 
-export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
-export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/api/validationconfig/${dataTypeId}`;
-export const getLayoutsUrl = (uiFolder: string) => `${appPath}/api/layouts/${uiFolder}`;
-export const getInstanceLayoutsUrl = (uiFolder: string, instanceId: string) =>
-  `${appPath}/instances/${instanceId}/layouts/${uiFolder}`;
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}/instance/${instanceId}`;
 
