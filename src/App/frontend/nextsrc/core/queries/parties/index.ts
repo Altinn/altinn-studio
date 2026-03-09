@@ -1,13 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { partiesAllowedToInstantiateQuery, partyQueryKeys } from 'nextsrc/core/queries/parties/parties.queries';
 import type { QueryClient } from '@tanstack/react-query';
+import type { BaseQueryResult } from 'nextsrc/core/queries/types';
 
 import type { IParty } from 'src/types/shared';
 
-interface UsePartiesAllowedToInstantiateResult {
+interface UsePartiesAllowedToInstantiateResult extends BaseQueryResult {
   parties: IParty[] | undefined;
-  isLoading: boolean;
-  error: Error | null;
 }
 
 function usePartiesAllowedToInstantiate(): UsePartiesAllowedToInstantiateResult {

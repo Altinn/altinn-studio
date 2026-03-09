@@ -1,3 +1,4 @@
-import type { QueryClient } from '@tanstack/react-query';
-
-export type { QueryClient };
+export interface BaseQueryResult {
+  error: Error | null;
+  isLoading: boolean;
+}

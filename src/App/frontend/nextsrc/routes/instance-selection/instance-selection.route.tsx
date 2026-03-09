@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
+import { safeReverse } from 'nextsrc/core/ArrayUtils';
 import { Button } from 'nextsrc/core/components/Button/Button';
 import { Pagination } from 'nextsrc/core/components/Pagination/Pagination';
 import { GlobalData } from 'nextsrc/core/globalData';
@@ -83,10 +84,8 @@ export const InstanceSelectionPage = () => {
     selectedIndex !== undefined && selectedIndex >= 0 && selectedIndex < rowsPerPageOptions.length ? selectedIndex : 0;
 
   const sortDirection = instanceSelectionOptions?.sortDirection ?? 'asc';
-  const { instances, isLoading } = useActiveInstances({
-    instanceOwnerPartyId: selectedPartyId.toString(),
-    sortDirection,
-  });
+  const { instances: rawInstances, isLoading } = useActiveInstances(selectedPartyId.toString());
+  const instances = sortDirection === 'desc' ? safeReverse(rawInstances) : rawInstances;
 
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[defaultSelectedOption]);

@@ -3,10 +3,10 @@ import { orgLookupQueries } from 'nextsrc/core/queries/lookup/organisationLookup
 import { personLookupQueries } from 'nextsrc/core/queries/lookup/personLookup.queries';
 import type { OrganisationDetails, PersonDetails } from 'nextsrc/core/api-client/lookupApi';
 
-interface UsePersonLookupResult {
-  person: PersonDetails | null;
-  error: string | null;
-  performLookup: () => Promise<{ person: PersonDetails | null; error: string | null }>;
+type PersonLookupResult = { person: PersonDetails | null; error: string | null };
+
+interface UsePersonLookupResult extends PersonLookupResult {
+  performLookup: () => Promise<PersonLookupResult>;
   isFetching: boolean;
 }
 
@@ -16,17 +16,20 @@ export function usePersonLookup(ssn: string, name: string): UsePersonLookupResul
     person: data?.person ?? null,
     error: data?.error ?? null,
     performLookup: async () => {
-      const { data } = await refetch();
+      const { data, error: refetchError } = await refetch();
+      if (refetchError) {
+        return { person: null, error: refetchError.message };
+      }
       return { person: data?.person ?? null, error: data?.error ?? null };
     },
     isFetching,
   };
 }
 
-interface UseOrganisationLookupResult {
-  org: OrganisationDetails | null;
-  error: string | null;
-  performLookup: () => Promise<{ org: OrganisationDetails | null; error: string | null }>;
+type OrganisationLookupResult = { org: OrganisationDetails | null; error: string | null };
+
+interface UseOrganisationLookupResult extends OrganisationLookupResult {
+  performLookup: () => Promise<OrganisationLookupResult>;
   isFetching: boolean;
 }
 
@@ -36,7 +39,10 @@ export function useOrganisationLookup(orgNr: string): UseOrganisationLookupResul
     org: data?.org ?? null,
     error: data?.error ?? null,
     performLookup: async () => {
-      const { data } = await refetch();
+      const { data, error: refetchError } = await refetch();
+      if (refetchError) {
+        return { org: null, error: refetchError.message };
+      }
       return { org: data?.org ?? null, error: data?.error ?? null };
     },
     isFetching,

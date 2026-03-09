@@ -6,23 +6,17 @@ import {
 import { extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId } from 'nextsrc/core/queries/instance/utils';
 import type { QueryClient } from '@tanstack/react-query';
 
+import type { BaseQueryResult } from 'nextsrc/core/queries/types';
+
 import type { ISimpleInstance } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 
-interface UseActiveInstancesResult {
+interface UseActiveInstancesResult extends BaseQueryResult {
   instances: ISimpleInstance[] | undefined;
-  isLoading: boolean;
-  error: Error | null;
 }
 
-function useActiveInstances(opts: {
-  instanceOwnerPartyId: string;
-  sortDirection: 'desc' | 'asc';
-}): UseActiveInstancesResult {
-  const query = useQuery({
-    ...activeInstancesQuery(opts.instanceOwnerPartyId),
-    select: (instances) => (opts.sortDirection === 'desc' ? [...instances].reverse() : instances),
-  });
+function useActiveInstances(instanceOwnerPartyId: string): UseActiveInstancesResult {
+  const query = useQuery(activeInstancesQuery(instanceOwnerPartyId));
   return { instances: query.data, isLoading: query.isLoading, error: query.error };
 }
 

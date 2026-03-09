@@ -4,7 +4,7 @@ import type { ActionFunctionArgs } from 'react-router';
 import { PartiesApi } from 'nextsrc/core/api-client/parties.api';
 import { invalidatePartyQueries } from 'nextsrc/core/queries/parties';
 import { routeBuilders } from 'nextsrc/routesBuilder';
-import type { QueryClient } from 'nextsrc/core/queries/types';
+import type { QueryClient } from '@tanstack/react-query';
 
 export const partySelectionAction =
   (queryClient: QueryClient) =>

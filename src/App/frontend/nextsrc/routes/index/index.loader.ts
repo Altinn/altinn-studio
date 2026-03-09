@@ -7,7 +7,7 @@ import { GlobalData } from 'nextsrc/core/globalData';
 import { prefetchActiveInstances } from 'nextsrc/core/queries/instance';
 import { ServerStatusCodes } from 'nextsrc/core/serverStatusCodes';
 import { routeBuilders } from 'nextsrc/routesBuilder';
-import type { QueryClient } from 'nextsrc/core/queries/types';
+import type { QueryClient } from '@tanstack/react-query';
 
 import type { IInstance } from 'src/types/shared';
 
