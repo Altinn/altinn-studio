@@ -5,6 +5,8 @@ import type { CreateApiKeyRequest } from 'app-shared/types/api/CreateApiKeyReque
 import type { CreateApiKeyResponse } from 'app-shared/types/api/CreateApiKeyResponse';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
+import { ApiError } from 'app-shared/types/api/ApiError';
 
 export const useAddUserApiKeyMutation = () => {
   const { addUserApiKey } = useServicesContext();
@@ -12,7 +14,9 @@ export const useAddUserApiKeyMutation = () => {
   return useMutation<CreateApiKeyResponse, AxiosError, CreateApiKeyRequest>({
     mutationFn: (payload) => addUserApiKey(payload),
     meta: {
-      hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
+      hideDefaultError: (error: AxiosError<ApiError>) =>
+        error?.response?.status === ServerCodes.Conflict &&
+        error?.response?.data?.errorCode === ApiErrorCodes.DuplicateTokenName,
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [QueryKey.UserApiKeys] }),
   });

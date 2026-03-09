@@ -9,6 +9,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ApiKeyResponse } from 'app-shared/types/api/ApiKeyResponse';
 import type { CreateApiKeyResponse } from 'app-shared/types/api/CreateApiKeyResponse';
 import { toast } from 'react-toastify';
+import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 
 jest.mock('react-toastify', () => ({
   ...jest.requireActual('react-toastify'),
@@ -134,6 +135,19 @@ describe('AddApiKey', () => {
     await user.click(getAddButton());
     expect(
       screen.getByText(textMock('user.settings.api_keys.error_duplicate_name')),
+    ).toBeInTheDocument();
+  });
+
+  it('shows duplicate name error when server returns 409 Conflict', async () => {
+    const user = userEvent.setup();
+    const addUserApiKey = jest.fn().mockRejectedValue({
+      response: { status: 409, data: { errorCode: ApiErrorCodes.DuplicateTokenName } },
+    });
+    renderAddApiKey({ addUserApiKey });
+    await fillForm(user, 'New token', validExpiresAt);
+    await user.click(getAddButton());
+    expect(
+      await screen.findByText(textMock('user.settings.api_keys.error_duplicate_name')),
     ).toBeInTheDocument();
   });
 
