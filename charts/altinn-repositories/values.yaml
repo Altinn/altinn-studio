@@ -38,6 +38,8 @@ distinctEnvironmentVariables:
       value: "true"
     - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTO_REGISTRATION
       value: "true"
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_FULL_NAME
+      value: "true"
     - name: GITEA__server__REVERSE_PROXY_AUTHENTICATION_USER
       value: X-WEBAUTH-USER
     # AKS subnet CIDR (Azure CNI assigns pod IPs from this range). NetworkPolicy is the primary access control.
@@ -57,6 +59,8 @@ distinctEnvironmentVariables:
     - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION_API
       value: "true"
     - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTO_REGISTRATION
+      value: "true"
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_FULL_NAME
       value: "true"
     - name: GITEA__server__REVERSE_PROXY_AUTHENTICATION_USER
       value: X-WEBAUTH-USER

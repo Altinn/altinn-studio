@@ -216,6 +216,7 @@ namespace Designer.Tests.Fixtures
                         { "GITEA__server__ROOT_URL", GiteaUrl },
                         { "GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION", "true" },
                         { "GITEA__service__ENABLE_REVERSE_PROXY_AUTO_REGISTRATION", "true" },
+                        { "GITEA__service__ENABLE_REVERSE_PROXY_FULL_NAME", "true" },
                         { "GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION_API", "true" },
                         { "GITEA__server__REVERSE_PROXY_AUTHENTICATION_USER", "X-WEBAUTH-USER" },
                         { "GITEA__server__REVERSE_PROXY_TRUSTED_PROXIES", "*" },
