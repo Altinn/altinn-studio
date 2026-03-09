@@ -13,6 +13,7 @@ using Altinn.Studio.Designer.Repository;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
@@ -22,6 +23,7 @@ using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using Microsoft.Rest.TransientFaultHandling;
 using Moq;
 using Newtonsoft.Json;
@@ -35,6 +37,8 @@ namespace Designer.Tests.Services
         private readonly Mock<IReleaseRepository> _releaseRepository;
         private readonly Mock<IAppScopesRepository> _appScopesRepository;
         private readonly Mock<IAzureDevOpsBuildClient> _azureDevOpsBuildClient;
+        private readonly Mock<IFeatureManager> _featureManager;
+        private readonly Mock<IApiKeyService> _apiKeyService;
         private readonly GeneralSettings _generalSettings;
         private readonly string _org = "udi";
         private readonly string _app = "kjaerestebesok";
@@ -45,6 +49,8 @@ namespace Designer.Tests.Services
             _releaseRepository = new Mock<IReleaseRepository>();
             _appScopesRepository = new Mock<IAppScopesRepository>();
             _azureDevOpsBuildClient = new Mock<IAzureDevOpsBuildClient>();
+            _featureManager = new Mock<IFeatureManager>();
+            _apiKeyService = new Mock<IApiKeyService>();
             _generalSettings = new GeneralSettings();
         }
 
@@ -94,7 +100,10 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _appScopesRepository.Object,
                 GetAzureDevOpsSettings(),
-                _generalSettings
+                _generalSettings,
+                _featureManager.Object,
+                _apiKeyService.Object,
+                TimeProvider.System
             );
 
             // Act
@@ -157,7 +166,10 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _appScopesRepository.Object,
                 GetAzureDevOpsSettings(),
-                _generalSettings
+                _generalSettings,
+                _featureManager.Object,
+                _apiKeyService.Object,
+                TimeProvider.System
             );
 
             // Act
@@ -190,7 +202,10 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _appScopesRepository.Object,
                 GetAzureDevOpsSettings(),
-                _generalSettings
+                _generalSettings,
+                _featureManager.Object,
+                _apiKeyService.Object,
+                TimeProvider.System
             );
 
             // Act
@@ -216,7 +231,10 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _appScopesRepository.Object,
                 GetAzureDevOpsSettings(),
-                _generalSettings
+                _generalSettings,
+                _featureManager.Object,
+                _apiKeyService.Object,
+                TimeProvider.System
             );
 
             _azureDevOpsBuildClient
@@ -322,7 +340,10 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _appScopesRepository.Object,
                 GetAzureDevOpsSettings(),
-                _generalSettings
+                _generalSettings,
+                _featureManager.Object,
+                _apiKeyService.Object,
+                TimeProvider.System
             );
 
             // Act
@@ -396,7 +417,10 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _appScopesRepository.Object,
                 GetAzureDevOpsSettings(),
-                _generalSettings
+                _generalSettings,
+                _featureManager.Object,
+                _apiKeyService.Object,
+                TimeProvider.System
             );
 
             // Act
@@ -459,7 +483,10 @@ namespace Designer.Tests.Services
                 _releaseRepository.Object,
                 _appScopesRepository.Object,
                 GetAzureDevOpsSettings(),
-                _generalSettings
+                _generalSettings,
+                _featureManager.Object,
+                _apiKeyService.Object,
+                TimeProvider.System
             );
 
             // Act
@@ -474,6 +501,181 @@ namespace Designer.Tests.Services
                         It.IsAny<CancellationToken>()
                     ),
                 Times.Once
+            );
+        }
+
+        [Fact]
+        public async Task CreateAsync_WithStudioOidcEnabled_UsesApiKeyAndAuthHeader()
+        {
+            // Arrange
+            ReleaseEntity releaseEntity = new()
+            {
+                TagName = "1",
+                Name = "1",
+                Body = "test-app",
+                TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5",
+                Org = _org,
+                App = _app,
+            };
+
+            List<string> buildStatus = new()
+            {
+                BuildStatus.InProgress.ToEnumMemberAttributeValue(),
+                BuildStatus.NotStarted.ToEnumMemberAttributeValue(),
+            };
+
+            List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
+
+            _releaseRepository
+                .Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult))
+                .ReturnsAsync(new List<ReleaseEntity>());
+            _releaseRepository
+                .Setup(r => r.Create(It.IsAny<ReleaseEntity>()))
+                .ReturnsAsync(GetReleases("createdRelease.json").First());
+            _appScopesRepository
+                .Setup(r =>
+                    r.GetAppScopesAsync(It.IsAny<AltinnRepoContext>(), It.IsAny<System.Threading.CancellationToken>())
+                )
+                .ReturnsAsync((AppScopesEntity)null);
+            _azureDevOpsBuildClient
+                .Setup(b =>
+                    b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(GetBuild());
+
+            _featureManager.Setup(f => f.IsEnabledAsync("StudioOidc")).ReturnsAsync(true);
+
+            string expectedApiKey = "generated-api-key";
+            _apiKeyService
+                .Setup(s =>
+                    s.CreateAsync(
+                        It.IsAny<string>(),
+                        "release",
+                        Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+                        It.IsAny<DateTimeOffset>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync((expectedApiKey, new Altinn.Studio.Designer.Models.ApiKey.ApiKey()));
+
+            ReleaseService releaseService = new(
+                _httpContextAccessor.Object,
+                _azureDevOpsBuildClient.Object,
+                _releaseRepository.Object,
+                _appScopesRepository.Object,
+                GetAzureDevOpsSettings(),
+                _generalSettings,
+                _featureManager.Object,
+                _apiKeyService.Object,
+                TimeProvider.System
+            );
+
+            // Act
+            await releaseService.CreateAsync(releaseEntity);
+
+            // Assert
+            _azureDevOpsBuildClient.Verify(
+                b =>
+                    b.QueueAsync(
+                        It.Is<QueueBuildParameters>(p =>
+                            p.AppDeployToken == expectedApiKey && p.AppAuthHeaderName == "X-Api-Key"
+                        ),
+                        It.IsAny<int>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
+
+            _apiKeyService.Verify(
+                s =>
+                    s.CreateAsync(
+                        It.IsAny<string>(),
+                        "release",
+                        Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+                        It.IsAny<DateTimeOffset>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
+        }
+
+        [Fact]
+        public async Task CreateAsync_WithStudioOidcDisabled_UsesOAuthTokenWithoutAuthHeader()
+        {
+            // Arrange
+            ReleaseEntity releaseEntity = new()
+            {
+                TagName = "1",
+                Name = "1",
+                Body = "test-app",
+                TargetCommitish = "eec136ac2d31cf984d2053df79f181b99c3b4db5",
+                Org = _org,
+                App = _app,
+            };
+
+            List<string> buildStatus = new()
+            {
+                BuildStatus.InProgress.ToEnumMemberAttributeValue(),
+                BuildStatus.NotStarted.ToEnumMemberAttributeValue(),
+            };
+
+            List<string> buildResult = new() { BuildResult.Succeeded.ToEnumMemberAttributeValue() };
+
+            _releaseRepository
+                .Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), buildStatus, buildResult))
+                .ReturnsAsync(new List<ReleaseEntity>());
+            _releaseRepository
+                .Setup(r => r.Create(It.IsAny<ReleaseEntity>()))
+                .ReturnsAsync(GetReleases("createdRelease.json").First());
+            _appScopesRepository
+                .Setup(r =>
+                    r.GetAppScopesAsync(It.IsAny<AltinnRepoContext>(), It.IsAny<System.Threading.CancellationToken>())
+                )
+                .ReturnsAsync((AppScopesEntity)null);
+            _azureDevOpsBuildClient
+                .Setup(b =>
+                    b.QueueAsync(It.IsAny<QueueBuildParameters>(), It.IsAny<int>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(GetBuild());
+
+            _featureManager.Setup(f => f.IsEnabledAsync("StudioOidc")).ReturnsAsync(false);
+
+            ReleaseService releaseService = new(
+                _httpContextAccessor.Object,
+                _azureDevOpsBuildClient.Object,
+                _releaseRepository.Object,
+                _appScopesRepository.Object,
+                GetAzureDevOpsSettings(),
+                _generalSettings,
+                _featureManager.Object,
+                _apiKeyService.Object,
+                TimeProvider.System
+            );
+
+            // Act
+            await releaseService.CreateAsync(releaseEntity);
+
+            // Assert
+            _azureDevOpsBuildClient.Verify(
+                b =>
+                    b.QueueAsync(
+                        It.Is<QueueBuildParameters>(p => p.AppAuthHeaderName == null),
+                        It.IsAny<int>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
+
+            _apiKeyService.Verify(
+                s =>
+                    s.CreateAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<Altinn.Studio.Designer.Models.ApiKey.ApiKeyType>(),
+                        It.IsAny<DateTimeOffset>(),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Never
             );
         }
     }
