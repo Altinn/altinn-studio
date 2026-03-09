@@ -5,6 +5,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -69,9 +70,10 @@ const render = async ({ component, options, ...rest }: Props = {}) => {
     },
     ...rest,
     queries: {
-      fetchFormData: async () => ({
-        ...getFormDataMockForRepGroup(),
-      }),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].initialData = getFormDataMockForRepGroup();
+        }),
       fetchOptions: (...args) =>
         options === undefined
           ? fetchOptions.mock(...args)
@@ -276,12 +278,15 @@ describe('DropdownComponent', () => {
       },
       options,
       queries: {
-        fetchDataModelSchema: async () => ({
-          type: 'object',
-          properties: {
-            myDropdown: { anyOf: [{ type: 'boolean' }, { type: 'number' }, { type: 'null' }] },
-          },
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: {
+                myDropdown: { anyOf: [{ type: 'boolean' }, { type: 'number' }, { type: 'null' }] },
+              },
+            };
+          }),
       },
     });
 

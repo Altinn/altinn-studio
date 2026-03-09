@@ -665,15 +665,9 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     renderer: Wrapper,
     initialPage,
     queries: {
+      ...rest.queries,
       fetchFormBootstrapForInstance: async (...args) => {
-        let mock = getFormBootstrapMock();
-        if (
-          rest.queries &&
-          'fetchFormBootstrapForInstance' in rest.queries &&
-          typeof rest.queries.fetchFormBootstrapForInstance === 'function'
-        ) {
-          mock = await rest.queries.fetchFormBootstrapForInstance(...args);
-        }
+        const mock = (await rest.queries?.fetchFormBootstrapForInstance?.(...args)) ?? getFormBootstrapMock();
         mock.layouts = {
           [initialPage]: {
             data: {
@@ -684,7 +678,6 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
 
         return mock;
       },
-      ...rest.queries,
     },
   }) as RenderGenericComponentReturnType<InInstance>;
 }

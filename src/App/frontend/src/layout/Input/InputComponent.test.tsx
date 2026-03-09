@@ -3,6 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -19,7 +20,10 @@ describe('InputComponent', () => {
   it('should have correct value with specified form data', async () => {
     await render({
       queries: {
-        fetchFormData: () => Promise.resolve({ some: { field: 'some value' } }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { some: { field: 'some value' } };
+          }),
       },
     });
     const inputComponent = screen.getByRole('textbox') as HTMLInputElement;
@@ -68,7 +72,10 @@ describe('InputComponent', () => {
         },
       },
       queries: {
-        fetchFormData: () => Promise.resolve({ some: { field: inputValuePlainText } }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { some: { field: inputValuePlainText } };
+          }),
       },
     });
     const inputComponent = screen.getByRole('textbox');
@@ -176,7 +183,10 @@ describe('InputComponent', () => {
         readOnly: true,
       },
       queries: {
-        fetchFormData: () => Promise.resolve({ some: { field: initialValue } }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { some: { field: initialValue } };
+          }),
       },
     });
 
