@@ -45,6 +45,6 @@ export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
         }
       : skipToken,
     staleTime: 0,
-    gcTime: 5 * 60 * 1000,
+    gcTime: 0,
   });
 }
