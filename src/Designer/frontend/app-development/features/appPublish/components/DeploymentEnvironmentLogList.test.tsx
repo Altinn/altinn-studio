@@ -200,12 +200,17 @@ describe('DeploymentEnvironmentLogList', () => {
         ).toBeInTheDocument();
       });
 
-      it('renders when deployment failed', () => {
+      it.each([
+        FailedEventType.PipelineFailed,
+        FailedEventType.InstallFailed,
+        FailedEventType.UpgradeFailed,
+        FailedEventType.UninstallFailed,
+      ])('renders when deployment failed with event %s', (eventType) => {
         render({
           pipelineDeploymentList: [
             {
               ...pipelineDeployment,
-              events: [{ ...deployEvent, eventType: FailedEventType.InstallFailed }],
+              events: [{ ...deployEvent, eventType }],
             },
           ],
         });
@@ -214,34 +219,21 @@ describe('DeploymentEnvironmentLogList', () => {
         ).toBeInTheDocument();
       });
 
-      it('renders when deployment succeeded', () => {
+      it.each([
+        SucceededEventType.InstallSucceeded,
+        SucceededEventType.UpgradeSucceeded,
+        SucceededEventType.UninstallSucceeded,
+      ])('renders when deployment succeeded with event %s', (eventType) => {
         render({
           pipelineDeploymentList: [
             {
               ...pipelineDeployment,
-              events: [{ ...deployEvent, eventType: SucceededEventType.InstallSucceeded }],
+              events: [{ ...deployEvent, eventType }],
             },
           ],
         });
         expect(
           screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.succeeded')),
-        ).toBeInTheDocument();
-      });
-
-      it('renders when deprecated undeploy pipeline failed', () => {
-        render({
-          pipelineDeploymentList: [
-            {
-              ...pipelineDeployment,
-              events: [
-                { ...deployEvent, eventType: EventType.DeprecatedPipelineScheduled },
-                { ...deployEvent, eventType: EventType.PipelineFailed },
-              ],
-            },
-          ],
-        });
-        expect(
-          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
         ).toBeInTheDocument();
       });
 
@@ -262,7 +254,7 @@ describe('DeploymentEnvironmentLogList', () => {
         ).toBeInTheDocument();
       });
 
-      it('renders when created event date > 15m and pipeline failed', () => {
+      it('renders as in progress when pipeline succeeded recently (< 15m) with non-deprecated first event', () => {
         render({
           pipelineDeploymentList: [
             {
@@ -271,15 +263,15 @@ describe('DeploymentEnvironmentLogList', () => {
                 { ...deployEvent, eventType: EventType.PipelineScheduled },
                 {
                   ...deployEvent,
-                  eventType: EventType.PipelineFailed,
-                  created: '2025-12-12T09:26:10.730806+00:00',
+                  eventType: EventType.PipelineSucceeded,
+                  created: new Date().toISOString(),
                 },
               ],
             },
           ],
         });
         expect(
-          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.failed')),
+          screen.getByText(textMock('app_deployment.pipeline_deployment.build_result.none')),
         ).toBeInTheDocument();
       });
 
