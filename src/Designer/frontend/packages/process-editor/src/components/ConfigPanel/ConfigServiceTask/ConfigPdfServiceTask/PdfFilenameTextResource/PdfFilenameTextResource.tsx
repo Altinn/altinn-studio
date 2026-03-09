@@ -30,11 +30,10 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
     storedFilenameTextResourceId,
   );
 
-  /* eslint-disable react-hooks/refs -- guard clause to handle unmounted modeler; ref is not used for rendering */
+  // eslint-disable-next-line react-hooks/refs -- guard clause; ref is not used for rendering
   if (!modelerRef?.current || !bpmnDetails) {
     return null;
   }
-  /* eslint-enable react-hooks/refs */
 
   const textResources: TextResource[] = textResourcesData?.[DEFAULT_LANGUAGE] ?? [];
 
