@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 
 import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { PencilIcon } from '@navikt/aksel-icons';
+import { safeReverse } from 'nextsrc/core/ArrayUtils';
 import { Button } from 'nextsrc/core/components/Button/Button';
 import { Pagination } from 'nextsrc/core/components/Pagination/Pagination';
 import { GlobalData } from 'nextsrc/core/globalData';
@@ -83,15 +84,13 @@ export const InstanceSelectionPage = () => {
     selectedIndex !== undefined && selectedIndex >= 0 && selectedIndex < rowsPerPageOptions.length ? selectedIndex : 0;
 
   const sortDirection = instanceSelectionOptions?.sortDirection ?? 'asc';
-  const { data: instances, isPending } = useActiveInstances({
-    instanceOwnerPartyId: selectedPartyId.toString(),
-    sortDirection,
-  });
+  const { instances: rawInstances, isLoading } = useActiveInstances(selectedPartyId.toString());
+  const instances = sortDirection === 'desc' ? safeReverse(rawInstances) : rawInstances;
 
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[defaultSelectedOption]);
 
-  if (isPending) {
+  if (isLoading) {
     return <div>loading</div>;
   }
 
@@ -266,14 +265,14 @@ export const InstanceSelectionPage = () => {
 function CreateInstanceButton() {
   const { langAsString } = useLanguage();
   const navigate = useNavigate();
-  const createInstanceMutation = useCreateInstance();
+  const { createInstanceAsync, isPending, error } = useCreateInstance();
 
   return (
     <div className={classes.startNewButtonContainer}>
-      {createInstanceMutation.error && <p>{createInstanceMutation.error.message}</p>}
+      {error && <p>{error.message}</p>}
       <Button
         onClick={async () => {
-          const result = await createInstanceMutation.mutateAsync();
+          const result = await createInstanceAsync();
 
           const { instanceGuid, instanceOwnerPartyId } = extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId(
             result.id,
@@ -281,10 +280,10 @@ function CreateInstanceButton() {
 
           return navigate(routeBuilders.instance({ instanceOwnerPartyId, instanceGuid }));
         }}
-        disabled={createInstanceMutation.isPending}
+        disabled={isPending}
         size='md'
       >
-        {createInstanceMutation.isPending ? 'Oppretter...' : langAsString('instance_selection.new_instance')}
+        {isPending ? 'Oppretter...' : langAsString('instance_selection.new_instance')}
       </Button>
     </div>
   );

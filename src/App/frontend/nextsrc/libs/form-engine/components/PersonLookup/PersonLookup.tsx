@@ -1,22 +1,13 @@
 import React, { useMemo, useState } from 'react';
 
-import {
-  Button,
-  Field,
-  Fieldset,
-  Textfield,
-  ValidationMessage,
-} from '@digdir/designsystemet-react';
-import { queryOptions, useQuery } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
-
-import { LookupApi } from 'nextsrc/core/api-client/lookupApi';
-import type { PersonDetails } from 'nextsrc/core/api-client/lookupApi';
+import { Button, Field, Fieldset, Textfield, ValidationMessage } from '@digdir/designsystemet-react';
+import { usePersonLookup } from 'nextsrc/core/queries/lookup';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
-import { checkValidSsn } from 'nextsrc/libs/form-engine/components/shared/lookupValidation';
 import classes from 'nextsrc/libs/form-engine/components/PersonLookup/PersonLookup.module.css';
+import { checkValidSsn } from 'nextsrc/libs/form-engine/components/shared/lookupValidation';
+import type { PersonDetails } from 'nextsrc/core/api-client/lookupApi';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 import type { CompPersonLookupExternal } from 'src/layout/PersonLookup/config.generated';
@@ -26,34 +17,6 @@ function composeFullName(person: PersonDetails): string {
     ? `${person.firstName} ${person.middleName} ${person.lastName}`
     : `${person.firstName} ${person.lastName}`;
 }
-
-const personLookupQueries = {
-  lookup: (ssn: string, name: string) =>
-    queryOptions({
-      queryKey: [{ scope: 'personLookup', ssn, name }],
-      queryFn: async () => {
-        try {
-          const response = await LookupApi.lookupPerson(ssn, name);
-          if (!response.success || !response.personDetails) {
-            return { person: null, error: 'person_lookup.validation_error_not_found' } as const;
-          }
-          return { person: response.personDetails, error: null } as const;
-        } catch (error) {
-          if (error instanceof AxiosError) {
-            if (error.response?.status === 403) {
-              return { person: null, error: 'person_lookup.validation_error_forbidden' } as const;
-            }
-            if (error.response?.status === 429) {
-              return { person: null, error: 'person_lookup.validation_error_too_many_requests' } as const;
-            }
-          }
-          return { person: null, error: 'person_lookup.unknown_error' } as const;
-        }
-      },
-      enabled: false,
-      gcTime: 0,
-    }),
-};
 
 export const PersonLookup = ({ component, parentBinding, itemIndex }: ComponentProps) => {
   const props = component as CompPersonLookupExternal;
@@ -79,7 +42,7 @@ export const PersonLookup = ({ component, parentBinding, itemIndex }: ComponentP
   const [ssnErrors, setSsnErrors] = useState<string[]>();
   const [nameError, setNameError] = useState<string>();
 
-  const { data, refetch: performLookup, isFetching } = useQuery(personLookupQueries.lookup(tempSsn, tempName));
+  const { error: lookupError, performLookup, isFetching } = usePersonLookup(tempSsn, tempName);
 
   function handleValidateSsn(value: string): boolean {
     if (!checkValidSsn(value)) {
@@ -106,22 +69,22 @@ export const PersonLookup = ({ component, parentBinding, itemIndex }: ComponentP
       return;
     }
 
-    const { data } = await performLookup();
-    if (data?.person) {
+    const result = await performLookup();
+    if (result.person) {
       if (ssnField) {
-        ssn.setValue(data.person.ssn);
+        ssn.setValue(result.person.ssn);
       }
       if (firstNameField) {
-        firstName.setValue(data.person.firstName);
+        firstName.setValue(result.person.firstName);
       }
       if (lastNameField) {
-        lastName.setValue(data.person.lastName);
+        lastName.setValue(result.person.lastName);
       }
       if (middleNameField) {
-        middleName.setValue(data.person.middleName || '');
+        middleName.setValue(result.person.middleName || '');
       }
       if (nameField) {
-        personName.setValue(composeFullName(data.person));
+        personName.setValue(composeFullName(result.person));
       }
     }
   }
@@ -164,9 +127,7 @@ export const PersonLookup = ({ component, parentBinding, itemIndex }: ComponentP
       {title && <legend>{title}</legend>}
       <div className={classes.componentWrapper}>
         <div className={classes.ssnLabel}>
-          <label htmlFor={`${props.id}_ssn`}>
-            {langAsString('person_lookup.ssn_label')}
-          </label>
+          <label htmlFor={`${props.id}_ssn`}>{langAsString('person_lookup.ssn_label')}</label>
         </div>
         <Field className={classes.ssn}>
           <Textfield
@@ -189,9 +150,7 @@ export const PersonLookup = ({ component, parentBinding, itemIndex }: ComponentP
             label=''
           />
           {ssnErrors && ssnErrors.length > 0 && (
-            <ValidationMessage data-size='sm'>
-              {langAsString(ssnErrors[0])}
-            </ValidationMessage>
+            <ValidationMessage data-size='sm'>{langAsString(ssnErrors[0])}</ValidationMessage>
           )}
         </Field>
         <div className={classes.nameLabel}>
@@ -217,11 +176,7 @@ export const PersonLookup = ({ component, parentBinding, itemIndex }: ComponentP
             autoComplete='family-name'
             label=''
           />
-          {nameError && (
-            <ValidationMessage data-size='sm'>
-              {langAsString(nameError)}
-            </ValidationMessage>
-          )}
+          {nameError && <ValidationMessage data-size='sm'>{langAsString(nameError)}</ValidationMessage>}
         </Field>
         <div className={classes.submit}>
           {!hasSuccessfullyFetched ? (
@@ -244,12 +199,12 @@ export const PersonLookup = ({ component, parentBinding, itemIndex }: ComponentP
             </Button>
           )}
         </div>
-        {data?.error && (
+        {lookupError && (
           <ValidationMessage
             data-size='sm'
             className={classes.apiError}
           >
-            {langAsString(data.error)}
+            {langAsString(lookupError)}
           </ValidationMessage>
         )}
       </div>

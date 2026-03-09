@@ -1,13 +1,12 @@
 import React, { useEffect } from 'react';
 
 import { Textfield } from '@digdir/designsystemet-react';
-
+import { usePostPlace } from 'nextsrc/core/queries/postalCodes';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
-import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
 import classes from 'nextsrc/libs/form-engine/components/Address/Address.module.css';
-import { usePostPlace } from 'nextsrc/libs/form-engine/components/shared/usePostPlace';
+import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 import type { CompAddressExternal } from 'src/layout/Address/config.generated';

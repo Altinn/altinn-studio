@@ -10,10 +10,10 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ErrorBoundary } from 'nextsrc/core/ErrorBoundary';
 import { GlobalData } from 'nextsrc/core/globalData';
+import { queryClient } from 'nextsrc/core/QueryClient';
 import { RootErrorFallback } from 'nextsrc/core/RootErrorFallback';
 import { FormClient } from 'nextsrc/libs/form-client/form-client';
 import { FormClientProvider } from 'nextsrc/libs/form-client/react/provider';
-import { queryClient } from 'nextsrc/QueryClient';
 import { router } from 'nextsrc/router';
 
 import 'nextsrc/index.css';
@@ -23,10 +23,6 @@ export const formClient = new FormClient({
   language: GlobalData.textResources?.language,
   applicationSettings: GlobalData.frontendSettings ?? null,
 });
-
-// formClient.onFormDataChange((event) => {
-//   console.log('[form-data-change]', event.path, event.previousValue, '->', event.value);
-// });
 
 function App() {
   useEffect(() => {

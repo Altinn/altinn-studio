@@ -1,44 +1,15 @@
 import React, { useState } from 'react';
 
-import {
-  Button,
-  Field,
-  Fieldset,
-  Paragraph,
-  Textfield,
-  ValidationMessage,
-} from '@digdir/designsystemet-react';
-import { queryOptions, useQuery } from '@tanstack/react-query';
-
-import { LookupApi } from 'nextsrc/core/api-client/lookupApi';
+import { Button, Field, Fieldset, Paragraph, Textfield, ValidationMessage } from '@digdir/designsystemet-react';
+import { useOrganisationLookup } from 'nextsrc/core/queries/lookup';
 import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
-import { checkValidOrgNr } from 'nextsrc/libs/form-engine/components/shared/lookupValidation';
 import classes from 'nextsrc/libs/form-engine/components/OrganisationLookup/OrganisationLookup.module.css';
+import { checkValidOrgNr } from 'nextsrc/libs/form-engine/components/shared/lookupValidation';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 import type { CompOrganisationLookupExternal } from 'src/layout/OrganisationLookup/config.generated';
-
-const orgLookupQueries = {
-  lookup: (orgNr: string) =>
-    queryOptions({
-      queryKey: [{ scope: 'organisationLookup', orgNr }],
-      queryFn: async () => {
-        try {
-          const response = await LookupApi.lookupOrganisation(orgNr);
-          if (!response.success || !response.organisationDetails) {
-            return { org: null, error: 'organisation_lookup.validation_error_not_found' } as const;
-          }
-          return { org: response.organisationDetails, error: null } as const;
-        } catch {
-          return { org: null, error: 'organisation_lookup.unknown_error' } as const;
-        }
-      },
-      enabled: false,
-      gcTime: 0,
-    }),
-};
 
 export const OrganisationLookup = ({ component, parentBinding, itemIndex }: ComponentProps) => {
   const props = component as CompOrganisationLookupExternal;
@@ -56,7 +27,7 @@ export const OrganisationLookup = ({ component, parentBinding, itemIndex }: Comp
   const [tempOrgNr, setTempOrgNr] = useState('');
   const [orgNrErrors, setOrgNrErrors] = useState<string[]>();
 
-  const { data, refetch: performLookup, isFetching } = useQuery(orgLookupQueries.lookup(tempOrgNr));
+  const { error: lookupError, performLookup, isFetching } = useOrganisationLookup(tempOrgNr);
 
   function handleValidateOrgNr(value: string): boolean {
     if (!checkValidOrgNr(value)) {
@@ -72,11 +43,11 @@ export const OrganisationLookup = ({ component, parentBinding, itemIndex }: Comp
       return;
     }
 
-    const { data } = await performLookup();
-    if (data?.org) {
-      orgNr.setValue(data.org.orgNr);
+    const result = await performLookup();
+    if (result.org) {
+      orgNr.setValue(result.org.orgNr);
       if (orgNameField) {
-        orgName.setValue(data.org.name);
+        orgName.setValue(result.org.name);
       }
     }
   }
@@ -91,16 +62,14 @@ export const OrganisationLookup = ({ component, parentBinding, itemIndex }: Comp
   }
 
   const hasSuccessfullyFetched = !!orgNr.value;
-  const hasErrors = (orgNrErrors && orgNrErrors.length > 0) || !!data?.error;
+  const hasErrors = (orgNrErrors && orgNrErrors.length > 0) || !!lookupError;
 
   return (
     <Fieldset data-size='sm'>
       {title && <legend>{title}</legend>}
       <div className={classes.componentWrapper}>
         <div className={classes.orgnrLabel}>
-          <label htmlFor={`${props.id}_orgnr`}>
-            {langAsString('organisation_lookup.orgnr_label')}
-          </label>
+          <label htmlFor={`${props.id}_orgnr`}>{langAsString('organisation_lookup.orgnr_label')}</label>
         </div>
         <Field className={classes.orgnr}>
           <Textfield
@@ -122,9 +91,7 @@ export const OrganisationLookup = ({ component, parentBinding, itemIndex }: Comp
             label=''
           />
           {orgNrErrors && orgNrErrors.length > 0 && (
-            <ValidationMessage data-size='sm'>
-              {langAsString(orgNrErrors[0])}
-            </ValidationMessage>
+            <ValidationMessage data-size='sm'>{langAsString(orgNrErrors[0])}</ValidationMessage>
           )}
         </Field>
         <div className={classes.submit}>
@@ -148,12 +115,12 @@ export const OrganisationLookup = ({ component, parentBinding, itemIndex }: Comp
             </Button>
           )}
         </div>
-        {data?.error && (
+        {lookupError && (
           <ValidationMessage
             data-size='sm'
             className={classes.apiError}
           >
-            {langAsString(data.error)}
+            {langAsString(lookupError)}
           </ValidationMessage>
         )}
         {hasSuccessfullyFetched && orgName.value && (
