@@ -27,6 +27,7 @@ export function createRouter(queryClient: QueryClient) {
     [
       {
         Component: AppLayout,
+        HydrateFallback: () => null,
         children: [
           {
             path: routes.root,
