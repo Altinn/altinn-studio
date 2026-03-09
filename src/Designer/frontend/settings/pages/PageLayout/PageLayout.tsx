@@ -1,6 +1,7 @@
 import React, { ReactElement } from 'react';
 import classes from './PageLayout.module.css';
 import { Outlet } from 'react-router-dom';
+import type { StudioProfileMenuItem, StudioProfileMenuGroup } from '@studio/components';
 import { StudioAvatar, StudioHeading, StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import './PageLayout.css';
@@ -9,7 +10,6 @@ import { DISPLAY_NAME, SETTINGS_BASENAME } from 'app-shared/constants';
 import { useUserQuery } from 'app-shared/hooks/queries/useUserQuery';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
-import { StudioProfileMenuItem, StudioProfileMenuGroup } from '@studio/components';
 
 export const PageLayout = () => {
   const { t } = useTranslation();
