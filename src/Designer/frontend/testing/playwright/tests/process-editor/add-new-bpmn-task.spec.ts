@@ -131,8 +131,8 @@ const goToGiteaAndNavigateToProcessBpmnFile = async (
   giteaPage: GiteaPage,
 ): Promise<void> => {
   await header.clickOnThreeDotsMenu();
-  await header.clickOnGoToGiteaRepository();
-
+  const newTab = await header.clickOnGoToGiteaRepository();
+  await giteaPage.useNewTab(newTab);
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
   await giteaPage.clickOnConfigFilesButton();

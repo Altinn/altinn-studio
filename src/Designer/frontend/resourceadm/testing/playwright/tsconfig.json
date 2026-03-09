@@ -1,3 +1,7 @@
 {
-  "extends": "../../../tsconfig.json"
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true
+  }
 }
