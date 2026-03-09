@@ -28,6 +28,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ISourceControl _sourceControl;
         private readonly GeneralSettings _generalSettings;
         private readonly IFeatureManager _featureManager;
+        private readonly StudioOidcLoginSettings _studioOidcLoginSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class
@@ -37,12 +38,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="generalSettings">the general settings</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="featureManager">the feature manager</param>
+        /// <param name="studioOidcLoginSettings">the studio oidc login settings</param>
         public HomeController(
             ILogger<HomeController> logger,
             ServiceRepositorySettings repositorySettings,
             GeneralSettings generalSettings,
             ISourceControl sourceControl,
-            IFeatureManager featureManager
+            IFeatureManager featureManager,
+            StudioOidcLoginSettings studioOidcLoginSettings
         )
         {
             _logger = logger;
@@ -50,6 +53,7 @@ namespace Altinn.Studio.Designer.Controllers
             _generalSettings = generalSettings;
             _sourceControl = sourceControl;
             _featureManager = featureManager;
+            _studioOidcLoginSettings = studioOidcLoginSettings;
         }
 
         /// <summary>
@@ -61,12 +65,16 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
         public async Task<ActionResult> StartPage()
         {
-            await Task.CompletedTask;
             bool isUserLoggedIn = User.Identity?.IsAuthenticated ?? false;
 
             if (isUserLoggedIn)
             {
                 return LocalRedirect("/dashboard");
+            }
+
+            if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
+            {
+                ViewBag.AccountLinkUrl = _studioOidcLoginSettings.AccountLinkUrl;
             }
 
             Response.Cookies.Delete(General.DesignerCookieName);

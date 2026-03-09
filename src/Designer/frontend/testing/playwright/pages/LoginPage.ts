@@ -5,6 +5,8 @@ import { Language } from '../enum/Language';
 // Since this page is a Razor page, it's not using the nb/en.json files, which are used in the frontend.
 const loginPageTexts: Record<string, string> = {
   login: 'Logg inn',
+  continueToLogin: 'Fortsett til innlogging',
+  dontShowAgain: 'Ikke vis denne meldingen igjen',
   username: 'Brukernavn eller e-postadresse',
   password: 'Passord',
   error_message: 'Brukernavn eller passord er feil.',
@@ -80,9 +82,20 @@ export class LoginPage extends BasePage {
 
   public async loginViaFakeAnsattporten(): Promise<void> {
     await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
+    await this.dismissAccountLinkModalIfVisible();
     await this.page.waitForURL(/\/authorize/);
     await this.page.getByRole('button', { name: /cypress_testuser test playwright/ }).click();
     await this.confirmSuccessfulLogin();
+  }
+
+  private async dismissAccountLinkModalIfVisible(): Promise<void> {
+    const continueButton = this.page.getByRole('button', {
+      name: loginPageTexts['continueToLogin'],
+    });
+    if (await continueButton.isVisible({ timeout: 2000 })) {
+      await this.page.getByLabel(loginPageTexts['dontShowAgain']).check();
+      await continueButton.click();
+    }
   }
 
   public async addSessionToSharableStorage() {

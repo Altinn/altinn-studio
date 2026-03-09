@@ -73,6 +73,8 @@ environmentVariables:
       value: profile
     - name: StudioOidcLoginSettings__AcrValues
       value: substantial
+    - name: StudioOidcLoginSettings__AccountLinkUrl
+      value: https://dev.altinn.studio/repos/user/oauth2/ansattporten
     - name: FeatureManagement__AnsattPorten
       value: "true"
     - name: FeatureManagement__StudioOidc
@@ -149,6 +151,8 @@ environmentVariables:
       value: profile
     - name: StudioOidcLoginSettings__AcrValues
       value: substantial
+    - name: StudioOidcLoginSettings__AccountLinkUrl
+      value: https://staging.altinn.studio/repos/user/oauth2/ansattporten
     - name: FeatureManagement__AnsattPorten
       value: "false"
     - name: FeatureManagement__StudioOidc
@@ -211,6 +215,8 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
+    - name: StudioOidcLoginSettings__AccountLinkUrl
+      value: https://altinn.studio/repos/user/oauth2/ansattporten
     - name: FeatureManagement__AnsattPorten
       value: "false"
     - name: FeatureManagement__StudioOidc
