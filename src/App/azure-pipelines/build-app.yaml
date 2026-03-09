@@ -33,7 +33,7 @@ jobs:
         "https://$(ALTINN_STUDIO_HOSTNAME)/designer/api/v1/checkreleasebuildstatus"
         -H "accept: text/plain"
         -H "Content-Type: application/json-patch+json"
-        -d "{ \"resource\": { \"buildNumber\": \"$(Build.BuildNumber)\", \"resourceOwner\": \"$(APP_OWNER)\"}}"
+        -d "{ \"resource\": { \"buildNumber\": \"$(Build.BuildId)\", \"resourceOwner\": \"$(APP_OWNER)\"}}"
 
   - task: CmdLine@2
     displayName: Pull Repo
@@ -121,5 +121,5 @@ jobs:
     condition: always()
     inputs:
       buildDefinition: 85
-      buildParameters: 'TYPE:release,BUILD_NUMBER:$(Build.BuildNumber),ALTINN_STUDIO_HOSTNAME:$(ALTINN_STUDIO_HOSTNAME),APP_OWNER:$(APP_OWNER)'
+      buildParameters: 'TYPE:release,BUILD_NUMBER:$(Build.BuildId),ALTINN_STUDIO_HOSTNAME:$(ALTINN_STUDIO_HOSTNAME),APP_OWNER:$(APP_OWNER)'
       authenticationMethod: OAuth Token
