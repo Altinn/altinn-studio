@@ -21,12 +21,12 @@
     "react-chartjs-2": "5.3.1",
     "react-dom": "18.3.1",
     "react-error-boundary": "6.1.1",
-    "react-i18next": "16.5.4",
+    "react-i18next": "16.5.6",
     "react-router-dom": "6.30.3",
     "react-toastify": "11.0.5"
   },
   "devDependencies": {
-    "@swc/core": "1.15.13",
+    "@swc/core": "1.15.18",
     "@swc/jest": "0.2.39",
     "@testing-library/dom": "10.4.1",
     "@testing-library/jest-dom": "6.9.1",
@@ -65,7 +65,7 @@
   "resolutions": {
     "@testing-library/dom": "10.4.1",
     "@babel/traverse": "7.29.0",
-    "caniuse-lite": "1.0.30001774"
+    "caniuse-lite": "1.0.30001777"
   },
   "lint-staged": {
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
