@@ -202,6 +202,7 @@ services:
       - GITEA__server__REVERSE_PROXY_AUTHENTICATION_USER=X-WEBAUTH-USER
       - GITEA__session__COOKIE_SECURE=false
       - GITEA__server__REVERSE_PROXY_TRUSTED_PROXIES=*
+      - GITEA__service__USER_DISABLED_FEATURES=change_username
       - USER_GID=1000
       - USER_UID=1000
     ports:

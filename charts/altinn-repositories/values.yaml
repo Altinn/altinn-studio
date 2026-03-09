@@ -45,6 +45,8 @@ distinctEnvironmentVariables:
     # AKS subnet CIDR (Azure CNI assigns pod IPs from this range). NetworkPolicy is the primary access control.
     - name: GITEA__server__REVERSE_PROXY_TRUSTED_PROXIES
       value: "10.48.0.0/20"
+    - name: GITEA__service__USER_DISABLED_FEATURES
+      value: change_username
   staging:
     - name: GITEA____RUN_MODE
       value: test
@@ -67,6 +69,8 @@ distinctEnvironmentVariables:
     # AKS subnet CIDR (Azure CNI assigns pod IPs from this range). NetworkPolicy is the primary access control.
     - name: GITEA__server__REVERSE_PROXY_TRUSTED_PROXIES
       value: "10.48.0.0/20"
+    - name: GITEA__service__USER_DISABLED_FEATURES
+      value: change_username
   prod:
     - name: ALTINN_STUDIO_DOMAIN
       value: altinn.studio
