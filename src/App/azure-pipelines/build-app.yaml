@@ -1,5 +1,4 @@
-
-variables:
+# variables:
   # Variables to be passed when triggering the pipeline
   # ALTINN_STUDIO_HOSTNAME: ''
   # APP_COMMIT_ID: ''
