@@ -200,12 +200,7 @@ describe('DeploymentEnvironmentLogList', () => {
         ).toBeInTheDocument();
       });
 
-      it.each([
-        FailedEventType.PipelineFailed,
-        FailedEventType.InstallFailed,
-        FailedEventType.UpgradeFailed,
-        FailedEventType.UninstallFailed,
-      ])('renders when deployment failed with event %s', (eventType) => {
+      it.each(Object.values(FailedEventType))('renders when deployment failed with event %s', (eventType) => {
         render({
           pipelineDeploymentList: [
             {
@@ -219,11 +214,7 @@ describe('DeploymentEnvironmentLogList', () => {
         ).toBeInTheDocument();
       });
 
-      it.each([
-        SucceededEventType.InstallSucceeded,
-        SucceededEventType.UpgradeSucceeded,
-        SucceededEventType.UninstallSucceeded,
-      ])('renders when deployment succeeded with event %s', (eventType) => {
+      it.each(Object.values(SucceededEventType))('renders when deployment succeeded with event %s', (eventType) => {
         render({
           pipelineDeploymentList: [
             {
@@ -254,7 +245,8 @@ describe('DeploymentEnvironmentLogList', () => {
         ).toBeInTheDocument();
       });
 
-      it('renders as in progress when pipeline succeeded recently (< 15m) with non-deprecated first event', () => {
+      it('shows in-progress status when PipelineSucceeded is recent (< 15m)', () => {
+        const recentTimestamp = new Date(Date.now() - 5 * 60 * 1000).toISOString();
         render({
           pipelineDeploymentList: [
             {
@@ -264,7 +256,7 @@ describe('DeploymentEnvironmentLogList', () => {
                 {
                   ...deployEvent,
                   eventType: EventType.PipelineSucceeded,
-                  created: new Date().toISOString(),
+                  created: recentTimestamp,
                 },
               ],
             },
