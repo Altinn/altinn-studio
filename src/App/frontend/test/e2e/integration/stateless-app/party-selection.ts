@@ -7,7 +7,7 @@ const appFrontend = new AppFrontend();
 // so the backend will redirect to party selection.
 
 describe('Stateless party selection', () => {
-  it('should show party selection before starting instance', () => {
+  itq('should show party selection before starting instance', () => {
     // User 2001 has multiple parties and doNotPromptForParty=false
     cy.startAppInstance(appFrontend.apps.stateless, { cyUser: 'multiPartyPrompt' });
     cy.get(appFrontend.partySelection.appHeader).should('be.visible');
