@@ -1716,7 +1716,7 @@ namespace Designer.Tests.Services
                 .Setup(s =>
                     s.CreateAsync(
                         It.IsAny<string>(),
-                        "deploy",
+                        It.Is<string>(n => n.StartsWith("deploy-")),
                         Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
                         It.IsAny<DateTimeOffset>(),
                         It.IsAny<CancellationToken>()
@@ -1768,7 +1768,7 @@ namespace Designer.Tests.Services
                 s =>
                     s.CreateAsync(
                         It.IsAny<string>(),
-                        "deploy",
+                        It.Is<string>(n => n.StartsWith("deploy-")),
                         Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
                         It.IsAny<DateTimeOffset>(),
                         It.IsAny<CancellationToken>()

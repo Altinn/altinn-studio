@@ -608,7 +608,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 var (rawKey, _) = await _apiKeyService.CreateAsync(
                     username,
-                    "deploy",
+                    $"deploy-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
                     Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
                     _timeProvider.GetUtcNow().AddHours(1)
                 );

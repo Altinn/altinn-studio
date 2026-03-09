@@ -550,7 +550,7 @@ namespace Designer.Tests.Services
                 .Setup(s =>
                     s.CreateAsync(
                         It.IsAny<string>(),
-                        "release",
+                        It.Is<string>(n => n.StartsWith("release-")),
                         Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
                         It.IsAny<DateTimeOffset>(),
                         It.IsAny<CancellationToken>()
@@ -590,7 +590,7 @@ namespace Designer.Tests.Services
                 s =>
                     s.CreateAsync(
                         It.IsAny<string>(),
-                        "release",
+                        It.Is<string>(n => n.StartsWith("release-")),
                         Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
                         It.IsAny<DateTimeOffset>(),
                         It.IsAny<CancellationToken>()

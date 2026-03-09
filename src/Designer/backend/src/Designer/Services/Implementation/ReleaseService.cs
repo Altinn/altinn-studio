@@ -169,7 +169,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string username = AuthenticationHelper.GetDeveloperUserName(httpContext);
                 var (rawKey, _) = await _apiKeyService.CreateAsync(
                     username,
-                    "release",
+                    $"release-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
                     Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
                     _timeProvider.GetUtcNow().AddHours(1)
                 );
