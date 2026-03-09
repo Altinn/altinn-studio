@@ -1,7 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
-import type { ILayoutCollection } from 'src/layout/layout';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 
 const appFrontend = new AppFrontend();
 
@@ -11,29 +11,27 @@ describe('PDF', () => {
     interceptAltinnAppGlobalData((data) => {
       data.ui.folders.Task_1.pages.pdfLayoutName = pdfLayoutName;
     });
-    cy.intercept('GET', '**/layouts/**', (req) =>
+    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
       req.on('response', (res) => {
-        const body: ILayoutCollection = JSON.parse(res.body);
-        res.send({
-          ...body,
-          [pdfLayoutName]: {
-            data: {
-              layout: [
-                {
-                  id: 'Summary2-hideEmptyFields-PDF',
-                  type: 'Summary2',
-                  hideEmptyFields: true,
-                  overrides: [
-                    { pageId: 'SummaryPage', hidden: true },
-                    { componentType: 'Grid', hideEmptyRows: true },
-                  ],
-                },
-              ],
-            },
+        const body = res.body as FormBootstrapResponse;
+        body.layouts[pdfLayoutName] = {
+          data: {
+            layout: [
+              {
+                id: 'Summary2-hideEmptyFields-PDF',
+                type: 'Summary2',
+                hideEmptyFields: true,
+                overrides: [
+                  { pageId: 'SummaryPage', hidden: true },
+                  { componentType: 'Grid', hideEmptyRows: true },
+                ],
+              },
+            ],
           },
-        });
-      }),
-    );
+        };
+        res.send(body);
+      });
+    });
 
     cy.startAppInstance(appFrontend.apps.componentLibrary);
     cy.waitForLoad();

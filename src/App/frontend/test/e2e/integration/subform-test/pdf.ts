@@ -2,7 +2,7 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { ILayoutCollection } from 'src/layout/layout';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IInstance } from 'src/types/shared';
 
 const appFrontend = new AppFrontend();
@@ -156,41 +156,39 @@ describe('Subform test', () => {
       data.ui.folders.Task_1.pages.pdfLayoutName = pdfLayoutName;
     });
 
-    cy.intercept('GET', '**/layouts/**', (req) =>
+    cy.intercept('GET', '**/bootstrap-form/**', (req) => {
       req.on('response', (res) => {
-        const body: ILayoutCollection = JSON.parse(res.body);
-        res.send({
-          ...body,
-          [pdfLayoutName]: {
-            data: {
-              layout: [
-                {
-                  id: 'title',
-                  type: 'Header',
-                  textResourceBindings: { title: 'This is a custom PDF' },
-                  size: 'L',
+        const body = res.body as FormBootstrapResponse;
+        body.layouts[pdfLayoutName] = {
+          data: {
+            layout: [
+              {
+                id: 'title',
+                type: 'Header',
+                textResourceBindings: { title: 'This is a custom PDF' },
+                size: 'L',
+              },
+              {
+                id: 'summary2-layoutset',
+                type: 'Summary2',
+                target: {
+                  taskId: 'Task_1',
+                  type: 'layoutSet',
                 },
-                {
-                  id: 'summary2-layoutset',
-                  type: 'Summary2',
-                  target: {
-                    taskId: 'Task_1',
-                    type: 'layoutSet',
+                showPageInAccordion: false,
+                overrides: [
+                  {
+                    componentId: 'subform-mopeder',
+                    display: 'table',
                   },
-                  showPageInAccordion: false,
-                  overrides: [
-                    {
-                      componentId: 'subform-mopeder',
-                      display: 'table',
-                    },
-                  ],
-                },
-              ],
-            },
+                ],
+              },
+            ],
           },
-        });
-      }),
-    );
+        };
+        res.send(body);
+      });
+    });
 
     cy.waitUntilSaved();
     fillTwoSubforms();
