@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
@@ -21,10 +21,12 @@ export const EditDataTypes = ({
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
+  const [previousBpmnId, setPreviousBpmnId] = useState(bpmnDetails.id);
 
-  useEffect(() => {
+  if (previousBpmnId !== bpmnDetails.id) {
+    setPreviousBpmnId(bpmnDetails.id);
     setDataModelSelectVisible(false);
-  }, [bpmnDetails.id]);
+  }
 
   return (
     <>

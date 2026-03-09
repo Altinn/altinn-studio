@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';
 import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
@@ -60,9 +60,11 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
     onChange: handlePdfModeChange,
   });
 
-  setValueRef.current = (value: string) => {
-    setValue(value);
-  };
+  useEffect(() => {
+    setValueRef.current = (value: string) => {
+      setValue(value);
+    };
+  }, [setValue]);
 
   if (
     appVersion &&

@@ -30,14 +30,11 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
     storedFilenameTextResourceId,
   );
 
-  const modelerInstance = modelerRef?.current;
-
-  if (!modelerInstance || !bpmnDetails) {
+  /* eslint-disable react-hooks/refs -- guard clause to handle unmounted modeler; ref is not used for rendering */
+  if (!modelerRef?.current || !bpmnDetails) {
     return null;
   }
-
-  const modeling: Modeling = modelerInstance.get('modeling');
-  const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
+  /* eslint-enable react-hooks/refs */
 
   const textResources: TextResource[] = textResourcesData?.[DEFAULT_LANGUAGE] ?? [];
 
@@ -61,6 +58,10 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
 
   const updateBpmnFilenameTextResourceKey = (textResourceId: string): void => {
     if (textResourceId === pdfConfig.filenameTextResourceKey?.value) return;
+
+    const modelerInstance = modelerRef.current;
+    const modeling: Modeling = modelerInstance.get('modeling');
+    const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
 
     const filenameElement = textResourceId
       ? bpmnFactory.create('altinn:FilenameTextResourceKey', { value: textResourceId })

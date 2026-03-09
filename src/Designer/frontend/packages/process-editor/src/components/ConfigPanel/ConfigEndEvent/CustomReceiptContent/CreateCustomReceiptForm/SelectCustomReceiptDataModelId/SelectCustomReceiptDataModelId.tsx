@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../../utils/configPanelUtils';
@@ -22,12 +22,14 @@ export const SelectCustomReceiptDataModelId = ({
   );
 
   const [selectedValue, setSelectedValue] = useState<string>(existingDataModelId || '');
+  const [previousDataModelId, setPreviousDataModelId] = useState(existingDataModelId);
 
-  useEffect(() => {
+  if (previousDataModelId !== existingDataModelId) {
+    setPreviousDataModelId(existingDataModelId);
     if (existingDataModelId) {
       setSelectedValue(existingDataModelId);
     }
-  }, [existingDataModelId]);
+  }
 
   const selectedItems: StudioSuggestionItem = selectedValue
     ? { value: selectedValue, label: selectedValue }
