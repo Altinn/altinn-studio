@@ -18,6 +18,8 @@ import {
   getDataElementUrl,
   getDataModelTypeUrl,
   getFileUploadUrl,
+  getFormBootstrapUrlForInstance,
+  getFormBootstrapUrlForStateless,
   getInstantiateUrl,
   getOrderDetailsUrl,
   getPaymentInformationUrl,
@@ -36,6 +38,7 @@ import {
 import { customEncodeURI } from 'src/utils/urls/urlHelper';
 import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IDataModelMultiPatchRequest, IDataModelMultiPatchResponse } from 'src/features/formData/types';
 import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 import type { ITextResourceResult } from 'src/features/language/textResources';
@@ -249,3 +252,22 @@ export function fetchExternalApi({
 }
 
 export const fetchPostalCodes = async (): Promise<PostalCodesRegistry> => (await axios.get(postalCodesUrl)).data;
+
+export const fetchFormBootstrapForInstance = (options: {
+  instanceId: string;
+  uiFolder: string;
+  dataElementId?: string;
+  pdf?: boolean;
+  language?: string;
+}): Promise<FormBootstrapResponse> => {
+  const url = getFormBootstrapUrlForInstance(options);
+  return httpGet<FormBootstrapResponse>(url);
+};
+
+export const fetchFormBootstrapForStateless = (options: {
+  uiFolder: string;
+  language?: string;
+}): Promise<FormBootstrapResponse> => {
+  const url = getFormBootstrapUrlForStateless(options);
+  return httpGet<FormBootstrapResponse>(url);
+};

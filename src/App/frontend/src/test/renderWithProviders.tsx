@@ -11,6 +11,7 @@ import type { AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { getDataListMock } from 'src/__mocks__/getDataListMock';
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
 import { orderDetailsResponsePayload } from 'src/__mocks__/getOrderDetailsPayloadMock';
 import { getPartyMock } from 'src/__mocks__/getPartyMock';
@@ -133,6 +134,8 @@ const defaultQueryMocks: AppQueries = {
   fetchPaymentInformation: async () => paymentResponsePayload,
   fetchOrderDetails: async () => orderDetailsResponsePayload,
   fetchPostalCodes: async () => defaultPostalCodesMock,
+  fetchFormBootstrapForInstance: async () => getFormBootstrapMock(),
+  fetchFormBootstrapForStateless: async () => getFormBootstrapMock(),
 };
 
 function makeProxy<Name extends keyof FormDataMethods>(name: Name, ref: InitialRenderRef) {
@@ -587,24 +590,27 @@ export const renderWithInstanceAndLayout = async ({
         </InstanceRouter>
       ),
       queries: {
-        fetchLayouts: async () => ({
-          [initialPage]: {
-            data: {
-              layout: [
-                {
-                  id: 'noOtherComponentsHere',
-                  type: 'Header',
-                  textResourceBindings: {
-                    title:
-                      "You haven't added any components yet. Supply your own components " +
-                      'by overriding the "fetchLayouts" query in your test.',
-                  },
-                  size: 'L',
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              [initialPage]: {
+                data: {
+                  layout: [
+                    {
+                      id: 'noOtherComponentsHere',
+                      type: 'Header',
+                      textResourceBindings: {
+                        title:
+                          "You haven't added any components yet. Supply your own components " +
+                          'by overriding the "fetchLayouts" query in your test.',
+                      },
+                      size: 'L',
+                    },
+                  ],
                 },
-              ],
-            },
-          },
-        }),
+              },
+            };
+          }),
         ...renderOptions.queries,
       },
     })),
@@ -659,13 +665,16 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     renderer: Wrapper,
     initialPage,
     queries: {
-      fetchLayouts: async () => ({
-        [initialPage]: {
-          data: {
-            layout: [realComponentDef],
-          },
-        },
-      }),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            [initialPage]: {
+              data: {
+                layout: [realComponentDef],
+              },
+            },
+          };
+        }),
       ...rest.queries,
     },
   }) as RenderGenericComponentReturnType<InInstance>;

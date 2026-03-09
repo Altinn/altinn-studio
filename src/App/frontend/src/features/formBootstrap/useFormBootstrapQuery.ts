@@ -1,12 +1,10 @@
 import { skipToken, useQuery } from '@tanstack/react-query';
 
+import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsPdf } from 'src/hooks/useIsPdf';
-import { httpGet } from 'src/utils/network/sharedNetworking';
-import { getFormBootstrapUrl, getStatelessFormBootstrapUrl } from 'src/utils/urls/appUrlHelper';
-import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 
 export interface FormBootstrapQueryOptions {
   uiFolder: string;
@@ -14,6 +12,7 @@ export interface FormBootstrapQueryOptions {
 }
 
 export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
+  const { fetchFormBootstrapForStateless, fetchFormBootstrapForInstance } = useAppQueries();
   const isStateless = useIsStateless();
   const instanceId = useLaxInstanceId();
   const language = useCurrentLanguage();
@@ -32,17 +31,16 @@ export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
       language,
     ],
     queryFn: enabled
-      ? async () => {
-          const url = isStateless
-            ? getStatelessFormBootstrapUrl(options.uiFolder, { language })
-            : getFormBootstrapUrl(instanceId!, options.uiFolder, {
+      ? async () =>
+          isStateless
+            ? await fetchFormBootstrapForStateless({ uiFolder: options.uiFolder, language })
+            : await fetchFormBootstrapForInstance({
+                instanceId: instanceId!,
+                uiFolder: options.uiFolder,
                 dataElementId: options?.dataElementIdOverride,
                 pdf: isPdf,
                 language,
-              });
-
-          return await httpGet<FormBootstrapResponse>(url);
-        }
+              })
       : skipToken,
     staleTime: 0,
     gcTime: 0,

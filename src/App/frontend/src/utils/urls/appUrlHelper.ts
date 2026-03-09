@@ -252,41 +252,36 @@ export const getDataListsUrl = ({
   return url.toString();
 };
 
-export const getFormBootstrapUrl = (
-  instanceId: string,
-  uiFolder: string,
-  options?: {
-    dataElementId?: string;
-    pdf?: boolean;
-    language?: string;
-  },
-): string => {
+export const getFormBootstrapUrlForInstance = (options: {
+  instanceId: string;
+  uiFolder: string;
+  dataElementId?: string;
+  pdf?: boolean;
+  language?: string;
+}): string => {
+  const { instanceId, uiFolder, dataElementId, pdf, language } = options;
   const params = new URLSearchParams();
 
-  if (options?.dataElementId) {
-    params.set('dataElementId', options.dataElementId);
+  if (dataElementId) {
+    params.set('dataElementId', dataElementId);
   }
-  if (options?.pdf) {
+  if (pdf) {
     params.set('pdf', 'true');
   }
-  if (options?.language) {
-    params.set('language', options.language);
+  if (language) {
+    params.set('language', language);
   }
 
   const queryString = params.toString() ? `?${params.toString()}` : '';
   return `${appPath}/instances/${instanceId}/bootstrap-form/${uiFolder}${queryString}`;
 };
 
-export const getStatelessFormBootstrapUrl = (
-  uiFolder: string,
-  options?: {
-    language?: string;
-  },
-): string => {
+export const getFormBootstrapUrlForStateless = (options: { uiFolder: string; language?: string }): string => {
+  const { uiFolder, language } = options;
   const params = new URLSearchParams();
 
-  if (options?.language) {
-    params.set('language', options.language);
+  if (language) {
+    params.set('language', language);
   }
 
   const queryString = params.toString() ? `?${params.toString()}` : '';
