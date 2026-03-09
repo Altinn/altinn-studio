@@ -14,6 +14,11 @@ events {
 http {
   server_tokens off;
 
+  proxy_buffer_size 128k;
+  proxy_buffers 8 256k;
+  proxy_busy_buffers_size 512k;
+  large_client_header_buffers 64 16k;
+
   otel_exporter {
     endpoint ${OTEL_ENDPOINT};
   }
