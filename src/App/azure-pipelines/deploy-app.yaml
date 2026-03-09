@@ -135,8 +135,8 @@ steps:
     inputs:
       script: |
         # Clone private repo using either header-based or URL-embedded token auth
-        if [ -n "$APP_AUTH_HEADER_NAME" ]; then
-          git -c http.extraHeader="$APP_AUTH_HEADER_NAME: $APP_DEPLOY_TOKEN" clone --recurse-submodules https://$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
+        if [ -n "$(APP_AUTH_HEADER_NAME)" ]; then
+          git -c http.extraHeader="$(APP_AUTH_HEADER_NAME): $(APP_DEPLOY_TOKEN)" clone --recurse-submodules https://$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
         else
           git clone --recurse-submodules https://$(APP_DEPLOY_TOKEN)@$GITEA_ENVIRONMENT/$APP_OWNER/$APP_REPO $APP_COMMIT_ID
         fi
@@ -151,7 +151,11 @@ steps:
             echo "Already using latest commit on this branch, moving on."
         else
             echo "Target commit ID is not latest commit on this branch. Fetching target commit"
-            git fetch origin $APP_COMMIT_ID
+            if [ -n "$(APP_AUTH_HEADER_NAME)" ]; then
+              git -c http.extraHeader="$(APP_AUTH_HEADER_NAME): $(APP_DEPLOY_TOKEN)" fetch origin $APP_COMMIT_ID
+            else
+              git fetch origin $APP_COMMIT_ID
+            fi
             git reset --hard FETCH_HEAD
         fi
 
