@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { StudioProperty } from '@studio/components';
+import { useResetState } from '@studio/hooks';
 import { useTranslation } from 'react-i18next';
 import { LinkIcon } from '@studio/icons';
 import { SelectDataTypes } from './SelectDataTypes';
@@ -20,13 +21,7 @@ export const EditDataTypes = ({
 }: EditDataTypesProps) => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
-  const [dataModelSelectVisible, setDataModelSelectVisible] = useState(false);
-  const [previousBpmnId, setPreviousBpmnId] = useState(bpmnDetails.id);
-
-  if (previousBpmnId !== bpmnDetails.id) {
-    setPreviousBpmnId(bpmnDetails.id);
-    setDataModelSelectVisible(false);
-  }
+  const [dataModelSelectVisible, setDataModelSelectVisible] = useResetState(false, bpmnDetails.id);
 
   return (
     <>
