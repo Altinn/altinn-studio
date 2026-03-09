@@ -71,11 +71,10 @@ describe('BpmnConfigPanelContext', () => {
         <div>
           <button onClick={handleSetMetadata}>Set meta data</button>
           <button onClick={handleResetMetadata}>Reset meta data</button>
-          {/* eslint-disable react-hooks/refs -- test component needs to read ref during render to verify its value */}
           <div data-testid='context'>
+            {/* eslint-disable-next-line react-hooks/refs -- test component needs to read ref during render to verify its value */}
             {metadataFormRef.current ? JSON.stringify(metadataFormRef.current) : 'Empty'}
           </div>
-          {/* eslint-enable react-hooks/refs */}
         </div>
       );
     };
