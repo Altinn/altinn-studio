@@ -6,7 +6,7 @@ import type { CreateApiKeyResponse } from 'app-shared/types/api/CreateApiKeyResp
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
-import { ApiError } from 'app-shared/types/api/ApiError';
+import type { ApiError } from 'app-shared/types/api/ApiError';
 
 export const useAddUserApiKeyMutation = () => {
   const { addUserApiKey } = useServicesContext();

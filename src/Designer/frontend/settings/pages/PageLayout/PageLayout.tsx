@@ -1,4 +1,5 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
+import type { ReactElement } from 'react';
 import classes from './PageLayout.module.css';
 import { Outlet } from 'react-router-dom';
 import type { StudioProfileMenuItem, StudioProfileMenuGroup } from '@studio/components';
