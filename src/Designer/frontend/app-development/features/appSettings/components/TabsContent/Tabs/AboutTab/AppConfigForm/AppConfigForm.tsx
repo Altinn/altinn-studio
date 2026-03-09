@@ -170,7 +170,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           cancelAriaLabel={t('general.cancel')}
         />
         <AppVisibilityAndDelegationCard
-          visible={updatedAppConfig.access.visible ?? false}
+          visible={updatedAppConfig.access?.visible ?? false}
           delegable={updatedAppConfig.access?.delegable ?? false}
           descriptionValue={updatedAppConfig.access?.rightDescription ?? defaultDescriptionValue}
           onChangeVisible={onChangeVisible}
