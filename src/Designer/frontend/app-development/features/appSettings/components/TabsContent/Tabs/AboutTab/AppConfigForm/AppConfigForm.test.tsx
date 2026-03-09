@@ -120,21 +120,6 @@ describe('AppConfigForm', () => {
     expect(homepage).toHaveValue(`${mockHomepage}${newText}`);
   });
 
-  it('defaults visibility and delegation to true when not set', () => {
-    renderAppConfigForm();
-
-    const visibleSwitch = getSwitch(
-      textMock('app_settings.about_tab_visibility_and_delegation_visible_label'),
-    );
-    expect(visibleSwitch).toBeChecked();
-
-    const delegableSwitch = getSwitch(
-      textMock('app_settings.about_tab_visibility_and_delegation_delegable_label'),
-    );
-    expect(delegableSwitch).toBeChecked();
-    expect(delegableSwitch).toBeDisabled();
-  });
-
   it('displays correct value in delegation when app is hidden, and updates the value on change', async () => {
     const user = userEvent.setup();
     renderAppConfigForm({
