@@ -5,8 +5,9 @@ import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
-import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { StaticOptionSet } from 'src/features/formBootstrap/types';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
@@ -16,30 +17,6 @@ import type { IOptionInternal } from 'src/features/options/castOptionsToStrings'
 import type { IQueryParameters, IRawOption, ISelectionComponentFull } from 'src/layout/common.generated';
 import type { ILayout } from 'src/layout/layout';
 import type { fetchOptions } from 'src/queries/queries';
-
-type TextResourcesProviderImport = typeof import('src/features/language/textResources/TextResourcesProvider');
-jest.mock<TextResourcesProviderImport>('src/features/language/textResources/TextResourcesProvider', () => {
-  const actual = jest.requireActual<TextResourcesProviderImport>(
-    'src/features/language/textResources/TextResourcesProvider',
-  );
-  return {
-    ...actual,
-    useTextResources: jest.fn(() =>
-      actual.resourcesAsMap([
-        {
-          id: 'myLabel',
-          value: '{0}',
-          variables: [
-            {
-              dataSource: 'dataModel.default',
-              key: 'Group[{0}].label',
-            },
-          ],
-        },
-      ]),
-    ),
-  };
-});
 
 interface RenderProps {
   type: 'single' | 'multi';
@@ -52,6 +29,7 @@ interface RenderProps {
   preselectedOptionIndex?: number;
   fetchOptions?: jest.Mock<typeof fetchOptions>;
   extraLayout?: ILayout;
+  staticOptions?: Record<string, StaticOptionSet>;
 }
 
 function TestOptions({ baseComponentId }: { baseComponentId: string }) {
@@ -93,37 +71,54 @@ async function render(props: RenderProps) {
     preselectedOptionIndex: props.preselectedOptionIndex,
   };
 
+  window.altinnAppGlobalData.textResources!.resources = [
+    {
+      id: 'myLabel',
+      value: '{0}',
+      variables: [
+        {
+          dataSource: 'dataModel.default',
+          key: 'Group[{0}].label',
+        },
+      ],
+    },
+  ];
+
   return renderWithInstanceAndLayout({
     renderer: <TestOptions baseComponentId='myComponent' />,
     queries: {
-      fetchLayouts: async () => ({
-        FormLayout: {
-          data: {
-            layout: [
-              ...(props.extraLayout ?? []),
-              {
-                type: props.type === 'single' ? 'Dropdown' : 'MultipleSelect',
-                id: 'myComponent',
-                dataModelBindings: {
-                  simpleBinding: { dataType: defaultDataTypeMock, field: 'result' },
-                },
-                textResourceBindings: {
-                  title: 'mockTitle',
-                },
-                ...layoutConfig,
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock]!.initialData = {
+            Group: structuredClone(props.options ?? []).map((option, index) => ({
+              [ALTINN_ROW_ID]: `row-${index}`,
+              ...option,
+            })),
+            result: props.selected ?? '',
+            someOther: 'value',
+          };
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: [
+                  ...(props.extraLayout ?? []),
+                  {
+                    type: props.type === 'single' ? 'Dropdown' : 'MultipleSelect',
+                    id: 'myComponent',
+                    dataModelBindings: {
+                      simpleBinding: { dataType: defaultDataTypeMock, field: 'result' },
+                    },
+                    textResourceBindings: {
+                      title: 'mockTitle',
+                    },
+                    ...layoutConfig,
+                  },
+                ],
               },
-            ],
-          },
-        },
-      }),
-      fetchFormData: async () => ({
-        Group: structuredClone(props.options ?? []).map((option, index) => ({
-          [ALTINN_ROW_ID]: `row-${index}`,
-          ...option,
-        })),
-        result: props.selected ?? '',
-        someOther: 'value',
-      }),
+            },
+          };
+          obj.staticOptions = props.staticOptions ?? {};
+        }),
       fetchOptions:
         props.fetchOptions ??
         (async () =>
@@ -227,10 +222,6 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options and does not fetch options', async () => {
-    jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: { options: [{ label: 'Bootstrap', value: 'bootstrap' }] },
-    });
-
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
@@ -240,6 +231,9 @@ describe('useGetOptions', () => {
       via: 'api',
       type: 'single',
       fetchOptions: fetchOptionsMock,
+      staticOptions: {
+        myOptions: { options: [{ label: 'Bootstrap', value: 'bootstrap' }] },
+      },
     });
 
     expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
@@ -249,10 +243,6 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options when mapping is configured', async () => {
-    jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: { options: [{ label: 'Bootstrap', value: 'bootstrap' }] },
-    });
-
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
@@ -263,6 +253,9 @@ describe('useGetOptions', () => {
       type: 'single',
       mapping: { someOther: 'someParam' },
       fetchOptions: fetchOptionsMock,
+      staticOptions: {
+        myOptions: { options: [{ label: 'Bootstrap', value: 'bootstrap' }] },
+      },
     });
 
     expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
@@ -272,10 +265,6 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options when query parameters are dynamic', async () => {
-    jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: { options: [{ label: 'Bootstrap', value: 'bootstrap' }] },
-    });
-
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
@@ -286,6 +275,9 @@ describe('useGetOptions', () => {
       type: 'single',
       queryParameters: { someParam: ['dataModel', 'someOther'] },
       fetchOptions: fetchOptionsMock,
+      staticOptions: {
+        myOptions: { options: [{ label: 'Bootstrap', value: 'bootstrap' }] },
+      },
     });
 
     expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
@@ -295,10 +287,6 @@ describe('useGetOptions', () => {
   });
 
   it('uses bootstrap static options regardless of query parameter values', async () => {
-    jest.spyOn(FormBootstrap, 'useStaticOptionsMap').mockReturnValue({
-      myOptions: { options: [{ label: 'Static list', value: 'static' }] },
-    });
-
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
@@ -309,6 +297,9 @@ describe('useGetOptions', () => {
       type: 'single',
       queryParameters: { region: 'asia' },
       fetchOptions: fetchOptionsMock,
+      staticOptions: {
+        myOptions: { options: [{ label: 'Static list', value: 'static' }] },
+      },
     });
 
     expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
