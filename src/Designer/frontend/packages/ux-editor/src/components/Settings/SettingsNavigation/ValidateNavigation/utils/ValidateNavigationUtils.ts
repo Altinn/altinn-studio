@@ -72,14 +72,6 @@ export const withUniqueIds = (configs: ExternalConfigState[]): ExternalConfigWit
   configs.map((config) => ({ ...config, id: crypto.randomUUID() }));
 
 // Temporary dummy data before integration with backend, to be replaced with actual data fetching and saving logic where it is used in upcoming PRs
-export const dummyDataTasks: ExternalConfigState[] = [
-  {
-    show: ['Schema', 'Component'],
-    page: 'current',
-    tasks: ['form2'],
-  },
-];
-
 export const dummyDataPages: ExternalConfigState[] = [
   {
     show: ['Schema', 'Component'],
@@ -167,8 +159,8 @@ export const isRuleDuplicateInScope = ({
   const newTaskValue = newConfig.task?.value;
 
   return existingConfigs.some((existingConfig) => {
-    const existingTypeValues = existingConfig.types.map((type) => type.value);
-    const existingPageScopeValue = existingConfig.pageScope.value;
+    const existingTypeValues = existingConfig.types?.map((type) => type.value);
+    const existingPageScopeValue = existingConfig.pageScope?.value;
     const existingTaskValue = existingConfig.task?.value;
 
     if (scope === Scope.SelectedPages && existingTaskValue !== newTaskValue) {
@@ -182,8 +174,8 @@ export const isRuleDuplicateInScope = ({
   });
 };
 
-const arraysEqualUnordered = (existingTypes: string[], newTypes: string[]) => {
-  if (existingTypes.length !== newTypes.length) return false;
+const arraysEqualUnordered = (existingTypes: string[] | undefined, newTypes: string[]) => {
+  if (!existingTypes || existingTypes.length !== newTypes.length) return false;
   const setA = new Set(existingTypes);
   return newTypes.every((value) => setA.has(value));
 };
