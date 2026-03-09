@@ -21,8 +21,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         public string Parameters { get; set; }
 
         // DEV ONLY - uncomment temporarily to trigger pipeline on a specific branch
-        // [JsonPropertyName("sourceBranch")]
-        // [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        // public string SourceBranch { get; set; } = "";
+        [JsonPropertyName("sourceBranch")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string SourceBranch { get; set; } = "feat/test-deploy-pipeline-with-proxy";
     }
 }
