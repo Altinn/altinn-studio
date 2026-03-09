@@ -118,8 +118,8 @@ describe('Subform test', () => {
       });
     });
 
-    // Block subform data element to provoke unknown error, intercept 3 times, 1 (main data) + 2 (subform data)
-    cy.intercept({ method: 'GET', url: '**/data/**includeRowId=true*', times: 3 }, (req) => {
+    // Block subform data element to provoke unknown error
+    cy.intercept({ method: 'GET', url: '**/data/**includeRowId=true*', times: 2 }, (req) => {
       if (req.url.includes(data.dataElementIdToBlock)) {
         req.reply({ statusCode: 404, body: 'Not Found' });
       }
