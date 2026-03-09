@@ -137,4 +137,4 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 Altinn Apps development team - If you want to get in touch, just create a new issue.
 See also the list of [contributors](https://github.com/Altinn/codelists-lib-dotnet/graphs/contributors) who participated in this project.
 ## License
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License. See the repository root LICENSE file for details.

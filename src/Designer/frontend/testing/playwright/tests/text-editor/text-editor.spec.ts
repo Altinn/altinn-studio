@@ -9,7 +9,7 @@ import { AppDevelopmentHeader } from '../../components/AppDevelopmentHeader';
 import { UiEditorPage } from '../../pages/UiEditorPage';
 import { ComponentType } from '../../enum/ComponentType';
 import { LanguageCode } from '../../enum/LanguageCode';
-import { GiteaPage } from 'testing/playwright/pages/GiteaPage';
+import { GiteaPage } from '../../pages/GiteaPage';
 
 // Variables and constants shared between tests
 const PAGE_1: string = 'Side1';
@@ -165,8 +165,8 @@ test('That it is possible to push the changes to Gitea and verify that the chang
   await header.waitForPushToGiteaSpinnerToDisappear();
   await header.checkThatUploadSuccessMessageIsVisible();
   await header.clickOnThreeDotsMenu();
-  await header.clickOnGoToGiteaRepository();
-
+  const newTab = await header.clickOnGoToGiteaRepository();
+  await giteaPage.useNewTab(newTab);
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
   await giteaPage.clickOnUiFilesButton();

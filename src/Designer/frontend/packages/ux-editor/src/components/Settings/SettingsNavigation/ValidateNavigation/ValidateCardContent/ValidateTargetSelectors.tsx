@@ -5,10 +5,11 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
 import {
-  dummyDataTasks,
+  dummyDataPages,
   getAvailablePages,
   getAvailableTasks,
 } from '../utils/ValidateNavigationUtils';
+import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationGroupedSettingsQuery';
 import { useValidationOnNavigationPageSettingsQuery } from '@altinn/ux-editor/hooks/queries/usePageValidationOnNavigationLayoutSettingsQuery';
 
 type RenderTaskOptionsProps = {
@@ -57,7 +58,9 @@ export type TasksSelectorProps = {
 
 export const TasksSelector = ({ selectedTasks, onChange }: TasksSelectorProps) => {
   const { t } = useTranslation();
-  const tasksWithRules = dummyDataTasks.map((config) => config.tasks).flat(); // this will be replaced with fetched query data in real implementation
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: settings } = useValidationOnNavigationGroupedSettingsQuery(org, app);
+  const tasksWithRules = settings?.flatMap((config) => config.tasks) ?? [];
   const selectedTasksValues = selectedTasks.map((task) => task.value);
 
   return (

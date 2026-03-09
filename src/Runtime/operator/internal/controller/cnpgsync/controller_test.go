@@ -11,6 +11,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,6 +23,7 @@ import (
 func newFakeK8sClient(initObjs ...client.Object) client.Client {
 	scheme := k8sruntime.NewScheme()
 	_ = corev1.AddToScheme(scheme)
+	_ = batchv1.AddToScheme(scheme)
 	_ = storagev1.AddToScheme(scheme)
 	_ = helmv2.AddToScheme(scheme)
 	_ = sourcev1.AddToScheme(scheme)
@@ -141,6 +143,40 @@ func TestReconciler_UsesLocalStorageClassForLocal(t *testing.T) {
 	cluster := &cnpgv1.Cluster{}
 	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
 	g.Expect(*cluster.Spec.StorageConfiguration.StorageClass).To(Equal(storageClassName))
+}
+
+func TestReconciler_UsesScaledClusterConfigForProd(t *testing.T) {
+	g := NewWithT(t)
+	h := newTestHarness(t, "prod", []CnpgTarget{{ServiceOwnerId: "ttd", Environment: "prod", Apps: []string{"testapp"}}})
+
+	_, _ = h.reconciler.SyncAll(h.ctx)
+	h.setHelmReleaseReady(t)
+	_, _ = h.reconciler.SyncAll(h.ctx)
+
+	cluster := &cnpgv1.Cluster{}
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
+
+	g.Expect(cluster.Spec.Instances).To(Equal(1))
+	g.Expect(cluster.Spec.EnablePDB).NotTo(BeNil())
+	g.Expect(*cluster.Spec.EnablePDB).To(BeFalse())
+	g.Expect(cluster.Spec.StorageConfiguration.Size).To(Equal("8Gi"))
+	g.Expect(cluster.Spec.WalStorage).NotTo(BeNil())
+	g.Expect(cluster.Spec.WalStorage.Size).To(Equal("2Gi"))
+	g.Expect(cluster.Spec.Resources.Requests.Cpu().String()).To(Equal("200m"))
+	g.Expect(cluster.Spec.Resources.Requests.Memory().String()).To(Equal("2Gi"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["max_connections"]).To(Equal("126"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["superuser_reserved_connections"]).To(Equal("6"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["shared_buffers"]).To(Equal("512MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["effective_cache_size"]).To(Equal("1536MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["work_mem"]).To(Equal("4854kB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["maintenance_work_mem"]).To(Equal("128MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["wal_buffers"]).To(Equal("7864kB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["min_wal_size"]).To(Equal("512MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["max_wal_size"]).To(Equal("1GB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["wal_writer_flush_after"]).To(Equal("2MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["checkpoint_flush_after"]).To(Equal("2MB"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["autovacuum_vacuum_cost_limit"]).To(Equal("2400"))
+	g.Expect(cluster.Spec.PostgresConfiguration.Parameters["pg_stat_statements.max"]).To(Equal("1000"))
 }
 
 func TestReconciler_UsesProxyRegistryForNonLocal(t *testing.T) {
@@ -266,18 +302,18 @@ func TestReconciler_DeletesClusterWhenBuildClusterReturnsNil(t *testing.T) {
 	k8sClient := newFakeK8sClient(ns, cluster)
 	clock := clockwork.NewFakeClock()
 
-	// Use prod environment where buildCluster returns nil
+	// Use unsupported environment where buildCluster returns nil
 	rt, err := internal.NewRuntime(
 		context.Background(),
 		internal.WithClock(clock),
 		internal.WithOperatorContext(&operatorcontext.Context{
 			ServiceOwner: operatorcontext.ServiceOwner{Id: "ttd"},
-			Environment:  "prod",
+			Environment:  "staging",
 		}),
 	)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	targets := []CnpgTarget{{ServiceOwnerId: "ttd", Environment: "prod"}}
+	targets := []CnpgTarget{{ServiceOwnerId: "ttd", Environment: "staging"}}
 	reconciler := NewReconcilerForTesting(rt, k8sClient, targets)
 
 	// First sync - creates HelmRelease
@@ -289,7 +325,7 @@ func TestReconciler_DeletesClusterWhenBuildClusterReturnsNil(t *testing.T) {
 	release.Status.Conditions = []metav1.Condition{{Type: "Ready", Status: metav1.ConditionTrue}}
 	g.Expect(k8sClient.Status().Update(context.Background(), release)).To(Succeed())
 
-	// Second sync - should delete cluster since buildCluster returns nil for prod
+	// Second sync - should delete cluster since buildCluster returns nil for unsupported env
 	needsRetry, err := reconciler.SyncAll(context.Background())
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(needsRetry).To(BeFalse())
@@ -624,4 +660,150 @@ func TestReconciler_SanitizesHyphenatedAppId(t *testing.T) {
 	connJson := string(appSecret.Data["postgresql.json"])
 	g.Expect(connJson).To(ContainSubstring("Database=my_test_app"))
 	g.Expect(connJson).To(ContainSubstring("Username=my_test_app"))
+}
+
+func TestReconciler_CreatesBackupResourcesWhenEnabled(t *testing.T) {
+	g := NewWithT(t)
+
+	backupCfg := &PgDumpBackupConfig{
+		Enabled:          true,
+		Schedule:         "0 2 * * *",
+		RetentionDays:    7,
+		PvcName:          "test-pgdump-backups",
+		PvcSize:          "10Gi",
+		StorageClassName: backupStorageClass,
+	}
+	targets := []CnpgTarget{{
+		ServiceOwnerId: "ttd",
+		Environment:    "tt02",
+		Apps:           []string{"testapp"},
+		Backup:         backupCfg,
+	}}
+	h := newTestHarness(t, "tt02", targets)
+
+	_, _ = h.reconciler.SyncAll(h.ctx)
+	h.setHelmReleaseReady(t)
+
+	needsRetry, err := h.reconciler.SyncAll(h.ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(needsRetry).To(BeTrue()) // role/database readiness still pending
+
+	backupSc := &storagev1.StorageClass{}
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: backupStorageClass}, backupSc)).To(Succeed())
+	g.Expect(backupSc.Parameters["skuName"]).To(Equal("StandardSSD_ZRS"))
+
+	pvc := &corev1.PersistentVolumeClaim{}
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, pvc)).To(Succeed())
+	g.Expect(*pvc.Spec.StorageClassName).To(Equal(backupStorageClass))
+
+	cronJob := &batchv1.CronJob{}
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-testapp", Namespace: cnpgNamespace}, cronJob)).To(Succeed())
+	g.Expect(cronJob.Spec.Schedule).To(Equal("0 2 * * *"))
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Volumes).To(HaveLen(1))
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).To(Equal("test-pgdump-backups-testapp"))
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers).To(HaveLen(1))
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command).To(HaveLen(3))
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command[2]).To(ContainSubstring("[pgdump] start"))
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.SecurityContext).NotTo(BeNil())
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.SecurityContext.FSGroup).NotTo(BeNil())
+	g.Expect(*cronJob.Spec.JobTemplate.Spec.Template.Spec.SecurityContext.FSGroup).To(Equal(backupFSGroup))
+}
+
+func TestReconciler_CleansUpBackupCronJobsButKeepsStorage(t *testing.T) {
+	g := NewWithT(t)
+
+	backupCfg := &PgDumpBackupConfig{
+		Enabled:          true,
+		Schedule:         "0 2 * * *",
+		RetentionDays:    7,
+		PvcName:          "test-pgdump-backups",
+		PvcSize:          "10Gi",
+		StorageClassName: backupStorageClass,
+	}
+	targets := []CnpgTarget{{
+		ServiceOwnerId: "ttd",
+		Environment:    "tt02",
+		Apps:           []string{"testapp"},
+		Backup:         backupCfg,
+	}}
+	h := newTestHarness(t, "tt02", targets)
+
+	_, _ = h.reconciler.SyncAll(h.ctx)
+	h.setHelmReleaseReady(t)
+	_, _ = h.reconciler.SyncAll(h.ctx)
+
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-testapp", Namespace: cnpgNamespace}, &batchv1.CronJob{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
+
+	h.reconciler.targets = []CnpgTarget{{
+		ServiceOwnerId: "ttd",
+		Environment:    "tt02",
+		Apps:           []string{},
+		Backup:         backupCfg,
+	}}
+
+	_, err := h.reconciler.SyncAll(h.ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	err = h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-testapp", Namespace: cnpgNamespace}, &batchv1.CronJob{})
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: backupStorageClass}, &storagev1.StorageClass{})).To(Succeed())
+}
+
+func TestReconciler_CreatesOneBackupPVCPerApp(t *testing.T) {
+	g := NewWithT(t)
+
+	backupCfg := &PgDumpBackupConfig{
+		Enabled:          true,
+		Schedule:         "0 2 * * *",
+		RetentionDays:    7,
+		PvcName:          "test-pgdump-backups",
+		PvcSize:          "10Gi",
+		StorageClassName: backupStorageClass,
+	}
+	targets := []CnpgTarget{{
+		ServiceOwnerId: "ttd",
+		Environment:    "tt02",
+		Apps:           []string{"app-one", "app-two"},
+		Backup:         backupCfg,
+	}}
+	h := newTestHarness(t, "tt02", targets)
+
+	_, _ = h.reconciler.SyncAll(h.ctx)
+	h.setHelmReleaseReady(t)
+	_, _ = h.reconciler.SyncAll(h.ctx)
+
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-app-one", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-app-two", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
+
+	cronJobOne := &batchv1.CronJob{}
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-app-one", Namespace: cnpgNamespace}, cronJobOne)).To(Succeed())
+	g.Expect(cronJobOne.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).To(Equal("test-pgdump-backups-app-one"))
+
+	cronJobTwo := &batchv1.CronJob{}
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-app-two", Namespace: cnpgNamespace}, cronJobTwo)).To(Succeed())
+	g.Expect(cronJobTwo.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).To(Equal("test-pgdump-backups-app-two"))
+}
+
+func TestReconciler_FailsWhenBackupConfigIsUnderspecified(t *testing.T) {
+	g := NewWithT(t)
+
+	targets := []CnpgTarget{{
+		ServiceOwnerId: "ttd",
+		Environment:    "tt02",
+		Apps:           []string{"testapp"},
+		Backup: &PgDumpBackupConfig{
+			Enabled: true,
+			// Missing required fields on purpose
+		},
+	}}
+	h := newTestHarness(t, "tt02", targets)
+
+	_, _ = h.reconciler.SyncAll(h.ctx)
+	h.setHelmReleaseReady(t)
+
+	_, err := h.reconciler.SyncAll(h.ctx)
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(ContainSubstring("backup schedule must be specified"))
 }

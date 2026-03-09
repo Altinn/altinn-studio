@@ -34,16 +34,6 @@
   font-size: 1rem;
   color: var(--colors-primary-black);
 }
-.editButton {
-  float: right;
-  padding-right: 0;
-}
-
-.fileStatus {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
 
 .blueUnderline th {
   border-bottom: var(--solid-border-primary);

@@ -1,7 +1,7 @@
 .file {
   display: flex;
-  text-overflow: ellipsis;
   gap: 5px;
+  padding-right: var(--ds-size-1);
 }
 .primaryColor {
   color: var(--colors-primary-blueDark);
@@ -14,7 +14,6 @@
 
 .download {
   display: flex;
-  gap: 0;
 }
 
 .truncate {

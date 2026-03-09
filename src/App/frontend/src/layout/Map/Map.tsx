@@ -6,6 +6,7 @@ import cn from 'classnames';
 import { type Map as LeafletMap } from 'leaflet';
 
 import { useIsPdf } from 'src/hooks/useIsPdf';
+import { MapEditGeometries } from 'src/layout/Map/features/geometries/editable/MapEditGeometries';
 import { useMapGeometryBounds } from 'src/layout/Map/features/geometries/fixed/hooks';
 import { MapGeometries } from 'src/layout/Map/features/geometries/fixed/MapGeometries';
 import { MapLayers } from 'src/layout/Map/features/layers/MapLayers';
@@ -14,6 +15,7 @@ import { MapSingleMarker } from 'src/layout/Map/features/singleMarker/MapSingleM
 import classes from 'src/layout/Map/MapComponent.module.css';
 import { DefaultBoundsPadding, DefaultFlyToZoomLevel, getMapStartingView, isLocationValid } from 'src/layout/Map/utils';
 import { useExternalItem } from 'src/utils/layout/hooks';
+import { useItemWhenType } from 'src/utils/layout/useNodeItem';
 
 type MapProps = {
   baseComponentId: string;
@@ -26,6 +28,8 @@ export function Map({ baseComponentId, className, readOnly, animate = true }: Ma
   const map = useRef<LeafletMap | null>(null);
   const isPdf = useIsPdf();
   const { center, zoom, bounds } = useAutoViewport(baseComponentId, map, animate);
+  const { toolbar, dataModelBindings } = useItemWhenType(baseComponentId, 'Map');
+  const simpleBinding = dataModelBindings?.simpleBinding;
 
   return (
     <MapContainer
@@ -48,15 +52,18 @@ export function Map({ baseComponentId, className, readOnly, animate = true }: Ma
       scrollWheelZoom={!readOnly}
       attributionControl={false}
     >
+      {toolbar !== undefined && <MapEditGeometries baseComponentId={baseComponentId} />}
       <MapLayers baseComponentId={baseComponentId} />
       <MapGeometries
         baseComponentId={baseComponentId}
         readOnly={readOnly}
       />
-      <MapSingleMarker
-        baseComponentId={baseComponentId}
-        readOnly={readOnly}
-      />
+      {toolbar === undefined && simpleBinding && (
+        <MapSingleMarker
+          baseComponentId={baseComponentId}
+          readOnly={readOnly}
+        />
+      )}
       <AttributionControl prefix={false} />
     </MapContainer>
   );
@@ -64,7 +71,8 @@ export function Map({ baseComponentId, className, readOnly, animate = true }: Ma
 
 function useAutoViewport(baseComponentId: string, map: RefObject<LeafletMap | null>, animate: boolean) {
   const markerLocation = useSingleMarker(baseComponentId);
-  const { centerLocation: customCenterLocation, zoom: customZoom } = useExternalItem(baseComponentId, 'Map');
+  const { centerLocation: customCenterLocation } = useItemWhenType(baseComponentId, 'Map');
+  const { zoom: customZoom } = useExternalItem(baseComponentId, 'Map');
   const geometryBounds = useMapGeometryBounds(baseComponentId);
   const { center, zoom, bounds } = getMapStartingView(markerLocation, customCenterLocation, customZoom, geometryBounds);
 

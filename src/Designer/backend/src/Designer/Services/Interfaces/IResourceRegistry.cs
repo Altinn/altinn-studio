@@ -15,13 +15,21 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="serviceResource">The ServiceResource that should be added to the ResourceRegistry</param>
         /// <param name="env">The environment the resource should be published to</param>
-        /// <param name="policyPath">The policy that goes with the resource</param>
+        /// <param name="policyContent">The policy file content that goes with the resource</param>
         /// <returns></returns>
         Task<ActionResult> PublishServiceResource(
             ServiceResource serviceResource,
             string env,
-            string policyPath = null
+            byte[] policyContent = null
         );
+
+        Task<List<ServiceResource>> GetServiceResourceList(
+            string env,
+            bool includeApps = false,
+            bool includeAltinn2 = false
+        );
+
+        Task<bool> ServiceResourceExists(string id, string env);
 
         /// <summary>
         ///

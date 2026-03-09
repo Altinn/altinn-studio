@@ -177,6 +177,10 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
+- Wiki: [Altinn/altinn-studio/wiki](https://github.com/Altinn/altinn-studio/wiki)
+- ADRs: [/docs/adr/](/docs/adr/)
+- Diagrams: [/docs/diagrams/](/docs/diagrams/)
+
 ## Authors
 
 - **Altinn Studio development team** - If you want to get in touch, just [create a new issue][24].
@@ -185,7 +189,7 @@ See also the [list of contributors][25] who participated in this project.
 
 ## License
 
-This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 [1]: https://docs.altinn.studio/
 [2]: https://docs.altinn.studio/altinn-studio/getting-started/

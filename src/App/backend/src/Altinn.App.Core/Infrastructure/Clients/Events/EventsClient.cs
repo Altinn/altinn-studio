@@ -73,10 +73,13 @@ public class EventsClient : IEventsClient
         {
             alternativeSubject = $"/org/{instance.InstanceOwner.OrganisationNumber}";
         }
-
-        if (!string.IsNullOrWhiteSpace(instance.InstanceOwner.PersonNumber))
+        else if (!string.IsNullOrWhiteSpace(instance.InstanceOwner.PersonNumber))
         {
             alternativeSubject = $"/person/{instance.InstanceOwner.PersonNumber}";
+        }
+        else if (!string.IsNullOrWhiteSpace(instance.InstanceOwner.ExternalIdentifier))
+        {
+            alternativeSubject = instance.InstanceOwner.ExternalIdentifier;
         }
 
         var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));

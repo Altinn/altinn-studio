@@ -26,6 +26,7 @@ import (
 	"altinn.studio/operator/internal"
 	"altinn.studio/operator/internal/controller/azurekeyvaultsync"
 	"altinn.studio/operator/internal/controller/cnpgsync"
+	"altinn.studio/operator/internal/controller/grafanapolicysync"
 	"altinn.studio/operator/internal/controller/inactivityscaler"
 	"altinn.studio/operator/internal/controller/maskinporten"
 	"altinn.studio/operator/internal/controller/secretsync"
@@ -174,6 +175,13 @@ func main() {
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
+
+	grafanaPolicySyncController := grafanapolicysync.NewReconciler(rt, mgr.GetClient())
+	if err = mgr.Add(grafanaPolicySyncController); err != nil {
+		setupLog.Error(err, "unable to add GrafanaPolicySync controller to manager")
+		span.End()
+		os.Exit(1)
+	}
 
 	kvSyncController, err := azurekeyvaultsync.NewReconciler(
 		ctx,

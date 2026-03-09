@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Link } from '@digdir/designsystemet-react';
 import { FileCsvIcon, FileExcelIcon, FileIcon, FilePdfIcon, FileWordIcon } from '@navikt/aksel-icons';
+import cn from 'classnames';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
@@ -30,27 +31,25 @@ export const AttachmentFileName = ({ attachment, mobileView }: { attachment: IAt
   );
 
   return (
-    <span className={`${classes.file}`}>
+    <span className={classes.file}>
       {!mobileView && (
         <FileExtensionIcon
           fileEnding={getFileEnding(attachment.data.filename)}
           className={`${classes.icon} ${attachment.uploaded ? classes.primaryColor : ''}`}
         />
       )}
-      <div className={classes.truncate}>
-        {attachment.uploaded && url ? (
-          <Link
-            href={url}
-            className={classes.download}
-            data-testid='attachment-download'
-            asChild={pdfModeActive}
-          >
-            {fileName}
-          </Link>
-        ) : (
-          <span className={classes.download}>{fileName}</span>
-        )}
-      </div>
+      {attachment.uploaded && url ? (
+        <Link
+          href={url}
+          className={cn(classes.download, classes.truncate)}
+          data-testid='attachment-download'
+          asChild={pdfModeActive}
+        >
+          {fileName}
+        </Link>
+      ) : (
+        <span className={cn(classes.download, classes.truncate)}>{fileName}</span>
+      )}
     </span>
   );
 };

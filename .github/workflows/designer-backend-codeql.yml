@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/Designer/testdata/**'
       - 'src/Designer/backend/**'
+      - '.github/actions/codeql-config/**'
+      - '.github/codeql/**'
       - '.github/workflows/designer-backend-codeql.yml'
   workflow_dispatch:
   schedule:
@@ -32,16 +34,24 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
+      - name: Generate CodeQL config
+        id: codeql-config
+        uses: ./.github/actions/codeql-config
+        with:
+          language: csharp
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
         with:
           languages: csharp
-          queries: +security-and-quality
+          build-mode: manual
+          queries: ${{ steps.codeql-config.outputs.queries }}
+          config-file: ${{ steps.codeql-config.outputs.config-file }}
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
-        with:
-          working-directory: src/Designer/
+      - name: Build solution
+        run: dotnet build backend/Src.sln -v m
+        shell: bash
+        working-directory: src/Designer/
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3

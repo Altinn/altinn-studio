@@ -241,10 +241,8 @@ declare global {
 
       /**
        * Runs a snapshot test on something, to compare it with a known good value
-       * @see https://www.cypress.io/blog/end-to-end-snapshot-testing
        */
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      snapshot(options?: any): Chainable<null>;
+      toMatchSnapshot(): Chainable<unknown>;
 
       /**
        * Useful when taking snapshots; clear all selections and wait for the app to finish loading and stabilizing.

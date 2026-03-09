@@ -27,7 +27,6 @@ export interface ApplicationMetadata {
   homepage?: string;
   access?: ApplicationAccessMetadata;
   contactPoints?: ContactPoint[];
-  visible?: boolean;
 }
 
 export type Keyword = {
@@ -41,6 +40,7 @@ export type SupportedLanguage = Record<ValidLanguage, string>;
 
 export type ApplicationAccessMetadata = {
   delegable?: boolean;
+  visible?: boolean;
   rightDescription?: SupportedLanguage;
 };
 
