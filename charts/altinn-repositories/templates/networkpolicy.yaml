@@ -36,6 +36,5 @@ spec:
           run: altinn-designer
     ports:
     - port: 81
-  - from: {}
-    ports:
+  - ports:
     - port: 80
