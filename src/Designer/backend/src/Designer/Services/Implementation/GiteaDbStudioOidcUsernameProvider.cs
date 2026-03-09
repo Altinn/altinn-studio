@@ -25,7 +25,10 @@ public class GiteaDbStudioOidcUsernameProvider(
         LIMIT 1
         """;
 
-    public async Task<string> ResolveUsernameAsync(string sub, PidHash pidHash, string? givenName)
+    private const int MaxGiteaUsernameLength = 40;
+    private const int RandomSuffixLength = 4;
+
+    public async Task<string> ResolveUsernameAsync(string sub, PidHash pidHash, string? givenName, string? familyName)
     {
         string pidHashValue = pidHash.Value;
 
@@ -46,7 +49,7 @@ public class GiteaDbStudioOidcUsernameProvider(
         }
 
         // Step 3: Generate new username
-        string generatedUsername = GenerateUsername(givenName);
+        string generatedUsername = GenerateUsername(givenName, familyName);
         await StoreMapping(pidHash, generatedUsername);
         return generatedUsername;
     }
@@ -76,24 +79,50 @@ public class GiteaDbStudioOidcUsernameProvider(
         await designerDb.SaveChangesAsync();
     }
 
-    private static string GenerateUsername(string? givenName)
+    internal static string GenerateUsername(string? givenName, string? familyName)
     {
-        string prefix = SanitizeNamePrefix(givenName);
-        string suffix = Guid.NewGuid().ToString("N")[..8];
+        string prefix = BuildNamePrefix(givenName, familyName);
+        string suffix = Guid.NewGuid().ToString("N")[..RandomSuffixLength];
         return $"{prefix}_{suffix}";
     }
 
-    private static string SanitizeNamePrefix(string? givenName)
+    private static string BuildNamePrefix(string? givenName, string? familyName)
     {
-        if (string.IsNullOrWhiteSpace(givenName))
+        string sanitizedGiven = SanitizeName(givenName);
+        string sanitizedFamily = SanitizeName(familyName);
+
+        string combined = (sanitizedGiven, sanitizedFamily) switch
         {
-            return "dev";
+            ("", "") => "dev",
+            ("", _) => sanitizedFamily,
+            (_, "") => sanitizedGiven,
+            _ => $"{sanitizedGiven}_{sanitizedFamily}",
+        };
+
+        // Reserve space for "_" separator and random suffix
+        int maxPrefixLength = MaxGiteaUsernameLength - 1 - RandomSuffixLength;
+        if (combined.Length > maxPrefixLength)
+        {
+            combined = combined[..maxPrefixLength].TrimEnd('_');
         }
 
-        string sanitized = givenName.ToLowerInvariant().Replace("æ", "ae").Replace("ø", "o").Replace("å", "a");
+        return combined;
+    }
 
-        sanitized = Regex.Replace(sanitized, "[^a-z]", "");
+    private static string SanitizeName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return "";
+        }
 
-        return sanitized.Length > 0 ? sanitized : "dev";
+        string sanitized = name.Trim().ToLowerInvariant().Replace("æ", "ae").Replace("ø", "o").Replace("å", "a");
+
+        sanitized = Regex.Replace(sanitized, @"\s+", "_");
+        sanitized = Regex.Replace(sanitized, "[^a-z_]", "");
+        sanitized = Regex.Replace(sanitized, "_+", "_");
+        sanitized = sanitized.Trim('_');
+
+        return sanitized;
     }
 }

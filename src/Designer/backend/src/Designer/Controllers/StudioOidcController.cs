@@ -40,8 +40,9 @@ public class StudioOidcController(
         }
 
         string? givenName = User.FindFirst("given_name")?.Value;
+        string? familyName = User.FindFirst("family_name")?.Value;
         PidHash pidHash = PidHash.FromPid(pid, mappingSettings);
-        string computedUsername = await usernameProvider.ResolveUsernameAsync(sub, pidHash, givenName);
+        string computedUsername = await usernameProvider.ResolveUsernameAsync(sub, pidHash, givenName, familyName);
 
         AuthenticateResult authenticateResult = await HttpContext.AuthenticateAsync();
         AuthenticationProperties? properties = authenticateResult.Properties;
@@ -63,7 +64,6 @@ public class StudioOidcController(
             claims.Add(new Claim("given_name", givenName));
         }
 
-        string? familyName = User.FindFirst("family_name")?.Value;
         if (familyName != null)
         {
             claims.Add(new Claim("family_name", familyName));

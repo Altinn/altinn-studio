@@ -5,5 +5,5 @@ namespace Altinn.Studio.Designer.Services.Interfaces;
 
 public interface IStudioOidcUsernameProvider
 {
-    Task<string> ResolveUsernameAsync(string sub, PidHash pidHash, string? givenName);
+    Task<string> ResolveUsernameAsync(string sub, PidHash pidHash, string? givenName, string? familyName);
 }
