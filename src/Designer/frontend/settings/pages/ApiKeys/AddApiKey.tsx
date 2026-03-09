@@ -16,7 +16,14 @@ import { useAddUserApiKeyMutation } from '../hooks/mutations/useAddUserApiKeyMut
 import { useUserApiKeysQuery } from '../hooks/queries/useUserApiKeysQuery';
 import classes from './AddApiKey.module.css';
 
-const MAX_TOKEN_EXPIRY_DAYS = 364;
+const MAX_TOKEN_EXPIRY_DAYS = 365;
+
+const computeMaxExpiresAt = (): string => {
+  const todayUtc = new Date().toISOString().split('T')[0];
+  const maxDate = new Date(todayUtc);
+  maxDate.setUTCDate(maxDate.getUTCDate() + MAX_TOKEN_EXPIRY_DAYS);
+  return maxDate.toISOString().split('T')[0];
+};
 
 type AddApiKeyProps = {
   onTokenCreated: (id: number) => void;
@@ -25,7 +32,7 @@ type AddApiKeyProps = {
 export const AddApiKey = ({ onTokenCreated }: AddApiKeyProps): React.ReactElement => {
   const { t } = useTranslation();
   const [name, setName] = useState('');
-  const [expiresAt, setExpiresAt] = useState('');
+  const [expiresAt, setExpiresAt] = useState(computeMaxExpiresAt);
   const [submitted, setSubmitted] = useState(false);
   const [newTokenKey, setNewTokenKey] = useState<string | null>(null);
 
@@ -33,9 +40,7 @@ export const AddApiKey = ({ onTokenCreated }: AddApiKeyProps): React.ReactElemen
   const { data: existingTokens } = useUserApiKeysQuery();
 
   const todayUtc = new Date().toISOString().split('T')[0];
-  const maxExpiresAt = new Date(todayUtc);
-  maxExpiresAt.setUTCDate(maxExpiresAt.getUTCDate() + MAX_TOKEN_EXPIRY_DAYS);
-  const maxExpiresAtString = maxExpiresAt.toISOString().split('T')[0];
+  const maxExpiresAtString = computeMaxExpiresAt();
 
   const isDuplicateName =
     (submitted && existingTokens?.some((token) => token.name === name)) ||
@@ -55,13 +60,13 @@ export const AddApiKey = ({ onTokenCreated }: AddApiKeyProps): React.ReactElemen
     )
       return;
     addUserApiKey(
-      { name, expiresAt: `${expiresAt}T23:59:59Z` },
+      { name, expiresAt: `${expiresAt}T00:00:00Z` },
       {
         onSuccess: (response) => {
           setNewTokenKey(response.key);
           onTokenCreated(response.id);
           setName('');
-          setExpiresAt('');
+          setExpiresAt(computeMaxExpiresAt());
           setSubmitted(false);
         },
       },

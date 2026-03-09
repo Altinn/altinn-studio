@@ -32,7 +32,7 @@ const pastExpiresAt = (() => {
 
 const tooLongExpiresAt = (() => {
   const d = new Date(todayUtc);
-  d.setUTCDate(d.getUTCDate() + 365);
+  d.setUTCDate(d.getUTCDate() + 366);
   return d.toISOString().split('T')[0];
 })();
 
@@ -89,10 +89,10 @@ describe('AddApiKey', () => {
     expect(getAddButton()).toBeInTheDocument();
   });
 
-  it('sets min to today and max to 364 days from today on the expiry input', () => {
+  it('sets min to today and max to 365 days from today on the expiry input', () => {
     const maxUtc = (() => {
       const d = new Date(todayUtc);
-      d.setUTCDate(d.getUTCDate() + 364);
+      d.setUTCDate(d.getUTCDate() + 365);
       return d.toISOString().split('T')[0];
     })();
     renderAddApiKey();
@@ -101,14 +101,40 @@ describe('AddApiKey', () => {
     expect(expiryInput).toHaveAttribute('max', maxUtc);
   });
 
-  it('shows required error when submitting empty form', async () => {
+  it('defaults the expiry input to the max date (365 days from today)', () => {
+    const maxUtc = (() => {
+      const d = new Date(todayUtc);
+      d.setUTCDate(d.getUTCDate() + 365);
+      return d.toISOString().split('T')[0];
+    })();
+    renderAddApiKey();
+    expect(getExpiryInput()).toHaveValue(maxUtc);
+  });
+
+  it('shows required error only for name when submitting with default expiry', async () => {
     const user = userEvent.setup();
     renderAddApiKey();
     await user.click(getAddButton());
-    expect(screen.getAllByText(textMock('validation_errors.required'))).toHaveLength(2);
+    expect(screen.getAllByText(textMock('validation_errors.required'))).toHaveLength(1);
   });
 
-  it('shows expiry too long error when expiry date exceeds 364 days', async () => {
+  it('resets expiry to the max date after successful token creation', async () => {
+    const maxUtc = (() => {
+      const d = new Date(todayUtc);
+      d.setUTCDate(d.getUTCDate() + 365);
+      return d.toISOString().split('T')[0];
+    })();
+    const user = userEvent.setup();
+    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    renderAddApiKey({ addUserApiKey });
+    await user.type(getNameInput(), 'New token');
+    await user.click(getAddButton());
+    await screen.findByDisplayValue('secret-key-value');
+    await user.click(screen.getByRole('button', { name: textMock('general.close') }));
+    expect(getExpiryInput()).toHaveValue(maxUtc);
+  });
+
+  it('shows expiry too long error when expiry date exceeds 365 days', async () => {
     const user = userEvent.setup();
     renderAddApiKey();
     await fillForm(user, 'New token', tooLongExpiresAt);
@@ -159,7 +185,7 @@ describe('AddApiKey', () => {
     await user.click(getAddButton());
     expect(addUserApiKey).toHaveBeenCalledWith({
       name: 'New token',
-      expiresAt: `${validExpiresAt}T23:59:59Z`,
+      expiresAt: `${validExpiresAt}T00:00:00Z`,
     });
   });
 
