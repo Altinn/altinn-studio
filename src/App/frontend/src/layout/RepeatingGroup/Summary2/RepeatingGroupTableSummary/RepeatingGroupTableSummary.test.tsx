@@ -3,6 +3,7 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import * as useNavigatePageModule from 'src/hooks/useNavigatePage';
@@ -194,10 +195,15 @@ describe('RepeatingGroupTableSummary', () => {
       ),
       initialPage: 'FormPage2',
       queries: {
-        fetchLayouts: async () => layout,
-        fetchFormData: async () => ({
-          group: [{ field1: 'field1-row0', field2: 'field2-row0', field3: 'field3-row0', [ALTINN_ROW_ID]: 'abc123' }],
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layout;
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              group: [
+                { field1: 'field1-row0', field2: 'field2-row0', field3: 'field3-row0', [ALTINN_ROW_ID]: 'abc123' },
+              ],
+            };
+          }),
       },
     });
   };

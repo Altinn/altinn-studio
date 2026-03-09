@@ -2,9 +2,9 @@ import React from 'react';
 
 import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
-import type { AxiosResponse } from 'axios';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
@@ -19,6 +19,7 @@ import {
   RepeatingComponents,
 } from 'src/features/form/layout/utils/repeating';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
+import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
@@ -31,7 +32,6 @@ import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression'
 import type { FunctionTest, FunctionTestBase, SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
-import type { IRawOption } from 'src/layout/common.generated';
 import type { IDataModelBindings, ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType, IInstance, IProcess, IProfile } from 'src/types/shared';
 
@@ -182,6 +182,7 @@ function setupMocks(test: FunctionTest): void {
   window.altinnAppGlobalData.availableLanguages = [{ language: profileSettings?.language ?? defaultLanguage }];
   window.altinnAppGlobalData.ui.folders = {
     Task_1: { defaultDataType: 'default', pages: { order: Object.keys(layouts ?? []) } },
+    stateless: { defaultDataType: 'default', pages: { order: Object.keys(layouts ?? []) } },
   };
 
   jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
@@ -191,7 +192,7 @@ function setupMocks(test: FunctionTest): void {
 
 function createApplicationMetadata({ stateless, instanceDataElements, dataModels }: FunctionTest): ApplicationMetadata {
   const applicationMetadata = getApplicationMetadataMock(
-    stateless ? { onEntry: { show: 'layout-set' }, externalApiIds: ['testId'] } : {},
+    stateless ? { onEntry: { show: 'stateless' }, externalApiIds: ['testId'] } : {},
   );
   if (instanceDataElements) {
     for (const element of instanceDataElements) {
@@ -315,18 +316,29 @@ async function renderExpression(test: FunctionTest, expression: ExprValToActualO
 
 function createQueries(test: FunctionTest, expression: ExprValToActualOrExpr<ExprVal.Any>): Partial<AppQueries> {
   const { frontendSettings, codeLists } = test;
-  return {
-    fetchLayouts: async () => createLayouts(test, expression),
-    fetchFormData: async (url: string) => fetchFormData(test, url),
-    ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
-    fetchOptions: async (url: string) => {
-      const codeListId = url.match(/api\/options\/(\w+)\?/)?.[1];
-      if (!codeLists || !codeListId || !codeLists[codeListId]) {
-        throw new Error(`No code lists found for ${url}`);
+  const bootstrapFn = async () =>
+    getFormBootstrapMock((obj) => {
+      obj.layouts = createLayouts(test, expression);
+      if (test.dataModels) {
+        for (const { dataElement, data } of test.dataModels) {
+          obj.dataModels[dataElement.dataType] = getDataModelBootstrapMock((dm) => {
+            dm.dataElementId = dataElement.id;
+            dm.initialData = data;
+          });
+        }
+      } else {
+        obj.dataModels['default'] = getDataModelBootstrapMock((dm) => {
+          dm.initialData = test.dataModel ?? {};
+        });
       }
-      const data = codeLists[codeListId];
-      return { data } as AxiosResponse<IRawOption[], unknown>;
-    },
+      for (const [optionsId, options] of Object.entries(codeLists ?? {})) {
+        obj.staticOptions[optionsId] = { options: castOptionsToStrings(options) };
+      }
+    });
+  return {
+    fetchFormBootstrapForInstance: bootstrapFn,
+    fetchFormBootstrapForStateless: bootstrapFn,
+    ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
   };
 }
 

@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayoutCollection } from 'src/layout/layout';
@@ -27,7 +28,10 @@ describe('EditButton', () => {
     await renderWithInstanceAndLayout({
       renderer: <EditButton targetBaseComponentId='TestInput' />,
       queries: {
-        fetchLayouts: async () => layoutMock(true),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layoutMock(true);
+          }),
       },
     });
 
@@ -38,7 +42,10 @@ describe('EditButton', () => {
     await renderWithInstanceAndLayout({
       renderer: <EditButton targetBaseComponentId='TestInput' />,
       queries: {
-        fetchLayouts: async () => layoutMock(false),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = layoutMock(false);
+          }),
       },
     });
 

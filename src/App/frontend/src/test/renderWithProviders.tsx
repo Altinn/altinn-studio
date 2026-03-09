@@ -665,16 +665,25 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     renderer: Wrapper,
     initialPage,
     queries: {
-      fetchFormBootstrapForInstance: async () =>
-        getFormBootstrapMock((obj) => {
-          obj.layouts = {
-            [initialPage]: {
-              data: {
-                layout: [realComponentDef],
-              },
+      fetchFormBootstrapForInstance: async (...args) => {
+        let mock = getFormBootstrapMock();
+        if (
+          rest.queries &&
+          'fetchFormBootstrapForInstance' in rest.queries &&
+          typeof rest.queries.fetchFormBootstrapForInstance === 'function'
+        ) {
+          mock = await rest.queries.fetchFormBootstrapForInstance(...args);
+        }
+        mock.layouts = {
+          [initialPage]: {
+            data: {
+              layout: [realComponentDef],
             },
-          };
-        }),
+          },
+        };
+
+        return mock;
+      },
       ...rest.queries,
     },
   }) as RenderGenericComponentReturnType<InInstance>;

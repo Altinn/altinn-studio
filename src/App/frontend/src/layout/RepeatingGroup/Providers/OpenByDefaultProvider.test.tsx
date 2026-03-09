@@ -4,6 +4,7 @@ import { afterAll, beforeAll, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId, getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -104,14 +105,17 @@ describe('openByDefault', () => {
         </RepeatingGroupProvider>
       ),
       queries: {
-        fetchFormData: async () => ({
-          MyGroup: existingRows ?? [],
-        }),
-        fetchLayouts: async () => ({
-          FormLayout: {
-            data: { layout },
-          },
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = {
+              MyGroup: existingRows ?? [],
+            };
+            obj.layouts = {
+              FormLayout: {
+                data: { layout },
+              },
+            };
+          }),
       },
     });
   }

@@ -4,6 +4,7 @@ import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { Form } from 'src/components/form/Form';
@@ -27,35 +28,38 @@ describe('ErrorReport', () => {
       initialPage: 'submit',
       renderer: () => <Form />,
       queries: {
-        fetchBackendValidations: async () => validationIssues,
-        fetchLayouts: async () => ({
-          form: {
-            data: {
-              layout: [
-                {
-                  id: 'input',
-                  type: 'Input',
-                  dataModelBindings: {
-                    simpleBinding: { dataType: defaultDataTypeMock, field: 'boundField' },
-                  },
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+            obj.layouts = {
+              form: {
+                data: {
+                  layout: [
+                    {
+                      id: 'input',
+                      type: 'Input',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'boundField' },
+                      },
+                    },
+                  ],
                 },
-              ],
-            },
-          },
-          submit: {
-            data: {
-              layout: [
-                {
-                  id: 'submit',
-                  type: 'Button',
-                  textResourceBindings: {
-                    title: 'Submit',
-                  },
+              },
+              submit: {
+                data: {
+                  layout: [
+                    {
+                      id: 'submit',
+                      type: 'Button',
+                      textResourceBindings: {
+                        title: 'Submit',
+                      },
+                    },
+                  ],
                 },
-              ],
-            },
-          },
-        }),
+              },
+            };
+          }),
       },
     });
   };

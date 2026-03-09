@@ -13,7 +13,7 @@ import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
 
 export interface RawDataModelInfo {
   schema: JSONSchema7;
-  initialData: object;
+  initialData: unknown;
   dataElementId: string | null;
   isWritable: boolean;
   expressionValidationConfig: IExpressionValidationConfig | null;

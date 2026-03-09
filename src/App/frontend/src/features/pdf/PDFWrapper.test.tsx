@@ -5,6 +5,7 @@ import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getServiceOwnerPartyMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
@@ -69,7 +70,10 @@ const render = async (renderAs: RenderAs, queriesOverride?: Partial<AppQueries>)
       </InstanceRouter>
     ),
     queries: {
-      fetchLayouts: async () => ({}),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {};
+        }),
       ...queriesOverride,
     },
   });

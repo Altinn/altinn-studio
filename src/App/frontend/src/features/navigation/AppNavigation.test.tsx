@@ -4,6 +4,7 @@ import { jest } from '@jest/globals';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { NavigationReceipt, NavigationTask } from 'src/features/form/ui/types';
 import { AppNavigation } from 'src/features/navigation/AppNavigation';
@@ -60,57 +61,61 @@ describe('AppNavigation', () => {
       renderer: () => <AppNavigation />,
       initialPage: initialPage ?? order?.[0] ?? groups?.[0].order[0],
       queries: {
-        fetchLayouts: async () =>
-          Object.fromEntries(
-            rawOrder.map((page) => [
-              page,
-              {
-                data: {
-                  hidden: !!hiddenPages?.includes(page),
-                  layout: [
-                    {
-                      id: `page-title-${page}`,
-                      type: 'Header',
-                      textResourceBindings: {
-                        title: `Title for ${page}`,
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = Object.fromEntries(
+              rawOrder.map((page) => [
+                page,
+                {
+                  data: {
+                    hidden: !!hiddenPages?.includes(page),
+                    layout: [
+                      {
+                        id: `page-title-${page}`,
+                        type: 'Header',
+                        textResourceBindings: {
+                          title: `Title for ${page}`,
+                        },
+                        size: 'L',
                       },
-                      size: 'L',
-                    },
-                    {
-                      id: `input-${page}`,
-                      type: 'Input',
-                      textResourceBindings: {
-                        title: `Input for ${page}`,
+                      {
+                        id: `input-${page}`,
+                        type: 'Input',
+                        textResourceBindings: {
+                          title: `Input for ${page}`,
+                        },
+                        dataModelBindings: {
+                          simpleBinding: `field-${page}`,
+                        },
+                        showValidations: ['All'],
                       },
-                      dataModelBindings: {
-                        simpleBinding: `field-${page}`,
-                      },
-                      showValidations: ['All'],
-                    },
-                  ],
-                },
-              } as ILayoutFile,
-            ]),
-          ),
-        fetchBackendValidations: async () =>
-          pagesWithError?.map((page) => ({
-            code: 'wrong format',
-            severity: BackendValidationSeverity.Error,
-            source: 'SomeCustomValidator',
-            field: `field-${page}`,
-          })) ?? [],
-        fetchDataModelSchema: async () => ({
-          type: 'object',
-          properties: Object.fromEntries(
-            rawOrder.map((page) => [
-              `field-${page}`,
-              {
-                type: 'string',
-              },
-            ]),
-          ),
-        }),
-        fetchFormData: async () => Object.fromEntries(rawOrder.map((page) => [`field-${page}`, 'some value'])),
+                    ],
+                  },
+                } as ILayoutFile,
+              ]),
+            );
+            obj.dataModels[defaultDataTypeMock].schema = {
+              type: 'object',
+              properties: Object.fromEntries(
+                rawOrder.map((page) => [
+                  `field-${page}`,
+                  {
+                    type: 'string',
+                  },
+                ]),
+              ),
+            };
+            obj.dataModels[defaultDataTypeMock].initialValidationIssues =
+              pagesWithError?.map((page) => ({
+                code: 'wrong format',
+                severity: BackendValidationSeverity.Error,
+                source: 'SomeCustomValidator',
+                field: `field-${page}`,
+              })) ?? [];
+            obj.dataModels[defaultDataTypeMock].initialData = Object.fromEntries(
+              rawOrder.map((page) => [`field-${page}`, 'some value']),
+            );
+          }),
       },
     });
   }
