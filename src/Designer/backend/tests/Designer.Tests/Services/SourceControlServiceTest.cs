@@ -14,6 +14,7 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using Xunit;
+using DesignerRepositoryStatus = Altinn.Studio.Designer.Enums.RepositoryStatus;
 
 namespace Designer.Tests.Services
 {
@@ -28,6 +29,7 @@ namespace Designer.Tests.Services
         private readonly string _org = "ttd";
         private readonly string _developer = "testUser";
         private string _repoDir;
+        private readonly List<string> _directoriesToCleanUp = [];
 
         private void Setup()
         {
@@ -366,6 +368,240 @@ namespace Designer.Tests.Services
             Assert.Empty(result);
         }
 
+        [Fact]
+        public void GetChangedFilesBetweenCommits_ReturnsChangedPaths()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnRepoEditingContext editingContext = CreateTestRepository(repoName);
+            string commitBeforeChanges;
+            string commitAfterChanges;
+            using (var repo = new Repository(_repoDir))
+            {
+                commitBeforeChanges = repo.Head.Tip.Sha;
+                File.WriteAllText(Path.Join(_repoDir, "test.txt"), "Updated content");
+                File.WriteAllText(Path.Join(_repoDir, "new-file.txt"), "New content");
+                Commands.Stage(repo, "*");
+                var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
+                repo.Commit("Update files", signature, signature);
+                commitAfterChanges = repo.Head.Tip.Sha;
+            }
+
+            // Act
+            List<string> changedFiles = _sourceControlService.GetChangedFilesBetweenCommits(
+                editingContext,
+                commitBeforeChanges,
+                commitAfterChanges
+            );
+
+            // Assert
+            Assert.Equal(2, changedFiles.Count);
+            Assert.Contains("new-file.txt", changedFiles);
+            Assert.Contains("test.txt", changedFiles);
+        }
+
+        [Fact]
+        public void GetChangedFilesBetweenCommits_SameCommit_ReturnsEmptyList()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnRepoEditingContext editingContext = CreateTestRepository(repoName);
+            string commitSha;
+            using (var repo = new Repository(_repoDir))
+            {
+                commitSha = repo.Head.Tip.Sha;
+            }
+
+            // Act
+            List<string> changedFiles = _sourceControlService.GetChangedFilesBetweenCommits(
+                editingContext,
+                commitSha,
+                commitSha
+            );
+
+            // Assert
+            Assert.Empty(changedFiles);
+        }
+
+        [Fact]
+        public void PullRemoteChanges_CheckoutConflict_AutoStashAppliesAndPullsWhenNoConflict()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+            const string trackedFilePath = "test.txt";
+
+            CommitAndPushChange(
+                collaboratorRepoPath,
+                trackedFilePath,
+                """
+                line one
+                line two
+                line three
+                line four
+                line five
+                line six
+                line seven
+                line eight
+                line nine
+                line ten
+                remote line eleven
+                line twelve
+                """,
+                "remote update"
+            );
+            File.WriteAllText(
+                Path.Join(localRepoPath, trackedFilePath),
+                """
+                line one
+                local line two
+                line three
+                line four
+                line five
+                line six
+                line seven
+                line eight
+                line nine
+                line ten
+                line eleven
+                line twelve
+                """
+            );
+
+            // Act
+            RepoStatus status = _sourceControlService.PullRemoteChanges(authenticatedContext);
+
+            // Assert
+            Assert.Equal(DesignerRepositoryStatus.Ok, status.RepositoryStatus);
+            string pulledFile = File.ReadAllText(Path.Join(localRepoPath, trackedFilePath));
+            Assert.Contains("local line two", pulledFile);
+            Assert.Contains("remote line eleven", pulledFile);
+            using Repository localRepo = new(localRepoPath);
+            Assert.True(localRepo.RetrieveStatus(new StatusOptions()).IsDirty);
+            Assert.Empty(localRepo.Index.Conflicts);
+            Assert.Empty(localRepo.Stashes);
+        }
+
+        [Fact]
+        public void PullRemoteChanges_CheckoutConflict_AutoStashRollsBackWhenApplyConflicts()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+            const string trackedFilePath = "test.txt";
+
+            using Repository repoBeforePull = new(localRepoPath);
+            string headBeforePull = repoBeforePull.Head.Tip.Sha;
+
+            CommitAndPushChange(
+                collaboratorRepoPath,
+                trackedFilePath,
+                """
+                line one
+                remote line two
+                line three
+                line four
+                line five
+                line six
+                line seven
+                line eight
+                line nine
+                line ten
+                line eleven
+                line twelve
+                """,
+                "remote conflicting update"
+            );
+            File.WriteAllText(
+                Path.Join(localRepoPath, trackedFilePath),
+                """
+                line one
+                local line two
+                line three
+                line four
+                line five
+                line six
+                line seven
+                line eight
+                line nine
+                line ten
+                line eleven
+                line twelve
+                """
+            );
+
+            // Act
+            RepoStatus status = _sourceControlService.PullRemoteChanges(authenticatedContext);
+
+            // Assert
+            Assert.Equal(DesignerRepositoryStatus.CheckoutConflict, status.RepositoryStatus);
+            using Repository localRepo = new(localRepoPath);
+            Assert.Equal(headBeforePull, localRepo.Head.Tip.Sha);
+            Assert.True(localRepo.RetrieveStatus(new StatusOptions()).IsDirty);
+            Assert.Empty(localRepo.Index.Conflicts);
+            Assert.Empty(localRepo.Stashes);
+            string pulledFile = File.ReadAllText(Path.Join(localRepoPath, trackedFilePath));
+            Assert.Contains("local line two", pulledFile);
+            Assert.DoesNotContain("remote line two", pulledFile);
+        }
+
+        [Fact]
+        public void Push_RemoteNotesAdvanced_RetriesAndSucceeds()
+        {
+            // Arrange
+            string repoName = TestDataHelper.GenerateTestRepoName();
+            AltinnAuthenticatedRepoEditingContext authenticatedContext = CreateTrackedRepositoryForPull(
+                repoName,
+                out string localRepoPath,
+                out string collaboratorRepoPath
+            );
+            SetRepositoryBaseUrlToLocalRemoteRoot();
+
+            string initialCommitSha;
+            using (Repository collaboratorRepo = new(collaboratorRepoPath))
+            {
+                initialCommitSha = collaboratorRepo.Head.Tip.Sha;
+            }
+
+            AddAndPushGitNote(collaboratorRepoPath, "competing-note");
+
+            File.WriteAllText(Path.Join(localRepoPath, "local-change.txt"), "local change");
+            _sourceControlService.CommitToLocalRepo(authenticatedContext, "local commit");
+            string localCommitSha;
+            using (Repository localRepo = new(localRepoPath))
+            {
+                localCommitSha = localRepo.Head.Tip.Sha;
+            }
+
+            // Act
+            bool pushSucceeded = _sourceControlService.Push(authenticatedContext);
+
+            // Assert
+            Assert.True(pushSucceeded);
+            string remoteRepoPath = $"{TestDataHelper.GetTestDataRemoteRepository(_org, repoName)}.git";
+            using Repository remoteRepo = new(remoteRepoPath);
+
+            LibGit2Sharp.Commit initialCommit = remoteRepo.Lookup<LibGit2Sharp.Commit>(initialCommitSha);
+            LibGit2Sharp.Commit localCommit = remoteRepo.Lookup<LibGit2Sharp.Commit>(localCommitSha);
+            Assert.NotNull(initialCommit);
+            Assert.NotNull(localCommit);
+
+            Note initialCommitNote = remoteRepo.Notes[initialCommit.Id].FirstOrDefault();
+            Note localCommitNote = remoteRepo.Notes[localCommit.Id].FirstOrDefault();
+            Assert.NotNull(initialCommitNote);
+            Assert.NotNull(localCommitNote);
+            Assert.Equal("competing-note", initialCommitNote.Message);
+            Assert.Equal("studio-commit", localCommitNote.Message);
+        }
+
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
             List<Claim> claims = new();
@@ -395,7 +631,7 @@ namespace Designer.Tests.Services
             var repoSettings = new ServiceRepositorySettings()
             {
                 RepositoryLocation =
-                    Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
+                    Path.Join(unitTestFolder, "..", "..", "..", "_TestData", "Repositories")
                     + Path.DirectorySeparatorChar,
             };
 
@@ -404,11 +640,116 @@ namespace Designer.Tests.Services
             return service;
         }
 
+        private AltinnAuthenticatedRepoEditingContext CreateTrackedRepositoryForPull(
+            string repoName,
+            out string localRepoPath,
+            out string collaboratorRepoPath
+        )
+        {
+            Setup();
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(
+                _org,
+                repoName,
+                _developer
+            );
+
+            localRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
+            string remoteRepoPath = $"{TestDataHelper.GetTestDataRemoteRepository(_org, repoName)}.git";
+            collaboratorRepoPath = $"{remoteRepoPath}-collaborator";
+            string seedRepoPath = $"{remoteRepoPath}-seed";
+
+            _repoDir = localRepoPath;
+            _directoriesToCleanUp.Add(localRepoPath);
+            _directoriesToCleanUp.Add(remoteRepoPath);
+            _directoriesToCleanUp.Add(collaboratorRepoPath);
+            _directoriesToCleanUp.Add(seedRepoPath);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(remoteRepoPath)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(localRepoPath)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(collaboratorRepoPath)!);
+
+            Repository.Init(seedRepoPath);
+            using (Repository seedRepo = new(seedRepoPath))
+            {
+                string filePath = Path.Join(seedRepoPath, "test.txt");
+                File.WriteAllText(
+                    filePath,
+                    """
+                    line one
+                    line two
+                    line three
+                    line four
+                    line five
+                    line six
+                    line seven
+                    line eight
+                    line nine
+                    line ten
+                    line eleven
+                    line twelve
+                    """
+                );
+                Commands.Stage(seedRepo, "test.txt");
+                var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
+                seedRepo.Commit("Initial commit", signature, signature);
+                EnsureServiceDefaultBranch(seedRepo);
+            }
+
+            Repository.Init(remoteRepoPath, true);
+            using (Repository seedRepo = new(seedRepoPath))
+            {
+                Remote remote = seedRepo.Network.Remotes.Add("origin", remoteRepoPath);
+                seedRepo.Network.Push(remote, $"refs/heads/{General.DefaultBranch}", new PushOptions());
+            }
+
+            Repository.Clone(remoteRepoPath, localRepoPath, new CloneOptions { BranchName = General.DefaultBranch });
+            Repository.Clone(
+                remoteRepoPath,
+                collaboratorRepoPath,
+                new CloneOptions { BranchName = General.DefaultBranch }
+            );
+
+            return AltinnAuthenticatedRepoEditingContext.FromEditingContext(editingContext, "dummytoken");
+        }
+
+        private void CommitAndPushChange(
+            string collaboratorRepoPath,
+            string filePath,
+            string content,
+            string commitMessage
+        )
+        {
+            using var collaboratorRepo = new Repository(collaboratorRepoPath);
+            File.WriteAllText(Path.Join(collaboratorRepoPath, filePath), content);
+            Commands.Stage(collaboratorRepo, filePath);
+            var signature = new LibGit2Sharp.Signature(_developer, $"{_developer}@test.com", DateTimeOffset.Now);
+            collaboratorRepo.Commit(commitMessage, signature, signature);
+            collaboratorRepo.Network.Push(collaboratorRepo.Head, new PushOptions());
+        }
+
+        private static void AddAndPushGitNote(string repositoryPath, string noteMessage)
+        {
+            using Repository repo = new(repositoryPath);
+            var signature = new LibGit2Sharp.Signature("collaborator", "collaborator@test.com", DateTimeOffset.Now);
+            NoteCollection notes = repo.Notes;
+            notes.Add(repo.Head.Tip.Id, noteMessage, signature, signature, notes.DefaultNamespace);
+            Remote remote = repo.Network.Remotes["origin"];
+            repo.Network.Push(remote, "refs/notes/commits", new PushOptions());
+        }
+
+        private void SetRepositoryBaseUrlToLocalRemoteRoot()
+        {
+            string remoteRootPath =
+                TestDataHelper.GetTestDataRemoteRepositoryRootDirectory() + Path.DirectorySeparatorChar;
+            _settings.RepositoryBaseURL = new Uri(remoteRootPath).AbsoluteUri;
+        }
+
         private AltinnRepoEditingContext CreateTestRepository(string repoName, string additionalBranch = null)
         {
             Setup();
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(_org, repoName, _developer);
             _repoDir = TestDataHelper.GetTestDataRepositoryDirectory(_org, repoName, _developer);
+            _directoriesToCleanUp.Add(_repoDir);
             Directory.CreateDirectory(_repoDir);
 
             Repository.Init(_repoDir);
@@ -460,15 +801,19 @@ namespace Designer.Tests.Services
 
         public void Dispose()
         {
-            if (string.IsNullOrWhiteSpace(_repoDir))
-            {
-                return;
-            }
             try
             {
-                if (Directory.Exists(_repoDir))
+                if (!string.IsNullOrWhiteSpace(_repoDir))
                 {
-                    Directory.Delete(_repoDir, true);
+                    _directoriesToCleanUp.Add(_repoDir);
+                }
+
+                foreach (string directory in _directoriesToCleanUp.Distinct())
+                {
+                    if (Directory.Exists(directory))
+                    {
+                        Directory.Delete(directory, true);
+                    }
                 }
             }
             catch (Exception ex)

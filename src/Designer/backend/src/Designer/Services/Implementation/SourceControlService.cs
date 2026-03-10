@@ -112,6 +112,7 @@ public class SourceControlService(
                 RepoStatus status = new() { ContentStatus = [] };
                 using var repo = new LibGit2Sharp.Repository(self.FindLocalRepoLocation(ctx.authenticatedContext));
                 string headBranchBefore = repo.Head.FriendlyName;
+                LibGit2Sharp.Commit? headCommitBeforePull = repo.Head.Tip;
                 RepositoryStatus prePullStatus = repo.RetrieveStatus(new StatusOptions());
                 bool isDirtyBefore = prePullStatus.IsDirty;
                 int conflictCountBefore = repo.Index.Conflicts.Count();
@@ -119,6 +120,8 @@ public class SourceControlService(
                 bool checkoutConflict = false;
                 int mergeConflictCount = 0;
                 string mergeStatus = "unknown";
+                bool autoStashAttempted = false;
+                AutoStashRecoveryResult recoveryResult = default;
                 PullOptions pullOptions = new()
                 {
                     MergeOptions = new MergeOptions() { FastForwardStrategy = FastForwardStrategy.Default },
@@ -129,40 +132,57 @@ public class SourceControlService(
                 try
                 {
                     Tree head = repo.Head.Tip.Tree;
-                    MergeResult mergeResult = Commands.Pull(
+                    (mergeStatus, mergeConflict, mergeConflictCount) = self.PullAndCollectStatus(
                         repo,
-                        self.GetDeveloperSignature(ctx.authenticatedContext.Developer),
-                        pullOptions
+                        ctx.authenticatedContext,
+                        pullOptions,
+                        head,
+                        status
                     );
-                    mergeStatus = mergeResult.Status.ToString();
-
-                    self.FetchGitNotes(ctx.authenticatedContext);
-                    TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(head, mergeResult.Commit?.Tree);
-                    foreach (TreeEntryChanges change in treeChanges.Modified)
+                    if (mergeConflict)
                     {
-                        status.ContentStatus.Add(
-                            new RepositoryContent
-                            {
-                                FilePath = change.Path,
-                                FileStatus = Enums.FileStatus.ModifiedInWorkdir,
-                            }
-                        );
-                    }
-
-                    if (mergeResult.Status == MergeStatus.Conflicts)
-                    {
-                        status.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
                         SetErrorStatus(ctx.activity, "merge_conflict");
-                        mergeConflict = true;
-                        mergeConflictCount = repo.Index.Conflicts.Count();
                     }
                 }
                 catch (CheckoutConflictException ex)
                 {
                     status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
-                    ctx.activity?.AddException(ex);
-                    SetErrorStatus(ctx.activity, "checkout_conflict");
+                    mergeStatus = "checkout_conflict";
                     checkoutConflict = true;
+                    if (isDirtyBefore && headCommitBeforePull != null)
+                    {
+                        // If we cant pull because we have uncomitted changes
+                        // we will try to stash, pull, stash pop
+                        // to see if we can get away with replaying the changes
+                        // on top of the latest commit from the remote.
+                        // If that is not possible (conflicts), we proceed with the existing conflict error path
+                        autoStashAttempted = true;
+                        recoveryResult = self.TryRecoverPullCheckoutConflictWithAutoStash(
+                            repo,
+                            ctx.authenticatedContext,
+                            pullOptions,
+                            headCommitBeforePull,
+                            status
+                        );
+                        mergeStatus = recoveryResult.MergeStatus;
+                        mergeConflictCount = recoveryResult.MergeConflictCount;
+
+                        if (recoveryResult.StashSucceeded)
+                        {
+                            checkoutConflict = false;
+                            mergeConflict = false;
+                            mergeConflictCount = 0;
+                        }
+                    }
+
+                    if (
+                        !recoveryResult.StashSucceeded
+                        && status.RepositoryStatus == Enums.RepositoryStatus.CheckoutConflict
+                    )
+                    {
+                        ctx.activity?.AddException(ex);
+                        SetErrorStatus(ctx.activity, "checkout_conflict");
+                    }
                 }
                 finally
                 {
@@ -180,6 +200,11 @@ public class SourceControlService(
                             { "merge_conflict", mergeConflict },
                             { "checkout_conflict", checkoutConflict },
                             { "merge_conflict_count", mergeConflictCount },
+                            { "auto_stash_attempted", autoStashAttempted },
+                            { "auto_stash_succeeded", recoveryResult.StashSucceeded },
+                            { "auto_stash_apply_conflict", recoveryResult.ApplyConflict },
+                            { "auto_stash_rolled_back", recoveryResult.RolledBack },
+                            { "auto_stash_pull_conflict", recoveryResult.PullConflict },
                             { "repo.path", repo.Info.WorkingDirectory },
                         }
                     );
@@ -329,7 +354,7 @@ public class SourceControlService(
                     };
 
                     repo.Network.Push(remote, $"refs/heads/{DefaultBranch}", options);
-                    repo.Network.Push(remote, "refs/notes/commits", options);
+                    PushGitCommitNotesWithRetry(repo, remote, ctx.authenticatedContext, options);
                     pushCompleted = true;
                     return pushSuccess;
                 }
@@ -521,6 +546,64 @@ public class SourceControlService(
                 }
 
                 return fileDiffs;
+            }
+        );
+    }
+
+    /// <inheritdoc/>
+    public List<string> GetChangedFilesBetweenCommits(
+        AltinnRepoEditingContext editingContext,
+        string oldCommitSha,
+        string newCommitSha
+    )
+    {
+        using var activity = StartActivity(editingContext);
+        activity?.SetTag("old_commit_sha", oldCommitSha);
+        activity?.SetTag("new_commit_sha", newCommitSha);
+        return ExecuteWithTelemetry(
+            activity,
+            (activity, editingContext, oldCommitSha, newCommitSha),
+            static (self, ctx) =>
+            {
+                if (
+                    string.IsNullOrWhiteSpace(ctx.oldCommitSha)
+                    || string.IsNullOrWhiteSpace(ctx.newCommitSha)
+                    || string.Equals(ctx.oldCommitSha, ctx.newCommitSha, StringComparison.Ordinal)
+                )
+                {
+                    return new List<string>();
+                }
+
+                using LibGit2Sharp.Repository repo = self.CreateLocalRepo(ctx.editingContext);
+                LibGit2Sharp.Commit oldCommit =
+                    repo.Lookup<LibGit2Sharp.Commit>(ctx.oldCommitSha)
+                    ?? throw new ArgumentException(
+                        $"Commit '{ctx.oldCommitSha}' was not found in repository.",
+                        "oldCommitSha"
+                    );
+                LibGit2Sharp.Commit newCommit =
+                    repo.Lookup<LibGit2Sharp.Commit>(ctx.newCommitSha)
+                    ?? throw new ArgumentException(
+                        $"Commit '{ctx.newCommitSha}' was not found in repository.",
+                        "newCommitSha"
+                    );
+
+                TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(oldCommit.Tree, newCommit.Tree);
+                HashSet<string> changedFilePaths = new(StringComparer.Ordinal);
+                foreach (TreeEntryChanges change in treeChanges)
+                {
+                    if (!string.IsNullOrWhiteSpace(change.OldPath))
+                    {
+                        changedFilePaths.Add(change.OldPath);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(change.Path))
+                    {
+                        changedFilePaths.Add(change.Path);
+                    }
+                }
+
+                return changedFilePaths.OrderBy(static path => path, StringComparer.Ordinal).ToList();
             }
         );
     }
@@ -731,14 +814,14 @@ public class SourceControlService(
                 if (branchName == DefaultBranch)
                 {
                     repo.Network.Push(remote, $"refs/heads/{DefaultBranch}", options);
-                    repo.Network.Push(remote, "refs/notes/commits", options);
+                    PushGitCommitNotesWithRetry(repo, remote, authenticatedContext, options);
                     pushedDefaultBranch = true;
                 }
                 else
                 {
                     Branch b = repo.Branches[branchName];
                     repo.Network.Push(b, options);
-                    repo.Network.Push(remote, "refs/notes/commits", options);
+                    PushGitCommitNotesWithRetry(repo, remote, authenticatedContext, options);
                     pushedFeatureBranch = true;
                 }
             }
@@ -799,7 +882,7 @@ public class SourceControlService(
                 );
                 PushOptions options = new() { CredentialsProvider = GetCredentialsHandler(ctx.authenticatedContext) };
                 repo.Network.Push(branch, options);
-                repo.Network.Push(remote, "refs/notes/commits", options);
+                PushGitCommitNotesWithRetry(repo, remote, ctx.authenticatedContext, options);
             }
         );
     }
@@ -889,6 +972,88 @@ public class SourceControlService(
                             { "conflicts_aborted", conflictsAborted },
                             { "stop_aborted", stopAborted },
                         }
+                    );
+                }
+            }
+        );
+    }
+
+    /// <inheritdoc/>
+    public RebaseResult RebaseOntoRemoteBranch(
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string branchName
+    )
+    {
+        using var activity = StartActivity(authenticatedContext);
+        activity?.SetTag("branch", branchName);
+        return ExecuteWithTelemetry(
+            activity,
+            (activity, authenticatedContext, branchName),
+            static (self, ctx) =>
+            {
+                self.FetchRemoteChanges(ctx.authenticatedContext);
+                self.FetchGitNotes(ctx.authenticatedContext);
+                using LibGit2Sharp.Repository repo = self.CreateLocalRepo(ctx.authenticatedContext);
+                RebaseStatus rebaseStatus = default;
+                bool conflictsAborted = false;
+                bool stopAborted = false;
+                bool dirtyWorktreeBlocked = false;
+
+                Identity identity = GetDefaultIdentity(ctx.authenticatedContext.Developer);
+                RebaseOptions rebaseOptions = new() { FileConflictStrategy = CheckoutFileConflictStrategy.Ours };
+
+                Branch upstream =
+                    repo.Branches[$"refs/remotes/origin/{ctx.branchName}"]
+                    ?? throw new BranchNotFoundException($"Remote branch 'origin/{ctx.branchName}' not found locally.");
+
+                try
+                {
+                    if (repo.RetrieveStatus(new StatusOptions()).IsDirty)
+                    {
+                        dirtyWorktreeBlocked = true;
+                        SetErrorStatus(ctx.activity, "rebase_dirty_worktree");
+                        throw new NonFastForwardException("Cannot rebase onto remote branch with uncommitted changes.");
+                    }
+
+                    RebaseResult rebaseResult = repo.Rebase.Start(repo.Head, upstream, null, identity, rebaseOptions);
+                    rebaseStatus = rebaseResult.Status;
+
+                    if (rebaseResult.Status == RebaseStatus.Conflicts)
+                    {
+                        repo.Rebase.Abort();
+                        conflictsAborted = true;
+                        SetErrorStatus(ctx.activity, "rebase_conflicts");
+                        throw new NonFastForwardException(
+                            $"Rebase onto remote branch '{ctx.branchName}' failed with conflicts."
+                        );
+                    }
+
+                    if (rebaseResult.Status == RebaseStatus.Stop)
+                    {
+                        repo.Rebase.Abort();
+                        stopAborted = true;
+                        SetErrorStatus(ctx.activity, "rebase_stopped");
+                        throw new NonFastForwardException(
+                            $"Rebase onto remote branch '{ctx.branchName}' was stopped by user."
+                        );
+                    }
+
+                    return rebaseResult;
+                }
+                finally
+                {
+                    ctx.activity?.SetTag("rebase.status", rebaseStatus.ToString());
+                    ctx.activity?.AddEvent(
+                        new ActivityEvent(
+                            "rebase_remote.summary",
+                            tags: new ActivityTagsCollection
+                            {
+                                { "working_directory", repo.Info.WorkingDirectory },
+                                { "conflicts_aborted", conflictsAborted },
+                                { "stop_aborted", stopAborted },
+                                { "dirty_worktree_blocked", dirtyWorktreeBlocked },
+                            }
+                        )
                     );
                 }
             }
@@ -1318,6 +1483,248 @@ public class SourceControlService(
         return remoteBranch.IsRemote;
     }
 
+    private (string MergeStatus, bool MergeConflict, int MergeConflictCount) PullAndCollectStatus(
+        LibGit2Sharp.Repository repo,
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        PullOptions pullOptions,
+        Tree headBeforePull,
+        RepoStatus status
+    )
+    {
+        using var methodActivity = StartActivity(authenticatedContext);
+        MergeResult mergeResult = Commands.Pull(
+            repo,
+            GetDeveloperSignature(authenticatedContext.Developer),
+            pullOptions
+        );
+        string mergeStatus = mergeResult.Status.ToString();
+
+        FetchGitNotes(authenticatedContext);
+        TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(headBeforePull, mergeResult.Commit?.Tree);
+        foreach (TreeEntryChanges change in treeChanges.Modified)
+        {
+            status.ContentStatus.Add(
+                new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.ModifiedInWorkdir }
+            );
+        }
+
+        bool mergeConflict = false;
+        int mergeConflictCount = 0;
+        if (mergeResult.Status == MergeStatus.Conflicts)
+        {
+            status.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
+            SetErrorStatus(methodActivity, "merge_conflict");
+            mergeConflict = true;
+            mergeConflictCount = repo.Index.Conflicts.Count();
+        }
+
+        return (mergeStatus, mergeConflict, mergeConflictCount);
+    }
+
+    private AutoStashRecoveryResult TryRecoverPullCheckoutConflictWithAutoStash(
+        LibGit2Sharp.Repository repo,
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        PullOptions pullOptions,
+        LibGit2Sharp.Commit headCommitBeforePull,
+        RepoStatus status
+    )
+    {
+        // Attempt transparent recovery for checkout-conflict pulls caused by local dirty files:
+        // 1. Stash all changes
+        // 2. Pull from remote
+        //   2.5. Reset to pre-stash commit and pop stash if conlicts
+        // 3. Apply stash
+        //   3.5. Reset to pre-stash commit and pop stash if conlicts
+        // 4. Returns OK result (same uncommitted changes on top of latest changes from remote)
+        // This is done in an effort to keep clean history and avoid automated merge commits
+        // when clocking buttons in Designer
+        using var methodActivity = StartActivity(authenticatedContext);
+        int? stashIndex = null;
+        bool applyStarted = false;
+        string mergeStatus = "checkout_conflict";
+        int mergeConflictCount = 0;
+        try
+        {
+            _ = repo.Stashes.Add(
+                GetDeveloperSignature(authenticatedContext.Developer),
+                "studio:auto-stash-pull",
+                StashModifiers.IncludeUntracked
+            );
+            stashIndex = 0;
+
+            RepoStatus recoveryStatus = new() { ContentStatus = [] };
+            (mergeStatus, bool pullConflictDuringRecovery, mergeConflictCount) = PullAndCollectStatus(
+                repo,
+                authenticatedContext,
+                pullOptions,
+                headCommitBeforePull.Tree,
+                recoveryStatus
+            );
+            if (pullConflictDuringRecovery)
+            {
+                SetErrorStatus(methodActivity, "pull_conflict");
+                bool autoStashRolledBack = RollbackAndRestoreAutoStash(
+                    repo,
+                    headCommitBeforePull,
+                    authenticatedContext,
+                    stashIndex.Value,
+                    "pull_conflict"
+                );
+                if (!autoStashRolledBack)
+                {
+                    throw new InvalidOperationException(
+                        "Failed to restore repository after pull auto-stash pull conflict."
+                    );
+                }
+
+                return new AutoStashRecoveryResult(
+                    StashSucceeded: false,
+                    ApplyConflict: false,
+                    RolledBack: autoStashRolledBack,
+                    PullConflict: true,
+                    MergeStatus: mergeStatus,
+                    MergeConflictCount: mergeConflictCount
+                );
+            }
+
+            applyStarted = true;
+            repo.Stashes.Apply(
+                stashIndex.Value,
+                new StashApplyOptions { ApplyModifiers = StashApplyModifiers.ReinstateIndex }
+            );
+            if (repo.Index.Conflicts.Any())
+            {
+                SetErrorStatus(methodActivity, "pull_auto_stash_apply_conflict");
+                bool autoStashRolledBack = RollbackAndRestoreAutoStash(
+                    repo,
+                    headCommitBeforePull,
+                    authenticatedContext,
+                    stashIndex.Value,
+                    "apply_conflict"
+                );
+                if (!autoStashRolledBack)
+                {
+                    throw new InvalidOperationException(
+                        "Failed to restore repository after pull auto-stash apply conflict."
+                    );
+                }
+
+                return new AutoStashRecoveryResult(
+                    StashSucceeded: false,
+                    ApplyConflict: true,
+                    RolledBack: autoStashRolledBack,
+                    PullConflict: false,
+                    MergeStatus: mergeStatus,
+                    MergeConflictCount: 0
+                );
+            }
+
+            repo.Stashes.Remove(stashIndex.Value);
+            status.ContentStatus.Clear();
+            status.ContentStatus.AddRange(recoveryStatus.ContentStatus);
+            status.RepositoryStatus = recoveryStatus.RepositoryStatus;
+            return new AutoStashRecoveryResult(
+                StashSucceeded: true,
+                ApplyConflict: false,
+                RolledBack: false,
+                PullConflict: false,
+                MergeStatus: mergeStatus,
+                MergeConflictCount: 0
+            );
+        }
+        catch (Exception ex)
+        {
+            if (
+                ex is InvalidOperationException invalidOperationException
+                && invalidOperationException.Message.StartsWith(
+                    "Failed to restore repository after pull auto-stash",
+                    StringComparison.Ordinal
+                )
+            )
+            {
+                throw;
+            }
+
+            methodActivity?.AddException(ex);
+            if (stashIndex is not int createdStashIndex)
+            {
+                SetErrorStatus(methodActivity, "pull_auto_stash_failed");
+                return new AutoStashRecoveryResult(
+                    StashSucceeded: false,
+                    ApplyConflict: false,
+                    RolledBack: false,
+                    PullConflict: false,
+                    MergeStatus: mergeStatus,
+                    MergeConflictCount: mergeConflictCount
+                );
+            }
+
+            string errorStatus = applyStarted ? "pull_auto_stash_apply_conflict" : "pull_auto_stash_pull_failed";
+            string rollbackReason = applyStarted ? "apply_exception" : "pull_exception";
+            SetErrorStatus(methodActivity, errorStatus);
+            bool autoStashRolledBack = RollbackAndRestoreAutoStash(
+                repo,
+                headCommitBeforePull,
+                authenticatedContext,
+                createdStashIndex,
+                rollbackReason
+            );
+            if (!autoStashRolledBack)
+            {
+                string message = applyStarted
+                    ? "Failed to restore repository after pull auto-stash apply exception."
+                    : "Failed to restore repository after pull auto-stash pull exception.";
+                throw new InvalidOperationException(message, ex);
+            }
+
+            return new AutoStashRecoveryResult(
+                StashSucceeded: false,
+                ApplyConflict: applyStarted,
+                RolledBack: autoStashRolledBack,
+                PullConflict: false,
+                MergeStatus: mergeStatus,
+                MergeConflictCount: applyStarted ? 0 : mergeConflictCount
+            );
+        }
+    }
+
+    private readonly record struct AutoStashRecoveryResult(
+        bool StashSucceeded,
+        bool ApplyConflict,
+        bool RolledBack,
+        bool PullConflict,
+        string MergeStatus,
+        int MergeConflictCount
+    );
+
+    private static bool RollbackAndRestoreAutoStash(
+        LibGit2Sharp.Repository repo,
+        LibGit2Sharp.Commit headCommitBeforePull,
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        int stashIndex,
+        string rollbackReason
+    )
+    {
+        using var methodActivity = StartActivity(authenticatedContext);
+        methodActivity?.SetTag("rollback.reason", rollbackReason);
+        try
+        {
+            repo.Reset(ResetMode.Hard, headCommitBeforePull);
+            repo.Stashes.Apply(
+                stashIndex,
+                new StashApplyOptions { ApplyModifiers = StashApplyModifiers.ReinstateIndex }
+            );
+            repo.Stashes.Remove(stashIndex);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            methodActivity?.AddException(ex);
+            SetErrorStatus(methodActivity, "pull_auto_stash_restore_failed");
+            return false;
+        }
+    }
+
     private LibGit2Sharp.Signature GetDeveloperSignature(string developer)
     {
         return new LibGit2Sharp.Signature(developer, $"{developer}@noreply.altinn.studio", DateTime.Now);
@@ -1364,8 +1771,79 @@ public class SourceControlService(
     )
     {
         using LibGit2Sharp.Repository repo = new(localRepositoryPath);
+        FetchGitNotes(repo, authenticatedContext);
+    }
+
+    private static void FetchGitNotes(
+        LibGit2Sharp.Repository repo,
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        bool force = false
+    )
+    {
         FetchOptions options = new() { CredentialsProvider = GetCredentialsHandler(authenticatedContext) };
-        Commands.Fetch(repo, "origin", ["refs/notes/*:refs/notes/*"], options, "fetch notes");
+        string notesRefSpec = force ? "+refs/notes/*:refs/notes/*" : "refs/notes/*:refs/notes/*";
+        Commands.Fetch(repo, "origin", [notesRefSpec], options, "fetch notes");
+    }
+
+    private static void PushGitCommitNotesWithRetry(
+        LibGit2Sharp.Repository repo,
+        Remote remote,
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        PushOptions options
+    )
+    {
+        const int MaxAttempts = 3;
+        for (var attempt = 0; attempt < MaxAttempts; attempt++)
+        {
+            try
+            {
+                repo.Network.Push(remote, "refs/notes/commits", options);
+                return;
+            }
+            catch (LibGit2Sharp.NonFastForwardException) when (attempt < MaxAttempts - 1)
+            {
+                IReadOnlyList<(ObjectId TargetObjectId, string Message)> localNotes = CaptureDefaultGitNotes(
+                    repo.Notes
+                );
+                FetchGitNotes(repo, authenticatedContext, force: true);
+                ReapplyDefaultGitNotes(repo.Notes, localNotes, authenticatedContext.Developer);
+            }
+        }
+    }
+
+    private static IReadOnlyList<(ObjectId TargetObjectId, string Message)> CaptureDefaultGitNotes(NoteCollection notes)
+    {
+        string defaultNamespace = notes.DefaultNamespace;
+        return notes[defaultNamespace].Select(note => (note.TargetObjectId, note.Message)).ToList();
+    }
+
+    private static void ReapplyDefaultGitNotes(
+        NoteCollection notes,
+        IReadOnlyList<(ObjectId TargetObjectId, string Message)> localNotes,
+        string developer
+    )
+    {
+        if (localNotes.Count == 0)
+        {
+            return;
+        }
+
+        string defaultNamespace = notes.DefaultNamespace;
+        var signature = new LibGit2Sharp.Signature(developer, $"{developer}@noreply.altinn.studio", DateTimeOffset.Now);
+
+        foreach (var localNote in localNotes)
+        {
+            Note? existingNote = notes[localNote.TargetObjectId]
+                .FirstOrDefault(note => string.Equals(note.Namespace, defaultNamespace, StringComparison.Ordinal));
+
+            if (
+                existingNote is null
+                || !string.Equals(existingNote.Message, localNote.Message, StringComparison.Ordinal)
+            )
+            {
+                notes.Add(localNote.TargetObjectId, localNote.Message, signature, signature, defaultNamespace);
+            }
+        }
     }
 
     private static Activity? StartActivityCore(string methodName) =>

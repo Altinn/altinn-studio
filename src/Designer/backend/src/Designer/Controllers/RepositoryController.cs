@@ -373,11 +373,23 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (LibGit2Sharp.NonFastForwardException)
             {
-                RepoStatus repoStatus = _sourceControl.PullRemoteChanges(authenticatedContext);
-                _sourceControl.Push(authenticatedContext);
-                foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
+                CurrentBranchInfo currentBranch = _sourceControl.GetCurrentBranch(authenticatedContext);
+                string branchName = !string.IsNullOrWhiteSpace(commitInfo.BranchName)
+                    ? commitInfo.BranchName
+                    : currentBranch.BranchName;
+                string headBeforeRebase = currentBranch.CommitSha;
+                _sourceControl.RebaseOntoRemoteBranch(authenticatedContext, branchName);
+
+                _sourceControl.PublishBranch(authenticatedContext, branchName);
+                string headAfterRebase = _sourceControl.GetCurrentBranch(authenticatedContext).CommitSha;
+                List<string> changedFilePaths = _sourceControl.GetChangedFilesBetweenCommits(
+                    authenticatedContext,
+                    headBeforeRebase,
+                    headAfterRebase
+                );
+                foreach (string changedFilePath in changedFilePaths)
                 {
-                    Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
+                    Source source = new(Path.GetFileName(changedFilePath), changedFilePath);
                     SyncSuccess syncSuccess = new(source);
                     await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
                 }

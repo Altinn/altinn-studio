@@ -137,6 +137,15 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public List<string> GetChangedFilesBetweenCommits(
+            AltinnRepoEditingContext editingContext,
+            string oldCommitSha,
+            string newCommitSha
+        )
+        {
+            throw new NotImplementedException();
+        }
+
         public bool Push(AltinnAuthenticatedRepoEditingContext authenticatedContext)
         {
             throw new NotImplementedException();
@@ -197,6 +206,11 @@ namespace Designer.Tests.Mocks
 
         public LibGit2Sharp.RebaseResult RebaseOntoDefaultBranch(AltinnRepoEditingContext editingContext) =>
             throw new NotImplementedException();
+
+        public LibGit2Sharp.RebaseResult RebaseOntoRemoteBranch(
+            AltinnAuthenticatedRepoEditingContext authenticatedContext,
+            string branchName
+        ) => throw new NotImplementedException();
 
         public void DeleteLocalBranchIfExists(AltinnRepoEditingContext editingContext, string branchName) =>
             throw new NotImplementedException();

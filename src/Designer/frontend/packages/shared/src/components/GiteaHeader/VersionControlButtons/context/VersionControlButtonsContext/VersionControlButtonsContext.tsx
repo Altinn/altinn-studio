@@ -7,6 +7,8 @@ import { useRepoPullQuery } from 'app-shared/hooks/queries';
 import { useRepoCommitAndPushMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { useGiteaHeaderContext } from '../../../context/GiteaHeaderContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 export type VersionControlButtonsContextProps = {
   isLoading: boolean;
@@ -37,6 +39,7 @@ export const VersionControlButtonsContextProvider = ({
 }: Partial<VersionControlButtonsContextProviderProps>) => {
   const { t } = useTranslation();
   const { owner, repoName } = useGiteaHeaderContext();
+  const queryClient = useQueryClient();
 
   const hasPushRights: boolean = currentRepo?.permissions?.push;
   const { hasMergeConflict, setHasMergeConflict } = useHasMergeConflict(repoStatus);
@@ -54,9 +57,13 @@ export const VersionControlButtonsContextProvider = ({
     } catch (error) {
       console.error(error);
       const { data: result } = await fetchPullData();
-      if (result.hasMergeConflict || result.repositoryStatus === 'CheckoutConflict') {
-        // if pull resulted in a merge conflict, show merge conflict message
-        forceRepoStatusCheck();
+      if (
+        result.hasMergeConflict ||
+        result.repositoryStatus === 'MergeConflict' ||
+        result.repositoryStatus === 'CheckoutConflict'
+      ) {
+        const conflictStatus: RepoStatus = { ...result, hasMergeConflict: true };
+        queryClient.setQueryData([QueryKey.RepoStatus, owner, repoName], conflictStatus);
         setIsLoading(false);
         setHasMergeConflict(true);
       }
@@ -96,5 +103,3 @@ export const useVersionControlButtonsContext = (): Partial<VersionControlButtons
   }
   return context;
 };
-
-const forceRepoStatusCheck = () => window.postMessage('forceRepoStatusCheck', window.location.href);
