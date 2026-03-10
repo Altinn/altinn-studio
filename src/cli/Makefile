@@ -16,7 +16,7 @@ EXEEXT := .exe
 endif
 
 # Tools
-GOLANGCI_LINT_VERSION ?= v2.8.0
+GOLANGCI_LINT_VERSION ?= v2.11.2
 GOLANGCI_LINT := $(LOCALBIN)/golangci-lint$(EXEEXT)
 
 .PHONY: all
@@ -43,11 +43,11 @@ test-cover: ## Run tests with coverage
 
 .PHONY: lint
 lint: golangci-lint ## Run linter
-	"$(abspath $(GOLANGCI_LINT))" run
+	"$(abspath $(GOLANGCI_LINT))" run ./...
 
 .PHONY: lint-fix
 lint-fix: golangci-lint ## Run linter with auto-fix
-	"$(abspath $(GOLANGCI_LINT))" run --fix
+	"$(abspath $(GOLANGCI_LINT))" run --fix ./...
 
 .PHONY: lint-config
 lint-config: golangci-lint ## Verify linter configuration
