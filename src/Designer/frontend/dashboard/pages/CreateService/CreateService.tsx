@@ -8,14 +8,25 @@ import type { AxiosError } from 'axios';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { NewApplicationForm } from '../../components/NewApplicationForm';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { type NewAppForm } from '../../types/NewAppForm';
+import type { NewAppForm } from '../../types/NewAppForm';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { useSubroute } from '../../hooks/useSubRoute';
 
-const initialFormError: NewAppForm = {
+export type CreateServiceFormError = {
+  org?: string;
+  repoName?: string;
+  template?: string;
+};
+const initialFormError: CreateServiceFormError = {
   org: '',
   repoName: '',
+  template: '',
 };
+
+enum ErrorKind {
+  AppNameAlreadyExists = 'AppNameAlreadyExists',
+  TemplateError = 'TemplateError',
+}
 
 export type CreateServiceProps = {
   user: User;
@@ -32,7 +43,7 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
     hideDefaultError: (error: AxiosError) => error?.response?.status === ServerCodes.Conflict,
   });
 
-  const [formError, setFormError] = useState<NewAppForm>(initialFormError);
+  const [formError, setFormError] = useState<CreateServiceFormError>(initialFormError);
 
   const selectedContext = useSelectedContext();
   const subroute = useSubroute();
@@ -43,6 +54,18 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
       app,
     });
     packagesRouter.navigateToPackage('editorOverview');
+  };
+
+  const evaluateErrorKind = (error: AxiosError): ErrorKind | null => {
+    if (error.response.status === ServerCodes.Conflict) {
+      return ErrorKind.AppNameAlreadyExists;
+    } else if (
+      error.response?.status === ServerCodes.BadRequest &&
+      error.response?.data?.['error'] === 'CustomTemplateException'
+    ) {
+      return ErrorKind.TemplateError;
+    }
+    return null;
   };
 
   const createAppRepo = async (newAppForm: NewAppForm) => {
@@ -59,14 +82,28 @@ export const CreateService = ({ user, organizations }: CreateServiceProps): JSX.
           navigateToEditorOverview(org, repoName);
         },
         onError: (error: AxiosError): void => {
-          const appNameAlreadyExists = error.response.status === ServerCodes.Conflict;
-          if (appNameAlreadyExists) {
-            setFormError(
-              (prevErrors): NewAppForm => ({
-                ...prevErrors,
-                repoName: t('dashboard.app_already_exists'),
-              }),
-            );
+          const errorKind = evaluateErrorKind(error);
+
+          switch (errorKind) {
+            case ErrorKind.AppNameAlreadyExists:
+              setFormError(
+                (prevErrors): CreateServiceFormError => ({
+                  ...prevErrors,
+                  repoName: t('dashboard.app_already_exists'),
+                }),
+              );
+              break;
+            case ErrorKind.TemplateError:
+              setFormError(
+                (prevErrors): CreateServiceFormError => ({
+                  ...prevErrors,
+                  template: t('dashboard.new_application_form.template_error'),
+                }),
+              );
+              break;
+            default:
+              // handle other types of errors or rethrow
+              break;
           }
         },
       },

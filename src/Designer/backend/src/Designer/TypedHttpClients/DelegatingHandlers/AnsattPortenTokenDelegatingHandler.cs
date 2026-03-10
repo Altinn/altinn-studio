@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
+namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 
 public class AnsattPortenTokenDelegatingHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
 {

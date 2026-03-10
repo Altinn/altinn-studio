@@ -12,7 +12,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
-using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
