@@ -320,7 +320,13 @@ func (c *Client) Exec(ctx context.Context, containerName string, cmd []string) e
 }
 
 // ExecWithIO executes a command with custom I/O streams
-func (c *Client) ExecWithIO(ctx context.Context, containerName string, cmd []string, stdin io.Reader, stdout, stderr io.Writer) error {
+func (c *Client) ExecWithIO(
+	ctx context.Context,
+	containerName string,
+	cmd []string,
+	stdin io.Reader,
+	stdout, stderr io.Writer,
+) error {
 	execCfg := container.ExecOptions{
 		Cmd:          cmd,
 		AttachStdout: true,

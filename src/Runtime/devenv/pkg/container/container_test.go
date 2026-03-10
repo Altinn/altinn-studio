@@ -17,7 +17,10 @@ func detectClient(t *testing.T) ContainerClient {
 	t.Helper()
 	cli, err := Detect(t.Context())
 	if err != nil {
-		t.Fatalf("no container runtime available: %v\n\nThis test suite requires either Docker or Podman to be installed and running.", err)
+		t.Fatalf(
+			"no container runtime available: %v\n\nThis test suite requires either Docker or Podman to be installed and running.",
+			err,
+		)
 	}
 	return cli
 }

@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"sigs.k8s.io/kind/pkg/apis/config/v1alpha4"
+
 	"altinn.studio/devenv/pkg/cache"
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/flux"
@@ -18,7 +20,6 @@ import (
 	"altinn.studio/devenv/pkg/oci"
 	"altinn.studio/devenv/pkg/runtimes"
 	"altinn.studio/devenv/pkg/runtimes/kind/manifests"
-	"sigs.k8s.io/kind/pkg/apis/config/v1alpha4"
 )
 
 //go:embed config/certs/ca.crt
@@ -104,7 +105,11 @@ func logDuration(stepName string, start time.Time) {
 }
 
 // New creates a new KindContainerRuntime instance
-func New(variant KindContainerRuntimeVariant, cachePath string, options KindContainerRuntimeOptions) (*KindContainerRuntime, error) {
+func New(
+	variant KindContainerRuntimeVariant,
+	cachePath string,
+	options KindContainerRuntimeOptions,
+) (*KindContainerRuntime, error) {
 	r, clusters, err := initialize(cachePath, false)
 	if err != nil {
 		return nil, err
@@ -119,7 +124,11 @@ func New(variant KindContainerRuntimeVariant, cachePath string, options KindCont
 	return r, nil
 }
 
-func Load(variant KindContainerRuntimeVariant, cachePath string, options KindContainerRuntimeOptions) (*KindContainerRuntime, error) {
+func Load(
+	variant KindContainerRuntimeVariant,
+	cachePath string,
+	options KindContainerRuntimeOptions,
+) (*KindContainerRuntime, error) {
 	r, clusters, err := initialize(cachePath, true)
 	if err != nil {
 		return nil, err
@@ -235,7 +244,13 @@ func (r *KindContainerRuntime) initializeClients() error {
 	return nil
 }
 
-func newInternal(r *KindContainerRuntime, clusters []string, variant KindContainerRuntimeVariant, _ string, isLoad bool) error {
+func newInternal(
+	r *KindContainerRuntime,
+	clusters []string,
+	variant KindContainerRuntimeVariant,
+	_ string,
+	isLoad bool,
+) error {
 	var clusterName string
 
 	switch variant {

@@ -245,7 +245,11 @@ func (c *FluxClient) ReconcileKustomization(name, namespace string, withSource b
 }
 
 // reconcileSource reconciles the source referenced by a HelmRelease or Kustomization
-func (c *FluxClient) reconcileSource(gvr schema.GroupVersionResource, name, namespace string, opts ReconcileOptions) error {
+func (c *FluxClient) reconcileSource(
+	gvr schema.GroupVersionResource,
+	name, namespace string,
+	opts ReconcileOptions,
+) error {
 	sourceRef, err := c.kubeClient.GetSourceRef(gvr, name, namespace)
 	if err != nil {
 		return fmt.Errorf("failed to get sourceRef for %s/%s: %w", gvr.Resource, name, err)
@@ -270,7 +274,14 @@ func (c *FluxClient) reconcile(gvr schema.GroupVersionResource, name, namespace 
 	if !opts.ShouldWait {
 		go func() {
 			if err := c.waitForReady(gvr, name, namespace, opts.Timeout); err != nil {
-				fmt.Fprintf(os.Stderr, "Flux reconcile for %s/%s (namespace: %s) failed: %v\n", gvr.Resource, name, namespace, err)
+				fmt.Fprintf(
+					os.Stderr,
+					"Flux reconcile for %s/%s (namespace: %s) failed: %v\n",
+					gvr.Resource,
+					name,
+					namespace,
+					err,
+				)
 			}
 		}()
 		return nil
@@ -280,7 +291,11 @@ func (c *FluxClient) reconcile(gvr schema.GroupVersionResource, name, namespace 
 }
 
 // waitForReady watches until the resource's Ready condition is True or timeout
-func (c *FluxClient) waitForReady(gvr schema.GroupVersionResource, name, namespace string, timeout time.Duration) error {
+func (c *FluxClient) waitForReady(
+	gvr schema.GroupVersionResource,
+	name, namespace string,
+	timeout time.Duration,
+) error {
 	ctx := context.Background()
 	if timeout > 0 {
 		var cancel context.CancelFunc

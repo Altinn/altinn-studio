@@ -78,7 +78,14 @@ func (r *KindContainerRuntime) waitForFluxControllers() error {
 	for _, controller := range controllers {
 		fmt.Printf("Waiting for %s...\n", controller)
 
-		if err := r.KubernetesClient.WatchCondition(ctx, kubernetes.DeploymentGVR, controller, "flux-system", "Available", "True"); err != nil {
+		if err := r.KubernetesClient.WatchCondition(
+			ctx,
+			kubernetes.DeploymentGVR,
+			controller,
+			"flux-system",
+			"Available",
+			"True",
+		); err != nil {
 			return fmt.Errorf("timeout waiting for %s to be ready", controller)
 		}
 		fmt.Printf("✓ %s is ready\n", controller)

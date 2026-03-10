@@ -230,7 +230,13 @@ func (c *Client) Exec(ctx context.Context, container string, cmd []string) error
 }
 
 // ExecWithIO executes a command with custom I/O streams
-func (c *Client) ExecWithIO(ctx context.Context, container string, cmd []string, stdin io.Reader, stdout, stderr io.Writer) error {
+func (c *Client) ExecWithIO(
+	ctx context.Context,
+	container string,
+	cmd []string,
+	stdin io.Reader,
+	stdout, stderr io.Writer,
+) error {
 	args := []string{"exec"}
 	if stdin != nil {
 		args = append(args, "-i")

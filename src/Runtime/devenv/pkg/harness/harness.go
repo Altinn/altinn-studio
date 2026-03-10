@@ -7,9 +7,10 @@ import (
 	"path/filepath"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	"altinn.studio/devenv/pkg/flux"
 	"altinn.studio/devenv/pkg/runtimes/kind"
-	"golang.org/x/sync/errgroup"
 )
 
 // Config describes the complete setup/deployment specification

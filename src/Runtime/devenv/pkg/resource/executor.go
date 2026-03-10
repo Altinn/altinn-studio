@@ -9,9 +9,10 @@ import (
 	"slices"
 	"strings"
 
+	"golang.org/x/sync/errgroup"
+
 	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/devenv/pkg/container/types"
-	"golang.org/x/sync/errgroup"
 )
 
 // Executor applies resources to infrastructure using a container client.

@@ -292,7 +292,11 @@ func isRolloutComplete(dep *appsv1.Deployment) bool {
 }
 
 // WatchCondition watches a resource until a condition reaches the target status.
-func (c *KubernetesClient) WatchCondition(ctx context.Context, gvr schema.GroupVersionResource, name, namespace, conditionType, targetStatus string) error {
+func (c *KubernetesClient) WatchCondition(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	name, namespace, conditionType, targetStatus string,
+) error {
 	var dr dynamic.ResourceInterface
 	if namespace != "" {
 		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
@@ -321,7 +325,13 @@ func (c *KubernetesClient) WatchCondition(ctx context.Context, gvr schema.GroupV
 	for {
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("timeout waiting for %s/%s condition %s=%s", gvr.Resource, name, conditionType, targetStatus)
+			return fmt.Errorf(
+				"timeout waiting for %s/%s condition %s=%s",
+				gvr.Resource,
+				name,
+				conditionType,
+				targetStatus,
+			)
 		case event, ok := <-watcher.ResultChan():
 			if !ok {
 				return fmt.Errorf("watch channel closed for %s/%s", gvr.Resource, name)
@@ -548,7 +558,10 @@ func (c *KubernetesClient) Annotate(gvr schema.GroupVersionResource, name, names
 
 // GetConditionStatus returns the status value of a condition on a resource.
 // Returns empty string if condition not found.
-func (c *KubernetesClient) GetConditionStatus(gvr schema.GroupVersionResource, name, namespace, conditionType string) (string, error) {
+func (c *KubernetesClient) GetConditionStatus(
+	gvr schema.GroupVersionResource,
+	name, namespace, conditionType string,
+) (string, error) {
 	ctx := context.Background()
 
 	var dr dynamic.ResourceInterface
@@ -584,7 +597,11 @@ func (c *KubernetesClient) GetConditionStatus(gvr schema.GroupVersionResource, n
 }
 
 // GetFieldString returns a string field value from a resource at the given path.
-func (c *KubernetesClient) GetFieldString(gvr schema.GroupVersionResource, name, namespace string, fields ...string) (string, error) {
+func (c *KubernetesClient) GetFieldString(
+	gvr schema.GroupVersionResource,
+	name, namespace string,
+	fields ...string,
+) (string, error) {
 	ctx := context.Background()
 
 	var dr dynamic.ResourceInterface

@@ -231,15 +231,33 @@ func (r *KindContainerRuntime) configureRegistryInNodes(ctx context.Context) err
 	}
 
 	// Configure localhost:5001 (local registry)
-	if err := r.configureRegistryMirror(ctx, nodes, fmt.Sprintf("localhost:%s", registryPort), registryName, ""); err != nil {
+	if err := r.configureRegistryMirror(
+		ctx,
+		nodes,
+		fmt.Sprintf("localhost:%s", registryPort),
+		registryName,
+		"",
+	); err != nil {
 		return err
 	}
 
 	if !isCI {
-		if err := r.configureRegistryMirror(ctx, nodes, "docker.io", registryDockerName, "https://registry-1.docker.io"); err != nil {
+		if err := r.configureRegistryMirror(
+			ctx,
+			nodes,
+			"docker.io",
+			registryDockerName,
+			"https://registry-1.docker.io",
+		); err != nil {
 			return err
 		}
-		if err := r.configureRegistryMirror(ctx, nodes, "registry.k8s.io", registryK8sName, "https://registry.k8s.io"); err != nil {
+		if err := r.configureRegistryMirror(
+			ctx,
+			nodes,
+			"registry.k8s.io",
+			registryK8sName,
+			"https://registry.k8s.io",
+		); err != nil {
 			return err
 		}
 		if err := r.configureRegistryMirror(ctx, nodes, "ghcr.io", registryGhcrName, "https://ghcr.io"); err != nil {
@@ -252,7 +270,11 @@ func (r *KindContainerRuntime) configureRegistryInNodes(ctx context.Context) err
 }
 
 // configureRegistryMirror configures a registry mirror in all kind nodes
-func (r *KindContainerRuntime) configureRegistryMirror(ctx context.Context, nodes []string, registry, mirrorName, upstreamURL string) error {
+func (r *KindContainerRuntime) configureRegistryMirror(
+	ctx context.Context,
+	nodes []string,
+	registry, mirrorName, upstreamURL string,
+) error {
 	registryDir := fmt.Sprintf("/etc/containerd/certs.d/%s", registry)
 
 	// Create the hosts.toml content
@@ -276,7 +298,14 @@ func (r *KindContainerRuntime) configureRegistryMirror(ctx context.Context, node
 		}
 
 		// Write hosts.toml to node
-		if err := r.ContainerClient.ExecWithIO(ctx, node, []string{"cp", "/dev/stdin", fmt.Sprintf("%s/hosts.toml", registryDir)}, bytes.NewBufferString(hostsToml), nil, nil); err != nil {
+		if err := r.ContainerClient.ExecWithIO(
+			ctx,
+			node,
+			[]string{"cp", "/dev/stdin", fmt.Sprintf("%s/hosts.toml", registryDir)},
+			bytes.NewBufferString(hostsToml),
+			nil,
+			nil,
+		); err != nil {
 			return fmt.Errorf("failed to write hosts.toml in node %s: %w", node, err)
 		}
 	}
@@ -383,7 +412,11 @@ func (r *KindContainerRuntime) connectProxyRegistriesToKindNetwork(ctx context.C
 		networks, err := r.ContainerClient.ContainerNetworks(ctx, name)
 		if err != nil {
 			if errors.Is(err, container.ErrContainerNotFound) {
-				return fmt.Errorf("proxy registry %s is not running; start proxy registries before configuring networking: %w", name, err)
+				return fmt.Errorf(
+					"proxy registry %s is not running; start proxy registries before configuring networking: %w",
+					name,
+					err,
+				)
 			}
 			return fmt.Errorf("failed to get %s networks: %w", name, err)
 		}

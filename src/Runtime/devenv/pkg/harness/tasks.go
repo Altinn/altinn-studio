@@ -70,7 +70,12 @@ func pushArtifact(_ context.Context, cfg Config, runtime *kind.KindContainerRunt
 }
 
 // downloadAndPushHelmChart clones a git repo and pushes the helm chart to OCI
-func downloadAndPushHelmChart(_ context.Context, cfg Config, runtime *kind.KindContainerRuntime, chart HelmChart) error {
+func downloadAndPushHelmChart(
+	_ context.Context,
+	cfg Config,
+	runtime *kind.KindContainerRuntime,
+	chart HelmChart,
+) error {
 	fmt.Printf("Downloading helm chart %s...\n", chart.Name)
 	start := time.Now()
 
@@ -207,7 +212,12 @@ func deployKustomize(cfg Config, runtime *kind.KindContainerRuntime, kd *Kustomi
 	if kd.ReconcileOpts != nil {
 		reconcileOpts = *kd.ReconcileOpts
 	}
-	if err := runtime.FluxClient.ReconcileKustomization(kd.KustomizationName, kd.Namespace, true, reconcileOpts); err != nil {
+	if err := runtime.FluxClient.ReconcileKustomization(
+		kd.KustomizationName,
+		kd.Namespace,
+		true,
+		reconcileOpts,
+	); err != nil {
 		return fmt.Errorf("failed to reconcile Kustomization: %w", err)
 	}
 
@@ -252,14 +262,23 @@ func deployHelm(cfg Config, runtime *kind.KindContainerRuntime, hd *HelmDeploy) 
 	// Reconcile HelmRepository first
 	if hd.HelmRepositoryName != "" {
 		fmt.Println("Triggering HelmRepository reconciliation...")
-		if err := runtime.FluxClient.ReconcileHelmRepository(hd.HelmRepositoryName, hd.HelmRepositoryNamespace, reconcileOpts); err != nil {
+		if err := runtime.FluxClient.ReconcileHelmRepository(
+			hd.HelmRepositoryName,
+			hd.HelmRepositoryNamespace,
+			reconcileOpts,
+		); err != nil {
 			return fmt.Errorf("failed to reconcile HelmRepository: %w", err)
 		}
 	}
 
 	// Reconcile HelmRelease
 	fmt.Println("Triggering HelmRelease reconciliation...")
-	if err := runtime.FluxClient.ReconcileHelmRelease(hd.HelmReleaseName, hd.HelmReleaseNamespace, false, reconcileOpts); err != nil {
+	if err := runtime.FluxClient.ReconcileHelmRelease(
+		hd.HelmReleaseName,
+		hd.HelmReleaseNamespace,
+		false,
+		reconcileOpts,
+	); err != nil {
 		return fmt.Errorf("failed to reconcile HelmRelease: %w", err)
 	}
 
