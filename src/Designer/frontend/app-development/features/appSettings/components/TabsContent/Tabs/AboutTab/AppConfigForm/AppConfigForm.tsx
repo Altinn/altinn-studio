@@ -30,7 +30,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const [keywordsInputValue, setKeywordsInputValue] = useState(
     mapKeywordsArrayToString(updatedAppConfig.keywords ?? []),
   );
-  const [hasUnsavedValue, setHasUnsavedValue] = useState<boolean>(false);
+  const [unsavedFields, setUnsavedFields] = useState<Set<string>>(new Set());
 
   const errorSummaryRef: MutableRefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(
     null,
@@ -38,8 +38,19 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
 
+  const handleUnsavedValueChange =
+    (fieldId: string) =>
+    (hasUnsavedValue: boolean): void => {
+      setUnsavedFields((prev) => {
+        const next = new Set(prev);
+        if (hasUnsavedValue) next.add(fieldId);
+        else next.delete(fieldId);
+        return next;
+      });
+    };
+
   const hasUnsavedChanges =
-    !ObjectUtils.areObjectsEqual(updatedAppConfig, appConfig) || hasUnsavedValue;
+    !ObjectUtils.areObjectsEqual(updatedAppConfig, appConfig) || unsavedFields.size > 0;
   useUnsavedChangesWarning(
     hasUnsavedChanges,
     t('app_settings.about_tab_unsaved_changes_navigation_warning'),
@@ -166,7 +177,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           tagText={t('general.optional')}
           saveAriaLabel={t('general.save')}
           cancelAriaLabel={t('general.cancel')}
-          onUnsavedValueChange={setHasUnsavedValue}
+          onUnsavedValueChange={handleUnsavedValueChange('homepage')}
         />
         <AppVisibilityAndDelegationCard
           visible={updatedAppConfig.access?.visible ?? false}
@@ -185,7 +196,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           tagText={t('general.optional')}
           saveAriaLabel={t('general.save')}
           cancelAriaLabel={t('general.cancel')}
-          onUnsavedValueChange={setHasUnsavedValue}
+          onUnsavedValueChange={handleUnsavedValueChange('keywords')}
         />
         <ContactPointsTable
           contactPointList={updatedAppConfig.contactPoints}
