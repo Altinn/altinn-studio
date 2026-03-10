@@ -84,6 +84,21 @@ distinctEnvironmentVariables:
       value: altinn.studio
     - name: GITEA__server__ROOT_URL
       value: https://altinn.studio/repos
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION
+      value: "true"
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTHENTICATION_API
+      value: "true"
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_AUTO_REGISTRATION
+      value: "true"
+    - name: GITEA__service__ENABLE_REVERSE_PROXY_FULL_NAME
+      value: "true"
+    - name: GITEA__server__REVERSE_PROXY_AUTHENTICATION_USER
+      value: X-WEBAUTH-USER
+    # AKS subnet CIDR (Azure CNI assigns pod IPs from this range). NetworkPolicy is the primary access control.
+    - name: GITEA__server__REVERSE_PROXY_TRUSTED_PROXIES
+      value: "10.48.0.0/20"
+    - name: GITEA__service__USER_DISABLED_FEATURES
+      value: change_username
 
 environmentVariables:
   - name: USER_UID
