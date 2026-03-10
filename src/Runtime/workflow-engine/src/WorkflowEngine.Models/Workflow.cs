@@ -20,8 +20,8 @@ public sealed record Workflow : PersistentItem
         WorkflowRequest request,
         WorkflowRequestMetadata metadata,
         string idempotencyKey,
-        IEnumerable<Workflow>? dependencies,
-        IEnumerable<Workflow>? links
+        IEnumerable<Workflow>? dependencies = null,
+        IEnumerable<Workflow>? links = null
     ) =>
         new()
         {
@@ -32,6 +32,7 @@ public sealed record Workflow : PersistentItem
             Actor = metadata.Actor,
             CreatedAt = metadata.CreatedAt,
             StartAt = request.StartAt,
+            BackoffUntil = request.StartAt,
             DistributedTraceContext = metadata.TraceContext,
             OperationId = request.OperationId,
             Dependencies = dependencies,

@@ -78,19 +78,9 @@ internal sealed class EngineDbContext : DbContext
         {
             entity.ToTable("idempotency_keys");
 
-            entity.HasKey(e => new
-            {
-                e.IdempotencyKey,
-                e.InstanceOrg,
-                e.InstanceApp,
-                e.InstanceOwnerPartyId,
-                e.InstanceGuid,
-            });
+            entity.HasKey(e => new { e.IdempotencyKey, e.InstanceGuid });
 
             entity.Property(e => e.IdempotencyKey).HasColumnName("idempotency_key");
-            entity.Property(e => e.InstanceOrg).HasColumnName("instance_org");
-            entity.Property(e => e.InstanceApp).HasColumnName("instance_app");
-            entity.Property(e => e.InstanceOwnerPartyId).HasColumnName("instance_owner_party_id");
             entity.Property(e => e.InstanceGuid).HasColumnName("instance_guid");
             entity.Property(e => e.RequestBodyHash).HasColumnName("request_body_hash").HasColumnType("bytea");
             entity.Property(e => e.WorkflowIds).HasColumnName("workflow_ids").HasColumnType("uuid[]");

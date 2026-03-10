@@ -59,6 +59,7 @@ public static class ServiceCollectionExtensions
                         options.EnableSensitiveDataLogging();
                 }
             );
+            services.AddSingleton<SqlBulkInserter>();
             services.AddScoped<DbMigrationService>();
             services.AddScoped<DbConnectionResetService>();
             services.AddHostedService<DbMaintenanceService>();

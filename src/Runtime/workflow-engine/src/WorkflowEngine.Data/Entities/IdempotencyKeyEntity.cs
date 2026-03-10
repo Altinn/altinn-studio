@@ -4,12 +4,6 @@ internal sealed class IdempotencyKeyEntity
 {
     public required string IdempotencyKey { get; set; }
 
-    public required string InstanceOrg { get; set; }
-
-    public required string InstanceApp { get; set; }
-
-    public int InstanceOwnerPartyId { get; set; }
-
     public Guid InstanceGuid { get; set; }
 
     public required byte[] RequestBodyHash { get; set; }

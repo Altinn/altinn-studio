@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using Testcontainers.PostgreSql;
+using WorkflowEngine.Data;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
@@ -60,11 +61,13 @@ public sealed class PostgresFixture : IAsyncLifetime
         var dataSource = NpgsqlDataSource.Create(ConnectionString);
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
+        var sqlBulkInserter = new SqlBulkInserter(factory);
         return new EngineRepository(
             dataSource,
             factory,
             _settings,
             _limiter,
+            sqlBulkInserter,
             TimeProvider.System,
             NullLogger<EngineRepository>.Instance
         );
@@ -75,11 +78,13 @@ public sealed class PostgresFixture : IAsyncLifetime
         var dataSource = NpgsqlDataSource.Create(ConnectionString);
         var options = new DbContextOptionsBuilder<EngineDbContext>().UseNpgsql(ConnectionString).Options;
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
+        var sqlBulkInserter = new SqlBulkInserter(factory);
         return new EngineRepository(
             dataSource,
             factory,
             settings,
             _limiter,
+            sqlBulkInserter,
             TimeProvider.System,
             NullLogger<EngineRepository>.Instance
         );
@@ -96,11 +101,13 @@ public sealed class PostgresFixture : IAsyncLifetime
             .AddInterceptors(interceptor)
             .Options;
         var factory = new PooledDbContextFactory<EngineDbContext>(options);
+        var sqlBulkInserter = new SqlBulkInserter(factory);
         return new EngineRepository(
             dataSource,
             factory,
             settings ?? _settings,
             _limiter,
+            sqlBulkInserter,
             TimeProvider.System,
             NullLogger<EngineRepository>.Instance
         );

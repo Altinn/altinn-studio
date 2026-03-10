@@ -61,8 +61,9 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     public ICollection<WorkflowEntity>? Dependencies { get; set; }
     public ICollection<WorkflowEntity>? Links { get; set; }
 
-    public static WorkflowEntity FromDomainModel(Workflow workflow) =>
-        new()
+    public static WorkflowEntity FromDomainModel(Workflow workflow)
+    {
+        var entity = new WorkflowEntity
         {
             Id = workflow.DatabaseId,
             InstanceLockKey = workflow.InstanceLockKey,
@@ -87,6 +88,14 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             Dependencies = workflow.Dependencies?.Select(FromDomainModel).ToList(),
             Links = workflow.Links?.Select(FromDomainModel).ToList(),
         };
+
+        foreach (var step in entity.Steps)
+        {
+            step.JobId = entity.Id;
+        }
+
+        return entity;
+    }
 
     public Workflow ToDomainModel() =>
         new()
