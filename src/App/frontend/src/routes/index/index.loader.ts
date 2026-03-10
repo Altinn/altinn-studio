@@ -85,16 +85,9 @@ function toLoaderError(error: unknown): IndexLoaderError {
 }
 
 async function createNewInstance(): Promise<IInstance> {
-  const party = GlobalData.selectedParty;
-
-  const currentPartyIdFromCookie = document.cookie
-    .split('; ')
-    .find((row) => row.startsWith('AltinnPartyId='))
-    ?.split('=')[1];
-
-  const currentPartyId = currentPartyIdFromCookie ?? party?.partyId;
-  if (!currentPartyId) {
-    throw new Response('User profile not available', { status: 401 });
+  const partyId = GlobalData.selectedParty?.partyId;
+  if (!partyId) {
+    throw new Response('Selected party not available', { status: 401 });
   }
-  return await doInstantiate(Number.parseInt(`${currentPartyId}`));
+  return await doInstantiate(partyId);
 }
