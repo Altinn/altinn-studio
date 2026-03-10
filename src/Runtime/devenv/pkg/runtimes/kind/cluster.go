@@ -2,8 +2,15 @@ package kind
 
 import (
 	"fmt"
+	"os"
 	"slices"
 )
+
+func writeKindStdoutf(format string, args ...any) {
+	if _, err := fmt.Fprintf(os.Stdout, format, args...); err != nil {
+		return
+	}
+}
 
 // clusterExists checks if a kind cluster with the given name exists.
 func (r *KindContainerRuntime) clusterExists() (bool, error) {
@@ -21,12 +28,12 @@ func (r *KindContainerRuntime) clusterExists() (bool, error) {
 
 // createCluster creates a new kind cluster using the specified config.
 func (r *KindContainerRuntime) createCluster() error {
-	fmt.Printf("Creating kind cluster %s...\n", r.clusterName)
+	writeKindStdoutf("Creating kind cluster %s...\n", r.clusterName)
 
 	if err := r.KindClient.CreateCluster(r.clusterName, r.kindConfig); err != nil {
 		return fmt.Errorf("failed to create cluster: %w", err)
 	}
 
-	fmt.Printf("Cluster %s created successfully\n", r.clusterName)
+	writeKindStdoutf("Cluster %s created successfully\n", r.clusterName)
 	return nil
 }

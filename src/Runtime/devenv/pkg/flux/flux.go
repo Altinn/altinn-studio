@@ -1,3 +1,4 @@
+//nolint:revive // Public Flux API names intentionally mirror Flux resource terminology.
 package flux
 
 import (
@@ -25,9 +26,18 @@ import (
 var (
 	// Flux GVRs - constructed directly from API packages to avoid discovery issues.
 	helmRepositoryGVR = sourcev1.GroupVersion.WithResource("helmrepositories")
-	HelmReleaseGVR    = helmv2.GroupVersion.WithResource("helmreleases")
-	kustomizationGVR  = kustomizev1.GroupVersion.WithResource("kustomizations")
-	ociRepositoryGVR  = sourcev1.GroupVersion.WithResource("ocirepositories")
+	// HelmReleaseGVR is used by callers that need to watch Flux HelmRelease readiness.
+	HelmReleaseGVR   = helmv2.GroupVersion.WithResource("helmreleases")
+	kustomizationGVR = kustomizev1.GroupVersion.WithResource("kustomizations")
+	ociRepositoryGVR = sourcev1.GroupVersion.WithResource("ocirepositories")
+
+	errKubeClientRequired = errors.New("kubeClient is required")
+	errUnknownSourceKind  = errors.New("unknown source kind")
+)
+
+const (
+	fluxInstallConcurrency = 8
+	yamlDecoderBufferSize  = 4096
 )
 
 // FluxClient provides Flux operations using native Go packages.
@@ -38,7 +48,7 @@ type FluxClient struct {
 // New creates a new FluxClient with the given KubernetesClient.
 func New(kubeClient *kubernetes.KubernetesClient) (*FluxClient, error) {
 	if kubeClient == nil {
-		return nil, errors.New("kubeClient is required")
+		return nil, errKubeClientRequired
 	}
 
 	return &FluxClient{
@@ -78,7 +88,7 @@ type InstallOptions struct {
 func LocalTestInstallOptions() InstallOptions {
 	return InstallOptions{
 		LeaderElection:    false,
-		Concurrent:        8,
+		Concurrent:        fluxInstallConcurrency,
 		RequeueDependency: 2 * time.Second,
 		OptimizeProbes:    true,
 	}
@@ -101,7 +111,7 @@ func (c *FluxClient) Install(components []string, installOpts InstallOptions) er
 
 	patchDeployments(objects, installOpts)
 
-	if _, err := c.kubeClient.ApplyObjects(objectsToRuntime(objects)...); err != nil {
+	if _, err := c.kubeClient.ApplyObjects(context.Background(), objectsToRuntime(objects)...); err != nil {
 		return fmt.Errorf("failed to apply flux install manifests: %w", err)
 	}
 
@@ -109,7 +119,7 @@ func (c *FluxClient) Install(components []string, installOpts InstallOptions) er
 }
 
 func parseManifestYAML(content string) ([]*unstructured.Unstructured, error) {
-	decoder := utilyaml.NewYAMLOrJSONDecoder(strings.NewReader(content), 4096)
+	decoder := utilyaml.NewYAMLOrJSONDecoder(strings.NewReader(content), yamlDecoderBufferSize)
 	var objects []*unstructured.Unstructured
 
 	for {
@@ -118,7 +128,7 @@ func parseManifestYAML(content string) ([]*unstructured.Unstructured, error) {
 			if errors.Is(err, io.EOF) {
 				break
 			}
-			return nil, err
+			return nil, fmt.Errorf("decode manifest yaml: %w", err)
 		}
 		if len(obj.Object) == 0 {
 			continue
@@ -145,25 +155,37 @@ func patchDeployments(objects []*unstructured.Unstructured, opts InstallOptions)
 			continue
 		}
 
-		containers, found, _ := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
-		if !found || len(containers) == 0 {
+		containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
+		if err != nil || !found || len(containers) == 0 {
 			continue
 		}
 
-		container := containers[0].(map[string]any)
+		container, ok := containers[0].(map[string]any)
+		if !ok {
+			continue
+		}
 		patchContainerArgs(container, opts)
 		if opts.OptimizeProbes {
 			patchProbes(container)
 		}
 
 		containers[0] = container
-		_ = unstructured.SetNestedSlice(obj.Object, containers, "spec", "template", "spec", "containers")
+		if err := unstructured.SetNestedSlice(
+			obj.Object,
+			containers,
+			"spec",
+			"template",
+			"spec",
+			"containers",
+		); err != nil {
+			continue
+		}
 	}
 }
 
 func patchContainerArgs(container map[string]any, opts InstallOptions) {
-	argsRaw, found, _ := unstructured.NestedStringSlice(container, "args")
-	if !found {
+	argsRaw, found, err := unstructured.NestedStringSlice(container, "args")
+	if err != nil || !found {
 		argsRaw = []string{}
 	}
 
@@ -197,6 +219,7 @@ func patchProbes(container map[string]any) {
 		probe["periodSeconds"] = int64(2)
 	}
 	if probe, ok := container["livenessProbe"].(map[string]any); ok {
+		//nolint:mnd // Five-second liveness probes keep controller startup responsive in local dev.
 		probe["periodSeconds"] = int64(5)
 	}
 }
@@ -254,7 +277,7 @@ func (c *FluxClient) reconcileSource(
 
 	sourceGVR := kindToGVR(sourceRef.Kind)
 	if sourceGVR.Resource == "" {
-		return fmt.Errorf("unknown source kind: %s", sourceRef.Kind)
+		return fmt.Errorf("%w: %s", errUnknownSourceKind, sourceRef.Kind)
 	}
 
 	return c.reconcile(sourceGVR, sourceRef.Name, sourceRef.Namespace, opts)
@@ -300,7 +323,10 @@ func (c *FluxClient) waitForReady(
 		defer cancel()
 	}
 
-	return c.kubeClient.WatchCondition(ctx, gvr, name, namespace, meta.ReadyCondition, "True")
+	if err := c.kubeClient.WatchCondition(ctx, gvr, name, namespace, meta.ReadyCondition, "True"); err != nil {
+		return fmt.Errorf("watch ready condition for %s/%s: %w", gvr.Resource, name, err)
+	}
+	return nil
 }
 
 // kindToGVR maps Flux kinds to GVRs.

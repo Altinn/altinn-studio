@@ -1,3 +1,4 @@
+// Package types defines the shared container runtime data types used across implementations.
 package types
 
 import "errors"
@@ -54,6 +55,7 @@ const (
 // This is independent of the transport mechanism used to communicate with the runtime.
 type RuntimeInstallation int
 
+// Supported runtime installation kinds.
 const (
 	InstallationUnknown RuntimeInstallation = iota
 	InstallationDocker
@@ -62,6 +64,8 @@ const (
 
 func (i RuntimeInstallation) String() string {
 	switch i {
+	case InstallationUnknown:
+		return "Unknown"
 	case InstallationDocker:
 		return "Docker"
 	case InstallationPodman:

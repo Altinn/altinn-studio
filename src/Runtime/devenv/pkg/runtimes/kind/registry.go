@@ -19,8 +19,10 @@ import (
 var isCI = os.Getenv("CI") != ""
 
 const (
-	registryName = "kind-registry"
-	registryPort = "5001"
+	registryName   = "kind-registry"
+	registryPort   = "5001"
+	configDirPerm  = 0o750
+	configFilePerm = 0o600
 
 	// Proxy registries.
 	registryDockerName = "kind-registry-docker"
@@ -63,14 +65,14 @@ func (r *KindContainerRuntime) isRegistryRunning(ctx context.Context) (bool, err
 		return false, nil
 	}
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("inspect registry container state: %w", err)
 	}
 	return state.Running, nil
 }
 
 // createRegistry creates and starts the registry container.
 func (r *KindContainerRuntime) createRegistry(ctx context.Context) error {
-	fmt.Printf("Creating registry container %s...\n", registryName)
+	writeKindStdoutf("Creating registry container %s...\n", registryName)
 
 	cfg := container.ContainerConfig{
 		Name:          registryName,
@@ -91,24 +93,24 @@ func (r *KindContainerRuntime) createRegistry(ctx context.Context) error {
 		return fmt.Errorf("failed to create registry container: %w", err)
 	}
 
-	fmt.Printf("✓ Registry container %s created\n", registryName)
+	writeKindStdoutf("✓ Registry container %s created\n", registryName)
 	return nil
 }
 
 // createProxyRegistry creates and starts a proxy registry container.
 func (r *KindContainerRuntime) createProxyRegistry(ctx context.Context, name, hostPort, remoteURL string) error {
-	fmt.Printf("Creating proxy registry %s for %s...\n", name, remoteURL)
+	writeKindStdoutf("Creating proxy registry %s for %s...\n", name, remoteURL)
 
 	// Create config directory for this registry
 	configDir := filepath.Join(r.cachePath, "registry-configs", name)
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, configDirPerm); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
 	// Write config.yml
 	configPath := filepath.Join(configDir, "config.yml")
 	configContent := getRegistryProxyConfig(remoteURL)
-	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+	if err := os.WriteFile(configPath, []byte(configContent), configFilePerm); err != nil {
 		return fmt.Errorf("failed to write registry config: %w", err)
 	}
 
@@ -137,7 +139,7 @@ func (r *KindContainerRuntime) createProxyRegistry(ctx context.Context, name, ho
 		return fmt.Errorf("failed to create proxy registry container: %w", err)
 	}
 
-	fmt.Printf("✓ Proxy registry %s created\n", name)
+	writeKindStdoutf("✓ Proxy registry %s created\n", name)
 	return nil
 }
 
@@ -148,7 +150,7 @@ func (r *KindContainerRuntime) isProxyRegistryRunning(ctx context.Context, name 
 		return false, nil
 	}
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("inspect proxy registry container state: %w", err)
 	}
 	return state.Running, nil
 }
@@ -177,7 +179,7 @@ func (r *KindContainerRuntime) startProxyRegistries(ctx context.Context) error {
 				return err
 			}
 		} else {
-			fmt.Printf("Proxy registry %s already running\n", proxy.name)
+			writeKindStdoutf("Proxy registry %s already running\n", proxy.name)
 		}
 	}
 
@@ -202,28 +204,32 @@ func (r *KindContainerRuntime) connectRegistryToKindNetwork(ctx context.Context)
 	}
 
 	if connected {
-		fmt.Println("Registry already connected to kind network")
+		writeKindStdoutln("Registry already connected to kind network")
 		return nil
 	}
 
-	fmt.Println("Connecting registry to kind network...")
+	writeKindStdoutln("Connecting registry to kind network...")
 
 	if err := r.ContainerClient.NetworkConnect(ctx, "kind", registryName); err != nil {
 		return fmt.Errorf("failed to connect registry to kind network: %w", err)
 	}
 
-	fmt.Println("✓ Registry connected to kind network")
+	writeKindStdoutln("✓ Registry connected to kind network")
 	return nil
 }
 
 // getKindNodes returns a list of kind cluster nodes.
 func (r *KindContainerRuntime) getKindNodes() ([]string, error) {
-	return r.KindClient.GetNodes(r.clusterName)
+	nodes, err := r.KindClient.GetNodes(r.clusterName)
+	if err != nil {
+		return nil, fmt.Errorf("get kind nodes for %s: %w", r.clusterName, err)
+	}
+	return nodes, nil
 }
 
 // configureRegistryInNodes configures containerd in all kind nodes to use the local registry.
 func (r *KindContainerRuntime) configureRegistryInNodes(ctx context.Context) error {
-	fmt.Println("Configuring registry in kind nodes...")
+	writeKindStdoutln("Configuring registry in kind nodes...")
 
 	nodes, err := r.getKindNodes()
 	if err != nil {
@@ -265,7 +271,7 @@ func (r *KindContainerRuntime) configureRegistryInNodes(ctx context.Context) err
 		}
 	}
 
-	fmt.Printf("✓ Configured registry mirrors in %d nodes\n", len(nodes))
+	writeKindStdoutf("✓ Configured registry mirrors in %d nodes\n", len(nodes))
 	return nil
 }
 
@@ -315,8 +321,8 @@ func (r *KindContainerRuntime) configureRegistryMirror(
 
 // createRegistryConfigMap creates a ConfigMap documenting the local registry
 // returns true if the configmap was added or updated, false otherwise.
-func (r *KindContainerRuntime) createRegistryConfigMap() (bool, error) {
-	fmt.Println("Creating local-registry-hosting ConfigMap...")
+func (r *KindContainerRuntime) createRegistryConfigMap(ctx context.Context) (bool, error) {
+	writeKindStdoutln("Creating local-registry-hosting ConfigMap...")
 
 	cm := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
@@ -334,18 +340,18 @@ help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
 		},
 	}
 
-	output, err := r.KubernetesClient.ApplyObjects(cm)
+	output, err := r.KubernetesClient.ApplyObjects(ctx, cm)
 	if err != nil {
 		return false, fmt.Errorf("failed to create registry ConfigMap: %w", err)
 	}
 
 	if strings.Contains(output, "unchanged") {
-		fmt.Println("✓ Registry ConfigMap created")
+		writeKindStdoutln("✓ Registry ConfigMap created")
 		return false, nil
-	} else {
-		fmt.Println("✓ Registry ConfigMap changed")
-		return true, nil
 	}
+
+	writeKindStdoutln("✓ Registry ConfigMap changed")
+	return true, nil
 }
 
 // startRegistry ensures the container registry is running and configured
@@ -363,7 +369,7 @@ func (r *KindContainerRuntime) startRegistry(ctx context.Context) error {
 			return err
 		}
 	} else {
-		fmt.Printf("Registry %s already running\n", registryName)
+		writeKindStdoutf("Registry %s already running\n", registryName)
 	}
 
 	if !isCI {
@@ -376,7 +382,7 @@ func (r *KindContainerRuntime) startRegistry(ctx context.Context) error {
 }
 
 func (r *KindContainerRuntime) configureRegistry(ctx context.Context) error {
-	if wasChanged, err := r.createRegistryConfigMap(); err != nil {
+	if wasChanged, err := r.createRegistryConfigMap(ctx); err != nil {
 		return err
 	} else if !wasChanged {
 		// If we configmap was already there, then we must have configured
@@ -396,11 +402,7 @@ func (r *KindContainerRuntime) configureRegistry(ctx context.Context) error {
 	}
 
 	// Configure registry in kind nodes
-	if err := r.configureRegistryInNodes(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return r.configureRegistryInNodes(ctx)
 }
 
 // connectProxyRegistriesToKindNetwork connects all proxy registries to the kind network.
@@ -422,13 +424,13 @@ func (r *KindContainerRuntime) connectProxyRegistriesToKindNetwork(ctx context.C
 		}
 
 		if !slices.Contains(networks, "kind") {
-			fmt.Printf("Connecting %s to kind network...\n", name)
+			writeKindStdoutf("Connecting %s to kind network...\n", name)
 			if err := r.ContainerClient.NetworkConnect(ctx, "kind", name); err != nil {
 				return fmt.Errorf("failed to connect %s to kind network: %w", name, err)
 			}
-			fmt.Printf("✓ %s connected to kind network\n", name)
+			writeKindStdoutf("✓ %s connected to kind network\n", name)
 		} else {
-			fmt.Printf("%s already connected to kind network\n", name)
+			writeKindStdoutf("%s already connected to kind network\n", name)
 		}
 	}
 

@@ -9,11 +9,17 @@ import (
 type EventType int
 
 const (
+	// EventApplyStart signals that apply has started for a resource.
 	EventApplyStart EventType = iota
+	// EventApplyDone signals that apply completed successfully.
 	EventApplyDone
+	// EventApplyFailed signals that apply failed.
 	EventApplyFailed
+	// EventDestroyStart signals that destroy has started for a resource.
 	EventDestroyStart
+	// EventDestroyDone signals that destroy completed successfully.
 	EventDestroyDone
+	// EventDestroyFailed signals that destroy failed.
 	EventDestroyFailed
 )
 
@@ -46,12 +52,13 @@ type Event struct {
 // Observer receives resource lifecycle events.
 // Implementations must be safe for concurrent use.
 type Observer interface {
-	OnEvent(Event)
+	OnEvent(event Event)
 }
 
 // ObserverFunc is a function adapter for Observer.
 type ObserverFunc func(Event)
 
+// OnEvent forwards the event to the wrapped function.
 func (f ObserverFunc) OnEvent(e Event) {
 	f(e)
 }
@@ -59,6 +66,7 @@ func (f ObserverFunc) OnEvent(e Event) {
 // MultiObserver broadcasts events to multiple observers.
 type MultiObserver []Observer
 
+// OnEvent forwards the event to all registered observers.
 func (m MultiObserver) OnEvent(e Event) {
 	var panicValue any
 

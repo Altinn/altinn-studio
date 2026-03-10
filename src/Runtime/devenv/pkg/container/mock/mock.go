@@ -47,6 +47,7 @@ func New() *Client {
 	return &Client{}
 }
 
+//nolint:funcorder // Keeping the call recorder near the call log types improves test readability.
 func (c *Client) recordCall(method string, args ...any) {
 	c.mu.Lock()
 	defer c.mu.Unlock()

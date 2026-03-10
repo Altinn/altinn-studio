@@ -1,3 +1,6 @@
+// Package manifests builds the Kubernetes objects used by the Kind runtime bootstrap.
+//
+//nolint:mnd // Manifest literals intentionally use concrete ports and chart defaults.
 package manifests
 
 import (
@@ -274,6 +277,7 @@ func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
 	}
 }
 
+//nolint:funlen // The manifest literal is easier to review as one block.
 func buildTraefikRelease(includeLinkerd bool) *helmv2.HelmRelease {
 	values := map[string]any{
 		"global": map[string]any{

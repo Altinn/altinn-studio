@@ -48,12 +48,14 @@ import (
 
 // Cached detection result.
 var (
-	detectMu           sync.Mutex
-	detectionSucceeded bool
-	detectedType       runtimeType
-	detectedSocketPath string // cached socket path for runtimePodmanSocket
-	detectRuntimeFn    = detectRuntime
-	newClientForTypeFn = newClientForType
+	detectMu              sync.Mutex
+	detectionSucceeded    bool
+	detectedType          runtimeType
+	detectedSocketPath    string // cached socket path for runtimePodmanSocket
+	detectRuntimeFn       = detectRuntime
+	newClientForTypeFn    = newClientForType
+	errNoContainerRuntime = errors.New("no container runtime found")
+	errUnknownRuntimeType = errors.New("unknown runtime type")
 )
 
 type runtimeType int
@@ -67,6 +69,8 @@ const (
 
 func (rt runtimeType) installation() RuntimeInstallation {
 	switch rt {
+	case runtimeUnknown:
+		return InstallationUnknown
 	case runtimeDocker:
 		return InstallationDocker
 	case runtimePodmanSocket, runtimePodmanCLI:
@@ -76,7 +80,7 @@ func (rt runtimeType) installation() RuntimeInstallation {
 	}
 }
 
-// Re-export types and constants for convenience.
+//nolint:revive // These aliases intentionally preserve the shared types package naming at call sites.
 type (
 	RuntimeInstallation = types.RuntimeInstallation
 	PortMapping         = types.PortMapping
@@ -98,6 +102,7 @@ var ErrNetworkNotFound = types.ErrNetworkNotFound
 // ErrImageNotFound is returned when an image does not exist.
 var ErrImageNotFound = types.ErrImageNotFound
 
+// Re-exported installation and runtime name constants.
 const (
 	InstallationUnknown        = types.InstallationUnknown
 	InstallationDocker         = types.InstallationDocker
@@ -107,6 +112,8 @@ const (
 )
 
 // ContainerClient provides a common interface for docker and podman operations.
+//
+//nolint:revive,interfacebloat // ContainerClient is the domain term used throughout devenv and intentionally aggregates runtime operations.
 type ContainerClient interface {
 	// Build builds a container image from a Dockerfile
 	Build(ctx context.Context, contextPath, dockerfile, tag string) error
@@ -223,7 +230,7 @@ func detectRuntime(ctx context.Context) (runtimeType, string, error) {
 		// DOCKER_HOST points to podman socket, verify it works
 		cli, err := dockerapi.NewPodmanCompat(ctx)
 		if err == nil {
-			_ = cli.Close()
+			closeClient(cli)
 			return runtimePodmanSocket, "", nil
 		}
 		// Socket specified but not responding, try CLI
@@ -234,7 +241,7 @@ func detectRuntime(ctx context.Context) (runtimeType, string, error) {
 
 	// Try Docker Engine API (checks DOCKER_HOST or default /var/run/docker.sock)
 	if cli, err := dockerapi.New(ctx); err == nil {
-		_ = cli.Close()
+		closeClient(cli)
 		// Check if docker CLI is available
 		if _, lookErr := exec.LookPath("docker"); lookErr == nil {
 			return runtimeDocker, "", nil
@@ -258,7 +265,10 @@ func detectRuntime(ctx context.Context) (runtimeType, string, error) {
 		return runtimePodmanCLI, "", nil
 	}
 
-	return runtimeUnknown, "", errors.New("no container runtime found (tried Docker API, Podman socket, Podman CLI)")
+	return runtimeUnknown, "", fmt.Errorf(
+		"%w (tried Docker API, Podman socket, Podman CLI)",
+		errNoContainerRuntime,
+	)
 }
 
 // newClientForType creates a new client based on the detected runtime type.
@@ -266,16 +276,34 @@ func newClientForType(ctx context.Context, rt runtimeType) (ContainerClient, err
 	install := rt.installation()
 	switch rt {
 	case runtimeDocker:
-		return dockerapi.NewWithInstallation(ctx, install)
+		client, err := dockerapi.NewWithInstallation(ctx, install)
+		if err != nil {
+			return nil, fmt.Errorf("create docker client: %w", err)
+		}
+		return client, nil
 	case runtimePodmanSocket:
 		if detectedSocketPath != "" {
-			return dockerapi.NewPodmanCompatWithHost(ctx, "unix://"+detectedSocketPath, install)
+			client, err := dockerapi.NewPodmanCompatWithHost(ctx, "unix://"+detectedSocketPath, install)
+			if err != nil {
+				return nil, fmt.Errorf("create podman socket client: %w", err)
+			}
+			return client, nil
 		}
-		return dockerapi.NewPodmanCompatWithInstallation(ctx, install)
+		client, err := dockerapi.NewPodmanCompatWithInstallation(ctx, install)
+		if err != nil {
+			return nil, fmt.Errorf("create podman compat client: %w", err)
+		}
+		return client, nil
 	case runtimePodmanCLI:
-		return podman.New(ctx)
+		client, err := podman.New(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("create podman client: %w", err)
+		}
+		return client, nil
+	case runtimeUnknown:
+		return nil, errUnknownRuntimeType
 	default:
-		return nil, errors.New("unknown runtime type")
+		return nil, fmt.Errorf("%w: %d", errUnknownRuntimeType, rt)
 	}
 }
 
@@ -288,7 +316,7 @@ func findPodmanSocket(ctx context.Context) string {
 
 		cli, err := dockerapi.NewPodmanCompatWithHost(ctx, "unix://"+socketPath, InstallationPodman)
 		if err == nil {
-			_ = cli.Close()
+			closeClient(cli)
 			return socketPath
 		}
 	}
@@ -328,6 +356,11 @@ func podmanSocketPaths() []string {
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+//nolint:errcheck,gosec // Runtime detection cleanup is best-effort.
+func closeClient(cli interface{ Close() error }) {
+	cli.Close()
 }
 
 // Compile-time interface checks.

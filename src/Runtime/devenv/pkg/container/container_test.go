@@ -13,6 +13,8 @@ import (
 
 const testImage = "alpine:latest@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62"
 
+var errTransientFailure = errors.New("transient failure")
+
 func detectClient(t *testing.T) ContainerClient {
 	t.Helper()
 	cli, err := Detect(t.Context())
@@ -38,7 +40,16 @@ func cliName() string {
 }
 
 func removeContainer(ctx context.Context, name string) {
-	_ = exec.CommandContext(ctx, cliName(), "rm", "-f", name).Run()
+	if err := exec.CommandContext(ctx, cliName(), "rm", "-f", name).Run(); err != nil {
+		return
+	}
+}
+
+func closeTestClient(t *testing.T, cli ContainerClient) {
+	t.Helper()
+	if err := cli.Close(); err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
 }
 
 func pullImage(ctx context.Context, t *testing.T) {
@@ -51,7 +62,7 @@ func pullImage(ctx context.Context, t *testing.T) {
 
 func TestDetect(t *testing.T) {
 	cli := detectClient(t)
-	defer func() { _ = cli.Close() }()
+	defer closeTestClient(t, cli)
 
 	name := cli.Name()
 	if name != RuntimeNameDockerEngineAPI && name != RuntimeNamePodmanCLI {
@@ -90,7 +101,7 @@ func TestDetect_RetriesAfterTransientFailure(t *testing.T) {
 	detectRuntimeFn = func(context.Context) (runtimeType, string, error) {
 		calls++
 		if calls == 1 {
-			return runtimeUnknown, "", errors.New("transient failure")
+			return runtimeUnknown, "", errTransientFailure
 		}
 		return runtimePodmanCLI, "", nil
 	}
@@ -113,7 +124,7 @@ func TestDetect_RetriesAfterTransientFailure(t *testing.T) {
 
 func TestContainerLifecycle(t *testing.T) {
 	cli := detectClient(t)
-	defer func() { _ = cli.Close() }()
+	defer closeTestClient(t, cli)
 
 	ctx := t.Context()
 	pullImage(ctx, t)
@@ -153,7 +164,7 @@ func TestContainerLifecycle(t *testing.T) {
 
 func TestContainerState_NotExists(t *testing.T) {
 	cli := detectClient(t)
-	defer func() { _ = cli.Close() }()
+	defer closeTestClient(t, cli)
 
 	_, err := cli.ContainerState(t.Context(), "nonexistent-container-xyz123")
 	if !errors.Is(err, ErrContainerNotFound) {
@@ -163,7 +174,7 @@ func TestContainerState_NotExists(t *testing.T) {
 
 func TestContainerNetworks(t *testing.T) {
 	cli := detectClient(t)
-	defer func() { _ = cli.Close() }()
+	defer closeTestClient(t, cli)
 
 	ctx := t.Context()
 	pullImage(ctx, t)
@@ -194,7 +205,7 @@ func TestContainerNetworks(t *testing.T) {
 
 func TestImageInspect(t *testing.T) {
 	cli := detectClient(t)
-	defer func() { _ = cli.Close() }()
+	defer closeTestClient(t, cli)
 
 	ctx := t.Context()
 	pullImage(ctx, t)
@@ -213,7 +224,7 @@ func TestImageInspect(t *testing.T) {
 
 func TestExecWithIO(t *testing.T) {
 	cli := detectClient(t)
-	defer func() { _ = cli.Close() }()
+	defer closeTestClient(t, cli)
 
 	ctx := t.Context()
 	pullImage(ctx, t)
@@ -241,9 +252,39 @@ func TestExecWithIO(t *testing.T) {
 	}
 }
 
+func TestExecWithIO_Stdin(t *testing.T) {
+	cli := detectClient(t)
+	defer closeTestClient(t, cli)
+
+	ctx := t.Context()
+	pullImage(ctx, t)
+
+	containerName := "devenv-test-stdin-" + time.Now().Format("20060102150405")
+	defer removeContainer(ctx, containerName)
+
+	_, err := cli.CreateContainer(ctx, ContainerConfig{
+		Name:    containerName,
+		Image:   testImage,
+		Detach:  true,
+		Command: []string{"sleep", "30"},
+	})
+	if err != nil {
+		t.Fatalf("CreateContainer failed: %v", err)
+	}
+
+	var stdout strings.Builder
+	err = cli.ExecWithIO(ctx, containerName, []string{"cat"}, strings.NewReader("hello from stdin"), &stdout, nil)
+	if err != nil {
+		t.Fatalf("ExecWithIO with stdin failed: %v", err)
+	}
+	if got := stdout.String(); !strings.Contains(got, "hello from stdin") {
+		t.Fatalf("expected stdin to be forwarded, got %q", got)
+	}
+}
+
 func TestCreateContainer_WithOptions(t *testing.T) {
 	cli := detectClient(t)
-	defer func() { _ = cli.Close() }()
+	defer closeTestClient(t, cli)
 
 	ctx := t.Context()
 	pullImage(ctx, t)

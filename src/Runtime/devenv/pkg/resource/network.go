@@ -2,6 +2,8 @@ package resource
 
 import "errors"
 
+var errNetworkNameRequired = errors.New("network name is required")
+
 // Network is a resource representing a container network.
 // It is a pure value type - use Executor to apply to infrastructure.
 type Network struct {
@@ -29,7 +31,7 @@ func (n *Network) NetworkName() string {
 // Validate checks that the network configuration is valid.
 func (n *Network) Validate() error {
 	if n.Name == "" {
-		return errors.New("network name is required")
+		return errNetworkNameRequired
 	}
 	return nil
 }

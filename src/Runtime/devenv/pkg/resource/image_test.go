@@ -10,6 +10,8 @@ import (
 	"altinn.studio/devenv/pkg/container/types"
 )
 
+var errDaemonUnreachable = errors.New("daemon unreachable")
+
 func TestRemoteImage_ID(t *testing.T) {
 	r := &RemoteImage{Ref: "nginx:latest"}
 	if got := r.ID(); got != "image:remote:nginx:latest" {
@@ -131,7 +133,7 @@ func TestRemoteImage_PullPolicies(t *testing.T) {
 	t.Run("inspect transient error is propagated", func(t *testing.T) {
 		client := containermock.New()
 		client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
-			return types.ImageInfo{}, errors.New("daemon unreachable")
+			return types.ImageInfo{}, errDaemonUnreachable
 		}
 
 		exec := NewExecutor(client)
@@ -201,9 +203,7 @@ func TestLocalImage_Validate(t *testing.T) {
 
 func TestLocalImage_Dockerfile(t *testing.T) {
 	l := &LocalImage{
-		ContextPath: "/path/to/project",
-		Dockerfile:  "custom.Dockerfile",
-		Tag:         "myapp:latest",
+		Dockerfile: "custom.Dockerfile",
 	}
 	if l.Dockerfile != "custom.Dockerfile" {
 		t.Errorf("Dockerfile = %q, want %q", l.Dockerfile, "custom.Dockerfile")

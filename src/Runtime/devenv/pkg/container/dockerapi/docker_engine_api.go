@@ -1,3 +1,4 @@
+// Package dockerapi provides a Docker Engine API backed container client.
 package dockerapi
 
 import (
@@ -19,6 +20,12 @@ import (
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
+)
+
+var (
+	errExecExitCode      = errors.New("exec exited with non-zero status")
+	errWaitWithoutStatus = errors.New("wait completed without status")
+	errContextCancelled  = errors.New("context cancelled while waiting for container")
 )
 
 // Client implements ContainerClient for Docker using the official SDK.
@@ -60,7 +67,7 @@ func newClient(ctx context.Context, installation types.RuntimeInstallation) (*Cl
 
 	// Verify connection by pinging the daemon
 	if _, err := cli.Ping(ctx); err != nil {
-		_ = cli.Close()
+		closeBestEffort(cli)
 		return nil, fmt.Errorf("failed to connect to docker daemon: %w", err)
 	}
 
@@ -91,7 +98,7 @@ func newClientWithHost(ctx context.Context, installation types.RuntimeInstallati
 
 	// Verify connection by pinging the daemon
 	if _, err := cli.Ping(ctx); err != nil {
-		_ = cli.Close()
+		closeBestEffort(cli)
 		return nil, fmt.Errorf("failed to connect to docker daemon: %w", err)
 	}
 
@@ -105,7 +112,10 @@ func (c *Client) Installation() types.RuntimeInstallation {
 
 // Close releases resources held by the client.
 func (c *Client) Close() error {
-	return c.cli.Close()
+	if err := c.cli.Close(); err != nil {
+		return fmt.Errorf("close docker client: %w", err)
+	}
+	return nil
 }
 
 // Name returns the runtime name.
@@ -130,6 +140,7 @@ func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string)
 	}
 
 	args = append(args, contextPath)
+	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
 	cmd := exec.CommandContext(ctx, binary, args...)
 
 	// Enable BuildKit for Docker (Podman uses buildah which handles this natively)
@@ -153,7 +164,7 @@ func (c *Client) Push(ctx context.Context, img string) error {
 	if err != nil {
 		return fmt.Errorf("docker push failed: %w", err)
 	}
-	defer func() { _ = resp.Close() }()
+	defer closeBestEffort(resp)
 
 	// Read push output to detect errors
 	if err := jsonmessage.DisplayJSONMessagesStream(resp, io.Discard, 0, false, nil); err != nil {
@@ -164,13 +175,15 @@ func (c *Client) Push(ctx context.Context, img string) error {
 }
 
 // CreateContainer creates and optionally starts a container.
+//
+//nolint:funlen,gocognit,gocyclo,nestif // The Docker container create flow mirrors the underlying API shape.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
 	// Ensure image exists locally, pull if missing
 	_, err := c.cli.ImageInspect(ctx, cfg.Image)
 	if err != nil {
 		if cerrdefs.IsNotFound(err) {
-			if err := c.ImagePull(ctx, cfg.Image); err != nil {
-				return "", fmt.Errorf("failed to pull image %s: %w", cfg.Image, err)
+			if pullErr := c.ImagePull(ctx, cfg.Image); pullErr != nil {
+				return "", fmt.Errorf("failed to pull image %s: %w", cfg.Image, pullErr)
 			}
 		} else {
 			return "", fmt.Errorf("failed to inspect image %s: %w", cfg.Image, err)
@@ -263,7 +276,7 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 	for _, net := range additionalNetworks {
 		if err := c.cli.NetworkConnect(ctx, net, resp.ID, nil); err != nil {
 			// Clean up on failure
-			_ = c.cli.ContainerRemove(ctx, resp.ID, container.RemoveOptions{Force: true})
+			removeContainerBestEffort(ctx, c.cli, resp.ID)
 			return "", fmt.Errorf("failed to connect to network %s: %w", net, err)
 		}
 	}
@@ -272,7 +285,7 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 	if cfg.Detach {
 		if err := c.cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
 			// Clean up created container on start failure
-			_ = c.cli.ContainerRemove(ctx, resp.ID, container.RemoveOptions{Force: true})
+			removeContainerBestEffort(ctx, c.cli, resp.ID)
 			return "", fmt.Errorf("failed to start container: %w", err)
 		}
 	}
@@ -291,7 +304,7 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 		return types.ContainerState{}, fmt.Errorf("failed to inspect container: %w", err)
 	}
 	return types.ContainerState{
-		Status:   string(info.State.Status),
+		Status:   info.State.Status,
 		Running:  info.State.Running,
 		Paused:   info.State.Paused,
 		ExitCode: info.State.ExitCode,
@@ -350,8 +363,8 @@ func (c *Client) ExecWithIO(
 	// Handle stdin in a goroutine if provided
 	if stdin != nil {
 		go func() {
-			defer func() { _ = attachResp.CloseWrite() }()
-			_, _ = io.Copy(attachResp.Conn, stdin)
+			copyToConnBestEffort(attachResp.Conn, stdin)
+			closeWriteBestEffort(&attachResp)
 		}()
 	}
 
@@ -376,7 +389,7 @@ func (c *Client) ExecWithIO(
 	}
 
 	if inspectResp.ExitCode != 0 {
-		return fmt.Errorf("exec exited with code %d", inspectResp.ExitCode)
+		return fmt.Errorf("%w: %d", errExecExitCode, inspectResp.ExitCode)
 	}
 
 	return nil
@@ -409,7 +422,7 @@ func (c *Client) ImagePull(ctx context.Context, img string) error {
 	if err != nil {
 		return fmt.Errorf("failed to pull image: %w", err)
 	}
-	defer func() { _ = resp.Close() }()
+	defer closeBestEffort(resp)
 
 	// Read pull output to detect errors and wait for completion
 	if err := jsonmessage.DisplayJSONMessagesStream(resp, io.Discard, 0, false, nil); err != nil {
@@ -439,7 +452,7 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 		ImageID: info.Image,
 		Labels:  info.Config.Labels,
 		State: types.ContainerState{
-			Status:   string(info.State.Status),
+			Status:   info.State.Status,
 			Running:  info.State.Running,
 			Paused:   info.State.Paused,
 			ExitCode: info.State.ExitCode,
@@ -569,11 +582,31 @@ func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error
 		case status := <-statusCh:
 			return int(status.StatusCode), nil
 		case <-ctx.Done():
-			return -1, ctx.Err()
+			return -1, fmt.Errorf("%w: %w", errContextCancelled, ctx.Err())
 		default:
-			return -1, errors.New("wait completed without status")
+			return -1, errWaitWithoutStatus
 		}
 	case <-ctx.Done():
-		return -1, ctx.Err()
+		return -1, fmt.Errorf("%w: %w", errContextCancelled, ctx.Err())
 	}
+}
+
+//nolint:errcheck,gosec // Client and stream cleanup is best-effort during setup and teardown paths.
+func closeBestEffort(closer interface{ Close() error }) {
+	closer.Close()
+}
+
+//nolint:errcheck,gosec // Cleanup is best-effort after a failed exec attach.
+func closeWriteBestEffort(attachResp interface{ CloseWrite() error }) {
+	attachResp.CloseWrite()
+}
+
+//nolint:errcheck,gosec // Copying stdin into the exec session is best-effort.
+func copyToConnBestEffort(dst io.Writer, src io.Reader) {
+	io.Copy(dst, src)
+}
+
+//nolint:errcheck,gosec // Container cleanup is best-effort after a failed create/start path.
+func removeContainerBestEffort(ctx context.Context, cli *client.Client, containerID string) {
+	cli.ContainerRemove(ctx, containerID, container.RemoveOptions{Force: true})
 }

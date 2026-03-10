@@ -1,3 +1,4 @@
+//nolint:mnd // Kind config literals intentionally use concrete mapped ports.
 package manifests
 
 import (

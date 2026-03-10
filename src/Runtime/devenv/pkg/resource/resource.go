@@ -1,3 +1,4 @@
+//nolint:revive // ResourceID and ResourceRef are core domain names used throughout the resource package.
 package resource
 
 // ResourceID is a unique identifier for a resource within a graph.

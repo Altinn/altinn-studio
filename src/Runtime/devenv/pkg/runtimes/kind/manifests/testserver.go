@@ -1,3 +1,4 @@
+//nolint:mnd // Manifest literals intentionally use concrete service ports.
 package manifests
 
 import (
@@ -71,6 +72,7 @@ func buildTestserverService() *corev1.Service {
 	}
 }
 
+//nolint:funlen // The deployment manifest is easier to review as one block.
 func buildTestserverDeployment() *appsv1.Deployment {
 	replicas := int32(1)
 	return &appsv1.Deployment{

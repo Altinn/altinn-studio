@@ -61,6 +61,7 @@ func TestPodmanPushArgs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := podmanPushArgs(tt.image)
 			if len(got) != len(tt.want) {
 				t.Fatalf("podmanPushArgs() len = %d, want %d (%v)", len(got), len(tt.want), got)
@@ -101,6 +102,7 @@ func TestIsContainerNotFoundOutput(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := isContainerNotFoundOutput(tt.output)
 			if got != tt.want {
 				t.Fatalf("isContainerNotFoundOutput() = %v, want %v", got, tt.want)

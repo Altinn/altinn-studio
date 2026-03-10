@@ -27,6 +27,13 @@ type Executor struct {
 const containerSpecHashLabel = "altinn.studio/devenv-spec-hash"
 const networkResourceIDPrefix = "network:"
 
+var (
+	errUnknownResourceType      = errors.New("unknown resource type")
+	errImageNotResolved         = errors.New("image not resolved")
+	errNetworkNameUnresolvable  = errors.New("cannot resolve network name")
+	errImageMissingForPullNever = errors.New("image not found locally and pull policy is Never")
+)
+
 // NewExecutor creates an executor with the given container client.
 func NewExecutor(client container.ContainerClient) *Executor {
 	return &Executor{
@@ -49,11 +56,11 @@ func (e *Executor) Apply(ctx context.Context, g *Graph) error {
 	}
 
 	for _, level := range levels {
-		eg, ctx := errgroup.WithContext(ctx)
+		eg, groupCtx := errgroup.WithContext(ctx)
 		for _, r := range level {
 			eg.Go(func() error {
 				e.notify(EventApplyStart, r.ID(), nil)
-				if err := e.applyResource(ctx, r); err != nil {
+				if err := e.applyResource(groupCtx, r); err != nil {
 					e.notify(EventApplyFailed, r.ID(), err)
 					return fmt.Errorf("apply %s: %w", r.ID(), err)
 				}
@@ -62,7 +69,7 @@ func (e *Executor) Apply(ctx context.Context, g *Graph) error {
 			})
 		}
 		if err := eg.Wait(); err != nil {
-			return err
+			return fmt.Errorf("apply level: %w", err)
 		}
 	}
 	return nil
@@ -77,11 +84,11 @@ func (e *Executor) Destroy(ctx context.Context, g *Graph) error {
 	}
 
 	for _, level := range levels {
-		eg, ctx := errgroup.WithContext(ctx)
+		eg, groupCtx := errgroup.WithContext(ctx)
 		for _, r := range level {
 			eg.Go(func() error {
 				e.notify(EventDestroyStart, r.ID(), nil)
-				if err := e.destroyResource(ctx, r); err != nil {
+				if err := e.destroyResource(groupCtx, r); err != nil {
 					e.notify(EventDestroyFailed, r.ID(), err)
 					return fmt.Errorf("destroy %s: %w", r.ID(), err)
 				}
@@ -90,7 +97,7 @@ func (e *Executor) Destroy(ctx context.Context, g *Graph) error {
 			})
 		}
 		if err := eg.Wait(); err != nil {
-			return err
+			return fmt.Errorf("destroy level: %w", err)
 		}
 	}
 	return nil
@@ -122,7 +129,7 @@ func (e *Executor) applyResource(ctx context.Context, r Resource) error {
 	case *Container:
 		return e.applyContainer(ctx, res)
 	default:
-		return fmt.Errorf("unknown resource type: %T", r)
+		return fmt.Errorf("%w: %T", errUnknownResourceType, r)
 	}
 }
 
@@ -139,7 +146,7 @@ func (e *Executor) destroyResource(ctx context.Context, r Resource) error {
 	case *Container:
 		return e.destroyContainer(ctx, res)
 	default:
-		return fmt.Errorf("unknown resource type: %T", r)
+		return fmt.Errorf("%w: %T", errUnknownResourceType, r)
 	}
 }
 
@@ -154,7 +161,7 @@ func (e *Executor) resourceStatus(ctx context.Context, r Resource) (Status, erro
 	case *Container:
 		return e.containerStatus(ctx, res)
 	default:
-		return StatusUnknown, nil
+		return StatusUnknown, fmt.Errorf("%w: %T", errUnknownResourceType, r)
 	}
 }
 
@@ -162,7 +169,7 @@ func (e *Executor) resourceStatus(ctx context.Context, r Resource) (Status, erro
 
 func (e *Executor) applyRemoteImage(ctx context.Context, img *RemoteImage) error {
 	// Check if image exists locally
-	info, err := e.client.ImageInspect(ctx, img.Ref)
+	_, err := e.client.ImageInspect(ctx, img.Ref)
 	imageExists := err == nil
 	if err != nil && !errors.Is(err, types.ErrImageNotFound) {
 		return fmt.Errorf("inspect image %s: %w", img.Ref, err)
@@ -170,23 +177,23 @@ func (e *Executor) applyRemoteImage(ctx context.Context, img *RemoteImage) error
 
 	switch img.PullPolicy {
 	case PullAlways:
-		if err := e.client.ImagePull(ctx, img.Ref); err != nil {
-			return fmt.Errorf("pull image %s: %w", img.Ref, err)
+		if pullErr := e.client.ImagePull(ctx, img.Ref); pullErr != nil {
+			return fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
 		}
 	case PullIfNotPresent:
 		if !imageExists {
-			if err := e.client.ImagePull(ctx, img.Ref); err != nil {
-				return fmt.Errorf("pull image %s: %w", img.Ref, err)
+			if pullErr := e.client.ImagePull(ctx, img.Ref); pullErr != nil {
+				return fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
 			}
 		}
 	case PullNever:
 		if !imageExists {
-			return fmt.Errorf("image %s not found locally and pull policy is Never", img.Ref)
+			return fmt.Errorf("%w: %s", errImageMissingForPullNever, img.Ref)
 		}
 	}
 
 	// Get the resolved image ID
-	info, err = e.client.ImageInspect(ctx, img.Ref)
+	info, err := e.client.ImageInspect(ctx, img.Ref)
 	if err != nil {
 		return fmt.Errorf("inspect image %s: %w", img.Ref, err)
 	}
@@ -218,7 +225,10 @@ func (e *Executor) applyLocalImage(ctx context.Context, img *LocalImage) error {
 func (e *Executor) imageStatus(ctx context.Context, ref string) (Status, error) {
 	_, err := e.client.ImageInspect(ctx, ref)
 	if err != nil {
-		return StatusUnknown, nil
+		if errors.Is(err, types.ErrImageNotFound) {
+			return StatusDestroyed, nil
+		}
+		return StatusUnknown, fmt.Errorf("inspect image %s: %w", ref, err)
 	}
 	return StatusReady, nil
 }
@@ -270,18 +280,19 @@ func (e *Executor) networkStatus(ctx context.Context, net *Network) (Status, err
 		if errors.Is(err, types.ErrNetworkNotFound) {
 			return StatusDestroyed, nil
 		}
-		return StatusUnknown, err
+		return StatusUnknown, fmt.Errorf("inspect network %s: %w", net.Name, err)
 	}
 	return StatusReady, nil
 }
 
 // Container operations
-
+//
+//nolint:gocognit,nestif,gocritic // Container reconciliation is stateful and easier to audit as a single flow.
 func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 	// Resolve image ID from previously applied image resource
 	imageID, ok := e.resolved.Get(c.Image.ID())
 	if !ok {
-		return fmt.Errorf("image %s not resolved (was it applied?)", c.Image.ID())
+		return fmt.Errorf("%w: %s", errImageNotResolved, c.Image.ID())
 	}
 
 	// Resolve network names from NetworkResource references
@@ -297,7 +308,7 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 			if networkName, ok := strings.CutPrefix(id, networkResourceIDPrefix); ok {
 				networks[i] = networkName
 			} else {
-				return fmt.Errorf("cannot resolve network name from %s", ref.ID())
+				return fmt.Errorf("%w: %s", errNetworkNameUnresolvable, ref.ID())
 			}
 		}
 	}
@@ -308,9 +319,9 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 	info, err := e.client.ContainerInspect(ctx, c.Name)
 	if err == nil {
 		// TODO: getting the current state should probably be a separate/phase before execution
-		actualNetworks, err := e.client.ContainerNetworks(ctx, c.Name)
-		if err != nil {
-			return fmt.Errorf("get container networks %s: %w", c.Name, err)
+		actualNetworks, networksErr := e.client.ContainerNetworks(ctx, c.Name)
+		if networksErr != nil {
+			return fmt.Errorf("get container networks %s: %w", c.Name, networksErr)
 		}
 
 		// Container exists - check if matches desired state
@@ -318,13 +329,16 @@ func (e *Executor) applyContainer(ctx context.Context, c *Container) error {
 			!labelsMatch(desiredLabels, info.Labels) ||
 			!networksMatch(networks, actualNetworks) {
 			// Mismatch - recreate
-			if err := e.stopAndRemoveContainer(ctx, c.Name); err != nil {
-				return err
+			if stopErr := e.stopAndRemoveContainer(ctx, c.Name); stopErr != nil {
+				return stopErr
 			}
 			// Fall through to create
 		} else if !info.State.Running {
 			// Matches but stopped - start it
-			return e.client.ContainerStart(ctx, c.Name)
+			if startErr := e.client.ContainerStart(ctx, c.Name); startErr != nil {
+				return fmt.Errorf("start container %s: %w", c.Name, startErr)
+			}
+			return nil
 		} else {
 			// Already running with correct config
 			return nil
@@ -399,7 +413,7 @@ func (e *Executor) containerStatus(ctx context.Context, c *Container) (Status, e
 		if errors.Is(err, types.ErrContainerNotFound) {
 			return StatusDestroyed, nil
 		}
-		return StatusUnknown, err
+		return StatusUnknown, fmt.Errorf("inspect container %s: %w", c.Name, err)
 	}
 
 	switch {

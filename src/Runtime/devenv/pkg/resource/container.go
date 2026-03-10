@@ -6,6 +6,11 @@ import (
 	"altinn.studio/devenv/pkg/container/types"
 )
 
+var (
+	errContainerNameRequired  = errors.New("container name is required")
+	errContainerImageRequired = errors.New("container image is required")
+)
+
 // Container is a resource representing a container.
 // It is a pure value type - use Executor to apply to infrastructure.
 type Container struct {
@@ -39,10 +44,10 @@ func (c *Container) Dependencies() []ResourceRef {
 // Validate checks that the container configuration is valid.
 func (c *Container) Validate() error {
 	if c.Name == "" {
-		return errors.New("container name is required")
+		return errContainerNameRequired
 	}
 	if c.Image.ID() == "" {
-		return errors.New("container image is required")
+		return errContainerImageRequired
 	}
 	return nil
 }

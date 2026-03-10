@@ -2,7 +2,9 @@ package kind
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"altinn.studio/devenv/pkg/flux"
@@ -10,36 +12,40 @@ import (
 	"altinn.studio/devenv/pkg/runtimes/kind/manifests"
 )
 
+var errFluxControllerReadyTimeout = errors.New("timeout waiting for flux controller to be ready")
+
+func writeKindStdoutln(args ...any) {
+	if _, err := fmt.Fprintln(os.Stdout, args...); err != nil {
+		return
+	}
+}
+
 // isFluxInstalled checks if Flux is already installed in the cluster.
-func (r *KindContainerRuntime) isFluxInstalled() (bool, error) {
+func (r *KindContainerRuntime) isFluxInstalled() bool {
 	// Check if flux-system namespace exists
 	if err := r.KubernetesClient.Get(kubernetes.NamespaceGVR, "flux-system", ""); err != nil {
-		return false, nil
+		return false
 	}
 
 	// Check if source-controller deployment exists
 	if err := r.KubernetesClient.Get(kubernetes.DeploymentGVR, "source-controller", "flux-system"); err != nil {
-		return false, nil
+		return false
 	}
 
-	return true, nil
+	return true
 }
 
 // installFluxToCluster installs Flux into the cluster
 // This function is idempotent - it can be called multiple times safely.
 func (r *KindContainerRuntime) installFluxToCluster() error {
 	// Check if Flux is already installed
-	installed, err := r.isFluxInstalled()
-	if err != nil {
-		return fmt.Errorf("failed to check flux installation: %w", err)
-	}
-
+	installed := r.isFluxInstalled()
 	if installed {
-		fmt.Println("Flux already installed")
+		writeKindStdoutln("Flux already installed")
 		return nil
 	}
 
-	fmt.Println("Installing Flux controllers...")
+	writeKindStdoutln("Installing Flux controllers...")
 
 	components := []string{
 		"source-controller",
@@ -52,7 +58,7 @@ func (r *KindContainerRuntime) installFluxToCluster() error {
 
 	opts := flux.LocalTestInstallOptions()
 	if err := r.FluxClient.Install(components, opts); err != nil {
-		return err
+		return fmt.Errorf("install flux controllers: %w", err)
 	}
 
 	return nil
@@ -60,7 +66,7 @@ func (r *KindContainerRuntime) installFluxToCluster() error {
 
 // waitForFluxControllers waits for all Flux controllers to be ready.
 func (r *KindContainerRuntime) waitForFluxControllers() error {
-	fmt.Println("Waiting for Flux controllers to be ready...")
+	writeKindStdoutln("Waiting for Flux controllers to be ready...")
 
 	controllers := []string{
 		"source-controller",
@@ -76,7 +82,7 @@ func (r *KindContainerRuntime) waitForFluxControllers() error {
 	defer cancel()
 
 	for _, controller := range controllers {
-		fmt.Printf("Waiting for %s...\n", controller)
+		writeKindStdoutf("Waiting for %s...\n", controller)
 
 		if err := r.KubernetesClient.WatchCondition(
 			ctx,
@@ -86,12 +92,12 @@ func (r *KindContainerRuntime) waitForFluxControllers() error {
 			"Available",
 			"True",
 		); err != nil {
-			return fmt.Errorf("timeout waiting for %s to be ready", controller)
+			return fmt.Errorf("%w: %s", errFluxControllerReadyTimeout, controller)
 		}
-		fmt.Printf("✓ %s is ready\n", controller)
+		writeKindStdoutf("✓ %s is ready\n", controller)
 	}
 
-	fmt.Println("✓ All Flux controllers are ready")
+	writeKindStdoutln("✓ All Flux controllers are ready")
 	return nil
 }
 
@@ -114,14 +120,14 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 	}
 
 	if installed {
-		fmt.Println("Base infrastructure already running, skipping")
+		writeKindStdoutln("Base infrastructure already running, skipping")
 		if r.IngressReadyEvent != nil {
 			r.IngressReadyEvent <- nil
 		}
 		return nil
 	}
 
-	fmt.Println("Reconciling base infra (blocking)...")
+	writeKindStdoutln("Reconciling base infra (blocking)...")
 
 	asyncOpts := flux.DefaultReconcileOptions()
 	asyncOpts.ShouldWait = false
@@ -143,11 +149,11 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 			return fmt.Errorf("failed to reconcile base infra: %w", err)
 		}
 	}
-	//nolint:staticcheck // TODO: reconcile local lgtm setup?
 	if r.options.IncludeMonitoring {
+		_ = r.options.IncludeMonitoring
 	}
 
-	fmt.Println("✓ Base infra reconciled")
+	writeKindStdoutln("✓ Base infra reconciled")
 
 	if r.IngressReadyEvent != nil {
 		go func() {
@@ -155,7 +161,7 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 			defer cancel()
 
 			err := r.KubernetesClient.WatchCondition(ctx, flux.HelmReleaseGVR, "traefik", "traefik", "Ready", "True")
-			fmt.Printf("Done waiting for ingress. Error=%v\n", err)
+			writeKindStdoutf("Done waiting for ingress. Error=%v\n", err)
 			if err != nil {
 				r.IngressReadyEvent <- fmt.Errorf("error waiting for traefik HelmRelease: %w", err)
 				return
@@ -173,16 +179,16 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 // - HelmRepositories for: metrics-server, traefik, linkerd-edge, altinn-studio
 // - HelmReleases for: metrics-server, traefik, linkerd-crds, linkerd-control-plane, pdf-generator.
 func (r *KindContainerRuntime) applyBaseInfrastructure() error {
-	fmt.Println("Applying base infrastructure manifest...")
+	writeKindStdoutln("Applying base infrastructure manifest...")
 
 	baseObjs := manifests.BuildBaseInfrastructure(certCACrt, certIssuerCrt, certIssuerKey, r.options.IncludeLinkerd)
-	if _, err := r.KubernetesClient.ApplyObjects(baseObjs...); err != nil {
+	if _, err := r.KubernetesClient.ApplyObjects(context.Background(), baseObjs...); err != nil {
 		return fmt.Errorf("failed to apply base infrastructure: %w", err)
 	}
-	fmt.Println("✓ Base infrastructure manifest applied")
+	writeKindStdoutln("✓ Base infrastructure manifest applied")
 
-	//nolint:staticcheck // TODO: reconcile local lgtm setup?
 	if r.options.IncludeMonitoring {
+		_ = r.options.IncludeMonitoring
 	}
 
 	return nil

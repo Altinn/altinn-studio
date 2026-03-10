@@ -1,3 +1,4 @@
+// Package main provides the fixture CLI entrypoint for devenv.
 package main
 
 import (
@@ -11,6 +12,12 @@ import (
 )
 
 const defaultCacheDir = ".cache"
+
+var (
+	errActionRequired = errors.New("action is required (use --action or -a)")
+	errInvalidAction  = errors.New("invalid action")
+	errInvalidVariant = errors.New("invalid variant")
+)
 
 func main() {
 	var (
@@ -47,15 +54,15 @@ func main() {
 	}
 }
 
-func run(action, variant, cacheDir string, verbose bool) error {
+func run(action, variant, cacheDir string, verbose bool) (runErr error) {
 	// Validate action
 	action = strings.ToLower(strings.TrimSpace(action))
 	if action == "" {
-		return errors.New("action is required (use --action or -a)")
+		return errActionRequired
 	}
 
 	if action != "run" && action != "stop" {
-		return fmt.Errorf("invalid action '%s': must be 'run' or 'stop'", action)
+		return fmt.Errorf("%w %q: must be 'run' or 'stop'", errInvalidAction, action)
 	}
 
 	// Validate and parse variant
@@ -68,14 +75,14 @@ func run(action, variant, cacheDir string, verbose bool) error {
 	case "minimal":
 		runtimeVariant = kind.KindContainerRuntimeVariantMinimal
 	default:
-		return fmt.Errorf("invalid variant '%s': must be 'standard' or 'minimal'", variant)
+		return fmt.Errorf("%w %q: must be 'standard' or 'minimal'", errInvalidVariant, variant)
 	}
 
 	if verbose {
-		fmt.Printf("Action: %s\n", action)
-		fmt.Printf("Variant: %s\n", variant)
-		fmt.Printf("Cache directory: %s\n", cacheDir)
-		fmt.Println()
+		writeStdoutf("Action: %s\n", action)
+		writeStdoutf("Variant: %s\n", variant)
+		writeStdoutf("Cache directory: %s\n", cacheDir)
+		writeStdoutln("")
 	}
 
 	// Create the container runtime
@@ -83,7 +90,11 @@ func run(action, variant, cacheDir string, verbose bool) error {
 	if err != nil {
 		return fmt.Errorf("failed to create container runtime: %w", err)
 	}
-	defer func() { _ = runtime.Close() }()
+	defer func() {
+		if closeErr := runtime.Close(); closeErr != nil && runErr == nil {
+			runErr = fmt.Errorf("failed to close container runtime: %w", closeErr)
+		}
+	}()
 
 	// Execute the action
 	switch action {
@@ -98,4 +109,18 @@ func run(action, variant, cacheDir string, verbose bool) error {
 	}
 
 	return nil
+}
+
+func writeStdoutf(format string, args ...any) {
+	writeStdout(fmt.Sprintf(format, args...))
+}
+
+func writeStdoutln(message string) {
+	writeStdout(message + "\n")
+}
+
+func writeStdout(message string) {
+	if _, err := os.Stdout.WriteString(message); err != nil {
+		os.Exit(1)
+	}
 }

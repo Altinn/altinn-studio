@@ -1,9 +1,11 @@
+// Package harness orchestrates local runtime setup, image pushes, and Flux-based deployments.
 package harness
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -11,6 +13,22 @@ import (
 
 	"altinn.studio/devenv/pkg/flux"
 	"altinn.studio/devenv/pkg/runtimes/kind"
+)
+
+var (
+	errClusterCompletedWithoutRegistry = errors.New("cluster completed but registry never signaled ready")
+	errDeploymentConfigMissing         = errors.New("deployment has neither Kustomize nor Helm configured")
+	errProjectRootRequired             = errors.New("ProjectRoot is required")
+	errTimeoutWaitingClusterSetup      = errors.New("timeout waiting for cluster setup")
+	errTimeoutWaitingIngress           = errors.New("timeout waiting for ingress")
+	errTimeoutWaitingRegistry          = errors.New("timeout waiting for registry")
+)
+
+const (
+	clusterSetupTimeout  = 5 * time.Minute
+	ingressReadyTimeout  = 3 * time.Minute
+	registryReadyTimeout = 5 * time.Minute
+	durationLogRounding  = 10 * time.Millisecond
 )
 
 // Config describes the complete setup/deployment specification.
@@ -127,7 +145,7 @@ func run(cfg Config, asyncOpts *AsyncOptions) (*Result, error) {
 	}
 	absoluteCachePath := filepath.Join(cfg.ProjectRoot, cachePath)
 
-	fmt.Println("=== Setting Up Runtime ===")
+	writeStdoutln("=== Setting Up Runtime ===")
 
 	// Step 1: Create the kind cluster runtime
 	runtime, err := kind.New(cfg.Variant, absoluteCachePath, cfg.ClusterOptions)
@@ -147,113 +165,74 @@ func run(cfg Config, asyncOpts *AsyncOptions) (*Result, error) {
 // runSync runs cluster setup synchronously, then parallel build/push, then deploy.
 func runSync(cfg Config, runtime *kind.KindContainerRuntime) (*Result, error) {
 	// Step 1: Run cluster setup (blocks until complete including infra)
-	fmt.Println("Setting up cluster...")
+	writeStdoutln("Setting up cluster...")
 	if err := runtime.Run(); err != nil {
 		return nil, fmt.Errorf("cluster setup failed: %w", err)
 	}
 
 	// Step 2: Run parallel build/push tasks
 	if len(cfg.Images) > 0 || len(cfg.Artifacts) > 0 || len(cfg.HelmCharts) > 0 {
-		fmt.Println("Building images and pushing artifacts...")
+		writeStdoutln("Building images and pushing artifacts...")
 		if err := runParallelTasks(cfg, runtime); err != nil {
 			return nil, err
 		}
 	}
 
 	// Step 3: Execute deployments sequentially
-	for _, dep := range cfg.Deployments {
-		if err := executeDeploy(cfg, runtime, dep); err != nil {
-			return nil, fmt.Errorf("deployment %q failed: %w", dep.Name, err)
-		}
+	if err := runDeployments(cfg, runtime, cfg.Deployments); err != nil {
+		return nil, err
 	}
 
-	fmt.Println("=== Runtime Setup Complete ===")
+	writeStdoutln("=== Runtime Setup Complete ===")
 	return &Result{Runtime: runtime}, nil
 }
 
 // runAsync overlaps cluster setup with build/push using event channels.
 func runAsync(cfg Config, runtime *kind.KindContainerRuntime, asyncOpts *AsyncOptions) (*Result, error) {
-	// Set up event channels for async signaling
 	registryReady := make(chan error, 1)
 	ingressReady := make(chan error, 1)
+	clusterDone := make(chan error, 1)
 	runtime.RegistryStartedEvent = registryReady
 	runtime.IngressReadyEvent = ingressReady
-
-	// Start cluster in background
-	clusterDone := make(chan error, 1)
 	go func() {
 		clusterDone <- runtime.Run()
 	}()
 
-	// Wait for registry to be ready
-	fmt.Println("Waiting for registry...")
-	select {
-	case err := <-registryReady:
-		if err != nil {
-			return nil, fmt.Errorf("registry startup failed: %w", err)
-		}
-	case err := <-clusterDone:
-		if err != nil {
-			return nil, fmt.Errorf("cluster setup failed: %w", err)
-		}
-		return nil, errors.New("cluster completed but registry never signaled ready")
-	case <-time.After(5 * time.Minute):
-		return nil, errors.New("timeout waiting for registry")
+	if err := waitForRegistryStart(registryReady, clusterDone); err != nil {
+		return nil, err
 	}
 
-	// Signal registry ready to caller
 	if asyncOpts.RegistryReady != nil {
 		asyncOpts.RegistryReady <- nil
 	}
 
-	// Run parallel build/push tasks (overlapped with cluster setup)
 	if len(cfg.Images) > 0 || len(cfg.Artifacts) > 0 || len(cfg.HelmCharts) > 0 {
-		fmt.Println("Building images and pushing artifacts...")
+		writeStdoutln("Building images and pushing artifacts...")
 		if err := runParallelTasks(cfg, runtime); err != nil {
 			return nil, err
 		}
 	}
 
-	// Wait for cluster setup to complete
-	select {
-	case err := <-clusterDone:
-		if err != nil {
-			return nil, fmt.Errorf("cluster setup failed: %w", err)
-		}
-	default:
-		// Check if cluster already finished during parallel tasks
-		select {
-		case err := <-clusterDone:
-			if err != nil {
-				return nil, fmt.Errorf("cluster setup failed: %w", err)
-			}
-		case <-time.After(5 * time.Minute):
-			return nil, errors.New("timeout waiting for cluster setup")
-		}
+	if err := waitForClusterSetup(clusterDone); err != nil {
+		return nil, err
 	}
 
-	// Execute deployments sequentially, respecting WaitForIngress flag
-	var ingressWaiters []Deployment
+	readyDeployments := make([]Deployment, 0, len(cfg.Deployments))
+	ingressWaiters := make([]Deployment, 0, len(cfg.Deployments))
 	for _, dep := range cfg.Deployments {
 		if dep.WaitForIngress {
 			ingressWaiters = append(ingressWaiters, dep)
 			continue
 		}
-		if err := executeDeploy(cfg, runtime, dep); err != nil {
-			return nil, fmt.Errorf("deployment %q failed: %w", dep.Name, err)
-		}
+		readyDeployments = append(readyDeployments, dep)
+	}
+	if err := runDeployments(cfg, runtime, readyDeployments); err != nil {
+		return nil, err
 	}
 
-	// Wait for ingress ready
 	if len(ingressWaiters) > 0 || asyncOpts.IngressReady != nil {
-		fmt.Println("Waiting for ingress...")
-		select {
-		case err := <-ingressReady:
-			if err != nil {
-				return nil, fmt.Errorf("ingress setup failed: %w", err)
-			}
-		case <-time.After(3 * time.Minute):
-			return nil, errors.New("timeout waiting for ingress")
+		if err := waitForIngressReady(ingressReady); err != nil {
+			return nil, err
 		}
 	}
 
@@ -261,22 +240,71 @@ func runAsync(cfg Config, runtime *kind.KindContainerRuntime, asyncOpts *AsyncOp
 		asyncOpts.IngressReady <- nil
 	}
 
-	// Execute deployments that were waiting for ingress
-	for _, dep := range ingressWaiters {
-		if err := executeDeploy(cfg, runtime, dep); err != nil {
-			return nil, fmt.Errorf("deployment %q failed: %w", dep.Name, err)
-		}
+	if err := runDeployments(cfg, runtime, ingressWaiters); err != nil {
+		return nil, err
 	}
 
-	fmt.Println("=== Runtime Setup Complete ===")
+	writeStdoutln("=== Runtime Setup Complete ===")
 	return &Result{Runtime: runtime}, nil
 }
 
 func validateConfig(cfg *Config) error {
 	if cfg.ProjectRoot == "" {
-		return errors.New("ProjectRoot is required")
+		return errProjectRootRequired
 	}
 	return nil
+}
+
+func waitForRegistryStart(registryReady, clusterDone <-chan error) error {
+	writeStdoutln("Waiting for registry...")
+	select {
+	case err := <-registryReady:
+		if err != nil {
+			return fmt.Errorf("registry startup failed: %w", err)
+		}
+		return nil
+	case err := <-clusterDone:
+		if err != nil {
+			return fmt.Errorf("cluster setup failed: %w", err)
+		}
+		return errClusterCompletedWithoutRegistry
+	case <-time.After(registryReadyTimeout):
+		return errTimeoutWaitingRegistry
+	}
+}
+
+func waitForClusterSetup(clusterDone <-chan error) error {
+	select {
+	case err := <-clusterDone:
+		if err != nil {
+			return fmt.Errorf("cluster setup failed: %w", err)
+		}
+		return nil
+	default:
+	}
+
+	select {
+	case err := <-clusterDone:
+		if err != nil {
+			return fmt.Errorf("cluster setup failed: %w", err)
+		}
+		return nil
+	case <-time.After(clusterSetupTimeout):
+		return errTimeoutWaitingClusterSetup
+	}
+}
+
+func waitForIngressReady(ingressReady <-chan error) error {
+	writeStdoutln("Waiting for ingress...")
+	select {
+	case err := <-ingressReady:
+		if err != nil {
+			return fmt.Errorf("ingress setup failed: %w", err)
+		}
+		return nil
+	case <-time.After(ingressReadyTimeout):
+		return errTimeoutWaitingIngress
+	}
 }
 
 func runParallelTasks(cfg Config, runtime *kind.KindContainerRuntime) error {
@@ -303,20 +331,24 @@ func runParallelTasks(cfg Config, runtime *kind.KindContainerRuntime) error {
 		})
 	}
 
-	return g.Wait()
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("parallel tasks failed: %w", err)
+	}
+	return nil
 }
 
 func executeDeploy(cfg Config, runtime *kind.KindContainerRuntime, dep Deployment) error {
-	fmt.Printf("Deploying %s...\n", dep.Name)
+	writeStdoutf("Deploying %s...\n", dep.Name)
 	start := time.Now()
 
 	var err error
-	if dep.Kustomize != nil {
+	switch {
+	case dep.Kustomize != nil:
 		err = deployKustomize(cfg, runtime, dep.Kustomize)
-	} else if dep.Helm != nil {
+	case dep.Helm != nil:
 		err = deployHelm(cfg, runtime, dep.Helm)
-	} else {
-		return fmt.Errorf("deployment %q has neither Kustomize nor Helm configured", dep.Name)
+	default:
+		return fmt.Errorf("%w: %q", errDeploymentConfigMissing, dep.Name)
 	}
 
 	if err != nil {
@@ -327,6 +359,33 @@ func executeDeploy(cfg Config, runtime *kind.KindContainerRuntime, dep Deploymen
 	return nil
 }
 
+func runDeployments(cfg Config, runtime *kind.KindContainerRuntime, deployments []Deployment) error {
+	for _, dep := range deployments {
+		if err := executeDeploy(cfg, runtime, dep); err != nil {
+			return fmt.Errorf("deployment %q failed: %w", dep.Name, err)
+		}
+	}
+	return nil
+}
+
 func logDuration(stepName string, start time.Time) {
-	fmt.Printf("  [%s took %s]\n", stepName, time.Since(start).Round(10*time.Millisecond))
+	writeStdoutf("  [%s took %s]\n", stepName, time.Since(start).Round(durationLogRounding))
+}
+
+func writeStdoutf(format string, args ...any) {
+	writeTo(os.Stdout, fmt.Sprintf(format, args...))
+}
+
+func writeStderrf(format string, args ...any) {
+	writeTo(os.Stderr, fmt.Sprintf(format, args...))
+}
+
+func writeStdoutln(message string) {
+	writeTo(os.Stdout, message+"\n")
+}
+
+func writeTo(file *os.File, message string) {
+	if _, err := file.WriteString(message); err != nil {
+		panic(err)
+	}
 }

@@ -1,6 +1,7 @@
 package kind
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,7 +29,10 @@ func TestNew_ShowCachePathStructure(t *testing.T) {
 			return err
 		}
 
-		relPath, _ := filepath.Rel(cachePath, path)
+		relPath, err := filepath.Rel(cachePath, path)
+		if err != nil {
+			return fmt.Errorf("derive relative path for %s: %w", path, err)
+		}
 		if relPath == "." {
 			return nil
 		}

@@ -132,6 +132,7 @@ func TestNew_CachePathValidation(t *testing.T) {
 		{
 			name: "valid new directory",
 			setup: func(t *testing.T) string {
+				t.Helper()
 				return filepath.Join(t.TempDir(), "new-cache-dir")
 			},
 			wantErr: false,
@@ -139,6 +140,7 @@ func TestNew_CachePathValidation(t *testing.T) {
 		{
 			name: "valid existing directory",
 			setup: func(t *testing.T) string {
+				t.Helper()
 				dir := filepath.Join(t.TempDir(), "existing-cache")
 				if err := os.MkdirAll(dir, 0755); err != nil {
 					t.Fatal(err)
@@ -150,6 +152,7 @@ func TestNew_CachePathValidation(t *testing.T) {
 		{
 			name: "path exists but is a file",
 			setup: func(t *testing.T) string {
+				t.Helper()
 				file := filepath.Join(t.TempDir(), "file-not-dir")
 				if err := os.WriteFile(file, []byte("test"), 0644); err != nil {
 					t.Fatal(err)
@@ -162,6 +165,7 @@ func TestNew_CachePathValidation(t *testing.T) {
 		{
 			name: "nested path that needs creation",
 			setup: func(t *testing.T) string {
+				t.Helper()
 				return filepath.Join(t.TempDir(), "deeply", "nested", "cache", "path")
 			},
 			wantErr: false,
@@ -177,13 +181,15 @@ func TestNew_CachePathValidation(t *testing.T) {
 			if tt.wantErr {
 				if err == nil {
 					t.Error("New() expected error, got nil")
-				} else if tt.errSubstr != "" && !strings.Contains(err.Error(), tt.errSubstr) {
+				}
+				if err != nil && tt.errSubstr != "" && !strings.Contains(err.Error(), tt.errSubstr) {
 					t.Errorf("New() error = %v, want substring %q", err, tt.errSubstr)
 				}
-			} else {
-				if err != nil {
-					t.Errorf("New() unexpected error = %v", err)
-				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("New() unexpected error = %v", err)
 			}
 		})
 	}

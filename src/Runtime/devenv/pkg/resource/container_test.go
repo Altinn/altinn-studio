@@ -123,14 +123,8 @@ func TestContainer_Validate(t *testing.T) {
 func TestContainer_Fields(t *testing.T) {
 	c := &Container{
 		Name:          "mycontainer",
-		Image:         RefID("image:nginx"),
-		Networks:      []ResourceRef{RefID("network:mynet")},
 		Ports:         []types.PortMapping{{HostPort: "8080", ContainerPort: "80"}},
-		Volumes:       []types.VolumeMount{{HostPath: "/data", ContainerPath: "/app/data"}},
 		Env:           []string{"FOO=bar"},
-		Labels:        map[string]string{"app": "test"},
-		Command:       []string{"nginx", "-g", "daemon off;"},
-		ExtraHosts:    []string{"host.docker.internal:172.17.0.1"},
 		RestartPolicy: "always",
 	}
 

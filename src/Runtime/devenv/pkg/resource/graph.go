@@ -7,6 +7,18 @@ import (
 	"sync"
 )
 
+var (
+	errGraphNilResource       = errors.New("resource is nil")
+	errGraphEmptyResourceID   = errors.New("resource ID is empty")
+	errGraphNoZeroInDegree    = errors.New("internal error: no resources with zero in-degree")
+	errGraphResourceNotFound  = errors.New("internal error: resource not found in graph")
+	errGraphNilGraphResource  = errors.New("internal error: resource is nil in graph")
+	errGraphDuplicateResource = errors.New("resource already exists")
+	errGraphMissingDependency = errors.New("resource depends on non-existent resource")
+	errGraphNilDependency     = errors.New("resource depends on nil resource")
+	errGraphDependencyCycle   = errors.New("dependency cycle detected")
+)
+
 // Graph manages a DAG of resources with dependency tracking.
 // Graph is a pure data structure - use Executor to apply resources.
 type Graph struct {
@@ -25,18 +37,18 @@ func NewGraph() *Graph {
 // Returns error if ID is empty or already exists.
 func (g *Graph) Add(r Resource) error {
 	if r == nil {
-		return errors.New("resource is nil")
+		return errGraphNilResource
 	}
 	id := r.ID()
 	if id == "" {
-		return errors.New("resource ID is empty")
+		return errGraphEmptyResourceID
 	}
 
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
 	if _, exists := g.resources[id]; exists {
-		return fmt.Errorf("resource %q already exists", id)
+		return fmt.Errorf("%w: %q", errGraphDuplicateResource, id)
 	}
 	g.resources[id] = r
 	return nil
@@ -74,7 +86,7 @@ func (g *Graph) Validate() error {
 		for _, ref := range r.Dependencies() {
 			depID := ref.ID()
 			if _, exists := g.resources[depID]; !exists {
-				return fmt.Errorf("resource %q depends on non-existent resource %q", id, depID)
+				return fmt.Errorf("%w: %q -> %q", errGraphMissingDependency, id, depID)
 			}
 		}
 	}
@@ -122,6 +134,8 @@ func (g *Graph) ReverseTopologicalOrder() ([][]Resource, error) {
 }
 
 // detectCycle uses DFS to find cycles. Caller must hold read lock.
+//
+//nolint:gocognit // DFS cycle detection is clearer left as one routine.
 func (g *Graph) detectCycle() error {
 	const (
 		white = iota // unvisited
@@ -136,10 +150,10 @@ func (g *Graph) detectCycle() error {
 	visit = func(id ResourceID) error {
 		r, exists := g.resources[id]
 		if !exists {
-			return fmt.Errorf("internal error: resource %q not found in graph", id)
+			return fmt.Errorf("%w: %q", errGraphResourceNotFound, id)
 		}
 		if r == nil {
-			return fmt.Errorf("internal error: resource %q is nil", id)
+			return fmt.Errorf("%w: %q", errGraphNilGraphResource, id)
 		}
 
 		colors[id] = gray
@@ -150,10 +164,10 @@ func (g *Graph) detectCycle() error {
 
 			dep, exists := g.resources[depID]
 			if !exists {
-				return fmt.Errorf("resource %q depends on non-existent resource %q", id, depID)
+				return fmt.Errorf("%w: %q -> %q", errGraphMissingDependency, id, depID)
 			}
 			if dep == nil {
-				return fmt.Errorf("resource %q depends on nil resource %q", id, depID)
+				return fmt.Errorf("%w: %q -> %q", errGraphNilDependency, id, depID)
 			}
 
 			switch colors[depID] {
@@ -164,7 +178,7 @@ func (g *Graph) detectCycle() error {
 				cycle := make([]ResourceID, len(cyclePath)+1)
 				copy(cycle, cyclePath)
 				cycle[len(cyclePath)] = depID
-				return fmt.Errorf("dependency cycle detected: %v", cycle)
+				return fmt.Errorf("%w: %v", errGraphDependencyCycle, cycle)
 			case white:
 				if err := visit(depID); err != nil {
 					return err
@@ -190,6 +204,8 @@ func (g *Graph) detectCycle() error {
 // topologicalLevels returns resources grouped by dependency level.
 // Level 0 has no dependencies, level 1 depends only on level 0, etc.
 // Caller must hold read lock.
+//
+//nolint:gocognit // Kahn's algorithm is simpler to follow inline.
 func (g *Graph) topologicalLevels() ([][]Resource, error) {
 	if len(g.resources) == 0 {
 		return nil, nil
@@ -222,7 +238,7 @@ func (g *Graph) topologicalLevels() ([][]Resource, error) {
 
 		if len(level) == 0 {
 			// Should not happen if cycle detection passed
-			return nil, errors.New("internal error: no resources with zero in-degree")
+			return nil, errGraphNoZeroInDegree
 		}
 
 		// Mark processed resources and update dependents

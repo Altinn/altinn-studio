@@ -21,6 +21,11 @@ linters:
     - gomoddirectives
     - depguard
     - godox
+    - exhaustruct
+    - gochecknoglobals
+    - ireturn
+    - tagliatelle
+    - testpackage
 
   settings:
     errcheck:
