@@ -13,6 +13,7 @@ import { getUiFolderSettings } from 'src/features/form/ui';
 import { UpdateDataElementIdsForCypress } from 'src/features/formBootstrap/DataElementIdsForCypress';
 import { type FormBootstrapContextValue, type ProcessedDataModelInfo } from 'src/features/formBootstrap/types';
 import { useFormBootstrapQuery } from 'src/features/formBootstrap/useFormBootstrapQuery';
+import { useInstanceDataQuery } from 'src/features/instance/InstanceContext';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { createValidator } from 'src/features/validation/schemaValidation/schemaValidationUtils';
@@ -116,7 +117,6 @@ export function FormBootstrapProvider({
         expandedWidthLayouts: processedLayouts.expandedWidthLayouts,
         dataModels,
         allDataTypes: Object.keys(dataModels),
-        writableDataTypes: Object.keys(dataModels).filter((dt) => dataModels[dt].isWritable),
         staticOptions,
         initialValidationIssues: data?.validationIssues,
       };
@@ -177,7 +177,22 @@ export const FormBootstrap = {
   },
   useReadableDataTypes: () => useFormBootstrap().allDataTypes,
   useLaxReadableDataTypes: () => useLaxFormBootstrap()?.allDataTypes ?? ContextNotProvided,
-  useWritableDataTypes: () => useFormBootstrap().writableDataTypes,
+  useWritableDataTypes: () => {
+    const { allDataTypes, dataModels } = useFormBootstrap();
+    return (
+      useInstanceDataQuery({
+        select: (instance) =>
+          allDataTypes.filter((dataType) => {
+            const elementId = dataModels[dataType]?.dataElementId;
+            if (!elementId) {
+              throw new Error(`Data element id not found for data type: ${dataType}`);
+            }
+
+            return instance.data.find((item) => item.id === elementId)?.locked !== true;
+          }),
+      }).data ?? allDataTypes
+    );
+  },
   useInitialData: () => {
     const dataModels = useFormBootstrap().dataModels;
     return useMemo(

@@ -13,9 +13,8 @@ import type { IExpandedWidthLayouts, IHiddenLayoutsExternal } from 'src/types';
 
 export interface RawDataModelInfo {
   schema: JSONSchema7;
-  initialData: unknown;
+  initialData: object;
   dataElementId: string | null;
-  isWritable: boolean;
   expressionValidationConfig: IExpressionValidationConfig | null;
   initialValidationIssues?: BackendValidationIssue[] | null;
 }
@@ -45,7 +44,6 @@ export interface FormBootstrapContextValue {
   expandedWidthLayouts: IExpandedWidthLayouts;
   dataModels: Record<string, ProcessedDataModelInfo>;
   allDataTypes: string[];
-  writableDataTypes: string[];
   staticOptions: Record<string, StaticOptionSet>;
   initialValidationIssues?: BackendValidationIssue[] | null;
 }

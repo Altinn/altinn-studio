@@ -119,7 +119,7 @@ describe('Expressions shared context tests', () => {
             fetchFormBootstrapForInstance: async () =>
               getFormBootstrapMock((obj) => {
                 obj.layouts = layouts!;
-                obj.dataModels[defaultDataTypeMock].initialData = dataModel;
+                obj.dataModels[defaultDataTypeMock].initialData = dataModel ?? {};
               }),
             ...(instance ? { fetchInstanceData: async () => instance } : {}),
             ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),

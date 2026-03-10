@@ -81,12 +81,6 @@ public sealed class DataModelInfo
     public string? DataElementId { get; init; }
 
     /// <summary>
-    /// Whether the data element is writable (not locked).
-    /// </summary>
-    [JsonPropertyName("isWritable")]
-    public required bool IsWritable { get; init; }
-
-    /// <summary>
     /// Expression validation configuration. Null for PDF mode or locked data.
     /// </summary>
     [JsonPropertyName("expressionValidationConfig")]
