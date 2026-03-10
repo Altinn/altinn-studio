@@ -110,6 +110,7 @@ func (s *CryptoService) createCert(
 	subject CertSubject,
 	notAfter time.Time,
 ) (*x509.Certificate, *rsa.PrivateKey, error) {
+	// NOTE: since Go 1.26 random is ingored here, tests now use testing/cryptotest.SetGlobalRandom
 	rsaKey, err := rsa.GenerateKey(s.random, s.keySizeBits)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error generating RSA key for jwks: %w", err)
