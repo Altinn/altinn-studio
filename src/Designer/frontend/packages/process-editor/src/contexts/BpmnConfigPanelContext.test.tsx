@@ -23,7 +23,7 @@ describe('BpmnConfigPanelContext', () => {
   it('should provide a useBpmnConfigPanelFormContext hook', () => {
     const TestComponent = () => {
       const { metadataFormRef } = useBpmnConfigPanelFormContext();
-      // eslint-disable-next-line react-hooks/refs -- test component needs to read ref during render to verify its value
+      // Todo: add eslint disable next line when updating eslint-react-hooks to v7
       return <div data-testid='context'>{JSON.stringify(metadataFormRef.current)}</div>;
     };
 
@@ -72,7 +72,7 @@ describe('BpmnConfigPanelContext', () => {
           <button onClick={handleSetMetadata}>Set meta data</button>
           <button onClick={handleResetMetadata}>Reset meta data</button>
           <div data-testid='context'>
-            {/* eslint-disable-next-line react-hooks/refs -- test component needs to read ref during render to verify its value */}
+            {/* Todo: add eslint disable next line when updating eslint-react-hooks to v7 */}
             {metadataFormRef.current ? JSON.stringify(metadataFormRef.current) : 'Empty'}
           </div>
         </div>

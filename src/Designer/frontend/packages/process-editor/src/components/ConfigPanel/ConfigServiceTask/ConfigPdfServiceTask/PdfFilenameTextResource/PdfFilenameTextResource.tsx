@@ -30,7 +30,8 @@ export const PdfFilenameTextResource = (): React.ReactElement => {
     storedFilenameTextResourceId,
   );
 
-  // eslint-disable-next-line react-hooks/refs -- guard clause; ref is not used for rendering
+  // Todo: add eslint disable next line when updating eslint-react-hooks to v7
+  // Guard clause; ref is not used for rendering
   if (!modelerRef?.current || !bpmnDetails) {
     return null;
   }
