@@ -27,9 +27,9 @@ We actively welcome your pull requests - even more so if you follow our [develop
 6. Issue that pull request!
 7. Be part of the exclusive [external-contribution-❤️](https://github.com/Altinn/altinn-studio/pulls?q=is%3Apr+label%3Aexternal-contribution-%E2%9D%A4%EF%B8%8F+) list.
 
-## Any contributions you make will be under the 3-Clause BSD License Software License
+## Any contributions you make will be under the MIT License
 
-In short, when you submit code changes, your submissions are understood to be under the same liberal [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/master/LICENSE.md) that covers the project. Feel free to contact the maintainers if that's a concern.
+In short, when you submit code changes, your submissions are understood to be under the same liberal [MIT License](https://github.com/Altinn/altinn-studio/blob/main/LICENSE) that covers the project. Feel free to contact the maintainers if that's a concern.
 
 ## Report bugs using GitHub issues
 
@@ -53,4 +53,4 @@ People *love* thorough bug reports. I'm not even kidding.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under its [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/master/LICENSE.md).
+By contributing, you agree that your contributions will be licensed under its [MIT License](https://github.com/Altinn/altinn-studio/blob/main/LICENSE).

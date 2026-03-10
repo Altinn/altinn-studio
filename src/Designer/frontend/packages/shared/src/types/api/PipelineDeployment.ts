@@ -25,7 +25,6 @@ export enum EventType {
   DeprecatedPipelineScheduled = 'DeprecatedPipelineScheduled',
   PipelineScheduled = 'PipelineScheduled',
   PipelineSucceeded = 'PipelineSucceeded',
-  PipelineFailed = 'PipelineFailed',
 }
 
 export enum SucceededEventType {
@@ -35,6 +34,7 @@ export enum SucceededEventType {
 }
 
 export enum FailedEventType {
+  PipelineFailed = 'PipelineFailed',
   InstallFailed = 'InstallFailed',
   UpgradeFailed = 'UpgradeFailed',
   UninstallFailed = 'UninstallFailed',
@@ -55,14 +55,11 @@ export const getDeployStatus = (deployment: PipelineDeployment | undefined): Bui
       const firstEventType = deployment?.events[0]?.eventType;
 
       if (
-        (lastEventType === EventType.PipelineSucceeded ||
-          lastEventType === EventType.PipelineFailed) &&
+        lastEventType === EventType.PipelineSucceeded &&
         (firstEventType === EventType.DeprecatedPipelineScheduled ||
           new Date().getTime() - new Date(lastEvent.created).getTime() > 15 * 60 * 1000)
       ) {
-        return lastEventType === EventType.PipelineSucceeded
-          ? BuildResult.succeeded
-          : BuildResult.failed;
+        return BuildResult.succeeded;
       }
 
       return BuildResult.none;

@@ -119,6 +119,7 @@ export const PartySelection = () => {
     <InstantiationContainer>
       <title>{`${getPageTitle(appName, langAsString('party_selection.header'), appOwner)}`}</title>
       <Flex
+        data-testid='presentation'
         container
         direction='row'
         style={{
