@@ -10,6 +10,7 @@ import { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
 import { makeLayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import { getUiFolderSettings } from 'src/features/form/ui';
+import { UpdateDataElementIdsForCypress } from 'src/features/formBootstrap/DataElementIdsForCypress';
 import { type FormBootstrapContextValue, type ProcessedDataModelInfo } from 'src/features/formBootstrap/types';
 import { useFormBootstrapQuery } from 'src/features/formBootstrap/useFormBootstrapQuery';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
@@ -128,7 +129,12 @@ export function FormBootstrapProvider({
     return <DisplayError error={error ?? new Error('Failed to load form bootstrap data')} />;
   }
 
-  return <FormBootstrapContext.Provider value={contextValue}>{children}</FormBootstrapContext.Provider>;
+  return (
+    <FormBootstrapContext.Provider value={contextValue}>
+      {window.Cypress && <UpdateDataElementIdsForCypress />}
+      {children}
+    </FormBootstrapContext.Provider>
+  );
 }
 
 function useFormBootstrap() {

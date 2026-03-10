@@ -15,6 +15,7 @@ import type { IFeatureToggles } from 'src/features/toggles';
 import type { ILayoutFile } from 'src/layout/common.generated';
 import type { ILayoutCollection, ILayouts } from 'src/layout/layout';
 import JQueryWithSelector = Cypress.JQueryWithSelector;
+import type { IDataModelMultiPatchResponse } from 'src/features/formData/types';
 
 const appFrontend = new AppFrontend();
 
@@ -790,7 +791,7 @@ Cypress.Commands.add('getNextPatchValidations', (result) => {
   cy.intercept({ method: 'PATCH', url: '**/data*', times: 1 }, (req) => {
     req.on('response', (res) => {
       // Consider finding out what data element id corresponds to each type at the beginning of the test instead, for more explicit checking
-      result.validations = res.body.validationIssues;
+      result.validations = (res.body as IDataModelMultiPatchResponse).validationIssues;
     });
   }).as('getNextValidations');
 });
