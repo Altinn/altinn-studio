@@ -170,6 +170,7 @@ func (g *GitHubCLI) runWriteOutput(ctx context.Context, args ...string) (string,
 
 	g.log.Command("gh", args)
 
+	//nolint:gosec // G204: executable is fixed to gh; args are the intended wrapper input.
 	cmd := exec.CommandContext(ctx, "gh", args...)
 	if g.workdir != "" {
 		cmd.Dir = g.workdir
@@ -189,6 +190,7 @@ func (g *GitHubCLI) runWriteOutput(ctx context.Context, args ...string) (string,
 func (g *GitHubCLI) runRead(ctx context.Context, args ...string) (string, error) {
 	g.log.Command("gh", args)
 
+	//nolint:gosec // G204: executable is fixed to gh; args are the intended wrapper input.
 	cmd := exec.CommandContext(ctx, "gh", args...)
 	if g.workdir != "" {
 		cmd.Dir = g.workdir

@@ -374,6 +374,7 @@ func applyBackportChanges(
 		return fmt.Errorf("insert changelog entries: %w", err)
 	}
 
+	//nolint:gosec // G703: changelogFile is resolved from the current repo root and component changelog path.
 	if err := os.WriteFile(changelogFile, []byte(updatedCl.String()), perm.FilePermDefault); err != nil {
 		return fmt.Errorf("write changelog: %w", err)
 	}

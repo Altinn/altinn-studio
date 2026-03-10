@@ -171,8 +171,8 @@ func (b *StudioctlBuilder) copyAssets(
 	b.log.Info("Copied %s", filepath.Base(resourcesDest))
 
 	for _, script := range installScripts {
-		dest := filepath.Join(outputDir, filepath.Base(script))
-		if err := copyInstallScript(script, dest, releaseTag); err != nil {
+		dest, err := copyInstallScript(script, outputDir, releaseTag)
+		if err != nil {
 			return fmt.Errorf("copy install script %s: %w", script, err)
 		}
 		b.log.Info("Copied %s", filepath.Base(dest))
@@ -181,25 +181,27 @@ func (b *StudioctlBuilder) copyAssets(
 	return nil
 }
 
-func copyInstallScript(src, dst, releaseTag string) error {
+func copyInstallScript(src, outputDir, releaseTag string) (string, error) {
+	dst := filepath.Join(outputDir, filepath.Base(src))
 	content, err := os.ReadFile(src) //nolint:gosec // G304: src path is from trusted dev tooling input
 	if err != nil {
-		return fmt.Errorf("read source file: %w", err)
+		return "", fmt.Errorf("read source file: %w", err)
 	}
 	info, err := os.Stat(src)
 	if err != nil {
-		return fmt.Errorf("stat source file: %w", err)
+		return "", fmt.Errorf("stat source file: %w", err)
 	}
 	if err := EnsureDir(filepath.Dir(dst)); err != nil {
-		return fmt.Errorf("create destination directory: %w", err)
+		return "", fmt.Errorf("create destination directory: %w", err)
 	}
 
 	// Replace only the assignment placeholder and keep the fallback marker literal.
 	stamped := strings.Replace(string(content), installScriptDefaultVersionPlaceholder, releaseTag, 1)
+	//nolint:gosec // G703: dst is anchored to outputDir and uses filepath.Base(src), so it cannot escape the release output directory.
 	if err := os.WriteFile(dst, []byte(stamped), info.Mode().Perm()); err != nil {
-		return fmt.Errorf("write destination file: %w", err)
+		return "", fmt.Errorf("write destination file: %w", err)
 	}
-	return nil
+	return dst, nil
 }
 
 func (b *StudioctlBuilder) generateChecksums(ctx context.Context, outputDir string) error {
