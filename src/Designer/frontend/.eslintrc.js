@@ -7,6 +7,7 @@ module.exports = {
     'coverage/**',
     '**/*.d.ts',
     'node_modules/**',
+    '.eslintrc.js',
   ],
   extends: [
     'plugin:import/typescript',
