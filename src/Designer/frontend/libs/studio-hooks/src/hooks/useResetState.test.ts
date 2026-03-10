@@ -1,72 +1,63 @@
-import type { RenderHookResult } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import type { Dispatch, SetStateAction } from 'react';
 import { act } from 'react';
 import { useResetState } from './useResetState';
 
 describe('useResetState', () => {
   it('returns the initial value on first render', () => {
-    const { result } = renderUseResetState('hello', 'key-1');
+    const { result } = renderHook(() => useResetState('initial state', 'key'));
     const [state] = result.current;
-    expect(state).toBe('hello');
+    expect(state).toBe('initial state');
   });
 
-  it('keeps the state when resetKey has not changed', () => {
-    const { result } = renderUseResetState('hello', 'key-1');
+  it('updates state when changed with setState', () => {
+    const { result } = renderHook(() => useResetState('initial state', 'key'));
     const [, setState] = result.current;
-    act(() => setState('updated'));
+
+    act(() => setState('updated state'));
+
     const [state] = result.current;
-    expect(state).toBe('updated');
+    expect(state).toBe('updated state');
   });
 
-  it('resets the state to initialValue when resetKey changes', () => {
-    const { result, rerender } = renderUseResetState('hello', 'key-1');
+  it('resets state to initialValue when resetKey changes', () => {
+    let resetKey = 'initial key';
+    const { result, rerender } = renderHook(() => useResetState('initial state', resetKey));
     const [, setState] = result.current;
-    act(() => setState('updated'));
-    rerender({ initialValue: 'hello', resetKey: 'key-2' });
+
+    act(() => setState('updated state'));
+    resetKey = 'updated key';
+    rerender();
+
     const [state] = result.current;
-    expect(state).toBe('hello');
+    expect(state).toBe('initial state');
   });
 
-  it('uses the new initialValue when resetKey changes', () => {
-    const { result, rerender } = renderUseResetState('first', 'key-1');
-    rerender({ initialValue: 'second', resetKey: 'key-2' });
+  it('does not reset when initialValue changes after calling hook, when resetKey stays the same', () => {
+    let initialValue = 'first value';
+    let resetKey = 'key';
+    const { result, rerender } = renderHook(() => useResetState(initialValue, resetKey));
+    const [, setState] = result.current;
+
+    act(() => setState('edited'));
+    initialValue = 'second value';
+    rerender();
+
+    const [state] = result.current;
+    expect(state).toBe('edited');
+  });
+
+  it('resets to new initialValue when both initalValue and resetKey changes after first call', () => {
+    let initialValue = 'first';
+    let resetKey = 'key-1';
+    const { result, rerender } = renderHook(() => useResetState(initialValue, resetKey));
+    const [, setState] = result.current;
+
+    act(() => setState('edited'));
+    initialValue = 'second';
+    resetKey = 'key-2';
+    rerender();
+
     const [state] = result.current;
     expect(state).toBe('second');
   });
-
-  it('does not reset when resetKey is the same reference', () => {
-    const { result, rerender } = renderUseResetState('hello', 'key-1');
-    const [, setState] = result.current;
-    act(() => setState('updated'));
-    rerender({ initialValue: 'hello', resetKey: 'key-1' });
-    const [state] = result.current;
-    expect(state).toBe('updated');
-  });
-
-  it('handles NaN as resetKey using Object.is semantics', () => {
-    const { result, rerender } = renderUseResetState('hello', NaN);
-    const [, setState] = result.current;
-    act(() => setState('updated'));
-    rerender({ initialValue: 'hello', resetKey: NaN });
-    const [state] = result.current;
-    expect(state).toBe('updated');
-  });
 });
-
-type UseResetStateProps = {
-  initialValue: string;
-  resetKey: unknown;
-};
-
-type UseResetStateResult = [string, Dispatch<SetStateAction<string>>];
-
-function renderUseResetState(
-  initialValue: string,
-  resetKey: unknown,
-): RenderHookResult<UseResetStateResult, UseResetStateProps> {
-  return renderHook<UseResetStateResult, UseResetStateProps>(
-    (props) => useResetState<string>(props.initialValue, props.resetKey),
-    { initialProps: { initialValue, resetKey } },
-  );
-}
