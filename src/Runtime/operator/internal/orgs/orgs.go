@@ -3,6 +3,7 @@ package orgs
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -40,9 +41,9 @@ type orgRegistryResponse struct {
 }
 
 type OrgRegistry struct {
-	url            string
 	orgs           atomic.Pointer[map[string]Org]
 	httpClient     *http.Client
+	url            string
 	initialBackoff time.Duration
 	maxBackoff     time.Duration
 	maxRetries     int
@@ -137,7 +138,7 @@ func (r *OrgRegistry) startPeriodicRefresh(ctx context.Context, interval time.Du
 func (r *OrgRegistry) fetchWithRetry(ctx context.Context) error {
 	backoff := r.initialBackoff
 
-	for attempt := 0; attempt < r.maxRetries; attempt++ {
+	for attempt := range r.maxRetries {
 		err := r.fetch(ctx)
 		if err == nil {
 			return nil
@@ -158,7 +159,7 @@ func (r *OrgRegistry) fetchWithRetry(ctx context.Context) error {
 		}
 	}
 
-	return fmt.Errorf("max retries exceeded")
+	return errors.New("max retries exceeded")
 }
 
 func (r *OrgRegistry) fetch(ctx context.Context) error {
@@ -209,14 +210,14 @@ func (r *OrgRegistry) fetch(ctx context.Context) error {
 	}
 
 	if registry.Orgs == nil {
-		err := fmt.Errorf(`invalid org registry payload: missing required top-level key "orgs"`)
+		err := errors.New(`invalid org registry payload: missing required top-level key "orgs"`)
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 
 	if len(registry.Orgs) == 0 {
-		err := fmt.Errorf(`length of "orgs" property is zero`)
+		err := errors.New(`length of "orgs" property is zero`)
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return err

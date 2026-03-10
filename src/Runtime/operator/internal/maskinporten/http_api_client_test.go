@@ -351,7 +351,7 @@ func TestCreateReq(t *testing.T) {
 	g.Expect(req).NotTo(BeNil())
 	g.Expect(req.Method).To(Equal("POST"))
 	g.Expect(req.URL.String()).To(Equal(testUrl))
-	expectedHeader := fmt.Sprintf("Bearer %s", accessToken)
+	expectedHeader := "Bearer " + accessToken
 	g.Expect(req.Header.Get("Authorization")).To(Equal(expectedHeader))
 }
 

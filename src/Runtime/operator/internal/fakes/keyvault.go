@@ -2,7 +2,7 @@ package fakes
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -10,9 +10,9 @@ import (
 
 // FakeKeyVaultClient implements KeyVaultSecretsClient for testing.
 type FakeKeyVaultClient struct {
-	mu      sync.RWMutex
 	secrets map[string]string
 	errors  map[string]error
+	mu      sync.RWMutex
 }
 
 func NewFakeKeyVaultClient() *FakeKeyVaultClient {
@@ -67,5 +67,5 @@ func NotFoundError(secretName string) error {
 
 // TransientError returns an error that mimics a transient Azure failure.
 func TransientError() error {
-	return fmt.Errorf("transient network error")
+	return errors.New("transient network error")
 }

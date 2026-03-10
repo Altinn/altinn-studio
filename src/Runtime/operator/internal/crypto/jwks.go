@@ -16,10 +16,8 @@ type Jwks struct {
 }
 
 type Jwk struct {
+	exp   *int64
 	inner jose.JSONWebKey
-	// exp stores the Unix timestamp of certificate expiry (NotAfter)
-	// Required by Maskinporten API, preserved even when certificates are removed for public key
-	exp *int64
 }
 
 func NewJwks(keys ...*Jwk) *Jwks {
@@ -64,10 +62,10 @@ func (j *Jwk) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
-// jwkWithExp is used for unmarshaling JSON that may include Maskinporten's 'exp' field
+// jwkWithExp is used for unmarshaling JSON that may include Maskinporten's 'exp' field.
 type jwkWithExp struct {
-	jose.JSONWebKey
 	Exp *int64 `json:"exp,omitempty"`
+	jose.JSONWebKey
 }
 
 func (j *Jwk) UnmarshalJSON(b []byte) error {

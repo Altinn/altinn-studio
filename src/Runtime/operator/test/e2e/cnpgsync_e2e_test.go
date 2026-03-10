@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -156,7 +157,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				if cond != nil {
 					return fmt.Errorf("HelmRelease not ready: reason=%s message=%s", cond.Reason, cond.Message)
 				}
-				return fmt.Errorf("HelmRelease not ready: no Ready condition")
+				return errors.New("HelmRelease not ready: no Ready condition")
 			}
 			readyHr = hr
 			return nil
@@ -241,7 +242,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				return err
 			}
 			if _, ok := secret.Data["password"]; !ok {
-				return fmt.Errorf("password key missing from secret")
+				return errors.New("password key missing from secret")
 			}
 			readySecret = secret
 			return nil
@@ -280,13 +281,11 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				return err
 			}
 			if cluster.Status.ManagedRolesStatus.ByStatus == nil {
-				return fmt.Errorf("no managed roles status yet")
+				return errors.New("no managed roles status yet")
 			}
 			reconciledRoles := cluster.Status.ManagedRolesStatus.ByStatus[cnpgv1.RoleStatusReconciled]
-			for _, roleName := range reconciledRoles {
-				if roleName == appId {
-					return nil
-				}
+			if slices.Contains(reconciledRoles, appId) {
+				return nil
 			}
 			return fmt.Errorf("role %s not yet reconciled, status: %+v", appId, cluster.Status.ManagedRolesStatus)
 		}, 120*time.Second, 2*time.Second).Should(Succeed())
@@ -311,7 +310,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				return err
 			}
 			if db.Status.Applied == nil || !*db.Status.Applied {
-				return fmt.Errorf("database not yet applied")
+				return errors.New("database not yet applied")
 			}
 			appliedDb = db
 			return nil
@@ -342,7 +341,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 			}
 			data, ok := secret.Data["postgresql.json"]
 			if !ok {
-				return fmt.Errorf("postgresql.json key missing from app secret")
+				return errors.New("postgresql.json key missing from app secret")
 			}
 			pgJson = data
 			return nil

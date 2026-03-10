@@ -4,8 +4,10 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -807,8 +809,9 @@ func initEnv() {
 func secretExists(ctx context.Context, client *azsecrets.Client, name string) bool {
 	_, err := client.GetSecret(ctx, name, "", nil)
 	if err != nil {
-		if respErr, ok := err.(*azcore.ResponseError); ok {
-			if respErr.StatusCode == 404 {
+		respErr := &azcore.ResponseError{}
+		if errors.As(err, &respErr) {
+			if respErr.StatusCode == http.StatusNotFound {
 				return false
 			}
 		}

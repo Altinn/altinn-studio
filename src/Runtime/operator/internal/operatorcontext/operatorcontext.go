@@ -2,6 +2,7 @@ package operatorcontext
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -36,12 +37,11 @@ type ServiceOwner struct {
 }
 
 type Context struct {
+	Context      context.Context
+	tracer       trace.Tracer
 	ServiceOwner ServiceOwner
 	Environment  string
 	RunId        string
-	// Context which will be cancelled when the program is shut down
-	Context context.Context
-	tracer  trace.Tracer
 }
 
 func (c *Context) IsLocal() bool {
@@ -67,7 +67,7 @@ func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegi
 	serviceOwnerId := os.Getenv("OPERATOR_SERVICEOWNER")
 	if serviceOwnerId == "" {
 		if environment != EnvironmentLocal {
-			return nil, fmt.Errorf("OPERATOR_SERVICEOWNER environment variable is not set")
+			return nil, errors.New("OPERATOR_SERVICEOWNER environment variable is not set")
 		}
 		serviceOwnerId = "ttd"
 	}

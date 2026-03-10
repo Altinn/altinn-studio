@@ -18,7 +18,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
@@ -90,8 +89,8 @@ type stateCase struct {
 	ServiceOwner string `json:"serviceOwner"`
 	Environment  string `json:"environment"`
 	Time         string `json:"time"`
-	AppCount     int    `json:"appCount"`
 	State        string `json:"state"`
+	AppCount     int    `json:"appCount"`
 }
 
 const (
@@ -102,10 +101,10 @@ const (
 func TestResolveClusterState(t *testing.T) {
 	cases := []stateCase{}
 	input := []struct {
+		time         time.Time
 		name         string
 		serviceOwner string
 		environment  string
-		time         time.Time
 		appCount     int
 	}{
 		{
@@ -300,14 +299,14 @@ func assertGatewayAndPdf3RestoredToBaseline(g *WithT, h *testHarness) {
 }
 
 type resourceSnapshot struct {
+	Replicas    *int32         `json:"replicas,omitempty"`
+	MinReplicas *int32         `json:"minReplicas,omitempty"`
+	Baseline    *scaleBaseline `json:"baseline,omitempty"`
 	Kind        string         `json:"kind"`
 	Namespace   string         `json:"namespace"`
 	Name        string         `json:"name"`
-	Replicas    *int32         `json:"replicas,omitempty"`
-	MinReplicas *int32         `json:"minReplicas,omitempty"`
 	Reconcile   string         `json:"reconcile,omitempty"`
 	Managed     string         `json:"managed,omitempty"`
-	Baseline    *scaleBaseline `json:"baseline,omitempty"`
 }
 
 func TestSyncAll_TtdOffhoursAndRestore(t *testing.T) {
@@ -595,7 +594,7 @@ func newAppDeploymentForOwner(serviceOwner, appName string, replicas int32) *app
 				appReleaseLabelKey: release,
 			},
 		},
-		Spec: appsv1.DeploymentSpec{Replicas: ptr.To(replicas)},
+		Spec: appsv1.DeploymentSpec{Replicas: new(replicas)},
 	}
 }
 
@@ -605,7 +604,7 @@ func newNonAppDeployment(name string, replicas int32) *appsv1.Deployment {
 			Name:      name,
 			Namespace: defaultNamespace,
 		},
-		Spec: appsv1.DeploymentSpec{Replicas: ptr.To(replicas)},
+		Spec: appsv1.DeploymentSpec{Replicas: new(replicas)},
 	}
 }
 
@@ -621,7 +620,7 @@ func newAppHpa(serviceOwner, appName string, minReplicas int32) *autoscalingv2.H
 				Kind: testKindDeployment,
 				Name: release + "-deployment-v2",
 			},
-			MinReplicas: ptr.To(minReplicas),
+			MinReplicas: new(minReplicas),
 		},
 	}
 }
@@ -632,7 +631,7 @@ func newGatewayDeployment() *appsv1.Deployment {
 			Name:      gatewayDeploymentName,
 			Namespace: runtimeGatewayNamespace,
 		},
-		Spec: appsv1.DeploymentSpec{Replicas: ptr.To(int32(2))},
+		Spec: appsv1.DeploymentSpec{Replicas: new(int32(2))},
 	}
 }
 
@@ -642,7 +641,7 @@ func newPdf3Hpa(name string) *autoscalingv2.HorizontalPodAutoscaler {
 			Name:      name,
 			Namespace: runtimePdf3Namespace,
 		},
-		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{MinReplicas: ptr.To(int32(3))},
+		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{MinReplicas: new(int32(3))},
 	}
 }
 

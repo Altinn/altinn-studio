@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -57,7 +58,7 @@ func NewDefaultService(
 	return NewService(clock, random, DefaultX509SignatureAlgo, DefaultKeySizeBits)
 }
 
-// CertSubject contains the fields for the certificate subject
+// CertSubject contains the fields for the certificate subject.
 type CertSubject struct {
 	Organization       string // e.g., "Testdepartementet"
 	OrganizationalUnit string // e.g., "ttd"
@@ -66,7 +67,7 @@ type CertSubject struct {
 
 // Creates a JWKS
 // Constructs the JWKS from the whole RSA private/public key pair
-// Uses SHA512 with RSA, 4096 bits for RSA
+// Uses SHA512 with RSA, 4096 bits for RSA.
 func (s *CryptoService) CreateJwks(subject CertSubject, notAfter time.Time) (*Jwks, error) {
 	cert, rsaKey, err := s.createCert(subject, notAfter)
 	if err != nil {
@@ -169,7 +170,7 @@ func (s *CryptoService) RotateJwks(
 	currentJwks *Jwks,
 ) (*Jwks, error) {
 	if currentJwks == nil {
-		return nil, fmt.Errorf("cant rotate JWKS: currentJwks was nil")
+		return nil, errors.New("cant rotate JWKS: currentJwks was nil")
 	}
 
 	activeKey, err := FindActiveKey(currentJwks)
@@ -205,11 +206,11 @@ func (s *CryptoService) RotateJwks(
 // Each key must have exactly one certificate.
 func FindActiveKey(jwks *Jwks) (*Jwk, error) {
 	if jwks == nil || len(jwks.Keys) == 0 {
-		return nil, fmt.Errorf("JWKS has no keys")
+		return nil, errors.New("JWKS has no keys")
 	}
 
 	var activeKey *Jwk
-	for i := 0; i < len(jwks.Keys); i++ {
+	for i := range len(jwks.Keys) {
 		key := jwks.Keys[i]
 		certificates := key.Certificates()
 		if len(certificates) != 1 {

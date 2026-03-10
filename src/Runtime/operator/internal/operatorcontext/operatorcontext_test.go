@@ -28,7 +28,6 @@ func TestCancellationBefore(t *testing.T) {
 	Expect(operatorContext).To(BeNil())
 	Expect(ctx.Err()).To(MatchError(context.Canceled))
 	Expect(err).To(MatchError(context.Canceled))
-
 }
 
 func TestCancellationAfter(t *testing.T) {

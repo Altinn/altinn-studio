@@ -2,6 +2,7 @@ package maskinporten
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -21,13 +22,13 @@ import (
 
 const JsonFileName = "maskinporten-settings.json"
 
-// Annotation to trigger manual JWK rotation (value must be "true")
+// Annotation to trigger manual JWK rotation (value must be "true").
 const AnnotationRotateJwk = "altinn.studio/maskinporten-rotate-jwk"
 
-// FinalizerName is used to ensure cleanup before deletion
+// FinalizerName is used to ensure cleanup before deletion.
 const FinalizerName = "altinn.studio/maskinporten-finalizer"
 
-// Condition types for MaskinportenClient status
+// Condition types for MaskinportenClient status.
 const (
 	ConditionTypeReady            = "Ready"
 	ConditionTypeClientRegistered = "ClientRegistered"
@@ -36,13 +37,13 @@ const (
 )
 
 // MissingSecretError is returned when the app secret doesn't exist yet
-// This is a recoverable error that should be handled gracefully
+// This is a recoverable error that should be handled gracefully.
 type MissingSecretError struct {
 	AppName string
 }
 
 func (e *MissingSecretError) Error() string {
-	return fmt.Sprintf("app secret not found for MaskinportenClient: %s", e.AppName)
+	return "app secret not found for MaskinportenClient: " + e.AppName
 }
 
 // ClientState reprsents a snapshot of the state of a Maskinporten client
@@ -60,20 +61,16 @@ func (e *MissingSecretError) Error() string {
 // in this package (such as `OidcClientRequest` which reflects the contract owned by `httpApiClient`).
 // This is OK since all parts of the maskinporten package are likely to change together.
 type ClientState struct {
-	AppId string
-
-	// Fields set in the MaskinportenClient CRD - we only manage the status
-	Crd *resourcesv1alpha1.MaskinportenClient
-	// State kept in the Maskinporten API
-	Api *ApiState
-	// The "output" of this operatator, serialized to field
 	Secret SecretState
+	Crd    *resourcesv1alpha1.MaskinportenClient
+	Api    *ApiState
+	AppId  string
 }
 
 type ApiState struct {
-	ClientId string
 	Req      *AddClientRequest
 	Jwks     *crypto.Jwks
+	ClientId string
 }
 
 type SecretState struct {
@@ -82,15 +79,15 @@ type SecretState struct {
 }
 
 type SecretStateContent struct {
-	ClientId  string       `json:"ClientId"`
-	Authority string       `json:"Authority"`
 	Jwks      *crypto.Jwks `json:"Jwks"`
 	Jwk       *crypto.Jwk  `json:"Jwk"`
+	ClientId  string       `json:"ClientId"`
+	Authority string       `json:"Authority"`
 }
 
 func (c *SecretStateContent) SerializeTo(secret *corev1.Secret) error {
 	if secret == nil {
-		return fmt.Errorf("cant serialize to nil secret")
+		return errors.New("cant serialize to nil secret")
 	}
 	// Wrap in MaskinportenSettings for .NET configuration binding
 	wrapper := map[string]any{
@@ -114,7 +111,7 @@ func DeleteSecretStateContent(secret *corev1.Secret) {
 
 func DeserializeSecretStateContent(secret *corev1.Secret) (*SecretStateContent, error) {
 	if secret == nil {
-		return nil, fmt.Errorf("cant deserialize from nil secret")
+		return nil, errors.New("cant deserialize from nil secret")
 	}
 	if secret.Data == nil {
 		return nil, nil
@@ -142,7 +139,7 @@ func NewClientState(
 	secretStateContent *SecretStateContent,
 ) (*ClientState, error) {
 	if crd == nil {
-		return nil, fmt.Errorf("tried to hydrate client state without CRD")
+		return nil, errors.New("tried to hydrate client state without CRD")
 	}
 	// During normal reconcile we require the app secret.
 	// During deletion, Flux prune may remove the secret before finalizer cleanup runs.
@@ -150,7 +147,7 @@ func NewClientState(
 		return nil, &MissingSecretError{AppName: crd.Name}
 	}
 	if api == nil && apiJwks != nil {
-		return nil, fmt.Errorf("unexpected condition, api resource was not created but api JWKS was")
+		return nil, errors.New("unexpected condition, api resource was not created but api JWKS was")
 	}
 
 	parsed, err := resourcename.ParseMaskinportenClientName(crd.Name)
@@ -172,7 +169,7 @@ func NewClientState(
 
 	if api != nil {
 		if api.ClientId == "" {
-			return nil, fmt.Errorf("received empty ClientId when building client state")
+			return nil, errors.New("received empty ClientId when building client state")
 		}
 		state.Api = &ApiState{
 			ClientId: api.ClientId,
@@ -192,7 +189,7 @@ func getNotAfter(clock clockwork.Clock, expiry time.Duration) time.Time {
 // Returns true if:
 // - force is true, OR
 // - the active key's certificate has been valid for longer than the threshold, OR
-// - the certificate expires within 24 hours
+// - the certificate expires within 24 hours.
 func shouldRotateJwk(clock clockwork.Clock, threshold time.Duration, jwks *crypto.Jwks, force bool) (bool, error) {
 	if force {
 		return true, nil
@@ -447,7 +444,7 @@ func (s *ClientState) Reconcile(
 	return commands, nil
 }
 
-// scopesEqual compares two scope slices, treating nil and empty as equal
+// scopesEqual compares two scope slices, treating nil and empty as equal.
 func scopesEqual(a, b []string) bool {
 	if len(a) == 0 && len(b) == 0 {
 		return true
@@ -465,7 +462,7 @@ func EnsureTrailingSlash(url string) string {
 	return url + "/"
 }
 
-// jwksEqual compares two JWKS by their key IDs
+// jwksEqual compares two JWKS by their key IDs.
 func jwksEqual(a, b *crypto.Jwks) bool {
 	if a == nil && b == nil {
 		return true
@@ -534,7 +531,7 @@ type CommandList []Command
 
 func (l CommandList) Strings() []string {
 	result := make([]string, len(l))
-	for i := 0; i < len(l); i++ {
+	for i := range l {
 		result[i] = reflect.ValueOf(l[i].Data).Elem().Type().Name()
 	}
 
@@ -625,33 +622,33 @@ func NewAddFinalizerCommand() Command {
 	}
 }
 
-// ErrSkipped indicates a command was not executed because a previous command failed
-var ErrSkipped = fmt.Errorf("skipped: previous command failed")
+// ErrSkipped indicates a command was not executed because a previous command failed.
+var ErrSkipped = errors.New("skipped: previous command failed")
 
 // CommandResult types - one per command type
 
 type CreateClientInApiCommandResult struct {
+	Err      error
 	ClientId string
 	Scopes   int
-	Err      error
 }
 
 type UpdateClientInApiCommandResult struct {
+	Err      error
 	ClientId string
 	Scopes   int
 	HasJwks  bool
-	Err      error
 }
 
 type UpdateSecretContentCommandResult struct {
+	Err       error
 	Authority string
 	KeyIds    []string
-	Err       error
 }
 
 type DeleteClientInApiCommandResult struct {
-	ClientId string
 	Err      error
+	ClientId string
 }
 
 type DeleteSecretContentCommandResult struct {
@@ -670,7 +667,7 @@ type AddFinalizerCommandResult struct {
 	Err error
 }
 
-// CommandResult wraps a command with its execution result
+// CommandResult wraps a command with its execution result.
 type CommandResult struct {
 	Command   any // One of the *Command types
 	Result    any // One of the *CommandResult types

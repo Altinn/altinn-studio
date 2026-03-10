@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -32,12 +33,12 @@ func TryFindProjectRootByGoMod() (string, error) {
 
 			parentPath := filepath.Dir(basePath)
 			if parentPath == basePath {
-				return "", fmt.Errorf("error getting project root: reached root of file system")
+				return "", errors.New("error getting project root: reached root of file system")
 			}
 			basePath = parentPath
 		}
 
-		return "", fmt.Errorf("error getting project root, reached max directory traversal")
+		return "", errors.New("error getting project root, reached max directory traversal")
 	}
 
 	once.Do(func() {
@@ -50,7 +51,7 @@ func TryFindProjectRootByGoMod() (string, error) {
 var daysRegex = regexp.MustCompile(`^(\d+)d(.*)$`)
 
 // ParseDuration extends Go's time.ParseDuration to support days (d suffix).
-// Examples: "23d" -> 23 days, "1d12h" -> 1 day and 12 hours, "24h" -> 24 hours
+// Examples: "23d" -> 23 days, "1d12h" -> 1 day and 12 hours, "24h" -> 24 hours.
 func ParseDuration(s string) (time.Duration, error) {
 	matches := daysRegex.FindStringSubmatch(s)
 	if matches == nil {

@@ -52,8 +52,9 @@ const DELETE = "DELETE"
 
 type responseRecorder struct {
 	http.ResponseWriter
-	status int
+
 	body   bytes.Buffer
+	status int
 }
 
 func (r *responseRecorder) WriteHeader(code int) {
@@ -113,8 +114,8 @@ func main() {
 }
 
 type FakeToken struct {
-	Scopes   []string `json:"scopes"`
 	ClientId string   `json:"client_id"`
+	Scopes   []string `json:"scopes"`
 }
 
 func serve(ctx context.Context, name string, addr string, registerHandlers func(*http.ServeMux)) {
@@ -155,32 +156,32 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 	serve(ctx, name, addr, func(mux *http.ServeMux) {
 		mux.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
 			if r.Method != POST {
-				w.WriteHeader(404)
+				w.WriteHeader(http.StatusNotFound)
 				return
 			}
 			grantType := r.URL.Query().Get("grant_type")
 			if grantType != "urn:ietf:params:oauth:grant-type:jwt-bearer" {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				log.Printf("invalid grant_type: %s\n", grantType)
 				return
 			}
 			assertion := r.URL.Query().Get("assertion")
 			if assertion == "" {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				log.Printf("missing assertion\n")
 				return
 			}
 
 			jwt, err := crypto.ParseJWT(assertion)
 			if err != nil {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				log.Printf("couldn't parse JWT: %v\n", err)
 				return
 			}
 
 			keyID := jwt.KeyID()
 			if keyID == "" {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				log.Printf("missing kid\n")
 				return
 			}
@@ -197,7 +198,7 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 				return false
 			})
 			if len(clients) != 1 {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				log.Printf("client not found: %s\n", keyID)
 				return
 			}
@@ -211,26 +212,26 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 				}
 			}
 			if matchedKey == nil {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				log.Printf("key not found in client jwks: %s\n", keyID)
 				return
 			}
 
 			claims, err := jwt.DecodeClaims(matchedKey)
 			if err != nil {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				log.Printf("couldn't validate JWT: %v\n", err)
 				return
 			}
 
 			clientId := claims.Issuer
 			if clientId == "" {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				log.Printf("missing issuer\n")
 				return
 			}
 			if clientId != client.ClientId {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				log.Printf("invalid issuer: %s\n", clientId)
 				return
 			}
@@ -239,12 +240,12 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 			expectedAudience := state.GetExpectedAudience()
 			hasValidAudience := slices.Contains(claims.Audience, expectedAudience)
 			if !hasValidAudience {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				log.Printf("invalid audience claim: expected %s, got %v (MP-110)\n", expectedAudience, claims.Audience)
 				return
 			}
 			if claims.Scope == "" {
-				w.WriteHeader(400)
+				w.WriteHeader(http.StatusBadRequest)
 				log.Printf("missing scope\n")
 				return
 			}
@@ -252,7 +253,7 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 			for _, scope := range requestedScopes {
 				hasAccessToScope := slices.Contains(client.Client.Scopes, scope)
 				if !hasAccessToScope {
-					w.WriteHeader(400)
+					w.WriteHeader(http.StatusBadRequest)
 					log.Printf("client doesn't have access to scope: %s\n", scope)
 					return
 				}
@@ -266,7 +267,7 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 			}
 			tokenJson, err := json.Marshal(fakeToken)
 			if err != nil {
-				w.WriteHeader(500)
+				w.WriteHeader(http.StatusInternalServerError)
 				log.Printf("couldn't encode scopes: %v\n", err)
 				return
 			}
@@ -280,13 +281,13 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 				ExpiresIn:   120,
 			})
 			if err != nil {
-				w.WriteHeader(500)
+				w.WriteHeader(http.StatusInternalServerError)
 				log.Printf("couldn't write response: %v\n", err)
 			}
 		})
 		mux.HandleFunc("/.well-known/oauth-authorization-server", func(w http.ResponseWriter, r *http.Request) {
 			if r.Method != GET {
-				w.WriteHeader(404)
+				w.WriteHeader(http.StatusNotFound)
 				return
 			}
 			w.Header().Add("Content-Type", "application/json")
@@ -302,7 +303,7 @@ func runMaskinportenApi(ctx context.Context, wg *sync.WaitGroup) {
 				TokenEndpointAuthSigningAlgValuesSupported: crypto.SignatureAlgorithmsStr,
 			})
 			if err != nil {
-				w.WriteHeader(500)
+				w.WriteHeader(http.StatusInternalServerError)
 				log.Printf("couldn't write response: %v\n", err)
 			}
 		})
@@ -345,14 +346,14 @@ func handleTestDump(w http.ResponseWriter, r *http.Request) {
 	encoder := json.NewEncoder(w)
 	err := encoder.Encode(state.GetAll())
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("couldn't write response: %v\n", err)
 	}
 }
 
 func handleTestReset(w http.ResponseWriter, r *http.Request) {
 	if r.Method != POST {
-		w.WriteHeader(405)
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -362,7 +363,7 @@ func handleTestReset(w http.ResponseWriter, r *http.Request) {
 	// Clear all state to ensure deterministic test runs
 	state.Reset()
 
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
 func handleClients(w http.ResponseWriter, r *http.Request) {
@@ -372,7 +373,7 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case GET:
 		if selfServiceAuth(r) == nil {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
@@ -389,12 +390,12 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 
 		err := encoder.Encode(clients)
 		if err != nil {
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			log.Printf("couldn't write response: %v\n", err)
 		}
 	case POST:
 		if selfServiceAuth(r) == nil {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
@@ -402,36 +403,36 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 		var client maskinporten.AddClientRequest
 		err := decoder.Decode(&client)
 		if err != nil {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("couldn't read request: %v\n", err)
 			return
 		}
 
 		if slices.Contains(client.Scopes, "idporten:dcr.altinn") {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("clients cannot request idporten:dcr.altinn scope\n")
 			return
 		}
 		if client.SupplierOrgno != nil && *client.SupplierOrgno != "" {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("clients cannot set supplier orgno in self-service\n")
 			return
 		}
 		if client.ClientOrgno == nil || *client.ClientOrgno == "" {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("clients must set client orgno in self-service\n")
 			return
 		}
 
 		clientRecord, err := state.GetDb().Insert(&client, nil, "")
 		if err != nil {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("couldn't insert client: %v\n", err)
 			return
 		}
 
 		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(201)
+		w.WriteHeader(http.StatusCreated)
 		encoder := json.NewEncoder(w)
 		err = encoder.Encode(clientRecord.Client)
 		if err != nil {
@@ -441,11 +442,11 @@ func handleClients(w http.ResponseWriter, r *http.Request) {
 
 	default:
 		if selfServiceAuth(r) == nil {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
@@ -457,11 +458,13 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case GET:
-		w.WriteHeader(500) // As of manual testing, it just returns 500 here (even though the endopint doesnt exist)
+		w.WriteHeader(
+			http.StatusInternalServerError,
+		) // As of manual testing, it just returns 500 here (even though the endopint doesnt exist)
 		return
 	case PUT:
 		if selfServiceAuth(r) == nil {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
@@ -469,20 +472,20 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 		var client maskinporten.UpdateClientRequest
 		err := decoder.Decode(&client)
 		if err != nil {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("couldn't read request: %v\n", err)
 			return
 		}
 
 		if slices.Contains(client.Scopes, "idporten:dcr.altinn") {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("clients cannot request idporten:dcr.altinn scope\n")
 			return
 		}
 
 		deleted := state.GetDb().Delete(clientId)
 		if !deleted {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf(
 				"couldn't read request: client does not exist clientId=%s\n",
 				clientId,
@@ -515,40 +518,40 @@ func handleClientByID(w http.ResponseWriter, r *http.Request) {
 		}
 		updatedRecord, err := state.GetDb().Insert(addReq, nil, clientId)
 		if err != nil {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("couldn't insert client: %v\n", err)
 			return
 		}
 
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 		w.Header().Add("Content-Type", "application/json")
 		encoder := json.NewEncoder(w)
 		err = encoder.Encode(updatedRecord.Client)
 		if err != nil {
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			log.Printf("couldn't write response: %v\n", err)
 			return
 		}
 	case DELETE:
 		if selfServiceAuth(r) == nil {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
 		deleted := state.GetDb().Delete(clientId)
 		if !deleted {
-			w.WriteHeader(404)
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		w.WriteHeader(204)
+		w.WriteHeader(http.StatusNoContent)
 
 	default:
 		if selfServiceAuth(r) == nil {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
@@ -561,27 +564,27 @@ func handleClientJwks(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case GET:
 		if selfServiceAuth(r) == nil {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 		w.Header().Add("Content-Type", "application/json")
 
 		clientRecord := state.GetDb().Get(clientId)
 		if clientRecord == nil {
-			w.WriteHeader(404)
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
 		encoder := json.NewEncoder(w)
 		err := encoder.Encode(clientRecord.Jwks)
 		if err != nil {
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			log.Printf("couldn't write response: %v\n", err)
 		}
 
 	case POST:
 		if selfServiceAuth(r) == nil {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
@@ -589,25 +592,25 @@ func handleClientJwks(w http.ResponseWriter, r *http.Request) {
 		var jwks crypto.Jwks
 		err := decoder.Decode(&jwks)
 		if err != nil {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("couldn't read request: %v\n", err)
 			return
 		}
 
 		err = state.GetDb().UpdateJwks(clientId, &jwks)
 		if err != nil {
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			log.Printf("couldn't update JWKS: %v\n", err)
 			return
 		}
-		w.WriteHeader(201)
+		w.WriteHeader(http.StatusCreated)
 
 	default:
 		if selfServiceAuth(r) == nil {
-			w.WriteHeader(401)
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
@@ -637,7 +640,7 @@ func runOrgRegistryApi(ctx context.Context, wg *sync.WaitGroup) {
 
 func handleOrgRegistry(w http.ResponseWriter, r *http.Request) {
 	if r.Method != GET {
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -660,13 +663,13 @@ func handleOrgRegistry(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(fakeOrgs); err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("couldn't write response: %v\n", err)
 	}
 }
 
 func healthEndpoint(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
 var shutdownSignals = []os.Signal{os.Interrupt, syscall.SIGTERM}

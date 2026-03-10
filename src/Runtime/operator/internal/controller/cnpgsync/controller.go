@@ -5,7 +5,9 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -27,7 +29,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/diff"
 	"k8s.io/apimachinery/pkg/util/validation"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -407,11 +408,11 @@ func (r *CnpgSyncReconciler) deleteNamespaceIfExists(ctx context.Context) error 
 }
 
 type storageClassSpec struct {
-	Provisioner          string
 	Parameters           map[string]string
 	ReclaimPolicy        *corev1.PersistentVolumeReclaimPolicy
 	VolumeBindingMode    *storagev1.VolumeBindingMode
 	AllowVolumeExpansion *bool
+	Provisioner          string
 }
 
 func storageClassSpecFrom(sc *storagev1.StorageClass) storageClassSpec {
@@ -775,10 +776,10 @@ func (r *CnpgSyncReconciler) buildCluster(numApps int) *cnpgv1.Cluster {
 		},
 		Spec: cnpgv1.ClusterSpec{
 			Instances: cfg.Instances,
-			EnablePDB: ptr.To(cfg.EnablePDB),
+			EnablePDB: new(cfg.EnablePDB),
 			Bootstrap: &cnpgv1.BootstrapConfiguration{
 				InitDB: &cnpgv1.BootstrapInitDB{
-					DataChecksums: ptr.To(true),
+					DataChecksums: new(true),
 					Encoding:      "UTF8",
 					LocaleCollate: "nb_NO.UTF8",
 					LocaleCType:   "nb_NO.UTF8",
@@ -787,7 +788,7 @@ func (r *CnpgSyncReconciler) buildCluster(numApps int) *cnpgv1.Cluster {
 			Env: []corev1.EnvVar{
 				{Name: "TZ", Value: "Europe/Oslo"},
 			},
-			EnableSuperuserAccess: ptr.To(true),
+			EnableSuperuserAccess: new(true),
 			PostgresConfiguration: cnpgv1.PostgresConfiguration{
 				// Azure docs: https://learn.microsoft.com/en-us/azure/aks/deploy-postgresql-ha?tabs=azuredisk#postgresql-performance-parameters
 				// pgtune: https://pgtune.leopard.in.ua/?dbVersion=18&osType=linux&dbType=web&cpuNum=1&totalMemory=1&totalMemoryUnit=GB&connectionNum=100&hdType=ssd
@@ -861,7 +862,7 @@ func (r *CnpgSyncReconciler) buildCluster(numApps int) *cnpgv1.Cluster {
 				},
 			},
 			Affinity: cnpgv1.AffinityConfiguration{
-				EnablePodAntiAffinity: ptr.To(false),
+				EnablePodAntiAffinity: new(false),
 			},
 			TopologySpreadConstraints: []corev1.TopologySpreadConstraint{
 				{
@@ -891,25 +892,25 @@ func clusterScaleForEnvironment(environment string) (int, bool) {
 }
 
 type buildClusterConfig struct {
-	Instances                    int
-	EnablePDB                    bool
-	MaxConnections               int
-	SuperuserReservedConnections int
+	SharedBuffers                string
+	WorkMem                      string
+	PgStatStatementsMax          string
+	EffectiveCacheSize           string
 	StorageSize                  string
 	WalStorageSize               string
 	CPURequest                   string
 	MemoryRequest                string
-	SharedBuffers                string
-	EffectiveCacheSize           string
-	WorkMem                      string
+	AutovacuumVacuumCostLimit    string
+	CheckpointFlushAfter         string
+	WalWriterFlushAfter          string
 	MaintenanceWorkMem           string
 	WalBuffers                   string
 	MinWalSize                   string
 	MaxWalSize                   string
-	WalWriterFlushAfter          string
-	CheckpointFlushAfter         string
-	AutovacuumVacuumCostLimit    string
-	PgStatStatementsMax          string
+	SuperuserReservedConnections int
+	Instances                    int
+	MaxConnections               int
+	EnablePDB                    bool
 }
 
 func newBuildClusterConfig(numApps, scale int) (*buildClusterConfig, error) {
@@ -1079,7 +1080,7 @@ func (r *CnpgSyncReconciler) ensureBackupPVC(ctx context.Context, appId string, 
 						corev1.ResourceStorage: size,
 					},
 				},
-				StorageClassName: ptr.To(cfg.StorageClassName),
+				StorageClassName: new(cfg.StorageClassName),
 			},
 		}
 		if err := r.k8sClient.Create(ctx, pvc); err != nil {
@@ -1239,7 +1240,7 @@ echo "[pgdump] done app=${app_id} seconds=${elapsed} file=${dump_file}"
 							SecurityContext: &corev1.PodSecurityContext{
 								// pg_dump container runs as non-root in the postgres image.
 								// Ensure mounted backup PVC is group-writable for the pod.
-								FSGroup:             ptr.To(backupFSGroup),
+								FSGroup:             new(backupFSGroup),
 								FSGroupChangePolicy: &fsGroupChangePolicy,
 							},
 							Containers: []corev1.Container{
@@ -1404,10 +1405,10 @@ func (r *CnpgSyncReconciler) ensureAppDatabase(ctx context.Context, appId string
 
 type resolvedBackupConfig struct {
 	Schedule         string
-	RetentionDays    int
 	PvcName          string
 	PvcSize          string
 	StorageClassName string
+	RetentionDays    int
 }
 
 func (r *CnpgSyncReconciler) resolveBackupConfig() (*resolvedBackupConfig, error) {
@@ -1423,19 +1424,19 @@ func (r *CnpgSyncReconciler) resolveBackupConfig() (*resolvedBackupConfig, error
 	storageClassName := strings.TrimSpace(cfg.StorageClassName)
 
 	if schedule == "" {
-		return nil, fmt.Errorf("backup schedule must be specified")
+		return nil, errors.New("backup schedule must be specified")
 	}
 	if cfg.RetentionDays < 1 {
-		return nil, fmt.Errorf("backup retentionDays must be >= 1")
+		return nil, errors.New("backup retentionDays must be >= 1")
 	}
 	if pvcName == "" {
-		return nil, fmt.Errorf("backup pvcName must be specified")
+		return nil, errors.New("backup pvcName must be specified")
 	}
 	if pvcSize == "" {
-		return nil, fmt.Errorf("backup pvcSize must be specified")
+		return nil, errors.New("backup pvcSize must be specified")
 	}
 	if storageClassName == "" {
-		return nil, fmt.Errorf("backup storageClassName must be specified")
+		return nil, errors.New("backup storageClassName must be specified")
 	}
 
 	resolved := &resolvedBackupConfig{
@@ -1582,10 +1583,8 @@ func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string
 		return false, nil
 	}
 	reconciledRoles := cluster.Status.ManagedRolesStatus.ByStatus[cnpgv1.RoleStatusReconciled]
-	for _, roleName := range reconciledRoles {
-		if roleName == pgRole {
-			return true, nil
-		}
+	if slices.Contains(reconciledRoles, pgRole) {
+		return true, nil
 	}
 	return false, nil
 }

@@ -2,7 +2,9 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -56,8 +58,9 @@ func (a *azureKeyVaultClient) tryGetSecret(ctx context.Context, name string) (st
 
 	secretResp, err := a.client.GetSecret(ctx, name, "", nil)
 	if err != nil {
-		if respErr, ok := err.(*azcore.ResponseError); ok {
-			if respErr.StatusCode == 404 {
+		respErr := &azcore.ResponseError{}
+		if errors.As(err, &respErr) {
+			if respErr.StatusCode == http.StatusNotFound {
 				return "", nil
 			}
 		}

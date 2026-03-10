@@ -20,7 +20,7 @@ func benchmarkCreateJwks(b *testing.B, algo x509.SignatureAlgorithm, keySize int
 	b.ReportAllocs()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		if _, err := service.CreateJwks(subject, notAfter); err != nil {
 			b.Fatalf("CreateJwks: %v", err)
 		}

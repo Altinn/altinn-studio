@@ -19,13 +19,13 @@ import (
 )
 
 type runtime struct {
-	config                *config.ConfigMonitor
 	operatorContext       operatorcontext.Context
-	crypto                crypto.CryptoService
-	maskinportenApiClient *maskinporten.HttpApiClient
 	tracer                trace.Tracer
 	meter                 metric.Meter
 	clock                 clockwork.Clock
+	config                *config.ConfigMonitor
+	maskinportenApiClient *maskinporten.HttpApiClient
+	crypto                crypto.CryptoService
 }
 
 var _ rt.Runtime = (*runtime)(nil)
@@ -34,8 +34,8 @@ type runtimeOptions struct {
 	clock           clockwork.Clock
 	configMonitor   *config.ConfigMonitor
 	operatorContext *operatorcontext.Context
-	env             string
 	logger          *logr.Logger
+	env             string
 }
 
 type RuntimeOption func(*runtimeOptions)

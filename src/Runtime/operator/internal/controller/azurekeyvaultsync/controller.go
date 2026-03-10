@@ -3,7 +3,9 @@ package azurekeyvaultsync
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -27,15 +29,12 @@ import (
 
 // KeyVaultSecretMapping defines which Azure Key Vault secrets map to a K8s secret.
 type KeyVaultSecretMapping struct {
-	Name      string   // K8s secret name
-	Namespace string   // K8s secret namespace
-	FileName  string   // Key name in the K8s secret (e.g., "secrets.json")
-	Secrets   []string // Azure Key Vault secret names to fetch
-	// BuildOutput transforms resolved secrets into the JSON structure.
-	// If nil, secrets are serialized as map[string]string.
 	BuildOutput func(secrets map[string]string) any
-	// Raw skips JSON encoding. BuildOutput must return a string.
-	Raw bool
+	Name        string
+	Namespace   string
+	FileName    string
+	Secrets     []string
+	Raw         bool
 }
 
 func DefaultMappings(runtime rt.Runtime) []KeyVaultSecretMapping {
@@ -262,7 +261,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 	if mapping.Raw {
 		rawStr, ok := mapping.BuildOutput(secretData).(string)
 		if !ok {
-			return fmt.Errorf("raw mapping requires BuildOutput to return string")
+			return errors.New("raw mapping requires BuildOutput to return string")
 		}
 		outputBytes = []byte(rawStr)
 	} else {
@@ -339,8 +338,9 @@ func (c *AzureKeyVaultReconciler) getSecret(ctx context.Context, name string) (s
 
 	value, err := c.kvClient.GetSecret(ctx, name, "")
 	if err != nil {
-		if respErr, ok := err.(*azcore.ResponseError); ok {
-			if respErr.StatusCode == 404 {
+		respErr := &azcore.ResponseError{}
+		if errors.As(err, &respErr) {
+			if respErr.StatusCode == http.StatusNotFound {
 				span.SetStatus(codes.Error, "secret not found")
 				return "", fmt.Errorf("secret %q not found in Key Vault", name)
 			}

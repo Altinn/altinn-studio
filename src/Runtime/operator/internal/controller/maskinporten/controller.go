@@ -37,9 +37,10 @@ import (
 
 const JsonFileName = "maskinporten-settings.json"
 
-// MaskinportenClientReconciler reconciles a MaskinportenClient object
+// MaskinportenClientReconciler reconciles a MaskinportenClient object.
 type MaskinportenClientReconciler struct {
 	client.Client
+
 	Scheme  *runtime.Scheme
 	runtime rt.Runtime
 	random  *rand.Rand
@@ -216,10 +217,7 @@ func (r *MaskinportenClientReconciler) getMissingSecretRequeueAfter(
 	}
 
 	base := getMissingSecretBaseRequeueAfter(age, configValue.MaskinportenController.RequeueAfter)
-	requeue := r.randomizeDuration(base, 20.0)
-	if requeue < minimumRetry {
-		requeue = minimumRetry
-	}
+	requeue := max(r.randomizeDuration(base, 20.0), minimumRetry)
 	max := configValue.MaskinportenController.RequeueAfter
 	if requeue > max {
 		requeue = max
@@ -341,7 +339,7 @@ func (r *MaskinportenClientReconciler) updateStatus(
 					Status:             metav1.ConditionTrue,
 					ObservedGeneration: instance.GetGeneration(),
 					Reason:             "Created",
-					Message:            fmt.Sprintf("Client created with ID %s", result.ClientId),
+					Message:            "Client created with ID " + result.ClientId,
 				})
 			}
 		case *maskinporten.UpdateClientInApiCommandResult:
@@ -352,7 +350,7 @@ func (r *MaskinportenClientReconciler) updateStatus(
 					Status:             metav1.ConditionTrue,
 					ObservedGeneration: instance.GetGeneration(),
 					Reason:             "Updated",
-					Message:            fmt.Sprintf("Client updated: %s", result.ClientId),
+					Message:            "Client updated: " + result.ClientId,
 				})
 			}
 		case *maskinporten.DeleteClientInApiCommandResult:
@@ -491,7 +489,7 @@ func mapCommandResultsToActionRecords(
 
 		switch result := cmdResult.Result.(type) {
 		case *maskinporten.CreateClientInApiCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -501,7 +499,7 @@ func mapCommandResultsToActionRecords(
 				record.Details = fmt.Sprintf("clientId: %s, scopes: %d", result.ClientId, result.Scopes)
 			}
 		case *maskinporten.UpdateClientInApiCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -511,7 +509,7 @@ func mapCommandResultsToActionRecords(
 				record.Details = fmt.Sprintf("scopes: %d, jwks: %t", result.Scopes, result.HasJwks)
 			}
 		case *maskinporten.UpdateSecretContentCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -521,17 +519,17 @@ func mapCommandResultsToActionRecords(
 				record.Details = fmt.Sprintf("keys: %d", len(result.KeyIds))
 			}
 		case *maskinporten.DeleteClientInApiCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
 				record.Details = result.Err.Error()
 			} else {
 				record.Result = deleted
-				record.Details = fmt.Sprintf("clientId: %s", result.ClientId)
+				record.Details = "clientId: " + result.ClientId
 			}
 		case *maskinporten.DeleteSecretContentCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -540,7 +538,7 @@ func mapCommandResultsToActionRecords(
 				record.Result = cleared
 			}
 		case *maskinporten.RemoveRotateAnnotationCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -549,7 +547,7 @@ func mapCommandResultsToActionRecords(
 				record.Result = removed
 			}
 		case *maskinporten.AddFinalizerCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -558,7 +556,7 @@ func mapCommandResultsToActionRecords(
 				record.Result = added
 			}
 		case *maskinporten.RemoveFinalizerCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -746,7 +744,7 @@ func (r *MaskinportenClientReconciler) reconcile(
 	apiClient := r.runtime.GetMaskinportenApiClient()
 
 	var firstErr error
-	for i := 0; i < len(commands); i++ {
+	for i := range commands {
 		cmd := &commands[i]
 		assert.That(cmd.Data != nil, "Command.Data must be non-nil")
 
@@ -948,7 +946,7 @@ func (r *MaskinportenClientReconciler) SetupWithManager(mgr ctrl.Manager) error 
 		Complete(r)
 }
 
-// rotateAnnotationPredicate triggers reconciliation when the rotate-jwk annotation is added
+// rotateAnnotationPredicate triggers reconciliation when the rotate-jwk annotation is added.
 type rotateAnnotationPredicate struct{}
 
 func (rotateAnnotationPredicate) Create(_ event.CreateEvent) bool {

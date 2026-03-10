@@ -33,13 +33,13 @@ func (k requestKind) String() string {
 }
 
 type maskinportenClientRequest struct {
+	Instance       *resourcesv1alpha1.MaskinportenClient
 	NamespacedName types.NamespacedName
 	Name           string
 	Namespace      string
 	AppId          string
 	AppLabel       string
 	Kind           requestKind
-	Instance       *resourcesv1alpha1.MaskinportenClient
 }
 
 func (r *MaskinportenClientReconciler) mapRequest(

@@ -3,6 +3,7 @@ package secretsync
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel/attribute"
@@ -347,9 +348,7 @@ func copyLabels(src map[string]string) map[string]string {
 		return make(map[string]string)
 	}
 	dst := make(map[string]string, len(src))
-	for k, v := range src {
-		dst[k] = v
-	}
+	maps.Copy(dst, src)
 	return dst
 }
 
@@ -358,9 +357,7 @@ func copyAnnotations(src map[string]string) map[string]string {
 		return nil
 	}
 	dst := make(map[string]string, len(src))
-	for k, v := range src {
-		dst[k] = v
-	}
+	maps.Copy(dst, src)
 	return dst
 }
 

@@ -3,21 +3,20 @@ package cnpgsync
 // CnpgTarget defines a serviceowner/environment combination
 // that should have the CNPG operator installed, and the apps that should receive databases.
 type CnpgTarget struct {
+	Backup         *PgDumpBackupConfig
 	ServiceOwnerId string
 	Environment    string
 	Apps           []string
-	Backup         *PgDumpBackupConfig
 }
 
 // PgDumpBackupConfig configures pg_dump backup jobs for a target.
 type PgDumpBackupConfig struct {
-	Enabled       bool
-	Schedule      string
-	RetentionDays int
-	// PvcName is the base name used to derive per-app PVC names: "<PvcName>-<appId>".
+	Schedule         string
 	PvcName          string
 	PvcSize          string
 	StorageClassName string
+	RetentionDays    int
+	Enabled          bool
 }
 
 // DefaultTargets returns the default list of targets for CNPG operator installation.

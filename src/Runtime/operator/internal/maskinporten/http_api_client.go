@@ -47,20 +47,17 @@ type WellKnownResponse struct {
 //   - Dev self service API: https://api.samarbeid.digdir.dev/swagger-ui/index.html
 //   - Dev auth/token API: https://maskinporten.dev
 type HttpApiClient struct {
-	configMonitor *config.ConfigMonitor
-	context       *operatorcontext.Context
-	client        http.Client
-	hydrated      bool
-	wellKnown     caching.CachedAtom[WellKnownResponse]
-	accessToken   caching.CachedAtom[TokenResponse]
-	tracer        trace.Tracer
-	clock         clockwork.Clock
-	logger        logr.Logger
-
-	// Service owner + environment
-	clientNameFullPrefix string
-	// Service owner only (e.g. ttd will have clients in the same environment)
+	tracer                       trace.Tracer
+	clock                        clockwork.Clock
+	configMonitor                *config.ConfigMonitor
+	context                      *operatorcontext.Context
+	client                       http.Client
+	logger                       logr.Logger
+	clientNameFullPrefix         string
 	clientNameServiceOwnerPrefix string
+	wellKnown                    caching.CachedAtom[WellKnownResponse]
+	accessToken                  caching.CachedAtom[TokenResponse]
+	hydrated                     bool
 }
 
 func NewHttpApiClient(
@@ -167,7 +164,7 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return nil, c.handleErrorResponse(req, resp)
 	}
 
@@ -177,7 +174,7 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 	}
 
 	if dtos == nil {
-		return nil, fmt.Errorf("no clients found")
+		return nil, errors.New("no clients found")
 	}
 
 	result := make([]ClientResponse, 0, 16)
@@ -187,7 +184,7 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 
 	for _, cl := range dtos {
 		if cl.ClientId == "" {
-			return nil, fmt.Errorf("found client with empty ID")
+			return nil, errors.New("found client with empty ID")
 		}
 		if c.context.ServiceOwner.Id == "digdir" && cl.ClientId == c.getConfig().ClientId {
 			// If this operator is running as digdir, the supplier client is also defined there
@@ -280,7 +277,7 @@ func (c *HttpApiClient) getClientJwks(ctx context.Context, clientId string) (*cr
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return nil, c.handleErrorResponse(req, resp)
 	}
 
@@ -340,7 +337,7 @@ func (c *HttpApiClient) CreateClient(
 	}
 
 	// NOTE: as of writing, actual response code does not match OpenAPI spec
-	if resp.StatusCode != 201 {
+	if resp.StatusCode != http.StatusCreated {
 		return nil, c.handleErrorResponse(req, resp)
 	}
 
@@ -413,7 +410,7 @@ func (c *HttpApiClient) UpdateClient(
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return nil, c.handleErrorResponse(req, resp)
 	}
 
@@ -463,7 +460,7 @@ func (c *HttpApiClient) CreateClientJwks(ctx context.Context, clientId string, j
 		return err
 	}
 
-	if resp.StatusCode != 201 {
+	if resp.StatusCode != http.StatusCreated {
 		return c.handleErrorResponse(req, resp)
 	}
 
@@ -490,7 +487,7 @@ func (c *HttpApiClient) DeleteClient(ctx context.Context, clientId string) error
 	}
 
 	// NOTE: as of writing, actual response code does not match OpenAPI spec
-	if resp.StatusCode != 204 {
+	if resp.StatusCode != http.StatusNoContent {
 		return c.handleErrorResponse(req, resp)
 	}
 
@@ -547,7 +544,7 @@ func (c *HttpApiClient) accessTokenFetcher(ctx context.Context) (*TokenResponse,
 
 	endpointUrl += "?" + queryParams.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, "POST", endpointUrl, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpointUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -558,7 +555,7 @@ func (c *HttpApiClient) accessTokenFetcher(ctx context.Context) (*TokenResponse,
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return nil, c.handleErrorResponse(req, resp)
 	}
 
@@ -574,8 +571,8 @@ func (c *HttpApiClient) accessTokenFetcher(ctx context.Context) (*TokenResponse,
 type TokenResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
-	ExpiresIn   int    `json:"expires_in"`
 	Scope       string `json:"scope"`
+	ExpiresIn   int    `json:"expires_in"`
 }
 
 func (c *HttpApiClient) wellKnownFetcher(ctx context.Context) (*WellKnownResponse, error) {
@@ -584,7 +581,7 @@ func (c *HttpApiClient) wellKnownFetcher(ctx context.Context) (*WellKnownRespons
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "GET", endpointUrl, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpointUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -594,7 +591,7 @@ func (c *HttpApiClient) wellKnownFetcher(ctx context.Context) (*WellKnownRespons
 		return nil, err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return nil, c.handleErrorResponse(req, resp)
 	}
 
@@ -619,7 +616,7 @@ func deserialize[T any](resp *http.Response) (T, error) {
 	return result, err
 }
 
-// handleErrorResponse attempts to parse a structured API error response, falling back to raw body if parsing fails
+// handleErrorResponse attempts to parse a structured API error response, falling back to raw body if parsing fails.
 func (c *HttpApiClient) handleErrorResponse(req *http.Request, resp *http.Response) error {
 	defer func() { _ = resp.Body.Close() }()
 
@@ -678,7 +675,7 @@ func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, erro
 const clientNameBasePrefix = "altinnstudiooperator-"
 
 // parseClientNamePrefix extracts service owner and environment from a client name.
-// Client names follow pattern: altinnstudiooperator-{serviceOwner}-{environment}-{appId}
+// Client names follow pattern: altinnstudiooperator-{serviceOwner}-{environment}-{appId}.
 func parseClientNamePrefix(clientName string) (serviceOwner, environment string, ok bool) {
 	if !strings.HasPrefix(clientName, clientNameBasePrefix) {
 		return "", "", false

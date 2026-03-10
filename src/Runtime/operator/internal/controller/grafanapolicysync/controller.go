@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -53,10 +54,10 @@ type rawObject map[string]json.RawMessage
 // Reconciler periodically syncs the Altinn route into Grafana notification policies
 // using read-modify-write to avoid overwriting unrelated UI-managed routes.
 type Reconciler struct {
-	logger       logr.Logger
 	k8sClient    client.Client
 	runtime      rt.Runtime
 	httpClient   *http.Client
+	logger       logr.Logger
 	pollInterval time.Duration
 }
 
@@ -218,7 +219,7 @@ func (r *Reconciler) getGrafanaCredentials(ctx context.Context) (string, string,
 		return "", "", fmt.Errorf("get grafana CR: %w", err)
 	}
 	if grafana.Spec.External == nil || strings.TrimSpace(grafana.Spec.External.URL) == "" {
-		return "", "", fmt.Errorf("grafana CR has no external URL")
+		return "", "", errors.New("grafana CR has no external URL")
 	}
 
 	return strings.TrimRight(grafana.Spec.External.URL, "/"), string(tokenBytes), nil

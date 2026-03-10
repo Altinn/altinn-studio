@@ -3,6 +3,7 @@ package secretsync
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
@@ -11,22 +12,14 @@ import (
 
 // SecretSyncMapping defines a source secret to copy to a destination namespace.
 type SecretSyncMapping struct {
+	BuildOutput     func(ctx context.Context, k8sClient client.Client, data map[string][]byte) ([]byte, error)
+	ClearOutput     func() []byte
 	SourceName      string
 	SourceNamespace string
 	DestName        string
 	DestNamespace   string
-	// DestKey is the key name in the destination secret.
-	// If empty, copies all source keys as-is.
-	DestKey string
-	// BuildOutput transforms source secret data to destination format.
-	// If nil, copies raw bytes (requires DestKey to be empty).
-	BuildOutput func(ctx context.Context, k8sClient client.Client, data map[string][]byte) ([]byte, error)
-	// CanDeleteDest allows deletion of destination when source is deleted.
-	// Set to false when destination may be mounted to pods.
-	CanDeleteDest bool
-	// ClearOutput returns the data to use when source is deleted and CanDeleteDest is false.
-	// If nil, Data is set to nil. Only used with DestKey (single-key destination).
-	ClearOutput func() []byte
+	DestKey         string
+	CanDeleteDest   bool
 }
 
 // DefaultMappings returns the default secret sync mappings.
@@ -51,7 +44,7 @@ func DefaultMappings() []SecretSyncMapping {
 					return nil, fmt.Errorf("get Grafana CR: %w", err)
 				}
 				if grafana.Spec.External == nil {
-					return nil, fmt.Errorf("grafana CR has no external spec")
+					return nil, errors.New("grafana CR has no external spec")
 				}
 				return json.Marshal(map[string]any{
 					"Grafana": map[string]any{

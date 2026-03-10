@@ -22,7 +22,7 @@ import (
 	"altinn.studio/operator/test/utils"
 )
 
-// Test constants
+// Test constants.
 const (
 	testClientId                    = "test-client-id-123"
 	testAuthority                   = "https://test.maskinporten.no"

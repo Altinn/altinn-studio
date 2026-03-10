@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -143,7 +144,7 @@ func runUnitTest() {
 
 	// Filter out e2e packages
 	var packages []string
-	for _, pkg := range strings.Split(strings.TrimSpace(string(output)), "\n") {
+	for pkg := range strings.SplitSeq(strings.TrimSpace(string(output)), "\n") {
 		if pkg != "" && !strings.Contains(pkg, "/e2e") {
 			packages = append(packages, pkg)
 		}
@@ -384,7 +385,8 @@ func runE2ETest() {
 	fmt.Println("Running e2e tests...")
 	testExitCode := 0
 	if err := runTests(projectRoot, "./test/e2e/"); err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
+		exitErr := &exec.ExitError{}
+		if errors.As(err, &exitErr) {
 			testExitCode = exitErr.ExitCode()
 		} else {
 			testExitCode = 1

@@ -17,14 +17,14 @@ var SignatureAlgorithms []jose.SignatureAlgorithm = []jose.SignatureAlgorithm{jo
 var SignatureAlgorithmsStr []string = []string{string(jose.RS256), string(jose.RS384), string(jose.RS512)}
 
 type Claims struct {
-	Audience  []string  `json:"aud"`
-	Issuer    string    `json:"iss"`
-	Subject   string    `json:"sub,omitempty"`
 	IssuedAt  time.Time `json:"iat"`
 	NotBefore time.Time `json:"nbf"`
 	Expiry    time.Time `json:"exp"`
+	Issuer    string    `json:"iss"`
+	Subject   string    `json:"sub,omitempty"`
 	ID        string    `json:"jti"`
 	Scope     string    `json:"scope,omitempty"`
+	Audience  []string  `json:"aud"`
 }
 
 type Jwt struct {
@@ -74,7 +74,7 @@ func (j *Jwt) DecodeClaims(jwk *Jwk) (*Claims, error) {
 	}
 
 	// Extract private claims (like scope)
-	var privateClaims map[string]interface{}
+	var privateClaims map[string]any
 	if err := j.token.Claims(jwk.inner, &privateClaims); err == nil {
 		if scope, ok := privateClaims["scope"].(string); ok {
 			claims.Scope = scope

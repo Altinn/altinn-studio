@@ -21,12 +21,12 @@ import (
 )
 
 type ConfigMonitor struct {
+	tracer         trace.Tracer
 	current        atomic.Pointer[Config]
+	kvClient       *azureKeyVaultClient
+	baseConfig     *Config
 	environment    string
 	configFilePath string
-	kvClient       *azureKeyVaultClient // nil for local
-	baseConfig     *Config              // file-based config (non-secret fields)
-	tracer         trace.Tracer
 }
 
 // Get returns the current configuration atomically.
@@ -129,9 +129,9 @@ func configEqual(a, b *Config) bool {
 
 type Config struct {
 	MaskinportenApi        MaskinportenApiConfig        `koanf:"maskinporten_api"         validate:"required"`
+	OrgRegistry            OrgRegistryConfig            `koanf:"org_registry"             validate:"required"`
 	MaskinportenController MaskinportenControllerConfig `koanf:"maskinporten_controller"  validate:"required"`
 	KeyVaultSyncController KeyVaultSyncControllerConfig `koanf:"keyvault_sync_controller" validate:"required"`
-	OrgRegistry            OrgRegistryConfig            `koanf:"org_registry"             validate:"required"`
 }
 
 type MaskinportenApiConfig struct {

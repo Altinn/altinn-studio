@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -21,7 +22,7 @@ var parser = dotenv.ParserEnv("", ".", func(s string) string { return s })
 // resolveConfigFilePath resolves the config file path from:
 // 1. The provided configFilePath parameter if non-empty
 // 2. The OPERATOR_CONFIG_FILE environment variable if set
-// 3. Falls back to "localtest.env" in the project root (for local development)
+// 3. Falls back to "localtest.env" in the project root (for local development).
 func resolveConfigFilePath(configFilePath string) (string, error) {
 	if configFilePath != "" {
 		return configFilePath, nil
@@ -41,7 +42,7 @@ func resolveConfigFilePath(configFilePath string) (string, error) {
 		return path.Join(rootDir, "localtest.env"), nil
 	}
 
-	return "", fmt.Errorf("no config file path provided and OPERATOR_CONFIG_FILE not set")
+	return "", errors.New("no config file path provided and OPERATOR_CONFIG_FILE not set")
 }
 
 // loadFromKoanf loads configuration from a .env file.
@@ -81,8 +82,8 @@ func loadFromKoanf(ctx context.Context, configFilePath string) (*Config, error) 
 
 // durationDecodeHook returns a mapstructure decode hook that parses duration strings with day support.
 func durationDecodeHook() mapstructure.DecodeHookFunc {
-	return func(f reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
-		if t != reflect.TypeOf(time.Duration(0)) {
+	return func(f reflect.Type, t reflect.Type, data any) (any, error) {
+		if t != reflect.TypeFor[time.Duration]() {
 			return data, nil
 		}
 

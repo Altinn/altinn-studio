@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -27,7 +28,7 @@ import (
 	"altinn.studio/operator/test/utils"
 )
 
-// createStateFetcher creates a FetchStateFunc for a given MaskinportenClient name and namespace
+// createStateFetcher creates a FetchStateFunc for a given MaskinportenClient name and namespace.
 func createStateFetcher(k8sClient *utils.K8sClient, name, secretName, ns string) FetchStateFunc { //nolint:unparam
 	return func() (*resourcesv1alpha1.MaskinportenClient, *corev1.Secret, error) {
 		ctx := context.Background()
@@ -74,17 +75,17 @@ func createStateFetcher(k8sClient *utils.K8sClient, name, secretName, ns string)
 	}
 }
 
-// stateIsReconciled checks if the MaskinportenClient is in reconciled state
+// stateIsReconciled checks if the MaskinportenClient is in reconciled state.
 func stateIsReconciled(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
 	if client == nil {
-		return fmt.Errorf("MaskinportenClient does not exist")
+		return errors.New("MaskinportenClient does not exist")
 	}
 	if !apimeta.IsStatusConditionTrue(client.Status.Conditions, maskinporten.ConditionTypeReady) {
 		cond := apimeta.FindStatusCondition(client.Status.Conditions, maskinporten.ConditionTypeReady)
 		if cond != nil {
 			return fmt.Errorf("MaskinportenClient not ready: reason=%s message=%s", cond.Reason, cond.Message)
 		}
-		return fmt.Errorf("MaskinportenClient not ready: no Ready condition")
+		return errors.New("MaskinportenClient not ready: no Ready condition")
 	}
 	if client.Status.ObservedGeneration != client.Generation {
 		return fmt.Errorf("reconciliation pending: observedGeneration=%d, generation=%d",
@@ -93,10 +94,10 @@ func stateIsReconciled(client *resourcesv1alpha1.MaskinportenClient, secret *cor
 	return nil
 }
 
-// stateIsDeleted checks if the MaskinportenClient has been deleted
+// stateIsDeleted checks if the MaskinportenClient has been deleted.
 func stateIsDeleted(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
 	if client != nil {
-		return fmt.Errorf("MaskinportenClient still exists")
+		return errors.New("MaskinportenClient still exists")
 	}
 	return nil
 }
@@ -524,7 +525,7 @@ var _ = Describe("controller", Ordered, func() {
 				FetchFakesDb,
 				func(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
 					if client.Annotations[maskinporten.AnnotationRotateJwk] == rotateJwkEnabled {
-						return fmt.Errorf("annotation not removed yet")
+						return errors.New("annotation not removed yet")
 					}
 					return stateIsReconciled(client, secret)
 				},
@@ -574,7 +575,7 @@ var _ = Describe("controller", Ordered, func() {
 				FetchFakesDb,
 				func(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
 					if client.Annotations[maskinporten.AnnotationRotateJwk] == rotateJwkEnabled {
-						return fmt.Errorf("annotation not removed yet")
+						return errors.New("annotation not removed yet")
 					}
 					if err := stateIsReconciled(client, secret); err != nil {
 						return err

@@ -25,7 +25,7 @@ import (
 
 const apisPath = "/apis"
 
-// Run executes the provided command within this context
+// Run executes the provided command within this context.
 func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 	var err error
 	if dir == "" {
@@ -51,7 +51,7 @@ func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 	}
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return output, fmt.Errorf("%s failed with error: (%v) %s", command, err, string(output))
+		return output, fmt.Errorf("%s failed with error: (%w) %s", command, err, string(output))
 	}
 
 	return output, nil
@@ -61,8 +61,8 @@ func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 // according to line breakers, and ignores the empty elements in it.
 func GetNonEmptyLines(output string) []string {
 	var res []string
-	elements := strings.Split(output, "\n")
-	for _, element := range elements {
+	elements := strings.SplitSeq(output, "\n")
+	for element := range elements {
 		if element != "" {
 			res = append(res, element)
 		}
@@ -71,7 +71,7 @@ func GetNonEmptyLines(output string) []string {
 	return res
 }
 
-// K8sClient provides REST clients for CRDs, core resources, and Flux resources
+// K8sClient provides REST clients for CRDs, core resources, and Flux resources.
 type K8sClient struct {
 	CRD     *rest.RESTClient
 	Core    *rest.RESTClient

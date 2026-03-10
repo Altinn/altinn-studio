@@ -17,14 +17,14 @@ var ErrClientAlreadyExists = errors.New("client already exists")
 const SupplierOrgNo string = "991825827"
 
 type Db struct {
-	Clients       []ClientRecord
 	ClientIdIndex map[string]int
+	Clients       []ClientRecord
 }
 
 type ClientRecord struct {
-	ClientId string
 	Client   *maskinporten.ClientResponse
 	Jwks     *crypto.Jwks
+	ClientId string
 }
 
 func NewDb() *Db {
@@ -148,7 +148,7 @@ func (d *Db) Get(clientId string) *ClientRecord {
 
 func (d *Db) Query(predicate func(*ClientRecord) bool) []ClientRecord {
 	result := make([]ClientRecord, 0, 4)
-	for i := 0; i < len(d.Clients); i++ {
+	for i := range len(d.Clients) {
 		client := &d.Clients[i]
 		if predicate(client) {
 			result = append(result, *client)

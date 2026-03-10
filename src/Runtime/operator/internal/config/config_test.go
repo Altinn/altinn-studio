@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"os"
 	"reflect"
 	"testing"
@@ -35,7 +36,8 @@ func TestConfigMissingValuesFail(t *testing.T) {
 	cfg, err := GetConfig(ctx, environment, file.Name())
 	Expect(cfg).To(BeNil())
 	Expect(err).To(HaveOccurred())
-	_, ok := err.(validator.ValidationErrors)
+	var validationErrors validator.ValidationErrors
+	ok := errors.As(err, &validationErrors)
 	errType := reflect.TypeOf(err)
 	Expect(errType.String()).To(Equal("validator.ValidationErrors"))
 	Expect(ok).To(BeTrue())
