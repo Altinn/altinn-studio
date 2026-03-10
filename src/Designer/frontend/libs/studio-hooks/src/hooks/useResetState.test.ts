@@ -45,7 +45,7 @@ describe('useResetState', () => {
     expect(state).toBe('edited');
   });
 
-  it('resets to new initialValue when both initalValue and resetKey changes after first call', () => {
+  it('resets to new initialValue when both initialValue and resetKey change after first call', () => {
     let initialValue = 'first';
     let resetKey = 'key-1';
     const { result, rerender } = renderHook(() => useResetState(initialValue, resetKey));
