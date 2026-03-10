@@ -30,6 +30,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   const [keywordsInputValue, setKeywordsInputValue] = useState(
     mapKeywordsArrayToString(updatedAppConfig.keywords ?? []),
   );
+  const [hasUnsavedValue, setHasUnsavedValue] = useState<boolean>(false);
 
   const errorSummaryRef: MutableRefObject<HTMLDivElement | null> = useRef<HTMLDivElement | null>(
     null,
@@ -37,7 +38,8 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
 
-  const hasUnsavedChanges = !ObjectUtils.areObjectsEqual(updatedAppConfig, appConfig);
+  const hasUnsavedChanges =
+    !ObjectUtils.areObjectsEqual(updatedAppConfig, appConfig) || hasUnsavedValue;
   useUnsavedChangesWarning(
     hasUnsavedChanges,
     t('app_settings.about_tab_unsaved_changes_navigation_warning'),
@@ -164,6 +166,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           tagText={t('general.optional')}
           saveAriaLabel={t('general.save')}
           cancelAriaLabel={t('general.cancel')}
+          onUnsavedValueChange={setHasUnsavedValue}
         />
         <AppVisibilityAndDelegationCard
           visible={updatedAppConfig.access?.visible ?? false}
@@ -182,6 +185,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           tagText={t('general.optional')}
           saveAriaLabel={t('general.save')}
           cancelAriaLabel={t('general.cancel')}
+          onUnsavedValueChange={setHasUnsavedValue}
         />
         <ContactPointsTable
           contactPointList={updatedAppConfig.contactPoints}
