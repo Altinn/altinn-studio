@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 /**
  * Like `useState`, but resets the state to `initialValue` whenever `resetKey` changes.
- * 
+ *
  * Prefer this hook over `useEffect` for resetting state, to avoid an additional rerender.
  */
 export function useResetState<T>(
