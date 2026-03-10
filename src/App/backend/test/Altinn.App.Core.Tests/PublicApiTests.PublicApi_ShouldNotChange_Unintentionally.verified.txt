@@ -451,8 +451,6 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("initialValidationIssues")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? InitialValidationIssues { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("isWritable")]
-        public required bool IsWritable { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("schema")]
         public required object Schema { get; init; }
     }
@@ -464,10 +462,19 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         [System.Text.Json.Serialization.JsonPropertyName("layouts")]
         public required object Layouts { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("staticOptions")]
-        public required System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<Altinn.App.Core.Models.AppOption>> StaticOptions { get; init; }
+        public required System.Collections.Generic.Dictionary<string, Altinn.App.Core.Features.Bootstrap.Models.StaticOptionSet> StaticOptions { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? ValidationIssues { get; init; }
+    }
+    public sealed class StaticOptionSet
+    {
+        public StaticOptionSet() { }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("downstreamParameters")]
+        public string? DownstreamParameters { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("options")]
+        public required System.Collections.Generic.List<Altinn.App.Core.Models.AppOption> Options { get; init; }
     }
 }
 namespace Altinn.App.Core.Features.Correspondence.Builder

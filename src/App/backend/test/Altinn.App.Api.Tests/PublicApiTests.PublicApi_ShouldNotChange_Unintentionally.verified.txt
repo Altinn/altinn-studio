@@ -257,11 +257,12 @@ namespace Altinn.App.Api.Controllers
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse>> GetInstanceFormBootstrap([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] int instanceOwnerPartyId, [Microsoft.AspNetCore.Mvc.FromRoute] System.Guid instanceGuid, [Microsoft.AspNetCore.Mvc.FromRoute] string uiFolder, [Microsoft.AspNetCore.Mvc.FromQuery] string? dataElementId = null, [Microsoft.AspNetCore.Mvc.FromQuery] bool pdf = false, [Microsoft.AspNetCore.Mvc.FromQuery] string language = "nb", System.Threading.CancellationToken cancellationToken = default) { }
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse), 200)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 400)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 403)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Microsoft.AspNetCore.Mvc.ProblemDetails), 404)]
         [Microsoft.AspNetCore.Mvc.ResponseCache(Location=Microsoft.AspNetCore.Mvc.ResponseCacheLocation.None, NoStore=true)]
         [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/api/bootstrap-form/{uiFolder}")]
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse>> GetStatelessFormBootstrap([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] string uiFolder, [Microsoft.AspNetCore.Mvc.FromQuery] string language = "nb", System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.ActionResult<Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse>> GetStatelessFormBootstrap([Microsoft.AspNetCore.Mvc.FromRoute] string org, [Microsoft.AspNetCore.Mvc.FromRoute] string app, [Microsoft.AspNetCore.Mvc.FromRoute] string uiFolder, [Microsoft.AspNetCore.Mvc.FromQuery] string language = "nb", [Microsoft.AspNetCore.Mvc.FromQuery] string? prefill = null, System.Threading.CancellationToken cancellationToken = default) { }
     }
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}")]
     public class HomeController : Microsoft.AspNetCore.Mvc.Controller

@@ -2693,6 +2693,14 @@
               "type": "string",
               "default": "nb"
             }
+          },
+          {
+            "name": "prefill",
+            "in": "query",
+            "description": "Optional JSON object of field-value pairs for query param prefill.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2748,6 +2756,36 @@
           },
           "403": {
             "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -8356,7 +8394,6 @@
       "DataModelInfo": {
         "required": [
           "initialData",
-          "isWritable",
           "schema"
         ],
         "type": "object",
@@ -8370,9 +8407,6 @@
           "dataElementId": {
             "type": "string",
             "nullable": true
-          },
-          "isWritable": {
-            "type": "boolean"
           },
           "expressionValidationConfig": {
             "nullable": true
@@ -8781,10 +8815,7 @@
           "staticOptions": {
             "type": "object",
             "additionalProperties": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/AppOption"
-              }
+              "$ref": "#/components/schemas/StaticOptionSet"
             },
             "nullable": true
           },
@@ -10508,6 +10539,26 @@
         },
         "additionalProperties": false,
         "description": "A simplified instance model used for presentation of key instance information."
+      },
+      "StaticOptionSet": {
+        "required": [
+          "options"
+        ],
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppOption"
+            },
+            "nullable": true
+          },
+          "downstreamParameters": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "Substatus": {
         "type": "object",
