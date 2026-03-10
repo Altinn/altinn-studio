@@ -1,7 +1,8 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
+import { createWorkspaceRoutes } from 'app-shared/routes/createWorkspaceRoutes';
 import { App } from '../app/App';
-import { PageLayout } from '../pages/PageLayout';
+import { PageLayout } from '../layout/PageLayout';
 import { ResourcePage } from '../pages/ResourcePage';
 import { ResourceDashboardPage } from '../pages/ResourceDashboardPage';
 import { ErrorPage } from '../pages/ErrorPage';
@@ -11,18 +12,20 @@ import { AccessListPage } from '../pages/AccessListPage';
 
 const BASE_PATH = '/:org/:app';
 
-export const routes = (
-  <Route element={<App />}>
-    <Route element={<PageLayout />}>
-      <Route path={BASE_PATH} element={<ResourceDashboardPage />} />
-      <Route path={`${BASE_PATH}/accesslists/:env?`} element={<ListAdminPage />} />
-      <Route path={`${BASE_PATH}/accesslists/:env/:accessListId`} element={<AccessListPage />} />
-      <Route
-        path={`${BASE_PATH}/resource/:resourceId/:pageType/:env?/:accessListId?`}
-        element={<ResourcePage />}
-      />
-      <Route path='/:org' element={<RedirectPage />} />
-    </Route>
-    <Route index element={<ErrorPage />} />
-  </Route>
-);
+const routeDefinitions = [
+  { path: BASE_PATH, element: <ResourceDashboardPage /> },
+  { path: `${BASE_PATH}/accesslists/:env?`, element: <ListAdminPage /> },
+  { path: `${BASE_PATH}/accesslists/:env/:accessListId`, element: <AccessListPage /> },
+  {
+    path: `${BASE_PATH}/resource/:resourceId/:pageType/:env?/:accessListId?`,
+    element: <ResourcePage />,
+  },
+  { path: '/:org', element: <RedirectPage /> },
+];
+
+export const routes = createWorkspaceRoutes({
+  appElement: <App />,
+  layoutElement: <PageLayout />,
+  routeDefinitions,
+  additionalRootRoutes: <Route index element={<ErrorPage />} />,
+});

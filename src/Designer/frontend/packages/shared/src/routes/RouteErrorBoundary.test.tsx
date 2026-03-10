@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { ErrorBoundary } from './PageRouterErrorBoundry';
+import { ErrorBoundary } from './RouteErrorBoundary';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-describe('PageRouterErrorBoundary', () => {
+describe('RouteErrorBoundary', () => {
   it('should display generic error title and message', () => {
     render(<ErrorBoundary />);
 

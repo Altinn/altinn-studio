@@ -27,7 +27,7 @@ import { userLogoutAfterPath } from 'app-shared/api/paths';
 
 import type { ApiError } from './types/api/ApiError';
 import { Link } from '@digdir/designsystemet-react';
-import { Routes } from './Routes';
+import { Routes } from './routes/Routes';
 import { combineComponents } from './contexts/combineComponents';
 
 import 'react-toastify/dist/ReactToastify.css';
@@ -169,11 +169,11 @@ export const AppShell = ({ basename, providers, routes }: AppShellProps) => {
         ...defaultQueryClientConfig,
         queryCache: new QueryCache({
           onError: (error: AxiosError<ApiError>, query) =>
-            handleError(error, t, i18n, query.options?.meta, queries.logout),
+            handleError(error, t, i18n, query.options?.meta, mutations.logout),
         }),
         mutationCache: new MutationCache({
           onError: (error: AxiosError<ApiError>, variables, context, mutation) =>
-            handleError(error, t, i18n, mutation.options?.meta, queries.logout),
+            handleError(error, t, i18n, mutation.options?.meta, mutations.logout),
         }),
       }),
   );

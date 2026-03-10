@@ -6,7 +6,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 import { useOrgListQuery } from '../hooks/queries';
-import { NotFoundPage } from './NotFoundPage';
+import { NotFoundPage } from 'app-shared/routes/NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
 import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderContext';

@@ -6,20 +6,7 @@ import {
   createRoutesFromElements,
   Route,
 } from 'react-router-dom';
-import { StudioNotFoundPage } from '@studio/components/src/components/StudioNotFoundPage';
-import { useTranslation } from 'react-i18next';
-
-const NotFoundPage = () => {
-  const { t } = useTranslation();
-  return (
-    <StudioNotFoundPage
-      title={t('not_found_page.heading')}
-      body={t('not_found_page.sub_heading')}
-      redirectHref='/'
-      redirectLinkText={t('not_found_page.go_to_front_page')}
-    />
-  );
-};
+import { NotFoundPage } from './NotFoundPage';
 
 type RoutesProps = {
   basename: string;

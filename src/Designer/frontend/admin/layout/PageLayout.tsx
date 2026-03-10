@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
 import type { Org } from 'app-shared/types/OrgList';
 import type { User } from 'app-shared/types/Repository';
-import { NotFoundPage } from './NotFoundPage';
+import { NotFoundPage } from 'app-shared/routes/NotFoundPage';
 
 export const OrgContext = createContext<Org | null>(null);
 const UserContext = createContext<User | null>(null);

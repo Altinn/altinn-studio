@@ -1,12 +1,15 @@
 import React from 'react';
-import { Route } from 'react-router-dom';
+import { createWorkspaceRoutes } from 'app-shared/routes/createWorkspaceRoutes';
 import { PageLayout } from '../layout';
 import { ContactPage } from '../pages/Contact/ContactPage';
 import { FlagsPage } from 'studio-root/pages/FlagsPage/FlagsPage';
 
-export const routes = (
-  <Route element={<PageLayout />}>
-    <Route path='/contact' element={<ContactPage />} />
-    <Route path='/flags' element={<FlagsPage />} />
-  </Route>
-);
+const routeDefinitions = [
+  { path: '/contact', element: <ContactPage /> },
+  { path: '/flags', element: <FlagsPage /> },
+];
+
+export const routes = createWorkspaceRoutes({
+  layoutElement: <PageLayout />,
+  routeDefinitions,
+});

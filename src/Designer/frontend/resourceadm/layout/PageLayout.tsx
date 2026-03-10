@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { userHasAccessToOrganization } from '../../utils/userUtils';
-import { useOrganizationsQuery } from '../../hooks/queries';
+import { userHasAccessToOrganization } from '../utils/userUtils';
+import { useOrganizationsQuery } from '../hooks/queries';
 import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { useUrlParams } from '../../hooks/useUrlParams';
+import { useUrlParams } from '../hooks/useUrlParams';
 import postMessages from 'app-shared/utils/postMessages';
-import { MergeConflict } from '../../components/MergeConflict';
-import { ResourceAdmHeader } from '../../components/ResourceAdmHeader';
+import { MergeConflict } from '../components/MergeConflict';
+import { ResourceAdmHeader } from '../components/ResourceAdmHeader';
 
 /**
  * @component

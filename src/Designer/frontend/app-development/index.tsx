@@ -6,7 +6,7 @@ import { ConsentProvider } from 'app-shared/utils/consent';
 import { ConsentBanner } from 'app-shared/components';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { AppShell } from 'app-shared/AppShell';
-import { routes } from './router/routes';
+import { routes } from './routes/routes';
 import { LayoutContextProvider } from './contexts/LayoutContext';
 import { PreviewContextProvider } from './contexts/PreviewContext';
 

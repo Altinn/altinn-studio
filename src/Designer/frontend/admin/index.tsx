@@ -5,7 +5,7 @@ import { AppShell } from 'app-shared/AppShell';
 import { PostHogContextProvider } from 'app-shared/contexts/PostHogContext';
 import { ConsentProvider } from 'app-shared/utils/consent';
 import { ConsentBanner } from 'app-shared/components';
-import { routes } from './router/PageRoutes';
+import { routes } from './routes/routes';
 
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);

@@ -1,11 +1,17 @@
 import React from 'react';
-import { Route } from 'react-router-dom';
+import { createWorkspaceRoutes } from 'app-shared/routes/createWorkspaceRoutes';
 import { PageLayout } from '../layout/PageLayout';
 import { LandingPage } from '../pages/LandingPage';
 
-export const routes = (
-  <Route element={<PageLayout />}>
-    <Route path='/:org/:app' element={<LandingPage />} />
-    <Route path='/:org/:app/:layoutSet' element={<LandingPage />} />
-  </Route>
-);
+const BASE_PATH = '/:org/:app';
+
+const routeDefinitions = [
+  { index: true, element: <LandingPage /> },
+  { path: ':layoutSet', element: <LandingPage /> },
+];
+
+export const routes = createWorkspaceRoutes({
+  layoutElement: <PageLayout />,
+  basePath: BASE_PATH,
+  routeDefinitions,
+});
