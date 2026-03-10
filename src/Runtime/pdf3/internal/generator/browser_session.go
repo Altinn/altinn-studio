@@ -15,6 +15,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
+
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
@@ -23,9 +27,6 @@ import (
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type browserSession struct {
@@ -709,7 +710,12 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 // waitForElement waits for an element to match the given criteria using MutationObserver.
 // For simple existence checks, uses MutationObserver only.
 // For visibility checks, adds polling to catch CSS rule changes.
-func (w *browserSession) waitForElement(req *workerRequest, selector string, timeoutMs int32, checkVisible, checkHidden bool) error {
+func (w *browserSession) waitForElement(
+	req *workerRequest,
+	selector string,
+	timeoutMs int32,
+	checkVisible, checkHidden bool,
+) error {
 	if selector == "" {
 		return nil
 	}
@@ -884,7 +890,11 @@ func (w *browserSession) buildSimpleWaitExpression(selector string, timeoutMs in
 // buildVisibilityWaitExpression generates JavaScript for visibility checking with polling fallback.
 // Uses MutationObserver for attribute changes + polling for CSS rule changes.
 // Also waits for the page 'load' event to ensure the page is fully loaded.
-func (w *browserSession) buildVisibilityWaitExpression(selector string, timeoutMs int32, checkVisible, checkHidden bool) string {
+func (w *browserSession) buildVisibilityWaitExpression(
+	selector string,
+	timeoutMs int32,
+	checkVisible, checkHidden bool,
+) string {
 	// Visibility helper function
 	visibilityHelper := `
 	  // Check if element is visible using computed styles

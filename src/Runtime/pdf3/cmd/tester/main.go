@@ -71,7 +71,10 @@ func printUsage() {
 }
 
 // setupRuntime sets up the Kind cluster, builds images, and deploys pdf3
-func setupRuntime(variant kind.KindContainerRuntimeVariant, options kind.KindContainerRuntimeOptions) (*kind.KindContainerRuntime, error) {
+func setupRuntime(
+	variant kind.KindContainerRuntimeVariant,
+	options kind.KindContainerRuntimeOptions,
+) (*kind.KindContainerRuntime, error) {
 	root, err := localharness.FindProjectRoot()
 	if err != nil {
 		return nil, err
@@ -140,7 +143,11 @@ func runStart() {
 	case "minimal":
 		variant = kind.KindContainerRuntimeVariantMinimal
 	default:
-		fmt.Fprintf(os.Stderr, "Invalid arg '%s'. Must specify 'standard' or 'minimal' for the start command\n", variantArg)
+		fmt.Fprintf(
+			os.Stderr,
+			"Invalid arg '%s'. Must specify 'standard' or 'minimal' for the start command\n",
+			variantArg,
+		)
 		os.Exit(1)
 	}
 
@@ -391,14 +398,23 @@ func collectLogs(runtime *kind.KindContainerRuntime, logsDir string, sinceSecond
 func findK6() (string, error) {
 	path, err := exec.LookPath("k6")
 	if err != nil {
-		return "", fmt.Errorf("k6 not found in PATH. Install via: https://grafana.com/docs/k6/latest/set-up/install-k6/")
+		return "", fmt.Errorf(
+			"k6 not found in PATH. Install via: https://grafana.com/docs/k6/latest/set-up/install-k6/",
+		)
 	}
 	return path, nil
 }
 
 // findChromePath locates the chrome-headless-shell executable in .cache
 func findChromePath(projectRoot string) (string, error) {
-	pattern := filepath.Join(projectRoot, ".cache", "chrome-headless-shell", "*", "chrome-headless-shell-linux64", "chrome-headless-shell")
+	pattern := filepath.Join(
+		projectRoot,
+		".cache",
+		"chrome-headless-shell",
+		"*",
+		"chrome-headless-shell-linux64",
+		"chrome-headless-shell",
+	)
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
 		return "", fmt.Errorf("failed to search for chrome: %w", err)

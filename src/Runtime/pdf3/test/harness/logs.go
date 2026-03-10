@@ -47,7 +47,13 @@ func (lc *LogsCollector) Start() error {
 
 	// Start streaming worker logs
 	lc.workerCtx, lc.workerCancel = context.WithCancel(context.Background())
-	if err := lc.startStreaming(lc.workerCtx, "app=pdf3-worker", "pdf3-worker", &lc.workerLogs, &lc.workerMu); err != nil {
+	if err := lc.startStreaming(
+		lc.workerCtx,
+		"app=pdf3-worker",
+		"pdf3-worker",
+		&lc.workerLogs,
+		&lc.workerMu,
+	); err != nil {
 		lc.proxyCancel() // Clean up proxy streaming
 		return fmt.Errorf("failed to start worker log streaming: %w", err)
 	}
@@ -56,7 +62,12 @@ func (lc *LogsCollector) Start() error {
 }
 
 // startStreaming starts streaming logs to the buffer using the kubernetes client
-func (lc *LogsCollector) startStreaming(ctx context.Context, labelSelector, containerName string, buffer *bytes.Buffer, mu *sync.Mutex) error {
+func (lc *LogsCollector) startStreaming(
+	ctx context.Context,
+	labelSelector, containerName string,
+	buffer *bytes.Buffer,
+	mu *sync.Mutex,
+) error {
 	stream, err := lc.runtime.KubernetesClient.StreamLogs(ctx, kubernetes.StreamLogOptions{
 		Namespace:     "runtime-pdf3",
 		LabelSelector: labelSelector,

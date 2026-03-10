@@ -426,7 +426,10 @@ func callWorker(
 
 func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.That(iruntime.IsTestInternalsMode, "Test output endpoint should only be registered in test internals mode")
+		assert.That(
+			iruntime.IsTestInternalsMode,
+			"Test output endpoint should only be registered in test internals mode",
+		)
 
 		// Extract test ID from URL path: /testoutput/{id}
 		testID := strings.TrimPrefix(r.URL.Path, "/testoutput/")

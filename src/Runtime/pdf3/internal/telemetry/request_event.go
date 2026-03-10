@@ -6,9 +6,10 @@ import (
 	"strings"
 	"sync"
 
-	"altinn.studio/pdf3/internal/types"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+
+	"altinn.studio/pdf3/internal/types"
 )
 
 type requestEventKey struct{}

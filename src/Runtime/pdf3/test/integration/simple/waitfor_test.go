@@ -96,7 +96,9 @@ func Test_WaitForVisibleTimeout(t *testing.T) {
 
 // Test_WaitForHiddenTimeout tests that timeout occurs when element never becomes hidden
 func Test_WaitForHiddenTimeout(t *testing.T) {
-	t.Skip("Currently can't test this, it seems like PDF generation completes immediately (we cant add the div fast enough)")
+	t.Skip(
+		"Currently can't test this, it seems like PDF generation completes immediately (we cant add the div fast enough)",
+	)
 
 	req := harness.GetDefaultPdfRequest(t)
 	// Element will be visible and stay visible

@@ -8,8 +8,9 @@ import (
 	"runtime"
 	"time"
 
-	"altinn.studio/pdf3/internal/log"
 	"go.opentelemetry.io/otel"
+
+	"altinn.studio/pdf3/internal/log"
 )
 
 var logger *slog.Logger = log.NewComponent("assert")

@@ -14,6 +14,9 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/config"
 	"altinn.studio/pdf3/internal/generator"
@@ -23,8 +26,6 @@ import (
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -519,7 +520,10 @@ func discoverLocalIP() (string, error) {
 
 func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		assert.That(iruntime.IsTestInternalsMode, "Test output handler should only be registered in test internals mode")
+		assert.That(
+			iruntime.IsTestInternalsMode,
+			"Test output handler should only be registered in test internals mode",
+		)
 
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusMethodNotAllowed)

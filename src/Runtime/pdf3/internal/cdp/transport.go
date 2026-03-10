@@ -8,13 +8,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/websocket"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/concurrent"
 	"altinn.studio/pdf3/internal/log"
 	"altinn.studio/pdf3/internal/types"
-	"github.com/gorilla/websocket"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type Command struct {
@@ -547,12 +548,21 @@ func (c *connection) handleMessages() {
 					// - Client dropped the outer request, and removed the pending command in the SendCommand defer block after exiting
 					// - Chrome sent response after RequestTimeout
 					// we can't really differentiate between this atm, so let's just log it
-					c.logger.Warn("Received late response for command (likely timed out) - ignoring", "command_id", *msg.ID)
+					c.logger.Warn(
+						"Received late response for command (likely timed out) - ignoring",
+						"command_id",
+						*msg.ID,
+					)
 					continue
 				}
 
 				// Exactly one must be true - commands can't be in both states
-				c.assertA(batchOK != cmdOK, "Command exists in both batch and single command state", "command_id", *msg.ID)
+				c.assertA(
+					batchOK != cmdOK,
+					"Command exists in both batch and single command state",
+					"command_id",
+					*msg.ID,
+				)
 
 				if cmdOK {
 					c.assertA(responseCh != nil, "Response channel for command is nil", "command_id", *msg.ID)

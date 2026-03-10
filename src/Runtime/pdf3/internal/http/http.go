@@ -5,9 +5,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	"altinn.studio/pdf3/internal/telemetry"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+
+	"altinn.studio/pdf3/internal/telemetry"
 )
 
 type ProblemDetails struct {
@@ -22,7 +23,13 @@ type ProblemDetails struct {
 	TraceRejectionError  error  `json:"-"`
 }
 
-func WriteProblemDetails(logger *slog.Logger, w http.ResponseWriter, r *http.Request, statusCode int, problem ProblemDetails) {
+func WriteProblemDetails(
+	logger *slog.Logger,
+	w http.ResponseWriter,
+	r *http.Request,
+	statusCode int,
+	problem ProblemDetails,
+) {
 	if r != nil {
 		span := trace.SpanFromContext(r.Context())
 		if span.IsRecording() && problem.TraceRejectionReason != "" {

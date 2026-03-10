@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
+
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/concurrent"
 	"altinn.studio/pdf3/internal/runtime"
-	"github.com/google/uuid"
 )
 
 // contextKey is a custom type for context keys to avoid collisions
