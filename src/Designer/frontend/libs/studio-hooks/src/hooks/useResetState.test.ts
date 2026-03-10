@@ -34,8 +34,7 @@ describe('useResetState', () => {
 
   it('does not reset when initialValue changes after calling hook, when resetKey stays the same', () => {
     let initialValue = 'first value';
-    let resetKey = 'key';
-    const { result, rerender } = renderHook(() => useResetState(initialValue, resetKey));
+    const { result, rerender } = renderHook(() => useResetState(initialValue, 'key'));
     const [, setState] = result.current;
 
     act(() => setState('edited'));
