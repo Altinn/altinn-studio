@@ -1,3 +1,4 @@
+//nolint:ireturn // This transport package intentionally exposes protocol interfaces.
 package cdp
 
 import (
@@ -47,79 +48,33 @@ type Connection interface {
 // EventHandler handles CDP events.
 type EventHandler func(method string, params any)
 
-// Connect establishes a connection to a Chrome DevTools Protocol endpoint
+var (
+	errMissingWebSocketDebuggerURL = errors.New("no webSocketDebuggerUrl in response")
+	errInvalidCDPResponseFormat    = errors.New("invalid response format")
+	errConnectionClosed            = errors.New("connection closed")
+	errCDPBatchTimeout             = fmt.Errorf("cdp batch timeout after %s", types.RequestTimeout())
+	errNoPageTarget                = errors.New("no page target found")
+	errListTargetsStatus           = errors.New("failed to list targets with unexpected status")
+	errCDPCommandSend              = errors.New("failed to send cdp command")
+	errCDPCommandResponse          = errors.New("cdp returned an error response")
+	errCDPCommandCancelled         = errors.New("cdp command context cancelled")
+	errCDPCommandTimeout           = fmt.Errorf("cdp command timeout after %s", types.RequestTimeout())
+)
+
+// Connect establishes a connection to a Chrome DevTools Protocol endpoint.
 // Returns: Connection, targetID, error.
 func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler EventHandler) (Connection, string, error) {
 	logger := log.NewComponent("cdp").With("id", id)
-
-	// List available targets (should find the about:blank page we created)
-	listURL := debugBaseURL + "/json"
-
-	var resp *http.Response
-	var err error
-	now := time.Now()
-	for {
-		resp, err = http.Get(listURL)
-		if err == nil && resp.StatusCode == http.StatusOK {
-			break
-		}
-		if time.Since(now) > 10*time.Second {
-			break
-		}
-		// Close response body for failed attempts before retrying to prevent resource leak
-		if err == nil {
-			_ = resp.Body.Close()
-		}
-		select {
-		case <-time.After(50 * time.Millisecond):
-		case <-ctx.Done():
-			return nil, "", ctx.Err()
-		}
-	}
-
+	target, err := discoverPageTarget(ctx, logger, id, debugBaseURL)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to list targets: %w", err)
+		return nil, "", err
 	}
-	defer func() {
-		// Closing HTTP response body - failure indicates connection pool leak
-		if err = resp.Body.Close(); err != nil {
-			logger.Warn("Failed to close HTTP response body", "error", err)
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, "", fmt.Errorf("failed to list targets: status %d", resp.StatusCode)
-	}
-
-	var targets []CDPTarget
-	if err = json.NewDecoder(resp.Body).Decode(&targets); err != nil {
-		return nil, "", fmt.Errorf("failed to decode targets response: %w", err)
-	}
-
-	// Chrome should always return at least one target (the page we created)
-	assert.That(len(targets) > 0, "Chrome returned zero targets - browser in invalid state", "id", id)
-
-	// Debug: print available targets
-	logger.Debug("Found targets", "count", len(targets))
-	for i, t := range targets {
-		logger.Debug("Target info", "index", i, "target_type", t.Type, "target_id", t.ID, "url", t.URL)
-	}
-
-	// Find the page target (should be about:blank)
-	var target *CDPTarget
-	for i, t := range targets {
-		if t.Type == "page" {
-			target = &targets[i]
-			break
-		}
-	}
-	assert.That(target != nil, "no page target found", "id", id)
 	targetID := target.ID
 
 	// Connect to the page's WebSocket
 	wsURL := target.WebSocketDebuggerURL
 	if wsURL == "" {
-		return nil, "", errors.New("no webSocketDebuggerUrl in response")
+		return nil, "", errMissingWebSocketDebuggerURL
 	}
 	// Chrome page targets must have a WebSocket URL - this is a protocol invariant
 	assert.That(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation", "id", id)
@@ -127,45 +82,10 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	// Add debugging to understand what URL we're trying to connect to
 	logger.Info("Attempting to connect to WebSocket", "url", wsURL)
 
-	// Wait a moment to ensure the target is ready and retry connection
-	var wsConn *websocket.Conn
-	dialer := websocket.Dialer{
-		HandshakeTimeout: 2 * time.Second,
-	}
+	wsConn, err := dialTargetWebSocket(ctx, logger, id, wsURL)
 	connCtx, cancel := context.WithCancel(ctx)
-	defer func() {
-		if err != nil {
-			cancel()
-		}
-	}()
-
-	now = time.Now()
-	for {
-		wsConn, _, err = dialer.Dial(wsURL, nil)
-		if err == nil {
-			wsConn.SetCloseHandler(func(code int, text string) error {
-				assert.That(
-					// We check ctx here as it is tied to host shutdown.
-					// It's OK to close if the host is shutting down, but NOT OK otherwise
-					ctx.Err() != nil,
-					"Websocket connection closed while process is running",
-					"id", id, "code", code, "text", text,
-				)
-				return nil
-			})
-			break
-		} else if time.Since(now) > 5*time.Second {
-			break
-		}
-
-		select {
-		case <-time.After(50 * time.Millisecond):
-		case <-ctx.Done():
-			return nil, "", ctx.Err()
-		}
-	}
-
 	if err != nil {
+		cancel()
 		return nil, "", fmt.Errorf("failed to dial WebSocket: %w", err)
 	}
 	// Successful dial must return a valid connection
@@ -193,6 +113,119 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	go conn.watchdog()
 
 	return conn, targetID, nil
+}
+
+func discoverPageTarget(ctx context.Context, logger *slog.Logger, id int, debugBaseURL string) (*CDPTarget, error) {
+	targets, err := fetchTargets(ctx, logger, debugBaseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	// Chrome should always return at least one target (the page we created)
+	assert.That(len(targets) > 0, "Chrome returned zero targets - browser in invalid state", "id", id)
+
+	logger.Debug("Found targets", "count", len(targets))
+	for i, target := range targets {
+		logger.Debug("Target info", "index", i, "target_type", target.Type, "target_id", target.ID, "url", target.URL)
+	}
+
+	for i, target := range targets {
+		if target.Type == "page" {
+			return &targets[i], nil
+		}
+	}
+
+	assert.That(false, "no page target found", "id", id)
+	return nil, errNoPageTarget
+}
+
+func fetchTargets(ctx context.Context, logger *slog.Logger, debugBaseURL string) ([]CDPTarget, error) {
+	listURL := debugBaseURL + "/json"
+
+	var resp *http.Response
+	var err error
+	start := time.Now()
+	for {
+		req, reqErr := http.NewRequestWithContext(ctx, http.MethodGet, listURL, nil)
+		if reqErr != nil {
+			return nil, fmt.Errorf("create target discovery request: %w", reqErr)
+		}
+		resp, err = http.DefaultClient.Do(req)
+		if err == nil && resp.StatusCode == http.StatusOK {
+			break
+		}
+		if time.Since(start) > 10*time.Second {
+			break
+		}
+		if err == nil {
+			// Failed discovery attempts still open a response body; close it before retrying
+			// or we slowly leak the node's HTTP connection pool.
+			if closeErr := resp.Body.Close(); closeErr != nil {
+				logger.Warn("Failed to close target discovery response body", "error", closeErr)
+			}
+		}
+		select {
+		case <-time.After(50 * time.Millisecond):
+		case <-ctx.Done():
+			return nil, fmt.Errorf("wait for target discovery: %w", ctx.Err())
+		}
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to list targets: %w", err)
+	}
+	defer func() {
+		// Successful discovery still holds the body open until decoding finishes.
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			logger.Warn("Failed to close HTTP response body", "error", closeErr)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: status %d", errListTargetsStatus, resp.StatusCode)
+	}
+
+	var targets []CDPTarget
+	if err := json.NewDecoder(resp.Body).Decode(&targets); err != nil {
+		return nil, fmt.Errorf("failed to decode targets response: %w", err)
+	}
+	return targets, nil
+}
+
+func dialTargetWebSocket(ctx context.Context, logger *slog.Logger, id int, wsURL string) (*websocket.Conn, error) {
+	dialer := websocket.Dialer{HandshakeTimeout: 2 * time.Second}
+	start := time.Now()
+
+	for {
+		wsConn, wsResp, err := dialer.DialContext(ctx, wsURL, nil)
+		if wsResp != nil && wsResp.Body != nil {
+			if closeErr := wsResp.Body.Close(); closeErr != nil {
+				logger.Warn("Failed to close WebSocket upgrade response body", "error", closeErr)
+			}
+		}
+		if err == nil {
+			wsConn.SetCloseHandler(func(code int, text string) error {
+				assert.That(
+					// This context is tied to host shutdown. A websocket close is acceptable
+					// during shutdown, but a protocol violation while the host is still live.
+					ctx.Err() != nil,
+					"Websocket connection closed while process is running",
+					"id", id, "code", code, "text", text,
+				)
+				return nil
+			})
+			return wsConn, nil
+		}
+		if time.Since(start) > 5*time.Second {
+			return nil, fmt.Errorf("dial websocket: %w", err)
+		}
+
+		select {
+		case <-time.After(50 * time.Millisecond):
+		case <-ctx.Done():
+			return nil, fmt.Errorf("wait for websocket dial: %w", ctx.Err())
+		}
+	}
 }
 
 func (c *connection) assert(condition bool, message string) {
@@ -241,7 +274,7 @@ func GetBrowserVersion(conn Connection) (*types.BrowserVersion, error) {
 
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		return nil, errors.New("invalid response format")
+		return nil, errInvalidCDPResponseFormat
 	}
 
 	return &types.BrowserVersion{
@@ -267,6 +300,8 @@ type batchState struct {
 }
 
 // connection implements the Connection interface.
+//
+//nolint:containedctx // The connection owns a lifecycle context for its background websocket loops.
 type connection struct {
 	ctx            context.Context
 	logger         *slog.Logger
@@ -306,7 +341,7 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 		addCDPCommandEvent(ctx, "cdp.command.send_failed",
 			attribute.String("cdp.method", method),
 		)
-		return nil, fmt.Errorf("failed to send command: %w", err)
+		return nil, fmt.Errorf("%w %q: %w", errCDPCommandSend, method, err)
 	}
 
 	// Wait for response
@@ -316,29 +351,30 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 			addCDPCommandEvent(ctx, "cdp.command.response_error",
 				attribute.String("cdp.method", method),
 			)
-			return nil, fmt.Errorf("CDP error: %v", response.Error)
+			return nil, fmt.Errorf("%w %q: %v", errCDPCommandResponse, method, response.Error)
 		}
 		return &response, nil
 	case <-ctx.Done():
 		addCDPCommandEvent(ctx, "cdp.command.cancelled",
 			attribute.String("cdp.method", method),
 		)
-		return nil, ctx.Err()
+		return nil, fmt.Errorf("%w %q: %w", errCDPCommandCancelled, method, ctx.Err())
 	case <-c.ctx.Done():
 		addCDPCommandEvent(ctx, "cdp.command.connection_closed",
 			attribute.String("cdp.method", method),
 		)
-		return nil, errors.New("connection closed")
+		return nil, errConnectionClosed
 	case <-time.After(types.RequestTimeout()):
 		addCDPCommandEvent(ctx, "cdp.command.timeout",
 			attribute.String("cdp.method", method),
 			attribute.Int64("cdp.timeout_ms", types.RequestTimeout().Milliseconds()),
 		)
 		c.assert(false, "browser failed to respond to request, something must be stuck")
-		return nil, fmt.Errorf("cdp command timeout after %s", types.RequestTimeout())
+		return nil, fmt.Errorf("%w %q", errCDPCommandTimeout, method)
 	}
 }
 
+//nolint:gocognit,gocyclo,funlen // Batch routing mirrors the wire protocol state machine.
 func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*CommandResponse {
 	// Connection must be valid when sending commands
 	c.assert(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
@@ -353,9 +389,9 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 	}
 	c.pendingBatches.Set(batchID, state)
 	defer func() {
-		state, _ := c.pendingBatches.GetAndDelete(batchID)
-		if state != nil {
-			for _, cmdID := range state.cmdIds {
+		batchState, _ := c.pendingBatches.GetAndDelete(batchID)
+		if batchState != nil {
+			for _, cmdID := range batchState.cmdIds {
 				c.cmdIDToBatchID.GetAndDelete(cmdID)
 			}
 		}
@@ -410,10 +446,10 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 			if resp == nil {
 				state.responses[i] = &CommandResponse{
 					Resp: nil,
-					Err:  ctx.Err(),
+					Err:  fmt.Errorf("batch context cancelled: %w", ctx.Err()),
 				}
 			} else {
-				resp.Err = ctx.Err()
+				resp.Err = fmt.Errorf("batch context cancelled: %w", ctx.Err())
 			}
 		}
 		return state.responses
@@ -425,10 +461,10 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 			if resp == nil {
 				state.responses[i] = &CommandResponse{
 					Resp: nil,
-					Err:  errors.New("connection closed"),
+					Err:  errConnectionClosed,
 				}
 			} else {
-				resp.Err = errors.New("connection closed")
+				resp.Err = errConnectionClosed
 			}
 		}
 		return state.responses
@@ -442,10 +478,10 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 			if resp == nil {
 				state.responses[i] = &CommandResponse{
 					Resp: nil,
-					Err:  fmt.Errorf("cdp batch timeout after %s", types.RequestTimeout()),
+					Err:  errCDPBatchTimeout,
 				}
 			} else if resp.Err == nil {
-				resp.Err = fmt.Errorf("cdp batch timeout after %s", types.RequestTimeout())
+				resp.Err = errCDPBatchTimeout
 			}
 		}
 		return state.responses
@@ -477,10 +513,15 @@ func (c *connection) Close() error {
 
 	c.cancel()
 
-	return c.wsConn.Close()
+	if err := c.wsConn.Close(); err != nil {
+		return fmt.Errorf("close websocket connection: %w", err)
+	}
+	return nil
 }
 
 // handleMessages reads messages from the WebSocket and routes them.
+//
+//nolint:gocognit,gocyclo,nestif,funlen // This is the protocol event loop; splitting it would hide state transitions.
 func (c *connection) handleMessages() {
 	defer func() {
 		c.assert(c.ctx.Err() != nil, "Exited CDP message handler loop, but connection context isn't cancelled")

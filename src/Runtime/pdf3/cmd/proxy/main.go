@@ -29,6 +29,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 )
 
+//nolint:funlen // The proxy entrypoint still intentionally owns startup, probes, and shutdown wiring.
 func main() {
 	logger := log.NewComponent("proxy")
 
@@ -63,36 +64,13 @@ func main() {
 
 	// Setup HTTP server
 	http.HandleFunc("/health/startup", func(w http.ResponseWriter, r *http.Request) {
-		if host.IsShuttingDown() {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				logger.Error("Failed to write health check response", "error", err)
-			}
-		} else {
-			w.WriteHeader(http.StatusOK)
-			if _, err := w.Write([]byte("OK")); err != nil {
-				logger.Error("Failed to write health check response", "error", err)
-			}
-		}
+		ihttp.WriteProbe(logger, w, !host.IsShuttingDown())
 	})
 	http.HandleFunc("/health/ready", func(w http.ResponseWriter, r *http.Request) {
-		if host.IsShuttingDown() {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			if _, err := w.Write([]byte("Shutting down")); err != nil {
-				logger.Error("Failed to write health check response", "error", err)
-			}
-		} else {
-			w.WriteHeader(http.StatusOK)
-			if _, err := w.Write([]byte("OK")); err != nil {
-				logger.Error("Failed to write health check response", "error", err)
-			}
-		}
+		ihttp.WriteProbe(logger, w, !host.IsShuttingDown())
 	})
 	http.HandleFunc("/health/live", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		if _, err := w.Write([]byte("OK")); err != nil {
-			logger.Error("Failed to write health check response", "error", err)
-		}
+		ihttp.WriteText(logger, w, http.StatusOK, "OK")
 	})
 
 	http.Handle("/pdf", telemetry.WrapHandler("POST /pdf", generatePdf(logger, httpClient, workerHTTPAddr)))
@@ -103,7 +81,8 @@ func main() {
 	}
 
 	server := &http.Server{
-		Addr: ":5030",
+		Addr:              ":5030",
+		ReadHeaderTimeout: 5 * time.Second,
 		BaseContext: func(_ net.Listener) context.Context {
 			return host.ServerContext()
 		},
@@ -111,8 +90,8 @@ func main() {
 
 	go func() {
 		logger.Info("Starting proxy HTTP server", "addr", server.Addr, "worker_addr", workerHTTPAddr)
-		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("HTTP server crashed", "error", err)
+		if listenErr := server.ListenAndServe(); listenErr != nil && !errors.Is(listenErr, http.ErrServerClosed) {
+			logger.Error("HTTP server crashed", "error", listenErr)
 			os.Exit(1)
 		}
 	}()
@@ -144,6 +123,7 @@ func main() {
 	logger.Info("Server shut down gracefully")
 }
 
+//nolint:funlen,gocognit // This request path keeps validation, retry policy, and response mapping in one handler.
 func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -187,7 +167,11 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 		}
 
 		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
-		defer func() { _ = r.Body.Close() }()
+		defer func() {
+			if closeErr := r.Body.Close(); closeErr != nil {
+				logger.Warn("Failed to close request body", "error", closeErr)
+			}
+		}()
 
 		var req types.PdfRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -265,6 +249,7 @@ func generatePdf(logger *slog.Logger, client *http.Client, workerAddr string) fu
 	}
 }
 
+//nolint:funlen,gocognit,gocyclo // Worker retry/error mapping is easier to audit when kept as one flow.
 func callWorker(
 	logger *slog.Logger,
 	ctx context.Context,
@@ -278,6 +263,7 @@ func callWorker(
 	reqBody []byte,
 ) bool {
 	// Call worker via HTTP
+	//nolint:gosec // workerEndpoint comes from trusted runtime configuration, not an external client input.
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, workerEndpoint, bytes.NewReader(reqBody))
 	if err != nil {
 		ihttp.WriteProblemDetails(logger, w, r, http.StatusInternalServerError, ihttp.ProblemDetails{
@@ -297,6 +283,7 @@ func callWorker(
 		testing.CopyTestInput(httpReq.Header, r.Header)
 	}
 
+	//nolint:gosec // workerEndpoint is derived from trusted runtime configuration.
 	resp, err := client.Do(httpReq)
 	workerId := ""
 	workerIP := ""
@@ -340,7 +327,11 @@ func callWorker(
 		)
 		return true
 	}
-	defer func() { _ = resp.Body.Close() }()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			logger.Warn("Failed to close worker response body", "error", closeErr)
+		}
+	}()
 
 	// Check if generation was successful
 	if resp.StatusCode == http.StatusOK {
@@ -357,8 +348,8 @@ func callWorker(
 		w.Header().Set("Content-Type", "application/pdf")
 
 		w.WriteHeader(http.StatusOK)
-		if _, err := io.Copy(w, resp.Body); err != nil {
-			logger.Error("Failed to write PDF response data", "error", err)
+		if _, copyErr := io.Copy(w, resp.Body); copyErr != nil {
+			logger.Error("Failed to write PDF response data", "error", copyErr)
 		}
 		logger.Info("Successfully generated PDF",
 			"elapsed", time.Since(start),
@@ -414,7 +405,7 @@ func callWorker(
 		Type:   problemType,
 		Title:  problemTitle,
 		Status: statusCode,
-		Detail: string(errorDetail),
+		Detail: errorDetail,
 	})
 	logger.Error(
 		"Error during generation",
@@ -438,29 +429,35 @@ func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(htt
 		// Client should provide the worker IP via header to ensure we hit the right pod
 		targetWorkerIP := r.Header.Get("X-Target-Worker-Ip")
 		assert.That(targetWorkerIP != "", "X-Target-Worker-IP header is required in test internals mode")
+		assert.That(net.ParseIP(targetWorkerIP) != nil, "X-Target-Worker-IP must be a valid IP address")
 
 		// Route directly to the specified worker pod IP
-		workerEndpoint := fmt.Sprintf("http://%s:5031%s", targetWorkerIP, r.URL.Path)
+		workerEndpoint := "http://" + net.JoinHostPort(targetWorkerIP, "5031") + r.URL.Path
 		logger.Debug("Routing test output request", "test_id", testID, "worker_ip", targetWorkerIP)
 
+		//nolint:gosec // targetWorkerIP is validated as an IP address and only used for internal test routing.
 		httpReq, err := http.NewRequestWithContext(r.Context(), r.Method, workerEndpoint, nil)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			if _, err := w.Write([]byte("Failed to create worker request")); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(logger, w, http.StatusInternalServerError, "Failed to create worker request")
 			return
 		}
 
+		//nolint:gosec // targetWorkerIP is validated as an IP address and only used for internal test routing.
 		resp, err := client.Do(httpReq)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			if _, err := fmt.Fprintf(w, "Failed to communicate with worker: %v", err); err != nil {
-				logger.Error("Failed to write error response", "error", err)
-			}
+			ihttp.WriteText(
+				logger,
+				w,
+				http.StatusInternalServerError,
+				fmt.Sprintf("Failed to communicate with worker: %v", err),
+			)
 			return
 		}
-		defer func() { _ = resp.Body.Close() }()
+		defer func() {
+			if closeErr := resp.Body.Close(); closeErr != nil {
+				logger.Warn("Failed to close forwarded response body", "error", closeErr)
+			}
+		}()
 
 		// Copy response headers and status
 		for key, values := range resp.Header {

@@ -21,6 +21,14 @@ linters:
     - gomoddirectives
     - depguard
     - godox
+    - contextcheck
+    - cyclop
+    - exhaustruct
+    - funcorder
+    - gochecknoglobals
+    - mnd
+    - revive
+    - testpackage
 
   settings:
     errcheck:

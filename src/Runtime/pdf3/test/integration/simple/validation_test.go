@@ -2,7 +2,9 @@ package simple
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -210,10 +212,12 @@ func Test_Validation_ValidRequestStillWorks(t *testing.T) {
 
 // sendInvalidRequest sends a request that is expected to fail validation
 // and returns the response body and status code.
-func sendInvalidRequest(_ *testing.T, req *types.PdfRequest) (string, int, error) {
+func sendInvalidRequest(t *testing.T, req *types.PdfRequest) (string, int, error) {
+	t.Helper()
+
 	reqBody, err := json.Marshal(req)
 	if err != nil {
-		return "", 0, err
+		return "", 0, fmt.Errorf("marshal request: %w", err)
 	}
 
 	url := harness.JumpboxURL + "/pdf"
@@ -222,22 +226,26 @@ func sendInvalidRequest(_ *testing.T, req *types.PdfRequest) (string, int, error
 		Timeout: 10 * time.Second,
 	}
 
-	httpReq, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(reqBody))
+	httpReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
-		return "", 0, err
+		return "", 0, fmt.Errorf("create request: %w", err)
 	}
 	httpReq.Host = "pdf3-proxy.runtime-pdf3.svc.cluster.local"
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(httpReq)
 	if err != nil {
-		return "", 0, err
+		return "", 0, fmt.Errorf("send request: %w", err)
 	}
-	defer func() { _ = resp.Body.Close() }()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			t.Fatalf("Failed to close response body: %v", closeErr)
+		}
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", resp.StatusCode, err
+		return "", resp.StatusCode, fmt.Errorf("read response body: %w", err)
 	}
 
 	return string(body), resp.StatusCode, nil

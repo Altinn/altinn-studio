@@ -33,6 +33,20 @@ type WaitForOptions struct {
 	Selector string `json:"selector"`
 }
 
+var (
+	errWaitForInvalidType               = errors.New("waitFor must be a string, number, or object")
+	errURLRequired                      = errors.New("url is required")
+	errWaitForStringEmpty               = errors.New("waitFor string must not be empty")
+	errWaitForTimeoutNegative           = errors.New("waitFor timeout must be >= 0")
+	errWaitForTimeoutTooLarge           = errors.New("waitFor timeout must be <= 30000 ms")
+	errWaitForSelectorEmpty             = errors.New("waitFor selector must not be empty")
+	errWaitForVisibilityConflict        = errors.New("waitFor options cannot have both visible and hidden set to true")
+	errCookieNameRequired               = errors.New("name is required")
+	errCookieValueRequired              = errors.New("value is required")
+	errCookieSameSiteInvalid            = errors.New("sameSite must be 'Strict', 'Lax', or 'None'")
+	errCookieSameSiteNoneRequiresSecure = errors.New("sameSite 'None' requires secure=true")
+)
+
 func (w *WaitFor) UnmarshalJSON(data []byte) error {
 	// Try string first
 	var s string
@@ -55,11 +69,15 @@ func (w *WaitFor) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	return errors.New("waitFor must be a string, number, or object")
+	return errWaitForInvalidType
 }
 
 func (w WaitFor) MarshalJSON() ([]byte, error) {
-	return json.Marshal(w.value)
+	data, err := json.Marshal(w.value)
+	if err != nil {
+		return nil, fmt.Errorf("marshal waitFor: %w", err)
+	}
+	return data, nil
 }
 
 func (w *WaitFor) AsString() (string, bool) {
@@ -220,11 +238,13 @@ func MaxWaitForTimeout() time.Duration {
 const SessionDrainTimeout = 60 * time.Second
 
 // Validate validates the PdfRequest according to browserless schema rules.
+//
+//nolint:gocognit,gocyclo,err113 // Validation is intentionally kept as a single rule set for the request contract.
 func (r *PdfRequest) Validate() error {
 	// Validate URL (required and well-formed)
 	if _, err := url.ParseRequestURI(r.URL); err != nil {
 		if r.URL == "" {
-			return errors.New("url is required")
+			return errURLRequired
 		}
 		return fmt.Errorf("url is not well-formed: %w", err)
 	}
@@ -244,30 +264,31 @@ func (r *PdfRequest) Validate() error {
 	}
 
 	// Validate WaitFor
+	//nolint:nestif // The nested branches mirror the mutually exclusive WaitFor wire formats.
 	if r.WaitFor != nil {
 		if str, ok := r.WaitFor.AsString(); ok {
 			if str == "" {
-				return errors.New("waitFor string must not be empty")
+				return errWaitForStringEmpty
 			}
 		} else if timeout, ok := r.WaitFor.AsTimeout(); ok {
 			if timeout < 0 {
-				return errors.New("waitFor timeout must be >= 0")
+				return errWaitForTimeoutNegative
 			} else if timeout > MaxTimeoutMs {
-				return errors.New("waitFor timeout must be <= 30000 ms")
+				return errWaitForTimeoutTooLarge
 			}
 		} else if opts, ok := r.WaitFor.AsOptions(); ok {
 			if opts.Selector == "" {
-				return errors.New("waitFor selector must not be empty")
+				return errWaitForSelectorEmpty
 			}
 			if opts.Timeout != nil {
 				if *opts.Timeout < 0 {
-					return errors.New("waitFor timeout must be >= 0")
+					return errWaitForTimeoutNegative
 				} else if *opts.Timeout > MaxTimeoutMs {
-					return errors.New("waitFor timeout must be <= 30000 ms")
+					return errWaitForTimeoutTooLarge
 				}
 			}
 			if opts.Visible != nil && opts.Hidden != nil && *opts.Visible && *opts.Hidden {
-				return errors.New("waitFor options cannot have both visible and hidden set to true")
+				return errWaitForVisibilityConflict
 			}
 		}
 	}
@@ -275,22 +296,24 @@ func (r *PdfRequest) Validate() error {
 	// Validate Cookies
 	for i, cookie := range r.Cookies {
 		if cookie.Name == "" {
-			return fmt.Errorf("cookie[%d]: name is required", i)
+			return fmt.Errorf("cookie[%d]: %w", i, errCookieNameRequired)
 		}
 		if cookie.Value == "" {
-			return fmt.Errorf("cookie[%d]: value is required", i)
+			return fmt.Errorf("cookie[%d]: %w", i, errCookieValueRequired)
 		}
+		//nolint:nestif // Cookie validation follows the external contract fields directly.
 		if cookie.SameSite != "" {
 			if cookie.SameSite != "Strict" && cookie.SameSite != "Lax" && cookie.SameSite != "None" {
 				return fmt.Errorf(
-					"cookie[%d]: sameSite must be 'Strict', 'Lax', or 'None', got '%s'",
+					"cookie[%d]: %w, got '%s'",
 					i,
+					errCookieSameSiteInvalid,
 					cookie.SameSite,
 				)
 			}
 			if cookie.SameSite == "None" {
 				if cookie.Secure == nil || !*cookie.Secure {
-					return fmt.Errorf("cookie[%d]: sameSite 'None' requires secure=true", i)
+					return fmt.Errorf("cookie[%d]: %w", i, errCookieSameSiteNoneRequiresSecure)
 				}
 			}
 		}

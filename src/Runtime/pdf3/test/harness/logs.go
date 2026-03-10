@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -14,6 +15,8 @@ import (
 )
 
 // LogsCollector streams logs from pdf3 deployments and checks for assertion failures.
+//
+//nolint:containedctx // These contexts are owned by the collector and cancelled together with the streams.
 type LogsCollector struct {
 	proxyCtx     context.Context
 	workerCtx    context.Context
@@ -75,7 +78,11 @@ func (lc *LogsCollector) startStreaming(
 
 	go func() {
 		defer func() {
-			_ = stream.Close()
+			if closeErr := stream.Close(); closeErr != nil {
+				mu.Lock()
+				_, _ = fmt.Fprintf(buffer, "[%s stream] close error: %v\n", containerName, closeErr)
+				mu.Unlock()
+			}
 		}()
 		reader := bufio.NewReader(stream)
 		for {
@@ -113,6 +120,8 @@ type crashPattern struct {
 	pattern string
 }
 
+var errCrashDetected = errors.New("detected crashes in pod logs")
+
 // crashPatterns defines all the crash patterns we check for.
 var crashPatterns = []crashPattern{
 	{name: "Assertion failure", pattern: "Assertion failed:"},
@@ -126,7 +135,7 @@ var crashPatterns = []crashPattern{
 // CheckForCrashes scans collected logs for various crash patterns
 // Returns an error with details if any crashes are found.
 func (lc *LogsCollector) CheckForCrashes() error {
-	var failures []string
+	failures := make([]string, 0, 4)
 
 	// Check proxy logs
 	lc.proxyMu.Lock()
@@ -145,7 +154,7 @@ func (lc *LogsCollector) CheckForCrashes() error {
 	failures = append(failures, workerFailures...)
 
 	if len(failures) > 0 {
-		return fmt.Errorf("detected crashes in pod logs:\n%s", strings.Join(failures, "\n---\n"))
+		return fmt.Errorf("%w:\n%s", errCrashDetected, strings.Join(failures, "\n---\n"))
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package harness
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,28 +29,39 @@ var (
 	cachePath     = ".cache"
 )
 
+var (
+	errUnexpectedStatusCode = errors.New("unexpected status code")
+	errProjectRootNotFound  = errors.New("project root not found")
+)
+
 func Init() {
 	TestServerURL = "http://testserver.default.svc.cluster.local"
 	JumpboxURL = "http://localhost:8020"
 
-	fmt.Println("=== Initializing Test Harness ===")
+	if _, err := fmt.Fprintln(os.Stdout, "=== Initializing Test Harness ==="); err != nil {
+		os.Exit(1)
+	}
 
 	var err error
 	projectRoot, err := FindProjectRoot()
 	if err != nil {
-		fmt.Printf("Couldn't find project root: %v", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Couldn't find project root: %v\n", err)
 		os.Exit(1)
 	}
 	Runtime, err = kind.LoadCurrent(filepath.Join(projectRoot, cachePath))
 	if err != nil {
-		fmt.Printf("Error loading runtime: %v", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Error loading runtime: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("=== Test Harness Ready ===")
+	if _, err := fmt.Fprintln(os.Stdout, "=== Test Harness Ready ==="); err != nil {
+		os.Exit(1)
+	}
 }
 
 func GetDefaultPdfRequest(t *testing.T) *types.PdfRequest {
+	t.Helper()
+
 	parsedUrl, err := url.Parse(TestServerURL + "/app/")
 	if err != nil {
 		t.Fatalf("Couldnt parse PDF request url: %v", err)
@@ -91,7 +103,10 @@ type PdfResponse struct {
 
 // LoadOutput fetches the test output from the API if testInput was provided.
 func (r *PdfResponse) LoadOutput(t *testing.T) (*ptesting.PdfInternalsTestOutput, error) {
+	t.Helper()
+
 	if r.Input == nil || r.Input.ID == "" {
+		//nolint:nilnil // Missing test input is a valid no-op for callers that do not use internals mode.
 		return nil, nil // No test input, nothing to load
 	}
 
@@ -113,9 +128,9 @@ func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInter
 		Timeout: types.RequestTimeout(),
 	}
 
-	httpReq, err := http.NewRequest(http.MethodGet, url, nil)
+	httpReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create test output request: %w", err)
 	}
 	httpReq.Host = "pdf3-proxy.runtime-pdf3.svc.cluster.local"
 	httpReq.Header.Set("X-Target-Worker-Ip", workerIP)
@@ -125,12 +140,17 @@ func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInter
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 	defer func() {
-		_ = resp.Body.Close()
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			assert.That(false, "Failed to close test output response body", "error", closeErr)
+		}
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return nil, fmt.Errorf("read error response body: %w", readErr)
+		}
+		return nil, fmt.Errorf("%w %d: %s", errUnexpectedStatusCode, resp.StatusCode, string(body))
 	}
 
 	data, err := io.ReadAll(resp.Body)
@@ -146,27 +166,31 @@ func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInter
 	return &output, nil
 }
 
-// requestNewPDF sends a PDF generation request to the new PDF generator solution.
+// RequestNewPDF sends a PDF generation request to the new PDF generator solution.
 func RequestNewPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
+	t.Helper()
 	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", nil)
 }
 
-// requestNewPDF sends a PDF generation request to the new PDF generator solution.
+// RequestNewPDFWithTestInput sends a PDF generation request to the new PDF generator solution.
 func RequestNewPDFWithTestInput(
 	t *testing.T,
 	req *types.PdfRequest,
 	testInput *ptesting.PdfInternalsTestInput,
 ) (*PdfResponse, error) {
+	t.Helper()
 	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", testInput)
 }
 
-// requestPDF sends a PDF generation request to the proxy.
+// RequestPDFWithHost sends a PDF generation request to the proxy.
 func RequestPDFWithHost(
 	t *testing.T,
 	req *types.PdfRequest,
 	overrideHost string,
 	testInput *ptesting.PdfInternalsTestInput,
 ) (*PdfResponse, error) {
+	t.Helper()
+
 	reqBody, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
@@ -178,9 +202,9 @@ func RequestPDFWithHost(
 		Timeout: types.RequestTimeout(),
 	}
 
-	httpReq, err := http.NewRequest(http.MethodPost, url, bytes.NewReader((reqBody)))
+	httpReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create PDF request: %w", err)
 	}
 	httpReq.Host = overrideHost
 	httpReq.Header.Set("Content-Type", "application/json")
@@ -197,12 +221,17 @@ func RequestPDFWithHost(
 	}
 	defer func() {
 		// Closing response body after reading PDF data
-		_ = resp.Body.Close()
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			assert.That(false, "Failed to close PDF response body", "error", closeErr)
+		}
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("unexpected status code %d: %s", resp.StatusCode, string(body))
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return nil, fmt.Errorf("read error response body: %w", readErr)
+		}
+		return nil, fmt.Errorf("%w %d: %s", errUnexpectedStatusCode, resp.StatusCode, string(body))
 	}
 
 	data, err := io.ReadAll(resp.Body)
@@ -243,7 +272,7 @@ func FindProjectRoot() (string, error) {
 	// Get current working directory
 	dir, err := os.Getwd()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("get working directory: %w", err)
 	}
 
 	// Track the previous directory to detect when we've reached the filesystem root
@@ -262,12 +291,12 @@ func FindProjectRoot() (string, error) {
 
 		// Check if we've reached the filesystem root (dir == parentDir on Unix, or checking against previous)
 		if parentDir == dir || parentDir == prevDir {
-			return "", errors.New("reached filesystem root without finding go.mod")
+			return "", fmt.Errorf("%w: reached filesystem root without finding go.mod", errProjectRootNotFound)
 		}
 
 		prevDir = dir
 		dir = parentDir
 	}
 
-	return "", errors.New("exceeded maximum iterations searching for go.mod")
+	return "", fmt.Errorf("%w: exceeded maximum iterations searching for go.mod", errProjectRootNotFound)
 }

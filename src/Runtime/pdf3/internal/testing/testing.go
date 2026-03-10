@@ -79,7 +79,7 @@ func (i *PdfInternalsTestInput) Deserialize(headers http.Header) {
 	assert.That(i != nil, "Test input should not be nil")
 	header := headers.Get(TestInputHeaderName)
 	if header != "" {
-		value, err := base64.StdEncoding.DecodeString(string(header))
+		value, err := base64.StdEncoding.DecodeString(header)
 		assert.That(err == nil, "Should be able to decode input")
 		err = json.Unmarshal(value, i)
 		assert.That(err == nil, "Should be able to deserialize input")
@@ -166,9 +166,9 @@ func (o *PdfInternalsTestOutput) String() string {
 
 func (o *PdfInternalsTestOutput) SnapshotString() string {
 	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
-	copy := *o
-	copy.ID = "UUID"
-	json, err := json.MarshalIndent(copy, "", "  ")
+	outputCopy := *o
+	outputCopy.ID = "UUID"
+	json, err := json.MarshalIndent(outputCopy, "", "  ")
 	assert.That(err == nil, "Should be able to JSON serialize")
 	return string(json)
 }

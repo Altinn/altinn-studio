@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -65,7 +66,8 @@ func Start(id int) (*Process, error) {
 		logArgs(logger, id, args)
 	}
 
-	cmd := exec.Command(browserPath, args...)
+	//nolint:gosec // browserPath is a fixed local binary path and args are locally constructed.
+	cmd := exec.CommandContext(context.Background(), browserPath, args...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	debugPortStr := strconv.Itoa(debugPort)
 	debugBaseURL := fmt.Sprintf("http://127.0.0.1:%d", debugPort)
@@ -96,6 +98,8 @@ func (l *cmdToLogger) Write(p []byte) (int, error) {
 }
 
 // Close terminates the browser process and removes its data directory.
+//
+//nolint:gocognit,nestif // Process shutdown needs to keep the signal and wait flow together.
 func (p *Process) Close() error {
 	logger := log.NewComponent("browser").With("dataDir", p.DataDir)
 	logger.Info("Closing browser process")
@@ -110,9 +114,13 @@ func (p *Process) Close() error {
 		}
 
 		if pgid > 0 {
-			_ = syscall.Kill(-pgid, syscall.SIGTERM)
+			if killErr := syscall.Kill(-pgid, syscall.SIGTERM); killErr != nil {
+				logger.Info("Failed to send SIGTERM to browser process group", "error", killErr)
+			}
 		} else {
-			_ = p.Cmd.Process.Signal(syscall.SIGTERM)
+			if signalErr := p.Cmd.Process.Signal(syscall.SIGTERM); signalErr != nil {
+				logger.Info("Failed to send SIGTERM to browser process", "error", signalErr)
+			}
 		}
 
 		done := make(chan error, 1)
@@ -128,9 +136,13 @@ func (p *Process) Close() error {
 		case <-time.After(100 * time.Millisecond):
 			logger.Info("Browser did not exit after SIGTERM, sending SIGKILL")
 			if pgid > 0 {
-				_ = syscall.Kill(-pgid, syscall.SIGKILL)
+				if killErr := syscall.Kill(-pgid, syscall.SIGKILL); killErr != nil {
+					logger.Info("Failed to send SIGKILL to browser process group", "error", killErr)
+				}
 			} else {
-				_ = p.Cmd.Process.Kill()
+				if killErr := p.Cmd.Process.Kill(); killErr != nil {
+					logger.Info("Failed to SIGKILL browser process", "error", killErr)
+				}
 			}
 			select {
 			case <-done:
@@ -163,7 +175,7 @@ func removeDataDirWithRetry(dataDir string, logger *slog.Logger) error {
 		}
 		time.Sleep(retryDelay)
 	}
-	return lastErr
+	return fmt.Errorf("remove browser data directory: %w", lastErr)
 }
 
 // createBrowserArgs returns the Chrome/Chromium arguments for headless PDF generation.

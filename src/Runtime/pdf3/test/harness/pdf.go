@@ -15,6 +15,8 @@ func IsPDF(data []byte) bool {
 }
 
 func MakePdfDeterministic(t *testing.T, pdf []byte) []byte {
+	t.Helper()
+
 	// These are the non-deterministic parts of a PDF:
 	//
 	// /CreationDate (D:20251010054937+00'00')
@@ -25,6 +27,8 @@ func MakePdfDeterministic(t *testing.T, pdf []byte) []byte {
 	result := bytes.Clone(pdf)
 
 	makeDateDeterministic := func(t *testing.T, dest, src, prefix, date []byte) {
+		t.Helper()
+
 		index := bytes.Index(src, prefix)
 		if index != -1 {
 			sliced := src[index:]

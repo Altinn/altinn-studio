@@ -39,8 +39,8 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 		return types.BrowserVersion{}, fmt.Errorf("failed to create temporary browser for version info: %w", err)
 	}
 	defer func() {
-		if err := browserProc.Close(); err != nil {
-			logger.Error("Failed to close temporary browser", "error", err)
+		if closeErr := browserProc.Close(); closeErr != nil {
+			logger.Error("Failed to close temporary browser", "error", closeErr)
 		}
 	}()
 
@@ -51,7 +51,9 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	}
 	defer func() {
 		// Closing connection during init - will be recreated anyway
-		_ = conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			logger.Error("Failed to close temporary browser connection", "error", closeErr)
+		}
 	}()
 
 	// Get browser version using CDP command
@@ -264,11 +266,12 @@ func (g *Custom) periodicRestart() {
 
 type workerRequest struct {
 	enqueuedAt time.Time
-	ctx        context.Context
-	responder  chan workerResponse
-	logger     *slog.Logger
-	request    types.PdfRequest
-	cleanedUp  bool
+	//nolint:containedctx // The request context is the ownership boundary for request cancellation and test-mode state.
+	ctx       context.Context
+	responder chan workerResponse
+	logger    *slog.Logger
+	request   types.PdfRequest
+	cleanedUp bool
 }
 
 func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {

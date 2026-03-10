@@ -26,14 +26,20 @@ func (cm *Map[K, V]) Set(k K, v V) {
 	cm.mu.Unlock()
 }
 
-func (cm *Map[K, V]) Get(k K) (V, bool) {
+//nolint:ireturn // Returning the generic value type is the point of this container.
+func (cm *Map[K, V]) Get(
+	k K,
+) (V, bool) {
 	cm.mu.Lock()
 	v, ok := cm.m[k]
 	cm.mu.Unlock()
 	return v, ok
 }
 
-func (cm *Map[K, V]) GetAndDelete(k K) (V, bool) {
+//nolint:ireturn // Returning the generic value type is the point of this container.
+func (cm *Map[K, V]) GetAndDelete(
+	k K,
+) (V, bool) {
 	cm.mu.Lock()
 	v, ok := cm.m[k]
 	if ok {

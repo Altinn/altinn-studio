@@ -12,9 +12,11 @@ import (
 
 // getImageSize queries the container runtime for image size in bytes.
 func getImageSize(t *testing.T, cli container.ContainerClient, image string) (int64, error) {
+	t.Helper()
+
 	info, err := cli.ImageInspect(context.Background(), image)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("inspect image %s: %w", image, err)
 	}
 	return info.Size, nil
 }

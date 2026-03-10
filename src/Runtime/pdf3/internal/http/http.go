@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"io"
 	"log/slog"
 	"net/http"
 
@@ -22,6 +23,7 @@ type ProblemDetails struct {
 	Status               int            `json:"status,omitempty"`
 }
 
+//nolint:nestif // The rejection bookkeeping is intentionally colocated with response encoding.
 func WriteProblemDetails(
 	logger *slog.Logger,
 	w http.ResponseWriter,
@@ -58,4 +60,20 @@ func WriteProblemDetails(
 	if err := encoder.Encode(problem); err != nil {
 		logger.Error("Failed to encode error response", "error", err)
 	}
+}
+
+func WriteText(logger *slog.Logger, w http.ResponseWriter, statusCode int, body string) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(statusCode)
+	if _, err := io.WriteString(w, body); err != nil {
+		logger.Error("Failed to write response body", "error", err)
+	}
+}
+
+func WriteProbe(logger *slog.Logger, w http.ResponseWriter, ready bool) {
+	if ready {
+		WriteText(logger, w, http.StatusOK, "OK")
+		return
+	}
+	WriteText(logger, w, http.StatusServiceUnavailable, "Shutting down")
 }
