@@ -7,15 +7,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jonboulle/clockwork"
+	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/resourcename"
-	"github.com/jonboulle/clockwork"
-	corev1 "k8s.io/api/core/v1"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const JsonFileName = "maskinporten-settings.json"
@@ -284,7 +285,10 @@ func (s *ClientState) Reconcile(
 		// but the secret output exists, in which case we just overwrite it
 		// TODO: handle if someone deleted the API but the secret exists? I.e. blunder in self-service portal?
 		req := s.buildApiReq(opCtx)
-		jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.MaskinportenController.JwkExpiry))
+		jwks, err := cryptoService.CreateJwks(
+			s.getCertSubject(opCtx),
+			getNotAfter(clock, configValue.MaskinportenController.JwkExpiry),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -318,7 +322,10 @@ func (s *ClientState) Reconcile(
 			// * Someone else created the API client
 
 			// Since the private JWKS is stored in the secret, it has been lost and we need to create a new one
-			jwks, err := cryptoService.CreateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.MaskinportenController.JwkExpiry))
+			jwks, err := cryptoService.CreateJwks(
+				s.getCertSubject(opCtx),
+				getNotAfter(clock, configValue.MaskinportenController.JwkExpiry),
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -341,18 +348,29 @@ func (s *ClientState) Reconcile(
 			}
 			commands = append(commands, NewUpdateSecretContentCommand(secretStateContent))
 		} else {
-			authorityChanged := EnsureTrailingSlash(configValue.MaskinportenApi.AuthorityUrl) != s.Secret.Content.Authority
+			authorityChanged := EnsureTrailingSlash(
+				configValue.MaskinportenApi.AuthorityUrl,
+			) != s.Secret.Content.Authority
 			scopesChanged := !scopesEqual(s.Crd.Spec.Scopes, s.Api.Req.Scopes)
 			forceRotate := s.Crd.Annotations[AnnotationRotateJwk] == "true"
 
-			needsRotation, err := shouldRotateJwk(clock, configValue.MaskinportenController.JwkRotationThreshold, s.Secret.Content.Jwks, forceRotate)
+			needsRotation, err := shouldRotateJwk(
+				clock,
+				configValue.MaskinportenController.JwkRotationThreshold,
+				s.Secret.Content.Jwks,
+				forceRotate,
+			)
 			if err != nil {
 				return nil, err
 			}
 
 			var jwks *crypto.Jwks
 			if needsRotation {
-				jwks, err = cryptoService.RotateJwks(s.getCertSubject(opCtx), getNotAfter(clock, configValue.MaskinportenController.JwkExpiry), s.Secret.Content.Jwks)
+				jwks, err = cryptoService.RotateJwks(
+					s.getCertSubject(opCtx),
+					getNotAfter(clock, configValue.MaskinportenController.JwkExpiry),
+					s.Secret.Content.Jwks,
+				)
 				if err != nil {
 					return nil, err
 				}
@@ -689,42 +707,54 @@ func NewCommandResultBuilder(cmd any, timestamp time.Time) *CommandResultBuilder
 	}
 }
 
-func (b *CommandResultBuilder) WithCreateClientInApiResult(result *CreateClientInApiCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithCreateClientInApiResult(
+	result *CreateClientInApiCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*CreateClientInApiCommand)
 	assert.That(ok, "Command type mismatch: expected CreateClientInApiCommand")
 	b.result = result
 	return b
 }
 
-func (b *CommandResultBuilder) WithUpdateClientInApiResult(result *UpdateClientInApiCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithUpdateClientInApiResult(
+	result *UpdateClientInApiCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*UpdateClientInApiCommand)
 	assert.That(ok, "Command type mismatch: expected UpdateClientInApiCommand")
 	b.result = result
 	return b
 }
 
-func (b *CommandResultBuilder) WithUpdateSecretContentResult(result *UpdateSecretContentCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithUpdateSecretContentResult(
+	result *UpdateSecretContentCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*UpdateSecretContentCommand)
 	assert.That(ok, "Command type mismatch: expected UpdateSecretContentCommand")
 	b.result = result
 	return b
 }
 
-func (b *CommandResultBuilder) WithDeleteClientInApiResult(result *DeleteClientInApiCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithDeleteClientInApiResult(
+	result *DeleteClientInApiCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*DeleteClientInApiCommand)
 	assert.That(ok, "Command type mismatch: expected DeleteClientInApiCommand")
 	b.result = result
 	return b
 }
 
-func (b *CommandResultBuilder) WithDeleteSecretContentResult(result *DeleteSecretContentCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithDeleteSecretContentResult(
+	result *DeleteSecretContentCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*DeleteSecretContentCommand)
 	assert.That(ok, "Command type mismatch: expected DeleteSecretContentCommand")
 	b.result = result
 	return b
 }
 
-func (b *CommandResultBuilder) WithRemoveRotateAnnotationResult(result *RemoveRotateAnnotationCommandResult) *CommandResultBuilder {
+func (b *CommandResultBuilder) WithRemoveRotateAnnotationResult(
+	result *RemoveRotateAnnotationCommandResult,
+) *CommandResultBuilder {
 	_, ok := b.command.(*RemoveRotateAnnotationCommand)
 	assert.That(ok, "Command type mismatch: expected RemoveRotateAnnotationCommand")
 	b.result = result

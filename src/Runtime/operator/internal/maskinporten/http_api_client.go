@@ -12,18 +12,19 @@ import (
 	"strings"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/caching"
-	"altinn.studio/operator/internal/config"
-	"altinn.studio/operator/internal/crypto"
-	"altinn.studio/operator/internal/operatorcontext"
-	"altinn.studio/operator/internal/telemetry"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/go-logr/logr"
 	"github.com/jonboulle/clockwork"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/trace"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/caching"
+	"altinn.studio/operator/internal/config"
+	"altinn.studio/operator/internal/crypto"
+	"altinn.studio/operator/internal/operatorcontext"
+	"altinn.studio/operator/internal/telemetry"
 )
 
 type WellKnownResponse struct {
@@ -624,7 +625,13 @@ func (c *HttpApiClient) handleErrorResponse(req *http.Request, resp *http.Respon
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("%s %s: HTTP %d: failed to read response body: %w", req.Method, req.URL.Path, resp.StatusCode, err)
+		return fmt.Errorf(
+			"%s %s: HTTP %d: failed to read response body: %w",
+			req.Method,
+			req.URL.Path,
+			resp.StatusCode,
+			err,
+		)
 	}
 
 	return fmt.Errorf("%s %s: HTTP %d: %s", req.Method, req.URL.Path, resp.StatusCode, string(body))

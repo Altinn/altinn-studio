@@ -11,12 +11,13 @@ import (
 	"testing"
 	"time"
 
-	"altinn.studio/operator/internal/caching"
-	"altinn.studio/operator/internal/config"
-	"altinn.studio/operator/internal/operatorcontext"
 	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
+
+	"altinn.studio/operator/internal/caching"
+	"altinn.studio/operator/internal/config"
+	"altinn.studio/operator/internal/operatorcontext"
 )
 
 type testApi struct {
@@ -106,7 +107,8 @@ func TestFixtureIsNotRemote(t *testing.T) {
 	server, configAfter, _ := getMaskinportenApiWellKnownFixture(g, http.StatusOK)
 	defer server.Close()
 
-	g.Expect(configAfter.Get().MaskinportenApi.AuthorityUrl).NotTo(Equal(configBefore.Get().MaskinportenApi.AuthorityUrl))
+	g.Expect(configAfter.Get().MaskinportenApi.AuthorityUrl).
+		NotTo(Equal(configBefore.Get().MaskinportenApi.AuthorityUrl))
 	g.Expect(configAfter.Get().MaskinportenApi.AuthorityUrl).To(ContainSubstring("http://127.0.0.1"))
 }
 
@@ -366,7 +368,11 @@ func getMaskinportenApiClientsFixture(
 		func(cfg *config.Config) (apis []testApi) {
 			return []testApi{
 				okWellKnownHandler(g, cfg),
-				{"/token", http.StatusOK, fmt.Sprintf(`{"access_token":"%s","token_type":"Bearer","expires_in":3600}`, accessToken)},
+				{
+					"/token",
+					http.StatusOK,
+					fmt.Sprintf(`{"access_token":"%s","token_type":"Bearer","expires_in":3600}`, accessToken),
+				},
 				{"/api/v1/altinn/admin/clients", http.StatusOK, clientsResponse},
 			}
 		},

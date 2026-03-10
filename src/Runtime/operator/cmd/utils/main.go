@@ -10,16 +10,17 @@ import (
 	"strings"
 	"time"
 
-	"altinn.studio/operator/internal/config"
-	"altinn.studio/operator/internal/crypto"
-	"altinn.studio/operator/internal/maskinporten"
-	"altinn.studio/operator/internal/operatorcontext"
-	"altinn.studio/operator/internal/orgs"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/jonboulle/clockwork"
+
+	"altinn.studio/operator/internal/config"
+	"altinn.studio/operator/internal/crypto"
+	"altinn.studio/operator/internal/maskinporten"
+	"altinn.studio/operator/internal/operatorcontext"
+	"altinn.studio/operator/internal/orgs"
 )
 
 type setupResult struct {
@@ -58,7 +59,10 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Usage: %s get <subcommand> [options]\n", os.Args[0])
 			fmt.Fprintf(os.Stderr, "Subcommands:\n")
 			fmt.Fprintf(os.Stderr, "  token         Get a Maskinporten access token (using env file credentials)\n")
-			fmt.Fprintf(os.Stderr, "  client-token  Get a Maskinporten access token (using provided client-id and jwk)\n")
+			fmt.Fprintf(
+				os.Stderr,
+				"  client-token  Get a Maskinporten access token (using provided client-id and jwk)\n",
+			)
 			fmt.Fprintf(os.Stderr, "  clients       List Maskinporten clients\n")
 			os.Exit(1)
 		}

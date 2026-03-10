@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"altinn.studio/operator/internal/operatorcontext"
 	"github.com/go-playground/validator/v10"
 	. "github.com/onsi/gomega"
+
+	"altinn.studio/operator/internal/operatorcontext"
 )
 
 func TestConfigMissingValuesFail(t *testing.T) {

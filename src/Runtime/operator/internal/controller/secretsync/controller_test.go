@@ -5,8 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"altinn.studio/operator/internal"
-	"altinn.studio/operator/internal/operatorcontext"
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
@@ -17,6 +15,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	"altinn.studio/operator/internal"
+	"altinn.studio/operator/internal/operatorcontext"
 )
 
 func newFakeK8sClient(initObjs ...client.Object) client.Client {
@@ -693,7 +694,8 @@ func TestReconciler_DefaultMapping_GrafanaURLEnrichment(t *testing.T) {
 	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(dest.Data).To(HaveKey("secrets.json"))
-	g.Expect(string(dest.Data["secrets.json"])).To(Equal(`{"Grafana":{"Token":"test-token-123","Url":"https://grafana.example.com"}}`))
+	g.Expect(string(dest.Data["secrets.json"])).
+		To(Equal(`{"Grafana":{"Token":"test-token-123","Url":"https://grafana.example.com"}}`))
 }
 
 func TestReconciler_DefaultMapping_GrafanaCRMissing(t *testing.T) {

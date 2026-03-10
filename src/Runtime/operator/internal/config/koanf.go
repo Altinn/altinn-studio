@@ -8,11 +8,12 @@ import (
 	"reflect"
 	"time"
 
-	"altinn.studio/operator/internal/telemetry"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
+
+	"altinn.studio/operator/internal/telemetry"
 )
 
 var parser = dotenv.ParserEnv("", ".", func(s string) string { return s })

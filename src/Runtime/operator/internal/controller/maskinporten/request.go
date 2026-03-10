@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
-	"altinn.studio/operator/internal/resourcename"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+
+	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
+	"altinn.studio/operator/internal/resourcename"
 )
 
 type requestKind int
@@ -55,7 +56,11 @@ func (r *MaskinportenClientReconciler) mapRequest(
 
 	opCtx := r.runtime.GetOperatorContext()
 	if parsed.ServiceOwnerId != opCtx.ServiceOwner.Id {
-		return nil, fmt.Errorf("mapRequest: resource service owner %q does not match operator scope %q", parsed.ServiceOwnerId, opCtx.ServiceOwner.Id)
+		return nil, fmt.Errorf(
+			"mapRequest: resource service owner %q does not match operator scope %q",
+			parsed.ServiceOwnerId,
+			opCtx.ServiceOwner.Id,
+		)
 	}
 
 	return &maskinportenClientRequest{

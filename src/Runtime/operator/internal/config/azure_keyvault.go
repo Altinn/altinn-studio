@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/telemetry"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"go.opentelemetry.io/otel/trace"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/telemetry"
 )
 
 type azureKeyVaultClient struct {

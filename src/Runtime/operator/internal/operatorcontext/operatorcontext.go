@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
+
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/orgs"
 	"altinn.studio/operator/internal/telemetry"
-	"github.com/google/uuid"
-	"go.opentelemetry.io/otel/trace"
 )
 
 const EnvironmentLocal = "localtest"

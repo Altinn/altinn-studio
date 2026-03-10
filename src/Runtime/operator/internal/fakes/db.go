@@ -4,10 +4,11 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
+
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/maskinporten"
-	"github.com/google/uuid"
 )
 
 var ErrInvalidClientName = errors.New("invalid client ID")
@@ -133,7 +134,14 @@ func (d *Db) Get(clientId string) *ClientRecord {
 	}
 
 	client := &d.Clients[i]
-	assert.That(client.ClientId == clientId, "inconsistent fake db state", "expected", clientId, "actual", client.ClientId)
+	assert.That(
+		client.ClientId == clientId,
+		"inconsistent fake db state",
+		"expected",
+		clientId,
+		"actual",
+		client.ClientId,
+	)
 
 	return client
 }

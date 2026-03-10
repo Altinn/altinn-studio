@@ -31,7 +31,14 @@ func (r *InactivityScalerReconciler) resolveClusterStateWithOverride(
 	state := resolveClusterState(serviceOwner, environment, now, appCount)
 	override, hasOverride, err := r.forcedClusterStateFromConfigMap(ctx)
 	if err != nil {
-		r.logger.Error(err, "failed to resolve forced-state override, using computed state", "serviceOwner", serviceOwner, "environment", environment)
+		r.logger.Error(
+			err,
+			"failed to resolve forced-state override, using computed state",
+			"serviceOwner",
+			serviceOwner,
+			"environment",
+			environment,
+		)
 		return state, false
 	}
 	if hasOverride {

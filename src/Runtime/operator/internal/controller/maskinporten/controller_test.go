@@ -109,7 +109,9 @@ var _ = Describe("MaskinportenClient Controller", func() {
 			resource := &resourcesv1alpha1.MaskinportenClient{}
 			err = k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(apimeta.IsStatusConditionTrue(resource.Status.Conditions, maskinporten.ConditionTypeReady)).To(BeTrue())
+			Expect(
+				apimeta.IsStatusConditionTrue(resource.Status.Conditions, maskinporten.ConditionTypeReady),
+			).To(BeTrue())
 			Expect(resource.Status.ObservedGeneration).To(Equal(int64(1)))
 			Expect(resource.Status.Authority).To(Equal(rt.GetConfigMonitor().Get().MaskinportenApi.AuthorityUrl + "/"))
 

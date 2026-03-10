@@ -10,13 +10,14 @@ import (
 	"syscall"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/operatorcontext"
-	"altinn.studio/operator/internal/telemetry"
 	"github.com/go-logr/logr"
 	"github.com/go-playground/validator/v10"
 	"go.opentelemetry.io/otel/trace"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/operatorcontext"
+	"altinn.studio/operator/internal/telemetry"
 )
 
 type ConfigMonitor struct {
@@ -94,7 +95,8 @@ func (m *ConfigMonitor) refresh(ctx context.Context) error {
 		if err := m.kvClient.loadSecrets(ctx, &tempCfg); err != nil {
 			span.RecordError(err)
 			copyOldSecrets(&cfg, oldCfg)
-			log.FromContext(ctx).Error(err, "failed to load secrets from Key Vault, using base config values and old secrets if available")
+			log.FromContext(ctx).
+				Error(err, "failed to load secrets from Key Vault, using base config values and old secrets if available")
 		} else {
 			cfg = tempCfg
 		}
@@ -126,10 +128,10 @@ func configEqual(a, b *Config) bool {
 }
 
 type Config struct {
-	MaskinportenApi        MaskinportenApiConfig        `koanf:"maskinporten_api"        validate:"required"`
-	MaskinportenController MaskinportenControllerConfig `koanf:"maskinporten_controller" validate:"required"`
+	MaskinportenApi        MaskinportenApiConfig        `koanf:"maskinporten_api"         validate:"required"`
+	MaskinportenController MaskinportenControllerConfig `koanf:"maskinporten_controller"  validate:"required"`
 	KeyVaultSyncController KeyVaultSyncControllerConfig `koanf:"keyvault_sync_controller" validate:"required"`
-	OrgRegistry            OrgRegistryConfig            `koanf:"org_registry"            validate:"required"`
+	OrgRegistry            OrgRegistryConfig            `koanf:"org_registry"             validate:"required"`
 }
 
 type MaskinportenApiConfig struct {
@@ -181,7 +183,11 @@ func ValidateMaskinportenControllerConfig(c *MaskinportenControllerConfig, isLoc
 		return fmt.Errorf("jwk_expiry must be at most %s", maxExpiry)
 	}
 	if c.JwkExpiry <= c.JwkRotationThreshold {
-		return fmt.Errorf("jwk_expiry (%s) must be greater than jwk_rotation_threshold (%s)", c.JwkExpiry, c.JwkRotationThreshold)
+		return fmt.Errorf(
+			"jwk_expiry (%s) must be greater than jwk_rotation_threshold (%s)",
+			c.JwkExpiry,
+			c.JwkRotationThreshold,
+		)
 	}
 	return nil
 }

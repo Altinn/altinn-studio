@@ -11,9 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/operatorcontext"
-	rt "altinn.studio/operator/internal/runtime"
 	"github.com/go-logr/logr"
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -22,6 +19,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/operatorcontext"
+	rt "altinn.studio/operator/internal/runtime"
 )
 
 const (

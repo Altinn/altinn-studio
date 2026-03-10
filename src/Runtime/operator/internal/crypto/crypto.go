@@ -11,10 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
+
+	"altinn.studio/operator/internal/assert"
 )
 
 const DefaultX509SignatureAlgo x509.SignatureAlgorithm = x509.SHA512WithRSA

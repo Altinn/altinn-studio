@@ -212,7 +212,9 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 					SyncRootDir:       "config/local-syncroot-minimal",
 					KustomizationName: "operator-app",
 					Namespace:         "runtime-operator",
-					Rollouts:          []harness.Rollout{{Deployment: "operator-controller-manager", Namespace: "runtime-operator"}},
+					Rollouts: []harness.Rollout{
+						{Deployment: "operator-controller-manager", Namespace: "runtime-operator"},
+					},
 				},
 			},
 			{
@@ -223,7 +225,9 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*kind.KindContainer
 					HelmRepositoryNamespace: "default",
 					HelmReleaseName:         "ttd-localtestapp",
 					HelmReleaseNamespace:    "default",
-					Rollouts:                []harness.Rollout{{Deployment: "ttd-localtestapp-deployment-v2", Namespace: "default"}},
+					Rollouts: []harness.Rollout{
+						{Deployment: "ttd-localtestapp-deployment-v2", Namespace: "default"},
+					},
 				},
 			},
 		},

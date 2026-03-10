@@ -6,10 +6,11 @@ import (
 	"testing/cryptotest"
 	"time"
 
-	"altinn.studio/operator/test/utils"
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
+
+	"altinn.studio/operator/test/utils"
 )
 
 var testSubject = CertSubject{

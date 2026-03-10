@@ -4,6 +4,11 @@ import (
 	"context"
 	crand "crypto/rand"
 
+	"github.com/go-logr/logr"
+	"github.com/jonboulle/clockwork"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
+
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/maskinporten"
@@ -11,10 +16,6 @@ import (
 	"altinn.studio/operator/internal/orgs"
 	rt "altinn.studio/operator/internal/runtime"
 	"altinn.studio/operator/internal/telemetry"
-	"github.com/go-logr/logr"
-	"github.com/jonboulle/clockwork"
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type runtime struct {

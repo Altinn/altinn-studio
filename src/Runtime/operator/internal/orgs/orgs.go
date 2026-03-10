@@ -9,11 +9,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/telemetry"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/telemetry"
 )
 
 const (

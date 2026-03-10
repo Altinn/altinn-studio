@@ -11,8 +11,6 @@ import (
 	"math/rand/v2"
 	"sync"
 
-	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
-	"altinn.studio/operator/internal/config"
 	. "github.com/onsi/ginkgo/v2" //nolint:revive,staticcheck
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -20,6 +18,9 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+
+	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
+	"altinn.studio/operator/internal/config"
 )
 
 const apisPath = "/apis"

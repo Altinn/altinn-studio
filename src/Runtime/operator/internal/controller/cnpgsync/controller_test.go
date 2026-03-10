@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"altinn.studio/operator/internal"
-	"altinn.studio/operator/internal/operatorcontext"
 	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
@@ -18,6 +16,9 @@ import (
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"altinn.studio/operator/internal"
+	"altinn.studio/operator/internal/operatorcontext"
 )
 
 func newFakeK8sClient(initObjs ...client.Object) client.Client {
@@ -118,8 +119,10 @@ func TestReconciler_CreatesResourcesWhenTargeted(t *testing.T) {
 
 	// Verify resources created
 	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: cnpgNamespace}, &corev1.Namespace{})).To(Succeed())
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: cnpgRepoName, Namespace: cnpgNamespace}, &sourcev1.HelmRepository{})).To(Succeed())
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: cnpgReleaseName, Namespace: cnpgNamespace}, &helmv2.HelmRelease{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: cnpgRepoName, Namespace: cnpgNamespace}, &sourcev1.HelmRepository{})).
+		To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: cnpgReleaseName, Namespace: cnpgNamespace}, &helmv2.HelmRelease{})).
+		To(Succeed())
 
 	// Simulate HelmRelease becoming ready, then sync again
 	h.setHelmReleaseReady(t)
@@ -128,8 +131,10 @@ func TestReconciler_CreatesResourcesWhenTargeted(t *testing.T) {
 	g.Expect(needsRetry).To(BeFalse())
 
 	// Verify CNPG resources created
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: imageCatalogName, Namespace: cnpgNamespace}, &cnpgv1.ImageCatalog{})).To(Succeed())
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, &cnpgv1.Cluster{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: imageCatalogName, Namespace: cnpgNamespace}, &cnpgv1.ImageCatalog{})).
+		To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, &cnpgv1.Cluster{})).
+		To(Succeed())
 }
 
 func TestReconciler_UsesLocalStorageClassForLocal(t *testing.T) {
@@ -141,20 +146,26 @@ func TestReconciler_UsesLocalStorageClassForLocal(t *testing.T) {
 	_, _ = h.reconciler.SyncAll(h.ctx)
 
 	cluster := &cnpgv1.Cluster{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
 	g.Expect(*cluster.Spec.StorageConfiguration.StorageClass).To(Equal(storageClassName))
 }
 
 func TestReconciler_UsesScaledClusterConfigForProd(t *testing.T) {
 	g := NewWithT(t)
-	h := newTestHarness(t, "prod", []CnpgTarget{{ServiceOwnerId: "ttd", Environment: "prod", Apps: []string{"testapp"}}})
+	h := newTestHarness(
+		t,
+		"prod",
+		[]CnpgTarget{{ServiceOwnerId: "ttd", Environment: "prod", Apps: []string{"testapp"}}},
+	)
 
 	_, _ = h.reconciler.SyncAll(h.ctx)
 	h.setHelmReleaseReady(t)
 	_, _ = h.reconciler.SyncAll(h.ctx)
 
 	cluster := &cnpgv1.Cluster{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
 
 	g.Expect(cluster.Spec.Instances).To(Equal(1))
 	g.Expect(cluster.Spec.EnablePDB).NotTo(BeNil())
@@ -188,7 +199,8 @@ func TestReconciler_UsesProxyRegistryForNonLocal(t *testing.T) {
 	_, _ = h.reconciler.SyncAll(h.ctx)
 
 	catalog := &cnpgv1.ImageCatalog{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: imageCatalogName, Namespace: cnpgNamespace}, catalog)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: imageCatalogName, Namespace: cnpgNamespace}, catalog)).
+		To(Succeed())
 	g.Expect(catalog.Spec.Images[0].Image).To(HavePrefix(proxyRegistryPrefix))
 }
 
@@ -201,7 +213,8 @@ func TestReconciler_UsesDirectRegistryForLocal(t *testing.T) {
 	_, _ = h.reconciler.SyncAll(h.ctx)
 
 	catalog := &cnpgv1.ImageCatalog{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: imageCatalogName, Namespace: cnpgNamespace}, catalog)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: imageCatalogName, Namespace: cnpgNamespace}, catalog)).
+		To(Succeed())
 	g.Expect(catalog.Spec.Images[0].Image).NotTo(HavePrefix(proxyRegistryPrefix))
 }
 
@@ -321,7 +334,8 @@ func TestReconciler_DeletesClusterWhenBuildClusterReturnsNil(t *testing.T) {
 
 	// Set HelmRelease ready
 	release := &helmv2.HelmRelease{}
-	g.Expect(k8sClient.Get(context.Background(), client.ObjectKey{Name: cnpgReleaseName, Namespace: cnpgNamespace}, release)).To(Succeed())
+	g.Expect(k8sClient.Get(context.Background(), client.ObjectKey{Name: cnpgReleaseName, Namespace: cnpgNamespace}, release)).
+		To(Succeed())
 	release.Status.Conditions = []metav1.Condition{{Type: "Ready", Status: metav1.ConditionTrue}}
 	g.Expect(k8sClient.Status().Update(context.Background(), release)).To(Succeed())
 
@@ -331,7 +345,11 @@ func TestReconciler_DeletesClusterWhenBuildClusterReturnsNil(t *testing.T) {
 	g.Expect(needsRetry).To(BeFalse())
 
 	// Cluster should be deleted
-	err = k8sClient.Get(context.Background(), client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, &cnpgv1.Cluster{})
+	err = k8sClient.Get(
+		context.Background(),
+		client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace},
+		&cnpgv1.Cluster{},
+	)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -352,7 +370,8 @@ func TestReconciler_CreatesPasswordSecretForApp(t *testing.T) {
 
 	// Password secret should be created
 	secret := &corev1.Secret{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pg-apps-cluster-testapp-password", Namespace: cnpgNamespace}, secret)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pg-apps-cluster-testapp-password", Namespace: cnpgNamespace}, secret)).
+		To(Succeed())
 	g.Expect(secret.Data).To(HaveKey("password"))
 	g.Expect(len(secret.Data["password"])).To(BeNumerically(">=", 20))
 }
@@ -373,7 +392,8 @@ func TestReconciler_AddsManagedRoleToCluster(t *testing.T) {
 
 	// Cluster should have managed role
 	cluster := &cnpgv1.Cluster{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
 	g.Expect(cluster.Spec.Managed).NotTo(BeNil())
 	g.Expect(cluster.Spec.Managed.Roles).To(HaveLen(1))
 	g.Expect(cluster.Spec.Managed.Roles[0].Name).To(Equal("testapp"))
@@ -395,7 +415,8 @@ func TestReconciler_CreatesDatabaseWhenRoleReconciled(t *testing.T) {
 
 	// Simulate role being reconciled by CNPG
 	cluster := &cnpgv1.Cluster{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
 	cluster.Status.ManagedRolesStatus = cnpgv1.ManagedRoles{
 		ByStatus: map[cnpgv1.RoleStatus][]string{
 			cnpgv1.RoleStatusReconciled: {"testapp"},
@@ -429,7 +450,8 @@ func TestReconciler_SkipsSecretUpdateWhenAppSecretMissing(t *testing.T) {
 
 	// Simulate role reconciled
 	cluster := &cnpgv1.Cluster{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
 	cluster.Status.ManagedRolesStatus = cnpgv1.ManagedRoles{
 		ByStatus: map[cnpgv1.RoleStatus][]string{
 			cnpgv1.RoleStatusReconciled: {"testapp"},
@@ -477,7 +499,8 @@ func TestReconciler_UpdatesAppSecretWithConnectionString(t *testing.T) {
 
 	// Simulate role reconciled
 	cluster := &cnpgv1.Cluster{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
 	cluster.Status.ManagedRolesStatus = cnpgv1.ManagedRoles{
 		ByStatus: map[cnpgv1.RoleStatus][]string{
 			cnpgv1.RoleStatusReconciled: {"testapp"},
@@ -500,7 +523,8 @@ func TestReconciler_UpdatesAppSecretWithConnectionString(t *testing.T) {
 	g.Expect(needsRetry).To(BeFalse())
 
 	// Verify app secret updated
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "ttd-testapp-deployment-secrets", Namespace: "default"}, appSecret)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "ttd-testapp-deployment-secrets", Namespace: "default"}, appSecret)).
+		To(Succeed())
 	g.Expect(appSecret.Data).To(HaveKey("existing-key"))    // Preserved
 	g.Expect(appSecret.Data).To(HaveKey("postgresql.json")) // Added
 
@@ -540,7 +564,8 @@ func TestReconciler_CleansUpRemovedApp(t *testing.T) {
 
 	// Simulate role reconciled
 	cluster := &cnpgv1.Cluster{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
 	cluster.Status.ManagedRolesStatus = cnpgv1.ManagedRoles{
 		ByStatus: map[cnpgv1.RoleStatus][]string{
 			cnpgv1.RoleStatusReconciled: {"testapp"},
@@ -570,8 +595,10 @@ func TestReconciler_CleansUpRemovedApp(t *testing.T) {
 	g.Expect(h.k8sClient.Create(h.ctx, appSecret)).To(Succeed())
 
 	// Verify resources exist before cleanup
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "db-testapp", Namespace: cnpgNamespace}, &cnpgv1.Database{})).To(Succeed())
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pg-apps-cluster-testapp-password", Namespace: cnpgNamespace}, &corev1.Secret{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "db-testapp", Namespace: cnpgNamespace}, &cnpgv1.Database{})).
+		To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pg-apps-cluster-testapp-password", Namespace: cnpgNamespace}, &corev1.Secret{})).
+		To(Succeed())
 
 	// Remove app from targets
 	h.reconciler.targets = []CnpgTarget{{ServiceOwnerId: "ttd", Environment: "localtest", Apps: []string{}}}
@@ -586,15 +613,21 @@ func TestReconciler_CleansUpRemovedApp(t *testing.T) {
 	g.Expect(err).To(HaveOccurred())
 
 	// Verify role removed from cluster
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
 	g.Expect(cluster.Spec.Managed.Roles).To(BeEmpty())
 
 	// Verify password secret deleted
-	err = h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pg-apps-cluster-testapp-password", Namespace: cnpgNamespace}, &corev1.Secret{})
+	err = h.k8sClient.Get(
+		h.ctx,
+		client.ObjectKey{Name: "pg-apps-cluster-testapp-password", Namespace: cnpgNamespace},
+		&corev1.Secret{},
+	)
 	g.Expect(err).To(HaveOccurred())
 
 	// Verify postgresql.json removed from app secret
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "ttd-testapp-deployment-secrets", Namespace: "default"}, appSecret)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "ttd-testapp-deployment-secrets", Namespace: "default"}, appSecret)).
+		To(Succeed())
 	g.Expect(appSecret.Data).NotTo(HaveKey("postgresql.json"))
 }
 
@@ -621,11 +654,13 @@ func TestReconciler_SanitizesHyphenatedAppId(t *testing.T) {
 	_, _ = h.reconciler.SyncAll(h.ctx) // Creates cluster and adds role
 
 	// Verify K8s resource names keep hyphens
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pg-apps-cluster-my-test-app-password", Namespace: cnpgNamespace}, &corev1.Secret{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pg-apps-cluster-my-test-app-password", Namespace: cnpgNamespace}, &corev1.Secret{})).
+		To(Succeed())
 
 	// Verify role name is sanitized (underscores)
 	cluster := &cnpgv1.Cluster{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster)).
+		To(Succeed())
 	g.Expect(cluster.Spec.Managed.Roles).To(HaveLen(1))
 	g.Expect(cluster.Spec.Managed.Roles[0].Name).To(Equal("my_test_app"))
 
@@ -641,7 +676,8 @@ func TestReconciler_SanitizesHyphenatedAppId(t *testing.T) {
 
 	// Verify K8s Database resource name keeps hyphens
 	db := &cnpgv1.Database{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "db-my-test-app", Namespace: cnpgNamespace}, db)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "db-my-test-app", Namespace: cnpgNamespace}, db)).
+		To(Succeed())
 
 	// Verify PostgreSQL database name and owner are sanitized
 	g.Expect(db.Spec.Name).To(Equal("my_test_app"))
@@ -656,7 +692,8 @@ func TestReconciler_SanitizesHyphenatedAppId(t *testing.T) {
 	_, _ = h.reconciler.SyncAll(h.ctx)
 
 	// Verify connection string uses sanitized names
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "ttd-my-test-app-deployment-secrets", Namespace: "default"}, appSecret)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "ttd-my-test-app-deployment-secrets", Namespace: "default"}, appSecret)).
+		To(Succeed())
 	connJson := string(appSecret.Data["postgresql.json"])
 	g.Expect(connJson).To(ContainSubstring("Database=my_test_app"))
 	g.Expect(connJson).To(ContainSubstring("Username=my_test_app"))
@@ -693,17 +730,21 @@ func TestReconciler_CreatesBackupResourcesWhenEnabled(t *testing.T) {
 	g.Expect(backupSc.Parameters["skuName"]).To(Equal("StandardSSD_ZRS"))
 
 	pvc := &corev1.PersistentVolumeClaim{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, pvc)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, pvc)).
+		To(Succeed())
 	g.Expect(*pvc.Spec.StorageClassName).To(Equal(backupStorageClass))
 
 	cronJob := &batchv1.CronJob{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-testapp", Namespace: cnpgNamespace}, cronJob)).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-testapp", Namespace: cnpgNamespace}, cronJob)).
+		To(Succeed())
 	g.Expect(cronJob.Spec.Schedule).To(Equal("0 2 * * *"))
 	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Volumes).To(HaveLen(1))
-	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).To(Equal("test-pgdump-backups-testapp"))
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).
+		To(Equal("test-pgdump-backups-testapp"))
 	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers).To(HaveLen(1))
 	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command).To(HaveLen(3))
-	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command[2]).To(ContainSubstring("[pgdump] start"))
+	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command[2]).
+		To(ContainSubstring("[pgdump] start"))
 	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.SecurityContext).NotTo(BeNil())
 	g.Expect(cronJob.Spec.JobTemplate.Spec.Template.Spec.SecurityContext.FSGroup).NotTo(BeNil())
 	g.Expect(*cronJob.Spec.JobTemplate.Spec.Template.Spec.SecurityContext.FSGroup).To(Equal(backupFSGroup))
@@ -732,8 +773,10 @@ func TestReconciler_CleansUpBackupCronJobsButKeepsStorage(t *testing.T) {
 	h.setHelmReleaseReady(t)
 	_, _ = h.reconciler.SyncAll(h.ctx)
 
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-testapp", Namespace: cnpgNamespace}, &batchv1.CronJob{})).To(Succeed())
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-testapp", Namespace: cnpgNamespace}, &batchv1.CronJob{})).
+		To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).
+		To(Succeed())
 
 	h.reconciler.targets = []CnpgTarget{{
 		ServiceOwnerId: "ttd",
@@ -747,8 +790,10 @@ func TestReconciler_CleansUpBackupCronJobsButKeepsStorage(t *testing.T) {
 
 	err = h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-testapp", Namespace: cnpgNamespace}, &batchv1.CronJob{})
 	g.Expect(err).To(HaveOccurred())
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: backupStorageClass}, &storagev1.StorageClass{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-testapp", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).
+		To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: backupStorageClass}, &storagev1.StorageClass{})).
+		To(Succeed())
 }
 
 func TestReconciler_CreatesOneBackupPVCPerApp(t *testing.T) {
@@ -774,16 +819,22 @@ func TestReconciler_CreatesOneBackupPVCPerApp(t *testing.T) {
 	h.setHelmReleaseReady(t)
 	_, _ = h.reconciler.SyncAll(h.ctx)
 
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-app-one", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-app-two", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-app-one", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).
+		To(Succeed())
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "test-pgdump-backups-app-two", Namespace: cnpgNamespace}, &corev1.PersistentVolumeClaim{})).
+		To(Succeed())
 
 	cronJobOne := &batchv1.CronJob{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-app-one", Namespace: cnpgNamespace}, cronJobOne)).To(Succeed())
-	g.Expect(cronJobOne.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).To(Equal("test-pgdump-backups-app-one"))
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-app-one", Namespace: cnpgNamespace}, cronJobOne)).
+		To(Succeed())
+	g.Expect(cronJobOne.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).
+		To(Equal("test-pgdump-backups-app-one"))
 
 	cronJobTwo := &batchv1.CronJob{}
-	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-app-two", Namespace: cnpgNamespace}, cronJobTwo)).To(Succeed())
-	g.Expect(cronJobTwo.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).To(Equal("test-pgdump-backups-app-two"))
+	g.Expect(h.k8sClient.Get(h.ctx, client.ObjectKey{Name: "pgdump-app-two", Namespace: cnpgNamespace}, cronJobTwo)).
+		To(Succeed())
+	g.Expect(cronJobTwo.Spec.JobTemplate.Spec.Template.Spec.Volumes[0].PersistentVolumeClaim.ClaimName).
+		To(Equal("test-pgdump-backups-app-two"))
 }
 
 func TestReconciler_FailsWhenBackupConfigIsUnderspecified(t *testing.T) {

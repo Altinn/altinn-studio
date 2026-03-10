@@ -6,9 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"altinn.studio/operator/internal"
-	"altinn.studio/operator/internal/fakes"
-	"altinn.studio/operator/internal/operatorcontext"
 	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
@@ -16,6 +13,10 @@ import (
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"altinn.studio/operator/internal"
+	"altinn.studio/operator/internal/fakes"
+	"altinn.studio/operator/internal/operatorcontext"
 )
 
 func newFakeK8sClient(initObjs ...client.Object) client.Client {

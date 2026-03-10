@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	rt "altinn.studio/operator/internal/runtime"
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -19,6 +18,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	rt "altinn.studio/operator/internal/runtime"
 )
 
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;delete

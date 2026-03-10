@@ -5,11 +5,12 @@ import (
 	"slices"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
+
+	"altinn.studio/operator/internal/assert"
 )
 
 var SignatureAlgorithms []jose.SignatureAlgorithm = []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512}

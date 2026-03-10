@@ -8,8 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"altinn.studio/operator/internal"
-	"altinn.studio/operator/internal/operatorcontext"
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
@@ -24,6 +22,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
+
+	"altinn.studio/operator/internal"
+	"altinn.studio/operator/internal/operatorcontext"
 )
 
 func newFakeClient(initObjs ...client.Object) client.Client {
@@ -54,7 +55,12 @@ func newHarness(t *testing.T, serviceOwner, environment string, now time.Time, i
 	return newHarnessWithClient(t, serviceOwner, environment, now, newFakeClient(initObjs...))
 }
 
-func newHarnessWithClient(t *testing.T, serviceOwner, environment string, now time.Time, k8sClient client.Client) *testHarness {
+func newHarnessWithClient(
+	t *testing.T,
+	serviceOwner, environment string,
+	now time.Time,
+	k8sClient client.Client,
+) *testHarness {
 	t.Helper()
 
 	clock := clockwork.NewFakeClockAt(now)
@@ -243,7 +249,11 @@ func TestSyncAll_ForcedStateReadFailureFallsBackToComputedState(t *testing.T) {
 
 func assertNoAppsComputedStateApplied(g *WithT, h *testHarness) {
 	gateway := &appsv1.Deployment{}
-	err := h.k8sClient.Get(h.ctx, client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace}, gateway)
+	err := h.k8sClient.Get(
+		h.ctx,
+		client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace},
+		gateway,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(gateway.Spec.Replicas).NotTo(BeNil())
 	g.Expect(*gateway.Spec.Replicas).To(Equal(scaleDownReplicaOne))
@@ -265,7 +275,11 @@ func assertNoAppsComputedStateApplied(g *WithT, h *testHarness) {
 
 func assertGatewayAndPdf3RestoredToBaseline(g *WithT, h *testHarness) {
 	gateway := &appsv1.Deployment{}
-	err := h.k8sClient.Get(h.ctx, client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace}, gateway)
+	err := h.k8sClient.Get(
+		h.ctx,
+		client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace},
+		gateway,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(gateway.Spec.Replicas).NotTo(BeNil())
 	g.Expect(*gateway.Spec.Replicas).To(Equal(int32(2)))
@@ -500,7 +514,11 @@ func collectSnapshots(t *testing.T, k8sClient client.Client, serviceOwner string
 	}
 
 	gateway := &appsv1.Deployment{}
-	if err := k8sClient.Get(ctx, client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace}, gateway); err == nil {
+	if err := k8sClient.Get(
+		ctx,
+		client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace},
+		gateway,
+	); err == nil {
 		result = append(result, resourceSnapshot{
 			Kind:      testKindDeployment,
 			Namespace: gateway.Namespace,
@@ -514,7 +532,11 @@ func collectSnapshots(t *testing.T, k8sClient client.Client, serviceOwner string
 
 	for _, hpaName := range []string{pdf3ProxyHpaName, pdf3WorkerHpaName} {
 		hpa := &autoscalingv2.HorizontalPodAutoscaler{}
-		if err := k8sClient.Get(ctx, client.ObjectKey{Name: hpaName, Namespace: runtimePdf3Namespace}, hpa); err == nil {
+		if err := k8sClient.Get(
+			ctx,
+			client.ObjectKey{Name: hpaName, Namespace: runtimePdf3Namespace},
+			hpa,
+		); err == nil {
 			result = append(result, resourceSnapshot{
 				Kind:        testKindHPA,
 				Namespace:   hpa.Namespace,

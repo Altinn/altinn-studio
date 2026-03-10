@@ -10,9 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/operatorcontext"
-	rt "altinn.studio/operator/internal/runtime"
 	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
@@ -33,6 +30,10 @@ import (
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/operatorcontext"
+	rt "altinn.studio/operator/internal/runtime"
 )
 
 const (
@@ -1558,7 +1559,11 @@ func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string
 				return false, fmt.Errorf("update cluster with role: %w", err)
 			}
 			r.logger.Info("conflict updating cluster, retrying", "appId", appId, "attempt", attempt+1)
-			if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster); err != nil {
+			if err := r.k8sClient.Get(
+				ctx,
+				client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace},
+				cluster,
+			); err != nil {
 				return false, fmt.Errorf("refresh cluster: %w", err)
 			}
 			// Re-check if role was added by another process
@@ -1660,11 +1665,19 @@ func (r *CnpgSyncReconciler) syncDatabaseSecrets(ctx context.Context) error {
 }
 
 // syncDatabaseSecret updates the app's secret with the PostgreSQL connection string.
-func (r *CnpgSyncReconciler) syncDatabaseSecret(ctx context.Context, opCtx *operatorcontext.Context, appId string) error {
+func (r *CnpgSyncReconciler) syncDatabaseSecret(
+	ctx context.Context,
+	opCtx *operatorcontext.Context,
+	appId string,
+) error {
 	// Read password from our secret
 	passwordSecretName := fmt.Sprintf(passwordSecretNameFormat, appId)
 	passwordSecret := &corev1.Secret{}
-	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: passwordSecretName, Namespace: cnpgNamespace}, passwordSecret); err != nil {
+	if err := r.k8sClient.Get(
+		ctx,
+		client.ObjectKey{Name: passwordSecretName, Namespace: cnpgNamespace},
+		passwordSecret,
+	); err != nil {
 		return fmt.Errorf("get password secret: %w", err)
 	}
 	password := string(passwordSecret.Data["password"])
@@ -1672,17 +1685,36 @@ func (r *CnpgSyncReconciler) syncDatabaseSecret(ctx context.Context, opCtx *oper
 	// Build connection string
 	pgName := sanitizePostgresIdentifier(appId)
 	host := fmt.Sprintf("%s-rw.%s.svc.cluster.local", clusterName, cnpgNamespace)
-	connStr := fmt.Sprintf("Host=%s;Port=5432;Database=%s;Username=%s;Password=%s;Application Name=%s;Maximum Pool Size=%d;Tcp Keepalive=true",
-		host, pgName, pgName, password, appId, connectionsPerApp)
+	connStr := fmt.Sprintf(
+		"Host=%s;Port=5432;Database=%s;Username=%s;Password=%s;Application Name=%s;Maximum Pool Size=%d;Tcp Keepalive=true",
+		host,
+		pgName,
+		pgName,
+		password,
+		appId,
+		connectionsPerApp,
+	)
 
 	// Find app secret
 	appSecretName := fmt.Sprintf("%s-%s-deployment-secrets", opCtx.ServiceOwner.Id, appId)
 	appNamespace := "default"
 
 	appSecret := &corev1.Secret{}
-	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: appSecretName, Namespace: appNamespace}, appSecret); err != nil {
+	if err := r.k8sClient.Get(
+		ctx,
+		client.ObjectKey{Name: appSecretName, Namespace: appNamespace},
+		appSecret,
+	); err != nil {
 		if apierrors.IsNotFound(err) {
-			r.logger.Info("app secret not found, skipping", "appId", appId, "secretName", appSecretName, "namespace", appNamespace)
+			r.logger.Info(
+				"app secret not found, skipping",
+				"appId",
+				appId,
+				"secretName",
+				appSecretName,
+				"namespace",
+				appNamespace,
+			)
 			return nil
 		}
 		return fmt.Errorf("get app secret: %w", err)
@@ -1708,7 +1740,11 @@ func (r *CnpgSyncReconciler) syncDatabaseSecret(ctx context.Context, opCtx *oper
 }
 
 // updateAppSecretWithRetry updates the app secret with retry on conflict.
-func (r *CnpgSyncReconciler) updateAppSecretWithRetry(ctx context.Context, appSecret *corev1.Secret, postgresJson []byte) error {
+func (r *CnpgSyncReconciler) updateAppSecretWithRetry(
+	ctx context.Context,
+	appSecret *corev1.Secret,
+	postgresJson []byte,
+) error {
 	for attempt := range maxUpdateRetries {
 		updatedSecret := appSecret.DeepCopy()
 		if updatedSecret.Data == nil {
@@ -1734,7 +1770,11 @@ func (r *CnpgSyncReconciler) updateAppSecretWithRetry(ctx context.Context, appSe
 			"secretName", appSecret.Name,
 		)
 
-		if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: appSecret.Name, Namespace: appSecret.Namespace}, appSecret); err != nil {
+		if err := r.k8sClient.Get(
+			ctx,
+			client.ObjectKey{Name: appSecret.Name, Namespace: appSecret.Namespace},
+			appSecret,
+		); err != nil {
 			return fmt.Errorf("refresh app secret: %w", err)
 		}
 	}
@@ -1857,7 +1897,11 @@ func (r *CnpgSyncReconciler) removeManagedRole(ctx context.Context, appId string
 			return fmt.Errorf("update cluster to remove role: %w", err)
 		}
 		r.logger.Info("conflict removing role, retrying", "appId", appId, "attempt", attempt+1)
-		if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster); err != nil {
+		if err := r.k8sClient.Get(
+			ctx,
+			client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace},
+			cluster,
+		); err != nil {
 			return fmt.Errorf("refresh cluster: %w", err)
 		}
 		if cluster.Spec.Managed == nil {
@@ -1906,12 +1950,20 @@ func (r *CnpgSyncReconciler) deletePasswordSecretIfExists(ctx context.Context, a
 	return nil
 }
 
-func (r *CnpgSyncReconciler) removePostgresqlJsonFromAppSecret(ctx context.Context, opCtx *operatorcontext.Context, appId string) error {
+func (r *CnpgSyncReconciler) removePostgresqlJsonFromAppSecret(
+	ctx context.Context,
+	opCtx *operatorcontext.Context,
+	appId string,
+) error {
 	appSecretName := fmt.Sprintf("%s-%s-deployment-secrets", opCtx.ServiceOwner.Id, appId)
 	appNamespace := "default"
 
 	appSecret := &corev1.Secret{}
-	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: appSecretName, Namespace: appNamespace}, appSecret); err != nil {
+	if err := r.k8sClient.Get(
+		ctx,
+		client.ObjectKey{Name: appSecretName, Namespace: appNamespace},
+		appSecret,
+	); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil
 		}
@@ -1942,5 +1994,8 @@ func (r *CnpgSyncReconciler) removePostgresqlJsonFromAppSecret(ctx context.Conte
 		}
 		delete(appSecret.Data, postgresqlJsonKey)
 	}
-	return fmt.Errorf("failed to remove postgresql.json from app secret after %d attempts due to conflicts", maxUpdateRetries)
+	return fmt.Errorf(
+		"failed to remove postgresql.json from app secret after %d attempts due to conflicts",
+		maxUpdateRetries,
+	)
 }

@@ -8,9 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/operatorcontext"
-	rt "altinn.studio/operator/internal/runtime"
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -21,6 +18,10 @@ import (
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/operatorcontext"
+	rt "altinn.studio/operator/internal/runtime"
 )
 
 const (
@@ -200,7 +201,13 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 	}
 
 	now := r.runtime.GetClock().Now().In(r.location)
-	state, stateForced := r.resolveClusterStateWithOverride(ctx, opCtx.ServiceOwner.Id, opCtx.Environment, now, len(appDeployments))
+	state, stateForced := r.resolveClusterStateWithOverride(
+		ctx,
+		opCtx.ServiceOwner.Id,
+		opCtx.Environment,
+		now,
+		len(appDeployments),
+	)
 	span.SetAttributes(
 		attribute.String("serviceOwner", opCtx.ServiceOwner.Id),
 		attribute.String("environment", opCtx.Environment),
@@ -238,17 +245,32 @@ func (r *InactivityScalerReconciler) SyncAll(ctx context.Context) error {
 		}
 	}
 
-	if err := r.reconcileDeployment(ctx, client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace}, state.scaleGateway(), scaleDownReplicaOne); err != nil {
+	if err := r.reconcileDeployment(
+		ctx,
+		client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace},
+		state.scaleGateway(),
+		scaleDownReplicaOne,
+	); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "reconcile gateway")
 		return err
 	}
-	if err := r.reconcileHpa(ctx, client.ObjectKey{Name: pdf3ProxyHpaName, Namespace: runtimePdf3Namespace}, state.scalePdf3(), scaleDownReplicaOne); err != nil {
+	if err := r.reconcileHpa(
+		ctx,
+		client.ObjectKey{Name: pdf3ProxyHpaName, Namespace: runtimePdf3Namespace},
+		state.scalePdf3(),
+		scaleDownReplicaOne,
+	); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "reconcile pdf3-proxy")
 		return err
 	}
-	if err := r.reconcileHpa(ctx, client.ObjectKey{Name: pdf3WorkerHpaName, Namespace: runtimePdf3Namespace}, state.scalePdf3(), scaleDownReplicaOne); err != nil {
+	if err := r.reconcileHpa(
+		ctx,
+		client.ObjectKey{Name: pdf3WorkerHpaName, Namespace: runtimePdf3Namespace},
+		state.scalePdf3(),
+		scaleDownReplicaOne,
+	); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "reconcile pdf3-worker")
 		return err
@@ -292,7 +314,10 @@ func isWorkhours(t time.Time) bool {
 	return hour >= desiredWorkdayStartHour && hour < desiredWorkdayEndHour
 }
 
-func (r *InactivityScalerReconciler) listAppDeployments(ctx context.Context, serviceOwner string) ([]appsv1.Deployment, error) {
+func (r *InactivityScalerReconciler) listAppDeployments(
+	ctx context.Context,
+	serviceOwner string,
+) ([]appsv1.Deployment, error) {
 	list := &appsv1.DeploymentList{}
 	if err := r.k8sClient.List(ctx, list, client.InNamespace(defaultNamespace)); err != nil {
 		return nil, err
@@ -327,7 +352,10 @@ func appDeploymentNameSet(deployments []appsv1.Deployment) map[string]struct{} {
 	return result
 }
 
-func (r *InactivityScalerReconciler) listAppHpas(ctx context.Context, appDeploymentNames map[string]struct{}) ([]autoscalingv2.HorizontalPodAutoscaler, error) {
+func (r *InactivityScalerReconciler) listAppHpas(
+	ctx context.Context,
+	appDeploymentNames map[string]struct{},
+) ([]autoscalingv2.HorizontalPodAutoscaler, error) {
 	list := &autoscalingv2.HorizontalPodAutoscalerList{}
 	if err := r.k8sClient.List(ctx, list, client.InNamespace(defaultNamespace)); err != nil {
 		return nil, err
@@ -425,7 +453,14 @@ func (r *InactivityScalerReconciler) reconcileWithRetry(
 			return fmt.Errorf("update %s %s/%s: %w", kind, key.Namespace, key.Name, err)
 		} else if attempt == maxUpdateRetries {
 			span.RecordError(err)
-			return fmt.Errorf("update %s %s/%s after %d retries: %w", kind, key.Namespace, key.Name, maxUpdateRetries, err)
+			return fmt.Errorf(
+				"update %s %s/%s after %d retries: %w",
+				kind,
+				key.Namespace,
+				key.Name,
+				maxUpdateRetries,
+				err,
+			)
 		}
 
 		obj = newObj()
@@ -565,7 +600,12 @@ func getScaleBaseline(obj client.Object) (scaleBaseline, bool, error) {
 	}
 	baseline := scaleBaseline{}
 	if err := json.Unmarshal([]byte(value), &baseline); err != nil {
-		return scaleBaseline{}, false, fmt.Errorf("unmarshal scale baseline annotation on %s/%s: %w", obj.GetNamespace(), obj.GetName(), err)
+		return scaleBaseline{}, false, fmt.Errorf(
+			"unmarshal scale baseline annotation on %s/%s: %w",
+			obj.GetNamespace(),
+			obj.GetName(),
+			err,
+		)
 	}
 	return baseline, true, nil
 }

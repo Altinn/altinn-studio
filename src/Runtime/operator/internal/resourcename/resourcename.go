@@ -16,7 +16,10 @@ type MaskinportenClientName struct {
 func ParseMaskinportenClientName(name string) (MaskinportenClientName, error) {
 	parts := strings.SplitN(name, "-", 2)
 	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
-		return MaskinportenClientName{}, fmt.Errorf("invalid MaskinportenClient resource name: %q (expected {serviceOwnerId}-{appId})", name)
+		return MaskinportenClientName{}, fmt.Errorf(
+			"invalid MaskinportenClient resource name: %q (expected {serviceOwnerId}-{appId})",
+			name,
+		)
 	}
 	return MaskinportenClientName{
 		ServiceOwnerId: parts[0],

@@ -8,17 +8,18 @@ import (
 	"testing"
 	"time"
 
-	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
-	"altinn.studio/operator/internal/config"
-	"altinn.studio/operator/internal/crypto"
-	"altinn.studio/operator/internal/operatorcontext"
-	"altinn.studio/operator/test/utils"
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
+	"altinn.studio/operator/internal/config"
+	"altinn.studio/operator/internal/crypto"
+	"altinn.studio/operator/internal/operatorcontext"
+	"altinn.studio/operator/test/utils"
 )
 
 // Test constants
@@ -260,7 +261,13 @@ func TestReconcile_ApiExistsSecretLost(t *testing.T) {
 	crd := createCrd(WithFinalizer())
 	secret := createSecret("ttd-" + testAppId)
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, nil)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		nil,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
@@ -288,7 +295,13 @@ func TestReconcile_ScopesChanged(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
@@ -315,7 +328,13 @@ func TestReconcile_AuthorityChanged(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
@@ -343,7 +362,13 @@ func TestReconcile_ScopesAndAuthorityChanged(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
@@ -371,7 +396,13 @@ func TestReconcile_ScopesAndJwksRotation(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	deps.clock.Advance(time.Hour * 24 * 24)
@@ -400,7 +431,13 @@ func TestReconcile_AuthorityAndJwksRotation(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	deps.clock.Advance(time.Hour * 24 * 24)
@@ -561,7 +598,13 @@ func TestReconcile_NoChanges(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
@@ -592,7 +635,13 @@ func TestReconcile_ApiJwksMismatchSecret(t *testing.T) {
 		Jwk:       secretJwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, apiPublicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		apiPublicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
@@ -620,7 +669,13 @@ func TestReconcile_ApiJwksEmpty(t *testing.T) {
 		Jwk:       secretJwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, emptyApiJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		emptyApiJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
@@ -652,7 +707,13 @@ func TestJwkRotation_NotNeededYet(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	deps.clock.Advance(time.Hour * 24 * 10)
@@ -681,7 +742,13 @@ func TestJwkRotation_TriggeredAtThreshold(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	deps.clock.Advance(time.Hour * 24 * 24)
@@ -716,7 +783,13 @@ func TestJwkRotation_SecondRotation(t *testing.T) {
 		Jwk:       rotatedJwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	deps.clock.Advance(time.Hour * 24 * 25)
@@ -752,7 +825,13 @@ func TestForcedRotation_ViaAnnotation(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
@@ -782,7 +861,13 @@ func TestForcedRotation_AnnotationValueNotTrue(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
@@ -899,7 +984,13 @@ func TestReconcile_EmptyScopes(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: []string{}}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: []string{}},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
@@ -927,7 +1018,13 @@ func TestReconcile_NilVsEmptyScopes(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: []string{}}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: []string{}},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
@@ -992,7 +1089,13 @@ func TestReconcile_AllChangesAtOnce(t *testing.T) {
 		Jwk:       jwks.Keys[0],
 	}
 
-	state, err := NewClientState(crd, &ClientResponse{ClientId: testClientId, Scopes: testScopes}, publicJwks, secret, secretContent)
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		secret,
+		secretContent,
+	)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Advance clock to trigger rotation

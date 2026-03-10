@@ -7,8 +7,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"altinn.studio/operator/internal"
-	"altinn.studio/operator/internal/operatorcontext"
 	"github.com/gkampitakis/go-snaps/snaps"
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
 	"github.com/jonboulle/clockwork"
@@ -18,6 +16,9 @@ import (
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"altinn.studio/operator/internal"
+	"altinn.studio/operator/internal/operatorcontext"
 )
 
 func newFakeK8sClient(initObjs ...client.Object) client.Client {

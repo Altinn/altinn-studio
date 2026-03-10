@@ -6,10 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/config"
-	"altinn.studio/operator/internal/operatorcontext"
-	rt "altinn.studio/operator/internal/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
@@ -22,6 +18,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/config"
+	"altinn.studio/operator/internal/operatorcontext"
+	rt "altinn.studio/operator/internal/runtime"
 )
 
 // KeyVaultSecretMapping defines which Azure Key Vault secrets map to a K8s secret.

@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"altinn.studio/operator/test/utils"
 	"github.com/jonboulle/clockwork"
+
+	"altinn.studio/operator/test/utils"
 )
 
 func benchmarkCreateJwks(b *testing.B, algo x509.SignatureAlgorithm, keySize int) {

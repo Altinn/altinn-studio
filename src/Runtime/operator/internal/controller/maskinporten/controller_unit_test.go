@@ -6,15 +6,16 @@ import (
 	"testing"
 	"time"
 
-	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
-	"altinn.studio/operator/internal/config"
-	mpdomain "altinn.studio/operator/internal/maskinporten"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
+	"altinn.studio/operator/internal/config"
+	mpdomain "altinn.studio/operator/internal/maskinporten"
 )
 
 func newFakeClientForSecretTests(t *testing.T) *MaskinportenClientReconciler {
