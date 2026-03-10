@@ -22,12 +22,14 @@ import { RenderStart } from 'src/core/ui/RenderStart';
 import { FormProvider } from 'src/features/form/FormContext';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
 import { UiConfigProvider } from 'src/features/form/layout/UiConfigContext';
+import { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import { GlobalFormDataReadersProvider } from 'src/features/formData/FormDataReaders';
 import { FormDataWriteProxyProvider } from 'src/features/formData/FormDataWriteProxies';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { NavigationEffectProvider } from 'src/features/navigation/NavigationEffectContext';
 import { PartyProvider } from 'src/features/party/PartiesProvider';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
+import { fetchFormBootstrapForInstance } from 'src/queries/queries';
 import { PageNavigationRouter } from 'src/test/routerUtils';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { FormDataMethods } from 'src/features/formData/FormDataWriteStateMachine';
@@ -125,7 +127,9 @@ const defaultQueryMocks: AppQueries = {
   fetchActiveInstances: async () => [],
   fetchPartiesAllowedToInstantiate: async () => [getPartyMock()],
   fetchRefreshJwtToken: async () => ({}),
-  fetchFormData: async () => ({}),
+  fetchFormData: async () => {
+    throw new Error('Not implemented/overridden in test');
+  },
   fetchOptions: async () => ({ data: [], headers: {} }) as unknown as AxiosResponse<IRawOption[], unknown>,
   fetchDataList: async () => getDataListMock(),
   fetchPdfFormat: async () => ({ excludedPages: [], excludedComponents: [] }),
@@ -658,6 +662,25 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     );
   };
 
+  async function formBoostrap(
+    ...args: Parameters<typeof fetchFormBootstrapForInstance>
+  ): Promise<FormBootstrapResponse> {
+    const mock =
+      (inInstance ? await rest.queries?.fetchFormBootstrapForInstance?.(...args) : undefined) ??
+      (!inInstance ? await rest.queries?.fetchFormBootstrapForStateless?.(...args) : undefined) ??
+      getFormBootstrapMock();
+
+    mock.layouts = {
+      [initialPage]: {
+        data: {
+          layout: [realComponentDef],
+        },
+      },
+    };
+
+    return mock;
+  }
+
   const inInstance = (rest.inInstance ?? true) as InInstance;
   const funcToCall = inInstance ? renderWithInstanceAndLayout : renderWithoutInstanceAndLayout;
   return funcToCall({
@@ -666,18 +689,8 @@ export async function renderGenericComponentTest<T extends CompTypes, InInstance
     initialPage,
     queries: {
       ...rest.queries,
-      fetchFormBootstrapForInstance: async (...args) => {
-        const mock = (await rest.queries?.fetchFormBootstrapForInstance?.(...args)) ?? getFormBootstrapMock();
-        mock.layouts = {
-          [initialPage]: {
-            data: {
-              layout: [realComponentDef],
-            },
-          },
-        };
-
-        return mock;
-      },
+      fetchFormBootstrapForInstance: formBoostrap,
+      fetchFormBootstrapForStateless: formBoostrap,
     },
   }) as RenderGenericComponentReturnType<InInstance>;
 }
