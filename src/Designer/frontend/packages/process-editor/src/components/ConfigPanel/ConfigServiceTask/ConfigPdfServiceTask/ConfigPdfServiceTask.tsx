@@ -8,7 +8,6 @@ import {
   StudioParagraph,
   StudioRadio,
   StudioRadioGroup,
-  useStudioRadioGroup,
 } from '@studio/components';
 import classes from './ConfigPdfServiceTask.module.css';
 import {
@@ -32,26 +31,15 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
   const initialMode: PdfMode = currentLayoutSet ? 'layout-based' : 'automatic';
   const [pdfMode, setPdfMode] = useState<PdfMode>(initialMode);
 
-  const { getRadioProps, setValue } = useStudioRadioGroup({
-    value: pdfMode,
-    onChange: handlePdfModeChange,
-  });
-
-  function handlePdfModeChange(value: string): void {
-    const newMode = value as PdfMode;
-
+  function handlePdfModeChange(newMode: PdfMode): void {
     if (pdfMode === 'layout-based' && newMode === 'automatic' && currentLayoutSet) {
       const confirmed = window.confirm(
         t('process_editor.configuration_panel_pdf_mode_change_to_automatic_confirm'),
       );
 
-      if (confirmed) {
-        deleteLayoutSet({ layoutSetIdToUpdate: currentLayoutSet.id });
-        setPdfMode(newMode);
-      } else {
-        setValue(pdfMode);
-      }
-      return;
+      if (!confirmed) return;
+
+      deleteLayoutSet({ layoutSetIdToUpdate: currentLayoutSet.id });
     }
 
     setPdfMode(newMode);
@@ -104,11 +92,15 @@ export const ConfigPdfServiceTask = (): React.ReactElement => {
           >
             <StudioRadio
               label={t('process_editor.configuration_panel_pdf_mode_automatic')}
-              {...getRadioProps({ value: 'automatic' })}
+              value='automatic'
+              checked={pdfMode === 'automatic'}
+              onChange={() => handlePdfModeChange('automatic')}
             />
             <StudioRadio
               label={t('process_editor.configuration_panel_pdf_mode_layout_based')}
-              {...getRadioProps({ value: 'layout-based' })}
+              value='layout-based'
+              checked={pdfMode === 'layout-based'}
+              onChange={() => handlePdfModeChange('layout-based')}
             />
           </StudioRadioGroup>
 
