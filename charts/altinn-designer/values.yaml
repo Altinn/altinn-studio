@@ -156,7 +156,7 @@ environmentVariables:
     - name: FeatureManagement__AnsattPorten
       value: "false"
     - name: FeatureManagement__StudioOidc
-      value: "true"
+      value: "false"
     - name: FeatureManagement__GitOpsDeploy
       value: "true"
     - name: RedisCacheSettings__UseRedisCache
