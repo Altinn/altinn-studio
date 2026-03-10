@@ -25,4 +25,7 @@ spec:
   values:
     image:
       tag: "{{ .Values.imageTag }}"
+    proxy:
+      image:
+        tag: "{{ .Values.imageTag }}"
     environment: "{{ .Values.environmentName }}"

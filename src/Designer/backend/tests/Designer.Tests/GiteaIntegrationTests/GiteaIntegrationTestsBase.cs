@@ -141,6 +141,9 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
         string configOverride =
             $@"
               {{
+                    ""FeatureManagement"": {{
+                        ""StudioOidc"": false
+                    }},
                     ""ServiceRepositorySettings"": {{
                         ""RepositoryLocation"": ""{reposLocation}"",
                         ""ApiEndPointHost"": ""localhost"",
