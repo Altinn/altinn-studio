@@ -48,7 +48,7 @@ internal static partial class StringExtensions
         /// </summary>
         /// <remarks>Uses <see cref="CultureInfo.InvariantCulture"/> as the format provider.</remarks>
         /// <param name="values">The object containing the values for replacement.</param>
-        public string FormatWith(object values) => FormatWith(value, values, CultureInfo.InvariantCulture);
+        public string FormatWith(object values) => value.FormatWith(values, CultureInfo.InvariantCulture);
 
         /// <summary>
         /// Converts the string to a <see cref="Uri"/> using the specified <see cref="UriKind"/>.

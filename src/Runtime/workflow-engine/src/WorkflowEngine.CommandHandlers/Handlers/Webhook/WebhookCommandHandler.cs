@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using WorkflowEngine.CommandHandlers.Extensions;
 using WorkflowEngine.Models;
@@ -9,7 +8,10 @@ using WorkflowEngine.Resilience;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
-namespace WorkflowEngine.CommandHandlers;
+// CA1822: Mark members as static
+#pragma warning disable CA1822
+
+namespace WorkflowEngine.CommandHandlers.Handlers.Webhook;
 
 /// <summary>
 /// Handles "webhook" commands by making HTTP requests to arbitrary endpoints.
@@ -21,7 +23,7 @@ public sealed class WebhookCommandHandler : ICommandHandler
     private readonly IConcurrencyLimiter _limiter;
     private readonly ILogger<WebhookCommandHandler> _logger;
 
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     public string CommandType => "webhook";
 
@@ -41,24 +43,34 @@ public sealed class WebhookCommandHandler : ICommandHandler
         CancellationToken cancellationToken
     )
     {
-        var data = DeserializeCommandData(context.CommandData);
-        var parentCtx = context.ParentTraceContext ?? context.Step.EngineActivity?.Context;
+        WebhookCommandData commandData;
+
+        try
+        {
+            commandData = DeserializeCommandData(context.CommandData);
+        }
+        catch (Exception ex)
+        {
+            return ExecutionResult.CriticalError(
+                $"An unrecoverable error occurred in {nameof(WebhookCommandHandler)}: {ex.Message}"
+            );
+        }
 
         using var activity = Metrics.Source.StartActivity(
             "WebhookCommandHandler.Execute",
-            parentContext: parentCtx,
+            parentContext: context.ParentTraceContext ?? context.Step.EngineActivity?.Context,
             kind: ActivityKind.Client,
-            tags: [("command.uri", data.Uri)]
+            tags: [("command.uri", commandData.Uri)]
         );
 
-        using var slot = await _limiter.AcquireHttpSlot(activity?.Context ?? parentCtx, cancellationToken);
-
-        var endpoint = data.Uri.ToUri(UriKind.Absolute);
+        using var slot = await _limiter.AcquireHttpSlot(activity?.Context, cancellationToken);
         using var httpClient = _httpClientFactory.CreateClient();
 
-        using HttpResponseMessage response = data.Payload is not null
-            ? await PostWithPayload(httpClient, endpoint, data, cancellationToken)
-            : await GetWithoutPayload(httpClient, endpoint, cancellationToken);
+        var endpoint = commandData.Uri.ToUri(UriKind.Absolute);
+
+        using var response = commandData.Payload is not null
+            ? await Post(httpClient, endpoint, commandData.Payload, commandData.ContentType, cancellationToken)
+            : await Get(httpClient, endpoint, cancellationToken);
 
         if (response.IsSuccessStatusCode)
             return ExecutionResult.Success();
@@ -73,21 +85,22 @@ public sealed class WebhookCommandHandler : ICommandHandler
         return ExecutionResult.RetryableError($"Webhook execution failed with status {statusCode}: {errorBody}");
     }
 
-    private async Task<HttpResponseMessage> PostWithPayload(
+    private async Task<HttpResponseMessage> Post(
         HttpClient httpClient,
         Uri endpoint,
-        WebhookCommandData data,
+        string payload,
+        string? contentType,
         CancellationToken cancellationToken
     )
     {
-        using var content = new StringContent(data.Payload!);
-        content.Headers.ContentType = data.ContentType is not null ? new MediaTypeHeaderValue(data.ContentType) : null;
+        using var content = new StringContent(payload);
+        content.Headers.ContentType = contentType is not null ? new MediaTypeHeaderValue(contentType) : null;
 
-        _logger.SendingWebhookPost(endpoint, data.Payload!);
+        _logger.SendingWebhookPost(endpoint, payload);
         return await httpClient.PostAsync(endpoint, content, cancellationToken);
     }
 
-    private async Task<HttpResponseMessage> GetWithoutPayload(
+    private async Task<HttpResponseMessage> Get(
         HttpClient httpClient,
         Uri endpoint,
         CancellationToken cancellationToken
@@ -97,44 +110,34 @@ public sealed class WebhookCommandHandler : ICommandHandler
         return await httpClient.GetAsync(endpoint, cancellationToken);
     }
 
-    public string? Validate(JsonElement? commandData, JsonElement? workflowContext)
+    public CommandValidationResult Validate(JsonElement? commandData, JsonElement? workflowContext)
     {
-        if (commandData is null)
-            return "Webhook command requires data with a 'uri' field";
-
-        WebhookCommandData? data;
         try
         {
-            data = commandData.Value.Deserialize<WebhookCommandData>(JsonOptions);
+            WebhookCommandData data = DeserializeCommandData(commandData);
+
+            if (!Uri.TryCreate(data.Uri, UriKind.Absolute, out _))
+                return CommandValidationResult.Reject($"Webhook uri '{data.Uri}' is not a valid absolute URI");
+
+            return CommandValidationResult.Accept();
         }
-        catch (JsonException)
+        catch (Exception ex)
         {
-            return "Webhook command requires a 'uri' in command data";
+            return CommandValidationResult.Reject(ex.Message);
         }
-
-        if (data is null || string.IsNullOrWhiteSpace(data.Uri))
-            return "Webhook command requires a 'uri' in command data";
-
-        if (!Uri.TryCreate(data.Uri, UriKind.Absolute, out _))
-            return $"Webhook uri '{data.Uri}' is not a valid absolute URI";
-
-        return null;
     }
 
-    private static WebhookCommandData DeserializeCommandData(JsonElement? data) =>
-        data?.Deserialize<WebhookCommandData>(JsonOptions)
-        ?? throw new InvalidOperationException("Webhook command requires data with at least a 'uri'");
-
-    private sealed record WebhookCommandData
+    private static WebhookCommandData DeserializeCommandData(JsonElement? commandData)
     {
-        [JsonPropertyName("uri")]
-        public required string Uri { get; init; }
+        if (commandData is null)
+            throw new ArgumentNullException(nameof(commandData));
 
-        [JsonPropertyName("payload")]
-        public string? Payload { get; init; }
+        WebhookCommandData? data = commandData.Value.Deserialize<WebhookCommandData>(_jsonOptions);
 
-        [JsonPropertyName("contentType")]
-        public string? ContentType { get; init; }
+        if (string.IsNullOrWhiteSpace(data?.Uri))
+            throw new InvalidOperationException("Webhook command requires a 'uri' in command data");
+
+        return data;
     }
 }
 

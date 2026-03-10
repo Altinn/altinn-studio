@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using WorkflowEngine.Api.Tests.Fixtures;
-using WorkflowEngine.CommandHandlers.Altinn;
+using WorkflowEngine.CommandHandlers.Handlers.AppCommand;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Api.Tests;

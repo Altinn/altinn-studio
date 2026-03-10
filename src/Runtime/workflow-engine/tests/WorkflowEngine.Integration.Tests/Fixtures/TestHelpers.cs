@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using WorkflowEngine.CommandHandlers.Altinn;
+using WorkflowEngine.CommandHandlers.Handlers.AppCommand;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 

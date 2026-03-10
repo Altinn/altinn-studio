@@ -43,11 +43,11 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandHandlerReg
         }
 
         // Validate command types and handler-specific data before persistence
-        var commandError = ValidateCommands(request);
-        if (commandError is not null)
+        var validationResult = ValidateCommands(request);
+        if (validationResult is CommandValidationResult.Invalid error)
         {
-            activity?.Errored(errorMessage: commandError);
-            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, commandError);
+            activity?.Errored(errorMessage: error.Message);
+            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, error.Message);
         }
 
         try
@@ -82,7 +82,7 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandHandlerReg
     /// Validates that all command types in the request are known to the registry
     /// and that handler-specific validation passes.
     /// </summary>
-    private string? ValidateCommands(WorkflowEnqueueRequest request)
+    private CommandValidationResult ValidateCommands(WorkflowEnqueueRequest request)
     {
         for (int workflowIndex = 0; workflowIndex < request.Workflows.Count; workflowIndex++)
         {
@@ -94,20 +94,24 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandHandlerReg
 
                 if (!registry.HasHandler(commandType))
                 {
-                    return $"Unknown command type '{commandType}' in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
-                        + $"step #{stepIndex}. Registered types: {string.Join(", ", registry.GetAllHandlers().Select(h => h.CommandType))}";
+                    return CommandValidationResult.Reject(
+                        $"Unknown command type '{commandType}' in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
+                            + $"step #{stepIndex}. Registered types: {string.Join(", ", registry.GetAllHandlers().Select(h => h.CommandType))}"
+                    );
                 }
 
                 var handler = registry.GetHandler(commandType);
-                var validationError = handler.Validate(step.Command.Data, request.Context);
-                if (validationError is not null)
+                var validationResult = handler.Validate(step.Command.Data, request.Context);
+                if (validationResult is CommandValidationResult.Invalid error)
                 {
-                    return $"Validation failed for '{commandType}' command in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
-                        + $"step #{stepIndex}: {validationError}";
+                    return CommandValidationResult.Reject(
+                        $"Validation failed for '{commandType}' command in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
+                            + $"step #{stepIndex}: {error.Message}"
+                    );
                 }
             }
         }
 
-        return null;
+        return CommandValidationResult.Accept();
     }
 }

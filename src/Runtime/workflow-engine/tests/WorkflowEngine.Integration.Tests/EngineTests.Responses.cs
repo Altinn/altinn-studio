@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
-using WorkflowEngine.CommandHandlers.Altinn;
+using WorkflowEngine.CommandHandlers.Handlers.AppCommand;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 

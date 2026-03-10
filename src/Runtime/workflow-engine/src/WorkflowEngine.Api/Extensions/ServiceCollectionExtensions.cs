@@ -1,7 +1,8 @@
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Constants;
 using WorkflowEngine.CommandHandlers;
-using WorkflowEngine.CommandHandlers.Altinn;
+using WorkflowEngine.CommandHandlers.Handlers.AppCommand;
+using WorkflowEngine.CommandHandlers.Handlers.Webhook;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;

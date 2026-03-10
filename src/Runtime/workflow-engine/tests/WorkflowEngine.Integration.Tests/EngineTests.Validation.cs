@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using WorkflowEngine.CommandHandlers.Altinn;
+using WorkflowEngine.CommandHandlers.Handlers.AppCommand;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 
