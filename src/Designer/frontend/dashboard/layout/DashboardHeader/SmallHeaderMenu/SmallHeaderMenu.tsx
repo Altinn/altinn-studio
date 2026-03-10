@@ -5,16 +5,16 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioParagraph, StudioAvatar } from '@studio/components';
 import { MenuHamburgerIcon } from '@studio/icons';
 import { DropdownMenu } from '@digdir/designsystemet-react';
-import { useHeaderContext } from '../../../../context/HeaderContext';
-import type { HeaderMenuGroup } from '../../../../types/HeaderMenuGroup';
+import { useHeaderContext } from '../../../context/HeaderContext';
+import type { HeaderMenuGroup } from '../../../types/HeaderMenuGroup';
 import { SmallHeaderMenuItem } from './SmallHeaderMenuItem';
-import type { NavigationMenuItem } from '../../../../types/NavigationMenuItem';
-import type { NavigationMenuGroup } from '../../../../types/NavigationMenuGroup';
+import type { NavigationMenuItem } from '../../../types/NavigationMenuItem';
+import type { NavigationMenuGroup } from '../../../types/NavigationMenuGroup';
 import {
   groupMenuItemsByGroup,
   mapHeaderMenuGroupToNavigationMenu,
-} from '../../../../utils/headerUtils';
-import { useProfileMenuTriggerButtonText } from '../../../../hooks/useProfileMenuTriggerButtonText';
+} from '../../../utils/headerUtils';
+import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
 
 export function SmallHeaderMenu(): ReactElement {
   const { t } = useTranslation();

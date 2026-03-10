@@ -15,6 +15,7 @@ import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { VersionDialog } from './VersionDialog/VersionDialog';
 import classes from './PageLayout.module.css';
+import { useListenToMergeConflictInRepo } from 'app-shared/hooks/useListenToMergeConflictInRepo';
 
 /**
  * Displays the layout for the app development pages
@@ -40,6 +41,8 @@ export const PageLayout = (): React.ReactNode => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+
+  useListenToMergeConflictInRepo(org, app);
 
   if (isRepoStatusPending || isUserPending) {
     return (

@@ -1,11 +1,11 @@
 import { Outlet } from 'react-router-dom';
-import { useOrganizationsQuery } from '../../hooks/queries';
+import { useOrganizationsQuery } from '../hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import React, { useMemo } from 'react';
-import { HeaderContextProvider, type HeaderContextProps } from '../../context/HeaderContext';
+import { HeaderContextProvider, type HeaderContextProps } from '../context/HeaderContext';
 import { useTranslation } from 'react-i18next';
 import { StudioPageSpinner } from '@studio/components';
-import { useContextRedirectionGuard } from '../../hooks/guards/useContextRedirectionGuard';
+import { useContextRedirectionGuard } from '../hooks/guards/useContextRedirectionGuard';
 import { DashboardHeader } from './DashboardHeader';
 
 export const PageLayout = () => {

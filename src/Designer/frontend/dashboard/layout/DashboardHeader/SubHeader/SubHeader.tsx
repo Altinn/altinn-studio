@@ -1,8 +1,8 @@
 import React, { type ReactElement } from 'react';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
-import { useSelectedContext } from '../../../../hooks/useSelectedContext';
-import { useOrgRepoName } from '../../../../hooks/useOrgRepoName';
-import { isOrg } from '../../../../utils/orgUtils';
+import { useSelectedContext } from '../../../hooks/useSelectedContext';
+import { useOrgRepoName } from '../../../hooks/useOrgRepoName';
+import { isOrg } from '../../../utils/orgUtils';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';

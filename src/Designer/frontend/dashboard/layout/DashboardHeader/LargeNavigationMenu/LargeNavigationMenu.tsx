@@ -1,12 +1,12 @@
 import React, { type ReactElement } from 'react';
-import type { HeaderMenuItem } from '../../../../types/HeaderMenuItem';
-import { useSelectedContext } from '../../../../hooks/useSelectedContext';
+import type { HeaderMenuItem } from '../../../types/HeaderMenuItem';
+import { useSelectedContext } from '../../../hooks/useSelectedContext';
 import { StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
-import { useSubroute } from '../../../../hooks/useSubRoute';
+import { useSubroute } from '../../../hooks/useSubRoute';
 
 type LargeNavigationMenuProps = {
   menuItems: HeaderMenuItem[];

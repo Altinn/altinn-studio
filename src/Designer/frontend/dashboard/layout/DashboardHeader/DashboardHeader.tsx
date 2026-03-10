@@ -2,18 +2,18 @@ import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '@studio/components-legacy';
 import { StudioAvatar, StudioPageHeader } from '@studio/components';
-import { useSelectedContext } from '../../../hooks/useSelectedContext';
+import { useSelectedContext } from '../../hooks/useSelectedContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { useHeaderContext } from '../../../context/HeaderContext';
-import { useProfileMenuTriggerButtonText } from '../../../hooks/useProfileMenuTriggerButtonText';
-import { usePageHeaderTitle } from '../../../hooks/usePageHeaderTitle';
+import { useHeaderContext } from '../../context/HeaderContext';
+import { useProfileMenuTriggerButtonText } from '../../hooks/useProfileMenuTriggerButtonText';
+import { usePageHeaderTitle } from '../../hooks/usePageHeaderTitle';
 import { SubHeader } from './SubHeader';
-import { Subroute } from '../../../enums/Subroute';
-import { isOrg } from '../../../utils/orgUtils';
+import { Subroute } from '../../enums/Subroute';
+import { isOrg } from '../../utils/orgUtils';
 import { SmallHeaderMenu } from './SmallHeaderMenu';
 import { LargeNavigationMenu } from './LargeNavigationMenu';
-import { mapNavigationMenuToProfileMenu } from '../../../utils/headerUtils';
-import { useSubroute } from '../../../hooks/useSubRoute';
+import { mapNavigationMenuToProfileMenu } from '../../utils/headerUtils';
+import { useSubroute } from '../../hooks/useSubRoute';
 
 export const DashboardHeader = (): ReactElement => {
   const pageHeaderTitle: string = usePageHeaderTitle();

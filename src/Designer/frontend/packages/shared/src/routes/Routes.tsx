@@ -18,7 +18,7 @@ export const Routes = ({ basename, routes }: RoutesProps) => {
     () =>
       createBrowserRouter(
         createRoutesFromElements(
-          <Route path='/'>
+          <Route>
             {routes}
             <Route path='*' element={<NotFoundPage />} />
           </Route>,

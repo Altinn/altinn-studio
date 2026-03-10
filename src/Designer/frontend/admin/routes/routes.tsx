@@ -1,7 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { RoutePaths } from 'admin/enums/RoutePaths';
-import { App } from 'admin/layout/App';
 import { PageLayout } from 'admin/layout/PageLayout';
 import { createWorkspaceRoutes } from 'app-shared/routes/createWorkspaceRoutes';
 import { AppsDetails } from 'admin/features/appDetails/AppDetails';
@@ -18,7 +17,6 @@ const routeDefinitions = [
 ];
 
 export const routes = createWorkspaceRoutes({
-  appElement: <App />,
   layoutElement: <PageLayout />,
   basePath: BASE_PATH,
   routeDefinitions,
