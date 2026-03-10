@@ -70,14 +70,6 @@
       <deresReferanse>Ref-001</deresReferanse>
     </korrespondansepart>
     <korrespondansepart>
-      <korrespondansepartID>org-number</korrespondansepartID>
-      <korrespondanseparttype>
-        <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">EA</kode>
-        <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Avsender</beskrivelse>
-      </korrespondanseparttype>
-      <korrespondansepartNavn>Org Name</korrespondansepartNavn>
-    </korrespondansepart>
-    <korrespondansepart>
       <korrespondansepartID>altinn-party-id</korrespondansepartID>
       <korrespondanseparttype>
         <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">EA</kode>
@@ -90,14 +82,6 @@
       <poststed>City</poststed>
       <telefonnummer>phone-no</telefonnummer>
       <telefonnummer>mobile-no</telefonnummer>
-    </korrespondansepart>
-    <korrespondansepart>
-      <korrespondansepartID>991825827</korrespondansepartID>
-      <korrespondanseparttype>
-        <kode xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">IA</kode>
-        <beskrivelse xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">Intern avsender</beskrivelse>
-      </korrespondanseparttype>
-      <korrespondansepartNavn>Altinn Studio</korrespondansepartNavn>
     </korrespondansepart>
     <referanseEksternNoekkel>
       <fagsystem xmlns="https://ks-no.github.io/standarder/fiks-protokoll/fiks-arkiv/metadatakatalog/v1">ttd/test-app</fagsystem>

@@ -5,14 +5,12 @@ using Altinn.App.Clients.Fiks.Factories;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Internal.AltinnCdn;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Internal.Texts;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using KS.Fiks.Arkiv.Models.V1.Arkivering.Arkivmelding;
@@ -31,7 +29,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
     private readonly ILogger<FiksArkivConfigResolver> _logger;
     private readonly GeneralSettings _generalSettings;
     private readonly IAltinnPartyClient _altinnPartyClient;
-    private readonly IAltinnCdnClient _altinnCdnClient;
 
     public FiksArkivConfigResolver(
         IOptions<FiksArkivSettings> fiksArkivSettings,
@@ -41,7 +38,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         ILayoutEvaluatorStateInitializer layoutStateInitializer,
         IOptions<GeneralSettings> generalSettings,
         IAltinnPartyClient altinnPartyClient,
-        IAltinnCdnClient altinnCdnClient,
         ILogger<FiksArkivConfigResolver> logger
     )
     {
@@ -52,7 +48,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         _layoutStateInitializer = layoutStateInitializer;
         _generalSettings = generalSettings.Value;
         _altinnPartyClient = altinnPartyClient;
-        _altinnCdnClient = altinnCdnClient;
         _logger = logger;
     }
 
@@ -217,32 +212,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         );
 
     /// <inheritdoc />
-    public async Task<Korrespondansepart> GetServiceOwnerParty(CancellationToken cancellationToken = default)
-    {
-        ApplicationMetadata appMetadata = await _appMetadata.GetApplicationMetadata();
-        AltinnCdnOrgDetails? orgDetails = null;
-
-        try
-        {
-            AltinnCdnOrgs altinnCdnOrgs = await _altinnCdnClient.GetOrgs(cancellationToken);
-            orgDetails = altinnCdnOrgs.Orgs?.GetValueOrDefault(appMetadata.Org);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Unable to get service owner details: {Exception}", e);
-        }
-
-        return KorrespondansepartFactory.CreateSender(
-            partyId: orgDetails?.Orgnr ?? appMetadata.Org ?? appMetadata.Id,
-            partyName: orgDetails?.Name?.Nb
-                ?? orgDetails?.Name?.Nn
-                ?? orgDetails?.Name?.En
-                ?? appMetadata.Org
-                ?? appMetadata.Id
-        );
-    }
-
-    /// <inheritdoc />
     public async Task<Klassifikasjon> GetInstanceOwnerClassification(
         Authenticated auth,
         CancellationToken cancellationToken = default
@@ -350,7 +319,6 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
         var binding =
             configValue.DataModelBinding
             ?? throw new FiksArkivException($"Neither value nor data binding was supplied for config: {configValue}");
-        ;
         var dataElement = instance.GetRequiredDataElement(binding.DataType);
         var data = await layoutState.GetModelData(binding, dataElement, null); // Note: Doesn't accept cancellation token.. yet
 
