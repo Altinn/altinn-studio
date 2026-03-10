@@ -120,6 +120,7 @@ internal sealed class FormBootstrapService
     public async Task<FormBootstrapResponse> GetStatelessFormBootstrap(
         string uiFolder,
         string language,
+        Dictionary<string, string>? prefillFromQueryParams = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -135,7 +136,12 @@ internal sealed class FormBootstrapService
         var referencedDataTypes = LayoutAnalysisService.GetReferencedDataTypes(layoutsJson, defaultDataType);
         var staticOptionsReferences = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
-        var dataModelsTask = LoadStatelessDataModels(referencedDataTypes, language, cancellationToken);
+        var dataModelsTask = LoadStatelessDataModels(
+            referencedDataTypes,
+            language,
+            prefillFromQueryParams,
+            cancellationToken
+        );
         var optionsTask = LoadStaticOptions(
             staticOptionsReferences,
             language,
@@ -251,7 +257,8 @@ internal sealed class FormBootstrapService
     private async Task<Dictionary<string, DataModelInfo>> LoadStatelessDataModels(
         HashSet<string> dataTypes,
         string language,
-        CancellationToken cancellationToken
+        Dictionary<string, string>? prefillFromQueryParams = null,
+        CancellationToken cancellationToken = default
     )
     {
         _ = cancellationToken; // Reserved for future use
@@ -278,7 +285,12 @@ internal sealed class FormBootstrapService
 
                 if (instanceOwner?.PartyId != null)
                 {
-                    await _prefillService.PrefillDataModel(instanceOwner.PartyId, dataType, defaultData);
+                    await _prefillService.PrefillDataModel(
+                        instanceOwner.PartyId,
+                        dataType,
+                        defaultData,
+                        prefillFromQueryParams
+                    );
                 }
 
                 await _formDataReader.ReadStatelessFormData(defaultData, language, instanceOwner);

@@ -1,6 +1,8 @@
+using System.Text.Json;
 using Altinn.App.Api.Features.Bootstrap;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Core.Constants;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
@@ -20,6 +22,7 @@ public class FormBootstrapController : ControllerBase
     private readonly IInstanceClient _instanceClient;
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
+    private readonly AppImplementationFactory _appImplementationFactory;
     private readonly ILogger<FormBootstrapController> _logger;
 
     /// <summary>
@@ -34,6 +37,7 @@ public class FormBootstrapController : ControllerBase
     )
     {
         _formBootstrapService = serviceProvider.GetRequiredService<FormBootstrapService>();
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _instanceClient = instanceClient;
         _appResources = appResources;
         _appMetadata = appMetadata;
@@ -131,12 +135,14 @@ public class FormBootstrapController : ControllerBase
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="uiFolder">The layout set ID to use.</param>
     /// <param name="language">Language code for text resources.</param>
+    /// <param name="prefill">Optional JSON object of field-value pairs for query param prefill.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Complete form bootstrap data.</returns>
     [HttpGet]
     [ProducesResponseType(typeof(FormBootstrapResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [Route("{org}/{app}/api/bootstrap-form/{uiFolder}")]
     public async Task<ActionResult<FormBootstrapResponse>> GetStatelessFormBootstrap(
@@ -144,6 +150,7 @@ public class FormBootstrapController : ControllerBase
         [FromRoute] string app,
         [FromRoute] string uiFolder,
         [FromQuery] string language = "nb",
+        [FromQuery] string? prefill = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -162,9 +169,40 @@ public class FormBootstrapController : ControllerBase
             }
         }
 
+        Dictionary<string, string>? prefillFromQueryParams = null;
+        if (!string.IsNullOrEmpty(prefill))
+        {
+            prefillFromQueryParams = JsonSerializer.Deserialize<Dictionary<string, string>>(prefill);
+            if (prefillFromQueryParams != null)
+            {
+                var validateQueryParamPrefill = _appImplementationFactory.Get<IValidateQueryParamPrefill>();
+                if (validateQueryParamPrefill is not null)
+                {
+                    var issue = await validateQueryParamPrefill.PrefillFromQueryParamsIsValid(prefillFromQueryParams);
+                    if (issue != null)
+                    {
+                        return BadRequest(
+                            new ProblemDetails
+                            {
+                                Title = "Validation error from IValidateQueryParamPrefill",
+                                Detail = issue.Description,
+                                Status = StatusCodes.Status400BadRequest,
+                                Extensions = { ["issue"] = issue },
+                            }
+                        );
+                    }
+                }
+            }
+        }
+
         try
         {
-            var response = await _formBootstrapService.GetStatelessFormBootstrap(uiFolder, language, cancellationToken);
+            var response = await _formBootstrapService.GetStatelessFormBootstrap(
+                uiFolder,
+                language,
+                prefillFromQueryParams,
+                cancellationToken
+            );
 
             return Ok(response);
         }

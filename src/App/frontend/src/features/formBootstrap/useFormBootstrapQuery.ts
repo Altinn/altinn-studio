@@ -9,6 +9,7 @@ import { useIsPdf } from 'src/hooks/useIsPdf';
 export interface FormBootstrapQueryOptions {
   uiFolder: string;
   dataElementIdOverride?: string;
+  prefill?: string;
 }
 
 export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
@@ -29,11 +30,12 @@ export function useFormBootstrapQuery(options: FormBootstrapQueryOptions) {
       options?.dataElementIdOverride,
       isPdf,
       language,
+      options.prefill,
     ],
     queryFn: enabled
       ? async () =>
           isStateless
-            ? await fetchFormBootstrapForStateless({ uiFolder: options.uiFolder, language })
+            ? await fetchFormBootstrapForStateless({ uiFolder: options.uiFolder, language, prefill: options.prefill })
             : await fetchFormBootstrapForInstance({
                 instanceId: instanceId!,
                 uiFolder: options.uiFolder,

@@ -267,6 +267,7 @@ export const fetchFormBootstrapForInstance = (options: {
 export const fetchFormBootstrapForStateless = (options: {
   uiFolder: string;
   language?: string;
+  prefill?: string;
 }): Promise<FormBootstrapResponse> => {
   const url = getFormBootstrapUrlForStateless(options);
   return httpGet<FormBootstrapResponse>(url);

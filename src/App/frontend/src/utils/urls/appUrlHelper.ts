@@ -276,12 +276,20 @@ export const getFormBootstrapUrlForInstance = (options: {
   return `${appPath}/instances/${instanceId}/bootstrap-form/${uiFolder}${queryString}`;
 };
 
-export const getFormBootstrapUrlForStateless = (options: { uiFolder: string; language?: string }): string => {
-  const { uiFolder, language } = options;
+export const getFormBootstrapUrlForStateless = (options: {
+  uiFolder: string;
+  language?: string;
+  prefill?: string;
+}): string => {
+  const { uiFolder, language, prefill } = options;
   const params = new URLSearchParams();
 
   if (language) {
     params.set('language', language);
+  }
+
+  if (prefill) {
+    params.set('prefill', prefill);
   }
 
   const queryString = params.toString() ? `?${params.toString()}` : '';

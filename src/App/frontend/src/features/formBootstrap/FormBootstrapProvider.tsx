@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { PropsWithChildren as ReactPropsWithChildren } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
@@ -33,11 +33,19 @@ export function FormBootstrapProvider({
   uiFolder,
   dataElementIdOverride,
 }: ReactPropsWithChildren<FormBootstrapProviderProps>) {
+  const defaultDataType = getUiFolderSettings(uiFolder)?.defaultDataType;
+  const [prefill] = useState(() => getPrefillFromSessionStorage(defaultDataType));
   const { data, isLoading, isError, error } = useFormBootstrapQuery({
     uiFolder,
     dataElementIdOverride,
+    prefill,
   });
-  const defaultDataType = getUiFolderSettings(uiFolder)?.defaultDataType;
+
+  useEffect(() => {
+    if (data && prefill) {
+      sessionStorage.removeItem('queryParams');
+    }
+  }, [data, prefill]);
   if (!defaultDataType) {
     throw new Error(`defaultDataType not found for uiFolder: ${uiFolder}`);
   }
@@ -222,3 +230,41 @@ export const FormBootstrap = {
   useStaticOptionsMap: () => useFormBootstrap().staticOptions,
   useInitialValidationIssues: () => useFormBootstrap().initialValidationIssues,
 };
+
+const oneHourInMs = 60 * 60 * 1000;
+
+function getPrefillFromSessionStorage(defaultDataType: string | undefined): string | undefined {
+  if (!defaultDataType) {
+    return undefined;
+  }
+
+  const rawParams = sessionStorage.getItem('queryParams');
+  if (!rawParams) {
+    return undefined;
+  }
+
+  const appMetadata = getApplicationMetadata();
+  const queryParams: unknown = JSON.parse(rawParams);
+  if (!Array.isArray(queryParams)) {
+    return undefined;
+  }
+
+  const entry = queryParams.find(
+    (param) =>
+      typeof param === 'object' &&
+      param !== null &&
+      (param as Record<string, unknown>).dataModelName === defaultDataType &&
+      (param as Record<string, unknown>).appId === appMetadata.id,
+  ) as Record<string, unknown> | undefined;
+
+  if (!entry?.prefillFields || typeof entry.prefillFields !== 'object') {
+    return undefined;
+  }
+
+  const createdTime = new Date(entry.created as string).getTime();
+  if (Number.isNaN(createdTime) || Date.now() - createdTime > oneHourInMs) {
+    return undefined;
+  }
+
+  return JSON.stringify(entry.prefillFields);
+}
