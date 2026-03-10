@@ -23,6 +23,7 @@ public class WorkflowEntityTests
             InstanceApp = "test-app",
             InstanceOwnerPartyId = 50001,
             InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            Namespace = "default",
             TraceContext = "trace-ctx-abc",
             Steps = steps.ToList(),
         };

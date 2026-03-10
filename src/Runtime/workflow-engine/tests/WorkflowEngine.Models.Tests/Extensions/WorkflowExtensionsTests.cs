@@ -31,6 +31,7 @@ public class WorkflowExtensionsTests
         {
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
+            Namespace = "default",
             Actor = _defaultActor,
             InstanceInformation = _defaultInstance,
             Steps = steps.ToList(),

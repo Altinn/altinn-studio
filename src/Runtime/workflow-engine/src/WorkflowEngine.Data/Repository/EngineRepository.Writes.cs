@@ -225,13 +225,13 @@ internal sealed partial class EngineRepository
             return IdempotencyArrays.Empty;
         }
 
-        var (keys, instanceGuids, hashes, wfIdTexts, creationDates) = validRequestIndices
+        var (keys, namespaces, hashes, wfIdTexts, creationDates) = validRequestIndices
             .Select(i =>
             {
                 var req = requests[i];
                 return (
                     req.Request.IdempotencyKey,
-                    req.Metadata.InstanceInformation.InstanceGuid,
+                    req.Metadata.Namespace,
                     req.RequestBodyHash,
                     "{" + string.Join(",", perRequestWorkflows[i].Select(w => w.DatabaseId)) + "}",
                     req.Metadata.CreatedAt
@@ -240,12 +240,12 @@ internal sealed partial class EngineRepository
             .ToArray()
             .Unzip();
 
-        return new IdempotencyArrays(keys, instanceGuids, hashes, wfIdTexts, creationDates);
+        return new IdempotencyArrays(keys, namespaces, hashes, wfIdTexts, creationDates);
     }
 
     private sealed record IdempotencyArrays(
         string[] Keys,
-        Guid[] InstanceGuids,
+        string[] Namespaces,
         byte[][] Hashes,
         string[] WfIdTexts,
         DateTimeOffset[] CreationDates
@@ -278,21 +278,21 @@ internal sealed partial class EngineRepository
                 .Database.SqlQuery<int>(
                     $"""
                     WITH input AS (
-                        SELECT * FROM unnest({arrays.Keys}, {arrays.InstanceGuids}, {hashesParam}, {arrays.WfIdTexts}, {arrays.CreationDates})
+                        SELECT * FROM unnest({arrays.Keys}, {arrays.Namespaces}, {hashesParam}, {arrays.WfIdTexts}, {arrays.CreationDates})
                             WITH ORDINALITY
-                            AS t(idempotency_key, instance_guid, request_body_hash, wf_id_text, created_at, idx)
+                            AS t(idempotency_key, namespace, request_body_hash, wf_id_text, created_at, idx)
                     ),
                     inserted AS (
-                        INSERT INTO idempotency_keys (idempotency_key, instance_guid, request_body_hash, workflow_ids, created_at)
-                        SELECT idempotency_key, instance_guid, request_body_hash, wf_id_text::uuid[], created_at
+                        INSERT INTO idempotency_keys (idempotency_key, namespace, request_body_hash, workflow_ids, created_at)
+                        SELECT idempotency_key, namespace, request_body_hash, wf_id_text::uuid[], created_at
                         FROM input
-                        ORDER BY idempotency_key, instance_guid
-                        ON CONFLICT (idempotency_key, instance_guid) DO NOTHING
-                        RETURNING idempotency_key, instance_guid
+                        ORDER BY idempotency_key, namespace
+                        ON CONFLICT (idempotency_key, namespace) DO NOTHING
+                        RETURNING idempotency_key, namespace
                     )
                     SELECT (i.idx - 1)::int AS "Value"
                     FROM inserted ins
-                    JOIN input i USING (idempotency_key, instance_guid)
+                    JOIN input i USING (idempotency_key, namespace)
                     """
                 )
                 .ToListAsync(cancellationToken)
@@ -326,8 +326,8 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken
     )
     {
-        var (keys, guids) = existingRequestIndices
-            .Select(i => (requests[i].Request.IdempotencyKey, requests[i].Metadata.InstanceInformation.InstanceGuid))
+        var (keys, namespaces) = existingRequestIndices
+            .Select(i => (requests[i].Request.IdempotencyKey, requests[i].Metadata.Namespace))
             .ToArray()
             .Unzip();
 
@@ -335,23 +335,23 @@ internal sealed partial class EngineRepository
             .IdempotencyKeys.FromSql(
                 $"""
                 SELECT ik.*
-                FROM unnest({keys}, {guids})
-                    AS t(idempotency_key, instance_guid)
-                JOIN idempotency_keys ik USING (idempotency_key, instance_guid)
+                FROM unnest({keys}, {namespaces})
+                    AS t(idempotency_key, namespace)
+                JOIN idempotency_keys ik USING (idempotency_key, namespace)
                 """
             )
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
         var existingLookup = existingEntities.ToDictionary(
-            e => (e.IdempotencyKey, e.InstanceGuid),
+            e => (e.IdempotencyKey, e.Namespace),
             e => (hash: e.RequestBodyHash, workflowIds: e.WorkflowIds)
         );
 
         foreach (var i in existingRequestIndices)
         {
             var req = requests[i];
-            var compositeKey = (req.Request.IdempotencyKey, req.Metadata.InstanceInformation.InstanceGuid);
+            var compositeKey = (req.Request.IdempotencyKey, req.Metadata.Namespace);
             if (existingLookup.TryGetValue(compositeKey, out var existing))
             {
                 if (existing.hash.AsSpan().SequenceEqual(req.RequestBodyHash))
@@ -380,14 +380,14 @@ internal sealed partial class EngineRepository
         CancellationToken cancellationToken
     )
     {
-        var externalRefPairs = new HashSet<(Guid id, Guid instanceGuid)>();
+        var externalRefPairs = new HashSet<(Guid id, string ns)>();
         foreach (var request in requests)
         {
-            var instanceGuid = request.Metadata.InstanceInformation.InstanceGuid;
+            var ns = request.Metadata.Namespace;
             foreach (var workflow in request.Request.Workflows)
             {
-                CollectExternalIds(workflow.DependsOn, instanceGuid, externalRefPairs);
-                CollectExternalIds(workflow.Links, instanceGuid, externalRefPairs);
+                CollectExternalIds(workflow.DependsOn, ns, externalRefPairs);
+                CollectExternalIds(workflow.Links, ns, externalRefPairs);
             }
         }
 
@@ -401,28 +401,28 @@ internal sealed partial class EngineRepository
         var verifiedPairs = (
             await dbContext
                 .Workflows.Where(w => referenceIds.Contains(w.Id))
-                .Select(w => new { w.Id, w.InstanceGuid })
+                .Select(w => new { w.Id, w.Namespace })
                 .AsNoTracking()
                 .ToListAsync(cancellationToken)
         )
-            .Select(w => (w.Id, w.InstanceGuid))
+            .Select(w => (w.Id, w.Namespace))
             .ToHashSet();
 
         var validIndices = new List<int>(requests.Count);
 
         for (var i = 0; i < requests.Count; i++)
         {
-            var instanceGuid = requests[i].Metadata.InstanceInformation.InstanceGuid;
+            var ns = requests[i].Metadata.Namespace;
             var nonExistentReferences = requests[i]
                 .Request.Workflows.SelectMany(wf => (wf.DependsOn ?? []).Concat(wf.Links ?? []))
-                .Where(r => r.IsId && !verifiedPairs.Contains((r.Id, instanceGuid)))
+                .Where(r => r.IsId && !verifiedPairs.Contains((r.Id, ns)))
                 .Select(r => r.Id)
                 .Distinct();
 
             if (nonExistentReferences.Any())
             {
                 results[i] = BatchEnqueueResult.InvalidRef(
-                    $"The following referenced workflows do not exist for this instance: {string.Join(", ", nonExistentReferences)}"
+                    $"The following referenced workflows do not exist for this namespace: {string.Join(", ", nonExistentReferences)}"
                 );
             }
             else
@@ -441,7 +441,7 @@ internal sealed partial class EngineRepository
         foreach (
             var (current, index) in requests
                 .Select((Value, Index) => (Value, Index))
-                .OrderBy(x => x.Value.Metadata.InstanceInformation.InstanceGuid)
+                .OrderBy(x => x.Value.Metadata.Namespace)
                 .ThenBy(x => x.Value.Request.IdempotencyKey)
         )
         {
@@ -452,8 +452,7 @@ internal sealed partial class EngineRepository
 
             if (
                 previous is not null
-                && current.Metadata.InstanceInformation.InstanceGuid
-                    == previous.Metadata.InstanceInformation.InstanceGuid
+                && current.Metadata.Namespace == previous.Metadata.Namespace
                 && current.Request.IdempotencyKey == previous.Request.IdempotencyKey
             )
             {
@@ -789,8 +788,8 @@ internal sealed partial class EngineRepository
 
     private static void CollectExternalIds(
         IEnumerable<WorkflowRef>? refs,
-        Guid instanceGuid,
-        HashSet<(Guid id, Guid instanceGuid)> target
+        string ns,
+        HashSet<(Guid id, string ns)> target
     )
     {
         if (refs is null)
@@ -802,7 +801,7 @@ internal sealed partial class EngineRepository
         {
             if (r.IsId)
             {
-                target.Add((r.Id, instanceGuid));
+                target.Add((r.Id, ns));
             }
         }
     }

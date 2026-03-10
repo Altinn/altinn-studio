@@ -98,6 +98,7 @@ internal sealed record WorkflowEngineTestFixture(
         {
             OperationId = "test-operation",
             IdempotencyKey = "test-wf-key",
+            Namespace = "default",
             Actor = DefaultActor,
             InstanceInformation = DefaultInstanceInformation,
             InstanceLockKey = instanceLockKey,

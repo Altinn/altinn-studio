@@ -16,11 +16,13 @@ internal static class EngineRepositoryQueryExtensions
         public IQueryable<WorkflowEntity> GetActiveWorkflows(
             bool includeDependencies = true,
             bool includeLinks = true,
-            Guid? instanceFilter = null
+            Guid? instanceFilter = null,
+            string? namespaceFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: includeDependencies, links: includeLinks)
                 .MaybeFilterByInstanceGuid(instanceFilter)
+                .MaybeFilterByNamespace(namespaceFilter)
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
                 .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Incomplete.Contains(step.Status)));
@@ -167,6 +169,14 @@ internal static class EngineRepositoryQueryExtensions
         {
             if (instanceGuid is not null)
                 entityQuery = entityQuery.Where(wf => wf.InstanceGuid == instanceGuid.Value);
+
+            return entityQuery;
+        }
+
+        private IQueryable<WorkflowEntity> MaybeFilterByNamespace(string? ns)
+        {
+            if (ns is not null)
+                entityQuery = entityQuery.Where(wf => wf.Namespace == ns);
 
             return entityQuery;
         }

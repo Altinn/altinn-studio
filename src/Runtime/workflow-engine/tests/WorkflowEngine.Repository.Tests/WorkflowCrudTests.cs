@@ -64,15 +64,15 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task EnqueueBatch_WithCrossInstanceLink_ReturnsInvalidReference()
+    public async Task EnqueueBatch_WithCrossNamespaceLink_ReturnsInvalidReference()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
 
-        var (requestA, metadataA) = WorkflowTestHelper.CreateRequest();
+        var (requestA, metadataA) = WorkflowTestHelper.CreateRequest(ns: "namespace-a");
         var workflowA = await WorkflowTestHelper.EnqueueWorkflow(repo, context, requestA, metadataA);
 
-        var (_, metadataB) = WorkflowTestHelper.CreateRequest();
+        var (_, metadataB) = WorkflowTestHelper.CreateRequest(ns: "namespace-b");
         var requestB = new WorkflowRequest
         {
             OperationId = "op-b",
@@ -497,7 +497,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             Actor: new Actor { UserIdOrOrgNumber = "12345" },
             CreatedAt: DateTimeOffset.UtcNow,
             TraceContext: null,
-            InstanceLockKey: null
+            InstanceLockKey: null,
+            Namespace: "default"
         );
         var workflow1 = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request1, metadata1);
 
@@ -517,7 +518,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             Actor: new Actor { UserIdOrOrgNumber = "67890" },
             CreatedAt: DateTimeOffset.UtcNow,
             TraceContext: null,
-            InstanceLockKey: null
+            InstanceLockKey: null,
+            Namespace: "default"
         );
         var workflow2 = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request2, metadata2);
 
@@ -662,7 +664,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             Actor: new Actor { UserIdOrOrgNumber = "12345" },
             CreatedAt: DateTimeOffset.UtcNow,
             TraceContext: null,
-            InstanceLockKey: null
+            InstanceLockKey: null,
+            Namespace: "default"
         );
 
         var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);

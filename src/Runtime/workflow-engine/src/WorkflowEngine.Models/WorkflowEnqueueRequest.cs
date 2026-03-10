@@ -29,6 +29,13 @@ public sealed record WorkflowEnqueueRequest
     public string? LockToken { get; init; }
 
     /// <summary>
+    /// Optional namespace for scoping idempotency and workflow references.
+    /// Defaults to "default" when not specified.
+    /// </summary>
+    [JsonPropertyName("namespace")]
+    public string? Namespace { get; init; }
+
+    /// <summary>
     /// The workflows to enqueue.
     /// </summary>
     [JsonPropertyName("workflows")]

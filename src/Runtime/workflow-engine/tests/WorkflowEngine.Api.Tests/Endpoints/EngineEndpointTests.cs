@@ -340,12 +340,15 @@ public class EngineEndpointTests
 
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync([workflow]);
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
             _defaultRouteParams,
+            null,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -364,12 +367,15 @@ public class EngineEndpointTests
         // Arrange
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync([]);
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
             _defaultRouteParams,
+            null,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -385,13 +391,16 @@ public class EngineEndpointTests
         Guid? capturedGuid = null;
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .Callback<Guid, CancellationToken>((guid, _) => capturedGuid = guid)
+            .Setup(r =>
+                r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+            )
+            .Callback<Guid, string?, CancellationToken>((guid, _, _) => capturedGuid = guid)
             .ReturnsAsync([]);
 
         // Act
         await EngineRequestHandlers.ListActiveWorkflows(
             _defaultRouteParams,
+            null,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -411,6 +420,7 @@ public class EngineEndpointTests
         {
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
+            Namespace = "default",
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             InstanceInformation = new InstanceInformation
             {
@@ -471,6 +481,7 @@ public class EngineEndpointTests
         {
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
+            Namespace = "default",
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             InstanceInformation = new InstanceInformation
             {

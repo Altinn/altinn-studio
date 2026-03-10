@@ -338,6 +338,7 @@ internal sealed partial class EngineRepository
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForInstance(
         Guid instanceGuid,
+        string? ns = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -350,7 +351,7 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
-                .GetActiveWorkflows(instanceFilter: instanceGuid)
+                .GetActiveWorkflows(instanceFilter: instanceGuid, namespaceFilter: ns)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 

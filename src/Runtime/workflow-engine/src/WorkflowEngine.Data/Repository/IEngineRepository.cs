@@ -78,10 +78,12 @@ public interface IEngineRepository
     Task<PersistentItemStatus?> GetWorkflowStatus(Guid workflowId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all active (incomplete) workflows for the given instance GUID.
+    /// Gets all active (incomplete) workflows for the given instance GUID,
+    /// optionally filtered by namespace.
     /// </summary>
     Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForInstance(
         Guid instanceGuid,
+        string? ns = null,
         CancellationToken cancellationToken = default
     );
 

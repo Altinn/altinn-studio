@@ -4,7 +4,7 @@ internal sealed class IdempotencyKeyEntity
 {
     public required string IdempotencyKey { get; set; }
 
-    public Guid InstanceGuid { get; set; }
+    public required string Namespace { get; set; }
 
     public required byte[] RequestBodyHash { get; set; }
 

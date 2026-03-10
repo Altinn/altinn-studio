@@ -8,10 +8,12 @@ namespace WorkflowEngine.Models;
 /// <param name="CreatedAt">The time this request was created (eg. now).</param>
 /// <param name="TraceContext">The trace context for distributed tracing, if available.</param>
 /// <param name="InstanceLockKey">A lock key associated with this workflow request.</param>
+/// <param name="Namespace">The namespace for scoping idempotency and workflow references.</param>
 public sealed record WorkflowRequestMetadata(
     InstanceInformation InstanceInformation,
     Actor Actor,
     DateTimeOffset CreatedAt,
     string? TraceContext,
-    string? InstanceLockKey
+    string? InstanceLockKey,
+    string Namespace
 );

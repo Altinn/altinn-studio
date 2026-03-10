@@ -46,6 +46,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public Guid InstanceGuid { get; set; }
 
+    public required string Namespace { get; set; }
+
     [MaxLength(100)]
     public string? TraceContext { get; set; }
 
@@ -80,6 +82,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             InstanceApp = workflow.InstanceInformation.App,
             InstanceOwnerPartyId = workflow.InstanceInformation.InstanceOwnerPartyId,
             InstanceGuid = workflow.InstanceInformation.InstanceGuid,
+            Namespace = workflow.Namespace,
             TraceContext = workflow.DistributedTraceContext,
             MetadataJson = workflow.Metadata,
             EngineTraceId = workflow.EngineTraceContext,
@@ -117,6 +120,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
                 InstanceOwnerPartyId = InstanceOwnerPartyId,
                 InstanceGuid = InstanceGuid,
             },
+            Namespace = Namespace,
             DistributedTraceContext = TraceContext,
             Metadata = MetadataJson,
             EngineTraceContext = EngineTraceId,

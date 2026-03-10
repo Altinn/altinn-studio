@@ -81,7 +81,8 @@ public class StepTests
             Actor: actor,
             CreatedAt: createdAt,
             TraceContext: null,
-            InstanceLockKey: null
+            InstanceLockKey: null,
+            Namespace: "default"
         );
 
         var stepRequest = new StepRequest { Command = command, RetryStrategy = retryStrategy };
@@ -118,7 +119,8 @@ public class StepTests
             Actor: actor,
             CreatedAt: DateTimeOffset.UtcNow,
             TraceContext: null,
-            InstanceLockKey: null
+            InstanceLockKey: null,
+            Namespace: "default"
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };
@@ -146,7 +148,8 @@ public class StepTests
             Actor: new Actor { UserIdOrOrgNumber = "user-1" },
             CreatedAt: DateTimeOffset.UtcNow,
             TraceContext: null,
-            InstanceLockKey: null
+            InstanceLockKey: null,
+            Namespace: "default"
         );
 
         var stepRequest = new StepRequest { Command = new Command.Debug.Noop() };

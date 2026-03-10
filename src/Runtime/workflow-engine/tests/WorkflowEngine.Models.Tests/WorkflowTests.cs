@@ -26,6 +26,7 @@ public class WorkflowTests
             DatabaseId = sharedGuid,
             OperationId = "workflow-1-operation",
             IdempotencyKey = "key-1",
+            Namespace = "default",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
@@ -35,6 +36,7 @@ public class WorkflowTests
             DatabaseId = sharedGuid,
             OperationId = "workflow-2-operation",
             IdempotencyKey = "key-2",
+            Namespace = "default",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
@@ -44,6 +46,7 @@ public class WorkflowTests
             DatabaseId = Guid.NewGuid(),
             OperationId = "workflow-3-operation",
             IdempotencyKey = "key-3",
+            Namespace = "default",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
@@ -101,7 +104,8 @@ public class WorkflowTests
             Actor: actor,
             CreatedAt: createdAt,
             TraceContext: traceContext,
-            InstanceLockKey: "lock-key-1"
+            InstanceLockKey: "lock-key-1",
+            Namespace: "default"
         );
 
         // Act
@@ -152,7 +156,8 @@ public class WorkflowTests
             Actor: new Actor { UserIdOrOrgNumber = "user-1" },
             CreatedAt: DateTimeOffset.UtcNow,
             TraceContext: null,
-            InstanceLockKey: null
+            InstanceLockKey: null,
+            Namespace: "default"
         );
 
         // Act
@@ -178,6 +183,7 @@ public class WorkflowTests
             DatabaseId = depGuid,
             OperationId = "dep-op",
             IdempotencyKey = "dep-key",
+            Namespace = "default",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
@@ -187,6 +193,7 @@ public class WorkflowTests
             DatabaseId = linkGuid,
             OperationId = "link-op",
             IdempotencyKey = "link-key",
+            Namespace = "default",
             Actor = _randomActor,
             InstanceInformation = _randomInstance,
             Steps = [],
@@ -203,7 +210,8 @@ public class WorkflowTests
             Actor: _randomActor,
             CreatedAt: DateTimeOffset.UtcNow,
             TraceContext: null,
-            InstanceLockKey: null
+            InstanceLockKey: null,
+            Namespace: "default"
         );
 
         // Act

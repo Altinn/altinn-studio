@@ -63,7 +63,8 @@ internal static class EngineRequestHandlers
             request.Actor,
             timeProvider.GetUtcNow(),
             Activity.Current?.Id,
-            request.LockToken
+            request.LockToken,
+            request.Namespace ?? "default"
         );
         var response = await engine.EnqueueWorkflow(request, metadata, cancellationToken);
 
@@ -86,13 +87,18 @@ internal static class EngineRequestHandlers
 
     public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
         [AsParameters] InstanceRouteParams instanceParams,
+        [FromQuery(Name = "namespace")] string? ns,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
-        var workflows = await repository.GetActiveWorkflowsForInstance(instanceParams.InstanceGuid, cancellationToken);
+        var workflows = await repository.GetActiveWorkflowsForInstance(
+            instanceParams.InstanceGuid,
+            ns,
+            cancellationToken
+        );
 
         if (workflows.Count == 0)
             return TypedResults.NoContent();

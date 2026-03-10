@@ -61,7 +61,8 @@ internal static class WorkflowTestHelper
         string org = "ttd",
         string app = "test-app",
         int instanceOwnerPartyId = 50001234,
-        DateTimeOffset? startAt = null
+        DateTimeOffset? startAt = null,
+        string ns = "default"
     )
     {
         instanceGuid ??= Guid.NewGuid();
@@ -86,7 +87,8 @@ internal static class WorkflowTestHelper
             Actor: new Actor { UserIdOrOrgNumber = "12345" },
             CreatedAt: DateTimeOffset.UtcNow,
             TraceContext: null,
-            InstanceLockKey: null
+            InstanceLockKey: null,
+            Namespace: ns
         );
 
         return (request, metadata);

@@ -2,6 +2,7 @@
   databaseId: {Scrubbed},
   operationId: op-wf-b,
   idempotencyKey: idem-Guid_1,
+  namespace: default,
   createdAt: {Scrubbed},
   updatedAt: {Scrubbed},
   actor: {

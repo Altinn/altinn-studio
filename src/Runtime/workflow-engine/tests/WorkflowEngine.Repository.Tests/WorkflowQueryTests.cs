@@ -79,7 +79,10 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         // Act
-        var results = await repo.GetActiveWorkflowsForInstance(instanceA, TestContext.Current.CancellationToken);
+        var results = await repo.GetActiveWorkflowsForInstance(
+            instanceA,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Equal(2, results.Count);
@@ -108,7 +111,10 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         );
 
         // Act
-        var results = await repo.GetActiveWorkflowsForInstance(instanceGuid, TestContext.Current.CancellationToken);
+        var results = await repo.GetActiveWorkflowsForInstance(
+            instanceGuid,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Single(results);
@@ -123,7 +129,10 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         var repo = fixture.CreateRepository();
 
         // Act
-        var results = await repo.GetActiveWorkflowsForInstance(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var results = await repo.GetActiveWorkflowsForInstance(
+            Guid.NewGuid(),
+            cancellationToken: TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Empty(results);

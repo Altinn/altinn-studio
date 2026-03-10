@@ -26,6 +26,12 @@ public sealed record WorkflowStatusResponse
     public required string IdempotencyKey { get; init; }
 
     /// <summary>
+    /// The namespace used for scoping idempotency and workflow references.
+    /// </summary>
+    [JsonPropertyName("namespace")]
+    public required string Namespace { get; init; }
+
+    /// <summary>
     /// The time the workflow was created.
     /// </summary>
     [JsonPropertyName("createdAt")]
@@ -97,6 +103,7 @@ public sealed record WorkflowStatusResponse
         {
             DatabaseId = workflow.DatabaseId,
             IdempotencyKey = workflow.IdempotencyKey,
+            Namespace = workflow.Namespace,
             OperationId = workflow.OperationId,
             CreatedAt = workflow.CreatedAt,
             UpdatedAt = workflow.UpdatedAt,

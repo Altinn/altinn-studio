@@ -5,6 +5,7 @@ public sealed record Workflow : PersistentItem
     public string? InstanceLockKey { get; init; }
     public required Actor Actor { get; init; }
     public required InstanceInformation InstanceInformation { get; init; }
+    public required string Namespace { get; init; }
     public DateTimeOffset? StartAt { get; init; }
     public DateTimeOffset? BackoffUntil { get; set; }
     public required IReadOnlyList<Step> Steps { get; init; }
@@ -29,6 +30,7 @@ public sealed record Workflow : PersistentItem
             IdempotencyKey = idempotencyKey,
             InstanceLockKey = metadata.InstanceLockKey,
             InstanceInformation = metadata.InstanceInformation,
+            Namespace = metadata.Namespace,
             Actor = metadata.Actor,
             CreatedAt = metadata.CreatedAt,
             StartAt = request.StartAt,
