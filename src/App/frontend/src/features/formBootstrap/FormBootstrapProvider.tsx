@@ -117,7 +117,7 @@ export function FormBootstrapProvider({
   }, [data, processedLayouts, dataModels, staticOptions, uiFolder]);
 
   if (isLoading || !data || !contextValue) {
-    return <Loader reason='form-bootstrap' />;
+    return <Loader reason='bootstrap-form' />;
   }
 
   if (isError || !contextValue) {

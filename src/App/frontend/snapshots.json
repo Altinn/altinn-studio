@@ -129,7 +129,7 @@
         "CareOf": null,
         "Poststed": null,
         "Kommune": null,
-        "KommunerMetadata": "language=nb,id=131,variant=,date=ANY_DATE,level=,parentCode=",
+        "KommunerMetadata": "id=131,variant=,date=ANY_DATE,language=nb,level=,parentCode=",
         "Postnr": null,
         "HouseNumber": null
       },

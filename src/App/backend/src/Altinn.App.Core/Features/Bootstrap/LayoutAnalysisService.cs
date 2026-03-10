@@ -57,6 +57,11 @@ internal sealed class LayoutAnalysisService
                 TraverseObjectForDataTypes(element, dataTypes);
                 break;
             case JsonValueKind.Array:
+                if (IsDataModelExpression(element, out var dataType))
+                {
+                    dataTypes.Add(dataType);
+                }
+
                 foreach (var item in element.EnumerateArray())
                 {
                     TraverseForDataTypes(item, dataTypes);
@@ -85,7 +90,7 @@ internal sealed class LayoutAnalysisService
 
     private static void ExtractDataTypeFromBinding(JsonElement bindingValue, HashSet<string> dataTypes)
     {
-        // Binding can be either a string (simple) or an object with dataType property
+        // Binding can be either a string (we ignore these) or an object with dataType property
         if (bindingValue.ValueKind == JsonValueKind.Object)
         {
             if (bindingValue.TryGetProperty("dataType", out var dataType) && dataType.ValueKind == JsonValueKind.String)
@@ -97,7 +102,6 @@ internal sealed class LayoutAnalysisService
                 }
             }
         }
-        // String bindings use the default data type, which is already included
     }
 
     private static void TraverseForOptions(
@@ -174,6 +178,41 @@ internal sealed class LayoutAnalysisService
             JsonValueKind.Object => !property.EnumerateObject().Any(),
             _ => false,
         };
+    }
+
+    private static bool IsDataModelExpression(JsonElement array, out string dataType)
+    {
+        dataType = string.Empty;
+
+        // Match ["dataModel", someString, dataTypeString]
+        if (array.ValueKind != JsonValueKind.Array || array.GetArrayLength() < 3)
+        {
+            return false;
+        }
+
+        var enumerator = array.EnumerateArray();
+        if (
+            !enumerator.MoveNext()
+            || enumerator.Current.ValueKind != JsonValueKind.String
+            || enumerator.Current.GetString() != "dataModel"
+        )
+        {
+            return false;
+        }
+
+        // Skip second element (field path)
+        if (!enumerator.MoveNext() || enumerator.Current.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        if (!enumerator.MoveNext() || enumerator.Current.ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        dataType = enumerator.Current.GetString() ?? string.Empty;
+        return !string.IsNullOrEmpty(dataType);
     }
 
     private static bool IsOptionLabelExpression(JsonElement array, out string optionsId)
