@@ -11,7 +11,7 @@ import (
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-// HTTPRouteResult represents the result of an HTTPRoute operation
+// HTTPRouteResult represents the result of an HTTPRoute operation.
 type HTTPRouteResult struct {
 	ClusterName            string
 	Namespace              string
@@ -23,7 +23,7 @@ type HTTPRouteResult struct {
 	Error                  error
 }
 
-// GetHTTPRoute fetches an HTTPRoute from a cluster using the Gateway API client
+// GetHTTPRoute fetches an HTTPRoute from a cluster using the Gateway API client.
 func GetHTTPRoute(
 	ctx context.Context,
 	runtime KubernetesRuntime,
@@ -44,7 +44,7 @@ func GetHTTPRoute(
 	return route, nil
 }
 
-// ValidateHTTPRouteStructure validates that the HTTPRoute has exactly 1 rule with 2 backendRefs
+// ValidateHTTPRouteStructure validates that the HTTPRoute has exactly 1 rule with 2 backendRefs.
 func ValidateHTTPRouteStructure(route *gatewayv1.HTTPRoute) error {
 	if len(route.Spec.Rules) != 1 {
 		return fmt.Errorf("HTTPRoute must have exactly 1 rule, found %d", len(route.Spec.Rules))
@@ -58,14 +58,14 @@ func ValidateHTTPRouteStructure(route *gatewayv1.HTTPRoute) error {
 	return nil
 }
 
-// JSONPatchOperation represents a single JSON Patch operation
+// JSONPatchOperation represents a single JSON Patch operation.
 type JSONPatchOperation struct {
-	Op    string      `json:"op"`
-	Path  string      `json:"path"`
-	Value interface{} `json:"value,omitempty"`
+	Op    string `json:"op"`
+	Path  string `json:"path"`
+	Value any    `json:"value,omitempty"`
 }
 
-// buildWeightPatch constructs a JSON Patch document to update weights and optionally add the reconcile annotation
+// buildWeightPatch constructs a JSON Patch document to update weights and optionally add the reconcile annotation.
 func buildWeightPatch(weight1, weight2 int, hasReconcileAnnotation bool, hasAnyAnnotations bool) (string, error) {
 	var operations []JSONPatchOperation
 
@@ -113,7 +113,7 @@ func buildWeightPatch(weight1, weight2 int, hasReconcileAnnotation bool, hasAnyA
 	return string(patchBytes), nil
 }
 
-// UpdateHTTPRouteWeights updates the weights of an HTTPRoute and adds the flux reconcile annotation using JSON Patch
+// UpdateHTTPRouteWeights updates the weights of an HTTPRoute and adds the flux reconcile annotation using JSON Patch.
 func UpdateHTTPRouteWeights(
 	ctx context.Context,
 	runtime KubernetesRuntime,
@@ -149,7 +149,7 @@ func UpdateHTTPRouteWeights(
 	return nil
 }
 
-// GetHTTPRouteFromCluster fetches and validates an HTTPRoute from a cluster
+// GetHTTPRouteFromCluster fetches and validates an HTTPRoute from a cluster.
 func GetHTTPRouteFromCluster(
 	ctx context.Context,
 	runtime KubernetesRuntime,
@@ -193,7 +193,7 @@ func GetHTTPRouteFromCluster(
 	return result
 }
 
-// GetAllHTTPRoutes fetches HTTPRoutes from all clusters in parallel
+// GetAllHTTPRoutes fetches HTTPRoutes from all clusters in parallel.
 func GetAllHTTPRoutes(runtimes []KubernetesRuntime, namespace string, name string, maxWorkers int) []HTTPRouteResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -201,7 +201,7 @@ func GetAllHTTPRoutes(runtimes []KubernetesRuntime, namespace string, name strin
 	jobs := make(chan KubernetesRuntime, len(runtimes))
 	results := make(chan HTTPRouteResult, len(runtimes))
 
-	for w := 0; w < maxWorkers; w++ {
+	for range maxWorkers {
 		go func() {
 			for runtime := range jobs {
 				result := GetHTTPRouteFromCluster(ctx, runtime, namespace, name)
@@ -216,7 +216,7 @@ func GetAllHTTPRoutes(runtimes []KubernetesRuntime, namespace string, name strin
 	close(jobs)
 
 	var routeResults []HTTPRouteResult
-	for i := 0; i < len(runtimes); i++ {
+	for range runtimes {
 		routeResults = append(routeResults, <-results)
 	}
 	close(results)
@@ -224,7 +224,7 @@ func GetAllHTTPRoutes(runtimes []KubernetesRuntime, namespace string, name strin
 	return routeResults
 }
 
-// UpdateAllHTTPRoutes updates HTTPRoutes on clusters in parallel using JSON Patch
+// UpdateAllHTTPRoutes updates HTTPRoutes on clusters in parallel using JSON Patch.
 func UpdateAllHTTPRoutes(
 	runtimes []KubernetesRuntime,
 	routesToUpdate []HTTPRouteResult,
@@ -243,7 +243,7 @@ func UpdateAllHTTPRoutes(
 		runtimeByClusterName[runtime.GetName()] = runtime
 	}
 
-	for w := 0; w < maxWorkers; w++ {
+	for range maxWorkers {
 		go func() {
 			for routeResult := range jobs {
 				result := HTTPRouteResult{
@@ -287,7 +287,7 @@ func UpdateAllHTTPRoutes(
 	close(jobs)
 
 	var updateResults []HTTPRouteResult
-	for i := 0; i < len(routesToUpdate); i++ {
+	for range routesToUpdate {
 		updateResults = append(updateResults, <-results)
 	}
 	close(results)

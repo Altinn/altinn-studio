@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -125,7 +126,7 @@ func validateEnvironments(environmentsStr string) ([]string, error) {
 	}
 
 	if len(validated) == 0 {
-		return nil, fmt.Errorf("no valid environments provided")
+		return nil, errors.New("no valid environments provided")
 	}
 
 	return validated, nil
@@ -141,7 +142,7 @@ func runSetWeight() error {
 	args := setWeightCmd.Args()
 
 	if len(args) != 4 {
-		return fmt.Errorf(
+		return errors.New(
 			"usage: go run cmd/main.go set-weight [flags] <environments> <namespace/name> <weight1> <weight2>\n\n" +
 				"Arguments:\n" +
 				"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
@@ -214,7 +215,7 @@ func runSetWeight() error {
 			args[0],
 			func() string {
 				if *serviceowner != "" {
-					return fmt.Sprintf(" -s %s", *serviceowner)
+					return " -s " + *serviceowner
 				}
 				return ""
 			}())
@@ -348,7 +349,7 @@ func runSetWeight() error {
 	}
 
 	if updateErrors {
-		return fmt.Errorf("errors occurred while updating HTTPRoutes on some clusters")
+		return errors.New("errors occurred while updating HTTPRoutes on some clusters")
 	}
 
 	fmt.Println("\n✓ All HTTPRoutes updated successfully")
@@ -364,7 +365,7 @@ func runStatus() error {
 
 	args := statusCmd.Args()
 	if len(args) != 3 {
-		return fmt.Errorf(
+		return errors.New(
 			"usage: go run cmd/main.go status [flags] <environments> <resource-type> <namespace/name>\n\n" +
 				"Arguments:\n" +
 				"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
@@ -419,7 +420,7 @@ func runStatus() error {
 			args[0],
 			func() string {
 				if *serviceowner != "" {
-					return fmt.Sprintf(" -s %s", *serviceowner)
+					return " -s " + *serviceowner
 				}
 				return ""
 			}())
@@ -463,16 +464,16 @@ func runStatus() error {
 	return nil
 }
 
-// ExecResult represents the result of executing a command on a cluster
+// ExecResult represents the result of executing a command on a cluster.
 type ExecResult struct {
+	Error       error
 	ClusterName string
-	ExitCode    int
 	Stdout      string
 	Stderr      string
-	Error       error
+	ExitCode    int
 }
 
-// getContextFlag returns the context flag name for a given command
+// getContextFlag returns the context flag name for a given command.
 func getContextFlag(command string) (string, error) {
 	contextFlags := map[string]string{
 		"kubectl": "--context",
@@ -497,7 +498,7 @@ func runExec() error {
 	args := execCmd.Args()
 
 	if len(args) < 2 {
-		return fmt.Errorf("usage: go run cmd/main.go exec [flags] <environments> <command> [args...]\n\n" +
+		return errors.New("usage: go run cmd/main.go exec [flags] <environments> <command> [args...]\n\n" +
 			"Arguments:\n" +
 			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
 			"  command         kubectl, flux, or helm\n" +
@@ -557,7 +558,7 @@ func runExec() error {
 			args[0],
 			func() string {
 				if *serviceowner != "" {
-					return fmt.Sprintf(" -s %s", *serviceowner)
+					return " -s " + *serviceowner
 				}
 				return ""
 			}())
@@ -609,15 +610,13 @@ func runExec() error {
 	var wg sync.WaitGroup
 
 	// Start workers
-	for w := 0; w < maxWorkers; w++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range maxWorkers {
+		wg.Go(func() {
 			for clusterName := range jobs {
 				result := executeCommand(command, commandArgs, contextFlag, clusterName)
 				results <- result
 			}
-		}()
+		})
 	}
 
 	// Send jobs
@@ -726,7 +725,7 @@ func runExec() error {
 	return nil
 }
 
-// executeCommand executes a command on a specific cluster
+// executeCommand executes a command on a specific cluster.
 func executeCommand(command string, args []string, contextFlag string, clusterName string) ExecResult {
 	// Build the full command with context
 	cmdArgs := append(args, contextFlag, clusterName)
@@ -739,7 +738,8 @@ func executeCommand(command string, args []string, contextFlag string, clusterNa
 
 	if err != nil {
 		// Try to get exit code and stderr
-		if exitErr, ok := err.(*exec.ExitError); ok {
+		exitErr := &exec.ExitError{}
+		if errors.As(err, &exitErr) {
 			stderr = exitErr.Stderr
 			exitCode = exitErr.ExitCode()
 		} else {
@@ -770,7 +770,7 @@ func runInit() error {
 	args := initCmd.Args()
 
 	if len(args) != 1 {
-		return fmt.Errorf("usage: go run cmd/main.go init [flags] <environments>\n\n" +
+		return errors.New("usage: go run cmd/main.go init [flags] <environments>\n\n" +
 			"Arguments:\n" +
 			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n\n" +
 			"Flags:\n" +
@@ -911,7 +911,7 @@ func runLogs() error {
 	args := logsCmd.Args()
 
 	if len(args) != 3 {
-		return fmt.Errorf("usage: go run cmd/main.go logs [flags] <environments> <namespace/name> <output-file>\n\n" +
+		return errors.New("usage: go run cmd/main.go logs [flags] <environments> <namespace/name> <output-file>\n\n" +
 			"Arguments:\n" +
 			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
 			"  namespace/name  Deployment location (e.g., runtime-pdf3/pdf3-app)\n" +
@@ -939,7 +939,7 @@ func runLogs() error {
 
 	// Validate that at least one of --since or --tail is specified
 	if *since == "" && *tail == -1 {
-		return fmt.Errorf("at least one of --since or --tail must be specified")
+		return errors.New("at least one of --since or --tail must be specified")
 	}
 
 	environments, err := validateEnvironments(args[0])
@@ -976,7 +976,7 @@ func runLogs() error {
 			args[0],
 			func() string {
 				if *serviceowner != "" {
-					return fmt.Sprintf(" -s %s", *serviceowner)
+					return " -s " + *serviceowner
 				}
 				return ""
 			}())
@@ -1023,7 +1023,7 @@ func runNodes() error {
 	args := nodesCmd.Args()
 
 	if len(args) != 1 {
-		return fmt.Errorf("usage: go run cmd/main.go nodes [flags] <environments>\n\n" +
+		return errors.New("usage: go run cmd/main.go nodes [flags] <environments>\n\n" +
 			"Arguments:\n" +
 			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n\n" +
 			"Flags:\n" +
@@ -1062,7 +1062,7 @@ func runNodes() error {
 			args[0],
 			func() string {
 				if *serviceowner != "" {
-					return fmt.Sprintf(" -s %s", *serviceowner)
+					return " -s " + *serviceowner
 				}
 				return ""
 			}())
@@ -1106,7 +1106,7 @@ func runNodes() error {
 	return nil
 }
 
-// promptConfirmation prompts the user for confirmation
+// promptConfirmation prompts the user for confirmation.
 func promptConfirmation(message string) (bool, error) {
 	fmt.Printf("%s [Y/n]: ", message)
 

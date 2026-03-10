@@ -8,14 +8,14 @@ import (
 	"strings"
 )
 
-// Account represents the Azure account information
+// Account represents the Azure account information.
 type Account struct {
 	User struct {
 		Name string `json:"name"`
 	} `json:"user"`
 }
 
-// ValidateAzCLI checks if the az CLI is installed and available
+// ValidateAzCLI checks if the az CLI is installed and available.
 func ValidateAzCLI() error {
 	cmd := exec.Command("az", "--version")
 	if err := cmd.Run(); err != nil {
@@ -25,7 +25,7 @@ func ValidateAzCLI() error {
 }
 
 // ValidateUserLogin validates that the user is logged in with the correct format
-// Expected format: ext-<username> ai-dev account (prod or non-prod)
+// Expected format: ext-<username> ai-dev account (prod or non-prod).
 func ValidateUserLogin() error {
 	cmd := exec.Command("az", "account", "show")
 	output, err := cmd.CombinedOutput()

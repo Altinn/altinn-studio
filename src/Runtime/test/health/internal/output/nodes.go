@@ -10,7 +10,7 @@ import (
 	"altinn.studio/runtime-health/internal/kubernetes"
 )
 
-// PrintNodeResults prints the node results as a formatted table
+// PrintNodeResults prints the node results as a formatted table.
 func PrintNodeResults(w io.Writer, results []kubernetes.NodeResult) {
 	// Sort results: errors first, then by cluster name
 	sort.SliceStable(results, func(i, j int) bool {

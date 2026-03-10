@@ -9,12 +9,12 @@ import (
 )
 
 type DisContainerRuntime struct {
-	ClusterName  string
-	ServiceOwner string
-	Environment  string
 	Cluster      *az.Cluster
 	Context      *kubernetes.ContextInfo
 	Client       *kubernetes.ClusterClient
+	ClusterName  string
+	ServiceOwner string
+	Environment  string
 }
 
 func (d *DisContainerRuntime) GetName() string {
@@ -33,7 +33,7 @@ func (d *DisContainerRuntime) GetKubernetesClient() *kubernetes.ClusterClient {
 	return d.Client
 }
 
-// Compile-time check to ensure DisContainerRuntime implements KubernetesRuntime
+// Compile-time check to ensure DisContainerRuntime implements KubernetesRuntime.
 var _ kubernetes.KubernetesRuntime = (*DisContainerRuntime)(nil)
 
 func ListFromAzure(environments []string, serviceowner string) ([]kubernetes.KubernetesRuntime, error) {
@@ -119,7 +119,7 @@ func ListFromContext(environments []string, serviceowner string) ([]kubernetes.K
 }
 
 // parseAndFilter parses and states wether the passed in name matches based on the filter arguments (envs and serviceowner)
-// arguments to a cluster/context name in the form of '<serviceowner>-<env>-aks' (e.g. ttd-tt02-aks)
+// arguments to a cluster/context name in the form of '<serviceowner>-<env>-aks' (e.g. ttd-tt02-aks).
 func parseAndFilter(name string, environments []string, serviceowner string) (string, string, bool) {
 	contextServiceOwner, withoutServiceOwner, found := strings.Cut(name, "-")
 	if !found {

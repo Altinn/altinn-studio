@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -13,27 +14,27 @@ import (
 	metricsv1beta1 "k8s.io/metrics/pkg/apis/metrics/v1beta1"
 )
 
-// NodeResult represents the result of querying node information from a cluster
+// NodeResult represents the result of querying node information from a cluster.
 type NodeResult struct {
-	ClusterName              string
-	ServiceOwner             string
-	Environment              string
-	K8sVersion               string
-	NodeCount                int
-	PodCount                 int
-	CPUTotal                 string
-	CPUPerNode               string
-	CPUUsed                  string
-	CPUUtilizationPercent    string
-	MemoryTotal              string
-	MemoryPerNode            string
-	MemoryUsed               string
-	MemoryUtilizationPercent string
-	NewestNodeAge            string
 	Error                    error
+	MemoryUsed               string
+	CPUUsed                  string
+	K8sVersion               string
+	ServiceOwner             string
+	NewestNodeAge            string
+	CPUTotal                 string
+	Environment              string
+	MemoryPerNode            string
+	CPUPerNode               string
+	MemoryTotal              string
+	CPUUtilizationPercent    string
+	ClusterName              string
+	MemoryUtilizationPercent string
+	PodCount                 int
+	NodeCount                int
 }
 
-// GetNodesInfo queries node information for a specific cluster using client-go
+// GetNodesInfo queries node information for a specific cluster using client-go.
 func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector string) NodeResult {
 	result := NodeResult{
 		ClusterName:  runtime.GetName(),
@@ -207,7 +208,7 @@ func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector 
 	return result
 }
 
-// QueryAllClustersForNodes queries node information from multiple clusters in parallel
+// QueryAllClustersForNodes queries node information from multiple clusters in parallel.
 func QueryAllClustersForNodes(runtimes []KubernetesRuntime, labelSelector string, maxWorkers int) []NodeResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -218,15 +219,13 @@ func QueryAllClustersForNodes(runtimes []KubernetesRuntime, labelSelector string
 	var wg sync.WaitGroup
 
 	// Start workers
-	for w := 0; w < maxWorkers; w++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range maxWorkers {
+		wg.Go(func() {
 			for runtime := range jobs {
 				result := GetNodesInfo(ctx, runtime, labelSelector)
 				results <- result
 			}
-		}()
+		})
 	}
 
 	// Queue jobs
@@ -250,7 +249,7 @@ func QueryAllClustersForNodes(runtimes []KubernetesRuntime, labelSelector string
 	return nodeResults
 }
 
-// formatCPU formats CPU quantity to cores (e.g., "16" for 16 cores)
+// formatCPU formats CPU quantity to cores (e.g., "16" for 16 cores).
 func formatCPU(cpu *resource.Quantity) string {
 	// Convert to millicores then to cores
 	milliCores := cpu.MilliValue()
@@ -261,13 +260,13 @@ func formatCPU(cpu *resource.Quantity) string {
 	return fmt.Sprintf("%.1f", cores)
 }
 
-// formatMemory formats memory quantity to human-readable format (e.g., "64Gi")
+// formatMemory formats memory quantity to human-readable format (e.g., "64Gi").
 func formatMemory(mem *resource.Quantity) string {
 	bytes := mem.Value()
 	return formatMemoryBytes(bytes)
 }
 
-// formatMemoryBytes formats bytes to human-readable format
+// formatMemoryBytes formats bytes to human-readable format.
 func formatMemoryBytes(bytes int64) string {
 	const (
 		KiB = 1024
@@ -286,11 +285,11 @@ func formatMemoryBytes(bytes int64) string {
 	case bytes >= KiB:
 		return fmt.Sprintf("%.1fKi", float64(bytes)/float64(KiB))
 	default:
-		return fmt.Sprintf("%d", bytes)
+		return strconv.FormatInt(bytes, 10)
 	}
 }
 
-// getMostCommonVersion returns the most common Kubernetes version from the map
+// getMostCommonVersion returns the most common Kubernetes version from the map.
 func getMostCommonVersion(versions map[string]int) string {
 	if len(versions) == 0 {
 		return "unknown"

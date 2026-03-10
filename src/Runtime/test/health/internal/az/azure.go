@@ -14,13 +14,13 @@ type Cluster struct {
 }
 
 type resourceGraphResponse struct {
-	Data      []Cluster `json:"data"`
 	SkipToken string    `json:"$skipToken,omitempty"`
+	Data      []Cluster `json:"data"`
 	Count     int       `json:"count"`
 }
 
 // ListContainerRuntimes queries all AKS clusters across all subscriptions using Azure Resource Graph
-// This is much faster than ListAllClusters as it uses a single query instead of one per subscription
+// This is much faster than ListAllClusters as it uses a single query instead of one per subscription.
 func ListClusters() ([]Cluster, error) {
 	query := "resources | where type =~ 'microsoft.containerservice/managedclusters' | project name, resourceGroup, location, subscriptionId"
 
@@ -64,7 +64,7 @@ func ListClusters() ([]Cluster, error) {
 }
 
 // EnsureCredentials ensures credentials are available for the cluster
-// This must be called sequentially, not in parallel, as it mutates kube config
+// This must be called sequentially, not in parallel, as it mutates kube config.
 func EnsureCredentials(cluster *Cluster) error {
 	args := []string{
 		"aks", "get-credentials",

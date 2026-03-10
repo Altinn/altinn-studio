@@ -18,7 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-// LogLine represents a single log line with metadata
+// LogLine represents a single log line with metadata.
 type LogLine struct {
 	Timestamp    time.Time
 	ClusterName  string
@@ -28,7 +28,7 @@ type LogLine struct {
 	Message      string
 }
 
-// GetPodsForDeployment retrieves all pod names for a deployment
+// GetPodsForDeployment retrieves all pod names for a deployment.
 func GetPodsForDeployment(
 	ctx context.Context,
 	runtime KubernetesRuntime,
@@ -81,7 +81,7 @@ func GetPodsForDeployment(
 	return podNames, nil
 }
 
-// streamLogsFromCluster streams logs from all pods in a cluster to a channel
+// streamLogsFromCluster streams logs from all pods in a cluster to a channel.
 func streamLogsFromCluster(
 	ctx context.Context,
 	runtime KubernetesRuntime,
@@ -112,7 +112,7 @@ func streamLogsFromCluster(
 	wg.Wait()
 }
 
-// parseSinceDuration parses a kubectl-style duration string (e.g., "5m", "1h") to seconds
+// parseSinceDuration parses a kubectl-style duration string (e.g., "5m", "1h") to seconds.
 func parseSinceDuration(since string) (*int64, error) {
 	duration, err := time.ParseDuration(since)
 	if err != nil {
@@ -122,7 +122,7 @@ func parseSinceDuration(since string) (*int64, error) {
 	return &seconds, nil
 }
 
-// streamPodLogs streams logs from a single pod
+// streamPodLogs streams logs from a single pod.
 func streamPodLogs(
 	ctx context.Context,
 	runtime KubernetesRuntime,
@@ -215,7 +215,7 @@ func streamPodLogs(
 	}
 }
 
-// AggregateLogsWithBuffer aggregates logs from multiple clusters with time buffering
+// AggregateLogsWithBuffer aggregates logs from multiple clusters with time buffering.
 func AggregateLogsWithBuffer(
 	runtimes []KubernetesRuntime,
 	namespace, deploymentName, outputFile string,

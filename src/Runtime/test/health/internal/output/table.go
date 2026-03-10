@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 
@@ -11,7 +12,7 @@ import (
 )
 
 // getSortPriority returns a priority for sorting results
-// Lower values appear first in the table
+// Lower values appear first in the table.
 func getSortPriority(result kubernetes.QueryResult) int {
 	if result.Error != nil {
 		return 0
@@ -48,7 +49,7 @@ func getSortPriority(result kubernetes.QueryResult) int {
 	return 3
 }
 
-// PrintResults prints the query results as a formatted table
+// PrintResults prints the query results as a formatted table.
 func PrintResults(w io.Writer, results []kubernetes.QueryResult) {
 	sort.SliceStable(results, func(i, j int) bool {
 		return getSortPriority(results[i]) < getSortPriority(results[j])
@@ -247,7 +248,7 @@ func PrintResults(w io.Writer, results []kubernetes.QueryResult) {
 
 // truncate truncates a string to maxLen characters, adding "..." if truncated
 // It also normalizes whitespace by replacing newlines and tabs with spaces,
-// and collapsing multiple consecutive spaces into a single space
+// and collapsing multiple consecutive spaces into a single space.
 func truncate(s string, maxLen int) string {
 	s = strings.ReplaceAll(s, "\n", " ")
 	s = strings.ReplaceAll(s, "\t", " ")
@@ -265,7 +266,7 @@ func truncate(s string, maxLen int) string {
 	return s[:maxLen-3] + "..."
 }
 
-// printHTTPRouteResults prints HTTPRoute query results in a specialized table format
+// printHTTPRouteResults prints HTTPRoute query results in a specialized table format.
 func printHTTPRouteResults(tw *tabwriter.Writer, results []kubernetes.QueryResult) {
 	fmt.Fprintln(tw, "CLUSTER\tNAMESPACE/NAME\tWEIGHT1\tWEIGHT2\tRECONCILE\tANNOTATIONS\tSTATUS")
 	fmt.Fprintln(
@@ -311,11 +312,11 @@ func printHTTPRouteResults(tw *tabwriter.Writer, results []kubernetes.QueryResul
 		} else {
 			weight1 := "-"
 			if result.Weight1 != nil {
-				weight1 = fmt.Sprintf("%d", *result.Weight1)
+				weight1 = strconv.Itoa(*result.Weight1)
 			}
 			weight2 := "-"
 			if result.Weight2 != nil {
-				weight2 = fmt.Sprintf("%d", *result.Weight2)
+				weight2 = strconv.Itoa(*result.Weight2)
 			}
 
 			reconcile := "enabled"

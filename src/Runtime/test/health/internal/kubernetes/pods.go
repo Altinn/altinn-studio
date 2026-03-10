@@ -3,13 +3,14 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// formatAge converts a duration to a human-readable age string
+// formatAge converts a duration to a human-readable age string.
 func formatAge(d time.Duration) string {
 	if d < time.Minute {
 		return fmt.Sprintf("%ds", int(d.Seconds()))
@@ -26,7 +27,7 @@ func formatAge(d time.Duration) string {
 // GetPodInfo queries pods for a deployment and returns age and restart information.
 // Returns (age, restarts) where:
 // - age is the age of the newest pod (e.g., "5m", "2h")
-// - restarts is slash-separated restart counts for all pods (e.g., "0/2/1" for 3 pods)
+// - restarts is slash-separated restart counts for all pods (e.g., "0/2/1" for 3 pods).
 func GetPodInfo(
 	ctx context.Context,
 	runtime KubernetesRuntime,
@@ -79,7 +80,7 @@ func GetPodInfo(
 		for _, container := range pod.Status.ContainerStatuses {
 			totalRestarts += int(container.RestartCount)
 		}
-		restartCounts = append(restartCounts, fmt.Sprintf("%d", totalRestarts))
+		restartCounts = append(restartCounts, strconv.Itoa(totalRestarts))
 	}
 	restartsStr := strings.Join(restartCounts, "/")
 

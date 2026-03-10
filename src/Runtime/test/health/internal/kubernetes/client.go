@@ -18,25 +18,19 @@ import (
 // Clients are only created when first accessed, improving performance for commands
 // that don't need all client types.
 type ClusterClient struct {
-	config *rest.Config
-
-	// Lazy-loaded clients (nil until first access)
+	clientsetErr  error
+	dynamicClient dynamic.Interface
+	metricsErr    error
+	dynamicErr    error
+	gatewayErr    error
 	clientset     *kubernetes.Clientset
 	metricsClient *metricsclientset.Clientset
-	dynamicClient dynamic.Interface // For FluxCD CRDs
 	gatewayClient *gatewayclientset.Clientset
-
-	// Initialization guards ensure thread-safe single initialization
+	config        *rest.Config
 	clientsetOnce sync.Once
 	metricsOnce   sync.Once
 	dynamicOnce   sync.Once
 	gatewayOnce   sync.Once
-
-	// Error tracking from initialization attempts
-	clientsetErr error
-	metricsErr   error
-	dynamicErr   error
-	gatewayErr   error
 }
 
 // newClusterClient creates a new ClusterClient for the specified context.
