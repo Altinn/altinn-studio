@@ -1,13 +1,15 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { Link } from '@digdir/designsystemet-react';
 import { DownloadIcon } from '@navikt/aksel-icons';
 
 import { AppTable } from 'src/app-components/Table/Table';
+import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { getFileEnding, removeFileEnding } from 'src/layout/FileUpload/utils/fileEndings';
 import classes from 'src/layout/SigneeList/SigneeListComponent.module.css';
 import { useDocumentList } from 'src/layout/SigningDocumentList/api';
 import { SigningDocumentListError } from 'src/layout/SigningDocumentList/SigningDocumentListError';
@@ -35,7 +37,7 @@ export function SigningDocumentListComponent({
       headerClassName={classes.header}
       tableClassName={classes.table}
       data={data ?? []}
-      emptyText={<Lang id='general.empty_table' />}
+      emptyText={translationKey('general.empty_table')}
       caption={
         textResourceBindings?.title ? (
           <Caption
@@ -48,30 +50,34 @@ export function SigningDocumentListComponent({
       }
       columns={[
         {
-          header: langAsString('signing_document_list.header_filename'),
+          header: translationKey('signing_document_list.header_filename'),
           accessors: [],
           renderCell: (_, rowData) => (
             <Link
               href={rowData.url}
               rel='noopener noreferrer'
+              title={rowData.filename}
             >
-              {rowData.filename}
+              <span className={classes.nameWrapper}>
+                <span className={classes.truncate}>{removeFileEnding(rowData.filename)}</span>
+                <span className={classes.extension}>{getFileEnding(rowData.filename)}</span>
+              </span>
             </Link>
           ),
         },
         {
-          header: langAsString('signing_document_list.header_attachment_type'),
+          header: translationKey('signing_document_list.header_attachment_type'),
           accessors: [],
           renderCell: (_, rowData) => rowData.attachmentTypes.map((it) => langAsString(it)).join(', '),
         },
         {
-          header: langAsString('signing_document_list.header_size'),
+          header: translationKey('signing_document_list.header_size'),
           accessors: [],
           renderCell: (_, rowData) => getSizeWithUnit(rowData.size),
         },
         {
           header: null,
-          ariaLabel: langAsString('signing_document_list.download'),
+          ariaLabel: translationKey('signing_document_list.download'),
           accessors: [],
           renderCell: (_, rowData) => (
             <Link

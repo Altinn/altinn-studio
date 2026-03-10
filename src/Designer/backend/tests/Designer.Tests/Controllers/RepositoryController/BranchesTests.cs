@@ -15,17 +15,18 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class BranchesTests : DesignerEndpointsTestsBase<BranchesTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class BranchesTests
+        : DesignerEndpointsTestsBase<BranchesTests>,
+            IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix => "/designer/api/repos";
-        public BranchesTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
+
+        public BranchesTests(WebApplicationFactory<Program> factory)
+            : base(factory) { }
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
+            services.Configure<ServiceRepositorySettings>(c => c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGiteaClient, IGiteaClientMock>();
         }
 

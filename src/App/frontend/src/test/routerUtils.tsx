@@ -1,5 +1,5 @@
 import React from 'react';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 
 export const PageNavigationRouter =
   ({ currentPageId = 'layout1', currentTaskId = 'Task_1' } = {}) =>
@@ -17,14 +17,8 @@ export const PageNavigationRouter =
         initialEntries: [
           `/ttd/test/instance/1337/dfe95272-6873-48a6-abae-57b3f7c18689/${currentTaskId}/${currentPageId}`,
         ],
-        future: { v7_relativeSplatPath: true },
       },
     );
 
-    return (
-      <RouterProvider
-        router={router}
-        future={{ v7_startTransition: true }}
-      />
-    );
+    return <RouterProvider router={router} />;
   };

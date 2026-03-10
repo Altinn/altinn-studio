@@ -29,7 +29,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public AuthorizationPolicyService(
             ServiceRepositorySettings repositorySettings,
             IGiteaClient giteaClient,
-            IAltinnAuthorizationPolicyClient authorizationPolicyClient)
+            IAltinnAuthorizationPolicyClient authorizationPolicyClient
+        )
         {
             _giteaClient = giteaClient;
             _authorizationPolicyClient = authorizationPolicyClient;
@@ -42,20 +43,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string app,
             string shortCommitId,
             string envName,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default
+        )
         {
             cancellationToken.ThrowIfCancellationRequested();
-            FileSystemObject policyFile = await GetAuthorizationPolicyFileFromGitea(org, app, shortCommitId);
-            byte[] data = Convert.FromBase64String(policyFile.Content);
-            string policyFileContent = Encoding.UTF8.GetString(data);
-            policyFileContent = policyFileContent.Replace("[ORG]", org).Replace("[org]", org).Replace("[APP]", app);
+            string policyFileContent = await GetAuthorizationPolicyFileFromGitea(org, app, shortCommitId);
+            policyFileContent = ReplacePolicyPlaceholderTokens(policyFileContent, org, app);
             await _authorizationPolicyClient.SavePolicy(org, app, policyFileContent, envName);
         }
 
-        private async Task<FileSystemObject> GetAuthorizationPolicyFileFromGitea(string org, string app, string shortCommitId)
+        public async Task<string> GetAuthorizationPolicyFileFromGitea(string org, string app, string shortCommitId)
         {
             string policyFilePath = GetAuthorizationPolicyFilePath();
-            return await _giteaClient.GetFileAsync(org, app, policyFilePath, shortCommitId);
+            FileSystemObject policyFile = await _giteaClient.GetFileAsync(org, app, policyFilePath, shortCommitId);
+            byte[] data = Convert.FromBase64String(policyFile.Content);
+            return Encoding.UTF8.GetString(data);
+        }
+
+        public string ReplacePolicyPlaceholderTokens(string policyFileContent, string org, string app)
+        {
+            return policyFileContent
+                .Replace("[ORG]", org)
+                .Replace("[org]", org)
+                .Replace("[APP]", app)
+                .Replace("[app]", app);
         }
 
         private string GetAuthorizationPolicyFilePath()

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +26,12 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        IEnumerable<ErrorMetric> metrics = await _metricsService.GetErrorMetricsAsync(org, environment, range, cancellationToken);
+        IEnumerable<ErrorMetric> metrics = await _metricsService.GetErrorMetricsAsync(
+            org,
+            environment,
+            range,
+            cancellationToken
+        );
         return Ok(metrics);
     }
 
@@ -41,7 +45,13 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        IEnumerable<AppMetric> metrics = await _metricsService.GetAppMetricsAsync(org, environment, app, range, cancellationToken);
+        IEnumerable<AppMetric> metrics = await _metricsService.GetAppMetricsAsync(
+            org,
+            environment,
+            app,
+            range,
+            cancellationToken
+        );
         return Ok(metrics);
     }
 
@@ -55,30 +65,14 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        IEnumerable<AppErrorMetric> metrics = await _metricsService.GetAppErrorMetricsAsync(org, environment, app, range, cancellationToken);
+        IEnumerable<AppErrorMetric> metrics = await _metricsService.GetAppErrorMetricsAsync(
+            org,
+            environment,
+            app,
+            range,
+            cancellationToken
+        );
         return Ok(metrics);
-    }
-
-    [HttpGet("app/errors/logs")]
-    public async Task<ActionResult> GetAppErrorMetricsLogs(
-        string org,
-        string env,
-        [FromQuery] string[] apps,
-        [FromQuery] string metric,
-        [FromQuery] DateTimeOffset from,
-        [FromQuery] DateTimeOffset to,
-        CancellationToken cancellationToken
-    )
-    {
-        var environment = AltinnEnvironment.FromName(env);
-        Uri? url = await _metricsService.GetAppErrorMetricsLogsAsync(org, environment, apps, metric,
-            from,
-            to, cancellationToken);
-        if (url is null)
-        {
-            return NotFound();
-        }
-        return Redirect(url.ToString());
     }
 
     [HttpGet("app/health")]
@@ -90,7 +84,12 @@ public class MetricsController(IMetricsService metricsService) : ControllerBase
     )
     {
         var environment = AltinnEnvironment.FromName(env);
-        IEnumerable<AppHealthMetric> metrics = await _metricsService.GetAppHealthMetricsAsync(org, environment, app, cancellationToken);
+        IEnumerable<AppHealthMetric> metrics = await _metricsService.GetAppHealthMetricsAsync(
+            org,
+            environment,
+            app,
+            cancellationToken
+        );
         return Ok(metrics);
     }
 }

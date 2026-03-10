@@ -32,13 +32,19 @@ function checkLanguageKey(key, node, context) {
   }
 }
 
-const components = ['Lang', 'LangAsParagraph'];
+const components = {
+  Lang: { attributeName: 'id' },
+  LangAsParagraph: { attributeName: 'id' },
+  TranslateComponent: { attributeName: 'tKey' },
+};
 const functionCalls = [
   'lang',
   'langAsString',
   'langAsStringUsingPathInDataModel',
   'langAsNonProcessedString',
   'langAsNonProcessedStringUsingPathInDataModel',
+  'translationKey',
+  'translate',
 ];
 
 module.exports = {
@@ -58,15 +64,18 @@ module.exports = {
     return {
       FunctionDeclaration(node) {
         if (node.id.name === 'en' && node.params.length === 0) {
-          getValidLanguageKeys(`export ${context.getSourceCode().getText(node)}`);
+          getValidLanguageKeys(`export ${context.sourceCode.getText(node)}`);
         }
       },
       JSXOpeningElement(node) {
-        if (components.indexOf(node.name.name) === -1) {
+        const component = components[node.name.name];
+        if (!component) {
           return;
         }
 
-        const idAttribute = node.attributes.find((attr) => attr.type === 'JSXAttribute' && attr.name.name === 'id');
+        const idAttribute = node.attributes.find(
+          (attr) => attr.type === 'JSXAttribute' && attr.name.name === component.attributeName,
+        );
         if (!idAttribute || !idAttribute.value) {
           return;
         }

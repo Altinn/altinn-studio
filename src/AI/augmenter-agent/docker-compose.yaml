@@ -1,0 +1,9 @@
+services:
+  augmenter-agent:
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "8072:8072"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=development

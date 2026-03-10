@@ -6,5 +6,6 @@
       "2"
     ],
     "hideCloseButton": true
-  }
+  },
+  "defaultDataType": "default"
 }

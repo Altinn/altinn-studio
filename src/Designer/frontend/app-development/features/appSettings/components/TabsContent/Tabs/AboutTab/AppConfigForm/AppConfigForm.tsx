@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
+import { useUnsavedChangesWarning } from '@studio/hooks';
 import { StudioTextfield, StudioInlineTextField } from '@studio/components';
 import type { ContactPoint, Keyword } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
@@ -9,10 +10,10 @@ import { InputfieldsWithTranslation } from './InputfieldsWithTranslation';
 import type { SupportedLanguage } from 'app-shared/types/SupportedLanguages';
 import { useScrollIntoView } from '../hooks/useScrollIntoView';
 import { ObjectUtils } from '@studio/pure-functions';
-import { SwitchInput } from './SwitchInput';
+import { AppVisibilityAndDelegationCard } from './AppVisibilityAndDelegationCard';
 import { mapKeywordsArrayToString, mapStringToKeywords } from '../utils/appConfigKeywordUtils';
-import { ContactPoints } from './ContactPoints';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { ContactPointsTable } from './ContactPointsTable/ContactPointsTable';
 
 export type AppConfigFormProps = {
   appConfig: ApplicationMetadata;
@@ -21,6 +22,9 @@ export type AppConfigFormProps = {
 
 export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps): ReactElement {
   const { t } = useTranslation();
+
+  const defaultDescriptionValue = { nb: '', nn: '', en: '' };
+
   const [updatedAppConfig, setUpdatedAppConfig] = useState<ApplicationMetadata>(appConfig);
   const [showAppConfigErrors, setShowAppConfigErrors] = useState<boolean>(false);
   const [keywordsInputValue, setKeywordsInputValue] = useState(
@@ -32,6 +36,12 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
+
+  const hasUnsavedChanges = !ObjectUtils.areObjectsEqual(updatedAppConfig, appConfig);
+  useUnsavedChangesWarning(
+    hasUnsavedChanges,
+    t('app_settings.about_tab_unsaved_changes_navigation_warning'),
+  );
 
   const saveUpdatedAppConfig = (): void => {
     setShowAppConfigErrors(false);
@@ -110,10 +120,13 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   };
 
   const onChangeVisible = (e: ChangeEvent<HTMLInputElement>): void => {
-    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
-      ...oldVal,
-      visible: e.target.checked,
-    }));
+    const isVisible = e.target.checked;
+    setUpdatedAppConfig(
+      (oldVal: ApplicationMetadata): ApplicationMetadata => ({
+        ...oldVal,
+        access: { ...oldVal.access, visible: isVisible, ...(isVisible ? { delegable: true } : {}) },
+      }),
+    );
   };
 
   return (
@@ -133,7 +146,6 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           updateLanguage={onChangeTitle}
           required
         />
-
         <InputfieldsWithTranslation
           label={t('app_settings.about_tab_description_field_label')}
           description={t('app_settings.about_tab_description_field_description')}
@@ -153,28 +165,14 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           saveAriaLabel={t('general.save')}
           cancelAriaLabel={t('general.cancel')}
         />
-        <SwitchInput
-          switchAriaLabel={t('app_settings.about_tab_delegable_show_text', {
-            shouldText: !updatedAppConfig.access?.delegable
-              ? t('app_settings.about_tab_switch_should_not')
-              : '',
-          })}
-          cardHeading={t('app_settings.about_tab_delegable_field_label')}
-          description={t('app_settings.about_tab_delegable_field_description')}
-          checked={updatedAppConfig?.access?.delegable ?? false}
-          onChange={onChangeDelegable}
+        <AppVisibilityAndDelegationCard
+          visible={updatedAppConfig.access?.visible ?? false}
+          delegable={updatedAppConfig.access?.delegable ?? false}
+          descriptionValue={updatedAppConfig.access?.rightDescription ?? defaultDescriptionValue}
+          onChangeVisible={onChangeVisible}
+          onChangeDelegable={onChangeDelegable}
+          onChangeDescription={onChangeRightDescription}
         />
-        {updatedAppConfig.access?.delegable && (
-          <InputfieldsWithTranslation
-            label={t('app_settings.about_tab_right_description_field_label')}
-            description={t('app_settings.about_tab_right_description_field_description')}
-            id={AppResourceFormFieldIds.RightDescription}
-            value={updatedAppConfig.access.rightDescription}
-            updateLanguage={onChangeRightDescription}
-            required
-            isTextArea
-          />
-        )}
         <StudioInlineTextField
           label={t('app_settings.about_tab_keywords_label')}
           description={t('app_settings.about_tab_keywords_description')}
@@ -185,27 +183,16 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           saveAriaLabel={t('general.save')}
           cancelAriaLabel={t('general.cancel')}
         />
-        <ContactPoints
+        <ContactPointsTable
           contactPointList={updatedAppConfig.contactPoints}
           onContactPointsChanged={onChangeContactPoints}
           id={AppResourceFormFieldIds.ContactPointsId}
-        />
-        <SwitchInput
-          switchAriaLabel={t('app_settings.about_tab_visible_show_text', {
-            shouldText: !updatedAppConfig.visible
-              ? t('app_settings.about_tab_switch_should_not')
-              : '',
-          })}
-          cardHeading={t('app_settings.about_tab_visible_label')}
-          description={t('app_settings.about_tab_visible_description')}
-          checked={updatedAppConfig?.visible ?? false}
-          onChange={onChangeVisible}
         />
       </div>
       <ActionButtons
         onSave={saveUpdatedAppConfig}
         onReset={resetAppConfig}
-        areButtonsDisabled={ObjectUtils.areObjectsEqual(updatedAppConfig, appConfig)}
+        areButtonsDisabled={!hasUnsavedChanges}
       />
     </div>
   );

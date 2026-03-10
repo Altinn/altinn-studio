@@ -48,10 +48,14 @@ namespace Altinn.Studio.Designer.Controllers
         {
             // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-            HttpContext.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken, new CookieOptions
-            {
-                HttpOnly = false // Make this cookie readable by Javascript.
-            });
+            HttpContext.Response.Cookies.Append(
+                "XSRF-TOKEN",
+                tokens.RequestToken,
+                new CookieOptions
+                {
+                    HttpOnly = false, // Make this cookie readable by Javascript.
+                }
+            );
 
             return await _giteaClient.GetCurrentUser();
         }

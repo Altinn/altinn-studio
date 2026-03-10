@@ -6,9 +6,8 @@ import classes from 'src/components/presentation/AppHeader/AppHeader.module.css'
 import { AppHeaderMenu } from 'src/components/presentation/AppHeader/AppHeaderMenu';
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
-import { useHasAppTextsYet } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
-import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { usePageSettings } from 'src/features/form/layoutSettings/processLayoutSettings';
 import { Lang } from 'src/features/language/Lang';
 import type { LogoColor } from 'src/components/logo/AltinnLogo';
 
@@ -47,12 +46,6 @@ export const AppHeader = ({ logoColor, headerBackgroundColor }: AppHeaderProps) 
 };
 
 const Logo = ({ color }: { color: LogoColor }) => {
-  const hasLoaded = useHasAppTextsYet();
-
-  return hasLoaded ? <MaybeOrganisationLogo color={color} /> : <AltinnLogo color={color} />;
-};
-
-const MaybeOrganisationLogo = ({ color }: { color: LogoColor }) => {
   const enableOrgLogo = Boolean(getApplicationMetadata().logo);
   return enableOrgLogo ? <OrganisationLogo /> : <AltinnLogo color={color} />;
 };

@@ -7,5 +7,5 @@ spec:
   name: altinn-studio-gateway-sa
   role: Editor
   tokens:
-    - name: studio-gateway
+    - name: gateway
       secretName: external-grafana-altinn-studio-gateway-token

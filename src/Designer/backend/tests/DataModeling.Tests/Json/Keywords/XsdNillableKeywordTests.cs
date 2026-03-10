@@ -15,7 +15,8 @@ public class XsdNillableKeywordTests : ValueKeywordTestsBase<XsdNillableKeywordT
     {
         var expectedKeyword = new XsdNillableKeyword(value);
         object expectedKeywordObject = new XsdNillableKeyword(value);
-        Given.That.KeywordCreatedWithValue(value)
+        Given
+            .That.KeywordCreatedWithValue(value)
             .Then.KeywordShouldEqual(expectedKeyword)
             .And.KeywordShouldEqualObject(expectedKeywordObject)
             .But.KeywordShouldNotEqual(null);

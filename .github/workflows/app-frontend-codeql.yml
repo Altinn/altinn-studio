@@ -5,6 +5,8 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'src/App/frontend/**'
+      - '.github/actions/codeql-config/**'
+      - '.github/codeql/**'
       - '.github/workflows/app-frontend-codeql.yml'
   workflow_dispatch:
   schedule:
@@ -29,18 +31,27 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Generate CodeQL config
+        id: codeql-config
+        uses: ./.github/actions/codeql-config
+        with:
+          language: ${{ matrix.language }}
+          paths: |
+            src/App/frontend
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3
+        uses: github/codeql-action/init@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
         with:
           languages: ${{ matrix.language }}
-          queries: +security-and-quality
+          queries: ${{ steps.codeql-config.outputs.queries }}
+          config-file: ${{ steps.codeql-config.outputs.config-file }}
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3
+        uses: github/codeql-action/autobuild@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3
+        uses: github/codeql-action/analyze@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
         with:
           category: "/language:${{ matrix.language }}"

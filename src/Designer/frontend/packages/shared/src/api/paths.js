@@ -4,12 +4,14 @@ import { PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants'
 // Base path
 const basePath = '/designer';
 const apiBasePath = `${basePath}/api`;
+const apiBasePathV1 = `${apiBasePath}/v1`;
 
 // Ansattporten
 export const authStatusAnsattporten = () => `${apiBasePath}/ansattporten/auth-status`; // Get
 export const loginWithAnsattPorten = (redirectTo) => `${apiBasePath}/ansattporten/login?redirect_to=${redirectTo}`;
 export const availableMaskinportenScopesPath = (org, app) => `${apiBasePath}/${org}/${app}/app-scopes/maskinporten`; // Get
 export const selectedMaskinportenScopesPath = (org, app) => `${apiBasePath}/${org}/${app}/app-scopes`; // Get, Put
+export const appSettingsPath = (org, app) => `${apiBasePathV1}/${org}/${app}/app-settings`; // Get, Put
 
 // ApplicationMetadata
 export const appMetadataPath = (org, app) => `${apiBasePath}/${org}/${app}/metadata`; // Get, Put, Post
@@ -62,6 +64,7 @@ export const layoutSetsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-de
 export const layoutSetsExtendedPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-sets/extended`; // Get
 export const layoutSetPath = (org, app, layoutSetIdToUpdate) => `${apiBasePath}/${org}/${app}/app-development/layout-set/${layoutSetIdToUpdate}`; // Put, Delete
 export const layoutSettingsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/layout-settings?${s({ layoutSetName })}`; // Get, Post
+export const validateNavigationLayoutSettingsPath = (org, app) => `${apiBasePath}/${org}/${app}/app-development/layout-settings/validation-on-navigation`; // Get, Post
 export const formLayoutsPath = (org, app, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layouts?${s({ layoutSetName })}`; // Get
 export const formLayoutPath = (org, app, layout, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layout/${layout}?${s({ layoutSetName })}`; // Post, Delete
 export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `${apiBasePath}/${org}/${app}/app-development/form-layout-name/${layoutName}?${s({ layoutSetName })}`; // Put

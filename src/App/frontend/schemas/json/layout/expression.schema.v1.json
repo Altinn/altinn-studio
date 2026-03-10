@@ -235,7 +235,11 @@
       "type": "array",
       "items": [
         { "const":  "authContext" },
-        { "enum": ["read", "write", "instantiate", "confirm", "sign", "reject"] }
+        { "anyOf": [
+          { "enum": ["read", "write", "instantiate", "confirm", "sign", "reject"] },
+          { "type": "string" }
+        ]}
+
       ],
       "additionalItems": false
     },

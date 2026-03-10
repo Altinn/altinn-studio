@@ -70,7 +70,7 @@ public class TestContextList
 
         var instance = new Instance() { Data = [] };
         var dataType = new DataType() { Id = "default" };
-        var layout = new LayoutSetComponent(test.Layouts, "layout", dataType);
+        var layout = new UiFolderComponent(test.Layouts, "layout", dataType);
 
         var componentModel = new LayoutModel([layout], null);
         var state = new LayoutEvaluatorState(

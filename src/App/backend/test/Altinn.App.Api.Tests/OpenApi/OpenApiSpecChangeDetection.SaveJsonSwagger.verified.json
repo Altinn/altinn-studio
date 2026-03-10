@@ -2494,24 +2494,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2531,6 +2513,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2551,24 +2549,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2588,6 +2568,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2608,24 +2604,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2645,6 +2623,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2665,24 +2659,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2702,6 +2678,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2730,24 +2722,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2767,6 +2741,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2795,24 +2785,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2832,6 +2804,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -2868,24 +2856,6 @@
         "summary": "Returns the index view with references to the React app.",
         "parameters": [
           {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The name of the app",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "dontChooseReportee",
             "in": "query",
             "description": "Parameter to indicate disabling of reportee selection in Altinn Portal.",
@@ -2905,6 +2875,22 @@
             "name": "lang",
             "in": "query",
             "description": "The chosen language to use for default text resources",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -4065,151 +4051,6 @@
             }
           }
         }
-      }
-    },
-    "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/pages/order": {
-      "post": {
-        "tags": [
-          "Pages"
-        ],
-        "summary": "Get the page order based on the current state of the instance",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "instanceOwnerPartyId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "instanceGuid",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "layoutSetId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "currentPage",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "dataTypeId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            },
-            "text/json": {
-              "schema": {}
-            },
-            "application/*+json": {
-              "schema": {}
-            },
-            "application/xml": {
-              "schema": {}
-            },
-            "text/xml": {
-              "schema": {}
-            },
-            "application/*+xml": {
-              "schema": {}
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "deprecated": true
       }
     },
     "/{org}/{app}/api/v1/parties": {
@@ -5763,48 +5604,6 @@
         }
       }
     },
-    "/{org}/{app}/api/layouts": {
-      "get": {
-        "tags": [
-          "Resource"
-        ],
-        "summary": "Get the form layout",
-        "description": "This endpoint assumes a single layout set and does not work for apps on version 8.0 and above.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "Unique identifier of the organisation responsible for the app.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "Application identifier which is unique within an organisation.",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "deprecated": true
-      }
-    },
     "/{org}/{app}/api/layouts/{id}": {
       "get": {
         "tags": [
@@ -5833,47 +5632,7 @@
           {
             "name": "id",
             "in": "path",
-            "description": "The layoutset id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/{org}/{app}/api/layoutsettings": {
-      "get": {
-        "tags": [
-          "Resource"
-        ],
-        "summary": "Get the layout settings.",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "description": "The application owner short name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "description": "The application name",
+            "description": "The name of the subfolder in ui to get layouts from (a taskId, stateless name, subform, etc)",
             "required": true,
             "schema": {
               "type": "string"
@@ -5980,7 +5739,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/{org}/{app}/api/v1/footer": {
@@ -6867,133 +6627,6 @@
             }
           }
         }
-      }
-    },
-    "/{org}/{app}/v1/pages/order": {
-      "post": {
-        "tags": [
-          "StatelessPages"
-        ],
-        "summary": "Get the page order based on the current state of the instance",
-        "parameters": [
-          {
-            "name": "org",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "layoutSetId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "currentPage",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "dataTypeId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {}
-            },
-            "text/json": {
-              "schema": {}
-            },
-            "application/*+json": {
-              "schema": {}
-            },
-            "application/xml": {
-              "schema": {}
-            },
-            "text/xml": {
-              "schema": {}
-            },
-            "application/*+xml": {
-              "schema": {}
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              },
-              "text/xml": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "deprecated": true
       }
     },
     "/{org}/{app}/api/v1/texts/{language}": {
@@ -7989,6 +7622,10 @@
             "type": "string",
             "nullable": true
           },
+          "promptForParty": {
+            "type": "string",
+            "nullable": true
+          },
           "externalApiIds": {
             "type": "array",
             "items": {
@@ -8944,7 +8581,7 @@
             "type": "string",
             "nullable": true
           },
-          "email": {
+          "externalIdentifier": {
             "type": "string",
             "nullable": true
           }
@@ -8979,6 +8616,11 @@
           "username": {
             "type": "string",
             "description": "The username of the party. Null if the party is not self identified.",
+            "nullable": true
+          },
+          "externalIdentifier": {
+            "type": "string",
+            "description": "The external identifier of a self identified party. Null if the party is not self identified.",
             "nullable": true
           },
           "party": {

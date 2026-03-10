@@ -23,6 +23,11 @@ namespace Altinn.Studio.Designer.Services.Interfaces
             string app,
             string fullCommitId,
             string envName,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default
+        );
+
+        public Task<string> GetAuthorizationPolicyFileFromGitea(string org, string app, string shortCommitId);
+
+        public string ReplacePolicyPlaceholderTokens(string policyFileContent, string org, string app);
     }
 }

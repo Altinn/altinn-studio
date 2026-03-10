@@ -20,16 +20,19 @@ as we will have similar technical needs across the board (e.g. availability, tai
 Altinn Studio operates two architectural planes:
 
 **Control plane** (app lifecycle management, orchestration):
+
 - Designer Backend: App development, publishing, deployment orchestration
 - Gateway: API gateway for service owner clusters/runtimes (let Designer and the global control plane be runtime/infra-agnostic)
 - Operator: k8s-specific infrastructure automation and provisioning
 - Distributed traces span Designer, ADO, Gateway, operator flows for app deployments
 
 **Data plane** (end-user/service owner traffic):
+
 - PDF3: PDF generation service handling production user requests
 - Apps: Service owner developed applications
 
 Requirements from [altinn-platform#2614](https://github.com/Altinn/altinn-platform/issues/2614):
+
 - OTLP protocol support for push-based export
 - Intelligent sampling to reduce telemetry volume and cost
 - Self-service sampling/filtering configuration
@@ -92,7 +95,7 @@ Non-OTel collector options not really considered, as DIS and others seem to be s
   - Router load-balances by traceID ensuring all spans reach same gateway
 - Good, because supports routing to multiple Azure Monitor workspaces (D6, D9)
   - Gateway uses routing processor to classify services by service.name
-  - Control plane services (designer, studio-gateway, operator) → control plane workspace
+  - Control plane services (designer, gateway, operator) → control plane workspace
   - Data plane services (pdf3) → data plane workspace
 - Good, because decouples services from monitoring backend through OTLP (D10)
   - Services export to OTLP collectors, not directly to Azure Monitor
@@ -175,7 +178,7 @@ flowchart TB
    - NetworkPolicy restricts ingress to namespaces with label `altinn.studio/runtime=true`
 2. **otel-router** batches and load-balances by traceID to gateway replicas via headless service DNS
 3. **otel-gateway** routing processor classifies telemetry by `service.name`:
-   - Control plane: `designer|studio-gateway|operator` → control plane pipeline
+   - Control plane: `designer|gateway|operator` → control plane pipeline
    - Data plane: `pdf3` → data plane pipeline
 4. **Tail sampling** applied per pipeline (errors 100%, slow >1s 100%, probabilistic 10%)
 5. **Export** to respective Azure Monitor workspaces:
@@ -185,6 +188,7 @@ flowchart TB
 ### Service instrumentation requirements
 
 All runtime services should:
+
 - Use OpenTelemetry SDK and export via OTLP protocol to `otel-router` service
 - Set appropriate `service.name` resource attribute for routing classification
 - Propagate W3C TraceContext for distributed tracing
@@ -202,7 +206,7 @@ processors:
     table:
       - value: designer
         exporters: [control_plane]
-      - value: studio-gateway
+      - value: gateway
         exporters: [control_plane]
       - value: operator
         exporters: [control_plane]
@@ -227,6 +231,7 @@ service:
 ### Secret management
 
 Two Azure Monitor connection strings configured in `runtime-obs` namespace:
+
 - `control-plane-azure-monitor-secret`: Control plane workspace
 - `data-plane-azure-monitor-secret`: Data plane workspace (tenant subscription)
 

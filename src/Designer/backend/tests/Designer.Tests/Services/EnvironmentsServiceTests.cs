@@ -83,9 +83,13 @@ public class EnvironmentsServiceTests
         const string Org = "ttd";
         var httpClient = new HttpClient(new MockHttpMessageHandler(EnvironmentsJson))
         {
-            BaseAddress = new Uri("https://mock.altinn.cloud")
+            BaseAddress = new Uri("https://mock.altinn.cloud"),
         };
-        var generalSettings = new GeneralSettings { EnvironmentsUrl = "https://mock.altinn.cloud/environments.json", HostName = "altinn.studio" };
+        var generalSettings = new GeneralSettings
+        {
+            EnvironmentsUrl = "https://mock.altinn.cloud/environments.json",
+            HostName = "altinn.studio",
+        };
         var platformSettings = new PlatformSettings { AppClusterUrlPattern = "https://{org}.{appPrefix}.{hostName}" };
         var cache = new MemoryCache(new MemoryCacheOptions());
 
@@ -111,7 +115,7 @@ public class EnvironmentsServiceTests
         {
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent(responseContent, Encoding.UTF8, "application/json")
+                Content = new StringContent(responseContent, Encoding.UTF8, "application/json"),
             };
             return Task.FromResult(response);
         }

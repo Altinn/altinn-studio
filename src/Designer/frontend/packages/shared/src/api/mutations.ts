@@ -48,6 +48,7 @@ import {
   optionListIdUpdatePath,
   processEditorPath,
   selectedMaskinportenScopesPath,
+  appSettingsPath,
   createInstancePath,
   dataTypePath,
   optionListPath,
@@ -64,6 +65,8 @@ import {
   orgCodeListUpdateIdPath,
   orgLibraryUpdatePath,
   orgCodeListPublishPath,
+  layoutSetsPath,
+  validateNavigationLayoutSettingsPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -72,7 +75,7 @@ import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploym
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
 import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
-import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage } from 'app-shared/types/global';
+import type { ILayoutSettings, ITextResourcesObjectFormat, ITextResourcesWithLanguage, IValidationOnNavigationLayoutSets, IValidationOnNavigationLayoutSettings } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
@@ -99,6 +102,7 @@ import type { TaskNavigationGroup } from 'app-shared/types/api/dto/TaskNavigatio
 import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeListResponse';
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
+import type { AppSettings } from 'app-shared/types/AppSettings';
 
 const headers = {
   Accept: 'application/json',
@@ -156,6 +160,7 @@ export const uploadOptionList = (org: string, app: string, payload: FormData) =>
 export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
 export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
 export const updateTaskNavigationGroup = (org: string, app: string, payload: TaskNavigationGroup[]) => post<TaskNavigationGroup[]>(taskNavigationGroupPath(org, app), payload);
+export const updateValidationOnNavigationLayoutSettings = (org: string, app: string, payload: IValidationOnNavigationLayoutSettings[]) => post<IValidationOnNavigationLayoutSettings[]>(validateNavigationLayoutSettingsPath(org, app), payload);
 export const importCodeListFromOrgToApp = (org: string, app: string, codeListId: string): Promise<ImportCodeListResponse> => post<ImportCodeListResponse>(importCodeListFromOrgPath(org, app, codeListId));
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat): Promise<ITextResourcesWithLanguage> => put<ITextResourcesWithLanguage, ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 export const createPage = (org: string, app: string, layoutSetName: string, payload: PageModel) => post(layoutPagesPath(org, app, layoutSetName), payload);
@@ -165,6 +170,8 @@ export const changePageOrder = (org: string, app: string, layoutSetName: string,
 export const changePageGroups = (org: string, app: string, layoutSetName: string, pageGroups: PagesModel) => put(layoutPageGroupsPath(org, app, layoutSetName), pageGroups);
 export const convertToPageGroups = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageGroupsPath(org, app, layoutSetName));
 export const convertToPageOrder = (org: string, app: string, layoutSetName: string) => post(layoutConvertToPageOrderPath(org, app, layoutSetName));
+export const updateValidationOnNavigationLayoutSets = (org: string, app: string, payload: IValidationOnNavigationLayoutSets) => post<IValidationOnNavigationLayoutSets>(`${layoutSetsPath(org, app)}/validation-on-navigation`, payload);
+export const deleteValidationOnNavigationLayoutSets = (org: string, app: string) => del(`${layoutSetsPath(org, app)}/validation-on-navigation`);
 
 // Resourceadm
 export const createResource = (org: string, payload: NewResource) => post(resourceCreatePath(org), payload);
@@ -201,6 +208,7 @@ export const updateProcessDataTypes = (org: string, app: string, dataTypesChange
 
 // Maskinporten
 export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
+export const updateAppSettings = (org: string, app: string, payload: AppSettings) => put(appSettingsPath(org, app), payload);
 
 // Organisation library
 export const updateSharedResources = async (org: string, payload: UpdateSharedResourcesRequest): Promise<void> => put(orgLibraryUpdatePath(org), payload);

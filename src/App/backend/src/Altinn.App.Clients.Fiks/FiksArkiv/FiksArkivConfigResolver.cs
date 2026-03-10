@@ -224,8 +224,7 @@ internal sealed class FiksArkivConfigResolver : IFiksArkivConfigResolver
 
         try
         {
-            AltinnCdnOrgs altinnCdnOrgs = await _altinnCdnClient.GetOrgs(cancellationToken);
-            orgDetails = altinnCdnOrgs.Orgs?.GetValueOrDefault(appMetadata.Org);
+            orgDetails = await _altinnCdnClient.GetOrgDetails(cancellationToken);
         }
         catch (Exception e)
         {

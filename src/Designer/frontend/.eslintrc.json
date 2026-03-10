@@ -1,5 +1,13 @@
 {
-  "ignorePatterns": ["yarn/**", "yarn.lock", "*.css", "*.snap", "coverage/**", "**/*.d.ts"],
+  "ignorePatterns": [
+    "yarn/**",
+    "yarn.lock",
+    "*.css",
+    "*.snap",
+    "coverage/**",
+    "**/*.d.ts",
+    "node_modules/**"
+  ],
   "extends": [
     "plugin:import/typescript",
     "plugin:react/recommended",
@@ -8,7 +16,7 @@
   "plugins": ["jsx-a11y", "react", "react-hooks", "@typescript-eslint", "import"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./**/tsconfig.json"
+    "project": "./tsconfig-eslint.json"
   },
   "rules": {
     "react/destructuring-assignment": "off",

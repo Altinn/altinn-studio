@@ -3,6 +3,7 @@ package crypto
 import (
 	"encoding/json"
 	"testing"
+	"testing/cryptotest"
 	"time"
 
 	"altinn.studio/operator/test/utils"
@@ -16,6 +17,8 @@ var testSubject = CertSubject{
 	OrganizationalUnit: "ttd",
 	CommonName:         "test-app",
 }
+
+const cryptoTestSeed uint64 = 0x1337
 
 type certInfo struct {
 	CommonName         string `json:"commonName"`
@@ -70,6 +73,7 @@ func jwksToSnapshotJSON(jwks *Jwks) ([]byte, error) {
 }
 
 func TestCreateJwks(t *testing.T) {
+	setDeterministicCryptoRandom(t)
 	g := NewWithT(t)
 
 	// We use fixed inputs and make JWKS generation deterministic
@@ -86,6 +90,7 @@ func TestCreateJwks(t *testing.T) {
 }
 
 func TestRotateJwks(t *testing.T) {
+	setDeterministicCryptoRandom(t)
 	g := NewWithT(t)
 
 	jwks, service, clock, err := createTestJwks()
@@ -123,6 +128,7 @@ func TestRotateJwks(t *testing.T) {
 }
 
 func TestFindActiveKey(t *testing.T) {
+	setDeterministicCryptoRandom(t)
 	g := NewWithT(t)
 
 	jwks, service, clock, err := createTestJwks()
@@ -183,6 +189,7 @@ func TestGenerateCertSerialNumber(t *testing.T) {
 }
 
 func TestPublicJwksConversion(t *testing.T) {
+	setDeterministicCryptoRandom(t)
 	g := NewWithT(t)
 
 	jwks, _, _, err := createTestJwks()
@@ -218,6 +225,13 @@ func createService() (*CryptoService, *clockwork.FakeClock) {
 	random := utils.NewDeterministicRand()
 	service := NewDefaultService(clock, random)
 	return service, clock
+}
+
+func setDeterministicCryptoRandom(t *testing.T) {
+	t.Helper()
+	// Go 1.26 ignores the reader passed to rsa.GenerateKey, so tests must seed
+	// the process-wide crypto randomness explicitly to keep snapshots stable.
+	cryptotest.SetGlobalRandom(t, cryptoTestSeed)
 }
 
 func getNotAfter(clock clockwork.Clock) time.Time {

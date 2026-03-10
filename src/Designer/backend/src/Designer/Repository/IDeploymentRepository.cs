@@ -1,4 +1,5 @@
 #nullable disable
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.Models;
@@ -28,7 +29,6 @@ namespace Altinn.Studio.Designer.Repository
         /// </summary>
         Task<DeploymentEntity> Get(string org, string buildId);
 
-
         /// <summary>
         /// Gets the last deployed entity on environment
         /// </summary>
@@ -37,7 +37,21 @@ namespace Altinn.Studio.Designer.Repository
         /// <summary>
         /// Get all deployments for an app in an environment
         /// </summary>
-        Task<IEnumerable<DeploymentEntity>> GetSucceeded(string org, string app, string environment, DocumentQueryModel query);
+        Task<IEnumerable<DeploymentEntity>> GetSucceeded(
+            string org,
+            string app,
+            string environment,
+            DocumentQueryModel query
+        );
+
+        /// <summary>
+        /// Gets app names with a recent deploy in the given environment.
+        /// </summary>
+        Task<IReadOnlyList<string>> GetAppsWithRecentDeployments(
+            string org,
+            string environment,
+            DateTimeOffset sinceUtc
+        );
 
         /// <summary>
         /// Calls a function to update deployment entity

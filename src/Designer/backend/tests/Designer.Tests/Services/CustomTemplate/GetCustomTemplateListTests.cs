@@ -27,13 +27,12 @@ public class GetCustomTemplateListTests : IDisposable
 
     public GetCustomTemplateListTests()
     {
-        string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(GetCustomTemplateListTests).Assembly.Location).LocalPath);
+        string unitTestFolder = Path.GetDirectoryName(
+            new Uri(typeof(GetCustomTemplateListTests).Assembly.Location).LocalPath
+        );
         _testCacheRoot = Path.Combine(unitTestFolder, "_TestData", "TemplateCache", Guid.NewGuid().ToString());
 
-        _repoSettings = new ServiceRepositorySettings
-        {
-            RepositoryLocation = _testCacheRoot
-        };
+        _repoSettings = new ServiceRepositorySettings { RepositoryLocation = _testCacheRoot };
 
         _templateSettings = new CustomTemplateSettings
         {
@@ -43,13 +42,9 @@ public class GetCustomTemplateListTests : IDisposable
                 LocalCacheFolder = ".template-cache",
                 MetadataFileName = ".cache-info.json",
                 ExpirationDays = 7,
-                MaxParallelDownloads = 15
+                MaxParallelDownloads = 15,
             },
-            Lock = new LockSettings
-            {
-                MaxRetries = 30,
-                RetryDelayMs = 1000
-            }
+            Lock = new LockSettings { MaxRetries = 30, RetryDelayMs = 1000 },
         };
 
         _giteaClientMock = new Mock<IGiteaClient>();
@@ -63,8 +58,20 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var expectedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "template-1", Owner = "als", Name = "Template 1", Description = "Description for Template 1" },
-            new() { Id = "template-2", Owner = "als", Name = "Template 2", Description = "Description for Template 2" }
+            new()
+            {
+                Id = "template-1",
+                Owner = "als",
+                Name = "Template 1",
+                Description = "Description for Template 1",
+            },
+            new()
+            {
+                Id = "template-2",
+                Owner = "als",
+                Name = "Template 2",
+                Description = "Description for Template 2",
+            },
         };
 
         string manifestJson = JsonSerializer.Serialize(expectedTemplates);
@@ -106,8 +113,10 @@ public class GetCustomTemplateListTests : IDisposable
         var metadata = JsonSerializer.Deserialize<Dictionary<string, object>>(metadataJson);
         Assert.NotNull(metadata);
 
-        _giteaClientMock.Verify(x => x.GetFileAndErrorAsync(
-            "als", "als-content", "Templates/templatemanifest.json", null, default), Times.Once);
+        _giteaClientMock.Verify(
+            x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -117,7 +126,13 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var cachedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "cached-template", Owner = "als", Name = "Cached Template", Description = "Description for Cached Template" }
+            new()
+            {
+                Id = "cached-template",
+                Owner = "als",
+                Name = "Cached Template",
+                Description = "Description for Cached Template",
+            },
         };
 
         // Setup cache manually
@@ -128,11 +143,7 @@ public class GetCustomTemplateListTests : IDisposable
         await File.WriteAllTextAsync(manifestPath, JsonSerializer.Serialize(cachedTemplates));
 
         string metadataPath = Path.Combine(cachePath, ".cache-info.json");
-        var metadata = new
-        {
-            CommitSha = commitSha,
-            CachedAt = DateTime.UtcNow
-        };
+        var metadata = new { CommitSha = commitSha, CachedAt = DateTime.UtcNow };
         await File.WriteAllTextAsync(metadataPath, JsonSerializer.Serialize(metadata));
 
         _giteaClientMock
@@ -149,8 +160,17 @@ public class GetCustomTemplateListTests : IDisposable
         Assert.Equal("cached-template", result[0].Id);
 
         // Verify API was NOT called to download manifest
-        _giteaClientMock.Verify(x => x.GetFileAndErrorAsync(
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), default), Times.Never);
+        _giteaClientMock.Verify(
+            x =>
+                x.GetFileAndErrorAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    default
+                ),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -170,13 +190,19 @@ public class GetCustomTemplateListTests : IDisposable
         var oldMetadata = new
         {
             CommitSha = commitSha,
-            CachedAt = DateTime.UtcNow.AddDays(-8) // Expired (7 days is default)
+            CachedAt = DateTime.UtcNow.AddDays(-8), // Expired (7 days is default)
         };
         await File.WriteAllTextAsync(metadataPath, JsonSerializer.Serialize(oldMetadata));
 
         var newTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "new-template", Owner = "als", Name = "New Template", Description = "Description for New Template" }
+            new()
+            {
+                Id = "new-template",
+                Owner = "als",
+                Name = "New Template",
+                Description = "Description for New Template",
+            },
         };
         string newManifestJson = JsonSerializer.Serialize(newTemplates);
 
@@ -186,10 +212,12 @@ public class GetCustomTemplateListTests : IDisposable
 
         _giteaClientMock
             .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
-            .ReturnsAsync((new FileSystemObject
-            {
-                Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(newManifestJson))
-            }, null));
+            .ReturnsAsync(
+                (
+                    new FileSystemObject { Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(newManifestJson)) },
+                    null
+                )
+            );
 
         var sut = CreateService();
 
@@ -204,8 +232,10 @@ public class GetCustomTemplateListTests : IDisposable
         string updatedMetadataJson = await File.ReadAllTextAsync(metadataPath);
         Assert.Contains(commitSha, updatedMetadataJson);
 
-        _giteaClientMock.Verify(x => x.GetFileAndErrorAsync(
-            "als", "als-content", "Templates/templatemanifest.json", null, default), Times.Once);
+        _giteaClientMock.Verify(
+            x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -226,13 +256,19 @@ public class GetCustomTemplateListTests : IDisposable
         var oldMetadata = new
         {
             CommitSha = oldCommitSha,
-            CachedAt = DateTime.UtcNow.AddMinutes(-5) // Recent, but commit SHA changed
+            CachedAt = DateTime.UtcNow.AddMinutes(-5), // Recent, but commit SHA changed
         };
         await File.WriteAllTextAsync(metadataPath, JsonSerializer.Serialize(oldMetadata));
 
         var updatedTemplates = new List<CustomTemplateModel>
         {
-            new() { Id = "updated-template", Owner = "als", Name = "Updated Template" , Description =  "Description for Updated Template" }
+            new()
+            {
+                Id = "updated-template",
+                Owner = "als",
+                Name = "Updated Template",
+                Description = "Description for Updated Template",
+            },
         };
 
         _giteaClientMock
@@ -241,10 +277,17 @@ public class GetCustomTemplateListTests : IDisposable
 
         _giteaClientMock
             .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
-            .ReturnsAsync((new FileSystemObject
-            {
-                Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(updatedTemplates)))
-            }, null));
+            .ReturnsAsync(
+                (
+                    new FileSystemObject
+                    {
+                        Content = Convert.ToBase64String(
+                            Encoding.UTF8.GetBytes(JsonSerializer.Serialize(updatedTemplates))
+                        ),
+                    },
+                    null
+                )
+            );
 
         var sut = CreateService();
 
@@ -267,7 +310,13 @@ public class GetCustomTemplateListTests : IDisposable
         string commitSha = "abc123def456";
         var templates = new List<CustomTemplateModel>
         {
-            new() { Id = "test-template", Owner = "als", Name = "Test", Description = "Description for Test Template" }
+            new()
+            {
+                Id = "test-template",
+                Owner = "als",
+                Name = "Test",
+                Description = "Description for Test Template",
+            },
         };
 
         _giteaClientMock
@@ -276,10 +325,15 @@ public class GetCustomTemplateListTests : IDisposable
 
         _giteaClientMock
             .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
-            .ReturnsAsync((new FileSystemObject
-            {
-                Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(templates)))
-            }, null));
+            .ReturnsAsync(
+                (
+                    new FileSystemObject
+                    {
+                        Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(templates))),
+                    },
+                    null
+                )
+            );
 
         var sut = CreateService();
 
@@ -302,10 +356,9 @@ public class GetCustomTemplateListTests : IDisposable
 
         _giteaClientMock
             .Setup(x => x.GetFileAndErrorAsync("als", "als-content", "Templates/templatemanifest.json", null, default))
-            .ReturnsAsync((new FileSystemObject
-            {
-                Content = Convert.ToBase64String(Encoding.UTF8.GetBytes("[]"))
-            }, null));
+            .ReturnsAsync(
+                (new FileSystemObject { Content = Convert.ToBase64String(Encoding.UTF8.GetBytes("[]")) }, null)
+            );
 
         var sut = CreateService();
 
@@ -337,11 +390,7 @@ public class GetCustomTemplateListTests : IDisposable
 
     private CustomTemplateService CreateService()
     {
-        return new CustomTemplateService(
-            _giteaClientMock.Object,
-            _repoSettings,
-            _templateSettings,
-            _loggerMock.Object);
+        return new CustomTemplateService(_giteaClientMock.Object, _repoSettings, _templateSettings, _loggerMock.Object);
     }
 
     public void Dispose()
