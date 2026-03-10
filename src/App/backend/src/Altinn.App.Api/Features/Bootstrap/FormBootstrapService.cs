@@ -1,13 +1,17 @@
 using System.Text.Json;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Features.Bootstrap;
@@ -29,6 +33,8 @@ internal sealed class FormBootstrapService
     private readonly IInitialValidationService _initialValidationService;
     private readonly IFormDataReader _formDataReader;
     private readonly IAppModel _appModel;
+    private readonly IPrefill _prefillService;
+    private readonly IAuthenticationContext _authenticationContext;
     private readonly ILogger<FormBootstrapService> _logger;
 
     public FormBootstrapService(
@@ -39,6 +45,8 @@ internal sealed class FormBootstrapService
         IInitialValidationService initialValidationService,
         IFormDataReader formDataReader,
         IAppModel appModel,
+        IPrefill prefillService,
+        IAuthenticationContext authenticationContext,
         ILogger<FormBootstrapService> logger
     )
     {
@@ -49,6 +57,8 @@ internal sealed class FormBootstrapService
         _initialValidationService = initialValidationService;
         _formDataReader = formDataReader;
         _appModel = appModel;
+        _prefillService = prefillService;
+        _authenticationContext = authenticationContext;
         _logger = logger;
     }
 
@@ -247,6 +257,7 @@ internal sealed class FormBootstrapService
         _ = cancellationToken; // Reserved for future use
         var result = new Dictionary<string, DataModelInfo>();
         var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var instanceOwner = await GetStatelessInstanceOwner();
 
         foreach (var dataType in dataTypes)
         {
@@ -264,7 +275,13 @@ internal sealed class FormBootstrapService
 
                 var schema = GetSchema(dataType);
                 var defaultData = GetDefaultFormData(dataTypeDef.AppLogic.ClassRef);
-                await _formDataReader.ReadStatelessFormData(defaultData, language);
+
+                if (instanceOwner?.PartyId != null)
+                {
+                    await _prefillService.PrefillDataModel(instanceOwner.PartyId, dataType, defaultData);
+                }
+
+                await _formDataReader.ReadStatelessFormData(defaultData, language, instanceOwner);
                 var validationConfig = GetValidationConfig(dataType);
 
                 result[dataType] = new DataModelInfo
@@ -283,6 +300,30 @@ internal sealed class FormBootstrapService
         }
 
         return result;
+    }
+
+    private async Task<InstanceOwner?> GetStatelessInstanceOwner()
+    {
+        Party? party;
+        try
+        {
+            var currentAuth = _authenticationContext.Current;
+            party = currentAuth switch
+            {
+                Authenticated.User auth => await auth.LookupSelectedParty(),
+                Authenticated.Org auth => (await auth.LoadDetails()).Party,
+                Authenticated.ServiceOwner auth => (await auth.LoadDetails()).Party,
+                Authenticated.SystemUser auth => (await auth.LoadDetails()).Party,
+                _ => null,
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to look up current party for stateless prefill, continuing without prefill");
+            party = null;
+        }
+
+        return party is null ? null : InstantiationHelper.PartyToInstanceOwner(party);
     }
 
     private async Task<Dictionary<string, StaticOptionSet>> LoadStaticOptions(

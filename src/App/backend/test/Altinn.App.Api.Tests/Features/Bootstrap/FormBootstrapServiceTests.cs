@@ -1,11 +1,13 @@
 using System.Text.Json;
 using Altinn.App.Api.Features.Bootstrap;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -25,6 +27,8 @@ public class FormBootstrapServiceTests
     private readonly Mock<IInitialValidationService> _initialValidationService = new();
     private readonly Mock<IFormDataReader> _formDataReader = new();
     private readonly Mock<IAppModel> _appModel = new();
+    private readonly Mock<IPrefill> _prefillService = new();
+    private readonly Mock<IAuthenticationContext> _authenticationContext = new();
     private readonly Mock<ILogger<FormBootstrapService>> _logger = new();
 
     private FormBootstrapService CreateService() =>
@@ -36,6 +40,8 @@ public class FormBootstrapServiceTests
             _initialValidationService.Object,
             _formDataReader.Object,
             _appModel.Object,
+            _prefillService.Object,
+            _authenticationContext.Object,
             _logger.Object
         );
 
@@ -412,7 +418,7 @@ public class FormBootstrapServiceTests
                     instance,
                     It.Is<DataElement>(d => d.DataType == "model"),
                     null,
-                    false,
+                    true,
                     "nn",
                     true,
                     It.IsAny<CancellationToken>()
@@ -545,6 +551,12 @@ public class FormBootstrapServiceTests
             .ReturnsAsync(new AppOptions { Options = [] });
 
         _appModel.Setup(x => x.Create(It.IsAny<string>())).Returns(new object());
+
+        // Default to unauthenticated — GetStatelessInstanceOwner returns null and no prefill is attempted.
+        _authenticationContext.Setup(x => x.Current).Returns(TestAuthentication.GetNoneAuthentication());
+        _formDataReader
+            .Setup(x => x.ReadStatelessFormData(It.IsAny<object>(), It.IsAny<string?>(), It.IsAny<InstanceOwner?>()))
+            .Returns(Task.CompletedTask);
     }
 
     private static string CreateLayoutsJson(Dictionary<string, List<Dictionary<string, string>>>? staticOptions = null)
