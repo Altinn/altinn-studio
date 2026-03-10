@@ -6,14 +6,14 @@ import { ConsentProvider } from 'app-shared/utils/consent';
 import { ConsentBanner } from 'app-shared/components';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { AppShell } from 'app-shared/AppShell';
-import { routes } from './router/PageRoutes';
+import { routes } from './router/routes';
 import { LayoutContextProvider } from './contexts/LayoutContext';
 import { PreviewContextProvider } from './contexts/PreviewContext';
 
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
 
-function ConsentWrapper({ children }: { children: React.ReactNode }): React.ReactElement {
+function Providers({ children }: { children: React.ReactNode }): React.ReactElement {
   return (
     <PostHogContextProvider>
       <ConsentProvider>
@@ -29,5 +29,5 @@ function ConsentWrapper({ children }: { children: React.ReactNode }): React.Reac
 }
 
 root.render(
-  <AppShell basename={APP_DEVELOPMENT_BASENAME} routes={routes} providers={[ConsentWrapper]} />,
+  <AppShell basename={APP_DEVELOPMENT_BASENAME} routes={routes} providers={[Providers]} />,
 );

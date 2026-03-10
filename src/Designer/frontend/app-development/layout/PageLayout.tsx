@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
@@ -14,6 +14,7 @@ import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { VersionDialog } from './VersionDialog/VersionDialog';
+import classes from './PageLayout.module.css';
 
 /**
  * Displays the layout for the app development pages
@@ -35,6 +36,10 @@ export const PageLayout = (): React.ReactNode => {
   } = useRepoStatusQuery(org, app);
 
   const { data: user, isPending: isUserPending } = useUserQuery();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   if (isRepoStatusPending || isUserPending) {
     return (
@@ -72,11 +77,13 @@ const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   }
 
   return (
-    <>
-      <VersionDialog />
-      <WebSocketSyncWrapper>
-        <Outlet />
-      </WebSocketSyncWrapper>
-    </>
+    <div className={classes.container}>
+      <div className={classes.appContainer}>
+        <VersionDialog />
+        <WebSocketSyncWrapper>
+          <Outlet />
+        </WebSocketSyncWrapper>
+      </div>
+    </div>
   );
 };

@@ -4,7 +4,7 @@ import { LandingPage } from './LandingPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { userEvent } from '@testing-library/user-event';
 import { useMediaQuery } from '@studio/components-legacy/src/hooks/useMediaQuery';
-import { renderWithProviders } from '../../test/mocks';
+import { renderWithProviders } from '../test/mocks';
 import { app, layoutSet, org } from '@studio/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { userMock } from 'app-development/test/userMock';
