@@ -2,6 +2,7 @@ package dockerapi
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -27,7 +28,7 @@ type Client struct {
 	installation types.RuntimeInstallation
 }
 
-// New creates a new Docker client
+// New creates a new Docker client.
 func New(ctx context.Context) (*Client, error) {
 	return newClient(ctx, types.InstallationDocker)
 }
@@ -38,12 +39,12 @@ func NewPodmanCompat(ctx context.Context) (*Client, error) {
 	return newClient(ctx, types.InstallationPodman)
 }
 
-// NewWithInstallation creates a client with explicit installation type
+// NewWithInstallation creates a client with explicit installation type.
 func NewWithInstallation(ctx context.Context, install types.RuntimeInstallation) (*Client, error) {
 	return newClient(ctx, install)
 }
 
-// NewPodmanCompatWithInstallation creates Podman-compat client with explicit installation
+// NewPodmanCompatWithInstallation creates Podman-compat client with explicit installation.
 func NewPodmanCompatWithInstallation(ctx context.Context, install types.RuntimeInstallation) (*Client, error) {
 	return newClient(ctx, install)
 }
@@ -66,17 +67,17 @@ func newClient(ctx context.Context, installation types.RuntimeInstallation) (*Cl
 	return &Client{cli: cli, installation: installation}, nil
 }
 
-// NewWithHost creates a Docker client connected to specified host
+// NewWithHost creates a Docker client connected to specified host.
 func NewWithHost(ctx context.Context, host string) (*Client, error) {
 	return newClientWithHost(ctx, types.InstallationDocker, host)
 }
 
-// NewPodmanCompatWithHost creates Podman-compatible client with explicit host
+// NewPodmanCompatWithHost creates Podman-compatible client with explicit host.
 func NewPodmanCompatWithHost(ctx context.Context, host string, install types.RuntimeInstallation) (*Client, error) {
 	return newClientWithHost(ctx, install, host)
 }
 
-// newClientWithHost is shared implementation using client.WithHost()
+// newClientWithHost is shared implementation using client.WithHost().
 func newClientWithHost(ctx context.Context, installation types.RuntimeInstallation, host string) (*Client, error) {
 	opts := []client.Opt{
 		client.WithHost(host),
@@ -97,17 +98,17 @@ func newClientWithHost(ctx context.Context, installation types.RuntimeInstallati
 	return &Client{cli: cli, installation: installation}, nil
 }
 
-// Installation returns the container runtime installation type
+// Installation returns the container runtime installation type.
 func (c *Client) Installation() types.RuntimeInstallation {
 	return c.installation
 }
 
-// Close releases resources held by the client
+// Close releases resources held by the client.
 func (c *Client) Close() error {
 	return c.cli.Close()
 }
 
-// Name returns the runtime name
+// Name returns the runtime name.
 func (c *Client) Name() string {
 	return types.RuntimeNameDockerEngineAPI
 }
@@ -143,7 +144,7 @@ func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string)
 	return nil
 }
 
-// Push pushes an image to a registry
+// Push pushes an image to a registry.
 func (c *Client) Push(ctx context.Context, img string) error {
 	resp, err := c.cli.ImagePush(ctx, img, image.PushOptions{
 		// Empty auth for local registry
@@ -162,7 +163,7 @@ func (c *Client) Push(ctx context.Context, img string) error {
 	return nil
 }
 
-// CreateContainer creates and optionally starts a container
+// CreateContainer creates and optionally starts a container.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
 	// Ensure image exists locally, pull if missing
 	_, err := c.cli.ImageInspect(ctx, cfg.Image)
@@ -297,7 +298,7 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 	}, nil
 }
 
-// ContainerNetworks returns the networks the container is attached to
+// ContainerNetworks returns the networks the container is attached to.
 func (c *Client) ContainerNetworks(ctx context.Context, nameOrID string) ([]string, error) {
 	info, err := c.cli.ContainerInspect(ctx, nameOrID)
 	if err != nil {
@@ -314,12 +315,12 @@ func (c *Client) ContainerNetworks(ctx context.Context, nameOrID string) ([]stri
 	return networks, nil
 }
 
-// Exec executes a command in a running container
+// Exec executes a command in a running container.
 func (c *Client) Exec(ctx context.Context, containerName string, cmd []string) error {
 	return c.ExecWithIO(ctx, containerName, cmd, nil, io.Discard, io.Discard)
 }
 
-// ExecWithIO executes a command with custom I/O streams
+// ExecWithIO executes a command with custom I/O streams.
 func (c *Client) ExecWithIO(
 	ctx context.Context,
 	containerName string,
@@ -364,7 +365,7 @@ func (c *Client) ExecWithIO(
 	}
 
 	_, err = stdcopy.StdCopy(stdoutWriter, stderrWriter, attachResp.Reader)
-	if err != nil && err != io.EOF {
+	if err != nil && !errors.Is(err, io.EOF) {
 		return fmt.Errorf("failed to read exec output: %w", err)
 	}
 
@@ -381,7 +382,7 @@ func (c *Client) ExecWithIO(
 	return nil
 }
 
-// NetworkConnect connects a container to a network
+// NetworkConnect connects a container to a network.
 func (c *Client) NetworkConnect(ctx context.Context, networkName, containerName string) error {
 	err := c.cli.NetworkConnect(ctx, networkName, containerName, &network.EndpointSettings{})
 	if err != nil {
@@ -390,7 +391,7 @@ func (c *Client) NetworkConnect(ctx context.Context, networkName, containerName 
 	return nil
 }
 
-// ImageInspect returns metadata about an image
+// ImageInspect returns metadata about an image.
 func (c *Client) ImageInspect(ctx context.Context, img string) (types.ImageInfo, error) {
 	info, err := c.cli.ImageInspect(ctx, img)
 	if err != nil {
@@ -402,7 +403,7 @@ func (c *Client) ImageInspect(ctx context.Context, img string) (types.ImageInfo,
 	return types.ImageInfo{ID: info.ID, Size: info.Size}, nil
 }
 
-// ImagePull pulls an image from a registry
+// ImagePull pulls an image from a registry.
 func (c *Client) ImagePull(ctx context.Context, img string) error {
 	resp, err := c.cli.ImagePull(ctx, img, image.PullOptions{})
 	if err != nil {
@@ -446,7 +447,7 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 	}, nil
 }
 
-// ContainerStart starts an existing container
+// ContainerStart starts an existing container.
 func (c *Client) ContainerStart(ctx context.Context, nameOrID string) error {
 	if err := c.cli.ContainerStart(ctx, nameOrID, container.StartOptions{}); err != nil {
 		return fmt.Errorf("failed to start container: %w", err)
@@ -454,7 +455,7 @@ func (c *Client) ContainerStart(ctx context.Context, nameOrID string) error {
 	return nil
 }
 
-// ContainerStop stops a running container
+// ContainerStop stops a running container.
 func (c *Client) ContainerStop(ctx context.Context, nameOrID string, timeout *int) error {
 	opts := container.StopOptions{}
 	if timeout != nil {
@@ -482,7 +483,7 @@ func (c *Client) ContainerRemove(ctx context.Context, nameOrID string, force boo
 	return nil
 }
 
-// NetworkCreate creates a new network
+// NetworkCreate creates a new network.
 func (c *Client) NetworkCreate(ctx context.Context, cfg types.NetworkConfig) (string, error) {
 	driver := cfg.Driver
 	if driver == "" {
@@ -501,7 +502,7 @@ func (c *Client) NetworkCreate(ctx context.Context, cfg types.NetworkConfig) (st
 	return resp.ID, nil
 }
 
-// NetworkInspect returns information about a network
+// NetworkInspect returns information about a network.
 func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.NetworkInfo, error) {
 	info, err := c.cli.NetworkInspect(ctx, nameOrID, network.InspectOptions{})
 	if err != nil {
@@ -518,7 +519,7 @@ func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.Net
 	}, nil
 }
 
-// NetworkRemove removes a network
+// NetworkRemove removes a network.
 func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	if err := c.cli.NetworkRemove(ctx, nameOrID); err != nil {
 		if cerrdefs.IsNotFound(err) {
@@ -570,7 +571,7 @@ func (c *Client) ContainerWait(ctx context.Context, nameOrID string) (int, error
 		case <-ctx.Done():
 			return -1, ctx.Err()
 		default:
-			return -1, fmt.Errorf("wait completed without status")
+			return -1, errors.New("wait completed without status")
 		}
 	case <-ctx.Done():
 		return -1, ctx.Err()

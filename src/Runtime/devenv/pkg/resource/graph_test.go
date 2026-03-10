@@ -16,9 +16,9 @@ func (m *mockResource) Dependencies() []ResourceRef { return m.deps }
 
 func TestGraph_Add(t *testing.T) {
 	tests := []struct {
-		name    string
-		setup   func(*Graph)
 		add     Resource
+		setup   func(*Graph)
+		name    string
 		wantErr bool
 	}{
 		{
@@ -87,9 +87,9 @@ func TestGraph_All(t *testing.T) {
 func TestGraph_Validate(t *testing.T) {
 	tests := []struct {
 		name      string
+		errMsg    string
 		resources []Resource
 		wantErr   bool
-		errMsg    string
 	}{
 		{
 			name: "valid graph no deps",

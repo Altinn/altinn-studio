@@ -2,6 +2,7 @@ package flux
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -22,22 +23,22 @@ import (
 )
 
 var (
-	// Flux GVRs - constructed directly from API packages to avoid discovery issues
+	// Flux GVRs - constructed directly from API packages to avoid discovery issues.
 	helmRepositoryGVR = sourcev1.GroupVersion.WithResource("helmrepositories")
 	HelmReleaseGVR    = helmv2.GroupVersion.WithResource("helmreleases")
 	kustomizationGVR  = kustomizev1.GroupVersion.WithResource("kustomizations")
 	ociRepositoryGVR  = sourcev1.GroupVersion.WithResource("ocirepositories")
 )
 
-// FluxClient provides Flux operations using native Go packages
+// FluxClient provides Flux operations using native Go packages.
 type FluxClient struct {
 	kubeClient *kubernetes.KubernetesClient
 }
 
-// New creates a new FluxClient with the given KubernetesClient
+// New creates a new FluxClient with the given KubernetesClient.
 func New(kubeClient *kubernetes.KubernetesClient) (*FluxClient, error) {
 	if kubeClient == nil {
-		return nil, fmt.Errorf("kubeClient is required")
+		return nil, errors.New("kubeClient is required")
 	}
 
 	return &FluxClient{
@@ -45,7 +46,7 @@ func New(kubeClient *kubernetes.KubernetesClient) (*FluxClient, error) {
 	}, nil
 }
 
-// ReconcileOptions configures how a reconcile operation should be executed
+// ReconcileOptions configures how a reconcile operation should be executed.
 type ReconcileOptions struct {
 	// ShouldWait determines if the operation should block until completion (true)
 	// or run asynchronously in a goroutine with logging (false)
@@ -57,7 +58,7 @@ type ReconcileOptions struct {
 }
 
 // DefaultReconcileOptions returns ReconcileOptions with sensible defaults
-// (blocking with no timeout)
+// (blocking with no timeout).
 func DefaultReconcileOptions() ReconcileOptions {
 	return ReconcileOptions{
 		ShouldWait: true,
@@ -65,19 +66,15 @@ func DefaultReconcileOptions() ReconcileOptions {
 	}
 }
 
-// InstallOptions configures Flux controller behavior during installation
+// InstallOptions configures Flux controller behavior during installation.
 type InstallOptions struct {
-	// LeaderElection enables HA mode. Disable for single-instance local testing.
-	LeaderElection bool
-	// Concurrent is the number of parallel reconciles per controller.
-	Concurrent int
-	// RequeueDependency is the interval for retrying failed dependencies.
+	Concurrent        int
 	RequeueDependency time.Duration
-	// OptimizeProbes reduces probe delays for faster startup.
-	OptimizeProbes bool
+	LeaderElection    bool
+	OptimizeProbes    bool
 }
 
-// LocalTestInstallOptions returns InstallOptions optimized for local testing
+// LocalTestInstallOptions returns InstallOptions optimized for local testing.
 func LocalTestInstallOptions() InstallOptions {
 	return InstallOptions{
 		LeaderElection:    false,
@@ -87,7 +84,7 @@ func LocalTestInstallOptions() InstallOptions {
 	}
 }
 
-// Install installs Flux to the cluster with the specified components and options
+// Install installs Flux to the cluster with the specified components and options.
 func (c *FluxClient) Install(components []string, installOpts InstallOptions) error {
 	opts := install.MakeDefaultOptions()
 	opts.Components = components
@@ -118,7 +115,7 @@ func parseManifestYAML(content string) ([]*unstructured.Unstructured, error) {
 	for {
 		var obj unstructured.Unstructured
 		if err := decoder.Decode(&obj); err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			return nil, err
@@ -153,7 +150,7 @@ func patchDeployments(objects []*unstructured.Unstructured, opts InstallOptions)
 			continue
 		}
 
-		container := containers[0].(map[string]interface{})
+		container := containers[0].(map[string]any)
 		patchContainerArgs(container, opts)
 		if opts.OptimizeProbes {
 			patchProbes(container)
@@ -164,7 +161,7 @@ func patchDeployments(objects []*unstructured.Unstructured, opts InstallOptions)
 	}
 }
 
-func patchContainerArgs(container map[string]interface{}, opts InstallOptions) {
+func patchContainerArgs(container map[string]any, opts InstallOptions) {
 	argsRaw, found, _ := unstructured.NestedStringSlice(container, "args")
 	if !found {
 		argsRaw = []string{}
@@ -195,17 +192,17 @@ func patchContainerArgs(container map[string]interface{}, opts InstallOptions) {
 	container["args"] = toInterfaceSlice(args)
 }
 
-func patchProbes(container map[string]interface{}) {
-	if probe, ok := container["readinessProbe"].(map[string]interface{}); ok {
+func patchProbes(container map[string]any) {
+	if probe, ok := container["readinessProbe"].(map[string]any); ok {
 		probe["periodSeconds"] = int64(2)
 	}
-	if probe, ok := container["livenessProbe"].(map[string]interface{}); ok {
+	if probe, ok := container["livenessProbe"].(map[string]any); ok {
 		probe["periodSeconds"] = int64(5)
 	}
 }
 
-func toInterfaceSlice(s []string) []interface{} {
-	result := make([]interface{}, len(s))
+func toInterfaceSlice(s []string) []any {
+	result := make([]any, len(s))
 	for i, v := range s {
 		result[i] = v
 	}
@@ -224,7 +221,7 @@ func (c *FluxClient) ReconcileHelmRepository(name, namespace string, opts Reconc
 	return c.reconcile(helmRepositoryGVR, name, namespace, opts)
 }
 
-// ReconcileHelmRelease reconciles a HelmRelease resource
+// ReconcileHelmRelease reconciles a HelmRelease resource.
 func (c *FluxClient) ReconcileHelmRelease(name, namespace string, withSource bool, opts ReconcileOptions) error {
 	if withSource {
 		if err := c.reconcileSource(HelmReleaseGVR, name, namespace, opts); err != nil {
@@ -234,7 +231,7 @@ func (c *FluxClient) ReconcileHelmRelease(name, namespace string, withSource boo
 	return c.reconcile(HelmReleaseGVR, name, namespace, opts)
 }
 
-// ReconcileKustomization reconciles a Kustomization resource
+// ReconcileKustomization reconciles a Kustomization resource.
 func (c *FluxClient) ReconcileKustomization(name, namespace string, withSource bool, opts ReconcileOptions) error {
 	if withSource {
 		if err := c.reconcileSource(kustomizationGVR, name, namespace, opts); err != nil {
@@ -244,7 +241,7 @@ func (c *FluxClient) ReconcileKustomization(name, namespace string, withSource b
 	return c.reconcile(kustomizationGVR, name, namespace, opts)
 }
 
-// reconcileSource reconciles the source referenced by a HelmRelease or Kustomization
+// reconcileSource reconciles the source referenced by a HelmRelease or Kustomization.
 func (c *FluxClient) reconcileSource(
 	gvr schema.GroupVersionResource,
 	name, namespace string,
@@ -263,7 +260,7 @@ func (c *FluxClient) reconcileSource(
 	return c.reconcile(sourceGVR, sourceRef.Name, sourceRef.Namespace, opts)
 }
 
-// reconcile triggers reconciliation of a Flux resource by setting the reconcile annotation
+// reconcile triggers reconciliation of a Flux resource by setting the reconcile annotation.
 func (c *FluxClient) reconcile(gvr schema.GroupVersionResource, name, namespace string, opts ReconcileOptions) error {
 	timestamp := time.Now().Format(time.RFC3339Nano)
 
@@ -290,7 +287,7 @@ func (c *FluxClient) reconcile(gvr schema.GroupVersionResource, name, namespace 
 	return c.waitForReady(gvr, name, namespace, opts.Timeout)
 }
 
-// waitForReady watches until the resource's Ready condition is True or timeout
+// waitForReady watches until the resource's Ready condition is True or timeout.
 func (c *FluxClient) waitForReady(
 	gvr schema.GroupVersionResource,
 	name, namespace string,
@@ -306,7 +303,7 @@ func (c *FluxClient) waitForReady(
 	return c.kubeClient.WatchCondition(ctx, gvr, name, namespace, meta.ReadyCondition, "True")
 }
 
-// kindToGVR maps Flux kinds to GVRs
+// kindToGVR maps Flux kinds to GVRs.
 func kindToGVR(kind string) schema.GroupVersionResource {
 	switch kind {
 	case sourcev1.HelmRepositoryKind:

@@ -12,10 +12,8 @@ import (
 // Client is a mock implementation of ContainerClient.
 // All methods can be configured with custom behavior via function fields.
 type Client struct {
-	mu sync.Mutex
-
-	// Method implementations - set these to customize behavior
-	BuildFunc             func(ctx context.Context, contextPath, dockerfile, tag string) error
+	ImagePullFunc         func(ctx context.Context, image string) error
+	ContainerInspectFunc  func(ctx context.Context, nameOrID string) (types.ContainerInfo, error)
 	PushFunc              func(ctx context.Context, image string) error
 	CreateContainerFunc   func(ctx context.Context, cfg types.ContainerConfig) (string, error)
 	ContainerStateFunc    func(ctx context.Context, nameOrID string) (types.ContainerState, error)
@@ -23,10 +21,10 @@ type Client struct {
 	ExecFunc              func(ctx context.Context, container string, cmd []string) error
 	ExecWithIOFunc        func(ctx context.Context, container string, cmd []string, stdin io.Reader, stdout, stderr io.Writer) error
 	NetworkConnectFunc    func(ctx context.Context, network, container string) error
-	ImageInspectFunc      func(ctx context.Context, image string) (types.ImageInfo, error)
-	ImagePullFunc         func(ctx context.Context, image string) error
-	ContainerInspectFunc  func(ctx context.Context, nameOrID string) (types.ContainerInfo, error)
 	ContainerStartFunc    func(ctx context.Context, nameOrID string) error
+	BuildFunc             func(ctx context.Context, contextPath, dockerfile, tag string) error
+	InstallationFunc      func() types.RuntimeInstallation
+	ImageInspectFunc      func(ctx context.Context, image string) (types.ImageInfo, error)
 	ContainerStopFunc     func(ctx context.Context, nameOrID string, timeout *int) error
 	ContainerRemoveFunc   func(ctx context.Context, nameOrID string, force bool) error
 	NetworkCreateFunc     func(ctx context.Context, cfg types.NetworkConfig) (string, error)
@@ -34,10 +32,8 @@ type Client struct {
 	NetworkRemoveFunc     func(ctx context.Context, nameOrID string) error
 	ContainerLogsFunc     func(ctx context.Context, nameOrID string, follow bool, tail string) (io.ReadCloser, error)
 	ContainerWaitFunc     func(ctx context.Context, nameOrID string) (int, error)
-	InstallationFunc      func() types.RuntimeInstallation
-
-	// Call tracking
-	Calls []Call
+	Calls                 []Call
+	mu                    sync.Mutex
 }
 
 // Call records a method call for verification.

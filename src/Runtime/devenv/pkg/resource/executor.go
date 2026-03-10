@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 
@@ -436,7 +437,7 @@ func labelsMatch(expected, actual map[string]string) bool {
 	return true
 }
 
-// networksMatch checks if desired networks match actual (order-insensitive)
+// networksMatch checks if desired networks match actual (order-insensitive).
 func networksMatch(desired, actual []string) bool {
 	if len(desired) != len(actual) {
 		return false
@@ -454,9 +455,7 @@ func networksMatch(desired, actual []string) bool {
 
 func normalizedContainerLabels(c *Container, imageID string, networks []string) map[string]string {
 	labels := make(map[string]string, len(c.Labels)+1)
-	for k, v := range c.Labels {
-		labels[k] = v
-	}
+	maps.Copy(labels, c.Labels)
 	labels[containerSpecHashLabel] = containerSpecHash(c, imageID, networks)
 	return labels
 }

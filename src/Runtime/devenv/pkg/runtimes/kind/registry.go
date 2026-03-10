@@ -22,7 +22,7 @@ const (
 	registryName = "kind-registry"
 	registryPort = "5001"
 
-	// Proxy registries
+	// Proxy registries.
 	registryDockerName = "kind-registry-docker"
 	registryDockerPort = "5002"
 	registryK8sName    = "kind-registry-k8s"
@@ -31,7 +31,7 @@ const (
 	registryGhcrPort   = "5004"
 )
 
-// getRegistryProxyConfig generates a Docker Registry v2 config.yml for pull-through caching
+// getRegistryProxyConfig generates a Docker Registry v2 config.yml for pull-through caching.
 func getRegistryProxyConfig(remoteURL string) string {
 	return fmt.Sprintf(`version: 0.1
 log:
@@ -56,7 +56,7 @@ proxy:
 `, remoteURL)
 }
 
-// isRegistryRunning checks if the registry container is running
+// isRegistryRunning checks if the registry container is running.
 func (r *KindContainerRuntime) isRegistryRunning(ctx context.Context) (bool, error) {
 	state, err := r.ContainerClient.ContainerState(ctx, registryName)
 	if errors.Is(err, container.ErrContainerNotFound) {
@@ -68,7 +68,7 @@ func (r *KindContainerRuntime) isRegistryRunning(ctx context.Context) (bool, err
 	return state.Running, nil
 }
 
-// createRegistry creates and starts the registry container
+// createRegistry creates and starts the registry container.
 func (r *KindContainerRuntime) createRegistry(ctx context.Context) error {
 	fmt.Printf("Creating registry container %s...\n", registryName)
 
@@ -95,7 +95,7 @@ func (r *KindContainerRuntime) createRegistry(ctx context.Context) error {
 	return nil
 }
 
-// createProxyRegistry creates and starts a proxy registry container
+// createProxyRegistry creates and starts a proxy registry container.
 func (r *KindContainerRuntime) createProxyRegistry(ctx context.Context, name, hostPort, remoteURL string) error {
 	fmt.Printf("Creating proxy registry %s for %s...\n", name, remoteURL)
 
@@ -141,7 +141,7 @@ func (r *KindContainerRuntime) createProxyRegistry(ctx context.Context, name, ho
 	return nil
 }
 
-// isProxyRegistryRunning checks if a proxy registry container is running
+// isProxyRegistryRunning checks if a proxy registry container is running.
 func (r *KindContainerRuntime) isProxyRegistryRunning(ctx context.Context, name string) (bool, error) {
 	state, err := r.ContainerClient.ContainerState(ctx, name)
 	if errors.Is(err, container.ErrContainerNotFound) {
@@ -153,7 +153,7 @@ func (r *KindContainerRuntime) isProxyRegistryRunning(ctx context.Context, name 
 	return state.Running, nil
 }
 
-// startProxyRegistries ensures all proxy registry containers are running
+// startProxyRegistries ensures all proxy registry containers are running.
 func (r *KindContainerRuntime) startProxyRegistries(ctx context.Context) error {
 	// Define proxy registries
 	proxies := []struct {
@@ -184,7 +184,7 @@ func (r *KindContainerRuntime) startProxyRegistries(ctx context.Context) error {
 	return nil
 }
 
-// isRegistryConnectedToKindNetwork checks if the registry is connected to the kind network
+// isRegistryConnectedToKindNetwork checks if the registry is connected to the kind network.
 func (r *KindContainerRuntime) isRegistryConnectedToKindNetwork(ctx context.Context) (bool, error) {
 	networks, err := r.ContainerClient.ContainerNetworks(ctx, registryName)
 	if err != nil {
@@ -193,7 +193,7 @@ func (r *KindContainerRuntime) isRegistryConnectedToKindNetwork(ctx context.Cont
 	return slices.Contains(networks, "kind"), nil
 }
 
-// connectRegistryToKindNetwork connects the registry container to the kind network
+// connectRegistryToKindNetwork connects the registry container to the kind network.
 func (r *KindContainerRuntime) connectRegistryToKindNetwork(ctx context.Context) error {
 	// Check if already connected
 	connected, err := r.isRegistryConnectedToKindNetwork(ctx)
@@ -216,12 +216,12 @@ func (r *KindContainerRuntime) connectRegistryToKindNetwork(ctx context.Context)
 	return nil
 }
 
-// getKindNodes returns a list of kind cluster nodes
+// getKindNodes returns a list of kind cluster nodes.
 func (r *KindContainerRuntime) getKindNodes() ([]string, error) {
 	return r.KindClient.GetNodes(r.clusterName)
 }
 
-// configureRegistryInNodes configures containerd in all kind nodes to use the local registry
+// configureRegistryInNodes configures containerd in all kind nodes to use the local registry.
 func (r *KindContainerRuntime) configureRegistryInNodes(ctx context.Context) error {
 	fmt.Println("Configuring registry in kind nodes...")
 
@@ -234,7 +234,7 @@ func (r *KindContainerRuntime) configureRegistryInNodes(ctx context.Context) err
 	if err := r.configureRegistryMirror(
 		ctx,
 		nodes,
-		fmt.Sprintf("localhost:%s", registryPort),
+		"localhost:"+registryPort,
 		registryName,
 		"",
 	); err != nil {
@@ -269,13 +269,13 @@ func (r *KindContainerRuntime) configureRegistryInNodes(ctx context.Context) err
 	return nil
 }
 
-// configureRegistryMirror configures a registry mirror in all kind nodes
+// configureRegistryMirror configures a registry mirror in all kind nodes.
 func (r *KindContainerRuntime) configureRegistryMirror(
 	ctx context.Context,
 	nodes []string,
 	registry, mirrorName, upstreamURL string,
 ) error {
-	registryDir := fmt.Sprintf("/etc/containerd/certs.d/%s", registry)
+	registryDir := "/etc/containerd/certs.d/" + registry
 
 	// Create the hosts.toml content
 	var hostsToml string
@@ -301,7 +301,7 @@ func (r *KindContainerRuntime) configureRegistryMirror(
 		if err := r.ContainerClient.ExecWithIO(
 			ctx,
 			node,
-			[]string{"cp", "/dev/stdin", fmt.Sprintf("%s/hosts.toml", registryDir)},
+			[]string{"cp", "/dev/stdin", registryDir + "/hosts.toml"},
 			bytes.NewBufferString(hostsToml),
 			nil,
 			nil,
@@ -314,7 +314,7 @@ func (r *KindContainerRuntime) configureRegistryMirror(
 }
 
 // createRegistryConfigMap creates a ConfigMap documenting the local registry
-// returns true if the configmap was added or updated, false otherwise
+// returns true if the configmap was added or updated, false otherwise.
 func (r *KindContainerRuntime) createRegistryConfigMap() (bool, error) {
 	fmt.Println("Creating local-registry-hosting ConfigMap...")
 
@@ -349,7 +349,7 @@ help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
 }
 
 // startRegistry ensures the container registry is running and configured
-// This function is idempotent - it can be called multiple times safely
+// This function is idempotent - it can be called multiple times safely.
 func (r *KindContainerRuntime) startRegistry(ctx context.Context) error {
 	// Check if registry is running
 	running, err := r.isRegistryRunning(ctx)
@@ -403,7 +403,7 @@ func (r *KindContainerRuntime) configureRegistry(ctx context.Context) error {
 	return nil
 }
 
-// connectProxyRegistriesToKindNetwork connects all proxy registries to the kind network
+// connectProxyRegistriesToKindNetwork connects all proxy registries to the kind network.
 func (r *KindContainerRuntime) connectProxyRegistriesToKindNetwork(ctx context.Context) error {
 	proxyNames := []string{registryDockerName, registryK8sName, registryGhcrName}
 

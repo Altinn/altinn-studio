@@ -2,25 +2,24 @@ package kind
 
 import (
 	"fmt"
+	"slices"
 )
 
-// clusterExists checks if a kind cluster with the given name exists
+// clusterExists checks if a kind cluster with the given name exists.
 func (r *KindContainerRuntime) clusterExists() (bool, error) {
 	clusters, err := r.KindClient.GetClusters()
 	if err != nil {
 		return false, fmt.Errorf("checking kind clusters: %w", err)
 	}
 
-	for _, cluster := range clusters {
-		if cluster == r.clusterName {
-			return true, nil
-		}
+	if slices.Contains(clusters, r.clusterName) {
+		return true, nil
 	}
 
 	return false, nil
 }
 
-// createCluster creates a new kind cluster using the specified config
+// createCluster creates a new kind cluster using the specified config.
 func (r *KindContainerRuntime) createCluster() error {
 	fmt.Printf("Creating kind cluster %s...\n", r.clusterName)
 

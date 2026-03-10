@@ -34,8 +34,8 @@ func TestRemoteImage_ImageRef(t *testing.T) {
 
 func TestRemoteImage_Validate(t *testing.T) {
 	tests := []struct {
-		name    string
 		image   *RemoteImage
+		name    string
 		wantErr bool
 	}{
 		{
@@ -169,8 +169,8 @@ func TestLocalImage_ImageRef(t *testing.T) {
 
 func TestLocalImage_Validate(t *testing.T) {
 	tests := []struct {
-		name    string
 		image   *LocalImage
+		name    string
 		wantErr bool
 	}{
 		{
@@ -210,14 +210,14 @@ func TestLocalImage_Dockerfile(t *testing.T) {
 	}
 }
 
-// Test that RemoteImage implements required interfaces
+// Test that RemoteImage implements required interfaces.
 func TestRemoteImage_ImplementsInterfaces(t *testing.T) {
 	var _ Resource = (*RemoteImage)(nil)
 	var _ ImageResource = (*RemoteImage)(nil)
 	var _ Validator = (*RemoteImage)(nil)
 }
 
-// Test that LocalImage implements required interfaces
+// Test that LocalImage implements required interfaces.
 func TestLocalImage_ImplementsInterfaces(t *testing.T) {
 	var _ Resource = (*LocalImage)(nil)
 	var _ ImageResource = (*LocalImage)(nil)

@@ -10,7 +10,7 @@ import (
 	"altinn.studio/devenv/pkg/runtimes/kind/manifests"
 )
 
-// isFluxInstalled checks if Flux is already installed in the cluster
+// isFluxInstalled checks if Flux is already installed in the cluster.
 func (r *KindContainerRuntime) isFluxInstalled() (bool, error) {
 	// Check if flux-system namespace exists
 	if err := r.KubernetesClient.Get(kubernetes.NamespaceGVR, "flux-system", ""); err != nil {
@@ -26,7 +26,7 @@ func (r *KindContainerRuntime) isFluxInstalled() (bool, error) {
 }
 
 // installFluxToCluster installs Flux into the cluster
-// This function is idempotent - it can be called multiple times safely
+// This function is idempotent - it can be called multiple times safely.
 func (r *KindContainerRuntime) installFluxToCluster() error {
 	// Check if Flux is already installed
 	installed, err := r.isFluxInstalled()
@@ -58,7 +58,7 @@ func (r *KindContainerRuntime) installFluxToCluster() error {
 	return nil
 }
 
-// waitForFluxControllers waits for all Flux controllers to be ready
+// waitForFluxControllers waits for all Flux controllers to be ready.
 func (r *KindContainerRuntime) waitForFluxControllers() error {
 	fmt.Println("Waiting for Flux controllers to be ready...")
 
@@ -95,7 +95,7 @@ func (r *KindContainerRuntime) waitForFluxControllers() error {
 	return nil
 }
 
-// areTraefikCRDsInstalled checks if Traefik CRDs are available in the cluster
+// areTraefikCRDsInstalled checks if Traefik CRDs are available in the cluster.
 func (r *KindContainerRuntime) areTraefikCRDsInstalled() (bool, error) {
 	// Check for the IngressRoute CRD, which is used by testserver
 	exists, err := r.KubernetesClient.CRDExists("ingressroutes.traefik.io")
@@ -157,7 +157,7 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 			err := r.KubernetesClient.WatchCondition(ctx, flux.HelmReleaseGVR, "traefik", "traefik", "Ready", "True")
 			fmt.Printf("Done waiting for ingress. Error=%v\n", err)
 			if err != nil {
-				r.IngressReadyEvent <- fmt.Errorf("error waiting for traefik HelmRelease: %v", err)
+				r.IngressReadyEvent <- fmt.Errorf("error waiting for traefik HelmRelease: %w", err)
 				return
 			}
 			r.IngressReadyEvent <- nil
@@ -171,7 +171,7 @@ func (r *KindContainerRuntime) reconcileBaseInfra() error {
 // This includes:
 // - Linkerd namespace and certificate secret
 // - HelmRepositories for: metrics-server, traefik, linkerd-edge, altinn-studio
-// - HelmReleases for: metrics-server, traefik, linkerd-crds, linkerd-control-plane, pdf-generator
+// - HelmReleases for: metrics-server, traefik, linkerd-crds, linkerd-control-plane, pdf-generator.
 func (r *KindContainerRuntime) applyBaseInfrastructure() error {
 	fmt.Println("Applying base infrastructure manifest...")
 

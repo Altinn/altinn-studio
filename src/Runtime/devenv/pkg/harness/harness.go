@@ -13,34 +13,19 @@ import (
 	"altinn.studio/devenv/pkg/runtimes/kind"
 )
 
-// Config describes the complete setup/deployment specification
+// Config describes the complete setup/deployment specification.
 type Config struct {
-	// ProjectRoot is required - all relative paths resolve from here
-	ProjectRoot string
-
-	// CachePath relative to ProjectRoot, defaults to ".cache"
-	CachePath string
-
-	// Variant determines cluster size (minimal/standard)
-	Variant kind.KindContainerRuntimeVariant
-
-	// ClusterOptions for kind cluster
+	ProjectRoot    string
+	CachePath      string
+	Images         []Image
+	Artifacts      []Artifact
+	HelmCharts     []HelmChart
+	Deployments    []Deployment
+	Variant        kind.KindContainerRuntimeVariant
 	ClusterOptions kind.KindContainerRuntimeOptions
-
-	// Images to build and push (run in parallel once registry ready)
-	Images []Image
-
-	// Artifacts to push to OCI registry (run in parallel with image builds)
-	Artifacts []Artifact
-
-	// HelmCharts to download and push (run in parallel with other tasks)
-	HelmCharts []HelmChart
-
-	// Deployments to execute after all images/artifacts ready (sequential)
-	Deployments []Deployment
 }
 
-// Image represents a container image to build and push
+// Image represents a container image to build and push.
 type Image struct {
 	Name       string // descriptive name for logging
 	Context    string // build context path (relative to ProjectRoot, or absolute). Defaults to ProjectRoot if empty
@@ -48,7 +33,7 @@ type Image struct {
 	Tag        string // full tag including registry, e.g., "localhost:5001/myapp:latest"
 }
 
-// Artifact represents an OCI artifact to push
+// Artifact represents an OCI artifact to push.
 type Artifact struct {
 	Name     string // descriptive name for logging
 	URL      string // OCI URL, e.g., "oci://localhost:5001/my-repo:local"
@@ -57,7 +42,7 @@ type Artifact struct {
 	Revision string // revision identifier for flux, defaults to "local"
 }
 
-// HelmChart represents a helm chart to download and push
+// HelmChart represents a helm chart to download and push.
 type HelmChart struct {
 	Name       string // descriptive name for logging
 	RepoURL    string // git repo URL
@@ -66,90 +51,63 @@ type HelmChart struct {
 	OCIRef     string // OCI registry reference, e.g., "oci://localhost:5001"
 }
 
-// Deployment represents a Flux-based deployment
+// Deployment represents a Flux-based deployment.
 type Deployment struct {
-	Name string // descriptive name for logging
-
-	// WaitForIngress blocks until ingress/CRDs are ready before deploying.
-	// Use for deployments that depend on Traefik CRDs (e.g., IngressRoute).
+	Kustomize      *KustomizeDeploy
+	Helm           *HelmDeploy
+	Name           string
 	WaitForIngress bool
-
-	// One of: Kustomize or Helm (mutually exclusive)
-	Kustomize *KustomizeDeploy
-	Helm      *HelmDeploy
 }
 
-// KustomizeDeploy deploys via Flux Kustomization
+// KustomizeDeploy deploys via Flux Kustomization.
 type KustomizeDeploy struct {
-	// SyncRootDir is the kustomize overlay directory to render and apply (relative to ProjectRoot)
-	SyncRootDir string
-
-	// KustomizationName is the Flux Kustomization resource name
+	ReconcileOpts     *flux.ReconcileOptions
+	SyncRootDir       string
 	KustomizationName string
-
-	// Namespace is the namespace of the Kustomization
-	Namespace string
-
-	// Rollouts to wait for after reconciliation
-	Rollouts []Rollout
-
-	// ReconcileOpts for the Flux reconcile operation. Uses defaults if nil.
-	ReconcileOpts *flux.ReconcileOptions
+	Namespace         string
+	Rollouts          []Rollout
 }
 
-// HelmDeploy deploys via Flux HelmRelease
+// HelmDeploy deploys via Flux HelmRelease.
 type HelmDeploy struct {
-	// ManifestPath is the path to the HelmRelease manifest (relative to ProjectRoot)
-	ManifestPath string
-
-	// HelmRepositoryName for HelmRepository reconciliation
-	HelmRepositoryName string
-
-	// HelmRepositoryNamespace for HelmRepository reconciliation
+	ReconcileOpts           *flux.ReconcileOptions
+	ManifestPath            string
+	HelmRepositoryName      string
 	HelmRepositoryNamespace string
-
-	// HelmReleaseName for HelmRelease reconciliation
-	HelmReleaseName string
-
-	// HelmReleaseNamespace for HelmRelease reconciliation
-	HelmReleaseNamespace string
-
-	// Rollouts to wait for
-	Rollouts []Rollout
-
-	// ReconcileOpts for the Flux reconcile operation. Uses defaults if nil.
-	ReconcileOpts *flux.ReconcileOptions
+	HelmReleaseName         string
+	HelmReleaseNamespace    string
+	Rollouts                []Rollout
 }
 
-// Rollout identifies a deployment to wait for
+// Rollout identifies a deployment to wait for.
 type Rollout struct {
 	Deployment string
 	Namespace  string
 	Timeout    time.Duration // defaults to 2 minutes if zero
 }
 
-// Result from harness execution
+// Result from harness execution.
 type Result struct {
 	Runtime *kind.KindContainerRuntime
 }
 
-// AsyncOptions for RunAsync to receive events during setup
+// AsyncOptions for RunAsync to receive events during setup.
 type AsyncOptions struct {
 	RegistryReady chan<- error // signaled when registry is accepting pushes
 	IngressReady  chan<- error // signaled when ingress is configured
 }
 
-// Run executes the harness configuration synchronously
+// Run executes the harness configuration synchronously.
 func Run(cfg Config) (*Result, error) {
 	return run(cfg, nil)
 }
 
-// RunAsync executes with event channels for fine-grained coordination
+// RunAsync executes with event channels for fine-grained coordination.
 func RunAsync(cfg Config, opts AsyncOptions) (*Result, error) {
 	return run(cfg, &opts)
 }
 
-// LoadExisting loads a pre-existing runtime (for CI scenarios)
+// LoadExisting loads a pre-existing runtime (for CI scenarios).
 func LoadExisting(cachePath string) (*Result, error) {
 	runtime, err := kind.LoadCurrent(cachePath)
 	if err != nil {
@@ -186,7 +144,7 @@ func run(cfg Config, asyncOpts *AsyncOptions) (*Result, error) {
 	return runSync(cfg, runtime)
 }
 
-// runSync runs cluster setup synchronously, then parallel build/push, then deploy
+// runSync runs cluster setup synchronously, then parallel build/push, then deploy.
 func runSync(cfg Config, runtime *kind.KindContainerRuntime) (*Result, error) {
 	// Step 1: Run cluster setup (blocks until complete including infra)
 	fmt.Println("Setting up cluster...")
@@ -213,7 +171,7 @@ func runSync(cfg Config, runtime *kind.KindContainerRuntime) (*Result, error) {
 	return &Result{Runtime: runtime}, nil
 }
 
-// runAsync overlaps cluster setup with build/push using event channels
+// runAsync overlaps cluster setup with build/push using event channels.
 func runAsync(cfg Config, runtime *kind.KindContainerRuntime, asyncOpts *AsyncOptions) (*Result, error) {
 	// Set up event channels for async signaling
 	registryReady := make(chan error, 1)
@@ -365,7 +323,7 @@ func executeDeploy(cfg Config, runtime *kind.KindContainerRuntime, dep Deploymen
 		return err
 	}
 
-	logDuration(fmt.Sprintf("Deployed %s", dep.Name), start)
+	logDuration("Deployed "+dep.Name, start)
 	return nil
 }
 

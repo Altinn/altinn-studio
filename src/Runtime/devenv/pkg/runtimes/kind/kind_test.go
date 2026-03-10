@@ -3,6 +3,7 @@ package kind
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -54,10 +55,10 @@ func TestNew_CreatesRequiredFiles(t *testing.T) {
 func TestNew_KindConfigContent(t *testing.T) {
 	tests := []struct {
 		name          string
-		variant       KindContainerRuntimeVariant
 		expectedName  string
-		expectedNodes int
 		expectedZones []string
+		variant       KindContainerRuntimeVariant
+		expectedNodes int
 	}{
 		{
 			name:          "Standard variant config",
@@ -112,13 +113,7 @@ func TestNew_KindConfigContent(t *testing.T) {
 				}
 			}
 			for _, expectedZone := range tt.expectedZones {
-				found := false
-				for _, zone := range foundZones {
-					if zone == expectedZone {
-						found = true
-						break
-					}
-				}
+				found := slices.Contains(foundZones, expectedZone)
 				if !found {
 					t.Errorf("expected zone %q not found in config", expectedZone)
 				}
@@ -129,10 +124,10 @@ func TestNew_KindConfigContent(t *testing.T) {
 
 func TestNew_CachePathValidation(t *testing.T) {
 	tests := []struct {
-		name      string
 		setup     func(t *testing.T) string
-		wantErr   bool
+		name      string
 		errSubstr string
+		wantErr   bool
 	}{
 		{
 			name: "valid new directory",

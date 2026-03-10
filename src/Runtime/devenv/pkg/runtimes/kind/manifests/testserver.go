@@ -304,21 +304,21 @@ func mustParseQuantity(s string) resource.Quantity {
 
 func buildJumpboxIngressRoute() *unstructured.Unstructured {
 	return &unstructured.Unstructured{
-		Object: map[string]interface{}{
+		Object: map[string]any{
 			"apiVersion": "traefik.io/v1alpha1",
 			"kind":       "IngressRoute",
-			"metadata": map[string]interface{}{
+			"metadata": map[string]any{
 				"name":      "jumpbox",
 				"namespace": "default",
 			},
-			"spec": map[string]interface{}{
-				"entryPoints": []interface{}{"traefik"},
-				"routes": []interface{}{
-					map[string]interface{}{
+			"spec": map[string]any{
+				"entryPoints": []any{"traefik"},
+				"routes": []any{
+					map[string]any{
 						"match": "PathPrefix(`/`)",
 						"kind":  "Rule",
-						"services": []interface{}{
-							map[string]interface{}{
+						"services": []any{
+							map[string]any{
 								"name":   "jumpbox",
 								"port":   80,
 								"scheme": "http",

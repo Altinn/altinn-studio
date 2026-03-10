@@ -17,7 +17,7 @@ func NewClient() *Client {
 	}
 }
 
-// PushArtifact pushes an OCI artifact to a registry
+// PushArtifact pushes an OCI artifact to a registry.
 func (c *Client) PushArtifact(url, path, source, revision string) error {
 	ctx := context.Background()
 

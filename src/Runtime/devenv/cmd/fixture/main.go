@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -50,7 +51,7 @@ func run(action, variant, cacheDir string, verbose bool) error {
 	// Validate action
 	action = strings.ToLower(strings.TrimSpace(action))
 	if action == "" {
-		return fmt.Errorf("action is required (use --action or -a)")
+		return errors.New("action is required (use --action or -a)")
 	}
 
 	if action != "run" && action != "stop" {

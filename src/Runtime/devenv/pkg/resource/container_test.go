@@ -83,8 +83,8 @@ func TestContainer_Dependencies_MultipleNetworks(t *testing.T) {
 
 func TestContainer_Validate(t *testing.T) {
 	tests := []struct {
-		name      string
 		container *Container
+		name      string
 		wantErr   bool
 	}{
 		{
@@ -149,12 +149,12 @@ func TestContainer_Fields(t *testing.T) {
 	}
 }
 
-// Test that Container implements Resource interface
+// Test that Container implements Resource interface.
 func TestContainer_ImplementsResource(t *testing.T) {
 	var _ Resource = (*Container)(nil)
 }
 
-// Test that Container implements Validator interface
+// Test that Container implements Validator interface.
 func TestContainer_ImplementsValidator(t *testing.T) {
 	var _ Validator = (*Container)(nil)
 }

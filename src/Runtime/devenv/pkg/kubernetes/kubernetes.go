@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -16,7 +17,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -37,13 +38,13 @@ import (
 	"sigs.k8s.io/kustomize/kyaml/filesys"
 )
 
-// Common GVRs for core Kubernetes resources
+// Common GVRs for core Kubernetes resources.
 var (
 	NamespaceGVR  = corev1.SchemeGroupVersion.WithResource("namespaces")
 	DeploymentGVR = appsv1.SchemeGroupVersion.WithResource("deployments")
 )
 
-// KubernetesClient wraps client-go operations for a specific context
+// KubernetesClient wraps client-go operations for a specific context.
 type KubernetesClient struct {
 	clientset       *kubernetes.Clientset
 	apiextClientset *apiextensionsclientset.Clientset
@@ -151,7 +152,7 @@ func (c *KubernetesClient) ApplyManifest(yamlContent string) (string, error) {
 	for {
 		var rawObj unstructured.Unstructured
 		if err := decoder.Decode(&rawObj); err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			return "", fmt.Errorf("failed to decode YAML: %w", err)
@@ -223,7 +224,7 @@ func (c *KubernetesClient) CRDExists(crdName string) (bool, error) {
 	_, err := c.apiextClientset.ApiextensionsV1().CustomResourceDefinitions().Get(
 		context.Background(), crdName, metav1.GetOptions{})
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
 		return false, fmt.Errorf("failed to check CRD existence: %w", err)
@@ -251,7 +252,7 @@ func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout t
 	}
 
 	watcher, err := c.clientset.AppsV1().Deployments(namespace).Watch(ctx, metav1.ListOptions{
-		FieldSelector:   fmt.Sprintf("metadata.name=%s", deployment),
+		FieldSelector:   "metadata.name=" + deployment,
 		ResourceVersion: dep.ResourceVersion,
 	})
 	if err != nil {
@@ -314,7 +315,7 @@ func (c *KubernetesClient) WatchCondition(
 	}
 
 	watcher, err := dr.Watch(ctx, metav1.ListOptions{
-		FieldSelector:   fmt.Sprintf("metadata.name=%s", name),
+		FieldSelector:   "metadata.name=" + name,
 		ResourceVersion: obj.GetResourceVersion(),
 	})
 	if err != nil {
@@ -386,7 +387,7 @@ func (c *KubernetesClient) KustomizeRender(path string) (string, error) {
 	return string(yamlBytes), nil
 }
 
-// LogOptions configures how logs should be collected
+// LogOptions configures how logs should be collected.
 type LogOptions struct {
 	Namespace     string
 	LabelSelector string
@@ -419,8 +420,8 @@ func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 	}
 
 	type logResult struct {
-		lines []logLine
 		err   error
+		lines []logLine
 	}
 
 	var targets []struct{ pod, container string }
@@ -525,7 +526,7 @@ func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 	return nil
 }
 
-// Annotate sets or updates an annotation on a Kubernetes resource
+// Annotate sets or updates an annotation on a Kubernetes resource.
 func (c *KubernetesClient) Annotate(gvr schema.GroupVersionResource, name, namespace, key, value string) error {
 	ctx := context.Background()
 
@@ -624,14 +625,14 @@ func (c *KubernetesClient) GetFieldString(
 	return val, nil
 }
 
-// SourceRef holds reference to a Flux source
+// SourceRef holds reference to a Flux source.
 type SourceRef struct {
 	Kind      string
 	Name      string
 	Namespace string
 }
 
-// GetSourceRef returns the sourceRef from a HelmRelease or Kustomization resource
+// GetSourceRef returns the sourceRef from a HelmRelease or Kustomization resource.
 func (c *KubernetesClient) GetSourceRef(gvr schema.GroupVersionResource, name, namespace string) (*SourceRef, error) {
 	ctx := context.Background()
 
@@ -685,7 +686,7 @@ func getString(m map[string]any, key string) string {
 	return ""
 }
 
-// StreamLogOptions configures streaming logs
+// StreamLogOptions configures streaming logs.
 type StreamLogOptions struct {
 	Namespace     string
 	LabelSelector string

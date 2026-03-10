@@ -3,6 +3,7 @@ package kind
 import (
 	"context"
 	_ "embed"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -50,7 +51,7 @@ const (
 	KindContainerRuntimeVariantMinimal
 )
 
-// KindContainerRuntimeOptions holds configuration options for the Kind runtime
+// KindContainerRuntimeOptions holds configuration options for the Kind runtime.
 type KindContainerRuntimeOptions struct {
 	// IncludeMonitoring is currently a no-op (reserved for future lightweight monitoring).
 	IncludeMonitoring bool
@@ -71,7 +72,7 @@ type KindContainerRuntimeOptions struct {
 	IncludeFluxNotificationController bool
 }
 
-// DefaultOptions returns the default options for the Kind runtime
+// DefaultOptions returns the default options for the Kind runtime.
 func DefaultOptions() KindContainerRuntimeOptions {
 	return KindContainerRuntimeOptions{
 		IncludeMonitoring: false,
@@ -81,30 +82,28 @@ func DefaultOptions() KindContainerRuntimeOptions {
 }
 
 type KindContainerRuntime struct {
-	variant     KindContainerRuntimeVariant
-	options     KindContainerRuntimeOptions
-	cachePath   string
-	clusterName string
-	kindConfig  *v1alpha4.Cluster
-
-	ContainerClient  container.ContainerClient
-	FluxClient       *flux.FluxClient
-	HelmClient       *helm.Client
-	KindClient       *kindclient.KindClient
-	KubernetesClient *kubernetes.KubernetesClient
-	OCIClient        *oci.Client
-
+	ContainerClient      container.ContainerClient
+	KubernetesClient     *kubernetes.KubernetesClient
+	kindConfig           *v1alpha4.Cluster
+	FluxClient           *flux.FluxClient
+	HelmClient           *helm.Client
+	KindClient           *kindclient.KindClient
+	OCIClient            *oci.Client
 	RegistryStartedEvent chan<- error
 	IngressReadyEvent    chan<- error
+	cachePath            string
+	clusterName          string
+	variant              KindContainerRuntimeVariant
+	options              KindContainerRuntimeOptions
 }
 
 // logDuration logs the duration of an operation
-// Usage: defer logDuration("Operation name", time.Now())
+// Usage: defer logDuration("Operation name", time.Now()).
 func logDuration(stepName string, start time.Time) {
 	fmt.Printf("  [%s took %s]\n", stepName, time.Since(start))
 }
 
-// New creates a new KindContainerRuntime instance
+// New creates a new KindContainerRuntime instance.
 func New(
 	variant KindContainerRuntimeVariant,
 	cachePath string,
@@ -166,7 +165,7 @@ func LoadCurrent(cachePath string) (*KindContainerRuntime, error) {
 	}
 
 	if variant == nil {
-		return nil, fmt.Errorf("no KindContainerRuntime cluster is currently running")
+		return nil, errors.New("no KindContainerRuntime cluster is currently running")
 	}
 
 	err = newInternal(r, clusters, *variant, cachePath, true)
@@ -274,7 +273,7 @@ func newInternal(
 	}
 
 	if isLoad && !foundCluster {
-		return fmt.Errorf("KindContainerRuntime cluster variant wasn't found running")
+		return errors.New("KindContainerRuntime cluster variant wasn't found running")
 	}
 
 	r.variant = variant
@@ -291,7 +290,7 @@ func newInternal(
 }
 
 // Run ensures the container runtime is running
-// This function is idempotent - it can be called multiple times safely
+// This function is idempotent - it can be called multiple times safely.
 func (r *KindContainerRuntime) Run() error {
 	fmt.Println("=== Starting Kind Container Runtime ===")
 	ctx := context.Background()
@@ -330,7 +329,7 @@ func (r *KindContainerRuntime) Run() error {
 			if succeeded {
 				r.RegistryStartedEvent <- nil
 			} else {
-				r.RegistryStartedEvent <- fmt.Errorf("timed out waiting for registry")
+				r.RegistryStartedEvent <- errors.New("timed out waiting for registry")
 			}
 		}()
 	}
@@ -376,7 +375,7 @@ func (r *KindContainerRuntime) Run() error {
 	return nil
 }
 
-// installInfra sets up all components for the Standard variant
+// installInfra sets up all components for the Standard variant.
 func (r *KindContainerRuntime) installInfra() error {
 	// Step 5: Install Flux
 	fmt.Println("\n5. Installing Flux...")
@@ -440,7 +439,7 @@ func (r *KindContainerRuntime) installInfra() error {
 }
 
 // Stop ensures the container runtime is stopped
-// This function is idempotent - it returns nil if the cluster doesn't exist
+// This function is idempotent - it returns nil if the cluster doesn't exist.
 func (r *KindContainerRuntime) Stop() error {
 	fmt.Printf("=== Stopping Kind Container Runtime (%s) ===\n", r.clusterName)
 
@@ -483,9 +482,9 @@ func (r *KindContainerRuntime) Close() error {
 	return nil
 }
 
-// GetContextName returns the kubectl context name for this cluster
+// GetContextName returns the kubectl context name for this cluster.
 func (r *KindContainerRuntime) GetContextName() string {
-	return fmt.Sprintf("kind-%s", r.clusterName)
+	return "kind-" + r.clusterName
 }
 
 var _ runtimes.ContainerRuntime = (*KindContainerRuntime)(nil)

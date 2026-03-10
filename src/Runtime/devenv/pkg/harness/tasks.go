@@ -2,6 +2,7 @@ package harness
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,7 +16,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 )
 
-// buildAndPushImage builds a container image and pushes it to the registry
+// buildAndPushImage builds a container image and pushes it to the registry.
 func buildAndPushImage(ctx context.Context, cfg Config, runtime *kind.KindContainerRuntime, img Image) error {
 	fmt.Printf("Building image %s...\n", img.Name)
 	start := time.Now()
@@ -30,19 +31,19 @@ func buildAndPushImage(ctx context.Context, cfg Config, runtime *kind.KindContai
 	if err := runtime.ContainerClient.Build(ctx, buildContext, img.Dockerfile, img.Tag); err != nil {
 		return fmt.Errorf("failed to build image %s: %w", img.Name, err)
 	}
-	logDuration(fmt.Sprintf("Built %s", img.Name), start)
+	logDuration("Built "+img.Name, start)
 
 	fmt.Printf("Pushing image %s...\n", img.Name)
 	start = time.Now()
 	if err := runtime.ContainerClient.Push(ctx, img.Tag); err != nil {
 		return fmt.Errorf("failed to push image %s: %w", img.Name, err)
 	}
-	logDuration(fmt.Sprintf("Pushed %s", img.Name), start)
+	logDuration("Pushed "+img.Name, start)
 
 	return nil
 }
 
-// pushArtifact pushes an OCI artifact to the registry
+// pushArtifact pushes an OCI artifact to the registry.
 func pushArtifact(_ context.Context, cfg Config, runtime *kind.KindContainerRuntime, art Artifact) error {
 	fmt.Printf("Pushing artifact %s...\n", art.Name)
 	start := time.Now()
@@ -65,11 +66,11 @@ func pushArtifact(_ context.Context, cfg Config, runtime *kind.KindContainerRunt
 		return fmt.Errorf("failed to push artifact %s: %w", art.Name, err)
 	}
 
-	logDuration(fmt.Sprintf("Pushed artifact %s", art.Name), start)
+	logDuration("Pushed artifact "+art.Name, start)
 	return nil
 }
 
-// downloadAndPushHelmChart clones a git repo and pushes the helm chart to OCI
+// downloadAndPushHelmChart clones a git repo and pushes the helm chart to OCI.
 func downloadAndPushHelmChart(
 	_ context.Context,
 	cfg Config,
@@ -91,7 +92,7 @@ func downloadAndPushHelmChart(
 	if err := cloneOrUpdateRepo(chartsDir, chart.RepoURL, chart.RepoBranch); err != nil {
 		return fmt.Errorf("failed to clone/update repo for %s: %w", chart.Name, err)
 	}
-	logDuration(fmt.Sprintf("Downloaded %s", chart.Name), start)
+	logDuration("Downloaded "+chart.Name, start)
 
 	// Package chart
 	fmt.Printf("Packaging helm chart %s...\n", chart.Name)
@@ -106,7 +107,7 @@ func downloadAndPushHelmChart(
 	if err != nil {
 		return fmt.Errorf("failed to package chart %s: %w", chart.Name, err)
 	}
-	logDuration(fmt.Sprintf("Packaged %s", chart.Name), start)
+	logDuration("Packaged "+chart.Name, start)
 
 	// Push to OCI
 	fmt.Printf("Pushing helm chart %s to OCI...\n", chart.Name)
@@ -114,7 +115,7 @@ func downloadAndPushHelmChart(
 	if err := runtime.HelmClient.PushChart(chartFile, chart.OCIRef); err != nil {
 		return fmt.Errorf("failed to push chart %s: %w", chart.Name, err)
 	}
-	logDuration(fmt.Sprintf("Pushed helm chart %s", chart.Name), start)
+	logDuration("Pushed helm chart "+chart.Name, start)
 
 	// Cleanup
 	_ = os.Remove(chartFile)
@@ -148,10 +149,10 @@ func cloneOrUpdateRepo(dir, repoURL, branch string) error {
 		Depth:      1,
 		Force:      true,
 	})
-	if err != nil && err != git.NoErrAlreadyUpToDate {
+	if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 		// Fetch failed - remove and re-clone
 		if removeErr := os.RemoveAll(dir); removeErr != nil {
-			return fmt.Errorf("failed to remove dir for re-clone: %w (fetch error: %v)", removeErr, err)
+			return fmt.Errorf("failed to remove dir for re-clone: %w (fetch error: %w)", removeErr, err)
 		}
 		_, err = git.PlainClone(dir, false, &git.CloneOptions{
 			URL:           repoURL,
@@ -187,7 +188,7 @@ func cloneOrUpdateRepo(dir, repoURL, branch string) error {
 	return nil
 }
 
-// deployKustomize deploys via Flux Kustomization
+// deployKustomize deploys via Flux Kustomization.
 func deployKustomize(cfg Config, runtime *kind.KindContainerRuntime, kd *KustomizeDeploy) error {
 	syncRootDir := kd.SyncRootDir
 	if !filepath.IsAbs(syncRootDir) {
@@ -236,7 +237,7 @@ func deployKustomize(cfg Config, runtime *kind.KindContainerRuntime, kd *Kustomi
 	return nil
 }
 
-// deployHelm deploys via Flux HelmRelease
+// deployHelm deploys via Flux HelmRelease.
 func deployHelm(cfg Config, runtime *kind.KindContainerRuntime, hd *HelmDeploy) error {
 	manifestPath := hd.ManifestPath
 	if !filepath.IsAbs(manifestPath) {

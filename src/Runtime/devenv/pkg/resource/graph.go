@@ -10,8 +10,8 @@ import (
 // Graph manages a DAG of resources with dependency tracking.
 // Graph is a pure data structure - use Executor to apply resources.
 type Graph struct {
-	mu        sync.RWMutex
 	resources map[ResourceID]Resource
+	mu        sync.RWMutex
 }
 
 // NewGraph creates an empty resource graph.
@@ -64,7 +64,7 @@ func (g *Graph) All() []Resource {
 // Validate checks the graph for errors:
 // - All dependencies exist
 // - No cycles
-// - All resources pass validation (if they implement Validator)
+// - All resources pass validation (if they implement Validator).
 func (g *Graph) Validate() error {
 	g.mu.RLock()
 	defer g.mu.RUnlock()

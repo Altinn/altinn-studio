@@ -7,16 +7,17 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 
 	"altinn.studio/devenv/pkg/container/types"
 )
 
-// Client implements ContainerClient for Podman using CLI
+// Client implements ContainerClient for Podman using CLI.
 type Client struct{}
 
-// New creates a new Podman CLI client
+// New creates a new Podman CLI client.
 func New(ctx context.Context) (*Client, error) {
 	// Verify podman is available
 	if _, err := exec.LookPath("podman"); err != nil {
@@ -30,22 +31,22 @@ func New(ctx context.Context) (*Client, error) {
 	return &Client{}, nil
 }
 
-// Close releases resources (no-op for CLI client)
+// Close releases resources (no-op for CLI client).
 func (c *Client) Close() error {
 	return nil
 }
 
-// Name returns the runtime name
+// Name returns the runtime name.
 func (c *Client) Name() string {
 	return types.RuntimeNamePodmanCLI
 }
 
-// Installation returns the container runtime installation type
+// Installation returns the container runtime installation type.
 func (c *Client) Installation() types.RuntimeInstallation {
 	return types.InstallationPodman
 }
 
-// Build builds a container image from a Dockerfile
+// Build builds a container image from a Dockerfile.
 func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
 	cmd := exec.CommandContext(ctx, "podman", "build", "-t", tag, "-f", dockerfile, contextPath)
 	output, err := cmd.CombinedOutput()
@@ -55,7 +56,7 @@ func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string)
 	return nil
 }
 
-// Push pushes an image to a registry
+// Push pushes an image to a registry.
 func (c *Client) Push(ctx context.Context, image string) error {
 	cmd := exec.CommandContext(ctx, "podman", podmanPushArgs(image)...)
 	output, err := cmd.CombinedOutput()
@@ -81,7 +82,7 @@ func isLocalRegistryReference(image string) bool {
 		strings.HasPrefix(image, "[::1]:")
 }
 
-// CreateContainer creates and optionally starts a container
+// CreateContainer creates and optionally starts a container.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
 	args := []string{"create"}
 
@@ -90,7 +91,7 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 	}
 
 	if cfg.RestartPolicy != "" && cfg.RestartPolicy != "no" {
-		args = append(args, fmt.Sprintf("--restart=%s", cfg.RestartPolicy))
+		args = append(args, "--restart="+cfg.RestartPolicy)
 	}
 
 	// Handle networks
@@ -194,7 +195,7 @@ func (c *Client) ContainerState(ctx context.Context, nameOrID string) (types.Con
 	}, nil
 }
 
-// ContainerNetworks returns the networks the container is attached to
+// ContainerNetworks returns the networks the container is attached to.
 func (c *Client) ContainerNetworks(ctx context.Context, nameOrID string) ([]string, error) {
 	cmd := exec.CommandContext(ctx, "podman", "inspect", "-f", "{{json .NetworkSettings.Networks}}", nameOrID)
 	output, err := cmd.CombinedOutput()
@@ -218,7 +219,7 @@ func (c *Client) ContainerNetworks(ctx context.Context, nameOrID string) ([]stri
 	return result, nil
 }
 
-// Exec executes a command in a running container
+// Exec executes a command in a running container.
 func (c *Client) Exec(ctx context.Context, container string, cmd []string) error {
 	args := append([]string{"exec", container}, cmd...)
 	execCmd := exec.CommandContext(ctx, "podman", args...)
@@ -229,7 +230,7 @@ func (c *Client) Exec(ctx context.Context, container string, cmd []string) error
 	return nil
 }
 
-// ExecWithIO executes a command with custom I/O streams
+// ExecWithIO executes a command with custom I/O streams.
 func (c *Client) ExecWithIO(
 	ctx context.Context,
 	container string,
@@ -268,7 +269,7 @@ func (c *Client) ExecWithIO(
 	return nil
 }
 
-// NetworkConnect connects a container to a network
+// NetworkConnect connects a container to a network.
 func (c *Client) NetworkConnect(ctx context.Context, network, container string) error {
 	cmd := exec.CommandContext(ctx, "podman", "network", "connect", network, container)
 	output, err := cmd.CombinedOutput()
@@ -278,7 +279,7 @@ func (c *Client) NetworkConnect(ctx context.Context, network, container string) 
 	return nil
 }
 
-// ImageInspect returns metadata about an image
+// ImageInspect returns metadata about an image.
 func (c *Client) ImageInspect(ctx context.Context, image string) (types.ImageInfo, error) {
 	cmd := exec.CommandContext(ctx, "podman", "image", "inspect", image)
 	output, err := cmd.CombinedOutput()
@@ -305,7 +306,7 @@ func (c *Client) ImageInspect(ctx context.Context, image string) (types.ImageInf
 	return types.ImageInfo{ID: info[0].ID, Size: info[0].Size}, nil
 }
 
-// ImagePull pulls an image from a registry
+// ImagePull pulls an image from a registry.
 func (c *Client) ImagePull(ctx context.Context, image string) error {
 	cmd := exec.CommandContext(ctx, "podman", "pull", image)
 	output, err := cmd.CombinedOutput()
@@ -357,7 +358,7 @@ func parseContainerInspect(output []byte) (types.ContainerInfo, error) {
 	}, nil
 }
 
-// ContainerInspect returns detailed information about a container
+// ContainerInspect returns detailed information about a container.
 func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.ContainerInfo, error) {
 	cmd := exec.CommandContext(ctx, "podman", "inspect", nameOrID)
 	output, err := cmd.CombinedOutput()
@@ -372,7 +373,7 @@ func (c *Client) ContainerInspect(ctx context.Context, nameOrID string) (types.C
 	return parseContainerInspect(output)
 }
 
-// ContainerStart starts an existing container
+// ContainerStart starts an existing container.
 func (c *Client) ContainerStart(ctx context.Context, nameOrID string) error {
 	cmd := exec.CommandContext(ctx, "podman", "start", nameOrID)
 	output, err := cmd.CombinedOutput()
@@ -382,11 +383,11 @@ func (c *Client) ContainerStart(ctx context.Context, nameOrID string) error {
 	return nil
 }
 
-// ContainerStop stops a running container
+// ContainerStop stops a running container.
 func (c *Client) ContainerStop(ctx context.Context, nameOrID string, timeout *int) error {
 	args := []string{"stop"}
 	if timeout != nil {
-		args = append(args, "-t", fmt.Sprintf("%d", *timeout))
+		args = append(args, "-t", strconv.Itoa(*timeout))
 	}
 	args = append(args, nameOrID)
 
@@ -401,7 +402,7 @@ func (c *Client) ContainerStop(ctx context.Context, nameOrID string, timeout *in
 	return nil
 }
 
-// ContainerRemove removes a container
+// ContainerRemove removes a container.
 func (c *Client) ContainerRemove(ctx context.Context, nameOrID string, force bool) error {
 	args := []string{"rm"}
 	if force {
@@ -428,7 +429,7 @@ func isContainerNotFoundOutput(output []byte) bool {
 		strings.Contains(lower, "unable to find")
 }
 
-// NetworkCreate creates a new network
+// NetworkCreate creates a new network.
 func (c *Client) NetworkCreate(ctx context.Context, cfg types.NetworkConfig) (string, error) {
 	args := []string{"network", "create"}
 
@@ -457,7 +458,7 @@ func (c *Client) NetworkCreate(ctx context.Context, cfg types.NetworkConfig) (st
 	return networkID, nil
 }
 
-// NetworkInspect returns information about a network
+// NetworkInspect returns information about a network.
 func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.NetworkInfo, error) {
 	cmd := exec.CommandContext(ctx, "podman", "network", "inspect", nameOrID)
 	output, err := cmd.CombinedOutput()
@@ -470,10 +471,10 @@ func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.Net
 	}
 
 	var info []struct {
+		Labels map[string]string `json:"labels"`
 		ID     string            `json:"id"`
 		Name   string            `json:"name"`
 		Driver string            `json:"driver"`
-		Labels map[string]string `json:"labels"`
 	}
 	if err := json.Unmarshal(output, &info); err != nil {
 		return types.NetworkInfo{}, fmt.Errorf("failed to parse network inspect output: %w", err)
@@ -491,7 +492,7 @@ func (c *Client) NetworkInspect(ctx context.Context, nameOrID string) (types.Net
 	}, nil
 }
 
-// NetworkRemove removes a network
+// NetworkRemove removes a network.
 func (c *Client) NetworkRemove(ctx context.Context, nameOrID string) error {
 	cmd := exec.CommandContext(ctx, "podman", "network", "rm", nameOrID)
 	output, err := cmd.CombinedOutput()

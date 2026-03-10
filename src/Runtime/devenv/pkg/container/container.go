@@ -32,6 +32,7 @@ package container
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -45,7 +46,7 @@ import (
 	"altinn.studio/devenv/pkg/container/types"
 )
 
-// Cached detection result
+// Cached detection result.
 var (
 	detectMu           sync.Mutex
 	detectionSucceeded bool
@@ -75,7 +76,7 @@ func (rt runtimeType) installation() RuntimeInstallation {
 	}
 }
 
-// Re-export types and constants for convenience
+// Re-export types and constants for convenience.
 type (
 	RuntimeInstallation = types.RuntimeInstallation
 	PortMapping         = types.PortMapping
@@ -105,7 +106,7 @@ const (
 	RuntimeNamePodmanCLI       = types.RuntimeNamePodmanCLI
 )
 
-// ContainerClient provides a common interface for docker and podman operations
+// ContainerClient provides a common interface for docker and podman operations.
 type ContainerClient interface {
 	// Build builds a container image from a Dockerfile
 	Build(ctx context.Context, contextPath, dockerfile, tag string) error
@@ -257,10 +258,10 @@ func detectRuntime(ctx context.Context) (runtimeType, string, error) {
 		return runtimePodmanCLI, "", nil
 	}
 
-	return runtimeUnknown, "", fmt.Errorf("no container runtime found (tried Docker API, Podman socket, Podman CLI)")
+	return runtimeUnknown, "", errors.New("no container runtime found (tried Docker API, Podman socket, Podman CLI)")
 }
 
-// newClientForType creates a new client based on the detected runtime type
+// newClientForType creates a new client based on the detected runtime type.
 func newClientForType(ctx context.Context, rt runtimeType) (ContainerClient, error) {
 	install := rt.installation()
 	switch rt {
@@ -274,11 +275,11 @@ func newClientForType(ctx context.Context, rt runtimeType) (ContainerClient, err
 	case runtimePodmanCLI:
 		return podman.New(ctx)
 	default:
-		return nil, fmt.Errorf("unknown runtime type")
+		return nil, errors.New("unknown runtime type")
 	}
 }
 
-// findPodmanSocket checks for available Podman sockets and returns the first working one
+// findPodmanSocket checks for available Podman sockets and returns the first working one.
 func findPodmanSocket(ctx context.Context) string {
 	for _, socketPath := range podmanSocketPaths() {
 		if !fileExists(socketPath) {
@@ -329,7 +330,7 @@ func fileExists(path string) bool {
 	return err == nil
 }
 
-// Compile-time interface checks
+// Compile-time interface checks.
 var (
 	_ ContainerClient = (*dockerapi.Client)(nil)
 	_ ContainerClient = (*podman.Client)(nil)

@@ -38,9 +38,9 @@ func (e EventType) String() string {
 
 // Event represents a resource lifecycle event.
 type Event struct {
-	Type     EventType
-	Resource ResourceID
 	Error    error
+	Resource ResourceID
+	Type     EventType
 }
 
 // Observer receives resource lifecycle events.

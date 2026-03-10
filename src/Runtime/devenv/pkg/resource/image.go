@@ -87,7 +87,7 @@ func (l *LocalImage) Validate() error {
 	return nil
 }
 
-// Compile-time interface checks
+// Compile-time interface checks.
 var (
 	_ Resource      = (*RemoteImage)(nil)
 	_ Resource      = (*LocalImage)(nil)
