@@ -10,7 +10,6 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
 {
     private readonly EngineApiClient _client = new(fixture);
     private readonly TestHelpers _testHelpers = new(fixture);
-    private readonly Guid _instanceGuid = Guid.NewGuid();
 
     public async ValueTask InitializeAsync()
     {
@@ -51,9 +50,9 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
         );
-        var enqueueResponse = await _client.Enqueue(_instanceGuid, request);
+        var enqueueResponse = await _client.Enqueue(request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         using var client = fixture.CreateEngineClient();
 
@@ -80,9 +79,9 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
         );
-        var enqueueResponse = await _client.Enqueue(_instanceGuid, request);
+        var enqueueResponse = await _client.Enqueue(request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         using var client = fixture.CreateEngineClient();
 
@@ -106,9 +105,9 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
         );
-        var enqueueResponse = await _client.Enqueue(_instanceGuid, request);
+        var enqueueResponse = await _client.Enqueue(request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         using var client = fixture.CreateEngineClient();
 
@@ -128,13 +127,12 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         // Arrange — create 3 completed workflows
         for (int i = 0; i < 3; i++)
         {
-            var instanceGuid = Guid.NewGuid();
             var request = _testHelpers.CreateEnqueueRequest(
                 _testHelpers.CreateWorkflow($"wf-{i}", [_testHelpers.CreateWebhookStep("/hook")])
             );
-            var enqueueResponse = await _client.Enqueue(instanceGuid, request);
+            var enqueueResponse = await _client.Enqueue(request);
             var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
-            await _client.WaitForWorkflowStatus(instanceGuid, workflowId, PersistentItemStatus.Completed);
+            await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
         }
 
         using var client = fixture.CreateEngineClient();
@@ -182,7 +180,7 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
             Steps = [_testHelpers.CreateWebhookStep("/scheduled-hook")],
         };
         var request = _testHelpers.CreateEnqueueRequest(wfRequest);
-        await _client.Enqueue(_instanceGuid, request);
+        await _client.Enqueue(request);
 
         // Give the engine a moment to persist
         await Task.Delay(500);
@@ -207,9 +205,9 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         // Arrange
         var wfRequest = _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")]);
         var request = _testHelpers.CreateEnqueueRequest(wfRequest);
-        var enqueueResponse = await _client.Enqueue(_instanceGuid, request);
+        var enqueueResponse = await _client.Enqueue(request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         var wfKey = status.IdempotencyKey;
         var stepKey = status.Steps[0].IdempotencyKey;
@@ -252,9 +250,9 @@ public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLif
         // Arrange
         var wfRequest = _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")]);
         var request = _testHelpers.CreateEnqueueRequest(wfRequest);
-        var enqueueResponse = await _client.Enqueue(_instanceGuid, request);
+        var enqueueResponse = await _client.Enqueue(request);
         var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         var wfKey = status.IdempotencyKey;
         var createdAt = status.CreatedAt.ToString("o");

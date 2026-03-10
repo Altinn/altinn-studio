@@ -180,6 +180,7 @@ internal static class DashboardEndpoints
                     string? app,
                     string? party,
                     string? instanceGuid,
+                    string? correlationId,
                     CancellationToken ct
                 ) =>
                 {
@@ -220,6 +221,7 @@ internal static class DashboardEndpoints
                         app: app,
                         party: party,
                         instanceGuid: instanceGuid,
+                        correlationId: correlationId,
                         cancellationToken: ct
                     );
 

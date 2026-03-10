@@ -17,11 +17,13 @@ internal static class EngineRepositoryQueryExtensions
             bool includeDependencies = true,
             bool includeLinks = true,
             Guid? instanceFilter = null,
+            Guid? correlationIdFilter = null,
             string? namespaceFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: includeDependencies, links: includeLinks)
                 .MaybeFilterByInstanceGuid(instanceFilter)
+                .MaybeFilterByCorrelationId(correlationIdFilter)
                 .MaybeFilterByNamespace(namespaceFilter)
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
@@ -81,7 +83,8 @@ internal static class EngineRepositoryQueryExtensions
             string? org = null,
             string? app = null,
             string? party = null,
-            string? instanceGuid = null
+            string? instanceGuid = null,
+            string? correlationId = null
         )
         {
             var query = dbContext.Workflows.Include(j => j.Steps).Where(x => statuses.Contains(x.Status));
@@ -107,11 +110,15 @@ internal static class EngineRepositoryQueryExtensions
             if (!string.IsNullOrWhiteSpace(instanceGuid))
                 query = query.Where(x => x.InstanceGuid.ToString() == instanceGuid);
 
+            if (!string.IsNullOrWhiteSpace(correlationId))
+                query = query.Where(x => x.CorrelationId.ToString() == correlationId);
+
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var s = search.ToLower();
                 query = query.Where(x =>
-                    x.InstanceGuid.ToString().Contains(s)
+                    x.CorrelationId.ToString().Contains(s)
+                    || x.InstanceGuid.ToString().Contains(s)
                     || x.InstanceOrg.ToLower().Contains(s)
                     || x.InstanceApp.ToLower().Contains(s)
                     || x.OperationId.ToLower().Contains(s)
@@ -169,6 +176,14 @@ internal static class EngineRepositoryQueryExtensions
         {
             if (instanceGuid is not null)
                 entityQuery = entityQuery.Where(wf => wf.InstanceGuid == instanceGuid.Value);
+
+            return entityQuery;
+        }
+
+        private IQueryable<WorkflowEntity> MaybeFilterByCorrelationId(Guid? correlationId)
+        {
+            if (correlationId is not null)
+                entityQuery = entityQuery.Where(wf => wf.CorrelationId == correlationId.Value);
 
             return entityQuery;
         }

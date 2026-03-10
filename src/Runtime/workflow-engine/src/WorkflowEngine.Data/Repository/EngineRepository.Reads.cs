@@ -115,6 +115,7 @@ internal sealed partial class EngineRepository
         string? app = null,
         string? party = null,
         string? instanceGuid = null,
+        string? correlationId = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -127,7 +128,19 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
-                .GetFinishedWorkflows(statuses, search, take, before, since, retriedOnly, org, app, party, instanceGuid)
+                .GetFinishedWorkflows(
+                    statuses,
+                    search,
+                    take,
+                    before,
+                    since,
+                    retriedOnly,
+                    org,
+                    app,
+                    party,
+                    instanceGuid,
+                    correlationId
+                )
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 
@@ -159,6 +172,7 @@ internal sealed partial class EngineRepository
         string? app = null,
         string? party = null,
         string? instanceGuid = null,
+        string? correlationId = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -182,7 +196,8 @@ internal sealed partial class EngineRepository
                 org,
                 app,
                 party,
-                instanceGuid
+                instanceGuid,
+                correlationId
             );
             var totalCount = await baseQuery.CountAsync(cancellationToken);
 
@@ -197,7 +212,8 @@ internal sealed partial class EngineRepository
                 org,
                 app,
                 party,
-                instanceGuid
+                instanceGuid,
+                correlationId
             );
             var workflows = await dataQuery.ToDomainModel().ToListAsync(cancellationToken);
 
@@ -352,6 +368,42 @@ internal sealed partial class EngineRepository
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
                 .GetActiveWorkflows(instanceFilter: instanceGuid, namespaceFilter: ns)
+                .ToDomainModel()
+                .ToListAsync(cancellationToken);
+
+            logger.SuccessfullyFetchedWorkflows(result.Count);
+
+            return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
+        Guid correlationId,
+        string? ns = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflowsByCorrelationId");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.FetchingWorkflows("active (by correlationId)");
+
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var result = await context
+                .GetActiveWorkflows(correlationIdFilter: correlationId, namespaceFilter: ns)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 

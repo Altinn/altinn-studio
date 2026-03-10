@@ -487,6 +487,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             ],
         };
         var metadata1 = new WorkflowRequestMetadata(
+            CorrelationId: Guid.NewGuid(),
             InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
@@ -508,6 +509,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             Steps = [new StepRequest { Command = new Command.AppCommand("step-2a") }],
         };
         var metadata2 = new WorkflowRequestMetadata(
+            CorrelationId: Guid.NewGuid(),
             InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
@@ -654,6 +656,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             ],
         };
         var metadata = new WorkflowRequestMetadata(
+            CorrelationId: Guid.NewGuid(),
             InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",

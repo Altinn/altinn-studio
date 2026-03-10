@@ -16,6 +16,11 @@ internal static class WorkflowTestHelper
     {
         var request = new WorkflowEnqueueRequest
         {
+            CorrelationId = metadata.CorrelationId,
+            Org = metadata.InstanceInformation.Org,
+            App = metadata.InstanceInformation.App,
+            InstanceOwnerPartyId = metadata.InstanceInformation.InstanceOwnerPartyId,
+            InstanceGuid = metadata.InstanceInformation.InstanceGuid,
             Actor = metadata.Actor,
             IdempotencyKey = idempotencyKey ?? Guid.NewGuid().ToString("N"),
             LockToken = metadata.InstanceLockKey,
@@ -77,6 +82,7 @@ internal static class WorkflowTestHelper
         };
 
         var metadata = new WorkflowRequestMetadata(
+            CorrelationId: Guid.NewGuid(),
             InstanceInformation: new InstanceInformation
             {
                 Org = org,

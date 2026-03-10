@@ -16,7 +16,6 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
     private const string InstanceLockToken = EngineAppFixture.DefaultInstanceLockToken;
     private readonly EngineApiClient _client = new(fixture);
     private readonly TestHelpers _testHelpers = new(fixture);
-    private readonly Guid _instanceGuid = Guid.NewGuid();
 
     public async ValueTask InitializeAsync()
     {
@@ -42,9 +41,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Allow a brief window for async telemetry to flush
         await Task.Delay(100, TestContext.Current.CancellationToken);
@@ -127,9 +126,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -192,9 +191,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Failed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
 
         await Task.Delay(200, TestContext.Current.CancellationToken);
 
@@ -245,9 +244,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
             lockToken: InstanceLockToken
         );
 
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Reset collector so we only capture query-related telemetry
         while (collector.Measurements.TryTake(out _))
@@ -256,8 +255,8 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         }
 
         // Act — call both query endpoints
-        await _client.ListActiveWorkflows(_instanceGuid);
-        await _client.GetWorkflow(_instanceGuid, workflowId);
+        await _client.ListActiveWorkflows(request.CorrelationId);
+        await _client.GetWorkflow(workflowId);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
@@ -268,7 +267,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         );
 
         // Assert repository activities for query operations
-        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetActiveWorkflowsForInstance"));
+        Assert.NotEmpty(collector.GetActivities("EngineRepository.GetActiveWorkflowsByCorrelationId"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.GetWorkflow"));
     }
 
@@ -311,9 +310,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         await Task.Delay(100, TestContext.Current.CancellationToken);
 

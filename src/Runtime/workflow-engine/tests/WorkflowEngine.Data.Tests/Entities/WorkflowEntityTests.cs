@@ -9,6 +9,7 @@ public class WorkflowEntityTests
         new()
         {
             Id = Guid.Parse("11111111-2222-3333-4444-555555555555"),
+            CorrelationId = Guid.Parse("22222222-3333-4444-5555-666666666666"),
             IdempotencyKey = "wf-key",
             InstanceLockKey = "lock-key-1",
             OperationId = "next",
@@ -54,6 +55,7 @@ public class WorkflowEntityTests
 
         // Assert
         Assert.Equal(entity.Id, roundTripped.Id);
+        Assert.Equal(entity.CorrelationId, roundTripped.CorrelationId);
         Assert.Equal(entity.InstanceLockKey, roundTripped.InstanceLockKey);
         Assert.Equal(entity.OperationId, roundTripped.OperationId);
         Assert.Equal(entity.CreatedAt, roundTripped.CreatedAt);
@@ -81,6 +83,7 @@ public class WorkflowEntityTests
         var domain = entity.ToDomainModel();
 
         // Assert
+        Assert.Equal(Guid.Parse("22222222-3333-4444-5555-666666666666"), domain.CorrelationId);
         Assert.Equal("user-123", domain.Actor.UserIdOrOrgNumber);
         Assert.Equal("nb", domain.Actor.Language);
         Assert.Equal("ttd", domain.InstanceInformation.Org);

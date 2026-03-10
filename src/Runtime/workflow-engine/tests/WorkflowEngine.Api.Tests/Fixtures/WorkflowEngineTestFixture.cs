@@ -96,6 +96,7 @@ internal sealed record WorkflowEngineTestFixture(
     {
         return new Workflow
         {
+            CorrelationId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"),
             OperationId = "test-operation",
             IdempotencyKey = "test-wf-key",
             Namespace = "default",

@@ -46,6 +46,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public Guid InstanceGuid { get; set; }
 
+    public Guid CorrelationId { get; set; }
+
     public required string Namespace { get; set; }
 
     [MaxLength(100)]
@@ -68,6 +70,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
         var entity = new WorkflowEntity
         {
             Id = workflow.DatabaseId,
+            CorrelationId = workflow.CorrelationId,
             InstanceLockKey = workflow.InstanceLockKey,
             OperationId = workflow.OperationId,
             IdempotencyKey = workflow.IdempotencyKey,
@@ -104,6 +107,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
         new()
         {
             DatabaseId = Id,
+            CorrelationId = CorrelationId,
             InstanceLockKey = InstanceLockKey,
             IdempotencyKey = IdempotencyKey,
             OperationId = OperationId,

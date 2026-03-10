@@ -13,6 +13,11 @@ public partial class EngineTests
         // Arrange
         var request = new WorkflowEnqueueRequest
         {
+            CorrelationId = Guid.NewGuid(),
+            Org = EngineAppFixture.DefaultOrg,
+            App = EngineAppFixture.DefaultApp,
+            InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId),
+            InstanceGuid = Guid.NewGuid(),
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             IdempotencyKey = $"idem-{Guid.NewGuid()}",
             LockToken = null,
@@ -28,7 +33,7 @@ public partial class EngineTests
         };
 
         // Act
-        using var response = await _client.EnqueueRaw(_instanceGuid, request);
+        using var response = await _client.EnqueueRaw(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -48,7 +53,7 @@ public partial class EngineTests
 
         // Act
         using var response = await unauthenticatedClient.PostAsJsonAsync(
-            EngineApiClient.GetInstancePath(_instanceGuid),
+            EngineAppFixture.ApiBasePath,
             request,
             cancellationToken: TestContext.Current.CancellationToken
         );

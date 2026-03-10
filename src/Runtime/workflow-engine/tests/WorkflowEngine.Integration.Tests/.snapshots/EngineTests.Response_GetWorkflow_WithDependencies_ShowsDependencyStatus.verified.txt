@@ -1,7 +1,8 @@
 ﻿{
   databaseId: {Scrubbed},
+  correlationId: Guid_1,
   operationId: op-wf-b,
-  idempotencyKey: idem-Guid_1,
+  idempotencyKey: idem-Guid_2,
   namespace: default,
   createdAt: {Scrubbed},
   updatedAt: {Scrubbed},
@@ -16,7 +17,7 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1/webhook,
+      idempotencyKey: idem-Guid_2/webhook,
       processingOrder: 0,
       updatedAt: {Scrubbed},
       command: {

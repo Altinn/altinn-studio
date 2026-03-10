@@ -14,9 +14,7 @@ internal static class EngineEndpoints
 {
     public static WebApplication MapEngineEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1/workflows/{org}/{app}/{instanceOwnerPartyId:int}/{instanceGuid:guid}")
-            .RequireApiKeyAuthorization()
-            .WithTags("Workflows");
+        var group = app.MapGroup("/api/v1/workflows").RequireApiKeyAuthorization().WithTags("Workflows");
 
         group
             .MapPost("", EngineRequestHandlers.EnqueueWorkflows)
@@ -26,7 +24,7 @@ internal static class EngineEndpoints
         group
             .MapGet("", EngineRequestHandlers.ListActiveWorkflows)
             .WithName("ListActiveWorkflows")
-            .WithDescription("Lists all active workflows for the given instance");
+            .WithDescription("Lists all active workflows for the given correlation ID");
 
         group
             .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
@@ -42,7 +40,6 @@ internal static class EngineEndpoints
 internal static class EngineRequestHandlers
 {
     public static async Task<Results<Ok<WorkflowEnqueueResponse.Accepted>, ProblemHttpResult>> EnqueueWorkflows(
-        [AsParameters] InstanceRouteParams instanceParams,
         [FromBody] WorkflowEnqueueRequest request,
         [FromServices] IEngine engine,
         [FromServices] TimeProvider timeProvider,
@@ -58,8 +55,17 @@ internal static class EngineRequestHandlers
                 statusCode: StatusCodes.Status400BadRequest
             );
 
+        var instanceInformation = new InstanceInformation
+        {
+            Org = request.Org,
+            App = request.App,
+            InstanceOwnerPartyId = request.InstanceOwnerPartyId,
+            InstanceGuid = request.InstanceGuid,
+        };
+
         var metadata = new WorkflowRequestMetadata(
-            instanceParams,
+            request.CorrelationId,
+            instanceInformation,
             request.Actor,
             timeProvider.GetUtcNow(),
             Activity.Current?.Id,
@@ -86,7 +92,7 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
-        [AsParameters] InstanceRouteParams instanceParams,
+        [FromQuery] Guid correlationId,
         [FromQuery(Name = "namespace")] string? ns,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
@@ -94,11 +100,7 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
-        var workflows = await repository.GetActiveWorkflowsForInstance(
-            instanceParams.InstanceGuid,
-            ns,
-            cancellationToken
-        );
+        var workflows = await repository.GetActiveWorkflowsByCorrelationId(correlationId, ns, cancellationToken);
 
         if (workflows.Count == 0)
             return TypedResults.NoContent();
@@ -107,7 +109,6 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
-        [AsParameters] InstanceRouteParams instanceParams,
         [FromRoute] Guid workflowId,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
@@ -120,34 +121,6 @@ internal static class EngineRequestHandlers
         if (workflow is null)
             return TypedResults.NotFound();
 
-        // Prevent cross-instance information disclosure
-        if (workflow.InstanceInformation.InstanceGuid != instanceParams.InstanceGuid)
-            return TypedResults.NotFound();
-
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
     }
-}
-
-internal readonly struct InstanceRouteParams
-{
-    [FromRoute]
-    public string Org { get; init; }
-
-    [FromRoute]
-    public string App { get; init; }
-
-    [FromRoute]
-    public int InstanceOwnerPartyId { get; init; }
-
-    [FromRoute]
-    public Guid InstanceGuid { get; init; }
-
-    public static implicit operator InstanceInformation(InstanceRouteParams routeParams) =>
-        new()
-        {
-            Org = routeParams.Org,
-            App = routeParams.App,
-            InstanceOwnerPartyId = routeParams.InstanceOwnerPartyId,
-            InstanceGuid = routeParams.InstanceGuid,
-        };
 }

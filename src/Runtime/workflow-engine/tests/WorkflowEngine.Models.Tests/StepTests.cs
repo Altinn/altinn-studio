@@ -71,6 +71,7 @@ public class StepTests
         var createdAt = DateTimeOffset.UtcNow;
 
         var metadata = new WorkflowRequestMetadata(
+            CorrelationId: Guid.NewGuid(),
             InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
@@ -109,6 +110,7 @@ public class StepTests
         // Arrange
         var actor = new Actor { UserIdOrOrgNumber = "metadata-user" };
         var metadata = new WorkflowRequestMetadata(
+            CorrelationId: Guid.NewGuid(),
             InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",
@@ -138,6 +140,7 @@ public class StepTests
     {
         // Arrange
         var metadata = new WorkflowRequestMetadata(
+            CorrelationId: Guid.NewGuid(),
             InstanceInformation: new InstanceInformation
             {
                 Org = "ttd",

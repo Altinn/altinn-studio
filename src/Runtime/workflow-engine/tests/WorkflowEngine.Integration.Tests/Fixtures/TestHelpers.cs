@@ -54,9 +54,22 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
     /// <summary>
     /// Wraps a single <see cref="WorkflowRequest"/> in a <see cref="WorkflowEnqueueRequest"/>.
     /// </summary>
-    public WorkflowEnqueueRequest CreateEnqueueRequest(WorkflowRequest workflow, string? lockToken = null) =>
+    public WorkflowEnqueueRequest CreateEnqueueRequest(
+        WorkflowRequest workflow,
+        string? lockToken = null,
+        Guid? correlationId = null,
+        string? org = null,
+        string? app = null,
+        int? instanceOwnerPartyId = null,
+        Guid? instanceGuid = null
+    ) =>
         new()
         {
+            CorrelationId = correlationId ?? Guid.NewGuid(),
+            Org = org ?? EngineAppFixture.DefaultOrg,
+            App = app ?? EngineAppFixture.DefaultApp,
+            InstanceOwnerPartyId = instanceOwnerPartyId ?? int.Parse(EngineAppFixture.DefaultPartyId),
+            InstanceGuid = instanceGuid ?? Guid.NewGuid(),
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             IdempotencyKey = $"idem-{Guid.NewGuid()}",
             LockToken = lockToken,
@@ -68,10 +81,20 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
     /// </summary>
     public WorkflowEnqueueRequest CreateEnqueueRequest(
         IEnumerable<WorkflowRequest> workflows,
-        string? lockToken = null
+        string? lockToken = null,
+        Guid? correlationId = null,
+        string? org = null,
+        string? app = null,
+        int? instanceOwnerPartyId = null,
+        Guid? instanceGuid = null
     ) =>
         new()
         {
+            CorrelationId = correlationId ?? Guid.NewGuid(),
+            Org = org ?? EngineAppFixture.DefaultOrg,
+            App = app ?? EngineAppFixture.DefaultApp,
+            InstanceOwnerPartyId = instanceOwnerPartyId ?? int.Parse(EngineAppFixture.DefaultPartyId),
+            InstanceGuid = instanceGuid ?? Guid.NewGuid(),
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             IdempotencyKey = $"idem-{Guid.NewGuid()}",
             LockToken = lockToken,

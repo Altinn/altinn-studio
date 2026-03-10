@@ -29,6 +29,7 @@ public class WorkflowExtensionsTests
     private static Workflow CreateWorkflow(params Step[] steps) =>
         new()
         {
+            CorrelationId = Guid.NewGuid(),
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
             Namespace = "default",

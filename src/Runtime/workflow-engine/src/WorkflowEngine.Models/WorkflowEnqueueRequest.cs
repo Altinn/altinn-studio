@@ -10,6 +10,13 @@ namespace WorkflowEngine.Models;
 public sealed record WorkflowEnqueueRequest
 {
     /// <summary>
+    /// A correlation ID shared by all workflows in this batch.
+    /// Used for grouping and looking up related workflows.
+    /// </summary>
+    [JsonPropertyName("correlationId")]
+    public required Guid CorrelationId { get; init; }
+
+    /// <summary>
     /// The actor submitting this batch.
     /// </summary>
     [JsonPropertyName("actor")]
@@ -34,6 +41,30 @@ public sealed record WorkflowEnqueueRequest
     /// </summary>
     [JsonPropertyName("namespace")]
     public string? Namespace { get; init; }
+
+    /// <summary>
+    /// The organization that the instance belongs to.
+    /// </summary>
+    [JsonPropertyName("org")]
+    public required string Org { get; init; }
+
+    /// <summary>
+    /// The app that created the instance.
+    /// </summary>
+    [JsonPropertyName("app")]
+    public required string App { get; init; }
+
+    /// <summary>
+    /// The instance owner's party ID.
+    /// </summary>
+    [JsonPropertyName("instanceOwnerPartyId")]
+    public required int InstanceOwnerPartyId { get; init; }
+
+    /// <summary>
+    /// The instance ID.
+    /// </summary>
+    [JsonPropertyName("instanceGuid")]
+    public required Guid InstanceGuid { get; init; }
 
     /// <summary>
     /// The workflows to enqueue.

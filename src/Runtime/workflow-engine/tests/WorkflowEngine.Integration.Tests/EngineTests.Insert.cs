@@ -30,9 +30,9 @@ public partial class EngineTests
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Equal(numSteps, status.Steps.Count);
@@ -63,9 +63,9 @@ public partial class EngineTests
         var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Single(status.Steps);
@@ -89,9 +89,9 @@ public partial class EngineTests
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Single(status.Steps);
@@ -138,9 +138,9 @@ public partial class EngineTests
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Completed, status.OverallStatus);
@@ -173,9 +173,9 @@ public partial class EngineTests
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Failed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Failed, status.OverallStatus);
@@ -201,9 +201,9 @@ public partial class EngineTests
         var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Completed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         var logs = fixture.WireMock.LogEntries;
@@ -259,9 +259,9 @@ public partial class EngineTests
         );
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(_instanceGuid, workflowId, PersistentItemStatus.Failed);
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Failed, status.OverallStatus);
@@ -286,9 +286,8 @@ public partial class EngineTests
         ]);
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var statuses = await _client.WaitForWorkflowStatus(
-            _instanceGuid,
             response.Workflows.Select(w => w.DatabaseId),
             PersistentItemStatus.Completed
         );
@@ -319,9 +318,8 @@ public partial class EngineTests
         ]);
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var statuses = await _client.WaitForWorkflowStatus(
-            _instanceGuid,
             response.Workflows.Select(w => w.DatabaseId),
             PersistentItemStatus.Completed
         );
@@ -358,19 +356,15 @@ public partial class EngineTests
 
         // Act
         var requestA = _testHelpers.CreateEnqueueRequest(workflowA);
-        var responseA = await _client.Enqueue(_instanceGuid, requestA);
+        var responseA = await _client.Enqueue(requestA);
         var workflowAIdA = responseA.Workflows.Single().DatabaseId;
 
         var requestB = _testHelpers.CreateEnqueueRequest(workflowB with { DependsOn = [workflowAIdA] });
-        var responseB = await _client.Enqueue(_instanceGuid, requestB);
+        var responseB = await _client.Enqueue(requestB);
         var workflowIdB = responseB.Workflows.Single().DatabaseId;
 
-        var statusA = await _client.WaitForWorkflowStatus(_instanceGuid, workflowAIdA, PersistentItemStatus.Failed);
-        var statusB = await _client.WaitForWorkflowStatus(
-            _instanceGuid,
-            workflowIdB,
-            PersistentItemStatus.DependencyFailed
-        );
+        var statusA = await _client.WaitForWorkflowStatus(workflowAIdA, PersistentItemStatus.Failed);
+        var statusB = await _client.WaitForWorkflowStatus(workflowIdB, PersistentItemStatus.DependencyFailed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Failed, statusA.OverallStatus);
@@ -410,8 +404,15 @@ public partial class EngineTests
                                [wf-join-all]
          */
 
-        const string request = $$"""
+        var correlationId = Guid.NewGuid();
+        var instanceGuid = Guid.NewGuid();
+        string request = $$"""
             {
+                "correlationId": "{{correlationId}}",
+                "org": "{{EngineAppFixture.DefaultOrg}}",
+                "app": "{{EngineAppFixture.DefaultApp}}",
+                "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
+                "instanceGuid": "{{instanceGuid}}",
                 "actor": {
                     "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}",
                     "language": "nb"
@@ -549,9 +550,8 @@ public partial class EngineTests
             """;
 
         // Act
-        var response = await _client.Enqueue(_instanceGuid, request);
+        var response = await _client.Enqueue(request);
         var statuses = await _client.WaitForWorkflowStatus(
-            _instanceGuid,
             response.Workflows.Select(w => w.DatabaseId),
             PersistentItemStatus.Completed
         );

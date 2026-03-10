@@ -29,6 +29,7 @@ internal sealed class Engine(WorkflowWriteBuffer _writeBuffer) : IEngine
             [
                 ("request.actor.id", request.Actor.UserIdOrOrgNumber),
                 ("request.workflows.count", request.Workflows.Count),
+                ("request.correlationId", metadata.CorrelationId),
                 ("request.instance.guid", metadata.InstanceInformation.InstanceGuid),
                 ("request.instance.party.id", metadata.InstanceInformation.InstanceOwnerPartyId),
                 ("request.instance.app", $"{metadata.InstanceInformation.Org}/{metadata.InstanceInformation.App}"),

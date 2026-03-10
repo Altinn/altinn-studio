@@ -16,106 +16,40 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
     /// <summary>
     /// Enqueues a batch and asserts a 2xx response. Throws on failure.
     /// </summary>
-    public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
-        string org,
-        string app,
-        string partyId,
-        Guid instanceGuid,
-        WorkflowEnqueueRequest request
-    )
+    public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(WorkflowEnqueueRequest request)
     {
-        using var response = await _client.PostAsJsonAsync(GetInstancePath(org, app, partyId, instanceGuid), request);
+        using var response = await _client.PostAsJsonAsync(EngineAppFixture.ApiBasePath, request);
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
     }
 
-    /// <inheritdoc cref="Enqueue(string, string, string, Guid, WorkflowEnqueueRequest)" />
-    public Task<WorkflowEnqueueResponse.Accepted> Enqueue(Guid instanceGuid, WorkflowEnqueueRequest request) =>
-        Enqueue(
-            EngineAppFixture.DefaultOrg,
-            EngineAppFixture.DefaultApp,
-            EngineAppFixture.DefaultPartyId,
-            instanceGuid,
-            request
-        );
-
-    /// <inheritdoc cref="Enqueue(string, string, string, Guid, WorkflowEnqueueRequest)" />
-    public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(
-        string org,
-        string app,
-        string partyId,
-        Guid instanceGuid,
-        string jsonRequest
-    )
+    /// <summary>
+    /// Enqueues a batch from raw JSON and asserts a 2xx response. Throws on failure.
+    /// </summary>
+    public async Task<WorkflowEnqueueResponse.Accepted> Enqueue(string jsonRequest)
     {
         using var content = new StringContent(jsonRequest, new UTF8Encoding(), "application/json");
-        using var response = await _client.PostAsync(GetInstancePath(org, app, partyId, instanceGuid), content);
+        using var response = await _client.PostAsync(EngineAppFixture.ApiBasePath, content);
         return await AssertSuccessAndDeserialize<WorkflowEnqueueResponse.Accepted>(response);
     }
-
-    /// <inheritdoc cref="Enqueue(string, string, string, Guid, WorkflowEnqueueRequest)" />
-    public Task<WorkflowEnqueueResponse.Accepted> Enqueue(Guid instanceGuid, string jsonRequest) =>
-        Enqueue(
-            EngineAppFixture.DefaultOrg,
-            EngineAppFixture.DefaultApp,
-            EngineAppFixture.DefaultPartyId,
-            instanceGuid,
-            jsonRequest
-        );
 
     /// <summary>
     /// Enqueues a batch and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> EnqueueRaw(
-        string org,
-        string app,
-        string partyId,
-        Guid instanceGuid,
-        WorkflowEnqueueRequest request
-    ) => _client.PostAsJsonAsync(GetInstancePath(org, app, partyId, instanceGuid), request);
-
-    /// <inheritdoc cref="EnqueueRaw(string, string, string, Guid, WorkflowEnqueueRequest)" />
-    public Task<HttpResponseMessage> EnqueueRaw(Guid instanceGuid, WorkflowEnqueueRequest request) =>
-        EnqueueRaw(
-            EngineAppFixture.DefaultOrg,
-            EngineAppFixture.DefaultApp,
-            EngineAppFixture.DefaultPartyId,
-            instanceGuid,
-            request
-        );
+    public Task<HttpResponseMessage> EnqueueRaw(WorkflowEnqueueRequest request) =>
+        _client.PostAsJsonAsync(EngineAppFixture.ApiBasePath, request);
 
     /// <summary>
     /// Gets a workflow status and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> GetWorkflowRaw(
-        string org,
-        string app,
-        string partyId,
-        Guid instanceGuid,
-        Guid workflowId
-    ) => _client.GetAsync($"{GetInstancePath(org, app, partyId, instanceGuid)}/{workflowId}", CancellationToken.None);
-
-    /// <inheritdoc cref="GetWorkflowRaw(string, string, string, Guid, Guid)" />
-    public Task<HttpResponseMessage> GetWorkflowRaw(Guid instanceGuid, Guid workflowId) =>
-        GetWorkflowRaw(
-            EngineAppFixture.DefaultOrg,
-            EngineAppFixture.DefaultApp,
-            EngineAppFixture.DefaultPartyId,
-            instanceGuid,
-            workflowId
-        );
+    public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId) =>
+        _client.GetAsync($"{EngineAppFixture.ApiBasePath}/{workflowId}", CancellationToken.None);
 
     /// <summary>
     /// Gets a workflow status and returns either a parsed result or <c>null</c> on 404.
     /// </summary>
-    public async Task<WorkflowStatusResponse?> GetWorkflow(
-        string org,
-        string app,
-        string partyId,
-        Guid instanceGuid,
-        Guid workflowId
-    )
+    public async Task<WorkflowStatusResponse?> GetWorkflow(Guid workflowId)
     {
-        using var response = await GetWorkflowRaw(org, app, partyId, instanceGuid, workflowId);
+        using var response = await GetWorkflowRaw(workflowId);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
@@ -133,27 +67,12 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         return await AssertSuccessAndDeserialize<WorkflowStatusResponse>(response);
     }
 
-    /// <inheritdoc cref="GetWorkflow(string, string, string, Guid, Guid)" />
-    public Task<WorkflowStatusResponse?> GetWorkflow(Guid instanceGuid, Guid workflowId) =>
-        GetWorkflow(
-            EngineAppFixture.DefaultOrg,
-            EngineAppFixture.DefaultApp,
-            EngineAppFixture.DefaultPartyId,
-            instanceGuid,
-            workflowId
-        );
-
     /// <summary>
-    /// Lists active workflows and returns either a parsed result or an empty list on 204 No Content.
+    /// Lists active workflows by correlation ID and returns either a parsed result or an empty list on 204 No Content.
     /// </summary>
-    public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(
-        string org,
-        string app,
-        string partyId,
-        Guid instanceGuid
-    )
+    public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(Guid correlationId)
     {
-        using var response = await _client.GetAsync(GetInstancePath(org, app, partyId, instanceGuid));
+        using var response = await _client.GetAsync($"{EngineAppFixture.ApiBasePath}?correlationId={correlationId}");
 
         if (response.StatusCode == HttpStatusCode.NoContent)
             return [];
@@ -161,24 +80,11 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         return await AssertSuccessAndDeserialize<List<WorkflowStatusResponse>>(response);
     }
 
-    /// <inheritdoc cref="ListActiveWorkflows(string, string, string, Guid)" />
-    public Task<List<WorkflowStatusResponse>> ListActiveWorkflows(Guid instanceGuid) =>
-        ListActiveWorkflows(
-            EngineAppFixture.DefaultOrg,
-            EngineAppFixture.DefaultApp,
-            EngineAppFixture.DefaultPartyId,
-            instanceGuid
-        );
-
     /// <summary>
-    /// Polls <see cref="GetWorkflow(string,string,string,System.Guid,System.Guid)"/> every 100 ms until the workflow reaches
+    /// Polls <see cref="GetWorkflow(System.Guid)"/> every 100 ms until the workflow reaches
     /// <paramref name="expectedStatus"/> or the <paramref name="timeout"/> expires.
     /// </summary>
     public async Task<WorkflowStatusResponse> WaitForWorkflowStatus(
-        string org,
-        string app,
-        string partyId,
-        Guid instanceGuid,
         Guid workflowId,
         PersistentItemStatus expectedStatus,
         TimeSpan? timeout = null
@@ -190,7 +96,7 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         {
             cts.Token.ThrowIfCancellationRequested();
 
-            var workflow = await GetWorkflow(org, app, partyId, instanceGuid, workflowId);
+            var workflow = await GetWorkflow(workflowId);
             if (workflow?.OverallStatus == expectedStatus)
                 return workflow;
 
@@ -198,70 +104,19 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         }
     }
 
-    /// <inheritdoc cref="WaitForWorkflowStatus"/>
-    public Task<WorkflowStatusResponse> WaitForWorkflowStatus(
-        Guid instanceGuid,
-        Guid workflowId,
-        PersistentItemStatus expectedStatus,
-        TimeSpan? timeout = null
-    ) =>
-        WaitForWorkflowStatus(
-            EngineAppFixture.DefaultOrg,
-            EngineAppFixture.DefaultApp,
-            EngineAppFixture.DefaultPartyId,
-            instanceGuid,
-            workflowId,
-            expectedStatus,
-            timeout
-        );
-
     /// <summary>
     /// Waits for all workflows in <paramref name="workflowIds"/> to reach
     /// <paramref name="expectedStatus"/> concurrently or the <paramref name="timeout"/> expires.
     /// </summary>
     public async Task<List<WorkflowStatusResponse>> WaitForWorkflowStatus(
-        string org,
-        string app,
-        string partyId,
-        Guid instanceGuid,
         IEnumerable<Guid> workflowIds,
         PersistentItemStatus expectedStatus,
         TimeSpan? timeout = null
     )
     {
-        var tasks = workflowIds.Select(id =>
-            WaitForWorkflowStatus(org, app, partyId, instanceGuid, id, expectedStatus, timeout)
-        );
+        var tasks = workflowIds.Select(id => WaitForWorkflowStatus(id, expectedStatus, timeout));
         return [.. await Task.WhenAll(tasks)];
     }
-
-    /// <inheritdoc cref="WaitForWorkflowStatus(string,string,string,System.Guid,System.Collections.Generic.IEnumerable{System.Guid},WorkflowEngine.Models.PersistentItemStatus,System.TimeSpan?)"/>
-    public Task<List<WorkflowStatusResponse>> WaitForWorkflowStatus(
-        Guid instanceGuid,
-        IEnumerable<Guid> workflowIds,
-        PersistentItemStatus expectedStatus,
-        TimeSpan? timeout = null
-    ) =>
-        WaitForWorkflowStatus(
-            EngineAppFixture.DefaultOrg,
-            EngineAppFixture.DefaultApp,
-            EngineAppFixture.DefaultPartyId,
-            instanceGuid,
-            workflowIds,
-            expectedStatus,
-            timeout
-        );
-
-    internal static string GetInstancePath(string org, string app, string partyId, Guid instanceGuid) =>
-        $"{EngineAppFixture.ApiBasePath}/{org}/{app}/{partyId}/{instanceGuid}";
-
-    internal static string GetInstancePath(Guid instanceGuid) =>
-        GetInstancePath(
-            EngineAppFixture.DefaultOrg,
-            EngineAppFixture.DefaultApp,
-            EngineAppFixture.DefaultPartyId,
-            instanceGuid
-        );
 
     public static async Task<T> AssertSuccessAndDeserialize<T>(HttpResponseMessage response)
     {

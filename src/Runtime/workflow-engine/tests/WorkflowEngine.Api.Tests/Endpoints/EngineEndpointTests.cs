@@ -9,18 +9,16 @@ namespace WorkflowEngine.Api.Tests.Endpoints;
 
 public class EngineEndpointTests
 {
-    private static InstanceRouteParams _defaultRouteParams =>
-        new()
-        {
-            Org = "ttd",
-            App = "test-app",
-            InstanceOwnerPartyId = 12345,
-            InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-        };
+    private static readonly Guid DefaultCorrelationId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
 
     private static WorkflowEnqueueRequest _defaultWorkflowRequest =>
         new()
         {
+            CorrelationId = DefaultCorrelationId,
+            Org = "ttd",
+            App = "test-app",
+            InstanceOwnerPartyId = 12345,
+            InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             IdempotencyKey = "default-idempotency-key",
             Workflows =
@@ -57,7 +55,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
-            _defaultRouteParams,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -89,7 +86,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
-            _defaultRouteParams,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -118,7 +114,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
-            _defaultRouteParams,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -136,6 +131,11 @@ public class EngineEndpointTests
         // Arrange — create a request with a dependency cycle
         var request = new WorkflowEnqueueRequest
         {
+            CorrelationId = DefaultCorrelationId,
+            Org = "ttd",
+            App = "test-app",
+            InstanceOwnerPartyId = 12345,
+            InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             IdempotencyKey = "cycle-key",
             Workflows =
@@ -170,7 +170,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
-            _defaultRouteParams,
             request,
             engineMock.Object,
             TimeProvider.System,
@@ -188,6 +187,11 @@ public class EngineEndpointTests
         // Arrange — request contains an AppCommand step but no LockToken
         var request = new WorkflowEnqueueRequest
         {
+            CorrelationId = DefaultCorrelationId,
+            Org = "ttd",
+            App = "test-app",
+            InstanceOwnerPartyId = 12345,
+            InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             IdempotencyKey = "lock-test-key",
             LockToken = null,
@@ -206,7 +210,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
-            _defaultRouteParams,
             request,
             engineMock.Object,
             TimeProvider.System,
@@ -233,6 +236,11 @@ public class EngineEndpointTests
         // Arrange — AppCommand step with a LockToken present should reach the engine
         var request = new WorkflowEnqueueRequest
         {
+            CorrelationId = DefaultCorrelationId,
+            Org = "ttd",
+            App = "test-app",
+            InstanceOwnerPartyId = 12345,
+            InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             IdempotencyKey = "lock-test-key",
             LockToken = "some-lock-token",
@@ -264,7 +272,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
-            _defaultRouteParams,
             request,
             engineMock.Object,
             TimeProvider.System,
@@ -285,7 +292,7 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task Enqueue_MetadataIsBuiltFromRequestAndRouteParams()
+    public async Task Enqueue_MetadataIsBuiltFromRequestBody()
     {
         // Arrange — capture the metadata passed to the engine to verify it was built correctly
         WorkflowRequestMetadata? capturedMetadata = null;
@@ -309,7 +316,6 @@ public class EngineEndpointTests
 
         // Act
         await EngineRequestHandlers.EnqueueWorkflows(
-            _defaultRouteParams,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -318,13 +324,14 @@ public class EngineEndpointTests
 
         // Assert
         Assert.NotNull(capturedMetadata);
-        Assert.Equal(_defaultRouteParams.Org, capturedMetadata.InstanceInformation.Org);
-        Assert.Equal(_defaultRouteParams.App, capturedMetadata.InstanceInformation.App);
+        Assert.Equal(_defaultWorkflowRequest.CorrelationId, capturedMetadata.CorrelationId);
+        Assert.Equal(_defaultWorkflowRequest.Org, capturedMetadata.InstanceInformation.Org);
+        Assert.Equal(_defaultWorkflowRequest.App, capturedMetadata.InstanceInformation.App);
         Assert.Equal(
-            _defaultRouteParams.InstanceOwnerPartyId,
+            _defaultWorkflowRequest.InstanceOwnerPartyId,
             capturedMetadata.InstanceInformation.InstanceOwnerPartyId
         );
-        Assert.Equal(_defaultRouteParams.InstanceGuid, capturedMetadata.InstanceInformation.InstanceGuid);
+        Assert.Equal(_defaultWorkflowRequest.InstanceGuid, capturedMetadata.InstanceInformation.InstanceGuid);
         Assert.Equal(_defaultWorkflowRequest.Actor.UserIdOrOrgNumber, capturedMetadata.Actor.UserIdOrOrgNumber);
         Assert.Equal(_defaultWorkflowRequest.LockToken, capturedMetadata.InstanceLockKey);
     }
@@ -341,13 +348,17 @@ public class EngineEndpointTests
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r =>
-                r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+                r.GetActiveWorkflowsByCorrelationId(
+                    It.IsAny<Guid>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync([workflow]);
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
-            _defaultRouteParams,
+            DefaultCorrelationId,
             null,
             repositoryMock.Object,
             CancellationToken.None
@@ -368,13 +379,17 @@ public class EngineEndpointTests
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r =>
-                r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+                r.GetActiveWorkflowsByCorrelationId(
+                    It.IsAny<Guid>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync([]);
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
-            _defaultRouteParams,
+            DefaultCorrelationId,
             null,
             repositoryMock.Object,
             CancellationToken.None
@@ -385,28 +400,32 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task ListWorkflows_UsesInstanceGuidFromRouteParams()
+    public async Task ListWorkflows_UsesCorrelationId()
     {
         // Arrange
         Guid? capturedGuid = null;
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r =>
-                r.GetActiveWorkflowsForInstance(It.IsAny<Guid>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+                r.GetActiveWorkflowsByCorrelationId(
+                    It.IsAny<Guid>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .Callback<Guid, string?, CancellationToken>((guid, _, _) => capturedGuid = guid)
             .ReturnsAsync([]);
 
         // Act
         await EngineRequestHandlers.ListActiveWorkflows(
-            _defaultRouteParams,
+            DefaultCorrelationId,
             null,
             repositoryMock.Object,
             CancellationToken.None
         );
 
         // Assert
-        Assert.Equal(_defaultRouteParams.InstanceGuid, capturedGuid);
+        Assert.Equal(DefaultCorrelationId, capturedGuid);
     }
 
     // === GetWorkflow Handler Tests ===
@@ -418,16 +437,17 @@ public class EngineEndpointTests
         var step = WorkflowEngineTestFixture.CreateStep(new Command.Debug.Noop());
         var workflow = new Workflow
         {
+            CorrelationId = DefaultCorrelationId,
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
             Namespace = "default",
             Actor = new Actor { UserIdOrOrgNumber = "test-user" },
             InstanceInformation = new InstanceInformation
             {
-                Org = _defaultRouteParams.Org,
-                App = _defaultRouteParams.App,
-                InstanceOwnerPartyId = _defaultRouteParams.InstanceOwnerPartyId,
-                InstanceGuid = _defaultRouteParams.InstanceGuid,
+                Org = "ttd",
+                App = "test-app",
+                InstanceOwnerPartyId = 12345,
+                InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
             },
             Steps = [step],
         };
@@ -438,7 +458,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
-            _defaultRouteParams,
             workflowGuid,
             repositoryMock.Object,
             CancellationToken.None
@@ -462,7 +481,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
-            _defaultRouteParams,
             Guid.NewGuid(),
             repositoryMock.Object,
             CancellationToken.None
@@ -470,66 +488,5 @@ public class EngineEndpointTests
 
         // Assert
         Assert.IsType<NotFound>(result.Result);
-    }
-
-    [Fact]
-    public async Task GetWorkflow_WrongInstance_Returns404()
-    {
-        // Arrange — workflow belongs to a different instance
-        var step = WorkflowEngineTestFixture.CreateStep(new Command.Debug.Noop());
-        var workflow = new Workflow
-        {
-            OperationId = "test-op",
-            IdempotencyKey = "wf-key",
-            Namespace = "default",
-            Actor = new Actor { UserIdOrOrgNumber = "test-user" },
-            InstanceInformation = new InstanceInformation
-            {
-                Org = "other-org",
-                App = "other-app",
-                InstanceOwnerPartyId = 99999,
-                InstanceGuid = Guid.NewGuid(), // Different from _defaultRouteParams
-            },
-            Steps = [step],
-        };
-
-        var workflowGuid = Guid.NewGuid();
-        var repositoryMock = new Mock<IEngineRepository>();
-        repositoryMock.Setup(r => r.GetWorkflow(workflowGuid, It.IsAny<CancellationToken>())).ReturnsAsync(workflow);
-
-        // Act
-        var result = await EngineRequestHandlers.GetWorkflow(
-            _defaultRouteParams,
-            workflowGuid,
-            repositoryMock.Object,
-            CancellationToken.None
-        );
-
-        // Assert — cross-instance disclosure prevention
-        Assert.IsType<NotFound>(result.Result);
-    }
-
-    // === InstanceRouteParams Conversion Tests ===
-
-    [Fact]
-    public void InstanceRouteParams_ImplicitConversion_MapsAllFields()
-    {
-        // Arrange
-        var routeParams = new InstanceRouteParams
-        {
-            Org = "ttd",
-            App = "my-app",
-            InstanceOwnerPartyId = 99999,
-            InstanceGuid = Guid.Parse("11111111-2222-3333-4444-555555555555"),
-        };
-
-        // Act
-        InstanceInformation info = routeParams;
-
-        // Assert
-        Assert.Equal("ttd", info.Org);
-        Assert.Equal("my-app", info.App);
-        Assert.Equal(99999, info.InstanceOwnerPartyId);
-        Assert.Equal(Guid.Parse("11111111-2222-3333-4444-555555555555"), info.InstanceGuid);
     }
 }

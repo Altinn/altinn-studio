@@ -31,6 +31,7 @@ public interface IEngineRepository
         string? app = null,
         string? party = null,
         string? instanceGuid = null,
+        string? correlationId = null,
         CancellationToken cancellationToken = default
     );
 
@@ -49,6 +50,7 @@ public interface IEngineRepository
         string? app = null,
         string? party = null,
         string? instanceGuid = null,
+        string? correlationId = null,
         CancellationToken cancellationToken = default
     );
 
@@ -83,6 +85,16 @@ public interface IEngineRepository
     /// </summary>
     Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForInstance(
         Guid instanceGuid,
+        string? ns = null,
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>
+    /// Gets all active (incomplete) workflows for the given correlation ID,
+    /// optionally filtered by namespace.
+    /// </summary>
+    Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
+        Guid correlationId,
         string? ns = null,
         CancellationToken cancellationToken = default
     );

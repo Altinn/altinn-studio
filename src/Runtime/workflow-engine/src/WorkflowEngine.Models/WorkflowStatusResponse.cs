@@ -14,6 +14,12 @@ public sealed record WorkflowStatusResponse
     public Guid DatabaseId { get; init; }
 
     /// <summary>
+    /// The correlation ID for this workflow.
+    /// </summary>
+    [JsonPropertyName("correlationId")]
+    public Guid CorrelationId { get; init; }
+
+    /// <summary>
     /// An identifier for this operation.
     /// </summary>
     [JsonPropertyName("operationId")]
@@ -102,6 +108,7 @@ public sealed record WorkflowStatusResponse
         new()
         {
             DatabaseId = workflow.DatabaseId,
+            CorrelationId = workflow.CorrelationId,
             IdempotencyKey = workflow.IdempotencyKey,
             Namespace = workflow.Namespace,
             OperationId = workflow.OperationId,

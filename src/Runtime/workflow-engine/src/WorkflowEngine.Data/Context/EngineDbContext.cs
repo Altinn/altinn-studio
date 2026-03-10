@@ -30,6 +30,7 @@ internal sealed class EngineDbContext : DbContext
                 e.InstanceGuid,
             });
             entity.HasIndex(e => new { e.InstanceGuid, e.Status });
+            entity.HasIndex(e => e.CorrelationId);
             entity.HasIndex(e => new { e.Namespace, e.Status });
 
             entity
