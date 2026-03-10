@@ -2,6 +2,7 @@
 const { defineConfig } = require('cypress');
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const { existsSync } = require('node:fs');
 const env = require('dotenv').config();
 
 const CYPRESS_WINDOW_WIDTH = env.parsed?.CYPRESS_WINDOW_WIDTH || 1920;
@@ -11,6 +12,7 @@ const CYPRESS_WINDOW_HEIGHT = env.parsed?.CYPRESS_WINDOW_HEIGHT || 1080;
 module.exports = defineConfig({
   e2e: {
     setupNodeEvents(on, config) {
+      const snapshotsPath = path.resolve('snapshots.json');
       require('cypress-terminal-report/src/installLogsPrinter')(on, { printLogsToConsole: 'always' });
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.name === 'electron') {
@@ -42,6 +44,28 @@ module.exports = defineConfig({
             await fs.unlink(results.video);
           }
         }
+      });
+
+      on('task', {
+        /** @see snapshot.ts */
+        async readSnapshot(key) {
+          const snapshots = JSON.parse(await fs.readFile(snapshotsPath, { encoding: 'utf8' }));
+          return snapshots[key];
+        },
+        async snapshotExists(key) {
+          if (!existsSync(snapshotsPath)) {
+            return false;
+          }
+          const snapshots = JSON.parse(await fs.readFile(snapshotsPath, { encoding: 'utf8' }));
+          return Object.prototype.hasOwnProperty.call(snapshots, key);
+        },
+        async writeSnapshot({ key, value }) {
+          const current = existsSync(snapshotsPath)
+            ? JSON.parse(await fs.readFile(snapshotsPath, { encoding: 'utf8' }))
+            : {};
+          await fs.writeFile(snapshotsPath, JSON.stringify({ ...current, [key]: value }, null, 2));
+          return null;
+        },
       });
 
       const validEnvironments = ['docker', 'podman', 'tt02'];

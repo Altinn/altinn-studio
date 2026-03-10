@@ -149,14 +149,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repository">The repository where the resource resides</param>
         /// <param name="id">The id of the resource that should be published</param>
         /// <param name="env">The environment the resource will be published to</param>
-        /// <param name="policy">The policy that goes with the resource</param>
+        /// <param name="policyPath">The path to the policy that goes with the resource</param>
         /// <returns></returns>
         public Task<ActionResult> PublishResource(
             string org,
             string repository,
             string id,
             string env,
-            string policy = null
+            string policyPath = null
         );
 
         /// <summary>

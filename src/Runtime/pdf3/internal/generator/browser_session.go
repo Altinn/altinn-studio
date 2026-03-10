@@ -43,11 +43,19 @@ type browserSession struct {
 	// Error tracking for current request
 	consoleErrors atomic.Int32
 	browserErrors atomic.Int32
+	jsExceptions  atomic.Int32
+	cdpEventsSent atomic.Int32
+	cdpEventsDrop atomic.Int32
 
 	// Shutdown coordination
 	ctx    context.Context
 	cancel context.CancelFunc
 }
+
+const (
+	maxCDPEventsPerRequest  = 24
+	maxCDPPayloadJSONLength = 4096
+)
 
 func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -126,6 +134,7 @@ func (w *browserSession) handleEvent(method string, params any) {
 			if apiType, ok := p["type"].(string); ok && apiType == "error" {
 				w.consoleErrors.Add(1)
 				w.logger.Warn("Console error", "details", p)
+				w.emitCDPEvent("cdp.console.error", method, p)
 			}
 		}
 	case "Log.entryAdded":
@@ -134,8 +143,15 @@ func (w *browserSession) handleEvent(method string, params any) {
 				if level, ok := entry["level"].(string); ok && level == "error" {
 					w.browserErrors.Add(1)
 					w.logger.Warn("Log error", "details", entry)
+					w.emitCDPEvent("cdp.log.error", method, entry)
 				}
 			}
+		}
+	case "Runtime.exceptionThrown":
+		if p, ok := params.(map[string]any); ok {
+			w.jsExceptions.Add(1)
+			w.logger.Warn("Runtime exception observed")
+			w.emitCDPEvent("cdp.runtime.exception", method, p)
 		}
 	}
 }
@@ -161,6 +177,9 @@ func (w *browserSession) handleRequests() {
 			// Reset error counters for this request
 			w.consoleErrors.Store(0)
 			w.browserErrors.Store(0)
+			w.jsExceptions.Store(0)
+			w.cdpEventsSent.Store(0)
+			w.cdpEventsDrop.Store(0)
 			w.tryUpdateTestModeOutput(&req, "Before", false)
 
 			w.currentRequest.Store(&req)
@@ -231,6 +250,8 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 			data.SetSessionID(w.id)
 			data.SetConsoleErrors(int(w.consoleErrors.Load()))
 			data.SetBrowserErrors(int(w.browserErrors.Load()))
+			data.SetJSExceptions(int(w.jsExceptions.Load()))
+			data.SetCDPEventsDropped(int(w.cdpEventsDrop.Load()))
 		}
 		duration := time.Since(start)
 		span.End()
@@ -256,6 +277,36 @@ func (w *browserSession) handleRequest(req *workerRequest) {
 		}
 		req.tryRespondError(mapCustomError(err))
 	}
+}
+
+func (w *browserSession) emitCDPEvent(name, method string, payload any) {
+	req := w.currentRequest.Load()
+	if req == nil || req.ctx == nil {
+		return
+	}
+	span := trace.SpanFromContext(req.ctx)
+	if !span.IsRecording() {
+		return
+	}
+	if w.cdpEventsSent.Add(1) > maxCDPEventsPerRequest {
+		w.cdpEventsDrop.Add(1)
+		return
+	}
+
+	payloadJSON := "{}"
+	if bytes, err := json.Marshal(payload); err == nil {
+		payloadJSON = string(bytes)
+	} else {
+		payloadJSON = fmt.Sprintf(`{"marshal_error":%q}`, err.Error())
+	}
+	if len(payloadJSON) > maxCDPPayloadJSONLength {
+		payloadJSON = payloadJSON[:maxCDPPayloadJSONLength] + "...(truncated)"
+	}
+
+	span.AddEvent(name, trace.WithAttributes(
+		attribute.String("cdp.method", method),
+		attribute.String("cdp.payload_json", payloadJSON),
+	))
 }
 
 func (w *browserSession) generatePdf(req *workerRequest) error {

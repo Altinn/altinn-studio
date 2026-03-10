@@ -122,7 +122,7 @@ namespace LocalTest.Controllers
         [HttpGet("/Home/Localtest/Version")]
         public IActionResult Version()
         {
-            return Ok("3");
+            return Ok("4");
         }
 
         /// <summary>
