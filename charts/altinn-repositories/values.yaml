@@ -146,7 +146,7 @@ proxy:
       - name: OTEL_SERVICE_NAME
         value: studio-gitea-proxy
       - name: OTEL_TRACE
-        value: "true"
+        value: "on"
     staging:
       - name: STUDIO_OIDC_ENABLED
         value: "true"
@@ -155,7 +155,7 @@ proxy:
       - name: OTEL_SERVICE_NAME
         value: studio-gitea-proxy
       - name: OTEL_TRACE
-        value: "true"
+        value: "on"
     prod:
       - name: STUDIO_OIDC_ENABLED
         value: "false"
@@ -164,7 +164,7 @@ proxy:
       - name: OTEL_SERVICE_NAME
         value: studio-gitea-proxy
       - name: OTEL_TRACE
-        value: "true"
+        value: "on"
 
 ingress:
   - metadata:
