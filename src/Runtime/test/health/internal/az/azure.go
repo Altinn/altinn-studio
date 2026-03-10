@@ -39,7 +39,12 @@ func ListClusters() ([]Cluster, error) {
 		cmd := exec.Command("az", args...)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			return nil, fmt.Errorf("failed to query AKS clusters via Resource Graph (page %d): %w (output: %s)", pageNum, err, string(output))
+			return nil, fmt.Errorf(
+				"failed to query AKS clusters via Resource Graph (page %d): %w (output: %s)",
+				pageNum,
+				err,
+				string(output),
+			)
 		}
 
 		var response resourceGraphResponse

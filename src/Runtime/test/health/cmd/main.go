@@ -141,17 +141,19 @@ func runSetWeight() error {
 	args := setWeightCmd.Args()
 
 	if len(args) != 4 {
-		return fmt.Errorf("usage: go run cmd/main.go set-weight [flags] <environments> <namespace/name> <weight1> <weight2>\n\n" +
-			"Arguments:\n" +
-			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
-			"  namespace/name  HTTPRoute location (e.g., pdf/pdf3-migration)\n" +
-			"  weight1         Weight for first backendRef (0-100)\n" +
-			"  weight2         Weight for second backendRef (0-100)\n\n" +
-			"Flags:\n" +
-			"  -s, --service-owner string\n" +
-			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n" +
-			"  --dry-run\n" +
-			"                  Show what would change without applying")
+		return fmt.Errorf(
+			"usage: go run cmd/main.go set-weight [flags] <environments> <namespace/name> <weight1> <weight2>\n\n" +
+				"Arguments:\n" +
+				"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
+				"  namespace/name  HTTPRoute location (e.g., pdf/pdf3-migration)\n" +
+				"  weight1         Weight for first backendRef (0-100)\n" +
+				"  weight2         Weight for second backendRef (0-100)\n\n" +
+				"Flags:\n" +
+				"  -s, --service-owner string\n" +
+				"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n" +
+				"  --dry-run\n" +
+				"                  Show what would change without applying",
+		)
 	}
 
 	environments, err := validateEnvironments(args[0])
@@ -179,7 +181,12 @@ func runSetWeight() error {
 	}
 
 	if weight1+weight2 != 100 {
-		return fmt.Errorf("weights must sum to 100 (got weight1=%d + weight2=%d = %d)", weight1, weight2, weight1+weight2)
+		return fmt.Errorf(
+			"weights must sum to 100 (got weight1=%d + weight2=%d = %d)",
+			weight1,
+			weight2,
+			weight1+weight2,
+		)
 	}
 
 	fmt.Println("Validating prerequisites...")
@@ -253,10 +260,20 @@ func runSetWeight() error {
 			} else {
 				needsUpdate := result.CurrentWeight1 != weight1 || result.CurrentWeight2 != weight2
 				if needsUpdate {
-					fmt.Printf("  → %s: weight1=%d, weight2=%d (will change)\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
+					fmt.Printf(
+						"  → %s: weight1=%d, weight2=%d (will change)\n",
+						result.ClusterName,
+						result.CurrentWeight1,
+						result.CurrentWeight2,
+					)
 					routesToUpdate = append(routesToUpdate, result)
 				} else {
-					fmt.Printf("  ✓ %s: weight1=%d, weight2=%d (already correct)\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
+					fmt.Printf(
+						"  ✓ %s: weight1=%d, weight2=%d (already correct)\n",
+						result.ClusterName,
+						result.CurrentWeight1,
+						result.CurrentWeight2,
+					)
 				}
 			}
 		}
@@ -320,7 +337,12 @@ func runSetWeight() error {
 				fmt.Printf("  ✗ %s: FAILED - %v\n", result.ClusterName, result.Error)
 				updateErrors = true
 			} else {
-				fmt.Printf("  ✓ %s: Successfully updated to weight1=%d, weight2=%d\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
+				fmt.Printf(
+					"  ✓ %s: Successfully updated to weight1=%d, weight2=%d\n",
+					result.ClusterName,
+					result.CurrentWeight1,
+					result.CurrentWeight2,
+				)
 			}
 		}
 	}
@@ -342,14 +364,16 @@ func runStatus() error {
 
 	args := statusCmd.Args()
 	if len(args) != 3 {
-		return fmt.Errorf("usage: go run cmd/main.go status [flags] <environments> <resource-type> <namespace/name>\n\n" +
-			"Arguments:\n" +
-			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
-			"  resource-type   hr (helmrelease) or ks (kustomization) or dep (deployment) or httproute\n" +
-			"  namespace/name  Resource location (e.g., default/my-app)\n\n" +
-			"Flags:\n" +
-			"  -s, --service-owner string\n" +
-			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
+		return fmt.Errorf(
+			"usage: go run cmd/main.go status [flags] <environments> <resource-type> <namespace/name>\n\n" +
+				"Arguments:\n" +
+				"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
+				"  resource-type   hr (helmrelease) or ks (kustomization) or dep (deployment) or httproute\n" +
+				"  namespace/name  Resource location (e.g., default/my-app)\n\n" +
+				"Flags:\n" +
+				"  -s, --service-owner string\n" +
+				"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)",
+		)
 	}
 
 	environments, err := validateEnvironments(args[0])
@@ -970,7 +994,17 @@ func runLogs() error {
 
 	// Aggregate logs with time buffer
 	bufferDuration := 10 * time.Second
-	if err := kubernetes.AggregateLogsWithBuffer(runtimes, namespace, name, outputFile, since, tail, *follow, *timestamps, bufferDuration); err != nil {
+	if err := kubernetes.AggregateLogsWithBuffer(
+		runtimes,
+		namespace,
+		name,
+		outputFile,
+		since,
+		tail,
+		*follow,
+		*timestamps,
+		bufferDuration,
+	); err != nil {
 		return err
 	}
 

@@ -29,7 +29,11 @@ type LogLine struct {
 }
 
 // GetPodsForDeployment retrieves all pod names for a deployment
-func GetPodsForDeployment(ctx context.Context, runtime KubernetesRuntime, namespace, deploymentName string) ([]string, error) {
+func GetPodsForDeployment(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace, deploymentName string,
+) ([]string, error) {
 	client := runtime.GetKubernetesClient()
 	clientset, err := client.Clientset()
 	if err != nil {
@@ -66,14 +70,28 @@ func GetPodsForDeployment(ctx context.Context, runtime KubernetesRuntime, namesp
 	}
 
 	if len(podNames) == 0 {
-		return nil, fmt.Errorf("no pods found for deployment %s in namespace %s (selector: %s)", deploymentName, namespace, labelSelector)
+		return nil, fmt.Errorf(
+			"no pods found for deployment %s in namespace %s (selector: %s)",
+			deploymentName,
+			namespace,
+			labelSelector,
+		)
 	}
 
 	return podNames, nil
 }
 
 // streamLogsFromCluster streams logs from all pods in a cluster to a channel
-func streamLogsFromCluster(ctx context.Context, runtime KubernetesRuntime, namespace, deploymentName string, logsChan chan<- LogLine, since *string, tail *int, follow bool, errorsChan chan<- error) {
+func streamLogsFromCluster(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace, deploymentName string,
+	logsChan chan<- LogLine,
+	since *string,
+	tail *int,
+	follow bool,
+	errorsChan chan<- error,
+) {
 	// Get pods for the deployment
 	pods, err := GetPodsForDeployment(ctx, runtime, namespace, deploymentName)
 	if err != nil {
@@ -105,7 +123,16 @@ func parseSinceDuration(since string) (*int64, error) {
 }
 
 // streamPodLogs streams logs from a single pod
-func streamPodLogs(ctx context.Context, runtime KubernetesRuntime, namespace, podName string, logsChan chan<- LogLine, since *string, tail *int, follow bool, errorsChan chan<- error) {
+func streamPodLogs(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace, podName string,
+	logsChan chan<- LogLine,
+	since *string,
+	tail *int,
+	follow bool,
+	errorsChan chan<- error,
+) {
 	// Build pod log options
 	logOptions := &corev1.PodLogOptions{
 		Follow:     follow,
@@ -189,7 +216,15 @@ func streamPodLogs(ctx context.Context, runtime KubernetesRuntime, namespace, po
 }
 
 // AggregateLogsWithBuffer aggregates logs from multiple clusters with time buffering
-func AggregateLogsWithBuffer(runtimes []KubernetesRuntime, namespace, deploymentName, outputFile string, since *string, tail *int, follow bool, includeTimestamps bool, bufferDuration time.Duration) error {
+func AggregateLogsWithBuffer(
+	runtimes []KubernetesRuntime,
+	namespace, deploymentName, outputFile string,
+	since *string,
+	tail *int,
+	follow bool,
+	includeTimestamps bool,
+	bufferDuration time.Duration,
+) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

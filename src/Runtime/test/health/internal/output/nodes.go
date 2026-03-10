@@ -26,7 +26,10 @@ func PrintNodeResults(w io.Writer, results []kubernetes.NodeResult) {
 	tw := tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 
 	// Table header
-	fmt.Fprintln(tw, "CLUSTER\tK8S VER\tNODES\tPODS\tCPU AVAIL\tCPU/NODE\tCPU USED\tCPU %\tMEM AVAIL\tMEM/NODE\tMEM USED\tMEM %\tNEWEST AGE")
+	fmt.Fprintln(
+		tw,
+		"CLUSTER\tK8S VER\tNODES\tPODS\tCPU AVAIL\tCPU/NODE\tCPU USED\tCPU %\tMEM AVAIL\tMEM/NODE\tMEM USED\tMEM %\tNEWEST AGE",
+	)
 	fmt.Fprintln(tw, strings.Repeat("-", 20)+"\t"+
 		strings.Repeat("-", 10)+"\t"+
 		strings.Repeat("-", 6)+"\t"+

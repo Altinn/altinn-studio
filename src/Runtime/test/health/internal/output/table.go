@@ -77,10 +77,58 @@ func PrintResults(w io.Writer, results []kubernetes.QueryResult) {
 
 	if hasDeploymentInfo {
 		fmt.Fprintln(tw, "CLUSTER\tNAMESPACE/NAME\tTYPE\tSTATUS\tREASON\tPOD AGE\tRESTARTS\tMESSAGE")
-		fmt.Fprintln(tw, strings.Repeat("-", 20)+"\t"+strings.Repeat("-", 20)+"\t"+strings.Repeat("-", 15)+"\t"+strings.Repeat("-", 10)+"\t"+strings.Repeat("-", 15)+"\t"+strings.Repeat("-", 10)+"\t"+strings.Repeat("-", 10)+"\t"+strings.Repeat("-", 120))
+		fmt.Fprintln(
+			tw,
+			strings.Repeat(
+				"-",
+				20,
+			)+"\t"+strings.Repeat(
+				"-",
+				20,
+			)+"\t"+strings.Repeat(
+				"-",
+				15,
+			)+"\t"+strings.Repeat(
+				"-",
+				10,
+			)+"\t"+strings.Repeat(
+				"-",
+				15,
+			)+"\t"+strings.Repeat(
+				"-",
+				10,
+			)+"\t"+strings.Repeat(
+				"-",
+				10,
+			)+"\t"+strings.Repeat(
+				"-",
+				120,
+			),
+		)
 	} else {
 		fmt.Fprintln(tw, "CLUSTER\tNAMESPACE/NAME\tTYPE\tSTATUS\tREASON\tMESSAGE")
-		fmt.Fprintln(tw, strings.Repeat("-", 20)+"\t"+strings.Repeat("-", 20)+"\t"+strings.Repeat("-", 15)+"\t"+strings.Repeat("-", 10)+"\t"+strings.Repeat("-", 15)+"\t"+strings.Repeat("-", 120))
+		fmt.Fprintln(
+			tw,
+			strings.Repeat(
+				"-",
+				20,
+			)+"\t"+strings.Repeat(
+				"-",
+				20,
+			)+"\t"+strings.Repeat(
+				"-",
+				15,
+			)+"\t"+strings.Repeat(
+				"-",
+				10,
+			)+"\t"+strings.Repeat(
+				"-",
+				15,
+			)+"\t"+strings.Repeat(
+				"-",
+				120,
+			),
+		)
 	}
 
 	for _, result := range results {
@@ -220,7 +268,31 @@ func truncate(s string, maxLen int) string {
 // printHTTPRouteResults prints HTTPRoute query results in a specialized table format
 func printHTTPRouteResults(tw *tabwriter.Writer, results []kubernetes.QueryResult) {
 	fmt.Fprintln(tw, "CLUSTER\tNAMESPACE/NAME\tWEIGHT1\tWEIGHT2\tRECONCILE\tANNOTATIONS\tSTATUS")
-	fmt.Fprintln(tw, strings.Repeat("-", 20)+"\t"+strings.Repeat("-", 20)+"\t"+strings.Repeat("-", 8)+"\t"+strings.Repeat("-", 8)+"\t"+strings.Repeat("-", 10)+"\t"+strings.Repeat("-", 40)+"\t"+strings.Repeat("-", 15))
+	fmt.Fprintln(
+		tw,
+		strings.Repeat(
+			"-",
+			20,
+		)+"\t"+strings.Repeat(
+			"-",
+			20,
+		)+"\t"+strings.Repeat(
+			"-",
+			8,
+		)+"\t"+strings.Repeat(
+			"-",
+			8,
+		)+"\t"+strings.Repeat(
+			"-",
+			10,
+		)+"\t"+strings.Repeat(
+			"-",
+			40,
+		)+"\t"+strings.Repeat(
+			"-",
+			15,
+		),
+	)
 
 	for _, result := range results {
 		cluster := result.ClusterName

@@ -11,7 +11,11 @@ import (
 )
 
 // GetHelmRelease retrieves a FluxCD HelmRelease resource from the cluster.
-func GetHelmRelease(ctx context.Context, runtime KubernetesRuntime, namespace, name string) (*helmv2.HelmRelease, error) {
+func GetHelmRelease(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace, name string,
+) (*helmv2.HelmRelease, error) {
 	client := runtime.GetKubernetesClient()
 	dynamicClient, err := client.DynamicClient()
 	if err != nil {
@@ -34,7 +38,11 @@ func GetHelmRelease(ctx context.Context, runtime KubernetesRuntime, namespace, n
 }
 
 // GetKustomization retrieves a FluxCD Kustomization resource from the cluster.
-func GetKustomization(ctx context.Context, runtime KubernetesRuntime, namespace, name string) (*kustomizev1.Kustomization, error) {
+func GetKustomization(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace, name string,
+) (*kustomizev1.Kustomization, error) {
 	client := runtime.GetKubernetesClient()
 	dynamicClient, err := client.DynamicClient()
 	if err != nil {
@@ -49,7 +57,10 @@ func GetKustomization(ctx context.Context, runtime KubernetesRuntime, namespace,
 
 	// Convert unstructured to typed Kustomization
 	var kustomization kustomizev1.Kustomization
-	if err := k8sruntime.DefaultUnstructuredConverter.FromUnstructured(unstructured.Object, &kustomization); err != nil {
+	if err := k8sruntime.DefaultUnstructuredConverter.FromUnstructured(
+		unstructured.Object,
+		&kustomization,
+	); err != nil {
 		return nil, fmt.Errorf("failed to convert kustomization: %w", err)
 	}
 

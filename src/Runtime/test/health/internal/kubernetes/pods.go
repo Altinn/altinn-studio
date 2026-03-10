@@ -27,7 +27,12 @@ func formatAge(d time.Duration) string {
 // Returns (age, restarts) where:
 // - age is the age of the newest pod (e.g., "5m", "2h")
 // - restarts is slash-separated restart counts for all pods (e.g., "0/2/1" for 3 pods)
-func GetPodInfo(ctx context.Context, runtime KubernetesRuntime, namespace string, matchLabels map[string]string) (string, string) {
+func GetPodInfo(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace string,
+	matchLabels map[string]string,
+) (string, string) {
 	// Build label selector
 	var labelSelectors []string
 	for key, value := range matchLabels {

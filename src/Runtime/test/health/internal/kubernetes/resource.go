@@ -25,17 +25,23 @@ type QueryResult struct {
 	Namespace              string
 	Name                   string
 	Conditions             []metav1.Condition
-	PodAge                 *string            // Only populated for Deployment resources
-	PodRestarts            *string            // Only populated for Deployment resources
-	Weight1                *int               // Only populated for HTTPRoute resources
-	Weight2                *int               // Only populated for HTTPRoute resources
-	HasReconcileAnnotation *bool              // Only populated for HTTPRoute resources
-	Annotations            map[string]string  // Only populated for HTTPRoute resources
+	PodAge                 *string           // Only populated for Deployment resources
+	PodRestarts            *string           // Only populated for Deployment resources
+	Weight1                *int              // Only populated for HTTPRoute resources
+	Weight2                *int              // Only populated for HTTPRoute resources
+	HasReconcileAnnotation *bool             // Only populated for HTTPRoute resources
+	Annotations            map[string]string // Only populated for HTTPRoute resources
 	Error                  error
 }
 
 // GetResourceStatus queries a resource (FluxCD or Deployment) and returns its status
-func GetResourceStatus(ctx context.Context, runtime KubernetesRuntime, resourceType ResourceType, namespace string, name string) QueryResult {
+func GetResourceStatus(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	resourceType ResourceType,
+	namespace string,
+	name string,
+) QueryResult {
 	result := QueryResult{
 		ClusterName: runtime.GetName(),
 		Namespace:   namespace,
@@ -143,7 +149,13 @@ func ParseResourceType(input string) (ResourceType, error) {
 }
 
 // QueryAllClusters queries all clusters in parallel with a worker pool
-func QueryAllClusters(runtimes []KubernetesRuntime, resourceType ResourceType, namespace string, name string, maxWorkers int) []QueryResult {
+func QueryAllClusters(
+	runtimes []KubernetesRuntime,
+	resourceType ResourceType,
+	namespace string,
+	name string,
+	maxWorkers int,
+) []QueryResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
