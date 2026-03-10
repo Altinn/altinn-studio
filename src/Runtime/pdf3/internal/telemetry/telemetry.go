@@ -96,7 +96,7 @@ func newTracerProvider(ctx context.Context, res *resource.Resource) (*trace.Trac
 	), nil
 }
 
-// Buckets tailored for PDF generation latencies (0.25s to 35s)
+// Buckets tailored for PDF generation latencies (0.25s to 35s).
 var httpDurationView = metric.NewView(
 	metric.Instrument{
 		Name: "http.server.request.duration",

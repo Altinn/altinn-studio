@@ -10,7 +10,7 @@ import (
 	"altinn.studio/pdf3/test/harness"
 )
 
-// getImageSize queries the container runtime for image size in bytes
+// getImageSize queries the container runtime for image size in bytes.
 func getImageSize(t *testing.T, cli container.ContainerClient, image string) (int64, error) {
 	info, err := cli.ImageInspect(context.Background(), image)
 	if err != nil {
@@ -19,7 +19,7 @@ func getImageSize(t *testing.T, cli container.ContainerClient, image string) (in
 	return info.Size, nil
 }
 
-// roundToNearestMiB converts bytes to MiB and rounds to nearest integer
+// roundToNearestMiB converts bytes to MiB and rounds to nearest integer.
 func roundToNearestMiB(bytes int64) int64 {
 	mib := float64(bytes) / (1024.0 * 1024.0)
 	return int64(math.Round(mib))

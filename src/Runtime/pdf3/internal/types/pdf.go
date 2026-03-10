@@ -14,11 +14,11 @@ import (
 // https://github.com/browserless/browserless/blob/270aca39704908da227c9cc5b6acd50cd6ee5f9f/src/schemas.ts#L194
 
 type PdfRequest struct {
-	URL                  string     `json:"url"`
-	Options              PdfOptions `json:"options"`
-	SetJavaScriptEnabled bool       `json:"setJavaScriptEnabled"`
 	WaitFor              *WaitFor   `json:"waitFor,omitempty"`
+	Options              PdfOptions `json:"options"`
+	URL                  string     `json:"url"`
 	Cookies              []Cookie   `json:"cookies"`
+	SetJavaScriptEnabled bool       `json:"setJavaScriptEnabled"`
 }
 
 type WaitFor struct {
@@ -27,10 +27,10 @@ type WaitFor struct {
 }
 
 type WaitForOptions struct {
-	Selector string `json:"selector"`
 	Visible  *bool  `json:"visible,omitempty"`
 	Hidden   *bool  `json:"hidden,omitempty"`
 	Timeout  *int32 `json:"timeout,omitempty"`
+	Selector string `json:"selector"`
 }
 
 func (w *WaitFor) UnmarshalJSON(data []byte) error {
@@ -77,28 +77,28 @@ func (w *WaitFor) AsOptions() (WaitForOptions, bool) {
 	return opts, ok
 }
 
-// NewWaitForString creates a WaitFor with a string value (event name like "load", "domcontentloaded", "networkidle")
+// NewWaitForString creates a WaitFor with a string value (event name like "load", "domcontentloaded", "networkidle").
 func NewWaitForString(s string) *WaitFor {
 	return &WaitFor{value: s}
 }
 
-// NewWaitForTimeout creates a WaitFor with a timeout in milliseconds
+// NewWaitForTimeout creates a WaitFor with a timeout in milliseconds.
 func NewWaitForTimeout(timeout int32) *WaitFor {
 	return &WaitFor{value: timeout}
 }
 
-// NewWaitForOptions creates a WaitFor with selector options
+// NewWaitForOptions creates a WaitFor with selector options.
 func NewWaitForOptions(opts WaitForOptions) *WaitFor {
 	return &WaitFor{value: opts}
 }
 
 type PdfOptions struct {
+	Margin              PdfMargin `json:"margin"`
 	HeaderTemplate      string    `json:"headerTemplate"`
 	FooterTemplate      string    `json:"footerTemplate"`
+	Format              string    `json:"format"`
 	DisplayHeaderFooter bool      `json:"displayHeaderFooter"`
 	PrintBackground     bool      `json:"printBackground"`
-	Format              string    `json:"format"`
-	Margin              PdfMargin `json:"margin"`
 }
 
 type PdfMargin struct {
@@ -120,8 +120,8 @@ type Cookie struct {
 }
 
 type PdfResult struct {
-	Data    []byte
 	Browser BrowserVersion
+	Data    []byte
 }
 
 type BrowserVersion struct {
@@ -144,8 +144,8 @@ var (
 
 type PDFError struct {
 	Type error
-	Msg  string
 	Err  error
+	Msg  string
 }
 
 func (e *PDFError) Error() string {
@@ -194,7 +194,7 @@ var ValidFormats = []string{
 // - PDF generation max wait timeout is 30s
 // - The total request timeouts becomes 30s + 5s
 // We don't really expect to hit the total request timeout unless the client
-// has spent some time in a retry loop
+// has spent some time in a retry loop.
 const (
 	MaxTimeoutMs int32 = 30_000
 
@@ -219,7 +219,7 @@ func MaxWaitForTimeout() time.Duration {
 // when draining a browser session during restart.
 const SessionDrainTimeout = 60 * time.Second
 
-// Validate validates the PdfRequest according to browserless schema rules
+// Validate validates the PdfRequest according to browserless schema rules.
 func (r *PdfRequest) Validate() error {
 	// Validate URL (required and well-formed)
 	if _, err := url.ParseRequestURI(r.URL); err != nil {

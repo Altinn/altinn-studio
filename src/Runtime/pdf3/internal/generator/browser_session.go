@@ -30,27 +30,22 @@ import (
 )
 
 type browserSession struct {
-	id       int
-	logger   *slog.Logger
-	browser  *browser.Process
-	conn     cdp.Connection
-	targetID string
-	tracer   trace.Tracer
-
-	queue          chan workerRequest
-	state          atomic.Uint32
+	conn           cdp.Connection
+	tracer         trace.Tracer
+	ctx            context.Context
 	currentRequest atomic.Pointer[workerRequest]
-
-	// Error tracking for current request
-	consoleErrors atomic.Int32
-	browserErrors atomic.Int32
-	jsExceptions  atomic.Int32
-	cdpEventsSent atomic.Int32
-	cdpEventsDrop atomic.Int32
-
-	// Shutdown coordination
-	ctx    context.Context
-	cancel context.CancelFunc
+	logger         *slog.Logger
+	browser        *browser.Process
+	cancel         context.CancelFunc
+	queue          chan workerRequest
+	targetID       string
+	id             int
+	consoleErrors  atomic.Int32
+	browserErrors  atomic.Int32
+	jsExceptions   atomic.Int32
+	cdpEventsSent  atomic.Int32
+	cdpEventsDrop  atomic.Int32
+	state          atomic.Uint32
 }
 
 const (
@@ -118,7 +113,7 @@ func newBrowserSession(logger *slog.Logger, id int) (*browserSession, error) {
 }
 
 // tryEnqueue attempts to enqueue a request if the session is ready
-// Returns true if the request was enqueued, false otherwise
+// Returns true if the request was enqueued, false otherwise.
 func (w *browserSession) tryEnqueue(req workerRequest) bool {
 	select {
 	case w.queue <- req:
@@ -424,7 +419,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 			cookieValue := cookie.Value
 			if strings.HasSuffix(cookie.Name, "tracestate") && strings.ContainsRune(cookieValue, ';') {
 				// w3c tracestate values are e.g. baggage and can contain semicolons
-				// semicolons are invalid cookie values (CDP/chrome will complain).
+				// are invalid cookie values (CDP/chrome will complain).
 				// App backend and frontend are being updated to handle this through base64 encoding,
 				// but for now we need to handle this here as well since apps are not updated right away.
 				w.logger.Warn(
@@ -672,7 +667,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 	// Extract PDF data
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		err := fmt.Errorf("invalid PDF response format")
+		err := errors.New("invalid PDF response format")
 		if printSpan.IsRecording() {
 			printSpan.RecordError(err)
 			printSpan.SetStatus(codes.Error, "print_failed")
@@ -683,7 +678,7 @@ func (w *browserSession) generatePdf(req *workerRequest) error {
 
 	dataStr, ok := result["data"].(string)
 	if !ok {
-		err := fmt.Errorf("no PDF data in response")
+		err := errors.New("no PDF data in response")
 		if printSpan.IsRecording() {
 			printSpan.RecordError(err)
 			printSpan.SetStatus(codes.Error, "print_failed")
@@ -778,7 +773,7 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 	if !value {
 		waitForData := waitForToJson(req.request.WaitFor)
 		w.logger.Warn("Wait condition not satisfied within timeout", "waitFor", waitForData)
-		err := fmt.Errorf("timeout")
+		err := errors.New("timeout")
 		req.tryRespondError(types.NewPDFError(types.ErrElementNotReady, "failed waiting for condition", err))
 		return err
 	}
@@ -786,14 +781,14 @@ func (w *browserSession) processWaitResult(req *workerRequest, resp *cdp.CDPResp
 	return nil
 }
 
-// handleWaitError logs and responds with an error for wait failures
+// handleWaitError logs and responds with an error for wait failures.
 func (w *browserSession) handleWaitError(req *workerRequest, logMsg string, data any, errDetail string) error {
 	waitForData := waitForToJson(req.request.WaitFor)
 
 	// Marshal the data for logging
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
-		dataBytes = []byte(fmt.Sprintf("(marshal error: %v)", err))
+		dataBytes = fmt.Appendf(nil, "(marshal error: %v)", err)
 	}
 
 	w.logger.Error(logMsg, "waitFor", waitForData, "data", string(dataBytes))
@@ -1002,7 +997,7 @@ func (w *browserSession) getCookies() ([]map[string]any, error) {
 
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("invalid cookie response format")
+		return nil, errors.New("invalid cookie response format")
 	}
 
 	cookies, ok := result["cookies"].([]any)
@@ -1109,7 +1104,7 @@ func (w *browserSession) cleanupBrowser(req *workerRequest) {
 		}
 		if response.Resp.Error != nil {
 			json, _ := json.Marshal(response.Resp.Error)
-			errors.WriteString(string(json))
+			errors.Write(json)
 			errors.WriteByte('\n')
 		}
 	}
@@ -1169,7 +1164,7 @@ func (w *browserSession) close() {
 	w.logger.Info("Worker closed")
 }
 
-// isProcessing returns true if a request is currently being processed, or if there is a queue
+// isProcessing returns true if a request is currently being processed, or if there is a queue.
 func (w *browserSession) isProcessing() bool {
 	// NOTE: this should not be racy because we only call this when
 	// the sesions has been "swapped away" during session recycling..
@@ -1178,7 +1173,7 @@ func (w *browserSession) isProcessing() bool {
 	return w.currentRequest.Load() != nil || queued > 0
 }
 
-// waitForDrain waits for active request to complete, up to timeout
+// waitForDrain waits for active request to complete, up to timeout.
 func (w *browserSession) waitForDrain(timeout time.Duration) bool {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
@@ -1218,7 +1213,7 @@ var unitToPixels = map[string]float64{
 
 // convertMargin converts margin strings to inches (compatible with Puppeteer)
 // Supports: px, in, cm, mm
-// Numbers without units are treated as pixels
+// Numbers without units are treated as pixels.
 func convertMargin(margin string) float64 {
 	margin = strings.TrimSpace(margin)
 	if margin == "" {

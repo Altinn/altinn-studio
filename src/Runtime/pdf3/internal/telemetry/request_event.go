@@ -15,9 +15,9 @@ import (
 type requestEventKey struct{}
 
 type RequestEventData struct {
-	mu    sync.Mutex
-	attrs []attribute.KeyValue
 	index map[attribute.Key]int
+	attrs []attribute.KeyValue
+	mu    sync.Mutex
 }
 
 func NewRequestEventData() *RequestEventData {

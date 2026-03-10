@@ -31,8 +31,8 @@ func TestMain(m *testing.M) {
 }
 
 type testCase struct {
-	name  string
 	input *ptesting.PdfInternalsTestInput
+	name  string
 }
 
 type requestResult struct {
@@ -63,7 +63,7 @@ func runSmokeTest(t *testing.T, testCase *testCase) {
 	results := make(chan requestResult, concurrentRequests)
 
 	// Send concurrent requests
-	for index := 0; index < concurrentRequests; index++ {
+	for index := range concurrentRequests {
 		go func(index int) {
 			req := harness.GetDefaultPdfRequest(t)
 			req.URL = fmt.Sprintf("%s?render=light&i=%d", req.URL, index)
@@ -97,7 +97,7 @@ func runSmokeTest(t *testing.T, testCase *testCase) {
 				if output, err := resp.LoadOutput(t); err != nil {
 					result.errors = append(
 						result.errors,
-						fmt.Errorf("request %d: failed to load test output: %v", index, err),
+						fmt.Errorf("request %d: failed to load test output: %w", index, err),
 					)
 				} else if output != nil && output.HadErrors() {
 					result.errors = append(
@@ -113,7 +113,7 @@ func runSmokeTest(t *testing.T, testCase *testCase) {
 	var failures []error
 	errorsDueTo429 := 0
 	successes := 0
-	for i := 0; i < concurrentRequests; i++ {
+	for range concurrentRequests {
 		t := true
 		f := false
 		result := <-results

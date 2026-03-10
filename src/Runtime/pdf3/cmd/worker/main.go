@@ -155,7 +155,7 @@ func main() {
 
 	go func() {
 		logger.Info("Starting worker HTTP server", "addr", httpServer.Addr)
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error("HTTP server crashed", "error", err)
 			os.Exit(1)
 		}
@@ -400,7 +400,7 @@ var errInvalidLocaltestPublicBaseURL = errors.New("invalid localtest public base
 func generatePdfHandler(logger *slog.Logger, gen types.PdfGenerator) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Worker-Id", workerId)
-		w.Header().Set("X-Worker-IP", workerIP)
+		w.Header().Set("X-Worker-Ip", workerIP)
 
 		data := telemetry.NewRequestEventData()
 		r = r.WithContext(telemetry.WithRequestEventData(r.Context(), data))
@@ -515,7 +515,7 @@ func discoverLocalIP() (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("no non-loopback IPv4 address found")
+	return "", errors.New("no non-loopback IPv4 address found")
 }
 
 func getTestOutputHandler(logger *slog.Logger) http.HandlerFunc {

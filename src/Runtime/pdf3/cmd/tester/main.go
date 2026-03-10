@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -70,7 +71,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  --keep-running, --kr  Keep cluster running after loadtest completes")
 }
 
-// setupRuntime sets up the Kind cluster, builds images, and deploys pdf3
+// setupRuntime sets up the Kind cluster, builds images, and deploys pdf3.
 func setupRuntime(
 	variant kind.KindContainerRuntimeVariant,
 	options kind.KindContainerRuntimeOptions,
@@ -99,7 +100,7 @@ func setupRuntime(
 		Deployments: []harness.Deployment{{
 			Name: "pdf3",
 			Kustomize: &harness.KustomizeDeploy{
-				SyncRootDir:       fmt.Sprintf("infra/kustomize/local-syncroot-%s", variantName),
+				SyncRootDir:       "infra/kustomize/local-syncroot-" + variantName,
 				KustomizationName: "pdf3-app",
 				Namespace:         "runtime-pdf3",
 				Rollouts: []harness.Rollout{
@@ -285,7 +286,8 @@ func runTest() {
 		if runBoth || *runSimple {
 			fmt.Println("Running simple integration tests...")
 			if err := runTests(projectRoot, "./test/integration/simple/..."); err != nil {
-				if exitErr, ok := err.(*exec.ExitError); ok {
+				exitErr := &exec.ExitError{}
+				if errors.As(err, &exitErr) {
 					testExitCode = exitErr.ExitCode()
 				} else {
 					testExitCode = 1
@@ -302,7 +304,8 @@ func runTest() {
 		if testExitCode == 0 && (runBoth || *runSmoke) {
 			fmt.Println("Running smoke integration tests...")
 			if err := runTests(projectRoot, "./test/integration/smoke/..."); err != nil {
-				if exitErr, ok := err.(*exec.ExitError); ok {
+				exitErr := &exec.ExitError{}
+				if errors.As(err, &exitErr) {
 					testExitCode = exitErr.ExitCode()
 				} else {
 					testExitCode = 1
@@ -349,7 +352,7 @@ func runTest() {
 	fmt.Println("\n=== All Tests PASSED ===")
 }
 
-// runTests executes go test for the specified package path
+// runTests executes go test for the specified package path.
 func runTests(projectRoot, packagePath string) error {
 	cmd := exec.Command("go", "test", "-count=1", "-timeout", "5m", packagePath)
 	cmd.Dir = projectRoot
@@ -359,7 +362,7 @@ func runTests(projectRoot, packagePath string) error {
 	return cmd.Run()
 }
 
-// collectLogs collects logs from pdf3 components using kubectl
+// collectLogs collects logs from pdf3 components using kubectl.
 func collectLogs(runtime *kind.KindContainerRuntime, logsDir string, sinceSeconds int) error {
 	kubernetesClient := runtime.KubernetesClient
 
@@ -394,18 +397,18 @@ func collectLogs(runtime *kind.KindContainerRuntime, logsDir string, sinceSecond
 	return nil
 }
 
-// findK6 locates k6 in PATH
+// findK6 locates k6 in PATH.
 func findK6() (string, error) {
 	path, err := exec.LookPath("k6")
 	if err != nil {
-		return "", fmt.Errorf(
+		return "", errors.New(
 			"k6 not found in PATH. Install via: https://grafana.com/docs/k6/latest/set-up/install-k6/",
 		)
 	}
 	return path, nil
 }
 
-// findChromePath locates the chrome-headless-shell executable in .cache
+// findChromePath locates the chrome-headless-shell executable in .cache.
 func findChromePath(projectRoot string) (string, error) {
 	pattern := filepath.Join(
 		projectRoot,
@@ -420,7 +423,7 @@ func findChromePath(projectRoot string) (string, error) {
 		return "", fmt.Errorf("failed to search for chrome: %w", err)
 	}
 	if len(matches) == 0 {
-		return "", fmt.Errorf("chrome-headless-shell not found in .cache (run 'make browser' to download)")
+		return "", errors.New("chrome-headless-shell not found in .cache (run 'make browser' to download)")
 	}
 	// If multiple versions exist, return the first match (could sort by version if needed)
 	return matches[0], nil
@@ -496,7 +499,7 @@ func runLoadtestEnv() {
 		}
 	}
 	fmt.Printf("✓ Chrome found at: %s\n", chromePath)
-	env = append(env, fmt.Sprintf("K6_BROWSER_EXECUTABLE_PATH=%s", chromePath))
+	env = append(env, "K6_BROWSER_EXECUTABLE_PATH="+chromePath)
 	env = append(env, "K6_WEB_DASHBOARD=true")
 
 	// Read k6 test script

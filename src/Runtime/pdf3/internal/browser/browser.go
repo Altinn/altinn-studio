@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"sort"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -17,7 +18,7 @@ import (
 
 const browserPath string = "/headless-shell/headless-shell"
 
-// Process represents a running browser process with its connection details
+// Process represents a running browser process with its connection details.
 type Process struct {
 	Cmd          *exec.Cmd
 	DebugPort    string
@@ -44,7 +45,7 @@ func Start(id int) (*Process, error) {
 		if strings.HasPrefix(arg, "--user-data-dir=") {
 			if id >= 0 {
 				dataDir = fmt.Sprintf("/tmp/browser-%d", id)
-				args[i] = fmt.Sprintf("--user-data-dir=%s", dataDir)
+				args[i] = "--user-data-dir=" + dataDir
 			} else {
 				dataDir = "/tmp/browser-init"
 				args[i] = "--user-data-dir=/tmp/browser-init"
@@ -66,7 +67,7 @@ func Start(id int) (*Process, error) {
 
 	cmd := exec.Command(browserPath, args...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	debugPortStr := fmt.Sprintf("%d", debugPort)
+	debugPortStr := strconv.Itoa(debugPort)
 	debugBaseURL := fmt.Sprintf("http://127.0.0.1:%d", debugPort)
 	cmdLogger := &cmdToLogger{logger: logger}
 	cmd.Stdout = cmdLogger
@@ -94,7 +95,7 @@ func (l *cmdToLogger) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// Close terminates the browser process and removes its data directory
+// Close terminates the browser process and removes its data directory.
 func (p *Process) Close() error {
 	logger := log.NewComponent("browser").With("dataDir", p.DataDir)
 	logger.Info("Closing browser process")
@@ -146,7 +147,7 @@ func (p *Process) Close() error {
 }
 
 // removeDataDirWithRetry attempts to remove the data directory with retries
-// to handle race conditions where child processes may still hold file handles
+// to handle race conditions where child processes may still hold file handles.
 func removeDataDirWithRetry(dataDir string, logger *slog.Logger) error {
 	const maxRetries = 5
 	const retryDelay = 10 * time.Millisecond
@@ -165,7 +166,7 @@ func removeDataDirWithRetry(dataDir string, logger *slog.Logger) error {
 	return lastErr
 }
 
-// createBrowserArgs returns the Chrome/Chromium arguments for headless PDF generation
+// createBrowserArgs returns the Chrome/Chromium arguments for headless PDF generation.
 func createBrowserArgs() []string {
 	return []string{
 		"--disable-background-networking",
@@ -205,7 +206,7 @@ func createBrowserArgs() []string {
 	}
 }
 
-// logArgs logs browser arguments in a sorted, JSON format
+// logArgs logs browser arguments in a sorted, JSON format.
 func logArgs(logger *slog.Logger, id int, args []string) {
 	sortedArgs := make([]string, len(args))
 	copy(sortedArgs, args)

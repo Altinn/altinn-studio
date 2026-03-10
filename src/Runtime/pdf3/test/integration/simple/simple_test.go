@@ -44,7 +44,7 @@ func Test_Networking(t *testing.T) {
 		Timeout: 3 * time.Second,
 	}
 
-	httpReq, err := http.NewRequest("GET", url, nil)
+	httpReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		t.Fatalf("Failed to create HTTP request: %v", err)
 	}
@@ -56,7 +56,7 @@ func Test_Networking(t *testing.T) {
 		t.Fatalf("Unexpected error reaching jumpbox: %v", err)
 	}
 	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode != 504 { // 504 = gateway timeout, means it can't connect
+	if resp.StatusCode != http.StatusGatewayTimeout { // 504 = gateway timeout, means it can't connect
 		t.Fatalf("Unexpectedly reached pdf3-worker from jumpbox: %d", resp.StatusCode)
 	}
 
@@ -217,7 +217,7 @@ func requestPDFWithCancellation(t *testing.T, req *types.PdfRequest, cancelAfter
 
 	// Create the HTTP request with the cancellable context
 	url := harness.JumpboxURL + "/pdf"
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(reqBody))
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
 		t.Fatalf("Failed to create HTTP request: %v", err)
 	}

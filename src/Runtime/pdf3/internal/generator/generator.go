@@ -24,15 +24,14 @@ import (
 )
 
 type Custom struct {
-	logger         *slog.Logger
-	browserVersion types.BrowserVersion
-	tracer         trace.Tracer
-
+	tracer           trace.Tracer
+	logger           *slog.Logger
 	activeSession    atomic.Pointer[browserSession]
+	browserVersion   types.BrowserVersion
 	sessionIDCounter atomic.Int32
 }
 
-// getBrowserVersion starts a temporary browser and retrieves its version information
+// getBrowserVersion starts a temporary browser and retrieves its version information.
 func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	// Start temporary browser instance
 	browserProc, err := browser.Start(-1)
@@ -264,12 +263,12 @@ func (g *Custom) periodicRestart() {
 }
 
 type workerRequest struct {
-	request    types.PdfRequest
-	responder  chan workerResponse
-	ctx        context.Context
 	enqueuedAt time.Time
-	cleanedUp  bool
+	ctx        context.Context
+	responder  chan workerResponse
 	logger     *slog.Logger
+	request    types.PdfRequest
+	cleanedUp  bool
 }
 
 func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {
@@ -326,11 +325,11 @@ func (r *workerRequest) hasResponded() bool {
 }
 
 type workerResponse struct {
-	Data  []byte
 	Error *types.PDFError
+	Data  []byte
 }
 
-// mapCustomError wraps raw custom implementation errors while preserving our PDFErrors
+// mapCustomError wraps raw custom implementation errors while preserving our PDFErrors.
 func mapCustomError(err error) *types.PDFError {
 	if err == nil {
 		return nil

@@ -84,12 +84,12 @@ func GetDefaultPdfRequest(t *testing.T) *types.PdfRequest {
 }
 
 type PdfResponse struct {
-	Data     []byte
 	Input    *ptesting.PdfInternalsTestInput
-	WorkerIP string // Worker IP that generated this PDF (for routing test output requests)
+	WorkerIP string
+	Data     []byte
 }
 
-// LoadOutput fetches the test output from the API if testInput was provided
+// LoadOutput fetches the test output from the API if testInput was provided.
 func (r *PdfResponse) LoadOutput(t *testing.T) (*ptesting.PdfInternalsTestOutput, error) {
 	if r.Input == nil || r.Input.ID == "" {
 		return nil, nil // No test input, nothing to load
@@ -103,7 +103,7 @@ func (r *PdfResponse) LoadOutput(t *testing.T) (*ptesting.PdfInternalsTestOutput
 	return output, nil
 }
 
-// getTestOutput fetches a test output from the proxy by ID (which forwards to worker)
+// getTestOutput fetches a test output from the proxy by ID (which forwards to worker).
 func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInternalsTestOutput, error) {
 	assert.That(id != "", "Test output ID is required")
 	assert.That(workerIP != "", "Worker IP should always be set in test internals mode")
@@ -113,12 +113,12 @@ func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInter
 		Timeout: types.RequestTimeout(),
 	}
 
-	httpReq, err := http.NewRequest("GET", url, nil)
+	httpReq, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 	httpReq.Host = "pdf3-proxy.runtime-pdf3.svc.cluster.local"
-	httpReq.Header.Set("X-Target-Worker-IP", workerIP)
+	httpReq.Header.Set("X-Target-Worker-Ip", workerIP)
 
 	resp, err := client.Do(httpReq)
 	if err != nil {
@@ -146,12 +146,12 @@ func getTestOutput(_ *testing.T, id string, workerIP string) (*ptesting.PdfInter
 	return &output, nil
 }
 
-// requestNewPDF sends a PDF generation request to the new PDF generator solution
+// requestNewPDF sends a PDF generation request to the new PDF generator solution.
 func RequestNewPDF(t *testing.T, req *types.PdfRequest) (*PdfResponse, error) {
 	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", nil)
 }
 
-// requestNewPDF sends a PDF generation request to the new PDF generator solution
+// requestNewPDF sends a PDF generation request to the new PDF generator solution.
 func RequestNewPDFWithTestInput(
 	t *testing.T,
 	req *types.PdfRequest,
@@ -160,7 +160,7 @@ func RequestNewPDFWithTestInput(
 	return RequestPDFWithHost(t, req, "pdf3-proxy.runtime-pdf3.svc.cluster.local", testInput)
 }
 
-// requestPDF sends a PDF generation request to the proxy
+// requestPDF sends a PDF generation request to the proxy.
 func RequestPDFWithHost(
 	t *testing.T,
 	req *types.PdfRequest,
@@ -178,7 +178,7 @@ func RequestPDFWithHost(
 		Timeout: types.RequestTimeout(),
 	}
 
-	httpReq, err := http.NewRequest("POST", url, bytes.NewReader((reqBody)))
+	httpReq, err := http.NewRequest(http.MethodPost, url, bytes.NewReader((reqBody)))
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +216,7 @@ func RequestPDFWithHost(
 	// In test internals mode, capture the worker IP for routing test output requests
 	workerIP := ""
 	if testInput != nil {
-		workerIP = resp.Header.Get("X-Worker-IP")
+		workerIP = resp.Header.Get("X-Worker-Ip")
 		if workerIP == "" {
 			t.Fatal("Warning: X-Worker-IP header not present in response")
 		}
@@ -232,7 +232,7 @@ func RequestPDFWithHost(
 var projectRoot string
 
 // FindProjectRoot searches upward for a directory containing go.mod
-// It starts from the current working directory and checks up to maxIterations parent directories
+// It starts from the current working directory and checks up to maxIterations parent directories.
 func FindProjectRoot() (string, error) {
 	if projectRoot != "" {
 		return projectRoot, nil
@@ -249,7 +249,7 @@ func FindProjectRoot() (string, error) {
 	// Track the previous directory to detect when we've reached the filesystem root
 	prevDir := ""
 
-	for i := 0; i < maxIterations; i++ {
+	for range maxIterations {
 		// Check if go.mod exists in current directory
 		goModPath := filepath.Join(dir, "go.mod")
 		if _, err := os.Stat(goModPath); err == nil {

@@ -12,15 +12,14 @@ import (
 )
 
 type ProblemDetails struct {
-	Type       string         `json:"type,omitempty"`
-	Title      string         `json:"title,omitempty"`
-	Status     int            `json:"status,omitempty"`
-	Detail     string         `json:"detail,omitempty"`
-	Instance   string         `json:"instance,omitempty"`
-	Extensions map[string]any `json:"extensions,omitempty"`
-	// Internal tracing details; not serialized to JSON.
-	TraceRejectionReason string `json:"-"`
-	TraceRejectionError  error  `json:"-"`
+	TraceRejectionError  error          `json:"-"`
+	Extensions           map[string]any `json:"extensions,omitempty"`
+	Type                 string         `json:"type,omitempty"`
+	Title                string         `json:"title,omitempty"`
+	Detail               string         `json:"detail,omitempty"`
+	Instance             string         `json:"instance,omitempty"`
+	TraceRejectionReason string         `json:"-"`
+	Status               int            `json:"status,omitempty"`
 }
 
 func WriteProblemDetails(

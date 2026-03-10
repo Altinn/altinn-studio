@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -110,7 +111,7 @@ func main() {
 
 	go func() {
 		logger.Info("Starting proxy HTTP server", "addr", server.Addr, "worker_addr", workerHTTPAddr)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error("HTTP server crashed", "error", err)
 			os.Exit(1)
 		}
@@ -301,7 +302,7 @@ func callWorker(
 	workerIP := ""
 	if resp != nil {
 		workerId = resp.Header.Get("X-Worker-Id")
-		workerIP = resp.Header.Get("X-Worker-IP")
+		workerIP = resp.Header.Get("X-Worker-Ip")
 		logger = logger.With(
 			"worker_id", workerId,
 			"attempt", attempt,
@@ -347,7 +348,7 @@ func callWorker(
 		// so they can route test output requests to the correct worker pod
 		if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 			assert.That(workerIP != "", "Worker IP should always be set in test internals mode")
-			w.Header().Set("X-Worker-IP", workerIP)
+			w.Header().Set("X-Worker-Ip", workerIP)
 			w.Header().Set("X-Worker-Id", workerId)
 			logger.Debug("Returning worker info", "worker_ip", workerIP)
 		}
@@ -405,7 +406,7 @@ func callWorker(
 	// so tests can still fetch test output from the correct worker
 	if iruntime.IsTestInternalsMode && testing.HasTestHeader(r.Header) {
 		assert.That(workerIP != "", "Worker IP should always be set in test internals mode")
-		w.Header().Set("X-Worker-IP", workerIP)
+		w.Header().Set("X-Worker-Ip", workerIP)
 		w.Header().Set("X-Worker-Id", workerId)
 	}
 
@@ -435,7 +436,7 @@ func forwardTestOutputRequest(logger *slog.Logger, client *http.Client) func(htt
 		testID := strings.TrimPrefix(r.URL.Path, "/testoutput/")
 
 		// Client should provide the worker IP via header to ensure we hit the right pod
-		targetWorkerIP := r.Header.Get("X-Target-Worker-IP")
+		targetWorkerIP := r.Header.Get("X-Target-Worker-Ip")
 		assert.That(targetWorkerIP != "", "X-Target-Worker-IP header is required in test internals mode")
 
 		// Route directly to the specified worker pod IP

@@ -3,6 +3,7 @@ package cdp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -19,8 +20,8 @@ import (
 )
 
 type Command struct {
-	Method string
 	Params any
+	Method string
 }
 
 type CommandResponse struct {
@@ -28,7 +29,7 @@ type CommandResponse struct {
 	Err  error
 }
 
-// Connection represents a Chrome DevTools Protocol connection
+// Connection represents a Chrome DevTools Protocol connection.
 type Connection interface {
 	// SendCommand sends a CDP command and waits for the response
 	// This method is NOT threadsafe. We use this from the processing go routine of a
@@ -43,16 +44,16 @@ type Connection interface {
 	Close() error
 }
 
-// EventHandler handles CDP events
+// EventHandler handles CDP events.
 type EventHandler func(method string, params any)
 
 // Connect establishes a connection to a Chrome DevTools Protocol endpoint
-// Returns: Connection, targetID, error
+// Returns: Connection, targetID, error.
 func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler EventHandler) (Connection, string, error) {
 	logger := log.NewComponent("cdp").With("id", id)
 
 	// List available targets (should find the about:blank page we created)
-	listURL := fmt.Sprintf("%s/json", debugBaseURL)
+	listURL := debugBaseURL + "/json"
 
 	var resp *http.Response
 	var err error
@@ -118,7 +119,7 @@ func Connect(ctx context.Context, id int, debugBaseURL string, eventHandler Even
 	// Connect to the page's WebSocket
 	wsURL := target.WebSocketDebuggerURL
 	if wsURL == "" {
-		return nil, "", fmt.Errorf("no webSocketDebuggerUrl in response")
+		return nil, "", errors.New("no webSocketDebuggerUrl in response")
 	}
 	// Chrome page targets must have a WebSocket URL - this is a protocol invariant
 	assert.That(wsURL != "", "Page target missing WebSocketDebuggerURL - protocol violation", "id", id)
@@ -231,7 +232,7 @@ func (c *connection) watchdog() {
 	}
 }
 
-// GetBrowserVersion retrieves the browser version information
+// GetBrowserVersion retrieves the browser version information.
 func GetBrowserVersion(conn Connection) (*types.BrowserVersion, error) {
 	resp, err := conn.SendCommand(context.Background(), "Browser.getVersion", nil)
 	if err != nil {
@@ -240,7 +241,7 @@ func GetBrowserVersion(conn Connection) (*types.BrowserVersion, error) {
 
 	result, ok := resp.Result.(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("invalid response format")
+		return nil, errors.New("invalid response format")
 	}
 
 	return &types.BrowserVersion{
@@ -265,25 +266,22 @@ type batchState struct {
 	responses []*CommandResponse
 }
 
-// connection implements the Connection interface
+// connection implements the Connection interface.
 type connection struct {
-	id     int
-	logger *slog.Logger
-	wsConn *websocket.Conn
-
-	nextCommandID  int64
-	nextBatchID    int64
+	ctx            context.Context
+	logger         *slog.Logger
+	wsConn         *websocket.Conn
 	pendingCmds    *concurrent.Map[int64, chan CDPResponse]
 	pendingBatches *concurrent.Map[int64, *batchState]
 	cmdIDToBatchID *concurrent.Map[int64, int64]
-
-	eventHandler EventHandler
-
-	ctx    context.Context
-	cancel context.CancelFunc
+	eventHandler   EventHandler
+	cancel         context.CancelFunc
+	id             int
+	nextCommandID  int64
+	nextBatchID    int64
 }
 
-// SendCommand sends a CDP command and waits for the response
+// SendCommand sends a CDP command and waits for the response.
 func (c *connection) SendCommand(ctx context.Context, method string, params any) (*CDPResponse, error) {
 	// Connection must be valid when sending commands
 	c.assert(c.wsConn != nil, "Attempted to send command on nil WebSocket connection")
@@ -330,7 +328,7 @@ func (c *connection) SendCommand(ctx context.Context, method string, params any)
 		addCDPCommandEvent(ctx, "cdp.command.connection_closed",
 			attribute.String("cdp.method", method),
 		)
-		return nil, fmt.Errorf("connection closed")
+		return nil, errors.New("connection closed")
 	case <-time.After(types.RequestTimeout()):
 		addCDPCommandEvent(ctx, "cdp.command.timeout",
 			attribute.String("cdp.method", method),
@@ -427,10 +425,10 @@ func (c *connection) SendCommandBatch(ctx context.Context, batch []Command) []*C
 			if resp == nil {
 				state.responses[i] = &CommandResponse{
 					Resp: nil,
-					Err:  fmt.Errorf("connection closed"),
+					Err:  errors.New("connection closed"),
 				}
 			} else {
-				resp.Err = fmt.Errorf("connection closed")
+				resp.Err = errors.New("connection closed")
 			}
 		}
 		return state.responses
@@ -465,7 +463,7 @@ func addCDPCommandEvent(ctx context.Context, name string, attrs ...attribute.Key
 	span.AddEvent(name, trace.WithAttributes(attrs...))
 }
 
-// Close closes the connection and cleans up resources
+// Close closes the connection and cleans up resources.
 func (c *connection) Close() error {
 	// Connection should always be valid when Close is called
 	c.assert(c.wsConn != nil, "Attempted to close connection with nil WebSocket")
@@ -482,7 +480,7 @@ func (c *connection) Close() error {
 	return c.wsConn.Close()
 }
 
-// handleMessages reads messages from the WebSocket and routes them
+// handleMessages reads messages from the WebSocket and routes them.
 func (c *connection) handleMessages() {
 	defer func() {
 		c.assert(c.ctx.Err() != nil, "Exited CDP message handler loop, but connection context isn't cancelled")
@@ -494,8 +492,8 @@ func (c *connection) handleMessages() {
 
 	// Create a channel for read results
 	type readResult struct {
-		payload []byte
 		err     error
+		payload []byte
 	}
 	readCh := make(chan readResult, 1)
 
