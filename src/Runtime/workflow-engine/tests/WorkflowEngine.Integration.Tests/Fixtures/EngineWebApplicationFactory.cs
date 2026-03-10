@@ -8,7 +8,7 @@ namespace WorkflowEngine.Integration.Tests.Fixtures;
 /// <summary>
 /// Inner WebApplicationFactory that wires test-specific configuration into the running ASP.NET Core application.
 /// </summary>
-internal sealed class EngineWebApplicationFactory : WebApplicationFactory<Program>
+internal sealed class EngineWebApplicationFactory : WebApplicationFactory<WorkflowEngine.Integration.Tests.Program>
 {
     private readonly string _dbConnectionString;
     private readonly string _appCommandEndpoint;

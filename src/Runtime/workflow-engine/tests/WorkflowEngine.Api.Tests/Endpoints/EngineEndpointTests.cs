@@ -59,7 +59,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
-            DefaultTenantId,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -91,7 +90,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
-            DefaultTenantId,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -120,7 +118,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
-            DefaultTenantId,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,
@@ -172,7 +169,6 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
-            DefaultTenantId,
             request,
             engineMock.Object,
             TimeProvider.System,
@@ -209,7 +205,6 @@ public class EngineEndpointTests
 
         // Act
         await EngineRequestHandlers.EnqueueWorkflows(
-            DefaultTenantId,
             _defaultWorkflowRequest,
             engineMock.Object,
             TimeProvider.System,

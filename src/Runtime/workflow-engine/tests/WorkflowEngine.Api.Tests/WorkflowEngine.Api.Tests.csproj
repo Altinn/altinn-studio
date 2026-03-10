@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/WorkflowEngine.Api/WorkflowEngine.Api.csproj" />
+    <ProjectReference Include="../../src/WorkflowEngine.Core/WorkflowEngine.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WorkflowEngine.App/WorkflowEngine.App.csproj" />
+  </Folder>
+  <Folder Name="/deps/">
+    <Project Path="../workflow-engine/src/WorkflowEngine.Core/WorkflowEngine.Core.csproj" />
+    <Project Path="../workflow-engine/src/WorkflowEngine.CommandHandlers/WorkflowEngine.CommandHandlers.csproj" />
+    <Project Path="../workflow-engine/src/WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
+    <Project Path="../workflow-engine/src/WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
+    <Project Path="../workflow-engine/src/WorkflowEngine.Resilience/WorkflowEngine.Resilience.csproj" />
+    <Project Path="../workflow-engine/src/WorkflowEngine.Telemetry/WorkflowEngine.Telemetry.csproj" />
+  </Folder>
+  <Project Path="../../common/Altinn.Studio.Runtime.Common.csproj" />
+</Solution>

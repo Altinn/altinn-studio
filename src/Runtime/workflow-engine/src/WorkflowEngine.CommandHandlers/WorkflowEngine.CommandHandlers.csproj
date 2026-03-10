@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="System.Net.Http.Json" />
   </ItemGroup>
 
@@ -19,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="WorkflowEngine.Api" />
+    <InternalsVisibleTo Include="WorkflowEngine.Core" />
     <InternalsVisibleTo Include="WorkflowEngine.Api.Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.Integration.Tests" />
   </ItemGroup>

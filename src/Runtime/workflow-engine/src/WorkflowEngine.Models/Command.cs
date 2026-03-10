@@ -6,7 +6,7 @@ namespace WorkflowEngine.Models;
 /// <summary>
 /// Describes a command to be executed by the workflow engine.
 /// The engine stores and routes commands but does not interpret them —
-/// a registered <see cref="ICommandHandler"/> handles execution.
+/// a registered <see cref="ICommandDescriptor"/> handles execution.
 /// </summary>
 public sealed record Command
 {
@@ -30,8 +30,8 @@ public sealed record Command
     public TimeSpan? MaxExecutionTime { get; init; }
 
     /// <summary>
-    /// Opaque command configuration. The engine never inspects this —
-    /// the matching <see cref="ICommandHandler"/> deserializes it.
+    /// Command configuration. The engine deserializes this into the type
+    /// declared by the matching <see cref="ICommandDescriptor.CommandDataType"/>.
     /// </summary>
     [JsonPropertyName("data")]
     public JsonElement? Data { get; init; }

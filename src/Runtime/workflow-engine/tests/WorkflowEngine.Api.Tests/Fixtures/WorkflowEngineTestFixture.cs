@@ -74,10 +74,10 @@ internal sealed record WorkflowEngineTestFixture(
             new ConcurrencyLimiter(engineSettings.MaxConcurrentDbOperations, engineSettings.MaxConcurrentHttpCalls)
         );
 
-        // Register default command handlers and the registry
-        services.AddSingleton<ICommandHandler, AppCommandHandler>();
-        services.AddSingleton<ICommandHandler, WebhookCommandHandler>();
-        services.AddSingleton<ICommandHandlerRegistry, CommandHandlerRegistry>();
+        // Register default command descriptors and the registry
+        services.AddSingleton<ICommandDescriptor, AppCommandDescriptor>();
+        services.AddSingleton<ICommandDescriptor, WebhookCommandDescriptor>();
+        services.AddSingleton<ICommandRegistry, CommandRegistry>();
         services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
 
         configureServices?.Invoke(services);
@@ -133,17 +133,24 @@ internal sealed record WorkflowEngineTestFixture(
 }
 
 /// <summary>
-/// A test-specific command handler that executes a delegate.
-/// Since delegates cannot be serialized as Command.Data, this handler stores
+/// A test-specific command descriptor that executes a delegate.
+/// Since delegates cannot be serialized as Command.Data, this descriptor stores
 /// the delegate externally and the test wires it up before execution.
 /// </summary>
-internal sealed class TestDelegateCommandHandler : ICommandHandler
+internal sealed class TestDelegateCommandDescriptor : ICommandDescriptor
 {
     public string CommandType => "test-delegate";
+
+    public Type? CommandDataType => null;
+
+    public Type? WorkflowContextType => null;
 
     private Func<Workflow, Step, CancellationToken, Task>? _action;
 
     public void SetAction(Func<Workflow, Step, CancellationToken, Task> action) => _action = action;
+
+    public CommandValidationResult Validate(object? commandData, object? workflowContext) =>
+        CommandValidationResult.Accept();
 
     public Task<ExecutionResult> ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken)
     {

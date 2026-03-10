@@ -253,7 +253,7 @@ public class WorkflowExecutorTests
     public async Task Execute_Delegate_Success_ReturnsSuccess()
     {
         // Arrange
-        var delegateHandler = new TestDelegateCommandHandler();
+        var delegateHandler = new TestDelegateCommandDescriptor();
         var delegateWasCalled = false;
         delegateHandler.SetAction(
             (_, _, _) =>
@@ -265,7 +265,7 @@ public class WorkflowExecutorTests
 
         using var fixture = WorkflowEngineTestFixture.Create(services =>
         {
-            services.AddSingleton<ICommandHandler>(delegateHandler);
+            services.AddSingleton<ICommandDescriptor>(delegateHandler);
         });
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
         var command = new Command { Type = "test-delegate", OperationId = "delegate" };
@@ -284,12 +284,12 @@ public class WorkflowExecutorTests
     public async Task Execute_Delegate_Throws_ReturnsRetryableError()
     {
         // Arrange
-        var delegateHandler = new TestDelegateCommandHandler();
+        var delegateHandler = new TestDelegateCommandDescriptor();
         delegateHandler.SetAction((_, _, _) => throw new InvalidOperationException("Delegate failed"));
 
         using var fixture = WorkflowEngineTestFixture.Create(services =>
         {
-            services.AddSingleton<ICommandHandler>(delegateHandler);
+            services.AddSingleton<ICommandDescriptor>(delegateHandler);
         });
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
         var command = new Command { Type = "test-delegate", OperationId = "delegate" };

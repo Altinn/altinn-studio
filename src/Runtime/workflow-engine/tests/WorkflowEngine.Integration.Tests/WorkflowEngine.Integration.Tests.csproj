@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <RootNamespace>WorkflowEngine.Integration.Tests</RootNamespace>
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.OpenApi.Generated</InterceptorsNamespaces>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/WorkflowEngine.Api/WorkflowEngine.Api.csproj" />
+    <ProjectReference Include="../../src/WorkflowEngine.Core/WorkflowEngine.Core.csproj" />
     <ProjectReference Include="../../src/WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
     <ProjectReference Include="../../src/WorkflowEngine.Resilience/WorkflowEngine.Resilience.csproj" />
   </ItemGroup>

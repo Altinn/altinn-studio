@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace WorkflowEngine.CommandHandlers.Handlers.Webhook;
 
-internal sealed record WebhookCommandData
+public sealed record WebhookCommandData
 {
     [JsonPropertyName("uri")]
     public required string Uri { get; init; }
