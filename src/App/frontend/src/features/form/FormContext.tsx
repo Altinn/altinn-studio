@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react';
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
+import { getUiFolderSettings } from 'src/features/form/ui';
 import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
 import { FormBootstrapProvider } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
@@ -53,11 +54,19 @@ export function FormProvider({
   const taskOverrides = useTaskOverrides();
   const folderNameFromUrl = useCurrentUiFolderNameFromUrl();
 
-  const uiFolder = uiFolderOverride ?? taskOverrides.uiFolder ?? folderNameFromUrl ?? undefined;
+  const uiFolder = uiFolderOverride ?? folderNameFromUrl ?? undefined;
   const dataElementId = dataElementIdOverride ?? taskOverrides.dataModelElementId ?? undefined;
 
   if (!uiFolder) {
     throw new Error('uiFolder is not defined');
+  }
+
+  const folderSettings = getUiFolderSettings(uiFolder);
+  if (!folderSettings || !folderSettings?.defaultDataType) {
+    // No point in trying to render a form here, but this can still happen when FormProvider is applied for all tasks
+    // without actually checking the task type (such as in src/index.tsx). Only data-tasks, subforms, custom receipt and
+    // stateless can render forms.
+    return children;
   }
 
   return (
