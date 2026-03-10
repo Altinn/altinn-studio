@@ -124,6 +124,7 @@ const SelectedPartyProvider = ({ children }: PropsWithChildren) => {
             setSentToMutation(party);
             const result = await mutateAsync(party);
             if (result === 'Party successfully updated') {
+              // eslint-disable-next-line react-compiler/react-compiler
               window.altinnAppGlobalData.selectedParty = party;
               return party;
             }
