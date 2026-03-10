@@ -41,15 +41,16 @@ export const createWorkspaceRoutes = ({
   routeErrorElement = <RouteErrorBoundary />,
   notFoundRouteErrorElement = <NotFoundRouteErrorBoundary />,
 }: WorkspaceRoutesOptions): ReactElement => {
-  const layoutRoute = basePath ? (
+  const routeChildren = (
+    <>
+      {routeDefinitions.map((route, index) => renderRoute(route, routeErrorElement, index))}
+      <Route path='*' element={notFoundElement} errorElement={notFoundRouteErrorElement} />
+    </>
+  );
+
+  const layoutRoute = (
     <Route path={basePath} element={layoutElement} errorElement={routeErrorElement}>
-      {routeDefinitions.map((route, index) => renderRoute(route, routeErrorElement, index))}
-      <Route path='*' element={notFoundElement} errorElement={notFoundRouteErrorElement} />
-    </Route>
-  ) : (
-    <Route element={layoutElement} errorElement={routeErrorElement}>
-      {routeDefinitions.map((route, index) => renderRoute(route, routeErrorElement, index))}
-      <Route path='*' element={notFoundElement} errorElement={notFoundRouteErrorElement} />
+      {routeChildren}
     </Route>
   );
 

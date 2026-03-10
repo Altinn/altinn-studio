@@ -1,0 +1,226 @@
+import React, { type ReactNode } from 'react';
+import { fireEvent, renderHook, screen, waitFor } from '@testing-library/react';
+import { QueryClientSetupProvider } from './QueryClientSetupProvider';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { useQuery } from '@tanstack/react-query';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+
+const unknownErrorCode = 'unknownErrorCode';
+// Mocks:
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+    i18n: {
+      exists: (key: string) =>
+        key !== `api_errors.${unknownErrorCode}` ? textMock(key) : undefined,
+    },
+  }),
+  Trans: ({ i18nKey }: { i18nKey: any }) => textMock(i18nKey),
+}));
+
+jest.useFakeTimers();
+
+const wrapper = ({
+  children,
+  logout = queriesMock.logout,
+}: {
+  children: ReactNode;
+  logout?: () => Promise<void>;
+}) => <QueryClientSetupProvider logout={logout}>{children}</QueryClientSetupProvider>;
+
+describe('QueryClientSetupProvider', () => {
+  it('logs non-Axios errors to the console', async () => {
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children });
+        },
+      },
+    );
+
+    await waitFor(() => expect(mockConsoleError).toHaveBeenCalled());
+    mockConsoleError.mockRestore();
+  });
+
+  it('logs the user out after displaying a toast for a given time when the api says unauthorized', async () => {
+    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+    jest.spyOn(global, 'setTimeout');
+    renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401)),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children });
+        },
+      },
+    );
+
+    const progressBar = await screen.findByRole('progressbar');
+    fireEvent.animationEnd(progressBar);
+
+    const container = await screen.findByText(textMock('api_errors.Unauthorized'));
+    expect(container).toBeInTheDocument();
+    fireEvent.animationEnd(container);
+
+    await waitFor(() => {
+      expect(queriesMock.logout).toHaveBeenCalled();
+    });
+
+    expect(mockConsoleError).toHaveBeenCalled();
+  });
+
+  it('displays the api error when the session is invalid or expired', async () => {
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401, 'GT_03')),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children, logout });
+        },
+      },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.GT_03'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('Displays a toast message for "GT_01" error code', async () => {
+    const errorCode = 'GT_01';
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(409, errorCode)),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.GT_01'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('displays a specific error message if API returns error code DM_01', async () => {
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(422, 'DM_01')),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.DM_01'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('displays a specific error message if API returns error code DM_03', async () => {
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(422, 'DM_03')),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.DM_03'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('displays a specific error message if API returns error code DM_05', async () => {
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(400, 'DM_05')),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('api_errors.DM_05'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('displays a default error message if API returns an error code but the error message does not exist', async () => {
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(500, unknownErrorCode)),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText((content) =>
+      content.includes(textMock('general.error_message')),
+    );
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('displays a default error message if an API call fails', async () => {
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock()),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const errorMessage = await screen.findByText(textMock('general.error_message'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('does not display error toast when request is cancelled', async () => {
+    const cancelledError = new Error('Request cancelled');
+    cancelledError.name = 'CanceledError';
+    Object.defineProperty(cancelledError, '__CANCEL__', { value: true });
+
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchCancelled'],
+          queryFn: () => Promise.reject(cancelledError),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    const toastElements = screen.queryAllByRole('alert');
+    expect(toastElements).toHaveLength(0);
+  });
+});

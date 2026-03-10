@@ -22,6 +22,5 @@ export const ErrorBoundary = (): ReactElement => {
   );
 };
 
-export const AppRouteErrorBoundary = ErrorBoundary;
 export const NotFoundRouteErrorBoundary = ErrorBoundary;
 export const RouteErrorBoundary = ErrorBoundary;
