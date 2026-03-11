@@ -40,7 +40,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 [
                     new StepRequest
                     {
-                        Command = new Command { Type = "app", OperationId = "step-a" },
+                        Command = new CommandDefinition { Type = "app", OperationId = "step-a" },
                     },
                 ],
             },
@@ -52,7 +52,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 [
                     new StepRequest
                     {
-                        Command = new Command { Type = "app", OperationId = "step-b" },
+                        Command = new CommandDefinition { Type = "app", OperationId = "step-b" },
                     },
                 ],
                 Links = [(WorkflowRef)"wf-a"],
@@ -105,7 +105,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             [
                 new StepRequest
                 {
-                    Command = new Command { Type = "app", OperationId = "step-b" },
+                    Command = new CommandDefinition { Type = "app", OperationId = "step-b" },
                 },
             ],
             Links = [(WorkflowRef)workflowA.DatabaseId],
@@ -551,11 +551,11 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             [
                 new StepRequest
                 {
-                    Command = new Command { Type = "app", OperationId = "step-1a" },
+                    Command = new CommandDefinition { Type = "app", OperationId = "step-1a" },
                 },
                 new StepRequest
                 {
-                    Command = new Command { Type = "app", OperationId = "step-1b" },
+                    Command = new CommandDefinition { Type = "app", OperationId = "step-1b" },
                 },
             ],
         };
@@ -569,7 +569,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             [
                 new StepRequest
                 {
-                    Command = new Command { Type = "app", OperationId = "step-2a" },
+                    Command = new CommandDefinition { Type = "app", OperationId = "step-2a" },
                 },
             ],
         };
@@ -697,17 +697,17 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             [
                 new StepRequest
                 {
-                    Command = new Command { Type = "app", OperationId = "step-one" },
+                    Command = new CommandDefinition { Type = "app", OperationId = "step-one" },
                     RetryStrategy = retryStrategy,
                     Metadata = """{"stepMeta":"one"}""",
                 },
                 new StepRequest
                 {
-                    Command = new Command { Type = "webhook", OperationId = "webhook-hook" },
+                    Command = new CommandDefinition { Type = "webhook", OperationId = "webhook-hook" },
                 },
                 new StepRequest
                 {
-                    Command = new Command { Type = "app", OperationId = "step-three" },
+                    Command = new CommandDefinition { Type = "app", OperationId = "step-three" },
                 },
             ],
         };

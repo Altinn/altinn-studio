@@ -47,9 +47,9 @@ internal class WorkflowExecutor : IWorkflowExecutor
 
         try
         {
-            var descriptor = _registry.GetDescriptor(step.Command.Type);
+            var descriptor = _registry.GetCommand(step.Command.Type);
 
-            // Centralized deserialization — descriptors receive typed data
+            // Centralized deserialization — commands receive typed data
             object? typedCommandData = null;
             if (descriptor.CommandDataType is not null)
             {

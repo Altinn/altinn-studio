@@ -43,9 +43,9 @@ builder.Services.AddEngineHealthChecks();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
 
-// Register command descriptors explicitly
+// Register commands explicitly
 builder.Services.ConfigureAppCommand();
-builder.Services.AddCommand<AppCommandDescriptor>();
+builder.Services.AddCommand<AppCommand>();
 
 var app = builder.Build();
 

@@ -75,8 +75,8 @@ internal sealed record WorkflowEngineTestFixture(
         );
 
         // Register default command descriptors and the registry
-        services.AddSingleton<ICommandDescriptor, AppCommand>();
-        services.AddSingleton<ICommandDescriptor, WebhookCommand>();
+        services.AddSingleton<ICommand, AppCommand>();
+        services.AddSingleton<ICommand, WebhookCommand>();
         services.AddSingleton<ICommandRegistry, CommandRegistry>();
         services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
 
@@ -116,7 +116,7 @@ internal sealed record WorkflowEngineTestFixture(
         };
     }
 
-    public static Step CreateStep(Command command) =>
+    public static Step CreateStep(CommandDefinition command) =>
         new()
         {
             OperationId = command.OperationId,
@@ -137,7 +137,7 @@ internal sealed record WorkflowEngineTestFixture(
 /// Since delegates cannot be serialized as Command.Data, this descriptor stores
 /// the delegate externally and the test wires it up before execution.
 /// </summary>
-internal sealed class TestDelegateCommandDescriptor : ICommandDescriptor
+internal sealed class TestDelegateCommand : ICommand
 {
     public string CommandType => "test-delegate";
 

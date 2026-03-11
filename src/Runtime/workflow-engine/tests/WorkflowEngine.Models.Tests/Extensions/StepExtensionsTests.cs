@@ -14,7 +14,7 @@ public class StepExtensionsTests
             OperationId = "test-op",
             IdempotencyKey = "test-key",
             ProcessingOrder = 0,
-            Command = new Command { Type = "noop", OperationId = "noop" },
+            Command = new CommandDefinition { Type = "noop", OperationId = "noop" },
             Status = status,
             BackoffUntil = backoffUntil,
             CreatedAt = createdAt ?? DateTimeOffset.UtcNow,

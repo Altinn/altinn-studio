@@ -72,7 +72,7 @@ internal sealed class StepEntity : IHasCommonMetadata
     public Step ToDomainModel()
     {
         var command =
-            JsonSerializer.Deserialize<Command>(CommandJson, JsonOptions.Default)
+            JsonSerializer.Deserialize<CommandDefinition>(CommandJson, JsonOptions.Default)
             ?? throw new InvalidOperationException("Failed to deserialize CommandJson");
         var retryStrategy =
             RetryStrategyJson != null

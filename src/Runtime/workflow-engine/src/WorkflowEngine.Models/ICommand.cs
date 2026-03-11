@@ -2,19 +2,19 @@ namespace WorkflowEngine.Models;
 
 /// <summary>
 /// Describes a command type: its expected data shapes and how to validate and execute it.
-/// Implementations are registered at startup and looked up by <see cref="Command.Type"/> at runtime.
-/// The engine deserializes <see cref="Command.Data"/> and <see cref="Workflow.Context"/> into
+/// Implementations are registered at startup and looked up by <see cref="CommandDefinition.Type"/> at runtime.
+/// The engine deserializes <see cref="CommandDefinition.Data"/> and <see cref="Workflow.Context"/> into
 /// the declared types before calling <see cref="Validate"/> or <see cref="ExecuteAsync"/>.
 /// </summary>
-public interface ICommandDescriptor
+public interface ICommand
 {
     /// <summary>
-    /// The command type this descriptor handles (matches <see cref="Command.Type"/>).
+    /// The command type this descriptor handles (matches <see cref="CommandDefinition.Type"/>).
     /// </summary>
     string CommandType { get; }
 
     /// <summary>
-    /// The CLR type that <see cref="Command.Data"/> should be deserialized into,
+    /// The CLR type that <see cref="CommandDefinition.Data"/> should be deserialized into,
     /// or <c>null</c> if the command expects no data.
     /// </summary>
     Type? CommandDataType { get; }

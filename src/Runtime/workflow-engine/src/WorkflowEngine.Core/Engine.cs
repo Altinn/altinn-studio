@@ -43,7 +43,7 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry r
             );
         }
 
-        // Validate command types and descriptor-specific data before persistence
+        // Validate command types and command-specific data before persistence
         var validationResult = ValidateCommands(request);
         if (validationResult is CommandValidationResult.Invalid error)
         {
@@ -81,7 +81,7 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry r
 
     /// <summary>
     /// Validates that all command types in the request are known to the registry
-    /// and that descriptor-specific validation passes (including typed deserialization).
+    /// and that command-specific validation passes (including typed deserialization).
     /// </summary>
     private CommandValidationResult ValidateCommands(WorkflowEnqueueRequest request)
     {
@@ -93,32 +93,32 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry r
                 var step = workflow.Steps[stepIndex];
                 var commandType = step.Command.Type;
 
-                if (!registry.HasDescriptor(commandType))
+                if (!registry.HasCommand(commandType))
                 {
                     return CommandValidationResult.Reject(
                         $"Unknown command type '{commandType}' in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
-                            + $"step #{stepIndex}. Registered types: {string.Join(", ", registry.GetAllDescriptors().Select(d => d.CommandType))}"
+                            + $"step #{stepIndex}. Registered types: {string.Join(", ", registry.GetAllCommands().Select(d => d.CommandType))}"
                     );
                 }
 
-                var descriptor = registry.GetDescriptor(commandType);
+                var command = registry.GetCommand(commandType);
 
-                // Deserialize command data and workflow context using descriptor's declared types
+                // Deserialize command data and workflow context using command's declared types
                 object? typedCommandData = null;
-                if (descriptor.CommandDataType is not null)
+                if (command.CommandDataType is not null)
                 {
                     if (step.Command.Data is not { } rawData)
                     {
                         return CommandValidationResult.Reject(
                             $"Command '{commandType}' in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
-                                + $"step #{stepIndex} requires command data of type {descriptor.CommandDataType.Name}, but none was provided"
+                                + $"step #{stepIndex} requires command data of type {command.CommandDataType.Name}, but none was provided"
                         );
                     }
 
                     try
                     {
                         typedCommandData = rawData.Deserialize(
-                            descriptor.CommandDataType,
+                            command.CommandDataType,
                             CommandSerializerOptions.Default
                         );
                     }
@@ -132,20 +132,20 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry r
                 }
 
                 object? typedWorkflowContext = null;
-                if (descriptor.WorkflowContextType is not null)
+                if (command.WorkflowContextType is not null)
                 {
                     if (request.Context is not { } rawContext)
                     {
                         return CommandValidationResult.Reject(
                             $"Command '{commandType}' in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
-                                + $"step #{stepIndex} requires workflow context of type {descriptor.WorkflowContextType.Name}, but none was provided"
+                                + $"step #{stepIndex} requires workflow context of type {command.WorkflowContextType.Name}, but none was provided"
                         );
                     }
 
                     try
                     {
                         typedWorkflowContext = rawContext.Deserialize(
-                            descriptor.WorkflowContextType,
+                            command.WorkflowContextType,
                             CommandSerializerOptions.Default
                         );
                     }
@@ -158,7 +158,7 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry r
                     }
                 }
 
-                var validationResult = descriptor.Validate(typedCommandData, typedWorkflowContext);
+                var validationResult = command.Validate(typedCommandData, typedWorkflowContext);
                 if (validationResult is CommandValidationResult.Invalid error)
                 {
                     return CommandValidationResult.Reject(

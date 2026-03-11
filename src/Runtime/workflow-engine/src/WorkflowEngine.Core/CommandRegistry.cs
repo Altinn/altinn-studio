@@ -4,36 +4,36 @@ using WorkflowEngine.Models.Exceptions;
 namespace WorkflowEngine.Api;
 
 /// <summary>
-/// Registry that maps command types to their descriptors.
+/// Registry that maps command types to their commands.
 /// </summary>
 internal interface ICommandRegistry
 {
-    /// <summary>Get the descriptor for the given command type.</summary>
-    /// <exception cref="CommandHandlerNotFoundException">No descriptor registered for the given type.</exception>
-    ICommandDescriptor GetDescriptor(string commandType);
+    /// <summary>Get the command for the given command type.</summary>
+    /// <exception cref="CommandHandlerNotFoundException">No command registered for the given type.</exception>
+    ICommand GetCommand(string commandType);
 
-    /// <summary>Check if a descriptor is registered for the given command type.</summary>
-    bool HasDescriptor(string commandType);
+    /// <summary>Check if a command is registered for the given command type.</summary>
+    bool HasCommand(string commandType);
 
-    /// <summary>Get all registered descriptors.</summary>
-    IEnumerable<ICommandDescriptor> GetAllDescriptors();
+    /// <summary>Get all registered commands.</summary>
+    IEnumerable<ICommand> GetAllCommands();
 }
 
 internal sealed class CommandRegistry : ICommandRegistry
 {
-    private readonly Dictionary<string, ICommandDescriptor> _descriptors;
+    private readonly Dictionary<string, ICommand> _commands;
 
-    public CommandRegistry(IEnumerable<ICommandDescriptor> descriptors)
+    public CommandRegistry(IEnumerable<ICommand> commands)
     {
-        _descriptors = descriptors.ToDictionary(d => d.CommandType, StringComparer.OrdinalIgnoreCase);
+        _commands = commands.ToDictionary(d => d.CommandType, StringComparer.OrdinalIgnoreCase);
     }
 
-    public ICommandDescriptor GetDescriptor(string commandType) =>
-        _descriptors.TryGetValue(commandType, out var descriptor)
-            ? descriptor
-            : throw new CommandHandlerNotFoundException(commandType, _descriptors.Keys);
+    public ICommand GetCommand(string commandType) =>
+        _commands.TryGetValue(commandType, out var command)
+            ? command
+            : throw new CommandHandlerNotFoundException(commandType, _commands.Keys);
 
-    public bool HasDescriptor(string commandType) => _descriptors.ContainsKey(commandType);
+    public bool HasCommand(string commandType) => _commands.ContainsKey(commandType);
 
-    public IEnumerable<ICommandDescriptor> GetAllDescriptors() => _descriptors.Values;
+    public IEnumerable<ICommand> GetAllCommands() => _commands.Values;
 }

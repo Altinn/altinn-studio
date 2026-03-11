@@ -193,7 +193,7 @@ public partial class EngineTests
 
         var step = new StepRequest
         {
-            Command = new Command
+            Command = new CommandDefinition
             {
                 Type = "webhook",
                 OperationId = webhookPath,

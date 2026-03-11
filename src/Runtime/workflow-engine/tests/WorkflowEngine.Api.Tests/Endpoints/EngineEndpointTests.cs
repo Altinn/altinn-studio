@@ -12,7 +12,7 @@ public class EngineEndpointTests
 {
     private const string DefaultTenantId = "test-tenant";
 
-    private static Command CreateWebhookCommand(string uri) =>
+    private static CommandDefinition CreateWebhookCommand(string uri) =>
         WebhookCommand.Create("webhook", new WebhookCommandData { Uri = uri });
 
     private static WorkflowEnqueueRequest _defaultWorkflowRequest =>
@@ -217,7 +217,7 @@ public class EngineEndpointTests
     public async Task ListWorkflows_HasActiveWorkflows_ReturnsOk()
     {
         // Arrange
-        var step = WorkflowEngineTestFixture.CreateStep(new Command { Type = "noop", OperationId = "noop" });
+        var step = WorkflowEngineTestFixture.CreateStep(new CommandDefinition { Type = "noop", OperationId = "noop" });
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 
         var repositoryMock = new Mock<IEngineRepository>();
@@ -284,7 +284,7 @@ public class EngineEndpointTests
     public async Task GetWorkflow_Found_ReturnsOk()
     {
         // Arrange
-        var step = WorkflowEngineTestFixture.CreateStep(new Command { Type = "noop", OperationId = "noop" });
+        var step = WorkflowEngineTestFixture.CreateStep(new CommandDefinition { Type = "noop", OperationId = "noop" });
         var workflow = new Workflow
         {
             OperationId = "test-op",
@@ -337,7 +337,7 @@ public class EngineEndpointTests
     public async Task GetWorkflow_WrongTenant_Returns404()
     {
         // Arrange — workflow belongs to a different tenant
-        var step = WorkflowEngineTestFixture.CreateStep(new Command { Type = "noop", OperationId = "noop" });
+        var step = WorkflowEngineTestFixture.CreateStep(new CommandDefinition { Type = "noop", OperationId = "noop" });
         var workflow = new Workflow
         {
             OperationId = "test-op",

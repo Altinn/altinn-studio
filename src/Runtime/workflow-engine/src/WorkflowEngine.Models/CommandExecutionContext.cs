@@ -15,16 +15,16 @@ public sealed record CommandExecutionContext
     /// <summary>The step being executed.</summary>
     public required Step Step { get; init; }
 
-    /// <summary>The raw command configuration (from <see cref="Command.Data"/>), for logging/diagnostics.</summary>
+    /// <summary>The raw command configuration (from <see cref="CommandDefinition.Data"/>), for logging/diagnostics.</summary>
     public JsonElement? RawCommandData { get; init; }
 
     /// <summary>
-    /// The deserialized command data, typed according to the descriptor's <see cref="ICommandDescriptor.CommandDataType"/>.
+    /// The deserialized command data, typed according to the descriptor's <see cref="ICommand.CommandDataType"/>.
     /// </summary>
     public object? TypedCommandData { get; init; }
 
     /// <summary>
-    /// The deserialized workflow context, typed according to the descriptor's <see cref="ICommandDescriptor.WorkflowContextType"/>.
+    /// The deserialized workflow context, typed according to the descriptor's <see cref="ICommand.WorkflowContextType"/>.
     /// </summary>
     public object? TypedWorkflowContext { get; init; }
 

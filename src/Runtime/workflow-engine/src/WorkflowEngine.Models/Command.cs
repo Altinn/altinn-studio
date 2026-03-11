@@ -1,65 +1,77 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
 namespace WorkflowEngine.Models;
 
 /// <summary>
-/// Describes a command to be executed by the workflow engine.
-/// The engine stores and routes commands but does not interpret them —
-/// a registered <see cref="ICommandDescriptor"/> handles execution.
+/// Base class for command descriptors that need both typed command data and typed workflow context.
+/// The engine deserializes the raw JSON into <typeparamref name="TData"/> and <typeparamref name="TContext"/>
+/// before calling <see cref="Validate"/> or <see cref="ExecuteAsync"/>.
 /// </summary>
-public sealed record Command
+/// <typeparam name="TData">The type to deserialize <see cref="CommandDefinition.Data"/> into.</typeparam>
+/// <typeparam name="TContext">The type to deserialize <see cref="Workflow.Context"/> into.</typeparam>
+public abstract class Command<TData, TContext> : ICommand
+    where TData : class
+    where TContext : class
 {
-    /// <summary>
-    /// The command type discriminator. Matched against registered command handlers.
-    /// </summary>
-    [JsonPropertyName("type")]
-    public required string Type { get; init; }
+    public abstract string CommandType { get; }
+
+    public Type CommandDataType => typeof(TData);
+
+    public Type WorkflowContextType => typeof(TContext);
+
+    CommandValidationResult ICommand.Validate(object? commandData, object? workflowContext) =>
+        Validate(commandData as TData, workflowContext as TContext);
+
+    Task<ExecutionResult> ICommand.ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken) =>
+        ExecuteAsync(context, cancellationToken);
 
     /// <summary>
-    /// A human-readable identifier for this operation (used in logs, telemetry, and idempotency keys).
+    /// Validates the deserialized command data and workflow context.
+    /// Called at enqueue time before the workflow is persisted.
     /// </summary>
-    [JsonPropertyName("operationId")]
-    public required string OperationId { get; init; }
+    protected abstract CommandValidationResult Validate(TData? commandData, TContext? workflowContext);
 
     /// <summary>
-    /// The maximum allowed execution time for the command.
-    /// If the command does not complete within this time, it will be considered failed.
+    /// Executes the command. Use <see cref="CommandExecutionContext.GetCommandData{T}"/>
+    /// and <see cref="CommandExecutionContext.GetWorkflowContext{T}"/> to access typed data.
     /// </summary>
-    [JsonPropertyName("maxExecutionTime")]
-    public TimeSpan? MaxExecutionTime { get; init; }
+    protected abstract Task<ExecutionResult> ExecuteAsync(
+        CommandExecutionContext context,
+        CancellationToken cancellationToken
+    );
+}
+
+/// <summary>
+/// Base class for command descriptors that need typed command data but no workflow context.
+/// The engine deserializes the raw JSON into <typeparamref name="TData"/>
+/// before calling <see cref="Validate"/> or <see cref="ExecuteAsync"/>.
+/// </summary>
+/// <typeparam name="TData">The type to deserialize <see cref="CommandDefinition.Data"/> into.</typeparam>
+public abstract class Command<TData> : ICommand
+    where TData : class
+{
+    public abstract string CommandType { get; }
+
+    public Type CommandDataType => typeof(TData);
+
+    public Type? WorkflowContextType => null;
+
+    CommandValidationResult ICommand.Validate(object? commandData, object? workflowContext) =>
+        Validate(commandData as TData);
+
+    Task<ExecutionResult> ICommand.ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken) =>
+        ExecuteAsync(context, cancellationToken);
 
     /// <summary>
-    /// Command configuration. The engine deserializes this into the type
-    /// declared by the matching <see cref="ICommandDescriptor.CommandDataType"/>.
+    /// Validates the deserialized command data.
+    /// Called at enqueue time before the workflow is persisted.
     /// </summary>
-    [JsonPropertyName("data")]
-    public JsonElement? Data { get; init; }
+    protected abstract CommandValidationResult Validate(TData? commandData);
 
     /// <summary>
-    /// Creates a <see cref="Command"/> with typed data, serialized via <see cref="CommandSerializerOptions.Default"/>.
+    /// Executes the command. Use <see cref="CommandExecutionContext.GetCommandData{T}"/>
+    /// to access typed data.
     /// </summary>
-    public static Command Create<TData>(string type, string operationId, TData data, TimeSpan? maxExecutionTime = null)
-        where TData : class =>
-        new()
-        {
-            Type = type,
-            OperationId = operationId,
-            MaxExecutionTime = maxExecutionTime,
-            Data = JsonSerializer.SerializeToElement(data, CommandSerializerOptions.Default),
-        };
-
-    /// <summary>
-    /// Creates a <see cref="Command"/> without data.
-    /// </summary>
-    public static Command Create(string type, string operationId, TimeSpan? maxExecutionTime = null) =>
-        new()
-        {
-            Type = type,
-            OperationId = operationId,
-            MaxExecutionTime = maxExecutionTime,
-        };
-
-    /// <inheritdoc/>
-    public override string ToString() => $"{Type}:{OperationId}";
+    protected abstract Task<ExecutionResult> ExecuteAsync(
+        CommandExecutionContext context,
+        CancellationToken cancellationToken
+    );
 }

@@ -42,11 +42,11 @@ public static class ServiceCollectionExtensions
                 return new ConcurrencyLimiter(settings.MaxConcurrentDbOperations, settings.MaxConcurrentHttpCalls);
             });
 
-            // Command descriptor plugin system
+            // Command plugin system
             services.AddSingleton<ICommandRegistry>(sp =>
             {
-                var descriptors = sp.GetServices<ICommandDescriptor>();
-                return new CommandRegistry(descriptors);
+                var commands = sp.GetServices<ICommand>();
+                return new CommandRegistry(commands);
             });
 
             services.AddSingleton<IEngine, Engine>();
@@ -80,12 +80,12 @@ public static class ServiceCollectionExtensions
         }
 
         /// <summary>
-        /// Registers a command descriptor with the engine.
+        /// Registers a command with the engine.
         /// </summary>
         public IServiceCollection AddCommand<TDescriptor>()
-            where TDescriptor : class, ICommandDescriptor
+            where TDescriptor : class, ICommand
         {
-            services.AddSingleton<ICommandDescriptor, TDescriptor>();
+            services.AddSingleton<ICommand, TDescriptor>();
             return services;
         }
 

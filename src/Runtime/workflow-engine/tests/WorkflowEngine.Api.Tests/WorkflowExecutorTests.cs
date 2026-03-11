@@ -9,10 +9,14 @@ namespace WorkflowEngine.Api.Tests;
 
 public class WorkflowExecutorTests
 {
-    private static Command CreateAppCommand(string commandKey, string? payload = null) =>
+    private static CommandDefinition CreateAppCommand(string commandKey, string? payload = null) =>
         AppCommand.Create(commandKey, new AppCommandData { CommandKey = commandKey, Payload = payload });
 
-    private static Command CreateWebhookCommand(string uri, string? payload = null, string? contentType = null) =>
+    private static CommandDefinition CreateWebhookCommand(
+        string uri,
+        string? payload = null,
+        string? contentType = null
+    ) =>
         WebhookCommand.Create(
             "webhook",
             new WebhookCommandData
@@ -245,7 +249,7 @@ public class WorkflowExecutorTests
     public async Task Execute_Delegate_Success_ReturnsSuccess()
     {
         // Arrange
-        var delegateHandler = new TestDelegateCommandDescriptor();
+        var delegateHandler = new TestDelegateCommand();
         var delegateWasCalled = false;
         delegateHandler.SetAction(
             (_, _, _) =>
@@ -257,10 +261,10 @@ public class WorkflowExecutorTests
 
         using var fixture = WorkflowEngineTestFixture.Create(services =>
         {
-            services.AddSingleton<ICommandDescriptor>(delegateHandler);
+            services.AddSingleton<ICommand>(delegateHandler);
         });
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = new Command { Type = "test-delegate", OperationId = "delegate" };
+        var command = new CommandDefinition { Type = "test-delegate", OperationId = "delegate" };
         var step = WorkflowEngineTestFixture.CreateStep(command);
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 
@@ -276,15 +280,15 @@ public class WorkflowExecutorTests
     public async Task Execute_Delegate_Throws_ReturnsRetryableError()
     {
         // Arrange
-        var delegateHandler = new TestDelegateCommandDescriptor();
+        var delegateHandler = new TestDelegateCommand();
         delegateHandler.SetAction((_, _, _) => throw new InvalidOperationException("Delegate failed"));
 
         using var fixture = WorkflowEngineTestFixture.Create(services =>
         {
-            services.AddSingleton<ICommandDescriptor>(delegateHandler);
+            services.AddSingleton<ICommand>(delegateHandler);
         });
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = new Command { Type = "test-delegate", OperationId = "delegate" };
+        var command = new CommandDefinition { Type = "test-delegate", OperationId = "delegate" };
         var step = WorkflowEngineTestFixture.CreateStep(command);
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 

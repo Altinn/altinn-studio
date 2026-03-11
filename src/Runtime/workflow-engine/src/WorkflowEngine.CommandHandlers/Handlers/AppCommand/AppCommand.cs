@@ -20,7 +20,7 @@ namespace WorkflowEngine.CommandHandlers.Handlers.AppCommand;
 /// Extracts actor, lockToken, and instance information from the typed workflow context
 /// and command-specific data from the typed command data.
 /// </summary>
-public sealed class AppCommand : CommandDescriptor<AppCommandData, AppWorkflowContext>
+public sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 {
     private readonly AppCommandSettings _settings;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -44,10 +44,13 @@ public sealed class AppCommand : CommandDescriptor<AppCommandData, AppWorkflowCo
     }
 
     /// <summary>
-    /// Creates a <see cref="Command"/> with <see cref="AppCommandData"/>.
+    /// Creates a <see cref="CommandDefinition"/> with <see cref="AppCommandData"/>.
     /// </summary>
-    public static Command Create(string operationId, AppCommandData data, TimeSpan? maxExecutionTime = null) =>
-        Command.Create(CommandTypeId, operationId, data, maxExecutionTime);
+    public static CommandDefinition Create(
+        string operationId,
+        AppCommandData data,
+        TimeSpan? maxExecutionTime = null
+    ) => CommandDefinition.Create(CommandTypeId, operationId, data, maxExecutionTime);
 
     /// <inheritdoc/>
     protected override CommandValidationResult Validate(
@@ -93,7 +96,7 @@ public sealed class AppCommand : CommandDescriptor<AppCommandData, AppWorkflowCo
         var workflowContext = context.GetWorkflowContext<AppWorkflowContext>();
 
         using var activity = Metrics.Source.StartActivity(
-            "AppCommandDescriptor.Execute",
+            "AppCommand.Execute",
             parentContext: context.ParentTraceContext ?? context.Step.EngineActivity?.Context,
             kind: ActivityKind.Client,
             tags: [("command.key", commandData.CommandKey)]

@@ -16,7 +16,7 @@ namespace WorkflowEngine.CommandHandlers.Handlers.Webhook;
 /// Handles "webhook" commands by making HTTP requests to arbitrary endpoints.
 /// If <c>Command.Data</c> includes a <c>payload</c>, sends a POST; otherwise sends a GET.
 /// </summary>
-public sealed class WebhookCommand : CommandDescriptor<WebhookCommandData>
+public sealed class WebhookCommand : Command<WebhookCommandData>
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConcurrencyLimiter _limiter;
@@ -37,10 +37,13 @@ public sealed class WebhookCommand : CommandDescriptor<WebhookCommandData>
     }
 
     /// <summary>
-    /// Creates a <see cref="Command"/> with <see cref="WebhookCommandData"/>.
+    /// Creates a <see cref="CommandDefinition"/> with <see cref="WebhookCommandData"/>.
     /// </summary>
-    public static Command Create(string operationId, WebhookCommandData data, TimeSpan? maxExecutionTime = null) =>
-        Command.Create(CommandTypeId, operationId, data, maxExecutionTime);
+    public static CommandDefinition Create(
+        string operationId,
+        WebhookCommandData data,
+        TimeSpan? maxExecutionTime = null
+    ) => CommandDefinition.Create(CommandTypeId, operationId, data, maxExecutionTime);
 
     /// <inheritdoc/>
     protected override CommandValidationResult Validate(WebhookCommandData? commandData)
@@ -63,7 +66,7 @@ public sealed class WebhookCommand : CommandDescriptor<WebhookCommandData>
         var commandData = context.GetCommandData<WebhookCommandData>();
 
         using var activity = Metrics.Source.StartActivity(
-            "WebhookCommandDescriptor.Execute",
+            "WebhookCommand.Execute",
             parentContext: context.ParentTraceContext ?? context.Step.EngineActivity?.Context,
             kind: ActivityKind.Client,
             tags: [("command.uri", commandData.Uri)]

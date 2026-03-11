@@ -88,7 +88,7 @@ internal static class WorkflowTestHelper
             [
                 new StepRequest
                 {
-                    Command = new Command { Type = "app", OperationId = "test-step" },
+                    Command = new CommandDefinition { Type = "app", OperationId = "test-step" },
                 },
             ],
             StartAt = startAt,

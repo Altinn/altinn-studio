@@ -12,7 +12,7 @@ public sealed record StepRequest
     /// The command to be executed by the process engine.
     /// </summary>
     [JsonPropertyName("command")]
-    public required Command Command { get; init; }
+    public required CommandDefinition Command { get; init; }
 
     /// <summary>
     /// An optional retry strategy for the task. If none given, the default strategy will be used.

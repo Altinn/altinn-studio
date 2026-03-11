@@ -5,7 +5,7 @@ namespace WorkflowEngine.Api.Tests.Utils;
 
 public class ValidationUtilsTests
 {
-    private static Command NoopCommand() => new() { Type = "noop", OperationId = "noop" };
+    private static CommandDefinition NoopCommand() => new() { Type = "noop", OperationId = "noop" };
 
     private static WorkflowRequest CreateWorkflowRequest(
         string workflowRef,
@@ -273,7 +273,7 @@ public class ValidationUtilsTests
     {
         var validStep = new StepRequest
         {
-            Command = new Command { Type = "noop", OperationId = "noop" },
+            Command = new CommandDefinition { Type = "noop", OperationId = "noop" },
         };
         var validWorkflow = new WorkflowRequest { OperationId = "op", Steps = [validStep] };
 
@@ -309,7 +309,7 @@ public class ValidationUtilsTests
                     [
                         new StepRequest
                         {
-                            Command = new Command { Type = "app", OperationId = "" },
+                            Command = new CommandDefinition { Type = "app", OperationId = "" },
                         },
                     ],
                 },
@@ -322,7 +322,7 @@ public class ValidationUtilsTests
                     [
                         new StepRequest
                         {
-                            Command = new Command { Type = "app", OperationId = "   " },
+                            Command = new CommandDefinition { Type = "app", OperationId = "   " },
                         },
                     ],
                 },
@@ -341,7 +341,7 @@ public class ValidationUtilsTests
 
     public static TheoryData<StepRequest, ExpectedResult> StepRequestCases()
     {
-        var validCommand = new Command { Type = "noop", OperationId = "noop" };
+        var validCommand = new CommandDefinition { Type = "noop", OperationId = "noop" };
 
         return new TheoryData<StepRequest, ExpectedResult>
         {
@@ -366,14 +366,14 @@ public class ValidationUtilsTests
             {
                 new StepRequest
                 {
-                    Command = new Command { Type = "app", OperationId = "" },
+                    Command = new CommandDefinition { Type = "app", OperationId = "" },
                 },
                 ExpectedResult.Invalid
             },
             {
                 new StepRequest
                 {
-                    Command = new Command { Type = "app", OperationId = "   " },
+                    Command = new CommandDefinition { Type = "app", OperationId = "   " },
                 },
                 ExpectedResult.Invalid
             },

@@ -8,7 +8,7 @@ namespace WorkflowEngine.Models;
 public sealed record Step : PersistentItem
 {
     public required int ProcessingOrder { get; init; }
-    public required Command Command { get; init; }
+    public required CommandDefinition Command { get; init; }
 
     public DateTimeOffset? BackoffUntil { get; set; }
     public RetryStrategy? RetryStrategy { get; init; }
