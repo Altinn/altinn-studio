@@ -1,9 +1,8 @@
 import React from 'react';
 
 import { Textfield } from '@digdir/designsystemet-react';
-import { useBoundValue, useRequiredValidation, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
+import { useComponentBinding, useRequiredValidation, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
-import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 import { asTranslationKey } from 'nextsrc/libs/form-engine/AppComponentsBridge';
 import classes from 'nextsrc/libs/form-engine/components/Input/Input.module.css';
 import {
@@ -25,11 +24,14 @@ import type { CompInputExternal } from 'src/layout/Input/config.generated';
 
 export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) => {
   const props = component as CompInputExternal;
-  const simpleBinding = extractField(props.dataModelBindings?.simpleBinding);
-  const { value, setValue } = useBoundValue(simpleBinding, parentBinding, itemIndex);
+  const {
+    field: simpleBindingField,
+    value,
+    setValue,
+  } = useComponentBinding(props.dataModelBindings?.simpleBinding, parentBinding, itemIndex);
   const titleKey = typeof props.textResourceBindings?.title === 'string' ? props.textResourceBindings.title : undefined;
   const title = useTextResource(titleKey);
-  const required = useRequiredValidation(props.required, simpleBinding, value, title);
+  const required = useRequiredValidation(props.required, simpleBindingField, value, title);
   const { help, description, requiredIndicator } = useLabelProps(props.textResourceBindings);
 
   const prefixKey =
@@ -54,7 +56,7 @@ export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) =
   const formValue = String(value ?? '');
   const alignClass = formatting?.align ? classes[`text-align-${formatting.align}`] : undefined;
 
-  if (!simpleBinding) {
+  if (!simpleBindingField) {
     return (
       <Textfield
         label={title || ''}
@@ -104,7 +106,7 @@ export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) =
             autoComplete={props.autocomplete}
             maxLength={props.maxLength ?? undefined}
           />
-          <ComponentValidations bindingPath={simpleBinding} />
+          <ComponentValidations bindingPath={simpleBindingField} />
         </Flex>
       </Label>
     );
@@ -146,7 +148,7 @@ export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) =
             autoComplete={props.autocomplete}
             maxLength={props.maxLength ?? undefined}
           />
-          <ComponentValidations bindingPath={simpleBinding} />
+          <ComponentValidations bindingPath={simpleBindingField} />
         </Flex>
       </Label>
     );
@@ -181,7 +183,7 @@ export const Input = ({ component, parentBinding, itemIndex }: ComponentProps) =
           autoComplete={props.autocomplete}
           maxLength={props.maxLength ?? undefined}
         />
-        <ComponentValidations bindingPath={simpleBinding} />
+        <ComponentValidations bindingPath={simpleBindingField} />
       </Flex>
     </Label>
   );

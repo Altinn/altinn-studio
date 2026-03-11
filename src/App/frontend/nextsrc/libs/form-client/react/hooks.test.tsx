@@ -5,6 +5,7 @@ import { act, renderHook } from '@testing-library/react';
 import { FormClient } from 'nextsrc/libs/form-client/form-client';
 import {
   useBoundValue,
+  useComponentBinding,
   useFormData,
   useFormValue,
   useGroupArray,
@@ -86,6 +87,30 @@ describe('useBoundValue', () => {
       client.formDataStore.getState().getBoundValue('people.name', { parentBinding: 'people', itemIndex: 1 }),
     ).toBe('B');
   });
+
+  it('writes to non-default model inside repeating group', () => {
+    const client = new FormClient({ defaultDataType: 'model-a' });
+    client.setFormData({ items: [{ v: 'a0' }, { v: 'a1' }] }, 'model-a');
+    client.setFormData({ items: [{ v: 'b0' }, { v: 'b1' }] }, 'model-b');
+
+    const { result } = renderHook(() => useBoundValue({ dataType: 'model-b', field: 'items.v' }, 'items', 1), {
+      wrapper: createWrapper(client),
+    });
+    expect(result.current.value).toBe('b1');
+
+    act(() => result.current.setValue('updated'));
+    expect(result.current.value).toBe('updated');
+    // Other index in model-b untouched
+    expect(
+      client.formDataStore
+        .getState()
+        .getBoundValue('items.v', { dataType: 'model-b', parentBinding: 'items', itemIndex: 0 }),
+    ).toBe('b0');
+    // Default model untouched
+    expect(client.formDataStore.getState().getBoundValue('items.v', { parentBinding: 'items', itemIndex: 1 })).toBe(
+      'a1',
+    );
+  });
 });
 
 describe('useFormData', () => {
@@ -95,6 +120,84 @@ describe('useFormData', () => {
 
     const { result } = renderHook(() => useFormData(), { wrapper: createWrapper(client) });
     expect(result.current).toEqual({ name: 'Ola', age: 30 });
+  });
+});
+
+describe('useComponentBinding', () => {
+  it('returns field, value and setValue for string binding', () => {
+    const client = new FormClient({ defaultDataType: 'default' });
+    client.setFormData({ name: 'Ola' });
+
+    const { result } = renderHook(() => useComponentBinding('name'), { wrapper: createWrapper(client) });
+    expect(result.current.field).toBe('name');
+    expect(result.current.value).toBe('Ola');
+  });
+
+  it('returns extracted field for object binding', () => {
+    const client = new FormClient({ defaultDataType: 'model-a' });
+    client.setFormData({ title: 'B' }, 'model-b');
+
+    const { result } = renderHook(() => useComponentBinding({ dataType: 'model-b', field: 'title' }), {
+      wrapper: createWrapper(client),
+    });
+    expect(result.current.field).toBe('title');
+    expect(result.current.value).toBe('B');
+  });
+
+  it('writes to correct model via object binding', () => {
+    const client = new FormClient({ defaultDataType: 'model-a' });
+    client.setFormData({ title: 'A' }, 'model-a');
+    client.setFormData({ title: 'B' }, 'model-b');
+
+    const { result } = renderHook(() => useComponentBinding({ dataType: 'model-b', field: 'title' }), {
+      wrapper: createWrapper(client),
+    });
+    act(() => result.current.setValue('Updated'));
+
+    expect(result.current.value).toBe('Updated');
+    expect(client.formDataStore.getState().getValue('title', 'model-a')).toBe('A');
+  });
+
+  it('writes to default model when binding is a plain string', () => {
+    const client = new FormClient({ defaultDataType: 'model-a' });
+    client.setFormData({ title: 'A' }, 'model-a');
+    client.setFormData({ title: 'B' }, 'model-b');
+
+    const { result } = renderHook(() => useComponentBinding('title'), {
+      wrapper: createWrapper(client),
+    });
+    act(() => result.current.setValue('Changed'));
+    expect(result.current.value).toBe('Changed');
+    expect(client.formDataStore.getState().getValue('title', 'model-b')).toBe('B');
+  });
+
+  it('reads and writes inside repeating group with cross-model binding', () => {
+    const client = new FormClient({ defaultDataType: 'model-a' });
+    client.setFormData({ items: [{ v: 'a0' }, { v: 'a1' }] }, 'model-a');
+    client.setFormData({ items: [{ v: 'b0' }, { v: 'b1' }] }, 'model-b');
+
+    const { result } = renderHook(() => useComponentBinding({ dataType: 'model-b', field: 'items.v' }, 'items', 1), {
+      wrapper: createWrapper(client),
+    });
+
+    expect(result.current.field).toBe('items.v');
+    expect(result.current.value).toBe('b1');
+
+    act(() => result.current.setValue('updated'));
+    expect(result.current.value).toBe('updated');
+    // Default model untouched
+    expect(client.formDataStore.getState().getBoundValue('items.v', { parentBinding: 'items', itemIndex: 1 })).toBe(
+      'a1',
+    );
+  });
+
+  it('handles undefined binding gracefully', () => {
+    const client = new FormClient({ defaultDataType: 'default' });
+    client.setFormData({ name: 'Ola' });
+
+    const { result } = renderHook(() => useComponentBinding(undefined), { wrapper: createWrapper(client) });
+    expect(result.current.field).toBe('');
+    expect(result.current.value).toBeNull();
   });
 });
 

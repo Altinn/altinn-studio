@@ -46,8 +46,15 @@ describe('extractBinding', () => {
 });
 
 describe('resolveChildBindings', () => {
-  function makeComp(overrides: Partial<ResolvedCompExternal> = {}): ResolvedCompExternal {
-    return { id: 'comp-1', type: 'Input', ...overrides } as ResolvedCompExternal;
+  // Double-cast required: ResolvedCompExternal is a discriminated union, so partial stubs don't overlap
+  function makeComp(
+    overrides: {
+      dataModelBindings?: Record<string, unknown>;
+      children?: ResolvedCompExternal[];
+      [key: string]: unknown;
+    } = {},
+  ): ResolvedCompExternal {
+    return { id: 'comp-1', type: 'Input', ...overrides } as unknown as ResolvedCompExternal;
   }
 
   it('resolves string binding with row index', () => {

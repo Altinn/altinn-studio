@@ -1,10 +1,11 @@
 import { useCallback, useMemo } from 'react';
 
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
-import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
+import { extractBinding } from 'nextsrc/libs/form-client/resolveBindings';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/shallow';
 import type { FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
+import type { DataModelBinding } from 'nextsrc/libs/form-client/resolveBindings';
 import type { BindingContext } from 'nextsrc/libs/form-client/stores/formDataStore';
 
 interface MultiBindingResult {
@@ -22,39 +23,40 @@ export function useMultiBinding(
   itemIndex?: number,
 ): MultiBindingResult {
   const client = useFormClient();
-  const bindingContext: BindingContext = useMemo(() => ({ parentBinding, itemIndex }), [parentBinding, itemIndex]);
-
-  const bindingPaths: Record<string, string> = useMemo(() => {
+  const resolvedBindings: Record<string, DataModelBinding> = useMemo(() => {
     if (!bindings) {
       return {};
     }
-    const paths: Record<string, string> = {};
+    const resolved: Record<string, DataModelBinding> = {};
     for (const key of Object.keys(bindings)) {
-      paths[key] = extractField(bindings[key]);
+      resolved[key] = extractBinding(bindings[key], client.defaultDataType);
     }
-    return paths;
-  }, [bindings]);
-  const bindingKeys = Object.keys(bindingPaths);
+    return resolved;
+  }, [bindings, client.defaultDataType]);
+  const bindingKeys = Object.keys(resolvedBindings);
 
   const formData = useStore(
     client.formDataStore,
     useShallow((state) => {
       const result: Record<string, FormDataPrimitive> = {};
       for (const key of bindingKeys) {
-        result[key] = state.getBoundValue(bindingPaths[key], bindingContext);
+        const { field, dataType } = resolvedBindings[key];
+        const ctx: BindingContext = { parentBinding, itemIndex, dataType };
+        result[key] = state.getBoundValue(field, ctx);
       }
       return result;
     }),
   );
 
   const setValue = useCallback(
-    (field: string, value: FormDataPrimitive) => {
-      const path = bindingPaths[field];
-      if (path) {
-        client.formDataStore.getState().setBoundValue(path, value, bindingContext);
+    (bindingKey: string, value: FormDataPrimitive) => {
+      const binding = resolvedBindings[bindingKey];
+      if (binding) {
+        const ctx: BindingContext = { parentBinding, itemIndex, dataType: binding.dataType };
+        client.formDataStore.getState().setBoundValue(binding.field, value, ctx);
       }
     },
-    [client, bindingPaths, bindingContext],
+    [client, resolvedBindings, parentBinding, itemIndex],
   );
 
   return { formData, setValue };

@@ -1,5 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { createFormDataStore, selectCurrentData } from 'nextsrc/libs/form-client/stores/formDataStore';
+import type { FormDataStoreOptions } from 'nextsrc/libs/form-client/stores/formDataStore';
 
 describe('formDataStore', () => {
   describe('single model read/write', () => {
@@ -98,6 +99,51 @@ describe('formDataStore', () => {
       store.getState().setData({ name: 'B' }, 'model-b');
       expect(store.getState().getBoundValue('name', { dataType: 'model-b' })).toBe('B');
     });
+
+    it('setBoundValue writes to correct model when dataType is specified', () => {
+      const store = createFormDataStore('model-a', { title: 'A' });
+      store.getState().setData({ title: 'B' }, 'model-b');
+
+      store.getState().setBoundValue('title', 'updated', { dataType: 'model-b' });
+
+      expect(store.getState().getBoundValue('title', { dataType: 'model-b' })).toBe('updated');
+      expect(store.getState().getBoundValue('title')).toBe('A');
+    });
+
+    it('setBoundValue without dataType writes to default model', () => {
+      const store = createFormDataStore('model-a', { title: 'A' });
+      store.getState().setData({ title: 'B' }, 'model-b');
+
+      store.getState().setBoundValue('title', 'updated');
+
+      expect(store.getState().getBoundValue('title')).toBe('updated');
+      expect(store.getState().getBoundValue('title', { dataType: 'model-b' })).toBe('B');
+    });
+
+    it('onChange fires with correct dataType for cross-model setBoundValue', () => {
+      const onChange = jest.fn();
+      const store = createFormDataStore('model-a', { x: 1 }, { onChange });
+      store.getState().setData({ x: 10 }, 'model-b');
+
+      store.getState().setBoundValue('x', 99, { dataType: 'model-b' });
+
+      expect(onChange).toHaveBeenCalledWith('x', 99, 10, 'model-b');
+    });
+
+    it('setBoundValue with dataType and parentBinding resolves path correctly', () => {
+      const store = createFormDataStore('model-a', { items: [{ v: 'a' }] });
+      store.getState().setData({ items: [{ v: 'x' }, { v: 'y' }] }, 'model-b');
+
+      const modelBRow0 = { dataType: 'model-b', parentBinding: 'items', itemIndex: 0 };
+      const modelBRow1 = { dataType: 'model-b', parentBinding: 'items', itemIndex: 1 };
+      const defaultRow0 = { parentBinding: 'items', itemIndex: 0 };
+
+      store.getState().setBoundValue('items.v', 'changed', modelBRow1);
+
+      expect(store.getState().getBoundValue('items.v', modelBRow1)).toBe('changed');
+      expect(store.getState().getBoundValue('items.v', modelBRow0)).toBe('x');
+      expect(store.getState().getBoundValue('items.v', defaultRow0)).toBe('a');
+    });
   });
 
   describe('array operations', () => {
@@ -189,7 +235,9 @@ describe('formDataStore', () => {
 
   describe('coerceValue', () => {
     it('applies coercion before writing', () => {
-      const coerceValue = jest.fn().mockReturnValue({ value: 42, error: false });
+      const coerceValue = jest
+        .fn()
+        .mockReturnValue({ value: 42, error: false }) as unknown as FormDataStoreOptions['coerceValue'];
       const store = createFormDataStore('default', { age: 0 }, { coerceValue });
       store.getState().setValue('age', '42' as unknown as number);
       expect(coerceValue).toHaveBeenCalledWith('age', '42', 'default');
@@ -197,14 +245,18 @@ describe('formDataStore', () => {
     });
 
     it('blocks write when coercion returns error', () => {
-      const coerceValue = jest.fn().mockReturnValue({ value: null, error: true });
+      const coerceValue = jest
+        .fn()
+        .mockReturnValue({ value: null, error: true }) as unknown as FormDataStoreOptions['coerceValue'];
       const store = createFormDataStore('default', { age: 10 }, { coerceValue });
       store.getState().setValue('age', 'invalid' as unknown as number);
       expect(store.getState().getValue('age')).toBe(10);
     });
 
     it('applies coercion on setBoundValue', () => {
-      const coerceValue = jest.fn().mockReturnValue({ value: 99, error: false });
+      const coerceValue = jest
+        .fn()
+        .mockReturnValue({ value: 99, error: false }) as unknown as FormDataStoreOptions['coerceValue'];
       const store = createFormDataStore('default', { age: 0 }, { coerceValue });
       store.getState().setBoundValue('age', '99' as unknown as number);
       expect(store.getState().getValue('age')).toBe(99);

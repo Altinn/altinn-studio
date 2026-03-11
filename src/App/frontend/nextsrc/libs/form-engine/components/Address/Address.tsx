@@ -2,9 +2,8 @@ import React, { useEffect } from 'react';
 
 import { Textfield } from '@digdir/designsystemet-react';
 import { usePostPlace } from 'nextsrc/core/queries/postalCodes';
-import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
+import { useComponentBinding, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
-import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 import classes from 'nextsrc/libs/form-engine/components/Address/Address.module.css';
 import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
@@ -16,17 +15,11 @@ export const Address = ({ component, parentBinding, itemIndex }: ComponentProps)
   const { langAsString } = useLanguage();
   const simplified = props.simplified !== false;
 
-  const addressField = extractField(props.dataModelBindings?.address);
-  const zipCodeField = extractField(props.dataModelBindings?.zipCode);
-  const postPlaceField = extractField(props.dataModelBindings?.postPlace);
-  const careOfField = extractField(props.dataModelBindings?.careOf);
-  const houseNumberField = extractField(props.dataModelBindings?.houseNumber);
-
-  const address = useBoundValue(addressField, parentBinding, itemIndex);
-  const zipCode = useBoundValue(zipCodeField, parentBinding, itemIndex);
-  const postPlace = useBoundValue(postPlaceField, parentBinding, itemIndex);
-  const careOf = useBoundValue(careOfField, parentBinding, itemIndex);
-  const houseNumber = useBoundValue(houseNumberField, parentBinding, itemIndex);
+  const address = useComponentBinding(props.dataModelBindings?.address, parentBinding, itemIndex);
+  const zipCode = useComponentBinding(props.dataModelBindings?.zipCode, parentBinding, itemIndex);
+  const postPlace = useComponentBinding(props.dataModelBindings?.postPlace, parentBinding, itemIndex);
+  const careOf = useComponentBinding(props.dataModelBindings?.careOf, parentBinding, itemIndex);
+  const houseNumber = useComponentBinding(props.dataModelBindings?.houseNumber, parentBinding, itemIndex);
 
   const titleKey = typeof props.textResourceBindings?.title === 'string' ? props.textResourceBindings.title : undefined;
   const title = useTextResource(titleKey);
@@ -57,10 +50,10 @@ export const Address = ({ component, parentBinding, itemIndex }: ComponentProps)
           readOnly={props.readOnly as boolean | undefined}
           autoComplete={simplified ? 'street-address' : 'address-line1'}
         />
-        {addressField && <ComponentValidations bindingPath={addressField} />}
+        {address.field && <ComponentValidations bindingPath={address.field} />}
       </div>
 
-      {!simplified && careOfField && (
+      {!simplified && careOf.field && (
         <div>
           <Textfield
             label={careOfLabel}
@@ -70,7 +63,7 @@ export const Address = ({ component, parentBinding, itemIndex }: ComponentProps)
             readOnly={props.readOnly as boolean | undefined}
             autoComplete='address-line2'
           />
-          <ComponentValidations bindingPath={careOfField} />
+          <ComponentValidations bindingPath={careOf.field} />
         </div>
       )}
 
@@ -85,7 +78,7 @@ export const Address = ({ component, parentBinding, itemIndex }: ComponentProps)
             inputMode='numeric'
             autoComplete='postal-code'
           />
-          {zipCodeField && <ComponentValidations bindingPath={zipCodeField} />}
+          {zipCode.field && <ComponentValidations bindingPath={zipCode.field} />}
         </div>
         <div className={classes.postPlace}>
           <Textfield
@@ -95,10 +88,11 @@ export const Address = ({ component, parentBinding, itemIndex }: ComponentProps)
             readOnly
             autoComplete='address-level1'
           />
+          {postPlace.field && <ComponentValidations bindingPath={postPlace.field} />}
         </div>
       </div>
 
-      {!simplified && houseNumberField && (
+      {!simplified && houseNumber.field && (
         <div>
           <Textfield
             label={houseNumberLabel}
@@ -108,7 +102,7 @@ export const Address = ({ component, parentBinding, itemIndex }: ComponentProps)
             readOnly={props.readOnly as boolean | undefined}
             autoComplete='address-line3'
           />
-          <ComponentValidations bindingPath={houseNumberField} />
+          <ComponentValidations bindingPath={houseNumber.field} />
         </div>
       )}
     </div>

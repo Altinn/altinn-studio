@@ -1,24 +1,25 @@
 import React from 'react';
 
 import { Textfield } from '@digdir/designsystemet-react';
+import { useComponentBinding, useRequiredValidation, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
+import { useLabelProps } from 'nextsrc/libs/form-engine/components/useLabelProps';
+import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Label } from 'src/app-components/Label/Label';
-import { useBoundValue, useRequiredValidation, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
-import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
-import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
-import { useLabelProps } from 'nextsrc/libs/form-engine/components/useLabelProps';
-import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
-
 import type { CompTimePickerExternal } from 'src/layout/TimePicker/config.generated';
 
 export const TimePicker = ({ component, parentBinding, itemIndex }: ComponentProps) => {
   const props = component as CompTimePickerExternal;
-  const simpleBinding = extractField(props.dataModelBindings?.simpleBinding);
-  const { value, setValue } = useBoundValue(simpleBinding, parentBinding, itemIndex);
+  const {
+    field: simpleBindingField,
+    value,
+    setValue,
+  } = useComponentBinding(props.dataModelBindings?.simpleBinding, parentBinding, itemIndex);
   const titleKey = typeof props.textResourceBindings?.title === 'string' ? props.textResourceBindings.title : undefined;
   const title = useTextResource(titleKey);
-  const required = useRequiredValidation(props.required, simpleBinding, value, title);
+  const required = useRequiredValidation(props.required, simpleBindingField, value, title);
   const { help, description, requiredIndicator } = useLabelProps(props.textResourceBindings);
 
   const format = props.format ?? 'HH:mm';
@@ -30,7 +31,7 @@ export const TimePicker = ({ component, parentBinding, itemIndex }: ComponentPro
 
   const formValue = String(value ?? '');
 
-  if (!simpleBinding) {
+  if (!simpleBindingField) {
     return (
       <Textfield
         label={title || ''}
@@ -49,7 +50,10 @@ export const TimePicker = ({ component, parentBinding, itemIndex }: ComponentPro
       description={description}
       grid={props.grid?.labelGrid}
     >
-      <Flex item size={{ xs: 12 }}>
+      <Flex
+        item
+        size={{ xs: 12 }}
+      >
         <Textfield
           label=''
           id={props.id}
@@ -63,7 +67,7 @@ export const TimePicker = ({ component, parentBinding, itemIndex }: ComponentPro
           onChange={(e) => setValue(e.target.value)}
           autoComplete={props.autocomplete}
         />
-        <ComponentValidations bindingPath={simpleBinding} />
+        <ComponentValidations bindingPath={simpleBindingField} />
       </Flex>
     </Label>
   );

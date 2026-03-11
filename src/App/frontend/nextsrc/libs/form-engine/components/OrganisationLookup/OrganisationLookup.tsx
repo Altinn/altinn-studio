@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 
 import { Button, Field, Fieldset, Paragraph, Textfield, ValidationMessage } from '@digdir/designsystemet-react';
 import { useOrganisationLookup } from 'nextsrc/core/queries/lookup';
-import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
+import { useComponentBinding, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
-import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 import classes from 'nextsrc/libs/form-engine/components/OrganisationLookup/OrganisationLookup.module.css';
 import { checkValidOrgNr } from 'nextsrc/libs/form-engine/components/shared/lookupValidation';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
@@ -18,11 +17,8 @@ export const OrganisationLookup = ({ component, parentBinding, itemIndex }: Comp
   const titleKey = typeof props.textResourceBindings?.title === 'string' ? props.textResourceBindings.title : undefined;
   const title = useTextResource(titleKey);
 
-  const orgNrField = extractField(props.dataModelBindings?.organisation_lookup_orgnr);
-  const orgNameField = extractField(props.dataModelBindings?.organisation_lookup_name);
-
-  const orgNr = useBoundValue(orgNrField, parentBinding, itemIndex);
-  const orgName = useBoundValue(orgNameField, parentBinding, itemIndex);
+  const orgNr = useComponentBinding(props.dataModelBindings?.organisation_lookup_orgnr, parentBinding, itemIndex);
+  const orgName = useComponentBinding(props.dataModelBindings?.organisation_lookup_name, parentBinding, itemIndex);
 
   const [tempOrgNr, setTempOrgNr] = useState('');
   const [orgNrErrors, setOrgNrErrors] = useState<string[]>();
@@ -46,7 +42,7 @@ export const OrganisationLookup = ({ component, parentBinding, itemIndex }: Comp
     const result = await performLookup();
     if (result.org) {
       orgNr.setValue(result.org.orgNr);
-      if (orgNameField) {
+      if (orgName.field) {
         orgName.setValue(result.org.name);
       }
     }
@@ -54,7 +50,7 @@ export const OrganisationLookup = ({ component, parentBinding, itemIndex }: Comp
 
   function handleClear() {
     orgNr.setValue('');
-    if (orgNameField) {
+    if (orgName.field) {
       orgName.setValue('');
     }
     setTempOrgNr('');

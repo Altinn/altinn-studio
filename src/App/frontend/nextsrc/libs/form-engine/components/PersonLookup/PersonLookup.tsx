@@ -2,9 +2,8 @@ import React, { useMemo, useState } from 'react';
 
 import { Button, Field, Fieldset, Textfield, ValidationMessage } from '@digdir/designsystemet-react';
 import { usePersonLookup } from 'nextsrc/core/queries/lookup';
-import { useBoundValue, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
+import { useComponentBinding, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
-import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 import classes from 'nextsrc/libs/form-engine/components/PersonLookup/PersonLookup.module.css';
 import { checkValidSsn } from 'nextsrc/libs/form-engine/components/shared/lookupValidation';
 import type { PersonDetails } from 'nextsrc/core/api-client/lookupApi';
@@ -25,17 +24,11 @@ export const PersonLookup = ({ component, parentBinding, itemIndex }: ComponentP
   const titleKey = typeof props.textResourceBindings?.title === 'string' ? props.textResourceBindings.title : undefined;
   const title = useTextResource(titleKey);
 
-  const ssnField = extractField(props.dataModelBindings?.person_lookup_ssn);
-  const nameField = extractField(props.dataModelBindings?.person_lookup_name);
-  const firstNameField = extractField(props.dataModelBindings?.person_lookup_first_name);
-  const lastNameField = extractField(props.dataModelBindings?.person_lookup_last_name);
-  const middleNameField = extractField(props.dataModelBindings?.person_lookup_middle_name);
-
-  const ssn = useBoundValue(ssnField, parentBinding, itemIndex);
-  const personName = useBoundValue(nameField, parentBinding, itemIndex);
-  const firstName = useBoundValue(firstNameField, parentBinding, itemIndex);
-  const lastName = useBoundValue(lastNameField, parentBinding, itemIndex);
-  const middleName = useBoundValue(middleNameField, parentBinding, itemIndex);
+  const ssn = useComponentBinding(props.dataModelBindings?.person_lookup_ssn, parentBinding, itemIndex);
+  const personName = useComponentBinding(props.dataModelBindings?.person_lookup_name, parentBinding, itemIndex);
+  const firstName = useComponentBinding(props.dataModelBindings?.person_lookup_first_name, parentBinding, itemIndex);
+  const lastName = useComponentBinding(props.dataModelBindings?.person_lookup_last_name, parentBinding, itemIndex);
+  const middleName = useComponentBinding(props.dataModelBindings?.person_lookup_middle_name, parentBinding, itemIndex);
 
   const [tempSsn, setTempSsn] = useState('');
   const [tempName, setTempName] = useState('');
@@ -71,38 +64,38 @@ export const PersonLookup = ({ component, parentBinding, itemIndex }: ComponentP
 
     const result = await performLookup();
     if (result.person) {
-      if (ssnField) {
+      if (ssn.field) {
         ssn.setValue(result.person.ssn);
       }
-      if (firstNameField) {
+      if (firstName.field) {
         firstName.setValue(result.person.firstName);
       }
-      if (lastNameField) {
+      if (lastName.field) {
         lastName.setValue(result.person.lastName);
       }
-      if (middleNameField) {
+      if (middleName.field) {
         middleName.setValue(result.person.middleName || '');
       }
-      if (nameField) {
+      if (personName.field) {
         personName.setValue(composeFullName(result.person));
       }
     }
   }
 
   function handleClear() {
-    if (ssnField) {
+    if (ssn.field) {
       ssn.setValue('');
     }
-    if (firstNameField) {
+    if (firstName.field) {
       firstName.setValue('');
     }
-    if (lastNameField) {
+    if (lastName.field) {
       lastName.setValue('');
     }
-    if (middleNameField) {
+    if (middleName.field) {
       middleName.setValue('');
     }
-    if (nameField) {
+    if (personName.field) {
       personName.setValue('');
     }
     setTempName('');

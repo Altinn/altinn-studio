@@ -2,25 +2,27 @@ import React from 'react';
 
 import { Select } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import { useComponentBinding, useRequiredValidation, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
+import classes from 'nextsrc/libs/form-engine/components/Dropdown/Dropdown.module.css';
+import { useLabelProps } from 'nextsrc/libs/form-engine/components/useLabelProps';
+import { useOptions } from 'nextsrc/libs/form-engine/components/useOptions';
+import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 import { Flex } from 'src/app-components/Flex/Flex';
 import { Label } from 'src/app-components/Label/Label';
-import { useBoundValue, useRequiredValidation, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
-import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
-import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
-import classes from 'nextsrc/libs/form-engine/components/Dropdown/Dropdown.module.css';
-import { useOptions } from 'nextsrc/libs/form-engine/components/useOptions';
-import { useLabelProps } from 'nextsrc/libs/form-engine/components/useLabelProps';
-import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompDropdownExternal } from 'src/layout/Dropdown/config.generated';
 
 export const Dropdown = ({ component, parentBinding, itemIndex }: ComponentProps) => {
   const props = component as unknown as CompDropdownExternal;
-  const simpleBinding = extractField(props.dataModelBindings?.simpleBinding);
-  const { value, setValue } = useBoundValue(simpleBinding, parentBinding, itemIndex);
+  const {
+    field: simpleBindingField,
+    value,
+    setValue,
+  } = useComponentBinding(props.dataModelBindings?.simpleBinding, parentBinding, itemIndex);
   const titleKey = typeof props.textResourceBindings?.title === 'string' ? props.textResourceBindings.title : undefined;
   const title = useTextResource(titleKey);
-  const required = useRequiredValidation(props.required, simpleBinding, value, title);
+  const required = useRequiredValidation(props.required, simpleBindingField, value, title);
   const options = useOptions(props);
   const { help, description, requiredIndicator } = useLabelProps(props.textResourceBindings);
   const isReadOnly = props.readOnly as boolean | undefined;
@@ -35,7 +37,11 @@ export const Dropdown = ({ component, parentBinding, itemIndex }: ComponentProps
       description={description}
       grid={props.grid?.labelGrid}
     >
-      <Flex item size={{ xs: 12 }} className={cn({ [classes.readOnly]: isReadOnly })}>
+      <Flex
+        item
+        size={{ xs: 12 }}
+        className={cn({ [classes.readOnly]: isReadOnly })}
+      >
         <Select
           id={props.id}
           required={required}
@@ -53,7 +59,7 @@ export const Dropdown = ({ component, parentBinding, itemIndex }: ComponentProps
             </option>
           ))}
         </Select>
-        <ComponentValidations bindingPath={simpleBinding} />
+        <ComponentValidations bindingPath={simpleBindingField} />
       </Flex>
     </Label>
   );

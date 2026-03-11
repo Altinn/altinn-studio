@@ -56,6 +56,25 @@ export function useBoundValue(
   return { value, setValue };
 }
 
+/**
+ * Resolves a raw component binding (string, object, or undefined) into
+ * a bound value, setter, and the extracted field path string.
+ *
+ * This ensures the full binding (including dataType) is passed to the
+ * store, while the extracted field string is used for validation paths.
+ */
+export function useComponentBinding(
+  rawBinding: unknown,
+  parentBinding?: string,
+  itemIndex?: number,
+): { field: string; value: FormDataPrimitive; setValue: (v: FormDataPrimitive) => void } {
+  const binding = (rawBinding ?? '') as string | DataModelBinding;
+  const { value, setValue } = useBoundValue(binding, parentBinding, itemIndex);
+  const client = useFormClient();
+  const { field } = extractBinding(binding, client.defaultDataType);
+  return { field, value, setValue };
+}
+
 export function useGroupArray(
   binding: string | DataModelBinding,
   parentBinding?: string,
