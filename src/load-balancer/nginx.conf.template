@@ -46,6 +46,8 @@ http {
     server ${REPOS_HOST};
   }
 
+  include /etc/nginx/extra-upstreams/*.conf;
+
   map $uri $spa_path {
     ~^/(dashboard|editor|preview|admin|resourceadm|info)(/.*)?$ $1;
     default                                               none;
@@ -103,8 +105,12 @@ http {
       proxy_pass http://$spa_upstream;
     }
 
+    include /etc/nginx/extra-locations/*.conf;
+
     location / {
       proxy_pass http://designer;
     }
   }
+
+  include /etc/nginx/extra-servers/*.conf;
 }
