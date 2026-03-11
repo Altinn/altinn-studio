@@ -123,7 +123,12 @@ const ConfigModal = ({
         <StudioPageHeader>{t(getCardLabel(scope))}</StudioPageHeader>
       </StudioDialog.Block>
       <StudioDialog.Block className={classes.modalFields}>
-        <ValidateCardContent scope={scope} newConfig={newConfig} onChange={update} />
+        <ValidateCardContent
+          scope={scope}
+          initialConfig={initialConfig}
+          newConfig={newConfig}
+          onChange={update}
+        />
         {isRuleDuplicate && (
           <StudioAlert data-color='info'>
             {t('ux_editor.settings.navigation_validation_alert_message')}

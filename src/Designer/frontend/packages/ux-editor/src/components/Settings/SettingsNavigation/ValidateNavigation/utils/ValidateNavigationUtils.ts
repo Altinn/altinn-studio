@@ -78,14 +78,16 @@ export const dummyDataPages: ExternalConfigState[] = [
 export const getAvailableTasks = (
   tasks: LayoutSet[],
   tasksWithRules?: string[],
-  selectedTasks?: string[],
+  initialSelectedTasks?: string[],
 ): string[] => {
   const taskIds = tasks.flatMap((set) => set.id);
 
-  return taskIds.filter((task) => {
+  const filteredTasks = taskIds.filter((task) => {
     if (!tasksWithRules) return true;
-    return !tasksWithRules.includes(task) || selectedTasks?.includes(task);
+    return !tasksWithRules.includes(task) || initialSelectedTasks?.includes(task);
   });
+
+  return filteredTasks;
 };
 
 export const getAvailablePages = (
