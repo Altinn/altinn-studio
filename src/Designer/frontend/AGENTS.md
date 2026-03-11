@@ -34,6 +34,7 @@ The frontend consists of several React packages in the following directories:
   - `studio-hooks` - A collection of React hooks.
   - `studio-icons` - A collection of SVG icons exported as React elements.
   - `studio-pure-functions` - A collection of general utility classes for handling arrays, blobs, dates, files, numbers, strings, etc. Use these utilities to avoid code duplication for common operations.
+- `./org-settings` - The organisation settings.
 - `./packages` - Contains tools for individual Altinn apps.
   - `policy-editor` - Handles access policy.
   - `process-editor` - Handles the BPMN process.
@@ -64,6 +65,7 @@ The frontend consists of several React packages in the following directories:
 - `yarn start-app-development` - Runs the app development package
 - `yarn start-app-preview` - Runs the app preview package
 - `yarn start-dashboard` - Runs the app dashboard package
+- `yarn start-org-settings` - Runs the org settings package
 - `yarn start-studio-root` - Runs the studio root package
 - `yarn start-resourceadm` - Runs the resource admin package
 

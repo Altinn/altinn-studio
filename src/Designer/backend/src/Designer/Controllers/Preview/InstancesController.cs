@@ -24,7 +24,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview;
 [Authorize]
 [AutoValidateAntiforgeryToken]
 [Route(
-    "{org:regex(^(?!designer|editor|dashboard|preview|admin|resourceadm|info))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances"
+    "{org:regex(^(?!(designer|editor|dashboard|preview|admin|resourceadm|info|org-settings)$).+$)}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}"
 )]
 public class InstancesController(
     IHttpContextAccessor httpContextAccessor,

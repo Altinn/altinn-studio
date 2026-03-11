@@ -10761,6 +10761,14 @@ __metadata:
   languageName: node
   linkType: hard
 
+"org-settings@workspace:src/Designer/frontend/org-settings":
+  version: 0.0.0-use.local
+  resolution: "org-settings@workspace:src/Designer/frontend/org-settings"
+  dependencies:
+    vite: "npm:^6.3.2"
+  languageName: unknown
+  linkType: soft
+
 "ospath@npm:^1.2.2":
   version: 1.2.2
   resolution: "ospath@npm:1.2.2"

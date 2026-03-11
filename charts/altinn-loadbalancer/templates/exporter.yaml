@@ -61,6 +61,10 @@ data:
         match "^/admin.*" {
           replacement = "/admin"
         }
+
+        match "^/org-settings.*" {
+          replacement = "/org-settings"
+        }
       }
 
       relabel "status_code" {
