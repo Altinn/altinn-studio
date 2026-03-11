@@ -2,6 +2,8 @@
 
 Utility for running health checks across clusters (that the logged in user has access to).
 
+Run it from `src/tools/health`.
+
 - Must have `az` CLI installed, logged into ai-dev account (that has access to relevant env)
 - Must have `kubectl` CLI installed (this tool will fetch creds for you if you don't have them)
 - Must have Go 1.26 installed
