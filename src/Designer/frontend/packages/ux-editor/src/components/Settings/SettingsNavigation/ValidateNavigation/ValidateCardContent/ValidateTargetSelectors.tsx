@@ -13,14 +13,14 @@ import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor
 
 type RenderTaskOptionsProps = {
   tasksWithRules?: string[];
-  selectedTasks?: string[];
+  initialSelectedTasks?: string[];
 };
 
-const RenderTaskOptions = ({ tasksWithRules, selectedTasks }: RenderTaskOptionsProps) => {
+const RenderTaskOptions = ({ tasksWithRules, initialSelectedTasks }: RenderTaskOptionsProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSetsSchema } = useLayoutSetsQuery(org, app);
   const layoutSets = layoutSetsSchema?.sets || [];
-  const availableTasks = getAvailableTasks(layoutSets, tasksWithRules, selectedTasks);
+  const availableTasks = getAvailableTasks(layoutSets, tasksWithRules, initialSelectedTasks);
 
   return availableTasks.map((task) => (
     <StudioSuggestion.Option key={task} value={task}>
@@ -31,11 +31,18 @@ const RenderTaskOptions = ({ tasksWithRules, selectedTasks }: RenderTaskOptionsP
 
 export type TaskSelectorProps = {
   selectedTask: StudioSuggestionItem;
+  initialSelectedTask?: StudioSuggestionItem;
   onChange: (value: StudioSuggestionItem) => void;
 };
 
-export const TaskSelector = ({ selectedTask, onChange }: TaskSelectorProps) => {
+export const TaskSelector = ({
+  selectedTask,
+  initialSelectedTask,
+  onChange,
+}: TaskSelectorProps) => {
   const { t } = useTranslation();
+  const initialSelectedTaskValue = initialSelectedTask?.value;
+  const dummyTasksWithRules = dummyDataPages.map((page) => page.task); // This is just to simulate the rules that are already set, in real implementation this will be replaced with fetched query data
 
   return (
     <StudioSuggestion
@@ -45,22 +52,34 @@ export const TaskSelector = ({ selectedTask, onChange }: TaskSelectorProps) => {
       onSelectedChange={onChange}
       multiple={false}
     >
-      <RenderTaskOptions />
+      <RenderTaskOptions
+        tasksWithRules={dummyTasksWithRules}
+        initialSelectedTasks={[initialSelectedTaskValue]}
+      />
     </StudioSuggestion>
   );
 };
 
 export type TasksSelectorProps = {
   selectedTasks: StudioSuggestionItem[];
+  initialSelectedTasks?: StudioSuggestionItem[];
   onChange: (value: StudioSuggestionItem[]) => void;
 };
 
-export const TasksSelector = ({ selectedTasks, onChange }: TasksSelectorProps) => {
+export const TasksSelector = ({
+  selectedTasks,
+  initialSelectedTasks,
+  onChange,
+}: TasksSelectorProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: settings } = useValidationOnNavigationGroupedSettingsQuery(org, app);
   const tasksWithRules = settings?.flatMap((config) => config.tasks) ?? [];
   const selectedTasksValues = selectedTasks.map((task) => task.value);
+  const initialSelectedTasksValues = initialSelectedTasks?.map((task) => task.value) || [];
+  const filteredTasksWithRules = tasksWithRules.filter(
+    (task) => !selectedTasksValues.includes(task),
+  );
 
   return (
     <StudioSuggestion
@@ -70,7 +89,10 @@ export const TasksSelector = ({ selectedTasks, onChange }: TasksSelectorProps) =
       onSelectedChange={onChange}
       multiple
     >
-      <RenderTaskOptions tasksWithRules={tasksWithRules} selectedTasks={selectedTasksValues} />
+      <RenderTaskOptions
+        tasksWithRules={filteredTasksWithRules}
+        initialSelectedTasks={initialSelectedTasksValues}
+      />
     </StudioSuggestion>
   );
 };
