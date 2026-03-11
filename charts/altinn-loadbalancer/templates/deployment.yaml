@@ -28,7 +28,7 @@ spec:
             {{- end }}
             {{- $host := index $.Values.hosts $.Values.environment }}
             - name: SERVER_NAME
-              value: {{ $host }}
+              value: {{ $host | quote }}
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
