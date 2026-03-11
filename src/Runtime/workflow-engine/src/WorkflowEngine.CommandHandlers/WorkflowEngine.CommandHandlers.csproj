@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="WorkflowEngine.Core" />
-    <InternalsVisibleTo Include="WorkflowEngine.Api.Tests" />
+    <InternalsVisibleTo Include="WorkflowEngine.Core.Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.Integration.Tests" />
   </ItemGroup>
 

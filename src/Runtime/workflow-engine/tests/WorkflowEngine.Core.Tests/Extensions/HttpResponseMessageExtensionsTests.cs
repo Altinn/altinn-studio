@@ -1,7 +1,7 @@
 using System.Net;
 using WorkflowEngine.CommandHandlers.Extensions;
 
-namespace WorkflowEngine.Api.Tests.Extensions;
+namespace WorkflowEngine.Core.Tests.Extensions;
 
 public class HttpResponseMessageExtensionsTests
 {

@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
+using WorkflowEngine.Api;
 using WorkflowEngine.CommandHandlers;
 using WorkflowEngine.CommandHandlers.Handlers.AppCommand;
 using WorkflowEngine.CommandHandlers.Handlers.Webhook;
@@ -12,7 +13,7 @@ using WorkflowEngine.Resilience.Models;
 // CA2000: Objects are transferred to the returned fixture record which handles disposal
 #pragma warning disable CA2000
 
-namespace WorkflowEngine.Api.Tests.Fixtures;
+namespace WorkflowEngine.Core.Tests.Fixtures;
 
 /// <summary>
 /// Shared test fixture for WorkflowEngine.Api services.

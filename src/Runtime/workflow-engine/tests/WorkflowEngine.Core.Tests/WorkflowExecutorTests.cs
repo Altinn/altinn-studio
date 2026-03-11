@@ -1,11 +1,12 @@
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
-using WorkflowEngine.Api.Tests.Fixtures;
+using WorkflowEngine.Api;
 using WorkflowEngine.CommandHandlers.Handlers.AppCommand;
 using WorkflowEngine.CommandHandlers.Handlers.Webhook;
+using WorkflowEngine.Core.Tests.Fixtures;
 using WorkflowEngine.Models;
 
-namespace WorkflowEngine.Api.Tests;
+namespace WorkflowEngine.Core.Tests;
 
 public class WorkflowExecutorTests
 {

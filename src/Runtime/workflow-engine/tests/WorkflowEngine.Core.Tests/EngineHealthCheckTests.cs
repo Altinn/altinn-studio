@@ -1,9 +1,10 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
+using WorkflowEngine.Api;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 
-namespace WorkflowEngine.Api.Tests;
+namespace WorkflowEngine.Core.Tests;
 
 public class EngineHealthCheckTests
 {

@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace WorkflowEngine.Api.Tests.Fixtures;
+namespace WorkflowEngine.Core.Tests.Fixtures;
 
 /// <summary>
 /// A test HTTP handler that captures outbound requests and returns configurable responses.

@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
+using WorkflowEngine.Api;
 using WorkflowEngine.Api.Endpoints;
-using WorkflowEngine.Api.Tests.Fixtures;
 using WorkflowEngine.CommandHandlers.Handlers.Webhook;
+using WorkflowEngine.Core.Tests.Fixtures;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 
-namespace WorkflowEngine.Api.Tests.Endpoints;
+namespace WorkflowEngine.Core.Tests.Endpoints;
 
 public class EngineEndpointTests
 {

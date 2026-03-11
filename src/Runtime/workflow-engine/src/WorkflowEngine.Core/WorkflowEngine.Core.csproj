@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="WorkflowEngine.Api.Tests" />
+    <InternalsVisibleTo Include="WorkflowEngine.Core.Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.App" />
     <InternalsVisibleTo Include="WorkflowEngine.Integration.Tests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />

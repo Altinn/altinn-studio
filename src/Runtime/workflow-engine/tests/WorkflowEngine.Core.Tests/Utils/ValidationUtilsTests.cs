@@ -1,7 +1,7 @@
 using WorkflowEngine.Api.Utils;
 using WorkflowEngine.Models;
 
-namespace WorkflowEngine.Api.Tests.Utils;
+namespace WorkflowEngine.Core.Tests.Utils;
 
 public class ValidationUtilsTests
 {

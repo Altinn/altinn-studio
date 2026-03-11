@@ -1,7 +1,7 @@
 using System.Globalization;
 using WorkflowEngine.CommandHandlers.Extensions;
 
-namespace WorkflowEngine.Api.Tests.Extensions;
+namespace WorkflowEngine.Core.Tests.Extensions;
 
 public class StringExtensionsTests
 {
