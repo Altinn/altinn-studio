@@ -10,7 +10,7 @@ interface RouterRoute {
 
 const RedirectToApiKeys = () => {
   const { search } = useLocation();
-  return <Navigate to={{ pathname: RoutePaths.ApiKeys, search }} />;
+  return <Navigate to={{ pathname: RoutePaths.ApiKeys, search }} replace />;
 };
 
 export const routerRoutes: RouterRoute[] = [
