@@ -19,7 +19,7 @@ export const ValidateCardContent = ({
 }: ValidateCardContentProps) => {
   const isPerPage = scope === Scope.SelectedPages;
   const isPerTask = scope === Scope.SelectedTasks;
-  console.log('initialConfig: ', initialConfig);
+
   return (
     <>
       {isPerTask && (
