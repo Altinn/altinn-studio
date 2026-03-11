@@ -35,9 +35,7 @@ internal sealed record AppCommandTestFixture(
     {
         var handler = new MockHttpHandler();
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
-        httpClientFactoryMock
-            .Setup(f => f.CreateClient(It.IsAny<string>()))
-            .Returns(() => new HttpClient(handler));
+        httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() => new HttpClient(handler));
 
         engineSettings ??= new EngineSettings
         {
@@ -63,10 +61,7 @@ internal sealed record AppCommandTestFixture(
         services.AddSingleton(Options.Create(appCommandSettings));
         services.AddLogging();
         services.AddSingleton<IConcurrencyLimiter>(
-            new ConcurrencyLimiter(
-                engineSettings.MaxConcurrentDbOperations,
-                engineSettings.MaxConcurrentHttpCalls
-            )
+            new ConcurrencyLimiter(engineSettings.MaxConcurrentDbOperations, engineSettings.MaxConcurrentHttpCalls)
         );
 
         services.AddSingleton<ICommand, AppCommand>();

@@ -53,10 +53,7 @@ public sealed class AppCommandIntegrationTests(AppTestFixture fixture) : IAsyncL
         // Act
         var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(
-            workflowId,
-            PersistentItemStatus.Completed
-        );
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Single(status.Steps);
@@ -90,10 +87,7 @@ public sealed class AppCommandIntegrationTests(AppTestFixture fixture) : IAsyncL
         // Act
         var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(
-            workflowId,
-            PersistentItemStatus.Completed
-        );
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // Assert
         Assert.Equal(PersistentItemStatus.Completed, status.OverallStatus);

@@ -9,9 +9,7 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection ConfigureAppCommand(
-            string configSectionPath = "AppCommandSettings"
-        )
+        public IServiceCollection ConfigureAppCommand(string configSectionPath = "AppCommandSettings")
         {
             services
                 .AddOptions<AppCommandSettings>()

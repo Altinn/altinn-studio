@@ -49,10 +49,7 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
     /// <summary>
     /// Creates an enqueue request with AppCommand-compatible context (includes lockToken, actor, instance info).
     /// </summary>
-    public WorkflowEnqueueRequest CreateEnqueueRequest(
-        WorkflowRequest workflow,
-        string? lockToken = null
-    ) =>
+    public WorkflowEnqueueRequest CreateEnqueueRequest(WorkflowRequest workflow, string? lockToken = null) =>
         new()
         {
             TenantId = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
@@ -86,8 +83,7 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
 
     public Task AssertDbEmpty() => _base.AssertDbEmpty();
 
-    public Task AssertDbWorkflowCount(int expectedCount) =>
-        _base.AssertDbWorkflowCount(expectedCount);
+    public Task AssertDbWorkflowCount(int expectedCount) => _base.AssertDbWorkflowCount(expectedCount);
 
     public Task AssertDbStepCount(int expectedCount) => _base.AssertDbStepCount(expectedCount);
 

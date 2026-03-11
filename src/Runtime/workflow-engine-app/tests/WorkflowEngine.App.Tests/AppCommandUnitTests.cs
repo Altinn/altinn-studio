@@ -10,10 +10,7 @@ namespace WorkflowEngine.App.Tests;
 public class AppCommandUnitTests
 {
     private static CommandDefinition CreateAppCommand(string commandKey, string? payload = null) =>
-        AppCommand.Create(
-            commandKey,
-            new AppCommandData { CommandKey = commandKey, Payload = payload }
-        );
+        AppCommand.Create(commandKey, new AppCommandData { CommandKey = commandKey, Payload = payload });
 
     [Fact]
     public async Task Execute_AppCommand_SuccessResponse_ReturnsSuccess()

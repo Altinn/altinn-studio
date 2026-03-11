@@ -15,6 +15,7 @@
     <Project Path="tests/WorkflowEngine.Resilience.Tests/WorkflowEngine.Resilience.Tests.csproj" />
     <Project Path="tests/WorkflowEngine.Repository.Tests/WorkflowEngine.Repository.Tests.csproj" />
     <Project Path="tests/WorkflowEngine.TestKit/WorkflowEngine.TestKit.csproj" />
+    <Project Path="tests/WorkflowEngine.TestApp/WorkflowEngine.TestApp.csproj" />
     <Project Path="tests/WorkflowEngine.Integration.Tests/WorkflowEngine.Integration.Tests.csproj" />
   </Folder>
   <Project Path="../../common/Altinn.Studio.Runtime.Common.csproj" />

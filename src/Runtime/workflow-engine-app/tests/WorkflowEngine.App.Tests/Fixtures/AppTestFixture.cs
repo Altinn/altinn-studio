@@ -1,13 +1,12 @@
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.App.Tests.Fixtures;
 
 /// <summary>
-/// Extends the generic engine fixture with AppCommand-specific configuration.
-/// Injects <c>AppCommandSettings</c> pointing at WireMock so that AppCommand HTTP callbacks
-/// are routed to the in-process mock server.
+/// Runs the real <see cref="Program"/> entry point and layers test-specific
+/// configuration on top (WireMock callback endpoint for AppCommand).
 /// </summary>
 public sealed class AppTestFixture : EngineAppFixture<Program>
 {
@@ -16,17 +15,20 @@ public sealed class AppTestFixture : EngineAppFixture<Program>
     private string AppCommandEndpoint =>
         $"http://localhost:{WireMock.Port}/{{Org}}/{{App}}/instances/{{InstanceOwnerPartyId}}/{{InstanceGuid}}/workflow-engine-callbacks";
 
-    protected override void ConfigureBuilder(WebApplicationBuilder builder)
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.Configuration.AddJsonStream(
-            $$"""
-            {
-              "AppCommandSettings": {
-                "ApiKey": "{{TestApiKey}}",
-                "CommandEndpoint": "{{AppCommandEndpoint}}"
-              }
-            }
-            """.ToJsonStream()
+        builder.ConfigureAppConfiguration(
+            (_, config) =>
+                config.AddJsonStream(
+                    $$"""
+                    {
+                      "AppCommandSettings": {
+                        "ApiKey": "{{TestApiKey}}",
+                        "CommandEndpoint": "{{AppCommandEndpoint}}"
+                      }
+                    }
+                    """.ToJsonStream()
+                )
         );
     }
 }

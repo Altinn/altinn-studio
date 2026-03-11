@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -162,17 +162,22 @@ public abstract class EngineAppFixture : IAsyncLifetime
 /// <summary>
 /// Generic fixture that creates an <see cref="EngineWebApplicationFactory{TProgram}"/>
 /// for the specified <typeparamref name="TProgram"/>.
-/// Override <see cref="ConfigureBuilder"/> to inject additional services or configuration
-/// (e.g. runtime-specific command registration, AppCommand settings).
+/// <para>
+/// Runs the real <c>Program.cs</c> entry point from <typeparamref name="TProgram"/>'s assembly
+/// and layers test-specific configuration on top via <see cref="ConfigureWebHost"/>.
+/// Connection strings, API keys, and engine settings are injected automatically by the factory.
+/// </para>
 /// </summary>
 public class EngineAppFixture<TProgram> : EngineAppFixture
-    where TProgram : class, ITestProgram
+    where TProgram : class
 {
     /// <summary>
-    /// Called during factory creation to allow subclasses to customize the <see cref="WebApplicationBuilder"/>
-    /// (e.g. register additional commands, inject config). WireMock is already started at this point.
+    /// Called during factory creation to layer test-specific configuration on top of
+    /// the real application (e.g. WireMock endpoints). Connection strings, API keys,
+    /// and engine settings are already injected by the factory.
+    /// WireMock is already started at this point.
     /// </summary>
-    protected virtual void ConfigureBuilder(WebApplicationBuilder builder) { }
+    protected virtual void ConfigureWebHost(IWebHostBuilder builder) { }
 
     protected override (
         IAsyncDisposable Factory,
@@ -181,7 +186,8 @@ public class EngineAppFixture<TProgram> : EngineAppFixture
         IServiceProvider Services
     ) CreateFactory(string connectionString)
     {
-        var factory = new EngineWebApplicationFactory<TProgram>(connectionString, ConfigureBuilder);
+        var factory = new EngineWebApplicationFactory<TProgram>(connectionString, ConfigureWebHost);
+
         // Accessing Server triggers ConfigureWebHost -> app startup.
         _ = factory.Server;
 

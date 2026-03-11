@@ -1,94 +1,71 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace WorkflowEngine.TestKit;
 
 /// <summary>
-/// Inner WebApplicationFactory that wires test-specific configuration into the running ASP.NET Core application.
+/// WebApplicationFactory that runs the real <c>Program.cs</c> entry point from
+/// <typeparamref name="TProgram"/>'s assembly and layers test configuration on top.
 /// <para>
-/// Overrides <see cref="CreateHost"/> to build the application directly via
-/// <see cref="ITestProgram.CreateBuilder"/> and <see cref="ITestProgram.ConfigureApp"/>,
-/// bypassing <see cref="WebApplicationFactory{TEntryPoint}"/>'s entry point discovery.
-/// This avoids conflicts with xUnit v3's auto-generated entry point.
+/// <typeparamref name="TProgram"/> must be a class from the target application assembly
+/// (e.g. the implicit <c>Program</c> from top-level statements with <c>public partial class Program;</c>).
+/// The factory uses <see cref="ConfigureWebHost"/> to inject test-specific settings
+/// (connection strings, API keys, engine settings) without modifying the real application composition.
 /// </para>
 /// </summary>
 public sealed class EngineWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram>
-    where TProgram : class, ITestProgram
+    where TProgram : class
 {
     private readonly string _dbConnectionString;
-    private readonly Action<WebApplicationBuilder>? _configureBuilder;
+    private readonly Action<IWebHostBuilder>? _configureWebHost;
 
-    public EngineWebApplicationFactory(
-        string dbConnectionString,
-        Action<WebApplicationBuilder>? configureBuilder = null
-    )
+    public EngineWebApplicationFactory(string dbConnectionString, Action<IWebHostBuilder>? configureWebHost = null)
     {
         _dbConnectionString = dbConnectionString;
-        _configureBuilder = configureBuilder;
+        _configureWebHost = configureWebHost;
     }
 
-    protected override IHost CreateHost(IHostBuilder builder)
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // Build a "placeholder" test host so that WebApplicationFactory's
-        // infrastructure (e.g. resolved services for DI) works correctly.
-        // We must build & start it to satisfy the base class contract, but the
-        // real app is built below — so dispose the placeholder immediately.
-        builder.ConfigureWebHost(wb => wb.UseTestServer());
-        var testHost = builder.Build();
-        testHost.Start();
-        testHost.Dispose();
+        builder.UseEnvironment("Development");
 
-        // Build the real web application directly, bypassing entry point discovery.
-        var appBuilder = TProgram.CreateBuilder([]);
-        appBuilder.WebHost.UseTestServer();
-        appBuilder.Environment.EnvironmentName = "Development";
-
-        // Apply test-specific configuration overrides
-        appBuilder.Configuration.AddJsonStream(
-            $$"""
-            {
-              "ConnectionStrings": {
-                  "WorkflowEngine": "{{_dbConnectionString}}"
-              },
-              "EngineSettings": {
-                "QueueCapacity": 100,
-                "MaxDegreeOfParallelism": 10,
-                "DefaultStepRetryStrategy": {
-                  "BackoffType": "Constant",
-                  "BaseInterval": "00:00:00.100",
-                  "MaxRetries": 3
-                },
-                "DatabaseRetryStrategy": {
-                  "BackoffType": "Constant",
-                  "BaseInterval": "00:00:00.100",
-                  "MaxRetries": 1
-                }
-              },
-              "ApiSettings": {
-                "ApiKeys": [
-                  "{{EngineAppFixture.TestApiKey}}"
-                ]
-              }
-            }
-            """.ToJsonStream()
+        builder.ConfigureAppConfiguration(
+            (_, config) =>
+                config.AddJsonStream(
+                    $$"""
+                    {
+                      "ConnectionStrings": {
+                          "WorkflowEngine": "{{_dbConnectionString}}"
+                      },
+                      "EngineSettings": {
+                        "QueueCapacity": 100,
+                        "MaxDegreeOfParallelism": 10,
+                        "DefaultStepRetryStrategy": {
+                          "BackoffType": "Constant",
+                          "BaseInterval": "00:00:00.100",
+                          "MaxRetries": 3
+                        },
+                        "DatabaseRetryStrategy": {
+                          "BackoffType": "Constant",
+                          "BaseInterval": "00:00:00.100",
+                          "MaxRetries": 1
+                        }
+                      },
+                      "ApiSettings": {
+                        "ApiKeys": [
+                          "{{EngineAppFixture.TestApiKey}}"
+                        ]
+                      }
+                    }
+                    """.ToJsonStream()
+                )
         );
 
-        // Allow test-specific builder customization (e.g. registering additional commands)
-        _configureBuilder?.Invoke(appBuilder);
+        builder.ConfigureServices(services => services.AddExceptionHandler<DiagnosticExceptionHandler>());
 
-        // Expose full exception details in test responses so failures are diagnosable.
-        appBuilder.Services.AddExceptionHandler<DiagnosticExceptionHandler>();
-
-        var app = appBuilder.Build();
-        TProgram.ConfigureApp(app);
-        app.Start();
-
-        return app;
+        _configureWebHost?.Invoke(builder);
     }
 
     public HttpClient CreateEngineClient()

@@ -59,9 +59,7 @@ public sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     )
     {
         if (commandData is null || string.IsNullOrWhiteSpace(commandData.CommandKey))
-            return CommandValidationResult.Reject(
-                "AppCommand requires a 'commandKey' in command data"
-            );
+            return CommandValidationResult.Reject("AppCommand requires a 'commandKey' in command data");
 
         if (workflowContext is null)
             return CommandValidationResult.Reject("AppCommand requires workflow context");
@@ -71,13 +69,8 @@ public sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
                 "AppCommand requires an 'actor' with 'userIdOrOrgNumber' in workflow context"
             );
 
-        if (
-            string.IsNullOrWhiteSpace(workflowContext.Org)
-            || string.IsNullOrWhiteSpace(workflowContext.App)
-        )
-            return CommandValidationResult.Reject(
-                "AppCommand requires 'org' and 'app' in workflow context"
-            );
+        if (string.IsNullOrWhiteSpace(workflowContext.Org) || string.IsNullOrWhiteSpace(workflowContext.App))
+            return CommandValidationResult.Reject("AppCommand requires 'org' and 'app' in workflow context");
 
         if (workflowContext.InstanceOwnerPartyId <= 0)
             return CommandValidationResult.Reject(
@@ -85,14 +78,10 @@ public sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
             );
 
         if (workflowContext.InstanceGuid == Guid.Empty)
-            return CommandValidationResult.Reject(
-                "AppCommand requires a non-empty 'instanceGuid' in workflow context"
-            );
+            return CommandValidationResult.Reject("AppCommand requires a non-empty 'instanceGuid' in workflow context");
 
         if (string.IsNullOrWhiteSpace(workflowContext.LockToken))
-            return CommandValidationResult.Reject(
-                "AppCommand requires a 'lockToken' in workflow context"
-            );
+            return CommandValidationResult.Reject("AppCommand requires a 'lockToken' in workflow context");
 
         return CommandValidationResult.Accept();
     }
@@ -149,10 +138,7 @@ public sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
                 }
                 catch (JsonException ex)
                 {
-                    return ExecutionResult.CriticalError(
-                        $"App returned invalid response body: {ex.Message}",
-                        ex
-                    );
+                    return ExecutionResult.CriticalError($"App returned invalid response body: {ex.Message}", ex);
                 }
             }
             return ExecutionResult.Success();
@@ -187,10 +173,7 @@ public sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
 
 internal static partial class AppCommandDescriptorLogs
 {
-    [LoggerMessage(
-        LogLevel.Information,
-        "Sending AppCommand to {Endpoint} with payload: {Payload}"
-    )]
+    [LoggerMessage(LogLevel.Information, "Sending AppCommand to {Endpoint} with payload: {Payload}")]
     public static partial void SendingAppCommand(
         this ILogger<AppCommand> logger,
         Uri endpoint,

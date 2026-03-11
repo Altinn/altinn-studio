@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/WorkflowEngine.Core/WorkflowEngine.Core.csproj" />
+    <ProjectReference Include="../WorkflowEngine.TestApp/WorkflowEngine.TestApp.csproj" />
     <ProjectReference Include="../WorkflowEngine.TestKit/WorkflowEngine.TestKit.csproj" />
   </ItemGroup>
 
