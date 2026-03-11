@@ -95,7 +95,16 @@ describe('ReferenceTab', () => {
     };
     const { rerender } = renderReferenceTabWithData({ componentProps: initialComponentProps });
     const changedOptionsId = 'another-id';
-    const changedCompponentProps: FormComponent<SelectionComponentType> = {
+    const changedComponentProps: FormComponent<SelectionComponentType> = {
+      ...initialComponentProps,
+      optionsId: changedOptionsId,
+    };
+    rerender(
+      <ReferenceTab
+        handleComponentChange={handleComponentChange}
+        component={changedComponentProps}
+      />
+    );
       ...initialComponentProps,
       optionsId: changedOptionsId,
     };
