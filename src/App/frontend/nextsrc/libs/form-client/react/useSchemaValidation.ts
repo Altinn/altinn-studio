@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { useStore } from 'zustand';
 
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { getErrorParams, getErrorTextKey } from 'nextsrc/libs/form-client/schemaValidation';
-
+import { selectCurrentData } from 'nextsrc/libs/form-client/stores/formDataStore';
+import { useStore } from 'zustand';
 import type { FieldValidation } from 'nextsrc/libs/form-client/stores/validationStore';
 
 const SCHEMA_VALIDATION_KEY = '__schema';
@@ -38,7 +38,7 @@ function pointerToDotNotation(path: string): string {
 
 export function useSchemaValidation(): void {
   const client = useFormClient();
-  const formData = useStore(client.formDataStore, (state) => state.data);
+  const formData = useStore(client.formDataStore, selectCurrentData);
   const { langAsString } = useLanguage();
   const previousKeysRef = useRef<Set<string>>(new Set());
 

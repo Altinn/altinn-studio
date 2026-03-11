@@ -6,7 +6,8 @@ import { createSchemaValidator } from 'nextsrc/libs/form-client/schemaValidation
 import { createFormDataStore } from 'nextsrc/libs/form-client/stores/formDataStore';
 import { createTextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
 import { createValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
-
+import type Ajv from 'ajv';
+import type { JSONSchema7 } from 'json-schema';
 import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 import type {
   ExpressionValidationConfig,
@@ -16,8 +17,6 @@ import type { ResolvedLayoutCollection, ResolvedLayoutFile } from 'nextsrc/libs/
 import type { FormDataStore } from 'nextsrc/libs/form-client/stores/formDataStore';
 import type { TextResourceStore } from 'nextsrc/libs/form-client/stores/textResourceStore';
 import type { ValidationStore } from 'nextsrc/libs/form-client/stores/validationStore';
-import type Ajv from 'ajv';
-import type { JSONSchema7 } from 'json-schema';
 import type { StoreApi } from 'zustand';
 
 import type { IRawTextResource } from 'src/features/language/textResources';
@@ -28,12 +27,14 @@ export interface FormDataChangeEvent {
   path: string;
   value: FormDataNode;
   previousValue: FormDataNode;
+  dataType: string;
 }
 
 export type FormDataChangeCallback = (event: FormDataChangeEvent) => void;
 export type Unsubscribe = () => void;
 
 export interface FormClientConfig {
+  defaultDataType?: string;
   textResources?: IRawTextResource[];
   language?: string;
   applicationSettings?: IApplicationSettings | null;
@@ -44,6 +45,7 @@ export class FormClient {
   public readonly formDataStore: StoreApi<FormDataStore>;
   public readonly textResourceStore: StoreApi<TextResourceStore>;
   public readonly validationStore: StoreApi<ValidationStore>;
+  public defaultDataType: string;
 
   private layoutCollection: ResolvedLayoutCollection = {};
   private cachedLayoutNames: string[] = [];
@@ -51,21 +53,22 @@ export class FormClient {
   private applicationSettings: IApplicationSettings | null;
   private instanceDataSources: Record<string, string> | null;
   private formDataChangeCallbacks = new Set<FormDataChangeCallback>();
-  private dataModelSchema: JSONSchema7 | null = null;
-  private schemaValidator: Ajv | null = null;
-  private expressionValidations: ResolvedExpressionValidations = {};
+  private dataModelSchemas: Record<string, JSONSchema7> = {};
+  private schemaValidators: Record<string, Ajv> = {};
+  private expressionValidationsByDataType: Record<string, ResolvedExpressionValidations> = {};
 
   constructor(config: FormClientConfig = {}) {
+    this.defaultDataType = config.defaultDataType ?? 'default';
     this.applicationSettings = config.applicationSettings ?? null;
     this.instanceDataSources = config.instanceDataSources ?? null;
 
-    this.formDataStore = createFormDataStore(null, {
-      onChange: (path, value, previousValue) => {
+    this.formDataStore = createFormDataStore(this.defaultDataType, null, {
+      onChange: (path, value, previousValue, dataType) => {
         for (const cb of this.formDataChangeCallbacks) {
-          cb({ path, value, previousValue });
+          cb({ path, value, previousValue, dataType });
         }
       },
-      coerceValue: (path, value) => this.coerceValue(path, value),
+      coerceValue: (path, value, dataType) => this.coerceValue(path, value, dataType),
     });
     this.textResourceStore = createTextResourceStore({
       resources: config.textResources,
@@ -83,24 +86,30 @@ export class FormClient {
 
   get textResourceDataSources() {
     return {
-      formDataGetter: (path: string) => this.formDataStore.getState().getValue(path),
+      formDataGetter: (path: string) => this.formDataStore.getState().getValue(path, this.defaultDataType),
       applicationSettings: this.applicationSettings,
       instanceDataSources: this.instanceDataSources,
       customTextParameters: null,
     };
   }
 
-  setFormData(data: FormDataNode) {
-    this.formDataStore.getState().setData(data);
+  public setDefaultDataType(dataType: string) {
+    this.defaultDataType = dataType;
+    this.formDataStore.setState({ defaultDataType: dataType });
   }
 
-  setDataModelSchema(schema: JSONSchema7) {
-    this.dataModelSchema = schema;
-    this.schemaValidator = createSchemaValidator(schema);
+  public setFormData(data: FormDataNode, dataType?: string) {
+    this.formDataStore.getState().setData(data, this.resolveDataType(dataType));
   }
 
-  getSchemaValidator(): Ajv | null {
-    return this.schemaValidator;
+  public setDataModelSchema(schema: JSONSchema7, dataType?: string) {
+    const resolvedDataType = this.resolveDataType(dataType);
+    this.dataModelSchemas[resolvedDataType] = schema;
+    this.schemaValidators[resolvedDataType] = createSchemaValidator(schema);
+  }
+
+  public getSchemaValidator(dataType?: string): Ajv | null {
+    return this.schemaValidators[this.resolveDataType(dataType)] ?? null;
   }
 
   setLayoutCollection(layoutCollection: ILayoutCollection) {
@@ -134,23 +143,31 @@ export class FormClient {
     this.instanceDataSources = sources;
   }
 
-  setExpressionValidationConfig(config: ExpressionValidationConfig | null) {
-    this.expressionValidations = config ? resolveExpressionValidationConfig(config) : {};
+  public setExpressionValidationConfig(config: ExpressionValidationConfig | null, dataType?: string) {
+    const dt = this.resolveDataType(dataType);
+    this.expressionValidationsByDataType[dt] = config ? resolveExpressionValidationConfig(config) : {};
   }
 
-  getExpressionValidations(): ResolvedExpressionValidations {
-    return this.expressionValidations;
+  public getExpressionValidations(dataType?: string): ResolvedExpressionValidations {
+    return this.expressionValidationsByDataType[this.resolveDataType(dataType)] ?? {};
   }
 
-  private coerceValue(path: string, value: FormDataPrimitive): { value: FormDataPrimitive; error: boolean } {
-    if (!this.dataModelSchema) {
-      // No schema loaded yet — pass through without coercion
+  private resolveDataType(dataType?: string): string {
+    return dataType ?? this.defaultDataType;
+  }
+
+  private coerceValue(
+    path: string,
+    value: FormDataPrimitive,
+    dataType: string,
+  ): { value: FormDataPrimitive; error: boolean } {
+    const schema = this.dataModelSchemas[dataType];
+    if (!schema) {
       return { value, error: false };
     }
 
-    const fieldSchema = lookupSchemaForPath(this.dataModelSchema, path);
+    const fieldSchema = lookupSchemaForPath(schema, path);
     if (!fieldSchema) {
-      // Path not found in schema — pass through
       return { value, error: false };
     }
 

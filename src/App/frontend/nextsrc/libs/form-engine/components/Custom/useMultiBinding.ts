@@ -1,12 +1,11 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
+import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
+import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/shallow';
-
-import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
-import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
-
 import type { FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
+import type { BindingContext } from 'nextsrc/libs/form-client/stores/formDataStore';
 
 interface MultiBindingResult {
   formData: Record<string, FormDataPrimitive>;
@@ -23,19 +22,26 @@ export function useMultiBinding(
   itemIndex?: number,
 ): MultiBindingResult {
   const client = useFormClient();
+  const bindingContext: BindingContext = useMemo(() => ({ parentBinding, itemIndex }), [parentBinding, itemIndex]);
 
-  const bindingKeys = bindings ? Object.keys(bindings) : [];
-  const bindingPaths: Record<string, string> = {};
-  for (const key of bindingKeys) {
-    bindingPaths[key] = extractField(bindings![key]);
-  }
+  const bindingPaths: Record<string, string> = useMemo(() => {
+    if (!bindings) {
+      return {};
+    }
+    const paths: Record<string, string> = {};
+    for (const key of Object.keys(bindings)) {
+      paths[key] = extractField(bindings[key]);
+    }
+    return paths;
+  }, [bindings]);
+  const bindingKeys = Object.keys(bindingPaths);
 
   const formData = useStore(
     client.formDataStore,
     useShallow((state) => {
       const result: Record<string, FormDataPrimitive> = {};
       for (const key of bindingKeys) {
-        result[key] = state.getBoundValue(bindingPaths[key], parentBinding, itemIndex);
+        result[key] = state.getBoundValue(bindingPaths[key], bindingContext);
       }
       return result;
     }),
@@ -45,10 +51,10 @@ export function useMultiBinding(
     (field: string, value: FormDataPrimitive) => {
       const path = bindingPaths[field];
       if (path) {
-        client.formDataStore.getState().setBoundValue(path, value, parentBinding, itemIndex);
+        client.formDataStore.getState().setBoundValue(path, value, bindingContext);
       }
     },
-    [client, bindingPaths, parentBinding, itemIndex],
+    [client, bindingPaths, bindingContext],
   );
 
   return { formData, setValue };

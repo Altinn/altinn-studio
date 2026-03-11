@@ -148,7 +148,7 @@ const ComponentRenderer = memo(function ComponentRenderer({
 
   // Build expression data sources with component lookup for repeating group support
   const buildDataSources = (): ExpressionDataSources => {
-    const formDataGetter = (path: string) => client.formDataStore.getState().getValue(path);
+    const formDataGetter = (path: string) => client.formDataStore.getState().getValue(path, client.defaultDataType);
 
     const componentLookup = (componentId: string) => {
       const target = findComponentById(client, componentId);

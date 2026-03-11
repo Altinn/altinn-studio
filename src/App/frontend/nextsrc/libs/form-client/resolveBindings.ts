@@ -1,5 +1,10 @@
 import type { ResolvedCompExternal } from 'nextsrc/libs/form-client/moveChildren';
 
+export interface DataModelBinding {
+  dataType: string;
+  field: string;
+}
+
 interface DataModelReference {
   field: string;
 }
@@ -20,6 +25,22 @@ export function extractField(binding: unknown): string {
     return binding.field;
   }
   return String(binding ?? '');
+}
+
+/**
+ * Extracts a DataModelBinding (preserving dataType) from a binding value.
+ */
+export function extractBinding(binding: unknown, defaultDataType: string): DataModelBinding {
+  if (typeof binding === 'string') {
+    return { dataType: defaultDataType, field: binding };
+  }
+  if (isDataModelReference(binding) && 'dataType' in binding && typeof binding.dataType === 'string') {
+    return { dataType: binding.dataType, field: binding.field };
+  }
+  if (isDataModelReference(binding)) {
+    return { dataType: defaultDataType, field: binding.field };
+  }
+  return { dataType: defaultDataType, field: String(binding ?? '') };
 }
 
 /**

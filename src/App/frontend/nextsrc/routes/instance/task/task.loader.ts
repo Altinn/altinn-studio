@@ -20,7 +20,7 @@ export interface DataTaskLoaderData {
   dataElement: Awaited<ReturnType<typeof DataApi.getDataObject>>;
   instanceOwnerPartyId: string;
   instanceGuid: string;
-  dataElementId: string;
+  dataElementIds: Record<string, string>;
 }
 
 export function isDataTask(data: TaskLoaderData): data is DataTaskLoaderData {
@@ -84,9 +84,10 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs): Promise<TaskLo
     throw new Error('Data element has no ID');
   }
 
-  formClient.setDataModelSchema(dataModelSchema);
+  formClient.setDefaultDataType(dataType);
+  formClient.setDataModelSchema(dataModelSchema, dataType);
   formClient.setLayoutCollection(layout);
-  formClient.setExpressionValidationConfig(validationConfig);
+  formClient.setExpressionValidationConfig(validationConfig, dataType);
 
   if ('order' in layoutSettings.pages) {
     formClient.setPageOrder(layoutSettings.pages.order);
@@ -103,6 +104,6 @@ export const taskLoader = async ({ params }: LoaderFunctionArgs): Promise<TaskLo
     dataElement,
     instanceOwnerPartyId,
     instanceGuid,
-    dataElementId: dataObjectGuid,
+    dataElementIds: { [dataType]: dataObjectGuid },
   };
 };
