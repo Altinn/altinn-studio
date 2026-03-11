@@ -223,7 +223,7 @@ public class EngineEndpointTests
 
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetActiveWorkflowsForTenant(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetActiveWorkflows(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([workflow]);
 
         // Act
@@ -247,7 +247,7 @@ public class EngineEndpointTests
         // Arrange
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetActiveWorkflowsForTenant(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetActiveWorkflows(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
         // Act
@@ -262,20 +262,20 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task ListWorkflows_UsesTenantIdFromRouteParams()
+    public async Task ListWorkflows_UsesTenantIdFromQueryParams()
     {
         // Arrange
         string? capturedTenantId = null;
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetActiveWorkflowsForTenant(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Callback<string, CancellationToken>((tenantId, _) => capturedTenantId = tenantId)
+            .Setup(r => r.GetActiveWorkflows(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Callback<string?, CancellationToken>((tenantId, _) => capturedTenantId = tenantId)
             .ReturnsAsync([]);
 
         // Act
         await EngineRequestHandlers.ListActiveWorkflows(DefaultTenantId, repositoryMock.Object, CancellationToken.None);
 
-        // Assert — handler passes tenant ID from route to repository
+        // Assert — handler passes tenant ID from query to repository
         Assert.Equal(DefaultTenantId, capturedTenantId);
     }
 
@@ -300,8 +300,8 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
-            DefaultTenantId,
             workflowGuid,
+            DefaultTenantId,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -324,8 +324,8 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
-            DefaultTenantId,
             Guid.NewGuid(),
+            DefaultTenantId,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -353,8 +353,8 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
-            DefaultTenantId,
             workflowGuid,
+            DefaultTenantId,
             repositoryMock.Object,
             CancellationToken.None
         );

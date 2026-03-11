@@ -25,7 +25,7 @@ public static class EngineEndpoints
         group
             .MapGet("", EngineRequestHandlers.ListActiveWorkflows)
             .WithName("ListActiveWorkflows")
-            .WithDescription("Lists all active workflows for the given tenant");
+            .WithDescription("Lists all active workflows, optionally filtered by tenant");
 
         group
             .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
@@ -68,14 +68,14 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
-        [FromRoute] string tenantId,
+        [FromQuery] string? tenantId,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
-        var workflows = await repository.GetActiveWorkflowsForTenant(tenantId, cancellationToken);
+        var workflows = await repository.GetActiveWorkflows(tenantId, cancellationToken);
 
         if (workflows.Count == 0)
             return TypedResults.NoContent();
@@ -84,8 +84,8 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
-        [FromRoute] string tenantId,
         [FromRoute] Guid workflowId,
+        [FromQuery] string? tenantId,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
@@ -97,8 +97,8 @@ internal static class EngineRequestHandlers
         if (workflow is null)
             return TypedResults.NotFound();
 
-        // Prevent cross-tenant information disclosure
-        if (workflow.TenantId != tenantId)
+        // Prevent cross-tenant information disclosure when tenant filter is specified
+        if (tenantId is not null && workflow.TenantId != tenantId)
             return TypedResults.NotFound();
 
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));

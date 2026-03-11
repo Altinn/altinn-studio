@@ -1,4 +1,4 @@
-{
+﻿{
   status: Healthy,
   checks: [
     {
@@ -13,11 +13,11 @@
         },
         http_connections: {
           count: 0,
-          limit: 300
+          limit: 500
         },
         db_connections: {
           count: 0,
-          limit: 95
+          limit: 90
         }
       }
     },

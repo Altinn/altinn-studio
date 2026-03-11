@@ -31,9 +31,9 @@ Reusable class library for async workflow processing. Provides the core engine, 
 
 ## API Endpoints (provided by Core)
 
-- `POST /api/v1/tenants/{tenantId}/workflows` — enqueue workflows (API key required)
-- `GET /api/v1/tenants/{tenantId}/workflows` — list active workflows
-- `GET /api/v1/tenants/{tenantId}/workflows/{workflowId:guid}` — get single workflow
+- `POST /api/v1/workflows` — enqueue workflows (API key required)
+- `GET /api/v1/workflows?tenantId=` — list active workflows (optional tenant filter)
+- `GET /api/v1/workflows/{workflowId:guid}?tenantId=` — get single workflow (optional tenant filter)
 - Dashboard SSE/REST endpoints under `/dashboard/*` (see Dashboard docs)
 
 ## Docker Compose

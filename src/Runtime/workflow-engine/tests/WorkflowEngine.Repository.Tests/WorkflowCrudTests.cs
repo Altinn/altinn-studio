@@ -171,7 +171,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var active = await queryRepo.GetActiveWorkflows(TestContext.Current.CancellationToken);
+        var active = await queryRepo.GetActiveWorkflows(cancellationToken: TestContext.Current.CancellationToken);
 
         // Active = workflows with at least one incomplete step (Enqueued, Processing, Requeued)
         Assert.Equal(2, active.Count);
@@ -346,7 +346,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         await using var queryContext = fixture.CreateDbContext();
         var queryRepo = fixture.CreateRepository();
 
-        var active = await queryRepo.GetActiveWorkflows(TestContext.Current.CancellationToken);
+        var active = await queryRepo.GetActiveWorkflows(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Single(active);
         Assert.Equal(workflow.DatabaseId, active[0].DatabaseId);
@@ -444,7 +444,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var queryRepo = fixture.CreateRepository();
 
         var scheduled = await queryRepo.GetScheduledWorkflows(TestContext.Current.CancellationToken);
-        var active = await queryRepo.GetActiveWorkflows(TestContext.Current.CancellationToken);
+        var active = await queryRepo.GetActiveWorkflows(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.DoesNotContain(scheduled, w => w.DatabaseId == workflowB.DatabaseId);
         Assert.Contains(active, w => w.DatabaseId == workflowB.DatabaseId);

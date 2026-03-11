@@ -22,7 +22,6 @@ namespace WorkflowEngine.TestKit;
 /// </summary>
 public abstract class EngineAppFixture : IAsyncLifetime
 {
-    public const string ApiBasePath = "/api/v1/tenants";
     public const string TestApiKey = "e2e-test-api-key-00000001";
     public const string DefaultOrg = "ttd";
     public const string DefaultApp = "e2e-tests";

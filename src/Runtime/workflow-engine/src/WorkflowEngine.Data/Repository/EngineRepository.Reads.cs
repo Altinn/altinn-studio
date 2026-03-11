@@ -9,7 +9,10 @@ namespace WorkflowEngine.Data.Repository;
 internal sealed partial class EngineRepository
 {
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(
+        string? tenantId = null,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflows");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
@@ -19,7 +22,10 @@ internal sealed partial class EngineRepository
             logger.FetchingWorkflows("active");
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context.GetActiveWorkflows().ToDomainModel().ToListAsync(cancellationToken);
+            var result = await context
+                .GetActiveWorkflows(tenantFilter: tenantId)
+                .ToDomainModel()
+                .ToListAsync(cancellationToken);
 
             logger.SuccessfullyFetchedWorkflows(result.Count);
 
@@ -333,41 +339,6 @@ internal sealed partial class EngineRepository
                 .SingleOrDefaultAsync(cancellationToken);
 
             return entity?.Status;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            logger.FailedToFetchWorkflows(ex.Message, ex);
-            throw;
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForTenant(
-        string tenantId,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflowsForTenant");
-        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
-
-        try
-        {
-            logger.FetchingWorkflowsForTenant(tenantId);
-
-            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context
-                .GetActiveWorkflows(tenantFilter: tenantId)
-                .ToDomainModel()
-                .ToListAsync(cancellationToken);
-
-            logger.SuccessfullyFetchedWorkflows(result.Count);
-
-            return result;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

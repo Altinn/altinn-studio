@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Models;
-using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
@@ -94,7 +93,7 @@ public partial class EngineTests
         );
 
         using var response = await unauthenticatedClient.PostAsJsonAsync(
-            EngineApiClient.GetTenantPath(EngineApiClient.DefaultTenantId),
+            "/api/v1/workflows",
             request,
             TestContext.Current.CancellationToken
         );
@@ -168,7 +167,7 @@ public partial class EngineTests
 
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
-        using var response = await _client.GetWorkflowRaw("wrong-tenant", workflowId);
+        using var response = await _client.GetWorkflowRaw(workflowId, tenantId: "wrong-tenant");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -223,10 +222,7 @@ public partial class EngineTests
 
         // Act
         using var client = fixture.CreateEngineClient();
-        using var response = await client.GetAsync(
-            EngineApiClient.GetTenantPath(EngineApiClient.DefaultTenantId),
-            TestContext.Current.CancellationToken
-        );
+        using var response = await client.GetAsync("/api/v1/workflows", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -238,10 +234,7 @@ public partial class EngineTests
     public async Task Response_ListActiveWorkflows_NoWorkflows_Returns204()
     {
         using var client = fixture.CreateEngineClient();
-        using var response = await client.GetAsync(
-            EngineApiClient.GetTenantPath(EngineApiClient.DefaultTenantId),
-            TestContext.Current.CancellationToken
-        );
+        using var response = await client.GetAsync("/api/v1/workflows", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
@@ -258,10 +251,7 @@ public partial class EngineTests
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         using var client = fixture.CreateEngineClient();
-        using var response = await client.GetAsync(
-            EngineApiClient.GetTenantPath(EngineApiClient.DefaultTenantId),
-            TestContext.Current.CancellationToken
-        );
+        using var response = await client.GetAsync("/api/v1/workflows", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }

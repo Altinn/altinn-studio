@@ -7,7 +7,7 @@ namespace WorkflowEngine.Integration.Tests;
 [Collection(EngineAppCollection.Name)]
 public sealed class AuthenticationTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
 {
-    private static readonly string ProtectedPath = EngineApiClient.GetTenantPath(EngineApiClient.DefaultTenantId);
+    private const string ProtectedPath = "/api/v1/workflows";
 
     public async ValueTask InitializeAsync() => await fixture.ResetAsync();
 

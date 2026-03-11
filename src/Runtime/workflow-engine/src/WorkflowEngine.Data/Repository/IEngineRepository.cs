@@ -8,9 +8,12 @@ namespace WorkflowEngine.Data.Repository;
 public interface IEngineRepository
 {
     /// <summary>
-    /// Gets all active workflows.
+    /// Gets all active workflows, optionally filtered by tenant.
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetActiveWorkflows(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Workflow>> GetActiveWorkflows(
+        string? tenantId = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets all scheduled workflows.
@@ -72,14 +75,6 @@ public interface IEngineRepository
     /// Gets the status of a workflow by its database ID, or null if not found.
     /// </summary>
     Task<PersistentItemStatus?> GetWorkflowStatus(Guid workflowId, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets all active (incomplete) workflows for the given tenant.
-    /// </summary>
-    Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForTenant(
-        string tenantId,
-        CancellationToken cancellationToken = default
-    );
 
     /// <summary>
     /// Gets the full workflow (with steps) by database ID, or null if not found.

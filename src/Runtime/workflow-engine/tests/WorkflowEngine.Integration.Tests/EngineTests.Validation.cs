@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using WorkflowEngine.Models;
-using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
@@ -20,7 +19,7 @@ public partial class EngineTests
 
         // Act
         using var response = await unauthenticatedClient.PostAsJsonAsync(
-            EngineApiClient.GetTenantPath(EngineApiClient.DefaultTenantId),
+            "/api/v1/workflows",
             request,
             cancellationToken: TestContext.Current.CancellationToken
         );

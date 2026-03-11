@@ -47,10 +47,10 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.Null(fetched);
     }
 
-    // ── GetActiveWorkflowsForTenant ─────────────────────────────────────
+    // ── GetActiveWorkflows ─────────────────────────────────────
 
     [Fact]
-    public async Task GetActiveWorkflowsForTenant_ReturnsOnlyMatchingTenant()
+    public async Task GetActiveWorkflows_ReturnsOnlyMatchingTenant()
     {
         // Arrange
         await using var context = fixture.CreateDbContext();
@@ -64,7 +64,7 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, tenantId: tenantB);
 
         // Act
-        var results = await repo.GetActiveWorkflowsForTenant(tenantA, TestContext.Current.CancellationToken);
+        var results = await repo.GetActiveWorkflows(tenantA, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(2, results.Count);
@@ -72,7 +72,7 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetActiveWorkflowsForTenant_ExcludesTerminalWorkflows()
+    public async Task GetActiveWorkflows_ExcludesTerminalWorkflows()
     {
         // Arrange
         await using var context = fixture.CreateDbContext();
@@ -83,7 +83,7 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, tenantId: tenantId);
 
         // Act
-        var results = await repo.GetActiveWorkflowsForTenant(tenantId, TestContext.Current.CancellationToken);
+        var results = await repo.GetActiveWorkflows(tenantId, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(results);
@@ -91,14 +91,14 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetActiveWorkflowsForTenant_NoMatches_ReturnsEmptyList()
+    public async Task GetActiveWorkflows_NoMatches_ReturnsEmptyList()
     {
         // Arrange
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
 
         // Act
-        var results = await repo.GetActiveWorkflowsForTenant(
+        var results = await repo.GetActiveWorkflows(
             Guid.NewGuid().ToString("N"),
             TestContext.Current.CancellationToken
         );
