@@ -10,6 +10,8 @@ ENV PATH="$PATH:/root/.dotnet/tools"
 ENV OidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
 ENV OidcLoginSettings__ClientId=dummyRequired
 ENV OidcLoginSettings__ClientSecret=dummyRequired
+ENV FeatureManagement__StudioOidc=false
+ENV StudioOidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
 
 RUN dotnet ef migrations script --project src/Designer/Designer.csproj --idempotent -o /app/migrations.sql
 

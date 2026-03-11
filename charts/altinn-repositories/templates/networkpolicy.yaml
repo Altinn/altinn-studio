@@ -1,0 +1,40 @@
+# Gitea is only reachable from the gitea-proxy pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: altinn-gitea-ingress-restriction
+spec:
+  podSelector:
+    matchLabels:
+      run: altinn-gitea
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          run: altinn-repositories
+    ports:
+    - port: 3000
+---
+# Proxy port 81 (trusted, accepts X-WEBAUTH-USER) is only reachable from designer.
+# Port 80 (public, OIDC/PAT auth) is open to all pods.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: altinn-repositories-internal-restriction
+spec:
+  podSelector:
+    matchLabels:
+      run: altinn-repositories
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          run: altinn-designer
+    ports:
+    - port: 81
+  - ports:
+    - port: 80

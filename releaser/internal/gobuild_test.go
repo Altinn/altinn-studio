@@ -88,7 +88,7 @@ func createTinyMainModule(t *testing.T) (moduleDir, output string) {
 	if err := os.MkdirAll(pkgDir, 0o755); err != nil {
 		t.Fatalf("mkdir package dir: %v", err)
 	}
-	goMod := "module example.com/studioctl\n\ngo 1.25\n"
+	goMod := "module example.com/studioctl\n\ngo 1.26\n"
 	if err := os.WriteFile(filepath.Join(moduleDir, "go.mod"), []byte(goMod), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
