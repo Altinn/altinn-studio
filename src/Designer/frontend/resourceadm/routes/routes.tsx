@@ -1,11 +1,9 @@
 import React from 'react';
-import { Route } from 'react-router-dom';
 import { createWorkspaceRoutes } from 'app-shared/routes/createWorkspaceRoutes';
 import { App } from '../app/App';
 import { PageLayout } from '../layout/PageLayout';
 import { ResourcePage } from '../pages/ResourcePage';
 import { ResourceDashboardPage } from '../pages/ResourceDashboardPage';
-import { ErrorPage } from '../pages/ErrorPage';
 import { RedirectPage } from '../pages/RedirectPage';
 import { ListAdminPage } from '../pages/ListAdminPage';
 import { AccessListPage } from '../pages/AccessListPage';
@@ -27,5 +25,4 @@ export const routes = createWorkspaceRoutes({
   appElement: <App />,
   layoutElement: <PageLayout />,
   routeDefinitions,
-  additionalRootRoutes: <Route index element={<ErrorPage />} />,
 });

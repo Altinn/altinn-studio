@@ -37,7 +37,6 @@ export const createWorkspaceRoutes = ({
   basePath,
   routeDefinitions,
   notFoundElement = <NotFoundPage />,
-  additionalRootRoutes,
   routeErrorElement = <RouteErrorBoundary />,
   notFoundRouteErrorElement = <NotFoundRouteErrorBoundary />,
 }: WorkspaceRoutesOptions): ReactElement => {
@@ -58,12 +57,7 @@ export const createWorkspaceRoutes = ({
     return layoutRoute;
   }
 
-  return (
-    <Route element={appElement}>
-      {layoutRoute}
-      {additionalRootRoutes}
-    </Route>
-  );
+  return <Route element={appElement}>{layoutRoute}</Route>;
 };
 
 export type { RouteDefinition, WorkspaceRoutesOptions };
