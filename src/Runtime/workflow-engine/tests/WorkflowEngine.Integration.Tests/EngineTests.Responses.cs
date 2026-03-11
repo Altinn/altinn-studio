@@ -1,12 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
-using WorkflowEngine.CommandHandlers.Handlers.AppCommand;
-using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
@@ -104,50 +102,6 @@ public partial class EngineTests
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [Fact]
-    public async Task Response_Enqueue_AppCommandWithoutLockToken_ReturnsBadRequest()
-    {
-        // Validation catches the missing lockToken at enqueue time and rejects with BadRequest.
-        var request = new WorkflowEnqueueRequest
-        {
-            TenantId = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
-            Context = JsonSerializer.SerializeToElement(
-                new
-                {
-                    Actor = new Actor { UserIdOrOrgNumber = "test-user" },
-                    Org = EngineAppFixture.DefaultOrg,
-                    App = EngineAppFixture.DefaultApp,
-                    InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId),
-                    InstanceGuid = EngineAppFixture.DefaultInstanceGuid,
-                }
-            ),
-            Workflows =
-            [
-                new WorkflowRequest
-                {
-                    Ref = "wf",
-                    OperationId = $"op-{Guid.NewGuid()}",
-                    Steps =
-                    [
-                        new StepRequest
-                        {
-                            Command = AppCommand.Create(
-                                "do-something",
-                                new AppCommandData { CommandKey = "do-something" }
-                            ),
-                        },
-                    ],
-                },
-            ],
-        };
-
-        using var enqueueResponse = await _client.EnqueueRaw(request);
-
-        // Validation rejects the request because lockToken is missing
-        Assert.Equal(HttpStatusCode.BadRequest, enqueueResponse.StatusCode);
-    }
-
     // ── GetWorkflow endpoint responses ────────────────────────────────────────
 
     [Fact]
@@ -155,26 +109,6 @@ public partial class EngineTests
     {
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateWebhookStep("/ping")])
-        );
-        var accepted = await _client.Enqueue(request);
-        var workflowId = accepted.Workflows.Single().DatabaseId;
-
-        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
-
-        using var response = await _client.GetWorkflowRaw(workflowId);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body);
-    }
-
-    [Fact]
-    public async Task Response_GetWorkflow_CompletedAppCommand_ReturnsFullDetailsShape()
-    {
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateAppCommandStep("do-something")]),
-            lockToken: InstanceLockToken
         );
         var accepted = await _client.Enqueue(request);
         var workflowId = accepted.Workflows.Single().DatabaseId;

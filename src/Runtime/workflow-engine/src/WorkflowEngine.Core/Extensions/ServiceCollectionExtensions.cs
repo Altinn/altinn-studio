@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Api.Constants;
-using WorkflowEngine.CommandHandlers.Handlers.Webhook;
+using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;

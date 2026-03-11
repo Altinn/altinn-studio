@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Data.Repository;
-using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
@@ -56,7 +56,7 @@ public partial class EngineTests
 
         await _testHelpers.AssertDbWorkflowCount(1);
 
-        var parsedResult = await Fixtures.EngineApiClient.AssertSuccessAndDeserialize<WorkflowStatusResponse>(
+        var parsedResult = await EngineApiClient.AssertSuccessAndDeserialize<WorkflowStatusResponse>(
             resultForCorrectInstance
         );
         Assert.Equal(workflowId, parsedResult.DatabaseId);

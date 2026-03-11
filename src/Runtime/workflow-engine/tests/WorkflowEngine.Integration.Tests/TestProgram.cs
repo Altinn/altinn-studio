@@ -6,20 +6,31 @@ using Microsoft.Extensions.Hosting;
 using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Api.Extensions;
-using WorkflowEngine.CommandHandlers.Handlers.Webhook;
+using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Data.Extensions;
-using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry.Extensions;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
 /// <summary>
 /// Minimal host that composes the engine from Core's public API.
 /// Used by <c>WebApplicationFactory&lt;Program&gt;</c> in integration tests.
+/// <para>
+/// Note: This class intentionally does not define a <c>Main</c> entry point.
+/// xUnit v3 generates its own entry point, and <see cref="EngineWebApplicationFactory{TProgram}"/>
+/// overrides <c>CreateHost</c> to build the application directly via
+/// <see cref="CreateBuilder"/> and <see cref="ConfigureApp"/>.
+/// </para>
 /// </summary>
-public class Program
+public class Program : ITestProgram
 {
-    public static async Task Main(string[] args)
+    private Program() { }
+
+    /// <summary>
+    /// Creates and configures a <see cref="WebApplicationBuilder"/> with all engine services registered.
+    /// </summary>
+    public static WebApplicationBuilder CreateBuilder(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
         bool isDev = builder.Environment.IsDevelopment();
@@ -56,20 +67,14 @@ public class Program
         builder.Services.AddOpenApi(options => options.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
         builder.Services.AddCommand<WebhookCommand>();
 
-        var app = builder.Build();
+        return builder;
+    }
 
-        var dbConnectionString =
-            app.Configuration.GetConnectionString("WorkflowEngine")
-            ?? throw new EngineConfigurationException(
-                "Database connection string 'WorkflowEngine' is required, but has not been configured."
-            );
-
-        // Reset stale database connections in development
-        await app.ResetDatabaseConnectionsInDev(dbConnectionString);
-
-        // Apply database migrations
-        await app.ApplyDatabaseMigrations(dbConnectionString);
-
+    /// <summary>
+    /// Configures middleware and endpoints on a built <see cref="WebApplication"/>.
+    /// </summary>
+    public static void ConfigureApp(WebApplication app)
+    {
         // OpenAPI
         app.MapOpenApi();
         app.UseSwaggerUI(options =>
@@ -79,7 +84,7 @@ public class Program
 
         // Middleware
         app.UseExceptionHandler();
-        if (!isDev)
+        if (!app.Environment.IsDevelopment())
             app.UseHttpsRedirection();
 
         // Endpoints
@@ -90,7 +95,5 @@ public class Program
             app.UseCors("Dashboard");
             app.MapDashboardEndpoints();
         }
-
-        await app.RunAsync();
     }
 }

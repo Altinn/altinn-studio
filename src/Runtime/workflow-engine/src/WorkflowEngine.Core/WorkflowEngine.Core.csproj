@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../WorkflowEngine.CommandHandlers/WorkflowEngine.CommandHandlers.csproj" />
+    <ProjectReference Include="../WorkflowEngine.Commands/WorkflowEngine.Commands.csproj" />
     <ProjectReference Include="../WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
     <ProjectReference Include="../WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
     <ProjectReference Include="../WorkflowEngine.Telemetry/WorkflowEngine.Telemetry.csproj" />
@@ -26,6 +26,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="WorkflowEngine.Core.Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.App" />
+    <InternalsVisibleTo Include="WorkflowEngine.App.Tests" />
     <InternalsVisibleTo Include="WorkflowEngine.Integration.Tests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>

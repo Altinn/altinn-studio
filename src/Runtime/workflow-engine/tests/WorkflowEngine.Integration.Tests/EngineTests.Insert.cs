@@ -2,33 +2,23 @@ using System.Text.Json;
 using WireMock;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
-using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
 public partial class EngineTests
 {
     [Theory]
-    [InlineData(1, "webhook")]
-    [InlineData(3, "app-command")]
-    [InlineData(5, "webhook")]
-    [InlineData(7, "app-command")]
-    public async Task AllStepsComplete_InOrder(int numSteps, string stepType)
+    [InlineData(1)]
+    [InlineData(5)]
+    public async Task AllStepsComplete_InOrder(int numSteps)
     {
         // Arrange
-        var stubs = Enumerable.Range(1, numSteps).Select(i => $"/{stepType}-{i}").ToList();
-        var steps = stepType switch
-        {
-            "webhook" => stubs.Select(x => _testHelpers.CreateWebhookStep(x)).ToList(),
-            "app-command" => stubs.Select(x => _testHelpers.CreateAppCommandStep(x)).ToList(),
-            _ => throw new ArgumentOutOfRangeException(nameof(stepType)),
-        };
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", steps),
-            lockToken: InstanceLockToken
-        );
+        var stubs = Enumerable.Range(1, numSteps).Select(i => $"/webhook-{i}").ToList();
+        var steps = stubs.Select(x => _testHelpers.CreateWebhookStep(x)).ToList();
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", steps));
 
         // Act
         var response = await _client.Enqueue(request);
@@ -80,39 +70,7 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task AppCommand_UsesCorrectMethod()
-    {
-        // Arrange
-        var step = _testHelpers.CreateAppCommandStep("/app-command-callback");
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", [step]),
-            lockToken: InstanceLockToken
-        );
-
-        // Act
-        var response = await _client.Enqueue(request);
-        var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
-
-        // Assert
-        Assert.Single(status.Steps);
-        Assert.Equal(PersistentItemStatus.Completed, status.OverallStatus);
-        Assert.Equal(PersistentItemStatus.Completed, status.Steps[0].Status);
-
-        var logs = fixture.WireMock.LogEntries;
-        Assert.Single(logs);
-        Assert.Equal("POST", logs[0].RequestMessage.Method, ignoreCase: true);
-        Assert.Contains(
-            "/app-command-callback",
-            logs[0].RequestMessage.AbsolutePath,
-            StringComparison.OrdinalIgnoreCase
-        );
-    }
-
-    [Theory]
-    [InlineData("webhook")]
-    [InlineData("app-command")]
-    public async Task StepCommands_RetryOnFailure_ThenCompletes(string stepType)
+    public async Task StepCommands_RetryOnFailure_ThenCompletes()
     {
         // Arrange -- WireMock returns 500 on the first POST, then 200 on the second.
         fixture
@@ -126,17 +84,9 @@ public partial class EngineTests
             .WhenStateIs("failed-once")
             .RespondWith(Response.Create().WithStatusCode(200));
 
-        var step = stepType switch
-        {
-            "webhook" => _testHelpers.CreateWebhookStep("/hook-callback"),
-            "app-command" => _testHelpers.CreateAppCommandStep("/app-command-callback"),
-            _ => throw new ArgumentOutOfRangeException(nameof(stepType)),
-        };
+        var step = _testHelpers.CreateWebhookStep("/hook-callback");
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", [step]),
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
 
         // Act
         var response = await _client.Enqueue(request);
@@ -148,30 +98,16 @@ public partial class EngineTests
         Assert.Equal(2, fixture.WireMock.LogEntries.Count);
     }
 
-    [Theory]
-    [InlineData("webhook")]
-    [InlineData("app-command")]
-    public async Task StepCommand_ExhaustsRetries_WorkflowFails(string stepType)
+    [Fact]
+    public async Task StepCommand_ExhaustsRetries_WorkflowFails()
     {
         // Arrange – WireMock always returns 500 → step exhausts 3 retries → Failed.
         fixture.WireMock.Reset();
         fixture.WireMock.Given(Request.Create().UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(500));
 
-        var steps = Enumerable
-            .Range(1, 5)
-            .Select(i =>
-                stepType switch
-                {
-                    "webhook" => _testHelpers.CreateWebhookStep($"/hook-callback-{i}"),
-                    "app-command" => _testHelpers.CreateAppCommandStep($"/app-command-callback-{i}"),
-                    _ => throw new InvalidOperationException(),
-                }
-            );
+        var steps = Enumerable.Range(1, 5).Select(i => _testHelpers.CreateWebhookStep($"/hook-callback-{i}"));
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", steps),
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", steps));
 
         // Act
         var response = await _client.Enqueue(request);
@@ -223,10 +159,8 @@ public partial class EngineTests
         Assert.Equal(payload, logs[0].RequestMessage.Body);
     }
 
-    [Theory]
-    [InlineData("webhook")]
-    [InlineData("app-command")]
-    public async Task StepCommand_UsesMaxExecutionTime_CanOverrideRetryPolicy(string stepType)
+    [Fact]
+    public async Task StepCommand_UsesMaxExecutionTime_CanOverrideRetryPolicy()
     {
         // Arrange
         var requestReceived = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -247,25 +181,13 @@ public partial class EngineTests
                     .WithDelay(TimeSpan.FromSeconds(1))
             );
 
-        var step = stepType switch
-        {
-            "webhook" => _testHelpers.CreateWebhookStep(
-                $"/{stepType}-callback",
-                maxExecutionTime: TimeSpan.FromSeconds(0.5),
-                retryStrategy: RetryStrategy.None()
-            ),
-            "app-command" => _testHelpers.CreateAppCommandStep(
-                $"/{stepType}-callback",
-                maxExecutionTime: TimeSpan.FromSeconds(0.5),
-                retryStrategy: RetryStrategy.None()
-            ),
-            _ => throw new InvalidOperationException(),
-        };
-
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", [step]),
-            lockToken: InstanceLockToken
+        var step = _testHelpers.CreateWebhookStep(
+            "/webhook-callback",
+            maxExecutionTime: TimeSpan.FromSeconds(0.5),
+            retryStrategy: RetryStrategy.None()
         );
+
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
 
         // Act
         var response = await _client.Enqueue(request);
@@ -279,7 +201,7 @@ public partial class EngineTests
         await requestReceived.Task.WaitAsync(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
         Assert.NotNull(requestPath);
-        Assert.Contains($"/{stepType}-callback", requestPath, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/webhook-callback", requestPath, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -391,201 +313,5 @@ public partial class EngineTests
             logs,
             log => log.RequestMessage.AbsolutePath.Contains("/always-succeed", StringComparison.OrdinalIgnoreCase)
         );
-    }
-
-    [Fact]
-    public async Task ComplexDag_RawJson_AllWorkflowsComplete()
-    {
-        // Arrange
-        /*
-                                      [wf-root]
-                                          |
-                  ┌───────────────────────┼───────────────────────┐
-                  |                       |                       |
-            [wf-a-first]            [wf-b-first]            [wf-c-first]
-                  |                       |                       |
-            [wf-a-second]                 └───────────┬───────────┘
-                  |                                   |
-            [wf-a-third]                        [wf-join-b-c]
-                  |                                   |
-                  └──────────────────┬────────────────┘
-                                     |
-                               [wf-join-all]
-         */
-
-        const string request = $$"""
-            {
-                "tenantId": "{{EngineAppFixture.DefaultOrg}}:{{EngineAppFixture.DefaultApp}}",
-                "idempotencyKey": "complex-dag-raw-json",
-                "labels": { "org": "{{EngineAppFixture.DefaultOrg}}", "app": "{{EngineAppFixture.DefaultApp}}" },
-                "context": {
-                    "actor": { "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}", "language": "nb" },
-                    "lockToken": "{{InstanceLockToken}}",
-                    "org": "{{EngineAppFixture.DefaultOrg}}",
-                    "app": "{{EngineAppFixture.DefaultApp}}",
-                    "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
-                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-                },
-                "workflows": [
-                    {
-                        "ref": "wf-root",
-                        "operationId": "process-root",
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "operationId": "process-root",
-                                    "data": { "commandKey": "process-root" }
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-a-first",
-                        "operationId": "process-a-1",
-                        "dependsOn": [
-                            "wf-root"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "operationId": "process-a-1",
-                                    "data": { "commandKey": "process-a-1" }
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-a-second",
-                        "operationId": "process-a-2",
-                        "dependsOn": [
-                            "wf-a-first"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "operationId": "process-a-2",
-                                    "data": { "commandKey": "process-a-2" }
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-a-third",
-                        "operationId": "process-a-3",
-                        "dependsOn": [
-                            "wf-a-second"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "operationId": "process-a-3",
-                                    "data": { "commandKey": "process-a-3" }
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-b-first",
-                        "operationId": "process-b-1",
-                        "dependsOn": [
-                            "wf-root"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "operationId": "process-b-1",
-                                    "data": { "commandKey": "process-b-1" }
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-c-first",
-                        "operationId": "process-c-1",
-                        "dependsOn": [
-                            "wf-root"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "operationId": "process-c-1",
-                                    "data": { "commandKey": "process-c-1" }
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-join-2-3",
-                        "operationId": "process-join-2-3",
-                        "dependsOn": [
-                            "wf-b-first",
-                            "wf-c-first"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "operationId": "process-join-2-3",
-                                    "data": { "commandKey": "process-join-2-3" }
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-join-all",
-                        "operationId": "process-join-all",
-                        "dependsOn": [
-                            "wf-a-third",
-                            "wf-join-2-3"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "operationId": "process-join-all-1",
-                                    "data": { "commandKey": "process-join-all-1" }
-                                }
-                            },
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "operationId": "process-join-all-2",
-                                    "data": { "commandKey": "process-join-all-2" }
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-            """;
-
-        // Act
-        var response = await _client.Enqueue(request);
-        var statuses = await _client.WaitForWorkflowStatus(
-            response.Workflows.Select(w => w.DatabaseId),
-            PersistentItemStatus.Completed
-        );
-
-        // Assert
-        Assert.Equal(8, response.Workflows.Count);
-        Assert.Equal(8, statuses.Count);
-        Assert.All(statuses, wf => Assert.Equal(PersistentItemStatus.Completed, wf.OverallStatus));
-        Assert.All(statuses, wf => Assert.All(wf.Steps, s => Assert.Equal(PersistentItemStatus.Completed, s.Status)));
-
-        await _testHelpers.AssertDbWorkflowCount(8);
-        await _testHelpers.AssertDbStepCount(9); // The last workflow has two steps
-
-        var logs = fixture.WireMock.LogEntries;
-        Assert.Equal(9, logs.Count); // The last workflow has two steps
-
-        Assert.Contains("/process-root", logs[0].RequestMessage.AbsolutePath, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("/process-join-all-1", logs[7].RequestMessage.AbsolutePath, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("/process-join-all-2", logs[8].RequestMessage.AbsolutePath, StringComparison.OrdinalIgnoreCase);
     }
 }

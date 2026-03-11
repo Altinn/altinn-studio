@@ -3,6 +3,7 @@ using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
@@ -11,9 +12,8 @@ namespace WorkflowEngine.Integration.Tests;
 /// are emitted correctly during the full API → Engine → DB pipeline.
 /// </summary>
 [Collection(EngineAppCollection.Name)]
-public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
+public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
 {
-    private const string InstanceLockToken = EngineAppFixture.DefaultInstanceLockToken;
     private readonly EngineApiClient _client = new(fixture);
     private readonly TestHelpers _testHelpers = new(fixture);
 
@@ -35,10 +35,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // Arrange
         using var collector = new TelemetryCollector();
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/cmd")]),
+        ]);
 
         // Act
         var response = await _client.Enqueue(request);
@@ -115,15 +114,12 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // Arrange
         using var collector = new TelemetryCollector();
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            [
-                _testHelpers.CreateWorkflow(
-                    "a",
-                    [_testHelpers.CreateAppCommandStep("/cmd-1"), _testHelpers.CreateAppCommandStep("/cmd-2")]
-                ),
-            ],
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow(
+                "a",
+                [_testHelpers.CreateWebhookStep("/cmd-1"), _testHelpers.CreateWebhookStep("/cmd-2")]
+            ),
+        ]);
 
         // Act
         var response = await _client.Enqueue(request);
@@ -153,10 +149,10 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
             $"Expected at least 2 WorkflowExecutor.Execute activities, got {executorActivities.Count}"
         );
 
-        var appCommandActivities = collector.GetActivities("AppCommandHandler.Execute");
+        var webhookActivities = collector.GetActivities("WebhookCommand.Execute");
         Assert.True(
-            appCommandActivities.Count >= 2,
-            $"Expected at least 2 AppCommandHandler.Execute activities, got {appCommandActivities.Count}"
+            webhookActivities.Count >= 2,
+            $"Expected at least 2 WebhookCommand.Execute activities, got {webhookActivities.Count}"
         );
 
         var httpSlotAcquireActivities = collector.GetActivities("ConcurrencyLimiter.AcquireHttpSlot");
@@ -185,10 +181,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         fixture.WireMock.Reset();
         fixture.WireMock.Given(Request.Create().UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(500));
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/cmd")]),
+        ]);
 
         // Act
         var response = await _client.Enqueue(request);
@@ -239,10 +234,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // Arrange — enqueue and complete a workflow so the DB has data
         using var collector = new TelemetryCollector();
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/cmd")]),
+        ]);
 
         var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
@@ -290,7 +284,7 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
     ///   Engine.ProcessWorkflow
     ///     ├── Engine.ProcessStep.{operationId}
     ///     │     └── WorkflowExecutor.Execute
-    ///     │           └── AppCommandHandler.Execute
+    ///     │           └── WebhookCommand.Execute
     ///     └── Engine.SubmitStatusUpdate
     ///
     /// Background — Status write buffer (standalone traces):
@@ -304,10 +298,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         // Arrange — single workflow with one step keeps the hierarchy unambiguous
         using var collector = new TelemetryCollector();
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            [_testHelpers.CreateWorkflow("a", [_testHelpers.CreateAppCommandStep("/cmd")])],
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/cmd")]),
+        ]);
 
         // Act
         var response = await _client.Enqueue(request);
@@ -340,9 +333,9 @@ public sealed class TelemetryTests(EngineAppFixture fixture) : IAsyncLifetime
         var execute = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowExecutor.Execute");
         AssertChildOf(processStep, execute);
 
-        //     │           └── AppCommandHandler.Execute
-        var appCommand = SingleInTrace(collector, processWorkflow.TraceId, "AppCommandHandler.Execute");
-        AssertChildOf(execute, appCommand);
+        //     │           └── WebhookCommand.Execute
+        var webhookCommand = SingleInTrace(collector, processWorkflow.TraceId, "WebhookCommand.Execute");
+        AssertChildOf(execute, webhookCommand);
 
         //     └── Engine.SubmitStatusUpdate
         var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "StatusWriteBuffer.SubmitAsync");

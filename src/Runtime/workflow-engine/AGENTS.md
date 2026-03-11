@@ -7,15 +7,17 @@ Reusable class library for async workflow processing. Provides the core engine, 
 | Project                        | Purpose                                                                     |
 |--------------------------------|-----------------------------------------------------------------------------|
 | `WorkflowEngine.Core`          | Core engine class library: processing loop, HTTP endpoints, executor, extensions |
-| `WorkflowEngine.CommandHandlers` | Command handler plugin system (App, Webhook)                              |
+| `WorkflowEngine.Commands`      | Command plugin system (Webhook). Runtime-specific commands (e.g. AppCommand) live in their host project |
 | `WorkflowEngine.Models`        | Domain models: `Workflow`, `Step`, `EngineRequest`, status enums            |
 | `WorkflowEngine.Data`          | EF Core persistence, `IEngineRepository`, Postgres via `EnginePgRepository` |
 | `WorkflowEngine.Resilience`    | `IConcurrencyLimiter` (DB/HTTP semaphore pools), retry strategies           |
 | `WorkflowEngine.Telemetry`     | `Metrics` class (OpenTelemetry counters, histograms, activity source)       |
 | `WorkflowEngine.Dashboard`     | Static file server + `/api/config` + `/api/hot-reload` for monitoring UI    |
+| `WorkflowEngine.TestKit`       | Reusable integration test infrastructure: fixtures, API client, test helpers |
 
 ## Architecture
 
+- **Command pattern**: `ICommand` → `Command<TData, TContext>` / `Command<TData>` abstract bases. `CommandDefinition` is the inert data record (type, operationId, data JSON). `CommandRegistry` is a DI-based string-keyed dictionary from `ICommand` singletons.
 - **Class library**: `WorkflowEngine.Core` is a class library (`Microsoft.NET.Sdk`), not an executable. It exposes public extension methods for host composition:
   - `AddWorkflowEngineHost()` — registers all core services
   - `AddApiKeyAuthentication()` — API key auth scheme
@@ -62,9 +64,19 @@ CSharpier formatting enforced at build time. Use the `/format` skill for details
 
 ## Tests
 
-xUnit test projects under `tests/`: Api, Models, Resilience, Data, Repository, Integration. Run with `dotnet test`.
+xUnit test projects under `tests/`: Core, Models, Resilience, Data, Repository, Integration, TestKit. Run with `dotnet test`.
 
 Integration tests use a self-contained `TestProgram.cs` host (in `tests/WorkflowEngine.Integration.Tests/`) that composes the engine from Core's public API, identical to how a real runtime would.
+
+The `WorkflowEngine.TestKit` project provides reusable integration test infrastructure:
+- `ITestProgram` — static interface for test host entry points
+- `EngineAppFixture` / `EngineAppFixture<TProgram>` — shared fixture with PostgreSQL, WireMock, and WebApplicationFactory
+- `EngineWebApplicationFactory<TProgram>` — generic factory that builds the test host
+- `EngineApiClient` — typed HTTP client wrapper with polling helpers
+- `TestHelpers` — convenience builders for workflows, steps, and enqueue requests
+- `TelemetryCollector` — in-process OpenTelemetry collector for test assertions
+
+Runtime-specific test projects (e.g. `workflow-engine-app`) can reference the TestKit and provide their own `TestProgram : ITestProgram` to get the full integration test infrastructure.
 
 For test conventions, scaffolding templates, and infrastructure details, use the `/test` skill.
 

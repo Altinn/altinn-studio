@@ -2,11 +2,12 @@ using System.Net;
 using System.Text.Json;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
 [Collection(EngineAppCollection.Name)]
-public sealed class DashboardEndpointTests(EngineAppFixture fixture) : IAsyncLifetime
+public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
 {
     private readonly EngineApiClient _client = new(fixture);
     private readonly TestHelpers _testHelpers = new(fixture);

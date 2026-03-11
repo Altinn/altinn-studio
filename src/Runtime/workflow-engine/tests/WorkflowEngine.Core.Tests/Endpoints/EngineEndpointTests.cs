@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using WorkflowEngine.Api;
 using WorkflowEngine.Api.Endpoints;
-using WorkflowEngine.CommandHandlers.Handlers.Webhook;
+using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Core.Tests.Fixtures;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;

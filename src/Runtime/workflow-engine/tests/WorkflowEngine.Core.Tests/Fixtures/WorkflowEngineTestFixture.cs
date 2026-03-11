@@ -3,9 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Api;
-using WorkflowEngine.CommandHandlers;
-using WorkflowEngine.CommandHandlers.Handlers.AppCommand;
-using WorkflowEngine.CommandHandlers.Handlers.Webhook;
+using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Models;
@@ -28,8 +26,7 @@ internal sealed record WorkflowEngineTestFixture(
     ServiceProvider ServiceProvider,
     MockHttpHandler HttpHandler,
     Mock<IHttpClientFactory> HttpClientFactoryMock,
-    EngineSettings EngineSettings,
-    AppCommandSettings AppCommandSettings
+    EngineSettings EngineSettings
 ) : IDisposable
 {
     /// <summary>
@@ -37,11 +34,9 @@ internal sealed record WorkflowEngineTestFixture(
     /// </summary>
     /// <param name="configureServices">Optional delegate to register additional services or override defaults.</param>
     /// <param name="engineSettings">Optional engine settings override.</param>
-    /// <param name="appCommandSettings">Optional app command settings override.</param>
     public static WorkflowEngineTestFixture Create(
         Action<IServiceCollection>? configureServices = null,
-        EngineSettings? engineSettings = null,
-        AppCommandSettings? appCommandSettings = null
+        EngineSettings? engineSettings = null
     )
     {
         var handler = new MockHttpHandler();
@@ -60,23 +55,14 @@ internal sealed record WorkflowEngineTestFixture(
             MaxConcurrentHttpCalls = 5,
         };
 
-        appCommandSettings ??= new AppCommandSettings
-        {
-            ApiKey = "test-api-key",
-            CommandEndpoint = "https://app.example.com/{Org}/{App}/commands/",
-        };
-
         var services = new ServiceCollection();
         services.AddSingleton(httpClientFactoryMock.Object);
         services.AddSingleton(Options.Create(engineSettings));
-        services.AddSingleton(Options.Create(appCommandSettings));
         services.AddLogging();
         services.AddSingleton<IConcurrencyLimiter>(
             new ConcurrencyLimiter(engineSettings.MaxConcurrentDbOperations, engineSettings.MaxConcurrentHttpCalls)
         );
 
-        // Register default command descriptors and the registry
-        services.AddSingleton<ICommand, AppCommand>();
         services.AddSingleton<ICommand, WebhookCommand>();
         services.AddSingleton<ICommandRegistry, CommandRegistry>();
         services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
@@ -87,23 +73,11 @@ internal sealed record WorkflowEngineTestFixture(
             services.BuildServiceProvider(),
             handler,
             httpClientFactoryMock,
-            engineSettings,
-            appCommandSettings
+            engineSettings
         );
     }
 
-    public static JsonElement DefaultWorkflowContext =>
-        JsonSerializer.SerializeToElement(
-            new
-            {
-                Actor = new Actor { UserIdOrOrgNumber = "test-user-123" },
-                LockToken = "test-lock-key",
-                Org = "ttd",
-                App = "test-app",
-                InstanceOwnerPartyId = 12345,
-                InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-            }
-        );
+    public static JsonElement DefaultWorkflowContext => JsonSerializer.SerializeToElement(new { });
 
     public static Workflow CreateWorkflow(Step? step = null, string? tenantId = "test-tenant")
     {

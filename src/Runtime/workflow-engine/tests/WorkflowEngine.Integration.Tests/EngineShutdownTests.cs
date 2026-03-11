@@ -4,11 +4,12 @@ using WireMock.ResponseBuilders;
 using WorkflowEngine.Api;
 using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
 [Collection(EngineShutdownCollection.Name)]
-public sealed class EngineStatusTests(EngineAppFixture fixture) : IAsyncLifetime
+public sealed class EngineStatusTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
 {
     private readonly EngineApiClient _client = new(fixture);
     private readonly TestHelpers _testHelpers = new(fixture);
