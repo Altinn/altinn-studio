@@ -30,6 +30,13 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
         public string AppDeployToken { get; set; }
 
         /// <summary>
+        /// Optional HTTP header name for token-based auth (e.g. "X-Api-Key").
+        /// When set, the pipeline should use this header instead of embedding the token in the URL.
+        /// </summary>
+        [JsonPropertyName("APP_AUTH_HEADER_NAME")]
+        public string AppAuthHeaderName { get; set; }
+
+        /// <summary>
         /// The URI to the correct GITEA environment based on which environment Altinn Studio is located
         /// </summary>
         [JsonPropertyName("GITEA_ENVIRONMENT")]
