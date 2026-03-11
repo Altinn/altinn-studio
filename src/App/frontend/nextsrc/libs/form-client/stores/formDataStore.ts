@@ -1,5 +1,6 @@
 import dot from 'dot-object';
 import { createStore } from 'zustand/vanilla';
+import { ArrayUtils } from 'nextsrc/libs/pure-functions/ArrayUtils/ArrayUtils';
 import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 
 function deepEqual(a: FormDataNode, b: FormDataNode): boolean {
@@ -75,8 +76,8 @@ function pickPrimitive(data: FormDataNode, path: string): FormDataPrimitive {
 const EMPTY_MODEL: ModelState = { currentData: null };
 
 function getModel(state: FormDataState, dataType?: string): ModelState {
-  const dt = dataType ?? state.defaultDataType;
-  return state.models[dt] ?? EMPTY_MODEL;
+  const resolvedDataType = dataType ?? state.defaultDataType;
+  return state.models[resolvedDataType] ?? EMPTY_MODEL;
 }
 
 function isRecordData(data: FormDataNode): data is Record<string, FormDataNode> {
@@ -85,16 +86,16 @@ function isRecordData(data: FormDataNode): data is Record<string, FormDataNode> 
 
 function updateModel(
   state: FormDataState,
-  dt: string,
-  updater: (data: Record<string, FormDataNode>) => Record<string, FormDataNode>,
+  dataType: string,
+  updater: (currentModel: Record<string, FormDataNode>) => Record<string, FormDataNode>,
 ): FormDataState {
-  const model = getModel(state, dt);
+  const model = getModel(state, dataType);
   if (!isRecordData(model.currentData)) {
     return state;
   }
   return {
     defaultDataType: state.defaultDataType,
-    models: { ...state.models, [dt]: { currentData: updater(model.currentData) } },
+    models: { ...state.models, [dataType]: { currentData: updater(model.currentData) } },
   };
 }
 
@@ -109,14 +110,14 @@ export function createFormDataStore(defaultDataType: string, initial?: FormDataN
     },
 
     setData: (data, dataType?) => {
-      const dt = dataType ?? get().defaultDataType;
+      const resolvedDataType = dataType ?? get().defaultDataType;
       set((state) => {
-        const existing = state.models[dt];
+        const existing = state.models[resolvedDataType];
         if (existing && deepEqual(existing.currentData, data)) {
           return state;
         }
         return {
-          models: { ...state.models, [dt]: { currentData: data } },
+          models: { ...state.models, [resolvedDataType]: { currentData: data } },
         };
       });
     },
@@ -124,8 +125,8 @@ export function createFormDataStore(defaultDataType: string, initial?: FormDataN
     getValue: (path, dataType?) => pickPrimitive(getModel(get(), dataType).currentData, path),
 
     setValue: (path, value, dataType?) => {
-      const dt = dataType ?? get().defaultDataType;
-      const coerced = options?.coerceValue?.(path, value, dt);
+      const resolvedDataType = dataType ?? get().defaultDataType;
+      const coerced = options?.coerceValue?.(path, value, resolvedDataType);
       if (coerced) {
         if (coerced.error) {
           return;
@@ -133,19 +134,19 @@ export function createFormDataStore(defaultDataType: string, initial?: FormDataN
         value = coerced.value;
       }
 
-      const previousValue = get().getValue(path, dt);
+      const previousValue = get().getValue(path, resolvedDataType);
       if (previousValue === value) {
         return;
       }
 
       set((state) =>
-        updateModel(state, dt, (data) => {
-          const copy = { ...data };
-          dot.set(path, value, copy);
-          return copy;
+        updateModel(state, resolvedDataType, (currentModel) => {
+          const updatedModel = { ...currentModel };
+          dot.set(path, value, updatedModel);
+          return updatedModel;
         }),
       );
-      options?.onChange?.(path, value, previousValue, dt);
+      options?.onChange?.(path, value, previousValue, resolvedDataType);
     },
 
     getBoundValue: (simpleBinding, bindingContext?) => {
@@ -154,10 +155,10 @@ export function createFormDataStore(defaultDataType: string, initial?: FormDataN
     },
 
     setBoundValue: (simpleBinding, value, bindingContext?) => {
-      const dt = bindingContext?.dataType ?? get().defaultDataType;
+      const resolvedDataType = bindingContext?.dataType ?? get().defaultDataType;
       const path = resolvePath(simpleBinding, bindingContext?.parentBinding, bindingContext?.itemIndex);
 
-      const coerced = options?.coerceValue?.(path, value, dt);
+      const coerced = options?.coerceValue?.(path, value, resolvedDataType);
       if (coerced) {
         if (coerced.error) {
           return;
@@ -171,13 +172,13 @@ export function createFormDataStore(defaultDataType: string, initial?: FormDataN
       }
 
       set((state) =>
-        updateModel(state, dt, (data) => {
-          const copy = { ...data };
-          dot.set(path, value, copy);
-          return copy;
+        updateModel(state, resolvedDataType, (currentModel) => {
+          const updatedModel = { ...currentModel };
+          dot.set(path, value, updatedModel);
+          return updatedModel;
         }),
       );
-      options?.onChange?.(path, value, previousValue, dt);
+      options?.onChange?.(path, value, previousValue, resolvedDataType);
     },
 
     getArray: (path, bindingContext?) => {
@@ -190,43 +191,43 @@ export function createFormDataStore(defaultDataType: string, initial?: FormDataN
       return Array.isArray(result) ? result : [];
     },
 
-    pushArrayItem: (path, item, bindingContext?) => {
-      const dt = bindingContext?.dataType ?? get().defaultDataType;
+    pushArrayItem: (path, newRow, bindingContext?) => {
+      const resolvedDataType = bindingContext?.dataType ?? get().defaultDataType;
       const resolvedPath = resolvePath(path, bindingContext?.parentBinding, bindingContext?.itemIndex);
-      const previousArray = get().getArray(path, bindingContext);
+      const previousRows = get().getArray(path, bindingContext);
 
       set((state) =>
-        updateModel(state, dt, (data) => {
-          const current = dot.pick(resolvedPath, data);
-          const arr = Array.isArray(current) ? [...current, item] : [item];
-          const copy = { ...data };
-          dot.set(resolvedPath, arr, copy);
-          return copy;
+        updateModel(state, resolvedDataType, (currentModel) => {
+          const existingRows = dot.pick(resolvedPath, currentModel);
+          const updatedRows = Array.isArray(existingRows) ? [...existingRows, newRow] : [newRow];
+          const updatedModel = { ...currentModel };
+          dot.set(resolvedPath, updatedRows, updatedModel);
+          return updatedModel;
         }),
       );
-      const newArray = get().getArray(path, bindingContext);
-      options?.onChange?.(resolvedPath, newArray, previousArray, dt);
+      const currentRows = get().getArray(path, bindingContext);
+      options?.onChange?.(resolvedPath, currentRows, previousRows, resolvedDataType);
     },
 
     removeArrayItem: (path, index, bindingContext?) => {
-      const dt = bindingContext?.dataType ?? get().defaultDataType;
+      const resolvedDataType = bindingContext?.dataType ?? get().defaultDataType;
       const resolvedPath = resolvePath(path, bindingContext?.parentBinding, bindingContext?.itemIndex);
-      const previousArray = get().getArray(path, bindingContext);
+      const previousRows = get().getArray(path, bindingContext);
 
       set((state) =>
-        updateModel(state, dt, (data) => {
-          const current = dot.pick(resolvedPath, data);
-          if (!Array.isArray(current) || index < 0 || index >= current.length) {
-            return data;
+        updateModel(state, resolvedDataType, (currentModel) => {
+          const existingRows = dot.pick(resolvedPath, currentModel);
+          if (!Array.isArray(existingRows) || index < 0 || index >= existingRows.length) {
+            return currentModel;
           }
-          const arr = [...current.slice(0, index), ...current.slice(index + 1)];
-          const copy = { ...data };
-          dot.set(resolvedPath, arr, copy);
-          return copy;
+          const updatedRows = ArrayUtils.removeAtIndex(existingRows, index);
+          const updatedModel = { ...currentModel };
+          dot.set(resolvedPath, updatedRows, updatedModel);
+          return updatedModel;
         }),
       );
-      const newArray = get().getArray(path, bindingContext);
-      options?.onChange?.(resolvedPath, newArray, previousArray, dt);
+      const currentRows = get().getArray(path, bindingContext);
+      options?.onChange?.(resolvedPath, currentRows, previousRows, resolvedDataType);
     },
   }));
 }
