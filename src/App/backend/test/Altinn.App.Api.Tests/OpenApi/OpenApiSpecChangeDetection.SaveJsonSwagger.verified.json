@@ -2573,17 +2573,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                  "$ref": "#/components/schemas/InstanceFormBootstrapResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                  "$ref": "#/components/schemas/InstanceFormBootstrapResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                  "$ref": "#/components/schemas/InstanceFormBootstrapResponse"
                 }
               }
             }
@@ -2693,6 +2693,14 @@
               "type": "string",
               "default": "nb"
             }
+          },
+          {
+            "name": "prefill",
+            "in": "query",
+            "description": "Optional JSON object of field-value pairs for query param prefill.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2701,17 +2709,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                  "$ref": "#/components/schemas/StatelessFormBootstrapResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                  "$ref": "#/components/schemas/StatelessFormBootstrapResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FormBootstrapResponse"
+                  "$ref": "#/components/schemas/StatelessFormBootstrapResponse"
                 }
               }
             }
@@ -2748,6 +2756,36 @@
           },
           "403": {
             "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
             "content": {
               "text/plain": {
                 "schema": {
@@ -8760,44 +8798,6 @@
         ],
         "type": "string"
       },
-      "FormBootstrapResponse": {
-        "required": [
-          "dataModels",
-          "layouts",
-          "staticOptions"
-        ],
-        "type": "object",
-        "properties": {
-          "layouts": {
-            "nullable": true
-          },
-          "dataModels": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/DataModelInfo"
-            },
-            "nullable": true
-          },
-          "staticOptions": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/AppOption"
-              }
-            },
-            "nullable": true
-          },
-          "validationIssues": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ValidationIssueWithSource"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
       "HideSettings": {
         "type": "object",
         "properties": {
@@ -8926,6 +8926,49 @@
         },
         "additionalProperties": false,
         "description": "Light weight model representing an instance and it's file scan result status."
+      },
+      "InstanceFormBootstrapResponse": {
+        "required": [
+          "dataModels",
+          "instance",
+          "layouts",
+          "process",
+          "staticOptions"
+        ],
+        "type": "object",
+        "properties": {
+          "layouts": {
+            "nullable": true
+          },
+          "dataModels": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DataModelInfo"
+            },
+            "nullable": true
+          },
+          "staticOptions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/StaticOptionSet"
+            },
+            "nullable": true
+          },
+          "instance": {
+            "$ref": "#/components/schemas/Instance"
+          },
+          "process": {
+            "$ref": "#/components/schemas/AppProcessState"
+          },
+          "validationIssues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssueWithSource"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "InstanceOwner": {
         "type": "object",
@@ -10508,6 +10551,54 @@
         },
         "additionalProperties": false,
         "description": "A simplified instance model used for presentation of key instance information."
+      },
+      "StatelessFormBootstrapResponse": {
+        "required": [
+          "dataModels",
+          "layouts",
+          "staticOptions"
+        ],
+        "type": "object",
+        "properties": {
+          "layouts": {
+            "nullable": true
+          },
+          "dataModels": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DataModelInfo"
+            },
+            "nullable": true
+          },
+          "staticOptions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/StaticOptionSet"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "StaticOptionSet": {
+        "required": [
+          "options"
+        ],
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppOption"
+            },
+            "nullable": true
+          },
+          "downstreamParameters": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "Substatus": {
         "type": "object",

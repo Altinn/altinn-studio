@@ -59,12 +59,12 @@ public class FormBootstrapController : ControllerBase
     /// <returns>Complete form bootstrap data.</returns>
     [HttpGet]
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
-    [ProducesResponseType(typeof(FormBootstrapResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(InstanceFormBootstrapResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/bootstrap-form/{uiFolder}")]
-    public async Task<ActionResult<FormBootstrapResponse>> GetInstanceFormBootstrap(
+    public async Task<ActionResult<InstanceFormBootstrapResponse>> GetInstanceFormBootstrap(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] int instanceOwnerPartyId,
@@ -112,6 +112,7 @@ public class FormBootstrapController : ControllerBase
                 dataElementId,
                 pdf,
                 language,
+                User,
                 cancellationToken
             );
 
@@ -139,13 +140,13 @@ public class FormBootstrapController : ControllerBase
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Complete form bootstrap data.</returns>
     [HttpGet]
-    [ProducesResponseType(typeof(FormBootstrapResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(StatelessFormBootstrapResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [Route("{org}/{app}/api/bootstrap-form/{uiFolder}")]
-    public async Task<ActionResult<FormBootstrapResponse>> GetStatelessFormBootstrap(
+    public async Task<ActionResult<StatelessFormBootstrapResponse>> GetStatelessFormBootstrap(
         [FromRoute] string org,
         [FromRoute] string app,
         [FromRoute] string uiFolder,

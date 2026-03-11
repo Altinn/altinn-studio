@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
@@ -9,6 +10,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Register.Models;
@@ -35,6 +37,7 @@ internal sealed class FormBootstrapService
     private readonly IAppModel _appModel;
     private readonly IPrefill _prefillService;
     private readonly IAuthenticationContext _authenticationContext;
+    private readonly ProcessStateEnricher _processStateEnricher;
     private readonly ILogger<FormBootstrapService> _logger;
 
     public FormBootstrapService(
@@ -47,6 +50,7 @@ internal sealed class FormBootstrapService
         IAppModel appModel,
         IPrefill prefillService,
         IAuthenticationContext authenticationContext,
+        ProcessStateEnricher processStateEnricher,
         ILogger<FormBootstrapService> logger
     )
     {
@@ -59,15 +63,17 @@ internal sealed class FormBootstrapService
         _appModel = appModel;
         _prefillService = prefillService;
         _authenticationContext = authenticationContext;
+        _processStateEnricher = processStateEnricher;
         _logger = logger;
     }
 
-    public async Task<FormBootstrapResponse> GetInstanceFormBootstrap(
+    public async Task<InstanceFormBootstrapResponse> GetInstanceFormBootstrap(
         Instance instance,
         string uiFolder,
         string? dataElementIdOverride,
         bool isPdf,
         string language,
+        ClaimsPrincipal user,
         CancellationToken cancellationToken = default
     )
     {
@@ -103,13 +109,17 @@ internal sealed class FormBootstrapService
                 ? Task.FromResult<PartitionedInitialValidations?>(null)
                 : LoadAndPartitionInitialValidations(instance, taskId, language, defaultDataType, cancellationToken);
 
-        await Task.WhenAll(dataModelsTask, optionsTask, initialValidationTask);
+        var processTask = _processStateEnricher.Enrich(instance, instance.Process, user);
+
+        await Task.WhenAll(dataModelsTask, optionsTask, initialValidationTask, processTask);
         var dataModels = await dataModelsTask;
         var initialValidations = await initialValidationTask;
         AttachInitialValidationIssues(dataModels, initialValidations?.DataModelIssues);
 
-        return new FormBootstrapResponse
+        return new InstanceFormBootstrapResponse
         {
+            Instance = instance,
+            Process = await processTask,
             Layouts = layouts,
             DataModels = dataModels,
             StaticOptions = await optionsTask,
@@ -117,7 +127,7 @@ internal sealed class FormBootstrapService
         };
     }
 
-    public async Task<FormBootstrapResponse> GetStatelessFormBootstrap(
+    public async Task<StatelessFormBootstrapResponse> GetStatelessFormBootstrap(
         string uiFolder,
         string language,
         Dictionary<string, string>? prefillFromQueryParams = null,
@@ -151,12 +161,11 @@ internal sealed class FormBootstrapService
 
         await Task.WhenAll(dataModelsTask, optionsTask);
 
-        return new FormBootstrapResponse
+        return new StatelessFormBootstrapResponse
         {
             Layouts = layouts,
             DataModels = await dataModelsTask,
             StaticOptions = await optionsTask,
-            ValidationIssues = null, // No validation for stateless
         };
     }
 
