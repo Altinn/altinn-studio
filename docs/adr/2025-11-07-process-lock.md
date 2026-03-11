@@ -1,6 +1,6 @@
 # Instance locking for mutating process operations
 
-- Status: Proposed
+- Status: Accepted
 - Deciders: Team Altinn Studio, squad flyt
 - Date: 03.11.2025
 
@@ -44,58 +44,126 @@ Decision: Rejected due to connection pool concerns, connections are expensive in
 
 ### Option A2: PostgreSQL lock table (SELECTED)
 
-Create a dedicated table to track instance locks with timestamps and metadata. Use a short-lived advisory lock to ensure that only one transaction at a time can insert a lock record for a given instance.
+Create a dedicated table to track instance locks with timestamps and metadata. Use a short-lived advisory lock to ensure that only one transaction at a time can insert a lock record for a given instance. The lock token returned to the caller is composed from the row ID and a random secret. Only a hash of the secret is stored in the database.
 
 #### How it works
 
 Create the following table:
 
 ```sql
-CREATE TABLE instance_locks (
+CREATE TABLE storage.instancelocks (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    instance_id BIGINT NOT NULL,
-    lock_token UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
-    locked_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    locked_until TIMESTAMPTZ NOT NULL,
-    locked_by VARCHAR(255) NOT NULL
+    instanceinternalid BIGINT NOT NULL,
+    lockedat TIMESTAMPTZ NOT NULL,
+    lockeduntil TIMESTAMPTZ NOT NULL,
+    lockedby TEXT NOT NULL,
+    secrethash BYTEA NOT NULL
 );
+
+CREATE INDEX instancelocks_instanceinternalid
+    ON storage.instancelocks (instanceinternalid);
 ```
 
 Summary of the locking flow:
 
-1. Acquire: `INSERT INTO instance_locks` with current instance ID and expiration (e.g. 5 minutes) to receive a token in column `lock_token`.
+1. Acquire: The application generates a random secret and SHA256-hashes it. A stored procedure inserts a row into `storage.instancelocks` with the hash, returning the row `id`. The application combines `{id, secret}` into a base64url-encoded token returned to the caller.
 2. Process: Perform the process transition.
-3. Release: `UPDATE instance_locks SET locked_until = CURRENT_TIMESTAMP WHERE lock_token = ?` with token from 1.
+3. Release: Call the update stored procedure with TTL=0 and the token (secret is hashed and verified against the stored hash). This sets `lockeduntil = NOW()`, effectively releasing the lock.
 
 In more detail:
 
-To acquire the lock, run the following query:
+To acquire the lock, call the following stored procedure:
 
 ```sql
-WITH lock_attempt AS (
-  SELECT pg_try_advisory_xact_lock(:instanceId) AS acquired
+CREATE OR REPLACE PROCEDURE storage.acquireinstancelock(
+    _instanceinternalid BIGINT,
+    _ttl INTERVAL,
+    _lockedby TEXT,
+    _secrethash BYTEA,
+    INOUT _result TEXT DEFAULT NULL,
+    INOUT _id BIGINT DEFAULT NULL
 )
-INSERT INTO instance_locks (instance_id, locked_until, locked_by)
-SELECT :instanceId, CURRENT_TIMESTAMP + :expiration, :lockedBy
-FROM lock_attempt
-WHERE acquired = TRUE
-  AND NOT EXISTS (
-    SELECT 1 FROM instance_locks
-    WHERE instance_id = :instanceId
-      AND locked_until > CURRENT_TIMESTAMP
-  )
-RETURNING lock_token;
+LANGUAGE plpgsql
+AS $BODY$
+DECLARE
+    _lock_exists BOOLEAN;
+    _now TIMESTAMPTZ;
+BEGIN
+    PERFORM pg_advisory_xact_lock(_instanceinternalid);
+
+    SELECT clock_timestamp() INTO _now;
+
+    SELECT true FROM storage.instancelocks
+    WHERE instanceinternalid = _instanceinternalid
+    AND lockeduntil > _now
+    INTO _lock_exists;
+
+    IF _lock_exists THEN
+        _result := 'lock_held';
+        RETURN;
+    END IF;
+
+    INSERT INTO storage.instancelocks (instanceinternalid, lockedat, lockeduntil, lockedby, secrethash)
+    VALUES (_instanceinternalid, _now, _now + _ttl, _lockedby, _secrethash)
+    RETURNING id INTO _id;
+
+    _result := 'ok';
+END;
+$BODY$;
 ```
 
-If no rows are returned, we where unable to acquire the lock. Otherwise we got a token that we keep until the lock is released.
+If `_result` is `'lock_held'`, the lock is already held by another request. If `'ok'`, `_id` contains the row ID used (together with the unhashed secret) to form the lock token.
 
-To release the lock, run this query:
+To release (or extend) the lock, call the following stored procedure with the desired TTL (0 for release):
 
 ```sql
-UPDATE instance_locks
-SET locked_until = CURRENT_TIMESTAMP
-WHERE lock_token = :lockToken;
+CREATE OR REPLACE PROCEDURE storage.updateinstancelock(
+    _id BIGINT,
+    _instanceinternalid BIGINT,
+    _ttl INTERVAL,
+    _secrethash BYTEA,
+    INOUT _result TEXT DEFAULT NULL
+)
+LANGUAGE plpgsql
+AS $BODY$
+DECLARE
+    _locked_until TIMESTAMPTZ;
+    _stored_hash BYTEA;
+    _now TIMESTAMPTZ;
+BEGIN
+    PERFORM pg_advisory_xact_lock(_instanceinternalid);
+
+    SELECT lockeduntil, secrethash FROM storage.instancelocks
+    WHERE id = _id AND instanceinternalid = _instanceinternalid
+    INTO _locked_until, _stored_hash;
+
+    IF _locked_until IS null THEN
+        _result := 'lock_not_found';
+        RETURN;
+    END IF;
+
+    IF _stored_hash != _secrethash THEN
+        _result := 'token_mismatch';
+        RETURN;
+    END IF;
+
+    SELECT clock_timestamp() INTO _now;
+
+    IF _locked_until <= _now THEN
+        _result := 'lock_expired';
+        RETURN;
+    END IF;
+
+    UPDATE storage.instancelocks
+    SET lockeduntil = _now + _ttl
+    WHERE id = _id;
+
+    _result := 'ok';
+END;
+$BODY$;
 ```
+
+The procedure verifies that the lock exists, the secret hash matches, and the lock has not expired before updating. Possible `_result` values: `'ok'`, `'lock_not_found'`, `'token_mismatch'`, `'lock_expired'`.
 
 Decision: Selected.
 
