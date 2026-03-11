@@ -8,6 +8,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 )
 
+var errTransientNetwork = errors.New("transient network error")
+
 // FakeKeyVaultClient implements KeyVaultSecretsClient for testing.
 type FakeKeyVaultClient struct {
 	secrets map[string]string
@@ -67,5 +69,5 @@ func NotFoundError(secretName string) error {
 
 // TransientError returns an error that mimics a transient Azure failure.
 func TransientError() error {
-	return errors.New("transient network error")
+	return errTransientNetwork
 }

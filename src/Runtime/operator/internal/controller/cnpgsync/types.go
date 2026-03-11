@@ -1,7 +1,5 @@
 package cnpgsync
 
-// CnpgTarget defines a serviceowner/environment combination
-// that should have the CNPG operator installed, and the apps that should receive databases.
 type CnpgTarget struct {
 	Backup         *PgDumpBackupConfig
 	ServiceOwnerId string
@@ -9,7 +7,6 @@ type CnpgTarget struct {
 	Apps           []string
 }
 
-// PgDumpBackupConfig configures pg_dump backup jobs for a target.
 type PgDumpBackupConfig struct {
 	Schedule         string
 	PvcName          string
@@ -19,7 +16,6 @@ type PgDumpBackupConfig struct {
 	Enabled          bool
 }
 
-// DefaultTargets returns the default list of targets for CNPG operator installation.
 func DefaultTargets() []CnpgTarget {
 	backup := &PgDumpBackupConfig{
 		Enabled:          true,

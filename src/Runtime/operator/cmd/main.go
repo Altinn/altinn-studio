@@ -45,6 +45,7 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
+//nolint:gochecknoinits // Scheme registration follows controller-runtime/Kubebuilder conventions.
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(resourcesv1alpha1.AddToScheme(scheme))
@@ -55,6 +56,7 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
+//nolint:funlen,gocyclo,gocritic // Keeping Kubebuilder's scaffolded manager setup shape intact is more important here.
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
@@ -136,18 +138,6 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "ec156e4c.altinn.studio",
-		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
-		// when the Manager ends. This requires the binary to immediately end when the
-		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
-		// speeds up voluntary leader transitions as the new leader don't have to wait
-		// LeaseDuration time first.
-		//
-		// In the default scaffold provided, the program ends immediately after
-		// the manager stops, so would be fine to enable this option. However,
-		// if you are doing or is intended to do any operation such as perform cleanups
-		// after the manager stops then its usage might be unsafe.
-		// LeaderElectionReleaseOnCancel: true,
-
 		Cache: cache.Options{
 			// SyncPeriod will force additional reconciliations periodically
 			SyncPeriod: &syncPeriod,
@@ -189,7 +179,9 @@ func main() {
 		rt,
 		mgr.GetClient(),
 	)
-	if err != nil {
+	if errors.Is(err, azurekeyvaultsync.ErrDisabledInLocalEnv) {
+		kvSyncController = nil
+	} else if err != nil {
 		setupLog.Error(err, "unable to create KeyVaultSync controller")
 		span.End()
 		os.Exit(1)
@@ -233,7 +225,6 @@ func main() {
 
 	setupLog.Info("starting manager")
 	span.End()
-
 	if err = mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)

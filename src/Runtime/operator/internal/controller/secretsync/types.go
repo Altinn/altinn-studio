@@ -10,6 +10,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+var errGrafanaCRHasNoExternalSpec = errors.New("grafana CR has no external spec")
+
 // SecretSyncMapping defines a source secret to copy to a destination namespace.
 type SecretSyncMapping struct {
 	BuildOutput     func(ctx context.Context, k8sClient client.Client, data map[string][]byte) ([]byte, error)
@@ -44,7 +46,7 @@ func DefaultMappings() []SecretSyncMapping {
 					return nil, fmt.Errorf("get Grafana CR: %w", err)
 				}
 				if grafana.Spec.External == nil {
-					return nil, errors.New("grafana CR has no external spec")
+					return nil, errGrafanaCRHasNoExternalSpec
 				}
 				return json.Marshal(map[string]any{
 					"Grafana": map[string]any{

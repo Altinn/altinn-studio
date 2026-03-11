@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	crand "crypto/rand"
+	"fmt"
 
 	"github.com/go-logr/logr"
 	"github.com/jonboulle/clockwork"
@@ -79,13 +80,9 @@ func NewRuntime(ctx context.Context, opts ...RuntimeOption) (rt.Runtime, error) 
 		)
 	}
 
-	configMonitor := options.configMonitor
-	if configMonitor == nil {
-		var err error
-		configMonitor, err = config.GetConfig(ctx, environment, "")
-		if err != nil {
-			return nil, err
-		}
+	configMonitor, err := resolveConfigMonitor(ctx, environment, options)
+	if err != nil {
+		return nil, err
 	}
 
 	configValue := configMonitor.Get()
@@ -97,17 +94,9 @@ func NewRuntime(ctx context.Context, opts ...RuntimeOption) (rt.Runtime, error) 
 		)
 	}
 
-	operatorCtx := options.operatorContext
-	if operatorCtx == nil {
-		orgRegistry, err := orgs.NewOrgRegistry(ctx, configValue.OrgRegistry.URL)
-		if err != nil {
-			return nil, err
-		}
-
-		operatorCtx, err = operatorcontext.Discover(ctx, environment, orgRegistry)
-		if err != nil {
-			return nil, err
-		}
+	operatorCtx, err := resolveOperatorContext(ctx, environment, configValue, options)
+	if err != nil {
+		return nil, err
 	}
 
 	if options.logger != nil {
@@ -119,21 +108,12 @@ func NewRuntime(ctx context.Context, opts ...RuntimeOption) (rt.Runtime, error) 
 		)
 	}
 
-	clock := options.clock
-	if clock == nil {
-		clock = clockwork.NewRealClock()
-	}
-
-	cryptoRand := crand.Reader
-
-	cryptoService := crypto.NewDefaultService(
-		clock,
-		cryptoRand,
-	)
+	clock := runtimeClock(options)
+	cryptoService := crypto.NewDefaultService(clock, crand.Reader)
 
 	maskinportenApiClient, err := maskinporten.NewHttpApiClient(configMonitor, operatorCtx, clock)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create Maskinporten API client: %w", err)
 	}
 
 	r := &runtime{
@@ -147,6 +127,54 @@ func NewRuntime(ctx context.Context, opts ...RuntimeOption) (rt.Runtime, error) 
 	}
 
 	return r, nil
+}
+
+func resolveConfigMonitor(
+	ctx context.Context,
+	environment string,
+	options *runtimeOptions,
+) (*config.ConfigMonitor, error) {
+	if options.configMonitor != nil {
+		return options.configMonitor, nil
+	}
+
+	configMonitor, err := config.GetConfig(ctx, environment, "")
+	if err != nil {
+		return nil, fmt.Errorf("load operator config: %w", err)
+	}
+
+	return configMonitor, nil
+}
+
+func resolveOperatorContext(
+	ctx context.Context,
+	environment string,
+	configValue *config.Config,
+	options *runtimeOptions,
+) (*operatorcontext.Context, error) {
+	if options.operatorContext != nil {
+		return options.operatorContext, nil
+	}
+
+	orgRegistry, err := orgs.NewOrgRegistry(ctx, configValue.OrgRegistry.URL)
+	if err != nil {
+		return nil, fmt.Errorf("create org registry client: %w", err)
+	}
+
+	operatorCtx, err := operatorcontext.Discover(ctx, environment, orgRegistry)
+	if err != nil {
+		return nil, fmt.Errorf("discover operator context: %w", err)
+	}
+
+	return operatorCtx, nil
+}
+
+func runtimeClock(options *runtimeOptions) clockwork.Clock {
+	if options.clock != nil {
+		return options.clock
+	}
+
+	return clockwork.NewRealClock()
 }
 
 func (r *runtime) GetConfigMonitor() *config.ConfigMonitor {

@@ -14,11 +14,17 @@ import (
 	"altinn.studio/operator/internal/telemetry"
 )
 
+var (
+	errOrgRegistryRequired     = errors.New("OrgRegistry is needed outside localtest")
+	errServiceOwnerEnvNotSet   = errors.New("OPERATOR_SERVICEOWNER environment variable is not set")
+	errServiceOwnerNotFound    = errors.New("could not find org for service owner id")
+	ttdServiceOwnerFallbackOrg = "991825827"
+)
+
 const EnvironmentLocal = "localtest"
+
 const EnvironmentProd = "prod"
 
-// ResolveEnvironment determines the environment from the override or OPERATOR_ENVIRONMENT env var.
-// Returns EnvironmentLocal if neither is set.
 func ResolveEnvironment(override string) string {
 	if override != "" {
 		return override
@@ -37,7 +43,6 @@ type ServiceOwner struct {
 }
 
 type Context struct {
-	Context      context.Context
 	tracer       trace.Tracer
 	ServiceOwner ServiceOwner
 	Environment  string
@@ -55,66 +60,75 @@ func (c *Context) OverrideEnvironment(env string) {
 func Discover(ctx context.Context, environment string, orgRegistry *orgs.OrgRegistry) (*Context, error) {
 	err := ctx.Err()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("context cancelled before operator context discovery: %w", err)
 	}
 
-	if environment != EnvironmentLocal {
-		if orgRegistry == nil {
-			return nil, fmt.Errorf("OrgRegistry is needed for %s", environment)
-		}
+	if environment != EnvironmentLocal && orgRegistry == nil {
+		return nil, fmt.Errorf("%w: %s", errOrgRegistryRequired, environment)
 	}
 
 	serviceOwnerId := os.Getenv("OPERATOR_SERVICEOWNER")
 	if serviceOwnerId == "" {
 		if environment != EnvironmentLocal {
-			return nil, errors.New("OPERATOR_SERVICEOWNER environment variable is not set")
+			return nil, errServiceOwnerEnvNotSet
 		}
 		serviceOwnerId = "ttd"
 	}
 
-	serviceOwnerOrgNo := ""
-	serviceOwnerOrgName := ""
-	if orgRegistry != nil {
-		if org, ok := orgRegistry.Get(serviceOwnerId); ok {
-			serviceOwnerOrgNo = org.OrgNr
-			serviceOwnerOrgName = org.Name.Nb
-			if serviceOwnerOrgName == "" {
-				serviceOwnerOrgName = org.Name.Nn
-			}
-			if serviceOwnerOrgName == "" {
-				serviceOwnerOrgName = org.Name.En
-			}
-			if serviceOwnerId == "ttd" && environment != EnvironmentLocal {
-				// NOTE: we use digdir org number here. ttd is a bit chaotic:
-				// - ttd has no org number in altinn-orgs.json
-				// - ttd has no org number in Register service for tt02 and other non-prod environments
-				// - ttd has an org number in production (405003309)
-				// - ttd has an org number in localtest (405003309)
-				// - app backend interprets ttd as digdir (991825827). Apps for ttd typically includes authorization rules for digdir (in addition to [org])
-				// Since this is going to be used a lot for generating service owner tokens, we prefer to match the app backend behavior using digdir org number.
-				serviceOwnerOrgNo = "991825827"
-			}
-		} else {
-			return nil, fmt.Errorf("could not find org for service owner id %s", serviceOwnerId)
-		}
-	}
-
-	runId, err := uuid.NewRandom()
+	serviceOwner, err := discoverServiceOwner(orgRegistry, serviceOwnerId, environment)
 	if err != nil {
 		return nil, err
 	}
 
+	runId, err := uuid.NewRandom()
+	if err != nil {
+		return nil, fmt.Errorf("create operator run ID: %w", err)
+	}
+
 	return &Context{
-		ServiceOwner: ServiceOwner{
-			Id:      serviceOwnerId,
-			OrgNo:   serviceOwnerOrgNo,
-			OrgName: serviceOwnerOrgName,
-		},
-		Environment: environment,
-		RunId:       runId.String(),
-		Context:     ctx,
-		tracer:      telemetry.Tracer(),
+		ServiceOwner: serviceOwner,
+		Environment:  environment,
+		RunId:        runId.String(),
+		tracer:       telemetry.Tracer(),
 	}, nil
+}
+
+func discoverServiceOwner(orgRegistry *orgs.OrgRegistry, serviceOwnerID, environment string) (ServiceOwner, error) {
+	if orgRegistry == nil {
+		return ServiceOwner{Id: serviceOwnerID}, nil
+	}
+
+	org, ok := orgRegistry.Get(serviceOwnerID)
+	if !ok {
+		return ServiceOwner{}, fmt.Errorf("%w: %s", errServiceOwnerNotFound, serviceOwnerID)
+	}
+
+	orgNo := org.OrgNr
+	if serviceOwnerID == "ttd" && environment != EnvironmentLocal {
+		// NOTE: we use digdir org number here. ttd is a bit chaotic:
+		// - ttd has no org number in altinn-orgs.json
+		// - ttd has no org number in Register service for tt02 and other non-prod environments
+		// - ttd has an org number in production (405003309)
+		// - ttd has an org number in localtest (405003309)
+		// - app backend interprets ttd as digdir (991825827). Apps for ttd typically includes authorization rules for digdir (in addition to [org])
+		// Since this is going to be used a lot for generating service owner tokens, we prefer to match the app backend behavior using digdir org number.
+		orgNo = ttdServiceOwnerFallbackOrg
+	}
+
+	return ServiceOwner{
+		Id:      serviceOwnerID,
+		OrgNo:   orgNo,
+		OrgName: firstNonEmpty(org.Name.Nb, org.Name.Nn, org.Name.En),
+	}, nil
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func DiscoverOrDie(ctx context.Context, environment string, orgRegistry *orgs.OrgRegistry) *Context {
@@ -124,11 +138,12 @@ func DiscoverOrDie(ctx context.Context, environment string, orgRegistry *orgs.Or
 	return opCtx
 }
 
+//nolint:spancheck // This helper intentionally returns the span to the caller, which owns ending it.
 func (c *Context) StartSpan(
+	ctx context.Context,
 	spanName string,
 	opts ...trace.SpanStartOption,
-) trace.Span {
-	ctx, span := c.tracer.Start(c.Context, spanName, opts...)
-	c.Context = ctx
-	return span
+) (context.Context, trace.Span) {
+	spanCtx, span := c.tracer.Start(ctx, spanName, opts...)
+	return spanCtx, span
 }

@@ -1,3 +1,4 @@
+//nolint:funlen,govet,nestif,nilnil // Production controller behavior is kept close to the pre-refactor implementation; suppress controller-local lint findings rather than riskier rewrites.
 package azurekeyvaultsync
 
 import (
@@ -100,6 +101,10 @@ type AzureKeyVaultReconciler struct {
 	runtime   rt.Runtime
 	mappings  []KeyVaultSecretMapping
 }
+
+var ErrDisabledInLocalEnv = errors.New("key vault sync is disabled in local environment")
+var errRawMappingOutputMustBeString = errors.New("raw mapping requires BuildOutput to return string")
+var errKeyVaultSecretNotFound = errors.New("secret not found in Key Vault")
 
 // NewReconciler creates a new KeyVaultSync controller.
 // Returns nil if running in local environment (no Key Vault access).
@@ -261,7 +266,7 @@ func (c *AzureKeyVaultReconciler) syncMapping(ctx context.Context, mapping KeyVa
 	if mapping.Raw {
 		rawStr, ok := mapping.BuildOutput(secretData).(string)
 		if !ok {
-			return errors.New("raw mapping requires BuildOutput to return string")
+			return errRawMappingOutputMustBeString
 		}
 		outputBytes = []byte(rawStr)
 	} else {
@@ -342,11 +347,11 @@ func (c *AzureKeyVaultReconciler) getSecret(ctx context.Context, name string) (s
 		if errors.As(err, &respErr) {
 			if respErr.StatusCode == http.StatusNotFound {
 				span.SetStatus(codes.Error, "secret not found")
-				return "", fmt.Errorf("secret %q not found in Key Vault", name)
+				return "", fmt.Errorf("%w: %q", errKeyVaultSecretNotFound, name)
 			}
 		}
 		span.RecordError(err)
-		return "", err
+		return "", fmt.Errorf("get Key Vault secret %q: %w", name, err)
 	}
 
 	return value, nil

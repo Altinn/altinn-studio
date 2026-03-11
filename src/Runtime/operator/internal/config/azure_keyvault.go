@@ -20,6 +20,8 @@ type azureKeyVaultClient struct {
 	client *azsecrets.Client
 }
 
+var errAzureSecretValueNil = errors.New("secret value is nil")
+
 func (a *azureKeyVaultClient) loadSecrets(ctx context.Context, cfg *Config) error {
 	ctx, span := a.tracer.Start(ctx, "AzureKeyVaultClient.loadSecrets")
 	defer span.End()
@@ -68,7 +70,7 @@ func (a *azureKeyVaultClient) tryGetSecret(ctx context.Context, name string) (st
 	}
 
 	if secretResp.Value == nil {
-		return "", fmt.Errorf("secret value is nil for key %s", name)
+		return "", fmt.Errorf("%w for key %s", errAzureSecretValueNil, name)
 	}
 
 	return *secretResp.Value, nil

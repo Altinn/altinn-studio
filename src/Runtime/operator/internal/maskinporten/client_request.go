@@ -74,6 +74,7 @@ const (
 
 type GrantType string
 
+//nolint:gosec // OAuth grant type identifiers are protocol constants, not credentials.
 const (
 	GrantTypeAuthorizationCode GrantType = "authorization_code"
 	GrantTypeImplicit          GrantType = "implicit"
@@ -83,6 +84,7 @@ const (
 
 type TokenEndpointAuthMethod string
 
+//nolint:gosec // OAuth auth method identifiers are protocol constants, not credentials.
 const (
 	TokenEndpointAuthMethodClientSecretPost  TokenEndpointAuthMethod = "client_secret_post"
 	TokenEndpointAuthMethodClientSecretBasic TokenEndpointAuthMethod = "client_secret_basic"

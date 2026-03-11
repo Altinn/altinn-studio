@@ -6,7 +6,6 @@ import (
 	"altinn.studio/operator/internal/crypto"
 )
 
-// ClientResponse represents the response when retrieving or creating a client.
 type ClientResponse struct {
 	RefreshTokenUsage                 *RefreshTokenUsage       `json:"refresh_token_usage,omitempty"`
 	Jwks                              *crypto.Jwks             `json:"jwks,omitempty"`
@@ -38,34 +37,19 @@ type ClientResponse struct {
 	Scopes                            []string                 `json:"scopes,omitempty"`
 }
 
-// ClientOnBehalfOf represents on-behalf-of client information.
 type ClientOnBehalfOf struct {
-	// ID for onbehalfof klient. Fulle klient navn blir <client_id>::<onbehalfof_verdi>
-	OnBehalfOf *string `json:"onbehalfof,omitempty"`
-
-	// Navn på klient, blir vist ved innlogging
-	Name *string `json:"name,omitempty"`
-
-	// Klienten sitt organisasjonsnummer
-	Orgno *string `json:"orgno,omitempty"`
-
-	// Organisasjonsnavnet som tilhører organisasjonsnummeret
-	OrganizationName *string `json:"organization_name,omitempty"`
-
-	// Beskrivelse av klienten, ikke synlig for innbyggere, men blir lagret i Digdir sine støttesystemer
-	Description *string `json:"description,omitempty"`
-
-	LogoUri *string `json:"logo_uri,omitempty"`
-
-	Created *time.Time `json:"created,omitempty"`
-
-	LastUpdated *time.Time `json:"last_updated,omitempty"`
+	OnBehalfOf       *string    `json:"onbehalfof,omitempty"`
+	Name             *string    `json:"name,omitempty"`
+	Orgno            *string    `json:"orgno,omitempty"`
+	OrganizationName *string    `json:"organization_name,omitempty"`
+	Description      *string    `json:"description,omitempty"`
+	LogoUri          *string    `json:"logo_uri,omitempty"`
+	Created          *time.Time `json:"created,omitempty"`
+	LastUpdated      *time.Time `json:"last_updated,omitempty"`
 }
 
-// OidcJwksRequestResponse represents JWKS request/response.
 type OidcJwksRequestResponse = crypto.Jwks
 
-// ApiError represents a single specific error.
 type ApiError struct {
 	ErrorMessage    *string `json:"errorMessage,omitempty"`
 	IsFieldError    *bool   `json:"isFieldError,omitempty"`
@@ -73,7 +57,6 @@ type ApiError struct {
 	FieldIdentifier *string `json:"fieldIdentifier,omitempty"`
 }
 
-// ApiErrorResponse represents a response containing information about errors from the API.
 type ApiErrorResponse struct {
 	Status           *int32     `json:"status,omitempty"`
 	Timestamp        *time.Time `json:"timestamp,omitempty"`

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"os"
-	"reflect"
 	"testing"
 	"time"
 
@@ -20,12 +19,12 @@ func TestConfigMissingValuesFail(t *testing.T) {
 	file, err := os.CreateTemp(os.TempDir(), "*.env")
 	Expect(err).NotTo(HaveOccurred())
 	defer func() {
-		err := file.Close()
-		Expect(err).NotTo(HaveOccurred())
+		closeErr := file.Close()
+		Expect(closeErr).NotTo(HaveOccurred())
 	}()
 	defer func() {
-		err := os.Remove(file.Name())
-		Expect(err).NotTo(HaveOccurred())
+		removeErr := os.Remove(file.Name())
+		Expect(removeErr).NotTo(HaveOccurred())
 	}()
 
 	_, err = file.WriteString("maskinporten_api.url=https://example.com")
@@ -38,8 +37,6 @@ func TestConfigMissingValuesFail(t *testing.T) {
 	Expect(err).To(HaveOccurred())
 	var validationErrors validator.ValidationErrors
 	ok := errors.As(err, &validationErrors)
-	errType := reflect.TypeOf(err)
-	Expect(errType.String()).To(Equal("validator.ValidationErrors"))
 	Expect(ok).To(BeTrue())
 }
 
@@ -92,7 +89,8 @@ func TestConfigReloadOnRefresh(t *testing.T) {
 	file, err := os.CreateTemp(os.TempDir(), "config-reload-*.env")
 	Expect(err).NotTo(HaveOccurred())
 	defer func() {
-		_ = os.Remove(file.Name())
+		removeErr := os.Remove(file.Name())
+		Expect(removeErr).NotTo(HaveOccurred())
 	}()
 
 	initialConfig := `maskinporten_api.client_id=test-client
@@ -150,7 +148,8 @@ func TestConfigReloadFailsOnInvalidConfig(t *testing.T) {
 	file, err := os.CreateTemp(os.TempDir(), "config-reload-invalid-*.env")
 	Expect(err).NotTo(HaveOccurred())
 	defer func() {
-		_ = os.Remove(file.Name())
+		removeErr := os.Remove(file.Name())
+		Expect(removeErr).NotTo(HaveOccurred())
 	}()
 
 	initialConfig := `maskinporten_api.client_id=test-client

@@ -40,6 +40,7 @@ func TestControllers(t *testing.T) {
 var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
+	//nolint:fatcontext // Shared suite context intentionally spans the envtest lifecycle.
 	ctx, cancel = context.WithCancel(context.TODO())
 
 	var err error

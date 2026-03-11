@@ -3,6 +3,7 @@ package maskinporten
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -74,6 +75,47 @@ func newFixture() *fixture {
 
 func (d *fixture) getNotAfter() time.Time {
 	return d.clock.Now().UTC().Add(time.Hour * 24 * 30)
+}
+
+func newClientStateForSnapshot(
+	g *WithT,
+	crd *resourcesv1alpha1.MaskinportenClient,
+	jwks *crypto.Jwks,
+	secretContent *SecretStateContent,
+) *ClientState {
+	publicJwks, err := jwks.ToPublic()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	state, err := NewClientState(
+		crd,
+		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
+		publicJwks,
+		createSecret("ttd-"+testAppId),
+		secretContent,
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	return state
+}
+
+func assertReconcileSnapshot(
+	t *testing.T,
+	crd *resourcesv1alpha1.MaskinportenClient,
+	beforeState func(g *WithT, deps *fixture) *SecretStateContent,
+	advance func(deps *fixture),
+) {
+	t.Helper()
+
+	g := NewWithT(t)
+	deps := newFixture()
+	secretContent := beforeState(g, deps)
+	state := newClientStateForSnapshot(g, crd, secretContent.Jwks, secretContent)
+	advance(deps)
+
+	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
 }
 
 // --- CRD Builder ---
@@ -223,7 +265,10 @@ func toCompactSnapshotJSON(commands CommandList) string {
 	}
 	lines := make([]string, len(snapshot))
 	for i, cmd := range snapshot {
-		b, _ := json.Marshal(cmd)
+		b, err := json.Marshal(cmd)
+		if err != nil {
+			panic(fmt.Sprintf("marshal command snapshot: %v", err))
+		}
 		lines[i] = " " + string(b)
 	}
 	return "[\n" + strings.Join(lines, ",\n") + "\n]"
@@ -690,73 +735,39 @@ func TestReconcile_ApiJwksEmpty(t *testing.T) {
 // =============================================================================
 
 func TestJwkRotation_NotNeededYet(t *testing.T) {
-	g := NewWithT(t)
-	deps := newFixture()
-
-	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
-	g.Expect(err).NotTo(HaveOccurred())
-	publicJwks, err := jwks.ToPublic()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	crd := createCrd(WithFinalizer())
-	secret := createSecret("ttd-" + testAppId)
-	secretContent := &SecretStateContent{
-		ClientId:  testClientId,
-		Authority: testSecretStateContentAuthority,
-		Jwks:      jwks,
-		Jwk:       jwks.Keys[0],
-	}
-
-	state, err := NewClientState(
-		crd,
-		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
-		publicJwks,
-		secret,
-		secretContent,
+	assertReconcileSnapshot(
+		t,
+		createCrd(WithFinalizer()),
+		func(g *WithT, deps *fixture) *SecretStateContent {
+			jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
+			g.Expect(err).NotTo(HaveOccurred())
+			return &SecretStateContent{
+				ClientId:  testClientId,
+				Authority: testSecretStateContentAuthority,
+				Jwks:      jwks,
+				Jwk:       jwks.Keys[0],
+			}
+		},
+		func(deps *fixture) { deps.clock.Advance(time.Hour * 24 * 10) },
 	)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	deps.clock.Advance(time.Hour * 24 * 10)
-
-	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
 }
 
 func TestJwkRotation_TriggeredAtThreshold(t *testing.T) {
-	g := NewWithT(t)
-	deps := newFixture()
-
-	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
-	g.Expect(err).NotTo(HaveOccurred())
-	publicJwks, err := jwks.ToPublic()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	crd := createCrd(WithFinalizer())
-	secret := createSecret("ttd-" + testAppId)
-	secretContent := &SecretStateContent{
-		ClientId:  testClientId,
-		Authority: testSecretStateContentAuthority,
-		Jwks:      jwks,
-		Jwk:       jwks.Keys[0],
-	}
-
-	state, err := NewClientState(
-		crd,
-		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
-		publicJwks,
-		secret,
-		secretContent,
+	assertReconcileSnapshot(
+		t,
+		createCrd(WithFinalizer()),
+		func(g *WithT, deps *fixture) *SecretStateContent {
+			jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
+			g.Expect(err).NotTo(HaveOccurred())
+			return &SecretStateContent{
+				ClientId:  testClientId,
+				Authority: testSecretStateContentAuthority,
+				Jwks:      jwks,
+				Jwk:       jwks.Keys[0],
+			}
+		},
+		func(deps *fixture) { deps.clock.Advance(time.Hour * 24 * 24) },
 	)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	deps.clock.Advance(time.Hour * 24 * 24)
-
-	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
 }
 
 func TestJwkRotation_SecondRotation(t *testing.T) {
@@ -805,75 +816,39 @@ func TestJwkRotation_SecondRotation(t *testing.T) {
 // =============================================================================
 
 func TestForcedRotation_ViaAnnotation(t *testing.T) {
-	g := NewWithT(t)
-	deps := newFixture()
-
-	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
-	g.Expect(err).NotTo(HaveOccurred())
-	publicJwks, err := jwks.ToPublic()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	crd := createCrd(
-		WithFinalizer(),
-		WithAnnotation(AnnotationRotateJwk, "true"),
+	assertReconcileSnapshot(
+		t,
+		createCrd(WithFinalizer(), WithAnnotation(AnnotationRotateJwk, "true")),
+		func(g *WithT, deps *fixture) *SecretStateContent {
+			jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
+			g.Expect(err).NotTo(HaveOccurred())
+			return &SecretStateContent{
+				ClientId:  testClientId,
+				Authority: testSecretStateContentAuthority,
+				Jwks:      jwks,
+				Jwk:       jwks.Keys[0],
+			}
+		},
+		func(*fixture) {},
 	)
-	secret := createSecret("ttd-" + testAppId)
-	secretContent := &SecretStateContent{
-		ClientId:  testClientId,
-		Authority: testSecretStateContentAuthority,
-		Jwks:      jwks,
-		Jwk:       jwks.Keys[0],
-	}
-
-	state, err := NewClientState(
-		crd,
-		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
-		publicJwks,
-		secret,
-		secretContent,
-	)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
 }
 
 func TestForcedRotation_AnnotationValueNotTrue(t *testing.T) {
-	g := NewWithT(t)
-	deps := newFixture()
-
-	jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
-	g.Expect(err).NotTo(HaveOccurred())
-	publicJwks, err := jwks.ToPublic()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	crd := createCrd(
-		WithFinalizer(),
-		WithAnnotation(AnnotationRotateJwk, "false"),
+	assertReconcileSnapshot(
+		t,
+		createCrd(WithFinalizer(), WithAnnotation(AnnotationRotateJwk, "false")),
+		func(g *WithT, deps *fixture) *SecretStateContent {
+			jwks, err := deps.crypto.CreateJwks(testCertSubj, deps.getNotAfter())
+			g.Expect(err).NotTo(HaveOccurred())
+			return &SecretStateContent{
+				ClientId:  testClientId,
+				Authority: testSecretStateContentAuthority,
+				Jwks:      jwks,
+				Jwk:       jwks.Keys[0],
+			}
+		},
+		func(*fixture) {},
 	)
-	secret := createSecret("ttd-" + testAppId)
-	secretContent := &SecretStateContent{
-		ClientId:  testClientId,
-		Authority: testSecretStateContentAuthority,
-		Jwks:      jwks,
-		Jwk:       jwks.Keys[0],
-	}
-
-	state, err := NewClientState(
-		crd,
-		&ClientResponse{ClientId: testClientId, Scopes: testScopes},
-		publicJwks,
-		secret,
-		secretContent,
-	)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	commands, err := state.Reconcile(deps.context, deps.config, deps.crypto, deps.clock)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	snaps.MatchSnapshot(t, toCompactSnapshotJSON(commands))
 }
 
 // =============================================================================

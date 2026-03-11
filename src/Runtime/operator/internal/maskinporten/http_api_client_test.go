@@ -20,6 +20,7 @@ import (
 	"altinn.studio/operator/internal/operatorcontext"
 )
 
+//nolint:govet // fieldalignment is not worth churning test fixture literals.
 type testApi struct {
 	path         string
 	statusCode   int
@@ -90,9 +91,8 @@ func getMaskinportenApiWellKnownFixture(
 		func(cfg *config.Config) (apis []testApi) {
 			if statusCode == http.StatusOK {
 				return []testApi{okWellKnownHandler(g, cfg)}
-			} else {
-				return []testApi{{"/.well-known/oauth-authorization-server", statusCode, ""}}
 			}
+			return []testApi{{"/.well-known/oauth-authorization-server", statusCode, ""}}
 		},
 	)
 }
@@ -386,7 +386,6 @@ func getMaskinportenApiClientsFixture(
 		},
 		Environment: environment,
 		RunId:       uuid.NewString(),
-		Context:     context.Background(),
 	}
 
 	// Update config with server URL for self-service

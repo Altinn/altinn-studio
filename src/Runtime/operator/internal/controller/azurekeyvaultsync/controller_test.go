@@ -21,7 +21,9 @@ import (
 
 func newFakeK8sClient(initObjs ...client.Object) client.Client {
 	scheme := k8sruntime.NewScheme()
-	_ = corev1.AddToScheme(scheme)
+	if err := corev1.AddToScheme(scheme); err != nil {
+		panic(err)
+	}
 	return fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithObjects(initObjs...).
@@ -41,7 +43,6 @@ type testHarness struct {
 	kvClient   *fakes.FakeKeyVaultClient
 	k8sClient  client.Client
 	clock      *clockwork.FakeClock
-	ctx        context.Context
 }
 
 func newTestHarness(t *testing.T, mappings []KeyVaultSecretMapping, initObjs ...client.Object) *testHarness {
@@ -74,8 +75,11 @@ func newTestHarness(t *testing.T, mappings []KeyVaultSecretMapping, initObjs ...
 		kvClient:   kvClient,
 		k8sClient:  k8sClient,
 		clock:      clock,
-		ctx:        context.Background(),
 	}
+}
+
+func (*testHarness) ctx() context.Context {
+	return context.Background()
 }
 
 func TestReconciler_CreatesSecretOnSync(t *testing.T) {
@@ -93,11 +97,11 @@ func TestReconciler_CreatesSecretOnSync(t *testing.T) {
 	h.kvClient.SetSecret(mapping.Secrets[0], "value-1")
 	h.kvClient.SetSecret(mapping.Secrets[1], "value-2")
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, mapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	var parsed map[string]string
@@ -133,11 +137,11 @@ func TestReconciler_UpdatesExistingSecret(t *testing.T) {
 
 	h.kvClient.SetSecret(mapping.Secrets[0], "new-value")
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, mapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	var parsed map[string]string
@@ -158,11 +162,11 @@ func TestReconciler_HandlesKVSecretNotFound(t *testing.T) {
 
 	h := newTestHarness(t, []KeyVaultSecretMapping{mapping})
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).To(HaveOccurred())
 
 	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, mapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -180,11 +184,11 @@ func TestReconciler_HandlesTransientKVFailure(t *testing.T) {
 
 	h.kvClient.SetError(mapping.Secrets[0], fakes.TransientError())
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).To(HaveOccurred())
 
 	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, mapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -209,17 +213,17 @@ func TestReconciler_ContinuesOnPartialFailure(t *testing.T) {
 	h.kvClient.SetSecret(goodMapping.Secrets[0], "good-value")
 	// bad-secret will return 404
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).To(HaveOccurred())
 
 	// Good secret should be created
 	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, goodMapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), goodMapping.objectKey(), secret)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(goodMapping.fileData(secret)).NotTo(BeEmpty())
 
 	// Bad secret should not exist
-	err = h.k8sClient.Get(h.ctx, badMapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), badMapping.objectKey(), secret)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -245,12 +249,12 @@ func TestReconciler_SyncsMultipleMappings(t *testing.T) {
 	h.kvClient.SetSecret(mapping1.Secrets[1], "b")
 	h.kvClient.SetSecret(mapping2.Secrets[0], "c")
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Verify first secret
 	secret1 := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, mapping1.objectKey(), secret1)
+	err = h.k8sClient.Get(h.ctx(), mapping1.objectKey(), secret1)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	var parsed1 map[string]string
@@ -261,7 +265,7 @@ func TestReconciler_SyncsMultipleMappings(t *testing.T) {
 
 	// Verify second secret
 	secret2 := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, mapping2.objectKey(), secret2)
+	err = h.k8sClient.Get(h.ctx(), mapping2.objectKey(), secret2)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	var parsed2 map[string]string
@@ -294,11 +298,11 @@ func TestReconciler_PreservesOtherKeysInSecret(t *testing.T) {
 
 	h.kvClient.SetSecret(mapping.Secrets[0], "new-value")
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, mapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(mapping.fileData(secret)).NotTo(BeEmpty())
@@ -327,11 +331,11 @@ func TestReconciler_HandlesNilSecretData(t *testing.T) {
 
 	h.kvClient.SetSecret(mapping.Secrets[0], "value-1")
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, mapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(mapping.fileData(secret)).NotTo(BeEmpty())
 }
@@ -352,12 +356,12 @@ func TestReconciler_FailsIfAnySecretMissing(t *testing.T) {
 	// secret-2 missing
 	h.kvClient.SetSecret(mapping.Secrets[2], "value-3")
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).To(HaveOccurred())
 
 	// K8s secret should not be created when any KV secret is missing
 	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, mapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -374,7 +378,7 @@ func TestReconciler_EmptyMappings(t *testing.T) {
 
 	h := newTestHarness(t, []KeyVaultSecretMapping{})
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -393,21 +397,21 @@ func TestReconciler_RecoversFromTransientError(t *testing.T) {
 	// First sync fails
 	h.kvClient.SetError(mapping.Secrets[0], fakes.TransientError())
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).To(HaveOccurred())
 
 	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, mapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
 	g.Expect(err).To(HaveOccurred())
 
 	// Second sync succeeds
 	h.kvClient.ClearError(mapping.Secrets[0])
 	h.kvClient.SetSecret(mapping.Secrets[0], "recovered-value")
 
-	err = h.reconciler.SyncAll(h.ctx)
+	err = h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
-	err = h.k8sClient.Get(h.ctx, mapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	var parsed map[string]string
@@ -433,11 +437,11 @@ func TestReconciler_RawOutputStoresPlainString(t *testing.T) {
 	h := newTestHarness(t, []KeyVaultSecretMapping{mapping})
 	h.kvClient.SetSecret("ConnectionString", "InstrumentationKey=abc123")
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	secret := &corev1.Secret{}
-	err = h.k8sClient.Get(h.ctx, mapping.objectKey(), secret)
+	err = h.k8sClient.Get(h.ctx(), mapping.objectKey(), secret)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// Raw output should NOT be JSON-encoded (no quotes)

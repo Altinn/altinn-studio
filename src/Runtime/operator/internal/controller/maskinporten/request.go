@@ -2,6 +2,7 @@ package maskinporten
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -10,6 +11,8 @@ import (
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/resourcename"
 )
+
+var errServiceOwnerScopeMismatch = errors.New("resource service owner does not match operator scope")
 
 type requestKind int
 
@@ -57,7 +60,8 @@ func (r *MaskinportenClientReconciler) mapRequest(
 	opCtx := r.runtime.GetOperatorContext()
 	if parsed.ServiceOwnerId != opCtx.ServiceOwner.Id {
 		return nil, fmt.Errorf(
-			"mapRequest: resource service owner %q does not match operator scope %q",
+			"mapRequest: %w: %q != %q",
+			errServiceOwnerScopeMismatch,
 			parsed.ServiceOwnerId,
 			opCtx.ServiceOwner.Id,
 		)

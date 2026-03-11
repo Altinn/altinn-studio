@@ -22,7 +22,8 @@ func newFakeClientForSecretTests(t *testing.T) *MaskinportenClientReconciler {
 	t.Helper()
 
 	scheme := k8sruntime.NewScheme()
-	_ = corev1.AddToScheme(scheme)
+	err := corev1.AddToScheme(scheme)
+	NewWithT(t).Expect(err).NotTo(HaveOccurred())
 
 	return &MaskinportenClientReconciler{
 		Client: fake.NewClientBuilder().

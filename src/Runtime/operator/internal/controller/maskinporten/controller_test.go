@@ -122,6 +122,7 @@ var _ = Describe("MaskinportenClient Controller", func() {
 			// Verify the secret state
 			secretState, err := maskinporten.DeserializeSecretStateContent(secret)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(secretState).NotTo(BeNil())
 			Expect(secretState.ClientId).NotTo(BeEmpty())
 			Expect(secretState.Authority).To(Equal(rt.GetConfigMonitor().Get().MaskinportenApi.AuthorityUrl + "/"))
 			Expect(secretState.Jwk).NotTo(BeNil())

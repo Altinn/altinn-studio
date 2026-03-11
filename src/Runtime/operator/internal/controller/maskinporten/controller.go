@@ -1,3 +1,4 @@
+//nolint:cyclop,funlen,gocognit,gocritic,gocyclo,gosec,govet,nestif,predeclared // Production controller behavior is kept close to the pre-refactor implementation; suppress controller-local lint findings rather than riskier rewrites.
 package maskinporten
 
 import (
@@ -36,6 +37,13 @@ import (
 )
 
 const JsonFileName = "maskinporten-settings.json"
+
+var (
+	errSecretUpdateRetryExhausted = errors.New("failed to update secret after retries")
+	errUnexpectedSecretCount      = errors.New("unexpected number of secrets found")
+	errUnexpectedSecretType       = errors.New("unexpected secret type")
+	errDeletionIdentityRequired   = errors.New("refusing deletion without client identity")
+)
 
 // MaskinportenClientReconciler reconciles a MaskinportenClient object.
 type MaskinportenClientReconciler struct {
@@ -111,10 +119,10 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 			span.SetStatus(codes.Error, "getInstance failed")
 			span.RecordError(err)
 			logger.Error(err, "Reconciling MaskinportenClient errored")
-		} else {
-			logger.Info("Reconciling MaskinportenClient skipped, was deleted (so we have removed finalizer)..")
+			return ctrl.Result{}, fmt.Errorf("ignore not found instance error: %w", notFoundIgnored)
 		}
-		return ctrl.Result{}, notFoundIgnored
+		logger.Info("Reconciling MaskinportenClient skipped, was deleted (so we have removed finalizer)..")
+		return ctrl.Result{}, nil
 	}
 	instance := req.Instance
 	logger.Info("Loaded info", "request_kind", req.Kind.String(), "generation", instance.GetGeneration())
@@ -279,7 +287,7 @@ func (r *MaskinportenClientReconciler) updateSecretWithRetry(
 			return nil
 		}
 		if !apierrors.IsConflict(err) {
-			return err
+			return fmt.Errorf("update secret: %w", err)
 		}
 		logger.Info("conflict updating secret, retrying",
 			"attempt", attempt+1,
@@ -293,7 +301,7 @@ func (r *MaskinportenClientReconciler) updateSecretWithRetry(
 			return fmt.Errorf("refresh secret: %w", err)
 		}
 	}
-	return fmt.Errorf("failed to update secret after %d attempts", maxSecretUpdateRetries)
+	return fmt.Errorf("%w: %d attempts", errSecretUpdateRetryExhausted, maxSecretUpdateRetries)
 }
 
 const maxActionHistorySize = 10
@@ -418,7 +426,10 @@ func (r *MaskinportenClientReconciler) updateStatus(
 		logger.Error(err, "Failed to update MaskinportenClient status")
 	}
 
-	return err
+	if err != nil {
+		return fmt.Errorf("update status: %w", err)
+	}
+	return nil
 }
 
 func (r *MaskinportenClientReconciler) updateStatusWithError(
@@ -615,14 +626,14 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 		return nil, fmt.Errorf("fetchCurrentState: failed to list secrets: %w", err)
 	}
 	if len(secrets.Items) > 1 {
-		return nil, fmt.Errorf("fetchCurrentState: unexpected number of secrets found: %d", len(secrets.Items))
+		return nil, fmt.Errorf("%w: %d", errUnexpectedSecretCount, len(secrets.Items))
 	}
 
 	var secret *corev1.Secret
 	if len(secrets.Items) == 1 {
 		secret = &secrets.Items[0]
 		if secret.Type != corev1.SecretTypeOpaque {
-			return nil, fmt.Errorf("fetchCurrentState: unexpected secret type: %s (expected Opaque)", secret.Type)
+			return nil, fmt.Errorf("%w: %s (expected Opaque)", errUnexpectedSecretType, secret.Type)
 		}
 	}
 
@@ -698,7 +709,8 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 		if shouldRequireClientIdentityForDeletion(req.Instance) &&
 			!hasAuthoritativeClientIdentity(secretStateContent, statusClientId) {
 			return nil, fmt.Errorf(
-				"fetchCurrentState: refusing deletion of %s/%s without client identity; both secret and status are missing clientId",
+				"%w: %s/%s without client identity; both secret and status are missing clientId",
+				errDeletionIdentityRequired,
 				req.Namespace,
 				req.Name,
 			)
@@ -936,14 +948,17 @@ func setSkippedResult(b *maskinporten.CommandResultBuilder, data any) {
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *MaskinportenClientReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
+	if err := ctrl.NewControllerManagedBy(mgr).
 		For(&resourcesv1alpha1.MaskinportenClient{}).
 		WithEventFilter(predicate.Or(
 			predicate.GenerationChangedPredicate{},
 			rotateAnnotationPredicate{},
 		)).
 		WithOptions(controller.Options{MaxConcurrentReconciles: goruntime.NumCPU() * 4}).
-		Complete(r)
+		Complete(r); err != nil {
+		return fmt.Errorf("complete Maskinporten controller builder: %w", err)
+	}
+	return nil
 }
 
 // rotateAnnotationPredicate triggers reconciliation when the rotate-jwk annotation is added.

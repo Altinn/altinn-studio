@@ -26,15 +26,24 @@ import (
 	"altinn.studio/operator/internal/operatorcontext"
 )
 
+var errSimulatedConfigMapReadFailure = errors.New("simulated configmap read failure")
+var errSimulatedConflict = errors.New("simulated conflict")
+
 func newFakeClient(initObjs ...client.Object) client.Client {
 	return newFakeClientWithInterceptors(interceptor.Funcs{}, initObjs...)
 }
 
 func newFakeClientWithInterceptors(interceptorFuncs interceptor.Funcs, initObjs ...client.Object) client.Client {
 	scheme := k8sruntime.NewScheme()
-	_ = appsv1.AddToScheme(scheme)
-	_ = autoscalingv2.AddToScheme(scheme)
-	_ = corev1.AddToScheme(scheme)
+	if err := appsv1.AddToScheme(scheme); err != nil {
+		panic(err)
+	}
+	if err := autoscalingv2.AddToScheme(scheme); err != nil {
+		panic(err)
+	}
+	if err := corev1.AddToScheme(scheme); err != nil {
+		panic(err)
+	}
 	return fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithInterceptorFuncs(interceptorFuncs).
@@ -45,7 +54,6 @@ func newFakeClientWithInterceptors(interceptorFuncs interceptor.Funcs, initObjs 
 type testHarness struct {
 	reconciler *InactivityScalerReconciler
 	k8sClient  client.Client
-	ctx        context.Context
 	clock      *clockwork.FakeClock
 }
 
@@ -79,9 +87,12 @@ func newHarnessWithClient(
 	return &testHarness{
 		reconciler: NewReconcilerForTesting(rt, k8sClient, time.Minute, osloLocation),
 		k8sClient:  k8sClient,
-		ctx:        context.Background(),
 		clock:      clock,
 	}
+}
+
+func (*testHarness) ctx() context.Context {
+	return context.Background()
 }
 
 type stateCase struct {
@@ -99,7 +110,6 @@ const (
 )
 
 func TestResolveClusterState(t *testing.T) {
-	cases := []stateCase{}
 	input := []struct {
 		time         time.Time
 		name         string
@@ -157,6 +167,7 @@ func TestResolveClusterState(t *testing.T) {
 			appCount:     0,
 		},
 	}
+	cases := make([]stateCase, 0, len(input))
 
 	for _, tt := range input {
 		state := resolveClusterState(tt.serviceOwner, tt.environment, tt.time, tt.appCount)
@@ -189,7 +200,7 @@ func TestSyncAll_ForcedStateOverride(t *testing.T) {
 		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	objects := collectSnapshots(t, h.k8sClient, "ttd")
@@ -218,7 +229,7 @@ func TestSyncAll_InvalidForcedStateOverrideFallsBackToComputedState(t *testing.T
 		newPdf3Hpa(pdf3ProxyHpaName),
 		newPdf3Hpa(pdf3WorkerHpaName),
 	)
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 	assertNoAppsComputedStateApplied(g, h)
 }
@@ -230,7 +241,7 @@ func TestSyncAll_ForcedStateReadFailureFallsBackToComputedState(t *testing.T) {
 		interceptor.Funcs{
 			Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 				if key.Namespace == forceStateConfigMapNamespace && key.Name == forceStateConfigMapName {
-					return errors.New("simulated configmap read failure")
+					return errSimulatedConfigMapReadFailure
 				}
 				return c.Get(ctx, key, obj, opts...)
 			},
@@ -241,7 +252,7 @@ func TestSyncAll_ForcedStateReadFailureFallsBackToComputedState(t *testing.T) {
 	)
 	h := newHarnessWithClient(t, "nav", "tt02", time.Date(2026, 2, 23, 12, 0, 0, 0, osloLocation), k8sClient)
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 	assertNoAppsComputedStateApplied(g, h)
 }
@@ -249,7 +260,7 @@ func TestSyncAll_ForcedStateReadFailureFallsBackToComputedState(t *testing.T) {
 func assertNoAppsComputedStateApplied(g *WithT, h *testHarness) {
 	gateway := &appsv1.Deployment{}
 	err := h.k8sClient.Get(
-		h.ctx,
+		h.ctx(),
 		client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace},
 		gateway,
 	)
@@ -262,7 +273,7 @@ func assertNoAppsComputedStateApplied(g *WithT, h *testHarness) {
 
 	for _, name := range []string{pdf3ProxyHpaName, pdf3WorkerHpaName} {
 		hpa := &autoscalingv2.HorizontalPodAutoscaler{}
-		err = h.k8sClient.Get(h.ctx, client.ObjectKey{Name: name, Namespace: runtimePdf3Namespace}, hpa)
+		err = h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: name, Namespace: runtimePdf3Namespace}, hpa)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(hpa.Spec.MinReplicas).NotTo(BeNil())
 		g.Expect(*hpa.Spec.MinReplicas).To(Equal(scaleDownReplicaOne))
@@ -275,7 +286,7 @@ func assertNoAppsComputedStateApplied(g *WithT, h *testHarness) {
 func assertGatewayAndPdf3RestoredToBaseline(g *WithT, h *testHarness) {
 	gateway := &appsv1.Deployment{}
 	err := h.k8sClient.Get(
-		h.ctx,
+		h.ctx(),
 		client.ObjectKey{Name: gatewayDeploymentName, Namespace: runtimeGatewayNamespace},
 		gateway,
 	)
@@ -288,7 +299,7 @@ func assertGatewayAndPdf3RestoredToBaseline(g *WithT, h *testHarness) {
 
 	for _, name := range []string{pdf3ProxyHpaName, pdf3WorkerHpaName} {
 		hpa := &autoscalingv2.HorizontalPodAutoscaler{}
-		err = h.k8sClient.Get(h.ctx, client.ObjectKey{Name: name, Namespace: runtimePdf3Namespace}, hpa)
+		err = h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: name, Namespace: runtimePdf3Namespace}, hpa)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(hpa.Spec.MinReplicas).NotTo(BeNil())
 		g.Expect(*hpa.Spec.MinReplicas).To(Equal(int32(3)))
@@ -323,12 +334,12 @@ func TestSyncAll_TtdOffhoursAndRestore(t *testing.T) {
 		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 	offhoursSnapshot := collectSnapshots(t, h.k8sClient, "ttd")
 
 	h.clock.Advance(7 * time.Hour)
-	err = h.reconciler.SyncAll(h.ctx)
+	err = h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 	workhoursSnapshot := collectSnapshots(t, h.k8sClient, "ttd")
 
@@ -350,7 +361,7 @@ func TestSyncAll_NonTtdNoApps(t *testing.T) {
 		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	payload, err := json.Marshal(collectSnapshots(t, h.k8sClient, "nav"))
@@ -367,18 +378,18 @@ func TestSyncAll_NonTtdNoAppsToAppsTransitionRestoresGatewayAndPdf3(t *testing.T
 		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 	assertNoAppsComputedStateApplied(g, h)
 
 	navApp := newAppDeploymentForOwner("nav", "app-a", 2)
 	navHpa := newAppHpa("nav", "app-a", 2)
-	err = h.k8sClient.Create(h.ctx, navApp)
+	err = h.k8sClient.Create(h.ctx(), navApp)
 	g.Expect(err).NotTo(HaveOccurred())
-	err = h.k8sClient.Create(h.ctx, navHpa)
+	err = h.k8sClient.Create(h.ctx(), navHpa)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	err = h.reconciler.SyncAll(h.ctx)
+	err = h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 	assertGatewayAndPdf3RestoredToBaseline(g, h)
 }
@@ -396,16 +407,16 @@ func TestSyncAll_NonTtdAppsToNoAppsTransitionScalesGatewayAndPdf3(t *testing.T) 
 		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 	assertGatewayAndPdf3RestoredToBaseline(g, h)
 
-	err = h.k8sClient.Delete(h.ctx, navApp)
+	err = h.k8sClient.Delete(h.ctx(), navApp)
 	g.Expect(err).NotTo(HaveOccurred())
-	err = h.k8sClient.Delete(h.ctx, navHpa)
+	err = h.k8sClient.Delete(h.ctx(), navHpa)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	err = h.reconciler.SyncAll(h.ctx)
+	err = h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 	assertNoAppsComputedStateApplied(g, h)
 }
@@ -419,7 +430,7 @@ func TestSyncAll_TtdOffhoursNoApps(t *testing.T) {
 		newPdf3Hpa(pdf3WorkerHpaName),
 	)
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	payload, err := json.Marshal(collectSnapshots(t, h.k8sClient, "ttd"))
@@ -440,7 +451,7 @@ func TestSyncAll_RetriesOnConflict(t *testing.T) {
 					return apierrors.NewConflict(
 						schema.GroupResource{Group: "apps", Resource: "deployments"},
 						obj.GetName(),
-						errors.New("simulated conflict"),
+						errSimulatedConflict,
 					)
 				}
 				return c.Update(ctx, obj, opts...)
@@ -453,7 +464,7 @@ func TestSyncAll_RetriesOnConflict(t *testing.T) {
 	)
 	h := newHarnessWithClient(t, "ttd", "at22", time.Date(2026, 2, 23, 3, 0, 0, 0, osloLocation), k8sClient)
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(conflictInjected).To(BeTrue())
 

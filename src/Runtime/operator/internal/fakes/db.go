@@ -13,8 +13,9 @@ import (
 
 var ErrInvalidClientName = errors.New("invalid client ID")
 var ErrClientAlreadyExists = errors.New("client already exists")
+var ErrClientNotFound = errors.New("client not found")
 
-const SupplierOrgNo string = "991825827"
+const SupplierOrgNo = "991825827"
 
 type Db struct {
 	ClientIdIndex map[string]int
@@ -22,9 +23,9 @@ type Db struct {
 }
 
 type ClientRecord struct {
-	Client   *maskinporten.ClientResponse
-	Jwks     *crypto.Jwks
-	ClientId string
+	Client   *maskinporten.ClientResponse `json:"Client"`
+	Jwks     *crypto.Jwks                 `json:"Jwks"`
+	ClientId string                       `json:"ClientId"`
 }
 
 func NewDb() *Db {
@@ -101,7 +102,7 @@ func (d *Db) Insert(
 func (d *Db) UpdateJwks(clientId string, jwks *crypto.Jwks) error {
 	i, ok := d.ClientIdIndex[clientId]
 	if !ok {
-		return errors.New("client not found")
+		return ErrClientNotFound
 	}
 
 	d.Clients[i].Jwks = jwks

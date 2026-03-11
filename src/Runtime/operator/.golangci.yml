@@ -21,6 +21,14 @@ linters:
     - gomoddirectives
     - depguard
     - godox
+    # - godoclint
+    - exhaustruct
+    - funcorder
+    - gochecknoglobals
+    - ireturn
+    - mnd
+    - tagliatelle
+    - testpackage
 
   settings:
     errcheck:
@@ -58,16 +66,6 @@ linters:
     nestif:
       min-complexity: 4
 
-    mnd:
-      ignored-numbers:
-        - "0"
-        - "1"
-        - "2"
-      ignored-functions:
-        - "make"
-        - "os.Exit"
-        - "strconv.*"
-
     exhaustruct:
       exclude:
         - 'net/http\.Client'
@@ -96,11 +94,9 @@ linters:
         - name: import-shadowing
         - name: error-return
         - name: error-naming
-        - name: exported
         - name: if-return
         - name: increment-decrement
         - name: var-declaration
-        - name: package-comments
         - name: range
         - name: receiver-naming
         - name: time-naming
@@ -110,7 +106,6 @@ linters:
         - name: blank-imports
         - name: context-as-argument
         - name: context-keys-type
-        - name: dot-imports
         - name: empty-block
         - name: unnecessary-stmt
         - name: unreachable-code

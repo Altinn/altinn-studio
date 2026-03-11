@@ -11,6 +11,7 @@ import (
 )
 
 func benchmarkCreateJwks(b *testing.B, algo x509.SignatureAlgorithm, keySize int) {
+	b.Helper()
 	clock := clockwork.NewFakeClockAt(time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC))
 	random := utils.NewDeterministicRand()
 	service := NewService(clock, random, algo, keySize)

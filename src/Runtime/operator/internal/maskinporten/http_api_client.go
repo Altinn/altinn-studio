@@ -36,7 +36,25 @@ type WellKnownResponse struct {
 	TokenEndpointAuthSigningAlgValuesSupported []string `json:"token_endpoint_auth_signing_alg_values_supported"`
 }
 
-// This client calls necessary APIs in the Maskinporten authority service
+var (
+	ErrFailedToCreateJwks        = errors.New("created Maskinporten client, but failed to create associated JWKS")
+	ErrClientNotFound            = errors.New("maskinporten client not found")
+	errNoClientsFound            = errors.New("no clients found")
+	errClientWithEmptyID         = errors.New("found client with empty ID")
+	errClientInfoMissingID       = errors.New("missing ID on client info")
+	errClientWithoutName         = errors.New("client has no name")
+	errMissingClientID           = errors.New("missing ID on client info")
+	errClientNameRequired        = errors.New("client name must be provided")
+	errClientNamePrefixMismatch  = errors.New("client name must start with expected prefix")
+	errClientJwksRequired        = errors.New("can't create maskinporten client without JWKS initialized")
+	errPrivateJwksUploadRejected = errors.New("tried to upload private key JWKS to Maskinporten")
+	errUpdateClientMissingID     = errors.New("tried to update maskinporten client with empty ID")
+	errUnexpectedAPIStatus       = errors.New("unexpected HTTP response from Maskinporten API")
+	errRequestURLRequired        = errors.New("request URL is required")
+	errRequestURLHostMismatch    = errors.New("request URL does not match configured Maskinporten hosts")
+)
+
+// HttpApiClient calls necessary APIs in the Maskinporten authority service
 // and the self-service APIs to manage clients. It also makes sure to enforce
 // rules related to naming/scoping according to the passed in config.
 //
@@ -69,7 +87,7 @@ func NewHttpApiClient(
 	cfg := configMonitor.Get()
 	jwk := crypto.Jwk{}
 	if err := json.Unmarshal([]byte(cfg.MaskinportenApi.Jwk), &jwk); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parse configured Maskinporten JWK: %w", err)
 	}
 
 	apiClient := &HttpApiClient{
@@ -91,17 +109,15 @@ func NewHttpApiClient(
 	return apiClient, nil
 }
 
-// getConfig returns the current MaskinportenApi config from the monitor.
 func (c *HttpApiClient) getConfig() *config.MaskinportenApiConfig {
 	return &c.configMonitor.Get().MaskinportenApi
 }
 
-// getJwk parses and returns the current JWK from config.
 func (c *HttpApiClient) getJwk() (*crypto.Jwk, error) {
 	cfg := c.getConfig()
 	jwk := crypto.Jwk{}
 	if err := json.Unmarshal([]byte(cfg.Jwk), &jwk); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parse configured JWK: %w", err)
 	}
 	return &jwk, nil
 }
@@ -112,19 +128,16 @@ func (c *HttpApiClient) createReq(
 	method string,
 	body io.Reader,
 ) (*http.Request, error) {
-	// Fetch the access token from the cache.
 	tokenResponse, err := c.accessToken.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get access token: %w", err)
 	}
 
-	// Prepare the request.
 	req, err := http.NewRequestWithContext(ctx, method, endpoint, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new request: %w", err)
 	}
 
-	// Set necessary headers.
 	req.Header.Set("Authorization", "Bearer "+tokenResponse.AccessToken)
 
 	return req, nil
@@ -134,14 +147,22 @@ func (c *HttpApiClient) GetWellKnownConfiguration(ctx context.Context) (*WellKno
 	ctx, span := c.tracer.Start(ctx, "GetWellKnownConfiguration")
 	defer span.End()
 
-	return c.wellKnown.Get(ctx)
+	result, err := c.wellKnown.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get well-known configuration: %w", err)
+	}
+	return result, nil
 }
 
 func (c *HttpApiClient) GetAccessToken(ctx context.Context) (*TokenResponse, error) {
 	ctx, span := c.tracer.Start(ctx, "GetAccessToken")
 	defer span.End()
 
-	return c.accessToken.Get(ctx)
+	result, err := c.accessToken.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get access token: %w", err)
+	}
+	return result, nil
 }
 
 func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, error) {
@@ -149,9 +170,8 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 	defer span.End()
 
 	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients")
-
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("build clients endpoint URL: %w", err)
 	}
 	req, err := c.createReq(ctx, endpointUrl, "GET", nil)
 	if err != nil {
@@ -167,14 +187,15 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 	if resp.StatusCode != http.StatusOK {
 		return nil, c.handleErrorResponse(req, resp)
 	}
+	defer closeResponseBody(resp)
 
-	dtos, err := deserialize[[]ClientResponse](resp)
+	dtos, err := deserialize[[]ClientResponse](resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
 	if dtos == nil {
-		return nil, errors.New("no clients found")
+		return nil, errNoClientsFound
 	}
 
 	result := make([]ClientResponse, 0, 16)
@@ -184,7 +205,7 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 
 	for _, cl := range dtos {
 		if cl.ClientId == "" {
-			return nil, errors.New("found client with empty ID")
+			return nil, errClientWithEmptyID
 		}
 		if c.context.ServiceOwner.Id == "digdir" && cl.ClientId == c.getConfig().ClientId {
 			// If this operator is running as digdir, the supplier client is also defined there
@@ -194,7 +215,7 @@ func (c *HttpApiClient) GetAllClients(ctx context.Context) ([]ClientResponse, er
 			continue
 		}
 		if cl.ClientName == nil {
-			return nil, fmt.Errorf("client with ID %s has no name", cl.ClientId)
+			return nil, fmt.Errorf("%w: %s", errClientWithoutName, cl.ClientId)
 		}
 		if !strings.HasPrefix(*cl.ClientName, c.clientNameFullPrefix) {
 			skippedClients++
@@ -258,12 +279,12 @@ func (c *HttpApiClient) getClientJwks(ctx context.Context, clientId string) (*cr
 	defer span.End()
 
 	if clientId == "" {
-		return nil, errors.New("missing ID on client info")
+		return nil, errClientInfoMissingID
 	}
 
 	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId, "jwks")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("build client JWKS endpoint URL: %w", err)
 	}
 
 	req, err := c.createReq(ctx, endpointUrl, "GET", nil)
@@ -280,17 +301,15 @@ func (c *HttpApiClient) getClientJwks(ctx context.Context, clientId string) (*cr
 	if resp.StatusCode != http.StatusOK {
 		return nil, c.handleErrorResponse(req, resp)
 	}
+	defer closeResponseBody(resp)
 
-	jwks, err := deserialize[crypto.Jwks](resp)
+	jwks, err := deserialize[crypto.Jwks](resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
 	return &jwks, nil
 }
-
-var ErrFailedToCreateJwks = errors.New("created Maskinporten client, but failed to create associated JWKS")
-var ErrClientNotFound = errors.New("maskinporten client not found")
 
 func (c *HttpApiClient) CreateClient(
 	ctx context.Context,
@@ -301,27 +320,24 @@ func (c *HttpApiClient) CreateClient(
 	defer span.End()
 
 	if client.ClientName == nil || *client.ClientName == "" {
-		return nil, errors.New("CreateClient: client name must be provided")
+		return nil, errClientNameRequired
 	}
 	if !strings.HasPrefix(*client.ClientName, c.clientNameFullPrefix) {
-		return nil, fmt.Errorf(
-			"CreateClient: client name must start with expected prefix: %s",
-			c.clientNameFullPrefix,
-		)
+		return nil, fmt.Errorf("%w: %s", errClientNamePrefixMismatch, c.clientNameFullPrefix)
 	}
 
 	if jwks == nil {
-		return nil, errors.New("can't create maskinporten client without JWKS initialized")
+		return nil, errClientJwksRequired
 	}
 
 	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("build create client endpoint URL: %w", err)
 	}
 
 	buf, err := json.Marshal(client)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("marshal create client request: %w", err)
 	}
 
 	req, err := c.createReq(ctx, endpointUrl, "POST", bytes.NewReader(buf))
@@ -340,8 +356,9 @@ func (c *HttpApiClient) CreateClient(
 	if resp.StatusCode != http.StatusCreated {
 		return nil, c.handleErrorResponse(req, resp)
 	}
+	defer closeResponseBody(resp)
 
-	result, err := deserialize[ClientResponse](resp)
+	result, err := deserialize[ClientResponse](resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -353,7 +370,7 @@ func (c *HttpApiClient) CreateClient(
 		// the reconcile iteration will fail and we try again later,
 		// at which point we will discover that the client already exists
 		// and try to upload the JWK again
-		return nil, fmt.Errorf("error creating client: %w, %w", ErrFailedToCreateJwks, err)
+		return nil, fmt.Errorf("%w: %w", ErrFailedToCreateJwks, err)
 	}
 
 	return &result, nil
@@ -372,30 +389,24 @@ func (c *HttpApiClient) UpdateClient(
 		if client.ClientName != nil {
 			clientName = *client.ClientName
 		}
-		return nil, fmt.Errorf(
-			"tried to update maskinporten client with empty ID for client name: %s",
-			clientName,
-		)
+		return nil, fmt.Errorf("%w: %s", errUpdateClientMissingID, clientName)
 	}
 
 	if client.ClientName == nil || *client.ClientName == "" {
-		return nil, errors.New("UpdateClient: client name must be provided")
+		return nil, errClientNameRequired
 	}
 	if !strings.HasPrefix(*client.ClientName, c.clientNameFullPrefix) {
-		return nil, fmt.Errorf(
-			"UpdateClient: client name must start with expected prefix: %s",
-			c.clientNameFullPrefix,
-		)
+		return nil, fmt.Errorf("%w: %s", errClientNamePrefixMismatch, c.clientNameFullPrefix)
 	}
 
 	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("build update client endpoint URL: %w", err)
 	}
 
 	buf, err := json.Marshal(client)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("marshal update client request: %w", err)
 	}
 
 	req, err := c.createReq(ctx, endpointUrl, "PUT", bytes.NewReader(buf))
@@ -413,8 +424,9 @@ func (c *HttpApiClient) UpdateClient(
 	if resp.StatusCode != http.StatusOK {
 		return nil, c.handleErrorResponse(req, resp)
 	}
+	defer closeResponseBody(resp)
 
-	dto, err := deserialize[ClientResponse](resp)
+	dto, err := deserialize[ClientResponse](resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -427,25 +439,25 @@ func (c *HttpApiClient) CreateClientJwks(ctx context.Context, clientId string, j
 	defer span.End()
 
 	if clientId == "" {
-		return errors.New("missing ID on client info")
+		return errMissingClientID
 	}
 	if jwks == nil {
-		return errors.New("can't create maskinporten client without JWKS initialized")
+		return errClientJwksRequired
 	}
 	for _, jwk := range jwks.Keys {
 		if !jwk.IsPublic() {
-			return fmt.Errorf("tried to upload private key JWKS to Maskinporten for: %s", clientId)
+			return fmt.Errorf("%w: %s", errPrivateJwksUploadRejected, clientId)
 		}
 	}
 
 	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId, "jwks")
 	if err != nil {
-		return err
+		return fmt.Errorf("build create client JWKS endpoint URL: %w", err)
 	}
 
 	buf, err := json.Marshal(&jwks)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshal JWKS request: %w", err)
 	}
 
 	req, err := c.createReq(ctx, endpointUrl, "POST", bytes.NewReader(buf))
@@ -463,6 +475,7 @@ func (c *HttpApiClient) CreateClientJwks(ctx context.Context, clientId string, j
 	if resp.StatusCode != http.StatusCreated {
 		return c.handleErrorResponse(req, resp)
 	}
+	defer closeResponseBody(resp)
 
 	return nil
 }
@@ -473,7 +486,7 @@ func (c *HttpApiClient) DeleteClient(ctx context.Context, clientId string) error
 
 	endpointUrl, err := url.JoinPath(c.getConfig().SelfServiceUrl, "/api/v1/altinn/admin/clients", clientId)
 	if err != nil {
-		return err
+		return fmt.Errorf("build delete client endpoint URL: %w", err)
 	}
 
 	req, err := c.createReq(ctx, endpointUrl, "DELETE", nil)
@@ -490,9 +503,7 @@ func (c *HttpApiClient) DeleteClient(ctx context.Context, clientId string) error
 	if resp.StatusCode != http.StatusNoContent {
 		return c.handleErrorResponse(req, resp)
 	}
-
-	// Close the response body for successful responses
-	defer func() { _ = resp.Body.Close() }()
+	defer closeResponseBody(resp)
 
 	return nil
 }
@@ -500,13 +511,13 @@ func (c *HttpApiClient) DeleteClient(ctx context.Context, clientId string) error
 func (c *HttpApiClient) createGrant(ctx context.Context) (*string, error) {
 	wellKnown, err := c.wellKnown.Get(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get cached well-known configuration: %w", err)
 	}
 	assert.That(wellKnown.Issuer != "", "WellKnown.Issuer must be non-empty")
 
 	jwk, err := c.getJwk()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get configured JWK: %w", err)
 	}
 
 	cfg := c.getConfig()
@@ -520,7 +531,7 @@ func (c *HttpApiClient) createGrant(ctx context.Context) (*string, error) {
 		c.clock,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("sign JWT grant: %w", err)
 	}
 
 	return &signedToken, nil
@@ -529,12 +540,12 @@ func (c *HttpApiClient) createGrant(ctx context.Context) (*string, error) {
 func (c *HttpApiClient) accessTokenFetcher(ctx context.Context) (*TokenResponse, error) {
 	grant, err := c.createGrant(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create grant: %w", err)
 	}
 
 	endpointUrl, err := url.JoinPath(c.getConfig().AuthorityUrl, "/token")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("build token endpoint URL: %w", err)
 	}
 
 	queryParams := url.Values{
@@ -546,7 +557,7 @@ func (c *HttpApiClient) accessTokenFetcher(ctx context.Context) (*TokenResponse,
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpointUrl, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create token request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -558,8 +569,9 @@ func (c *HttpApiClient) accessTokenFetcher(ctx context.Context) (*TokenResponse,
 	if resp.StatusCode != http.StatusOK {
 		return nil, c.handleErrorResponse(req, resp)
 	}
+	defer closeResponseBody(resp)
 
-	tokenResp, err := deserialize[TokenResponse](resp)
+	tokenResp, err := deserialize[TokenResponse](resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -578,12 +590,12 @@ type TokenResponse struct {
 func (c *HttpApiClient) wellKnownFetcher(ctx context.Context) (*WellKnownResponse, error) {
 	endpointUrl, err := url.JoinPath(c.getConfig().AuthorityUrl, "/.well-known/oauth-authorization-server")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("build well-known endpoint URL: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpointUrl, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create well-known request: %w", err)
 	}
 
 	resp, err := c.retryableHTTPDo(req)
@@ -594,31 +606,27 @@ func (c *HttpApiClient) wellKnownFetcher(ctx context.Context) (*WellKnownRespons
 	if resp.StatusCode != http.StatusOK {
 		return nil, c.handleErrorResponse(req, resp)
 	}
+	defer closeResponseBody(resp)
 
-	wellKnownResp, err := deserialize[WellKnownResponse](resp)
+	wellKnownResp, err := deserialize[WellKnownResponse](resp.Body)
 	if err != nil {
 		return nil, err
 	}
 	return &wellKnownResp, nil
 }
 
-func deserialize[T any](resp *http.Response) (T, error) {
-	// There is not much to do about the error returned from closing the body
-	// apparently this should not happen for the Closer set to the response body
-	defer func() { _ = resp.Body.Close() }()
-
+func deserialize[T any](reader io.Reader) (T, error) {
 	var result T
-	err := json.NewDecoder(resp.Body).Decode(&result)
+	err := json.NewDecoder(reader).Decode(&result)
 	if err != nil {
-		return result, err
+		return result, fmt.Errorf("decode JSON response: %w", err)
 	}
-
-	return result, err
+	return result, nil
 }
 
 // handleErrorResponse attempts to parse a structured API error response, falling back to raw body if parsing fails.
 func (c *HttpApiClient) handleErrorResponse(req *http.Request, resp *http.Response) error {
-	defer func() { _ = resp.Body.Close() }()
+	defer closeResponseBody(resp)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -631,7 +639,40 @@ func (c *HttpApiClient) handleErrorResponse(req *http.Request, resp *http.Respon
 		)
 	}
 
-	return fmt.Errorf("%s %s: HTTP %d: %s", req.Method, req.URL.Path, resp.StatusCode, string(body))
+	return fmt.Errorf(
+		"%w: %s %s: HTTP %d: %s",
+		errUnexpectedAPIStatus,
+		req.Method,
+		req.URL.Path,
+		resp.StatusCode,
+		string(body),
+	)
+}
+
+//nolint:errcheck,gosec // Response body cleanup is best-effort.
+func closeResponseBody(resp *http.Response) {
+	resp.Body.Close()
+}
+
+func (c *HttpApiClient) validateRequestURL(endpoint *url.URL) error {
+	if endpoint == nil {
+		return errRequestURLRequired
+	}
+	if c.configMonitor == nil {
+		return nil
+	}
+
+	for _, baseURL := range []string{c.getConfig().AuthorityUrl, c.getConfig().SelfServiceUrl} {
+		allowedURL, err := url.Parse(baseURL)
+		if err != nil {
+			return fmt.Errorf("parse configured base URL %q: %w", baseURL, err)
+		}
+		if endpoint.Scheme == allowedURL.Scheme && endpoint.Host == allowedURL.Host {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("%w: %q", errRequestURLHostMismatch, endpoint.String())
 }
 
 // retryableHTTPDo performs an HTTP request with retry logic.
@@ -648,11 +689,17 @@ func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, erro
 			}
 		}
 
+		if err = c.validateRequestURL(req.URL); err != nil {
+			return backoff.Permanent(err)
+		}
+
+		// The request URL is validated against configured Maskinporten hosts immediately above.
+		//nolint:bodyclose,gosec // The caller closes successful responses; SSRF is mitigated by validateRequestURL's allowlist check.
 		resp, err = c.client.Do(req)
 		if err != nil {
-			return err // Network error, retry.
+			return fmt.Errorf("execute Maskinporten request: %w", err)
 		}
-		if resp.StatusCode >= 500 { // Retrying on 5xx server errors.
+		if resp.StatusCode >= http.StatusInternalServerError { // Retrying on 5xx server errors.
 			return c.handleErrorResponse(req, resp)
 		}
 		return nil // No retry needed - success or client side error
@@ -666,7 +713,7 @@ func (c *HttpApiClient) retryableHTTPDo(req *http.Request) (*http.Response, erro
 
 	err = backoff.Retry(operation, backoffStrategy)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("retry Maskinporten request: %w", err)
 	}
 
 	return resp, nil

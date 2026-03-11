@@ -3,6 +3,7 @@ package secretsync
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
@@ -20,10 +21,18 @@ import (
 	"altinn.studio/operator/internal/operatorcontext"
 )
 
+var errTransformFailed = errors.New("transform failed")
+
 func newFakeK8sClient(initObjs ...client.Object) client.Client {
 	scheme := k8sruntime.NewScheme()
-	_ = corev1.AddToScheme(scheme)
-	_ = grafanav1beta1.AddToScheme(scheme)
+	for _, add := range []func(*k8sruntime.Scheme) error{
+		corev1.AddToScheme,
+		grafanav1beta1.AddToScheme,
+	} {
+		if err := add(scheme); err != nil {
+			panic(err)
+		}
+	}
 	return fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithObjects(initObjs...).
@@ -34,7 +43,6 @@ type testHarness struct {
 	reconciler *SecretSyncReconciler
 	k8sClient  client.Client
 	clock      *clockwork.FakeClock
-	ctx        context.Context
 }
 
 func newTestHarness(t *testing.T, mappings []SecretSyncMapping, initObjs ...client.Object) *testHarness {
@@ -60,13 +68,16 @@ func newTestHarness(t *testing.T, mappings []SecretSyncMapping, initObjs ...clie
 		reconciler: reconciler,
 		k8sClient:  k8sClient,
 		clock:      clock,
-		ctx:        context.Background(),
 	}
+}
+
+func (*testHarness) ctx() context.Context {
+	return context.Background()
 }
 
 func (h *testHarness) reconcile(t *testing.T, name, namespace string) {
 	t.Helper()
-	_, err := h.reconciler.Reconcile(h.ctx, reconcile.Request{
+	_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
 		NamespacedName: client.ObjectKey{Name: name, Namespace: namespace},
 	})
 	if err != nil {
@@ -76,8 +87,36 @@ func (h *testHarness) reconcile(t *testing.T, name, namespace string) {
 
 func (h *testHarness) getSecret(name, namespace string) (*corev1.Secret, error) {
 	secret := &corev1.Secret{}
-	err := h.k8sClient.Get(h.ctx, client.ObjectKey{Name: name, Namespace: namespace}, secret)
-	return secret, err
+	err := h.k8sClient.Get(h.ctx(), client.ObjectKey{Name: name, Namespace: namespace}, secret)
+	if err != nil {
+		return nil, fmt.Errorf("get secret %s/%s: %w", namespace, name, err)
+	}
+	return secret, nil
+}
+
+func assertDestinationSecretValue(
+	t *testing.T,
+	mapping SecretSyncMapping,
+	sourceSecret, destSecret *corev1.Secret,
+	triggerName, triggerNamespace, key, expected string,
+) {
+	t.Helper()
+
+	g := NewWithT(t)
+	initObjs := make([]client.Object, 0, 2)
+	if sourceSecret != nil {
+		initObjs = append(initObjs, sourceSecret)
+	}
+	if destSecret != nil {
+		initObjs = append(initObjs, destSecret)
+	}
+
+	h := newTestHarness(t, []SecretSyncMapping{mapping}, initObjs...)
+	h.reconcile(t, triggerName, triggerNamespace)
+
+	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(dest.Data[key]).To(Equal([]byte(expected)))
 }
 
 func TestReconciler_CreatesDestinationOnSourceCreate(t *testing.T) {
@@ -114,8 +153,6 @@ func TestReconciler_CreatesDestinationOnSourceCreate(t *testing.T) {
 }
 
 func TestReconciler_UpdatesDestinationOnSourceUpdate(t *testing.T) {
-	g := NewWithT(t)
-
 	mapping := SecretSyncMapping{
 		SourceName:      "source-secret",
 		SourceNamespace: "source-ns",
@@ -143,12 +180,16 @@ func TestReconciler_UpdatesDestinationOnSourceUpdate(t *testing.T) {
 		},
 	}
 
-	h := newTestHarness(t, []SecretSyncMapping{mapping}, sourceSecret, destSecret)
-	h.reconcile(t, mapping.SourceName, mapping.SourceNamespace)
-
-	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(dest.Data["key1"]).To(Equal(sourceSecret.Data["key1"]))
+	assertDestinationSecretValue(
+		t,
+		mapping,
+		sourceSecret,
+		destSecret,
+		mapping.SourceName,
+		mapping.SourceNamespace,
+		"key1",
+		"updated-value",
+	)
 }
 
 func TestReconciler_DeletesDestinationOnSourceDelete(t *testing.T) {
@@ -242,8 +283,6 @@ func TestReconciler_ClearsDestinationWithCustomClearOutput(t *testing.T) {
 }
 
 func TestReconciler_CorrectsDriftOnDestinationChange(t *testing.T) {
-	g := NewWithT(t)
-
 	mapping := SecretSyncMapping{
 		SourceName:      "source-secret",
 		SourceNamespace: "source-ns",
@@ -271,14 +310,16 @@ func TestReconciler_CorrectsDriftOnDestinationChange(t *testing.T) {
 		},
 	}
 
-	h := newTestHarness(t, []SecretSyncMapping{mapping}, sourceSecret, destSecret)
-
-	// Reconcile triggered by destination change (drift)
-	h.reconcile(t, mapping.DestName, mapping.DestNamespace)
-
-	dest, err := h.getSecret(mapping.DestName, mapping.DestNamespace)
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(dest.Data["key1"]).To(Equal(sourceSecret.Data["key1"]))
+	assertDestinationSecretValue(
+		t,
+		mapping,
+		sourceSecret,
+		destSecret,
+		mapping.DestName,
+		mapping.DestNamespace,
+		"key1",
+		"correct-value",
+	)
 }
 
 func TestReconciler_FullOverwriteRemovesExtraKeys(t *testing.T) {
@@ -354,7 +395,7 @@ func TestReconciler_SyncsMultipleMappings(t *testing.T) {
 
 	h := newTestHarness(t, []SecretSyncMapping{mapping1, mapping2}, source1, source2)
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	dest1, err := h.getSecret(mapping1.DestName, mapping1.DestNamespace)
@@ -459,7 +500,7 @@ func TestReconciler_EmptyMappings(t *testing.T) {
 
 	h := newTestHarness(t, []SecretSyncMapping{})
 
-	err := h.reconciler.SyncAll(h.ctx)
+	err := h.reconciler.SyncAll(h.ctx())
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
@@ -638,7 +679,7 @@ func TestReconciler_TransformErrorPropagates(t *testing.T) {
 		DestNamespace:   "dest-ns",
 		DestKey:         "out.json",
 		BuildOutput: func(_ context.Context, _ client.Client, _ map[string][]byte) ([]byte, error) {
-			return nil, errors.New("transform failed")
+			return nil, errTransformFailed
 		},
 	}
 
@@ -652,7 +693,7 @@ func TestReconciler_TransformErrorPropagates(t *testing.T) {
 
 	h := newTestHarness(t, []SecretSyncMapping{mapping}, sourceSecret)
 
-	_, err := h.reconciler.Reconcile(h.ctx, reconcile.Request{
+	_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
 		NamespacedName: client.ObjectKey{Name: mapping.SourceName, Namespace: mapping.SourceNamespace},
 	})
 	g.Expect(err).To(HaveOccurred())
@@ -716,7 +757,7 @@ func TestReconciler_DefaultMapping_GrafanaCRMissing(t *testing.T) {
 
 	h := newTestHarness(t, mappings, sourceSecret)
 
-	_, err := h.reconciler.Reconcile(h.ctx, reconcile.Request{
+	_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
 		NamespacedName: client.ObjectKey{Name: mapping.SourceName, Namespace: mapping.SourceNamespace},
 	})
 	g.Expect(err).To(HaveOccurred())
@@ -751,7 +792,7 @@ func TestReconciler_DefaultMapping_GrafanaCRNoExternalSpec(t *testing.T) {
 
 	h := newTestHarness(t, mappings, sourceSecret, grafanaCR)
 
-	_, err := h.reconciler.Reconcile(h.ctx, reconcile.Request{
+	_, err := h.reconciler.Reconcile(h.ctx(), reconcile.Request{
 		NamespacedName: client.ObjectKey{Name: mapping.SourceName, Namespace: mapping.SourceNamespace},
 	})
 	g.Expect(err).To(HaveOccurred())
