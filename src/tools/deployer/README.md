@@ -2,6 +2,8 @@
 
 A local web dashboard for monitoring and approving Altinn Studio deployments across environments and rings.
 
+Run it from `src/tools/deployer`.
+
 The GitHub Actions UI becomes impractical when many services are deploying to many environments simultaneously — it is just a flat list of runs with no cross-service view. Deployer provides a grid of services × environments showing what is currently deployed and what is next, with direct in-browser approval.
 
 ## Usage
