@@ -36,7 +36,7 @@ const resources: Resource[] = [
   {
     label: 'dashboard.resource_design_label',
     description: 'dashboard.resource_design_description',
-    url: 'https://www.figma.com/file/wnBveAG2ikUspFsQwM3GNE/Prototyping-av-skjematjenester?node-id=47%3A4068',
+    url: 'https://www.figma.com/community/file/1344307804742953785',
     icon: <DesignResourceIcon width='60' height='60' />,
   },
   {

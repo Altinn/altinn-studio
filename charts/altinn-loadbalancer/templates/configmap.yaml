@@ -42,7 +42,7 @@ data:
       }
 
       upstream repositories {
-        server altinn-repositories:3000;
+        server altinn-repositories-public;
       }
 
       upstream kwlocation {
