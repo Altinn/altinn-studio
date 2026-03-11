@@ -10,8 +10,10 @@ export const useUpdateValidationOnNavigationLayoutSettingsMutation = (org: strin
   return useMutation({
     mutationFn: (settings: IValidationOnNavigationLayoutSettings[]) =>
       updateValidationOnNavigationLayoutSettings(org, app, settings),
-    onSuccess: (_, settings) => {
-      queryClient.setQueryData([QueryKey.ValidationOnNavigationLayoutSettings, org, app], settings);
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.ValidationOnNavigationLayoutSettings, org, app],
+      });
     },
   });
 };

@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import { Scope, convertToExternalConfig, withUniqueIds } from '../utils/ValidateNavigationUtils';
-import type {
-  ExternalConfigWithId,
-  ExternalConfigState,
-  InternalConfigState,
-} from '../utils/ValidateNavigationTypes';
+import { Scope, convertToExternalConfig, dummyDataPages } from '../utils/ValidateNavigationUtils';
+import type { ExternalConfigState, InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useValidationOnNavigationPageSettingsQuery } from '@altinn/ux-editor/hooks/queries/usePageValidationOnNavigationLayoutSettingsQuery';
@@ -27,6 +23,9 @@ const toPageSettings = (config: ExternalConfigWithId): IValidationOnNavigationPa
 });
 
 export const ValidateSelectedPagesConfig = () => {
+  const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigState[]>(dummyDataPages);
+
+  const internalConfigs = useConvertToInternalConfig(tempExtConfigs);
   const { org, app } = useStudioEnvironmentParams();
   const { data: pageValidationData } = useValidationOnNavigationPageSettingsQuery(org, app);
   const { mutate } = useValidationOnNavigationPageSettingsMutation(org, app);
@@ -43,32 +42,33 @@ export const ValidateSelectedPagesConfig = () => {
     id: tempExtConfigs[i].id,
   }));
 
-  const handleSave = (updatedConfig: InternalConfigState, id?: string) => {
-    const newExternal = convertToExternalConfig(updatedConfig);
-    const newConfigs = id
-      ? tempExtConfigs.map((config) => (config.id === id ? { ...newExternal, id } : config))
-      : [...tempExtConfigs, { ...newExternal, id: crypto.randomUUID() }];
+  const handleSave = (updatedConfig: InternalConfigState, index?: number) => {
+    const updatedInternalConfigs = [...internalConfigs];
+    if (index !== undefined) {
+      updatedInternalConfigs[index] = updatedConfig;
+    } else {
+      updatedInternalConfigs.push(updatedConfig);
+    }
 
-    setTempExtConfigs(newConfigs);
-    mutate(newConfigs.map(toPageSettings));
+    const newExternal = updatedInternalConfigs.map(convertToExternalConfig);
+    setTempExtConfigs(newExternal);
   };
 
-  const handleDelete = (id: string) => {
-    const newConfigs = tempExtConfigs.filter((config) => config.id !== id);
-    setTempExtConfigs(newConfigs);
-    mutate(newConfigs.map(toPageSettings));
+  const handleDelete = (index: number) => {
+    const newIntConfigs = internalConfigs.filter((_, i) => i !== index);
+    setTempExtConfigs(newIntConfigs.map(convertToExternalConfig));
   };
 
   return (
     <>
-      {internalConfigs?.map((conf) => (
+      {internalConfigs?.map((conf, index) => (
         <ValidateNavigationConfig
-          key={conf.id}
+          key={index}
           scope={Scope.SelectedPages}
           config={conf}
           existingConfigs={internalConfigs}
-          onSave={(newConf) => handleSave(newConf, conf.id)}
-          onDelete={() => handleDelete(conf.id)}
+          onSave={(newConf) => handleSave(newConf, index)}
+          onDelete={() => handleDelete(index)}
         />
       ))}
       <ValidateNavigationConfig

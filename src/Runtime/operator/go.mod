@@ -1,6 +1,6 @@
 module altinn.studio/operator
 
-go 1.25.7
+go 1.26.1
 
 require (
 	altinn.studio/devenv v0.0.0
