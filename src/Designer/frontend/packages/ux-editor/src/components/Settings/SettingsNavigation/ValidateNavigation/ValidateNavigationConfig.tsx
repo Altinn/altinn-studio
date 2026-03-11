@@ -60,7 +60,7 @@ export const ValidateNavigationConfig = ({
       {isModalOpen && (
         <ConfigModal
           scope={scope}
-          config={config}
+          initialConfig={config}
           existingConfigs={existingConfigs}
           onClose={() => setIsModalOpen(false)}
           onSave={onSave}
@@ -73,7 +73,7 @@ export const ValidateNavigationConfig = ({
 
 type ValidateCardProps = {
   scope: Scope;
-  config?: InternalConfigState;
+  initialConfig?: InternalConfigState;
   existingConfigs?: InternalConfigState[];
   onClose: () => void;
   onSave: (config: InternalConfigState) => void;
@@ -82,19 +82,23 @@ type ValidateCardProps = {
 
 const ConfigModal = ({
   scope,
-  config,
+  initialConfig,
   existingConfigs,
   onClose,
   onSave,
   onDelete,
 }: ValidateCardProps) => {
   const { t } = useTranslation();
-  const initalConfig = config || getDefaultConfig(scope);
-  const [newConfig, setNewConfig] = useState<InternalConfigState>(initalConfig);
-  const isFormValid = validateForm({ scope, config, newConfig });
+
+  const [newConfig, setNewConfig] = useState<InternalConfigState>(
+    initialConfig || getDefaultConfig(scope),
+  );
+  const isFormValid = validateForm({ scope, config: initialConfig, newConfig });
+
   const isRuleDuplicate = isRuleDuplicateInScope({
     scope,
     newConfig,
+    initialConfig,
     existingConfigs,
     isFormValid,
   });
@@ -139,7 +143,7 @@ const ConfigModal = ({
           }}
           isLoading={false}
         />
-        <StudioDeleteButton onDelete={handleDelete} disabled={!config} variant='tertiary'>
+        <StudioDeleteButton onDelete={handleDelete} disabled={!initialConfig} variant='tertiary'>
           {t('general.delete')}
         </StudioDeleteButton>
       </StudioDialog.Block>

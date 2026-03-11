@@ -135,6 +135,7 @@ export const validateForm = ({ scope, config, newConfig }: ValidateFormProps): b
 type IsRuleDuplicateInScope = {
   scope: Scope;
   newConfig: InternalConfigState;
+  initialConfig?: InternalConfigState;
   existingConfigs?: InternalConfigState[];
   isFormValid?: boolean;
 };
@@ -142,16 +143,21 @@ type IsRuleDuplicateInScope = {
 export const isRuleDuplicateInScope = ({
   scope,
   newConfig,
+  initialConfig,
   existingConfigs,
   isFormValid,
 }: IsRuleDuplicateInScope): boolean => {
   if (!existingConfigs || !isFormValid) return false;
 
+  const filteredConfigs = initialConfig
+    ? existingConfigs.filter((config) => JSON.stringify(config) !== JSON.stringify(initialConfig))
+    : existingConfigs;
+
   const newConfigTypeValues = newConfig.types.map((type) => type.value);
   const newPageScopeValue = newConfig.pageScope.value;
   const newTaskValue = newConfig.task?.value;
 
-  return existingConfigs.some((existingConfig) => {
+  return filteredConfigs.some((existingConfig) => {
     const existingTypeValues = existingConfig.types?.map((type) => type.value);
     const existingPageScopeValue = existingConfig.pageScope?.value;
     const existingTaskValue = existingConfig.task?.value;
