@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { StudioAlert, StudioParagraph, StudioTextfield, StudioSpinner } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { isOptionsIdReferenceId, hasStaticOptionList } from '../utils/optionsUtils';
+import {
+  isOptionsIdReferenceId,
+  hasStaticOptionList,
+  updateComponentOptionsId,
+} from '../utils/optionsUtils';
 import classes from './ReferenceTab.module.css';
 import type { CodeListIdContextData } from '../types/CodeListIdContextData';
 
@@ -16,20 +20,13 @@ export function ReferenceTab({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, isPending } = useOptionListIdsQuery(org, app);
-  const [referenceId, setReferenceId] = useState<string>(
-    isOptionsIdReferenceId(optionListIds, component.optionsId) ? component.optionsId : '',
-  );
+  const referenceId = isOptionsIdReferenceId(optionListIds, component.optionsId)
+    ? component.optionsId
+    : '';
 
   const handleOptionsIdChange = (optionsId: string) => {
-    setReferenceId(optionsId);
-
-    if (component.options) {
-      delete component.options;
-    }
-    handleComponentChange({
-      ...component,
-      optionsId,
-    });
+    const updatedComponent = updateComponentOptionsId(component, optionsId);
+    handleComponentChange(updatedComponent);
   };
 
   if (isPending) {
