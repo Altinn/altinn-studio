@@ -73,6 +73,16 @@ http {
     default     designer;
   }
 
+  map $spa_path $spa_rewrite {
+    dashboard   1;
+    editor      1;
+    preview     1;
+    admin       1;
+    resourceadm 1;
+    info        1;
+    default     0;
+  }
+
   server {
     listen ${LISTEN_DIRECTIVE};
     server_name ${SERVER_NAME};
@@ -113,7 +123,11 @@ http {
     }
 
     location ~ ^/(dashboard|editor|preview|admin|resourceadm|info)(/.*)?$ {
-      rewrite ^/[^/]+(/.*)?$ /$spa_path/index.html break;
+      if ($spa_rewrite) {
+        rewrite ^/[^/]+(/.*)?$ /$spa_path/index.html break;
+      }
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
       proxy_pass http://$spa_upstream;
     }
 

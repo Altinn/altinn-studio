@@ -45,15 +45,15 @@ services:
       - |
         # Remove k8s-specific config baked into the image
         rm -f /etc/nginx/extra-upstreams/* /etc/nginx/extra-locations/* /etc/nginx/extra-servers/* /etc/nginx/ssl/* /etc/nginx/logging/*
-        if [ "$$DEVELOP_BACKEND" = "1" ]; then
-          export DESIGNER_HOST="host.docker.internal:5000"
-        fi
-        [ "$$DEVELOP_DASHBOARD" = "1" ] && export DASHBOARD_HOST="host.docker.internal:2003"
-        [ "$$DEVELOP_APP_DEVELOPMENT" = "1" ] && export EDITOR_HOST="host.docker.internal:2004"
-        [ "$$DEVELOP_PREVIEW" = "1" ] && export PREVIEW_HOST="host.docker.internal:2005"
-        [ "$$DEVELOP_ADMIN" = "1" ] && export ADMIN_HOST="host.docker.internal:2006"
-        [ "$$DEVELOP_STUDIO_ROOT" = "1" ] && export INFO_HOST="host.docker.internal:2002"
-        [ "$$DEVELOP_RESOURCE_ADMIN" = "1" ] && export RESOURCEADM_HOST="host.docker.internal:2023"
+        [ "$$DEVELOP_BACKEND" = "1" ] && export DESIGNER_HOST="host.docker.internal:5000"
+        # Override SPA hosts and disable rewrite for vite dev servers
+        disable_rewrite() { sed -i "s/$$1   *1/$$1   0/" /etc/nginx/nginx.conf.template; }
+        [ "$$DEVELOP_DASHBOARD" = "1" ] && export DASHBOARD_HOST="host.docker.internal:2003" && disable_rewrite dashboard
+        [ "$$DEVELOP_APP_DEVELOPMENT" = "1" ] && export EDITOR_HOST="host.docker.internal:2004" && disable_rewrite editor
+        [ "$$DEVELOP_PREVIEW" = "1" ] && export PREVIEW_HOST="host.docker.internal:2005" && disable_rewrite preview
+        [ "$$DEVELOP_ADMIN" = "1" ] && export ADMIN_HOST="host.docker.internal:2006" && disable_rewrite admin
+        [ "$$DEVELOP_STUDIO_ROOT" = "1" ] && export INFO_HOST="host.docker.internal:2002" && disable_rewrite info
+        [ "$$DEVELOP_RESOURCE_ADMIN" = "1" ] && export RESOURCEADM_HOST="host.docker.internal:2023" && disable_rewrite resourceadm
         exec /entrypoint.sh
     environment:
       - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
