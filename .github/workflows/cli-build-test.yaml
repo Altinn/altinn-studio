@@ -21,11 +21,11 @@ jobs:
   #     - name: Setup Go for changelog validation
   #       uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
   #       with:
-  #         go-version-file: 'releaser/go.mod'
-  #         cache-dependency-path: releaser/go.sum
+  #         go-version-file: 'src/tools/releaser/go.mod'
+  #         cache-dependency-path: src/tools/releaser/go.sum
 
   #     - name: Validate changelog
-  #       working-directory: releaser
+  #       working-directory: src/tools/releaser
   #       run: |
   #         go run . validate-changelog -component studioctl -base "${{ github.event.pull_request.base.sha }}" -head "${{ github.event.pull_request.head.sha }}"
 

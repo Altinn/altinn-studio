@@ -14,7 +14,7 @@ Context: on `main`
 
 1. Land feature PRs with changelog entries in the component `CHANGELOG.md` under `[Unreleased]`.
 2. Create a release prep PR:
-   - `cd releaser`
+   - `cd src/tools/releaser`
    - `go run . prepare -component <component> -version v1.1.0-preview.2`
 3. Approve and merge the prep PR.
 4. CI workflow runs on merge from `main` and calls:

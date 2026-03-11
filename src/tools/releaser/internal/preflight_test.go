@@ -107,7 +107,7 @@ func TestRunPrepareWithDeps_FromNestedDir(t *testing.T) {
 - Existing unreleased
 `)
 
-	runnerDir := filepath.Join(repo, "releaser")
+	runnerDir := filepath.Join(repo, "src", "tools", "releaser")
 	if err := os.MkdirAll(runnerDir, 0o755); err != nil {
 		t.Fatalf("create runner dir: %v", err)
 	}
@@ -408,7 +408,7 @@ func TestGitCLI_RunWrite_AutoResolvesRepoRootFromNestedDir(t *testing.T) {
 
 - Existing unreleased
 `)
-	runnerDir := filepath.Join(repo, "releaser")
+	runnerDir := filepath.Join(repo, "src", "tools", "releaser")
 	if err := os.MkdirAll(runnerDir, 0o755); err != nil {
 		t.Fatalf("create runner dir: %v", err)
 	}
