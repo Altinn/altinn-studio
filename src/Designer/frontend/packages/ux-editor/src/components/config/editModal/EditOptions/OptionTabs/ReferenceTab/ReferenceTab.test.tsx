@@ -105,15 +105,6 @@ describe('ReferenceTab', () => {
         component={changedComponentProps}
       />
     );
-      ...initialComponentProps,
-      optionsId: changedOptionsId,
-    };
-    rerender(
-      <ReferenceTab
-        handleComponentChange={handleComponentChange}
-        component={changedCompponentProps}
-      />,
-    );
     expect(getInputElement()).toHaveValue(changedOptionsId);
   });
 });
