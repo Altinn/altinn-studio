@@ -5,7 +5,7 @@ import { ReferenceTab } from './ReferenceTab';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import type { ExtendedRenderOptions } from '../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormComponent } from '../../../../../../types/FormComponent';
+import type { FormComponent, SelectionComponentType } from '../../../../../../types/FormComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { componentMocks } from '../../../../../../testing/componentMocks';
@@ -57,18 +57,18 @@ describe('ReferenceTab', () => {
     expect(getInputElement()).toHaveValue('');
   });
 
-  it('should call handleComponentChange when input value changes', async () => {
+  it('should call handleComponentChange with updated component when input value changes', async () => {
     const user = userEvent.setup();
     renderReferenceTabWithData();
     const inputElement = getInputElement();
-    await user.type(inputElement, 'new-id');
+    await user.type(inputElement, 'a');
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
-      optionsId: 'new-id',
+      optionsId: 'a',
     });
   });
 
-  it('should call remove options property (if it exists) when input value changes', async () => {
+  it('should call handleComponentChange without the options property (if it exists) when input value changes', async () => {
     const user = userEvent.setup();
     renderReferenceTabWithData({
       componentProps: {
@@ -81,11 +81,31 @@ describe('ReferenceTab', () => {
       },
     });
     const inputElement = getInputElement();
-    await user.type(inputElement, 'new-id');
+    await user.type(inputElement, 'a');
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
-      optionsId: 'new-id',
+      optionsId: 'a',
     });
+  });
+
+  it('Updates the ID when the component is rerendered with another ID', () => {
+    const initialComponentProps: FormComponent<SelectionComponentType> = {
+      ...mockComponent,
+      optionsId: 'some-id',
+    };
+    const { rerender } = renderReferenceTabWithData({ componentProps: initialComponentProps });
+    const changedOptionsId = 'another-id';
+    const changedCompponentProps: FormComponent<SelectionComponentType> = {
+      ...initialComponentProps,
+      optionsId: changedOptionsId,
+    };
+    rerender(
+      <ReferenceTab
+        handleComponentChange={handleComponentChange}
+        component={changedCompponentProps}
+      />,
+    );
+    expect(getInputElement()).toHaveValue(changedOptionsId);
   });
 });
 
