@@ -1,12 +1,15 @@
 package dis
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"altinn.studio/runtime-health/internal/az"
 	"altinn.studio/runtime-health/internal/kubernetes"
 )
+
+var errMissingClusterClient = errors.New("missing cluster client")
 
 type DisContainerRuntime struct {
 	Cluster      *az.Cluster
@@ -41,11 +44,11 @@ func ListFromAzure(environments []string, serviceowner string) ([]kubernetes.Kub
 
 	clusters, err := az.ListClusters()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list clusters from azure: %w", err)
 	}
 	contexts, err := kubernetes.ListContexts()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list kube contexts: %w", err)
 	}
 
 	contextByName := make(map[string]*kubernetes.ContextInfo)
@@ -73,7 +76,7 @@ func ListFromAzure(environments []string, serviceowner string) ([]kubernetes.Kub
 func ListFromContext(environments []string, serviceowner string) ([]kubernetes.KubernetesRuntime, error) {
 	contexts, err := kubernetes.ListContexts()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list kube contexts: %w", err)
 	}
 
 	// Build concrete runtimes first
@@ -99,12 +102,12 @@ func ListFromContext(environments []string, serviceowner string) ([]kubernetes.K
 
 	clientsByName, err := kubernetes.BuildClients(runtimeContexts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("build kube clients: %w", err)
 	}
 	for _, runtime := range concreteRuntimes {
 		client, clientOk := clientsByName[runtime.ClusterName]
 		if !clientOk {
-			return nil, fmt.Errorf("couldnt retrieve client for: %s", runtime.ClusterName)
+			return nil, fmt.Errorf("%w: %s", errMissingClusterClient, runtime.ClusterName)
 		}
 		runtime.Client = client
 	}

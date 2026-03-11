@@ -18,6 +18,8 @@ type ContextInfo struct {
 }
 
 // loadKubeConfig loads the kubeconfig from the default location.
+//
+//nolint:ireturn // client-go exposes the deferred config as an interface.
 func loadKubeConfig() (*api.Config, clientcmd.ClientConfig, error) {
 	kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
 	config, err := clientcmd.LoadFromFile(kubeconfig)

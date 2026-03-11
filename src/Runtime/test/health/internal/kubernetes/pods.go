@@ -35,7 +35,7 @@ func GetPodInfo(
 	matchLabels map[string]string,
 ) (string, string) {
 	// Build label selector
-	var labelSelectors []string
+	labelSelectors := make([]string, 0, len(matchLabels))
 	for key, value := range matchLabels {
 		labelSelectors = append(labelSelectors, fmt.Sprintf("%s=%s", key, value))
 	}

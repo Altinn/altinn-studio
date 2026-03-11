@@ -10,6 +10,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+var (
+	errNoResourceConditions = errors.New("no conditions found in resource status")
+	errInvalidNamespacedRef = errors.New("invalid namespace/name format")
+	errInvalidResourceType  = errors.New("invalid resource type")
+)
+
 // ResourceType represents the type of Kubernetes resource.
 type ResourceType string
 
@@ -118,7 +124,7 @@ func GetResourceStatus(
 	}
 
 	if len(result.Conditions) == 0 {
-		result.Error = errors.New("no conditions found in resource status")
+		result.Error = errNoResourceConditions
 	}
 
 	return result
@@ -128,7 +134,7 @@ func GetResourceStatus(
 func ParseNamespaceAndName(input string) (namespace string, name string, err error) {
 	parts := strings.Split(input, "/")
 	if len(parts) != 2 {
-		return "", "", fmt.Errorf("invalid format: expected namespace/name, got: %s", input)
+		return "", "", fmt.Errorf("%w: expected namespace/name, got %q", errInvalidNamespacedRef, input)
 	}
 	return parts[0], parts[1], nil
 }
@@ -145,7 +151,7 @@ func ParseResourceType(input string) (ResourceType, error) {
 	case "httproute":
 		return HTTPRouteResourceType, nil
 	default:
-		return "", fmt.Errorf("invalid resource type: %s (expected: hr, ks, dep, or httproute)", input)
+		return "", fmt.Errorf("%w: %s (expected: hr, ks, dep, or httproute)", errInvalidResourceType, input)
 	}
 }
 
@@ -177,7 +183,7 @@ func QueryAllClusters(
 	}
 	close(jobs)
 
-	var queryResults []QueryResult
+	queryResults := make([]QueryResult, 0, len(runtimes))
 	for range runtimes {
 		queryResults = append(queryResults, <-results)
 	}

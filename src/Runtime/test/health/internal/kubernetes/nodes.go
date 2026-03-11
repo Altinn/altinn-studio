@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -13,6 +14,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	metricsv1beta1 "k8s.io/metrics/pkg/apis/metrics/v1beta1"
 )
+
+const notAvailable = "N/A"
+
+var errNoNodesForSelector = errors.New("no nodes found for label selector")
 
 // NodeResult represents the result of querying node information from a cluster.
 type NodeResult struct {
@@ -35,6 +40,8 @@ type NodeResult struct {
 }
 
 // GetNodesInfo queries node information for a specific cluster using client-go.
+//
+//nolint:funlen,gocognit,gocyclo,nestif // Node aggregation combines discovery, optional metrics, and formatting.
 func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector string) NodeResult {
 	result := NodeResult{
 		ClusterName:  runtime.GetName(),
@@ -60,7 +67,7 @@ func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector 
 	}
 
 	if len(nodes.Items) == 0 {
-		result.Error = fmt.Errorf("no nodes found matching label selector: %s", labelSelector)
+		result.Error = fmt.Errorf("%w: %s", errNoNodesForSelector, labelSelector)
 		return result
 	}
 
@@ -138,20 +145,20 @@ func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector 
 	metricsClient, err := client.MetricsClient()
 	if err != nil {
 		// Metrics-server might not be available, this is not a fatal error
-		result.CPUUsed = "N/A"
-		result.CPUUtilizationPercent = "N/A"
-		result.MemoryUsed = "N/A"
-		result.MemoryUtilizationPercent = "N/A"
+		result.CPUUsed = notAvailable
+		result.CPUUtilizationPercent = notAvailable
+		result.MemoryUsed = notAvailable
+		result.MemoryUtilizationPercent = notAvailable
 	} else {
 		nodeMetricsList, err := metricsClient.MetricsV1beta1().NodeMetricses().List(ctx, metav1.ListOptions{
 			LabelSelector: labelSelector,
 		})
 		if err != nil {
 			// Metrics-server might not be available, this is not a fatal error
-			result.CPUUsed = "N/A"
-			result.CPUUtilizationPercent = "N/A"
-			result.MemoryUsed = "N/A"
-			result.MemoryUtilizationPercent = "N/A"
+			result.CPUUsed = notAvailable
+			result.CPUUtilizationPercent = notAvailable
+			result.MemoryUsed = notAvailable
+			result.MemoryUtilizationPercent = notAvailable
 		} else {
 			// Create a map for quick lookup
 			metricsMap := make(map[string]metricsv1beta1.NodeMetrics)
@@ -189,7 +196,7 @@ func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector 
 				cpuUtilPct := (float64(totalCPUUsed) / float64(totalCPUAllocatable)) * 100
 				result.CPUUtilizationPercent = fmt.Sprintf("%.1f%%", cpuUtilPct)
 			} else {
-				result.CPUUtilizationPercent = "N/A"
+				result.CPUUtilizationPercent = notAvailable
 			}
 
 			// Format memory used
@@ -200,7 +207,7 @@ func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector 
 				memUtilPct := (float64(totalMemUsed) / float64(totalMemAllocatable)) * 100
 				result.MemoryUtilizationPercent = fmt.Sprintf("%.1f%%", memUtilPct)
 			} else {
-				result.MemoryUtilizationPercent = "N/A"
+				result.MemoryUtilizationPercent = notAvailable
 			}
 		}
 	}
@@ -269,21 +276,21 @@ func formatMemory(mem *resource.Quantity) string {
 // formatMemoryBytes formats bytes to human-readable format.
 func formatMemoryBytes(bytes int64) string {
 	const (
-		KiB = 1024
-		MiB = 1024 * KiB
-		GiB = 1024 * MiB
-		TiB = 1024 * GiB
+		kiB = 1024
+		miB = 1024 * kiB
+		giB = 1024 * miB
+		tiB = 1024 * giB
 	)
 
 	switch {
-	case bytes >= TiB:
-		return fmt.Sprintf("%.1fTi", float64(bytes)/float64(TiB))
-	case bytes >= GiB:
-		return fmt.Sprintf("%.1fGi", float64(bytes)/float64(GiB))
-	case bytes >= MiB:
-		return fmt.Sprintf("%.1fMi", float64(bytes)/float64(MiB))
-	case bytes >= KiB:
-		return fmt.Sprintf("%.1fKi", float64(bytes)/float64(KiB))
+	case bytes >= tiB:
+		return fmt.Sprintf("%.1fTi", float64(bytes)/float64(tiB))
+	case bytes >= giB:
+		return fmt.Sprintf("%.1fGi", float64(bytes)/float64(giB))
+	case bytes >= miB:
+		return fmt.Sprintf("%.1fMi", float64(bytes)/float64(miB))
+	case bytes >= kiB:
+		return fmt.Sprintf("%.1fKi", float64(bytes)/float64(kiB))
 	default:
 		return strconv.FormatInt(bytes, 10)
 	}

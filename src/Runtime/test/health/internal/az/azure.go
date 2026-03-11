@@ -1,10 +1,14 @@
 package az
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os/exec"
 )
+
+var errClusterMissingSubscriptionID = errors.New("cluster has no subscription ID")
 
 type Cluster struct {
 	Name           string `json:"name"`
@@ -31,12 +35,14 @@ func ListClusters() ([]Cluster, error) {
 	for {
 		pageNum++
 
-		args := []string{"graph", "query", "-q", query, "--first", "1000", "-o", "json"}
+		args := make([]string, 0, 7)
+		args = append(args, "graph", "query", "-q", query, "--first", "1000", "-o", "json")
 		if skipToken != "" {
 			args = append(args, "--skip-token", skipToken)
 		}
 
-		cmd := exec.Command("az", args...)
+		//nolint:gosec // The executable is fixed to az; only its arguments vary.
+		cmd := exec.CommandContext(context.Background(), "az", args...)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			return nil, fmt.Errorf(
@@ -66,19 +72,21 @@ func ListClusters() ([]Cluster, error) {
 // EnsureCredentials ensures credentials are available for the cluster
 // This must be called sequentially, not in parallel, as it mutates kube config.
 func EnsureCredentials(cluster *Cluster) error {
-	args := []string{
+	args := make([]string, 0, 9)
+	args = append(args,
 		"aks", "get-credentials",
 		"--resource-group", cluster.ResourceGroup,
 		"--name", cluster.Name,
 		"--overwrite-existing",
-	}
+	)
 
 	if cluster.SubscriptionID == "" {
-		return fmt.Errorf("cluster has no subscription ID: %s", cluster.Name)
+		return fmt.Errorf("%w: %s", errClusterMissingSubscriptionID, cluster.Name)
 	}
 	args = append(args, "--subscription", cluster.SubscriptionID)
 
-	cmd := exec.Command("az", args...)
+	//nolint:gosec // The executable is fixed to az; only its arguments vary.
+	cmd := exec.CommandContext(context.Background(), "az", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("failed to get credentials for cluster %s: %w (output: %s)",

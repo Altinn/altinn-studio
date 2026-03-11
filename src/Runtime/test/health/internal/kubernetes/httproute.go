@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,8 +12,16 @@ import (
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
+var errMissingRouteClient = errors.New("client not found for cluster")
+var (
+	errInvalidHTTPRouteRuleCount   = errors.New("httproute must have exactly one rule")
+	errInvalidHTTPRouteBackendRefs = errors.New("httproute rule must have exactly two backendRefs")
+	errMissingHTTPRouteWeight      = errors.New("httproute backendRef weight is missing")
+)
+
 // HTTPRouteResult represents the result of an HTTPRoute operation.
 type HTTPRouteResult struct {
+	Error                  error
 	ClusterName            string
 	Namespace              string
 	Name                   string
@@ -20,7 +29,6 @@ type HTTPRouteResult struct {
 	CurrentWeight2         int
 	HasReconcileAnnotation bool // Whether the reconcile annotation already exists
 	HasAnyAnnotations      bool // Whether the annotations map exists
-	Error                  error
 }
 
 // GetHTTPRoute fetches an HTTPRoute from a cluster using the Gateway API client.
@@ -47,12 +55,12 @@ func GetHTTPRoute(
 // ValidateHTTPRouteStructure validates that the HTTPRoute has exactly 1 rule with 2 backendRefs.
 func ValidateHTTPRouteStructure(route *gatewayv1.HTTPRoute) error {
 	if len(route.Spec.Rules) != 1 {
-		return fmt.Errorf("HTTPRoute must have exactly 1 rule, found %d", len(route.Spec.Rules))
+		return fmt.Errorf("%w: found %d", errInvalidHTTPRouteRuleCount, len(route.Spec.Rules))
 	}
 
 	backendRefs := route.Spec.Rules[0].BackendRefs
 	if len(backendRefs) != 2 {
-		return fmt.Errorf("HTTPRoute rule must have exactly 2 backendRefs, found %d", len(backendRefs))
+		return fmt.Errorf("%w: found %d", errInvalidHTTPRouteBackendRefs, len(backendRefs))
 	}
 
 	return nil
@@ -60,9 +68,9 @@ func ValidateHTTPRouteStructure(route *gatewayv1.HTTPRoute) error {
 
 // JSONPatchOperation represents a single JSON Patch operation.
 type JSONPatchOperation struct {
+	Value any    `json:"value,omitempty"`
 	Op    string `json:"op"`
 	Path  string `json:"path"`
-	Value any    `json:"value,omitempty"`
 }
 
 // buildWeightPatch constructs a JSON Patch document to update weights and optionally add the reconcile annotation.
@@ -176,7 +184,7 @@ func GetHTTPRouteFromCluster(
 	currentWeight1 := route.Spec.Rules[0].BackendRefs[0].Weight
 	currentWeight2 := route.Spec.Rules[0].BackendRefs[1].Weight
 	if currentWeight1 == nil || currentWeight2 == nil {
-		result.Error = fmt.Errorf("httproute in %s does not have weight", runtime.GetName())
+		result.Error = fmt.Errorf("%w in %s", errMissingHTTPRouteWeight, runtime.GetName())
 		return result
 	}
 
@@ -215,7 +223,7 @@ func GetAllHTTPRoutes(runtimes []KubernetesRuntime, namespace string, name strin
 	}
 	close(jobs)
 
-	var routeResults []HTTPRouteResult
+	routeResults := make([]HTTPRouteResult, 0, len(runtimes))
 	for range runtimes {
 		routeResults = append(routeResults, <-results)
 	}
@@ -254,7 +262,7 @@ func UpdateAllHTTPRoutes(
 
 				runtime, ok := runtimeByClusterName[routeResult.ClusterName]
 				if !ok {
-					result.Error = fmt.Errorf("client not found for cluster %s", routeResult.ClusterName)
+					result.Error = fmt.Errorf("%w: %s", errMissingRouteClient, routeResult.ClusterName)
 					results <- result
 					continue
 				}
@@ -286,7 +294,7 @@ func UpdateAllHTTPRoutes(
 	}
 	close(jobs)
 
-	var updateResults []HTTPRouteResult
+	updateResults := make([]HTTPRouteResult, 0, len(routesToUpdate))
 	for range routesToUpdate {
 		updateResults = append(updateResults, <-results)
 	}

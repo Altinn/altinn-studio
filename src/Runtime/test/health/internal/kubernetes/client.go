@@ -73,6 +73,8 @@ func (c *ClusterClient) MetricsClient() (*metricsclientset.Clientset, error) {
 
 // DynamicClient returns the dynamic client for CRDs (e.g., FluxCD resources),
 // creating it on first access. Subsequent calls return the cached client.
+//
+//nolint:ireturn // client-go exposes the dynamic client as an interface.
 func (c *ClusterClient) DynamicClient() (dynamic.Interface, error) {
 	c.dynamicOnce.Do(func() {
 		c.dynamicClient, c.dynamicErr = dynamic.NewForConfig(c.config)

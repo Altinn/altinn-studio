@@ -21,6 +21,10 @@ linters:
     - gomoddirectives
     - depguard
     - godox
+    - exhaustruct
+    - forbidigo
+    - godoclint
+    - mnd
 
   settings:
     errcheck:
@@ -96,11 +100,9 @@ linters:
         - name: import-shadowing
         - name: error-return
         - name: error-naming
-        - name: exported
         - name: if-return
         - name: increment-decrement
         - name: var-declaration
-        - name: package-comments
         - name: range
         - name: receiver-naming
         - name: time-naming
