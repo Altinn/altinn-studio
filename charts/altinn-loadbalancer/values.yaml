@@ -26,7 +26,7 @@ env:
   INFO_HOST: altinn-designer:3000
   REPOS_HOST: altinn-repositories-public
   LISTEN_DIRECTIVE: "443 ssl http2"
-  OTEL_ENDPOINT: localhost:4317
+  OTEL_ENDPOINT: http://otel-router.observability.svc.cluster.local:4317
   OTEL_SERVICE_NAME: studio-loadbalancer
   OTEL_TRACE: "on"
 
