@@ -2,34 +2,26 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using WorkflowEngine.Api.Tests.Fixtures;
 using WorkflowEngine.CommandHandlers.Handlers.AppCommand;
+using WorkflowEngine.CommandHandlers.Handlers.Webhook;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Api.Tests;
 
 public class WorkflowExecutorTests
 {
-    private static Command AppCommand(string commandKey, string? payload = null) =>
-        new()
-        {
-            Type = "app",
-            OperationId = commandKey,
-            Data = JsonSerializer.SerializeToElement(new { CommandKey = commandKey, Payload = payload }),
-        };
+    private static Command CreateAppCommand(string commandKey, string? payload = null) =>
+        AppCommand.Create(commandKey, new AppCommandData { CommandKey = commandKey, Payload = payload });
 
-    private static Command WebhookCommand(string uri, string? payload = null, string? contentType = null) =>
-        new()
-        {
-            Type = "webhook",
-            OperationId = "webhook",
-            Data = JsonSerializer.SerializeToElement(
-                new
-                {
-                    Uri = uri,
-                    Payload = payload,
-                    ContentType = contentType,
-                }
-            ),
-        };
+    private static Command CreateWebhookCommand(string uri, string? payload = null, string? contentType = null) =>
+        WebhookCommand.Create(
+            "webhook",
+            new WebhookCommandData
+            {
+                Uri = uri,
+                Payload = payload,
+                ContentType = contentType,
+            }
+        );
 
     // === Command Dispatch Tests ===
 
@@ -41,7 +33,7 @@ public class WorkflowExecutorTests
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
-        var step = WorkflowEngineTestFixture.CreateStep(AppCommand("test-command"));
+        var step = WorkflowEngineTestFixture.CreateStep(CreateAppCommand("test-command"));
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 
         // Act & Assert
@@ -56,7 +48,7 @@ public class WorkflowExecutorTests
         // Arrange
         using var fixture = WorkflowEngineTestFixture.Create();
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = AppCommand("test-command");
+        var command = CreateAppCommand("test-command");
         var step = WorkflowEngineTestFixture.CreateStep(command);
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 
@@ -77,7 +69,7 @@ public class WorkflowExecutorTests
         fixture.HttpHandler.ResponseStatusCode = System.Net.HttpStatusCode.InternalServerError;
         fixture.HttpHandler.ResponseContent = "Internal Server Error";
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = AppCommand("test-command");
+        var command = CreateAppCommand("test-command");
         var step = WorkflowEngineTestFixture.CreateStep(command);
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 
@@ -95,7 +87,7 @@ public class WorkflowExecutorTests
         // Arrange
         using var fixture = WorkflowEngineTestFixture.Create();
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = AppCommand("test-command", payload: "test-payload-data");
+        var command = CreateAppCommand("test-command", payload: "test-payload-data");
         var step = WorkflowEngineTestFixture.CreateStep(command);
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 
@@ -123,7 +115,7 @@ public class WorkflowExecutorTests
         // Arrange
         using var fixture = WorkflowEngineTestFixture.Create();
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = AppCommand("test-command");
+        var command = CreateAppCommand("test-command");
         var step = WorkflowEngineTestFixture.CreateStep(command);
 
         // Create workflow with context that has no lockToken
@@ -162,7 +154,7 @@ public class WorkflowExecutorTests
         // Arrange
         using var fixture = WorkflowEngineTestFixture.Create();
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = WebhookCommand("https://webhook.example.com/hook", payload: "webhook-data");
+        var command = CreateWebhookCommand("https://webhook.example.com/hook", payload: "webhook-data");
         var step = WorkflowEngineTestFixture.CreateStep(command);
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 
@@ -185,7 +177,7 @@ public class WorkflowExecutorTests
         // Arrange
         using var fixture = WorkflowEngineTestFixture.Create();
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = WebhookCommand("https://webhook.example.com/hook");
+        var command = CreateWebhookCommand("https://webhook.example.com/hook");
         var step = WorkflowEngineTestFixture.CreateStep(command);
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 
@@ -210,7 +202,7 @@ public class WorkflowExecutorTests
         fixture.HttpHandler.ResponseStatusCode = System.Net.HttpStatusCode.BadGateway;
         fixture.HttpHandler.ResponseContent = "Bad Gateway";
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = WebhookCommand("https://webhook.example.com/hook");
+        var command = CreateWebhookCommand("https://webhook.example.com/hook");
         var step = WorkflowEngineTestFixture.CreateStep(command);
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 
@@ -228,7 +220,7 @@ public class WorkflowExecutorTests
         // Arrange
         using var fixture = WorkflowEngineTestFixture.Create();
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = WebhookCommand(
+        var command = CreateWebhookCommand(
             "https://webhook.example.com/hook",
             payload: "{\"key\":\"value\"}",
             contentType: "application/json"

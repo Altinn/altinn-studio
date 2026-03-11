@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WorkflowEngine.CommandHandlers.Handlers.AppCommand;
+using WorkflowEngine.CommandHandlers.Handlers.Webhook;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
@@ -20,20 +21,16 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
     ) =>
         new()
         {
-            Command = new Command
-            {
-                Type = "webhook",
-                OperationId = path,
-                MaxExecutionTime = maxExecutionTime,
-                Data = JsonSerializer.SerializeToElement(
-                    new
-                    {
-                        uri = $"http://localhost:{fixture.WireMock.Port}{path}",
-                        payload,
-                        contentType,
-                    }
-                ),
-            },
+            Command = WebhookCommand.Create(
+                path,
+                new WebhookCommandData
+                {
+                    Uri = $"http://localhost:{fixture.WireMock.Port}{path}",
+                    Payload = payload,
+                    ContentType = contentType,
+                },
+                maxExecutionTime
+            ),
             RetryStrategy = retryStrategy,
         };
 
@@ -48,13 +45,11 @@ internal sealed class TestHelpers(EngineAppFixture fixture)
     ) =>
         new()
         {
-            Command = new Command
-            {
-                Type = "app",
-                OperationId = command,
-                MaxExecutionTime = maxExecutionTime,
-                Data = JsonSerializer.SerializeToElement(new { commandKey = command, payload }),
-            },
+            Command = AppCommand.Create(
+                command,
+                new AppCommandData { CommandKey = command, Payload = payload },
+                maxExecutionTime
+            ),
             RetryStrategy = retryStrategy,
         };
 

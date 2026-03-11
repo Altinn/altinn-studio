@@ -16,18 +16,19 @@ namespace WorkflowEngine.CommandHandlers.Handlers.Webhook;
 /// Handles "webhook" commands by making HTTP requests to arbitrary endpoints.
 /// If <c>Command.Data</c> includes a <c>payload</c>, sends a POST; otherwise sends a GET.
 /// </summary>
-public sealed class WebhookCommandDescriptor : CommandDescriptor<WebhookCommandData>
+public sealed class WebhookCommand : CommandDescriptor<WebhookCommandData>
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConcurrencyLimiter _limiter;
-    private readonly ILogger<WebhookCommandDescriptor> _logger;
+    private readonly ILogger<WebhookCommand> _logger;
 
-    public override string CommandType => "webhook";
+    private const string CommandTypeId = "webhook";
+    public override string CommandType => CommandTypeId;
 
-    public WebhookCommandDescriptor(
+    public WebhookCommand(
         IHttpClientFactory httpClientFactory,
         IConcurrencyLimiter limiter,
-        ILogger<WebhookCommandDescriptor> logger
+        ILogger<WebhookCommand> logger
     )
     {
         _httpClientFactory = httpClientFactory;
@@ -35,6 +36,13 @@ public sealed class WebhookCommandDescriptor : CommandDescriptor<WebhookCommandD
         _logger = logger;
     }
 
+    /// <summary>
+    /// Creates a <see cref="Command"/> with <see cref="WebhookCommandData"/>.
+    /// </summary>
+    public static Command Create(string operationId, WebhookCommandData data, TimeSpan? maxExecutionTime = null) =>
+        Command.Create(CommandTypeId, operationId, data, maxExecutionTime);
+
+    /// <inheritdoc/>
     protected override CommandValidationResult Validate(WebhookCommandData? commandData)
     {
         if (commandData is null || string.IsNullOrWhiteSpace(commandData.Uri))
@@ -46,6 +54,7 @@ public sealed class WebhookCommandDescriptor : CommandDescriptor<WebhookCommandD
         return CommandValidationResult.Accept();
     }
 
+    /// <inheritdoc/>
     protected override async Task<ExecutionResult> ExecuteAsync(
         CommandExecutionContext context,
         CancellationToken cancellationToken
@@ -111,12 +120,8 @@ public sealed class WebhookCommandDescriptor : CommandDescriptor<WebhookCommandD
 internal static partial class WebhookCommandDescriptorLogs
 {
     [LoggerMessage(LogLevel.Information, "[POST] Sending Webhook to {Endpoint} with payload: {Payload}")]
-    public static partial void SendingWebhookPost(
-        this ILogger<WebhookCommandDescriptor> logger,
-        Uri endpoint,
-        string payload
-    );
+    public static partial void SendingWebhookPost(this ILogger<WebhookCommand> logger, Uri endpoint, string payload);
 
     [LoggerMessage(LogLevel.Information, "[GET] Sending Webhook to {Endpoint} without payload")]
-    public static partial void SendingWebhookGet(this ILogger<WebhookCommandDescriptor> logger, Uri endpoint);
+    public static partial void SendingWebhookGet(this ILogger<WebhookCommand> logger, Uri endpoint);
 }

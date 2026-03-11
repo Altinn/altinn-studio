@@ -74,7 +74,7 @@ public static class ServiceCollectionExtensions
 
             services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromMinutes(2));
 
-            services.AddCommand<WebhookCommandDescriptor>();
+            services.AddCommand<WebhookCommand>();
 
             return services;
         }

@@ -1,8 +1,8 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using WorkflowEngine.Api.Endpoints;
 using WorkflowEngine.Api.Tests.Fixtures;
+using WorkflowEngine.CommandHandlers.Handlers.Webhook;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 
@@ -12,13 +12,8 @@ public class EngineEndpointTests
 {
     private const string DefaultTenantId = "test-tenant";
 
-    private static Command WebhookCommand(string uri) =>
-        new()
-        {
-            Type = "webhook",
-            OperationId = "webhook",
-            Data = JsonSerializer.SerializeToElement(new { Uri = uri }),
-        };
+    private static Command CreateWebhookCommand(string uri) =>
+        WebhookCommand.Create("webhook", new WebhookCommandData { Uri = uri });
 
     private static WorkflowEnqueueRequest _defaultWorkflowRequest =>
         new()
@@ -30,7 +25,7 @@ public class EngineEndpointTests
                 new WorkflowRequest
                 {
                     OperationId = "op-1",
-                    Steps = [new StepRequest { Command = WebhookCommand("/test") }],
+                    Steps = [new StepRequest { Command = CreateWebhookCommand("/test") }],
                 },
             ],
         };
@@ -144,14 +139,14 @@ public class EngineEndpointTests
                     Ref = "wf-a",
                     OperationId = "op-a",
                     DependsOn = [WorkflowRef.FromRefString("wf-b")],
-                    Steps = [new StepRequest { Command = WebhookCommand("/test-a") }],
+                    Steps = [new StepRequest { Command = CreateWebhookCommand("/test-a") }],
                 },
                 new WorkflowRequest
                 {
                     Ref = "wf-b",
                     OperationId = "op-b",
                     DependsOn = [WorkflowRef.FromRefString("wf-a")],
-                    Steps = [new StepRequest { Command = WebhookCommand("/test-b") }],
+                    Steps = [new StepRequest { Command = CreateWebhookCommand("/test-b") }],
                 },
             ],
         };

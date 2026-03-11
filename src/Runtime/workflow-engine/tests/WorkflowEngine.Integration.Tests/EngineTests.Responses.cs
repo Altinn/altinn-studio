@@ -132,12 +132,10 @@ public partial class EngineTests
                     [
                         new StepRequest
                         {
-                            Command = new Command
-                            {
-                                Type = "app",
-                                OperationId = "do-something",
-                                Data = JsonSerializer.SerializeToElement(new { commandKey = "do-something" }),
-                            },
+                            Command = AppCommand.Create(
+                                "do-something",
+                                new AppCommandData { CommandKey = "do-something" }
+                            ),
                         },
                     ],
                 },

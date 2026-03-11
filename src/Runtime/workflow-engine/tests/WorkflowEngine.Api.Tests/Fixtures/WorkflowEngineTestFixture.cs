@@ -75,8 +75,8 @@ internal sealed record WorkflowEngineTestFixture(
         );
 
         // Register default command descriptors and the registry
-        services.AddSingleton<ICommandDescriptor, AppCommandDescriptor>();
-        services.AddSingleton<ICommandDescriptor, WebhookCommandDescriptor>();
+        services.AddSingleton<ICommandDescriptor, AppCommand>();
+        services.AddSingleton<ICommandDescriptor, WebhookCommand>();
         services.AddSingleton<ICommandRegistry, CommandRegistry>();
         services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
 

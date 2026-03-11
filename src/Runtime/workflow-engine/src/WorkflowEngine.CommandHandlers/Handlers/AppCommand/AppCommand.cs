@@ -20,20 +20,21 @@ namespace WorkflowEngine.CommandHandlers.Handlers.AppCommand;
 /// Extracts actor, lockToken, and instance information from the typed workflow context
 /// and command-specific data from the typed command data.
 /// </summary>
-public sealed class AppCommandDescriptor : CommandDescriptor<AppCommandData, AppWorkflowContext>
+public sealed class AppCommand : CommandDescriptor<AppCommandData, AppWorkflowContext>
 {
     private readonly AppCommandSettings _settings;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConcurrencyLimiter _limiter;
-    private readonly ILogger<AppCommandDescriptor> _logger;
+    private readonly ILogger<AppCommand> _logger;
 
-    public override string CommandType => "app";
+    private const string CommandTypeId = "app";
+    public override string CommandType => CommandTypeId;
 
-    public AppCommandDescriptor(
+    public AppCommand(
         IOptions<AppCommandSettings> settings,
         IHttpClientFactory httpClientFactory,
         IConcurrencyLimiter limiter,
-        ILogger<AppCommandDescriptor> logger
+        ILogger<AppCommand> logger
     )
     {
         _settings = settings.Value;
@@ -42,6 +43,13 @@ public sealed class AppCommandDescriptor : CommandDescriptor<AppCommandData, App
         _logger = logger;
     }
 
+    /// <summary>
+    /// Creates a <see cref="Command"/> with <see cref="AppCommandData"/>.
+    /// </summary>
+    public static Command Create(string operationId, AppCommandData data, TimeSpan? maxExecutionTime = null) =>
+        Command.Create(CommandTypeId, operationId, data, maxExecutionTime);
+
+    /// <inheritdoc/>
     protected override CommandValidationResult Validate(
         AppCommandData? commandData,
         AppWorkflowContext? workflowContext
@@ -75,6 +83,7 @@ public sealed class AppCommandDescriptor : CommandDescriptor<AppCommandData, App
         return CommandValidationResult.Accept();
     }
 
+    /// <inheritdoc/>
     protected override async Task<ExecutionResult> ExecuteAsync(
         CommandExecutionContext context,
         CancellationToken cancellationToken
@@ -163,7 +172,7 @@ internal static partial class AppCommandDescriptorLogs
 {
     [LoggerMessage(LogLevel.Information, "Sending AppCommand to {Endpoint} with payload: {Payload}")]
     public static partial void SendingAppCommand(
-        this ILogger<AppCommandDescriptor> logger,
+        this ILogger<AppCommand> logger,
         Uri endpoint,
         AppCallbackPayload payload
     );

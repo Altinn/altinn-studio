@@ -13,9 +13,9 @@ public abstract class CommandDescriptor<TData, TContext> : ICommandDescriptor
 {
     public abstract string CommandType { get; }
 
-    public Type? CommandDataType => typeof(TData);
+    public Type CommandDataType => typeof(TData);
 
-    public Type? WorkflowContextType => typeof(TContext);
+    public Type WorkflowContextType => typeof(TContext);
 
     CommandValidationResult ICommandDescriptor.Validate(object? commandData, object? workflowContext) =>
         Validate(commandData as TData, workflowContext as TContext);
@@ -52,7 +52,7 @@ public abstract class CommandDescriptor<TData> : ICommandDescriptor
 {
     public abstract string CommandType { get; }
 
-    public Type? CommandDataType => typeof(TData);
+    public Type CommandDataType => typeof(TData);
 
     public Type? WorkflowContextType => null;
 

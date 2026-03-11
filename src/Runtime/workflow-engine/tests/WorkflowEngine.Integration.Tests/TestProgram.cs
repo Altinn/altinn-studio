@@ -52,7 +52,7 @@ public class Program
         builder.Services.AddEngineHealthChecks();
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddOpenApi(options => options.AddDocumentTransformer<ApiKeyOpenApiTransformer>());
-        builder.Services.AddCommand<WebhookCommandDescriptor>();
+        builder.Services.AddCommand<WebhookCommand>();
 
         var app = builder.Build();
 

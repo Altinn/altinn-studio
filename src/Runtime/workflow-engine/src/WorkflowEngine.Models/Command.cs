@@ -36,6 +36,30 @@ public sealed record Command
     [JsonPropertyName("data")]
     public JsonElement? Data { get; init; }
 
+    /// <summary>
+    /// Creates a <see cref="Command"/> with typed data, serialized via <see cref="CommandSerializerOptions.Default"/>.
+    /// </summary>
+    public static Command Create<TData>(string type, string operationId, TData data, TimeSpan? maxExecutionTime = null)
+        where TData : class =>
+        new()
+        {
+            Type = type,
+            OperationId = operationId,
+            MaxExecutionTime = maxExecutionTime,
+            Data = JsonSerializer.SerializeToElement(data, CommandSerializerOptions.Default),
+        };
+
+    /// <summary>
+    /// Creates a <see cref="Command"/> without data.
+    /// </summary>
+    public static Command Create(string type, string operationId, TimeSpan? maxExecutionTime = null) =>
+        new()
+        {
+            Type = type,
+            OperationId = operationId,
+            MaxExecutionTime = maxExecutionTime,
+        };
+
     /// <inheritdoc/>
     public override string ToString() => $"{Type}:{OperationId}";
 }
