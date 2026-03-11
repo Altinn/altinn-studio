@@ -47,6 +47,7 @@ http {
   }
 
   include /etc/nginx/extra-upstreams/*.conf;
+  include /etc/nginx/logging/*.conf;
 
   map $uri $spa_path {
     ~^/(dashboard|editor|preview|admin|resourceadm|info)(/.*)?$ $1;
@@ -64,8 +65,10 @@ http {
   }
 
   server {
-    listen 80;
+    listen ${LISTEN_DIRECTIVE};
     server_name ${SERVER_NAME};
+
+    include /etc/nginx/ssl/*.conf;
 
     proxy_cookie_path ~*^/.* /;
     proxy_redirect off;

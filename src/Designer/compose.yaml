@@ -43,8 +43,8 @@ services:
       - /bin/sh
       - -c
       - |
-        # Remove k8s-specific nginx config baked into the image
-        rm -f /etc/nginx/extra-upstreams/* /etc/nginx/extra-locations/* /etc/nginx/extra-servers/*
+        # Remove k8s-specific config baked into the image
+        rm -f /etc/nginx/extra-upstreams/* /etc/nginx/extra-locations/* /etc/nginx/extra-servers/* /etc/nginx/ssl/* /etc/nginx/logging/*
         if [ "$$DEVELOP_BACKEND" = "1" ]; then
           export DESIGNER_HOST="host.docker.internal:5000"
         fi
@@ -72,6 +72,7 @@ services:
       - INFO_HOST=studio-designer:6000
       - REPOS_HOST=gitea-proxy:80
       - SERVER_NAME=studio.localhost
+      - LISTEN_DIRECTIVE=80
     volumes:
       - ./../load-balancer/local/www:/www:ro
       - ./../load-balancer/local/error-pages:/etc/nginx/error-pages:ro
