@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -9,7 +10,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// ResourceType represents the type of Kubernetes resource
+var (
+	errNoResourceConditions = errors.New("no conditions found in resource status")
+	errInvalidNamespacedRef = errors.New("invalid namespace/name format")
+	errInvalidResourceType  = errors.New("invalid resource type")
+)
+
+// ResourceType represents the type of Kubernetes resource.
 type ResourceType string
 
 const (
@@ -19,23 +26,29 @@ const (
 	HTTPRouteResourceType     ResourceType = "httproute"
 )
 
-// QueryResult represents the result of a resource query
+// QueryResult represents the result of a resource query.
 type QueryResult struct {
+	Error                  error
+	PodAge                 *string
+	PodRestarts            *string
+	Weight1                *int
+	Weight2                *int
+	HasReconcileAnnotation *bool
+	Annotations            map[string]string
 	ClusterName            string
 	Namespace              string
 	Name                   string
 	Conditions             []metav1.Condition
-	PodAge                 *string            // Only populated for Deployment resources
-	PodRestarts            *string            // Only populated for Deployment resources
-	Weight1                *int               // Only populated for HTTPRoute resources
-	Weight2                *int               // Only populated for HTTPRoute resources
-	HasReconcileAnnotation *bool              // Only populated for HTTPRoute resources
-	Annotations            map[string]string  // Only populated for HTTPRoute resources
-	Error                  error
 }
 
-// GetResourceStatus queries a resource (FluxCD or Deployment) and returns its status
-func GetResourceStatus(ctx context.Context, runtime KubernetesRuntime, resourceType ResourceType, namespace string, name string) QueryResult {
+// GetResourceStatus queries a resource (FluxCD or Deployment) and returns its status.
+func GetResourceStatus(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	resourceType ResourceType,
+	namespace string,
+	name string,
+) QueryResult {
 	result := QueryResult{
 		ClusterName: runtime.GetName(),
 		Namespace:   namespace,
@@ -111,22 +124,22 @@ func GetResourceStatus(ctx context.Context, runtime KubernetesRuntime, resourceT
 	}
 
 	if len(result.Conditions) == 0 {
-		result.Error = fmt.Errorf("no conditions found in resource status")
+		result.Error = errNoResourceConditions
 	}
 
 	return result
 }
 
-// ParseNamespaceAndName parses the namespace/name format
+// ParseNamespaceAndName parses the namespace/name format.
 func ParseNamespaceAndName(input string) (namespace string, name string, err error) {
 	parts := strings.Split(input, "/")
 	if len(parts) != 2 {
-		return "", "", fmt.Errorf("invalid format: expected namespace/name, got: %s", input)
+		return "", "", fmt.Errorf("%w: expected namespace/name, got %q", errInvalidNamespacedRef, input)
 	}
 	return parts[0], parts[1], nil
 }
 
-// ParseResourceType parses the resource type string
+// ParseResourceType parses the resource type string.
 func ParseResourceType(input string) (ResourceType, error) {
 	switch strings.ToLower(input) {
 	case "hr", "helmrelease":
@@ -138,19 +151,25 @@ func ParseResourceType(input string) (ResourceType, error) {
 	case "httproute":
 		return HTTPRouteResourceType, nil
 	default:
-		return "", fmt.Errorf("invalid resource type: %s (expected: hr, ks, dep, or httproute)", input)
+		return "", fmt.Errorf("%w: %s (expected: hr, ks, dep, or httproute)", errInvalidResourceType, input)
 	}
 }
 
-// QueryAllClusters queries all clusters in parallel with a worker pool
-func QueryAllClusters(runtimes []KubernetesRuntime, resourceType ResourceType, namespace string, name string, maxWorkers int) []QueryResult {
+// QueryAllClusters queries all clusters in parallel with a worker pool.
+func QueryAllClusters(
+	runtimes []KubernetesRuntime,
+	resourceType ResourceType,
+	namespace string,
+	name string,
+	maxWorkers int,
+) []QueryResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	jobs := make(chan KubernetesRuntime, len(runtimes))
 	results := make(chan QueryResult, len(runtimes))
 
-	for w := 0; w < maxWorkers; w++ {
+	for range maxWorkers {
 		go func() {
 			for runtime := range jobs {
 				result := GetResourceStatus(ctx, runtime, resourceType, namespace, name)
@@ -164,8 +183,8 @@ func QueryAllClusters(runtimes []KubernetesRuntime, resourceType ResourceType, n
 	}
 	close(jobs)
 
-	var queryResults []QueryResult
-	for i := 0; i < len(runtimes); i++ {
+	queryResults := make([]QueryResult, 0, len(runtimes))
+	for range runtimes {
 		queryResults = append(queryResults, <-results)
 	}
 	close(results)
@@ -184,7 +203,7 @@ func GetLatestCondition(conditions []metav1.Condition) []metav1.Condition {
 	// Find the latest timestamp
 	latestTime := conditions[0].LastTransitionTime.Time
 	for _, cond := range conditions[1:] {
-		if cond.LastTransitionTime.Time.After(latestTime) {
+		if cond.LastTransitionTime.After(latestTime) {
 			latestTime = cond.LastTransitionTime.Time
 		}
 	}

@@ -2,8 +2,10 @@ package kubernetes
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -13,27 +15,33 @@ import (
 	metricsv1beta1 "k8s.io/metrics/pkg/apis/metrics/v1beta1"
 )
 
-// NodeResult represents the result of querying node information from a cluster
+const notAvailable = "N/A"
+
+var errNoNodesForSelector = errors.New("no nodes found for label selector")
+
+// NodeResult represents the result of querying node information from a cluster.
 type NodeResult struct {
-	ClusterName              string
-	ServiceOwner             string
-	Environment              string
-	K8sVersion               string
-	NodeCount                int
-	PodCount                 int
-	CPUTotal                 string
-	CPUPerNode               string
-	CPUUsed                  string
-	CPUUtilizationPercent    string
-	MemoryTotal              string
-	MemoryPerNode            string
-	MemoryUsed               string
-	MemoryUtilizationPercent string
-	NewestNodeAge            string
 	Error                    error
+	MemoryUsed               string
+	CPUUsed                  string
+	K8sVersion               string
+	ServiceOwner             string
+	NewestNodeAge            string
+	CPUTotal                 string
+	Environment              string
+	MemoryPerNode            string
+	CPUPerNode               string
+	MemoryTotal              string
+	CPUUtilizationPercent    string
+	ClusterName              string
+	MemoryUtilizationPercent string
+	PodCount                 int
+	NodeCount                int
 }
 
-// GetNodesInfo queries node information for a specific cluster using client-go
+// GetNodesInfo queries node information for a specific cluster using client-go.
+//
+//nolint:funlen,gocognit,gocyclo,nestif // Node aggregation combines discovery, optional metrics, and formatting.
 func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector string) NodeResult {
 	result := NodeResult{
 		ClusterName:  runtime.GetName(),
@@ -59,7 +67,7 @@ func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector 
 	}
 
 	if len(nodes.Items) == 0 {
-		result.Error = fmt.Errorf("no nodes found matching label selector: %s", labelSelector)
+		result.Error = fmt.Errorf("%w: %s", errNoNodesForSelector, labelSelector)
 		return result
 	}
 
@@ -137,20 +145,20 @@ func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector 
 	metricsClient, err := client.MetricsClient()
 	if err != nil {
 		// Metrics-server might not be available, this is not a fatal error
-		result.CPUUsed = "N/A"
-		result.CPUUtilizationPercent = "N/A"
-		result.MemoryUsed = "N/A"
-		result.MemoryUtilizationPercent = "N/A"
+		result.CPUUsed = notAvailable
+		result.CPUUtilizationPercent = notAvailable
+		result.MemoryUsed = notAvailable
+		result.MemoryUtilizationPercent = notAvailable
 	} else {
 		nodeMetricsList, err := metricsClient.MetricsV1beta1().NodeMetricses().List(ctx, metav1.ListOptions{
 			LabelSelector: labelSelector,
 		})
 		if err != nil {
 			// Metrics-server might not be available, this is not a fatal error
-			result.CPUUsed = "N/A"
-			result.CPUUtilizationPercent = "N/A"
-			result.MemoryUsed = "N/A"
-			result.MemoryUtilizationPercent = "N/A"
+			result.CPUUsed = notAvailable
+			result.CPUUtilizationPercent = notAvailable
+			result.MemoryUsed = notAvailable
+			result.MemoryUtilizationPercent = notAvailable
 		} else {
 			// Create a map for quick lookup
 			metricsMap := make(map[string]metricsv1beta1.NodeMetrics)
@@ -188,7 +196,7 @@ func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector 
 				cpuUtilPct := (float64(totalCPUUsed) / float64(totalCPUAllocatable)) * 100
 				result.CPUUtilizationPercent = fmt.Sprintf("%.1f%%", cpuUtilPct)
 			} else {
-				result.CPUUtilizationPercent = "N/A"
+				result.CPUUtilizationPercent = notAvailable
 			}
 
 			// Format memory used
@@ -199,7 +207,7 @@ func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector 
 				memUtilPct := (float64(totalMemUsed) / float64(totalMemAllocatable)) * 100
 				result.MemoryUtilizationPercent = fmt.Sprintf("%.1f%%", memUtilPct)
 			} else {
-				result.MemoryUtilizationPercent = "N/A"
+				result.MemoryUtilizationPercent = notAvailable
 			}
 		}
 	}
@@ -207,7 +215,7 @@ func GetNodesInfo(ctx context.Context, runtime KubernetesRuntime, labelSelector 
 	return result
 }
 
-// QueryAllClustersForNodes queries node information from multiple clusters in parallel
+// QueryAllClustersForNodes queries node information from multiple clusters in parallel.
 func QueryAllClustersForNodes(runtimes []KubernetesRuntime, labelSelector string, maxWorkers int) []NodeResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -218,15 +226,13 @@ func QueryAllClustersForNodes(runtimes []KubernetesRuntime, labelSelector string
 	var wg sync.WaitGroup
 
 	// Start workers
-	for w := 0; w < maxWorkers; w++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range maxWorkers {
+		wg.Go(func() {
 			for runtime := range jobs {
 				result := GetNodesInfo(ctx, runtime, labelSelector)
 				results <- result
 			}
-		}()
+		})
 	}
 
 	// Queue jobs
@@ -250,7 +256,7 @@ func QueryAllClustersForNodes(runtimes []KubernetesRuntime, labelSelector string
 	return nodeResults
 }
 
-// formatCPU formats CPU quantity to cores (e.g., "16" for 16 cores)
+// formatCPU formats CPU quantity to cores (e.g., "16" for 16 cores).
 func formatCPU(cpu *resource.Quantity) string {
 	// Convert to millicores then to cores
 	milliCores := cpu.MilliValue()
@@ -261,36 +267,36 @@ func formatCPU(cpu *resource.Quantity) string {
 	return fmt.Sprintf("%.1f", cores)
 }
 
-// formatMemory formats memory quantity to human-readable format (e.g., "64Gi")
+// formatMemory formats memory quantity to human-readable format (e.g., "64Gi").
 func formatMemory(mem *resource.Quantity) string {
 	bytes := mem.Value()
 	return formatMemoryBytes(bytes)
 }
 
-// formatMemoryBytes formats bytes to human-readable format
+// formatMemoryBytes formats bytes to human-readable format.
 func formatMemoryBytes(bytes int64) string {
 	const (
-		KiB = 1024
-		MiB = 1024 * KiB
-		GiB = 1024 * MiB
-		TiB = 1024 * GiB
+		kiB = 1024
+		miB = 1024 * kiB
+		giB = 1024 * miB
+		tiB = 1024 * giB
 	)
 
 	switch {
-	case bytes >= TiB:
-		return fmt.Sprintf("%.1fTi", float64(bytes)/float64(TiB))
-	case bytes >= GiB:
-		return fmt.Sprintf("%.1fGi", float64(bytes)/float64(GiB))
-	case bytes >= MiB:
-		return fmt.Sprintf("%.1fMi", float64(bytes)/float64(MiB))
-	case bytes >= KiB:
-		return fmt.Sprintf("%.1fKi", float64(bytes)/float64(KiB))
+	case bytes >= tiB:
+		return fmt.Sprintf("%.1fTi", float64(bytes)/float64(tiB))
+	case bytes >= giB:
+		return fmt.Sprintf("%.1fGi", float64(bytes)/float64(giB))
+	case bytes >= miB:
+		return fmt.Sprintf("%.1fMi", float64(bytes)/float64(miB))
+	case bytes >= kiB:
+		return fmt.Sprintf("%.1fKi", float64(bytes)/float64(kiB))
 	default:
-		return fmt.Sprintf("%d", bytes)
+		return strconv.FormatInt(bytes, 10)
 	}
 }
 
-// getMostCommonVersion returns the most common Kubernetes version from the map
+// getMostCommonVersion returns the most common Kubernetes version from the map.
 func getMostCommonVersion(versions map[string]int) string {
 	if len(versions) == 0 {
 		return "unknown"

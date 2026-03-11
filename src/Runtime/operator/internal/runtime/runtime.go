@@ -1,13 +1,14 @@
 package runtime
 
 import (
+	"github.com/jonboulle/clockwork"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/trace"
+
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/maskinporten"
 	"altinn.studio/operator/internal/operatorcontext"
-	"github.com/jonboulle/clockwork"
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type Runtime interface {

@@ -181,6 +181,7 @@ func (g *GitCLI) run(ctx context.Context, args ...string) (string, error) {
 
 	g.log.Command("git", args)
 
+	//nolint:gosec // G204: executable is fixed to git; args are the intended wrapper input.
 	cmd := exec.CommandContext(ctx, "git", args...)
 	if g.workdir != "" {
 		cmd.Dir = g.workdir
@@ -214,6 +215,7 @@ func (g *GitCLI) runExitCode(ctx context.Context, args ...string) (int, error) {
 
 	g.log.Command("git", args)
 
+	//nolint:gosec // G204: executable is fixed to git; args are the intended wrapper input.
 	cmd := exec.CommandContext(ctx, "git", args...)
 	if g.workdir != "" {
 		cmd.Dir = g.workdir

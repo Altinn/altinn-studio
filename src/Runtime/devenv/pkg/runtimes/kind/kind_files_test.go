@@ -1,6 +1,7 @@
 package kind
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -8,7 +9,7 @@ import (
 	"sigs.k8s.io/kind/pkg/apis/config/v1alpha4"
 )
 
-// TestNew_ShowCachePathStructure demonstrates the file structure created in cachePath
+// TestNew_ShowCachePathStructure demonstrates the file structure created in cachePath.
 func TestNew_ShowCachePathStructure(t *testing.T) {
 	cachePath := filepath.Join(t.TempDir(), ".cache")
 
@@ -28,7 +29,10 @@ func TestNew_ShowCachePathStructure(t *testing.T) {
 			return err
 		}
 
-		relPath, _ := filepath.Rel(cachePath, path)
+		relPath, err := filepath.Rel(cachePath, path)
+		if err != nil {
+			return fmt.Errorf("derive relative path for %s: %w", path, err)
+		}
 		if relPath == "." {
 			return nil
 		}
@@ -52,7 +56,7 @@ func TestNew_ShowCachePathStructure(t *testing.T) {
 	t.Logf("    Node count: %d", len(runtime.kindConfig.Nodes))
 }
 
-// TestNew_VerifyInMemoryConfig ensures kindConfig is properly constructed
+// TestNew_VerifyInMemoryConfig ensures kindConfig is properly constructed.
 func TestNew_VerifyInMemoryConfig(t *testing.T) {
 	cachePath := filepath.Join(t.TempDir(), ".cache")
 
@@ -109,7 +113,7 @@ func TestNew_VerifyInMemoryConfig(t *testing.T) {
 	t.Log("All config checks passed ✓")
 }
 
-// TestNew_CompareVariants shows the difference between Standard and Minimal variants
+// TestNew_CompareVariants shows the difference between Standard and Minimal variants.
 func TestNew_CompareVariants(t *testing.T) {
 	tests := []struct {
 		name          string

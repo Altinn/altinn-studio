@@ -1,11 +1,15 @@
+//nolint:cyclop // This CLI keeps related subcommands in one file, which skews the package-average metric.
 package main
 
 import (
 	"bufio"
+	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -14,6 +18,25 @@ import (
 	"altinn.studio/runtime-health/internal/kubernetes"
 	"altinn.studio/runtime-health/internal/output"
 	"altinn.studio/runtime-health/internal/runtimes/dis"
+)
+
+const (
+	maxClusterWorkers = 16
+)
+
+var (
+	errUsage              = errors.New("invalid command usage")
+	errUnknownCommand     = errors.New("unknown command")
+	errInvalidEnvironment = errors.New("invalid environment")
+	errNoValidEnvironment = errors.New("no valid environments provided")
+	errInvalidWeight      = errors.New("invalid weight")
+	errNoMatchingClusters = errors.New("no matching clusters found")
+	errUpdateHTTPRoutes   = errors.New("failed to update httproutes on some clusters")
+	errUnsupportedCommand = errors.New("unsupported command")
+	errCommandNotFound    = errors.New("command not found")
+	errCommandFailed      = errors.New("command failed on one or more clusters")
+	errMissingLogFilter   = errors.New("at least one of --since or --tail must be specified")
+	errReadUserInput      = errors.New("failed to read user input")
 )
 
 func main() {
@@ -71,17 +94,109 @@ Examples:
 Run 'go run cmd/main.go <command> -h' for more information on a specific command.`
 }
 
+func usageError(usage string) error {
+	return fmt.Errorf("%w\n\n%s", errUsage, usage)
+}
+
+func serviceOwnerArg(serviceowner string) string {
+	if serviceowner == "" {
+		return ""
+	}
+
+	return " -s " + serviceowner
+}
+
+func noMatchingClustersError(envArg string, serviceowner string) error {
+	return fmt.Errorf(
+		"%w\n\nRun 'go run cmd/main.go init %s%s' to discover and configure clusters",
+		errNoMatchingClusters,
+		envArg,
+		serviceOwnerArg(serviceowner),
+	)
+}
+
+func parseCommandArgs(fs *flag.FlagSet) ([]string, error) {
+	if err := fs.Parse(os.Args[2:]); err != nil {
+		return nil, fmt.Errorf("parse %s flags: %w", fs.Name(), err)
+	}
+
+	return fs.Args(), nil
+}
+
+func parseNamespaceAndName(input string) (string, string, error) {
+	namespace, name, err := kubernetes.ParseNamespaceAndName(input)
+	if err != nil {
+		return "", "", fmt.Errorf("parse namespace/name %q: %w", input, err)
+	}
+
+	return namespace, name, nil
+}
+
+func parseResourceType(input string) (kubernetes.ResourceType, error) {
+	resourceType, err := kubernetes.ParseResourceType(input)
+	if err != nil {
+		return "", fmt.Errorf("parse resource type %q: %w", input, err)
+	}
+
+	return resourceType, nil
+}
+
+func validateKubectl() error {
+	if err := kubernetes.ValidateKubectl(); err != nil {
+		return fmt.Errorf("validate kubectl: %w", err)
+	}
+
+	return nil
+}
+
+func validateAzurePrerequisites() error {
+	if err := az.ValidateAzCLI(); err != nil {
+		return fmt.Errorf("validate az cli: %w", err)
+	}
+	if err := az.ValidateUserLogin(); err != nil {
+		return fmt.Errorf("validate az login: %w", err)
+	}
+
+	return validateKubectl()
+}
+
+func listContextRuntimes(environments []string, serviceowner string) ([]kubernetes.KubernetesRuntime, error) {
+	runtimes, err := dis.ListFromContext(environments, serviceowner)
+	if err != nil {
+		return nil, fmt.Errorf("list runtimes from context: %w", err)
+	}
+
+	return runtimes, nil
+}
+
+func listAzureRuntimes(environments []string, serviceowner string) ([]kubernetes.KubernetesRuntime, error) {
+	runtimes, err := dis.ListFromAzure(environments, serviceowner)
+	if err != nil {
+		return nil, fmt.Errorf("list runtimes from azure: %w", err)
+	}
+
+	return runtimes, nil
+}
+
+func parseWeightArg(name string, raw string) (int, error) {
+	value, err := strconv.Atoi(raw)
+	if err != nil {
+		return 0, fmt.Errorf("%w %s %q: expected an integer", errInvalidWeight, name, raw)
+	}
+
+	return value, nil
+}
+
 func run() error {
 	if len(os.Args) < 2 {
-		return fmt.Errorf("%s", printUsage())
+		return usageError(printUsage())
 	}
 
 	command := os.Args[1]
 
 	switch command {
 	case "help":
-		fmt.Println(printUsage())
-		os.Exit(0)
+		fmt.Print(printUsage())
 		return nil
 	case "init":
 		return runInit()
@@ -96,18 +211,18 @@ func run() error {
 	case "nodes":
 		return runNodes()
 	default:
-		return fmt.Errorf("unknown command: %s\n\n%s", command, printUsage())
+		return fmt.Errorf("%w: %s\n\n%s", errUnknownCommand, command, printUsage())
 	}
 }
 
 func validateEnvironments(environmentsStr string) ([]string, error) {
-	validEnvs := map[string]bool{
-		"at22": true,
-		"at23": true,
-		"at24": true,
-		"yt01": true,
-		"tt02": true,
-		"prod": true,
+	validEnvs := map[string]struct{}{
+		"at22": {},
+		"at23": {},
+		"at24": {},
+		"yt01": {},
+		"tt02": {},
+		"prod": {},
 	}
 
 	environments := strings.Split(environmentsStr, ",")
@@ -118,40 +233,51 @@ func validateEnvironments(environmentsStr string) ([]string, error) {
 		if env == "" {
 			continue
 		}
-		if !validEnvs[env] {
-			return nil, fmt.Errorf("invalid environment: %s (expected: at22, at23, at24, yt01, tt02, prod)", env)
+		if _, ok := validEnvs[env]; !ok {
+			return nil, fmt.Errorf(
+				"%w: %s (expected: at22, at23, at24, yt01, tt02, prod)",
+				errInvalidEnvironment,
+				env,
+			)
 		}
 		validated = append(validated, env)
 	}
 
 	if len(validated) == 0 {
-		return nil, fmt.Errorf("no valid environments provided")
+		return nil, errNoValidEnvironment
 	}
 
 	return validated, nil
 }
 
+//nolint:funlen,gocognit,gocyclo,maintidx // CLI subcommand flow mixes parsing, confirmation, and per-environment reporting.
 func runSetWeight() error {
+	const desiredWeightSum = 100
+
 	setWeightCmd := flag.NewFlagSet("set-weight", flag.ExitOnError)
 	serviceowner := setWeightCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
 	setWeightCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
 	dryRun := setWeightCmd.Bool("dry-run", false, "Show what would change without applying")
 
-	setWeightCmd.Parse(os.Args[2:])
-	args := setWeightCmd.Args()
+	args, err := parseCommandArgs(setWeightCmd)
+	if err != nil {
+		return err
+	}
 
 	if len(args) != 4 {
-		return fmt.Errorf("usage: go run cmd/main.go set-weight [flags] <environments> <namespace/name> <weight1> <weight2>\n\n" +
-			"Arguments:\n" +
-			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
-			"  namespace/name  HTTPRoute location (e.g., pdf/pdf3-migration)\n" +
-			"  weight1         Weight for first backendRef (0-100)\n" +
-			"  weight2         Weight for second backendRef (0-100)\n\n" +
-			"Flags:\n" +
-			"  -s, --service-owner string\n" +
-			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n" +
-			"  --dry-run\n" +
-			"                  Show what would change without applying")
+		return usageError(
+			"usage: go run cmd/main.go set-weight [flags] <environments> <namespace/name> <weight1> <weight2>\n\n" +
+				"Arguments:\n" +
+				"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
+				"  namespace/name  HTTPRoute location (e.g., pdf/pdf3-migration)\n" +
+				"  weight1         Weight for first backendRef (0-100)\n" +
+				"  weight2         Weight for second backendRef (0-100)\n\n" +
+				"Flags:\n" +
+				"  -s, --service-owner string\n" +
+				"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)\n" +
+				"  --dry-run\n" +
+				"                  Show what would change without applying",
+		)
 	}
 
 	environments, err := validateEnvironments(args[0])
@@ -159,33 +285,38 @@ func runSetWeight() error {
 		return err
 	}
 
-	namespaceAndName := args[1]
-	namespace, name, err := kubernetes.ParseNamespaceAndName(namespaceAndName)
+	namespace, name, err := parseNamespaceAndName(args[1])
 	if err != nil {
 		return err
 	}
 
-	// Parse and validate weights
-	var weight1, weight2 int
-	if _, err := fmt.Sscanf(args[2], "%d", &weight1); err != nil {
-		return fmt.Errorf("invalid weight1: %s (must be an integer)", args[2])
+	weight1, err := parseWeightArg("weight1", args[2])
+	if err != nil {
+		return err
 	}
-	if _, err := fmt.Sscanf(args[3], "%d", &weight2); err != nil {
-		return fmt.Errorf("invalid weight2: %s (must be an integer)", args[3])
+	weight2, err := parseWeightArg("weight2", args[3])
+	if err != nil {
+		return err
 	}
 
 	if weight1 < 0 || weight2 < 0 {
-		return fmt.Errorf("weights must be non-negative integers (got weight1=%d, weight2=%d)", weight1, weight2)
+		return fmt.Errorf("%w: weight1=%d, weight2=%d", errInvalidWeight, weight1, weight2)
 	}
 
-	if weight1+weight2 != 100 {
-		return fmt.Errorf("weights must sum to 100 (got weight1=%d + weight2=%d = %d)", weight1, weight2, weight1+weight2)
+	if weight1+weight2 != desiredWeightSum {
+		return fmt.Errorf(
+			"%w: weight1=%d + weight2=%d = %d",
+			errInvalidWeight,
+			weight1,
+			weight2,
+			weight1+weight2,
+		)
 	}
 
 	fmt.Println("Validating prerequisites...")
 
-	if err := kubernetes.ValidateKubectl(); err != nil {
-		return err
+	if validateErr := validateKubectl(); validateErr != nil {
+		return validateErr
 	}
 
 	envStr := strings.Join(environments, ", ")
@@ -196,29 +327,20 @@ func runSetWeight() error {
 	fmt.Println()
 
 	// Get all kubectl runtimes and filter by environments and serviceowner
-	runtimes, err := dis.ListFromContext(environments, *serviceowner)
+	runtimes, err := listContextRuntimes(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
 
 	if len(runtimes) == 0 {
-		return fmt.Errorf("no matching clusters found\n\n"+
-			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
-			args[0],
-			func() string {
-				if *serviceowner != "" {
-					return fmt.Sprintf(" -s %s", *serviceowner)
-				}
-				return ""
-			}())
+		return noMatchingClustersError(args[0], *serviceowner)
 	}
 
 	fmt.Printf("Found %d cluster(s)\n", len(runtimes))
 
 	fmt.Printf("Fetching current HTTPRoute %s/%s from %d cluster(s)...\n", namespace, name, len(runtimes))
 
-	maxWorkers := 16
-	results := kubernetes.GetAllHTTPRoutes(runtimes, namespace, name, maxWorkers)
+	results := kubernetes.GetAllHTTPRoutes(runtimes, namespace, name, maxClusterWorkers)
 
 	// Create a map from cluster name to environment for filtering
 	clusterEnv := make(map[string]string, len(runtimes))
@@ -253,10 +375,20 @@ func runSetWeight() error {
 			} else {
 				needsUpdate := result.CurrentWeight1 != weight1 || result.CurrentWeight2 != weight2
 				if needsUpdate {
-					fmt.Printf("  → %s: weight1=%d, weight2=%d (will change)\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
+					fmt.Printf(
+						"  → %s: weight1=%d, weight2=%d (will change)\n",
+						result.ClusterName,
+						result.CurrentWeight1,
+						result.CurrentWeight2,
+					)
 					routesToUpdate = append(routesToUpdate, result)
 				} else {
-					fmt.Printf("  ✓ %s: weight1=%d, weight2=%d (already correct)\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
+					fmt.Printf(
+						"  ✓ %s: weight1=%d, weight2=%d (already correct)\n",
+						result.ClusterName,
+						result.CurrentWeight1,
+						result.CurrentWeight2,
+					)
 				}
 			}
 		}
@@ -292,7 +424,7 @@ func runSetWeight() error {
 	}
 
 	fmt.Println("\nApplying weight changes...")
-	updateResults := kubernetes.UpdateAllHTTPRoutes(runtimes, routesToUpdate, weight1, weight2, maxWorkers)
+	updateResults := kubernetes.UpdateAllHTTPRoutes(runtimes, routesToUpdate, weight1, weight2, maxClusterWorkers)
 
 	// Group results by environment (reuse clusterEnv map from above)
 	fmt.Println("\nResults:")
@@ -320,36 +452,45 @@ func runSetWeight() error {
 				fmt.Printf("  ✗ %s: FAILED - %v\n", result.ClusterName, result.Error)
 				updateErrors = true
 			} else {
-				fmt.Printf("  ✓ %s: Successfully updated to weight1=%d, weight2=%d\n", result.ClusterName, result.CurrentWeight1, result.CurrentWeight2)
+				fmt.Printf(
+					"  ✓ %s: Successfully updated to weight1=%d, weight2=%d\n",
+					result.ClusterName,
+					result.CurrentWeight1,
+					result.CurrentWeight2,
+				)
 			}
 		}
 	}
 
 	if updateErrors {
-		return fmt.Errorf("errors occurred while updating HTTPRoutes on some clusters")
+		return errUpdateHTTPRoutes
 	}
 
 	fmt.Println("\n✓ All HTTPRoutes updated successfully")
 	return nil
 }
 
+//nolint:funlen,gocognit,gocyclo // CLI status output groups results per environment and resource type.
 func runStatus() error {
 	statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
 	serviceowner := statusCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
 	statusCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
 
-	statusCmd.Parse(os.Args[2:])
-
-	args := statusCmd.Args()
+	args, err := parseCommandArgs(statusCmd)
+	if err != nil {
+		return err
+	}
 	if len(args) != 3 {
-		return fmt.Errorf("usage: go run cmd/main.go status [flags] <environments> <resource-type> <namespace/name>\n\n" +
-			"Arguments:\n" +
-			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
-			"  resource-type   hr (helmrelease) or ks (kustomization) or dep (deployment) or httproute\n" +
-			"  namespace/name  Resource location (e.g., default/my-app)\n\n" +
-			"Flags:\n" +
-			"  -s, --service-owner string\n" +
-			"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
+		return usageError(
+			"usage: go run cmd/main.go status [flags] <environments> <resource-type> <namespace/name>\n\n" +
+				"Arguments:\n" +
+				"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
+				"  resource-type   hr (helmrelease) or ks (kustomization) or dep (deployment) or httproute\n" +
+				"  namespace/name  Resource location (e.g., default/my-app)\n\n" +
+				"Flags:\n" +
+				"  -s, --service-owner string\n" +
+				"                  Optional: specific serviceowner ID (e.g., ttd, brg, skd)",
+		)
 	}
 
 	environments, err := validateEnvironments(args[0])
@@ -360,20 +501,20 @@ func runStatus() error {
 	resourceTypeStr := args[1]
 	namespaceAndName := args[2]
 
-	resourceType, err := kubernetes.ParseResourceType(resourceTypeStr)
+	resourceType, err := parseResourceType(resourceTypeStr)
 	if err != nil {
 		return err
 	}
 
-	namespace, name, err := kubernetes.ParseNamespaceAndName(namespaceAndName)
+	namespace, name, err := parseNamespaceAndName(namespaceAndName)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("Validating prerequisites...")
 
-	if err := kubernetes.ValidateKubectl(); err != nil {
-		return err
+	if validateErr := validateKubectl(); validateErr != nil {
+		return validateErr
 	}
 
 	envStr := strings.Join(environments, ", ")
@@ -384,21 +525,13 @@ func runStatus() error {
 	fmt.Println()
 
 	// Get all kubectl contexts and filter by environments and serviceowner
-	runtimes, err := dis.ListFromContext(environments, *serviceowner)
+	runtimes, err := listContextRuntimes(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
 
 	if len(runtimes) == 0 {
-		return fmt.Errorf("no matching clusters found\n\n"+
-			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
-			args[0],
-			func() string {
-				if *serviceowner != "" {
-					return fmt.Sprintf(" -s %s", *serviceowner)
-				}
-				return ""
-			}())
+		return noMatchingClustersError(args[0], *serviceowner)
 	}
 
 	fmt.Printf("Found %d cluster(s)\n", len(runtimes))
@@ -406,8 +539,7 @@ func runStatus() error {
 	fmt.Printf("Querying %s %s/%s across %d cluster(s)...\n",
 		resourceType, namespace, name, len(runtimes))
 
-	maxWorkers := 16
-	results := kubernetes.QueryAllClusters(runtimes, resourceType, namespace, name, maxWorkers)
+	results := kubernetes.QueryAllClusters(runtimes, resourceType, namespace, name, maxClusterWorkers)
 
 	// Create a map from cluster name to environment for filtering
 	clusterEnv := make(map[string]string, len(runtimes))
@@ -432,23 +564,25 @@ func runStatus() error {
 
 		if len(envResults) > 0 {
 			fmt.Printf("=== Environment: %s ===\n", environment)
-			output.PrintResults(os.Stdout, envResults)
+			if err := output.PrintResults(os.Stdout, envResults); err != nil {
+				return fmt.Errorf("print status results: %w", err)
+			}
 		}
 	}
 
 	return nil
 }
 
-// ExecResult represents the result of executing a command on a cluster
+// ExecResult represents the result of executing a command on a cluster.
 type ExecResult struct {
+	Error       error
 	ClusterName string
-	ExitCode    int
 	Stdout      string
 	Stderr      string
-	Error       error
+	ExitCode    int
 }
 
-// getContextFlag returns the context flag name for a given command
+// getContextFlag returns the context flag name for a given command.
 func getContextFlag(command string) (string, error) {
 	contextFlags := map[string]string{
 		"kubectl": "--context",
@@ -456,24 +590,27 @@ func getContextFlag(command string) (string, error) {
 		"helm":    "--kube-context",
 	}
 
-	if flag, ok := contextFlags[command]; ok {
-		return flag, nil
+	if contextFlag, ok := contextFlags[command]; ok {
+		return contextFlag, nil
 	}
 
-	return "", fmt.Errorf("unsupported command: %s (supported: kubectl, flux, helm)", command)
+	return "", fmt.Errorf("%w: %s (supported: kubectl, flux, helm)", errUnsupportedCommand, command)
 }
 
+//nolint:funlen,gocognit,gocyclo,maintidx,nestif // CLI subcommand flow mixes parsing, confirmation, concurrency, and grouped reporting.
 func runExec() error {
 	execCmd := flag.NewFlagSet("exec", flag.ExitOnError)
 	serviceowner := execCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
 	execCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
 	dryRun := execCmd.Bool("dry-run", false, "Show what would be executed without running")
 
-	execCmd.Parse(os.Args[2:])
-	args := execCmd.Args()
+	args, err := parseCommandArgs(execCmd)
+	if err != nil {
+		return err
+	}
 
 	if len(args) < 2 {
-		return fmt.Errorf("usage: go run cmd/main.go exec [flags] <environments> <command> [args...]\n\n" +
+		return usageError("usage: go run cmd/main.go exec [flags] <environments> <command> [args...]\n\n" +
 			"Arguments:\n" +
 			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
 			"  command         kubectl, flux, or helm\n" +
@@ -504,14 +641,14 @@ func runExec() error {
 	}
 
 	// Validate that the command binary exists
-	if _, err := exec.LookPath(command); err != nil {
-		return fmt.Errorf("command not found: %s (please ensure %s is installed and in PATH)", command, command)
+	if _, lookPathErr := exec.LookPath(command); lookPathErr != nil {
+		return fmt.Errorf("%w: %s (please ensure %s is installed and in PATH)", errCommandNotFound, command, command)
 	}
 
 	fmt.Println("Validating prerequisites...")
 
-	if err := kubernetes.ValidateKubectl(); err != nil {
-		return err
+	if validateErr := validateKubectl(); validateErr != nil {
+		return validateErr
 	}
 
 	envStr := strings.Join(environments, ", ")
@@ -522,21 +659,13 @@ func runExec() error {
 	fmt.Println()
 
 	// Get all kubectl contexts and filter by environments and serviceowner
-	runtimes, err := dis.ListFromContext(environments, *serviceowner)
+	runtimes, err := listContextRuntimes(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
 
 	if len(runtimes) == 0 {
-		return fmt.Errorf("no matching clusters found\n\n"+
-			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
-			args[0],
-			func() string {
-				if *serviceowner != "" {
-					return fmt.Sprintf(" -s %s", *serviceowner)
-				}
-				return ""
-			}())
+		return noMatchingClustersError(args[0], *serviceowner)
 	}
 
 	fmt.Printf("Found %d cluster(s)\n", len(runtimes))
@@ -577,7 +706,7 @@ func runExec() error {
 	fmt.Printf("\nExecuting command on %d cluster(s)...\n", len(runtimes))
 
 	// Execute commands in parallel using worker pool
-	maxWorkers := min(16, len(runtimes))
+	maxWorkers := min(maxClusterWorkers, len(runtimes))
 
 	jobs := make(chan string, len(runtimes))
 	results := make(chan ExecResult, len(runtimes))
@@ -585,15 +714,13 @@ func runExec() error {
 	var wg sync.WaitGroup
 
 	// Start workers
-	for w := 0; w < maxWorkers; w++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range maxWorkers {
+		wg.Go(func() {
 			for clusterName := range jobs {
 				result := executeCommand(command, commandArgs, contextFlag, clusterName)
 				results <- result
 			}
-		}()
+		})
 	}
 
 	// Send jobs
@@ -646,12 +773,9 @@ func runExec() error {
 		fmt.Println(strings.Repeat("-", 80))
 
 		var successCount, failureCount int
-		var failedResults []ExecResult
-
 		for _, result := range envResults {
 			if result.Error != nil || result.ExitCode != 0 {
 				failureCount++
-				failedResults = append(failedResults, result)
 				allFailedResults = append(allFailedResults, result)
 				errMsg := ""
 				if result.Error != nil {
@@ -695,19 +819,20 @@ func runExec() error {
 	}
 
 	if totalFailureCount > 0 {
-		return fmt.Errorf("command failed on %d/%d clusters", totalFailureCount, len(runtimes))
+		return fmt.Errorf("%w: %d/%d clusters", errCommandFailed, totalFailureCount, len(runtimes))
 	}
 
 	fmt.Println("\n✓ Command executed successfully on all clusters")
 	return nil
 }
 
-// executeCommand executes a command on a specific cluster
+// executeCommand executes a command on a specific cluster.
 func executeCommand(command string, args []string, contextFlag string, clusterName string) ExecResult {
 	// Build the full command with context
-	cmdArgs := append(args, contextFlag, clusterName)
+	cmdArgs := append(append([]string{}, args...), contextFlag, clusterName)
 
-	cmd := exec.Command(command, cmdArgs...)
+	//nolint:gosec // The command is restricted to kubectl, flux, or helm before this function is called.
+	cmd := exec.CommandContext(context.Background(), command, cmdArgs...)
 
 	stdout, err := cmd.Output()
 	var stderr []byte
@@ -715,7 +840,8 @@ func executeCommand(command string, args []string, contextFlag string, clusterNa
 
 	if err != nil {
 		// Try to get exit code and stderr
-		if exitErr, ok := err.(*exec.ExitError); ok {
+		exitErr := &exec.ExitError{}
+		if errors.As(err, &exitErr) {
 			stderr = exitErr.Stderr
 			exitCode = exitErr.ExitCode()
 		} else {
@@ -737,16 +863,19 @@ func executeCommand(command string, args []string, contextFlag string, clusterNa
 	}
 }
 
+//nolint:funlen,gocognit,gocyclo,nestif // CLI init mixes discovery, prompting, and environment-grouped reporting.
 func runInit() error {
 	initCmd := flag.NewFlagSet("init", flag.ExitOnError)
 	serviceowner := initCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
 	initCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
 
-	initCmd.Parse(os.Args[2:])
-	args := initCmd.Args()
+	args, err := parseCommandArgs(initCmd)
+	if err != nil {
+		return err
+	}
 
 	if len(args) != 1 {
-		return fmt.Errorf("usage: go run cmd/main.go init [flags] <environments>\n\n" +
+		return usageError("usage: go run cmd/main.go init [flags] <environments>\n\n" +
 			"Arguments:\n" +
 			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n\n" +
 			"Flags:\n" +
@@ -764,20 +893,12 @@ func runInit() error {
 
 	fmt.Println("Validating prerequisites...")
 
-	if err := az.ValidateAzCLI(); err != nil {
-		return err
-	}
-
-	if err := az.ValidateUserLogin(); err != nil {
-		return err
-	}
-
-	if err := kubernetes.ValidateKubectl(); err != nil {
-		return err
+	if validateErr := validateAzurePrerequisites(); validateErr != nil {
+		return validateErr
 	}
 
 	fmt.Println("Querying all container runtimes and contexts")
-	runtimes, err := dis.ListFromAzure(environments, *serviceowner)
+	runtimes, err := listAzureRuntimes(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
@@ -871,7 +992,10 @@ func runInit() error {
 	return nil
 }
 
+//nolint:funlen // The logs subcommand has one linear parse/validate/dispatch flow.
 func runLogs() error {
+	const logBufferDuration = 10 * time.Second
+
 	logsCmd := flag.NewFlagSet("logs", flag.ExitOnError)
 	serviceowner := logsCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
 	logsCmd.StringVar(serviceowner, "s", "", "Optional: specific serviceowner ID (shorthand)")
@@ -883,11 +1007,13 @@ func runLogs() error {
 	timestamps := logsCmd.Bool("timestamps", false, "Include kubectl timestamps in output")
 	logsCmd.BoolVar(timestamps, "ts", false, "Include kubectl timestamps in output (shorthand)")
 
-	logsCmd.Parse(os.Args[2:])
-	args := logsCmd.Args()
+	args, err := parseCommandArgs(logsCmd)
+	if err != nil {
+		return err
+	}
 
 	if len(args) != 3 {
-		return fmt.Errorf("usage: go run cmd/main.go logs [flags] <environments> <namespace/name> <output-file>\n\n" +
+		return usageError("usage: go run cmd/main.go logs [flags] <environments> <namespace/name> <output-file>\n\n" +
 			"Arguments:\n" +
 			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n" +
 			"  namespace/name  Deployment location (e.g., runtime-pdf3/pdf3-app)\n" +
@@ -915,7 +1041,7 @@ func runLogs() error {
 
 	// Validate that at least one of --since or --tail is specified
 	if *since == "" && *tail == -1 {
-		return fmt.Errorf("at least one of --since or --tail must be specified")
+		return errMissingLogFilter
 	}
 
 	environments, err := validateEnvironments(args[0])
@@ -926,7 +1052,7 @@ func runLogs() error {
 	namespaceAndName := args[1]
 	outputFile := args[2]
 
-	namespace, name, err := kubernetes.ParseNamespaceAndName(namespaceAndName)
+	namespace, name, err := parseNamespaceAndName(namespaceAndName)
 	if err != nil {
 		return err
 	}
@@ -941,21 +1067,13 @@ func runLogs() error {
 	fmt.Println()
 
 	// Get all kubectl contexts and filter by environments and serviceowner
-	runtimes, err := dis.ListFromContext(environments, *serviceowner)
+	runtimes, err := listContextRuntimes(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
 
 	if len(runtimes) == 0 {
-		return fmt.Errorf("no matching clusters found\n\n"+
-			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
-			args[0],
-			func() string {
-				if *serviceowner != "" {
-					return fmt.Sprintf(" -s %s", *serviceowner)
-				}
-				return ""
-			}())
+		return noMatchingClustersError(args[0], *serviceowner)
 	}
 
 	fmt.Printf("Found %d cluster(s)\n", len(runtimes))
@@ -969,15 +1087,25 @@ func runLogs() error {
 	}
 
 	// Aggregate logs with time buffer
-	bufferDuration := 10 * time.Second
-	if err := kubernetes.AggregateLogsWithBuffer(runtimes, namespace, name, outputFile, since, tail, *follow, *timestamps, bufferDuration); err != nil {
-		return err
+	if err := kubernetes.AggregateLogsWithBuffer(
+		runtimes,
+		namespace,
+		name,
+		outputFile,
+		since,
+		tail,
+		*follow,
+		*timestamps,
+		logBufferDuration,
+	); err != nil {
+		return fmt.Errorf("aggregate logs: %w", err)
 	}
 
 	fmt.Printf("\n✓ Logs written to %s\n", outputFile)
 	return nil
 }
 
+//nolint:funlen // The nodes subcommand has one linear parse/validate/dispatch flow.
 func runNodes() error {
 	nodesCmd := flag.NewFlagSet("nodes", flag.ExitOnError)
 	serviceowner := nodesCmd.String("service-owner", "", "Optional: specific serviceowner ID (e.g., ttd, brg, skd)")
@@ -985,11 +1113,13 @@ func runNodes() error {
 	labelSelector := nodesCmd.String("label-selector", "agentpool=workpool", "Label selector for filtering nodes")
 	nodesCmd.StringVar(labelSelector, "l", "agentpool=workpool", "Label selector for filtering nodes (shorthand)")
 
-	nodesCmd.Parse(os.Args[2:])
-	args := nodesCmd.Args()
+	args, err := parseCommandArgs(nodesCmd)
+	if err != nil {
+		return err
+	}
 
 	if len(args) != 1 {
-		return fmt.Errorf("usage: go run cmd/main.go nodes [flags] <environments>\n\n" +
+		return usageError("usage: go run cmd/main.go nodes [flags] <environments>\n\n" +
 			"Arguments:\n" +
 			"  environments    Comma-separated list: at22, at23, at24, yt01, tt02, prod (e.g., tt02 or at22,at24)\n\n" +
 			"Flags:\n" +
@@ -1017,21 +1147,13 @@ func runNodes() error {
 	fmt.Println()
 
 	// Get all kubectl contexts and filter by environments and serviceowner
-	runtimes, err := dis.ListFromContext(environments, *serviceowner)
+	runtimes, err := listContextRuntimes(environments, *serviceowner)
 	if err != nil {
 		return err
 	}
 
 	if len(runtimes) == 0 {
-		return fmt.Errorf("no matching clusters found\n\n"+
-			"Run 'go run cmd/main.go init %s%s' to discover and configure clusters",
-			args[0],
-			func() string {
-				if *serviceowner != "" {
-					return fmt.Sprintf(" -s %s", *serviceowner)
-				}
-				return ""
-			}())
+		return noMatchingClustersError(args[0], *serviceowner)
 	}
 
 	fmt.Printf("Found %d cluster(s)\n", len(runtimes))
@@ -1039,8 +1161,7 @@ func runNodes() error {
 	fmt.Printf("Querying nodes (label selector: %s) across %d cluster(s)...\n",
 		*labelSelector, len(runtimes))
 
-	maxWorkers := 16
-	results := kubernetes.QueryAllClustersForNodes(runtimes, *labelSelector, maxWorkers)
+	results := kubernetes.QueryAllClustersForNodes(runtimes, *labelSelector, maxClusterWorkers)
 
 	// Create a map from cluster name to environment for filtering
 	clusterEnv := make(map[string]string, len(runtimes))
@@ -1065,21 +1186,23 @@ func runNodes() error {
 
 		if len(envResults) > 0 {
 			fmt.Printf("=== Environment: %s ===\n", environment)
-			output.PrintNodeResults(os.Stdout, envResults)
+			if err := output.PrintNodeResults(os.Stdout, envResults); err != nil {
+				return fmt.Errorf("print node results: %w", err)
+			}
 		}
 	}
 
 	return nil
 }
 
-// promptConfirmation prompts the user for confirmation
+// promptConfirmation prompts the user for confirmation.
 func promptConfirmation(message string) (bool, error) {
 	fmt.Printf("%s [Y/n]: ", message)
 
 	reader := bufio.NewReader(os.Stdin)
 	response, err := reader.ReadString('\n')
 	if err != nil {
-		return false, fmt.Errorf("failed to read user input: %w", err)
+		return false, fmt.Errorf("%w: %w", errReadUserInput, err)
 	}
 
 	response = strings.ToLower(strings.TrimSpace(response))

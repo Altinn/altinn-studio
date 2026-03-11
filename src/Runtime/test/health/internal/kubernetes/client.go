@@ -18,25 +18,19 @@ import (
 // Clients are only created when first accessed, improving performance for commands
 // that don't need all client types.
 type ClusterClient struct {
-	config *rest.Config
-
-	// Lazy-loaded clients (nil until first access)
+	clientsetErr  error
+	dynamicClient dynamic.Interface
+	metricsErr    error
+	dynamicErr    error
+	gatewayErr    error
 	clientset     *kubernetes.Clientset
 	metricsClient *metricsclientset.Clientset
-	dynamicClient dynamic.Interface // For FluxCD CRDs
 	gatewayClient *gatewayclientset.Clientset
-
-	// Initialization guards ensure thread-safe single initialization
+	config        *rest.Config
 	clientsetOnce sync.Once
 	metricsOnce   sync.Once
 	dynamicOnce   sync.Once
 	gatewayOnce   sync.Once
-
-	// Error tracking from initialization attempts
-	clientsetErr error
-	metricsErr   error
-	dynamicErr   error
-	gatewayErr   error
 }
 
 // newClusterClient creates a new ClusterClient for the specified context.
@@ -79,6 +73,8 @@ func (c *ClusterClient) MetricsClient() (*metricsclientset.Clientset, error) {
 
 // DynamicClient returns the dynamic client for CRDs (e.g., FluxCD resources),
 // creating it on first access. Subsequent calls return the cached client.
+//
+//nolint:ireturn // client-go exposes the dynamic client as an interface.
 func (c *ClusterClient) DynamicClient() (dynamic.Interface, error) {
 	c.dynamicOnce.Do(func() {
 		c.dynamicClient, c.dynamicErr = dynamic.NewForConfig(c.config)

@@ -1,3 +1,4 @@
+//nolint:mnd // Kind config literals intentionally use concrete mapped ports.
 package manifests
 
 import (
@@ -7,11 +8,11 @@ import (
 const (
 	nodeImage = "kindest/node:v1.33.4@sha256:25a6018e48dfcaee478f4a59af81157a437f15e6e140bf103f85a2e7cd0cbbf2"
 
-	// containerdConfigPatch configures containerd to use the local registry
+	// containerdConfigPatch configures containerd to use the local registry.
 	containerdConfigPatch = `[plugins."io.containerd.grpc.v1.cri".registry]
   config_path = "/etc/containerd/certs.d"`
 
-	// kubeadmConfigPatch adds the ingress-ready label to control-plane nodes
+	// kubeadmConfigPatch adds the ingress-ready label to control-plane nodes.
 	kubeadmConfigPatch = `kind: InitConfiguration
 nodeRegistration:
   kubeletExtraArgs:

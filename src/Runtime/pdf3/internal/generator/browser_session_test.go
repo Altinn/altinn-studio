@@ -3,6 +3,7 @@ package generator
 import "testing"
 
 func TestHtmlIDPattern(t *testing.T) {
+	//nolint:govet // Table readability matters more here than packing test-only struct fields.
 	tests := []struct {
 		selector string
 		want     bool

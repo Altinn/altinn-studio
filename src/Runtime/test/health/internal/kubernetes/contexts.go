@@ -10,14 +10,16 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-// ContextInfo represents a kubectl context with its associated user
+// ContextInfo represents a kubectl context with its associated user.
 type ContextInfo struct {
 	Name    string // Context name (e.g., "ttd-tt02-aks")
 	User    string // User/authinfo name (e.g., "clusterUser_altinnapps-ttd-tt02-rg_ttd-tt02-aks")
 	Cluster string // Cluster name (e.g., "ttd-tt02-aks")
 }
 
-// loadKubeConfig loads the kubeconfig from the default location
+// loadKubeConfig loads the kubeconfig from the default location.
+//
+//nolint:ireturn // client-go exposes the deferred config as an interface.
 func loadKubeConfig() (*api.Config, clientcmd.ClientConfig, error) {
 	kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
 	config, err := clientcmd.LoadFromFile(kubeconfig)

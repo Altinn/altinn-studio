@@ -1,5 +1,7 @@
+// Package runtimes defines the shared runtime abstraction used by devenv.
 package runtimes
 
+// ContainerRuntime defines the lifecycle operations supported by a runtime backend.
 type ContainerRuntime interface {
 	// Run ensures the container runtime runs
 	// This function is idempotent

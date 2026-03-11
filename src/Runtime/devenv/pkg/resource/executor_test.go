@@ -10,6 +10,12 @@ import (
 	"altinn.studio/devenv/pkg/container/types"
 )
 
+var (
+	errDaemonUnavailable = errors.New("daemon unavailable")
+	errStopFailed        = errors.New("stop failed")
+	errRemoveFailed      = errors.New("remove failed")
+)
+
 func TestNormalizedContainerLabels_DoesNotMutateInput(t *testing.T) {
 	t.Parallel()
 
@@ -88,7 +94,7 @@ func TestExecutor_StopAndRemoveContainer_PropagatesStopError(t *testing.T) {
 
 	client := containermock.New()
 	client.ContainerStopFunc = func(context.Context, string, *int) error {
-		return errors.New("daemon unavailable")
+		return errDaemonUnavailable
 	}
 	removeCalled := false
 	client.ContainerRemoveFunc = func(context.Context, string, bool) error {
@@ -113,20 +119,18 @@ func TestExecutor_StopAndRemoveContainer_JoinsStopAndRemoveErrors(t *testing.T) 
 	t.Parallel()
 
 	client := containermock.New()
-	stopErr := errors.New("stop failed")
-	removeErr := errors.New("remove failed")
-	client.ContainerStopFunc = func(context.Context, string, *int) error { return stopErr }
-	client.ContainerRemoveFunc = func(context.Context, string, bool) error { return removeErr }
+	client.ContainerStopFunc = func(context.Context, string, *int) error { return errStopFailed }
+	client.ContainerRemoveFunc = func(context.Context, string, bool) error { return errRemoveFailed }
 
 	exec := NewExecutor(client)
 	err := exec.stopAndRemoveContainer(t.Context(), "test")
 	if err == nil {
 		t.Fatal("stopAndRemoveContainer() expected error, got nil")
 	}
-	if !errors.Is(err, stopErr) {
+	if !errors.Is(err, errStopFailed) {
 		t.Fatalf("stopAndRemoveContainer() error = %v, want to include stopErr", err)
 	}
-	if !errors.Is(err, removeErr) {
+	if !errors.Is(err, errRemoveFailed) {
 		t.Fatalf("stopAndRemoveContainer() error = %v, want to include removeErr", err)
 	}
 }

@@ -1,6 +1,7 @@
 package dis
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -8,13 +9,15 @@ import (
 	"altinn.studio/runtime-health/internal/kubernetes"
 )
 
+var errMissingClusterClient = errors.New("missing cluster client")
+
 type DisContainerRuntime struct {
-	ClusterName  string
-	ServiceOwner string
-	Environment  string
 	Cluster      *az.Cluster
 	Context      *kubernetes.ContextInfo
 	Client       *kubernetes.ClusterClient
+	ClusterName  string
+	ServiceOwner string
+	Environment  string
 }
 
 func (d *DisContainerRuntime) GetName() string {
@@ -33,7 +36,7 @@ func (d *DisContainerRuntime) GetKubernetesClient() *kubernetes.ClusterClient {
 	return d.Client
 }
 
-// Compile-time check to ensure DisContainerRuntime implements KubernetesRuntime
+// Compile-time check to ensure DisContainerRuntime implements KubernetesRuntime.
 var _ kubernetes.KubernetesRuntime = (*DisContainerRuntime)(nil)
 
 func ListFromAzure(environments []string, serviceowner string) ([]kubernetes.KubernetesRuntime, error) {
@@ -41,11 +44,11 @@ func ListFromAzure(environments []string, serviceowner string) ([]kubernetes.Kub
 
 	clusters, err := az.ListClusters()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list clusters from azure: %w", err)
 	}
 	contexts, err := kubernetes.ListContexts()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list kube contexts: %w", err)
 	}
 
 	contextByName := make(map[string]*kubernetes.ContextInfo)
@@ -73,7 +76,7 @@ func ListFromAzure(environments []string, serviceowner string) ([]kubernetes.Kub
 func ListFromContext(environments []string, serviceowner string) ([]kubernetes.KubernetesRuntime, error) {
 	contexts, err := kubernetes.ListContexts()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list kube contexts: %w", err)
 	}
 
 	// Build concrete runtimes first
@@ -99,12 +102,12 @@ func ListFromContext(environments []string, serviceowner string) ([]kubernetes.K
 
 	clientsByName, err := kubernetes.BuildClients(runtimeContexts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("build kube clients: %w", err)
 	}
 	for _, runtime := range concreteRuntimes {
 		client, clientOk := clientsByName[runtime.ClusterName]
 		if !clientOk {
-			return nil, fmt.Errorf("couldnt retrieve client for: %s", runtime.ClusterName)
+			return nil, fmt.Errorf("%w: %s", errMissingClusterClient, runtime.ClusterName)
 		}
 		runtime.Client = client
 	}
@@ -119,7 +122,7 @@ func ListFromContext(environments []string, serviceowner string) ([]kubernetes.K
 }
 
 // parseAndFilter parses and states wether the passed in name matches based on the filter arguments (envs and serviceowner)
-// arguments to a cluster/context name in the form of '<serviceowner>-<env>-aks' (e.g. ttd-tt02-aks)
+// arguments to a cluster/context name in the form of '<serviceowner>-<env>-aks' (e.g. ttd-tt02-aks).
 func parseAndFilter(name string, environments []string, serviceowner string) (string, string, bool) {
 	contextServiceOwner, withoutServiceOwner, found := strings.Cut(name, "-")
 	if !found {

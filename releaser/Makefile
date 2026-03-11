@@ -5,7 +5,7 @@ BUILD_DIR := build
 LOCALBIN := bin
 
 # Tools
-GOLANGCI_LINT_VERSION ?= v2.8.0
+GOLANGCI_LINT_VERSION ?= v2.11.2
 GOLANGCI_LINT := $(LOCALBIN)/golangci-lint
 
 .PHONY: all
@@ -32,11 +32,11 @@ test-cover: ensure-build-dir ## Run tests with coverage (excludes e2e)
 
 .PHONY: lint
 lint: golangci-lint ## Run linter
-	"$(abspath $(GOLANGCI_LINT))" run
+	"$(abspath $(GOLANGCI_LINT))" run ./...
 
 .PHONY: lint-fix
 lint-fix: golangci-lint ## Run linter with auto-fix
-	"$(abspath $(GOLANGCI_LINT))" run --fix
+	"$(abspath $(GOLANGCI_LINT))" run --fix ./...
 
 .PHONY: lint-config
 lint-config: golangci-lint ## Verify linter configuration

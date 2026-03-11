@@ -2,28 +2,38 @@ package crypto
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
+
+	"altinn.studio/operator/internal/assert"
 )
 
-var SignatureAlgorithms []jose.SignatureAlgorithm = []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512}
-var SignatureAlgorithmsStr []string = []string{string(jose.RS256), string(jose.RS384), string(jose.RS512)}
+var (
+	errUnexpectedJWTHeaderCount = errors.New("unexpected number of headers in JWT")
+	errDecodeClaimsNilJWK       = errors.New("JWK cannot be nil")
+	errSignPublicJWK            = errors.New("cannot sign JWT with public key")
+	errUnsupportedJWTAlgorithm  = errors.New("unsupported signing algorithm")
+)
+
+var SignatureAlgorithms = []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512}
+
+var SignatureAlgorithmsStr = []string{string(jose.RS256), string(jose.RS384), string(jose.RS512)}
 
 type Claims struct {
-	Audience  []string  `json:"aud"`
-	Issuer    string    `json:"iss"`
-	Subject   string    `json:"sub,omitempty"`
 	IssuedAt  time.Time `json:"iat"`
 	NotBefore time.Time `json:"nbf"`
 	Expiry    time.Time `json:"exp"`
+	Issuer    string    `json:"iss"`
+	Subject   string    `json:"sub,omitempty"`
 	ID        string    `json:"jti"`
 	Scope     string    `json:"scope,omitempty"`
+	Audience  []string  `json:"aud"`
 }
 
 type Jwt struct {
@@ -33,11 +43,11 @@ type Jwt struct {
 func ParseJWT(tokenString string) (*Jwt, error) {
 	token, err := jwt.ParseSigned(tokenString, SignatureAlgorithms)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parse signed JWT: %w", err)
 	}
 
 	if len(token.Headers) != 1 {
-		return nil, errors.New("unexpected number of headers in JWT")
+		return nil, errUnexpectedJWTHeaderCount
 	}
 
 	return &Jwt{token: *token}, nil
@@ -45,12 +55,12 @@ func ParseJWT(tokenString string) (*Jwt, error) {
 
 func (j *Jwt) DecodeClaims(jwk *Jwk) (*Claims, error) {
 	if jwk == nil {
-		return nil, errors.New("JWK cannot be nil")
+		return nil, errDecodeClaimsNilJWK
 	}
 
 	var joseClaims jwt.Claims
 	if err := j.token.Claims(jwk.inner, &joseClaims); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decode standard JWT claims: %w", err)
 	}
 
 	// Convert from go-jose claims to our encapsulated claims
@@ -73,7 +83,7 @@ func (j *Jwt) DecodeClaims(jwk *Jwk) (*Claims, error) {
 	}
 
 	// Extract private claims (like scope)
-	var privateClaims map[string]interface{}
+	var privateClaims map[string]any
 	if err := j.token.Claims(jwk.inner, &privateClaims); err == nil {
 		if scope, ok := privateClaims["scope"].(string); ok {
 			claims.Scope = scope
@@ -97,7 +107,7 @@ func NewJWT(
 	clock clockwork.Clock,
 ) (string, error) {
 	if jwk.IsPublic() {
-		return "", errors.New("cannot sign JWT with public key")
+		return "", errSignPublicJWK
 	}
 
 	issuedAt := clock.Now()
@@ -119,7 +129,7 @@ func NewJWT(
 
 	algo := jwk.Algorithm()
 	if !slices.Contains(SignatureAlgorithmsStr, algo) {
-		return "", errors.New("unsupported signing algorithm")
+		return "", fmt.Errorf("%w: %s", errUnsupportedJWTAlgorithm, algo)
 	}
 
 	signer, err := jose.NewSigner(
@@ -127,12 +137,12 @@ func NewJWT(
 		(&jose.SignerOptions{}).WithType("JWT").WithHeader("kid", jwk.KeyID()),
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("create JWT signer: %w", err)
 	}
 
 	signedToken, err := jwt.Signed(signer).Claims(pubClaims).Claims(privClaims).Serialize()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("serialize signed JWT: %w", err)
 	}
 
 	return signedToken, nil

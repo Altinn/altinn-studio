@@ -2,14 +2,16 @@ package crypto
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"testing/cryptotest"
 	"time"
 
-	"altinn.studio/operator/test/utils"
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
+
+	"altinn.studio/operator/test/utils"
 )
 
 var testSubject = CertSubject{
@@ -34,12 +36,12 @@ type certInfo struct {
 func jwksToSnapshotJSON(jwks *Jwks) ([]byte, error) {
 	original, err := json.Marshal(jwks)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("marshal JWKS snapshot source: %w", err)
 	}
 
 	var data map[string][]map[string]any
-	if err := json.Unmarshal(original, &data); err != nil {
-		return nil, err
+	if unmarshalErr := json.Unmarshal(original, &data); unmarshalErr != nil {
+		return nil, fmt.Errorf("unmarshal JWKS snapshot source: %w", unmarshalErr)
 	}
 
 	for i, key := range jwks.Keys {
@@ -69,7 +71,11 @@ func jwksToSnapshotJSON(jwks *Jwks) ([]byte, error) {
 		data["keys"][i]["x5c_decoded"] = decoded
 	}
 
-	return json.Marshal(data)
+	result, err := json.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("marshal JWKS snapshot: %w", err)
+	}
+	return result, nil
 }
 
 func TestCreateJwks(t *testing.T) {
@@ -172,7 +178,7 @@ func TestRotateJwks_NilCurrentJwks(t *testing.T) {
 	service, clock := createService()
 	_, err := service.RotateJwks(testSubject, getNotAfter(clock), nil)
 	g.Expect(err).To(HaveOccurred())
-	g.Expect(err.Error()).To(ContainSubstring("nil"))
+	g.Expect(err.Error()).To(ContainSubstring("current state"))
 }
 
 func TestGenerateCertSerialNumber(t *testing.T) {

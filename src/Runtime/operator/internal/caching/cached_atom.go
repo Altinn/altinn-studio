@@ -9,12 +9,12 @@ import (
 )
 
 type CachedAtom[T any] struct {
-	mutex            sync.RWMutex
+	currentFetchedAt time.Time
 	clock            clockwork.Clock
 	retriever        func(ctx context.Context) (*T, error)
 	current          *T
-	currentFetchedAt time.Time
 	expireAfter      time.Duration
+	mutex            sync.RWMutex
 }
 
 func NewCachedAtom[T any](

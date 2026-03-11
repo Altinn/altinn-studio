@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,8 +12,16 @@ import (
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
-// HTTPRouteResult represents the result of an HTTPRoute operation
+var errMissingRouteClient = errors.New("client not found for cluster")
+var (
+	errInvalidHTTPRouteRuleCount   = errors.New("httproute must have exactly one rule")
+	errInvalidHTTPRouteBackendRefs = errors.New("httproute rule must have exactly two backendRefs")
+	errMissingHTTPRouteWeight      = errors.New("httproute backendRef weight is missing")
+)
+
+// HTTPRouteResult represents the result of an HTTPRoute operation.
 type HTTPRouteResult struct {
+	Error                  error
 	ClusterName            string
 	Namespace              string
 	Name                   string
@@ -20,11 +29,15 @@ type HTTPRouteResult struct {
 	CurrentWeight2         int
 	HasReconcileAnnotation bool // Whether the reconcile annotation already exists
 	HasAnyAnnotations      bool // Whether the annotations map exists
-	Error                  error
 }
 
-// GetHTTPRoute fetches an HTTPRoute from a cluster using the Gateway API client
-func GetHTTPRoute(ctx context.Context, runtime KubernetesRuntime, namespace string, name string) (*gatewayv1.HTTPRoute, error) {
+// GetHTTPRoute fetches an HTTPRoute from a cluster using the Gateway API client.
+func GetHTTPRoute(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace string,
+	name string,
+) (*gatewayv1.HTTPRoute, error) {
 	client := runtime.GetKubernetesClient()
 	gwClient, err := client.GatewayClient()
 	if err != nil {
@@ -39,28 +52,28 @@ func GetHTTPRoute(ctx context.Context, runtime KubernetesRuntime, namespace stri
 	return route, nil
 }
 
-// ValidateHTTPRouteStructure validates that the HTTPRoute has exactly 1 rule with 2 backendRefs
+// ValidateHTTPRouteStructure validates that the HTTPRoute has exactly 1 rule with 2 backendRefs.
 func ValidateHTTPRouteStructure(route *gatewayv1.HTTPRoute) error {
 	if len(route.Spec.Rules) != 1 {
-		return fmt.Errorf("HTTPRoute must have exactly 1 rule, found %d", len(route.Spec.Rules))
+		return fmt.Errorf("%w: found %d", errInvalidHTTPRouteRuleCount, len(route.Spec.Rules))
 	}
 
 	backendRefs := route.Spec.Rules[0].BackendRefs
 	if len(backendRefs) != 2 {
-		return fmt.Errorf("HTTPRoute rule must have exactly 2 backendRefs, found %d", len(backendRefs))
+		return fmt.Errorf("%w: found %d", errInvalidHTTPRouteBackendRefs, len(backendRefs))
 	}
 
 	return nil
 }
 
-// JSONPatchOperation represents a single JSON Patch operation
+// JSONPatchOperation represents a single JSON Patch operation.
 type JSONPatchOperation struct {
-	Op    string      `json:"op"`
-	Path  string      `json:"path"`
-	Value interface{} `json:"value,omitempty"`
+	Value any    `json:"value,omitempty"`
+	Op    string `json:"op"`
+	Path  string `json:"path"`
 }
 
-// buildWeightPatch constructs a JSON Patch document to update weights and optionally add the reconcile annotation
+// buildWeightPatch constructs a JSON Patch document to update weights and optionally add the reconcile annotation.
 func buildWeightPatch(weight1, weight2 int, hasReconcileAnnotation bool, hasAnyAnnotations bool) (string, error) {
 	var operations []JSONPatchOperation
 
@@ -108,8 +121,17 @@ func buildWeightPatch(weight1, weight2 int, hasReconcileAnnotation bool, hasAnyA
 	return string(patchBytes), nil
 }
 
-// UpdateHTTPRouteWeights updates the weights of an HTTPRoute and adds the flux reconcile annotation using JSON Patch
-func UpdateHTTPRouteWeights(ctx context.Context, runtime KubernetesRuntime, namespace string, name string, weight1 int, weight2 int, hasReconcileAnnotation bool, hasAnyAnnotations bool) error {
+// UpdateHTTPRouteWeights updates the weights of an HTTPRoute and adds the flux reconcile annotation using JSON Patch.
+func UpdateHTTPRouteWeights(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace string,
+	name string,
+	weight1 int,
+	weight2 int,
+	hasReconcileAnnotation bool,
+	hasAnyAnnotations bool,
+) error {
 	client := runtime.GetKubernetesClient()
 	patch, err := buildWeightPatch(weight1, weight2, hasReconcileAnnotation, hasAnyAnnotations)
 	if err != nil {
@@ -135,8 +157,13 @@ func UpdateHTTPRouteWeights(ctx context.Context, runtime KubernetesRuntime, name
 	return nil
 }
 
-// GetHTTPRouteFromCluster fetches and validates an HTTPRoute from a cluster
-func GetHTTPRouteFromCluster(ctx context.Context, runtime KubernetesRuntime, namespace string, name string) HTTPRouteResult {
+// GetHTTPRouteFromCluster fetches and validates an HTTPRoute from a cluster.
+func GetHTTPRouteFromCluster(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace string,
+	name string,
+) HTTPRouteResult {
 	result := HTTPRouteResult{
 		ClusterName: runtime.GetName(),
 		Namespace:   namespace,
@@ -157,7 +184,7 @@ func GetHTTPRouteFromCluster(ctx context.Context, runtime KubernetesRuntime, nam
 	currentWeight1 := route.Spec.Rules[0].BackendRefs[0].Weight
 	currentWeight2 := route.Spec.Rules[0].BackendRefs[1].Weight
 	if currentWeight1 == nil || currentWeight2 == nil {
-		result.Error = fmt.Errorf("httproute in %s does not have weight", runtime.GetName())
+		result.Error = fmt.Errorf("%w in %s", errMissingHTTPRouteWeight, runtime.GetName())
 		return result
 	}
 
@@ -174,7 +201,7 @@ func GetHTTPRouteFromCluster(ctx context.Context, runtime KubernetesRuntime, nam
 	return result
 }
 
-// GetAllHTTPRoutes fetches HTTPRoutes from all clusters in parallel
+// GetAllHTTPRoutes fetches HTTPRoutes from all clusters in parallel.
 func GetAllHTTPRoutes(runtimes []KubernetesRuntime, namespace string, name string, maxWorkers int) []HTTPRouteResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -182,7 +209,7 @@ func GetAllHTTPRoutes(runtimes []KubernetesRuntime, namespace string, name strin
 	jobs := make(chan KubernetesRuntime, len(runtimes))
 	results := make(chan HTTPRouteResult, len(runtimes))
 
-	for w := 0; w < maxWorkers; w++ {
+	for range maxWorkers {
 		go func() {
 			for runtime := range jobs {
 				result := GetHTTPRouteFromCluster(ctx, runtime, namespace, name)
@@ -196,8 +223,8 @@ func GetAllHTTPRoutes(runtimes []KubernetesRuntime, namespace string, name strin
 	}
 	close(jobs)
 
-	var routeResults []HTTPRouteResult
-	for i := 0; i < len(runtimes); i++ {
+	routeResults := make([]HTTPRouteResult, 0, len(runtimes))
+	for range runtimes {
 		routeResults = append(routeResults, <-results)
 	}
 	close(results)
@@ -205,8 +232,14 @@ func GetAllHTTPRoutes(runtimes []KubernetesRuntime, namespace string, name strin
 	return routeResults
 }
 
-// UpdateAllHTTPRoutes updates HTTPRoutes on clusters in parallel using JSON Patch
-func UpdateAllHTTPRoutes(runtimes []KubernetesRuntime, routesToUpdate []HTTPRouteResult, weight1 int, weight2 int, maxWorkers int) []HTTPRouteResult {
+// UpdateAllHTTPRoutes updates HTTPRoutes on clusters in parallel using JSON Patch.
+func UpdateAllHTTPRoutes(
+	runtimes []KubernetesRuntime,
+	routesToUpdate []HTTPRouteResult,
+	weight1 int,
+	weight2 int,
+	maxWorkers int,
+) []HTTPRouteResult {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -218,7 +251,7 @@ func UpdateAllHTTPRoutes(runtimes []KubernetesRuntime, routesToUpdate []HTTPRout
 		runtimeByClusterName[runtime.GetName()] = runtime
 	}
 
-	for w := 0; w < maxWorkers; w++ {
+	for range maxWorkers {
 		go func() {
 			for routeResult := range jobs {
 				result := HTTPRouteResult{
@@ -229,12 +262,21 @@ func UpdateAllHTTPRoutes(runtimes []KubernetesRuntime, routesToUpdate []HTTPRout
 
 				runtime, ok := runtimeByClusterName[routeResult.ClusterName]
 				if !ok {
-					result.Error = fmt.Errorf("client not found for cluster %s", routeResult.ClusterName)
+					result.Error = fmt.Errorf("%w: %s", errMissingRouteClient, routeResult.ClusterName)
 					results <- result
 					continue
 				}
 
-				if err := UpdateHTTPRouteWeights(ctx, runtime, routeResult.Namespace, routeResult.Name, weight1, weight2, routeResult.HasReconcileAnnotation, routeResult.HasAnyAnnotations); err != nil {
+				if err := UpdateHTTPRouteWeights(
+					ctx,
+					runtime,
+					routeResult.Namespace,
+					routeResult.Name,
+					weight1,
+					weight2,
+					routeResult.HasReconcileAnnotation,
+					routeResult.HasAnyAnnotations,
+				); err != nil {
 					result.Error = err
 					results <- result
 					continue
@@ -252,8 +294,8 @@ func UpdateAllHTTPRoutes(runtimes []KubernetesRuntime, routesToUpdate []HTTPRout
 	}
 	close(jobs)
 
-	var updateResults []HTTPRouteResult
-	for i := 0; i < len(routesToUpdate); i++ {
+	updateResults := make([]HTTPRouteResult, 0, len(routesToUpdate))
+	for range routesToUpdate {
 		updateResults = append(updateResults, <-results)
 	}
 	close(results)

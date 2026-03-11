@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"runtime"
@@ -11,22 +12,34 @@ import (
 )
 
 // ErrUnsupportedPlatform is returned when the current platform is not supported.
-var ErrUnsupportedPlatform = errors.New("unsupported platform")
+var (
+	ErrUnsupportedPlatform   = errors.New("unsupported platform")
+	errBrowserURLMissingHost = errors.New("browser url is missing host")
+	errUnsupportedURLScheme  = errors.New("unsupported browser url scheme")
+)
 
 // OpenBrowser opens the given URL in the default browser.
-func OpenBrowser(ctx context.Context, url string) error {
+func OpenBrowser(ctx context.Context, rawURL string) error {
+	safeURL, err := validateBrowserURL(rawURL)
+	if err != nil {
+		return err
+	}
+
 	if runtime.GOOS == "linux" && isWSL() {
-		return openBrowserWSL(ctx, url)
+		return openBrowserWSL(ctx, safeURL)
 	}
 
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "linux":
-		cmd = exec.CommandContext(ctx, "xdg-open", url)
+		//nolint:gosec // G204: safeURL is validated to an http/https URL before reaching the platform opener.
+		cmd = exec.CommandContext(ctx, "xdg-open", safeURL)
 	case "darwin":
-		cmd = exec.CommandContext(ctx, "open", url)
+		//nolint:gosec // G204: safeURL is validated to an http/https URL before reaching the platform opener.
+		cmd = exec.CommandContext(ctx, "open", safeURL)
 	case "windows":
-		cmd = exec.CommandContext(ctx, "cmd", "/c", "start", "", url)
+		//nolint:gosec // G204: safeURL is validated to an http/https URL before reaching the platform opener.
+		cmd = exec.CommandContext(ctx, "cmd", "/c", "start", "", safeURL)
 	default:
 		return fmt.Errorf("%w: %s", ErrUnsupportedPlatform, runtime.GOOS)
 	}
@@ -54,8 +67,23 @@ func isWSL() bool {
 	return strings.Contains(version, "microsoft")
 }
 
-func openBrowserWSL(ctx context.Context, url string) error {
-	cmd := exec.CommandContext(ctx, "cmd.exe", "/c", "start", "", url)
+func validateBrowserURL(rawURL string) (string, error) {
+	parsedURL, err := url.Parse(rawURL)
+	if err != nil {
+		return "", fmt.Errorf("parse browser url: %w", err)
+	}
+	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+		return "", fmt.Errorf("%w: %s", errUnsupportedURLScheme, parsedURL.Scheme)
+	}
+	if parsedURL.Host == "" {
+		return "", errBrowserURLMissingHost
+	}
+	return parsedURL.String(), nil
+}
+
+func openBrowserWSL(ctx context.Context, browserURL string) error {
+	//nolint:gosec // G204: browserURL is validated to http/https by OpenBrowser.
+	cmd := exec.CommandContext(ctx, "cmd.exe", "/c", "start", "", browserURL)
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("open browser via cmd.exe: %w", err)
 	}

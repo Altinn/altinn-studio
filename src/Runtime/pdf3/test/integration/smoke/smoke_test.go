@@ -15,7 +15,7 @@ func TestMain(m *testing.M) {
 
 	collector := harness.NewLogsCollector(harness.Runtime)
 	if err := collector.Start(); err != nil {
-		fmt.Printf("Failed to start log streaming: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Failed to start log streaming: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 
 	collector.Stop()
 	if err := collector.CheckForCrashes(); err != nil {
-		fmt.Printf("\n❌ CRASHES DETECTED:\n%v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "\nCRASHES DETECTED:\n%v\n", err)
 		os.Exit(1)
 	}
 
@@ -31,8 +31,8 @@ func TestMain(m *testing.M) {
 }
 
 type testCase struct {
-	name  string
 	input *ptesting.PdfInternalsTestInput
+	name  string
 }
 
 type requestResult struct {
@@ -52,7 +52,10 @@ func Test_Smoke(t *testing.T) {
 	}
 }
 
+//nolint:gocyclo,err113 // This test intentionally exercises concurrent success and failure paths together.
 func runSmokeTest(t *testing.T, testCase *testCase) {
+	t.Helper()
+
 	// This test verifies that the proxy retries when the worker queue is full
 	// We send multiple concurrent requests to fill the queue
 
@@ -63,7 +66,7 @@ func runSmokeTest(t *testing.T, testCase *testCase) {
 	results := make(chan requestResult, concurrentRequests)
 
 	// Send concurrent requests
-	for index := 0; index < concurrentRequests; index++ {
+	for index := range concurrentRequests {
 		go func(index int) {
 			req := harness.GetDefaultPdfRequest(t)
 			req.URL = fmt.Sprintf("%s?render=light&i=%d", req.URL, index)
@@ -90,14 +93,20 @@ func runSmokeTest(t *testing.T, testCase *testCase) {
 			}
 
 			if !harness.IsPDF(resp.Data) {
-				result.errors = append(result.errors, fmt.Errorf("request %d: response is not a valid PDF", index))
+				result.errors = append(result.errors, fmt.Errorf("request %d response is not a valid PDF", index))
 			}
 
 			if testInput != nil {
 				if output, err := resp.LoadOutput(t); err != nil {
-					result.errors = append(result.errors, fmt.Errorf("request %d: failed to load test output: %v", index, err))
+					result.errors = append(
+						result.errors,
+						fmt.Errorf("request %d: failed to load test output: %w", index, err),
+					)
 				} else if output != nil && output.HadErrors() {
-					result.errors = append(result.errors, fmt.Errorf("request %d: response had errors reported in browsers", index))
+					result.errors = append(
+						result.errors,
+						fmt.Errorf("request %d response had errors reported in browsers", index),
+					)
 				}
 			}
 		}(index)
@@ -107,11 +116,12 @@ func runSmokeTest(t *testing.T, testCase *testCase) {
 	var failures []error
 	errorsDueTo429 := 0
 	successes := 0
-	for i := 0; i < concurrentRequests; i++ {
+	for range concurrentRequests {
 		t := true
 		f := false
 		result := <-results
 		var onlyHad429 *bool = nil
+		//nolint:nestif // This keeps the aggregation logic aligned with the concurrent request results.
 		if len(result.errors) > 0 {
 			for _, err := range result.errors {
 				if strings.Contains(err.Error(), "429") {

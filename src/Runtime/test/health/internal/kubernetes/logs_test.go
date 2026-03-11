@@ -1,3 +1,4 @@
+//nolint:testpackage // The test exercises unexported resequencer behavior directly.
 package kubernetes
 
 import (
@@ -5,17 +6,18 @@ import (
 	"time"
 )
 
-func createTestLogLine(timestamp time.Time, message string) LogLine {
+func createTestLogLine(timestamp time.Time) LogLine {
 	return LogLine{
 		Timestamp:    timestamp,
 		ClusterName:  "test-cluster",
 		ServiceOwner: "test-owner",
 		Environment:  "test-env",
 		PodName:      "test-pod",
-		Message:      message,
+		Message:      "message",
 	}
 }
 
+//nolint:gocyclo // The test intentionally walks the resequencer through several state transitions.
 func TestReSequencer(t *testing.T) {
 	r := newResequencer(5 * time.Second)
 
@@ -30,7 +32,7 @@ func TestReSequencer(t *testing.T) {
 	}
 
 	for _, ts := range timestamps {
-		line := createTestLogLine(ts, "message")
+		line := createTestLogLine(ts)
 		r.append(&line)
 	}
 
@@ -55,7 +57,7 @@ func TestReSequencer(t *testing.T) {
 
 	{
 		// Add a single line
-		line := createTestLogLine(now.Add(-14*time.Second), "message")
+		line := createTestLogLine(now.Add(-14 * time.Second))
 		r.append(&line)
 
 		r.resequenceIgnoreDuration()
@@ -74,9 +76,9 @@ func TestReSequencer(t *testing.T) {
 
 	{
 		// Add a couple more
-		line := createTestLogLine(now.Add(-13*time.Second), "message")
+		line := createTestLogLine(now.Add(-13 * time.Second))
 		r.append(&line)
-		line = createTestLogLine(now.Add(-12*time.Second), "message")
+		line = createTestLogLine(now.Add(-12 * time.Second))
 		r.append(&line)
 
 		r.resequenceIgnoreDuration()
@@ -103,11 +105,11 @@ func TestReSequencer(t *testing.T) {
 
 	{
 		// Normal resequencing
-		line := createTestLogLine(now.Add(-11*time.Second), "message")
+		line := createTestLogLine(now.Add(-11 * time.Second))
 		r.append(&line)
-		line = createTestLogLine(now.Add(-10*time.Second), "message")
+		line = createTestLogLine(now.Add(-10 * time.Second))
 		r.append(&line)
-		line = createTestLogLine(now, "message")
+		line = createTestLogLine(now)
 		r.append(&line)
 
 		r.resequence()

@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -18,7 +19,14 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-// LogLine represents a single log line with metadata
+var (
+	errDeploymentHasNoSelectors = errors.New("deployment has no label selectors")
+	errNoDeploymentPods         = errors.New("no pods found for deployment")
+	errInvalidLogLine           = errors.New("invalid log line")
+	errInvalidLogTimestamp      = errors.New("invalid log timestamp")
+)
+
+// LogLine represents a single log line with metadata.
 type LogLine struct {
 	Timestamp    time.Time
 	ClusterName  string
@@ -28,8 +36,12 @@ type LogLine struct {
 	Message      string
 }
 
-// GetPodsForDeployment retrieves all pod names for a deployment
-func GetPodsForDeployment(ctx context.Context, runtime KubernetesRuntime, namespace, deploymentName string) ([]string, error) {
+// GetPodsForDeployment retrieves all pod names for a deployment.
+func GetPodsForDeployment(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace, deploymentName string,
+) ([]string, error) {
 	client := runtime.GetKubernetesClient()
 	clientset, err := client.Clientset()
 	if err != nil {
@@ -44,7 +56,7 @@ func GetPodsForDeployment(ctx context.Context, runtime KubernetesRuntime, namesp
 	// Get matchLabels from deployment
 	matchLabels := deployment.Spec.Selector.MatchLabels
 	if len(matchLabels) == 0 {
-		return nil, fmt.Errorf("deployment %s has no label selectors", deploymentName)
+		return nil, fmt.Errorf("%w: %s", errDeploymentHasNoSelectors, deploymentName)
 	}
 
 	// Build label selector
@@ -66,14 +78,29 @@ func GetPodsForDeployment(ctx context.Context, runtime KubernetesRuntime, namesp
 	}
 
 	if len(podNames) == 0 {
-		return nil, fmt.Errorf("no pods found for deployment %s in namespace %s (selector: %s)", deploymentName, namespace, labelSelector)
+		return nil, fmt.Errorf(
+			"%w %s in namespace %s (selector: %s)",
+			errNoDeploymentPods,
+			deploymentName,
+			namespace,
+			labelSelector,
+		)
 	}
 
 	return podNames, nil
 }
 
-// streamLogsFromCluster streams logs from all pods in a cluster to a channel
-func streamLogsFromCluster(ctx context.Context, runtime KubernetesRuntime, namespace, deploymentName string, logsChan chan<- LogLine, since *string, tail *int, follow bool, errorsChan chan<- error) {
+// streamLogsFromCluster streams logs from all pods in a cluster to a channel.
+func streamLogsFromCluster(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace, deploymentName string,
+	logsChan chan<- LogLine,
+	since *string,
+	tail *int,
+	follow bool,
+	errorsChan chan<- error,
+) {
 	// Get pods for the deployment
 	pods, err := GetPodsForDeployment(ctx, runtime, namespace, deploymentName)
 	if err != nil {
@@ -94,7 +121,7 @@ func streamLogsFromCluster(ctx context.Context, runtime KubernetesRuntime, names
 	wg.Wait()
 }
 
-// parseSinceDuration parses a kubectl-style duration string (e.g., "5m", "1h") to seconds
+// parseSinceDuration parses a kubectl-style duration string (e.g., "5m", "1h") to seconds.
 func parseSinceDuration(since string) (*int64, error) {
 	duration, err := time.ParseDuration(since)
 	if err != nil {
@@ -104,8 +131,19 @@ func parseSinceDuration(since string) (*int64, error) {
 	return &seconds, nil
 }
 
-// streamPodLogs streams logs from a single pod
-func streamPodLogs(ctx context.Context, runtime KubernetesRuntime, namespace, podName string, logsChan chan<- LogLine, since *string, tail *int, follow bool, errorsChan chan<- error) {
+// streamPodLogs streams logs from a single pod.
+//
+//nolint:funlen,gocognit,gocyclo // Streaming logs combines request setup, parsing, and cancellation handling in one place.
+func streamPodLogs(
+	ctx context.Context,
+	runtime KubernetesRuntime,
+	namespace, podName string,
+	logsChan chan<- LogLine,
+	since *string,
+	tail *int,
+	follow bool,
+	errorsChan chan<- error,
+) {
 	// Build pod log options
 	logOptions := &corev1.PodLogOptions{
 		Follow:     follow,
@@ -143,7 +181,11 @@ func streamPodLogs(ctx context.Context, runtime KubernetesRuntime, namespace, po
 		errorsChan <- fmt.Errorf("[%s/%s] failed to open log stream: %w", runtime.GetName(), podName, err)
 		return
 	}
-	defer stream.Close()
+	defer func() {
+		if closeErr := stream.Close(); closeErr != nil && ctx.Err() == nil {
+			errorsChan <- fmt.Errorf("[%s/%s] failed to close log stream: %w", runtime.GetName(), podName, closeErr)
+		}
+	}()
 
 	// Parse log lines as they come
 	scanner := bufio.NewScanner(stream)
@@ -153,7 +195,7 @@ func streamPodLogs(ctx context.Context, runtime KubernetesRuntime, namespace, po
 
 		timestampStr, message, found := strings.Cut(line, " ")
 		if !found {
-			errorsChan <- fmt.Errorf("[%s/%s] invalid log line (no space): %s", runtime.GetName(), podName, line)
+			errorsChan <- fmt.Errorf("[%s/%s] %w (no space): %s", runtime.GetName(), podName, errInvalidLogLine, line)
 			continue
 		}
 
@@ -162,7 +204,7 @@ func streamPodLogs(ctx context.Context, runtime KubernetesRuntime, namespace, po
 			// Try without nanoseconds
 			timestamp, err = time.Parse(time.RFC3339, timestampStr)
 			if err != nil {
-				errorsChan <- fmt.Errorf("[%s/%s] couldn't parse timestamp in line: %s", runtime.GetName(), podName, line)
+				errorsChan <- fmt.Errorf("[%s/%s] %w: %s", runtime.GetName(), podName, errInvalidLogTimestamp, line)
 				continue
 			}
 		}
@@ -188,8 +230,18 @@ func streamPodLogs(ctx context.Context, runtime KubernetesRuntime, namespace, po
 	}
 }
 
-// AggregateLogsWithBuffer aggregates logs from multiple clusters with time buffering
-func AggregateLogsWithBuffer(runtimes []KubernetesRuntime, namespace, deploymentName, outputFile string, since *string, tail *int, follow bool, includeTimestamps bool, bufferDuration time.Duration) error {
+// AggregateLogsWithBuffer aggregates logs from multiple clusters with time buffering.
+//
+//nolint:funlen,gocognit,gocyclo,nestif // Aggregation combines concurrent log ingestion, signal handling, and resequencing.
+func AggregateLogsWithBuffer(
+	runtimes []KubernetesRuntime,
+	namespace, deploymentName, outputFile string,
+	since *string,
+	tail *int,
+	follow bool,
+	includeTimestamps bool,
+	bufferDuration time.Duration,
+) (err error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -204,15 +256,20 @@ func AggregateLogsWithBuffer(runtimes []KubernetesRuntime, namespace, deployment
 
 	// Create output file
 	parentDir := filepath.Dir(outputFile)
-	err := os.MkdirAll(parentDir, 0755)
+	err = os.MkdirAll(parentDir, 0o750)
 	if err != nil {
 		return fmt.Errorf("failed to ensure dir for output file: %w", err)
 	}
+	//nolint:gosec // The output path is a user-provided CLI destination.
 	file, err := os.Create(outputFile)
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil && err == nil {
+			err = fmt.Errorf("failed to close output file: %w", closeErr)
+		}
+	}()
 
 	// Kubernetes clients are already initialized in the ClusterInfo.client field
 
@@ -265,6 +322,7 @@ func AggregateLogsWithBuffer(runtimes []KubernetesRuntime, namespace, deployment
 						line.ServiceOwner,
 						line.Environment,
 						line.PodName,
+						//nolint:gosmopolitan // The CLI has historically written timestamps in the local timezone.
 						line.Timestamp.Local().Format(time.RFC3339Nano),
 						line.Message)
 				} else {
@@ -332,7 +390,7 @@ func newResequencer(bufferDuration time.Duration) *reSequencer {
 
 func (r *reSequencer) append(line *LogLine) {
 	r.buffer = append(r.buffer, *line)
-	r.writerPos += 1
+	r.writerPos++
 }
 
 func (r *reSequencer) resequence() {
