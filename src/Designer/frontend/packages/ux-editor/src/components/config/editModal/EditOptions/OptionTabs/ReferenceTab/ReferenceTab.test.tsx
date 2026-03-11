@@ -103,7 +103,7 @@ describe('ReferenceTab', () => {
       <ReferenceTab
         handleComponentChange={handleComponentChange}
         component={changedComponentProps}
-      />
+      />,
     );
     expect(getInputElement()).toHaveValue(changedOptionsId);
   });
