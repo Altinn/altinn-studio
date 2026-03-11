@@ -62,6 +62,13 @@ jobs:
         run: |
           make build
 
+      - name: Check formatting
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: src/cli
+        run: |
+          make fmt
+          git diff --exit-code -- .
+
       - name: Lint
         working-directory: src/cli
         run: |

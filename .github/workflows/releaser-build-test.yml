@@ -30,6 +30,11 @@ jobs:
       - name: Build
         run: make build
 
+      - name: Check formatting
+        run: |
+          make fmt
+          git diff --exit-code -- .
+
       - name: Lint
         run: make lint
 
