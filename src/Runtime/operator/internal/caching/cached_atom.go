@@ -5,12 +5,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonboulle/clockwork"
+	opclock "altinn.studio/operator/internal/clock"
 )
 
 type CachedAtom[T any] struct {
 	currentFetchedAt time.Time
-	clock            clockwork.Clock
+	clock            opclock.Clock
 	retriever        func(ctx context.Context) (*T, error)
 	current          *T
 	expireAfter      time.Duration
@@ -19,7 +19,7 @@ type CachedAtom[T any] struct {
 
 func NewCachedAtom[T any](
 	expireAfter time.Duration,
-	clock clockwork.Clock,
+	clock opclock.Clock,
 	retriever func(ctx context.Context) (*T, error),
 ) CachedAtom[T] {
 	return CachedAtom[T]{

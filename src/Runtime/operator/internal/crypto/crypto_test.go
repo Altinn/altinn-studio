@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/gkampitakis/go-snaps/snaps"
-	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/test/utils"
 )
 
@@ -226,8 +226,8 @@ func TestPublicJwksConversion(t *testing.T) {
 	snaps.MatchJSON(t, jsonPayload)
 }
 
-func createService() (*CryptoService, *clockwork.FakeClock) {
-	clock := clockwork.NewFakeClockAt(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC))
+func createService() (*CryptoService, *opclock.FakeClock) {
+	clock := opclock.NewFakeClockAt(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC))
 	random := utils.NewDeterministicRand()
 	service := NewDefaultService(clock, random)
 	return service, clock
@@ -240,11 +240,11 @@ func setDeterministicCryptoRandom(t *testing.T) {
 	cryptotest.SetGlobalRandom(t, cryptoTestSeed)
 }
 
-func getNotAfter(clock clockwork.Clock) time.Time {
+func getNotAfter(clock opclock.Clock) time.Time {
 	return clock.Now().UTC().Add(time.Hour * 24 * 30)
 }
 
-func createTestJwks() (*Jwks, *CryptoService, *clockwork.FakeClock, error) {
+func createTestJwks() (*Jwks, *CryptoService, *opclock.FakeClock, error) {
 	service, clock := createService()
 
 	jwks, err := service.CreateJwks(testSubject, getNotAfter(clock))

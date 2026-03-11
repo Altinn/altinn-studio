@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	grafanav1beta1 "github.com/grafana/grafana-operator/v5/api/v1beta1"
-	"github.com/jonboulle/clockwork"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,6 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"altinn.studio/operator/internal"
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/operatorcontext"
 )
 
@@ -42,14 +42,14 @@ func newFakeK8sClient(initObjs ...client.Object) client.Client {
 type testHarness struct {
 	reconciler *SecretSyncReconciler
 	k8sClient  client.Client
-	clock      *clockwork.FakeClock
+	clock      *opclock.FakeClock
 }
 
 func newTestHarness(t *testing.T, mappings []SecretSyncMapping, initObjs ...client.Object) *testHarness {
 	t.Helper()
 
 	k8sClient := newFakeK8sClient(initObjs...)
-	clock := clockwork.NewFakeClock()
+	clock := opclock.NewFakeClock()
 
 	rt, err := internal.NewRuntime(
 		context.Background(),

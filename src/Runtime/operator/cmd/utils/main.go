@@ -16,8 +16,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"github.com/go-jose/go-jose/v4"
-	"github.com/jonboulle/clockwork"
 
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/maskinporten"
@@ -358,7 +358,7 @@ func getClientToken() {
 		OrgRegistry: setup.config.OrgRegistry,
 	}
 	clientConfigMonitor := config.NewConfigMonitorForTesting(clientConfig)
-	client, err := maskinporten.NewHttpApiClient(clientConfigMonitor, setup.operatorCtx, clockwork.NewRealClock())
+	client, err := maskinporten.NewHttpApiClient(clientConfigMonitor, setup.operatorCtx, opclock.NewRealClock())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create Maskinporten client: %v\n", err)
 		os.Exit(1)
@@ -782,8 +782,8 @@ func setupMaskinportenClient(env, envFile string, withCrypto bool) (*setupResult
 	return result, nil
 }
 
-func setupBaseServices() (clockwork.Clock, *crypto.CryptoService) {
-	clock := clockwork.NewRealClock()
+func setupBaseServices() (opclock.Clock, *crypto.CryptoService) {
+	clock := opclock.NewRealClock()
 	cryptoService := crypto.NewDefaultService(clock, rand.Reader)
 	return clock, cryptoService
 }
