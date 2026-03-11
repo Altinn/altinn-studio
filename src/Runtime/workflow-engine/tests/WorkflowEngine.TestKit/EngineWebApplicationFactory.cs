@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using WorkflowEngine.Api.Extensions;
 
 namespace WorkflowEngine.TestKit;
 
@@ -36,9 +37,6 @@ public sealed class EngineWebApplicationFactory<TProgram> : WebApplicationFactor
                 config.AddJsonStream(
                     $$"""
                     {
-                      "ConnectionStrings": {
-                          "WorkflowEngine": "{{_dbConnectionString}}"
-                      },
                       "EngineSettings": {
                         "QueueCapacity": 100,
                         "MaxDegreeOfParallelism": 10,
@@ -63,7 +61,17 @@ public sealed class EngineWebApplicationFactory<TProgram> : WebApplicationFactor
                 )
         );
 
-        builder.ConfigureServices(services => services.AddExceptionHandler<DiagnosticExceptionHandler>());
+        // Override the connection string registered by Program.cs (from appsettings.json)
+        // with the test container's connection string.
+        builder.ConfigureServices(services =>
+        {
+            var existing = services.FirstOrDefault(d => d.ServiceType == typeof(EngineConnectionString));
+            if (existing != null)
+                services.Remove(existing);
+            services.AddSingleton(new EngineConnectionString(_dbConnectionString));
+
+            services.AddExceptionHandler<DiagnosticExceptionHandler>();
+        });
 
         _configureWebHost?.Invoke(builder);
     }

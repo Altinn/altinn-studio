@@ -14,10 +14,7 @@ public static class HostExtensions
         /// Terminates all existing connections to the database.
         /// Only intended for development use, to clear stale connections from ungraceful shutdowns.
         /// </summary>
-        public async Task ResetDatabaseConnectionsInDev(
-            string dbConnectionString,
-            CancellationToken cancellationToken = default
-        )
+        internal async Task ResetDatabaseConnectionsInDev(CancellationToken cancellationToken = default)
         {
             var env = host.Services.GetRequiredService<IHostEnvironment>();
             if (!env.IsDevelopment())
@@ -26,26 +23,25 @@ public static class HostExtensions
             host.ForceInitializeTracerProvider();
             using var activity = Metrics.Source.StartActivity("Engine.ResetDatabaseConnections");
 
+            var connectionString = host.Services.GetRequiredService<EngineConnectionString>().Value;
             using var scope = host.Services.CreateScope();
             var resetService = scope.ServiceProvider.GetRequiredService<DbConnectionResetService>();
-            await resetService.ResetConnections(dbConnectionString, cancellationToken);
+            await resetService.ResetConnections(connectionString, cancellationToken);
         }
 
         /// <summary>
         /// Applies any pending database migrations with distributed locking.
         /// Should be called before the application starts handling requests.
         /// </summary>
-        public async Task ApplyDatabaseMigrations(
-            string dbConnectionString,
-            CancellationToken cancellationToken = default
-        )
+        internal async Task ApplyDatabaseMigrations(CancellationToken cancellationToken = default)
         {
             host.ForceInitializeTracerProvider();
             using var activity = Metrics.Source.StartActivity("Engine.ApplyDatabaseMigrations");
 
+            var connectionString = host.Services.GetRequiredService<EngineConnectionString>().Value;
             using var scope = host.Services.CreateScope();
             var migrationService = scope.ServiceProvider.GetRequiredService<DbMigrationService>();
-            await migrationService.Migrate(dbConnectionString, cancellationToken);
+            await migrationService.Migrate(connectionString, cancellationToken);
         }
 
         private void ForceInitializeTracerProvider()

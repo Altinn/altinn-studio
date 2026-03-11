@@ -9,23 +9,18 @@ public static class WorkflowEngineAppExtensions
     extension(WebApplication app)
     {
         /// <summary>
-        /// Configures the middleware pipeline and maps all engine endpoints.
+        /// Configures the middleware pipeline, maps all engine endpoints, and applies
+        /// database migrations.
         /// <para>
         /// Call after <see cref="WorkflowEngineBuilderExtensions.AddWorkflowEngine"/>
         /// and after <c>builder.Build()</c>.
         /// </para>
         /// </summary>
-        public WebApplication UseWorkflowEngine(Action<WorkflowEngineOptions>? configure = null)
+        public async Task<WebApplication> UseWorkflowEngine()
         {
-            var options = new WorkflowEngineOptions();
-            configure?.Invoke(options);
-
             // OpenAPI / SwaggerUI
-            if (options.EnableOpenApi)
-            {
-                app.MapOpenApi();
-                app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Workflow Engine API v1"));
-            }
+            app.MapOpenApi();
+            app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Workflow Engine API v1"));
 
             // Middleware
             app.UseExceptionHandler();
@@ -37,12 +32,15 @@ public static class WorkflowEngineAppExtensions
             app.MapEngineEndpoints();
 
             // Dashboard (non-production only)
-            if (options.EnableDashboard && !app.Environment.IsProduction())
+            if (!app.Environment.IsProduction())
             {
-                if (options.EnableDashboardCors)
-                    app.UseCors("Dashboard");
+                app.UseCors("Dashboard");
                 app.MapDashboardEndpoints();
             }
+
+            // Database lifecycle
+            await app.ResetDatabaseConnectionsInDev();
+            await app.ApplyDatabaseMigrations();
 
             return app;
         }
