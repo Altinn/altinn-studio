@@ -22,4 +22,10 @@ public partial class AltinnRegexes
 
     [GeneratedRegex("^[0-9a-f]{12}$", RegexOptions.IgnoreCase)]
     public static partial Regex AltinnArchiveReferenceRegex();
+
+    [GeneratedRegex(@"^\d{11}$")]
+    public static partial Regex NorwegianPidRegex();
+
+    [GeneratedRegex(@"^[0-9a-f]{64}$")]
+    public static partial Regex Sha256HexRegex();
 }

@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@baa11fbfe1d6520db94683bd5c7a3818018e4309 # v5
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
         with:
           dotnet-version: '9.0.x'
 
@@ -41,7 +41,7 @@ jobs:
           language: csharp
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
+        uses: github/codeql-action/init@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
         with:
           languages: csharp
           build-mode: manual
@@ -54,6 +54,6 @@ jobs:
         working-directory: src/Designer/
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3
+        uses: github/codeql-action/analyze@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
         with:
           category: "/language:csharp"
