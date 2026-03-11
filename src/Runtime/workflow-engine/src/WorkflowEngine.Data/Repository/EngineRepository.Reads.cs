@@ -389,7 +389,7 @@ internal sealed partial class EngineRepository
 
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
-        Guid correlationId,
+        Guid? correlationId = null,
         string? ns = null,
         CancellationToken cancellationToken = default
     )

@@ -2,7 +2,7 @@ namespace WorkflowEngine.Models;
 
 public sealed record Workflow : PersistentItem
 {
-    public required Guid CorrelationId { get; init; }
+    public Guid? CorrelationId { get; init; }
     public string? InstanceLockKey { get; init; }
     public required Actor Actor { get; init; }
     public required InstanceInformation InstanceInformation { get; init; }

@@ -349,7 +349,7 @@ public class EngineEndpointTests
         repositoryMock
             .Setup(r =>
                 r.GetActiveWorkflowsByCorrelationId(
-                    It.IsAny<Guid>(),
+                    It.IsAny<Guid?>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -380,7 +380,7 @@ public class EngineEndpointTests
         repositoryMock
             .Setup(r =>
                 r.GetActiveWorkflowsByCorrelationId(
-                    It.IsAny<Guid>(),
+                    It.IsAny<Guid?>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -408,12 +408,12 @@ public class EngineEndpointTests
         repositoryMock
             .Setup(r =>
                 r.GetActiveWorkflowsByCorrelationId(
-                    It.IsAny<Guid>(),
+                    It.IsAny<Guid?>(),
                     It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .Callback<Guid, string?, CancellationToken>((guid, _, _) => capturedGuid = guid)
+            .Callback<Guid?, string?, CancellationToken>((guid, _, _) => capturedGuid = guid)
             .ReturnsAsync([]);
 
         // Act

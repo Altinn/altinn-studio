@@ -68,11 +68,15 @@ internal sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
     }
 
     /// <summary>
-    /// Lists active workflows by correlation ID and returns either a parsed result or an empty list on 204 No Content.
+    /// Lists active workflows, optionally filtered by correlation ID.
+    /// Returns either a parsed result or an empty list on 204 No Content.
     /// </summary>
-    public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(Guid correlationId)
+    public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(Guid? correlationId = null)
     {
-        using var response = await _client.GetAsync($"{EngineAppFixture.ApiBasePath}?correlationId={correlationId}");
+        var url = correlationId.HasValue
+            ? $"{EngineAppFixture.ApiBasePath}?correlationId={correlationId.Value}"
+            : EngineAppFixture.ApiBasePath;
+        using var response = await _client.GetAsync(url);
 
         if (response.StatusCode == HttpStatusCode.NoContent)
             return [];

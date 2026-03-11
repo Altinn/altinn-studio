@@ -90,11 +90,10 @@ public interface IEngineRepository
     );
 
     /// <summary>
-    /// Gets all active (incomplete) workflows for the given correlation ID,
-    /// optionally filtered by namespace.
+    /// Gets all active (incomplete) workflows, optionally filtered by correlation ID and namespace.
     /// </summary>
     Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
-        Guid correlationId,
+        Guid? correlationId = null,
         string? ns = null,
         CancellationToken cancellationToken = default
     );

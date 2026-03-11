@@ -26,7 +26,7 @@ internal sealed record DashboardWorkflowDto(
     string OperationId,
     string Status,
     string? TraceId,
-    Guid CorrelationId,
+    Guid? CorrelationId,
     DashboardInstanceDto Instance,
     DateTimeOffset CreatedAt,
     DateTimeOffset? ExecutionStartedAt,

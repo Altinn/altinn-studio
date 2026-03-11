@@ -111,13 +111,13 @@ internal static class EngineRepositoryQueryExtensions
                 query = query.Where(x => x.InstanceGuid.ToString() == instanceGuid);
 
             if (!string.IsNullOrWhiteSpace(correlationId))
-                query = query.Where(x => x.CorrelationId.ToString() == correlationId);
+                query = query.Where(x => x.CorrelationId.HasValue && x.CorrelationId.Value.ToString() == correlationId);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var s = search.ToLower();
                 query = query.Where(x =>
-                    x.CorrelationId.ToString().Contains(s)
+                    (x.CorrelationId.HasValue && x.CorrelationId.Value.ToString().Contains(s))
                     || x.InstanceGuid.ToString().Contains(s)
                     || x.InstanceOrg.ToLower().Contains(s)
                     || x.InstanceApp.ToLower().Contains(s)

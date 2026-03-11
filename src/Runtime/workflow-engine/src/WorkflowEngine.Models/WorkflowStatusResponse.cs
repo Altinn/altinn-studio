@@ -14,10 +14,11 @@ public sealed record WorkflowStatusResponse
     public Guid DatabaseId { get; init; }
 
     /// <summary>
-    /// The correlation ID for this workflow.
+    /// The correlation ID for this workflow, if one was provided.
     /// </summary>
     [JsonPropertyName("correlationId")]
-    public Guid CorrelationId { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? CorrelationId { get; init; }
 
     /// <summary>
     /// An identifier for this operation.

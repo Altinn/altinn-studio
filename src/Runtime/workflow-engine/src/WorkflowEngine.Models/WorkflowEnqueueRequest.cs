@@ -10,11 +10,11 @@ namespace WorkflowEngine.Models;
 public sealed record WorkflowEnqueueRequest
 {
     /// <summary>
-    /// A correlation ID shared by all workflows in this batch.
+    /// Optional correlation ID shared by all workflows in this batch.
     /// Used for grouping and looking up related workflows.
     /// </summary>
     [JsonPropertyName("correlationId")]
-    public required Guid CorrelationId { get; init; }
+    public Guid? CorrelationId { get; init; }
 
     /// <summary>
     /// The actor submitting this batch.

@@ -92,7 +92,7 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
-        [FromQuery] Guid correlationId,
+        [FromQuery] Guid? correlationId,
         [FromQuery(Name = "namespace")] string? ns,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken

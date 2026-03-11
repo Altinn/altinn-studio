@@ -46,7 +46,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public Guid InstanceGuid { get; set; }
 
-    public Guid CorrelationId { get; set; }
+    public Guid? CorrelationId { get; set; }
 
     public required string Namespace { get; set; }
 
