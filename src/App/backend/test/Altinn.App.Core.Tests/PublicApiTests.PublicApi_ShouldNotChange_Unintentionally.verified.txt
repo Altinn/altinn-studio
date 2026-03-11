@@ -451,35 +451,21 @@ namespace Altinn.App.Core.Features.Bootstrap.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("initialValidationIssues")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? InitialValidationIssues { get; set; }
-        [System.Text.Json.Serialization.JsonPropertyName("isWritable")]
-        public required bool IsWritable { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("schema")]
         public required object Schema { get; init; }
     }
-    public abstract class FormBootstrapResponse
+    public sealed class FormBootstrapResponse
     {
-        protected FormBootstrapResponse() { }
+        public FormBootstrapResponse() { }
         [System.Text.Json.Serialization.JsonPropertyName("dataModels")]
         public required System.Collections.Generic.Dictionary<string, Altinn.App.Core.Features.Bootstrap.Models.DataModelInfo> DataModels { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("layouts")]
         public required object Layouts { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("staticOptions")]
         public required System.Collections.Generic.Dictionary<string, Altinn.App.Core.Features.Bootstrap.Models.StaticOptionSet> StaticOptions { get; init; }
-    }
-    public sealed class InstanceFormBootstrapResponse : Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse
-    {
-        public InstanceFormBootstrapResponse() { }
-        [System.Text.Json.Serialization.JsonPropertyName("instance")]
-        public required Altinn.Platform.Storage.Interface.Models.Instance Instance { get; init; }
-        [System.Text.Json.Serialization.JsonPropertyName("process")]
-        public required Altinn.App.Core.Internal.Process.Elements.AppProcessState Process { get; init; }
         [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
         public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? ValidationIssues { get; init; }
-    }
-    public sealed class StatelessFormBootstrapResponse : Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse
-    {
-        public StatelessFormBootstrapResponse() { }
     }
     public sealed class StaticOptionSet
     {
@@ -3838,11 +3824,6 @@ namespace Altinn.App.Core.Internal.Process
         [System.Obsolete("Never used in our process engine code.")]
         AbandonCurrentReturnToNext = 1,
         AbandonCurrentMoveToNext = 2,
-    }
-    public sealed class ProcessStateEnricher
-    {
-        public ProcessStateEnricher(Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Auth.IAuthorizationService authorization) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AppProcessState> Enrich(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.ProcessState? processState, System.Security.Claims.ClaimsPrincipal user) { }
     }
 }
 namespace Altinn.App.Core.Internal.Process.ProcessTasks

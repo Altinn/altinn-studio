@@ -143,6 +143,7 @@ async function statelessRender(props: RenderProps) {
           if (!obj.dataModels[statelessDataTypeMock]) {
             obj.dataModels[statelessDataTypeMock] = getDataModelBootstrapMock();
           }
+          obj.dataModels[statelessDataTypeMock].dataElementId = null;
           obj.dataModels[statelessDataTypeMock].schema = mockSchema;
           obj.layouts = {};
           return obj;

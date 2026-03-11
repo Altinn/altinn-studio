@@ -2573,17 +2573,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/InstanceFormBootstrapResponse"
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InstanceFormBootstrapResponse"
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InstanceFormBootstrapResponse"
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
                 }
               }
             }
@@ -2709,17 +2709,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/StatelessFormBootstrapResponse"
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StatelessFormBootstrapResponse"
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StatelessFormBootstrapResponse"
+                  "$ref": "#/components/schemas/FormBootstrapResponse"
                 }
               }
             }
@@ -8394,7 +8394,6 @@
       "DataModelInfo": {
         "required": [
           "initialData",
-          "isWritable",
           "schema"
         ],
         "type": "object",
@@ -8408,9 +8407,6 @@
           "dataElementId": {
             "type": "string",
             "nullable": true
-          },
-          "isWritable": {
-            "type": "boolean"
           },
           "expressionValidationConfig": {
             "nullable": true
@@ -8798,6 +8794,41 @@
         ],
         "type": "string"
       },
+      "FormBootstrapResponse": {
+        "required": [
+          "dataModels",
+          "layouts",
+          "staticOptions"
+        ],
+        "type": "object",
+        "properties": {
+          "layouts": {
+            "nullable": true
+          },
+          "dataModels": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DataModelInfo"
+            },
+            "nullable": true
+          },
+          "staticOptions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/StaticOptionSet"
+            },
+            "nullable": true
+          },
+          "validationIssues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssueWithSource"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "HideSettings": {
         "type": "object",
         "properties": {
@@ -8926,49 +8957,6 @@
         },
         "additionalProperties": false,
         "description": "Light weight model representing an instance and it's file scan result status."
-      },
-      "InstanceFormBootstrapResponse": {
-        "required": [
-          "dataModels",
-          "instance",
-          "layouts",
-          "process",
-          "staticOptions"
-        ],
-        "type": "object",
-        "properties": {
-          "layouts": {
-            "nullable": true
-          },
-          "dataModels": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/DataModelInfo"
-            },
-            "nullable": true
-          },
-          "staticOptions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/StaticOptionSet"
-            },
-            "nullable": true
-          },
-          "instance": {
-            "$ref": "#/components/schemas/Instance"
-          },
-          "process": {
-            "$ref": "#/components/schemas/AppProcessState"
-          },
-          "validationIssues": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ValidationIssueWithSource"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
       },
       "InstanceOwner": {
         "type": "object",
@@ -10551,34 +10539,6 @@
         },
         "additionalProperties": false,
         "description": "A simplified instance model used for presentation of key instance information."
-      },
-      "StatelessFormBootstrapResponse": {
-        "required": [
-          "dataModels",
-          "layouts",
-          "staticOptions"
-        ],
-        "type": "object",
-        "properties": {
-          "layouts": {
-            "nullable": true
-          },
-          "dataModels": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/DataModelInfo"
-            },
-            "nullable": true
-          },
-          "staticOptions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/StaticOptionSet"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
       },
       "StaticOptionSet": {
         "required": [

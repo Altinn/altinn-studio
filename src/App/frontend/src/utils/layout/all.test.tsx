@@ -164,7 +164,6 @@ describe('All known UI folders should render successfully', () => {
                   obj.schema = model.getSchema();
                   obj.initialData = uiFolder.getModel({ name: model.getName() }).simulateDataModel();
                   obj.dataElementId = `fakeUuid:${model.getName()}:end`;
-                  obj.isWritable = true;
                   obj.expressionValidationConfig = null;
                 }),
               ]),

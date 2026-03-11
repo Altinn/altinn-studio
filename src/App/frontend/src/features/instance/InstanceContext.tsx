@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -226,4 +226,20 @@ export const useOptimisticallyUpdateCachedInstance = (): ChangeInstanceData => {
       return oldData;
     });
   };
+};
+
+export type InstanceDataSelector = <T>(selector: (instance: IInstance) => T) => T | undefined;
+
+export const useSelectFromInstanceData = (): InstanceDataSelector => {
+  const queryClient = useQueryClient();
+  const args = useInstanceDataQueryArgs();
+  const instanceQueryKey = useMemo(() => instanceQueries.instanceData(args).queryKey, [args]);
+
+  return useCallback(
+    <T,>(selector: (instance: IInstance) => T): T | undefined => {
+      const instance = queryClient.getQueryData<IInstance>(instanceQueryKey);
+      return instance ? selector(instance) : undefined;
+    },
+    [instanceQueryKey, queryClient],
+  );
 };

@@ -239,7 +239,6 @@ public class FormBootstrapServiceTests
         // Assert
         Assert.True(result.DataModels.ContainsKey("model"));
         Assert.Null(result.DataModels["model"].ExpressionValidationConfig);
-        Assert.False(result.DataModels["model"].IsWritable);
     }
 
     [Fact]

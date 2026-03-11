@@ -209,7 +209,7 @@ public class FormBootstrapController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to bootstrap stateless form for layout set {LayoutSetId}", uiFolder);
+            _logger.LogError(ex, "Failed to bootstrap stateless form");
             throw;
         }
     }
@@ -276,7 +276,7 @@ public class FormBootstrapController : ControllerBase
     {
         var appMetadata = await _appMetadata.GetApplicationMetadata();
         var uiConfig = _appResources.GetUiConfiguration();
-        if (uiConfig?.Folders.TryGetValue(layoutSetId, out var layoutSettings) != true)
+        if (uiConfig?.Folders.TryGetValue(layoutSetId, out var layoutSettings) != true || layoutSettings is null)
         {
             return false;
         }

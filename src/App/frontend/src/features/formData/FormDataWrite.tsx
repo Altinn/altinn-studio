@@ -18,7 +18,11 @@ import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteSta
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
-import { useLaxInstanceId, useOptimisticallyUpdateCachedInstance } from 'src/features/instance/InstanceContext';
+import {
+  useLaxInstanceId,
+  useOptimisticallyUpdateCachedInstance,
+  useSelectFromInstanceData,
+} from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 import {
@@ -41,7 +45,7 @@ import type {
   UpdatedDataModel,
 } from 'src/features/formData/FormDataWriteStateMachine';
 import type { DebounceReason, IPatchListItem } from 'src/features/formData/types';
-import type { ChangeInstanceData } from 'src/features/instance/InstanceContext';
+import type { ChangeInstanceData, InstanceDataSelector } from 'src/features/instance/InstanceContext';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
 import type { IDataModelReference, IMapping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
@@ -56,6 +60,7 @@ interface FormDataContextInitialProps {
   proxies: FormDataWriteProxies;
   schemaLookup: { [dataType: string]: SchemaLookupTool };
   changeInstance: ChangeInstanceData;
+  selectFromInstance: InstanceDataSelector;
 }
 
 const {
@@ -80,8 +85,9 @@ const {
     proxies,
     schemaLookup,
     changeInstance,
+    selectFromInstance,
   }: FormDataContextInitialProps) =>
-    createFormDataWriteStore(initialDataModels, autoSaving, proxies, schemaLookup, changeInstance),
+    createFormDataWriteStore(initialDataModels, autoSaving, proxies, schemaLookup, changeInstance, selectFromInstance),
 });
 
 const saveFormDataMutationKey = ['saveFormData'] as const;
@@ -326,16 +332,15 @@ function useIsSavingFormData() {
 export function FormDataWriteProvider({ children }: PropsWithChildren) {
   const proxies = useFormDataWriteProxies();
   const allDataTypes = FormBootstrap.useReadableDataTypes();
-  const writableDataTypes = FormBootstrap.useWritableDataTypes();
-  const defaultDataType = FormBootstrap.useDefaultDataType();
+  const instanceDataSelector = useSelectFromInstanceData();
   const initialData = FormBootstrap.useInitialData();
   const dataElementIds = FormBootstrap.useDataElementIds();
   const schemaLookup = FormBootstrap.useSchemaLookup();
   const autoSaveBehavior = usePageSettings().autoSaveBehavior;
   const changeInstance = useOptimisticallyUpdateCachedInstance();
 
-  if (!writableDataTypes || !allDataTypes) {
-    throw new Error('FormDataWriteProvider failed because data types have not been loaded, see DataModelsProvider.');
+  if (!allDataTypes) {
+    throw new Error('FormDataWriteProvider failed because data types have not been loaded, see FormBootstrapProvider');
   }
 
   const initialDataModels = allDataTypes.reduce((dm, dt) => {
@@ -346,11 +351,8 @@ export function FormDataWriteProvider({ children }: PropsWithChildren) {
       debouncedCurrentData: initialData[dt],
       invalidDebouncedCurrentData: emptyInvalidData,
       lastSavedData: initialData[dt],
-      hasUnsavedChanges: false,
       dataElementId: dataElementIds[dt],
-      readonly: !writableDataTypes.includes(dt),
-      isDefault: dt === defaultDataType,
-    };
+    } satisfies DataModelState;
     return dm;
   }, {});
 
@@ -361,6 +363,7 @@ export function FormDataWriteProvider({ children }: PropsWithChildren) {
       proxies={proxies}
       schemaLookup={schemaLookup}
       changeInstance={changeInstance}
+      selectFromInstance={instanceDataSelector}
     >
       <FormDataEffects />
       <LockingEffects />

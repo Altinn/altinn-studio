@@ -12,7 +12,6 @@ export function getDataModelBootstrapMock(
     },
     initialData: {},
     dataElementId: defaultMockDataElementId,
-    isWritable: true,
     expressionValidationConfig: null,
   } satisfies RawDataModelInfo;
 

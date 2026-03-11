@@ -226,7 +226,6 @@ internal sealed class FormBootstrapService
                     return (dataType, null);
                 }
 
-                // Load schema, data, and validation config
                 var schema = GetSchema(dataType);
                 var formData = await GetFormDataAsync(instance, dataElement, language, cancellationToken);
                 var validationConfig = isPdf || dataElement.Locked ? null : GetValidationConfig(dataType);
@@ -239,7 +238,6 @@ internal sealed class FormBootstrapService
                             Schema = schema,
                             InitialData = formData,
                             DataElementId = dataElement.Id,
-                            IsWritable = dataElement.Locked != true,
                             ExpressionValidationConfig = validationConfig,
                         }
                 );
@@ -310,7 +308,6 @@ internal sealed class FormBootstrapService
                     Schema = schema,
                     InitialData = defaultData,
                     DataElementId = null,
-                    IsWritable = true,
                     ExpressionValidationConfig = validationConfig,
                 };
             }
