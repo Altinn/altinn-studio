@@ -5,9 +5,10 @@ import { BpmnGuard } from '../../../../utils/bpmnGuard/BpmnGuard';
 
 export const useUpdateCorrespondenceResource = () => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
-  const modelerInstance = modelerRef.current;
-  const modeling: Modeling = modelerInstance.get('modeling');
-  return (value: string) => updateCorrespondenceResource(modeling, value, bpmnDetails);
+  return (value: string) => {
+    const modeling: Modeling = modelerRef.current.get('modeling');
+    updateCorrespondenceResource(modeling, value, bpmnDetails);
+  };
 };
 
 const updateCorrespondenceResource = (

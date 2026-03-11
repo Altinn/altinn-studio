@@ -40,11 +40,12 @@ const updateDataTypesToSign = (
 
 export const useUpdateDataTypesToSign = () => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
-  const modelerInstance = modelerRef.current;
-  const modeling: Modeling = modelerInstance.get('modeling');
-  const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
   const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
 
-  return (dataTypes: string[]) =>
+  return (dataTypes: string[]) => {
+    const modelerInstance = modelerRef.current;
+    const modeling: Modeling = modelerInstance.get('modeling');
+    const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
     debounce(() => updateDataTypes(bpmnFactory, modeling, bpmnDetails, dataTypes));
+  };
 };
