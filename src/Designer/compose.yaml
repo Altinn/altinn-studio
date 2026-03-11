@@ -73,6 +73,9 @@ services:
       - REPOS_HOST=gitea-proxy:80
       - SERVER_NAME=studio.localhost
       - LISTEN_DIRECTIVE=80
+      - OTEL_ENDPOINT=localhost:4317
+      - OTEL_SERVICE_NAME=studio-loadbalancer
+      - OTEL_TRACE=off
     volumes:
       - ./../load-balancer/local/www:/www:ro
       - ./../load-balancer/local/error-pages:/etc/nginx/error-pages:ro
