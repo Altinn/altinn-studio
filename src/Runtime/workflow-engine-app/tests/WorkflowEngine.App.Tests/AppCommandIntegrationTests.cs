@@ -123,10 +123,8 @@ public sealed class AppCommandIntegrationTests(AppTestFixture fixture) : IAsyncL
                     [
                         new StepRequest
                         {
-                            Command = AppCommand.Create(
-                                "do-something",
-                                new AppCommandData { CommandKey = "do-something" }
-                            ),
+                            OperationId = "do-something",
+                            Command = AppCommand.Create(new AppCommandData { CommandKey = "do-something" }),
                         },
                     ],
                 },
@@ -177,49 +175,49 @@ public sealed class AppCommandIntegrationTests(AppTestFixture fixture) : IAsyncL
                     {
                         "ref": "wf-root",
                         "operationId": "process-root",
-                        "steps": [{ "command": { "type": "app", "operationId": "process-root", "data": { "commandKey": "process-root" } } }]
+                        "steps": [{ "operationId": "process-root", "command": { "type": "app", "data": { "commandKey": "process-root" } } }]
                     },
                     {
                         "ref": "wf-a-first",
                         "operationId": "process-a-1",
                         "dependsOn": ["wf-root"],
-                        "steps": [{ "command": { "type": "app", "operationId": "process-a-1", "data": { "commandKey": "process-a-1" } } }]
+                        "steps": [{ "operationId": "process-a-1", "command": { "type": "app", "data": { "commandKey": "process-a-1" } } }]
                     },
                     {
                         "ref": "wf-a-second",
                         "operationId": "process-a-2",
                         "dependsOn": ["wf-a-first"],
-                        "steps": [{ "command": { "type": "app", "operationId": "process-a-2", "data": { "commandKey": "process-a-2" } } }]
+                        "steps": [{ "operationId": "process-a-2", "command": { "type": "app", "data": { "commandKey": "process-a-2" } } }]
                     },
                     {
                         "ref": "wf-a-third",
                         "operationId": "process-a-3",
                         "dependsOn": ["wf-a-second"],
-                        "steps": [{ "command": { "type": "app", "operationId": "process-a-3", "data": { "commandKey": "process-a-3" } } }]
+                        "steps": [{ "operationId": "process-a-3", "command": { "type": "app", "data": { "commandKey": "process-a-3" } } }]
                     },
                     {
                         "ref": "wf-b-first",
                         "operationId": "process-b-1",
                         "dependsOn": ["wf-root"],
-                        "steps": [{ "command": { "type": "app", "operationId": "process-b-1", "data": { "commandKey": "process-b-1" } } }]
+                        "steps": [{ "operationId": "process-b-1", "command": { "type": "app", "data": { "commandKey": "process-b-1" } } }]
                     },
                     {
                         "ref": "wf-c-first",
                         "operationId": "process-c-1",
                         "dependsOn": ["wf-root"],
-                        "steps": [{ "command": { "type": "app", "operationId": "process-c-1", "data": { "commandKey": "process-c-1" } } }]
+                        "steps": [{ "operationId": "process-c-1", "command": { "type": "app", "data": { "commandKey": "process-c-1" } } }]
                     },
                     {
                         "ref": "wf-join-b-c",
                         "operationId": "join-b-c",
                         "dependsOn": ["wf-b-first", "wf-c-first"],
-                        "steps": [{ "command": { "type": "app", "operationId": "join-b-c", "data": { "commandKey": "join-b-c" } } }]
+                        "steps": [{ "operationId": "join-b-c", "command": { "type": "app", "data": { "commandKey": "join-b-c" } } }]
                     },
                     {
                         "ref": "wf-join-all",
                         "operationId": "join-all",
                         "dependsOn": ["wf-a-third", "wf-join-b-c"],
-                        "steps": [{ "command": { "type": "app", "operationId": "join-all", "data": { "commandKey": "join-all" } } }]
+                        "steps": [{ "operationId": "join-all", "command": { "type": "app", "data": { "commandKey": "join-all" } } }]
                     }
                 ]
             }

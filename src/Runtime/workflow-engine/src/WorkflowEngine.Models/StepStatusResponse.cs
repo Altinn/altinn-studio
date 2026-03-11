@@ -21,6 +21,12 @@ public sealed record StepStatusResponse
     public string? IdempotencyKey { get; init; }
 
     /// <summary>
+    /// An identifier for this operation.
+    /// </summary>
+    [JsonPropertyName("operationId")]
+    public required string OperationId { get; init; }
+
+    /// <summary>
     /// The processing order of the step.
     /// </summary>
     [JsonPropertyName("processingOrder")]
@@ -75,7 +81,8 @@ public sealed record StepStatusResponse
         {
             DatabaseId = step.DatabaseId,
             IdempotencyKey = step.IdempotencyKey,
-            Command = new CommandDetails { Type = step.Command.Type, OperationId = step.Command.OperationId },
+            OperationId = step.OperationId,
+            Command = new CommandDetails { Type = step.Command.Type },
             ProcessingOrder = step.ProcessingOrder,
             Status = step.Status,
             UpdatedAt = step.UpdatedAt,
@@ -92,11 +99,5 @@ public sealed record StepStatusResponse
         /// </summary>
         [JsonPropertyName("type")]
         public required string Type { get; init; }
-
-        /// <summary>
-        /// An identifier for this operation.
-        /// </summary>
-        [JsonPropertyName("operationId")]
-        public required string OperationId { get; init; }
     }
 }

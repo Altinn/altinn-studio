@@ -9,6 +9,12 @@ namespace WorkflowEngine.Models;
 public sealed record StepRequest
 {
     /// <summary>
+    /// A human-readable identifier for this operation (used in logs, telemetry, and idempotency keys).
+    /// </summary>
+    [JsonPropertyName("operationId")]
+    public required string OperationId { get; init; }
+
+    /// <summary>
     /// The command to be executed by the process engine.
     /// </summary>
     [JsonPropertyName("command")]

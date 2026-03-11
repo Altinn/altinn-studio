@@ -42,7 +42,7 @@ internal static class DashboardMapper
             step.IdempotencyKey,
             step.OperationId,
             step.Command.Type,
-            step.Command.OperationId,
+            step.OperationId,
             step.LastError,
             step.Status.ToString(),
             step.ProcessingOrder,

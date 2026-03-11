@@ -5,7 +5,7 @@ namespace WorkflowEngine.Core.Tests.Utils;
 
 public class ValidationUtilsTests
 {
-    private static CommandDefinition NoopCommand() => new() { Type = "noop", OperationId = "noop" };
+    private static CommandDefinition NoopCommand() => new() { Type = "noop" };
 
     private static WorkflowRequest CreateWorkflowRequest(
         string workflowRef,
@@ -15,7 +15,7 @@ public class ValidationUtilsTests
         {
             Ref = workflowRef,
             OperationId = $"op-{workflowRef}",
-            Steps = [new StepRequest { Command = NoopCommand() }],
+            Steps = [new StepRequest { OperationId = "noop", Command = NoopCommand() }],
             DependsOn = dependsOnRefs?.Select(d => (WorkflowRef)d).ToList(),
         };
 
@@ -273,7 +273,8 @@ public class ValidationUtilsTests
     {
         var validStep = new StepRequest
         {
-            Command = new CommandDefinition { Type = "noop", OperationId = "noop" },
+            OperationId = "noop",
+            Command = new CommandDefinition { Type = "noop" },
         };
         var validWorkflow = new WorkflowRequest { OperationId = "op", Steps = [validStep] };
 
@@ -287,7 +288,15 @@ public class ValidationUtilsTests
             {
                 validWorkflow with
                 {
-                    Steps = [new StepRequest { Command = validStep.Command, Metadata = "{}" }],
+                    Steps =
+                    [
+                        new StepRequest
+                        {
+                            OperationId = "noop",
+                            Command = validStep.Command,
+                            Metadata = "{}",
+                        },
+                    ],
                 },
                 ExpectedResult.Valid
             },
@@ -301,7 +310,7 @@ public class ValidationUtilsTests
             { validWorkflow with { Metadata = "{bad" }, ExpectedResult.Invalid },
             // Invalid: Steps
             { validWorkflow with { Steps = [] }, ExpectedResult.Invalid },
-            // Invalid: a step has an empty command OperationId
+            // Invalid: a step has an empty OperationId
             {
                 validWorkflow with
                 {
@@ -309,7 +318,8 @@ public class ValidationUtilsTests
                     [
                         new StepRequest
                         {
-                            Command = new CommandDefinition { Type = "app", OperationId = "" },
+                            OperationId = "",
+                            Command = new CommandDefinition { Type = "app" },
                         },
                     ],
                 },
@@ -322,7 +332,8 @@ public class ValidationUtilsTests
                     [
                         new StepRequest
                         {
-                            Command = new CommandDefinition { Type = "app", OperationId = "   " },
+                            OperationId = "   ",
+                            Command = new CommandDefinition { Type = "app" },
                         },
                     ],
                 },
@@ -332,7 +343,15 @@ public class ValidationUtilsTests
             {
                 validWorkflow with
                 {
-                    Steps = [new StepRequest { Command = validStep.Command, Metadata = "not-json" }],
+                    Steps =
+                    [
+                        new StepRequest
+                        {
+                            OperationId = "noop",
+                            Command = validStep.Command,
+                            Metadata = "not-json",
+                        },
+                    ],
                 },
                 ExpectedResult.Invalid
             },
@@ -341,49 +360,76 @@ public class ValidationUtilsTests
 
     public static TheoryData<StepRequest, ExpectedResult> StepRequestCases()
     {
-        var validCommand = new CommandDefinition { Type = "noop", OperationId = "noop" };
+        var validCommand = new CommandDefinition { Type = "noop" };
 
         return new TheoryData<StepRequest, ExpectedResult>
         {
             // Valid
             {
-                new StepRequest { Command = validCommand },
+                new StepRequest { OperationId = "noop", Command = validCommand },
                 ExpectedResult.Valid
             },
-            {
-                new StepRequest { Command = validCommand, Metadata = null },
-                ExpectedResult.Valid
-            },
-            {
-                new StepRequest { Command = validCommand, Metadata = "{}" },
-                ExpectedResult.Valid
-            },
-            {
-                new StepRequest { Command = validCommand, Metadata = """{"key":"value"}""" },
-                ExpectedResult.Valid
-            },
-            // Invalid: empty or whitespace command OperationId
             {
                 new StepRequest
                 {
-                    Command = new CommandDefinition { Type = "app", OperationId = "" },
+                    OperationId = "noop",
+                    Command = validCommand,
+                    Metadata = null,
+                },
+                ExpectedResult.Valid
+            },
+            {
+                new StepRequest
+                {
+                    OperationId = "noop",
+                    Command = validCommand,
+                    Metadata = "{}",
+                },
+                ExpectedResult.Valid
+            },
+            {
+                new StepRequest
+                {
+                    OperationId = "noop",
+                    Command = validCommand,
+                    Metadata = """{"key":"value"}""",
+                },
+                ExpectedResult.Valid
+            },
+            // Invalid: empty or whitespace OperationId
+            {
+                new StepRequest
+                {
+                    OperationId = "",
+                    Command = new CommandDefinition { Type = "app" },
                 },
                 ExpectedResult.Invalid
             },
             {
                 new StepRequest
                 {
-                    Command = new CommandDefinition { Type = "app", OperationId = "   " },
+                    OperationId = "   ",
+                    Command = new CommandDefinition { Type = "app" },
                 },
                 ExpectedResult.Invalid
             },
             // Invalid: non-null Metadata that is not valid JSON
             {
-                new StepRequest { Command = validCommand, Metadata = "not-json" },
+                new StepRequest
+                {
+                    OperationId = "noop",
+                    Command = validCommand,
+                    Metadata = "not-json",
+                },
                 ExpectedResult.Invalid
             },
             {
-                new StepRequest { Command = validCommand, Metadata = "{bad" },
+                new StepRequest
+                {
+                    OperationId = "noop",
+                    Command = validCommand,
+                    Metadata = "{bad",
+                },
                 ExpectedResult.Invalid
             },
         };

@@ -17,12 +17,6 @@ public sealed record CommandDefinition
     public required string Type { get; init; }
 
     /// <summary>
-    /// A human-readable identifier for this operation (used in logs, telemetry, and idempotency keys).
-    /// </summary>
-    [JsonPropertyName("operationId")]
-    public required string OperationId { get; init; }
-
-    /// <summary>
     /// The maximum allowed execution time for the command.
     /// If the command does not complete within this time, it will be considered failed.
     /// </summary>
@@ -39,17 +33,11 @@ public sealed record CommandDefinition
     /// <summary>
     /// Creates a <see cref="CommandDefinition"/> with typed data, serialized via <see cref="CommandSerializerOptions.Default"/>.
     /// </summary>
-    public static CommandDefinition Create<TData>(
-        string type,
-        string operationId,
-        TData data,
-        TimeSpan? maxExecutionTime = null
-    )
+    public static CommandDefinition Create<TData>(string type, TData data, TimeSpan? maxExecutionTime = null)
         where TData : class =>
         new()
         {
             Type = type,
-            OperationId = operationId,
             MaxExecutionTime = maxExecutionTime,
             Data = JsonSerializer.SerializeToElement(data, CommandSerializerOptions.Default),
         };
@@ -57,14 +45,9 @@ public sealed record CommandDefinition
     /// <summary>
     /// Creates a <see cref="CommandDefinition"/> without data.
     /// </summary>
-    public static CommandDefinition Create(string type, string operationId, TimeSpan? maxExecutionTime = null) =>
-        new()
-        {
-            Type = type,
-            OperationId = operationId,
-            MaxExecutionTime = maxExecutionTime,
-        };
+    public static CommandDefinition Create(string type, TimeSpan? maxExecutionTime = null) =>
+        new() { Type = type, MaxExecutionTime = maxExecutionTime };
 
     /// <inheritdoc/>
-    public override string ToString() => $"{Type}:{OperationId}";
+    public override string ToString() => Type;
 }

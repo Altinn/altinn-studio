@@ -24,8 +24,8 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
     ) =>
         new()
         {
+            OperationId = command,
             Command = AppCommand.Create(
-                command,
                 new AppCommandData { CommandKey = command, Payload = payload },
                 maxExecutionTime
             ),

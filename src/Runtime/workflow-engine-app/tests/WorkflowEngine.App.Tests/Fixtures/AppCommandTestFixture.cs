@@ -103,11 +103,11 @@ internal sealed record AppCommandTestFixture(
             Steps = [step],
         };
 
-    public static Step CreateStep(CommandDefinition command) =>
+    public static Step CreateStep(CommandDefinition command, string operationId = "test-step-op") =>
         new()
         {
-            OperationId = command.OperationId,
-            IdempotencyKey = $"test-step-key/{command.OperationId}",
+            OperationId = operationId,
+            IdempotencyKey = $"test-step-key/{operationId}",
             ProcessingOrder = 0,
             Command = command,
         };

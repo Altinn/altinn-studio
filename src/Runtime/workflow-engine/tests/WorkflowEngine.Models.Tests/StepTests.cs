@@ -4,7 +4,7 @@ namespace WorkflowEngine.Models.Tests;
 
 public class StepTests
 {
-    private static CommandDefinition _randomCommand => new() { Type = "app", OperationId = Guid.NewGuid().ToString() };
+    private static CommandDefinition _randomCommand => new() { Type = "app" };
 
     [Fact]
     public void Equality_Uses_DatabaseId()
@@ -61,7 +61,7 @@ public class StepTests
     public void Step_ConstructsWithRequiredFields()
     {
         // Arrange
-        var command = new CommandDefinition { Type = "app", OperationId = "process-payment" };
+        var command = new CommandDefinition { Type = "app" };
         var retryStrategy = RetryStrategy.Exponential(baseInterval: TimeSpan.FromSeconds(2));
         var createdAt = DateTimeOffset.UtcNow;
 
@@ -95,7 +95,7 @@ public class StepTests
             OperationId = "noop",
             IdempotencyKey = "step-key",
             ProcessingOrder = 0,
-            Command = new CommandDefinition { Type = "noop", OperationId = "noop" },
+            Command = new CommandDefinition { Type = "noop" },
         };
 
         // Assert

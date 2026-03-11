@@ -20,8 +20,8 @@ public sealed class TestHelpers(EngineAppFixture fixture)
     ) =>
         new()
         {
+            OperationId = path,
             Command = WebhookCommand.Create(
-                path,
                 new WebhookCommandData
                 {
                     Uri = $"http://localhost:{fixture.WireMock.Port}{path}",

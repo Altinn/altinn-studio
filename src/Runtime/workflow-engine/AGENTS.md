@@ -78,6 +78,8 @@ The `WorkflowEngine.TestKit` project provides reusable integration test infrastr
 
 Runtime-specific test projects (e.g. `workflow-engine-app`) can reference the TestKit and provide their own `TestProgram : ITestProgram` to get the full integration test infrastructure.
 
+**Infrastructure**: Integration and repository tests use [Testcontainers](https://dotnet.testcontainers.org/) to automatically spin up PostgreSQL (and WireMock where needed) in Docker. No manual Docker Compose setup is required — the test fixtures handle all container lifecycle. Just run `dotnet test` and the fixtures take care of the rest.
+
 For test conventions, scaffolding templates, and infrastructure details, use the `/test` skill.
 
 ## Dashboard

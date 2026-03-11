@@ -132,7 +132,7 @@ internal static class ValidationUtils
         if (string.IsNullOrWhiteSpace(request.Command.Type))
             return false;
 
-        if (string.IsNullOrWhiteSpace(request.Command.OperationId))
+        if (string.IsNullOrWhiteSpace(request.OperationId))
             return false;
 
         if (!IsValidJsonOrNull(request.Metadata))

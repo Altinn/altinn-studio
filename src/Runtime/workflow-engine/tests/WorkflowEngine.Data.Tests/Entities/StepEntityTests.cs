@@ -22,7 +22,7 @@ public class StepEntityTests
             UpdatedAt = new DateTimeOffset(2025, 6, 15, 11, 0, 0, TimeSpan.Zero),
             BackoffUntil = new DateTimeOffset(2025, 6, 15, 10, 31, 0, TimeSpan.Zero),
             RequeueCount = 2,
-            CommandJson = commandJson ?? """{"type":"app","operationId":"sign","data":{"value":1}}""",
+            CommandJson = commandJson ?? """{"type":"app","data":{"value":1}}""",
             RetryStrategyJson = includeRetryStrategy
                 ? (retryStrategyJson ?? """{"backoffType":"Exponential","baseInterval":"00:00:05","maxRetries":3}""")
                 : null,
@@ -53,7 +53,7 @@ public class StepEntityTests
     public void Command_JsonSerialization_RoundTrip()
     {
         // Arrange
-        var entity = CreateEntity(commandJson: """{"type":"app","operationId":"payment","data":{"amount":100}}""");
+        var entity = CreateEntity(commandJson: """{"type":"app","data":{"amount":100}}""");
 
         // Act
         var domain = entity.ToDomainModel();
@@ -61,12 +61,11 @@ public class StepEntityTests
 
         // Assert — verify the domain model parsed the command correctly
         Assert.Equal("app", domain.Command.Type);
-        Assert.Equal("payment", domain.Command.OperationId);
         Assert.NotNull(domain.Command.Data);
 
         // Verify the round-tripped entity serialized it back to valid JSON
         Assert.NotNull(roundTripped.CommandJson);
-        Assert.Contains("payment", roundTripped.CommandJson, StringComparison.Ordinal);
+        Assert.Contains("app", roundTripped.CommandJson, StringComparison.Ordinal);
     }
 
     [Fact]

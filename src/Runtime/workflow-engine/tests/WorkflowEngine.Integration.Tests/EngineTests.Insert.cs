@@ -129,10 +129,10 @@ public partial class EngineTests
 
         var step = new StepRequest
         {
+            OperationId = webhookPath,
             Command = new CommandDefinition
             {
                 Type = "webhook",
-                OperationId = webhookPath,
                 Data = JsonSerializer.SerializeToElement(
                     new
                     {

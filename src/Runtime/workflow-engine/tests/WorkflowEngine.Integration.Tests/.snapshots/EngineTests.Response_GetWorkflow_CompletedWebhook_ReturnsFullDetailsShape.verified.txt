@@ -13,12 +13,12 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1/webhook:/ping,
+      idempotencyKey: idem-Guid_1//ping,
+      operationId: /ping,
       processingOrder: 0,
       updatedAt: {Scrubbed},
       command: {
-        type: webhook,
-        operationId: /ping
+        type: webhook
       },
       status: Completed,
       retryCount: 0

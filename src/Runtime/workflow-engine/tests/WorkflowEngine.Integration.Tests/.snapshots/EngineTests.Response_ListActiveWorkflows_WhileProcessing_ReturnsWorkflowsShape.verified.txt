@@ -1,4 +1,4 @@
-﻿[
+[
   {
     databaseId: {Scrubbed},
     operationId: op-wf-1,
@@ -14,11 +14,11 @@
     steps: [
       {
         databaseId: {Scrubbed},
-        idempotencyKey: idem-Guid_1/webhook:/slow,
+        idempotencyKey: idem-Guid_1//slow,
+        operationId: /slow,
         processingOrder: 0,
         command: {
-          type: webhook,
-          operationId: /slow
+          type: webhook
         },
         status: Enqueued,
         retryCount: 0

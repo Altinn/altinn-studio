@@ -40,7 +40,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 [
                     new StepRequest
                     {
-                        Command = new CommandDefinition { Type = "app", OperationId = "step-a" },
+                        OperationId = "step-a",
+                        Command = new CommandDefinition { Type = "app" },
                     },
                 ],
             },
@@ -52,7 +53,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 [
                     new StepRequest
                     {
-                        Command = new CommandDefinition { Type = "app", OperationId = "step-b" },
+                        OperationId = "step-b",
+                        Command = new CommandDefinition { Type = "app" },
                     },
                 ],
                 Links = [(WorkflowRef)"wf-a"],
@@ -105,7 +107,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             [
                 new StepRequest
                 {
-                    Command = new CommandDefinition { Type = "app", OperationId = "step-b" },
+                    OperationId = "step-b",
+                    Command = new CommandDefinition { Type = "app" },
                 },
             ],
             Links = [(WorkflowRef)workflowA.DatabaseId],
@@ -551,11 +554,13 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             [
                 new StepRequest
                 {
-                    Command = new CommandDefinition { Type = "app", OperationId = "step-1a" },
+                    OperationId = "step-1a",
+                    Command = new CommandDefinition { Type = "app" },
                 },
                 new StepRequest
                 {
-                    Command = new CommandDefinition { Type = "app", OperationId = "step-1b" },
+                    OperationId = "step-1b",
+                    Command = new CommandDefinition { Type = "app" },
                 },
             ],
         };
@@ -569,7 +574,8 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             [
                 new StepRequest
                 {
-                    Command = new CommandDefinition { Type = "app", OperationId = "step-2a" },
+                    OperationId = "step-2a",
+                    Command = new CommandDefinition { Type = "app" },
                 },
             ],
         };
@@ -697,17 +703,20 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
             [
                 new StepRequest
                 {
-                    Command = new CommandDefinition { Type = "app", OperationId = "step-one" },
+                    OperationId = "step-one",
+                    Command = new CommandDefinition { Type = "app" },
                     RetryStrategy = retryStrategy,
                     Metadata = """{"stepMeta":"one"}""",
                 },
                 new StepRequest
                 {
-                    Command = new CommandDefinition { Type = "webhook", OperationId = "webhook-hook" },
+                    OperationId = "webhook-hook",
+                    Command = new CommandDefinition { Type = "webhook" },
                 },
                 new StepRequest
                 {
-                    Command = new CommandDefinition { Type = "app", OperationId = "step-three" },
+                    OperationId = "step-three",
+                    Command = new CommandDefinition { Type = "app" },
                 },
             ],
         };
@@ -724,7 +733,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var step0 = dbWorkflow.Steps[0];
         Assert.Equal(0, step0.ProcessingOrder);
         Assert.Equal("app", step0.Command.Type);
-        Assert.Equal("step-one", step0.Command.OperationId);
+        Assert.Equal("step-one", step0.OperationId);
         Assert.NotNull(step0.RetryStrategy);
         Assert.Equal(BackoffType.Exponential, step0.RetryStrategy.BackoffType);
         Assert.Equal(5, step0.RetryStrategy.MaxRetries);
@@ -735,14 +744,14 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         var step1 = dbWorkflow.Steps[1];
         Assert.Equal(1, step1.ProcessingOrder);
         Assert.Equal("webhook", step1.Command.Type);
-        Assert.Equal("webhook-hook", step1.Command.OperationId);
+        Assert.Equal("webhook-hook", step1.OperationId);
         Assert.Null(step1.RetryStrategy);
 
         // Step 2: another app command (no retry strategy)
         var step2 = dbWorkflow.Steps[2];
         Assert.Equal(2, step2.ProcessingOrder);
         Assert.Equal("app", step2.Command.Type);
-        Assert.Equal("step-three", step2.Command.OperationId);
+        Assert.Equal("step-three", step2.OperationId);
         Assert.Null(step2.RetryStrategy);
     }
 

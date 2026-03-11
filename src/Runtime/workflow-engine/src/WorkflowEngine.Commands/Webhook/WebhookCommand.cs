@@ -39,11 +39,8 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
     /// <summary>
     /// Creates a <see cref="CommandDefinition"/> with <see cref="WebhookCommandData"/>.
     /// </summary>
-    public static CommandDefinition Create(
-        string operationId,
-        WebhookCommandData data,
-        TimeSpan? maxExecutionTime = null
-    ) => CommandDefinition.Create(CommandTypeId, operationId, data, maxExecutionTime);
+    public static CommandDefinition Create(WebhookCommandData data, TimeSpan? maxExecutionTime = null) =>
+        CommandDefinition.Create(CommandTypeId, data, maxExecutionTime);
 
     /// <inheritdoc/>
     protected override CommandValidationResult Validate(WebhookCommandData? commandData)

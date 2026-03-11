@@ -10,7 +10,7 @@ public class WorkflowExtensionsTests
             OperationId = "op",
             IdempotencyKey = $"step-key-{order}",
             ProcessingOrder = order,
-            Command = new CommandDefinition { Type = "noop", OperationId = "noop" },
+            Command = new CommandDefinition { Type = "noop" },
             Status = status,
         };
 

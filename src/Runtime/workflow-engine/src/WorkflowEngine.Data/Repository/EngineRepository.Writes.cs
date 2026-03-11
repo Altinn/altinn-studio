@@ -367,8 +367,8 @@ internal sealed partial class EngineRepository
                             stepEntries.Add(
                                 (
                                     workflowOffset,
-                                    step.Command.OperationId,
-                                    $"{req.Request.IdempotencyKey}/{step.Command}",
+                                    step.OperationId,
+                                    $"{req.Request.IdempotencyKey}/{step.OperationId}",
                                     order++,
                                     JsonSerializer.Serialize(step.Command, JsonOptions.Default),
                                     step.RetryStrategy != null

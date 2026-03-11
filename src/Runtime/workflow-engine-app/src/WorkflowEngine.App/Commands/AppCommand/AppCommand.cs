@@ -46,11 +46,8 @@ public sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
     /// <summary>
     /// Creates a <see cref="CommandDefinition"/> with <see cref="AppCommandData"/>.
     /// </summary>
-    public static CommandDefinition Create(
-        string operationId,
-        AppCommandData data,
-        TimeSpan? maxExecutionTime = null
-    ) => CommandDefinition.Create(CommandTypeId, operationId, data, maxExecutionTime);
+    public static CommandDefinition Create(AppCommandData data, TimeSpan? maxExecutionTime = null) =>
+        CommandDefinition.Create(CommandTypeId, data, maxExecutionTime);
 
     /// <inheritdoc/>
     protected override CommandValidationResult Validate(

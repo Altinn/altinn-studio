@@ -70,7 +70,7 @@ public class WorkflowTests
                 OperationId = "step-1",
                 IdempotencyKey = "step-key-1",
                 ProcessingOrder = 0,
-                Command = new CommandDefinition { Type = "app", OperationId = "step-1" },
+                Command = new CommandDefinition { Type = "app" },
                 CreatedAt = createdAt,
             },
             new()
@@ -78,7 +78,7 @@ public class WorkflowTests
                 OperationId = "step-2",
                 IdempotencyKey = "step-key-2",
                 ProcessingOrder = 1,
-                Command = new CommandDefinition { Type = "app", OperationId = "step-2" },
+                Command = new CommandDefinition { Type = "app" },
                 CreatedAt = createdAt,
             },
         };
@@ -135,7 +135,7 @@ public class WorkflowTests
                     OperationId = "noop",
                     IdempotencyKey = "step-key",
                     ProcessingOrder = 0,
-                    Command = new CommandDefinition { Type = "noop", OperationId = "noop" },
+                    Command = new CommandDefinition { Type = "noop" },
                 },
             ],
         };
@@ -186,7 +186,7 @@ public class WorkflowTests
                     OperationId = "noop",
                     IdempotencyKey = "step-key",
                     ProcessingOrder = 0,
-                    Command = new CommandDefinition { Type = "noop", OperationId = "noop" },
+                    Command = new CommandDefinition { Type = "noop" },
                 },
             ],
             Dependencies = [dependency],

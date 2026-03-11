@@ -31,7 +31,7 @@ public class WorkflowEntityTests
             Status = PersistentItemStatus.Enqueued,
             ProcessingOrder = order,
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
-            CommandJson = """{"type":"app","operationId":"noop"}""",
+            CommandJson = """{"type":"app"}""",
         };
 
     [Fact]

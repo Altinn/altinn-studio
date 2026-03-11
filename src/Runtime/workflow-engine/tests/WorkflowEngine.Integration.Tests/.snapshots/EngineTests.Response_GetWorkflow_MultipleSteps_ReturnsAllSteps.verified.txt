@@ -1,4 +1,4 @@
-﻿{
+{
   databaseId: {Scrubbed},
   operationId: op-wf-1,
   idempotencyKey: idem-Guid_1,
@@ -13,36 +13,36 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1/webhook:/step-1,
+      idempotencyKey: idem-Guid_1//step-1,
+      operationId: /step-1,
       processingOrder: 0,
       updatedAt: {Scrubbed},
       command: {
-        type: webhook,
-        operationId: /step-1
+        type: webhook
       },
       status: Completed,
       retryCount: 0
     },
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1/webhook:/step-2,
+      idempotencyKey: idem-Guid_1//step-2,
+      operationId: /step-2,
       processingOrder: 1,
       updatedAt: {Scrubbed},
       command: {
-        type: webhook,
-        operationId: /step-2
+        type: webhook
       },
       status: Completed,
       retryCount: 0
     },
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1/webhook:/step-3,
+      idempotencyKey: idem-Guid_1//step-3,
+      operationId: /step-3,
       processingOrder: 2,
       updatedAt: {Scrubbed},
       command: {
-        type: webhook,
-        operationId: /step-3
+        type: webhook
       },
       status: Completed,
       retryCount: 0

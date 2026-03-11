@@ -63,7 +63,7 @@ public static class StepExtensions
         public (string key, object? value)[] GetHistorgramTags() =>
             [
                 ("operation.type", step.Command.Type),
-                ("operation.id", step.Command.OperationId),
+                ("operation.id", step.OperationId),
                 ("operation.order", step.ProcessingOrder),
             ];
     }

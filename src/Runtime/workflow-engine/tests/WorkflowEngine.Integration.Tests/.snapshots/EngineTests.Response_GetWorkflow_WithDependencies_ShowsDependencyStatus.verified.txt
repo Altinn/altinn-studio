@@ -1,4 +1,4 @@
-﻿{
+{
   databaseId: {Scrubbed},
   operationId: op-wf-b,
   idempotencyKey: idem-Guid_1,
@@ -16,12 +16,12 @@
   steps: [
     {
       databaseId: {Scrubbed},
-      idempotencyKey: idem-Guid_1/webhook:/ping-b,
+      idempotencyKey: idem-Guid_1//ping-b,
+      operationId: /ping-b,
       processingOrder: 0,
       updatedAt: {Scrubbed},
       command: {
-        type: webhook,
-        operationId: /ping-b
+        type: webhook
       },
       status: Completed,
       retryCount: 0

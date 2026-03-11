@@ -14,7 +14,6 @@ public class WorkflowExecutorTests
         string? contentType = null
     ) =>
         WebhookCommand.Create(
-            "webhook",
             new WebhookCommandData
             {
                 Uri = uri,
@@ -154,7 +153,7 @@ public class WorkflowExecutorTests
             services.AddSingleton<ICommand>(delegateHandler);
         });
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = new CommandDefinition { Type = "test-delegate", OperationId = "delegate" };
+        var command = new CommandDefinition { Type = "test-delegate" };
         var step = WorkflowEngineTestFixture.CreateStep(command);
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 
@@ -178,7 +177,7 @@ public class WorkflowExecutorTests
             services.AddSingleton<ICommand>(delegateHandler);
         });
         var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
-        var command = new CommandDefinition { Type = "test-delegate", OperationId = "delegate" };
+        var command = new CommandDefinition { Type = "test-delegate" };
         var step = WorkflowEngineTestFixture.CreateStep(command);
         var workflow = WorkflowEngineTestFixture.CreateWorkflow(step);
 
