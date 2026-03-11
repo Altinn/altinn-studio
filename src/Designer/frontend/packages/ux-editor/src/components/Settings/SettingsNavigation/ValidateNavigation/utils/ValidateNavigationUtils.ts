@@ -1,8 +1,4 @@
-import type {
-  ExternalConfigState,
-  ExternalConfigWithId,
-  InternalConfigState,
-} from './ValidateNavigationTypes';
+import type { ExternalConfigState, InternalConfigState } from './ValidateNavigationTypes';
 import { properties } from '../../../../../testing/schemas/json/layout/layout-sets.schema.v1.json';
 import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
@@ -67,9 +63,6 @@ export const getValuesToDisplay = (config: InternalConfigState) => {
 
   return Object.fromEntries(Object.entries(values).filter(([, v]) => v != null));
 };
-
-export const withUniqueIds = (configs: ExternalConfigState[]): ExternalConfigWithId[] =>
-  configs.map((config) => ({ ...config, id: crypto.randomUUID() }));
 
 // Temporary dummy data before integration with backend, to be replaced with actual data fetching and saving logic where it is used in upcoming PRs
 export const dummyDataPages: ExternalConfigState[] = [
