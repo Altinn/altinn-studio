@@ -17,7 +17,7 @@ const renderPageLayout = (initialEntries: string[] = ['/']) =>
   renderWithProviders(<PageLayout />, { initialEntries });
 
 describe('PageLayout', () => {
-  it('renders the settings heading', () => {
+  it('renders the user settings heading', () => {
     renderPageLayout();
     expect(screen.getByText(textMock('user.settings'))).toBeInTheDocument();
   });

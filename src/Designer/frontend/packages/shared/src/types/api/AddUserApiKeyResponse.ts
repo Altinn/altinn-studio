@@ -1,4 +1,4 @@
-export type CreateApiKeyResponse = {
+export type AddUserApiKeyResponse = {
   id: number;
   key: string;
   name: string;

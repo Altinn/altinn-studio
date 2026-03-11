@@ -6,8 +6,8 @@ import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { ApiKeyResponse } from 'app-shared/types/api/ApiKeyResponse';
-import type { CreateApiKeyResponse } from 'app-shared/types/api/CreateApiKeyResponse';
+import type { UserApiKeyResponse } from 'app-shared/types/api/UserApiKeyResponse';
+import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
 import { toast } from 'react-toastify';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 
@@ -36,7 +36,7 @@ const tooLongExpiresAt = (() => {
   return d.toISOString().split('T')[0];
 })();
 
-const mockExistingTokens: ApiKeyResponse[] = [
+const mockExistingTokens: UserApiKeyResponse[] = [
   {
     id: 1,
     name: 'Existing token',
@@ -45,7 +45,7 @@ const mockExistingTokens: ApiKeyResponse[] = [
   },
 ];
 
-const mockCreatedToken: CreateApiKeyResponse = {
+const mockCreatedToken: AddUserApiKeyResponse = {
   id: 2,
   key: 'secret-key-value',
   name: 'New token',

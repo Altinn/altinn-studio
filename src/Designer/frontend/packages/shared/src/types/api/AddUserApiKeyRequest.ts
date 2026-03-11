@@ -1,4 +1,4 @@
-export type CreateApiKeyRequest = {
+export type AddUserApiKeyRequest = {
   name: string;
   expiresAt: string;
 };

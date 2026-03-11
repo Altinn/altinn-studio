@@ -15,7 +15,7 @@ import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation'
 import { useSearchParams } from 'react-router-dom';
 import { useFeatureFlagsContext } from '@studio/feature-flags';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
-import { SETTINGS_BASENAME } from 'app-shared/constants';
+import { USER_SETTINGS_BASENAME } from 'app-shared/constants';
 
 export type PageHeaderContextProps = {
   user: User;
@@ -55,10 +55,10 @@ export const PageHeaderContextProvider = ({
     itemName: t('sync_header.documentation'),
   };
 
-  const settingsMenuItem: StudioProfileMenuItem = {
+  const userSettingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: SETTINGS_BASENAME,
+      href: USER_SETTINGS_BASENAME,
       openInNewTab: false,
     },
     itemName: t('user.settings'),
@@ -73,11 +73,11 @@ export const PageHeaderContextProvider = ({
 
   const profileMenuItems: StudioProfileMenuItem[] = [
     docsMenuItem,
-    ...(studioOidc ? [settingsMenuItem] : []),
+    ...(studioOidc ? [userSettingsMenuItem] : []),
     logOutMenuItem,
   ];
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [docsMenuItem, settingsMenuItem] : [docsMenuItem] },
+    { items: studioOidc ? [docsMenuItem, userSettingsMenuItem] : [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

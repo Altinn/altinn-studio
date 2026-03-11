@@ -105,8 +105,8 @@ import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeList
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 import type { AppSettings } from 'app-shared/types/AppSettings';
-import type { CreateApiKeyRequest } from 'app-shared/types/api/CreateApiKeyRequest';
-import type { CreateApiKeyResponse } from 'app-shared/types/api/CreateApiKeyResponse';
+import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyRequest';
+import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
 
 const headers = {
   Accept: 'application/json',
@@ -234,5 +234,5 @@ export const checkoutBranch = async (org: string, app: string, branchName: strin
 export const discardChanges = async (org: string, app: string): Promise<RepoStatus> => post(discardChangesPath(org, app), {});
 
 // User settings
-export const addUserApiKey = (payload: CreateApiKeyRequest) => post<CreateApiKeyResponse, CreateApiKeyRequest>(userApiKeysPath(), payload);
+export const addUserApiKey = (payload: AddUserApiKeyRequest) => post<AddUserApiKeyResponse, AddUserApiKeyRequest>(userApiKeysPath(), payload);
 export const deleteUserApiKey = (id: number) => del(userApiKeyPath(id));

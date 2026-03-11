@@ -5,7 +5,7 @@ import {
   createRoutesFromElements,
   Route,
 } from 'react-router-dom';
-import { SETTINGS_BASENAME } from 'app-shared/constants';
+import { USER_SETTINGS_BASENAME } from 'app-shared/constants';
 import {
   AppRouteErrorBoundary,
   NotFoundRouteErrorBoundary,
@@ -30,7 +30,7 @@ const router = createBrowserRouter(
     </Route>,
   ),
   {
-    basename: SETTINGS_BASENAME,
+    basename: USER_SETTINGS_BASENAME,
   },
 );
 

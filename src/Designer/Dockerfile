@@ -35,9 +35,9 @@ COPY src/Designer/frontend/packages/ux-editor-v3/package.json ./src/Designer/fro
 COPY src/Designer/frontend/resourceadm/package.json ./src/Designer/frontend/resourceadm/
 COPY src/Designer/frontend/resourceadm/testing/playwright/package.json ./src/Designer/frontend/resourceadm/testing/playwright/
 COPY src/Designer/frontend/studio-root/package.json ./src/Designer/frontend/studio-root/
-COPY src/Designer/frontend/settings/package.json ./src/Designer/frontend/settings/
 COPY src/Designer/frontend/testing/cypress/package.json ./src/Designer/frontend/testing/cypress/
 COPY src/Designer/frontend/testing/playwright/package.json ./src/Designer/frontend/testing/playwright/
+COPY src/Designer/frontend/user-settings/package.json ./src/Designer/frontend/user-settings/
 
 RUN yarn --immutable
 
@@ -78,8 +78,8 @@ COPY --from=generate-studio-frontend /build/src/Designer/frontend/admin/dist ./w
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/dashboard/dist ./wwwroot/dashboard/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/studio-root/dist ./wwwroot/info/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/app-preview/dist ./wwwroot/preview/
-COPY --from=generate-studio-frontend /build/src/Designer/frontend/settings/dist ./wwwroot/settings/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/resourceadm/dist ./wwwroot/resourceadm/
+COPY --from=generate-studio-frontend /build/src/Designer/frontend/user-settings/dist ./wwwroot/user-settings/
 
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 

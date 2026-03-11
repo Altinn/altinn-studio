@@ -12413,14 +12413,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"settings@workspace:src/Designer/frontend/settings":
-  version: 0.0.0-use.local
-  resolution: "settings@workspace:src/Designer/frontend/settings"
-  dependencies:
-    vite: "npm:^6.3.2"
-  languageName: unknown
-  linkType: soft
-
 "shebang-command@npm:^2.0.0":
   version: 2.0.0
   resolution: "shebang-command@npm:2.0.0"
@@ -13729,6 +13721,14 @@ __metadata:
   checksum: 10/b40ad2847ba220695bff2d4ba4f4d60391c0fb4fb012faa7a4c18eb38b69181936f5edc55a522c4d20a788d1a879b73c3810952c9d0fd128d01cb3f22042c09e
   languageName: node
   linkType: hard
+
+"user-settings@workspace:src/Designer/frontend/user-settings":
+  version: 0.0.0-use.local
+  resolution: "user-settings@workspace:src/Designer/frontend/user-settings"
+  dependencies:
+    vite: "npm:^6.3.2"
+  languageName: unknown
+  linkType: soft
 
 "util-deprecate@npm:^1.0.2":
   version: 1.0.2

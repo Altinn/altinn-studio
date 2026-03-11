@@ -29,14 +29,16 @@ describe('Menu', () => {
   });
 
   it('selects api-keys tab when pathname ends with empty string', () => {
-    renderMenu(['/settings/']);
+    renderMenu(['/']);
     expect(getTab()).toHaveAttribute('tabindex', '0');
   });
 
   it('navigates to tab when a tab is clicked', async () => {
     const user = userEvent.setup();
-    renderMenu(['/api-keys']);
+    renderMenu(['/settings/api-keys']);
     await user.click(getTab());
-    expect(mockNavigate).toHaveBeenCalledWith(expect.objectContaining({ pathname: 'api-keys' }));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.objectContaining({ pathname: '/settings/api-keys' }),
+    );
   });
 });

@@ -60,7 +60,7 @@ describe('PageHeader', () => {
     jest.clearAllMocks();
   });
 
-  it('includes the settings link in the profile menu when studioOidc is enabled', async () => {
+  it('includes the user settings link in the profile menu when studioOidc is enabled', async () => {
     const user = userEvent.setup();
     mockEnvironment.environment = { featureFlags: { studioOidc: true } };
 
@@ -75,9 +75,9 @@ describe('PageHeader', () => {
       }),
     );
 
-    const settingsLink = screen.getByRole('menuitem', { name: textMock('user.settings') });
+    const userSettingsLink = screen.getByRole('menuitem', { name: textMock('user.settings') });
 
-    expect(settingsLink).toHaveAttribute('href', '/settings');
+    expect(userSettingsLink).toHaveAttribute('href', '/user');
     expect(
       screen.getByRole('menuitem', { name: textMock('sync_header.documentation') }),
     ).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe('PageHeader', () => {
     ).toBeInTheDocument();
   });
 
-  it('does not include the settings link in the profile menu when studioOidc is disabled', async () => {
+  it('does not include the user settings link in the profile menu when studioOidc is disabled', async () => {
     const user = userEvent.setup();
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
 

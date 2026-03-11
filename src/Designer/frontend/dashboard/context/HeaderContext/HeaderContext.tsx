@@ -14,7 +14,7 @@ import { type NavigationMenuGroup } from '../../types/NavigationMenuGroup';
 import type { HeaderMenuItem } from '../../types/HeaderMenuItem';
 import { SelectedContextType } from '../../enums/SelectedContextType';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
-import { SETTINGS_BASENAME } from 'app-shared/constants';
+import { USER_SETTINGS_BASENAME } from 'app-shared/constants';
 
 export type HeaderContextProps = {
   selectableOrgs?: Organization[];
@@ -73,10 +73,10 @@ export const HeaderContextProvider = ({
     itemName: t('shared.header_go_to_gitea'),
   };
 
-  const settingsMenuItem: NavigationMenuItem = {
+  const userSettingsMenuItem: NavigationMenuItem = {
     action: {
       type: 'link',
-      href: SETTINGS_BASENAME,
+      href: USER_SETTINGS_BASENAME,
       openInNewTab: false,
     },
     itemName: t('user.settings'),
@@ -96,7 +96,7 @@ export const HeaderContextProvider = ({
   };
   const otherMenuItems: NavigationMenuItem[] = [
     giteaMenuItem,
-    ...(studioOidc ? [settingsMenuItem] : []),
+    ...(studioOidc ? [userSettingsMenuItem] : []),
   ];
   const profileMenuItems: NavigationMenuItem[] = [...otherMenuItems, logOutMenuItem];
 

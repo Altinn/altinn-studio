@@ -32,7 +32,7 @@ jobs:
           echo DEVELOP_BACKEND=0 >> .env
           echo DEVELOP_DASHBOARD=0 >> .env
           echo DEVELOP_PREVIEW=0 >> .env
-          echo DEVELOP_SETTINGS=0 >> .env
+          echo DEVELOP_USER_SETTINGS=0 >> .env
           echo GITEA_ADMIN_PASS=g9wDIG@6gf >> .env
           echo GITEA_ADMIN_USER=localg1iteaadmin >> .env
           echo GITEA_CYPRESS_USER=cypress_testuser >> .env

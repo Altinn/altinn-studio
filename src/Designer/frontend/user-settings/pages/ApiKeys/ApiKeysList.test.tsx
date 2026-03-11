@@ -6,10 +6,10 @@ import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { ApiKeyResponse } from 'app-shared/types/api/ApiKeyResponse';
+import type { UserApiKeyResponse } from 'app-shared/types/api/UserApiKeyResponse';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
-const mockTokens: ApiKeyResponse[] = [
+const mockTokens: UserApiKeyResponse[] = [
   {
     id: 1,
     name: 'My token',

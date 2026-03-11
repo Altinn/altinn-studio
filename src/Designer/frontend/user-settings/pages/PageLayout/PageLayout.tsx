@@ -7,7 +7,7 @@ import { StudioAvatar, StudioHeading, StudioPageHeader } from '@studio/component
 import { useTranslation } from 'react-i18next';
 import './PageLayout.css';
 import { Menu } from '../../components/Menu/Menu';
-import { DISPLAY_NAME, SETTINGS_BASENAME } from 'app-shared/constants';
+import { DISPLAY_NAME, USER_SETTINGS_BASENAME } from 'app-shared/constants';
 import { useUserQuery } from 'app-shared/hooks/queries/useUserQuery';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
@@ -50,10 +50,10 @@ const RightContent = (): ReactElement => {
   const { environment } = useEnvironmentConfig();
   const { mutate: logout } = useLogoutMutation();
 
-  const settingsMenuItem: StudioProfileMenuItem = {
+  const userSettingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: SETTINGS_BASENAME,
+      href: USER_SETTINGS_BASENAME,
       openInNewTab: false,
     },
     itemName: t('user.settings'),
@@ -66,7 +66,7 @@ const RightContent = (): ReactElement => {
   const studioOidc = environment?.featureFlags?.studioOidc;
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [settingsMenuItem] : [] },
+    { items: studioOidc ? [userSettingsMenuItem] : [] },
     { items: [logOutMenuItem] },
   ];
   return (

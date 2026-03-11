@@ -10,18 +10,18 @@ jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => mockEnvironment,
 }));
 
-const SettingsLinkConsumer = () => {
+const UserSettingsLinkConsumer = () => {
   const { profileMenuGroups } = usePageHeaderContext();
   const allItems = profileMenuGroups?.flatMap((group) => group.items) ?? [];
-  const settingsItem = allItems.find((item) => item.itemName === textMock('user.settings'));
-  const href = settingsItem?.action.type === 'link' ? settingsItem.action.href : null;
-  return <div data-testid='settings-href'>{href ?? 'none'}</div>;
+  const userSettingsItem = allItems.find((item) => item.itemName === textMock('user.settings'));
+  const href = userSettingsItem?.action.type === 'link' ? userSettingsItem.action.href : null;
+  return <div data-testid='user-settings-href'>{href ?? 'none'}</div>;
 };
 
 const renderPageHeaderContext = () =>
   renderWithProviders()(
     <PageHeaderContextProvider>
-      <SettingsLinkConsumer />
+      <UserSettingsLinkConsumer />
     </PageHeaderContextProvider>,
   );
 
@@ -65,19 +65,19 @@ describe('PageHeaderContext', () => {
     expect(consoleError).toHaveBeenCalled();
   });
 
-  it('should include settings link in profile menu when studioOidc feature flag is enabled', () => {
+  it('should include user settings link in profile menu when studioOidc feature flag is enabled', () => {
     mockEnvironment.environment = { featureFlags: { studioOidc: true } };
 
     renderPageHeaderContext();
 
-    expect(screen.getByTestId('settings-href')).not.toHaveTextContent('none');
+    expect(screen.getByTestId('user-settings-href')).not.toHaveTextContent('none');
   });
 
-  it('should not include settings link in profile menu when studioOidc feature flag is disabled', () => {
+  it('should not include user settings link in profile menu when studioOidc feature flag is disabled', () => {
     mockEnvironment.environment = { featureFlags: { studioOidc: false } };
 
     renderPageHeaderContext();
 
-    expect(screen.getByTestId('settings-href')).toHaveTextContent('none');
+    expect(screen.getByTestId('user-settings-href')).toHaveTextContent('none');
   });
 });

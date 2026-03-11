@@ -9,7 +9,7 @@ import {
   type StudioProfileMenuItem,
   type StudioProfileMenuGroup,
 } from '@studio/components';
-import { MEDIA_QUERY_MAX_WIDTH, SETTINGS_BASENAME } from 'app-shared/constants';
+import { MEDIA_QUERY_MAX_WIDTH, USER_SETTINGS_BASENAME } from 'app-shared/constants';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
@@ -33,10 +33,10 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
     itemName: t('sync_header.documentation'),
   };
 
-  const settingsMenuItem: StudioProfileMenuItem = {
+  const userSettingsMenuItem: StudioProfileMenuItem = {
     action: {
       type: 'link',
-      href: SETTINGS_BASENAME,
+      href: USER_SETTINGS_BASENAME,
       openInNewTab: false,
     },
     itemName: t('user.settings'),
@@ -48,7 +48,7 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   };
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: studioOidc ? [docsMenuItem, settingsMenuItem] : [docsMenuItem] },
+    { items: studioOidc ? [docsMenuItem, userSettingsMenuItem] : [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 
