@@ -55,8 +55,14 @@ function resolvePath(simpleBinding: string, parentBinding?: string, itemIndex?: 
   if (parentBinding === undefined || itemIndex === undefined) {
     return simpleBinding;
   }
-  const parts = simpleBinding.split('.');
-  return `${parentBinding}[${itemIndex}].${parts[parts.length - 1]}`;
+  const indexed = `${parentBinding}[${itemIndex}]`;
+  if (simpleBinding === parentBinding) {
+    return indexed;
+  }
+  if (simpleBinding.startsWith(`${parentBinding}.`)) {
+    return indexed + simpleBinding.slice(parentBinding.length);
+  }
+  return simpleBinding;
 }
 
 function pickPrimitive(data: FormDataNode, path: string): FormDataPrimitive {

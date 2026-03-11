@@ -186,8 +186,8 @@ export function useFormDataPersistence({
       applyServerResponse(response, elementIdToDataType, lastSavedDataRef.current, client);
       applyBackendValidations(response, client.validationStore.getState());
     } catch (error) {
-      for (const dt of dirtyTypes) {
-        dirtyDataTypesRef.current.add(dt);
+      for (const dirtyType of dirtyTypes) {
+        dirtyDataTypesRef.current.add(dirtyType);
       }
       console.error('[useFormDataPersistence] Save failed:', error);
     } finally {
@@ -197,7 +197,7 @@ export function useFormDataPersistence({
 
       if (pendingSaveRef.current) {
         pendingSaveRef.current = false;
-        save();
+        await save();
       } else if (allChangesSaved) {
         document.body.removeAttribute('data-unsaved-changes');
       }
