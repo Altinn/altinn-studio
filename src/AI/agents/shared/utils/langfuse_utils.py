@@ -58,6 +58,22 @@ def get_langfuse_client() -> Langfuse | None:
     return _client
 
 
+def get_raw_langfuse_prompt(prompt_name: str, **kwargs):
+    """Return the raw Langfuse prompt object (not compiled) for linking to generation spans.
+
+    Returns None if Langfuse is disabled, unavailable, or the prompt is not found.
+    Pass the returned object to call_sync/call_async via the langfuse_prompt parameter.
+    """
+    client = get_langfuse_client()
+    if not client:
+        return None
+    try:
+        return client.get_prompt(prompt_name, type="text", **kwargs)
+    except Exception as e:
+        log.debug("Could not fetch raw prompt '%s': %s", prompt_name, e)
+        return None
+
+
 def fetch_langfuse_prompt(
     prompt_name: str,
     variables: dict | None = None,
@@ -99,12 +115,6 @@ def fetch_langfuse_prompt(
         kwargs["cache_ttl_seconds"] = cache_ttl_seconds
 
     prompt = client.get_prompt(prompt_name, type="text", **kwargs)
-    try:
-        from langfuse import get_client as _get_lf_client
-        _get_lf_client().update_current_generation(prompt=prompt)
-        log.debug("Linked prompt '%s' v%s to current generation", prompt_name, prompt.version)
-    except Exception as e:
-        log.debug("Could not link prompt '%s' to observation: %s", prompt_name, e)
     return prompt.compile(**(variables or {}))
 
 

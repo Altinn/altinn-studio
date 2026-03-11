@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Any
 from agents.services.llm import LLMClient
 from agents.services.mcp import MCPVerifier, MCPVerificationResult
 from agents.prompts import get_prompt_content, render_template
+from shared.utils.langfuse_utils import get_raw_langfuse_prompt
 from agents.workflows.shared.utils import (
     cleanup_feature_branch,
     cleanup_generated_artifacts,
@@ -190,7 +191,8 @@ def reviewer_decision(
 ) -> Dict[str, object]:
     """Call reviewer LLM to decide whether to commit or revert."""
 
-    reviewer_prompt = get_prompt_content("reviewer_decision")
+    lf_prompt = get_raw_langfuse_prompt("reviewer_decision")
+    reviewer_prompt = lf_prompt.compile() if lf_prompt else get_prompt_content("reviewer_decision")
 
     plan_context = step_plan[0] if step_plan else "No plan"
     user_prompt = render_template(
@@ -203,7 +205,7 @@ def reviewer_decision(
     )
 
     client = LLMClient(role="reviewer")
-    response = client.call_sync(reviewer_prompt, user_prompt)
+    response = client.call_sync(reviewer_prompt, user_prompt, langfuse_prompt=lf_prompt)
 
     try:
         decision_data = _parse_decision_response(response)
