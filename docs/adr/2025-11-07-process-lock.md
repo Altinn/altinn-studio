@@ -10,7 +10,7 @@ A2: PostgreSQL lock table
 
 ## Problem context
 
-We have had several nasty race condition based bugs, where simultaneous mutating requests conflict with each other and modify instance state in parallel, causing various issues and invalid states. We want to introduce a lock system, such that only one mutating request to the application will be processed at once. For now, we limit the scope to handle requests to /process/next.
+We have had several nasty race condition-based bugs, where simultaneous mutating requests conflict with each other and modify instance state in parallel, causing various issues and invalid states. We want to introduce a lock system, such that only one mutating request to the application will be processed at once. For now, we limit the scope to handle requests to /process/next.
 
 Two calls to /process/next close in time may be intentional, or unintentional. If it is intentional, we may ideally want to block in the second request until the first request is completed, and then continue with the next task. However, since we don't have any way to know which task a call to /process/next intends to advance from or to, we will just let the second request fail.
 
@@ -171,7 +171,7 @@ Decision: Selected.
 
 There are various mechanisms that could allow us to have a leader process to coordinate/keep state relating to active process/next requests:
 - Kubernetes API with it's optimstic concurrency mechanism (`resourceVersion` as a precondition)
-- PostgreSQL long running advisory locks (connection scoped)
+- PostgreSQL long-running advisory locks (connection scoped)
 
 We could then have processes, e.g. in Storage
 - Compete for leadership
@@ -204,9 +204,9 @@ Decision: Rejected. Idempotency ensures operations can be retried without duplic
 #### Cons
 
 - Critical issue: Requires holding a database connection open for the entire request duration (B2)
-    - Would exhaust connection pool quickly under moderate load if there are a high proportion of long-running requests
-    - All applications share a single database instance, so long-held connections would impact other applications
-    - Could create cascading failures if connection pool is exhausted
+  - Would exhaust connection pool quickly under moderate load if there are a high proportion of long-running requests
+  - All applications share a single database instance, so long-held connections would impact other applications
+  - Could create cascading failures if connection pool is exhausted
 
 ### A2
 
@@ -239,5 +239,5 @@ Decision: Rejected. Idempotency ensures operations can be retried without duplic
 - Operations can be safely retried
 
 #### Cons
-- Does not support B1: Requires requires significant changes to the process handling
+- Does not support B1: Requires significant changes to the process handling
 - Requires changes to the storage API. We may end up with needing some sort of lock there instead
