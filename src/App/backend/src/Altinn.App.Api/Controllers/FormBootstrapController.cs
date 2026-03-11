@@ -208,7 +208,7 @@ public class FormBootstrapController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to bootstrap stateless form for layout set {LayoutSetId}", uiFolder);
+            _logger.LogError(ex, "Failed to bootstrap stateless form");
             throw;
         }
     }
