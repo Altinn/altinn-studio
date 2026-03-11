@@ -3,7 +3,7 @@
 New PDF generation solution for Altinn Studio apps.
 
 - OS support: Linux and macOS
-- Required Go 1.25+
+- Required Go 1.26+
 - Requires `docker` or `podman` on the host system
 
 ## Local browser headless-shell installation

@@ -14,7 +14,7 @@
   "devDependencies": {
     "jest": "29.7.0"
   },
-  "license": "3-Clause BSD",
+  "license": "MIT",
   "main": "index.js",
   "scripts": {
     "test": "jest --maxWorkers=50%"

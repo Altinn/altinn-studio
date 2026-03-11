@@ -137,7 +137,7 @@ create-pr:
 		git push -u origin $$current_branch && \
 		echo "Creating pull request..." && \
 		pr_body="⚠️ **DO NOT SQUASH MERGE THIS PR** ⚠️"$$'\n\n'"This is a subtree sync PR. All commits must be preserved to maintain proper git subtree history."$$'\n\n'"**Required merge method:** Merge commit (NOT squash merge)"$$'\n\n'"@coderabbitai ignore"; \
-		gh pr create --title "chore: syncing $$subtree_name" --body "$$pr_body" --label "skip-manual-testing,skip-releasenotes" --base $(DEFAULT_BRANCH) --head $$current_branch || \
+		gh pr create --title "chore: syncing $$subtree_name" --body "$$pr_body" --label "approve,skip-releasenotes" --base $(DEFAULT_BRANCH) --head $$current_branch || \
 		echo "WARNING: Failed to create PR. You may need to create it manually."; \
 	else \
 		echo "WARNING: gh command not found. Skipping automatic PR creation."; \

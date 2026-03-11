@@ -1,5 +1,6 @@
 #nullable disable
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
@@ -20,9 +21,14 @@ namespace Altinn.Studio.Designer.Helpers
             return context.User.Identity?.Name;
         }
 
-        public static Task<string> GetDeveloperAppTokenAsync(this HttpContext context)
+        public static async Task<string> GetDeveloperAppTokenAsync(this HttpContext context)
         {
-            return context.GetTokenAsync("access_token");
+            if (context.User.Identity?.AuthenticationType == ApiKeyAuthenticationDefaults.AuthenticationScheme)
+            {
+                return null;
+            }
+
+            return await context.GetTokenAsync("access_token");
         }
 
         public static bool IsAuthenticated(HttpContext context)
