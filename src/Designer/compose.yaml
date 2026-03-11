@@ -32,11 +32,27 @@ services:
       - DESIGNER_HOST=studio-loadbalancer
 
   studio_loadbalancer:
-    image: nginx:alpine
     container_name: studio-loadbalancer
+    image: studio-loadbalancer:${COMMIT:-latest}
     restart: always
+    build:
+      context: ./../load-balancer
     ports:
       - '80:80'
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        if [ "$$DEVELOP_BACKEND" = "1" ]; then
+          export DESIGNER_HOST="host.docker.internal:5000"
+        fi
+        [ "$$DEVELOP_DASHBOARD" = "1" ] && export DASHBOARD_HOST="host.docker.internal:2003"
+        [ "$$DEVELOP_APP_DEVELOPMENT" = "1" ] && export EDITOR_HOST="host.docker.internal:2004"
+        [ "$$DEVELOP_PREVIEW" = "1" ] && export PREVIEW_HOST="host.docker.internal:2005"
+        [ "$$DEVELOP_ADMIN" = "1" ] && export ADMIN_HOST="host.docker.internal:2006"
+        [ "$$DEVELOP_STUDIO_ROOT" = "1" ] && export INFO_HOST="host.docker.internal:2002"
+        [ "$$DEVELOP_RESOURCE_ADMIN" = "1" ] && export RESOURCEADM_HOST="host.docker.internal:2023"
+        exec /entrypoint.sh
     environment:
       - DEVELOP_APP_DEVELOPMENT=${DEVELOP_APP_DEVELOPMENT:-0}
       - DEVELOP_RESOURCE_ADMIN=${DEVELOP_RESOURCE_ADMIN:-0}
@@ -45,10 +61,18 @@ services:
       - DEVELOP_DASHBOARD=${DEVELOP_DASHBOARD:-0}
       - DEVELOP_PREVIEW=${DEVELOP_PREVIEW:-0}
       - DEVELOP_STUDIO_ROOT=${DEVELOP_STUDIO_ROOT:-0}
-      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/
-      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
-      - NGINX_HOST=localhost
-      - NGINX_PORT=80
+      - DESIGNER_HOST=studio-designer:6000
+      - DASHBOARD_HOST=studio-designer:6000
+      - EDITOR_HOST=studio-designer:6000
+      - PREVIEW_HOST=studio-designer:6000
+      - ADMIN_HOST=studio-designer:6000
+      - RESOURCEADM_HOST=studio-designer:6000
+      - INFO_HOST=studio-designer:6000
+      - REPOS_HOST=gitea-proxy:80
+      - SERVER_NAME=studio.localhost
+    volumes:
+      - ./../load-balancer/www:/www:ro
+      - ./../load-balancer/error-pages:/etc/nginx/error-pages:ro
     depends_on:
       studio_repositories:
         condition: service_healthy
@@ -56,9 +80,6 @@ services:
         condition: service_healthy
     extra_hosts:
       - 'host.docker.internal:host-gateway'
-    volumes:
-      - ./development/load-balancer/templates:/etc/nginx/templates:ro
-      - ./development/load-balancer/www:/www:ro
 
   studio_designer:
     container_name: studio-designer
