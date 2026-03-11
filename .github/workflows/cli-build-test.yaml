@@ -78,3 +78,8 @@ jobs:
         working-directory: src/cli
         run: |
           make test
+
+      - name: Run e2e tests
+        working-directory: src/cli
+        run: |
+          make test-e2e

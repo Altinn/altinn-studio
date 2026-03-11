@@ -33,3 +33,9 @@ jobs:
 
       - name: Lint
         run: make lint
+
+      - name: Run tests
+        run: make test
+
+      - name: Run e2e tests
+        run: make test-e2e
