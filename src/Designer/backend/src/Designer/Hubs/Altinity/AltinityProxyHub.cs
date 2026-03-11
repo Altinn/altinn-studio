@@ -32,7 +32,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
     private readonly AltinitySettings _altinitySettings;
     private readonly ServiceRepositorySettings _serviceRepositorySettings;
     private readonly IAltinityWebSocketService _webSocketService;
-    private readonly AltinityAttachmentStore _attachmentStore;
+    private readonly AltinityAttachmentBuffer _attachmentStore;
 
     public AltinityProxyHub(
         IHttpClientFactory httpClientFactory,
@@ -40,7 +40,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
         IOptions<AltinitySettings> altinitySettings,
         IOptions<ServiceRepositorySettings> serviceRepositorySettings,
         IAltinityWebSocketService webSocketService,
-        AltinityAttachmentStore attachmentStore
+        AltinityAttachmentBuffer attachmentStore
     )
     {
         _httpClientFactory = httpClientFactory;

@@ -5,10 +5,10 @@ using System.Collections.Generic;
 namespace Altinn.Studio.Designer.Services.Altinity;
 
 /// <summary>
-/// Temporary in-memory store for attachments uploaded before a workflow is started.
+/// Temporary in-memory buffer for attachments uploaded before a workflow is started.
 /// Entries are keyed by an attachment ID and expire after the workflow is dispatched.
 /// </summary>
-public sealed class AltinityAttachmentStore
+public sealed class AltinityAttachmentBuffer
 {
     public sealed record StoredAttachment(string Name, string MimeType, long Size, string DataBase64);
 

@@ -20,9 +20,9 @@ public class AltinityAttachmentController : ControllerBase
 {
     private const long MaxAttachmentBytes = 20 * 1024 * 1024; // 20 MB
 
-    private readonly AltinityAttachmentStore _store;
+    private readonly AltinityAttachmentBuffer _store;
 
-    public AltinityAttachmentController(AltinityAttachmentStore store)
+    public AltinityAttachmentController(AltinityAttachmentBuffer store)
     {
         _store = store;
     }
@@ -50,7 +50,7 @@ public class AltinityAttachmentController : ControllerBase
         await file.CopyToAsync(memoryStream);
         var dataBase64 = $"data:{file.ContentType};base64,{Convert.ToBase64String(memoryStream.ToArray())}";
 
-        var attachment = new AltinityAttachmentStore.StoredAttachment(
+        var attachment = new AltinityAttachmentBuffer.StoredAttachment(
             Name: file.FileName,
             MimeType: file.ContentType,
             Size: file.Length,

@@ -208,7 +208,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddFeatureManagement();
     services.RegisterSynchronizationServices(configuration);
 
-    services.AddSingleton<AltinityAttachmentStore>();
+    services.AddSingleton<AltinityAttachmentBuffer>();
     var signalRBuilder = services.AddSignalR();
     var redisSettings = configuration.GetSection(nameof(RedisCacheSettings)).Get<RedisCacheSettings>();
     if (redisSettings.UseRedisCache)

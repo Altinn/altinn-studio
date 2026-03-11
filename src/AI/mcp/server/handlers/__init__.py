@@ -6,8 +6,6 @@ This module provides:
 3. Legacy compatibility for old-style tool decorators
 """
 
-from contextvars import ContextVar
-
 # Re-export from types module (new-style registration)
 from .types import (
     register_tool as _register_tool_new,
@@ -23,19 +21,6 @@ from .types import (
     get_tool_registry,
     get_tool_by_name,
 )
-
-# Context variable to track if current request is in agent mode
-_agent_mode_var: ContextVar[bool] = ContextVar('agent_mode', default=False)
-
-
-def is_agent_mode() -> bool:
-    """Check if current request is in agent mode."""
-    return _agent_mode_var.get()
-
-
-def set_agent_mode(value: bool) -> None:
-    """Set agent mode for the current request context."""
-    _agent_mode_var.set(value)
 
 
 def register_tool(name=None, description=None, title=None, annotations=None, meta=None,

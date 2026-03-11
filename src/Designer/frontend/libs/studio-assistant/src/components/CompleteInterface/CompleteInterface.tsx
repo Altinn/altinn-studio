@@ -102,7 +102,7 @@ export function CompleteInterface({
             onCancelWorkflow={onCancelWorkflow}
             cancelledMessageContent={cancelledMessageContent}
             onCancelledMessageConsumed={onCancelledMessageConsumed}
-            workflowIsActive={workflowStatus?.isActive ?? false}
+            workflowIsActive={workflowStatus?.isActive}
             enableCompactInterface={false}
             currentUser={currentUser}
           />
