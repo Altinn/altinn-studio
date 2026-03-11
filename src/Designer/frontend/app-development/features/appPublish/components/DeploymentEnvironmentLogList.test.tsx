@@ -427,7 +427,7 @@ describe('DeploymentEnvironmentLogList', () => {
 
   it('falls back to build timestamps for grafana log link when events are absent', () => {
     const buildStart = new Date().toISOString();
-    const buildFinish = new Date().toISOString();
+    const buildFinish = buildStart;
 
     render({
       pipelineDeploymentList: [
