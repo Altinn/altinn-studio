@@ -6,39 +6,6 @@
       HasParent: true
     },
     {
-      Name: Authorization.Service.AuthorizeActions,
-      IdFormat: W3C,
-      Tags: [
-        {
-          instance.guid: Guid_1
-        }
-      ],
-      Events: [
-        {
-          Name: actions,
-          Timestamp: DateTimeOffset_1,
-          Tags: [
-            {
-              actions.count: 2
-            },
-            {
-              actions.0.value: read
-            },
-            {
-              actions.0.type: ProcessAction
-            },
-            {
-              actions.1.value: write
-            },
-            {
-              actions.1.type: ProcessAction
-            }
-          ]
-        }
-      ],
-      HasParent: true
-    },
-    {
       Name: POST {org}/{app}/instances/create,
       Kind: Server,
       IdFormat: W3C,
@@ -59,13 +26,13 @@
           organisation.number: 310702641
         },
         {
-          organisation.systemuser.id: Guid_2
+          organisation.systemuser.id: Guid_1
         },
         {
           server.address: localhost
         },
         {
-          TestId: Guid_3
+          TestId: Guid_2
         },
         {Scrubbed},
         {
@@ -78,7 +45,7 @@
           user.authentication.method: maskinporten
         },
         {
-          user.authentication.token.clientId: Guid_4
+          user.authentication.token.clientId: Guid_3
         },
         {
           user.authentication.token.isExchanged: true
@@ -116,13 +83,13 @@
           organisation.number: 310702641
         },
         {
-          organisation.systemuser.id: Guid_2
+          organisation.systemuser.id: Guid_1
         },
         {
           server.address: localhost
         },
         {
-          TestId: Guid_3
+          TestId: Guid_2
         },
         {Scrubbed},
         {
@@ -135,7 +102,7 @@
           user.authentication.method: maskinporten
         },
         {
-          user.authentication.token.clientId: Guid_4
+          user.authentication.token.clientId: Guid_3
         },
         {
           user.authentication.token.isExchanged: true
@@ -164,7 +131,7 @@
       IdFormat: W3C,
       Tags: [
         {
-          instance.guid: Guid_1
+          instance.guid: Guid_4
         }
       ],
       HasParent: true
@@ -176,7 +143,7 @@
       Events: [
         {
           Name: change,
-          Timestamp: DateTimeOffset_2,
+          Timestamp: DateTimeOffset_1,
           Tags: [
             {
               events: [
@@ -200,18 +167,13 @@
       IdFormat: W3C,
       Tags: [
         {
-          instance.guid: Guid_1
+          instance.guid: Guid_4
         }
       ],
       HasParent: true
     },
     {
       Name: ProcessClient.GetProcessDefinition,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ProcessReader.GetAllFlowElements,
       IdFormat: W3C,
       HasParent: true
     },
@@ -236,22 +198,7 @@
       HasParent: true
     },
     {
-      Name: ProcessReader.GetEndEvents,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
       Name: ProcessReader.GetExclusiveGateways,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ProcessReader.GetExclusiveGateways,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ProcessReader.GetFlowElement,
       IdFormat: W3C,
       HasParent: true
     },
@@ -286,22 +233,12 @@
       HasParent: true
     },
     {
-      Name: ProcessReader.GetProcessTasks,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
       Name: ProcessReader.GetSequenceFlows,
       IdFormat: W3C,
       HasParent: true
     },
     {
       Name: ProcessReader.GetStartEventIds,
-      IdFormat: W3C,
-      HasParent: true
-    },
-    {
-      Name: ProcessReader.GetStartEvents,
       IdFormat: W3C,
       HasParent: true
     },
@@ -371,13 +308,13 @@
               network.protocol.version: 1.1
             },
             {
-              TestId: Guid_3
+              TestId: Guid_2
             },
             {
               url.scheme: http
             },
             {
-              user.authentication.token.clientId: Guid_4
+              user.authentication.token.clientId: Guid_3
             },
             {
               user.authentication.token.isExchanged: true
@@ -405,13 +342,13 @@
               network.protocol.version: 1.1
             },
             {
-              TestId: Guid_3
+              TestId: Guid_2
             },
             {
               url.scheme: http
             },
             {
-              user.authentication.token.clientId: Guid_4
+              user.authentication.token.clientId: Guid_3
             },
             {
               user.authentication.token.isExchanged: true

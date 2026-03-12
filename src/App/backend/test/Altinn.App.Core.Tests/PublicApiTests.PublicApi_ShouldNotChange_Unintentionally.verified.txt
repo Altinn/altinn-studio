@@ -435,6 +435,15 @@ namespace Altinn.App.Core.Features.Auth
         Maskinporten = 5,
     }
 }
+namespace Altinn.App.Core.Features.Bootstrap
+{
+    public sealed class FormBootstrapService
+    {
+        public FormBootstrapService(Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Features.Options.IAppOptionsService appOptionsService, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Prefill.IPrefill prefillService, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Features.Bootstrap.FormBootstrapService> logger) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse> GetInstanceFormBootstrap(Altinn.Platform.Storage.Interface.Models.Instance instance, string uiFolder, string? dataElementIdOverride, bool isPdf, string language, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse> GetStatelessFormBootstrap(string uiFolder, string language, System.Collections.Generic.Dictionary<string, string>? prefillFromQueryParams = null, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+}
 namespace Altinn.App.Core.Features.Bootstrap.Models
 {
     public sealed class DataModelInfo
@@ -3824,11 +3833,6 @@ namespace Altinn.App.Core.Internal.Process
         [System.Obsolete("Never used in our process engine code.")]
         AbandonCurrentReturnToNext = 1,
         AbandonCurrentMoveToNext = 2,
-    }
-    public sealed class ProcessStateEnricher
-    {
-        public ProcessStateEnricher(Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Auth.IAuthorizationService authorization) { }
-        public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AppProcessState> Enrich(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.ProcessState? processState, System.Security.Claims.ClaimsPrincipal user) { }
     }
 }
 namespace Altinn.App.Core.Internal.Process.ProcessTasks
