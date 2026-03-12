@@ -13,6 +13,7 @@ events {
 
 http {
   server_tokens off;
+  client_max_body_size 100M;
 
   proxy_buffer_size 128k;
   proxy_buffers 8 256k;
