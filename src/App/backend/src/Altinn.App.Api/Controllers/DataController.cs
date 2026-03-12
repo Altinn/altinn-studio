@@ -941,12 +941,20 @@ public class DataController : ControllerBase
         string? language
     )
     {
-        object appModel = await _formDataReader.ReadInstanceFormData(
+        object appModel = await _dataClient.GetFormData(instance, dataElement);
+        appModel = await _formDataReader.ProcessLoadedFormData(
             instance,
             dataElement,
-            dataId: dataGuid,
+            appModel,
             includeRowId: includeRowId,
-            language: language
+            language: language,
+            persistFormData: (processedFormData, cancellationToken) =>
+                _dataClient.UpdateFormData(
+                    instance,
+                    processedFormData,
+                    dataElement,
+                    cancellationToken: cancellationToken
+                )
         );
 
         // This is likely not required as the instance is already read

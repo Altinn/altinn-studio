@@ -1,5 +1,4 @@
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.Data;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +9,6 @@ namespace Altinn.App.Core.Tests.Features;
 
 public class FormDataReaderTests
 {
-    private readonly Mock<IDataClient> _dataClient = new();
     private readonly Mock<IDataProcessor> _dataProcessor = new();
     private readonly Mock<ILogger<FormDataReader>> _logger = new();
 
@@ -20,7 +18,7 @@ public class FormDataReaderTests
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddSingleton(_dataProcessor.Object);
         var appImplementationFactory = new AppImplementationFactory(services.BuildServiceProvider());
-        return new FormDataReader(_dataClient.Object, appImplementationFactory, _logger.Object);
+        return new FormDataReader(appImplementationFactory, _logger.Object);
     }
 
     [Fact]
@@ -29,12 +27,9 @@ public class FormDataReaderTests
         var instance = new Instance();
         var dataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "model" };
         var model = new TestModel();
-        _dataClient
-            .Setup(x => x.GetFormData(instance, dataElement, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(model);
 
         var service = CreateService();
-        await service.ReadInstanceFormData(instance, dataElement, language: "nb");
+        await service.ProcessLoadedFormData(instance, dataElement, model, language: "nb");
 
         _dataProcessor.Verify(
             x => x.ProcessDataRead(instance, It.Is<Guid?>(g => g == Guid.Parse(dataElement.Id)), model, "nb"),
@@ -53,22 +48,26 @@ public class FormDataReaderTests
             Locked = false,
         };
         var model = new TestModel { Name = "before" };
-
-        _dataClient
-            .Setup(x => x.GetFormData(instance, dataElement, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(model);
         _dataProcessor
             .Setup(x => x.ProcessDataRead(instance, It.IsAny<Guid?>(), model, It.IsAny<string?>()))
             .Callback(() => model.Name = "after")
             .Returns(Task.CompletedTask);
 
-        var service = CreateService();
-        await service.ReadInstanceFormData(instance, dataElement);
+        var persistedModel = (object?)null;
 
-        _dataClient.Verify(
-            x => x.UpdateFormData(instance, model, dataElement, null, It.IsAny<CancellationToken>()),
-            Times.Once
+        var service = CreateService();
+        await service.ProcessLoadedFormData(
+            instance,
+            dataElement,
+            model,
+            persistFormData: (updatedModel, _) =>
+            {
+                persistedModel = updatedModel;
+                return Task.CompletedTask;
+            }
         );
+
+        Assert.Same(model, persistedModel);
     }
 
     private sealed class TestModel
