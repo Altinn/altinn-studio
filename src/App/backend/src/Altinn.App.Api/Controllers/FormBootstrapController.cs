@@ -86,13 +86,10 @@ public class FormBootstrapController : ControllerBase
             return CreateUiFolderNotFoundResult(uiFolder);
         }
 
-        if (dataElementId != null)
+        var subformValidation = ValidateSubformDataElement(instance, layoutSettings, dataElementId);
+        if (subformValidation != null)
         {
-            var subformValidation = ValidateSubformDataElement(instance, layoutSettings, dataElementId);
-            if (subformValidation != null)
-            {
-                return subformValidation;
-            }
+            return subformValidation;
         }
 
         try
@@ -224,31 +221,58 @@ public class FormBootstrapController : ControllerBase
     private ActionResult? ValidateSubformDataElement(
         Instance instance,
         LayoutSettings layoutSettings,
-        string dataElementId
+        string? dataElementId
     )
     {
-        var dataElement = instance.Data.FirstOrDefault(d => d.Id == dataElementId);
-        if (dataElement == null)
+        if (dataElementId is not null)
         {
-            return NotFound(
-                new ProblemDetails
-                {
-                    Title = "Data element not found",
-                    Status = StatusCodes.Status404NotFound,
-                    Detail = $"Data element '{dataElementId}' not found on instance.",
-                }
-            );
+            var dataElement = instance.Data.FirstOrDefault(d => d.Id == dataElementId);
+            if (dataElement == null)
+            {
+                return NotFound(
+                    new ProblemDetails
+                    {
+                        Title = "Data element not found",
+                        Status = StatusCodes.Status404NotFound,
+                        Detail = $"Data element '{dataElementId}' not found on instance.",
+                    }
+                );
+            }
+
+            if (layoutSettings.DefaultDataType != null && dataElement.DataType != layoutSettings.DefaultDataType)
+            {
+                return BadRequest(
+                    new ProblemDetails
+                    {
+                        Title = "Data type mismatch",
+                        Status = StatusCodes.Status400BadRequest,
+                        Detail =
+                            $"Data element type '{dataElement.DataType}' does not match expected data type '{layoutSettings.DefaultDataType}'.",
+                    }
+                );
+            }
+
+            return null;
         }
 
-        if (layoutSettings.DefaultDataType != null && dataElement.DataType != layoutSettings.DefaultDataType)
+        if (layoutSettings.DefaultDataType is null)
+        {
+            return null;
+        }
+
+        var matchingDataElements = instance
+            .Data.Where(d => d.DataType == layoutSettings.DefaultDataType)
+            .Take(2)
+            .ToList();
+        if (matchingDataElements.Count > 1)
         {
             return BadRequest(
                 new ProblemDetails
                 {
-                    Title = "Data type mismatch",
+                    Title = "Missing data element ID",
                     Status = StatusCodes.Status400BadRequest,
                     Detail =
-                        $"Data element type '{dataElement.DataType}' does not match expected data type '{layoutSettings.DefaultDataType}'.",
+                        $"'dataElementId' is a required argument when multiple data elements of type '{layoutSettings.DefaultDataType}' exist on the instance.",
                 }
             );
         }
