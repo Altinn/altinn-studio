@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
 using WorkflowEngine.Core.Endpoints;
 
 namespace WorkflowEngine.Core.Extensions;

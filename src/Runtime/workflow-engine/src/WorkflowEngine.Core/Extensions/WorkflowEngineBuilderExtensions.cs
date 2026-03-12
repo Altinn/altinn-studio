@@ -1,4 +1,8 @@
 using Altinn.Studio.Runtime.Common;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Core.Authentication.ApiKey;
 using WorkflowEngine.Data.Extensions;
@@ -68,8 +72,10 @@ public static class WorkflowEngineBuilderExtensions
                     policy =>
                     {
                         var origins =
-                            builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>()
-                            ?? ["http://localhost:8090"];
+                            builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ??
+                            [
+                                "http://localhost:8090",
+                            ];
                         policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
                     }
                 );

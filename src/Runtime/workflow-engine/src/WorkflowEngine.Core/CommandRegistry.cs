@@ -1,4 +1,4 @@
-using WorkflowEngine.Models;
+using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Models.Exceptions;
 
 namespace WorkflowEngine.Core;

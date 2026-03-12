@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Trace;
 using WorkflowEngine.Data.Services;
 using WorkflowEngine.Telemetry;

@@ -48,6 +48,9 @@ internal sealed record AppCommandTestFixture(
             DatabaseRetryStrategy = RetryStrategy.None(),
             MaxConcurrentDbOperations = 5,
             MaxConcurrentHttpCalls = 5,
+            MaxWorkflowsPerRequest = 100,
+            MaxStepsPerWorkflow = 50,
+            MaxLabels = 50,
         };
 
         appCommandSettings ??= new AppCommandSettings
