@@ -79,7 +79,7 @@ COPY --from=generate-studio-frontend /build/src/Designer/frontend/dashboard/dist
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/studio-root/dist ./wwwroot/info/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/app-preview/dist ./wwwroot/preview/
 COPY --from=generate-studio-frontend /build/src/Designer/frontend/resourceadm/dist ./wwwroot/resourceadm/
-COPY --from=generate-studio-frontend /build/src/Designer/frontend/user-settings/dist ./wwwroot/user-settings/
+COPY --from=generate-studio-frontend /build/src/Designer/frontend/user-settings/dist ./wwwroot/settings/
 
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 
