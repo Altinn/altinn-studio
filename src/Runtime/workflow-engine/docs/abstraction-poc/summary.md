@@ -1,29 +1,29 @@
-# Workflow Engine Abstraction POC — Branch Summary
+# Workflow Engine — Branch Merge Summary
 
-**Branch**: `feature/workflow-engine-abstraction-poc`
-**Parent**: `feature/workflow-engine`
-**Divergence point**: commit `5a1eecf68b` ("Updates telemetry tests")
+**Target branch**: `feature/workflow-engine-abstraction-poc` (this branch)
+**Source branch**: `feature/workflow-engine` (parent)
+**Divergence point**: commit `148ad349dd` ("Fixes incorrect k6 payload")
 
-## Two Fundamental Changes
+## What This Branch Changed (relative to parent at divergence)
 
 ### 1. Core/App Split (Generic Tenant Model)
 
 Separated the monolithic `WorkflowEngine.Api` (ASP.NET web project) into:
 
 - **`WorkflowEngine.Core`** — a class library containing the engine logic (processing loop, executor, registry, write buffers, endpoints, telemetry). Uses `Microsoft.NET.Sdk` with a `FrameworkReference` to `Microsoft.AspNetCore.App` and a `GlobalUsings.cs` file to compensate for the loss of implicit ASP.NET usings.
-- **`WorkflowEngine.App`** (in `workflow-engine-app/`) — a thin web host that composes Core + CommandHandlers. Contains only `Program.cs` and an `appsettings.json`.
+- **`WorkflowEngine.App`** (in `workflow-engine-app/`) — a thin web host that composes Core + Commands. Contains only `Program.cs` and an `appsettings.json`.
 
-**Why**: The engine should be reusable across different Altinn runtimes. Command handlers (like `AppCommandDescriptor`) are Altinn-specific, but the engine itself is not. This split lets different hosts bring their own command descriptors.
+**Why**: The engine should be reusable across different Altinn runtimes. Command implementations (like `AppCommand`) are Altinn-specific, but the engine itself is not. This split lets different hosts bring their own commands.
 
 **Key details**:
-- `WorkflowEngine.Api` namespace was preserved throughout Core (no mass rename)
-- Route changed from `/api/v1/workflows/{tenantId}/{org}/{app}/...` to `/api/v1/workflows/{org}/{app}/...` — tenantId now comes from a header/config
+- `WorkflowEngine.Core` namespace is used throughout (renamed from `WorkflowEngine.Api`)
+- Route simplified to `/api/v1/workflows` — no tenant/org/app path segments
 - `WorkflowEngine.App.slnx` is a separate solution file for the app host
-- Docker Compose, k6 tests, and CI workflows were updated accordingly
+- Docker Compose, k6 tests, and CI workflows updated accordingly
 
 ### 2. Command Descriptor Pattern (replacing ICommandHandler)
 
-Replaced the handler-centric `ICommandHandler` interface with a descriptor-centric `ICommandDescriptor` interface:
+Replaced the handler-centric `ICommandHandler` interface with a descriptor-centric `ICommand` interface:
 
 **Old pattern** (`ICommandHandler`):
 - String `CommandType` property
@@ -31,15 +31,15 @@ Replaced the handler-centric `ICommandHandler` interface with a descriptor-centr
 - `ExecuteAsync(CommandExecutionContext context, CancellationToken ct)` — raw JSON in context
 - Each handler independently deserializes and validates JSON
 
-**New pattern** (`ICommandDescriptor`):
+**New pattern** (`ICommand`):
 - String `CommandType` property
 - `Type? CommandDataType` / `Type? WorkflowContextType` — declares expected CLR types (null = not needed)
 - `Validate(object? commandData, object? workflowContext)` — pre-deserialized typed objects
 - `ExecuteAsync(CommandExecutionContext context, CancellationToken ct)` — typed data in context
 
 **Generic base classes**:
-- `CommandDescriptor<TData, TContext>` — for commands needing both data and workflow context
-- `CommandDescriptor<TData>` — for commands needing only command data (no workflow context)
+- `Command<TData, TContext>` — for commands needing both data and workflow context
+- `Command<TData>` — for commands needing only command data (no workflow context)
 
 **Centralized deserialization**:
 - `Engine.ValidateCommands()` — deserializes at enqueue time for validation, rejects with clean error on failure
@@ -52,46 +52,54 @@ Replaced the handler-centric `ICommandHandler` interface with a descriptor-centr
 
 **Registration**:
 - `AddCommandHandler<T>()` → `AddCommand<T>()`
-- Descriptors registered as `ICommandDescriptor` singletons via DI
-- `CommandRegistry` builds `Dictionary<string, ICommandDescriptor>` from all registered descriptors at startup
+- Descriptors registered as `ICommand` singletons via DI
+- `CommandRegistry` builds `Dictionary<string, ICommand>` from all registered descriptors at startup
 - Duplicate `CommandType` strings cause a startup exception (fail-fast)
 
-## Files Changed (from parent branch)
+---
 
-### New files
-| File | Purpose |
-|------|---------|
-| `src/WorkflowEngine.Models/ICommandDescriptor.cs` | Core descriptor interface |
-| `src/WorkflowEngine.Models/CommandDescriptor.cs` | Two generic base classes |
-| `src/WorkflowEngine.Models/CommandSerializerOptions.cs` | Shared JSON serializer options |
-| `src/WorkflowEngine.Models/Exceptions/CommandDataTypeMismatchException.cs` | Type mismatch exception |
-| `src/WorkflowEngine.Core/GlobalUsings.cs` | ASP.NET usings for class library |
-| `workflow-engine-app/` (entire directory) | Thin web host |
+## What the Parent Branch Changed (since divergence — 7 commits)
 
-### Deleted files
-| File | Reason |
-|------|--------|
-| `src/WorkflowEngine.Models/ICommandHandler.cs` | Replaced by ICommandDescriptor |
+### 1. Backoff Moved from Step to Workflow
+- `BackoffUntil` removed from `Step`/`StepEntity`, added to `Workflow`/`WorkflowEntity`
+- Queue index changed from `(StartAt, CreatedAt)` to `(BackoffUntil, CreatedAt)`
+- `WorkflowHandler` updated: retry backoff assigned at workflow level
 
-### Renamed/rewritten files
-| Old → New | Change |
-|-----------|--------|
-| `CommandHandlerRegistry.cs` → `CommandRegistry.cs` | Full rewrite for descriptor pattern |
-| `AppCommandHandler.cs` → `AppCommandDescriptor.cs` | Extends `CommandDescriptor<AppCommandData, AppWorkflowContext>` |
-| `WebhookCommandHandler.cs` → `WebhookCommandDescriptor.cs` | Extends `CommandDescriptor<WebhookCommandData>` |
+### 2. Bulk Insert Infrastructure
+- New `SqlBulkInserter` using PostgreSQL COPY binary protocol (replaces EF Core `SaveChanges` for batch enqueue)
+- New `TupleArrayExtensions` helper for unzipping tuple arrays
+- Idempotency key simplified from `(Key, Org, App, PartyId, Guid)` to `(Key, Namespace)`
 
-### Significantly modified files
-| File | Change |
-|------|--------|
-| `Engine.cs` | `ValidateCommands()` rewritten for typed deserialization |
-| `WorkflowExecutor.cs` | Centralized deserialization before dispatch |
-| `ServiceCollectionExtensions.cs` | `AddCommand<T>()` replaces `AddCommandHandler<T>()` |
-| `CommandExecutionContext.cs` | Added typed properties + cast accessors |
-| `AppCommandData.cs`, `WebhookCommandData.cs` | Changed from `internal` to `public` |
-| Test fixtures and test files | Updated to descriptor pattern |
+### 3. Namespace Support
+- `Namespace` field added to `Workflow` (required, defaults `"default"`)
+- DB index `(Namespace, Status)` added
+- Query param `?namespace=` filtering on GET endpoints
+- Idempotency scoped per namespace
 
-## Commit History (on this branch)
+### 4. Correlation ID
+- `CorrelationId` (nullable `Guid?`) added to `Workflow`
+- Replaces instance-based route params for workflow lookup
+- API route changed from `/api/v1/workflows/{org}/{app}/{partyId}/{guid}` to `/api/v1/workflows`
+- `InstanceRouteParams` struct removed entirely
+- Instance info (`Org`, `App`, etc.) moved into request body
 
-1. `148ad349dd` — Fixes incorrect k6 payload
-2. `dc73991290` — Mega commit: domain layering and abstractions (Core/App split + descriptor pattern)
-3. `6ce20dce72` — Tweaks handler structure and logic (red team fixes, bug fixes)
+### 5. Migrations Removed
+- All migration files deleted in final commit — same strategy as our branch
+- Both branches are prepped for a single unified Initial migration post-merge
+
+---
+
+## Convergence and Divergence
+
+| Concept | Our Branch | Parent Branch | Resolution |
+|---------|-----------|---------------|------------|
+| **Namespace** | Required field, `(IdempotencyKey, Namespace)` composite key, query param filter | Same design, defaults to `"default"` | Converged — take parent's implementation (equivalent) |
+| **API routes** | `/api/v1/workflows` (flat, no path segments) | `/api/v1/workflows` (flat, same) | Converged — both arrived at the same route structure |
+| **Correlation ID** | Not present | `Guid? CorrelationId` on Workflow | Adopt from parent |
+| **BackoffUntil** | On Step (unchanged from divergence point) | Moved to Workflow | Adopt from parent |
+| **Bulk insert** | Not present | `SqlBulkInserter` + `TupleArrayExtensions` | Adopt from parent |
+| **Command pattern** | `ICommand` / `Command<T>` / `CommandRegistry` | Still `ICommandHandler` / `CommandHandlerRegistry` | Keep ours |
+| **Core/App split** | `WorkflowEngine.Core` (class lib) + `WorkflowEngine.App` (host) | Monolithic `WorkflowEngine.Api` | Keep ours |
+| **Typed deserialization** | Centralized in Engine + WorkflowExecutor | Not present (handlers do their own) | Keep ours |
+| **Labels** | Present on `WorkflowEnqueueRequest` | Present on `WorkflowEnqueueRequest` | Converged |
+| **Context** | `JsonElement? Context` on request and workflow | `JsonElement? Context` on request | Converged |
