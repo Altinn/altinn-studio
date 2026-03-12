@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Features.Options;
@@ -553,7 +552,7 @@ public sealed class FormBootstrapService
         );
     }
 
-    private async Task PersistProcessDataReadChanges(InstanceDataUnitOfWork dataAccessor, bool isPdf)
+    private static async Task PersistProcessDataReadChanges(InstanceDataUnitOfWork dataAccessor, bool isPdf)
     {
         var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
         if (changes.AllChanges.Count == 0)
