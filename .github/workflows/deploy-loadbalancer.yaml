@@ -8,6 +8,7 @@ on:
       - '.github/workflows/template-flux-config-push.yaml'
       - '.github/workflows/template-helm-push.yaml'
       - '.github/workflows/template-short-sha.yaml'
+      - 'src/load-balancer/**'
       - 'charts/altinn-loadbalancer/**'
       - 'charts/altinn-loadbalancer-config/**'
 
@@ -47,6 +48,21 @@ jobs:
             echo "tag=${sanitized_branch_name}-${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
           fi
 
+  docker-build-push:
+    needs: [get-short-sha, determine-tag]
+    uses: ./.github/workflows/template-docker-push.yaml
+    with:
+      tags: ${{ needs.determine-tag.outputs.tag }},latest
+      registry-name: altinntjenestercontainerregistry.azurecr.io
+      repository-name: altinn-loadbalancer
+      context: src/load-balancer
+      dockerfile: src/load-balancer/Dockerfile
+      environment: dev
+    secrets:
+      client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+      tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+      subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+
   helm-push:
     needs: [get-short-sha, determine-tag]
     uses: ./.github/workflows/template-helm-push.yaml
@@ -61,7 +77,7 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
 
   flux-config-push:
-    needs: [get-short-sha, helm-push, determine-tag, construct-environments-array]
+    needs: [get-short-sha, helm-push, docker-build-push, determine-tag, construct-environments-array]
     strategy:
       matrix:
         include: ${{ fromJSON(needs.construct-environments-array.outputs.result) }}
@@ -72,7 +88,7 @@ jobs:
       environment: ${{ matrix.environment }}
       config-chart-name: altinn-loadbalancer-config
       artifact-name: altinn-loadbalancer
-      helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }}
+      helm-set-arguments: environmentName=${{ matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }}
       trace-workflow: true
       trace-team-name: 'team-studio'
     secrets:

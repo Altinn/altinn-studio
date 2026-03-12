@@ -1,0 +1,143 @@
+load_module modules/ngx_otel_module.so;
+
+worker_processes auto;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  server_tokens off;
+
+  proxy_buffer_size 128k;
+  proxy_buffers 8 256k;
+  proxy_busy_buffers_size 512k;
+  large_client_header_buffers 64 16k;
+
+  client_max_body_size 50M;
+
+  otel_exporter {
+    endpoint ${OTEL_ENDPOINT};
+  }
+  otel_service_name ${OTEL_SERVICE_NAME};
+  otel_trace ${OTEL_TRACE};
+  otel_trace_context propagate;
+
+  upstream designer {
+    server ${DESIGNER_HOST};
+  }
+
+  upstream dashboard {
+    server ${DASHBOARD_HOST};
+  }
+
+  upstream editor {
+    server ${EDITOR_HOST};
+  }
+
+  upstream preview {
+    server ${PREVIEW_HOST};
+  }
+
+  upstream admin {
+    server ${ADMIN_HOST};
+  }
+
+  upstream resourceadm {
+    server ${RESOURCEADM_HOST};
+  }
+
+  upstream info {
+    server ${INFO_HOST};
+  }
+
+  upstream repositories {
+    server ${REPOS_HOST};
+  }
+
+  include /etc/nginx/extra-upstreams/*.conf;
+  include /etc/nginx/logging/*.conf;
+
+  map $uri $spa_path {
+    ~^/(dashboard|editor|preview|admin|resourceadm|info)(/.*)?$ $1;
+    default                                               none;
+  }
+
+  map $spa_path $spa_upstream {
+    dashboard   dashboard;
+    editor      editor;
+    preview     preview;
+    admin       admin;
+    resourceadm resourceadm;
+    info        info;
+    default     designer;
+  }
+
+  map $spa_path $spa_rewrite {
+    dashboard   1;
+    editor      1;
+    preview     1;
+    admin       1;
+    resourceadm 1;
+    info        1;
+    default     0;
+  }
+
+  server {
+    listen ${LISTEN_DIRECTIVE};
+    server_name ${SERVER_NAME};
+
+    include /etc/nginx/ssl/*.conf;
+
+    proxy_cookie_path ~*^/.* /;
+    proxy_redirect off;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    include /etc/nginx/error-pages/*.conf;
+
+    location = / {
+      proxy_pass http://designer/;
+    }
+
+    location ~ ^/(designer|designerapi|login|logout|Home|ansattporten-signin-oidc|signin-oidc)/ {
+      proxy_pass http://designer;
+    }
+
+    location ^~ /hubs/ {
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "Upgrade";
+      proxy_pass http://designer;
+    }
+
+    location /repos/ {
+      proxy_pass http://repositories/;
+      include /etc/nginx/error-pages/repos-error*.inc;
+    }
+
+    location ~ ^/(dashboard|editor|preview|admin|resourceadm|info)/assets(/.*)?$ {
+      proxy_pass http://$spa_upstream;
+    }
+
+    location ~ ^/(dashboard|editor|preview|admin|resourceadm|info)(/.*)?$ {
+      if ($spa_rewrite) {
+        rewrite ^/[^/]+(/.*)?$ /$spa_path/index.html break;
+      }
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host; 
+      proxy_pass http://$spa_upstream;
+    }
+
+    include /etc/nginx/extra-locations/*.conf;
+
+    location / {
+      proxy_pass http://designer;
+    }
+  }
+
+  include /etc/nginx/extra-servers/*.conf;
+}
