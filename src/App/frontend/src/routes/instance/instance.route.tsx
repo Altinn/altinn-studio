@@ -18,4 +18,3 @@ export function ErrorBoundary() {
   const displayError = error instanceof Error || isAxiosError(error) ? error : new Error(String(error));
   return <DisplayError error={displayError} />;
 }
-

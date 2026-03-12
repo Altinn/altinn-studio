@@ -394,23 +394,6 @@ function getDefaultLayouts(): ILayoutCollection {
   };
 }
 
-async function fetchFormData({ dataModel, dataModels }: FunctionTest, url: string): Promise<unknown> {
-  if (!dataModels) {
-    return dataModel ?? {};
-  }
-
-  const statelessDataType = url.match(/dataType=([\w-]+)&/)?.[1];
-  const statefulDataElementId = url.match(/data\/([a-f0-9-]+)\?/)?.[1];
-
-  const model = dataModels.find(
-    (dm) => dm.dataElement.dataType === statelessDataType || dm.dataElement.id === statefulDataElementId,
-  );
-  if (model) {
-    return model.data;
-  }
-  throw new Error(`Datamodel ${url} not found in ${JSON.stringify(dataModels)}`);
-}
-
 async function assertExpr({ expression, expects, expectsFailure, ...rest }: FunctionTestBase) {
   // Makes sure we don't end up with any unexpected properties (if there are, these should probably be added as
   // dependencies for the expression in some way)
