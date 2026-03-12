@@ -32,7 +32,7 @@ services:
 
   altinn_pdf3:
     container_name: localtest-pdf3
-    image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:55a277005d
+    image: ghcr.io/altinn/altinn-studio/runtime-pdf3-worker:04680cdcf3
     restart: always
     networks:
       - altinntestlocal_network
@@ -42,6 +42,7 @@ services:
       - TZ=Europe/Oslo
       - PDF3_ENVIRONMENT=localtest
       - PDF3_QUEUE_SIZE=3
+      - PDF3_LOCALTEST_PUBLIC_BASE_URL=http://${TEST_DOMAIN:-local.altinn.cloud}:${ALTINN3LOCAL_PORT:-80}
     extra_hosts:
       - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
       - "host.containers.internal:host-gateway"
@@ -77,7 +78,7 @@ services:
     volumes:
       - ./infra/otel-collector.yaml:/etc/otel-collector.yaml
     ports:
-      - "4317:4317"   # OTLP gRPC receiver
+      - "4317:4317" # OTLP gRPC receiver
     profiles: ["monitoring"]
     depends_on:
       - monitoring_mimir

@@ -10,6 +10,22 @@ namespace LocalTest.Filters;
 
 public class ProxyMiddleware
 {
+    private sealed class PreserveHostHttpTransformer : HttpTransformer
+    {
+        public override async ValueTask TransformRequestAsync(
+            HttpContext httpContext,
+            HttpRequestMessage proxyRequest,
+            string destinationPrefix,
+            CancellationToken cancellationToken
+        )
+        {
+            await Default.TransformRequestAsync(httpContext, proxyRequest, destinationPrefix, cancellationToken);
+            proxyRequest.Headers.Host = httpContext.Request.Host.Value;
+        }
+    }
+
+    private static readonly HttpTransformer _transformer = new PreserveHostHttpTransformer();
+
     private readonly RequestDelegate _nextMiddleware;
     private readonly IOptions<LocalPlatformSettings> localPlatformSettings;
     private readonly IHttpForwarder _forwarder;
@@ -79,7 +95,7 @@ public class ProxyMiddleware
 
     public async Task ProxyRequest(HttpContext context, string newHost)
     {
-        var error = await _forwarder.SendAsync(context, newHost, _httpClient);
+        var error = await _forwarder.SendAsync(context, newHost, _httpClient, ForwarderRequestConfig.Empty, _transformer);
         // Check if the operation was successful
         if (error != ForwarderError.None)
         {
