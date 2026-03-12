@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Altinn.App.Api.Features.Bootstrap;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
@@ -36,21 +35,22 @@ public class FormBootstrapServiceTests
             _appResources.Object,
             _appMetadata.Object,
             _appOptionsService.Object,
-            CreateAppImplementationFactory(),
-            _initialValidationService.Object,
-            _formDataReader.Object,
             _appModel.Object,
             _prefillService.Object,
             _authenticationContext.Object,
+            CreateServiceProvider(),
             _logger.Object
         );
 
-    private AppImplementationFactory CreateAppImplementationFactory()
+    private IServiceProvider CreateServiceProvider()
     {
         var services = new ServiceCollection();
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+        services.AddSingleton(_initialValidationService.Object);
+        services.AddSingleton(_formDataReader.Object);
         services.AddSingleton(_appOptionsFileHandler.Object);
-        return new AppImplementationFactory(services.BuildServiceProvider());
+        services.AddAppImplementationFactory();
+        return services.BuildServiceProvider();
     }
 
     [Fact]

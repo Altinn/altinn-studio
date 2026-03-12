@@ -1,5 +1,4 @@
 using Altinn.App.Api.Controllers;
-using Altinn.App.Api.Features.Bootstrap;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
@@ -68,18 +67,20 @@ public class FormBootstrapControllerTests
     {
         var implementationServices = new ServiceCollection();
         implementationServices.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-        var appImplementationFactory = new AppImplementationFactory(implementationServices.BuildServiceProvider());
+        implementationServices.AddAppImplementationFactory();
+        implementationServices.AddSingleton(Mock.Of<IInitialValidationService>());
+        implementationServices.AddSingleton(Mock.Of<IFormDataReader>());
+        var implementationServiceProvider = implementationServices.BuildServiceProvider();
+        var appImplementationFactory = implementationServiceProvider.GetRequiredService<AppImplementationFactory>();
 
         var formBootstrapService = new FormBootstrapService(
             appResources,
             Mock.Of<IAppMetadata>(),
             Mock.Of<IAppOptionsService>(),
-            appImplementationFactory,
-            Mock.Of<IInitialValidationService>(),
-            Mock.Of<IFormDataReader>(),
             Mock.Of<IAppModel>(),
             Mock.Of<IPrefill>(),
             Mock.Of<IAuthenticationContext>(),
+            implementationServiceProvider,
             Mock.Of<ILogger<FormBootstrapService>>()
         );
 

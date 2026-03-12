@@ -2,7 +2,6 @@ using System.Text.Json;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Helpers;
@@ -13,13 +12,15 @@ using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
-namespace Altinn.App.Api.Features.Bootstrap;
+namespace Altinn.App.Core.Features.Bootstrap;
 
 /// <summary>
 /// Aggregates all form bootstrap data into a single response.
 /// </summary>
-internal sealed class FormBootstrapService
+public sealed class FormBootstrapService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -37,31 +38,35 @@ internal sealed class FormBootstrapService
     private readonly IAuthenticationContext _authenticationContext;
     private readonly ILogger<FormBootstrapService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FormBootstrapService"/> class.
+    /// </summary>
     public FormBootstrapService(
         IAppResources appResources,
         IAppMetadata appMetadata,
         IAppOptionsService appOptionsService,
-        AppImplementationFactory appImplementationFactory,
-        IInitialValidationService initialValidationService,
-        IFormDataReader formDataReader,
         IAppModel appModel,
         IPrefill prefillService,
         IAuthenticationContext authenticationContext,
+        IServiceProvider serviceProvider,
         ILogger<FormBootstrapService> logger
     )
     {
         _appResources = appResources;
         _appMetadata = appMetadata;
         _appOptionsService = appOptionsService;
-        _appImplementationFactory = appImplementationFactory;
-        _initialValidationService = initialValidationService;
-        _formDataReader = formDataReader;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
+        _initialValidationService = serviceProvider.GetRequiredService<IInitialValidationService>();
+        _formDataReader = serviceProvider.GetRequiredService<IFormDataReader>();
         _appModel = appModel;
         _prefillService = prefillService;
         _authenticationContext = authenticationContext;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Gets all data needed to bootstrap a form for an instance.
+    /// </summary>
     public async Task<FormBootstrapResponse> GetInstanceFormBootstrap(
         Instance instance,
         string uiFolder,
@@ -117,6 +122,9 @@ internal sealed class FormBootstrapService
         };
     }
 
+    /// <summary>
+    /// Gets all data needed to bootstrap a stateless form.
+    /// </summary>
     public async Task<FormBootstrapResponse> GetStatelessFormBootstrap(
         string uiFolder,
         string language,
@@ -196,7 +204,6 @@ internal sealed class FormBootstrapService
                     return (dataType, null);
                 }
 
-                // Find data element
                 DataElement? dataElement;
                 if (!string.IsNullOrEmpty(specificDataElementId))
                 {
@@ -259,7 +266,7 @@ internal sealed class FormBootstrapService
         CancellationToken cancellationToken = default
     )
     {
-        _ = cancellationToken; // Reserved for future use
+        _ = cancellationToken;
         var result = new Dictionary<string, DataModelInfo>();
         var appMetadata = await _appMetadata.GetApplicationMetadata();
         var instanceOwner = await GetStatelessInstanceOwner();
