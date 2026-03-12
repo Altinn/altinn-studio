@@ -39,7 +39,7 @@ public class ProcessController : ControllerBase
     private readonly ProcessStateEnricher _processStateEnricher;
 
     /// <summary>
-    /// Initializes a new instance of the <  see cref="ProcessController"/>
+    /// Initializes a new instance of the <see cref="ProcessController"/>
     /// </summary>
     public ProcessController(
         ILogger<ProcessController> logger,

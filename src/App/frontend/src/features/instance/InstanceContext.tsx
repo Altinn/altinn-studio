@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -32,13 +32,13 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
 
   const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
 
-  // Seed the process query cache from the instance response so all useProcessQuery() consumers
-  // get their data without a separate GET /process call.
-  useEffect(() => {
-    if (data?.process && instanceId) {
-      queryClient.setQueryData([PROCESS_QUERY_KEY_PREFIX, instanceId], data.process);
-    }
-  }, [data?.process, instanceId, queryClient]);
+  // Seed the process query cache from the instance response before children render,
+  // so useProcessQuery() consumers find cached data and don't fire a separate GET /process.
+  const seededProcessRef = useRef<string | undefined>(undefined);
+  if (data?.process && instanceId && seededProcessRef.current !== instanceId) {
+    queryClient.setQueryData([PROCESS_QUERY_KEY_PREFIX, instanceId], data.process);
+    seededProcessRef.current = instanceId;
+  }
 
   if (!instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Missing instanceOwnerPartyId or instanceGuid when creating instance context');
