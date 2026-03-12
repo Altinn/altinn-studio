@@ -1,29 +1,17 @@
-import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { getUiConfig } from 'src/features/form/ui';
-import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useInstanceDataQuery, useOptimisticInstanceUpdate } from 'src/features/instance/InstanceContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { fetchProcessState } from 'src/queries/queries';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import type { LooseAutocomplete } from 'src/types';
 import type { IActionType, IProcess } from 'src/types/shared';
 
-export const PROCESS_QUERY_KEY_PREFIX = 'process';
-
-export const processQueries = {
-  all: () => [PROCESS_QUERY_KEY_PREFIX],
-  processStateKey: (instanceId?: string) => [...processQueries.all(), instanceId],
-  processState: (instanceId?: string) =>
-    queryOptions({
-      queryKey: processQueries.processStateKey(instanceId),
-      queryFn: instanceId ? () => fetchProcessState(instanceId) : skipToken,
-    }),
-} as const;
-
+/**
+ * Returns the process data from the instance query.
+ * Process is now fetched as part of the instance data, not as a separate query.
+ */
 export function useProcessQuery() {
-  const instanceId = useLaxInstanceId();
-  return useQuery(processQueries.processState(instanceId));
+  return useInstanceDataQuery({ select: (instance) => instance.process });
 }
 
 export const useIsAuthorized = () => {
@@ -102,10 +90,11 @@ export function useGetAltinnTaskType() {
 }
 
 export function useOptimisticallyUpdateProcess() {
-  const queryClient = useQueryClient();
-  const instanceId = useLaxInstanceId();
+  const updateInstance = useOptimisticInstanceUpdate();
 
-  const processQueryKey = processQueries.processStateKey(instanceId);
-
-  return (process: IProcess) => queryClient.setQueryData<IProcess>(processQueryKey, process);
+  return (process: IProcess) =>
+    updateInstance((oldData) => ({
+      ...oldData,
+      process,
+    }));
 }

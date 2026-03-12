@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -9,7 +9,6 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { FileScanResults } from 'src/features/attachments/types';
-import { PROCESS_QUERY_KEY_PREFIX } from 'src/features/instance/useProcessQuery';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
@@ -25,20 +24,9 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceGuid = useNavigationParam('instanceGuid');
   const instantiation = useInstantiation();
   const navigation = useNavigation();
-  const queryClient = useQueryClient();
 
   const hasPendingScans = useHasPendingScans();
   const { error: instanceDataError, data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
-
-  const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
-
-  // Seed the process query cache from the instance response before children render,
-  // so useProcessQuery() consumers find cached data and don't fire a separate GET /process.
-  const seededProcessRef = useRef<string | undefined>(undefined);
-  if (data?.process && instanceId && seededProcessRef.current !== instanceId) {
-    queryClient.setQueryData([PROCESS_QUERY_KEY_PREFIX, instanceId], data.process);
-    seededProcessRef.current = instanceId;
-  }
 
   if (!instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Missing instanceOwnerPartyId or instanceGuid when creating instance context');
@@ -168,7 +156,7 @@ export function useInvalidateInstanceDataCache() {
  * OPTIMISTIC UPDATES
  *********************/
 
-const useOptimisticInstanceUpdate = () => {
+export const useOptimisticInstanceUpdate = () => {
   const queryClient = useQueryClient();
   const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
 
