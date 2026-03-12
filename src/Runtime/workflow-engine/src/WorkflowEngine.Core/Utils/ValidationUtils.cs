@@ -2,7 +2,7 @@ using System.Text.Json;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 
-namespace WorkflowEngine.Api.Utils;
+namespace WorkflowEngine.Core.Utils;
 
 /// <summary>
 /// Workflow and step request validation utilities.

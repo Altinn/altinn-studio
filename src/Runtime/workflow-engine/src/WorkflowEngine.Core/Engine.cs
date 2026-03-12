@@ -1,11 +1,11 @@
 using System.Text.Json;
-using WorkflowEngine.Api.Utils;
+using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 internal interface IEngine
 {

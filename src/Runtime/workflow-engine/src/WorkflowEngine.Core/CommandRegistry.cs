@@ -1,7 +1,7 @@
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 /// <summary>
 /// Registry that maps command types to their commands.

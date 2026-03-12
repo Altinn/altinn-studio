@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Models;
 
-namespace WorkflowEngine.Api.Authentication.ApiKey;
+namespace WorkflowEngine.Core.Authentication.ApiKey;
 
 internal class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {

@@ -1,9 +1,5 @@
-using System.Diagnostics;
 using System.Threading.Channels;
 using Altinn.Studio.Runtime.Common;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -11,7 +7,7 @@ using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 /// <summary>
 /// Coalesces concurrent workflow enqueue requests into batched database writes.

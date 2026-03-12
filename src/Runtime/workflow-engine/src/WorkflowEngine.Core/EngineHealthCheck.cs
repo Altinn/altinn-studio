@@ -2,7 +2,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 internal sealed class EngineHealthCheck(IEngineStatus engineStatus, IConcurrencyLimiter concurrencyLimiter)
     : IHealthCheck

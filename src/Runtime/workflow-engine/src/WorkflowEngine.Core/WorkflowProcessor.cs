@@ -1,14 +1,11 @@
 using System.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 /// <summary>
 /// Background processing loop that fetches work from the database using FOR UPDATE SKIP LOCKED,

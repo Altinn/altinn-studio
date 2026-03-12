@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Altinn.Studio.Runtime.Common;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Extensions;
@@ -9,7 +8,7 @@ using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 /// <summary>
 /// Handles processing a single workflow to completion. Executes steps sequentially,

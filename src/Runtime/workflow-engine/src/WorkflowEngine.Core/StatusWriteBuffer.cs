@@ -1,14 +1,11 @@
 using System.Threading.Channels;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 /// <summary>
 /// Batches workflow + step status updates from concurrent workers into single DB writes.

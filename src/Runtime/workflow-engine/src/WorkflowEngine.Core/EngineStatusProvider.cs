@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Models;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 /// <summary>
 /// Provides engine status information for dashboard, health checks, and metrics.

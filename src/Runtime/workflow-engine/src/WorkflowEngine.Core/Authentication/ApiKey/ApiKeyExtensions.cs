@@ -1,10 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace WorkflowEngine.Api.Authentication.ApiKey;
+namespace WorkflowEngine.Core.Authentication.ApiKey;
 
 public static class ApiKeyExtensions
 {

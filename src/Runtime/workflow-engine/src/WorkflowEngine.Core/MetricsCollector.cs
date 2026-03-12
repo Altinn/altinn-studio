@@ -1,12 +1,9 @@
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using WorkflowEngine.Data.Repository;
-using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 internal sealed class MetricsCollector(
     ILogger<MetricsCollector> logger,

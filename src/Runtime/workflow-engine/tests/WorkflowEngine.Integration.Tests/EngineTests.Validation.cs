@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Integration.Tests;
 

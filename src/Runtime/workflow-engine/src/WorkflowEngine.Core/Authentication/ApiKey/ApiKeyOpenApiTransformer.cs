@@ -2,7 +2,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
-namespace WorkflowEngine.Api.Authentication.ApiKey;
+namespace WorkflowEngine.Core.Authentication.ApiKey;
 
 public sealed class ApiKeyOpenApiTransformer : IOpenApiDocumentTransformer
 {

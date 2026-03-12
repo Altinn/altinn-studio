@@ -1,4 +1,4 @@
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 /// <summary>
 /// Lightweight lock-free signaling primitive using <see cref="TaskCompletionSource"/>.

@@ -1,4 +1,3 @@
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.Models.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);

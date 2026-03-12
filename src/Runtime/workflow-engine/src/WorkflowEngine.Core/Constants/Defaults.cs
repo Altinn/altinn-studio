@@ -1,7 +1,7 @@
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
-namespace WorkflowEngine.Api.Constants;
+namespace WorkflowEngine.Core.Constants;
 
 /// <summary>
 /// Default settings for the Process Engine.

@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
@@ -8,7 +7,7 @@ using WorkflowEngine.Models.Extensions;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 internal interface IWorkflowExecutor
 {

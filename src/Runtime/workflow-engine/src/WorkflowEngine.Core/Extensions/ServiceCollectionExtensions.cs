@@ -1,14 +1,10 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using WorkflowEngine.Api.Constants;
-using WorkflowEngine.Commands.Webhook;
+using WorkflowEngine.Core.Constants;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 
-namespace WorkflowEngine.Api.Extensions;
+namespace WorkflowEngine.Core.Extensions;
 
 public static class ServiceCollectionExtensions
 {

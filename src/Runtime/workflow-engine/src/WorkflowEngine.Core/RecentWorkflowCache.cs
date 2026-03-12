@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using WorkflowEngine.Models;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 internal sealed class RecentWorkflowCache
 {

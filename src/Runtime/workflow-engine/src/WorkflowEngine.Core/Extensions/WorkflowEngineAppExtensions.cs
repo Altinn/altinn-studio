@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Hosting;
-using WorkflowEngine.Api.Endpoints;
+using WorkflowEngine.Core.Endpoints;
 
-namespace WorkflowEngine.Api.Extensions;
+namespace WorkflowEngine.Core.Extensions;
 
 public static class WorkflowEngineAppExtensions
 {

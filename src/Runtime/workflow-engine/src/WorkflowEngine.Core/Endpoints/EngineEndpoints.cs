@@ -1,21 +1,21 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
-namespace WorkflowEngine.Api.Endpoints;
+namespace WorkflowEngine.Core.Endpoints;
 
 public static class EngineEndpoints
 {
     public static WebApplication MapEngineEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("/api/v1/workflows").RequireApiKeyAuthorization().WithTags("Workflows");
+        var group = OpenApiRouteHandlerBuilderExtensions.WithTags<RouteGroupBuilder>(
+            app.MapGroup("/api/v1/workflows").RequireApiKeyAuthorization(),
+            "Workflows"
+        );
 
         group
             .MapPost("", EngineRequestHandlers.EnqueueWorkflows)

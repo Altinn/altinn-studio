@@ -1,13 +1,10 @@
 using Altinn.Studio.Runtime.Common;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using WorkflowEngine.Api.Authentication.ApiKey;
 using WorkflowEngine.Commands.Webhook;
+using WorkflowEngine.Core.Authentication.ApiKey;
 using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Telemetry.Extensions;
 
-namespace WorkflowEngine.Api.Extensions;
+namespace WorkflowEngine.Core.Extensions;
 
 /// <summary>
 /// Holds the database connection string provided by the host at startup.
@@ -71,10 +68,8 @@ public static class WorkflowEngineBuilderExtensions
                     policy =>
                     {
                         var origins =
-                            builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ??
-                            [
-                                "http://localhost:8090",
-                            ];
+                            builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>()
+                            ?? ["http://localhost:8090"];
                         policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
                     }
                 );

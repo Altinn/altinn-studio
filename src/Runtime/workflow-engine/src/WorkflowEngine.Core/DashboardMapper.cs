@@ -1,7 +1,7 @@
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 
-namespace WorkflowEngine.Api;
+namespace WorkflowEngine.Core;
 
 internal sealed record DashboardStepDto(
     string IdempotencyKey,
