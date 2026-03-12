@@ -109,7 +109,7 @@ public sealed class FormBootstrapService
             language,
             cancellationToken
         );
-        await PersistProcessDataReadChanges(dataAccessor);
+        await PersistProcessDataReadChanges(dataAccessor, isPdf);
 
         var initialValidations =
             isPdf || taskId == null
@@ -553,7 +553,7 @@ public sealed class FormBootstrapService
         );
     }
 
-    private static async Task PersistProcessDataReadChanges(InstanceDataUnitOfWork dataAccessor)
+    private async Task PersistProcessDataReadChanges(InstanceDataUnitOfWork dataAccessor, bool isPdf)
     {
         var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
         if (changes.AllChanges.Count == 0)
@@ -561,8 +561,22 @@ public sealed class FormBootstrapService
             return;
         }
 
-        await dataAccessor.UpdateInstanceData(changes);
-        await dataAccessor.SaveChanges(changes);
+        if (isPdf)
+        {
+            return;
+        }
+
+        var persistableChanges = changes
+            .AllChanges.Where(c => c is not FormDataChange { Type: ChangeType.Updated, DataElement.Locked: true })
+            .ToList();
+        if (persistableChanges.Count == 0)
+        {
+            return;
+        }
+
+        var filteredChanges = new DataElementChanges(persistableChanges);
+        await dataAccessor.UpdateInstanceData(filteredChanges);
+        await dataAccessor.SaveChanges(filteredChanges);
     }
 
     private object GetDefaultFormData(string classRef)
