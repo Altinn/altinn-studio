@@ -20,12 +20,13 @@ namespace WorkflowEngine.Data.Migrations
                     Namespace = table.Column<string>(type: "text", nullable: false),
                     RequestBodyHash = table.Column<byte[]>(type: "bytea", nullable: false),
                     WorkflowIds = table.Column<Guid[]>(type: "uuid[]", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_IdempotencyKeys", x => new { x.IdempotencyKey, x.Namespace });
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "Workflows",
@@ -45,13 +46,18 @@ namespace WorkflowEngine.Data.Migrations
                     CorrelationId = table.Column<Guid>(type: "uuid", nullable: true),
                     TraceContext = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     MetadataJson = table.Column<string>(type: "jsonb", nullable: true),
-                    EngineTraceId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    InitialState = table.Column<string>(type: "text", nullable: true)
+                    EngineTraceId = table.Column<string>(
+                        type: "character varying(100)",
+                        maxLength: 100,
+                        nullable: true
+                    ),
+                    InitialState = table.Column<string>(type: "text", nullable: true),
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Workflows", x => x.Id);
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "Steps",
@@ -69,7 +75,7 @@ namespace WorkflowEngine.Data.Migrations
                     RetryStrategyJson = table.Column<string>(type: "jsonb", nullable: true),
                     MetadataJson = table.Column<string>(type: "jsonb", nullable: true),
                     StateOut = table.Column<string>(type: "text", nullable: true),
-                    JobId = table.Column<Guid>(type: "uuid", nullable: false)
+                    JobId = table.Column<Guid>(type: "uuid", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -79,15 +85,17 @@ namespace WorkflowEngine.Data.Migrations
                         column: x => x.JobId,
                         principalTable: "Workflows",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "WorkflowDependency",
                 columns: table => new
                 {
                     WorkflowId = table.Column<Guid>(type: "uuid", nullable: false),
-                    DependsOnWorkflowId = table.Column<Guid>(type: "uuid", nullable: false)
+                    DependsOnWorkflowId = table.Column<Guid>(type: "uuid", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -97,21 +105,24 @@ namespace WorkflowEngine.Data.Migrations
                         column: x => x.DependsOnWorkflowId,
                         principalTable: "Workflows",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Cascade
+                    );
                     table.ForeignKey(
                         name: "FK_WorkflowDependency_Workflows_WorkflowId",
                         column: x => x.WorkflowId,
                         principalTable: "Workflows",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "WorkflowLink",
                 columns: table => new
                 {
                     WorkflowId = table.Column<Guid>(type: "uuid", nullable: false),
-                    LinkedWorkflowId = table.Column<Guid>(type: "uuid", nullable: false)
+                    LinkedWorkflowId = table.Column<Guid>(type: "uuid", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -121,81 +132,78 @@ namespace WorkflowEngine.Data.Migrations
                         column: x => x.LinkedWorkflowId,
                         principalTable: "Workflows",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Cascade
+                    );
                     table.ForeignKey(
                         name: "FK_WorkflowLink_Workflows_WorkflowId",
                         column: x => x.WorkflowId,
                         principalTable: "Workflows",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_Steps_JobId_Status",
                 table: "Steps",
-                columns: new[] { "JobId", "Status" });
+                columns: new[] { "JobId", "Status" }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkflowDependency_DependsOnWorkflowId",
                 table: "WorkflowDependency",
-                column: "DependsOnWorkflowId");
+                column: "DependsOnWorkflowId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkflowLink_LinkedWorkflowId",
                 table: "WorkflowLink",
-                column: "LinkedWorkflowId");
+                column: "LinkedWorkflowId"
+            );
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Workflows_BackoffUntil_CreatedAt",
-                table: "Workflows",
-                columns: new[] { "BackoffUntil", "CreatedAt" },
-                filter: "\"Status\" IN (0, 2)")
+            migrationBuilder
+                .CreateIndex(
+                    name: "IX_Workflows_BackoffUntil_CreatedAt",
+                    table: "Workflows",
+                    columns: new[] { "BackoffUntil", "CreatedAt" },
+                    filter: "\"Status\" IN (0, 2)"
+                )
                 .Annotation("Npgsql:IndexNullSortOrder", new[] { NullSortOrder.NullsFirst, NullSortOrder.NullsLast });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workflows_CorrelationId",
                 table: "Workflows",
-                column: "CorrelationId");
+                column: "CorrelationId"
+            );
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Workflows_CreatedAt",
-                table: "Workflows",
-                column: "CreatedAt");
+            migrationBuilder.CreateIndex(name: "IX_Workflows_CreatedAt", table: "Workflows", column: "CreatedAt");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Workflows_LabelsJson",
-                table: "Workflows",
-                column: "LabelsJson")
+            migrationBuilder
+                .CreateIndex(name: "IX_Workflows_LabelsJson", table: "Workflows", column: "LabelsJson")
                 .Annotation("Npgsql:IndexMethod", "gin");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Workflows_Status",
-                table: "Workflows",
-                column: "Status");
+            migrationBuilder.CreateIndex(name: "IX_Workflows_Status", table: "Workflows", column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workflows_TenantId_Status",
                 table: "Workflows",
-                columns: new[] { "TenantId", "Status" });
+                columns: new[] { "TenantId", "Status" }
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "IdempotencyKeys");
+            migrationBuilder.DropTable(name: "IdempotencyKeys");
 
-            migrationBuilder.DropTable(
-                name: "Steps");
+            migrationBuilder.DropTable(name: "Steps");
 
-            migrationBuilder.DropTable(
-                name: "WorkflowDependency");
+            migrationBuilder.DropTable(name: "WorkflowDependency");
 
-            migrationBuilder.DropTable(
-                name: "WorkflowLink");
+            migrationBuilder.DropTable(name: "WorkflowLink");
 
-            migrationBuilder.DropTable(
-                name: "Workflows");
+            migrationBuilder.DropTable(name: "Workflows");
         }
     }
 }
