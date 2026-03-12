@@ -228,9 +228,19 @@ public sealed class FormBootstrapService
                 }
                 else
                 {
-                    dataElement = dataAccessor.Instance.Data.FirstOrDefault(d =>
-                        string.Equals(d.DataType, dataType, StringComparison.OrdinalIgnoreCase)
-                    );
+                    var matchingDataElements = dataAccessor
+                        .Instance.Data.Where(d =>
+                            string.Equals(d.DataType, dataType, StringComparison.OrdinalIgnoreCase)
+                        )
+                        .Take(2)
+                        .ToList();
+
+                    if (matchingDataElements.Count > 1)
+                    {
+                        throw new InvalidOperationException($"Multiple data elements found for data type '{dataType}'");
+                    }
+
+                    dataElement = matchingDataElements.SingleOrDefault();
                 }
 
                 if (dataElement is null)
@@ -257,6 +267,11 @@ public sealed class FormBootstrapService
             }
             catch (Exception ex)
             {
+                if (ex is InvalidOperationException)
+                {
+                    throw;
+                }
+
                 _logger.LogWarning(ex, "Failed to load data model for type {DataType}", dataType);
                 return (dataType, null);
             }

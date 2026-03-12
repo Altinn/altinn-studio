@@ -489,6 +489,47 @@ public class FormBootstrapServiceTests
     }
 
     [Fact]
+    public async Task GetInstanceFormBootstrap_WhenNonDefaultDataTypeHasMultipleDataElements_Throws()
+    {
+        var instance = CreateTestInstance("Task_1", includeExtraSubmodelElement: true);
+        var appMetadata = CreateAppMetadata("model", "submodel");
+
+        SetupMocks(appMetadata);
+        _appResources
+            .Setup(x => x.GetLayoutsInFolder("Task_1"))
+            .Returns(
+                """
+                {
+                    "page1": {
+                        "data": {
+                            "layout": [
+                                {
+                                    "id": "field1",
+                                    "type": "Input",
+                                    "dataModelBindings": {
+                                        "simpleBinding": {
+                                            "field": "Name",
+                                            "dataType": "submodel"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+                """
+            );
+
+        var service = CreateService();
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb")
+        );
+
+        Assert.Contains("Multiple data elements found for data type 'submodel'", ex.Message);
+    }
+
+    [Fact]
     public async Task GetInstanceFormBootstrap_PassesLanguageToFormDataReader()
     {
         var instance = CreateTestInstance("Task_1");
@@ -518,31 +559,47 @@ public class FormBootstrapServiceTests
         string taskId,
         bool locked = false,
         string? defaultDataElementId = null,
-        string? submodelDataElementId = null
+        string? submodelDataElementId = null,
+        bool includeExtraSubmodelElement = false
     )
     {
         var elementId = defaultDataElementId ?? Guid.NewGuid().ToString();
+        var data = new List<DataElement>
+        {
+            new()
+            {
+                Id = elementId,
+                DataType = "model",
+                Locked = locked,
+                ContentType = "application/xml",
+            },
+            new()
+            {
+                Id = submodelDataElementId ?? Guid.NewGuid().ToString(),
+                DataType = "submodel",
+                Locked = false,
+                ContentType = "application/xml",
+            },
+        };
+
+        if (includeExtraSubmodelElement)
+        {
+            data.Add(
+                new DataElement
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    DataType = "submodel",
+                    Locked = false,
+                    ContentType = "application/xml",
+                }
+            );
+        }
+
         return new Instance
         {
             Id = "12345/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
-            Data =
-            [
-                new DataElement
-                {
-                    Id = elementId,
-                    DataType = "model",
-                    Locked = locked,
-                    ContentType = "application/xml",
-                },
-                new DataElement
-                {
-                    Id = submodelDataElementId ?? Guid.NewGuid().ToString(),
-                    DataType = "submodel",
-                    Locked = false,
-                    ContentType = "application/xml",
-                },
-            ],
+            Data = data,
         };
     }
 
