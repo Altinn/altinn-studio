@@ -27,10 +27,10 @@ public sealed record WorkflowStatusResponse
     public required string IdempotencyKey { get; init; }
 
     /// <summary>
-    /// The tenant this workflow belongs to.
+    /// The namespace this workflow belongs to.
     /// </summary>
-    [JsonPropertyName("tenantId")]
-    public required string TenantId { get; init; }
+    [JsonPropertyName("namespace")]
+    public required string Namespace { get; init; }
 
     /// <summary>
     /// The time the workflow was created.
@@ -99,7 +99,7 @@ public sealed record WorkflowStatusResponse
             DatabaseId = workflow.DatabaseId,
             IdempotencyKey = workflow.IdempotencyKey,
             OperationId = workflow.OperationId,
-            TenantId = workflow.TenantId,
+            Namespace = workflow.Namespace,
             CreatedAt = workflow.CreatedAt,
             UpdatedAt = workflow.UpdatedAt,
             StartAt = workflow.StartAt,

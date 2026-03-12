@@ -43,7 +43,7 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("idempotency_key");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("Namespace")
                         .HasColumnType("text")
                         .HasColumnName("tenant_id");
 
@@ -61,7 +61,7 @@ namespace WorkflowEngine.Data.Migrations
                         .HasColumnType("uuid[]")
                         .HasColumnName("workflow_ids");
 
-                    b.HasKey("IdempotencyKey", "TenantId");
+                    b.HasKey("IdempotencyKey", "Namespace");
 
                     b.ToTable("idempotency_keys", (string)null);
                 });
@@ -160,10 +160,11 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<string>("TenantId")
+                    b.Property<string>("Namespace")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("TenantId");
 
                     b.Property<string>("TraceContext")
                         .HasMaxLength(100)
@@ -187,7 +188,7 @@ namespace WorkflowEngine.Data.Migrations
 
                     NpgsqlIndexBuilderExtensions.HasNullSortOrder(b.HasIndex("StartAt", "CreatedAt"), new[] { NullSortOrder.NullsFirst, NullSortOrder.NullsLast });
 
-                    b.HasIndex("TenantId", "Status");
+                    b.HasIndex("Namespace", "Status");
 
                     b.ToTable("Workflows");
                 });

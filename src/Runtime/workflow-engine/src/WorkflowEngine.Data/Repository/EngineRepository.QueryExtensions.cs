@@ -16,22 +16,22 @@ internal static class EngineRepositoryQueryExtensions
         public IQueryable<WorkflowEntity> GetActiveWorkflows(
             bool includeDependencies = true,
             bool includeLinks = true,
-            string? tenantFilter = null
+            string? namespaceFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: includeDependencies, links: includeLinks)
-                .MaybeFilterByTenant(tenantFilter)
+                .MaybeFilterByNamespace(namespaceFilter)
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
                 .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Incomplete.Contains(step.Status)));
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows(
             bool includeLinks = true,
-            string? tenantFilter = null
+            string? namespaceFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: true, links: includeLinks)
-                .MaybeFilterByTenant(tenantFilter)
+                .MaybeFilterByNamespace(namespaceFilter)
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf =>
                     wf.StartAt > DateTime.UtcNow
@@ -43,7 +43,7 @@ internal static class EngineRepositoryQueryExtensions
             bool includeSteps = true,
             bool includeDependencies = true,
             bool includeLinks = true,
-            string? tenantFilter = null
+            string? namespaceFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(
@@ -51,14 +51,14 @@ internal static class EngineRepositoryQueryExtensions
                     dependencies: includeDependencies,
                     links: includeLinks
                 )
-                .MaybeFilterByTenant(tenantFilter)
+                .MaybeFilterByNamespace(namespaceFilter)
                 .Where(wf => PersistentItemStatusMap.Failed.Contains(wf.Status));
 
         public IQueryable<WorkflowEntity> GetSuccessfulWorkflows(
             bool includeSteps = true,
             bool includeDependencies = true,
             bool includeLinks = true,
-            string? tenantFilter = null
+            string? namespaceFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(
@@ -66,7 +66,7 @@ internal static class EngineRepositoryQueryExtensions
                     dependencies: includeDependencies,
                     links: includeLinks
                 )
-                .MaybeFilterByTenant(tenantFilter)
+                .MaybeFilterByNamespace(namespaceFilter)
                 .Where(wf => PersistentItemStatusMap.Successful.Contains(wf.Status));
 
         public IQueryable<WorkflowEntity> GetFinishedWorkflows(
@@ -77,12 +77,12 @@ internal static class EngineRepositoryQueryExtensions
             DateTimeOffset? since = null,
             bool retriedOnly = false,
             Dictionary<string, string>? labelFilters = null,
-            string? tenantFilter = null
+            string? namespaceFilter = null
         )
         {
             var query = dbContext
                 .Workflows.Include(j => j.Steps)
-                .MaybeFilterByTenant(tenantFilter)
+                .MaybeFilterByNamespace(namespaceFilter)
                 .Where(x => statuses.Contains(x.Status));
 
             if (before.HasValue)
@@ -109,7 +109,7 @@ internal static class EngineRepositoryQueryExtensions
             {
                 var s = search.ToLower();
                 query = query.Where(x =>
-                    x.TenantId.ToLower().Contains(s)
+                    x.Namespace.ToLower().Contains(s)
                     || x.OperationId.ToLower().Contains(s)
                     || x.Steps.Any(st => st.OperationId.ToLower().Contains(s))
                 );
@@ -160,10 +160,10 @@ internal static class EngineRepositoryQueryExtensions
             return entityQuery.AsSplitQuery();
         }
 
-        private IQueryable<WorkflowEntity> MaybeFilterByTenant(string? tenantId)
+        private IQueryable<WorkflowEntity> MaybeFilterByNamespace(string? ns)
         {
-            if (tenantId is not null)
-                entityQuery = entityQuery.Where(wf => wf.TenantId == tenantId);
+            if (ns is not null)
+                entityQuery = entityQuery.Where(wf => wf.Namespace == ns);
 
             return entityQuery;
         }

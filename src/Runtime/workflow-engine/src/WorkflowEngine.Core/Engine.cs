@@ -26,7 +26,7 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry r
     {
         using var activity = Metrics.Source.StartActivity(
             "Engine.EnqueueWorkflow",
-            tags: [("request.tenant.id", request.TenantId), ("request.workflows.count", request.Workflows.Count)]
+            tags: [("request.namespace.id", request.Namespace), ("request.workflows.count", request.Workflows.Count)]
         );
 
         IReadOnlyList<WorkflowRequest> sortedRequests;

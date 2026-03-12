@@ -10,7 +10,7 @@ public class WorkflowEntityTests
         {
             Id = Guid.Parse("11111111-2222-3333-4444-555555555555"),
             IdempotencyKey = "wf-key",
-            TenantId = "test-tenant",
+            Namespace = "test-tenant",
             OperationId = "next",
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
             StartAt = new DateTimeOffset(2025, 6, 15, 12, 0, 0, TimeSpan.Zero),
@@ -46,7 +46,7 @@ public class WorkflowEntityTests
 
         // Assert
         Assert.Equal(entity.Id, roundTripped.Id);
-        Assert.Equal(entity.TenantId, roundTripped.TenantId);
+        Assert.Equal(entity.Namespace, roundTripped.Namespace);
         Assert.Equal(entity.OperationId, roundTripped.OperationId);
         Assert.Equal(entity.CreatedAt, roundTripped.CreatedAt);
         Assert.Equal(entity.StartAt, roundTripped.StartAt);
@@ -57,7 +57,7 @@ public class WorkflowEntityTests
     }
 
     [Fact]
-    public void ToDomainModel_MapsTenantIdAndLabelsCorrectly()
+    public void ToDomainModel_MapsNamespaceAndLabelsCorrectly()
     {
         // Arrange
         var entity = CreateWorkflowEntity();
@@ -66,7 +66,7 @@ public class WorkflowEntityTests
         var domain = entity.ToDomainModel();
 
         // Assert
-        Assert.Equal("test-tenant", domain.TenantId);
+        Assert.Equal("test-tenant", domain.Namespace);
         Assert.NotNull(domain.Labels);
         Assert.Equal("test", domain.Labels["env"]);
         Assert.NotNull(domain.Context);

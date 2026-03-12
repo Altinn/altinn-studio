@@ -8,12 +8,9 @@ namespace WorkflowEngine.Data.Repository;
 public interface IEngineRepository
 {
     /// <summary>
-    /// Gets all active workflows, optionally filtered by tenant.
+    /// Gets all active workflows, optionally filtered by namespace.
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetActiveWorkflows(
-        string? tenantId = null,
-        CancellationToken cancellationToken = default
-    );
+    Task<IReadOnlyList<Workflow>> GetActiveWorkflows(string? ns = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all scheduled workflows.
@@ -31,7 +28,7 @@ public interface IEngineRepository
         DateTimeOffset? since = null,
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
-        string? tenantFilter = null,
+        string? namespaceFilter = null,
         CancellationToken cancellationToken = default
     );
 
@@ -47,7 +44,7 @@ public interface IEngineRepository
         DateTimeOffset? since = null,
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
-        string? tenantFilter = null,
+        string? namespaceFilter = null,
         CancellationToken cancellationToken = default
     );
 
@@ -84,7 +81,7 @@ public interface IEngineRepository
     /// <summary>
     /// Gets a workflow by idempotency key and creation time.
     /// Used by the internal dashboard to resolve step details from SSE-streamed idempotency keys.
-    /// This method is cross-tenant by design — only expose it through non-production endpoints.
+    /// This method is cross-namespace by design — only expose it through non-production endpoints.
     /// </summary>
     Task<Workflow?> GetWorkflow(
         string idempotencyKey,

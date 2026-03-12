@@ -14,7 +14,7 @@ public sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
     private const string BasePath = "/api/v1/workflows";
     private readonly HttpClient _client = fixture.CreateEngineClient();
 
-    public static string DefaultTenantId => $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}";
+    public static string DefaultNamespace => $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}";
 
     /// <summary>
     /// Enqueues a batch and asserts a 2xx response. Throws on failure.
@@ -44,15 +44,15 @@ public sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
     /// <summary>
     /// Gets a workflow status and returns the raw <see cref="HttpResponseMessage"/>.
     /// </summary>
-    public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId, string? tenantId = null) =>
-        _client.GetAsync(GetWorkflowPath(workflowId, tenantId), CancellationToken.None);
+    public Task<HttpResponseMessage> GetWorkflowRaw(Guid workflowId, string? ns = null) =>
+        _client.GetAsync(GetWorkflowPath(workflowId, ns), CancellationToken.None);
 
     /// <summary>
     /// Gets a workflow status and returns either a parsed result or <c>null</c> on 404.
     /// </summary>
-    public async Task<WorkflowStatusResponse?> GetWorkflow(Guid workflowId, string? tenantId = null)
+    public async Task<WorkflowStatusResponse?> GetWorkflow(Guid workflowId, string? ns = null)
     {
-        using var response = await GetWorkflowRaw(workflowId, tenantId);
+        using var response = await GetWorkflowRaw(workflowId, ns);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
@@ -73,9 +73,9 @@ public sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
     /// <summary>
     /// Lists active workflows and returns either a parsed result or an empty list on 204 No Content.
     /// </summary>
-    public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? tenantId = null)
+    public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)
     {
-        var path = tenantId is not null ? $"{BasePath}?tenantId={Uri.EscapeDataString(tenantId)}" : BasePath;
+        var path = ns is not null ? $"{BasePath}?namespace={Uri.EscapeDataString(ns)}" : BasePath;
         using var response = await _client.GetAsync(path);
 
         if (response.StatusCode == HttpStatusCode.NoContent)
@@ -122,10 +122,8 @@ public sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
         return [.. await Task.WhenAll(tasks)];
     }
 
-    private static string GetWorkflowPath(Guid workflowId, string? tenantId) =>
-        tenantId is not null
-            ? $"{BasePath}/{workflowId}?tenantId={Uri.EscapeDataString(tenantId)}"
-            : $"{BasePath}/{workflowId}";
+    private static string GetWorkflowPath(Guid workflowId, string? ns) =>
+        ns is not null ? $"{BasePath}/{workflowId}?namespace={Uri.EscapeDataString(ns)}" : $"{BasePath}/{workflowId}";
 
     public static async Task<T> AssertSuccessAndDeserialize<T>(HttpResponseMessage response)
     {

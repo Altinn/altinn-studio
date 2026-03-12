@@ -79,13 +79,13 @@ internal sealed record WorkflowEngineTestFixture(
 
     public static JsonElement DefaultWorkflowContext => JsonSerializer.SerializeToElement(new { });
 
-    public static Workflow CreateWorkflow(Step? step = null, string? tenantId = "test-tenant")
+    public static Workflow CreateWorkflow(Step? step = null, string? ns = "test-namespace")
     {
         return new Workflow
         {
             OperationId = "test-operation",
             IdempotencyKey = "test-wf-key",
-            TenantId = tenantId ?? "test-tenant",
+            Namespace = ns ?? "test-namespace",
             Context = DefaultWorkflowContext,
             Steps = step != null ? [step] : [],
         };

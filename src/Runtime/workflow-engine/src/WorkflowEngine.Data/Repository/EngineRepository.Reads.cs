@@ -10,7 +10,7 @@ internal sealed partial class EngineRepository
 {
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(
-        string? tenantId = null,
+        string? ns = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -23,7 +23,7 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
-                .GetActiveWorkflows(tenantFilter: tenantId)
+                .GetActiveWorkflows(namespaceFilter: ns)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 
@@ -137,7 +137,7 @@ internal sealed partial class EngineRepository
         DateTimeOffset? since = null,
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
-        string? tenantFilter = null,
+        string? namespaceFilter = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -150,7 +150,7 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
-                .GetFinishedWorkflows(statuses, search, take, before, since, retriedOnly, labelFilters, tenantFilter)
+                .GetFinishedWorkflows(statuses, search, take, before, since, retriedOnly, labelFilters, namespaceFilter)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 
@@ -179,7 +179,7 @@ internal sealed partial class EngineRepository
         DateTimeOffset? since = null,
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
-        string? tenantFilter = null,
+        string? namespaceFilter = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -201,7 +201,7 @@ internal sealed partial class EngineRepository
                 since: since,
                 retriedOnly,
                 labelFilters,
-                tenantFilter
+                namespaceFilter
             );
             var totalCount = await baseQuery.CountAsync(cancellationToken);
 
@@ -214,7 +214,7 @@ internal sealed partial class EngineRepository
                 since,
                 retriedOnly,
                 labelFilters,
-                tenantFilter
+                namespaceFilter
             );
             var workflows = await dataQuery.ToDomainModel().ToListAsync(cancellationToken);
 

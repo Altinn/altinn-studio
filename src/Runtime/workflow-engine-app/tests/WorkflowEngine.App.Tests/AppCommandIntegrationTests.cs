@@ -101,7 +101,7 @@ public sealed class AppCommandIntegrationTests(AppTestFixture fixture) : IAsyncL
         // Arrange — app commands without lockToken in Context are rejected at validation time
         var request = new WorkflowEnqueueRequest
         {
-            TenantId = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
+            Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
             IdempotencyKey = $"idem-{Guid.NewGuid()}",
             Context = JsonSerializer.SerializeToElement(
                 new
@@ -160,7 +160,7 @@ public sealed class AppCommandIntegrationTests(AppTestFixture fixture) : IAsyncL
 
         const string request = $$"""
             {
-                "tenantId": "{{EngineAppFixture.DefaultOrg}}:{{EngineAppFixture.DefaultApp}}",
+                "namespace": "{{EngineAppFixture.DefaultOrg}}:{{EngineAppFixture.DefaultApp}}",
                 "idempotencyKey": "complex-dag-raw-json",
                 "labels": { "org": "{{EngineAppFixture.DefaultOrg}}", "app": "{{EngineAppFixture.DefaultApp}}" },
                 "context": {

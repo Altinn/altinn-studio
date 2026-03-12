@@ -80,7 +80,7 @@ public static class WorkflowExtensions
             [
                 ("workflow.database.id", workflow.DatabaseId),
                 ("workflow.operation.id", workflow.OperationId),
-                ("workflow.tenant.id", workflow.TenantId),
+                ("workflow.namespace.id", workflow.Namespace),
             ];
 
         /// <summary>

@@ -12,13 +12,13 @@ internal static class WorkflowTestHelper
         WorkflowRequestMetadata metadata,
         IReadOnlyList<WorkflowRequest> workflows,
         string? idempotencyKey = null,
-        string tenantId = "test-tenant",
+        string ns = "test-namespace",
         Dictionary<string, string>? labels = null
     )
     {
         var request = new WorkflowEnqueueRequest
         {
-            TenantId = tenantId,
+            Namespace = ns,
             IdempotencyKey = idempotencyKey ?? Guid.NewGuid().ToString("N"),
             Labels = labels,
             Workflows = workflows,
@@ -40,18 +40,11 @@ internal static class WorkflowTestHelper
         WorkflowRequest request,
         WorkflowRequestMetadata metadata,
         string? idempotencyKey = null,
-        string tenantId = "test-tenant",
+        string ns = "test-namespace",
         Dictionary<string, string>? labels = null
     )
     {
-        var results = await EnqueueWorkflows(
-            repository,
-            metadata,
-            [request],
-            idempotencyKey,
-            tenantId: tenantId,
-            labels: labels
-        );
+        var results = await EnqueueWorkflows(repository, metadata, [request], idempotencyKey, ns: ns, labels: labels);
         var result = Assert.Single(results);
         Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
 
@@ -68,10 +61,10 @@ internal static class WorkflowTestHelper
     public static (
         WorkflowRequest Request,
         WorkflowRequestMetadata Metadata,
-        string TenantId,
+        string Namespace,
         Dictionary<string, string> Labels
     ) CreateRequest(
-        string? tenantId = null,
+        string? ns = null,
         IEnumerable<Guid>? dependencies = null,
         IEnumerable<Guid>? links = null,
         string org = "ttd",
@@ -79,7 +72,7 @@ internal static class WorkflowTestHelper
         DateTimeOffset? startAt = null
     )
     {
-        tenantId ??= Guid.NewGuid().ToString("N");
+        ns ??= Guid.NewGuid().ToString("N");
 
         var request = new WorkflowRequest
         {
@@ -100,27 +93,22 @@ internal static class WorkflowTestHelper
         var metadata = new WorkflowRequestMetadata(DateTimeOffset.UtcNow, null);
         var labels = new Dictionary<string, string> { ["org"] = org, ["app"] = app };
 
-        return (request, metadata, tenantId, labels);
+        return (request, metadata, ns, labels);
     }
 
     public static async Task<Workflow> InsertAndSetStatus(
         IEngineRepository repository,
         EngineDbContext context,
         PersistentItemStatus status,
-        string? tenantId = null,
+        string? ns = null,
         IEnumerable<Guid>? dependencies = null,
         string org = "ttd",
         string app = "test-app"
     )
     {
-        var (request, metadata, tid, labels) = CreateRequest(
-            tenantId: tenantId,
-            dependencies: dependencies,
-            org: org,
-            app: app
-        );
+        var (request, metadata, tid, labels) = CreateRequest(ns: ns, dependencies: dependencies, org: org, app: app);
 
-        var workflow = await EnqueueWorkflow(repository, context, request, metadata, tenantId: tid, labels: labels);
+        var workflow = await EnqueueWorkflow(repository, context, request, metadata, ns: tid, labels: labels);
 
         // Update status directly via raw SQL
         var statusInt = (int)status;

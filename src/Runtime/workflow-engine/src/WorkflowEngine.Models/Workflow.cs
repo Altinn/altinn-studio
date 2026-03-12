@@ -5,10 +5,10 @@ namespace WorkflowEngine.Models;
 public sealed record Workflow : PersistentItem
 {
     /// <summary>
-    /// Primary isolation boundary. Idempotency keys are unique within a tenant.
+    /// Primary isolation boundary. Idempotency keys are unique within a namespace.
     /// Example: an instance GUID, a customer ID, a project ID — whatever the host defines.
     /// </summary>
-    public required string TenantId { get; init; }
+    public required string Namespace { get; init; }
 
     /// <summary>
     /// Indexed key-value pairs for filtering, grouping, and dashboard queries.

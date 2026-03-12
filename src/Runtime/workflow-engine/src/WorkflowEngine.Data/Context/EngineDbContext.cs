@@ -23,7 +23,7 @@ internal sealed class EngineDbContext : DbContext
             // Indexes
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => new { e.TenantId, e.Status });
+            entity.HasIndex(e => new { e.Namespace, e.Status });
 
             entity
                 .HasIndex(e => new { e.StartAt, e.CreatedAt })
@@ -75,10 +75,10 @@ internal sealed class EngineDbContext : DbContext
         {
             entity.ToTable("idempotency_keys");
 
-            entity.HasKey(e => new { e.IdempotencyKey, e.TenantId });
+            entity.HasKey(e => new { e.IdempotencyKey, e.Namespace });
 
             entity.Property(e => e.IdempotencyKey).HasColumnName("idempotency_key");
-            entity.Property(e => e.TenantId).HasColumnName("tenant_id");
+            entity.Property(e => e.Namespace).HasColumnName("tenant_id");
             entity.Property(e => e.RequestBodyHash).HasColumnName("request_body_hash").HasColumnType("bytea");
             entity.Property(e => e.WorkflowIds).HasColumnName("workflow_ids").HasColumnType("uuid[]");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp with time zone");

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace WorkflowEngine.App.Commands.AppCommand;
 
 /// <summary>
-/// Convenience record for extracting Altinn instance information from workflow labels and tenant ID.
+/// Convenience record for extracting Altinn instance information from workflow labels and namespace ID.
 /// </summary>
 public sealed record InstanceInformation
 {

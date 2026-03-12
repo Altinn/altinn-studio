@@ -50,25 +50,25 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     // ── GetActiveWorkflows ─────────────────────────────────────
 
     [Fact]
-    public async Task GetActiveWorkflows_ReturnsOnlyMatchingTenant()
+    public async Task GetActiveWorkflows_ReturnsOnlyMatchingNamespace()
     {
         // Arrange
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
 
-        var tenantA = Guid.NewGuid().ToString("N");
-        var tenantB = Guid.NewGuid().ToString("N");
+        var namespaceA = Guid.NewGuid().ToString("N");
+        var namespaceB = Guid.NewGuid().ToString("N");
 
-        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, tenantId: tenantA);
-        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, tenantId: tenantA);
-        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, tenantId: tenantB);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, ns: namespaceA);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, ns: namespaceA);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, ns: namespaceB);
 
         // Act
-        var results = await repo.GetActiveWorkflows(tenantA, TestContext.Current.CancellationToken);
+        var results = await repo.GetActiveWorkflows(namespaceA, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(2, results.Count);
-        Assert.All(results, wf => Assert.Equal(tenantA, wf.TenantId));
+        Assert.All(results, wf => Assert.Equal(namespaceA, wf.Namespace));
     }
 
     [Fact]
@@ -77,13 +77,13 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
         // Arrange
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
-        var tenantId = Guid.NewGuid().ToString("N");
+        var ns = Guid.NewGuid().ToString("N");
 
-        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, tenantId: tenantId);
-        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, tenantId: tenantId);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Enqueued, ns: ns);
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, ns: ns);
 
         // Act
-        var results = await repo.GetActiveWorkflows(tenantId, TestContext.Current.CancellationToken);
+        var results = await repo.GetActiveWorkflows(ns, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Single(results);
@@ -274,23 +274,18 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task GetFinishedWorkflows_SearchByTenantId_Matches()
+    public async Task GetFinishedWorkflows_SearchByNamespace_Matches()
     {
         // Arrange
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
 
-        var targetTenant = Guid.NewGuid().ToString("N");
-        await WorkflowTestHelper.InsertAndSetStatus(
-            repo,
-            context,
-            PersistentItemStatus.Completed,
-            tenantId: targetTenant
-        );
+        var targetNamespace = Guid.NewGuid().ToString("N");
+        await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed, ns: targetNamespace);
         await WorkflowTestHelper.InsertAndSetStatus(repo, context, PersistentItemStatus.Completed);
 
-        // Act — search by a partial tenant ID substring
-        var searchTerm = targetTenant[..8];
+        // Act — search by a partial namespace ID substring
+        var searchTerm = targetNamespace[..8];
         var results = await repo.GetFinishedWorkflows(
             [PersistentItemStatus.Completed],
             search: searchTerm,
@@ -299,7 +294,7 @@ public sealed class WorkflowQueryTests(PostgresFixture fixture) : IAsyncLifetime
 
         // Assert
         Assert.Single(results);
-        Assert.Equal(targetTenant, results[0].TenantId);
+        Assert.Equal(targetNamespace, results[0].Namespace);
     }
 
     [Fact]

@@ -98,7 +98,7 @@ internal sealed record AppCommandTestFixture(
         {
             OperationId = "test-operation",
             IdempotencyKey = "test-wf-key",
-            TenantId = "test-tenant",
+            Namespace = "test-namespace",
             Context = DefaultWorkflowContext,
             Steps = [step],
         };

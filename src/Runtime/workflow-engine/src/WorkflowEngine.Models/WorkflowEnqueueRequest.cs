@@ -10,10 +10,10 @@ namespace WorkflowEngine.Models;
 public sealed record WorkflowEnqueueRequest
 {
     /// <summary>
-    /// Primary isolation boundary. Idempotency keys are unique within a tenant.
+    /// Primary isolation boundary. Idempotency keys are unique within a namespace.
     /// </summary>
-    [JsonPropertyName("tenantId")]
-    public required string TenantId { get; init; }
+    [JsonPropertyName("namespace")]
+    public required string Namespace { get; init; }
 
     /// <summary>
     /// An idempotency key for this entire enqueue request (all workflows in the batch).

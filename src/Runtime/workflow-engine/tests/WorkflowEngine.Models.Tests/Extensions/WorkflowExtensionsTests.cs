@@ -19,7 +19,7 @@ public class WorkflowExtensionsTests
         {
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
-            TenantId = "tenant-1",
+            Namespace = "ns-1",
             Steps = steps.ToList(),
         };
 

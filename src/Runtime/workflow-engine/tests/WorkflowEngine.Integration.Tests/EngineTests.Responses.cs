@@ -167,7 +167,7 @@ public partial class EngineTests
 
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
-        using var response = await _client.GetWorkflowRaw(workflowId, tenantId: "wrong-tenant");
+        using var response = await _client.GetWorkflowRaw(workflowId, ns: "wrong-namespace");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }

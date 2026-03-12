@@ -11,7 +11,7 @@ namespace WorkflowEngine.Core.Tests.Endpoints;
 
 public class EngineEndpointTests
 {
-    private const string DefaultTenantId = "test-tenant";
+    private const string DefaultNamespace = "test-namespace";
 
     private static CommandDefinition CreateWebhookCommand(string uri) =>
         WebhookCommand.Create(new WebhookCommandData { Uri = uri });
@@ -19,7 +19,7 @@ public class EngineEndpointTests
     private static WorkflowEnqueueRequest _defaultWorkflowRequest =>
         new()
         {
-            TenantId = DefaultTenantId,
+            Namespace = DefaultNamespace,
             IdempotencyKey = "default-idempotency-key",
             Workflows =
             [
@@ -131,7 +131,7 @@ public class EngineEndpointTests
         // Arrange — create a request with a dependency cycle
         var request = new WorkflowEnqueueRequest
         {
-            TenantId = DefaultTenantId,
+            Namespace = DefaultNamespace,
             IdempotencyKey = "cycle-key",
             Workflows =
             [
@@ -228,7 +228,7 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
-            DefaultTenantId,
+            DefaultNamespace,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -252,7 +252,7 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
-            DefaultTenantId,
+            DefaultNamespace,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -262,21 +262,25 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task ListWorkflows_UsesTenantIdFromQueryParams()
+    public async Task ListWorkflows_UsesNamespaceFromQueryParams()
     {
         // Arrange
-        string? capturedTenantId = null;
+        string? capturedNamespace = null;
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
             .Setup(r => r.GetActiveWorkflows(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .Callback<string?, CancellationToken>((tenantId, _) => capturedTenantId = tenantId)
+            .Callback<string?, CancellationToken>((ns, _) => capturedNamespace = ns)
             .ReturnsAsync([]);
 
         // Act
-        await EngineRequestHandlers.ListActiveWorkflows(DefaultTenantId, repositoryMock.Object, CancellationToken.None);
+        await EngineRequestHandlers.ListActiveWorkflows(
+            DefaultNamespace,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
 
-        // Assert — handler passes tenant ID from query to repository
-        Assert.Equal(DefaultTenantId, capturedTenantId);
+        // Assert — handler passes namespace from query to repository
+        Assert.Equal(DefaultNamespace, capturedNamespace);
     }
 
     // === GetWorkflow Handler Tests ===
@@ -290,7 +294,7 @@ public class EngineEndpointTests
         {
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
-            TenantId = DefaultTenantId,
+            Namespace = DefaultNamespace,
             Steps = [step],
         };
 
@@ -301,7 +305,7 @@ public class EngineEndpointTests
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
             workflowGuid,
-            DefaultTenantId,
+            DefaultNamespace,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -325,7 +329,7 @@ public class EngineEndpointTests
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
             Guid.NewGuid(),
-            DefaultTenantId,
+            DefaultNamespace,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -335,15 +339,15 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task GetWorkflow_WrongTenant_Returns404()
+    public async Task GetWorkflow_WrongNamespace_Returns404()
     {
-        // Arrange — workflow belongs to a different tenant
+        // Arrange — workflow belongs to a different namespace
         var step = WorkflowEngineTestFixture.CreateStep(new CommandDefinition { Type = "noop" });
         var workflow = new Workflow
         {
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
-            TenantId = Guid.NewGuid().ToString(), // Different from DefaultTenantId
+            Namespace = Guid.NewGuid().ToString(), // Different from DefaultNamespace
             Steps = [step],
         };
 
@@ -354,12 +358,12 @@ public class EngineEndpointTests
         // Act
         var result = await EngineRequestHandlers.GetWorkflow(
             workflowGuid,
-            DefaultTenantId,
+            DefaultNamespace,
             repositoryMock.Object,
             CancellationToken.None
         );
 
-        // Assert — cross-tenant disclosure prevention
+        // Assert — cross-namespace disclosure prevention
         Assert.IsType<NotFound>(result.Result);
     }
 }

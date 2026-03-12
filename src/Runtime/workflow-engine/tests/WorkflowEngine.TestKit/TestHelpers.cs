@@ -53,7 +53,7 @@ public sealed class TestHelpers(EngineAppFixture fixture)
     public WorkflowEnqueueRequest CreateEnqueueRequest(WorkflowRequest workflow) =>
         new()
         {
-            TenantId = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
+            Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
             IdempotencyKey = $"idem-{Guid.NewGuid()}",
             Context = CreateDefaultContext(),
             Labels = new Dictionary<string, string>
@@ -70,7 +70,7 @@ public sealed class TestHelpers(EngineAppFixture fixture)
     public WorkflowEnqueueRequest CreateEnqueueRequest(IEnumerable<WorkflowRequest> workflows) =>
         new()
         {
-            TenantId = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
+            Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
             IdempotencyKey = $"idem-{Guid.NewGuid()}",
             Context = CreateDefaultContext(),
             Labels = new Dictionary<string, string>

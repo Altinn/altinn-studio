@@ -2,7 +2,7 @@ namespace WorkflowEngine.Models.Tests;
 
 public class WorkflowTests
 {
-    private static string _randomTenantId => Guid.NewGuid().ToString();
+    private static string _randomNamespace => Guid.NewGuid().ToString();
 
     [Fact]
     public void Equality_Uses_DatabaseId()
@@ -16,7 +16,7 @@ public class WorkflowTests
             DatabaseId = sharedGuid,
             OperationId = "workflow-1-operation",
             IdempotencyKey = "key-1",
-            TenantId = _randomTenantId,
+            Namespace = _randomNamespace,
             Steps = [],
         };
         var sharedId2 = new Workflow
@@ -24,7 +24,7 @@ public class WorkflowTests
             DatabaseId = sharedGuid,
             OperationId = "workflow-2-operation",
             IdempotencyKey = "key-2",
-            TenantId = _randomTenantId,
+            Namespace = _randomNamespace,
             Steps = [],
         };
         var uniqueId = new Workflow
@@ -32,7 +32,7 @@ public class WorkflowTests
             DatabaseId = Guid.NewGuid(),
             OperationId = "workflow-3-operation",
             IdempotencyKey = "key-3",
-            TenantId = _randomTenantId,
+            Namespace = _randomNamespace,
             Steps = [],
         };
 
@@ -88,7 +88,7 @@ public class WorkflowTests
         {
             OperationId = "next",
             IdempotencyKey = "wf-1-key",
-            TenantId = "tenant-1",
+            Namespace = "ns-1",
             Labels = new Dictionary<string, string> { ["org"] = "ttd", ["app"] = "test-app" },
             CreatedAt = createdAt,
             StartAt = startAt,
@@ -99,7 +99,7 @@ public class WorkflowTests
 
         // Assert — Workflow fields
         Assert.Equal("next", workflow.OperationId);
-        Assert.Equal("tenant-1", workflow.TenantId);
+        Assert.Equal("ns-1", workflow.Namespace);
         Assert.Equal("ttd", workflow.Labels!["org"]);
         Assert.Equal(createdAt, workflow.CreatedAt);
         Assert.Equal(startAt, workflow.StartAt);
@@ -127,7 +127,7 @@ public class WorkflowTests
         {
             OperationId = "op-1",
             IdempotencyKey = "wf-1-key",
-            TenantId = "tenant-1",
+            Namespace = "ns-1",
             Steps =
             [
                 new Step
@@ -161,7 +161,7 @@ public class WorkflowTests
             DatabaseId = depGuid,
             OperationId = "dep-op",
             IdempotencyKey = "dep-key",
-            TenantId = _randomTenantId,
+            Namespace = _randomNamespace,
             Steps = [],
         };
         var link = new Workflow
@@ -169,7 +169,7 @@ public class WorkflowTests
             DatabaseId = linkGuid,
             OperationId = "link-op",
             IdempotencyKey = "link-key",
-            TenantId = _randomTenantId,
+            Namespace = _randomNamespace,
             Steps = [],
         };
 
@@ -178,7 +178,7 @@ public class WorkflowTests
         {
             OperationId = "op-1",
             IdempotencyKey = "wf-1-key",
-            TenantId = _randomTenantId,
+            Namespace = _randomNamespace,
             Steps =
             [
                 new Step

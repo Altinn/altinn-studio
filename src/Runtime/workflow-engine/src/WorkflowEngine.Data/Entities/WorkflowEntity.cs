@@ -20,7 +20,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     public required string IdempotencyKey { get; set; }
 
     [MaxLength(200)]
-    public required string TenantId { get; set; }
+    [Column("TenantId")]
+    public required string Namespace { get; set; }
 
     public PersistentItemStatus Status { get; set; }
 
@@ -57,7 +58,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             Id = workflow.DatabaseId,
             OperationId = workflow.OperationId,
             IdempotencyKey = workflow.IdempotencyKey,
-            TenantId = workflow.TenantId,
+            Namespace = workflow.Namespace,
             CreatedAt = workflow.CreatedAt,
             StartAt = workflow.StartAt,
             UpdatedAt = workflow.UpdatedAt,
@@ -80,7 +81,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             DatabaseId = Id,
             IdempotencyKey = IdempotencyKey,
             OperationId = OperationId,
-            TenantId = TenantId,
+            Namespace = Namespace,
             CreatedAt = CreatedAt,
             StartAt = StartAt,
             UpdatedAt = UpdatedAt,
