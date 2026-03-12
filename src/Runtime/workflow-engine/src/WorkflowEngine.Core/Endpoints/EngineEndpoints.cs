@@ -12,10 +12,7 @@ public static class EngineEndpoints
 {
     public static WebApplication MapEngineEndpoints(this WebApplication app)
     {
-        var group = OpenApiRouteHandlerBuilderExtensions.WithTags<RouteGroupBuilder>(
-            app.MapGroup("/api/v1/workflows").RequireApiKeyAuthorization(),
-            "Workflows"
-        );
+        var group = app.MapGroup("/api/v1/workflows").RequireApiKeyAuthorization().WithTags("Workflows");
 
         group
             .MapPost("", EngineRequestHandlers.EnqueueWorkflows)
@@ -25,7 +22,7 @@ public static class EngineEndpoints
         group
             .MapGet("", EngineRequestHandlers.ListActiveWorkflows)
             .WithName("ListActiveWorkflows")
-            .WithDescription("Lists all active workflows, optionally filtered by namespace");
+            .WithDescription("Lists all active workflows, optionally filtered by namespace and/or correlation ID");
 
         group
             .MapGet("/{workflowId:guid}", EngineRequestHandlers.GetWorkflow)
@@ -47,7 +44,11 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, ("endpoint", "enqueue"));
 
-        var metadata = new WorkflowRequestMetadata(timeProvider.GetUtcNow(), Activity.Current?.Id);
+        var metadata = new WorkflowRequestMetadata(
+            request.CorrelationId,
+            timeProvider.GetUtcNow(),
+            Activity.Current?.Id
+        );
         var response = await engine.EnqueueWorkflow(request, metadata, cancellationToken);
 
         return response switch
@@ -68,6 +69,7 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
+        [FromQuery] Guid? correlationId,
         [FromQuery(Name = "namespace")] string? ns,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
@@ -75,7 +77,7 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
-        var workflows = await repository.GetActiveWorkflows(ns, cancellationToken);
+        var workflows = await repository.GetActiveWorkflowsByCorrelationId(correlationId, ns, cancellationToken);
 
         if (workflows.Count == 0)
             return TypedResults.NoContent();

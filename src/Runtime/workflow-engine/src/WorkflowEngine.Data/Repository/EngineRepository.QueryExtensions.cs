@@ -16,10 +16,12 @@ internal static class EngineRepositoryQueryExtensions
         public IQueryable<WorkflowEntity> GetActiveWorkflows(
             bool includeDependencies = true,
             bool includeLinks = true,
+            Guid? correlationIdFilter = null,
             string? namespaceFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: includeDependencies, links: includeLinks)
+                .MaybeFilterByCorrelationId(correlationIdFilter)
                 .MaybeFilterByNamespace(namespaceFilter)
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
@@ -77,7 +79,8 @@ internal static class EngineRepositoryQueryExtensions
             DateTimeOffset? since = null,
             bool retriedOnly = false,
             Dictionary<string, string>? labelFilters = null,
-            string? namespaceFilter = null
+            string? namespaceFilter = null,
+            string? correlationId = null
         )
         {
             var query = dbContext
@@ -105,11 +108,15 @@ internal static class EngineRepositoryQueryExtensions
                 }
             }
 
+            if (!string.IsNullOrWhiteSpace(correlationId))
+                query = query.Where(x => x.CorrelationId.HasValue && x.CorrelationId.Value.ToString() == correlationId);
+
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var s = search.ToLower();
                 query = query.Where(x =>
-                    x.Namespace.ToLower().Contains(s)
+                    (x.CorrelationId.HasValue && x.CorrelationId.Value.ToString().Contains(s))
+                    || x.Namespace.ToLower().Contains(s)
                     || x.OperationId.ToLower().Contains(s)
                     || x.Steps.Any(st => st.OperationId.ToLower().Contains(s))
                 );
@@ -164,6 +171,14 @@ internal static class EngineRepositoryQueryExtensions
         {
             if (ns is not null)
                 entityQuery = entityQuery.Where(wf => wf.Namespace == ns);
+
+            return entityQuery;
+        }
+
+        private IQueryable<WorkflowEntity> MaybeFilterByCorrelationId(Guid? correlationId)
+        {
+            if (correlationId is not null)
+                entityQuery = entityQuery.Where(wf => wf.CorrelationId == correlationId.Value);
 
             return entityQuery;
         }

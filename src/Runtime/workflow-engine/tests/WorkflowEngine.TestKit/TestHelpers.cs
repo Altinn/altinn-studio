@@ -56,6 +56,7 @@ public sealed class TestHelpers(EngineAppFixture fixture)
     public WorkflowEnqueueRequest CreateEnqueueRequest(WorkflowRequest workflow) =>
         new()
         {
+            CorrelationId = Guid.NewGuid(),
             Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
             IdempotencyKey = $"idem-{Guid.NewGuid()}",
             Context = CreateDefaultContext(),
@@ -73,6 +74,7 @@ public sealed class TestHelpers(EngineAppFixture fixture)
     public WorkflowEnqueueRequest CreateEnqueueRequest(IEnumerable<WorkflowRequest> workflows) =>
         new()
         {
+            CorrelationId = Guid.NewGuid(),
             Namespace = $"{EngineAppFixture.DefaultOrg}:{EngineAppFixture.DefaultApp}",
             IdempotencyKey = $"idem-{Guid.NewGuid()}",
             Context = CreateDefaultContext(),

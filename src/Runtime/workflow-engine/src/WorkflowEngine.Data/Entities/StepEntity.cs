@@ -28,8 +28,6 @@ internal sealed class StepEntity : IHasCommonMetadata
 
     public int ProcessingOrder { get; set; }
 
-    public DateTimeOffset? BackoffUntil { get; set; }
-
     public int RequeueCount { get; set; }
 
     [Column(TypeName = "jsonb")]
@@ -59,7 +57,6 @@ internal sealed class StepEntity : IHasCommonMetadata
             CreatedAt = step.CreatedAt,
             UpdatedAt = step.UpdatedAt,
             ProcessingOrder = step.ProcessingOrder,
-            BackoffUntil = step.BackoffUntil,
             RequeueCount = step.RequeueCount,
             CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
             RetryStrategyJson =
@@ -88,7 +85,6 @@ internal sealed class StepEntity : IHasCommonMetadata
             ProcessingOrder = ProcessingOrder,
             CreatedAt = CreatedAt,
             UpdatedAt = UpdatedAt,
-            BackoffUntil = BackoffUntil,
             RequeueCount = RequeueCount,
             Command = command,
             RetryStrategy = retryStrategy,

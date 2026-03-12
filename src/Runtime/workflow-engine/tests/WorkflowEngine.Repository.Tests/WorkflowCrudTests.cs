@@ -78,7 +78,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
     }
 
     [Fact]
-    public async Task EnqueueBatch_WithCrossInstanceLink_ReturnsInvalidReference()
+    public async Task EnqueueBatch_WithCrossNamespaceLink_ReturnsInvalidReference()
     {
         await using var context = fixture.CreateDbContext();
         var repo = fixture.CreateRepository();
@@ -283,14 +283,12 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
 
         step.Status = PersistentItemStatus.Processing;
         step.RequeueCount = 3;
-        step.BackoffUntil = DateTimeOffset.UtcNow.AddMinutes(5);
         await repo.UpdateStep(step, cancellationToken: TestContext.Current.CancellationToken);
 
         var dbStep = await fixture.GetStep(step.DatabaseId);
         Assert.NotNull(dbStep);
         Assert.Equal(PersistentItemStatus.Processing, dbStep.Status);
         Assert.Equal(3, dbStep.RequeueCount);
-        Assert.NotNull(dbStep.BackoffUntil);
         Assert.NotNull(dbStep.UpdatedAt);
     }
 
@@ -542,7 +540,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 },
             ],
         };
-        var metadata1 = new WorkflowRequestMetadata(DateTimeOffset.UtcNow, null);
+        var metadata1 = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
         var workflow1 = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request1, metadata1);
 
         var request2 = new WorkflowRequest
@@ -557,7 +555,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 },
             ],
         };
-        var metadata2 = new WorkflowRequestMetadata(DateTimeOffset.UtcNow, null);
+        var metadata2 = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
         var workflow2 = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request2, metadata2);
 
         // Act: mutate in-memory state and call the new batch method
@@ -574,7 +572,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         workflow2.EngineTraceContext = GetRandomTraceContext();
         var step2a = workflow2.Steps[0];
         step2a.Status = PersistentItemStatus.Failed;
-        step2a.BackoffUntil = DateTimeOffset.UtcNow.AddMinutes(5);
         step2a.RequeueCount = 1;
         var updates = new List<BatchWorkflowStatusUpdate>
         {
@@ -611,7 +608,6 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
         Assert.NotNull(dbStep2a);
         Assert.Equal(PersistentItemStatus.Failed, dbStep2a.Status);
         Assert.Equal(1, dbStep2a.RequeueCount);
-        Assert.NotNull(dbStep2a.BackoffUntil);
         Assert.NotNull(dbStep2a.UpdatedAt);
     }
 
@@ -693,7 +689,7 @@ public sealed class WorkflowCrudTests(PostgresFixture fixture) : IAsyncLifetime
                 },
             ],
         };
-        var metadata = new WorkflowRequestMetadata(DateTimeOffset.UtcNow, null);
+        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
 
         var workflow = await WorkflowTestHelper.EnqueueWorkflow(repo, context, request, metadata);
 

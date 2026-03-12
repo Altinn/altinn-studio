@@ -29,12 +29,6 @@ public static class WorkflowExtensions
         public IEnumerable<Step> OrderedSteps() => workflow.Steps.OrderBy(t => t.ProcessingOrder);
 
         /// <summary>
-        /// A list of workflow steps that are incomplete (not completed, canceled, or failed), ordered by processing order.
-        /// </summary>
-        public IEnumerable<Step> OrderedIncompleteSteps() =>
-            workflow.Steps.Where(x => x.IsIncomplete()).OrderBy(x => x.ProcessingOrder);
-
-        /// <summary>
         /// The overall workflow status (based on step statuses)
         /// </summary>
         public PersistentItemStatus OverallStatus()
@@ -55,23 +49,6 @@ public static class WorkflowExtensions
                 ? PersistentItemStatus.Processing
                 : PersistentItemStatus.Enqueued;
         }
-
-        /// <summary>
-        /// Returns true if the workflow has any steps ready for execution.
-        /// </summary>
-        public bool IsReadyForExecution(DateTimeOffset now)
-        {
-            if (workflow.StartAt > now)
-                return false;
-
-            return workflow.OrderedIncompleteSteps().FirstOrDefault()?.IsReadyForExecution(now) ?? true;
-        }
-
-        /// <summary>
-        /// Returns true if the workflow has any steps ready for execution.
-        /// </summary>
-        public bool IsReadyForExecution(TimeProvider timeProvider) =>
-            workflow.IsReadyForExecution(timeProvider.GetUtcNow());
 
         /// <summary>
         /// Workflow metadata useful for enriching telemetry activities.

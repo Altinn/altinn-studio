@@ -293,7 +293,6 @@ public static class DashboardEndpoints
                                 createdAt = s.CreatedAt,
                                 executionStartedAt = s.ExecutionStartedAt,
                                 updatedAt = s.UpdatedAt,
-                                backoffUntil = s.BackoffUntil,
                                 command = s.Command,
                                 retryStrategy = s.RetryStrategy,
                                 traceId = Metrics.ParseTraceContext(workflow.EngineTraceContext)?.TraceId.ToString()
@@ -327,7 +326,6 @@ public static class DashboardEndpoints
                                 cs.CreatedAt,
                                 cs.ExecutionStartedAt,
                                 cs.UpdatedAt,
-                                cs.BackoffUntil,
                                 recentCached.TraceId,
                                 command = new { type = cs.CommandType, operationId = cs.CommandDetail },
                                 stateIn = (string?)null,

@@ -138,6 +138,7 @@ internal sealed partial class EngineRepository
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
+        string? correlationId = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -150,7 +151,17 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
-                .GetFinishedWorkflows(statuses, search, take, before, since, retriedOnly, labelFilters, namespaceFilter)
+                .GetFinishedWorkflows(
+                    statuses,
+                    search,
+                    take,
+                    before,
+                    since,
+                    retriedOnly,
+                    labelFilters,
+                    namespaceFilter,
+                    correlationId
+                )
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 
@@ -180,6 +191,7 @@ internal sealed partial class EngineRepository
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
+        string? correlationId = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -201,7 +213,8 @@ internal sealed partial class EngineRepository
                 since: since,
                 retriedOnly,
                 labelFilters,
-                namespaceFilter
+                namespaceFilter,
+                correlationId
             );
             var totalCount = await baseQuery.CountAsync(cancellationToken);
 
@@ -214,7 +227,8 @@ internal sealed partial class EngineRepository
                 since,
                 retriedOnly,
                 labelFilters,
-                namespaceFilter
+                namespaceFilter,
+                correlationId
             );
             var workflows = await dataQuery.ToDomainModel().ToListAsync(cancellationToken);
 
@@ -339,6 +353,42 @@ internal sealed partial class EngineRepository
                 .SingleOrDefaultAsync(cancellationToken);
 
             return entity?.Status;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
+        Guid? correlationId = null,
+        string? ns = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflowsByCorrelationId");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.FetchingWorkflows("active (by correlationId)");
+
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var result = await context
+                .GetActiveWorkflows(correlationIdFilter: correlationId, namespaceFilter: ns)
+                .ToDomainModel()
+                .ToListAsync(cancellationToken);
+
+            logger.SuccessfullyFetchedWorkflows(result.Count);
+
+            return result;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

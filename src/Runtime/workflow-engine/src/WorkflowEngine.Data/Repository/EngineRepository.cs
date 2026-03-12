@@ -13,6 +13,7 @@ internal sealed partial class EngineRepository(
     IDbContextFactory<EngineDbContext> dbContextFactory,
     IOptions<EngineSettings> settings,
     IConcurrencyLimiter limiter,
+    SqlBulkInserter sqlBulkInserter,
     TimeProvider timeProvider,
     ILogger<EngineRepository> logger
 ) : IEngineRepository;

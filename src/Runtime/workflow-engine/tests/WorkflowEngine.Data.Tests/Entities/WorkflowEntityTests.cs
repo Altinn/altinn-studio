@@ -9,12 +9,14 @@ public class WorkflowEntityTests
         new()
         {
             Id = Guid.Parse("11111111-2222-3333-4444-555555555555"),
+            CorrelationId = Guid.Parse("22222222-3333-4444-5555-666666666666"),
             IdempotencyKey = "wf-key",
             Namespace = "test-tenant",
             OperationId = "next",
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
             StartAt = new DateTimeOffset(2025, 6, 15, 12, 0, 0, TimeSpan.Zero),
             UpdatedAt = new DateTimeOffset(2025, 6, 15, 10, 35, 0, TimeSpan.Zero),
+            BackoffUntil = new DateTimeOffset(2025, 6, 15, 12, 31, 0, TimeSpan.Zero),
             Status = PersistentItemStatus.Processing,
             LabelsJson = """{"env":"test"}""",
             ContextJson = """{"key":"value"}""",
@@ -46,11 +48,13 @@ public class WorkflowEntityTests
 
         // Assert
         Assert.Equal(entity.Id, roundTripped.Id);
+        Assert.Equal(entity.CorrelationId, roundTripped.CorrelationId);
         Assert.Equal(entity.Namespace, roundTripped.Namespace);
         Assert.Equal(entity.OperationId, roundTripped.OperationId);
         Assert.Equal(entity.CreatedAt, roundTripped.CreatedAt);
         Assert.Equal(entity.StartAt, roundTripped.StartAt);
         Assert.Equal(entity.UpdatedAt, roundTripped.UpdatedAt);
+        Assert.Equal(entity.BackoffUntil, roundTripped.BackoffUntil);
         Assert.Equal(entity.Status, roundTripped.Status);
         Assert.Equal(entity.TraceContext, roundTripped.TraceContext);
         Assert.Equal(entity.Steps.Count, roundTripped.Steps.Count);
@@ -67,6 +71,7 @@ public class WorkflowEntityTests
 
         // Assert
         Assert.Equal("test-tenant", domain.Namespace);
+        Assert.Equal(Guid.Parse("22222222-3333-4444-5555-666666666666"), domain.CorrelationId);
         Assert.NotNull(domain.Labels);
         Assert.Equal("test", domain.Labels["env"]);
         Assert.NotNull(domain.Context);

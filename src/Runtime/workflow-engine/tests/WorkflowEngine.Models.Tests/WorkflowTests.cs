@@ -14,6 +14,7 @@ public class WorkflowTests
         var sharedId1 = new Workflow
         {
             DatabaseId = sharedGuid,
+            CorrelationId = Guid.NewGuid(),
             OperationId = "workflow-1-operation",
             IdempotencyKey = "key-1",
             Namespace = _randomNamespace,
@@ -22,6 +23,7 @@ public class WorkflowTests
         var sharedId2 = new Workflow
         {
             DatabaseId = sharedGuid,
+            CorrelationId = Guid.NewGuid(),
             OperationId = "workflow-2-operation",
             IdempotencyKey = "key-2",
             Namespace = _randomNamespace,
@@ -30,6 +32,7 @@ public class WorkflowTests
         var uniqueId = new Workflow
         {
             DatabaseId = Guid.NewGuid(),
+            CorrelationId = Guid.NewGuid(),
             OperationId = "workflow-3-operation",
             IdempotencyKey = "key-3",
             Namespace = _randomNamespace,
@@ -159,6 +162,7 @@ public class WorkflowTests
         var dependency = new Workflow
         {
             DatabaseId = depGuid,
+            CorrelationId = Guid.NewGuid(),
             OperationId = "dep-op",
             IdempotencyKey = "dep-key",
             Namespace = _randomNamespace,
@@ -167,6 +171,7 @@ public class WorkflowTests
         var link = new Workflow
         {
             DatabaseId = linkGuid,
+            CorrelationId = Guid.NewGuid(),
             OperationId = "link-op",
             IdempotencyKey = "link-key",
             Namespace = _randomNamespace,

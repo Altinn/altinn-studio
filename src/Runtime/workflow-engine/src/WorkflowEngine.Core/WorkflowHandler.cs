@@ -125,24 +125,14 @@ internal sealed class WorkflowHandler(
             var previous = i > 0 ? workflow.Steps[i - 1] : null;
 
             // Step is already complete (from a previous processing round after requeue)
-            if (step.IsComplete())
+            if (step.Status.IsDone())
             {
                 continue;
             }
 
-            // Wait for backoff if needed (step was requeued with a backoff timer)
-            if (step.BackoffUntil is { } backoff)
-            {
-                var delay = backoff - timeProvider.GetUtcNow();
-                if (delay > TimeSpan.Zero)
-                {
-                    await Task.Delay(delay, ct);
-                }
-            }
-
             StartProcessStepActivity(workflow, step);
 
-            RecordStepQueueTime(step);
+            RecordStepQueueTime(workflow, step);
 
             step.Status = PersistentItemStatus.Processing;
             step.ExecutionStartedAt = timeProvider.GetUtcNow();
@@ -162,7 +152,7 @@ internal sealed class WorkflowHandler(
                 throw new UnreachableException(null, e);
             }
 
-            UpdateStepStatusAndRetryDecision(step, previous, result);
+            UpdateStepStatusAndRetryDecision(workflow, step, previous, result);
 
             step.UpdatedAt = timeProvider.GetUtcNow();
             step.HasPendingChanges = true;
@@ -194,7 +184,12 @@ internal sealed class WorkflowHandler(
     /// <summary>
     /// Determines the outcome of a step execution and applies retry/backoff if appropriate.
     /// </summary>
-    private void UpdateStepStatusAndRetryDecision(Step currentStep, Step? previousStep, ExecutionResult result)
+    private void UpdateStepStatusAndRetryDecision(
+        Workflow workflow,
+        Step currentStep,
+        Step? previousStep,
+        ExecutionResult result
+    )
     {
         if (result.IsSuccess())
         {
@@ -210,8 +205,8 @@ internal sealed class WorkflowHandler(
         if (result.IsCriticalError() || result.IsCanceled())
         {
             currentStep.Status = PersistentItemStatus.Failed;
-            currentStep.BackoffUntil = null;
-            currentStep.LastError = result.Message ?? (result.IsCanceled() ? "Canceled" : null);
+            currentStep.LastError = result.Message;
+            workflow.BackoffUntil = null;
 
             Metrics.StepsFailed.Add(1);
             logger.FailingStepCritical(currentStep, currentStep.RequeueCount);
@@ -227,8 +222,8 @@ internal sealed class WorkflowHandler(
         {
             currentStep.RequeueCount++;
             currentStep.Status = PersistentItemStatus.Requeued;
-            currentStep.BackoffUntil = GetExecutionRetryBackoff(currentStep, retryStrategy);
             currentStep.LastError = result.Message;
+            workflow.BackoffUntil = GetExecutionRetryBackoff(currentStep, retryStrategy);
 
             Metrics.StepsRequeued.Add(1);
             logger.SlatingStepForRetry(currentStep, currentStep.RequeueCount);
@@ -238,8 +233,8 @@ internal sealed class WorkflowHandler(
 
         // No more retries
         currentStep.Status = PersistentItemStatus.Failed;
-        currentStep.BackoffUntil = null;
         currentStep.LastError = result.Message;
+        workflow.BackoffUntil = null;
 
         Metrics.StepsFailed.Add(1);
         logger.FailingStepRetries(currentStep, currentStep.RequeueCount);
@@ -286,7 +281,8 @@ internal sealed class WorkflowHandler(
 
     private void RecordWorkflowQueueTime(Workflow workflow)
     {
-        var queueDuration = workflow.OrderedSteps().First().GetQueueDeltaTime(timeProvider).TotalSeconds;
+        var latest = workflow.BackoffUntil ?? workflow.CreatedAt;
+        var queueDuration = timeProvider.GetUtcNow().Subtract(latest).TotalSeconds;
         Metrics.WorkflowQueueTime.Record(queueDuration, workflow.GetHistorgramTags());
     }
 
@@ -307,9 +303,10 @@ internal sealed class WorkflowHandler(
         Metrics.WorkflowTotalTime.Record(totalDuration, workflow.GetHistorgramTags());
     }
 
-    private void RecordStepQueueTime(Step step)
+    private void RecordStepQueueTime(Workflow workflow, Step step)
     {
-        var queueDuration = step.GetQueueDeltaTime(timeProvider).TotalSeconds;
+        var latest = workflow.BackoffUntil ?? step.CreatedAt;
+        var queueDuration = timeProvider.GetUtcNow().Subtract(latest).TotalSeconds;
         Metrics.StepQueueTime.Record(queueDuration, step.GetHistorgramTags());
     }
 

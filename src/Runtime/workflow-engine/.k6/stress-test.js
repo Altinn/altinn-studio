@@ -1,62 +1,63 @@
-import http from "k6/http";
-import {check} from "k6";
-import {uuidv4} from "https://jslib.k6.io/k6-utils/1.4.0/index.js";
-import {textSummary} from "https://jslib.k6.io/k6-summary/0.1.0/index.js";
+import http from 'k6/http';
+import { check } from 'k6';
+import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
+import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
 
 // --- Configuration ---
-const BASE_URL = __ENV.BASE_URL || "http://localhost:8080/api/v1/workflows/test-org/test-app/12345";
-const HEALTH_URL = __ENV.HEALTH_URL || "http://localhost:8080/api/v1/health";
-const API_KEY = __ENV.API_KEY || "0544ba8b-2d8a-4ec9-b93a-47cdbd220293";
-const ITERATIONS = parseInt(__ENV.ITERATIONS || "5000", 10);
-const VUS = parseInt(__ENV.VUS || "100", 10);
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080/api/v1/workflows';
+const HEALTH_URL = __ENV.HEALTH_URL || 'http://localhost:8080/api/v1/health';
+const API_KEY = __ENV.API_KEY || '0544ba8b-2d8a-4ec9-b93a-47cdbd220293';
+const ITERATIONS = parseInt(__ENV.ITERATIONS || '5000', 10);
+const VUS = parseInt(__ENV.VUS || '100', 10);
 const POLL_INTERVAL_MS = 500;
 
-const payloadTemplate = JSON.parse(open("./process-next-payload.json"));
+const payloadTemplate = JSON.parse(open('./process-next-payload.json'));
 
 const requestParams = {
     headers: {
-        "Content-Type": "application/json",
-        "X-Api-Key": API_KEY,
+        'Content-Type': 'application/json',
+        'X-Api-Key': API_KEY,
     },
 };
 
 // --- Scenario ---
 export const options = {
-    teardownTimeout: "15m",
+    teardownTimeout: '15m',
     scenarios: {
         stress: {
-            executor: "shared-iterations",
+            executor: 'shared-iterations',
             vus: VUS,
             iterations: ITERATIONS,
-            maxDuration: "15m",
+            maxDuration: '15m',
         },
     },
     thresholds: {
-        http_req_failed: ["rate<0.01"], // <1% errors
-        http_req_duration: ["p(95)<5000"], // 95th percentile under 5s
+        http_req_failed: ['rate<0.01'], // <1% errors
+        http_req_duration: ['p(95)<5000'], // 95th percentile under 5s
     },
 };
 
 // --- Test function (runs once per iteration) ---
 export default function () {
     const guid = uuidv4();
-    const url = `${BASE_URL}/${guid}`;
 
     const payload = JSON.parse(JSON.stringify(payloadTemplate));
+    payload.correlationId = guid;
+    payload.instanceGuid = guid;
     payload.idempotencyKey = `k6-${guid}`;
     const payloadString = JSON.stringify(payload);
 
-    const res = http.post(url, payloadString, requestParams);
+    const res = http.post(BASE_URL, payloadString, requestParams);
 
     check(res, {
-        "status is 200 (accepted)": (r) => r.status === 200,
-        "status is not 5xx": (r) => r.status < 500,
+        'status is 200 (accepted)': (r) => r.status === 200,
+        'status is not 5xx': (r) => r.status < 500,
     });
 }
 
 // --- Queue drain polling (runs once after all iterations) ---
 export function teardown() {
-    console.log("\nWaiting for queue to drain...");
+    console.log('\nWaiting for queue to drain...');
 
     let drained = false;
     const start = Date.now();
@@ -65,11 +66,11 @@ export function teardown() {
         try {
             const res = http.get(HEALTH_URL);
             const body = JSON.parse(res.body);
-            const engineCheck = body.checks?.find((c) => c.name === "Engine");
+            const engineCheck = body.checks?.find((c) => c.name === 'Engine');
             const queueCount = engineCheck?.data?.queue?.count;
 
             if (queueCount === undefined) {
-                console.warn("  Warning: could not read queue count from health endpoint");
+                console.warn('  Warning: could not read queue count from health endpoint');
             } else if (queueCount === 0) {
                 drained = true;
             } else {
@@ -102,26 +103,26 @@ export function handleSummary(data) {
     const iterations = data.metrics?.iterations?.values?.count || 0;
     const duration = data.metrics?.http_req_duration?.values || {};
     const failed = data.metrics?.http_req_failed?.values?.passes || 0;
-    const totalTime = data.metrics?.iteration_duration?.values?.["p(95)"] || 0;
+    const totalTime = data.metrics?.iteration_duration?.values?.['p(95)'] || 0;
 
     const summary = `
 === Workflow Engine Stress Test (k6) ===
   Requests:    ${iterations}
   VUs:         ${VUS}
-  Target:      ${BASE_URL}/<guid>
+  Target:      ${BASE_URL}
 
 === Latency ===
-  Median:      ${duration.med?.toFixed(1) || "?"}ms
-  p95:         ${duration["p(95)"]?.toFixed(1) || "?"}ms
-  p99:         ${duration["p(99)"]?.toFixed(1) || "?"}ms
-  Max:         ${duration.max?.toFixed(1) || "?"}ms
+  Median:      ${duration.med?.toFixed(1) || '?'}ms
+  p95:         ${duration['p(95)']?.toFixed(1) || '?'}ms
+  p99:         ${duration['p(99)']?.toFixed(1) || '?'}ms
+  Max:         ${duration.max?.toFixed(1) || '?'}ms
 
 === Throughput ===
   Failed:      ${failed}
-  Avg rate:    ${data.metrics?.http_reqs?.values?.rate?.toFixed(1) || "?"} req/s
+  Avg rate:    ${data.metrics?.http_reqs?.values?.rate?.toFixed(1) || '?'} req/s
 `;
 
     return {
-        stdout: summary + "\n" + textSummary(data, {indent: "  ", enableColors: true}),
+        stdout: summary + '\n' + textSummary(data, { indent: '  ', enableColors: true }),
     };
 }

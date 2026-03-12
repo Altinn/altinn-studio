@@ -27,6 +27,8 @@ public abstract class EngineAppFixture : IAsyncLifetime
     public const string DefaultApp = "e2e-tests";
     public const string DefaultPartyId = "50001";
     public static readonly Guid DefaultInstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+    public static readonly Guid DefaultCorrelationId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
+
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18").Build();
     private int _wireMockPort;
 

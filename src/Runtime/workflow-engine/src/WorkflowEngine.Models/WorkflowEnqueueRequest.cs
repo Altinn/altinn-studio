@@ -10,6 +10,13 @@ namespace WorkflowEngine.Models;
 public sealed record WorkflowEnqueueRequest
 {
     /// <summary>
+    /// Optional correlation ID shared by all workflows in this batch.
+    /// Used for grouping and looking up related workflows.
+    /// </summary>
+    [JsonPropertyName("correlationId")]
+    public Guid? CorrelationId { get; init; }
+
+    /// <summary>
     /// Primary isolation boundary. Idempotency keys are unique within a namespace.
     /// </summary>
     [JsonPropertyName("namespace")]

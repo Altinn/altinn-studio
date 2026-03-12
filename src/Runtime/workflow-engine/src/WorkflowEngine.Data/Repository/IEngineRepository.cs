@@ -29,6 +29,7 @@ public interface IEngineRepository
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
+        string? correlationId = null,
         CancellationToken cancellationToken = default
     );
 
@@ -45,6 +46,7 @@ public interface IEngineRepository
         bool retriedOnly = false,
         Dictionary<string, string>? labelFilters = null,
         string? namespaceFilter = null,
+        string? correlationId = null,
         CancellationToken cancellationToken = default
     );
 
@@ -72,6 +74,15 @@ public interface IEngineRepository
     /// Gets the status of a workflow by its database ID, or null if not found.
     /// </summary>
     Task<PersistentItemStatus?> GetWorkflowStatus(Guid workflowId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all active (incomplete) workflows, optionally filtered by correlation ID and namespace.
+    /// </summary>
+    Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
+        Guid? correlationId = null,
+        string? ns = null,
+        CancellationToken cancellationToken = default
+    );
 
     /// <summary>
     /// Gets the full workflow (with steps) by database ID, or null if not found.
@@ -111,11 +122,6 @@ public interface IEngineRepository
     /// Atomically fetches and locks available workflows for processing using FOR UPDATE SKIP LOCKED.
     /// </summary>
     Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Batch-updates workflow statuses using unnest.
-    /// </summary>
-    Task BatchUpdateWorkflowStatuses(IReadOnlyList<WorkflowResult> results, CancellationToken cancellationToken);
 
     /// <summary>
     /// Batch-updates multiple workflows and their dirty steps in a single transaction using raw SQL.

@@ -18,6 +18,7 @@ internal static class WorkflowTestHelper
     {
         var request = new WorkflowEnqueueRequest
         {
+            CorrelationId = metadata.CorrelationId,
             Namespace = ns,
             IdempotencyKey = idempotencyKey ?? Guid.NewGuid().ToString("N"),
             Labels = labels,
@@ -90,7 +91,7 @@ internal static class WorkflowTestHelper
             Links = links?.Select(id => (WorkflowRef)id).ToList(),
         };
 
-        var metadata = new WorkflowRequestMetadata(DateTimeOffset.UtcNow, null);
+        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
         var labels = new Dictionary<string, string> { ["org"] = org, ["app"] = app };
 
         return (request, metadata, ns, labels);

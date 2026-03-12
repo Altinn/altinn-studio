@@ -14,6 +14,13 @@ public sealed record WorkflowStatusResponse
     public Guid DatabaseId { get; init; }
 
     /// <summary>
+    /// The correlation ID for this workflow, if one was provided.
+    /// </summary>
+    [JsonPropertyName("correlationId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? CorrelationId { get; init; }
+
+    /// <summary>
     /// An identifier for this operation.
     /// </summary>
     [JsonPropertyName("operationId")]
@@ -50,6 +57,13 @@ public sealed record WorkflowStatusResponse
     [JsonPropertyName("startAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTimeOffset? StartAt { get; init; }
+
+    /// <summary>
+    /// When the workflow will next be eligible for execution.
+    /// </summary>
+    [JsonPropertyName("backoffUntil")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? BackoffUntil { get; init; }
 
     /// <summary>
     /// Optional metadata associated with the workflow (json).
@@ -96,12 +110,14 @@ public sealed record WorkflowStatusResponse
         new()
         {
             DatabaseId = workflow.DatabaseId,
+            CorrelationId = workflow.CorrelationId,
             IdempotencyKey = workflow.IdempotencyKey,
-            OperationId = workflow.OperationId,
             Namespace = workflow.Namespace,
+            OperationId = workflow.OperationId,
             CreatedAt = workflow.CreatedAt,
             UpdatedAt = workflow.UpdatedAt,
             StartAt = workflow.StartAt,
+            BackoffUntil = workflow.BackoffUntil,
             Metadata = workflow.Metadata,
             Labels = workflow.Labels,
             OverallStatus = workflow.Status,

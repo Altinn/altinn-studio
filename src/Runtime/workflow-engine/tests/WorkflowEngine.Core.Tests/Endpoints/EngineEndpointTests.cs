@@ -11,6 +11,7 @@ namespace WorkflowEngine.Core.Tests.Endpoints;
 public class EngineEndpointTests
 {
     private const string DefaultNamespace = "test-namespace";
+    private static readonly Guid DefaultCorrelationId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
 
     private static CommandDefinition CreateWebhookCommand(string uri) =>
         WebhookCommand.Create(new WebhookCommandData { Uri = uri });
@@ -18,6 +19,7 @@ public class EngineEndpointTests
     private static WorkflowEnqueueRequest _defaultWorkflowRequest =>
         new()
         {
+            CorrelationId = DefaultCorrelationId,
             Namespace = DefaultNamespace,
             IdempotencyKey = "default-idempotency-key",
             Workflows =
@@ -130,6 +132,7 @@ public class EngineEndpointTests
         // Arrange — create a request with a dependency cycle
         var request = new WorkflowEnqueueRequest
         {
+            CorrelationId = DefaultCorrelationId,
             Namespace = DefaultNamespace,
             IdempotencyKey = "cycle-key",
             Workflows =
@@ -208,6 +211,7 @@ public class EngineEndpointTests
 
         // Assert
         Assert.NotNull(capturedMetadata);
+        Assert.Equal(_defaultWorkflowRequest.CorrelationId, capturedMetadata.CorrelationId);
         Assert.True(capturedMetadata.CreatedAt > DateTimeOffset.MinValue);
     }
 
@@ -222,11 +226,18 @@ public class EngineEndpointTests
 
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetActiveWorkflows(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.GetActiveWorkflowsByCorrelationId(
+                    It.IsAny<Guid?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync([workflow]);
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
+            DefaultCorrelationId,
             DefaultNamespace,
             repositoryMock.Object,
             CancellationToken.None
@@ -246,11 +257,18 @@ public class EngineEndpointTests
         // Arrange
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetActiveWorkflows(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Setup(r =>
+                r.GetActiveWorkflowsByCorrelationId(
+                    It.IsAny<Guid?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync([]);
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
+            DefaultCorrelationId,
             DefaultNamespace,
             repositoryMock.Object,
             CancellationToken.None
@@ -261,24 +279,39 @@ public class EngineEndpointTests
     }
 
     [Fact]
-    public async Task ListWorkflows_UsesNamespaceFromQueryParams()
+    public async Task ListWorkflows_UsesCorrelationIdAndNamespace()
     {
         // Arrange
+        Guid? capturedCorrelationId = null;
         string? capturedNamespace = null;
         var repositoryMock = new Mock<IEngineRepository>();
         repositoryMock
-            .Setup(r => r.GetActiveWorkflows(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .Callback<string?, CancellationToken>((ns, _) => capturedNamespace = ns)
+            .Setup(r =>
+                r.GetActiveWorkflowsByCorrelationId(
+                    It.IsAny<Guid?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .Callback<Guid?, string?, CancellationToken>(
+                (cid, ns, _) =>
+                {
+                    capturedCorrelationId = cid;
+                    capturedNamespace = ns;
+                }
+            )
             .ReturnsAsync([]);
 
         // Act
         await EngineRequestHandlers.ListActiveWorkflows(
+            DefaultCorrelationId,
             DefaultNamespace,
             repositoryMock.Object,
             CancellationToken.None
         );
 
-        // Assert — handler passes namespace from query to repository
+        // Assert — handler passes correlationId and namespace to repository
+        Assert.Equal(DefaultCorrelationId, capturedCorrelationId);
         Assert.Equal(DefaultNamespace, capturedNamespace);
     }
 
@@ -291,6 +324,7 @@ public class EngineEndpointTests
         var step = WorkflowEngineTestFixture.CreateStep(new CommandDefinition { Type = "noop" });
         var workflow = new Workflow
         {
+            CorrelationId = DefaultCorrelationId,
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
             Namespace = DefaultNamespace,

@@ -31,11 +31,15 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public DateTimeOffset? UpdatedAt { get; set; }
 
+    public DateTimeOffset? BackoffUntil { get; set; }
+
     [Column(TypeName = "jsonb")]
     public string? LabelsJson { get; set; }
 
     [Column(TypeName = "jsonb")]
     public string? ContextJson { get; set; }
+
+    public Guid? CorrelationId { get; set; }
 
     [MaxLength(100)]
     public string? TraceContext { get; set; }
@@ -52,16 +56,19 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     public ICollection<WorkflowEntity>? Dependencies { get; set; }
     public ICollection<WorkflowEntity>? Links { get; set; }
 
-    public static WorkflowEntity FromDomainModel(Workflow workflow) =>
-        new()
+    public static WorkflowEntity FromDomainModel(Workflow workflow)
+    {
+        var entity = new WorkflowEntity
         {
             Id = workflow.DatabaseId,
+            CorrelationId = workflow.CorrelationId,
             OperationId = workflow.OperationId,
             IdempotencyKey = workflow.IdempotencyKey,
             Namespace = workflow.Namespace,
             CreatedAt = workflow.CreatedAt,
             StartAt = workflow.StartAt,
             UpdatedAt = workflow.UpdatedAt,
+            BackoffUntil = workflow.BackoffUntil,
             Status = workflow.Status,
             LabelsJson =
                 workflow.Labels != null ? JsonSerializer.Serialize(workflow.Labels, JsonOptions.Default) : null,
@@ -75,16 +82,26 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             Links = workflow.Links?.Select(FromDomainModel).ToList(),
         };
 
+        foreach (var step in entity.Steps)
+        {
+            step.JobId = entity.Id;
+        }
+
+        return entity;
+    }
+
     public Workflow ToDomainModel() =>
         new()
         {
             DatabaseId = Id,
+            CorrelationId = CorrelationId,
             IdempotencyKey = IdempotencyKey,
             OperationId = OperationId,
             Namespace = Namespace,
             CreatedAt = CreatedAt,
             StartAt = StartAt,
             UpdatedAt = UpdatedAt,
+            BackoffUntil = BackoffUntil,
             Status = Status,
             Labels =
                 LabelsJson != null
