@@ -75,6 +75,7 @@ export interface IInstance {
   lastChanged?: string;
   lastChangedBy?: string;
   org: string;
+  process?: IProcess;
   selfLinks?: ISelfLinks | null;
   status?: IInstanceStatus | null;
   title?: ITitle | null;

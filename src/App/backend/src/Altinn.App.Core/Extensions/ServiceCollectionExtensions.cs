@@ -364,6 +364,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
         services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
         services.TryAddTransient<ExclusiveGatewayFactory>();
+        services.AddTransient<ProcessStateEnricher>();
 
         services.AddTransient<IProcessTaskInitializer, ProcessTaskInitializer>();
         services.AddTransient<IProcessTaskFinalizer, ProcessTaskFinalizer>();

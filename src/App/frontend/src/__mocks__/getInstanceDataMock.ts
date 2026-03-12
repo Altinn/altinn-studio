@@ -1,3 +1,4 @@
+import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import type { IInstance, IParty } from 'src/types/shared';
 
 export const defaultMockDataElementId = '4f2610c9-911a-46a3-bc2d-5191602193f4';
@@ -65,6 +66,7 @@ export function getInstanceDataMock(
     instanceState: undefined,
     lastChanged: new Date('2020-01-01').toISOString(),
     org: 'mockOrg',
+    process: getProcessDataMock(),
     selfLinks: null,
     status: null,
     title: null,

@@ -20,7 +20,7 @@ import {
 } from 'src/features/form/layout/utils/repeating';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
-import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { fetchInstanceData } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
@@ -186,7 +186,6 @@ function setupMocks(test: FunctionTest): void {
   };
 
   jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
-  jest.mocked(fetchProcessState).mockImplementation(async () => createProcess(test) ?? getProcessDataMock());
   jest.mocked(fetchInstanceData).mockImplementation(async () => createInstanceData(test));
 }
 
@@ -254,6 +253,10 @@ function createInstanceData(test: FunctionTest): IInstance {
   const instance = createInstance(test);
   if (instance) {
     instanceData = { ...instanceData, ...instance };
+  }
+  const process = createProcess(test);
+  if (process) {
+    instanceData.process = process;
   }
   const { instanceDataElements, dataModels } = test;
   if (instanceDataElements) {
@@ -389,23 +392,6 @@ function getDefaultLayouts(): ILayoutCollection {
       },
     },
   };
-}
-
-async function fetchFormData({ dataModel, dataModels }: FunctionTest, url: string): Promise<unknown> {
-  if (!dataModels) {
-    return dataModel ?? {};
-  }
-
-  const statelessDataType = url.match(/dataType=([\w-]+)&/)?.[1];
-  const statefulDataElementId = url.match(/data\/([a-f0-9-]+)\?/)?.[1];
-
-  const model = dataModels.find(
-    (dm) => dm.dataElement.dataType === statelessDataType || dm.dataElement.id === statefulDataElementId,
-  );
-  if (model) {
-    return model.data;
-  }
-  throw new Error(`Datamodel ${url} not found in ${JSON.stringify(dataModels)}`);
 }
 
 async function assertExpr({ expression, expects, expectsFailure, ...rest }: FunctionTestBase) {

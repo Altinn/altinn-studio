@@ -10,7 +10,7 @@ import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { fetchInstanceData } from 'src/queries/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -91,14 +91,14 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
     a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
   });
-  jest.mocked(fetchProcessState).mockImplementation(async () =>
-    getProcessDataMock((p) => {
+  jest.mocked(fetchInstanceData).mockImplementation(async () => {
+    const instance = buildInstance(hasPdf);
+    instance.process = getProcessDataMock((p) => {
       p.currentTask = undefined;
       p.ended = '2022-02-05T09:19:32.8858042Z';
-    }),
-  );
-
-  jest.mocked(fetchInstanceData).mockImplementation(async () => buildInstance(hasPdf));
+    });
+    return instance;
+  });
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => (

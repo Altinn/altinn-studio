@@ -3,25 +3,35 @@ import React from 'react';
 import { Checkbox, Fieldset } from '@digdir/designsystemet-react';
 
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';
-import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
-import { processQueries, useProcessQuery } from 'src/features/instance/useProcessQuery';
-import type { IProcess, ITask } from 'src/types/shared';
+import {
+  instanceQueries,
+  useInstanceDataQueryArgs,
+  useSelectFromInstanceData,
+} from 'src/features/instance/InstanceContext';
+import type { IInstance, ITask } from 'src/types/shared';
 
 export const PermissionsEditor = () => {
-  const instanceId = useLaxInstanceId();
-  const { write, actions } = useProcessQuery().data?.currentTask || {};
+  const args = useInstanceDataQueryArgs();
+  const instanceSelector = useSelectFromInstanceData();
+
+  const process = instanceSelector((instance) => instance.process);
+
+  if (!process?.currentTask) {
+    return;
+  }
+
+  const { write, actions } = process.currentTask;
 
   function handleChange(mutator: (obj: ITask) => ITask) {
-    if (instanceId) {
-      window.queryClient.setQueryData<IProcess>(processQueries.processStateKey(instanceId), (_queryData) => {
-        const queryData = structuredClone(_queryData);
-        if (!queryData?.currentTask) {
-          return _queryData;
-        }
-        queryData.currentTask = mutator(queryData.currentTask);
-        return queryData;
-      });
-    }
+    const queryKey = instanceQueries.instanceData(args).queryKey;
+    window.queryClient.setQueryData<IInstance>(queryKey, (oldData) => {
+      if (!oldData?.process?.currentTask) {
+        return oldData;
+      }
+      const cloned = structuredClone(oldData);
+      cloned.process!.currentTask = mutator(cloned.process!.currentTask!);
+      return cloned;
+    });
   }
 
   return (

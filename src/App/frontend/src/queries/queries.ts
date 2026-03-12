@@ -4,7 +4,6 @@ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
-import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
 import { signingQueries } from 'src/layout/SigneeList/api';
 import { getFileContentType } from 'src/utils/attachmentsUtils';
 import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 'src/utils/network/networking';
@@ -54,10 +53,10 @@ export const doSetSelectedParty = (partyId: number | string) =>
   putWithoutConfig<LooseAutocomplete<'Party successfully updated'> | null>(getSetSelectedPartyUrl(partyId));
 
 export const doInstantiateWithPrefill = async (data: Instantiation, language?: string): Promise<IInstance> =>
-  removeProcessFromInstance((await httpPost<IInstance>(getInstantiateUrl(language), undefined, data)).data);
+  (await httpPost<IInstance>(getInstantiateUrl(language), undefined, data)).data;
 
 export const doInstantiate = async (partyId: number, language?: string): Promise<IInstance> =>
-  removeProcessFromInstance((await httpPost<IInstance>(getCreateInstancesUrl(partyId, language))).data);
+  (await httpPost<IInstance>(getCreateInstancesUrl(partyId, language))).data;
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);
@@ -191,9 +190,7 @@ export const fetchActiveInstances = (partyId: number): Promise<ISimpleInstance[]
   httpGet(getActiveInstancesUrl(partyId));
 
 export const fetchInstanceData = async (partyId: string, instanceGuid: string): Promise<IInstance> =>
-  removeProcessFromInstance(
-    await httpGet<IInstance & { process: unknown }>(`${instancesControllerUrl}/${partyId}/${instanceGuid}`),
-  );
+  httpGet<IInstance>(`${instancesControllerUrl}/${partyId}/${instanceGuid}`);
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
 
