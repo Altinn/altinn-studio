@@ -156,7 +156,7 @@ public class AltinityProxyHub : Hub<IAltinityClient>
 
     private async Task<string> CreateAltinityApiKeyAsync(string developer, string sessionId)
     {
-        string keyName = $"altinity-{sessionId}";
+        string keyName = $"altinity-{Guid.NewGuid()}";
         DateTimeOffset expiresAt = DateTimeOffset.UtcNow.AddMinutes(15);
 
         var (rawKey, _) = await _apiKeyService.CreateAsync(developer, keyName, ApiKeyType.System, expiresAt);
