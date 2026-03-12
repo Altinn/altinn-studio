@@ -5,6 +5,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - "src/cli/**"
+      - "src/tools/releaser/**"
       - .github/workflows/cli-build-test.yaml
   workflow_dispatch:
 
@@ -50,6 +51,36 @@ jobs:
         working-directory: src/tools/releaser
         run: |
           go run . validate-changelog -component studioctl -base "${{ github.event.pull_request.base.sha }}" -head "${{ github.event.pull_request.head.sha }}"
+
+  verify-release-artifacts:
+    name: Verify studioctl release artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
+        with:
+          go-version-file: src/tools/releaser/go.mod
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Build release artifacts via releaser dry-run
+        working-directory: src/tools/releaser
+        run: |
+          go run . workflow --component studioctl --base-branch main --dry-run --skip-branch-check
+
+      - name: Upload release artifacts
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: studioctl-release-artifacts
+          path: build/release/
+          if-no-files-found: ignore
+          retention-days: 1
 
   analyze:
     strategy:

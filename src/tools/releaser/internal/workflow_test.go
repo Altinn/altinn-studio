@@ -15,12 +15,24 @@ import (
 func TestWorkflow_Run_TagExists(t *testing.T) {
 	t.Parallel()
 
+	changelogPath := writeChangelog(t, `# Changelog
+
+## [Unreleased]
+
+## [v1.2.3] - 2025-01-01
+
+### Added
+
+- Test entry
+`)
+
 	cfg := internal.WorkflowConfig{
-		Component: "studioctl",
-		Version:   "v1.2.3",
-		DryRun:    true,
-		OutputDir: t.TempDir(),
-		RepoRoot:  os.TempDir(),
+		Component:     "studioctl",
+		Version:       "v1.2.3",
+		ChangelogPath: changelogPath,
+		DryRun:        false,
+		OutputDir:     t.TempDir(),
+		RepoRoot:      os.TempDir(),
 	}
 
 	workflow, err := internal.NewWorkflow(t.Context(),
@@ -40,6 +52,52 @@ func TestWorkflow_Run_TagExists(t *testing.T) {
 	}
 	if !errors.Is(err, internal.ErrTagExists) {
 		t.Fatalf("error = %v, want %v", err, internal.ErrTagExists)
+	}
+}
+
+func TestWorkflow_Run_DryRunAllowsExistingTag(t *testing.T) {
+	t.Parallel()
+
+	changelogPath := writeChangelog(t, `# Changelog
+
+## [Unreleased]
+
+## [v1.2.3-preview.1] - 2025-01-01
+
+### Added
+
+- Test entry
+`)
+
+	builder := &fakeBuilder{}
+	gh := &fakeGH{}
+	cfg := internal.WorkflowConfig{
+		Component:     "studioctl",
+		Version:       "v1.2.3-preview.1",
+		ChangelogPath: changelogPath,
+		DryRun:        true,
+		OutputDir:     t.TempDir(),
+		RepoRoot:      os.TempDir(),
+	}
+
+	workflow, err := internal.NewWorkflow(t.Context(),
+		cfg,
+		&fakeGit{tagExists: true, currentBranch: "main", workingTreeClean: true},
+		gh,
+		builder,
+		internal.NopLogger{},
+	)
+	if err != nil {
+		t.Fatalf("NewWorkflow() error: %v", err)
+	}
+	if err := workflow.Run(t.Context()); err != nil {
+		t.Fatalf("workflow.Run() error: %v", err)
+	}
+	if !builder.called {
+		t.Fatal("expected build to run during dry-run")
+	}
+	if gh.called {
+		t.Fatal("expected no GitHub release creation during dry-run")
 	}
 }
 
