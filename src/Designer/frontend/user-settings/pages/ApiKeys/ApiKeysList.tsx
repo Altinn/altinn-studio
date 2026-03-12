@@ -13,14 +13,14 @@ import { useDeleteUserApiKeyMutation } from '../hooks/mutations/useDeleteUserApi
 import classes from './ApiKeysList.module.css';
 
 type ApiKeysListProps = {
-  newTokenId: number | null;
+  newApiKeyId: number | null;
 };
 
-export const ApiKeysList = ({ newTokenId }: ApiKeysListProps): React.ReactElement => {
+export const ApiKeysList = ({ newApiKeyId }: ApiKeysListProps): React.ReactElement => {
   const { t } = useTranslation();
 
   const {
-    data: tokens,
+    data: apiKeys,
     isPending,
     isError,
   } = useUserApiKeysQuery({
@@ -32,9 +32,9 @@ export const ApiKeysList = ({ newTokenId }: ApiKeysListProps): React.ReactElemen
     variables: deletingApiKeyId,
   } = useDeleteUserApiKeyMutation();
 
-  const sortedTokens = useMemo(
-    () => [...(tokens ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    [tokens],
+  const sortedApiKeys = useMemo(
+    () => [...(apiKeys ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [apiKeys],
   );
 
   if (isPending) {
@@ -45,8 +45,8 @@ export const ApiKeysList = ({ newTokenId }: ApiKeysListProps): React.ReactElemen
     return <StudioError>{t('user.settings.api_keys.error')}</StudioError>;
   }
 
-  if (tokens.length === 0) {
-    return <StudioParagraph>{t('user.settings.api_keys.no_tokens')}</StudioParagraph>;
+  if (sortedApiKeys.length === 0) {
+    return <StudioParagraph>{t('user.settings.api_keys.no_api_keys')}</StudioParagraph>;
   }
 
   const now = new Date();
@@ -62,28 +62,28 @@ export const ApiKeysList = ({ newTokenId }: ApiKeysListProps): React.ReactElemen
         </StudioTable.Row>
       </StudioTable.Head>
       <StudioTable.Body>
-        {sortedTokens.map((token) => (
+        {sortedApiKeys.map((apiKey) => (
           <StudioTable.Row
-            key={token.id}
-            className={token.id === newTokenId ? classes.newRow : undefined}
+            key={apiKey.id}
+            className={apiKey.id === newApiKeyId ? classes.newRow : undefined}
           >
-            <StudioTable.Cell className={classes.nameCell}>{token.name}</StudioTable.Cell>
+            <StudioTable.Cell className={classes.nameCell}>{apiKey.name}</StudioTable.Cell>
             <StudioTable.Cell className={classes.dateCell}>
-              {new Date(token.expiresAt).toLocaleDateString()}
-              {new Date(token.expiresAt) < now && (
+              {new Date(apiKey.expiresAt).toLocaleDateString()}
+              {new Date(apiKey.expiresAt) < now && (
                 <StudioTag data-color='danger' className={classes.expiredTag}>
                   {t('user.settings.api_keys.expired')}
                 </StudioTag>
               )}
             </StudioTable.Cell>
             <StudioTable.Cell className={classes.dateCell}>
-              {new Date(token.createdAt).toLocaleDateString()}
+              {new Date(apiKey.createdAt).toLocaleDateString()}
             </StudioTable.Cell>
             <StudioTable.Cell className={classes.deleteCell}>
               <StudioDeleteButton
-                onDelete={() => deleteUserApiKey(token.id)}
+                onDelete={() => deleteUserApiKey(apiKey.id)}
                 confirmMessage={t('user.settings.api_keys.delete_confirm')}
-                disabled={pendingDeleteApiKey && deletingApiKeyId === token.id}
+                disabled={pendingDeleteApiKey && deletingApiKeyId === apiKey.id}
               >
                 {t('user.settings.api_keys.delete')}
               </StudioDeleteButton>

@@ -9,28 +9,28 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { UserApiKeyResponse } from 'app-shared/types/api/UserApiKeyResponse';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
-const mockTokens: UserApiKeyResponse[] = [
+const mockApiKeys: UserApiKeyResponse[] = [
   {
     id: 1,
-    name: 'My token',
+    name: 'My api key',
     expiresAt: '2099-01-01T00:00:00',
     createdAt: '2024-01-01T00:00:00',
   },
   {
     id: 2,
-    name: 'Expired token',
+    name: 'Expired api key',
     expiresAt: '2000-01-01T00:00:00',
     createdAt: '2023-01-01T00:00:00',
   },
 ];
 
 const renderApiKeysList = (
-  newTokenId: number | null = null,
+  newApiKeyId: number | null = null,
   queries: Parameters<typeof renderWithProviders>[1]['queries'] = {},
 ) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.UserApiKeys], mockTokens);
-  return renderWithProviders(<ApiKeysList newTokenId={newTokenId} />, {
+  queryClient.setQueryData([QueryKey.UserApiKeys], mockApiKeys);
+  return renderWithProviders(<ApiKeysList newApiKeyId={newApiKeyId} />, {
     queryClient,
     queries,
   });
@@ -38,14 +38,14 @@ const renderApiKeysList = (
 
 describe('ApiKeysList', () => {
   it('renders loading spinner while fetching', () => {
-    renderWithProviders(<ApiKeysList newTokenId={null} />, {
+    renderWithProviders(<ApiKeysList newApiKeyId={null} />, {
       queries: { getUserApiKeys: jest.fn().mockReturnValue(new Promise(() => {})) },
     });
     expect(screen.getByRole('img', { hidden: true })).toBeInTheDocument();
   });
 
   it('renders error message on fetch error', async () => {
-    renderWithProviders(<ApiKeysList newTokenId={null} />, {
+    renderWithProviders(<ApiKeysList newApiKeyId={null} />, {
       queries: {
         getUserApiKeys: jest.fn().mockRejectedValue(new Error('fetch error')),
       },
@@ -53,28 +53,28 @@ describe('ApiKeysList', () => {
     expect(await screen.findByText(textMock('user.settings.api_keys.error'))).toBeInTheDocument();
   });
 
-  it('renders empty state message when there are no tokens', () => {
+  it('renders empty state message when there are no api keys', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.UserApiKeys], []);
-    renderWithProviders(<ApiKeysList newTokenId={null} />, { queryClient });
-    expect(screen.getByText(textMock('user.settings.api_keys.no_tokens'))).toBeInTheDocument();
+    renderWithProviders(<ApiKeysList newApiKeyId={null} />, { queryClient });
+    expect(screen.getByText(textMock('user.settings.api_keys.no_api_keys'))).toBeInTheDocument();
   });
 
-  it('renders the list of tokens', () => {
+  it('renders the list of api keys', () => {
     renderApiKeysList();
-    expect(screen.getByText('My token')).toBeInTheDocument();
-    expect(screen.getByText('Expired token')).toBeInTheDocument();
+    expect(screen.getByText('My api key')).toBeInTheDocument();
+    expect(screen.getByText('Expired api key')).toBeInTheDocument();
   });
 
-  it('shows expired tag for tokens past their expiry date', () => {
+  it('shows expired tag for api keys past their expiry date', () => {
     renderApiKeysList();
     expect(screen.getByText(textMock('user.settings.api_keys.expired'))).toBeInTheDocument();
   });
 
-  it('does not show expired tag for valid tokens', () => {
+  it('does not show expired tag for valid api keys', () => {
     const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.UserApiKeys], [mockTokens[0]]);
-    renderWithProviders(<ApiKeysList newTokenId={null} />, { queryClient });
+    queryClient.setQueryData([QueryKey.UserApiKeys], [mockApiKeys[0]]);
+    renderWithProviders(<ApiKeysList newApiKeyId={null} />, { queryClient });
     expect(screen.queryByText(textMock('user.settings.api_keys.expired'))).not.toBeInTheDocument();
   });
 
@@ -92,7 +92,7 @@ describe('ApiKeysList', () => {
     jest.restoreAllMocks();
   });
 
-  it('disables the delete button for the token currently being deleted', async () => {
+  it('disables the delete button for the api key currently being deleted', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockReturnValue(true);
     renderApiKeysList(null, {

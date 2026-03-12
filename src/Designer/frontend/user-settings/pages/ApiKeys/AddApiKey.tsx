@@ -16,34 +16,34 @@ import { useAddUserApiKeyMutation } from '../hooks/mutations/useAddUserApiKeyMut
 import { useUserApiKeysQuery } from '../hooks/queries/useUserApiKeysQuery';
 import classes from './AddApiKey.module.css';
 
-const MAX_TOKEN_EXPIRY_DAYS = 365;
+const MAX_USER_API_KEY_EXPIRY_DAYS = 365;
 
 const computeMaxExpiresAt = (): string => {
   const todayUtc = new Date().toISOString().split('T')[0];
   const maxDate = new Date(todayUtc);
-  maxDate.setUTCDate(maxDate.getUTCDate() + MAX_TOKEN_EXPIRY_DAYS);
+  maxDate.setUTCDate(maxDate.getUTCDate() + MAX_USER_API_KEY_EXPIRY_DAYS);
   return maxDate.toISOString().split('T')[0];
 };
 
 type AddApiKeyProps = {
-  onTokenCreated: (id: number) => void;
+  onApiKeyCreated: (id: number) => void;
 };
 
-export const AddApiKey = ({ onTokenCreated }: AddApiKeyProps): React.ReactElement => {
+export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactElement => {
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [expiresAt, setExpiresAt] = useState(computeMaxExpiresAt);
   const [submitted, setSubmitted] = useState(false);
-  const [newTokenKey, setNewTokenKey] = useState<string | null>(null);
+  const [newApiKey, setNewApiKey] = useState<string | null>(null);
 
   const { mutate: addUserApiKey, isPending, error, reset } = useAddUserApiKeyMutation();
-  const { data: existingTokens } = useUserApiKeysQuery();
+  const { data: apiKeys } = useUserApiKeysQuery();
 
   const todayUtc = new Date().toISOString().split('T')[0];
   const maxExpiresAtString = computeMaxExpiresAt();
 
   const isDuplicateName =
-    (submitted && existingTokens?.some((token) => token.name === name)) ||
+    (submitted && apiKeys?.some((apiKey) => apiKey.name === name)) ||
     error?.response?.status === ServerCodes.Conflict;
   const isExpiryInPast = expiresAt < todayUtc;
   const isExpiryTooLong = expiresAt > maxExpiresAtString;
@@ -56,15 +56,15 @@ export const AddApiKey = ({ onTokenCreated }: AddApiKeyProps): React.ReactElemen
       !expiresAt ||
       isExpiryInPast ||
       isExpiryTooLong ||
-      existingTokens?.some((token) => token.name === name)
+      apiKeys?.some((apiKey) => apiKey.name === name)
     )
       return;
     addUserApiKey(
       { name, expiresAt: `${expiresAt}T23:59:59Z` },
       {
         onSuccess: (response) => {
-          setNewTokenKey(response.key);
-          onTokenCreated(response.id);
+          setNewApiKey(response.key);
+          onApiKeyCreated(response.id);
           setName('');
           setExpiresAt(computeMaxExpiresAt());
           setSubmitted(false);
@@ -73,29 +73,25 @@ export const AddApiKey = ({ onTokenCreated }: AddApiKeyProps): React.ReactElemen
     );
   };
 
-  if (newTokenKey) {
+  if (newApiKey) {
     return (
-      <StudioAlert data-color='success' className={classes.tokenAlert}>
+      <StudioAlert data-color='success' className={classes.newApiKeyAlert}>
         <StudioButton
           variant='tertiary'
           icon={<StudioCloseIcon />}
-          onClick={() => setNewTokenKey(null)}
+          onClick={() => setNewApiKey(null)}
           aria-label={t('general.close')}
-          className={classes.tokenAlertCloseButton}
+          className={classes.newApiKeyAlertCloseButton}
         />
         <StudioHeading level={3}>
-          {t('user.settings.api_keys.new_token_dialog_title')}
+          {t('user.settings.api_keys.new_api_key_dialog_title')}
         </StudioHeading>
-        <StudioParagraph>{t('user.settings.api_keys.new_token_dialog_warning')}</StudioParagraph>
-        <StudioTextfield
-          readOnly
-          value={newTokenKey}
-          label={t('user.settings.api_keys.token_value')}
-        />
+        <StudioParagraph>{t('user.settings.api_keys.new_api_key_dialog_warning')}</StudioParagraph>
+        <StudioTextfield readOnly value={newApiKey} label={t('user.settings.api_keys.api_key')} />
         <StudioButton
           icon={<ClipboardIcon />}
           onClick={() => {
-            navigator.clipboard.writeText(newTokenKey).then(
+            navigator.clipboard.writeText(newApiKey).then(
               () => {
                 toast.success(t('user.settings.api_keys.copy_success'), {
                   toastId: 'user.settings.api_keys.copy_success',

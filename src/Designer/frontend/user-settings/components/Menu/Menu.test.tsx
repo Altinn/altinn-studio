@@ -31,8 +31,6 @@ describe('Menu', () => {
     const user = userEvent.setup();
     renderMenu();
     await user.click(getTab());
-    expect(mockNavigate).toHaveBeenCalledWith(
-      expect.objectContaining({ pathname: '/settings/api-keys' }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(expect.objectContaining({ pathname: '/api-keys' }));
   });
 });

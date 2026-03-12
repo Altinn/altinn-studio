@@ -10,7 +10,7 @@ export const useDeleteUserApiKeyMutation = () => {
     mutationFn: (id: number) => deleteUserApiKey(id),
     onSuccess: (_, id) =>
       queryClient.setQueryData<UserApiKeyResponse[]>([QueryKey.UserApiKeys], (prev) =>
-        prev?.filter((token) => token.id !== id),
+        prev?.filter((userApiKey) => userApiKey.id !== id),
       ),
   });
 };

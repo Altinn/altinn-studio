@@ -36,28 +36,28 @@ const tooLongExpiresAt = (() => {
   return d.toISOString().split('T')[0];
 })();
 
-const mockExistingTokens: UserApiKeyResponse[] = [
+const mockApiKeys: UserApiKeyResponse[] = [
   {
     id: 1,
-    name: 'Existing token',
+    name: 'Existing api key',
     expiresAt: '2099-01-01T00:00:00',
     createdAt: '2024-01-01T00:00:00',
   },
 ];
 
-const mockCreatedToken: AddUserApiKeyResponse = {
+const mockNewApiKey: AddUserApiKeyResponse = {
   id: 2,
   key: 'secret-key-value',
-  name: 'New token',
+  name: 'New api key',
   expiresAt: validExpiresAt,
 };
 
-const onTokenCreated = jest.fn();
+const onApiKeyCreated = jest.fn();
 
 const renderAddApiKey = (queries: Parameters<typeof renderWithProviders>[1]['queries'] = {}) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.UserApiKeys], mockExistingTokens);
-  return renderWithProviders(<AddApiKey onTokenCreated={onTokenCreated} />, {
+  queryClient.setQueryData([QueryKey.UserApiKeys], mockApiKeys);
+  return renderWithProviders(<AddApiKey onApiKeyCreated={onApiKeyCreated} />, {
     queryClient,
     queries,
   });
@@ -119,16 +119,16 @@ describe('AddApiKey', () => {
     expect(screen.getAllByText(textMock('validation_errors.required'))).toHaveLength(1);
   });
 
-  it('resets expiry to the max date after successful token creation', async () => {
+  it('resets expiry to the max date after successful api key creation', async () => {
     const maxUtc = (() => {
       const d = new Date(todayUtc);
       d.setUTCDate(d.getUTCDate() + 365);
       return d.toISOString().split('T')[0];
     })();
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
-    await user.type(getNameInput(), 'New token');
+    await user.type(getNameInput(), 'New api key');
     await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
     await user.click(screen.getByRole('button', { name: textMock('general.close') }));
@@ -138,7 +138,7 @@ describe('AddApiKey', () => {
   it('shows expiry too long error when expiry date exceeds 365 days', async () => {
     const user = userEvent.setup();
     renderAddApiKey();
-    await fillForm(user, 'New token', tooLongExpiresAt);
+    await fillForm(user, 'New api key', tooLongExpiresAt);
     await user.click(getAddButton());
     expect(
       screen.getByText(textMock('user.settings.api_keys.error_expiry_too_long')),
@@ -148,7 +148,7 @@ describe('AddApiKey', () => {
   it('shows expiry in past error when expiry date is in the past', async () => {
     const user = userEvent.setup();
     renderAddApiKey();
-    await fillForm(user, 'New token', pastExpiresAt);
+    await fillForm(user, 'New api key', pastExpiresAt);
     await user.click(getAddButton());
     expect(
       screen.getByText(textMock('user.settings.api_keys.error_expiry_in_past')),
@@ -158,7 +158,7 @@ describe('AddApiKey', () => {
   it('shows duplicate name error when name already exists', async () => {
     const user = userEvent.setup();
     renderAddApiKey();
-    await fillForm(user, 'Existing token', validExpiresAt);
+    await fillForm(user, 'Existing api key', validExpiresAt);
     await user.click(getAddButton());
     expect(
       screen.getByText(textMock('user.settings.api_keys.error_duplicate_name')),
@@ -171,7 +171,7 @@ describe('AddApiKey', () => {
       response: { status: 409, data: { errorCode: ApiErrorCodes.DuplicateTokenName } },
     });
     renderAddApiKey({ addUserApiKey });
-    await fillForm(user, 'New token', validExpiresAt);
+    await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getAddButton());
     expect(
       await screen.findByText(textMock('user.settings.api_keys.error_duplicate_name')),
@@ -180,53 +180,53 @@ describe('AddApiKey', () => {
 
   it('calls addUserApiKey with correct payload', async () => {
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
-    await fillForm(user, 'New token', validExpiresAt);
+    await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getAddButton());
     expect(addUserApiKey).toHaveBeenCalledWith({
-      name: 'New token',
+      name: 'New api key',
       expiresAt: `${validExpiresAt}T23:59:59Z`,
     });
   });
 
-  it('shows the new token key after successful creation', async () => {
+  it('shows the new api key after successful creation', async () => {
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
-    await fillForm(user, 'New token', validExpiresAt);
+    await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getAddButton());
     expect(await screen.findByDisplayValue('secret-key-value')).toBeInTheDocument();
   });
 
-  it('calls onTokenCreated with the new token id after creation', async () => {
+  it('calls onApiKeyCreated with the new api key id after creation', async () => {
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
-    await fillForm(user, 'New token', validExpiresAt);
+    await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
-    expect(onTokenCreated).toHaveBeenCalledWith(mockCreatedToken.id);
+    expect(onApiKeyCreated).toHaveBeenCalledWith(mockNewApiKey.id);
   });
 
-  it('closes the token alert when close button is clicked', async () => {
+  it('closes the api key alert when close button is clicked', async () => {
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
-    await fillForm(user, 'New token', validExpiresAt);
+    await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
     await user.click(screen.getByRole('button', { name: textMock('general.close') }));
     expect(screen.queryByDisplayValue('secret-key-value')).not.toBeInTheDocument();
   });
 
-  it('copies the token key to clipboard and shows success toast when copy button is clicked', async () => {
+  it('copies the api key to clipboard and shows success toast when copy button is clicked', async () => {
     const writeText = jest.fn().mockResolvedValue(undefined);
     jest.spyOn(navigator.clipboard, 'writeText').mockImplementation(writeText);
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
-    await fillForm(user, 'New token', validExpiresAt);
+    await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
     await user.click(
@@ -244,9 +244,9 @@ describe('AddApiKey', () => {
   it('shows error toast when clipboard write fails', async () => {
     jest.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('Permission denied'));
     const user = userEvent.setup();
-    const addUserApiKey = jest.fn().mockResolvedValue(mockCreatedToken);
+    const addUserApiKey = jest.fn().mockResolvedValue(mockNewApiKey);
     renderAddApiKey({ addUserApiKey });
-    await fillForm(user, 'New token', validExpiresAt);
+    await fillForm(user, 'New api key', validExpiresAt);
     await user.click(getAddButton());
     await screen.findByDisplayValue('secret-key-value');
     await user.click(

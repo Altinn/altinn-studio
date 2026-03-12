@@ -2,7 +2,7 @@
   "name": "user-settings",
   "version": "0.1.0",
   "author": "Altinn",
-  "license": "3-Clause BSD",
+  "license": "MIT",
   "private": true,
   "devDependencies": {
     "vite": "^6.3.2"

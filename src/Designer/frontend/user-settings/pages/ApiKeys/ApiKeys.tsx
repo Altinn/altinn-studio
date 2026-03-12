@@ -7,13 +7,13 @@ import classes from './ApiKeys.module.css';
 
 export const ApiKeys = (): React.ReactElement => {
   const { t } = useTranslation();
-  const [newTokenId, setNewTokenId] = useState<number | null>(null);
+  const [newApiKeyId, setNewApiKeyId] = useState<number | null>(null);
 
   return (
     <div className={classes.container}>
       <StudioHeading level={2}>{t('user.settings.api_keys.api_keys')}</StudioHeading>
-      <AddApiKey onTokenCreated={setNewTokenId} />
-      <ApiKeysList newTokenId={newTokenId} />
+      <AddApiKey onApiKeyCreated={setNewApiKeyId} />
+      <ApiKeysList newApiKeyId={newApiKeyId} />
     </div>
   );
 };
