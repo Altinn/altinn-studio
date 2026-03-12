@@ -6,21 +6,19 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { mockAppConfig } from 'app-development/features/appSettings/mocks/appConfigMock';
 import { mockAppMetadata } from 'app-development/test/applicationMetadataMock';
-import userEvent from '@testing-library/user-event';
-import { useAppConfigMutation } from 'app-development/hooks/mutations';
-import type { AppConfig } from 'app-shared/types/AppConfig';
+import { useAppMetadataMutation } from 'app-development/hooks/mutations/useAppMetadataMutation';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { UseMutationResult } from '@tanstack/react-query';
 
-jest.mock('app-development/hooks/mutations/useAppConfigMutation');
-const updateAppConfigMutation = jest.fn();
-const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
-  typeof useAppConfigMutation
+jest.mock('app-development/hooks/mutations/useAppMetadataMutation');
+const updateAppMetadataMutation = jest.fn();
+const mockUpdateAppMetadataMutation = useAppMetadataMutation as jest.MockedFunction<
+  typeof useAppMetadataMutation
 >;
-mockUpdateAppConfigMutation.mockReturnValue({
-  mutate: updateAppConfigMutation,
-} as unknown as UseMutationResult<void, Error, AppConfig, unknown>);
+mockUpdateAppMetadataMutation.mockReturnValue({
+  mutate: updateAppMetadataMutation,
+} as unknown as UseMutationResult<void, Error, ApplicationMetadata, unknown>);
 
 describe('AboutTab', () => {
   afterEach(jest.clearAllMocks);
@@ -28,12 +26,6 @@ describe('AboutTab', () => {
   it('initially displays the spinner when loading data', () => {
     renderAboutTab();
     expect(screen.getByText(textMock('app_settings.loading_content'))).toBeInTheDocument();
-  });
-
-  it('fetches appConfig on mount', () => {
-    const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve({}));
-    renderAboutTab({ getAppConfig });
-    expect(getAppConfig).toHaveBeenCalledTimes(1);
   });
 
   it('fetches applicationMetadata on mount', () => {
@@ -58,59 +50,17 @@ describe('AboutTab', () => {
     await resolveAndWaitForSpinnerToDisappear();
 
     const repoNameInput = screen.getByLabelText(textMock('app_settings.about_tab_repo_label'));
-    expect(repoNameInput).toHaveValue(mockAppConfig.repositoryName);
+    expect(repoNameInput).toHaveValue(mockAppMetadata.id);
     expect(repoNameInput).toHaveAttribute('readonly');
   });
 
-  it('displays correct value in "name" input field, and updates the value on change', async () => {
-    const user = userEvent.setup();
+  it('renders AppConfigForm when data is loaded', async () => {
     await resolveAndWaitForSpinnerToDisappear();
 
-    const appName = screen.getByLabelText(textMock('app_settings.about_tab_name_label'));
-    expect(appName).toHaveValue(mockAppConfig.serviceName);
-
-    const mockNewText: string = 'test';
-    await user.type(appName, mockNewText);
-    expect(appName).toHaveValue(`${mockAppConfig.serviceName}${mockNewText}`);
-  });
-
-  it('displays correct value in "alternative id" input field, and updates the value on change', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const altId = screen.getByLabelText(textMock('app_settings.about_tab_alt_id_label'));
-    expect(altId).toHaveValue(mockAppConfig.serviceId);
-
-    const mockNewText: string = 'test';
-    await user.type(altId, mockNewText);
-    expect(altId).toHaveValue(`${mockAppConfig.serviceId}${mockNewText}`);
-  });
-
-  it('should update app config when saving', async () => {
-    const user = userEvent.setup();
-    await resolveAndWaitForSpinnerToDisappear();
-
-    const altId = screen.getByLabelText(textMock('app_settings.about_tab_alt_id_label'));
-    const mockNewText: string = 'test';
-    await user.type(altId, mockNewText);
-    await user.tab();
-
-    expect(updateAppConfigMutation).toHaveBeenCalledTimes(1);
-    expect(updateAppConfigMutation).toHaveBeenCalledWith({
-      ...mockAppConfig,
-      serviceId: `${mockAppConfig.serviceId}${mockNewText}`,
-    });
-  });
-
-  it('renders AppConfigForm when AppMetadata feature flag is enabled', async () => {
-    const originalUrl = window.location.search;
-    window.history.pushState({}, 'test', '/?featureFlags=appMetadata');
-    await resolveAndWaitForSpinnerToDisappear();
     const matches = screen.getAllByText(
       textMock('app_settings.about_tab_contact_point_dialog_add_title'),
     );
     expect(matches.length).toBeGreaterThan(0);
-    window.history.pushState({}, '', `/${originalUrl}`);
   });
 });
 
@@ -124,11 +74,9 @@ const renderAboutTab = (queries: Partial<ServicesContextProps> = {}) => {
 };
 
 const resolveAndWaitForSpinnerToDisappear = async (queries: Partial<ServicesContextProps> = {}) => {
-  const getAppConfig = jest.fn().mockImplementation(() => Promise.resolve(mockAppConfig));
   const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve(mockAppMetadata));
 
   renderAboutTab({
-    getAppConfig,
     getAppMetadata,
     ...queries,
   });
