@@ -2,7 +2,6 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { DeployPopover, type DeployPopoverProps } from './DeployPopover';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import '@testing-library/jest-dom';
 import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { type AppRelease } from 'app-shared/types/AppRelease';
