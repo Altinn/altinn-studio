@@ -12,8 +12,8 @@ type KeyType interface {
 
 // Map wraps a map with a mutex for safe concurrent access.
 type Map[K KeyType, V any] struct {
-	mu sync.Mutex
 	m  map[K]V
+	mu sync.Mutex
 }
 
 func NewMap[K KeyType, V any]() *Map[K, V] {
@@ -26,14 +26,20 @@ func (cm *Map[K, V]) Set(k K, v V) {
 	cm.mu.Unlock()
 }
 
-func (cm *Map[K, V]) Get(k K) (V, bool) {
+//nolint:ireturn // Returning the generic value type is the point of this container.
+func (cm *Map[K, V]) Get(
+	k K,
+) (V, bool) {
 	cm.mu.Lock()
 	v, ok := cm.m[k]
 	cm.mu.Unlock()
 	return v, ok
 }
 
-func (cm *Map[K, V]) GetAndDelete(k K) (V, bool) {
+//nolint:ireturn // Returning the generic value type is the point of this container.
+func (cm *Map[K, V]) GetAndDelete(
+	k K,
+) (V, bool) {
 	cm.mu.Lock()
 	v, ok := cm.m[k]
 	if ok {
@@ -61,7 +67,7 @@ func (cm *Map[K, V]) Len() int {
 
 // Update atomically updates the value for a key using the provided function.
 // The caller should know that the key is there.
-// If the key isn't in the map, we crash
+// If the key isn't in the map, we crash.
 func (cm *Map[K, V]) Update(k K, fn func(*V)) bool {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()

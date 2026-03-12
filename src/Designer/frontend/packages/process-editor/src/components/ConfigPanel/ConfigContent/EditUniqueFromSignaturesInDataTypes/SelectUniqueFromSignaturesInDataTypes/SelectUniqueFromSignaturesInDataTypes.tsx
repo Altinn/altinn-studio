@@ -20,9 +20,6 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
   onClose,
 }: SelectUniqueFromSignaturesInDataTypesProps) => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
-  const modelerInstance = modelerRef.current;
-  const modeling: Modeling = modelerInstance.get('modeling');
-  const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
 
   const studioModeler = new StudioModeler();
   const tasks = studioModeler.getAllTasksByType('bpmn:Task');
@@ -64,6 +61,9 @@ export const SelectUniqueFromSignaturesInDataTypes = ({
 
   const handleValueChange = (dataTypes: string[]) => {
     setValue(dataTypes);
+    const modelerInstance = modelerRef.current;
+    const modeling: Modeling = modelerInstance.get('modeling');
+    const bpmnFactory: BpmnFactory = modelerInstance.get('bpmnFactory');
     debounce(() => updateDataTypes(bpmnFactory, modeling, bpmnDetails, dataTypes));
   };
 

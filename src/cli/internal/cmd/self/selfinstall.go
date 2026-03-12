@@ -187,10 +187,16 @@ func isWritable(dir string, out *ui.Output) bool {
 		return false
 	}
 
-	info, err := os.Stat(dir)
+	cleanDir, err := filepath.Abs(dir)
 	if err != nil {
-		parent := filepath.Dir(dir)
-		if parent == dir {
+		return false
+	}
+
+	//nolint:gosec // G703: this is an intentional writability probe on the user-selected install directory.
+	info, err := os.Stat(cleanDir)
+	if err != nil {
+		parent := filepath.Dir(cleanDir)
+		if parent == cleanDir {
 			return false
 		}
 		return isWritable(parent, out)
@@ -200,7 +206,7 @@ func isWritable(dir string, out *ui.Output) bool {
 		return false
 	}
 
-	testFile := filepath.Join(dir, ".studioctl-write-test")
+	testFile := filepath.Join(cleanDir, ".studioctl-write-test")
 	//nolint:gosec // G304: testFile is constructed from known dir path
 	f, err := os.Create(testFile)
 	if err != nil {
@@ -210,6 +216,7 @@ func isWritable(dir string, out *ui.Output) bool {
 	if err := f.Close(); err != nil && out != nil {
 		out.Verbosef("failed to close test file %s: %v", testFile, err)
 	}
+	//nolint:gosec // G703: this removes the temporary probe file created in the validated install directory above.
 	if err := os.Remove(testFile); err != nil && out != nil {
 		out.Verbosef("failed to remove test file %s: %v", testFile, err)
 	}

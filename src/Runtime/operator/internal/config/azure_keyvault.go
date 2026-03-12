@@ -2,20 +2,25 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/telemetry"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
 	"go.opentelemetry.io/otel/trace"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/telemetry"
 )
 
 type azureKeyVaultClient struct {
 	tracer trace.Tracer
 	client *azsecrets.Client
 }
+
+var errAzureSecretValueNil = errors.New("secret value is nil")
 
 func (a *azureKeyVaultClient) loadSecrets(ctx context.Context, cfg *Config) error {
 	ctx, span := a.tracer.Start(ctx, "AzureKeyVaultClient.loadSecrets")
@@ -55,8 +60,9 @@ func (a *azureKeyVaultClient) tryGetSecret(ctx context.Context, name string) (st
 
 	secretResp, err := a.client.GetSecret(ctx, name, "", nil)
 	if err != nil {
-		if respErr, ok := err.(*azcore.ResponseError); ok {
-			if respErr.StatusCode == 404 {
+		respErr := &azcore.ResponseError{}
+		if errors.As(err, &respErr) {
+			if respErr.StatusCode == http.StatusNotFound {
 				return "", nil
 			}
 		}
@@ -64,7 +70,7 @@ func (a *azureKeyVaultClient) tryGetSecret(ctx context.Context, name string) (st
 	}
 
 	if secretResp.Value == nil {
-		return "", fmt.Errorf("secret value is nil for key %s", name)
+		return "", fmt.Errorf("%w for key %s", errAzureSecretValueNil, name)
 	}
 
 	return *secretResp.Value, nil

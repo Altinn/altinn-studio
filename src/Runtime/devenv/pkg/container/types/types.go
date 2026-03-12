@@ -1,3 +1,4 @@
+// Package types defines the shared container runtime data types used across implementations.
 package types
 
 import "errors"
@@ -44,7 +45,7 @@ func MergeCapabilities(defaults, explicit []string) []string {
 	return result
 }
 
-// Runtime name constants returned by ContainerClient.Name()
+// Runtime name constants returned by ContainerClient.Name().
 const (
 	RuntimeNameDockerEngineAPI = "Docker Engine API"
 	RuntimeNamePodmanCLI       = "Podman CLI"
@@ -54,6 +55,7 @@ const (
 // This is independent of the transport mechanism used to communicate with the runtime.
 type RuntimeInstallation int
 
+// Supported runtime installation kinds.
 const (
 	InstallationUnknown RuntimeInstallation = iota
 	InstallationDocker
@@ -62,6 +64,8 @@ const (
 
 func (i RuntimeInstallation) String() string {
 	switch i {
+	case InstallationUnknown:
+		return "Unknown"
 	case InstallationDocker:
 		return "Docker"
 	case InstallationPodman:
@@ -71,7 +75,7 @@ func (i RuntimeInstallation) String() string {
 	}
 }
 
-// PortMapping defines a container port binding
+// PortMapping defines a container port binding.
 type PortMapping struct {
 	HostIP        string // e.g., "127.0.0.1" or "" for all interfaces
 	HostPort      string
@@ -79,31 +83,31 @@ type PortMapping struct {
 	Protocol      string // "tcp" or "udp", defaults to "tcp"
 }
 
-// VolumeMount defines a bind mount
+// VolumeMount defines a bind mount.
 type VolumeMount struct {
 	HostPath      string
 	ContainerPath string
 	ReadOnly      bool
 }
 
-// ContainerConfig defines options for creating a container
+// ContainerConfig defines options for creating a container.
 type ContainerConfig struct {
+	Labels        map[string]string
 	Name          string
 	Image         string
-	Command       []string // optional override
-	Env           []string // KEY=VALUE pairs
-	Ports         []PortMapping
+	User          string
+	RestartPolicy string
+	ExtraHosts    []string
 	Volumes       []VolumeMount
-	ExtraHosts    []string // "hostname:ip" pairs (e.g., "host.docker.internal:172.17.0.1")
-	Networks      []string // networks to attach (first is primary)
-	RestartPolicy string   // "no", "always", "on-failure", "unless-stopped"
+	Networks      []string
+	Ports         []PortMapping
+	Env           []string
+	Command       []string
+	CapAdd        []string
 	Detach        bool
-	Labels        map[string]string
-	User          string   // "uid:gid" to run as (e.g., "1000:1000")
-	CapAdd        []string // Linux capabilities to add (e.g., "NET_RAW", "MKNOD")
 }
 
-// ImageInfo contains metadata about an image
+// ImageInfo contains metadata about an image.
 type ImageInfo struct {
 	ID   string // image ID (sha256:...)
 	Size int64  // image size in bytes
@@ -129,15 +133,15 @@ type ContainerInfo struct {
 
 // NetworkConfig defines options for creating a network.
 type NetworkConfig struct {
-	Name   string
-	Driver string // "bridge", "host", "none" (default: "bridge")
 	Labels map[string]string
+	Name   string
+	Driver string
 }
 
 // NetworkInfo contains information about a network.
 type NetworkInfo struct {
+	Labels map[string]string
 	ID     string
 	Name   string
 	Driver string
-	Labels map[string]string
 }

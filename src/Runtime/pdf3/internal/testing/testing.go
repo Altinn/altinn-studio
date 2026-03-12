@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
+
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/concurrent"
 	"altinn.studio/pdf3/internal/runtime"
-	"github.com/google/uuid"
 )
 
-// contextKey is a custom type for context keys to avoid collisions
+// contextKey is a custom type for context keys to avoid collisions.
 type contextKey string
 
 const testInputContextKey contextKey = "test-input"
@@ -22,7 +23,7 @@ type PdfInternalsTestInput struct {
 	CleanupDelaySeconds int    `json:"cleanupDelaySeconds"`
 }
 
-// NewTestInput creates a new test input with a generated UUID
+// NewTestInput creates a new test input with a generated UUID.
 func NewTestInput(cleanupDelaySeconds int) *PdfInternalsTestInput {
 	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	return &PdfInternalsTestInput{
@@ -48,7 +49,7 @@ func NewDefaultTestInput() *PdfInternalsTestInput {
 
 const TestInputHeaderName string = "X-Internals-Test-Input"
 
-// TestInputContextKey returns the context key for storing test input
+// TestInputContextKey returns the context key for storing test input.
 func TestInputContextKey() contextKey {
 	return testInputContextKey
 }
@@ -78,7 +79,7 @@ func (i *PdfInternalsTestInput) Deserialize(headers http.Header) {
 	assert.That(i != nil, "Test input should not be nil")
 	header := headers.Get(TestInputHeaderName)
 	if header != "" {
-		value, err := base64.StdEncoding.DecodeString(string(header))
+		value, err := base64.StdEncoding.DecodeString(header)
 		assert.That(err == nil, "Should be able to decode input")
 		err = json.Unmarshal(value, i)
 		assert.That(err == nil, "Should be able to deserialize input")
@@ -107,12 +108,12 @@ type BrowserState struct {
 }
 
 type PdfInternalsTestOutput struct {
-	ID            string         `json:"id"`            // UUID from input to correlate
-	BrowserStates []BrowserState `json:"browserStates"` // Snapshots at different state transitions
-	complete      chan struct{}  `json:"-"`             // Closed when all snapshots are collected
+	complete      chan struct{}  `json:"-"`
+	ID            string         `json:"id"`
+	BrowserStates []BrowserState `json:"browserStates"`
 }
 
-// NewTestOutput creates a new test output with the ID from the input
+// NewTestOutput creates a new test output with the ID from the input.
 func NewTestOutput(input *PdfInternalsTestInput) *PdfInternalsTestOutput {
 	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	assert.That(input != nil, "Test input should not be nil")
@@ -124,7 +125,7 @@ func NewTestOutput(input *PdfInternalsTestInput) *PdfInternalsTestOutput {
 	}
 }
 
-// MarkComplete signals that all browser state snapshots have been collected
+// MarkComplete signals that all browser state snapshots have been collected.
 func (o *PdfInternalsTestOutput) MarkComplete() {
 	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	if o.complete != nil {
@@ -132,7 +133,7 @@ func (o *PdfInternalsTestOutput) MarkComplete() {
 	}
 }
 
-// WaitForComplete waits for all snapshots to be collected, with a timeout
+// WaitForComplete waits for all snapshots to be collected, with a timeout.
 func (o *PdfInternalsTestOutput) WaitForComplete(timeout time.Duration) bool {
 	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	if o.complete == nil {
@@ -165,17 +166,17 @@ func (o *PdfInternalsTestOutput) String() string {
 
 func (o *PdfInternalsTestOutput) SnapshotString() string {
 	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
-	copy := *o
-	copy.ID = "UUID"
-	json, err := json.MarshalIndent(copy, "", "  ")
+	outputCopy := *o
+	outputCopy.ID = "UUID"
+	json, err := json.MarshalIndent(outputCopy, "", "  ")
 	assert.That(err == nil, "Should be able to JSON serialize")
 	return string(json)
 }
 
-// Global test output store for test internals mode
+// Global test output store for test internals mode.
 var testOutputStore = concurrent.NewMap[string, *PdfInternalsTestOutput]()
 
-// StoreTestOutput stores a test output by ID (only in test internals mode)
+// StoreTestOutput stores a test output by ID (only in test internals mode).
 func StoreTestOutput(output *PdfInternalsTestOutput) {
 	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	assert.That(output != nil, "Test output should not be nil")
@@ -183,14 +184,14 @@ func StoreTestOutput(output *PdfInternalsTestOutput) {
 	testOutputStore.Set(output.ID, output)
 }
 
-// GetTestOutput retrieves a test output by ID (only in test internals mode)
+// GetTestOutput retrieves a test output by ID (only in test internals mode).
 func GetTestOutput(id string) (*PdfInternalsTestOutput, bool) {
 	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	assert.That(id != "", "Test output ID is required")
 	return testOutputStore.Get(id)
 }
 
-// UpdateTestOutput atomically updates a test output by ID (only in test internals mode)
+// UpdateTestOutput atomically updates a test output by ID (only in test internals mode).
 func UpdateTestOutput(id string, fn func(*PdfInternalsTestOutput)) bool {
 	assert.That(runtime.IsTestInternalsMode, "Should only run as part of testing")
 	assert.That(id != "", "Test output ID is required")

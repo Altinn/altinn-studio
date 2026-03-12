@@ -6,17 +6,18 @@ import (
 	"strings"
 	"sync"
 
-	"altinn.studio/pdf3/internal/types"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+
+	"altinn.studio/pdf3/internal/types"
 )
 
 type requestEventKey struct{}
 
 type RequestEventData struct {
-	mu    sync.Mutex
-	attrs []attribute.KeyValue
 	index map[attribute.Key]int
+	attrs []attribute.KeyValue
+	mu    sync.Mutex
 }
 
 func NewRequestEventData() *RequestEventData {

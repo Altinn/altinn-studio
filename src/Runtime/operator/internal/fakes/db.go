@@ -4,26 +4,28 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
+
 	"altinn.studio/operator/internal/assert"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/maskinporten"
-	"github.com/google/uuid"
 )
 
 var ErrInvalidClientName = errors.New("invalid client ID")
 var ErrClientAlreadyExists = errors.New("client already exists")
+var ErrClientNotFound = errors.New("client not found")
 
-const SupplierOrgNo string = "991825827"
+const SupplierOrgNo = "991825827"
 
 type Db struct {
-	Clients       []ClientRecord
 	ClientIdIndex map[string]int
+	Clients       []ClientRecord
 }
 
 type ClientRecord struct {
-	ClientId string
-	Client   *maskinporten.ClientResponse
-	Jwks     *crypto.Jwks
+	Client   *maskinporten.ClientResponse `json:"Client"`
+	Jwks     *crypto.Jwks                 `json:"Jwks"`
+	ClientId string                       `json:"ClientId"`
 }
 
 func NewDb() *Db {
@@ -100,7 +102,7 @@ func (d *Db) Insert(
 func (d *Db) UpdateJwks(clientId string, jwks *crypto.Jwks) error {
 	i, ok := d.ClientIdIndex[clientId]
 	if !ok {
-		return errors.New("client not found")
+		return ErrClientNotFound
 	}
 
 	d.Clients[i].Jwks = jwks
@@ -133,14 +135,21 @@ func (d *Db) Get(clientId string) *ClientRecord {
 	}
 
 	client := &d.Clients[i]
-	assert.That(client.ClientId == clientId, "inconsistent fake db state", "expected", clientId, "actual", client.ClientId)
+	assert.That(
+		client.ClientId == clientId,
+		"inconsistent fake db state",
+		"expected",
+		clientId,
+		"actual",
+		client.ClientId,
+	)
 
 	return client
 }
 
 func (d *Db) Query(predicate func(*ClientRecord) bool) []ClientRecord {
 	result := make([]ClientRecord, 0, 4)
-	for i := 0; i < len(d.Clients); i++ {
+	for i := range len(d.Clients) {
 		client := &d.Clients[i]
 		if predicate(client) {
 			result = append(result, *client)

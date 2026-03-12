@@ -83,8 +83,8 @@ func TestContainer_Dependencies_MultipleNetworks(t *testing.T) {
 
 func TestContainer_Validate(t *testing.T) {
 	tests := []struct {
-		name      string
 		container *Container
+		name      string
 		wantErr   bool
 	}{
 		{
@@ -123,14 +123,8 @@ func TestContainer_Validate(t *testing.T) {
 func TestContainer_Fields(t *testing.T) {
 	c := &Container{
 		Name:          "mycontainer",
-		Image:         RefID("image:nginx"),
-		Networks:      []ResourceRef{RefID("network:mynet")},
 		Ports:         []types.PortMapping{{HostPort: "8080", ContainerPort: "80"}},
-		Volumes:       []types.VolumeMount{{HostPath: "/data", ContainerPath: "/app/data"}},
 		Env:           []string{"FOO=bar"},
-		Labels:        map[string]string{"app": "test"},
-		Command:       []string{"nginx", "-g", "daemon off;"},
-		ExtraHosts:    []string{"host.docker.internal:172.17.0.1"},
 		RestartPolicy: "always",
 	}
 
@@ -149,12 +143,12 @@ func TestContainer_Fields(t *testing.T) {
 	}
 }
 
-// Test that Container implements Resource interface
+// Test that Container implements Resource interface.
 func TestContainer_ImplementsResource(t *testing.T) {
 	var _ Resource = (*Container)(nil)
 }
 
-// Test that Container implements Validator interface
+// Test that Container implements Validator interface.
 func TestContainer_ImplementsValidator(t *testing.T) {
 	var _ Validator = (*Container)(nil)
 }

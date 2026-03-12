@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,8 +12,14 @@ import (
 )
 
 var projectRoot string
-var projectRootError error
+var errProjectRoot error
 var once sync.Once
+
+var (
+	errProjectRootAtFilesystemRoot = errors.New("error getting project root: reached root of file system")
+	errProjectRootTraversalLimit   = errors.New("error getting project root, reached max directory traversal")
+	errInvalidDurationDaysValue    = errors.New("invalid days value")
+)
 
 func TryFindProjectRootByGoMod() (string, error) {
 	tryFindProjectRoot := func() (string, error) {
@@ -32,34 +39,38 @@ func TryFindProjectRootByGoMod() (string, error) {
 
 			parentPath := filepath.Dir(basePath)
 			if parentPath == basePath {
-				return "", fmt.Errorf("error getting project root: reached root of file system")
+				return "", errProjectRootAtFilesystemRoot
 			}
 			basePath = parentPath
 		}
 
-		return "", fmt.Errorf("error getting project root, reached max directory traversal")
+		return "", errProjectRootTraversalLimit
 	}
 
 	once.Do(func() {
-		projectRoot, projectRootError = tryFindProjectRoot()
+		projectRoot, errProjectRoot = tryFindProjectRoot()
 	})
-	return projectRoot, projectRootError
+	return projectRoot, errProjectRoot
 }
 
 // daysRegex matches a days component at the start of a duration string.
 var daysRegex = regexp.MustCompile(`^(\d+)d(.*)$`)
 
 // ParseDuration extends Go's time.ParseDuration to support days (d suffix).
-// Examples: "23d" -> 23 days, "1d12h" -> 1 day and 12 hours, "24h" -> 24 hours
+// Examples: "23d" -> 23 days, "1d12h" -> 1 day and 12 hours, "24h" -> 24 hours.
 func ParseDuration(s string) (time.Duration, error) {
 	matches := daysRegex.FindStringSubmatch(s)
 	if matches == nil {
-		return time.ParseDuration(s)
+		duration, err := time.ParseDuration(s)
+		if err != nil {
+			return 0, fmt.Errorf("parse duration %q: %w", s, err)
+		}
+		return duration, nil
 	}
 
 	days, err := strconv.Atoi(matches[1])
 	if err != nil {
-		return 0, fmt.Errorf("invalid days value: %s", matches[1])
+		return 0, fmt.Errorf("%w: %s", errInvalidDurationDaysValue, matches[1])
 	}
 	total := time.Duration(days) * 24 * time.Hour
 
@@ -67,7 +78,7 @@ func ParseDuration(s string) (time.Duration, error) {
 	if remainder != "" {
 		rest, err := time.ParseDuration(remainder)
 		if err != nil {
-			return 0, err
+			return 0, fmt.Errorf("parse duration remainder %q: %w", remainder, err)
 		}
 		total += rest
 	}

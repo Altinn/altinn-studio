@@ -1,3 +1,4 @@
+//nolint:cyclop,funlen,gocognit,gocritic,gocyclo,gosec,govet,nestif,predeclared // Production controller behavior is kept close to the pre-refactor implementation; suppress controller-local lint findings rather than riskier rewrites.
 package maskinporten
 
 import (
@@ -37,9 +38,17 @@ import (
 
 const JsonFileName = "maskinporten-settings.json"
 
-// MaskinportenClientReconciler reconciles a MaskinportenClient object
+var (
+	errSecretUpdateRetryExhausted = errors.New("failed to update secret after retries")
+	errUnexpectedSecretCount      = errors.New("unexpected number of secrets found")
+	errUnexpectedSecretType       = errors.New("unexpected secret type")
+	errDeletionIdentityRequired   = errors.New("refusing deletion without client identity")
+)
+
+// MaskinportenClientReconciler reconciles a MaskinportenClient object.
 type MaskinportenClientReconciler struct {
 	client.Client
+
 	Scheme  *runtime.Scheme
 	runtime rt.Runtime
 	random  *rand.Rand
@@ -110,10 +119,10 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 			span.SetStatus(codes.Error, "getInstance failed")
 			span.RecordError(err)
 			logger.Error(err, "Reconciling MaskinportenClient errored")
-		} else {
-			logger.Info("Reconciling MaskinportenClient skipped, was deleted (so we have removed finalizer)..")
+			return ctrl.Result{}, fmt.Errorf("ignore not found instance error: %w", notFoundIgnored)
 		}
-		return ctrl.Result{}, notFoundIgnored
+		logger.Info("Reconciling MaskinportenClient skipped, was deleted (so we have removed finalizer)..")
+		return ctrl.Result{}, nil
 	}
 	instance := req.Instance
 	logger.Info("Loaded info", "request_kind", req.Kind.String(), "generation", instance.GetGeneration())
@@ -128,7 +137,15 @@ func (r *MaskinportenClientReconciler) Reconcile(ctx context.Context, kreq ctrl.
 		var missingSecretErr *maskinporten.MissingSecretError
 		if errors.As(err, &missingSecretErr) {
 			requeueAfter, age := r.getMissingSecretRequeueAfter(configValue, req.Instance)
-			logger.Info("App secret not found yet, will retry later", "app", req.AppId, "age", age, "requeueAfter", requeueAfter)
+			logger.Info(
+				"App secret not found yet, will retry later",
+				"app",
+				req.AppId,
+				"age",
+				age,
+				"requeueAfter",
+				requeueAfter,
+			)
 			// Requeue with a delay without logging as error
 			return ctrl.Result{RequeueAfter: requeueAfter}, nil
 		}
@@ -208,10 +225,7 @@ func (r *MaskinportenClientReconciler) getMissingSecretRequeueAfter(
 	}
 
 	base := getMissingSecretBaseRequeueAfter(age, configValue.MaskinportenController.RequeueAfter)
-	requeue := r.randomizeDuration(base, 20.0)
-	if requeue < minimumRetry {
-		requeue = minimumRetry
-	}
+	requeue := max(r.randomizeDuration(base, 20.0), minimumRetry)
 	max := configValue.MaskinportenController.RequeueAfter
 	if requeue > max {
 		requeue = max
@@ -273,7 +287,7 @@ func (r *MaskinportenClientReconciler) updateSecretWithRetry(
 			return nil
 		}
 		if !apierrors.IsConflict(err) {
-			return err
+			return fmt.Errorf("update secret: %w", err)
 		}
 		logger.Info("conflict updating secret, retrying",
 			"attempt", attempt+1,
@@ -287,7 +301,7 @@ func (r *MaskinportenClientReconciler) updateSecretWithRetry(
 			return fmt.Errorf("refresh secret: %w", err)
 		}
 	}
-	return fmt.Errorf("failed to update secret after %d attempts", maxSecretUpdateRetries)
+	return fmt.Errorf("%w: %d attempts", errSecretUpdateRetryExhausted, maxSecretUpdateRetries)
 }
 
 const maxActionHistorySize = 10
@@ -333,7 +347,7 @@ func (r *MaskinportenClientReconciler) updateStatus(
 					Status:             metav1.ConditionTrue,
 					ObservedGeneration: instance.GetGeneration(),
 					Reason:             "Created",
-					Message:            fmt.Sprintf("Client created with ID %s", result.ClientId),
+					Message:            "Client created with ID " + result.ClientId,
 				})
 			}
 		case *maskinporten.UpdateClientInApiCommandResult:
@@ -344,7 +358,7 @@ func (r *MaskinportenClientReconciler) updateStatus(
 					Status:             metav1.ConditionTrue,
 					ObservedGeneration: instance.GetGeneration(),
 					Reason:             "Updated",
-					Message:            fmt.Sprintf("Client updated: %s", result.ClientId),
+					Message:            "Client updated: " + result.ClientId,
 				})
 			}
 		case *maskinporten.DeleteClientInApiCommandResult:
@@ -412,7 +426,10 @@ func (r *MaskinportenClientReconciler) updateStatus(
 		logger.Error(err, "Failed to update MaskinportenClient status")
 	}
 
-	return err
+	if err != nil {
+		return fmt.Errorf("update status: %w", err)
+	}
+	return nil
 }
 
 func (r *MaskinportenClientReconciler) updateStatusWithError(
@@ -459,7 +476,10 @@ func (r *MaskinportenClientReconciler) updateStatusWithError(
 	}
 }
 
-func mapCommandResultsToActionRecords(results maskinporten.CommandResultList, traceId string) []resourcesv1alpha1.ActionRecord {
+func mapCommandResultsToActionRecords(
+	results maskinporten.CommandResultList,
+	traceId string,
+) []resourcesv1alpha1.ActionRecord {
 	records := make([]resourcesv1alpha1.ActionRecord, len(results))
 	for i, cmdResult := range results {
 		record := resourcesv1alpha1.ActionRecord{
@@ -480,7 +500,7 @@ func mapCommandResultsToActionRecords(results maskinporten.CommandResultList, tr
 
 		switch result := cmdResult.Result.(type) {
 		case *maskinporten.CreateClientInApiCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -490,7 +510,7 @@ func mapCommandResultsToActionRecords(results maskinporten.CommandResultList, tr
 				record.Details = fmt.Sprintf("clientId: %s, scopes: %d", result.ClientId, result.Scopes)
 			}
 		case *maskinporten.UpdateClientInApiCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -500,7 +520,7 @@ func mapCommandResultsToActionRecords(results maskinporten.CommandResultList, tr
 				record.Details = fmt.Sprintf("scopes: %d, jwks: %t", result.Scopes, result.HasJwks)
 			}
 		case *maskinporten.UpdateSecretContentCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -510,17 +530,17 @@ func mapCommandResultsToActionRecords(results maskinporten.CommandResultList, tr
 				record.Details = fmt.Sprintf("keys: %d", len(result.KeyIds))
 			}
 		case *maskinporten.DeleteClientInApiCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
 				record.Details = result.Err.Error()
 			} else {
 				record.Result = deleted
-				record.Details = fmt.Sprintf("clientId: %s", result.ClientId)
+				record.Details = "clientId: " + result.ClientId
 			}
 		case *maskinporten.DeleteSecretContentCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -529,7 +549,7 @@ func mapCommandResultsToActionRecords(results maskinporten.CommandResultList, tr
 				record.Result = cleared
 			}
 		case *maskinporten.RemoveRotateAnnotationCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -538,7 +558,7 @@ func mapCommandResultsToActionRecords(results maskinporten.CommandResultList, tr
 				record.Result = removed
 			}
 		case *maskinporten.AddFinalizerCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -547,7 +567,7 @@ func mapCommandResultsToActionRecords(results maskinporten.CommandResultList, tr
 				record.Result = added
 			}
 		case *maskinporten.RemoveFinalizerCommandResult:
-			if result.Err == maskinporten.ErrSkipped {
+			if errors.Is(result.Err, maskinporten.ErrSkipped) {
 				record.Result = skipped
 			} else if result.Err != nil {
 				record.Result = failed
@@ -606,14 +626,14 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 		return nil, fmt.Errorf("fetchCurrentState: failed to list secrets: %w", err)
 	}
 	if len(secrets.Items) > 1 {
-		return nil, fmt.Errorf("fetchCurrentState: unexpected number of secrets found: %d", len(secrets.Items))
+		return nil, fmt.Errorf("%w: %d", errUnexpectedSecretCount, len(secrets.Items))
 	}
 
 	var secret *corev1.Secret
 	if len(secrets.Items) == 1 {
 		secret = &secrets.Items[0]
 		if secret.Type != corev1.SecretTypeOpaque {
-			return nil, fmt.Errorf("fetchCurrentState: unexpected secret type: %s (expected Opaque)", secret.Type)
+			return nil, fmt.Errorf("%w: %s (expected Opaque)", errUnexpectedSecretType, secret.Type)
 		}
 	}
 
@@ -636,7 +656,11 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 				if req.Kind == RequestDeleteKind && errors.Is(err, maskinporten.ErrClientNotFound) {
 					// During deletion, if the client is already gone, we can ignore this error
 					// But we log a warning so that we have a record of it
-					logger.Info("Client not found in Maskinporten API during deletion, continuing...", "clientId", secretStateContent.ClientId)
+					logger.Info(
+						"Client not found in Maskinporten API during deletion, continuing...",
+						"clientId",
+						secretStateContent.ClientId,
+					)
 				} else {
 					return nil, fmt.Errorf("fetchCurrentState: error getting client: %w", err)
 				}
@@ -647,7 +671,11 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 			mpClient, jwks, err = apiClient.GetClient(ctx, statusClientId)
 			if err != nil {
 				if errors.Is(err, maskinporten.ErrClientNotFound) {
-					logger.Info("Client from status not found in Maskinporten API during deletion, continuing...", "clientId", statusClientId)
+					logger.Info(
+						"Client from status not found in Maskinporten API during deletion, continuing...",
+						"clientId",
+						statusClientId,
+					)
 				} else {
 					return nil, fmt.Errorf("fetchCurrentState: error getting client from status: %w", err)
 				}
@@ -678,9 +706,11 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 	}
 
 	if req.Kind == RequestDeleteKind && mpClient == nil {
-		if shouldRequireClientIdentityForDeletion(req.Instance) && !hasAuthoritativeClientIdentity(secretStateContent, statusClientId) {
+		if shouldRequireClientIdentityForDeletion(req.Instance) &&
+			!hasAuthoritativeClientIdentity(secretStateContent, statusClientId) {
 			return nil, fmt.Errorf(
-				"fetchCurrentState: refusing deletion of %s/%s without client identity; both secret and status are missing clientId",
+				"%w: %s/%s without client identity; both secret and status are missing clientId",
+				errDeletionIdentityRequired,
 				req.Namespace,
 				req.Name,
 			)
@@ -696,7 +726,8 @@ func (r *MaskinportenClientReconciler) fetchCurrentState(
 }
 
 func hasAuthoritativeClientIdentity(secretStateContent *maskinporten.SecretStateContent, statusClientId string) bool {
-	return (secretStateContent != nil && strings.TrimSpace(secretStateContent.ClientId) != "") || strings.TrimSpace(statusClientId) != ""
+	return (secretStateContent != nil && strings.TrimSpace(secretStateContent.ClientId) != "") ||
+		strings.TrimSpace(statusClientId) != ""
 }
 
 func shouldRequireClientIdentityForDeletion(instance *resourcesv1alpha1.MaskinportenClient) bool {
@@ -725,7 +756,7 @@ func (r *MaskinportenClientReconciler) reconcile(
 	apiClient := r.runtime.GetMaskinportenApiClient()
 
 	var firstErr error
-	for i := 0; i < len(commands); i++ {
+	for i := range commands {
 		cmd := &commands[i]
 		assert.That(cmd.Data != nil, "Command.Data must be non-nil")
 
@@ -845,7 +876,9 @@ func (r *MaskinportenClientReconciler) reconcile(
 			rvBefore := currentState.Crd.ResourceVersion
 			delete(currentState.Crd.Annotations, maskinporten.AnnotationRotateJwk)
 			if err := r.Update(ctx, currentState.Crd); err != nil {
-				builders[i].WithRemoveRotateAnnotationResult(&maskinporten.RemoveRotateAnnotationCommandResult{Err: err})
+				builders[i].WithRemoveRotateAnnotationResult(
+					&maskinporten.RemoveRotateAnnotationCommandResult{Err: err},
+				)
 				firstErr = err
 				continue
 			}
@@ -901,7 +934,9 @@ func setSkippedResult(b *maskinporten.CommandResultBuilder, data any) {
 	case *maskinporten.DeleteSecretContentCommand:
 		b.WithDeleteSecretContentResult(&maskinporten.DeleteSecretContentCommandResult{Err: maskinporten.ErrSkipped})
 	case *maskinporten.RemoveRotateAnnotationCommand:
-		b.WithRemoveRotateAnnotationResult(&maskinporten.RemoveRotateAnnotationCommandResult{Err: maskinporten.ErrSkipped})
+		b.WithRemoveRotateAnnotationResult(
+			&maskinporten.RemoveRotateAnnotationCommandResult{Err: maskinporten.ErrSkipped},
+		)
 	case *maskinporten.AddFinalizerCommand:
 		b.WithAddFinalizerResult(&maskinporten.AddFinalizerCommandResult{Err: maskinporten.ErrSkipped})
 	case *maskinporten.RemoveFinalizerCommand:
@@ -913,17 +948,20 @@ func setSkippedResult(b *maskinporten.CommandResultBuilder, data any) {
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *MaskinportenClientReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
+	if err := ctrl.NewControllerManagedBy(mgr).
 		For(&resourcesv1alpha1.MaskinportenClient{}).
 		WithEventFilter(predicate.Or(
 			predicate.GenerationChangedPredicate{},
 			rotateAnnotationPredicate{},
 		)).
 		WithOptions(controller.Options{MaxConcurrentReconciles: goruntime.NumCPU() * 4}).
-		Complete(r)
+		Complete(r); err != nil {
+		return fmt.Errorf("complete Maskinporten controller builder: %w", err)
+	}
+	return nil
 }
 
-// rotateAnnotationPredicate triggers reconciliation when the rotate-jwk annotation is added
+// rotateAnnotationPredicate triggers reconciliation when the rotate-jwk annotation is added.
 type rotateAnnotationPredicate struct{}
 
 func (rotateAnnotationPredicate) Create(_ event.CreateEvent) bool {
