@@ -1,12 +1,7 @@
 name: Resourceadm Playwright Tests in Dev
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/Designer/frontend/resourceadm/**'
-      - '.github/workflows/playwright-resourceadm.yml'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

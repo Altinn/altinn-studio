@@ -17,7 +17,6 @@ import {
 } from '@studio/components';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
 import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 
 export function CreateRelease() {
   const { org, app } = useStudioEnvironmentParams();
@@ -26,7 +25,6 @@ export function CreateRelease() {
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { refetch: getMasterBranchStatus } = useBranchStatusQuery(org, app, 'master');
   const { data: appValidationResult } = useAppValidationQuery(org, app);
-  const appMetadataFeatureFlag = useFeatureFlag(FeatureFlag.AppMetadata);
   const { t } = useTranslation();
 
   const handleTagNameChange = (e: ChangeEvent<HTMLInputElement>) =>
@@ -53,7 +51,7 @@ export function CreateRelease() {
   const canBuild = validVersionName;
   return (
     <div className={classes.createReleaseForm}>
-      {appMetadataFeatureFlag && appValidationResult?.isValid === false && (
+      {appValidationResult?.isValid === false && (
         <StudioAlert data-color='warning'>
           <StudioHeading data-size='xs'>{t('app_create_release.warning')}</StudioHeading>
           <StudioDialog.TriggerContext>

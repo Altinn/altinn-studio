@@ -4,17 +4,11 @@ import classes from './AboutTab.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioValidationMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
-import type { AppConfig } from 'app-shared/types/AppConfig';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
-import { useAppConfigQuery } from 'app-development/hooks/queries';
-import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabPageHeader } from '../../TabPageHeader';
 import { TabPageWrapper } from '../../TabPageWrapper';
 import { TabDataError } from '../../TabDataError';
-import { InputFields } from './InputFields';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { AppConfigForm } from './AppConfigForm';
 import { useAppMetadataMutation } from 'app-development/hooks/mutations/useAppMetadataMutation';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -46,15 +40,7 @@ function AboutTabContent(): ReactElement {
     saveApplicationMetadata(updatedConfig);
   };
 
-  const { data: appConfigData, status: appConfigQueryStatus } = useAppConfigQuery(org, app);
-
-  const { mutate: updateAppConfigMutation } = useAppConfigMutation(org, app);
-
-  const handleSaveAppConfig = (updatedConfig: AppConfig) => {
-    updateAppConfigMutation(updatedConfig);
-  };
-
-  switch (mergeQueryStatuses(applicationMetadataStatus, appConfigQueryStatus)) {
+  switch (applicationMetadataStatus) {
     case 'pending': {
       return <LoadingTabData />;
     }
@@ -68,7 +54,7 @@ function AboutTabContent(): ReactElement {
       );
     }
     case 'success': {
-      return shouldDisplayFeature(FeatureFlag.AppMetadata) ? (
+      return (
         <div className={classes.wrapper}>
           <AppConfigForm
             appConfig={appMetadata}
@@ -76,10 +62,6 @@ function AboutTabContent(): ReactElement {
               setApplicationMetadata(updatedAppConfig)
             }
           />
-        </div>
-      ) : (
-        <div className={classes.wrapper}>
-          <InputFields appConfig={appConfigData} onSave={handleSaveAppConfig} />
         </div>
       );
     }
