@@ -77,7 +77,7 @@ describe('PageHeader', () => {
 
     const userSettingsLink = screen.getByRole('menuitem', { name: textMock('user.settings') });
 
-    expect(userSettingsLink).toHaveAttribute('href', '/user');
+    expect(userSettingsLink).toHaveAttribute('href', '/settings');
     expect(
       screen.getByRole('menuitem', { name: textMock('sync_header.documentation') }),
     ).toBeInTheDocument();

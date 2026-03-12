@@ -3,7 +3,7 @@ import common from '../vite.config';
 import ports from '../ports.json';
 
 export default mergeConfig(common, {
-  base: '/user-settings',
+  base: '/settings',
   server: {
     port: ports['user-settings'],
   },

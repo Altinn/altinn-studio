@@ -19,10 +19,6 @@ export const routerRoutes: RouterRoute[] = [
     page: RedirectToApiKeys,
   },
   {
-    path: RoutePaths.Settings,
-    page: RedirectToApiKeys,
-  },
-  {
     path: RoutePaths.ApiKeys,
     page: ApiKeys,
   },
