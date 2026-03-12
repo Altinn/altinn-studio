@@ -16,6 +16,8 @@ import { useAddUserApiKeyMutation } from '../hooks/mutations/useAddUserApiKeyMut
 import { useUserApiKeysQuery } from '../hooks/queries/useUserApiKeysQuery';
 import classes from './AddApiKey.module.css';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const MAX_USER_API_KEY_EXPIRY_DAYS = 365;
 
@@ -39,6 +41,7 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
 
   const { mutate: addUserApiKey, isPending, error } = useAddUserApiKeyMutation();
   const { data: apiKeys } = useUserApiKeysQuery();
+  const queryClient = useQueryClient();
 
   const todayUtc = new Date().toISOString().split('T')[0];
   const maxExpiresAtString = computeMaxExpiresAt();
@@ -60,6 +63,7 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
           setName('');
           setExpiresAt(computeMaxExpiresAt());
           setSubmitted(false);
+          queryClient.invalidateQueries({ queryKey: [QueryKey.UserApiKeys] });
         },
       },
     );
