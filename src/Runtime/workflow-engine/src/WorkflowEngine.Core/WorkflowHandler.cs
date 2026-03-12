@@ -144,6 +144,8 @@ internal sealed class WorkflowHandler(
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
+                step.Status = PersistentItemStatus.Requeued;
+                step.HasPendingChanges = true;
                 StopActivity(step);
                 throw;
             }
