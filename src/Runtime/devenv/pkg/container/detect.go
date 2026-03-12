@@ -105,17 +105,15 @@ func newDetector(deps detectorDeps) *detector {
 
 func (d *detector) detectToolchain(ctx context.Context) (ContainerToolchain, error) {
 	dockerHost := strings.TrimSpace(os.Getenv("DOCKER_HOST"))
-	if toolchain, ok := d.detectDefaultToolchain(ctx, dockerHost != ""); ok {
-		return toolchain, nil
-	}
-	if dockerHost != "" && strings.Contains(strings.ToLower(dockerHost), "podman.sock") {
-		if _, err := d.deps.lookupPath("podman"); err == nil {
-			return ContainerToolchain{
-				Platform:   PlatformPodman,
-				AccessMode: AccessPodmanCLI,
-				Source:     SourcePodmanCLI,
-			}, nil
+	if dockerHost != "" {
+		if toolchain, ok := d.detectDefaultToolchain(ctx, true); ok {
+			return toolchain, nil
 		}
+		return ContainerToolchain{}, fmt.Errorf("%w (DOCKER_HOST=%q)", errNoContainerRuntime, dockerHost)
+	}
+
+	if toolchain, ok := d.detectDefaultToolchain(ctx, false); ok {
+		return toolchain, nil
 	}
 
 	if toolchain, ok := d.tryDockerContext(ctx); ok {

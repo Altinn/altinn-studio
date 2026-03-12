@@ -24,6 +24,51 @@ const (
 	testColimaSocketHost = "unix://" + testColimaSocketPath
 )
 
+func mixedToolchainDetectorDeps(
+	t *testing.T,
+	defaultPlatform ContainerPlatform,
+) detectorDeps {
+	t.Helper()
+
+	return detectorDeps{
+		detectPlatform: func(context.Context) (ContainerPlatform, error) {
+			if defaultPlatform == PlatformUnknown {
+				return PlatformUnknown, errTransientFailure
+			}
+			return defaultPlatform, nil
+		},
+		dockerContextHost: func(context.Context) (string, error) {
+			return testColimaSocketHost, nil
+		},
+		detectPlatformWithHost: func(_ context.Context, host string) (ContainerPlatform, error) {
+			switch host {
+			case testColimaSocketHost:
+				return PlatformColima, nil
+			case testPodmanSocketHost:
+				return PlatformPodman, nil
+			default:
+				t.Fatalf("unexpected host %q", host)
+				return PlatformUnknown, nil
+			}
+		},
+		lookupPath: func(file string) (string, error) {
+			switch file {
+			case testDockerBinary:
+				return testDockerBinaryPath, nil
+			case testPodmanBinary:
+				return testPodmanBinaryPath, nil
+			default:
+				return "", exec.ErrNotFound
+			}
+		},
+		dockerSocketPaths: func() []string { return []string{testColimaSocketPath} },
+		podmanSocketPaths: func() []string { return []string{testPodmanSocketPath} },
+		fileExists: func(path string) bool {
+			return path == testColimaSocketPath || path == testPodmanSocketPath
+		},
+	}
+}
+
 func TestDetect_RetriesAfterTransientFailure(t *testing.T) {
 	calls := 0
 	d := newDetector(detectorDeps{
@@ -268,40 +313,7 @@ func TestDetectToolchain_DockerContextColimaBeatsPodmanSocket(t *testing.T) {
 func TestDetectToolchain_ExplicitDockerHostBeatsOtherCandidates(t *testing.T) {
 	t.Setenv("DOCKER_HOST", testPodmanSocketHost)
 
-	d := newDetector(detectorDeps{
-		detectPlatform: func(context.Context) (ContainerPlatform, error) {
-			return PlatformPodman, nil
-		},
-		dockerContextHost: func(context.Context) (string, error) {
-			return testColimaSocketHost, nil
-		},
-		detectPlatformWithHost: func(_ context.Context, host string) (ContainerPlatform, error) {
-			switch host {
-			case testColimaSocketHost:
-				return PlatformColima, nil
-			case testPodmanSocketHost:
-				return PlatformPodman, nil
-			default:
-				t.Fatalf("unexpected host %q", host)
-				return PlatformUnknown, nil
-			}
-		},
-		lookupPath: func(file string) (string, error) {
-			switch file {
-			case testDockerBinary:
-				return testDockerBinaryPath, nil
-			case testPodmanBinary:
-				return testPodmanBinaryPath, nil
-			default:
-				return "", exec.ErrNotFound
-			}
-		},
-		dockerSocketPaths: func() []string { return []string{testColimaSocketPath} },
-		podmanSocketPaths: func() []string { return []string{testPodmanSocketPath} },
-		fileExists: func(path string) bool {
-			return path == testColimaSocketPath || path == testPodmanSocketPath
-		},
-	})
+	d := newDetector(mixedToolchainDetectorDeps(t, PlatformPodman))
 
 	got, err := d.detectToolchain(t.Context())
 	if err != nil {
@@ -309,5 +321,16 @@ func TestDetectToolchain_ExplicitDockerHostBeatsOtherCandidates(t *testing.T) {
 	}
 	if got.Platform != PlatformPodman || got.AccessMode != AccessDockerEngineAPI || got.Source != SourceDockerHostEnv {
 		t.Fatalf("detectToolchain() = %#v", got)
+	}
+}
+
+func TestDetectToolchain_ExplicitDockerHostDoesNotFallBack(t *testing.T) {
+	t.Setenv("DOCKER_HOST", testDockerSocketHost)
+
+	d := newDetector(mixedToolchainDetectorDeps(t, PlatformUnknown))
+
+	_, err := d.detectToolchain(t.Context())
+	if !errors.Is(err, errNoContainerRuntime) {
+		t.Fatalf("detectToolchain() error = %v, want %v", err, errNoContainerRuntime)
 	}
 }
