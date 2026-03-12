@@ -159,7 +159,22 @@ public class FormBootstrapController : ControllerBase
         Dictionary<string, string>? prefillFromQueryParams = null;
         if (!string.IsNullOrEmpty(prefill))
         {
-            prefillFromQueryParams = JsonSerializer.Deserialize<Dictionary<string, string>>(prefill);
+            try
+            {
+                prefillFromQueryParams = JsonSerializer.Deserialize<Dictionary<string, string>>(prefill);
+            }
+            catch (JsonException)
+            {
+                return BadRequest(
+                    new ProblemDetails
+                    {
+                        Title = "Invalid prefill JSON",
+                        Detail = "The 'prefill' query parameter must be a valid JSON object.",
+                        Status = StatusCodes.Status400BadRequest,
+                    }
+                );
+            }
+
             if (prefillFromQueryParams != null)
             {
                 var validateQueryParamPrefill = _appImplementationFactory.Get<IValidateQueryParamPrefill>();

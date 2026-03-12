@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
@@ -63,6 +64,39 @@ public class FormBootstrapControllerTests
         );
     }
 
+    [Fact]
+    public async Task GetStatelessFormBootstrap_MalformedPrefillJson_ReturnsBadRequest()
+    {
+        var appResources = new Mock<IAppResources>();
+        appResources
+            .Setup(x => x.GetUiConfiguration())
+            .Returns(
+                new UiConfiguration
+                {
+                    Folders = new Dictionary<string, LayoutSettings>
+                    {
+                        ["stateless"] = new() { DefaultDataType = "model" },
+                    },
+                }
+            );
+
+        var controller = CreateController(Mock.Of<IInstanceClient>(), appResources.Object);
+
+        var result = await controller.GetStatelessFormBootstrap(
+            "org",
+            "app",
+            "stateless",
+            language: "nb",
+            prefill: "{bad"
+        );
+
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        var problemDetails = Assert.IsType<ProblemDetails>(badRequest.Value);
+        Assert.Equal(StatusCodes.Status400BadRequest, problemDetails.Status);
+        Assert.Equal("Invalid prefill JSON", problemDetails.Title);
+        Assert.Equal("The 'prefill' query parameter must be a valid JSON object.", problemDetails.Detail);
+    }
+
     private static FormBootstrapController CreateController(IInstanceClient instanceClient, IAppResources appResources)
     {
         var implementationServices = new ServiceCollection();
@@ -88,12 +122,23 @@ public class FormBootstrapControllerTests
         controllerServices.AddSingleton(formBootstrapService);
         controllerServices.AddSingleton(appImplementationFactory);
 
-        return new FormBootstrapController(
+        var controller = new FormBootstrapController(
             controllerServices.BuildServiceProvider(),
             instanceClient,
             appResources,
             Mock.Of<IAppMetadata>(),
             Mock.Of<ILogger<FormBootstrapController>>()
         );
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(
+                    new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "test-user")], "TestAuth")
+                ),
+            },
+        };
+
+        return controller;
     }
 }
