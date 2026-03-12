@@ -64,17 +64,6 @@ export const getValuesToDisplay = (config: InternalConfigState) => {
   return Object.fromEntries(Object.entries(values).filter(([, v]) => v != null));
 };
 
-// Temporary dummy data before integration with backend, to be replaced with actual data fetching and saving logic where it is used in upcoming PRs
-export const dummyDataPages: ExternalConfigState[] = [
-  {
-    show: ['Schema', 'Component'],
-    page: 'current',
-    task: 'form',
-    pages: ['Side2'],
-  },
-];
-// end of temporary dummy data
-
 export const getAvailableTasks = (
   tasks: LayoutSet[],
   tasksWithRules?: string[],

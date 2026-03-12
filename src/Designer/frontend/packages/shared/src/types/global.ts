@@ -23,8 +23,8 @@ export interface IValidationOnNavigationLayoutSettings {
 }
 
 export interface IValidationOnNavigationPageSettings {
-  task: string;
-  pages: string[];
+  task?: string;
+  pages?: string[];
   show?: string[];
   page?: string;
 }

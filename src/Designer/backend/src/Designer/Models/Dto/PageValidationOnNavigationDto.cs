@@ -6,16 +6,14 @@ namespace Altinn.Studio.Designer.Models.Dto;
 public class PageValidationOnNavigationDto
 {
     [JsonPropertyName("task")]
-    public required string Task { get; set; }
+    public string Task { get; set; } = string.Empty;
 
     [JsonPropertyName("pages")]
     public List<string> Pages { get; set; } = [];
 
     [JsonPropertyName("page")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Page { get; set; }
+    public string Page { get; set; } = string.Empty;
 
     [JsonPropertyName("show")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<string>? Show { get; set; }
+    public List<string> Show { get; set; } = [];
 }

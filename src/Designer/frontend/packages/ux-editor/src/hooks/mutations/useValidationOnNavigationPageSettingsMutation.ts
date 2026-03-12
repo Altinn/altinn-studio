@@ -4,12 +4,12 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useValidationOnNavigationPageSettingsMutation = (org: string, app: string) => {
-  const { saveValidationOnNavigationPageSettings } = useServicesContext();
+  const { updateValidationOnNavigationPageSettings } = useServicesContext();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (settings: IValidationOnNavigationPageSettings[]) =>
-      saveValidationOnNavigationPageSettings(org, app, settings),
+      updateValidationOnNavigationPageSettings(org, app, settings),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.ValidationOnNavigationPageSettings, org, app],

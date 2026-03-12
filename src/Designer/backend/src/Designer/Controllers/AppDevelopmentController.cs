@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -600,17 +601,22 @@ namespace Altinn.Studio.Designer.Controllers
 
                     IEnumerable<PageValidationOnNavigationDto> groups = layouts
                         .Where(kvp => kvp.Value?["data"]?["validationOnNavigation"] != null)
-                        .GroupBy(kvp => kvp.Value["data"]["validationOnNavigation"].ToJsonString())
-                        .Select(group =>
+                        .Select(kvp => new
                         {
-                            JsonNode nav = group.First().Value["data"]["validationOnNavigation"];
-                            return new PageValidationOnNavigationDto
-                            {
-                                Task = layoutSet.Id,
-                                Pages = [.. group.Select(kvp => kvp.Key)],
-                                Page = nav["page"]?.GetValue<string>(),
-                                Show = nav["show"]?.AsArray().Select(s => s.GetValue<string>()).ToList(),
-                            };
+                            PageName = kvp.Key,
+                            Nav = kvp.Value["data"]["validationOnNavigation"].Deserialize<ValidationOnNavigation>(),
+                        })
+                        .GroupBy(x => new
+                        {
+                            Page = x.Nav.Page ?? string.Empty,
+                            ShowKey = x.Nav.Show != null ? string.Join(",", x.Nav.Show.OrderBy(s => s)) : string.Empty,
+                        })
+                        .Select(group => new PageValidationOnNavigationDto
+                        {
+                            Task = layoutSet.Id,
+                            Pages = [.. group.Select(x => x.PageName)],
+                            Page = group.First().Nav.Page,
+                            Show = group.First().Nav.Show?.OrderBy(s => s).ToList(),
                         });
 
                     result.AddRange(groups);
@@ -629,16 +635,16 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Saves validationOnNavigation settings for individual pages by writing to each page's layout file.
+        /// Updates validationOnNavigation settings for individual pages by writing to each page's layout file.
         /// Pages included in a group get their data.validationOnNavigation set; pages not in any group have it removed.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="pageSettings">List of page validation groups to save.</param>
+        /// <param name="pageSettings">List of page validation groups to update.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         [HttpPost("layout-settings/validation-on-navigation/pages")]
         [UseSystemTextJson]
-        public async Task<IActionResult> SaveValidationOnNavigationPageSettings(
+        public async Task<IActionResult> UpdateValidationOnNavigationPageSettings(
             string org,
             string app,
             [FromBody] List<PageValidationOnNavigationDto> pageSettings,
@@ -663,28 +669,27 @@ namespace Altinn.Studio.Designer.Controllers
                         cancellationToken
                     );
 
-                    List<PageValidationOnNavigationDto> groupsForSet = [.. pageSettings.Where(g => g.Task == layoutSet.Id)];
+                    var groupsForSet = pageSettings.Where(g => g.Task == layoutSet.Id).ToList();
 
                     foreach ((string pageName, JsonNode layoutNode) in layouts)
                     {
-                        PageValidationOnNavigationDto matchingGroup = groupsForSet.FirstOrDefault(g => g.Pages.Contains(pageName));
+                        PageValidationOnNavigationDto matchingGroup = groupsForSet.FirstOrDefault(g =>
+                            g.Pages.Contains(pageName)
+                        );
 
                         JsonObject dataNode = layoutNode?["data"]?.AsObject();
                         if (dataNode == null)
                         {
                             continue;
                         }
-
                         if (matchingGroup != null)
                         {
-                            JsonObject navNode = [];
-                            navNode["page"] = matchingGroup.Page;
-                            if (matchingGroup.Show != null)
+                            var nav = new ValidationOnNavigation
                             {
-                                JsonArray showArray = [.. matchingGroup.Show];
-                                navNode["show"] = showArray;
-                            }
-                            dataNode["validationOnNavigation"] = navNode;
+                                Page = matchingGroup.Page,
+                                Show = matchingGroup.Show?.OrderBy(s => s).ToList(),
+                            };
+                            dataNode["validationOnNavigation"] = JsonSerializer.SerializeToNode(nav);
                         }
                         else
                         {
