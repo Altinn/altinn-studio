@@ -44,6 +44,22 @@ public static class StudioOidcAuthenticationExtensions
         IWebHostEnvironment env
     )
     {
+        // Register authorization policy unconditionally so ASP.NET Core
+        // can validate [Authorize] attributes at startup regardless of feature flag.
+        services
+            .AddAuthorizationBuilder()
+            .AddPolicy(
+                StudioOidcConstants.OrgAccessAuthorizationPolicy,
+                policy =>
+                {
+                    policy.AuthenticationSchemes.Add(CookieAuthenticationDefaults.AuthenticationScheme);
+                    policy.RequireAuthenticatedUser();
+                    policy.Requirements.Add(new OrgAccessRequirement());
+                }
+            );
+
+        services.AddScoped<IAuthorizationHandler, OrgAccessHandler>();
+
         bool featureEnabled =
             configuration.GetSection($"FeatureManagement:{StudioFeatureFlags.StudioOidc}").Get<bool?>() ?? false;
 
@@ -192,20 +208,6 @@ public static class StudioOidcAuthenticationExtensions
                     };
                 }
             );
-
-        services
-            .AddAuthorizationBuilder()
-            .AddPolicy(
-                StudioOidcConstants.OrgAccessAuthorizationPolicy,
-                policy =>
-                {
-                    policy.AuthenticationSchemes.Add(CookieAuthenticationDefaults.AuthenticationScheme);
-                    policy.RequireAuthenticatedUser();
-                    policy.Requirements.Add(new OrgAccessRequirement());
-                }
-            );
-
-        services.AddScoped<IAuthorizationHandler, OrgAccessHandler>();
 
         return services;
     }
