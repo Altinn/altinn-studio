@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using System.Text.Json;
 using Altinn.App.Api.Features.Bootstrap;
 using Altinn.App.Core.Features;
@@ -9,8 +8,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Prefill;
-using Altinn.App.Core.Internal.Process;
-using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -32,18 +29,7 @@ public class FormBootstrapServiceTests
     private readonly Mock<IAppModel> _appModel = new();
     private readonly Mock<IPrefill> _prefillService = new();
     private readonly Mock<IAuthenticationContext> _authenticationContext = new();
-    private readonly ProcessStateEnricher _processStateEnricher;
     private readonly Mock<ILogger<FormBootstrapService>> _logger = new();
-    private static readonly ClaimsPrincipal _testUser = new(new ClaimsIdentity());
-
-    public FormBootstrapServiceTests()
-    {
-        var processReader = new Mock<IProcessReader>();
-        processReader.Setup(x => x.GetAllFlowElements()).Returns([]);
-        var authorizationService = new Mock<Core.Internal.Auth.IAuthorizationService>();
-
-        _processStateEnricher = new ProcessStateEnricher(processReader.Object, authorizationService.Object);
-    }
 
     private FormBootstrapService CreateService() =>
         new(
@@ -56,7 +42,6 @@ public class FormBootstrapServiceTests
             _appModel.Object,
             _prefillService.Object,
             _authenticationContext.Object,
-            _processStateEnricher,
             _logger.Object
         );
 
@@ -85,8 +70,7 @@ public class FormBootstrapServiceTests
             uiFolder: "Task_1",
             dataElementIdOverride: null,
             isPdf: false,
-            language: "nb",
-            user: _testUser
+            language: "nb"
         );
 
         // Assert - Response shape
@@ -126,7 +110,7 @@ public class FormBootstrapServiceTests
 
         var service = CreateService();
 
-        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb", _testUser);
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
 
         Assert.Single(result.ValidationIssues!);
         Assert.Equal("task.error", result.ValidationIssues![0].Code);
@@ -151,6 +135,7 @@ public class FormBootstrapServiceTests
         Assert.NotNull(result.Layouts);
         Assert.NotNull(result.DataModels);
         Assert.NotNull(result.StaticOptions);
+        Assert.Null(result.ValidationIssues); // Stateless should not have validation
         Assert.All(result.DataModels.Values, dataModel => Assert.Null(dataModel.InitialValidationIssues));
     }
 
@@ -178,7 +163,7 @@ public class FormBootstrapServiceTests
         SetupMocks(appMetadata);
         var service = CreateService();
 
-        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, true, "nb", _testUser);
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, true, "nb");
 
         Assert.Null(result.ValidationIssues);
         Assert.All(result.DataModels.Values, dataModel => Assert.Null(dataModel.InitialValidationIssues));
@@ -206,8 +191,7 @@ public class FormBootstrapServiceTests
             uiFolder: "Task_1",
             dataElementIdOverride: null,
             isPdf: true,
-            language: "nb",
-            user: _testUser
+            language: "nb"
         );
 
         // Assert
@@ -232,8 +216,7 @@ public class FormBootstrapServiceTests
             uiFolder: "Task_1",
             dataElementIdOverride: null,
             isPdf: false,
-            language: "nb",
-            user: _testUser
+            language: "nb"
         );
 
         // Assert
@@ -280,8 +263,7 @@ public class FormBootstrapServiceTests
             uiFolder: "Task_1",
             dataElementIdOverride: null,
             isPdf: false,
-            language: "nb",
-            user: _testUser
+            language: "nb"
         );
 
         // Assert
@@ -321,8 +303,7 @@ public class FormBootstrapServiceTests
             uiFolder: "Task_1",
             dataElementIdOverride: null,
             isPdf: false,
-            language: "nb",
-            user: _testUser
+            language: "nb"
         );
 
         // Assert - Should return valid options, not fail entirely
@@ -348,7 +329,7 @@ public class FormBootstrapServiceTests
 
         var service = CreateService();
 
-        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb", _testUser);
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
 
         Assert.True(result.StaticOptions.ContainsKey("fileBased"));
         Assert.Single(result.StaticOptions["fileBased"].Options);
@@ -387,7 +368,7 @@ public class FormBootstrapServiceTests
             );
 
         var service = CreateService();
-        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb", _testUser);
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
 
         Assert.Equal("version=1,language=nb", result.StaticOptions["countries"].DownstreamParameters);
         Assert.Null(result.StaticOptions["fileBased"].DownstreamParameters);
@@ -411,8 +392,7 @@ public class FormBootstrapServiceTests
             uiFolder: "subform",
             dataElementIdOverride: dataElementId,
             isPdf: false,
-            language: "nb",
-            user: _testUser
+            language: "nb"
         );
 
         // Assert
@@ -429,7 +409,7 @@ public class FormBootstrapServiceTests
         SetupMocks(appMetadata);
 
         var service = CreateService();
-        await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nn", _testUser);
+        await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nn");
 
         _formDataReader.Verify(
             x =>

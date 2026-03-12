@@ -27,11 +27,40 @@
     dueBefore: null,
     visibleAfter: null,
     process: {
-      started: DateTimeOffset_1,
-      startEvent: StartEvent_1,
       currentTask: {
+        actions: {
+          read: true,
+          write: true,
+          reject: true,
+          action_defined_in_bpmn_but_unauthorized: false
+        },
+        userActions: [
+          {
+            id: read,
+            authorized: true,
+            type: ProcessAction
+          },
+          {
+            id: write,
+            authorized: true,
+            type: ProcessAction
+          },
+          {
+            id: reject,
+            authorized: true,
+            type: ProcessAction
+          },
+          {
+            id: action_defined_in_bpmn_but_unauthorized,
+            authorized: false,
+            type: ProcessAction
+          }
+        ],
+        read: true,
+        write: true,
+        elementType: Task,
         flow: 2,
-        started: DateTimeOffset_2,
+        started: DateTimeOffset_1,
         elementId: Task_1,
         name: Utfylling,
         altinnTaskType: data,
@@ -39,6 +68,15 @@
         validated: null,
         flowType: CompleteCurrentMoveToNext
       },
+      processTasks: [
+        {
+          altinnTaskType: data,
+          elementId: Task_1,
+          elementType: Task
+        }
+      ],
+      started: DateTimeOffset_2,
+      startEvent: StartEvent_1,
       ended: null,
       endEvent: null
     },
@@ -114,11 +152,40 @@
     dueBefore: null,
     visibleAfter: null,
     process: {
-      started: DateTimeOffset_1,
-      startEvent: StartEvent_1,
       currentTask: {
+        actions: {
+          read: true,
+          write: true,
+          reject: true,
+          action_defined_in_bpmn_but_unauthorized: false
+        },
+        userActions: [
+          {
+            id: read,
+            authorized: true,
+            type: ProcessAction
+          },
+          {
+            id: write,
+            authorized: true,
+            type: ProcessAction
+          },
+          {
+            id: reject,
+            authorized: true,
+            type: ProcessAction
+          },
+          {
+            id: action_defined_in_bpmn_but_unauthorized,
+            authorized: false,
+            type: ProcessAction
+          }
+        ],
+        read: true,
+        write: true,
+        elementType: Task,
         flow: 2,
-        started: DateTimeOffset_2,
+        started: DateTimeOffset_1,
         elementId: Task_1,
         name: Utfylling,
         altinnTaskType: data,
@@ -126,6 +193,15 @@
         validated: null,
         flowType: CompleteCurrentMoveToNext
       },
+      processTasks: [
+        {
+          altinnTaskType: data,
+          elementId: Task_1,
+          elementType: Task
+        }
+      ],
+      started: DateTimeOffset_2,
+      startEvent: StartEvent_1,
       ended: null,
       endEvent: null
     },

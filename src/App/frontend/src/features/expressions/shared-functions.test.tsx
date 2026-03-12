@@ -20,7 +20,7 @@ import {
 } from 'src/features/form/layout/utils/repeating';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
-import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
+import { fetchInstanceData } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
@@ -186,7 +186,6 @@ function setupMocks(test: FunctionTest): void {
   };
 
   jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
-  jest.mocked(fetchProcessState).mockImplementation(async () => createProcess(test) ?? getProcessDataMock());
   jest.mocked(fetchInstanceData).mockImplementation(async () => createInstanceData(test));
 }
 
@@ -254,6 +253,10 @@ function createInstanceData(test: FunctionTest): IInstance {
   const instance = createInstance(test);
   if (instance) {
     instanceData = { ...instanceData, ...instance };
+  }
+  const process = createProcess(test);
+  if (process) {
+    instanceData.process = process;
   }
   const { instanceDataElements, dataModels } = test;
   if (instanceDataElements) {

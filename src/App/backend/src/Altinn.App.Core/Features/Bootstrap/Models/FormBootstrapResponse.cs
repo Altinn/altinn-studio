@@ -1,15 +1,14 @@
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features.Bootstrap.Models;
 
 /// <summary>
-/// Base response containing shared data needed to bootstrap a form.
+/// Response containing all data needed to bootstrap a form.
+/// This replaces multiple frontend requests with a single backend response.
 /// </summary>
-public abstract class FormBootstrapResponse
+public sealed class FormBootstrapResponse
 {
     /// <summary>
     /// Layouts keyed by page name, containing all layout definitions.
@@ -28,39 +27,15 @@ public abstract class FormBootstrapResponse
     /// </summary>
     [JsonPropertyName("staticOptions")]
     public required Dictionary<string, StaticOptionSet> StaticOptions { get; init; }
-}
-
-/// <summary>
-/// Response for bootstrapping an instance-based form.
-/// Includes instance data, enriched process state, and validation issues.
-/// </summary>
-public sealed class InstanceFormBootstrapResponse : FormBootstrapResponse
-{
-    /// <summary>
-    /// The instance.
-    /// </summary>
-    [JsonPropertyName("instance")]
-    public required Instance Instance { get; init; }
 
     /// <summary>
-    /// Enriched process state with authorized actions, read/write access, and process task metadata.
-    /// </summary>
-    [JsonPropertyName("process")]
-    public required AppProcessState Process { get; init; }
-
-    /// <summary>
-    /// Initial validation issues.
-    /// Null when generating PDFs.
+    /// Initial validation issues for instance mode.
+    /// Null for stateless mode or PDF generation.
     /// </summary>
     [JsonPropertyName("validationIssues")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<ValidationIssueWithSource>? ValidationIssues { get; init; }
 }
-
-/// <summary>
-/// Response for bootstrapping a stateless form.
-/// </summary>
-public sealed class StatelessFormBootstrapResponse : FormBootstrapResponse { }
 
 /// <summary>
 /// Static options payload for a single optionsId.

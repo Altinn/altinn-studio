@@ -480,7 +480,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process")]
     public class ProcessController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public ProcessController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.ProcessController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Process.IProcessClient processClient, Altinn.App.Core.Internal.Validation.IValidationService validationService, Altinn.App.Core.Internal.Auth.IAuthorizationService authorization, Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Process.IProcessEngine processEngine, System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Process.IProcessEngineAuthorizer processEngineAuthorizer) { }
+        public ProcessController(Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.ProcessController> logger, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.Process.IProcessClient processClient, Altinn.App.Core.Internal.Validation.IValidationService validationService, Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Process.IProcessEngine processEngine, System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Process.IProcessEngineAuthorizer processEngineAuthorizer, Altinn.App.Core.Internal.Process.ProcessStateEnricher processStateEnricher) { }
         [Microsoft.AspNetCore.Mvc.HttpPut("completeProcess")]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(200)]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
@@ -1024,7 +1024,7 @@ namespace Altinn.App.Api.Models
         public required string LastChangedBy { get; init; }
         public required string Org { get; init; }
         public required System.Collections.Generic.IReadOnlyDictionary<string, string> PresentationTexts { get; init; }
-        public required Altinn.Platform.Storage.Interface.Models.ProcessState Process { get; init; }
+        public required Altinn.App.Core.Internal.Process.Elements.AppProcessState Process { get; init; }
         public required Altinn.Platform.Storage.Interface.Models.ResourceLinks SelfLinks { get; init; }
         public required Altinn.Platform.Storage.Interface.Models.InstanceStatus Status { get; init; }
         public required System.DateTime? VisibleAfter { get; init; }

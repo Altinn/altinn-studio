@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -9,8 +9,7 @@ import type { UseQueryOptions } from '@tanstack/react-query';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { FileScanResults } from 'src/features/attachments/types';
-import { removeProcessFromInstance } from 'src/features/instance/instanceUtils';
-import { useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { PROCESS_QUERY_KEY_PREFIX } from 'src/features/instance/useProcessQuery';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
@@ -26,26 +25,32 @@ export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceGuid = useNavigationParam('instanceGuid');
   const instantiation = useInstantiation();
   const navigation = useNavigation();
-
-  const { isLoading: isLoadingProcess, error: processError } = useProcessQuery();
+  const queryClient = useQueryClient();
 
   const hasPendingScans = useHasPendingScans();
   const { error: instanceDataError, data } = useInstanceDataQuery({ refetchInterval: hasPendingScans ? 5000 : false });
+
+  const instanceId = instanceOwnerPartyId && instanceGuid ? `${instanceOwnerPartyId}/${instanceGuid}` : undefined;
+
+  // Seed the process query cache from the instance response so all useProcessQuery() consumers
+  // get their data without a separate GET /process call.
+  useEffect(() => {
+    if (data?.process && instanceId) {
+      queryClient.setQueryData([PROCESS_QUERY_KEY_PREFIX, instanceId], data.process);
+    }
+  }, [data?.process, instanceId, queryClient]);
 
   if (!instanceOwnerPartyId || !instanceGuid) {
     throw new Error('Missing instanceOwnerPartyId or instanceGuid when creating instance context');
   }
 
-  const error = instantiation.error ?? instanceDataError ?? processError;
+  const error = instantiation.error ?? instanceDataError;
   if (error) {
     return <DisplayError error={error} />;
   }
 
   if (!data) {
     return <Loader reason='loading-instance' />;
-  }
-  if (isLoadingProcess) {
-    return <Loader reason='fetching-process' />;
   }
 
   if (navigation.state === 'loading') {
@@ -219,8 +224,7 @@ export const useOptimisticallyUpdateCachedInstance = (): ChangeInstanceData => {
   return (callback: (instance: IInstance | undefined) => IInstance | undefined) => {
     updateInstance((oldData) => {
       const next = callback(oldData);
-      const clean = next ? removeProcessFromInstance(next) : undefined;
-      if (clean && !deepEqual(oldData, clean)) {
+      if (next && !deepEqual(oldData, next)) {
         return next;
       }
       return oldData;

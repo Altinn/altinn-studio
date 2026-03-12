@@ -3825,6 +3825,11 @@ namespace Altinn.App.Core.Internal.Process
         AbandonCurrentReturnToNext = 1,
         AbandonCurrentMoveToNext = 2,
     }
+    public sealed class ProcessStateEnricher
+    {
+        public ProcessStateEnricher(Altinn.App.Core.Internal.Process.IProcessReader processReader, Altinn.App.Core.Internal.Auth.IAuthorizationService authorization) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Internal.Process.Elements.AppProcessState> Enrich(Altinn.Platform.Storage.Interface.Models.Instance instance, Altinn.Platform.Storage.Interface.Models.ProcessState? processState, System.Security.Claims.ClaimsPrincipal user) { }
+    }
 }
 namespace Altinn.App.Core.Internal.Process.ProcessTasks
 {

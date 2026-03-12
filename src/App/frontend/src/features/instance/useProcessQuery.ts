@@ -9,8 +9,10 @@ import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import type { LooseAutocomplete } from 'src/types';
 import type { IActionType, IProcess } from 'src/types/shared';
 
+export const PROCESS_QUERY_KEY_PREFIX = 'process';
+
 export const processQueries = {
-  all: () => ['process'],
+  all: () => [PROCESS_QUERY_KEY_PREFIX],
   processStateKey: (instanceId?: string) => [...processQueries.all(), instanceId],
   processState: (instanceId?: string) =>
     queryOptions({
