@@ -60,7 +60,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                             + $"{descriptor.CommandDataType.Name}, but none was provided"
                     );
                 }
-                typedCommandData = rawData.Deserialize(descriptor.CommandDataType, CommandSerializerOptions.Default);
+                typedCommandData = rawData.Deserialize(descriptor.CommandDataType, CommandDefinition.SerializerOptions);
             }
 
             object? typedWorkflowContext = null;
@@ -75,7 +75,7 @@ internal class WorkflowExecutor : IWorkflowExecutor
                 }
                 typedWorkflowContext = rawContext.Deserialize(
                     descriptor.WorkflowContextType,
-                    CommandSerializerOptions.Default
+                    CommandDefinition.SerializerOptions
                 );
             }
 

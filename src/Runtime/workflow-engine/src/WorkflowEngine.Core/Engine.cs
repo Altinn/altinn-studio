@@ -139,7 +139,7 @@ internal sealed class Engine(
                     {
                         typedCommandData = rawData.Deserialize(
                             command.CommandDataType,
-                            CommandSerializerOptions.Default
+                            CommandDefinition.SerializerOptions
                         );
                     }
                     catch (JsonException ex)
@@ -166,7 +166,7 @@ internal sealed class Engine(
                     {
                         typedWorkflowContext = rawContext.Deserialize(
                             command.WorkflowContextType,
-                            CommandSerializerOptions.Default
+                            CommandDefinition.SerializerOptions
                         );
                     }
                     catch (JsonException ex)

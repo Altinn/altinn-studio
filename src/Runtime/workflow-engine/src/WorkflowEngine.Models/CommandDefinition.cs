@@ -12,6 +12,12 @@ namespace WorkflowEngine.Models;
 public sealed record CommandDefinition
 {
     /// <summary>
+    /// Shared <see cref="JsonSerializerOptions"/> for command data and workflow context serialization.
+    /// Used by the engine (validation + execution) and by command descriptors for response parsing.
+    /// </summary>
+    public static readonly JsonSerializerOptions SerializerOptions = new() { PropertyNameCaseInsensitive = true };
+
+    /// <summary>
     /// The command type discriminator. Matched against registered command handlers.
     /// </summary>
     [JsonPropertyName("type")]
@@ -32,7 +38,7 @@ public sealed record CommandDefinition
     public JsonElement? Data { get; init; }
 
     /// <summary>
-    /// Creates a <see cref="CommandDefinition"/> with typed data, serialized via <see cref="CommandSerializerOptions.Default"/>.
+    /// Creates a <see cref="CommandDefinition"/> with typed data, serialized via <see cref="SerializerOptions"/>.
     /// </summary>
     public static CommandDefinition Create<TData>(string type, TData data, TimeSpan? maxExecutionTime = null)
         where TData : class =>
@@ -40,7 +46,7 @@ public sealed record CommandDefinition
         {
             Type = type,
             MaxExecutionTime = maxExecutionTime,
-            Data = JsonSerializer.SerializeToElement(data, CommandSerializerOptions.Default),
+            Data = JsonSerializer.SerializeToElement(data, SerializerOptions),
         };
 
     /// <summary>
