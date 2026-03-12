@@ -62,12 +62,13 @@ internal sealed class StatusWriteBuffer : BackgroundService
 
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
+        // Register cancellation before writing so there's no window where the token fires
+        // after the write but before the registration is in place
+        await using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
+
         var request = new StatusUpdateRequest(workflow, dirtySteps, tcs);
 
         await _channel.Writer.WriteAsync(request, ct);
-
-        // Register cancellation so the caller isn't stuck if the request is cancelled
-        await using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
 
         await tcs.Task;
     }

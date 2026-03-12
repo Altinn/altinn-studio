@@ -55,10 +55,10 @@ Conducted: 2026-03-12
 - [ ] **13. `SqlBulkInserter` column ordering depends on EF property enumeration order**
   `SqlBulkInserter.cs:31-52` — Column order from `entityType.GetProperties()` isn't guaranteed stable across EF Core versions. COPY binary protocol is position-sensitive. Sort by column name for determinism.
 
-- [ ] **14. Shutdown can hang indefinitely**
+- [x] **14. Shutdown can hang indefinitely**
   `WorkflowProcessor.cs:81-84` — On shutdown, acquires all semaphore slots with `CancellationToken.None`. If any worker is stuck on a DB/HTTP call, shutdown blocks forever. Add a timeout.
 
-- [ ] **15. `StatusWriteBuffer.SubmitAsync` cancellation race**
+- [x] **15. `StatusWriteBuffer.SubmitAsync` cancellation race**
   `StatusWriteBuffer.cs:67-72` — Cancellation registration happens after the channel write. If the token fires between `WriteAsync` and `ct.Register(...)`, the TCS cancellation handler isn't registered. Register before writing.
 
 - [ ] **16. `BatchUpdateWorkflowsAndSteps` ignores affected row count**

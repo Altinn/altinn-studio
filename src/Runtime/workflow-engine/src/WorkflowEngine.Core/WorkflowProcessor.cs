@@ -20,6 +20,11 @@ internal sealed class WorkflowProcessor(
     ILogger<WorkflowProcessor> logger
 ) : BackgroundService
 {
+    /// <summary>
+    /// Maximum time to wait for in-flight workers during shutdown before giving up.
+    /// </summary>
+    internal static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(30);
+
     private readonly int _maxWorkers = options.Value.MaxWorkers;
     private readonly SemaphoreSlim _semaphore = new(options.Value.MaxWorkers, options.Value.MaxWorkers);
 
@@ -78,12 +83,20 @@ internal sealed class WorkflowProcessor(
 
         logger.ProcessorShuttingDown(_maxWorkers - _semaphore.CurrentCount);
 
-        for (int i = 0; i < _maxWorkers; i++)
+        using var shutdownCts = new CancellationTokenSource(ShutdownTimeout);
+        try
         {
-            await _semaphore.WaitAsync(CancellationToken.None);
-        }
+            for (int i = 0; i < _maxWorkers; i++)
+            {
+                await _semaphore.WaitAsync(shutdownCts.Token);
+            }
 
-        logger.ProcessorAllWorkersFinished();
+            logger.ProcessorAllWorkersFinished();
+        }
+        catch (OperationCanceledException)
+        {
+            logger.ProcessorShutdownTimedOut(_maxWorkers - _semaphore.CurrentCount);
+        }
 
         logger.ProcessorStopped();
     }
@@ -147,6 +160,12 @@ internal static partial class WorkflowProcessorLogs
 
     [LoggerMessage(LogLevel.Information, "All workers finished")]
     internal static partial void ProcessorAllWorkersFinished(this ILogger<WorkflowProcessor> logger);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Shutdown timed out with {ActiveCount} workers still active. Proceeding with shutdown."
+    )]
+    internal static partial void ProcessorShutdownTimedOut(this ILogger<WorkflowProcessor> logger, int activeCount);
 
     [LoggerMessage(LogLevel.Information, "WorkflowProcessor shutdown complete")]
     internal static partial void ProcessorStopped(this ILogger<WorkflowProcessor> logger);
