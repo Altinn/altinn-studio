@@ -2231,7 +2231,7 @@
   "ux_editor.options.multiple": "{{value}} alternativer",
   "ux_editor.options.option_edit_text": "Rediger kodeliste",
   "ux_editor.options.option_remove_text": "Fjern kobling til kodelisten",
-  "ux_editor.options.published_code_list.choose": "Velg fra organisajonsbiblioteket",
+  "ux_editor.options.published_code_list.choose": "Velg fra organisasjonsbiblioteket",
   "ux_editor.options.published_code_list.fixed_version": "Spesifikk versjon",
   "ux_editor.options.published_code_list.latest_or_fixed_description": "Velger du nyeste versjon, vil kodelisten oppdatere seg automatisk når det blir publisert en ny versjon. Velger du spesifikk versjon, vil komponenten alltid bruke den samme versjonen.",
   "ux_editor.options.published_code_list.latest_or_fixed_legend": "Nyeste eller spesifikk versjon?",
