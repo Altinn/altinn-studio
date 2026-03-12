@@ -37,11 +37,11 @@ internal sealed class Engine(
         );
 
         // Validate input size limits before expensive graph validation or command deserialization
-        var sizeError = ValidateInputSizeLimits(request);
-        if (sizeError is not null)
+        var sizeResult = ValidateInputSizeLimits(request);
+        if (sizeResult is SizeLimitValidationResult.Invalid sizeError)
         {
-            activity?.Errored(errorMessage: sizeError);
-            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, sizeError);
+            activity?.Errored(errorMessage: sizeError.Message);
+            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, sizeError.Message);
         }
 
         IReadOnlyList<WorkflowRequest> sortedRequests;
@@ -194,23 +194,28 @@ internal sealed class Engine(
 
     /// <summary>
     /// Validates that the request does not exceed input size limits.
-    /// Returns an error message if invalid, or null if valid.
     /// </summary>
-    private string? ValidateInputSizeLimits(WorkflowEnqueueRequest request)
+    private SizeLimitValidationResult ValidateInputSizeLimits(WorkflowEnqueueRequest request)
     {
         if (request.Workflows.Count > _settings.MaxWorkflowsPerRequest)
-            return $"Request contains {request.Workflows.Count} workflows, maximum is {_settings.MaxWorkflowsPerRequest}.";
+            return SizeLimitValidationResult.Reject(
+                $"Request contains {request.Workflows.Count} workflows, maximum is {_settings.MaxWorkflowsPerRequest}."
+            );
 
         if (request.Labels is not null && request.Labels.Count > _settings.MaxLabels)
-            return $"Request contains {request.Labels.Count} labels, maximum is {_settings.MaxLabels}.";
+            return SizeLimitValidationResult.Reject(
+                $"Request contains {request.Labels.Count} labels, maximum is {_settings.MaxLabels}."
+            );
 
         for (int i = 0; i < request.Workflows.Count; i++)
         {
             var workflow = request.Workflows[i];
             if (workflow.Steps.Count > _settings.MaxStepsPerWorkflow)
-                return $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {_settings.MaxStepsPerWorkflow}.";
+                return SizeLimitValidationResult.Reject(
+                    $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {_settings.MaxStepsPerWorkflow}."
+                );
         }
 
-        return null;
+        return SizeLimitValidationResult.Accept();
     }
 }
