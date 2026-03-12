@@ -2,27 +2,35 @@ package http
 
 import (
 	"encoding/json"
+	"io"
 	"log/slog"
 	"net/http"
 
-	"altinn.studio/pdf3/internal/telemetry"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+
+	"altinn.studio/pdf3/internal/telemetry"
 )
 
 type ProblemDetails struct {
-	Type       string         `json:"type,omitempty"`
-	Title      string         `json:"title,omitempty"`
-	Status     int            `json:"status,omitempty"`
-	Detail     string         `json:"detail,omitempty"`
-	Instance   string         `json:"instance,omitempty"`
-	Extensions map[string]any `json:"extensions,omitempty"`
-	// Internal tracing details; not serialized to JSON.
-	TraceRejectionReason string `json:"-"`
-	TraceRejectionError  error  `json:"-"`
+	TraceRejectionError  error          `json:"-"`
+	Extensions           map[string]any `json:"extensions,omitempty"`
+	Type                 string         `json:"type,omitempty"`
+	Title                string         `json:"title,omitempty"`
+	Detail               string         `json:"detail,omitempty"`
+	Instance             string         `json:"instance,omitempty"`
+	TraceRejectionReason string         `json:"-"`
+	Status               int            `json:"status,omitempty"`
 }
 
-func WriteProblemDetails(logger *slog.Logger, w http.ResponseWriter, r *http.Request, statusCode int, problem ProblemDetails) {
+//nolint:nestif // The rejection bookkeeping is intentionally colocated with response encoding.
+func WriteProblemDetails(
+	logger *slog.Logger,
+	w http.ResponseWriter,
+	r *http.Request,
+	statusCode int,
+	problem ProblemDetails,
+) {
 	if r != nil {
 		span := trace.SpanFromContext(r.Context())
 		if span.IsRecording() && problem.TraceRejectionReason != "" {
@@ -52,4 +60,20 @@ func WriteProblemDetails(logger *slog.Logger, w http.ResponseWriter, r *http.Req
 	if err := encoder.Encode(problem); err != nil {
 		logger.Error("Failed to encode error response", "error", err)
 	}
+}
+
+func WriteText(logger *slog.Logger, w http.ResponseWriter, statusCode int, body string) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(statusCode)
+	if _, err := io.WriteString(w, body); err != nil {
+		logger.Error("Failed to write response body", "error", err)
+	}
+}
+
+func WriteProbe(logger *slog.Logger, w http.ResponseWriter, ready bool) {
+	if ready {
+		WriteText(logger, w, http.StatusOK, "OK")
+		return
+	}
+	WriteText(logger, w, http.StatusServiceUnavailable, "Shutting down")
 }

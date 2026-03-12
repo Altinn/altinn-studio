@@ -1,47 +1,41 @@
 import React, { useState } from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import {
-  Scope,
-  convertToExternalConfig,
-  dummyDataPages,
-  withUniqueIds,
-} from '../utils/ValidateNavigationUtils';
-import type { ExternalConfigWithId, InternalConfigState } from '../utils/ValidateNavigationTypes';
+import { Scope, convertToExternalConfig, dummyDataPages } from '../utils/ValidateNavigationUtils';
+import type { ExternalConfigState, InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
 
 export const ValidateSelectedPagesConfig = () => {
-  const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigWithId[]>(
-    withUniqueIds(dummyDataPages),
-  );
-  const internalConfigs = useConvertToInternalConfig(tempExtConfigs)?.map((conf, i) => ({
-    ...conf,
-    id: tempExtConfigs[i].id,
-  }));
+  const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigState[]>(dummyDataPages);
 
-  const handleSave = (updatedConfig: InternalConfigState, id?: string) => {
-    const newExternal = convertToExternalConfig(updatedConfig);
+  const internalConfigs = useConvertToInternalConfig(tempExtConfigs);
 
-    setTempExtConfigs((prevConfigs) =>
-      id
-        ? prevConfigs.map((config) => (config.id === id ? { ...newExternal, id } : config))
-        : [...prevConfigs, { ...newExternal, id: crypto.randomUUID() }],
-    );
+  const handleSave = (updatedConfig: InternalConfigState, index?: number) => {
+    const updatedInternalConfigs = [...internalConfigs];
+    if (index !== undefined) {
+      updatedInternalConfigs[index] = updatedConfig;
+    } else {
+      updatedInternalConfigs.push(updatedConfig);
+    }
+
+    const newExternal = updatedInternalConfigs.map(convertToExternalConfig);
+    setTempExtConfigs(newExternal);
   };
 
-  const handleDelete = (id: string) => {
-    setTempExtConfigs((prev) => prev.filter((config) => config.id !== id));
+  const handleDelete = (index: number) => {
+    const newIntConfigs = internalConfigs.filter((_, i) => i !== index);
+    setTempExtConfigs(newIntConfigs.map(convertToExternalConfig));
   };
 
   return (
     <>
-      {internalConfigs?.map((conf) => (
+      {internalConfigs?.map((conf, index) => (
         <ValidateNavigationConfig
-          key={conf.id}
+          key={index}
           scope={Scope.SelectedPages}
           config={conf}
           existingConfigs={internalConfigs}
-          onSave={(newConf) => handleSave(newConf, conf.id)}
-          onDelete={() => handleDelete(conf.id)}
+          onSave={(newConf) => handleSave(newConf, index)}
+          onDelete={() => handleDelete(index)}
         />
       ))}
       <ValidateNavigationConfig

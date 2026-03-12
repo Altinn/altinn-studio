@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,7 +27,12 @@ import (
 	"altinn.studio/operator/test/utils"
 )
 
-// ConsistencyState tracks values that should remain consistent across test steps
+var errInvalidKeyIDFormat = errors.New("invalid key ID format")
+var errFakesDBStatus = errors.New("fakes db returned unexpected status")
+var errFakesResetStatus = errors.New("fakes reset returned unexpected status")
+var errNoPodsFound = errors.New("no pods found for label")
+
+// ConsistencyState tracks values that should remain consistent across test steps.
 type ConsistencyState struct {
 	ClientID    string   // Should not change once set (client not recreated)
 	KeyIDs      []string // All keys ever seen (old keys retained, new keys prepended)
@@ -35,21 +41,25 @@ type ConsistencyState struct {
 
 var consistencyState *ConsistencyState
 
-// ResetConsistencyState clears the tracked state (call in BeforeAll)
+// ResetConsistencyState clears the tracked state (call in BeforeAll).
 func ResetConsistencyState() {
 	consistencyState = nil
 }
 
-// parseKeyIndex extracts the numeric suffix from a key ID (e.g., "uuid.1" -> 1)
+// parseKeyIndex extracts the numeric suffix from a key ID (e.g., "uuid.1" -> 1).
 func parseKeyIndex(keyId string) (int, error) {
 	parts := strings.Split(keyId, ".")
 	if len(parts) < 2 {
-		return 0, fmt.Errorf("invalid key ID format: %s", keyId)
+		return 0, fmt.Errorf("%w: %s", errInvalidKeyIDFormat, keyId)
 	}
-	return strconv.Atoi(parts[len(parts)-1])
+	index, err := strconv.Atoi(parts[len(parts)-1])
+	if err != nil {
+		return 0, fmt.Errorf("parse key index from %q: %w", keyId, err)
+	}
+	return index, nil
 }
 
-// CaptureConsistency records initial values from the first successful reconciliation
+// CaptureConsistency records initial values from the first successful reconciliation.
 func CaptureConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) {
 	if consistencyState != nil || client == nil {
 		return // Already captured or no client
@@ -77,26 +87,34 @@ func CaptureConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *co
 // - Max 2 keys (newest + previous)
 // - Keys ordered from newest to oldest (index 0 = newest)
 // - New keys have higher index suffix than previous max
-// - Secret matches CR state
+// - Secret matches CR state.
 func AssertConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) {
 	if consistencyState == nil || client == nil {
 		return // Nothing to verify
 	}
 
-	// Verify clientId never changes
+	assertClientConsistency(client)
+	currentIndices := keyIndices(client.Status.KeyIds)
+	newMaxIdx := updatedMaxKeyIndex(currentIndices)
+	consistencyState.KeyIDs = client.Status.KeyIds
+	consistencyState.MaxKeyIndex = newMaxIdx
+
+	assertSecretConsistency(client, secret)
+}
+
+func assertClientConsistency(client *resourcesv1alpha1.MaskinportenClient) {
 	gomega.Expect(client.Status.ClientId).To(gomega.Equal(consistencyState.ClientID),
 		"clientId changed unexpectedly - client may have been recreated")
-
-	// Verify max 2 keys
 	gomega.Expect(len(client.Status.KeyIds)).To(gomega.BeNumerically("<=", 2),
 		"expected at most 2 keys, got %d", len(client.Status.KeyIds))
+}
 
-	// Parse all current key indices and verify ordering (newest first)
-	currentIndices := make([]int, 0, len(client.Status.KeyIds))
-	for _, keyId := range client.Status.KeyIds {
-		idx, err := parseKeyIndex(keyId)
+func keyIndices(keyIDs []string) []int {
+	currentIndices := make([]int, 0, len(keyIDs))
+	for _, keyID := range keyIDs {
+		idx, err := parseKeyIndex(keyID)
 		gomega.Expect(err).NotTo(gomega.HaveOccurred(),
-			fmt.Sprintf("failed to parse key index from %s", keyId))
+			"failed to parse key index from "+keyID)
 		currentIndices = append(currentIndices, idx)
 	}
 	for i := 1; i < len(currentIndices); i++ {
@@ -104,62 +122,90 @@ func AssertConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *cor
 			"keys not ordered from newest to oldest: index %d should be < %d",
 			currentIndices[i], currentIndices[i-1])
 	}
-
-	// Verify new keys have higher index than previous max
-	newMaxIdx := consistencyState.MaxKeyIndex
-	for _, idx := range currentIndices {
-		if idx > consistencyState.MaxKeyIndex {
-			if idx > newMaxIdx {
-				newMaxIdx = idx
-			}
-		}
-	}
-
-	// Update state
-	consistencyState.KeyIDs = client.Status.KeyIds
-	consistencyState.MaxKeyIndex = newMaxIdx
-
-	// Verify Secret matches CR (cross-resource consistency)
-	if secret != nil && secret.Data != nil {
-		if settingsJSON, ok := secret.Data["maskinporten-settings.json"]; ok {
-			var settings map[string]any
-			if json.Unmarshal(settingsJSON, &settings) == nil {
-				// Navigate into MaskinportenSettings wrapper
-				if wrapper, ok := settings["MaskinportenSettings"].(map[string]any); ok {
-					settings = wrapper
-				}
-				// Verify clientId matches
-				if secretClientId, ok := settings["ClientId"].(string); ok {
-					gomega.Expect(secretClientId).To(gomega.Equal(consistencyState.ClientID),
-						"Secret clientId doesn't match CR clientId")
-				}
-				// Verify key IDs in jwks match CR
-				if jwks, ok := settings["Jwks"].(map[string]any); ok {
-					if keys, ok := jwks["keys"].([]any); ok {
-						var secretKeyIds []string
-						for _, key := range keys {
-							if keyMap, ok := key.(map[string]any); ok {
-								if kid, ok := keyMap["kid"].(string); ok {
-									secretKeyIds = append(secretKeyIds, kid)
-								}
-							}
-						}
-						gomega.Expect(secretKeyIds).To(gomega.ConsistOf(client.Status.KeyIds),
-							"Secret keyIds don't match CR keyIds")
-					}
-				}
-			}
-		}
-	}
+	return currentIndices
 }
 
-// marshalJSONNoEscape marshals JSON without escaping HTML characters like < and >
+func updatedMaxKeyIndex(currentIndices []int) int {
+	newMaxIdx := consistencyState.MaxKeyIndex
+	for _, idx := range currentIndices {
+		if idx > consistencyState.MaxKeyIndex && idx > newMaxIdx {
+			newMaxIdx = idx
+		}
+	}
+	return newMaxIdx
+}
+
+func assertSecretConsistency(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) {
+	if secret == nil || secret.Data == nil {
+		return
+	}
+
+	settingsJSON, ok := secret.Data["maskinporten-settings.json"]
+	if !ok {
+		return
+	}
+
+	var settings map[string]any
+	if json.Unmarshal(settingsJSON, &settings) != nil {
+		return
+	}
+
+	settings = unwrapMaskinportenSettings(settings)
+	assertSecretClientID(settings)
+	assertSecretKeyIDs(settings, client.Status.KeyIds)
+}
+
+func unwrapMaskinportenSettings(settings map[string]any) map[string]any {
+	if wrapper, ok := settings["MaskinportenSettings"].(map[string]any); ok {
+		return wrapper
+	}
+	return settings
+}
+
+func assertSecretClientID(settings map[string]any) {
+	secretClientID, ok := settings["ClientId"].(string)
+	if !ok {
+		return
+	}
+
+	gomega.Expect(secretClientID).To(gomega.Equal(consistencyState.ClientID),
+		"Secret clientId doesn't match CR clientId")
+}
+
+func assertSecretKeyIDs(settings map[string]any, expected []string) {
+	jwks, ok := settings["Jwks"].(map[string]any)
+	if !ok {
+		return
+	}
+
+	keys, ok := jwks["keys"].([]any)
+	if !ok {
+		return
+	}
+
+	secretKeyIDs := make([]string, 0, len(keys))
+	for _, key := range keys {
+		keyMap, ok := key.(map[string]any)
+		if !ok {
+			continue
+		}
+		kid, ok := keyMap["kid"].(string)
+		if ok {
+			secretKeyIDs = append(secretKeyIDs, kid)
+		}
+	}
+
+	gomega.Expect(secretKeyIDs).To(gomega.ConsistOf(expected),
+		"Secret keyIds don't match CR keyIds")
+}
+
+// marshalJSONNoEscape marshals JSON without escaping HTML characters like < and >.
 func marshalJSONNoEscape(v any) ([]byte, error) {
 	buf := &bytes.Buffer{}
 	enc := json.NewEncoder(buf)
 	enc.SetEscapeHTML(false)
 	if err := enc.Encode(v); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("encode snapshot JSON: %w", err)
 	}
 	// Remove trailing newline added by Encode
 	return bytes.TrimSuffix(buf.Bytes(), []byte("\n")), nil
@@ -169,7 +215,7 @@ const sanitizedTimestamp = "2024-01-01T00:00:00Z"
 const sanitizedUID = "<sanitized-uid>"
 const sanitizedResourceVersion = "<sanitized-resource-version>"
 
-// SanitizeMetadata removes/replaces non-deterministic metadata fields
+// SanitizeMetadata removes/replaces non-deterministic metadata fields.
 func SanitizeMetadata(meta map[string]any) {
 	meta["uid"] = sanitizedUID
 	meta["resourceVersion"] = sanitizedResourceVersion
@@ -189,7 +235,7 @@ func SanitizeMetadata(meta map[string]any) {
 const sanitizedClientId = "<sanitized-client-id>"
 const sanitizedTraceId = "<sanitized-trace-id>"
 
-// SanitizeMaskinportenClientStatus sanitizes status timestamps and dynamic fields
+// SanitizeMaskinportenClientStatus sanitizes status timestamps and dynamic fields.
 func SanitizeMaskinportenClientStatus(status map[string]any) {
 	if status["lastSynced"] != nil {
 		status["lastSynced"] = sanitizedTimestamp
@@ -197,34 +243,62 @@ func SanitizeMaskinportenClientStatus(status map[string]any) {
 	if status["clientId"] != nil {
 		status["clientId"] = sanitizedClientId
 	}
-	if keyIds, ok := status["keyIds"].([]any); ok {
-		for i, kid := range keyIds {
-			if kidStr, ok := kid.(string); ok {
-				if idx, err := parseKeyIndex(kidStr); err == nil {
-					keyIds[i] = fmt.Sprintf("<key-uuid>.%d", idx)
-					continue
-				}
-			}
-			keyIds[i] = fmt.Sprintf("<key-uuid>.%d", i)
+	sanitizeKeyIDs(status)
+	sanitizeActionHistory(status)
+	sanitizeConditions(status)
+}
+
+func sanitizeKeyIDs(status map[string]any) {
+	keyIDs, ok := status["keyIds"].([]any)
+	if !ok {
+		return
+	}
+
+	for i, keyID := range keyIDs {
+		keyIDs[i] = sanitizedKeyID(keyID, i)
+	}
+}
+
+func sanitizedKeyID(value any, fallbackIndex int) string {
+	keyID, ok := value.(string)
+	if ok {
+		if idx, err := parseKeyIndex(keyID); err == nil {
+			return fmt.Sprintf("<key-uuid>.%d", idx)
 		}
 	}
-	if actionHistory, ok := status["actionHistory"].([]any); ok {
-		for _, action := range actionHistory {
-			if actionMap, ok := action.(map[string]any); ok {
-				SanitizeActionRecord(actionMap)
-			}
-		}
+
+	return fmt.Sprintf("<key-uuid>.%d", fallbackIndex)
+}
+
+func sanitizeActionHistory(status map[string]any) {
+	actionHistory, ok := status["actionHistory"].([]any)
+	if !ok {
+		return
 	}
-	if conditions, ok := status["conditions"].([]any); ok {
-		for _, cond := range conditions {
-			if condMap, ok := cond.(map[string]any); ok {
-				SanitizeCondition(condMap)
-			}
+
+	for _, action := range actionHistory {
+		actionMap, ok := action.(map[string]any)
+		if ok {
+			SanitizeActionRecord(actionMap)
 		}
 	}
 }
 
-// SanitizeCondition sanitizes a metav1.Condition for deterministic snapshots
+func sanitizeConditions(status map[string]any) {
+	conditions, ok := status["conditions"].([]any)
+	if !ok {
+		return
+	}
+
+	for _, condition := range conditions {
+		conditionMap, ok := condition.(map[string]any)
+		if ok {
+			SanitizeCondition(conditionMap)
+		}
+	}
+}
+
+// SanitizeCondition sanitizes a metav1.Condition for deterministic snapshots.
 func SanitizeCondition(cond map[string]any) {
 	if cond["lastTransitionTime"] != nil {
 		cond["lastTransitionTime"] = sanitizedTimestamp
@@ -234,14 +308,14 @@ func SanitizeCondition(cond map[string]any) {
 	}
 }
 
-// sanitizeConditionMessage replaces dynamic parts of condition messages (UUIDs, client IDs)
+// sanitizeConditionMessage replaces dynamic parts of condition messages (UUIDs, client IDs).
 func sanitizeConditionMessage(msg string) string {
 	// Replace UUIDs (e.g., "Client created with ID f75f4e9c-f896-413d-9291-8490bb10d7d5")
 	uuidPattern := regexp.MustCompile(`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`)
 	return uuidPattern.ReplaceAllString(msg, sanitizedClientId)
 }
 
-// SanitizeActionRecord sanitizes an ActionRecord for deterministic snapshots
+// SanitizeActionRecord sanitizes an ActionRecord for deterministic snapshots.
 func SanitizeActionRecord(action map[string]any) {
 	if action["timestamp"] != nil {
 		action["timestamp"] = sanitizedTimestamp
@@ -259,13 +333,13 @@ func SanitizeActionRecord(action map[string]any) {
 	}
 }
 
-// decodedCertInfo contains human-readable certificate fields for snapshots
+// decodedCertInfo contains human-readable certificate fields for snapshots.
 type decodedCertInfo struct {
 	Subject  string `json:"subject"`
 	Validity string `json:"validity"`
 }
 
-// decodeCertificate parses a base64 DER certificate and extracts deterministic fields
+// decodeCertificate parses a base64 DER certificate and extracts deterministic fields.
 func decodeCertificate(b64Cert string) *decodedCertInfo {
 	der, err := base64.StdEncoding.DecodeString(b64Cert)
 	if err != nil {
@@ -288,47 +362,63 @@ func decodeCertificate(b64Cert string) *decodedCertInfo {
 // Preserves the key suffix (e.g., .1, .2) from kid since it's deterministic.
 // Decodes x5c certificates to show human-readable cert info.
 func SanitizeJwk(keyMap map[string]any) {
-	if kid, ok := keyMap["kid"].(string); ok {
-		if idx, err := parseKeyIndex(kid); err == nil {
-			keyMap["kid"] = fmt.Sprintf("<key-uuid>.%d", idx)
-		} else {
-			keyMap["kid"] = "<key-uuid>"
-		}
+	sanitizeJWKID(keyMap)
+	sanitizeJWKCertificates(keyMap)
+	sanitizeJWKPrivateFields(keyMap)
+}
+
+func sanitizeJWKID(keyMap map[string]any) {
+	kid, ok := keyMap["kid"].(string)
+	if !ok {
+		return
 	}
 
-	// Decode x5c certificates to human-readable format
-	if x5c, ok := keyMap["x5c"].([]any); ok && len(x5c) > 0 {
-		decoded := make([]decodedCertInfo, 0, len(x5c))
-		for _, certAny := range x5c {
-			if certStr, ok := certAny.(string); ok {
-				if info := decodeCertificate(certStr); info != nil {
-					decoded = append(decoded, *info)
-				}
-			}
-		}
-		if len(decoded) > 0 {
-			keyMap["x5c_decoded"] = decoded
-		}
-		delete(keyMap, "x5c")
+	if idx, err := parseKeyIndex(kid); err == nil {
+		keyMap["kid"] = fmt.Sprintf("<key-uuid>.%d", idx)
+		return
 	}
 
-	// Replace private key fields with placeholders (shows they exist)
+	keyMap["kid"] = "<key-uuid>"
+}
+
+func sanitizeJWKCertificates(keyMap map[string]any) {
+	x5c, ok := keyMap["x5c"].([]any)
+	if !ok || len(x5c) == 0 {
+		return
+	}
+
+	decoded := make([]decodedCertInfo, 0, len(x5c))
+	for _, certAny := range x5c {
+		certStr, ok := certAny.(string)
+		if !ok {
+			continue
+		}
+		info := decodeCertificate(certStr)
+		if info != nil {
+			decoded = append(decoded, *info)
+		}
+	}
+	if len(decoded) > 0 {
+		keyMap["x5c_decoded"] = decoded
+	}
+	delete(keyMap, "x5c")
+}
+
+func sanitizeJWKPrivateFields(keyMap map[string]any) {
 	for _, field := range []string{"d", "p", "q", "dp", "dq", "qi"} {
 		if keyMap[field] != nil {
 			keyMap[field] = "<private>"
 		}
 	}
-	// Replace RSA modulus (also varies per key generation)
 	if keyMap["n"] != nil {
 		keyMap["n"] = "<rsa-modulus>"
 	}
-	// Sanitize exp field (certificate expiry timestamp) - non-deterministic
 	if keyMap["exp"] != nil {
 		keyMap["exp"] = "<cert-expiry>"
 	}
 }
 
-// SanitizeSecretContent sanitizes the maskinporten-settings.json content
+// SanitizeSecretContent sanitizes the maskinporten-settings.json content.
 func SanitizeSecretContent(data map[string]any) {
 	// Navigate into MaskinportenSettings wrapper if present
 	settings := data
@@ -355,7 +445,7 @@ func SanitizeSecretContent(data map[string]any) {
 	}
 }
 
-// SnapshotMaskinportenClient takes a sanitized snapshot of a MaskinportenClient
+// SnapshotMaskinportenClient takes a sanitized snapshot of a MaskinportenClient.
 func SnapshotMaskinportenClient(client *resourcesv1alpha1.MaskinportenClient, name string) {
 	// Convert to map for sanitization
 	data, err := json.Marshal(client)
@@ -378,7 +468,7 @@ func SnapshotMaskinportenClient(client *resourcesv1alpha1.MaskinportenClient, na
 	snaps.WithConfig(snaps.Filename(name)).MatchJSON(ginkgo.GinkgoT(), sanitized)
 }
 
-// SnapshotSecret takes a sanitized snapshot of a Secret with decoded data
+// SnapshotSecret takes a sanitized snapshot of a Secret with decoded data.
 func SnapshotSecret(secret *corev1.Secret, name string) {
 	data, err := json.Marshal(secret)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred(), "failed to marshal Secret")
@@ -391,30 +481,7 @@ func SnapshotSecret(secret *corev1.Secret, name string) {
 		SanitizeMetadata(meta)
 	}
 
-	// Decode and sanitize the secret data for human-readable snapshots
-	// Only include maskinporten-settings.json, remove other keys (e.g. postgresql.json)
-	// Ensure data field exists (normalize nil vs empty)
-	if obj["data"] == nil {
-		obj["data"] = map[string]any{}
-	}
-	if dataField, ok := obj["data"].(map[string]any); ok {
-		for key := range dataField {
-			if key != "maskinporten-settings.json" {
-				delete(dataField, key)
-			}
-		}
-		if settingsB64, ok := dataField["maskinporten-settings.json"].(string); ok {
-			settingsBytes, err := base64.StdEncoding.DecodeString(settingsB64)
-			if err == nil {
-				var settings map[string]any
-				if json.Unmarshal(settingsBytes, &settings) == nil {
-					SanitizeSecretContent(settings)
-					// Store decoded JSON directly (not base64) for readability
-					dataField["maskinporten-settings.json"] = settings
-				}
-			}
-		}
-	}
+	sanitizeSecretSnapshotData(obj)
 
 	sanitized, err := marshalJSONNoEscape(obj)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred(), "failed to marshal sanitized Secret")
@@ -422,8 +489,47 @@ func SnapshotSecret(secret *corev1.Secret, name string) {
 	snaps.WithConfig(snaps.Filename(name)).MatchJSON(ginkgo.GinkgoT(), sanitized)
 }
 
+func sanitizeSecretSnapshotData(obj map[string]any) {
+	dataField := ensureSecretSnapshotDataField(obj)
+	for key := range dataField {
+		if key != "maskinporten-settings.json" {
+			delete(dataField, key)
+		}
+	}
+	settingsB64, ok := dataField["maskinporten-settings.json"].(string)
+	if !ok {
+		return
+	}
+
+	settingsBytes, err := base64.StdEncoding.DecodeString(settingsB64)
+	if err != nil {
+		return
+	}
+
+	var settings map[string]any
+	if json.Unmarshal(settingsBytes, &settings) != nil {
+		return
+	}
+
+	SanitizeSecretContent(settings)
+	dataField["maskinporten-settings.json"] = settings
+}
+
+func ensureSecretSnapshotDataField(obj map[string]any) map[string]any {
+	if obj["data"] == nil {
+		obj["data"] = map[string]any{}
+	}
+	dataField, ok := obj["data"].(map[string]any)
+	if ok {
+		return dataField
+	}
+	empty := map[string]any{}
+	obj["data"] = empty
+	return empty
+}
+
 // SnapshotState takes sanitized snapshots of MaskinportenClient, Secret, and fakes db
-// When client or secret is nil, it snapshots a placeholder indicating the resource doesn't exist
+// When client or secret is nil, it snapshots a placeholder indicating the resource doesn't exist.
 func SnapshotState(
 	client *resourcesv1alpha1.MaskinportenClient,
 	secret *corev1.Secret,
@@ -445,16 +551,16 @@ func SnapshotState(
 	SnapshotFakesDb(db, stepName+"-db")
 }
 
-// FetchStateFunc fetches the current state of a MaskinportenClient and its associated Secret
+// FetchStateFunc fetches the current state of a MaskinportenClient and its associated Secret.
 type FetchStateFunc func() (client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret, err error)
 
-// ConditionFunc checks if the current state meets the expected condition
+// ConditionFunc checks if the current state meets the expected condition.
 type ConditionFunc func(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error
 
-// FetchDbFunc fetches the fakes API dump
+// FetchDbFunc fetches the fakes API dump.
 type FetchDbFunc func() ([]fakes.ClientRecord, error)
 
-// EventuallyWithSnapshot polls a condition and snapshots the last state on completion (success or timeout)
+// EventuallyWithSnapshot polls a condition and snapshots the last state on completion (success or timeout).
 func EventuallyWithSnapshot(
 	fetchState FetchStateFunc,
 	fetchDb FetchDbFunc,
@@ -490,7 +596,7 @@ func EventuallyWithSnapshot(
 	SnapshotState(lastClient, lastSecret, db, snapshotName)
 }
 
-// SanitizeClientResponse sanitizes a maskinporten ClientResponse for snapshots
+// SanitizeClientResponse sanitizes a maskinporten ClientResponse for snapshots.
 func SanitizeClientResponse(client map[string]any, clientIndex int) {
 	// Sanitize clientId (both camelCase and snake_case variants from JSON)
 	if client["clientId"] != nil {
@@ -512,7 +618,7 @@ func SanitizeClientResponse(client map[string]any, clientIndex int) {
 	}
 }
 
-// SanitizeFakesDb sanitizes the fakes db for deterministic snapshots
+// SanitizeFakesDb sanitizes the fakes db for deterministic snapshots.
 func SanitizeFakesDb(db []fakes.ClientRecord) any {
 	if len(db) == 0 {
 		return map[string]any{"status": "empty"}
@@ -521,38 +627,10 @@ func SanitizeFakesDb(db []fakes.ClientRecord) any {
 	allRecords := make([]map[string]any, 0, len(db))
 
 	for i, record := range db {
-		// Convert record to map for sanitization
-		data, err := json.Marshal(record)
-		if err != nil {
-			continue
+		recordMap, ok := sanitizeFakesRecord(record, i)
+		if ok {
+			allRecords = append(allRecords, recordMap)
 		}
-		var recordMap map[string]any
-		if err := json.Unmarshal(data, &recordMap); err != nil {
-			continue
-		}
-
-		// Sanitize clientId at record level
-		if recordMap["ClientId"] != nil {
-			recordMap["ClientId"] = fmt.Sprintf("<client-id-%d>", i)
-		}
-
-		// Sanitize the Client field
-		if clientData, ok := recordMap["Client"].(map[string]any); ok {
-			SanitizeClientResponse(clientData, i)
-		}
-
-		// Sanitize JWKS
-		if jwks, ok := recordMap["Jwks"].(map[string]any); ok {
-			if keys, ok := jwks["keys"].([]any); ok {
-				for _, key := range keys {
-					if keyMap, ok := key.(map[string]any); ok {
-						SanitizeJwk(keyMap)
-					}
-				}
-			}
-		}
-
-		allRecords = append(allRecords, recordMap)
 	}
 
 	return map[string]any{
@@ -560,7 +638,47 @@ func SanitizeFakesDb(db []fakes.ClientRecord) any {
 	}
 }
 
-// SnapshotFakesDb takes a sanitized snapshot of the fakes API state
+func sanitizeFakesRecord(record fakes.ClientRecord, clientIndex int) (map[string]any, bool) {
+	data, err := json.Marshal(record)
+	if err != nil {
+		return nil, false
+	}
+
+	var recordMap map[string]any
+	if json.Unmarshal(data, &recordMap) != nil {
+		return nil, false
+	}
+
+	if recordMap["ClientId"] != nil {
+		recordMap["ClientId"] = fmt.Sprintf("<client-id-%d>", clientIndex)
+	}
+	clientData, ok := recordMap["Client"].(map[string]any)
+	if ok {
+		SanitizeClientResponse(clientData, clientIndex)
+	}
+	sanitizeRecordJWKs(recordMap)
+
+	return recordMap, true
+}
+
+func sanitizeRecordJWKs(recordMap map[string]any) {
+	jwks, ok := recordMap["Jwks"].(map[string]any)
+	if !ok {
+		return
+	}
+	keys, ok := jwks["keys"].([]any)
+	if !ok {
+		return
+	}
+	for _, key := range keys {
+		keyMap, ok := key.(map[string]any)
+		if ok {
+			SanitizeJwk(keyMap)
+		}
+	}
+}
+
+// SnapshotFakesDb takes a sanitized snapshot of the fakes API state.
 func SnapshotFakesDb(db []fakes.ClientRecord, name string) {
 	sanitized := SanitizeFakesDb(db)
 
@@ -570,19 +688,42 @@ func SnapshotFakesDb(db []fakes.ClientRecord, name string) {
 	snaps.WithConfig(snaps.Filename(name)).MatchJSON(ginkgo.GinkgoT(), data)
 }
 
-// FetchFakesDb fetches the db from the fakes self-service API via Traefik ingress
+func newLocalRequest(ctx context.Context, method, rawURL string) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, method, rawURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	return req, nil
+}
+
+func readResponseBody(resp *http.Response) ([]byte, error) {
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read response body: %w", err)
+	}
+	return body, nil
+}
+
+// FetchFakesDb fetches the db from the fakes self-service API via Traefik ingress.
 func FetchFakesDb() ([]fakes.ClientRecord, error) {
-	resp, err := http.Get("http://localhost:8020/fakes/test/dump")
+	req, err := newLocalRequest(context.Background(), http.MethodGet, "http://localhost:8020/fakes/test/dump")
+	if err != nil {
+		return nil, fmt.Errorf("prepare fakes db request: %w", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch fakes db: %w", err)
 	}
 	defer func() {
-		_ = resp.Body.Close()
+		gomega.Expect(resp.Body.Close()).To(gomega.Succeed())
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("fakes db returned status %d: %s", resp.StatusCode, string(body))
+		body, readErr := readResponseBody(resp)
+		if readErr != nil {
+			return nil, fmt.Errorf("read failing fakes db response: %w", readErr)
+		}
+		return nil, fmt.Errorf("%w: %d: %s", errFakesDBStatus, resp.StatusCode, string(body))
 	}
 
 	var db []fakes.ClientRecord
@@ -593,46 +734,57 @@ func FetchFakesDb() ([]fakes.ClientRecord, error) {
 	return db, nil
 }
 
-// ResetFakesState clears all state in the fakes server to ensure deterministic test runs
+// ResetFakesState clears all state in the fakes server to ensure deterministic test runs.
 func ResetFakesState() error {
-	resp, err := http.Post("http://localhost:8020/fakes/test/reset", "", nil)
+	req, err := newLocalRequest(context.Background(), http.MethodPost, "http://localhost:8020/fakes/test/reset")
+	if err != nil {
+		return fmt.Errorf("prepare fakes reset request: %w", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to reset fakes state: %w", err)
 	}
 	defer func() {
-		_ = resp.Body.Close()
+		gomega.Expect(resp.Body.Close()).To(gomega.Succeed())
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("fakes reset returned status %d: %s", resp.StatusCode, string(body))
+		body, readErr := readResponseBody(resp)
+		if readErr != nil {
+			return fmt.Errorf("read failing fakes reset response: %w", readErr)
+		}
+		return fmt.Errorf("%w: %d: %s", errFakesResetStatus, resp.StatusCode, string(body))
 	}
 
 	return nil
 }
 
-// TokenResponse represents the response from the testapp /token endpoint
+// TokenResponse represents the response from the testapp /token endpoint.
 type TokenResponse struct {
-	Success bool         `json:"success"`
 	Claims  *TokenClaims `json:"claims,omitempty"`
 	Error   string       `json:"error,omitempty"`
+	Success bool         `json:"success"`
 }
 
-// TokenClaims represents the decoded token claims from the fake Maskinporten
+// TokenClaims represents the decoded token claims from the fake Maskinporten.
 type TokenClaims struct {
-	Scopes   []string `json:"scopes"`
 	ClientId string   `json:"client_id"`
+	Scopes   []string `json:"scopes"`
 }
 
-// FetchToken calls the testapp token endpoint to generate a Maskinporten token
+// FetchToken calls the testapp token endpoint to generate a Maskinporten token.
 func FetchToken(scope string) (*TokenResponse, error) {
-	tokenUrl := fmt.Sprintf("http://localhost:8020/ttd/localtestapp/token?scope=%s", url.QueryEscape(scope))
-	resp, err := http.Get(tokenUrl)
+	tokenUrl := "http://localhost:8020/ttd/localtestapp/token?scope=" + url.QueryEscape(scope)
+	req, err := newLocalRequest(context.Background(), http.MethodGet, tokenUrl)
+	if err != nil {
+		return nil, fmt.Errorf("prepare token request: %w", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch token: %w", err)
 	}
 	defer func() {
-		_ = resp.Body.Close()
+		gomega.Expect(resp.Body.Close()).To(gomega.Succeed())
 	}()
 
 	body, err := io.ReadAll(resp.Body)
@@ -648,21 +800,29 @@ func FetchToken(scope string) (*TokenResponse, error) {
 	return &tokenResp, nil
 }
 
-// DbCheckResponse represents the response from the testapp /dbcheck endpoint
+// DbCheckResponse represents the response from the testapp /dbcheck endpoint.
 type DbCheckResponse struct {
-	Success bool   `json:"success"`
-	Result  int    `json:"result,omitempty"`
 	Error   string `json:"error,omitempty"`
+	Result  int    `json:"result,omitempty"`
+	Success bool   `json:"success"`
 }
 
-// FetchDbCheck calls the testapp dbcheck endpoint to verify database connectivity
+// FetchDbCheck calls the testapp dbcheck endpoint to verify database connectivity.
 func FetchDbCheck() (*DbCheckResponse, error) {
-	resp, err := http.Get("http://localhost:8020/ttd/localtestapp/dbcheck")
+	req, err := newLocalRequest(
+		context.Background(),
+		http.MethodGet,
+		"http://localhost:8020/ttd/localtestapp/dbcheck",
+	)
+	if err != nil {
+		return nil, fmt.Errorf("prepare dbcheck request: %w", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch dbcheck: %w", err)
 	}
 	defer func() {
-		_ = resp.Body.Close()
+		gomega.Expect(resp.Body.Close()).To(gomega.Succeed())
 	}()
 
 	body, err := io.ReadAll(resp.Body)
@@ -678,7 +838,7 @@ func FetchDbCheck() (*DbCheckResponse, error) {
 	return &dbResp, nil
 }
 
-// SanitizeTokenResponse sanitizes token claims for deterministic snapshots
+// SanitizeTokenResponse sanitizes token claims for deterministic snapshots.
 func SanitizeTokenResponse(resp map[string]any) {
 	if claims, ok := resp["claims"].(map[string]any); ok {
 		if claims["client_id"] != nil {
@@ -687,7 +847,7 @@ func SanitizeTokenResponse(resp map[string]any) {
 	}
 }
 
-// SnapshotTokenResponse takes a sanitized snapshot of a token response
+// SnapshotTokenResponse takes a sanitized snapshot of a token response.
 func SnapshotTokenResponse(resp *TokenResponse, name string) {
 	data, err := json.Marshal(resp)
 	gomega.Expect(err).NotTo(gomega.HaveOccurred(), "failed to marshal TokenResponse")
@@ -718,7 +878,7 @@ func TriggerPodSecretSync(k8sClient *utils.K8sClient, namespace, appLabel string
 	err := k8sClient.Core.Get().
 		Resource("pods").
 		Namespace(namespace).
-		Param("labelSelector", fmt.Sprintf("app=%s", appLabel)).
+		Param("labelSelector", "app="+appLabel).
 		Do(ctx).
 		Into(podList)
 	if err != nil {
@@ -726,12 +886,12 @@ func TriggerPodSecretSync(k8sClient *utils.K8sClient, namespace, appLabel string
 	}
 
 	if len(podList.Items) == 0 {
-		return fmt.Errorf("no pods found with label app=%s in namespace %s", appLabel, namespace)
+		return fmt.Errorf("%w: app=%s namespace=%s", errNoPodsFound, appLabel, namespace)
 	}
 
 	// Patch each pod's annotation to trigger resync
 	timestamp := time.Now().Format(time.RFC3339Nano)
-	patch := []byte(fmt.Sprintf(`{"metadata":{"annotations":{"altinn.studio/test-e2e-secret-sync":"%s"}}}`, timestamp))
+	patch := fmt.Appendf(nil, `{"metadata":{"annotations":{"altinn.studio/test-e2e-secret-sync":"%s"}}}`, timestamp)
 
 	for _, pod := range podList.Items {
 		err := k8sClient.Core.Patch(types.MergePatchType).

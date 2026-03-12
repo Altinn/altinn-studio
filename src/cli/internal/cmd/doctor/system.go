@@ -7,10 +7,13 @@ import (
 	"runtime"
 	"strings"
 
+	"altinn.studio/studioctl/internal/osutil"
+
 	"golang.org/x/term"
 )
 
 func buildSystem(ctx context.Context) *System {
+	stdoutFD, stdoutFDOK := osutil.FDInt(os.Stdout.Fd())
 	system := &System{
 		OS:           runtime.GOOS,
 		Architecture: runtime.GOARCH,
@@ -18,7 +21,7 @@ func buildSystem(ctx context.Context) *System {
 		OSVersion:    "",
 		Terminal:     os.Getenv("TERM"),
 		ColorEnabled: os.Getenv("NO_COLOR") == "",
-		TTY:          term.IsTerminal(int(os.Stdout.Fd())),
+		TTY:          stdoutFDOK && term.IsTerminal(stdoutFD),
 	}
 
 	if system.Terminal == "" {

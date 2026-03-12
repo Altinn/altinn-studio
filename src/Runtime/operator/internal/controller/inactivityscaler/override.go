@@ -2,6 +2,7 @@ package inactivityscaler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -10,6 +11,8 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var errInvalidForcedClusterState = errors.New("invalid forced cluster state")
 
 const (
 	runtimeOperatorNamespace     = "runtime-operator"
@@ -31,7 +34,14 @@ func (r *InactivityScalerReconciler) resolveClusterStateWithOverride(
 	state := resolveClusterState(serviceOwner, environment, now, appCount)
 	override, hasOverride, err := r.forcedClusterStateFromConfigMap(ctx)
 	if err != nil {
-		r.logger.Error(err, "failed to resolve forced-state override, using computed state", "serviceOwner", serviceOwner, "environment", environment)
+		r.logger.Error(
+			err,
+			"failed to resolve forced-state override, using computed state",
+			"serviceOwner",
+			serviceOwner,
+			"environment",
+			environment,
+		)
 		return state, false
 	}
 	if hasOverride {
@@ -67,7 +77,8 @@ func parseForcedClusterState(raw string) (clusterState, bool, error) {
 		return stateTTDOffhoursNoApps, true, nil
 	default:
 		return stateNormal, false, fmt.Errorf(
-			"configmap %s/%s key %q has invalid value %q (valid: auto, %s, %s, %s, %s)",
+			"%w: configmap %s/%s key %q has invalid value %q (valid: auto, %s, %s, %s, %s)",
+			errInvalidForcedClusterState,
 			forceStateConfigMapNamespace,
 			forceStateConfigMapName,
 			forceStateConfigMapStateKey,

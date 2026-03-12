@@ -24,3 +24,5 @@ spec:
         namespace: default
   values:
     environment: "{{ .Values.environmentName }}"
+    image:
+      tag: "{{ .Values.imageTag }}"

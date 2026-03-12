@@ -62,8 +62,8 @@ data:
           replacement = "/admin"
         }
 
-        match "^/user.*" {
-          replacement = "/user"
+        match "^/user-settings.*" {
+          replacement = "/user-settings"
         }
       }
 

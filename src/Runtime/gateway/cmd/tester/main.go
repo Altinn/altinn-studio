@@ -193,10 +193,25 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, er
 		return nil, err
 	}
 
+	result, err := harness.RunAsync(
+		newRuntimeConfig(root, variant),
+		harness.AsyncOptions{
+			RegistryReady: nil,
+			IngressReady:  nil,
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("run runtime setup: %w", err)
+	}
+
+	return result, nil
+}
+
+func newRuntimeConfig(root string, variant kind.KindContainerRuntimeVariant) harness.Config {
 	srcRoot := filepath.Clean(filepath.Join(root, "../.."))
 	dockerfile := filepath.Join(srcRoot, "Runtime", "gateway", "Dockerfile")
 
-	cfg := harness.Config{
+	return harness.Config{
 		ProjectRoot: root,
 		CachePath:   cachePath,
 		Variant:     variant,
@@ -259,19 +274,6 @@ func setupRuntime(variant kind.KindContainerRuntimeVariant) (*harness.Result, er
 			},
 		},
 	}
-
-	result, err := harness.RunAsync(
-		cfg,
-		harness.AsyncOptions{
-			RegistryReady: nil,
-			IngressReady:  nil,
-		},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("run runtime setup: %w", err)
-	}
-
-	return result, nil
 }
 
 func findProjectRoot() (string, error) {

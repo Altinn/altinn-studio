@@ -2,13 +2,17 @@ package maskinporten
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
+	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
 	"altinn.studio/operator/internal/resourcename"
-	"k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
+
+var errServiceOwnerScopeMismatch = errors.New("resource service owner does not match operator scope")
 
 type requestKind int
 
@@ -32,13 +36,13 @@ func (k requestKind) String() string {
 }
 
 type maskinportenClientRequest struct {
+	Instance       *resourcesv1alpha1.MaskinportenClient
 	NamespacedName types.NamespacedName
 	Name           string
 	Namespace      string
 	AppId          string
 	AppLabel       string
 	Kind           requestKind
-	Instance       *resourcesv1alpha1.MaskinportenClient
 }
 
 func (r *MaskinportenClientReconciler) mapRequest(
@@ -55,7 +59,12 @@ func (r *MaskinportenClientReconciler) mapRequest(
 
 	opCtx := r.runtime.GetOperatorContext()
 	if parsed.ServiceOwnerId != opCtx.ServiceOwner.Id {
-		return nil, fmt.Errorf("mapRequest: resource service owner %q does not match operator scope %q", parsed.ServiceOwnerId, opCtx.ServiceOwner.Id)
+		return nil, fmt.Errorf(
+			"mapRequest: %w: %q != %q",
+			errServiceOwnerScopeMismatch,
+			parsed.ServiceOwnerId,
+			opCtx.ServiceOwner.Id,
+		)
 	}
 
 	return &maskinportenClientRequest{

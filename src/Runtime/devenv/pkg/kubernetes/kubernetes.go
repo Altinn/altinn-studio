@@ -1,9 +1,11 @@
+//nolint:revive // Public Kubernetes client naming intentionally mirrors the surrounding domain APIs.
 package kubernetes
 
 import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -16,7 +18,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -37,13 +39,23 @@ import (
 	"sigs.k8s.io/kustomize/kyaml/filesys"
 )
 
-// Common GVRs for core Kubernetes resources
+// Common GVRs for core Kubernetes resources.
 var (
-	NamespaceGVR  = corev1.SchemeGroupVersion.WithResource("namespaces")
-	DeploymentGVR = appsv1.SchemeGroupVersion.WithResource("deployments")
+	NamespaceGVR            = corev1.SchemeGroupVersion.WithResource("namespaces")
+	DeploymentGVR           = appsv1.SchemeGroupVersion.WithResource("deployments")
+	errRolloutTimeout       = errors.New("timeout waiting for deployment rollout")
+	errRolloutWatchClosed   = errors.New("deployment watch channel closed")
+	errConditionTimeout     = errors.New("timeout waiting for resource condition")
+	errConditionWatchClosed = errors.New("resource watch channel closed")
+	errSourceRefNotFound    = errors.New("sourceRef not found")
 )
 
-// KubernetesClient wraps client-go operations for a specific context
+const (
+	yamlDecoderBufferSize = 4096
+	logOutputFilePerm     = 0o600
+)
+
+// KubernetesClient wraps client-go operations for a specific context.
 type KubernetesClient struct {
 	clientset       *kubernetes.Clientset
 	apiextClientset *apiextensionsclientset.Clientset
@@ -105,6 +117,8 @@ func newFromConfig(config *rest.Config) (*KubernetesClient, error) {
 }
 
 // applyUnstructured applies a single unstructured object using Server-Side Apply.
+//
+//nolint:funcorder // The low-level apply helper is kept near the config/bootstrap helpers it depends on.
 func (c *KubernetesClient) applyUnstructured(ctx context.Context, obj *unstructured.Unstructured) (string, error) {
 	gvk := obj.GroupVersionKind()
 	mapping, err := c.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
@@ -145,13 +159,13 @@ func (c *KubernetesClient) applyUnstructured(ctx context.Context, obj *unstructu
 // This function is idempotent - it can be called multiple times safely.
 func (c *KubernetesClient) ApplyManifest(yamlContent string) (string, error) {
 	ctx := context.Background()
-	decoder := utilyaml.NewYAMLOrJSONDecoder(strings.NewReader(yamlContent), 4096)
+	decoder := utilyaml.NewYAMLOrJSONDecoder(strings.NewReader(yamlContent), yamlDecoderBufferSize)
 	var results []string
 
 	for {
 		var rawObj unstructured.Unstructured
 		if err := decoder.Decode(&rawObj); err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			return "", fmt.Errorf("failed to decode YAML: %w", err)
@@ -172,8 +186,7 @@ func (c *KubernetesClient) ApplyManifest(yamlContent string) (string, error) {
 
 // ApplyObjects applies typed Kubernetes objects using Server-Side Apply.
 // This function is idempotent - it can be called multiple times safely.
-func (c *KubernetesClient) ApplyObjects(objs ...runtime.Object) (string, error) {
-	ctx := context.Background()
+func (c *KubernetesClient) ApplyObjects(ctx context.Context, objs ...runtime.Object) (string, error) {
 	var results []string
 
 	for _, obj := range objs {
@@ -223,7 +236,7 @@ func (c *KubernetesClient) CRDExists(crdName string) (bool, error) {
 	_, err := c.apiextClientset.ApiextensionsV1().CustomResourceDefinitions().Get(
 		context.Background(), crdName, metav1.GetOptions{})
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
 		return false, fmt.Errorf("failed to check CRD existence: %w", err)
@@ -251,7 +264,7 @@ func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout t
 	}
 
 	watcher, err := c.clientset.AppsV1().Deployments(namespace).Watch(ctx, metav1.ListOptions{
-		FieldSelector:   fmt.Sprintf("metadata.name=%s", deployment),
+		FieldSelector:   "metadata.name=" + deployment,
 		ResourceVersion: dep.ResourceVersion,
 	})
 	if err != nil {
@@ -262,10 +275,10 @@ func (c *KubernetesClient) RolloutStatus(deployment, namespace string, timeout t
 	for {
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("timeout waiting for deployment %s", deployment)
+			return fmt.Errorf("%w: %s", errRolloutTimeout, deployment)
 		case event, ok := <-watcher.ResultChan():
 			if !ok {
-				return fmt.Errorf("watch channel closed for deployment %s", deployment)
+				return fmt.Errorf("%w: %s", errRolloutWatchClosed, deployment)
 			}
 
 			dep, ok := event.Object.(*appsv1.Deployment)
@@ -292,7 +305,11 @@ func isRolloutComplete(dep *appsv1.Deployment) bool {
 }
 
 // WatchCondition watches a resource until a condition reaches the target status.
-func (c *KubernetesClient) WatchCondition(ctx context.Context, gvr schema.GroupVersionResource, name, namespace, conditionType, targetStatus string) error {
+func (c *KubernetesClient) WatchCondition(
+	ctx context.Context,
+	gvr schema.GroupVersionResource,
+	name, namespace, conditionType, targetStatus string,
+) error {
 	var dr dynamic.ResourceInterface
 	if namespace != "" {
 		dr = c.dynamicClient.Resource(gvr).Namespace(namespace)
@@ -310,7 +327,7 @@ func (c *KubernetesClient) WatchCondition(ctx context.Context, gvr schema.GroupV
 	}
 
 	watcher, err := dr.Watch(ctx, metav1.ListOptions{
-		FieldSelector:   fmt.Sprintf("metadata.name=%s", name),
+		FieldSelector:   "metadata.name=" + name,
 		ResourceVersion: obj.GetResourceVersion(),
 	})
 	if err != nil {
@@ -321,10 +338,10 @@ func (c *KubernetesClient) WatchCondition(ctx context.Context, gvr schema.GroupV
 	for {
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("timeout waiting for %s/%s condition %s=%s", gvr.Resource, name, conditionType, targetStatus)
+			return fmt.Errorf("%w: %s/%s %s=%s", errConditionTimeout, gvr.Resource, name, conditionType, targetStatus)
 		case event, ok := <-watcher.ResultChan():
 			if !ok {
-				return fmt.Errorf("watch channel closed for %s/%s", gvr.Resource, name)
+				return fmt.Errorf("%w: %s/%s", errConditionWatchClosed, gvr.Resource, name)
 			}
 
 			obj, ok := event.Object.(*unstructured.Unstructured)
@@ -340,8 +357,8 @@ func (c *KubernetesClient) WatchCondition(ctx context.Context, gvr schema.GroupV
 }
 
 func hasCondition(obj *unstructured.Unstructured, conditionType, targetStatus string) bool {
-	conditions, found, _ := unstructured.NestedSlice(obj.Object, "status", "conditions")
-	if !found {
+	conditions, found, err := unstructured.NestedSlice(obj.Object, "status", "conditions")
+	if err != nil || !found {
 		return false
 	}
 	for _, cond := range conditions {
@@ -376,7 +393,7 @@ func (c *KubernetesClient) KustomizeRender(path string) (string, error) {
 	return string(yamlBytes), nil
 }
 
-// LogOptions configures how logs should be collected
+// LogOptions configures how logs should be collected.
 type LogOptions struct {
 	Namespace     string
 	LabelSelector string
@@ -390,6 +407,8 @@ type LogOptions struct {
 // CollectLogs collects logs from pods matching the specified criteria.
 // If OutputPath is specified, writes logs to that file.
 // Logs are sorted by timestamp across all containers.
+//
+//nolint:cyclop,funlen,gocognit,gocyclo // Log collection combines fan-out, merge, and formatting in one place.
 func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 	ctx := context.Background()
 
@@ -409,8 +428,8 @@ func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 	}
 
 	type logResult struct {
-		lines []logLine
 		err   error
+		lines []logLine
 	}
 
 	var targets []struct{ pod, container string }
@@ -453,9 +472,13 @@ func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 				resultCh <- logResult{err: fmt.Errorf("failed to get logs for %s/%s: %w", podName, containerName, err)}
 				return
 			}
-			defer func() { _ = stream.Close() }()
+			defer closeBestEffort(stream)
 
-			data, _ := io.ReadAll(stream)
+			data, readErr := io.ReadAll(stream)
+			if readErr != nil {
+				resultCh <- logResult{err: fmt.Errorf("failed to read logs for %s/%s: %w", podName, containerName, readErr)}
+				return
+			}
 			rawLines := strings.Split(string(data), "\n")
 
 			var lines []logLine
@@ -507,7 +530,7 @@ func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 	}
 
 	if opts.OutputPath != "" {
-		if err := os.WriteFile(opts.OutputPath, []byte(allLogs.String()), 0644); err != nil {
+		if err := os.WriteFile(opts.OutputPath, []byte(allLogs.String()), logOutputFilePerm); err != nil {
 			return fmt.Errorf("failed to write logs to file: %w", err)
 		}
 	}
@@ -515,7 +538,7 @@ func (c *KubernetesClient) CollectLogs(opts LogOptions) error {
 	return nil
 }
 
-// Annotate sets or updates an annotation on a Kubernetes resource
+// Annotate sets or updates an annotation on a Kubernetes resource.
 func (c *KubernetesClient) Annotate(gvr schema.GroupVersionResource, name, namespace, key, value string) error {
 	ctx := context.Background()
 
@@ -548,7 +571,10 @@ func (c *KubernetesClient) Annotate(gvr schema.GroupVersionResource, name, names
 
 // GetConditionStatus returns the status value of a condition on a resource.
 // Returns empty string if condition not found.
-func (c *KubernetesClient) GetConditionStatus(gvr schema.GroupVersionResource, name, namespace, conditionType string) (string, error) {
+func (c *KubernetesClient) GetConditionStatus(
+	gvr schema.GroupVersionResource,
+	name, namespace, conditionType string,
+) (string, error) {
 	ctx := context.Background()
 
 	var dr dynamic.ResourceInterface
@@ -564,7 +590,10 @@ func (c *KubernetesClient) GetConditionStatus(gvr schema.GroupVersionResource, n
 	}
 
 	conditions, found, err := unstructured.NestedSlice(obj.Object, "status", "conditions")
-	if err != nil || !found {
+	if err != nil {
+		return "", fmt.Errorf("read conditions for %s/%s: %w", gvr.Resource, name, err)
+	}
+	if !found {
 		return "", nil
 	}
 
@@ -584,7 +613,11 @@ func (c *KubernetesClient) GetConditionStatus(gvr schema.GroupVersionResource, n
 }
 
 // GetFieldString returns a string field value from a resource at the given path.
-func (c *KubernetesClient) GetFieldString(gvr schema.GroupVersionResource, name, namespace string, fields ...string) (string, error) {
+func (c *KubernetesClient) GetFieldString(
+	gvr schema.GroupVersionResource,
+	name, namespace string,
+	fields ...string,
+) (string, error) {
 	ctx := context.Background()
 
 	var dr dynamic.ResourceInterface
@@ -600,21 +633,24 @@ func (c *KubernetesClient) GetFieldString(gvr schema.GroupVersionResource, name,
 	}
 
 	val, found, err := unstructured.NestedString(obj.Object, fields...)
-	if err != nil || !found {
-		return "", err
+	if err != nil {
+		return "", fmt.Errorf("read field %v for %s/%s: %w", fields, gvr.Resource, name, err)
+	}
+	if !found {
+		return "", nil
 	}
 
 	return val, nil
 }
 
-// SourceRef holds reference to a Flux source
+// SourceRef holds reference to a Flux source.
 type SourceRef struct {
 	Kind      string
 	Name      string
 	Namespace string
 }
 
-// GetSourceRef returns the sourceRef from a HelmRelease or Kustomization resource
+// GetSourceRef returns the sourceRef from a HelmRelease or Kustomization resource.
 func (c *KubernetesClient) GetSourceRef(gvr schema.GroupVersionResource, name, namespace string) (*SourceRef, error) {
 	ctx := context.Background()
 
@@ -630,20 +666,12 @@ func (c *KubernetesClient) GetSourceRef(gvr schema.GroupVersionResource, name, n
 		return nil, fmt.Errorf("failed to get resource: %w", err)
 	}
 
-	// HelmRelease uses .spec.chart.spec.sourceRef
-	// Kustomization uses .spec.sourceRef
-	var sourceRef map[string]any
-	if strings.Contains(gvr.Resource, "helmrelease") {
-		chart, found, _ := unstructured.NestedMap(obj.Object, "spec", "chart", "spec")
-		if found {
-			sourceRef, _, _ = unstructured.NestedMap(chart, "sourceRef")
-		}
-	} else {
-		sourceRef, _, _ = unstructured.NestedMap(obj.Object, "spec", "sourceRef")
+	sourceRef, found, err := sourceRefMap(gvr.Resource, name, obj.Object)
+	if err != nil {
+		return nil, err
 	}
-
-	if sourceRef == nil {
-		return nil, fmt.Errorf("sourceRef not found in %s/%s", gvr.Resource, name)
+	if !found {
+		return nil, fmt.Errorf("%w: %s/%s", errSourceRefNotFound, gvr.Resource, name)
 	}
 
 	ref := &SourceRef{
@@ -659,6 +687,32 @@ func (c *KubernetesClient) GetSourceRef(gvr schema.GroupVersionResource, name, n
 	return ref, nil
 }
 
+func sourceRefMap(resource, name string, obj map[string]any) (map[string]any, bool, error) {
+	if strings.Contains(resource, "helmrelease") {
+		return helmReleaseSourceRefMap(resource, name, obj)
+	}
+	sourceRef, _, err := unstructured.NestedMap(obj, "spec", "sourceRef")
+	if err != nil {
+		return nil, false, fmt.Errorf("read sourceRef for %s/%s: %w", resource, name, err)
+	}
+	return sourceRef, sourceRef != nil, nil
+}
+
+func helmReleaseSourceRefMap(resource, name string, obj map[string]any) (map[string]any, bool, error) {
+	chart, found, err := unstructured.NestedMap(obj, "spec", "chart", "spec")
+	if err != nil {
+		return nil, false, fmt.Errorf("read chart spec for %s/%s: %w", resource, name, err)
+	}
+	if !found {
+		return nil, false, nil
+	}
+	sourceRef, _, sourceRefErr := unstructured.NestedMap(chart, "sourceRef")
+	if sourceRefErr != nil {
+		return nil, false, fmt.Errorf("read sourceRef for %s/%s: %w", resource, name, sourceRefErr)
+	}
+	return sourceRef, sourceRef != nil, nil
+}
+
 func getString(m map[string]any, key string) string {
 	if v, ok := m[key]; ok {
 		if s, ok := v.(string); ok {
@@ -668,7 +722,7 @@ func getString(m map[string]any, key string) string {
 	return ""
 }
 
-// StreamLogOptions configures streaming logs
+// StreamLogOptions configures streaming logs.
 type StreamLogOptions struct {
 	Namespace     string
 	LabelSelector string
@@ -678,6 +732,8 @@ type StreamLogOptions struct {
 // StreamLogs streams logs from pods matching the specified criteria.
 // Returns a reader that combines output from all matching containers.
 // The caller must close the returned reader when done.
+//
+//nolint:gocognit // Streaming logs needs fan-out and pipe coordination in one place.
 func (c *KubernetesClient) StreamLogs(ctx context.Context, opts StreamLogOptions) (io.ReadCloser, error) {
 	listOpts := metav1.ListOptions{}
 	if opts.LabelSelector != "" {
@@ -727,7 +783,7 @@ func (c *KubernetesClient) StreamLogs(ctx context.Context, opts StreamLogOptions
 			if err != nil {
 				return
 			}
-			defer func() { _ = stream.Close() }()
+			defer closeBestEffort(stream)
 
 			prefix := fmt.Sprintf("[%s/%s] ", podName, containerName)
 			scanner := bufio.NewScanner(stream)
@@ -742,8 +798,13 @@ func (c *KubernetesClient) StreamLogs(ctx context.Context, opts StreamLogOptions
 
 	go func() {
 		wg.Wait()
-		_ = pw.Close()
+		closeBestEffort(pw)
 	}()
 
 	return pr, nil
+}
+
+//nolint:errcheck,gosec // Stream and pipe cleanup is best-effort.
+func closeBestEffort(closer io.Closer) {
+	closer.Close()
 }
