@@ -7,6 +7,8 @@ using WorkflowEngine.TestKit;
 
 // CA1305: Specify IFormatProvider
 #pragma warning disable CA1305
+// CA1816: call GC.SuppressFinalize(object)
+#pragma warning disable CA1816
 
 namespace WorkflowEngine.App.Tests.Integration;
 
@@ -30,14 +32,11 @@ public sealed class AppCommandIntegrationTests(AppTestFixture fixture) : IAsyncL
         await Task.Delay(50);
     }
 
-    // CA1816: call GC.SuppressFinalize(object)
-#pragma warning disable CA1816
     public async ValueTask DisposeAsync()
     {
         _client.Dispose();
         await Task.Delay(50);
     }
-#pragma warning restore CA1816
 
     [Fact]
     public async Task AppCommand_UsesCorrectMethod()

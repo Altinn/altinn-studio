@@ -4,6 +4,9 @@ using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
+// CA1822: Mark members as static
+#pragma warning disable CA1822
+
 namespace WorkflowEngine.TestKit;
 
 public sealed class TestHelpers(EngineAppFixture fixture)

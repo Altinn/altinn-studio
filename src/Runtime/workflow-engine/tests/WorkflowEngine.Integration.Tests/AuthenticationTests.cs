@@ -21,7 +21,7 @@ public sealed class AuthenticationTests(EngineAppFixture<Program> fixture) : IAs
         client.DefaultRequestHeaders.Add("X-Api-Key", EngineAppFixture.TestApiKey);
 
         // Act
-        using var response = await client.GetAsync(ProtectedPath);
+        using var response = await client.GetAsync(ProtectedPath, TestContext.Current.CancellationToken);
 
         // Assert — 204 No Content is the expected success response for an empty workflow list
         Assert.True(
@@ -38,7 +38,7 @@ public sealed class AuthenticationTests(EngineAppFixture<Program> fixture) : IAs
         client.DefaultRequestHeaders.Add("X-Api-Key", "wrong-key");
 
         // Act
-        using var response = await client.GetAsync(ProtectedPath);
+        using var response = await client.GetAsync(ProtectedPath, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -51,7 +51,7 @@ public sealed class AuthenticationTests(EngineAppFixture<Program> fixture) : IAs
         using var client = fixture.CreateRawClient();
 
         // Act
-        using var response = await client.GetAsync(ProtectedPath);
+        using var response = await client.GetAsync(ProtectedPath, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -65,7 +65,7 @@ public sealed class AuthenticationTests(EngineAppFixture<Program> fixture) : IAs
         client.DefaultRequestHeaders.Add("X-Api-Key", "");
 
         // Act
-        using var response = await client.GetAsync(ProtectedPath);
+        using var response = await client.GetAsync(ProtectedPath, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -78,7 +78,7 @@ public sealed class AuthenticationTests(EngineAppFixture<Program> fixture) : IAs
         using var client = fixture.CreateRawClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/labels?key=org");
+        using var response = await client.GetAsync("/dashboard/labels?key=org", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

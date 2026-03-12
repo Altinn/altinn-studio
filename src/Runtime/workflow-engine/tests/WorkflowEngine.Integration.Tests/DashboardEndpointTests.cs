@@ -34,11 +34,11 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/labels?key=org");
+        using var response = await client.GetAsync("/dashboard/labels?key=org", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var doc = JsonDocument.Parse(json);
         Assert.Equal(JsonValueKind.Array, doc.RootElement.ValueKind);
         Assert.Equal(0, doc.RootElement.GetArrayLength());
@@ -58,11 +58,11 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/labels?key=org");
+        using var response = await client.GetAsync("/dashboard/labels?key=org", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var doc = JsonDocument.Parse(json);
         Assert.True(doc.RootElement.GetArrayLength() >= 1);
         Assert.Equal(JsonValueKind.String, doc.RootElement[0].ValueKind);
@@ -84,11 +84,14 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/query?status=COMPLETED");
+        using var response = await client.GetAsync(
+            "/dashboard/query?status=COMPLETED",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var doc = JsonDocument.Parse(json);
         Assert.True(doc.RootElement.TryGetProperty("totalCount", out var totalCount));
         Assert.True(totalCount.GetInt32() >= 1);
@@ -110,11 +113,14 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         using var client = fixture.CreateEngineClient();
 
         // Act — query for FAILED only (should not include our completed workflow)
-        using var response = await client.GetAsync("/dashboard/query?status=FAILED");
+        using var response = await client.GetAsync(
+            "/dashboard/query?status=FAILED",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var doc = JsonDocument.Parse(json);
         Assert.Equal(0, doc.RootElement.GetProperty("totalCount").GetInt32());
     }
@@ -136,11 +142,14 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/query?status=COMPLETED&limit=1");
+        using var response = await client.GetAsync(
+            "/dashboard/query?status=COMPLETED&limit=1",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var doc = JsonDocument.Parse(json);
         Assert.Equal(1, doc.RootElement.GetProperty("workflows").GetArrayLength());
         Assert.True(doc.RootElement.GetProperty("totalCount").GetInt32() >= 3);
@@ -155,11 +164,11 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/scheduled");
+        using var response = await client.GetAsync("/dashboard/scheduled", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var doc = JsonDocument.Parse(json);
         Assert.Equal(JsonValueKind.Array, doc.RootElement.ValueKind);
         Assert.Equal(0, doc.RootElement.GetArrayLength());
@@ -181,16 +190,16 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         await _client.Enqueue(request);
 
         // Give the engine a moment to persist
-        await Task.Delay(500);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
 
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/scheduled");
+        using var response = await client.GetAsync("/dashboard/scheduled", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var doc = JsonDocument.Parse(json);
         Assert.True(doc.RootElement.GetArrayLength() >= 1);
     }
@@ -208,19 +217,20 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         var wfKey = status.IdempotencyKey;
-        var stepKey = status.Steps[0].IdempotencyKey;
+        var stepKey = status.Steps[0].IdempotencyKey ?? throw new Exception("This is not null here");
         var createdAt = status.CreatedAt.ToString("o");
 
         using var client = fixture.CreateEngineClient();
 
         // Act
         using var response = await client.GetAsync(
-            $"/dashboard/step?wf={Uri.EscapeDataString(wfKey)}&step={Uri.EscapeDataString(stepKey)}&createdAt={Uri.EscapeDataString(createdAt)}"
+            $"/dashboard/step?wf={Uri.EscapeDataString(wfKey)}&step={Uri.EscapeDataString(stepKey)}&createdAt={Uri.EscapeDataString(createdAt)}",
+            TestContext.Current.CancellationToken
         );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var doc = JsonDocument.Parse(json);
         Assert.True(doc.RootElement.TryGetProperty("idempotencyKey", out var key));
         Assert.Equal(stepKey, key.GetString());
@@ -234,7 +244,10 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/step?wf=nonexistent&step=nonexistent");
+        using var response = await client.GetAsync(
+            "/dashboard/step?wf=nonexistent&step=nonexistent",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -259,12 +272,13 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
 
         // Act
         using var response = await client.GetAsync(
-            $"/dashboard/state?wf={Uri.EscapeDataString(wfKey)}&createdAt={Uri.EscapeDataString(createdAt)}"
+            $"/dashboard/state?wf={Uri.EscapeDataString(wfKey)}&createdAt={Uri.EscapeDataString(createdAt)}",
+            TestContext.Current.CancellationToken
         );
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var json = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         using var doc = JsonDocument.Parse(json);
         Assert.True(doc.RootElement.TryGetProperty("steps", out var steps));
         Assert.Equal(JsonValueKind.Array, steps.ValueKind);
@@ -277,7 +291,10 @@ public sealed class DashboardEndpointTests(EngineAppFixture<Program> fixture) : 
         using var client = fixture.CreateEngineClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/state?wf=nonexistent");
+        using var response = await client.GetAsync(
+            "/dashboard/state?wf=nonexistent",
+            TestContext.Current.CancellationToken
+        );
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

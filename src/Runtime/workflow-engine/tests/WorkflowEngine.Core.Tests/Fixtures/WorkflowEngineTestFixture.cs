@@ -2,7 +2,6 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
-using WorkflowEngine.Api;
 using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
@@ -14,7 +13,7 @@ using WorkflowEngine.Resilience.Models;
 namespace WorkflowEngine.Core.Tests.Fixtures;
 
 /// <summary>
-/// Shared test fixture for WorkflowEngine.Api services.
+/// Shared test fixture for WorkflowEngine.Core services.
 /// Provides a configured <see cref="ServiceProvider"/> with mocked external dependencies
 /// and sensible default settings.
 /// <para>

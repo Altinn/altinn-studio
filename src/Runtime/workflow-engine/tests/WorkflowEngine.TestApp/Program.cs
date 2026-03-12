@@ -1,3 +1,4 @@
+using WorkflowEngine.Core.Extensions;
 using WorkflowEngine.Models.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,4 +16,4 @@ await app.UseWorkflowEngine();
 await app.RunAsync();
 
 // Exposed for WebApplicationFactory<Program> in integration tests
-public partial class Program;
+public abstract partial class Program;

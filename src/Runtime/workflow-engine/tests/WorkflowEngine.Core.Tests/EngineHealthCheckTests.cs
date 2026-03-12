@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Moq;
-using WorkflowEngine.Api;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
 
