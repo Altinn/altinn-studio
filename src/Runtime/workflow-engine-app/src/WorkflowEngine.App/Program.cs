@@ -1,9 +1,11 @@
-using WorkflowEngine.Api.Extensions;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.App.Extensions;
+using WorkflowEngine.Core.Extensions;
 using WorkflowEngine.Models.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 var connectionString =
     builder.Configuration.GetConnectionString("WorkflowEngine")
@@ -12,7 +14,6 @@ var connectionString =
     );
 
 builder.AddWorkflowEngine(connectionString);
-builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // App-specific commands
 builder.Services.ConfigureAppCommand();
