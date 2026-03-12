@@ -1,4 +1,5 @@
 name: Resource admin playwright tests on pr
+
 on:
   pull_request:
     branches: [main]
@@ -13,14 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  playwright-tests:
-    name: Playwright (${{ matrix.studio-oidc-mode && 'StudioOidc' || 'GiteaOidc' }})
-    timeout-minutes: 25
+  playwright-run:
+    name: 'Resourceadm Playwright Tests'
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        studio-oidc-mode: [false, true]
 
     steps:
       - name: 'Checking Out Code'
@@ -28,43 +24,50 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate .env file
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          cache: 'yarn'
+
+      - name: Get yarn cache directory path
+        working-directory: src/Designer/frontend
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Attempt to wait for deploy to environment (15 minutes sleep)
         run: |
-          echo PLAYWRIGHT_TEST_APP=autodeploy-v3 >> .env
-          echo DEVELOP_APP_DEVELOPMENT=0 >> .env
-          echo DEVELOP_RESOURCE_ADMIN=0 >> .env
-          echo DEVELOP_BACKEND=0 >> .env
-          echo DEVELOP_DASHBOARD=0 >> .env
-          echo DEVELOP_PREVIEW=0 >> .env
-          echo GITEA_ADMIN_PASS=g9wDIG@6gf >> .env
-          echo GITEA_ADMIN_USER=localg1iteaadmin >> .env
-          echo GITEA_CYPRESS_USER=cypress_testuser >> .env
-          echo GITEA_CYPRESS_PASS=g9wDIG@6gf >> .env
-          echo GITEA_ORG_USER=ttd >> .env
-          echo POSTGRES_PASSWORD=kyeDIG@eip >> .env
-          echo COMMIT= >> .env
-          echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
-          echo FEATUREFLAGS_STUDIOOIDC=${{ matrix.studio-oidc-mode }} >> .env
-        working-directory: src/Designer
+          if [ "${{ github.run_attempt }}" != "1" ]; then
+            echo "Skip waiting for deploy, since this is a re-run of the pipeline."
+          else
+            sleep 15m
+          fi
 
-      - name: Run setup.js script
-        run: |
-          node src/Designer/development/setup.js
-
-      - name: 'Installing Dependencies'
-        uses: ./.github/actions/yarn-install
-
-      - name: Playwright resourceadm run
+      - name: Resourceadm Playwright run
         working-directory: src/Designer/frontend/resourceadm/testing/playwright
         env:
-          environment: local
+          PLAYWRIGHT_TEST_BASE_URL: 'https://staging.altinn.studio'
+          PLAYWRIGHT_RESOURCES_ORGANIZATION: ttd
+          PLAYWRIGHT_RESOURCES_REPO_NAME: ttd-resources
+          PLAYWRIGHT_USER: 'AutoTest'
+          PLAYWRIGHT_PASS: ${{ secrets.AUTO_TEST_USER_PWD }}
+          GITEA_ACCESS_TOKEN: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          yarn resourceadm:setup:playwright
+          yarn
+          yarn install --immutable --inline-builds
+          yarn playwright install --with-deps
           yarn resourceadm:playwright:test:all
 
       - name: Store artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: failure()
         with:
-          name: playwright-resourceadm-screenshots-${{ matrix.studio-oidc-mode && 'studio-oidc' || 'gitea-oidc' }}
+          name: playwright-resourceadm-screenshots
           path: src/Designer/frontend/resourceadm/testing/playwright/test-results
