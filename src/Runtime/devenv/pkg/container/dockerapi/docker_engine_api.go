@@ -30,6 +30,7 @@ var (
 	errWaitWithoutStatus = errors.New("wait completed without status")
 	errContextCancelled  = errors.New("context cancelled while waiting for container")
 	errBuildCLINotFound  = errors.New("container build CLI not found")
+	errBuildxRequired    = errors.New("docker buildx plugin is required but not installed")
 )
 
 // Client implements ContainerClient for Docker using the official SDK.
@@ -139,8 +140,11 @@ func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string)
 
 	args := []string{"build", "-t", tag, "-f", dockerfile}
 
-	// Disable provenance/sbom attestations for local builds (BuildKit feature)
+	// Podman uses buildah natively; Docker/Colima require buildx for BuildKit.
 	if c.toolchain.Platform != types.PlatformPodman {
+		if !hasBuildx(binary) {
+			return errBuildxRequired
+		}
 		args = append(args, "--provenance=false", "--sbom=false")
 	}
 
@@ -148,7 +152,6 @@ func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string)
 	//nolint:gosec // The runtime binary is selected from a fixed allowlist and args are explicit CLI inputs.
 	cmd := exec.CommandContext(ctx, binary, args...)
 
-	// Enable BuildKit for Docker (Podman uses buildah which handles this natively)
 	if c.toolchain.Platform != types.PlatformPodman {
 		cmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1")
 	}
@@ -158,6 +161,12 @@ func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string)
 		return fmt.Errorf("%s build failed: %w\nOutput: %s", binary, err, string(output))
 	}
 	return nil
+}
+
+// hasBuildx checks whether the Docker CLI has the buildx plugin installed.
+func hasBuildx(dockerBinary string) bool {
+	out, err := exec.Command(dockerBinary, "buildx", "version").CombinedOutput()
+	return err == nil && len(out) > 0
 }
 
 // Push pushes an image to a registry.
