@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Update localtest images
-- Improve `env up` output and progress visibility
+- Improve `env` output and progress visibility
 
 ### Fixed
 
