@@ -15,6 +15,11 @@ public sealed class ProcessStateEnricher
     private readonly IProcessReader _processReader;
     private readonly IAuthorizationService _authorization;
 
+    /// <summary>
+    /// Initializes a new instance of the <  see cref="ProcessStateEnricher"/>
+    /// </summary>
+    /// <param name="processReader"></param>
+    /// <param name="authorization"></param>
     public ProcessStateEnricher(IProcessReader processReader, IAuthorizationService authorization)
     {
         _processReader = processReader;
