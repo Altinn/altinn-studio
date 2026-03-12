@@ -14,9 +14,13 @@ concurrency:
 
 jobs:
   playwright-tests:
-    name: Build environment and run e2e test
+    name: Playwright (${{ matrix.studio-oidc-mode && 'StudioOidc' || 'GiteaOidc' }})
     timeout-minutes: 25
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        studio-oidc-mode: [false, true]
 
     steps:
       - name: 'Checking Out Code'
@@ -40,6 +44,7 @@ jobs:
           echo POSTGRES_PASSWORD=kyeDIG@eip >> .env
           echo COMMIT= >> .env
           echo IGNORE_DOCKER_DNS_LOOKUP=true >> .env
+          echo FEATUREFLAGS_STUDIOOIDC=${{ matrix.studio-oidc-mode }} >> .env
         working-directory: src/Designer
 
       - name: Run setup.js script
@@ -61,5 +66,5 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: failure()
         with:
-          name: playwright-resourceadm-screenshots
+          name: playwright-resourceadm-screenshots-${{ matrix.studio-oidc-mode && 'studio-oidc' || 'gitea-oidc' }}
           path: src/Designer/frontend/resourceadm/testing/playwright/test-results
