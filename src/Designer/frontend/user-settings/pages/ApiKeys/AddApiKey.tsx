@@ -36,7 +36,7 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
   const [submitted, setSubmitted] = useState(false);
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
 
-  const { mutate: addUserApiKey, isPending, error, reset } = useAddUserApiKeyMutation();
+  const { mutate: addUserApiKey, isPending, error } = useAddUserApiKeyMutation();
   const { data: apiKeys } = useUserApiKeysQuery();
 
   const todayUtc = new Date().toISOString().split('T')[0];
@@ -50,7 +50,6 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
 
   const handleAdd = () => {
     setSubmitted(true);
-    reset();
     if (
       !name ||
       !expiresAt ||
@@ -63,11 +62,11 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
       { name, expiresAt: `${expiresAt}T23:59:59Z` },
       {
         onSuccess: (response) => {
+          setSubmitted(false);
           setNewApiKey(response.key);
           onApiKeyCreated(response.id);
           setName('');
           setExpiresAt(computeMaxExpiresAt());
-          setSubmitted(false);
         },
       },
     );
