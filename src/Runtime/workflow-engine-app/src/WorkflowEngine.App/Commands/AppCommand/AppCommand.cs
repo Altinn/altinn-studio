@@ -128,7 +128,7 @@ public sealed class AppCommand : Command<AppCommandData, AppWorkflowContext>
                 {
                     var callbackResponse = JsonSerializer.Deserialize<AppCallbackResponse>(
                         body,
-                        CommandSerializerOptions.Default
+                        CommandDefinition.SerializerOptions
                     );
                     if (callbackResponse?.State is not null)
                         context.Step.StateOut = callbackResponse.State;

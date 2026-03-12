@@ -18,7 +18,7 @@ namespace WorkflowEngine.App.Tests.Integration;
 /// backed by a real PostgreSQL container and WireMock as the callback receiver.
 /// </summary>
 [Collection(AppTestCollection.Name)]
-public sealed class AppCommandIntegrationTests(AppTestFixture fixture) : IAsyncLifetime
+public sealed partial class AppCommandIntegrationTests(AppTestFixture fixture) : IAsyncLifetime
 {
     private readonly EngineApiClient _client = new(fixture);
     private readonly AppTestHelpers _testHelpers = new(fixture);
