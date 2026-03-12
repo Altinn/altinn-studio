@@ -11,7 +11,7 @@ import { GlobalData } from 'src/GlobalData';
 import { indexLoader } from 'src/routes/index/index.loader';
 import { Component as IndexRoute } from 'src/routes/index/index.route';
 import { instanceLoader } from 'src/routes/instance/instance.loader';
-import { Component as InstanceRoute } from 'src/routes/instance/instance.route';
+import { Component as InstanceRoute, ErrorBoundary as InstanceErrorBoundary } from 'src/routes/instance/instance.route';
 import { instanceSelectionLoader } from 'src/routes/instance-selection/instance-selection.loader';
 import { Component as InstanceSelectionRoute } from 'src/routes/instance-selection/instance-selection.route';
 import { Component as PageRoute } from 'src/routes/page/page.route';
@@ -59,6 +59,7 @@ export function createRouter(queryClient: QueryClient) {
           {
             path: routes.instance,
             Component: InstanceRoute,
+            ErrorBoundary: InstanceErrorBoundary,
             loader: instanceLoader(queryClient),
             children: [
               { index: true, element: <NavigateToStartUrl /> },
