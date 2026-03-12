@@ -100,6 +100,11 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry r
             activity?.Errored(ex);
             return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, ex.Message);
         }
+        catch (EngineAtCapacityException ex)
+        {
+            activity?.Errored(ex);
+            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.AtCapacity, ex.Message);
+        }
     }
 
     /// <summary>

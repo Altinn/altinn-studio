@@ -46,10 +46,10 @@ Conducted: 2026-03-12
 
 ## Tier 3 — Medium Priority
 
-- [ ] **11. `ExecutionStartedAt` overwritten on requeue**
+- [SKIP] **11. `ExecutionStartedAt` overwritten on requeue**
   `WorkflowHandler.cs:36` — `workflow.ExecutionStartedAt` is set every time `HandleAsync` runs. On requeue + re-pickup, original queue time is lost. Inflates queue time metrics, deflates service time metrics.
 
-- [ ] **12. Idempotency key lookup missing namespace filter**
+- [SKIP] **12. Idempotency key lookup missing namespace filter**
   `EngineRepository.Reads.cs` — Workflow lookup by idempotency key doesn't filter by namespace. If two namespaces use the same idempotency key, the wrong workflow could be returned.
 
 - [ ] **13. `SqlBulkInserter` column ordering depends on EF property enumeration order**
@@ -61,26 +61,26 @@ Conducted: 2026-03-12
 - [x] **15. `StatusWriteBuffer.SubmitAsync` cancellation race**
   `StatusWriteBuffer.cs:67-72` — Cancellation registration happens after the channel write. If the token fires between `WriteAsync` and `ct.Register(...)`, the TCS cancellation handler isn't registered. Register before writing.
 
-- [ ] **16. `BatchUpdateWorkflowsAndSteps` ignores affected row count**
+- [SKIP] **16. `BatchUpdateWorkflowsAndSteps` ignores affected row count**
   `EngineRepository.Writes.cs:718,762` — `ExecuteNonQueryAsync` return value discarded. If a workflow was deleted between fetch and update, the update silently affects 0 rows. Caller believes it succeeded.
 
 ---
 
 ## Tier 4 — Minor / Hardening
 
-- [ ] **17. API key timing attack**
+- [SKIP] **17. API key timing attack**
   `ApiKeyAuthenticationHandler.cs:34` — `Contains()` isn't constant-time. Practical risk is minimal given network latency, but `CryptographicOperations.FixedTimeEquals` would be more correct.
 
-- [ ] **18. Hash computed on re-serialized request**
+- [SKIP] **18. Hash computed on re-serialized request**
   `Engine.cs:56` — Hash is computed by re-serializing the deserialized object. Whitespace/ordering differences between original and re-serialized form could produce different hashes for byte-identical re-requests.
 
-- [ ] **19. Case-insensitive command registry**
+- [SKIP] **19. Case-insensitive command registry**
   `CommandRegistry.cs:28` — Uses `OrdinalIgnoreCase`. `"Webhook"` and `"webhook"` resolve identically. Intentional for UX but could mask typos.
 
-- [ ] **20. No 429/503 response on write buffer backpressure**
+- [x] **20. No 429/503 response on write buffer backpressure**
   When the `WorkflowWriteBuffer` channel is full (10K items), the caller blocks indefinitely. No HTTP 429 or 503 is returned.
 
-- [ ] **21. Fixed 500ms delay between fetch cycles**
+- [SKIP] **21. Fixed 500ms delay between fetch cycles**
   `WorkflowProcessor.cs:68-71` — Always waits up to 500ms between fetch cycles, even under load. Caps throughput. The signal-based debounce mitigates this somewhat but the 500ms ceiling remains.
 
 - [ ] **22. Index filter hardcodes status enum integers**

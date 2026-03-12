@@ -61,7 +61,10 @@ internal class WorkflowWriteBuffer : BackgroundService
         var tcs = new TaskCompletionSource<Guid[]>(TaskCreationOptions.RunContinuationsAsynchronously);
         var item = new BufferedEnqueueRequest(request, metadata, requestBodyHash, tcs);
 
-        await _channel.Writer.WriteAsync(item, ct);
+        if (!_channel.Writer.TryWrite(item))
+        {
+            throw new EngineAtCapacityException("Write buffer is full. Try again later.");
+        }
 
         // Register cancellation so the caller isn't stuck if the request is cancelled
         await using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
