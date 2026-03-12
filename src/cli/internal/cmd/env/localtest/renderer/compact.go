@@ -45,8 +45,9 @@ func (compactLayout) renderLines(model *renderModel, width int, now time.Time) [
 
 func renderCompactRow(model *renderModel, row *progressRow, width int) string {
 	const (
-		compactNameDivisor  = 3
-		compactMinNameWidth = 12
+		compactNameDivisor    = 3
+		compactMinNameWidth   = 12
+		compactSeparatorWidth = len(" ") + len(" ")
 	)
 
 	nameWidth := min(nameColumnWidth, max(width/compactNameDivisor, compactMinNameWidth))
@@ -58,7 +59,7 @@ func renderCompactRow(model *renderModel, row *progressRow, width int) string {
 	}
 
 	line := nameCell + " " + stateCell
-	messageWidth := max(width-nameWidth-len(stateRaw)-stateMessageGapWidth, 0)
+	messageWidth := max(width-nameWidth-len(stateRaw)-compactSeparatorWidth, 0)
 	message := compactMessage(row)
 	if messageWidth > 0 && message != "" {
 		line += " " + fitWidth(message, messageWidth)

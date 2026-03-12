@@ -960,6 +960,7 @@ type buildkitVertexLog struct {
 }
 
 type layerProgress struct {
+	phase   string
 	current int64
 	total   int64
 }
@@ -1015,15 +1016,14 @@ func (a *buildProgressAggregator) updateVertexStatus(vertexStatus *buildkitVerte
 	}
 
 	changed := false
-	if key := buildStatusKey(*vertexStatus); key != "" && vertexStatus.Total > 0 {
-		merged := mergeLayerProgress(
-			a.statuses[key],
-			normalizedLayerProgress(vertexStatus.Current, vertexStatus.Total),
-		)
-		if merged != a.statuses[key] {
-			a.statuses[key] = merged
-			changed = true
-		}
+	if key := buildStatusKey(*vertexStatus); updateTrackedProgress(
+		a.statuses,
+		key,
+		vertexStatus.Name,
+		vertexStatus.Current,
+		vertexStatus.Total,
+	) {
+		changed = true
 	}
 	if vertexStatus.Name == "" || vertexStatus.Name == a.lastMessage {
 		return changed
@@ -1048,9 +1048,6 @@ func buildStatusKey(status buildkitVertexStatus) string {
 	if status.ID != "" {
 		return status.ID
 	}
-	if status.Vertex != "" && status.Name != "" {
-		return status.Vertex + "\x00" + status.Name
-	}
 	if status.Vertex != "" {
 		return status.Vertex
 	}
@@ -1069,12 +1066,12 @@ func buildkitLogText(status buildkitSolveStatus) string {
 }
 
 func (a *pullProgressAggregator) Update(msg jsonmessage.JSONMessage) types.ProgressUpdate {
-	if msg.ID != "" && msg.Progress != nil && msg.Progress.Total > 0 {
-		a.layers[msg.ID] = mergeLayerProgress(
-			a.layers[msg.ID],
-			normalizedLayerProgress(msg.Progress.Current, msg.Progress.Total),
-		)
+	var current, total int64
+	if msg.Progress != nil {
+		current = msg.Progress.Current
+		total = msg.Progress.Total
 	}
+	updateTrackedProgress(a.layers, msg.ID, msg.Status, current, total)
 
 	progress := types.ProgressUpdate{
 		Message: strings.TrimSpace(strings.Join([]string{msg.ID, msg.Status}, " ")),
@@ -1089,22 +1086,23 @@ func (a *pullProgressAggregator) Update(msg jsonmessage.JSONMessage) types.Progr
 	return progress
 }
 
-func mergeLayerProgress(previous, next layerProgress) layerProgress {
-	if previous.total == 0 {
-		return next
-	}
-	if next.total == 0 {
-		return previous
+func updateTrackedProgress(
+	tracked map[string]layerProgress,
+	key string,
+	phase string,
+	current, total int64,
+) bool {
+	if key == "" || total <= 0 {
+		return false
 	}
 
-	merged := layerProgress{
-		current: max(previous.current, next.current),
-		total:   max(previous.total, next.total),
+	next := normalizedLayerProgress(current, total)
+	next.phase = phase
+	if tracked[key] == next {
+		return false
 	}
-	if merged.current > merged.total {
-		merged.current = merged.total
-	}
-	return merged
+	tracked[key] = next
+	return true
 }
 
 func normalizedLayerProgress(current, total int64) layerProgress {

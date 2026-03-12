@@ -160,9 +160,15 @@ func TestTableRenderer_FailAllPreservesSpecificFailureAndCancelsCollateral(t *te
 	if rowB.message != "canceled after another resource failed" {
 		t.Fatalf("unexpected canceled message %q", rowB.message)
 	}
+	if !renderer.model.operationFailed {
+		t.Fatal("expected operationFailed to be true")
+	}
+	if renderer.model.operationFailure != "" {
+		t.Fatalf("unexpected operationFailure %q", renderer.model.operationFailure)
+	}
 
 	rendered := out.String()
-	if !strings.Contains(rendered, "failed 1 | canceled 1 | active 0") {
+	if !strings.Contains(rendered, "failed 2 | canceled 1 | active 0") {
 		t.Fatalf("rendered output %q missing footer counts", rendered)
 	}
 }
@@ -284,6 +290,22 @@ func TestCompactRenderer_RendersPerContainerRows(t *testing.T) {
 	}
 	if strings.Contains(rendered, "[====") {
 		t.Fatalf("compact output %q should not contain full progress bars", rendered)
+	}
+}
+
+func TestRenderCompactRow_StaysWithinRequestedWidth(t *testing.T) {
+	t.Setenv("NO_COLOR", "1")
+
+	model := &renderModel{operation: OperationApply}
+	row := &progressRow{
+		name:    "localtest",
+		state:   statePulling,
+		message: "pulling layers from registry",
+	}
+
+	line := renderCompactRow(model, row, 32)
+	if len(line) > 32 {
+		t.Fatalf("len(renderCompactRow()) = %d, want <= 32: %q", len(line), line)
 	}
 }
 

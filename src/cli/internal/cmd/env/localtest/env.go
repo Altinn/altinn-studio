@@ -35,6 +35,8 @@ var (
 // teardownTimeout is the maximum time to wait for environment teardown.
 const teardownTimeout = 30 * time.Second
 
+const stoppingEnvironmentMessage = "Stopping localtest environment..."
+
 // Env implements envtypes.Env for the localtest runtime.
 type Env struct {
 	cfg           *config.Config
@@ -119,7 +121,7 @@ func (e *Env) Down(ctx context.Context) error {
 		return envtypes.ErrAlreadyStopped
 	}
 
-	if err := e.destroyResources(ctx, e.buildDestroyOptions()); err != nil {
+	if err := e.destroyResources(ctx, e.buildDestroyOptions(), stoppingEnvironmentMessage); err != nil {
 		return fmt.Errorf("stop environment: %w", err)
 	}
 
@@ -201,7 +203,7 @@ func (e *Env) runForeground(
 		e.out.Verbosef("log streaming ended: %v", err)
 	}
 
-	e.out.Println("\nStopping localtest environment...")
+	e.out.Println("\n" + stoppingEnvironmentMessage)
 
 	teardownCtx, cancel := context.WithTimeout(context.Background(), teardownTimeout)
 	defer cancel()
@@ -209,7 +211,7 @@ func (e *Env) runForeground(
 	destroyOpts := e.buildDestroyOptions()
 
 	//nolint:contextcheck // intentionally using new context for cleanup after cancellation
-	if err := e.destroyResources(teardownCtx, destroyOpts); err != nil {
+	if err := e.destroyResources(teardownCtx, destroyOpts, ""); err != nil {
 		e.out.Warningf("Failed to stop environment cleanly: %v", err)
 		return err
 	}
@@ -253,7 +255,7 @@ func (e *Env) applyResources(ctx context.Context, opts ResourceBuildOptions) err
 	return nil
 }
 
-func (e *Env) destroyResources(ctx context.Context, opts ResourceDestroyOptions) error {
+func (e *Env) destroyResources(ctx context.Context, opts ResourceDestroyOptions, logStartMessage string) error {
 	// TODO: we should probably load resources as "current state" instead
 	resources := BuildResourcesForDestroy(opts)
 	graph, err := buildResourceGraph(resources)
@@ -264,7 +266,8 @@ func (e *Env) destroyResources(ctx context.Context, opts ResourceDestroyOptions)
 	executor := resource.NewExecutor(e.client)
 	renderResources, err := currentDestroyRenderResources(ctx, executor, graph, resources)
 	if err != nil {
-		return err
+		e.out.Verbosef("Failed to probe current resource status for destroy rendering: %v", err)
+		renderResources = resources
 	}
 	var renderer localtestrenderer.Renderer
 	switch localtestrenderer.DetectMode(e.out, e.cfg.Verbose) {
@@ -277,7 +280,7 @@ func (e *Env) destroyResources(ctx context.Context, opts ResourceDestroyOptions)
 			e.out,
 			renderResources,
 			localtestrenderer.OperationDestroy,
-			"Stopping localtest environment...",
+			logStartMessage,
 		)
 	}
 	renderer.Start()

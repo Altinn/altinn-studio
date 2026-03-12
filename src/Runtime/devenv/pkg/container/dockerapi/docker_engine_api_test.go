@@ -212,7 +212,7 @@ func TestBuildProgressAggregator_IndeterminateWithoutTotals(t *testing.T) {
 	}
 }
 
-func TestBuildProgressAggregator_PreservesMonotonicStatusCurrent(t *testing.T) {
+func TestBuildProgressAggregator_ResetsStatusProgressWhenPhaseChanges(t *testing.T) {
 	t.Parallel()
 
 	aggregator := newBuildProgressAggregator()
@@ -240,8 +240,8 @@ func TestBuildProgressAggregator_PreservesMonotonicStatusCurrent(t *testing.T) {
 	if !ok {
 		t.Fatal("Update() ok = false")
 	}
-	if progress.Current != 100 || progress.Total != 100 || progress.Indeterminate {
-		t.Fatalf("progress = %+v, want current=100 total=100 determinate", progress)
+	if progress.Current != 10 || progress.Total != 100 || progress.Indeterminate {
+		t.Fatalf("progress = %+v, want current=10 total=100 determinate", progress)
 	}
 	if progress.Message != "extracting" {
 		t.Fatalf("message = %q, want %q", progress.Message, "extracting")
@@ -349,7 +349,7 @@ func TestPullProgressAggregator_IgnoresProgresslessUpdates(t *testing.T) {
 	}
 }
 
-func TestPullProgressAggregator_KeepsLayerProgressMonotonicAcrossPhases(t *testing.T) {
+func TestPullProgressAggregator_ResetsLayerProgressWhenPhaseChanges(t *testing.T) {
 	t.Parallel()
 
 	aggregator := newPullProgressAggregator()
@@ -372,8 +372,8 @@ func TestPullProgressAggregator_KeepsLayerProgressMonotonicAcrossPhases(t *testi
 		},
 	})
 
-	if progress.Current != 100 || progress.Total != 100 || progress.Indeterminate {
-		t.Fatalf("progress = %+v, want current=100 total=100 determinate", progress)
+	if progress.Current != 10 || progress.Total != 100 || progress.Indeterminate {
+		t.Fatalf("progress = %+v, want current=10 total=100 determinate", progress)
 	}
 	if progress.Message != "layer-a Extracting" {
 		t.Fatalf("message = %q, want %q", progress.Message, "layer-a Extracting")
@@ -414,14 +414,19 @@ func TestNormalizedLayerProgress_ClampsNegativeCurrent(t *testing.T) {
 	}
 }
 
-func TestMergeLayerProgress_PreservesMonotonicCurrent(t *testing.T) {
+func TestUpdateTrackedProgress_ReplacesProgressWhenPhaseChanges(t *testing.T) {
 	t.Parallel()
 
-	merged := mergeLayerProgress(
-		layerProgress{current: 100, total: 100},
-		layerProgress{current: 10, total: 100},
-	)
-	if merged.current != 100 || merged.total != 100 {
-		t.Fatalf("merged progress = %+v, want current=100 total=100", merged)
+	tracked := map[string]layerProgress{
+		"layer-a": {phase: "Downloading", current: 100, total: 100},
+	}
+
+	if !updateTrackedProgress(tracked, "layer-a", "Extracting", 10, 100) {
+		t.Fatal("updateTrackedProgress() = false, want true")
+	}
+
+	got := tracked["layer-a"]
+	if got.phase != "Extracting" || got.current != 10 || got.total != 100 {
+		t.Fatalf("tracked progress = %+v, want phase=Extracting current=10 total=100", got)
 	}
 }

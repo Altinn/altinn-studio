@@ -120,8 +120,8 @@ func (m *renderModel) failAll(message string, now time.Time) []string {
 		changed = append(changed, name)
 	}
 
+	m.operationFailed = true
 	if !hasSpecificFailure {
-		m.operationFailed = true
 		m.operationFailure = fallbackMessage
 	}
 
