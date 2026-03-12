@@ -68,10 +68,8 @@ public static class WorkflowEngineBuilderExtensions
                     policy =>
                     {
                         var origins =
-                            builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ??
-                            [
-                                "http://localhost:8090",
-                            ];
+                            builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>()
+                            ?? ["http://localhost:8090"];
                         policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
                     }
                 );

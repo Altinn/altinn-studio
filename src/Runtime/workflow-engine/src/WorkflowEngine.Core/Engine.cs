@@ -18,6 +18,21 @@ internal interface IEngine
 
 internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry registry) : IEngine
 {
+    /// <summary>
+    /// Maximum number of workflows allowed in a single enqueue request.
+    /// </summary>
+    internal const int MaxWorkflowsPerRequest = 100;
+
+    /// <summary>
+    /// Maximum number of steps allowed per workflow.
+    /// </summary>
+    internal const int MaxStepsPerWorkflow = 50;
+
+    /// <summary>
+    /// Maximum number of label entries per request.
+    /// </summary>
+    internal const int MaxLabels = 50;
+
     public async Task<WorkflowEnqueueResponse> EnqueueWorkflow(
         WorkflowEnqueueRequest request,
         WorkflowRequestMetadata metadata,
@@ -28,6 +43,14 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry r
             "Engine.EnqueueWorkflow",
             tags: [("request.namespace.id", request.Namespace), ("request.workflows.count", request.Workflows.Count)]
         );
+
+        // Validate input size limits before expensive graph validation or command deserialization
+        var sizeError = ValidateInputSizeLimits(request);
+        if (sizeError is not null)
+        {
+            activity?.Errored(errorMessage: sizeError);
+            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, sizeError);
+        }
 
         IReadOnlyList<WorkflowRequest> sortedRequests;
         try
@@ -97,7 +120,7 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry r
                 {
                     return CommandValidationResult.Reject(
                         $"Unknown command type '{commandType}' in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
-                            + $"step #{stepIndex}. Registered types: {string.Join(", ", registry.GetAllCommands().Select(d => d.CommandType))}"
+                            + $"step #{stepIndex}."
                     );
                 }
 
@@ -170,5 +193,27 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry r
         }
 
         return CommandValidationResult.Accept();
+    }
+
+    /// <summary>
+    /// Validates that the request does not exceed input size limits.
+    /// Returns an error message if invalid, or null if valid.
+    /// </summary>
+    private static string? ValidateInputSizeLimits(WorkflowEnqueueRequest request)
+    {
+        if (request.Workflows.Count > MaxWorkflowsPerRequest)
+            return $"Request contains {request.Workflows.Count} workflows, maximum is {MaxWorkflowsPerRequest}.";
+
+        if (request.Labels is { Count: > MaxLabels })
+            return $"Request contains {request.Labels.Count} labels, maximum is {MaxLabels}.";
+
+        for (int i = 0; i < request.Workflows.Count; i++)
+        {
+            var workflow = request.Workflows[i];
+            if (workflow.Steps.Count > MaxStepsPerWorkflow)
+                return $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {MaxStepsPerWorkflow}.";
+        }
+
+        return null;
     }
 }

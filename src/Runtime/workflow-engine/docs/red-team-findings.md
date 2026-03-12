@@ -30,16 +30,16 @@ Conducted: 2026-03-12
 - [SKIP] **6. `FetchAndLockWorkflows` lock released before related entities fetched**
   `EngineRepository.Writes.cs:605-650` — Two queries without an explicit transaction. The `FOR UPDATE SKIP LOCKED` lock is released when the first query's implicit transaction commits. Between that and the second query (fetching steps/dependencies), another operation could modify the data. Wrap both in an explicit transaction.
 
-- [ ] **7. Exponential backoff formula produces wrong delays**
+- [x] **7. Exponential backoff formula produces wrong delays**
   `RetryStrategyExtensions.cs:73` — `Math.Pow(2, iteration - 2)`. First retry (iteration=1): `2^(-1) = 0.5x` base interval. Progression is `0.5x, 1x, 2x, 4x...` instead of `1x, 2x, 4x, 8x...`. Exponent should be `iteration - 1`. Also overflows for iteration > 64 before MaxDelay cap can apply.
 
 - [x] **8. Step stuck in `Processing` on cancellation**
   `WorkflowHandler.cs:137-148` — Step status set to `Processing` at line 137. If `OperationCanceledException` fires during `executor.Execute()`, the catch at line 145 re-throws. The workflow catch at line 63-71 sets workflow to `Requeued`, but the step remains `Processing` in memory and gets persisted that way.
 
-- [ ] **9. No input size limits**
+- [x] **9. No input size limits**
   `WorkflowEnqueueRequest.Workflows` has no count limit. Each workflow's `Steps` array is unbounded. `Labels`, `Metadata`, `State`, `Context`, and `CommandDefinition.Data` have no size constraints. A malicious client can send unbounded payloads consuming arbitrary memory during validation.
 
-- [ ] **10. Command registry leaked in validation errors**
+- [x] **10. Command registry leaked in validation errors**
   `Engine.cs:100` — Error message includes all registered command types: `$"Registered types: {string.Join(", ", registry.GetAllCommands().Select(d => d.CommandType))}"`. Reveals internal command structure to callers.
 
 ---
