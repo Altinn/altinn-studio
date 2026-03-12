@@ -44,7 +44,7 @@ func Test_Networking(t *testing.T) {
 		Timeout: 3 * time.Second,
 	}
 
-	httpReq, err := http.NewRequest("GET", url, nil)
+	httpReq, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
 		t.Fatalf("Failed to create HTTP request: %v", err)
 	}
@@ -55,8 +55,12 @@ func Test_Networking(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected error reaching jumpbox: %v", err)
 	}
-	defer func() { _ = resp.Body.Close() }()
-	if resp.StatusCode != 504 { // 504 = gateway timeout, means it can't connect
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			t.Fatalf("Failed to close response body: %v", closeErr)
+		}
+	}()
+	if resp.StatusCode != http.StatusGatewayTimeout { // 504 = gateway timeout, means it can't connect
 		t.Fatalf("Unexpectedly reached pdf3-worker from jumpbox: %d", resp.StatusCode)
 	}
 
@@ -198,6 +202,8 @@ func Test_WithCleanupDelay(t *testing.T) {
 }
 
 func requestPDFWithCancellation(t *testing.T, req *types.PdfRequest, cancelAfter time.Duration) {
+	t.Helper()
+
 	// Marshal the request
 	reqBody, err := json.Marshal(req)
 	if err != nil {
@@ -217,7 +223,7 @@ func requestPDFWithCancellation(t *testing.T, req *types.PdfRequest, cancelAfter
 
 	// Create the HTTP request with the cancellable context
 	url := harness.JumpboxURL + "/pdf"
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(reqBody))
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
 		t.Fatalf("Failed to create HTTP request: %v", err)
 	}
@@ -263,10 +269,17 @@ func requestPDFWithCancellation(t *testing.T, req *types.PdfRequest, cancelAfter
 		t.Logf("System recovered successfully - follow-up PDF generated (%d bytes)", len(followupResp.Data))
 		return
 	}
-	defer func() { _ = resp.Body.Close() }()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			t.Fatalf("Failed to close response body: %v", closeErr)
+		}
+	}()
 
 	// If we get here, the request completed before cancellation
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("Failed to read response body: %v", err)
+	}
 	t.Fatalf("Request completed before cancellation (status %d, body length %d bytes)", resp.StatusCode, len(body))
 }
 

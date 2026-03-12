@@ -3,10 +3,13 @@ package doctor
 import (
 	"context"
 	"fmt"
-	"os/exec"
+	"os"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
+
+	"altinn.studio/devenv/pkg/container"
 )
 
 func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
@@ -19,8 +22,11 @@ func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
 		OK:    dotnetErr == nil,
 	}
 
-	containerValue, containerErr := s.probeContainerRuntime(ctx)
+	containerValue, containerResolved, containerTools, containerErr := s.probeContainerRuntime(ctx)
 	prerequisites.ContainerValue = containerValue
+	prerequisites.ContainerResolved = containerResolved
+	prerequisites.ContainerTools = containerTools
+	prerequisites.ContainerHost = strings.TrimSpace(os.Getenv("DOCKER_HOST"))
 	prerequisites.Container = Check{
 		Error: errorString(containerErr),
 		OK:    containerErr == nil,
@@ -39,7 +45,7 @@ func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
 }
 
 func (s *Service) probeDotnet(ctx context.Context) (string, error) {
-	output, err := exec.CommandContext(ctx, "dotnet", "--version").Output()
+	output, err := s.runVersionOutput(ctx, "dotnet")
 	if err != nil {
 		return "", fmt.Errorf("checking dotnet version: %w", err)
 	}
@@ -53,28 +59,37 @@ func (s *Service) probeDotnet(ctx context.Context) (string, error) {
 	return version, nil
 }
 
-func (s *Service) probeContainerRuntime(ctx context.Context) (string, error) {
-	if err := exec.CommandContext(ctx, "docker", "info").Run(); err == nil {
-		version := unknownValue
-		if output, err := exec.CommandContext(ctx, "docker", "--version").Output(); err == nil {
-			version = extractVersionFromOutput(strings.TrimSpace(string(output)))
-		} else {
-			s.debugf("docker --version failed: %v", err)
-		}
-		return "Docker (" + version + ")", nil
+func (s *Service) probeContainerRuntime(ctx context.Context) (string, string, []ContainerTool, error) {
+	tools := s.collectContainerTools(ctx)
+
+	detect := container.Detect
+	if s != nil && s.containerDetect != nil {
+		detect = s.containerDetect
 	}
 
-	if err := exec.CommandContext(ctx, "podman", "info").Run(); err == nil {
-		version := unknownValue
-		if output, err := exec.CommandContext(ctx, "podman", "--version").Output(); err == nil {
-			version = extractVersionFromOutput(strings.TrimSpace(string(output)))
-		} else {
-			s.debugf("podman --version failed: %v", err)
+	cli, err := detect(ctx)
+	if err != nil {
+		return "", "", tools, fmt.Errorf("%w: %w", errNoContainerRuntime, err)
+	}
+	defer func() {
+		if closeErr := cli.Close(); closeErr != nil {
+			s.debugf("container client close failed: %v", closeErr)
 		}
-		return "Podman (" + version + ")", nil
+	}()
+
+	toolchain := cli.Toolchain()
+	platformName := toolchain.Platform.String()
+	version := containerToolVersion(tools, platformToolVersionName(toolchain.Platform))
+	if version == "" {
+		version = unknownValue
 	}
 
-	return "", errNoContainerRuntime
+	resolved := toolchain.AccessMode.String() + " -> " + platformName
+	if toolchain.Source != container.SourceUnknown {
+		resolved += " (" + toolchain.Source.String() + ")"
+	}
+
+	return platformName + " (" + version + ")", resolved, tools, nil
 }
 
 func (s *Service) probeWindowsVersion(ctx context.Context) (string, error) {
@@ -127,4 +142,55 @@ func extractVersionFromOutput(output string) string {
 		}
 	}
 	return output
+}
+
+func (s *Service) collectContainerTools(ctx context.Context) []ContainerTool {
+	toolNames := []string{"colima", "docker", "podman"}
+	tools := make([]ContainerTool, 0, len(toolNames))
+
+	for _, name := range toolNames {
+		if _, err := s.lookupPath(name); err != nil {
+			continue
+		}
+
+		version := unknownValue
+		output, err := s.runVersionOutput(ctx, name)
+		if err != nil {
+			s.debugf("%s --version failed: %v", name, err)
+		} else if parsed := extractVersionFromOutput(strings.TrimSpace(string(output))); parsed != "" {
+			version = parsed
+		}
+
+		tools = append(tools, ContainerTool{
+			Name:    name,
+			Version: version,
+		})
+	}
+
+	slices.SortFunc(tools, func(a, b ContainerTool) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+	return tools
+}
+
+func containerToolVersion(tools []ContainerTool, name string) string {
+	for _, tool := range tools {
+		if tool.Name == name {
+			return tool.Version
+		}
+	}
+	return ""
+}
+
+func platformToolVersionName(platform container.ContainerPlatform) string {
+	switch platform {
+	case container.PlatformColima:
+		return "colima"
+	case container.PlatformPodman:
+		return "podman"
+	case container.PlatformDocker:
+		return "docker"
+	default:
+		return ""
+	}
 }

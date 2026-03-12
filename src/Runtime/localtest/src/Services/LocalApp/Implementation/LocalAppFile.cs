@@ -22,12 +22,12 @@ namespace LocalTest.Services.LocalApp.Implementation
             _localPlatformSettings = localPlatformSettings.Value;
         }
 
-        public async Task<string?> GetXACMLPolicy(string appId)
+        public async Task<string?> GetXACMLPolicy(string appId, CancellationToken cancellationToken = default)
         {
-            return await File.ReadAllTextAsync(Path.Join(GetAppConfigFolderPath(appId), "authorization","policy.xml"));
+            return await File.ReadAllTextAsync(Path.Join(GetAppConfigFolderPath(appId), "authorization","policy.xml"), cancellationToken);
         }
 
-        public async Task<Application?> GetApplicationMetadata(string? appId)
+        public async Task<Application?> GetApplicationMetadata(string? appId, CancellationToken cancellationToken = default)
         {
             if(appId is null)
             {
@@ -37,18 +37,18 @@ namespace LocalTest.Services.LocalApp.Implementation
             var filename = Path.Join(GetAppConfigFolderPath(appId), "applicationmetadata.json");
             if (File.Exists(filename))
             {
-                var content = await File.ReadAllTextAsync(filename, Encoding.UTF8);
+                var content = await File.ReadAllTextAsync(filename, Encoding.UTF8, cancellationToken);
                 return JsonConvert.DeserializeObject<Application>(content);
             }
 
             return null;
         }
 
-        public async Task<Dictionary<string, Application>> GetApplications()
+        public async Task<Dictionary<string, Application>> GetApplications(CancellationToken cancellationToken = default)
         {
             var ret = new Dictionary<string, Application>();
 
-            Application? accessManagement = await GetAccessManagment();
+            Application? accessManagement = await GetAccessManagment(cancellationToken);
             if (accessManagement != null)
             {
                 ret.Add("accessmanagement", accessManagement);
@@ -68,7 +68,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             string configPath = Path.Join(path, "config");
             if (Directory.Exists(configPath))
             {
-                Application? app = await GetApplicationMetadata("");
+                Application? app = await GetApplicationMetadata("", cancellationToken);
                 if (app != null)
                 {
                     ret.Add("", app);
@@ -81,7 +81,7 @@ namespace LocalTest.Services.LocalApp.Implementation
 
             foreach (string directory in directories)
             {
-                Application? app = await GetApplicationMetadata(directory);
+                Application? app = await GetApplicationMetadata(directory, cancellationToken);
                 if (app != null)
                 {
                     ret.Add(app.Id, app);
@@ -91,13 +91,13 @@ namespace LocalTest.Services.LocalApp.Implementation
             return ret;
         }
 
-        public async Task<TextResource?> GetTextResource(string org, string app, string language)
+        public async Task<TextResource?> GetTextResource(string org, string app, string language, CancellationToken cancellationToken = default)
         {
             string path = Path.Join(GetAppConfigFolderPath(app), "texts", $"resource.{language.AsFileName()}.json");
 
             if (File.Exists(path))
             {
-                string fileContent = await File.ReadAllTextAsync(path);
+                string fileContent = await File.ReadAllTextAsync(path, cancellationToken);
                 var textResource = JsonConvert.DeserializeObject<TextResource>(fileContent);
                 if (textResource != null)
                 {
@@ -111,7 +111,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             return null;
         }
 
-        public Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token)
+        public Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
@@ -121,13 +121,13 @@ namespace LocalTest.Services.LocalApp.Implementation
             return Path.Join(_localPlatformSettings.AppRepositoryBasePath, appId.Split('/').Last(), "App", "config");
         }
 
-        private async Task<Application?> GetAccessManagment()
+        private async Task<Application?> GetAccessManagment(CancellationToken cancellationToken = default)
         {
             try
             {
                 HttpClient client = new HttpClient();
                 client.BaseAddress = new Uri("http://localhost:5117/");
-                HttpResponseMessage respnse = await client.GetAsync("swagger/index.html");
+                HttpResponseMessage respnse = await client.GetAsync("swagger/index.html", cancellationToken);
                 if (respnse.StatusCode.Equals(HttpStatusCode.OK))
                 {
                     Dictionary<string, string> title =  new Dictionary<string, string>();
@@ -143,7 +143,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             }
         }
 
-        public Task<ILocalApp.TestDataResult> GetTestDataWithMetadata()
+        public Task<ILocalApp.TestDataResult> GetTestDataWithMetadata(CancellationToken cancellationToken = default)
         {
             // LocalAppFile doesn't fetch testData
             return Task.FromResult(new ILocalApp.TestDataResult(null, false));

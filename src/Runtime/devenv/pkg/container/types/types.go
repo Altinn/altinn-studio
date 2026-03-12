@@ -1,3 +1,4 @@
+// Package types defines the shared container runtime data types used across implementations.
 package types
 
 import "errors"
@@ -44,34 +45,117 @@ func MergeCapabilities(defaults, explicit []string) []string {
 	return result
 }
 
-// Runtime name constants returned by ContainerClient.Name()
-const (
-	RuntimeNameDockerEngineAPI = "Docker Engine API"
-	RuntimeNamePodmanCLI       = "Podman CLI"
-)
-
-// RuntimeInstallation represents the actual container runtime installed on the system.
-// This is independent of the transport mechanism used to communicate with the runtime.
-type RuntimeInstallation int
+const runtimeNameUnknown = "Unknown"
 
 const (
-	InstallationUnknown RuntimeInstallation = iota
-	InstallationDocker
-	InstallationPodman
+	buildCLIDocker = "docker"
+	buildCLIPodman = "podman"
 )
 
-func (i RuntimeInstallation) String() string {
-	switch i {
-	case InstallationDocker:
+// ContainerPlatform describes the local container platform product in use.
+type ContainerPlatform int
+
+// Supported container platforms.
+const (
+	PlatformUnknown ContainerPlatform = iota
+	PlatformDocker
+	PlatformPodman
+	PlatformColima
+)
+
+func (p ContainerPlatform) String() string {
+	switch p {
+	case PlatformUnknown:
+		return runtimeNameUnknown
+	case PlatformDocker:
 		return "Docker"
-	case InstallationPodman:
+	case PlatformPodman:
 		return "Podman"
+	case PlatformColima:
+		return "Colima"
 	default:
-		return "Unknown"
+		return runtimeNameUnknown
 	}
 }
 
-// PortMapping defines a container port binding
+// BuildCLI returns the CLI binary used for shell-out build semantics on this platform.
+func (p ContainerPlatform) BuildCLI() string {
+	switch p {
+	case PlatformUnknown:
+		return ""
+	case PlatformDocker, PlatformColima:
+		return buildCLIDocker
+	case PlatformPodman:
+		return buildCLIPodman
+	default:
+		return ""
+	}
+}
+
+// ContainerAccessMode describes how the client communicates with the platform.
+type ContainerAccessMode int
+
+// Supported access modes.
+const (
+	AccessUnknown ContainerAccessMode = iota
+	AccessDockerEngineAPI
+	AccessPodmanCLI
+)
+
+func (m ContainerAccessMode) String() string {
+	switch m {
+	case AccessUnknown:
+		return runtimeNameUnknown
+	case AccessDockerEngineAPI:
+		return "Docker Engine API"
+	case AccessPodmanCLI:
+		return "Podman CLI"
+	default:
+		return runtimeNameUnknown
+	}
+}
+
+// DetectionSource describes which detection path resolved the selected toolchain.
+type DetectionSource int
+
+// Supported detection sources.
+const (
+	SourceUnknown DetectionSource = iota
+	SourceDefault
+	SourceDockerHostEnv
+	SourceDockerContext
+	SourceKnownSocket
+	SourcePodmanCLI
+)
+
+func (s DetectionSource) String() string {
+	switch s {
+	case SourceUnknown:
+		return runtimeNameUnknown
+	case SourceDefault:
+		return "Default"
+	case SourceDockerHostEnv:
+		return "DOCKER_HOST"
+	case SourceDockerContext:
+		return "Docker Context"
+	case SourceKnownSocket:
+		return "Known Socket"
+	case SourcePodmanCLI:
+		return "Podman CLI"
+	default:
+		return runtimeNameUnknown
+	}
+}
+
+// ContainerToolchain describes the selected platform and how this package talks to it.
+type ContainerToolchain struct {
+	SocketPath string
+	Platform   ContainerPlatform
+	AccessMode ContainerAccessMode
+	Source     DetectionSource
+}
+
+// PortMapping defines a container port binding.
 type PortMapping struct {
 	HostIP        string // e.g., "127.0.0.1" or "" for all interfaces
 	HostPort      string
@@ -79,31 +163,31 @@ type PortMapping struct {
 	Protocol      string // "tcp" or "udp", defaults to "tcp"
 }
 
-// VolumeMount defines a bind mount
+// VolumeMount defines a bind mount.
 type VolumeMount struct {
 	HostPath      string
 	ContainerPath string
 	ReadOnly      bool
 }
 
-// ContainerConfig defines options for creating a container
+// ContainerConfig defines options for creating a container.
 type ContainerConfig struct {
+	Labels        map[string]string
 	Name          string
 	Image         string
-	Command       []string // optional override
-	Env           []string // KEY=VALUE pairs
-	Ports         []PortMapping
+	User          string
+	RestartPolicy string
+	ExtraHosts    []string
 	Volumes       []VolumeMount
-	ExtraHosts    []string // "hostname:ip" pairs (e.g., "host.docker.internal:172.17.0.1")
-	Networks      []string // networks to attach (first is primary)
-	RestartPolicy string   // "no", "always", "on-failure", "unless-stopped"
+	Networks      []string
+	Ports         []PortMapping
+	Env           []string
+	Command       []string
+	CapAdd        []string
 	Detach        bool
-	Labels        map[string]string
-	User          string   // "uid:gid" to run as (e.g., "1000:1000")
-	CapAdd        []string // Linux capabilities to add (e.g., "NET_RAW", "MKNOD")
 }
 
-// ImageInfo contains metadata about an image
+// ImageInfo contains metadata about an image.
 type ImageInfo struct {
 	ID   string // image ID (sha256:...)
 	Size int64  // image size in bytes
@@ -129,15 +213,15 @@ type ContainerInfo struct {
 
 // NetworkConfig defines options for creating a network.
 type NetworkConfig struct {
-	Name   string
-	Driver string // "bridge", "host", "none" (default: "bridge")
 	Labels map[string]string
+	Name   string
+	Driver string
 }
 
 // NetworkInfo contains information about a network.
 type NetworkInfo struct {
+	Labels map[string]string
 	ID     string
 	Name   string
 	Driver string
-	Labels map[string]string
 }

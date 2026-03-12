@@ -4,17 +4,17 @@ import "testing"
 
 func TestStatus_String(t *testing.T) {
 	tests := []struct {
-		status Status
 		want   string
+		status Status
 	}{
-		{StatusUnknown, "unknown"},
-		{StatusPending, "pending"},
-		{StatusCreating, "creating"},
-		{StatusReady, "ready"},
-		{StatusFailed, "failed"},
-		{StatusDestroying, "destroying"},
-		{StatusDestroyed, "destroyed"},
-		{Status(99), "Status(99)"},
+		{want: "unknown", status: StatusUnknown},
+		{want: "pending", status: StatusPending},
+		{want: "creating", status: StatusCreating},
+		{want: "ready", status: StatusReady},
+		{want: "failed", status: StatusFailed},
+		{want: "destroying", status: StatusDestroying},
+		{want: "destroyed", status: StatusDestroyed},
+		{want: "Status(99)", status: Status(99)},
 	}
 
 	for _, tt := range tests {

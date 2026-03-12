@@ -65,13 +65,42 @@ func TestValidateResourceHostPaths(t *testing.T) {
 	})
 }
 
+func TestCoreContainers_ColimaUsesDockerConfigFlavor(t *testing.T) {
+	t.Parallel()
+
+	containers := coreContainers(t.TempDir(), RuntimeConfig{
+		HostGateway:      "127.0.0.1",
+		LoadBalancerPort: "8000",
+		Platform:         container.PlatformColima,
+	})
+
+	if got := containers[0].Environment["DOTNET_ENVIRONMENT"]; got != "Docker" {
+		t.Fatalf("DOTNET_ENVIRONMENT = %q, want %q", got, "Docker")
+	}
+}
+
+func TestLocaltestEnvironment(t *testing.T) {
+	tests := map[container.ContainerPlatform]string{
+		container.PlatformDocker:  "Docker",
+		container.PlatformColima:  "Docker",
+		container.PlatformPodman:  "Podman",
+		container.PlatformUnknown: "Unknown",
+	}
+
+	for platform, want := range tests {
+		if got := localtestEnvironment(platform); got != want {
+			t.Fatalf("localtestEnvironment(%v) = %q, want %q", platform, got, want)
+		}
+	}
+}
+
 func newResourceBuildOptions(dataDir string, includeMonitoring bool) ResourceBuildOptions {
 	return ResourceBuildOptions{
 		DataDir: dataDir,
 		RuntimeConfig: RuntimeConfig{
 			HostGateway:      "127.0.0.1",
 			LoadBalancerPort: "8000",
-			Installation:     container.InstallationDocker,
+			Platform:         container.PlatformDocker,
 		},
 		IncludeMonitoring: includeMonitoring,
 	}

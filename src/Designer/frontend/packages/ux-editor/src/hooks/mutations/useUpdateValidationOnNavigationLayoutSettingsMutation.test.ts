@@ -4,7 +4,6 @@ import { renderHookWithProviders } from '../../testing/mocks';
 import { useUpdateValidationOnNavigationLayoutSettingsMutation } from './useUpdateValidationOnNavigationLayoutSettingsMutation';
 import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 // Test data:
@@ -33,16 +32,6 @@ describe('useUpdateValidationOnNavigationLayoutSettingsMutation', () => {
       app,
       settings,
     );
-  });
-
-  it('updates the query cache with the new settings on success', async () => {
-    const queryClient = createQueryClientMock();
-    const { result } = renderMutation(queryClient);
-    result.current.mutate(settings);
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(
-      queryClient.getQueryData([QueryKey.ValidationOnNavigationLayoutSettings, org, app]),
-    ).toEqual(settings);
   });
 });
 

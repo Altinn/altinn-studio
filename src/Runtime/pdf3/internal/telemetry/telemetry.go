@@ -20,10 +20,12 @@ import (
 
 const scopeName = "pdf3"
 
+//nolint:ireturn // OpenTelemetry intentionally exposes interface-returning accessors.
 func Tracer() oteltrace.Tracer {
 	return otel.Tracer(scopeName)
 }
 
+//nolint:ireturn // OpenTelemetry intentionally exposes interface-returning accessors.
 func Meter() otelmetric.Meter {
 	return otel.Meter(scopeName)
 }
@@ -34,12 +36,12 @@ func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, e
 	var shutdownFuncs []func(context.Context) error
 
 	shutdown = func(ctx context.Context) error {
-		var err error
+		var shutdownErr error
 		for _, fn := range shutdownFuncs {
-			err = errors.Join(err, fn(ctx))
+			shutdownErr = errors.Join(shutdownErr, fn(ctx))
 		}
 		shutdownFuncs = nil
-		return err
+		return shutdownErr
 	}
 
 	handleErr := func(inErr error) {
@@ -77,7 +79,7 @@ func ConfigureOTel(ctx context.Context) (shutdown func(context.Context) error, e
 
 	if err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(15 * time.Second)); err != nil {
 		handleErr(err)
-		return shutdown, err
+		return shutdown, fmt.Errorf("start runtime metrics instrumentation: %w", err)
 	}
 
 	return shutdown, nil
@@ -87,7 +89,7 @@ func newTracerProvider(ctx context.Context, res *resource.Resource) (*trace.Trac
 	// cluster-internal endpoint, no TLS needed
 	exporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create trace exporter: %w", err)
 	}
 
 	return trace.NewTracerProvider(
@@ -96,7 +98,7 @@ func newTracerProvider(ctx context.Context, res *resource.Resource) (*trace.Trac
 	), nil
 }
 
-// Buckets tailored for PDF generation latencies (0.25s to 35s)
+// Buckets tailored for PDF generation latencies (0.25s to 35s).
 var httpDurationView = metric.NewView(
 	metric.Instrument{
 		Name: "http.server.request.duration",
@@ -116,7 +118,7 @@ func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.Mete
 	// cluster-internal endpoint, no TLS needed
 	exporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithInsecure())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create metric exporter: %w", err)
 	}
 
 	return metric.NewMeterProvider(

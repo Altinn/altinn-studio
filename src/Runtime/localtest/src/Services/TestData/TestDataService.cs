@@ -26,7 +26,7 @@ public class TestDataService
         _appRegistryService = appRegistryService;
     }
 
-    public async Task<TestDataModel> GetTestData()
+    public async Task<TestDataModel> GetTestData(CancellationToken cancellationToken = default)
     {
         return (await _cache.GetOrCreateAsync("TEST_DATA",
             async (entry) =>
@@ -38,7 +38,7 @@ public class TestDataService
 
                 try
                 {
-                    var appResult = await _localApp.GetTestDataWithMetadata();
+                    var appResult = await _localApp.GetTestDataWithMetadata(cancellationToken);
                     if (appResult.Data is not null)
                     {
                         var appModel = appResult.Data.GetTestDataModel();
@@ -56,7 +56,7 @@ public class TestDataService
                         return diskModel;
                     }
                 }
-                catch (HttpRequestException e)
+                catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
                 {
                     _logger.LogInformation(e, "Fetching Test data from app failed.");
                 }

@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -25,6 +26,16 @@ import (
 )
 
 var passwordRegex = regexp.MustCompile(`Password=[^;]+`)
+
+var errHelmReleaseNotReady = errors.New("HelmRelease not ready")
+var errHelmReleaseNoReadyCondition = errors.New("HelmRelease has no Ready condition")
+var errPasswordKeyMissing = errors.New("password key missing from secret")
+var errManagedRolesStatusMissing = errors.New("no managed roles status yet")
+var errRoleNotReconciled = errors.New("managed role not yet reconciled")
+var errDatabaseNotApplied = errors.New("database not yet applied")
+var errPostgresqlJSONMissing = errors.New("postgresql.json key missing from app secret")
+var errDBCheckFailed = errors.New("dbcheck failed")
+var errUnexpectedDBCheckResult = errors.New("unexpected dbcheck result")
 
 func redactPassword(connStr string) string {
 	return passwordRegex.ReplaceAllString(connStr, "Password=REDACTED")
@@ -86,7 +97,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				Do(ctx).
 				Into(sc)
 			if err != nil {
-				return err
+				return fmt.Errorf("fetch StorageClass: %w", err)
 			}
 			readySc = sc
 			return nil
@@ -121,7 +132,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				Do(ctx).
 				Into(repo)
 			if err != nil {
-				return err
+				return fmt.Errorf("fetch HelmRepository: %w", err)
 			}
 			readyRepo = repo
 			return nil
@@ -148,15 +159,15 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				Do(ctx).
 				Into(hr)
 			if err != nil {
-				return err
+				return fmt.Errorf("fetch HelmRelease: %w", err)
 			}
 
 			if !apimeta.IsStatusConditionTrue(hr.Status.Conditions, "Ready") {
 				cond := apimeta.FindStatusCondition(hr.Status.Conditions, "Ready")
 				if cond != nil {
-					return fmt.Errorf("HelmRelease not ready: reason=%s message=%s", cond.Reason, cond.Message)
+					return fmt.Errorf("%w: reason=%s message=%s", errHelmReleaseNotReady, cond.Reason, cond.Message)
 				}
-				return fmt.Errorf("HelmRelease not ready: no Ready condition")
+				return errHelmReleaseNoReadyCondition
 			}
 			readyHr = hr
 			return nil
@@ -183,7 +194,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				Do(ctx).
 				Into(catalog)
 			if err != nil {
-				return err
+				return fmt.Errorf("fetch ImageCatalog: %w", err)
 			}
 			readyCatalog = catalog
 			return nil
@@ -210,7 +221,7 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				Do(ctx).
 				Into(cluster)
 			if err != nil {
-				return err
+				return fmt.Errorf("fetch Cluster: %w", err)
 			}
 			readyCluster = cluster
 			return nil
@@ -238,10 +249,10 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				Do(ctx).
 				Into(secret)
 			if err != nil {
-				return err
+				return fmt.Errorf("fetch password secret: %w", err)
 			}
 			if _, ok := secret.Data["password"]; !ok {
-				return fmt.Errorf("password key missing from secret")
+				return errPasswordKeyMissing
 			}
 			readySecret = secret
 			return nil
@@ -277,18 +288,16 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				Do(ctx).
 				Into(cluster)
 			if err != nil {
-				return err
+				return fmt.Errorf("fetch cluster managed roles: %w", err)
 			}
 			if cluster.Status.ManagedRolesStatus.ByStatus == nil {
-				return fmt.Errorf("no managed roles status yet")
+				return errManagedRolesStatusMissing
 			}
 			reconciledRoles := cluster.Status.ManagedRolesStatus.ByStatus[cnpgv1.RoleStatusReconciled]
-			for _, roleName := range reconciledRoles {
-				if roleName == appId {
-					return nil
-				}
+			if slices.Contains(reconciledRoles, appId) {
+				return nil
 			}
-			return fmt.Errorf("role %s not yet reconciled, status: %+v", appId, cluster.Status.ManagedRolesStatus)
+			return fmt.Errorf("%w: role=%s status=%+v", errRoleNotReconciled, appId, cluster.Status.ManagedRolesStatus)
 		}, 120*time.Second, 2*time.Second).Should(Succeed())
 	})
 
@@ -308,10 +317,10 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				Do(ctx).
 				Into(db)
 			if err != nil {
-				return err
+				return fmt.Errorf("fetch database: %w", err)
 			}
 			if db.Status.Applied == nil || !*db.Status.Applied {
-				return fmt.Errorf("database not yet applied")
+				return errDatabaseNotApplied
 			}
 			appliedDb = db
 			return nil
@@ -338,11 +347,11 @@ var _ = Describe("cnpgsync", Ordered, func() {
 				Do(ctx).
 				Into(secret)
 			if err != nil {
-				return err
+				return fmt.Errorf("fetch app secret: %w", err)
 			}
 			data, ok := secret.Data["postgresql.json"]
 			if !ok {
-				return fmt.Errorf("postgresql.json key missing from app secret")
+				return errPostgresqlJSONMissing
 			}
 			pgJson = data
 			return nil
@@ -372,17 +381,27 @@ var _ = Describe("cnpgsync", Ordered, func() {
 		Eventually(func() error {
 			resp, err := FetchDbCheck()
 			if err != nil {
-				_, _ = fmt.Fprintf(GinkgoWriter, "FetchDbCheck error: %v\n", err)
+				if _, writeErr := fmt.Fprintf(GinkgoWriter, "FetchDbCheck error: %v\n", err); writeErr != nil {
+					return fmt.Errorf("write FetchDbCheck error: %w", writeErr)
+				}
 				return err
 			}
 			if !resp.Success {
-				_, _ = fmt.Fprintf(GinkgoWriter, "DbCheck failed: %s\n", resp.Error)
-				return fmt.Errorf("dbcheck failed: %s", resp.Error)
+				if _, writeErr := fmt.Fprintf(GinkgoWriter, "DbCheck failed: %s\n", resp.Error); writeErr != nil {
+					return fmt.Errorf("write dbcheck failure: %w", writeErr)
+				}
+				return fmt.Errorf("%w: %s", errDBCheckFailed, resp.Error)
 			}
 			if resp.Result != 1 {
-				return fmt.Errorf("expected result 1, got %d", resp.Result)
+				return fmt.Errorf("%w: got %d", errUnexpectedDBCheckResult, resp.Result)
 			}
-			_, _ = fmt.Fprintf(GinkgoWriter, "DbCheck succeeded, result: %d\n", resp.Result)
+			if _, writeErr := fmt.Fprintf(
+				GinkgoWriter,
+				"DbCheck succeeded, result: %d\n",
+				resp.Result,
+			); writeErr != nil {
+				return fmt.Errorf("write dbcheck success: %w", writeErr)
+			}
 			dbResp = resp
 			return nil
 		}, 30*time.Second, time.Second).Should(Succeed())

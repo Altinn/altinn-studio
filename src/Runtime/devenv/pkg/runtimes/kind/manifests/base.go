@@ -1,3 +1,6 @@
+// Package manifests builds the Kubernetes objects used by the Kind runtime bootstrap.
+//
+//nolint:mnd // Manifest literals intentionally use concrete ports and chart defaults.
 package manifests
 
 import (
@@ -100,7 +103,7 @@ func buildHelmRepository(name, url string) *sourcev1.HelmRepository {
 }
 
 func buildMetricsServerRelease() *helmv2.HelmRelease {
-	values := map[string]interface{}{
+	values := map[string]any{
 		"args": []string{
 			"--kubelet-insecure-tls",
 			"--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP",
@@ -195,24 +198,24 @@ func buildLinkerdCRDsRelease() *helmv2.HelmRelease {
 }
 
 func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
-	values := map[string]interface{}{
-		"policyController": map[string]interface{}{
-			"image": map[string]interface{}{
+	values := map[string]any{
+		"policyController": map[string]any{
+			"image": map[string]any{
 				"name": "ghcr.io/linkerd/policy-controller",
 			},
 		},
-		"proxy": map[string]interface{}{
-			"image": map[string]interface{}{
+		"proxy": map[string]any{
+			"image": map[string]any{
 				"name": "ghcr.io/linkerd/proxy",
 			},
 		},
-		"proxyInit": map[string]interface{}{
-			"image": map[string]interface{}{
+		"proxyInit": map[string]any{
+			"image": map[string]any{
 				"name": "ghcr.io/linkerd/proxy-init",
 			},
 		},
-		"debugContainer": map[string]interface{}{
-			"image": map[string]interface{}{
+		"debugContainer": map[string]any{
+			"image": map[string]any{
 				"name": "ghcr.io/linkerd/debug",
 			},
 		},
@@ -274,52 +277,53 @@ func buildLinkerdControlPlaneRelease() *helmv2.HelmRelease {
 	}
 }
 
+//nolint:funlen // The manifest literal is easier to review as one block.
 func buildTraefikRelease(includeLinkerd bool) *helmv2.HelmRelease {
-	values := map[string]interface{}{
-		"global": map[string]interface{}{
+	values := map[string]any{
+		"global": map[string]any{
 			"checkNewVersion":    false,
 			"sendAnonymousUsage": false,
 		},
-		"deployment": map[string]interface{}{
-			"podAnnotations": map[string]interface{}{
+		"deployment": map[string]any{
+			"podAnnotations": map[string]any{
 				"linkerd.io/inject": "enabled",
 			},
 		},
-		"providers": map[string]interface{}{
-			"kubernetesCRD": map[string]interface{}{
+		"providers": map[string]any{
+			"kubernetesCRD": map[string]any{
 				"enabled": true,
 			},
-			"kubernetesGateway": map[string]interface{}{
+			"kubernetesGateway": map[string]any{
 				"enabled": false,
 			},
-			"kubernetesIngress": map[string]interface{}{
+			"kubernetesIngress": map[string]any{
 				"enabled": false,
 			},
 		},
-		"ports": map[string]interface{}{
-			"web": map[string]interface{}{
+		"ports": map[string]any{
+			"web": map[string]any{
 				"nodePort": 30000,
-				"expose": map[string]interface{}{
+				"expose": map[string]any{
 					"default": true,
 				},
 			},
-			"websecure": map[string]interface{}{
+			"websecure": map[string]any{
 				"nodePort": 30001,
-				"expose": map[string]interface{}{
+				"expose": map[string]any{
 					"default": true,
 				},
 			},
-			"traefik": map[string]interface{}{
+			"traefik": map[string]any{
 				"nodePort": 30002,
-				"expose": map[string]interface{}{
+				"expose": map[string]any{
 					"default": true,
 				},
-				"forwardedHeaders": map[string]interface{}{
+				"forwardedHeaders": map[string]any{
 					"insecure": true,
 				},
 			},
 		},
-		"service": map[string]interface{}{
+		"service": map[string]any{
 			"type": "NodePort",
 		},
 	}
@@ -370,7 +374,7 @@ func buildTraefikRelease(includeLinkerd bool) *helmv2.HelmRelease {
 	}
 }
 
-func mustMarshalJSON(v interface{}) *apiextensionsv1.JSON {
+func mustMarshalJSON(v any) *apiextensionsv1.JSON {
 	data, err := json.Marshal(v)
 	if err != nil {
 		panic(err)

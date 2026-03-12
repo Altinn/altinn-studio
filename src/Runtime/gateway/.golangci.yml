@@ -29,6 +29,8 @@ linters:
 
     govet:
       enable-all: true
+      # disable:
+      #   - fieldalignment
 
     nakedret:
       max-func-lines: 0
@@ -71,10 +73,17 @@ linters:
         - 'net/http\.Client'
 
     gocritic:
+      # Settings passed to gocritic.
+      # The settings key is the name of a supported gocritic checker.
+      # The list of supported checkers can be found at https://go-critic.com/overview.
       settings:
         captLocal:
+          # Whether to restrict checker to params only.
+          # Default: true
           paramsOnly: false
         underef:
+          # Whether to skip (*x).method() calls where x is a pointer receiver.
+          # Default: true
           skipRecvDeref: false
 
     nolintlint:
@@ -107,8 +116,22 @@ linters:
         - name: unreachable-code
 
   exclusions:
+    # Log a warning if an exclusion rule is unused.
+    # Default: false
     warn-unused: true
-    rules: []
+    # Predefined exclusion rules.
+    # Default: []
+    # presets:
+      # - std-error-handling
+      # - common-false-positives
+    # Excluding configuration per-path, per-linter, per-text and per-source.
+    rules:
+      - path: '_test\.go'
+        linters:
+          - funlen
+          - gosec
+          - gocognit
+          - exhaustruct
 
 formatters:
   enable:
@@ -117,8 +140,13 @@ formatters:
     - golines
   settings:
     goimports:
+      # A list of prefixes, which, if set, checks import paths
+      # with the given prefixes are grouped after 3rd-party packages.
+      # Default: []
       local-prefixes:
         - altinn.studio/
 
     golines:
+      # Target maximum line length.
+      # Default: 100
       max-len: 120

@@ -12,8 +12,8 @@ func TestParseMaskinportenClientName(t *testing.T) {
 		input          string
 		wantOwnerId    string
 		wantAppId      string
-		wantErr        bool
 		wantErrContain string
+		wantErr        bool
 	}{
 		{
 			name:        "simple name",

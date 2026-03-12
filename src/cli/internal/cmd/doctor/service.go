@@ -5,8 +5,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os/exec"
 	"sort"
 
+	"altinn.studio/devenv/pkg/container"
 	"altinn.studio/studioctl/internal/auth"
 	"altinn.studio/studioctl/internal/config"
 	repocontext "altinn.studio/studioctl/internal/context"
@@ -43,6 +45,7 @@ const (
 var (
 	errDotnetVersionTooOld = errors.New("dotnet version too old")
 	errNoContainerRuntime  = errors.New("no container runtime found")
+	errUnsupportedCommand  = errors.New("unsupported command")
 	errWindowsVersionOld   = errors.New("windows version too old")
 	errWindowsVersionUnk   = errors.New("windows version unknown")
 )
@@ -58,8 +61,11 @@ const (
 
 // Service contains doctor application logic.
 type Service struct {
-	cfg    *config.Config
-	debugf func(format string, args ...any)
+	cfg             *config.Config
+	debugf          func(format string, args ...any)
+	lookPath        func(file string) (string, error)
+	versionOutput   func(ctx context.Context, name string) ([]byte, error)
+	containerDetect func(ctx context.Context) (container.ContainerClient, error)
 }
 
 // Report is the doctor application-layer output model.
@@ -97,12 +103,21 @@ type Check struct {
 
 // Prerequisites contains prerequisite check details.
 type Prerequisites struct {
-	DotnetValue    string `json:"-"`
-	ContainerValue string `json:"-"`
-	WindowsValue   string `json:"-"`
-	Windows        *Check `json:"windows,omitempty"`
-	Dotnet         Check  `json:"dotnet"`
-	Container      Check  `json:"container"`
+	DotnetValue       string          `json:"-"`
+	ContainerValue    string          `json:"-"`
+	WindowsValue      string          `json:"-"`
+	ContainerResolved string          `json:"containerResolved,omitempty"`
+	ContainerHost     string          `json:"containerHost,omitempty"`
+	ContainerTools    []ContainerTool `json:"containerTools,omitempty"`
+	Windows           *Check          `json:"windows,omitempty"`
+	Dotnet            Check           `json:"dotnet"`
+	Container         Check           `json:"container"`
+}
+
+// ContainerTool describes one detected container-related tool on PATH.
+type ContainerTool struct {
+	Name    string `json:"name"`
+	Version string `json:"version,omitempty"`
 }
 
 // Network contains network diagnostics and cache/probe data.
@@ -159,7 +174,13 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 	if debugf == nil {
 		debugf = func(string, ...any) {}
 	}
-	return &Service{cfg: cfg, debugf: debugf}
+	return &Service{
+		cfg:             cfg,
+		debugf:          debugf,
+		lookPath:        exec.LookPath,
+		versionOutput:   commandVersionOutput,
+		containerDetect: container.Detect,
+	}
 }
 
 // BuildReport builds a doctor report from system state.
@@ -193,6 +214,39 @@ func (s *Service) HasIssues(report Report) bool {
 		return true
 	}
 	return report.Disk != nil && report.Disk.HasIssues
+}
+
+func (s *Service) lookupPath(file string) (string, error) {
+	if s != nil && s.lookPath != nil {
+		return s.lookPath(file)
+	}
+
+	path, err := exec.LookPath(file)
+	if err != nil {
+		return "", fmt.Errorf("lookup %s in PATH: %w", file, err)
+	}
+	return path, nil
+}
+
+func (s *Service) runVersionOutput(ctx context.Context, name string) ([]byte, error) {
+	if s != nil && s.versionOutput != nil {
+		return s.versionOutput(ctx, name)
+	}
+
+	return commandVersionOutput(ctx, name)
+}
+
+func commandVersionOutput(ctx context.Context, name string) ([]byte, error) {
+	switch name {
+	case "dotnet", "docker", "podman", "colima":
+		output, err := exec.CommandContext(ctx, name, "--version").Output()
+		if err != nil {
+			return nil, fmt.Errorf("run %s --version: %w", name, err)
+		}
+		return output, nil
+	default:
+		return nil, fmt.Errorf("%w: %s", errUnsupportedCommand, name)
+	}
 }
 
 func (s *Service) buildAuth() *Auth {

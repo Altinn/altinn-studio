@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Colima support
+
+### Fixed
+
+- Improve `doctor` and `env localtest` container toolchain detection
+
+### Changed
+
+- Update localtest images
+
 ## [0.1.0-preview.3] - 2026-02-27
 
 ### Fixed

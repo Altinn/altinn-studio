@@ -14,11 +14,27 @@ type mockResource struct {
 func (m *mockResource) ID() ResourceID              { return m.id }
 func (m *mockResource) Dependencies() []ResourceRef { return m.deps }
 
+func mustAddResource(t *testing.T, g *Graph, r Resource) {
+	t.Helper()
+	if err := g.Add(r); err != nil {
+		t.Fatalf("Add() error = %v", err)
+	}
+}
+
+func buildLinearGraph() (*Graph, []Resource) {
+	a := &mockResource{id: "a"}
+	b := &mockResource{id: "b", deps: DepIDs("a")}
+	c := &mockResource{id: "c", deps: DepIDs("b")}
+
+	g := NewGraph()
+	return g, []Resource{a, b, c}
+}
+
 func TestGraph_Add(t *testing.T) {
 	tests := []struct {
-		name    string
-		setup   func(*Graph)
 		add     Resource
+		setup   func(*Graph)
+		name    string
 		wantErr bool
 	}{
 		{
@@ -39,7 +55,7 @@ func TestGraph_Add(t *testing.T) {
 		{
 			name: "add duplicate ID",
 			setup: func(g *Graph) {
-				_ = g.Add(&mockResource{id: "a"})
+				mustAddResource(t, g, &mockResource{id: "a"})
 			},
 			add:     &mockResource{id: "a"},
 			wantErr: true,
@@ -63,7 +79,7 @@ func TestGraph_Add(t *testing.T) {
 func TestGraph_Get(t *testing.T) {
 	g := NewGraph()
 	r := &mockResource{id: "a"}
-	_ = g.Add(r)
+	mustAddResource(t, g, r)
 
 	if got := g.Get("a"); got != r {
 		t.Error("Get() should return the added resource")
@@ -75,8 +91,8 @@ func TestGraph_Get(t *testing.T) {
 
 func TestGraph_All(t *testing.T) {
 	g := NewGraph()
-	_ = g.Add(&mockResource{id: "a"})
-	_ = g.Add(&mockResource{id: "b"})
+	mustAddResource(t, g, &mockResource{id: "a"})
+	mustAddResource(t, g, &mockResource{id: "b"})
 
 	all := g.All()
 	if len(all) != 2 {
@@ -87,9 +103,9 @@ func TestGraph_All(t *testing.T) {
 func TestGraph_Validate(t *testing.T) {
 	tests := []struct {
 		name      string
+		errMsg    string
 		resources []Resource
 		wantErr   bool
-		errMsg    string
 	}{
 		{
 			name: "valid graph no deps",
@@ -148,7 +164,7 @@ func TestGraph_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewGraph()
 			for _, r := range tt.resources {
-				_ = g.Add(r)
+				mustAddResource(t, g, r)
 			}
 			err := g.Validate()
 			if (err != nil) != tt.wantErr {
@@ -167,14 +183,10 @@ func TestGraph_Validate(t *testing.T) {
 }
 
 func TestGraph_TopologicalOrder(t *testing.T) {
-	a := &mockResource{id: "a"}
-	b := &mockResource{id: "b", deps: DepIDs("a")}
-	c := &mockResource{id: "c", deps: DepIDs("b")}
-
-	g := NewGraph()
-	_ = g.Add(a)
-	_ = g.Add(b)
-	_ = g.Add(c)
+	g, resources := buildLinearGraph()
+	for _, r := range resources {
+		mustAddResource(t, g, r)
+	}
 
 	levels, err := g.TopologicalOrder()
 	if err != nil {
@@ -205,9 +217,9 @@ func TestGraph_TopologicalOrder_ParallelLevel(t *testing.T) {
 	c := &mockResource{id: "c", deps: DepIDs("a", "b")}
 
 	g := NewGraph()
-	_ = g.Add(a)
-	_ = g.Add(b)
-	_ = g.Add(c)
+	mustAddResource(t, g, a)
+	mustAddResource(t, g, b)
+	mustAddResource(t, g, c)
 
 	levels, err := g.TopologicalOrder()
 	if err != nil {
@@ -231,14 +243,10 @@ func TestGraph_TopologicalOrder_ParallelLevel(t *testing.T) {
 }
 
 func TestGraph_ReverseTopologicalOrder(t *testing.T) {
-	a := &mockResource{id: "a"}
-	b := &mockResource{id: "b", deps: DepIDs("a")}
-	c := &mockResource{id: "c", deps: DepIDs("b")}
-
-	g := NewGraph()
-	_ = g.Add(a)
-	_ = g.Add(b)
-	_ = g.Add(c)
+	g, resources := buildLinearGraph()
+	for _, r := range resources {
+		mustAddResource(t, g, r)
+	}
 
 	levels, err := g.ReverseTopologicalOrder()
 	if err != nil {
@@ -267,9 +275,9 @@ func TestGraph_TopologicalOrder_WithDirectRefs(t *testing.T) {
 	c := &mockResource{id: "c", deps: DepIDs("b")}
 
 	g := NewGraph()
-	_ = g.Add(a)
-	_ = g.Add(b)
-	_ = g.Add(c)
+	mustAddResource(t, g, a)
+	mustAddResource(t, g, b)
+	mustAddResource(t, g, c)
 
 	levels, err := g.TopologicalOrder()
 	if err != nil {
@@ -299,8 +307,8 @@ func TestGraph_TopologicalOrder_CycleError(t *testing.T) {
 	b := &mockResource{id: "b", deps: DepIDs("a")}
 
 	g := NewGraph()
-	_ = g.Add(a)
-	_ = g.Add(b)
+	mustAddResource(t, g, a)
+	mustAddResource(t, g, b)
 
 	_, err := g.TopologicalOrder()
 	if err == nil {
