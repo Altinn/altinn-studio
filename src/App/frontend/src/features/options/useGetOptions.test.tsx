@@ -242,7 +242,7 @@ describe('useGetOptions', () => {
     expect(fetchOptionsMock).not.toHaveBeenCalled();
   });
 
-  it('uses bootstrap static options when mapping is configured', async () => {
+  it('fetches options from the API when mapping is configured', async () => {
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
@@ -259,12 +259,12 @@ describe('useGetOptions', () => {
     });
 
     expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
-      { label: 'Bootstrap', value: 'bootstrap' },
+      { label: 'Fetched', value: 'fetched' },
     ]);
-    expect(fetchOptionsMock).not.toHaveBeenCalled();
+    expect(fetchOptionsMock).toHaveBeenCalledTimes(1);
   });
 
-  it('uses bootstrap static options when query parameters are dynamic', async () => {
+  it('fetches options from the API when query parameters are dynamic', async () => {
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
       data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
       headers: {},
@@ -281,12 +281,34 @@ describe('useGetOptions', () => {
     });
 
     expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
-      { label: 'Bootstrap', value: 'bootstrap' },
+      { label: 'Fetched', value: 'fetched' },
     ]);
-    expect(fetchOptionsMock).not.toHaveBeenCalled();
+    expect(fetchOptionsMock).toHaveBeenCalledTimes(1);
   });
 
-  it('uses bootstrap static options regardless of query parameter values', async () => {
+  it('fetches options from the API when query parameters are static but non-empty', async () => {
+    const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
+      data: [{ label: 'Fetched', value: 'fetched' }] as IRawOption[],
+      headers: {},
+    } as AxiosResponse<IRawOption[]>);
+
+    await render({
+      via: 'api',
+      type: 'single',
+      queryParameters: { region: 'asia' },
+      fetchOptions: fetchOptionsMock,
+      staticOptions: {
+        myOptions: { options: [{ label: 'Static list', value: 'static' }] },
+      },
+    });
+
+    expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
+      { label: 'Fetched', value: 'fetched' },
+    ]);
+    expect(fetchOptionsMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses bootstrap static options when mapping and query parameters are empty', async () => {
     const fetchOptionsMock = jest.fn<typeof fetchOptions>().mockResolvedValue({
       data: [] as IRawOption[],
       headers: {},
@@ -295,7 +317,8 @@ describe('useGetOptions', () => {
     await render({
       via: 'api',
       type: 'single',
-      queryParameters: { region: 'asia' },
+      mapping: {},
+      queryParameters: {},
       fetchOptions: fetchOptionsMock,
       staticOptions: {
         myOptions: { options: [{ label: 'Static list', value: 'static' }] },
