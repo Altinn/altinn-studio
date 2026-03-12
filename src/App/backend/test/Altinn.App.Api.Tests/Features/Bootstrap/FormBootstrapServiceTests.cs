@@ -113,7 +113,7 @@ public class FormBootstrapServiceTests
     public async Task GetInstanceFormBootstrap_PartitionsInitialValidationIssues()
     {
         var dataElementId = Guid.NewGuid().ToString();
-        var instance = CreateTestInstance("Task_1", dataElementId: dataElementId);
+        var instance = CreateTestInstance("Task_1", defaultDataElementId: dataElementId);
         var appMetadata = CreateAppMetadata("model");
 
         SetupMocks(appMetadata);
@@ -412,7 +412,7 @@ public class FormBootstrapServiceTests
     {
         // Arrange
         var dataElementId = Guid.NewGuid().ToString();
-        var instance = CreateTestInstance("Task_1", dataElementId: dataElementId);
+        var instance = CreateTestInstance("Task_1", defaultDataElementId: dataElementId);
         var appMetadata = CreateAppMetadata("model", "submodel");
 
         SetupMocks(appMetadata, uiFolder: "subform", dataType: "submodel");
@@ -431,6 +431,61 @@ public class FormBootstrapServiceTests
         // Assert
         Assert.True(result.DataModels.ContainsKey("submodel"));
         Assert.Equal(dataElementId, result.DataModels["submodel"].DataElementId);
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_DataElementIdOverride_OnlyAppliesToDefaultDataType()
+    {
+        // Arrange
+        var parentDataElementId = Guid.NewGuid().ToString();
+        var subformDataElementId = Guid.NewGuid().ToString();
+        var instance = CreateTestInstance(
+            "Task_1",
+            defaultDataElementId: parentDataElementId,
+            submodelDataElementId: subformDataElementId
+        );
+        var appMetadata = CreateAppMetadata("model", "submodel");
+
+        SetupMocks(appMetadata, uiFolder: "subform", dataType: "submodel");
+        _appResources
+            .Setup(x => x.GetLayoutsInFolder("subform"))
+            .Returns(
+                """
+                {
+                    "page1": {
+                        "data": {
+                            "layout": [
+                                {
+                                    "id": "field1",
+                                    "type": "Input",
+                                    "dataModelBindings": {
+                                        "simpleBinding": {
+                                            "field": "Name",
+                                            "dataType": "model"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+                """
+            );
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.GetInstanceFormBootstrap(
+            instance,
+            uiFolder: "subform",
+            dataElementIdOverride: subformDataElementId,
+            isPdf: false,
+            language: "nb"
+        );
+
+        // Assert
+        Assert.Equal(subformDataElementId, result.DataModels["submodel"].DataElementId);
+        Assert.Equal(parentDataElementId, result.DataModels["model"].DataElementId);
     }
 
     [Fact]
@@ -459,9 +514,14 @@ public class FormBootstrapServiceTests
         );
     }
 
-    private static Instance CreateTestInstance(string taskId, bool locked = false, string? dataElementId = null)
+    private static Instance CreateTestInstance(
+        string taskId,
+        bool locked = false,
+        string? defaultDataElementId = null,
+        string? submodelDataElementId = null
+    )
     {
-        var elementId = dataElementId ?? Guid.NewGuid().ToString();
+        var elementId = defaultDataElementId ?? Guid.NewGuid().ToString();
         return new Instance
         {
             Id = "12345/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -477,7 +537,7 @@ public class FormBootstrapServiceTests
                 },
                 new DataElement
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = submodelDataElementId ?? Guid.NewGuid().ToString(),
                     DataType = "submodel",
                     Locked = false,
                     ContentType = "application/xml",

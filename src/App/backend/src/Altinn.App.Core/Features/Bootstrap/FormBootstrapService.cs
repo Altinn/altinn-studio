@@ -103,6 +103,7 @@ public sealed class FormBootstrapService
         var dataModels = await LoadInstanceDataModels(
             dataAccessor,
             referencedDataTypes,
+            defaultDataType,
             dataElementIdOverride,
             isPdf,
             language,
@@ -190,6 +191,7 @@ public sealed class FormBootstrapService
     private async Task<Dictionary<string, DataModelInfo>> LoadInstanceDataModels(
         InstanceDataUnitOfWork dataAccessor,
         HashSet<string> dataTypes,
+        string defaultDataType,
         string? specificDataElementId,
         bool isPdf,
         string language,
@@ -214,7 +216,11 @@ public sealed class FormBootstrapService
                 }
 
                 DataElement? dataElement;
-                if (!string.IsNullOrEmpty(specificDataElementId))
+                var shouldUseSpecificDataElement =
+                    !string.IsNullOrEmpty(specificDataElementId)
+                    && string.Equals(dataType, defaultDataType, StringComparison.OrdinalIgnoreCase);
+
+                if (shouldUseSpecificDataElement)
                 {
                     dataElement = dataAccessor.Instance.Data.FirstOrDefault(d =>
                         string.Equals(d.Id, specificDataElementId, StringComparison.OrdinalIgnoreCase)
