@@ -2,11 +2,16 @@ using System.Text.Json;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Helpers;
+using Altinn.Common.PEP.Interfaces;
+using Altinn.Common.PEP.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +30,8 @@ public class FormBootstrapController : ControllerBase
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly IPDP _pdp;
+    private readonly IAuthenticationContext _authenticationContext;
     private readonly ILogger<FormBootstrapController> _logger;
 
     /// <summary>
@@ -35,6 +42,8 @@ public class FormBootstrapController : ControllerBase
         IInstanceClient instanceClient,
         IAppResources appResources,
         IAppMetadata appMetadata,
+        IPDP pdp,
+        IAuthenticationContext authenticationContext,
         ILogger<FormBootstrapController> logger
     )
     {
@@ -43,6 +52,8 @@ public class FormBootstrapController : ControllerBase
         _instanceClient = instanceClient;
         _appResources = appResources;
         _appMetadata = appMetadata;
+        _pdp = pdp;
+        _authenticationContext = authenticationContext;
         _logger = logger;
     }
 
@@ -155,6 +166,14 @@ public class FormBootstrapController : ControllerBase
                 return Forbid();
             }
         }
+        else
+        {
+            var enforcementResult = await AuthorizeStatelessRead(org, app);
+            if (!enforcementResult.Authorized)
+            {
+                return Forbidden(enforcementResult);
+            }
+        }
 
         Dictionary<string, string>? prefillFromQueryParams = null;
         if (!string.IsNullOrEmpty(prefill))
@@ -221,6 +240,49 @@ public class FormBootstrapController : ControllerBase
         return uiConfig?.Folders.GetValueOrDefault(uiFolder);
     }
 
+    private async Task<EnforcementResult> AuthorizeStatelessRead(string org, string app)
+    {
+        var partyId = await GetStatelessPartyId();
+        if (partyId is null)
+        {
+            return new EnforcementResult();
+        }
+
+        XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(
+            org,
+            app,
+            HttpContext.User,
+            "read",
+            partyId.Value,
+            null
+        );
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+
+        if (response?.Response == null)
+        {
+            _logger.LogInformation(
+                "// Form Bootstrap Controller // Authorization of action {action} failed for party {partyId}.",
+                "read",
+                partyId.Value
+            );
+            return new EnforcementResult();
+        }
+
+        return DecisionHelper.ValidatePdpDecisionDetailed(response.Response, HttpContext.User);
+    }
+
+    private async Task<int?> GetStatelessPartyId()
+    {
+        return _authenticationContext.Current switch
+        {
+            Authenticated.User user => user.SelectedPartyId,
+            Authenticated.Org auth => (await auth.LoadDetails()).Party.PartyId,
+            Authenticated.ServiceOwner auth => (await auth.LoadDetails()).Party.PartyId,
+            Authenticated.SystemUser auth => (await auth.LoadDetails()).Party.PartyId,
+            _ => null,
+        };
+    }
+
     private NotFoundObjectResult CreateUiFolderNotFoundResult(string uiFolder)
     {
         return NotFound(
@@ -231,6 +293,16 @@ public class FormBootstrapController : ControllerBase
                 Detail = $"UI folder '{uiFolder}' not found",
             }
         );
+    }
+
+    private ActionResult Forbidden(EnforcementResult enforcementResult)
+    {
+        if (enforcementResult.FailedObligations != null && enforcementResult.FailedObligations.Count > 0)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, enforcementResult.FailedObligations);
+        }
+
+        return StatusCode(StatusCodes.Status403Forbidden);
     }
 
     private ActionResult? ValidateSubformDataElement(
