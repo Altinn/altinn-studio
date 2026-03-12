@@ -14,7 +14,12 @@ const SYNC_MAX_PAGES_INCREMENTAL = 100;
 const SYNC_INTERVAL_MS = 60_000;
 const PENDING_REFRESH_INTERVAL_MS = 10_000;
 const { createGhClient } = require('./gh');
-const { DB_PATH, initDb, getWorkflowStopAtRunId, setWorkflowStopAtRunId } = require('./db');
+const {
+  DB_PATH,
+  initDb,
+  getWorkflowStopAtRunId,
+  setWorkflowStopAtRunId,
+} = require('./db');
 const { openUrlInBrowser } = require('./browser');
 const { ghApi, ghApiPost, getRequestCount } = createGhClient({ parallel: GH_PARALLEL });
 
@@ -33,11 +38,7 @@ function envDisplayName(name) {
 
 function createEnv(name, aliases = [], ungated = false) {
   const displayName = envDisplayName(name);
-  const matchTokens = new Set([
-    name.toLowerCase(),
-    displayName.toLowerCase(),
-    ...aliases.map((a) => a.toLowerCase()),
-  ]);
+  const matchTokens = new Set([name.toLowerCase(), displayName.toLowerCase(), ...aliases.map((a) => a.toLowerCase())]);
   return { name, displayName, matchTokens: [...matchTokens], ungated };
 }
 
@@ -57,9 +58,8 @@ function workflowDisplayName(workflow) {
 }
 
 const RUNTIME_ENVS = Object.freeze(
-  ['at_ring1', 'at_ring2', 'tt_ring1', 'tt_ring2', 'prod_ring1', 'prod_ring2'].map((name) =>
-    createEnv(`runtime_${name}`, [], name === 'at_ring1'),
-  ),
+  ['at_ring1', 'at_ring2', 'tt_ring1', 'tt_ring2', 'prod_ring1', 'prod_ring2']
+    .map((name) => createEnv(`runtime_${name}`, [], name === 'at_ring1')),
 );
 const STUDIO_ENVS = Object.freeze([
   createEnv('dev', [], true),
@@ -72,11 +72,7 @@ const PLANE_DEFINITIONS = Object.freeze([
 ]);
 
 function service(workflow, planeDefs) {
-  return {
-    workflow,
-    displayName: workflowDisplayName(workflow),
-    planes: planeDefs.map(([name, envs]) => createPlane(name, envs)),
-  };
+  return { workflow, displayName: workflowDisplayName(workflow), planes: planeDefs.map(([name, envs]) => createPlane(name, envs)) };
 }
 
 const STUDIO_WORKFLOWS = [
@@ -101,10 +97,7 @@ const RUNTIME_SERVICE_DEFS = [
 
 const SERVICES = [
   service('deploy-runtime-syncroot.yaml', [['runtime', RUNTIME_ENVS]]),
-  service('deploy-runtime-kubernetes-wrapper.yaml', [
-    ['runtime', RUNTIME_ENVS],
-    ['studio', STUDIO_ENVS],
-  ]),
+  service('deploy-runtime-kubernetes-wrapper.yaml', [['runtime', RUNTIME_ENVS], ['studio', STUDIO_ENVS]]),
   ...RUNTIME_SERVICE_DEFS.map(([workflow, envs]) => service(workflow, [['runtime', envs]])),
   service('deploy-studio-syncroot.yaml', [['studio', STUDIO_ENVS]]),
   ...STUDIO_WORKFLOWS.map((workflow) => service(workflow, [['studio', STUDIO_ENVS]])),
@@ -115,9 +108,7 @@ const SERVICE_BY_WORKFLOW = new Map(SERVICES.map((service) => [service.workflow,
 // --- Environment extraction from job name ---
 
 function getJobNameTokens(name) {
-  const tokens = String(name || '')
-    .toLowerCase()
-    .match(/[a-z0-9_-]+/g);
+  const tokens = String(name || '').toLowerCase().match(/[a-z0-9_-]+/g);
   return new Set(tokens || []);
 }
 
@@ -165,18 +156,11 @@ function storeRunJobs(run, jobs, workflowOverride = null) {
   const normalizedJobs = normalizeRunJobsForService(service, jobs);
   for (const job of normalizedJobs) {
     stmts.upsertJob.run(
-      job.id,
-      run.id,
-      service.workflow,
-      job.env,
-      run.head_sha.slice(0, 7),
-      run.head_sha,
-      run.display_title || '',
-      run.html_url,
-      job.status,
-      job.conclusion,
-      run.created_at,
-      run.updated_at,
+      job.id, run.id, service.workflow, job.env,
+      run.head_sha.slice(0, 7), run.head_sha,
+      run.display_title || '', run.html_url,
+      job.status, job.conclusion,
+      run.created_at, run.updated_at,
     );
   }
   return normalizedJobs;
@@ -212,9 +196,7 @@ function newestJobTimestamp(jobs, fallbackIso) {
 }
 
 function createRunFromContext(runContext, jobs) {
-  const headShaFromJobs = jobs.find(
-    (job) => typeof job.head_sha === 'string' && job.head_sha.length >= 7,
-  )?.head_sha;
+  const headShaFromJobs = jobs.find((job) => typeof job.head_sha === 'string' && job.head_sha.length >= 7)?.head_sha;
   return {
     id: runContext.run_id,
     head_sha: headShaFromJobs || runContext.full_sha,
@@ -238,7 +220,8 @@ async function refreshRunFromContext(runId) {
 }
 
 async function fetchWorkflowRunsPage(workflow, page) {
-  const apiPath = `repos/${REPO}/actions/workflows/${encodeURIComponent(workflow)}/runs?per_page=${PAGE_SIZE}&page=${page}`;
+  const apiPath =
+    `repos/${REPO}/actions/workflows/${encodeURIComponent(workflow)}/runs?per_page=${PAGE_SIZE}&page=${page}`;
   const data = await ghApi(apiPath);
   return data.workflow_runs || [];
 }
@@ -272,11 +255,7 @@ async function processRunForSync(run, workflow, planes, coverageByPlane = null) 
   if (coverageByPlane) {
     for (const plane of planes) {
       for (const job of jobsToProcess) {
-        if (
-          plane.envNames.has(job.env) &&
-          job.status === 'completed' &&
-          job.conclusion === 'success'
-        ) {
+        if (plane.envNames.has(job.env) && job.status === 'completed' && job.conclusion === 'success') {
           coverageByPlane.get(plane.name).add(job.env);
         }
       }
@@ -341,9 +320,7 @@ async function syncWorkflowBootstrap(service) {
     jobFetches += pageStats.jobFetches;
     runResults.push(...pageStats.runResults);
 
-    const coverageComplete = planes.every(
-      (plane) => coverageByPlane.get(plane.name).size === plane.envs.length,
-    );
+    const coverageComplete = planes.every((plane) => coverageByPlane.get(plane.name).size === plane.envs.length);
     if (coverageComplete) {
       const nextStopAtRunId = computeSafeWatermark(0, runResults);
       if (nextStopAtRunId > 0) setWorkflowStopAtRunId(stmts, workflow, nextStopAtRunId);
@@ -417,9 +394,11 @@ async function syncRuns() {
   );
 
   const stats = await Promise.all(
-    workflowEntries.map(({ service, stopAtRunId }) =>
-      stopAtRunId ? syncWorkflowIncremental(service, stopAtRunId) : syncWorkflowBootstrap(service),
-    ),
+    workflowEntries.map(({ service, stopAtRunId }) => (
+      stopAtRunId
+        ? syncWorkflowIncremental(service, stopAtRunId)
+        : syncWorkflowBootstrap(service)
+    )),
   );
   const totalRuns = stats.reduce((sum, s) => sum + s.totalRuns, 0);
   const jobFetches = stats.reduce((sum, s) => sum + s.jobFetches, 0);
@@ -582,8 +561,7 @@ function buildStatus() {
       const envs = {};
       for (const env of plane.envs) {
         const current = stmts.getCurrent.get(service.workflow, env.name) || null;
-        const next =
-          stmts.getNext.get(service.workflow, env.name, service.workflow, env.name) || null;
+        const next = stmts.getNext.get(service.workflow, env.name, service.workflow, env.name) || null;
         envs[env.name] = {
           name: env.name,
           displayName: env.displayName,
@@ -603,11 +581,7 @@ function buildStatus() {
   return {
     planes: PLANE_DEFINITIONS.map((plane) => ({
       name: plane.name,
-      envs: plane.envs.map((env) => ({
-        name: env.name,
-        displayName: env.displayName,
-        ungated: env.ungated,
-      })),
+      envs: plane.envs.map((env) => ({ name: env.name, displayName: env.displayName, ungated: env.ungated })),
     })),
     services,
     fetchedAt: new Date().toISOString(),
@@ -622,13 +596,11 @@ function serviceHasEnv(service, env) {
 
 async function approveDeployment(runId, workflow, env) {
   const pending = await ghApi(`repos/${REPO}/actions/runs/${runId}/pending_deployments`);
-  if (!Array.isArray(pending))
-    throw new Error(`unexpected pending_deployments response for run ${runId}`);
+  if (!Array.isArray(pending)) throw new Error(`unexpected pending_deployments response for run ${runId}`);
 
   const service = SERVICE_BY_WORKFLOW.get(workflow);
   if (!service) throw new Error(`unknown workflow '${workflow}'`);
-  if (!serviceHasEnv(service, env))
-    throw new Error(`env '${env}' is not configured for workflow '${workflow}'`);
+  if (!serviceHasEnv(service, env)) throw new Error(`env '${env}' is not configured for workflow '${workflow}'`);
   const match = pending.find((p) => (p?.environment?.name ?? '') === env);
   if (!match) throw new Error(`no pending deployment for env '${env}' in run ${runId}`);
 
@@ -725,9 +697,7 @@ const server = http.createServer(async (req, res) => {
           return;
         }
       }
-      console.log(
-        `[approve] ${items.length} item(s): ${items.map((i) => `workflow=${i.workflow} run=${i.runId} env=${i.env}`).join(', ')}`,
-      );
+      console.log(`[approve] ${items.length} item(s): ${items.map((i) => `workflow=${i.workflow} run=${i.runId} env=${i.env}`).join(', ')}`);
       const results = await Promise.all(
         items.map(async ({ runId, workflow, env }) => {
           try {
@@ -735,9 +705,7 @@ const server = http.createServer(async (req, res) => {
             console.log(`[approve] OK workflow=${workflow} run=${runId} env=${env}`);
             return { runId, workflow, env, ok: true };
           } catch (err) {
-            console.error(
-              `[approve] FAIL workflow=${workflow} run=${runId} env=${env}: ${err.message}`,
-            );
+            console.error(`[approve] FAIL workflow=${workflow} run=${runId} env=${env}: ${err.message}`);
             return { runId, workflow, env, ok: false, error: err.message };
           }
         }),

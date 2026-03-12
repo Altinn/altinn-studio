@@ -22,13 +22,7 @@ function reconcileSelections(status) {
     for (const plane of service.planes) {
       for (const slot of Object.values(plane.envs)) {
         const next = slot.next;
-        if (
-          !next ||
-          next.status !== 'waiting' ||
-          next.canApprove !== true ||
-          !Number.isInteger(next.runId)
-        )
-          continue;
+        if (!next || next.status !== 'waiting' || next.canApprove !== true || !Number.isInteger(next.runId)) continue;
         valid.add(selectionKey(next.runId, service.workflow, slot.name));
       }
     }
@@ -71,9 +65,7 @@ function el(tag, className, text) {
 }
 
 function setLastUpdatedFromStatus(status) {
-  const ts = status.fetchedAt
-    ? new Date(status.fetchedAt).toLocaleTimeString()
-    : new Date().toLocaleTimeString();
+  const ts = status.fetchedAt ? new Date(status.fetchedAt).toLocaleTimeString() : new Date().toLocaleTimeString();
   document.getElementById('last-updated').textContent = `Data from ${ts}`;
 }
 
@@ -99,8 +91,7 @@ function renderDeployment(data, statusClass) {
   link.target = '_blank';
   link.rel = 'noopener';
   link.title = data.title;
-  if (statusClass === 'half-in_progress' || statusClass === 'half-queued')
-    link.appendChild(el('span', 'spinner'));
+  if (statusClass === 'half-in_progress' || statusClass === 'half-queued') link.appendChild(el('span', 'spinner'));
   link.appendChild(el('span', 'sha', data.sha));
   link.appendChild(el('span', 'title', data.title));
   link.appendChild(el('span', 'time', relativeTime(data.updatedAt)));
@@ -140,9 +131,7 @@ function renderWaitingHalf(next, service, slot) {
   container.append(checkbox, body, ghLink);
 
   const hovered = { selection, checkbox };
-  container.addEventListener('mouseenter', () => {
-    hoveredWaitingCell = hovered;
-  });
+  container.addEventListener('mouseenter', () => { hoveredWaitingCell = hovered; });
   container.addEventListener('mouseleave', () => {
     if (hoveredWaitingCell?.selection.key === selection.key) hoveredWaitingCell = null;
   });
@@ -174,19 +163,14 @@ function renderGrid(containerId, services, envs) {
   for (const service of services) {
     grid.appendChild(el('div', 'cell cell-service', service.displayName));
     for (const env of envs) {
-      const slot = service.envs[env.name] ?? {
-        name: env.name,
-        displayName: env.displayName,
-        current: null,
-        next: null,
-      };
+      const slot = service.envs[env.name] ?? { name: env.name, displayName: env.displayName, current: null, next: null };
       const current = slot.current;
       const next = slot.next;
       const cell = el('div', 'cell cell-env');
 
       if (env.ungated) {
         const nextIsActiveOrFailed = next && effectiveStatus(next) !== 'success';
-        const data = nextIsActiveOrFailed ? next : current || next;
+        const data = nextIsActiveOrFailed ? next : (current || next);
         cell.classList.add('cell-single');
         cell.appendChild(renderDeployment(data, deploymentStatusClass(data)));
       } else {
@@ -250,11 +234,7 @@ async function doApprove() {
   confirmOk.disabled = true;
   confirmOk.textContent = 'Approving...';
   try {
-    const items = [...selected.values()].map(({ runId, workflow, env }) => ({
-      runId,
-      workflow,
-      env,
-    }));
+    const items = [...selected.values()].map(({ runId, workflow, env }) => ({ runId, workflow, env }));
     const res = await fetch('/api/approve', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -28,10 +28,10 @@ Requires the [GitHub CLI](https://cli.github.com/) (`gh`) to be installed and au
 
 ## Environment variables
 
-| Variable | Default                | Description       |
-| -------- | ---------------------- | ----------------- |
-| `REPO`   | `Altinn/altinn-studio` | GitHub repository |
-| `PORT`   | `3456`                 | HTTP port         |
+| Variable | Default | Description |
+|---|---|---|
+| `REPO` | `Altinn/altinn-studio` | GitHub repository |
+| `PORT` | `3456` | HTTP port |
 
 ## Architecture
 
