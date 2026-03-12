@@ -19,6 +19,8 @@ http {
   proxy_busy_buffers_size 512k;
   large_client_header_buffers 64 16k;
 
+  client_max_body_size 50M;
+
   otel_exporter {
     endpoint ${OTEL_ENDPOINT};
   }
