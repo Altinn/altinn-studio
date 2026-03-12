@@ -26,6 +26,13 @@ public sealed class ProcessStateEnricher
         _authorization = authorization;
     }
 
+    /// <summary>
+    /// Enriches a <see cref="ProcessState"/> with authorized actions, access info, and process task metadata.
+    /// </summary>
+    /// <param name="instance">The instance to authorize actions against.</param>
+    /// <param name="processState">The process state to enrich.</param>
+    /// <param name="user">The current user's claims principal.</param>
+    /// <returns>An enriched <see cref="AppProcessState"/>.</returns>
     public async Task<AppProcessState> Enrich(Instance instance, ProcessState? processState, ClaimsPrincipal user)
     {
         var appProcessState = new AppProcessState(processState);
