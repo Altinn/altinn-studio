@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Core.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Abstractions;
 
 namespace WorkflowEngine.Core.Tests;
 

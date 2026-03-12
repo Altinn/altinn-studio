@@ -1,4 +1,4 @@
-namespace WorkflowEngine.Models;
+namespace WorkflowEngine.Models.Abstractions;
 
 /// <summary>
 /// Describes a command type: its expected data shapes and how to validate and execute it.

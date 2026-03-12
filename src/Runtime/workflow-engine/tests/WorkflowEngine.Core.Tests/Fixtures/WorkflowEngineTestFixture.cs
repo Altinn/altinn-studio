@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.Commands.Webhook;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Models;
 

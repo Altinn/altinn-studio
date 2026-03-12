@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.Models;
+using WorkflowEngine.Models.Abstractions;
 using WorkflowEngine.Resilience;
 
 namespace WorkflowEngine.App.Tests.Commands.AppCommand;

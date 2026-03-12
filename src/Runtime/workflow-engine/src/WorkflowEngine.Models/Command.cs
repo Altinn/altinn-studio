@@ -1,3 +1,5 @@
+using WorkflowEngine.Models.Abstractions;
+
 namespace WorkflowEngine.Models;
 
 /// <summary>
