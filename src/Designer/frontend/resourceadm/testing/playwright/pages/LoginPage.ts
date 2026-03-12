@@ -58,6 +58,24 @@ export class LoginPage {
     await this.page.waitForURL(url(Routes.dashboard));
   }
 
+  public async loginViaFakeAnsattporten(): Promise<void> {
+    await this.page.getByRole('button', { name: loginPageTexts['login'] }).click();
+    await this.dismissAccountLinkModalIfVisible();
+    await this.page.waitForURL(/\/authorize/);
+    await this.page.getByRole('button', { name: /cypress_testuser test playwright/ }).click();
+    await this.confirmSuccessfulLogin();
+  }
+
+  private async dismissAccountLinkModalIfVisible(): Promise<void> {
+    const continueButton = this.page.getByRole('button', {
+      name: loginPageTexts['continueToLogin'],
+    });
+    if (await continueButton.isVisible({ timeout: 2000 })) {
+      await this.page.getByLabel(loginPageTexts['dontShowAgain']).check();
+      await continueButton.click();
+    }
+  }
+
   public async addSessionToSharableStorage() {
     await this.removeSecureFlagOnCookies(); // This is necessary because secure cookies won't be added on requests that don't use HTTPS
     return await this.page.context().storageState({ path: this.authStorageFile });
