@@ -138,6 +138,51 @@ public class SourceControlService(
                 try
                 {
                     Tree head = repo.Head.Tip.Tree;
+                    self.FetchRemoteChanges(repo, ctx.authenticatedContext);
+                    Branch upstream =
+                        repo.Branches[$"refs/remotes/origin/{headBranchBefore}"]
+                        ?? throw new BranchNotFoundException(
+                            $"Remote branch 'origin/{headBranchBefore}' not found locally."
+                        );
+                    HistoryDivergence? divergence = repo.ObjectDatabase.CalculateHistoryDivergence(
+                        repo.Head.Tip,
+                        upstream.Tip
+                    );
+                    int behindBy = divergence?.BehindBy ?? 0;
+                    int aheadBy = divergence?.AheadBy ?? 0;
+
+                    if (behindBy > 0 && aheadBy > 0)
+                    {
+                        if (isDirtyBefore)
+                        {
+                            status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
+                            SetErrorStatus(ctx.activity, "checkout_conflict");
+                            checkoutConflict = true;
+                            return status;
+                        }
+
+                        RebaseResult rebaseResult = self.RebaseOntoRemoteBranch(
+                            ctx.authenticatedContext,
+                            headBranchBefore
+                        );
+                        mergeStatus = rebaseResult.Status.ToString();
+
+                        if (rebaseResult.Status == RebaseStatus.Conflicts)
+                        {
+                            status.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
+                            SetErrorStatus(ctx.activity, "merge_conflict");
+                            mergeConflict = true;
+                            return status;
+                        }
+
+                        using var rebasedRepo = new LibGit2Sharp.Repository(
+                            self.FindLocalRepoLocation(ctx.authenticatedContext)
+                        );
+                        self.FetchGitNotes(ctx.authenticatedContext);
+                        PopulateContentStatusFromCommitDiff(rebasedRepo, head, rebasedRepo.Head.Tip.Tree, status);
+                        return status;
+                    }
+
                     MergeResult mergeResult = Commands.Pull(
                         repo,
                         self.GetDeveloperSignature(ctx.authenticatedContext.Developer),
@@ -146,17 +191,7 @@ public class SourceControlService(
                     mergeStatus = mergeResult.Status.ToString();
 
                     self.FetchGitNotes(ctx.authenticatedContext);
-                    TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(head, mergeResult.Commit?.Tree);
-                    foreach (TreeEntryChanges change in treeChanges.Modified)
-                    {
-                        status.ContentStatus.Add(
-                            new RepositoryContent
-                            {
-                                FilePath = change.Path,
-                                FileStatus = Enums.FileStatus.ModifiedInWorkdir,
-                            }
-                        );
-                    }
+                    PopulateContentStatusFromCommitDiff(repo, head, mergeResult.Commit?.Tree, status);
 
                     if (mergeResult.Status == MergeStatus.Conflicts)
                     {
@@ -209,17 +244,7 @@ public class SourceControlService(
             {
                 string logMessage = string.Empty;
                 using var repo = new LibGit2Sharp.Repository(self.FindLocalRepoLocation(authenticatedContext));
-                FetchOptions fetchOptions = new()
-                {
-                    CredentialsProvider = self.GetCredentialsHandler(authenticatedContext),
-                    CustomHeaders = self.GetAuthCustomHeaders(authenticatedContext),
-                };
-
-                foreach (Remote remote in repo.Network.Remotes)
-                {
-                    IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
-                    Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
-                }
+                self.FetchRemoteChanges(repo, authenticatedContext, logMessage);
             }
         );
     }
@@ -272,7 +297,7 @@ public class SourceControlService(
                     if (!branchSupplied)
                     {
                         using LibGit2Sharp.Repository repo = new(localServiceRepoFolder);
-                        branchName = repo.Head.FriendlyName;
+                        branchName = repo.Head.Tip is null ? DefaultBranch : repo.Head.FriendlyName;
                     }
 
                     self.CommitAndPushToBranch(
@@ -711,8 +736,7 @@ public class SourceControlService(
         using LibGit2Sharp.Repository repo = new(localPath);
         // Restrict users from empty commit
         var status = repo.RetrieveStatus();
-        bool pushedDefaultBranch = false;
-        bool pushedFeatureBranch = false;
+        string pushedBranchName = string.Empty;
         bool commitCreated = false;
         bool isDirty = status.IsDirty;
         string createdCommitSha = string.Empty;
@@ -720,6 +744,7 @@ public class SourceControlService(
         {
             if (isDirty)
             {
+                EnsureUnbornHeadPointsToBranch(repo, branchName);
                 FetchGitNotes(authenticatedContext);
                 string remoteUrl = FindRemoteRepoLocation(authenticatedContext.Org, authenticatedContext.Repo);
                 Remote remote = repo.Network.Remotes["origin"];
@@ -746,31 +771,22 @@ public class SourceControlService(
                     CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
                 };
 
-                if (branchName == DefaultBranch)
-                {
-                    repo.Network.Push(remote, $"refs/heads/{DefaultBranch}", options);
-                    repo.Network.Push(remote, "refs/notes/commits", options);
-                    pushedDefaultBranch = true;
-                }
-                else
-                {
-                    Branch b = repo.Branches[branchName];
-                    repo.Network.Push(b, options);
-                    repo.Network.Push(remote, "refs/notes/commits", options);
-                    pushedFeatureBranch = true;
-                }
+                Branch branch =
+                    repo.Branches[branchName]
+                    ?? throw new BranchNotFoundException(
+                        $"Branch '{branchName}' not found in local repository. Cannot push non-existing branch."
+                    );
+                branch = EnsureLocalBranchTracksOrigin(repo, branch);
+                repo.Network.Push(branch, options);
+                repo.Network.Push(remote, "refs/notes/commits", options);
+                pushedBranchName = branch.FriendlyName;
             }
         }
         finally
         {
             activity?.SetTag("commit.is_dirty", isDirty);
             activity?.SetTag("commit.created", commitCreated);
-            activity?.SetTag(
-                "commit.push_target",
-                pushedDefaultBranch ? "default"
-                    : pushedFeatureBranch ? "feature"
-                    : "none"
-            );
+            activity?.SetTag("commit.push_target", string.IsNullOrEmpty(pushedBranchName) ? "none" : pushedBranchName);
             AddActivityEvent(
                 "commit_and_push_to_branch.summary",
                 new ActivityTagsCollection { { "created_commit_sha", createdCommitSha }, { "local.path", localPath } }
@@ -1482,6 +1498,68 @@ public class SourceControlService(
             CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
         };
         Commands.Fetch(repo, "origin", ["refs/notes/*:refs/notes/*"], options, "fetch notes");
+    }
+
+    private void FetchRemoteChanges(
+        LibGit2Sharp.Repository repo,
+        AltinnAuthenticatedRepoEditingContext authenticatedContext,
+        string logMessage = ""
+    )
+    {
+        FetchOptions fetchOptions = new()
+        {
+            CredentialsProvider = GetCredentialsHandler(authenticatedContext),
+            CustomHeaders = GetAuthCustomHeaders(authenticatedContext),
+        };
+
+        foreach (Remote remote in repo.Network.Remotes)
+        {
+            IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
+            Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
+        }
+    }
+
+    private static void EnsureUnbornHeadPointsToBranch(LibGit2Sharp.Repository repo, string branchName)
+    {
+        if (repo.Head.Tip is not null || repo.Head.FriendlyName == branchName)
+        {
+            return;
+        }
+
+        repo.Refs.UpdateTarget("HEAD", $"refs/heads/{branchName}");
+    }
+
+    private static Branch EnsureLocalBranchTracksOrigin(LibGit2Sharp.Repository repo, Branch branch)
+    {
+        return repo.Branches.Update(
+            branch,
+            updater =>
+            {
+                updater.Remote = "origin";
+                updater.UpstreamBranch = $"refs/heads/{branch.FriendlyName}";
+            }
+        );
+    }
+
+    private static void PopulateContentStatusFromCommitDiff(
+        LibGit2Sharp.Repository repo,
+        Tree oldTree,
+        Tree? newTree,
+        RepoStatus status
+    )
+    {
+        if (newTree is null)
+        {
+            return;
+        }
+
+        TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(oldTree, newTree);
+        foreach (TreeEntryChanges change in treeChanges.Modified)
+        {
+            status.ContentStatus.Add(
+                new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.ModifiedInWorkdir }
+            );
+        }
     }
 
     private string[] GetAuthCustomHeaders(AltinnAuthenticatedRepoEditingContext? authenticatedContext = null)
