@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkflowEngine.Data.Entities;
+using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Context;
 
@@ -28,7 +29,9 @@ internal sealed class EngineDbContext : DbContext
 
             entity
                 .HasIndex(e => new { e.BackoffUntil, e.CreatedAt })
-                .HasFilter("\"Status\" IN (0, 2)")
+                .HasFilter(
+                    $"\"Status\" IN ({(int)PersistentItemStatus.Enqueued}, {(int)PersistentItemStatus.Requeued})"
+                )
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
 
             // GIN index on Labels for flexible filtering

@@ -52,7 +52,7 @@ Conducted: 2026-03-12
 - [SKIP] **12. Idempotency key lookup missing namespace filter**
   `EngineRepository.Reads.cs` — Workflow lookup by idempotency key doesn't filter by namespace. If two namespaces use the same idempotency key, the wrong workflow could be returned.
 
-- [ ] **13. `SqlBulkInserter` column ordering depends on EF property enumeration order**
+- [SKIP] **13. `SqlBulkInserter` column ordering depends on EF property enumeration order**
   `SqlBulkInserter.cs:31-52` — Column order from `entityType.GetProperties()` isn't guaranteed stable across EF Core versions. COPY binary protocol is position-sensitive. Sort by column name for determinism.
 
 - [x] **14. Shutdown can hang indefinitely**
@@ -83,5 +83,5 @@ Conducted: 2026-03-12
 - [SKIP] **21. Fixed 500ms delay between fetch cycles**
   `WorkflowProcessor.cs:68-71` — Always waits up to 500ms between fetch cycles, even under load. Caps throughput. The signal-based debounce mitigates this somewhat but the 500ms ceiling remains.
 
-- [ ] **22. Index filter hardcodes status enum integers**
+- [x] **22. Index filter hardcodes status enum integers**
   `EngineDbContext.cs` — `.HasFilter("\"Status\" IN (0, 2)")` instead of referencing enum constants. If enum values change, the index becomes stale.
