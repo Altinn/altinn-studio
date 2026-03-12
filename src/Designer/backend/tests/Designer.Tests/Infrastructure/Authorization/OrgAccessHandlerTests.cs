@@ -5,11 +5,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Designer.Tests.Infrastructure.Authorization;
 
-public class AnsattPortenOrgAccessHandlerTests
+public class OrgAccessHandlerTests
 {
     private const string TestOrgIdentifier = "ttd";
     private const string TestOrgNumber = "991825827";
@@ -31,7 +31,7 @@ public class AnsattPortenOrgAccessHandlerTests
     {
         var handler = CreateHandler(null);
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal();
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -46,7 +46,7 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextMock = CreateMockHttpContext(null, null);
         var handler = CreateHandler(httpContextMock);
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -62,7 +62,7 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, null);
         var handler = CreateHandler(httpContextMock);
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -79,7 +79,7 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(httpContextMock);
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -103,7 +103,7 @@ public class AnsattPortenOrgAccessHandlerTests
             }
         );
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -127,7 +127,7 @@ public class AnsattPortenOrgAccessHandlerTests
             }
         );
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -151,7 +151,7 @@ public class AnsattPortenOrgAccessHandlerTests
             }
         );
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -175,7 +175,7 @@ public class AnsattPortenOrgAccessHandlerTests
             }
         );
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -200,7 +200,7 @@ public class AnsattPortenOrgAccessHandlerTests
             }
         );
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -217,7 +217,7 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(httpContextMock);
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -234,7 +234,7 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(httpContextMock);
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -251,7 +251,7 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(httpContextMock);
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -280,7 +280,7 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, tokenString);
         var handler = CreateHandler(httpContextMock);
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -297,7 +297,7 @@ public class AnsattPortenOrgAccessHandlerTests
         var httpContextMock = CreateMockHttpContext(TestOrgIdentifier, token);
         var handler = CreateHandler(httpContextMock);
 
-        var requirement = new AnsattPortenOrgAccessRequirement();
+        var requirement = new OrgAccessRequirement();
         var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { }, "TestAuth"));
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, resource: null);
 
@@ -331,16 +331,13 @@ public class AnsattPortenOrgAccessHandlerTests
                 new AuthenticationTicket(
                     new ClaimsPrincipal(new ClaimsIdentity()),
                     tokens,
-                    AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme
+                    CookieAuthenticationDefaults.AuthenticationScheme
                 )
             );
 
             authServiceMock
                 .Setup(x =>
-                    x.AuthenticateAsync(
-                        It.IsAny<HttpContext>(),
-                        AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme
-                    )
+                    x.AuthenticateAsync(It.IsAny<HttpContext>(), CookieAuthenticationDefaults.AuthenticationScheme)
                 )
                 .ReturnsAsync(authenticateResult);
         }
@@ -348,10 +345,7 @@ public class AnsattPortenOrgAccessHandlerTests
         {
             authServiceMock
                 .Setup(x =>
-                    x.AuthenticateAsync(
-                        It.IsAny<HttpContext>(),
-                        AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme
-                    )
+                    x.AuthenticateAsync(It.IsAny<HttpContext>(), CookieAuthenticationDefaults.AuthenticationScheme)
                 )
                 .ReturnsAsync(AuthenticateResult.NoResult());
         }
@@ -418,7 +412,7 @@ public class AnsattPortenOrgAccessHandlerTests
         return handler.WriteToken(token);
     }
 
-    private static AnsattPortenOrgAccessHandler CreateHandler(
+    private static OrgAccessHandler CreateHandler(
         HttpContext? httpContext,
         Action<Mock<IEnvironmentsService>>? configureEnvironmentsService = null,
         bool isProduction = true
@@ -433,9 +427,9 @@ public class AnsattPortenOrgAccessHandlerTests
         var hostEnvironmentMock = new Mock<IHostEnvironment>();
         hostEnvironmentMock.Setup(x => x.EnvironmentName).Returns(isProduction ? "Production" : "Development");
 
-        var loggerMock = new Mock<ILogger<AnsattPortenOrgAccessHandler>>();
+        var loggerMock = new Mock<ILogger<OrgAccessHandler>>();
 
-        return new AnsattPortenOrgAccessHandler(
+        return new OrgAccessHandler(
             httpContextAccessorMock.Object,
             environmentsServiceMock.Object,
             hostEnvironmentMock.Object,

@@ -4,7 +4,6 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
@@ -12,9 +11,9 @@ using Microsoft.Extensions.Options;
 
 namespace Designer.Tests.Controllers.AppScopesController.Utils;
 
-public class TestAnsattPortenAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class TestOidcAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    public TestAnsattPortenAuthHandler(
+    public TestOidcAuthHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
         UrlEncoder encoder

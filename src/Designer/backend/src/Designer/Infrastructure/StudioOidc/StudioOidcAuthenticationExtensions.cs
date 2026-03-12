@@ -13,10 +13,12 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
+using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Telemetry;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -190,6 +192,20 @@ public static class StudioOidcAuthenticationExtensions
                     };
                 }
             );
+
+        services
+            .AddAuthorizationBuilder()
+            .AddPolicy(
+                StudioOidcConstants.OrgAccessAuthorizationPolicy,
+                policy =>
+                {
+                    policy.AuthenticationSchemes.Add(CookieAuthenticationDefaults.AuthenticationScheme);
+                    policy.RequireAuthenticatedUser();
+                    policy.Requirements.Add(new OrgAccessRequirement());
+                }
+            );
+
+        services.AddScoped<IAuthorizationHandler, OrgAccessHandler>();
 
         return services;
     }
