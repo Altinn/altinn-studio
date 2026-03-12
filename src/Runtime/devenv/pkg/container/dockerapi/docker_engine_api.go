@@ -142,7 +142,7 @@ func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string)
 
 	// Podman uses buildah natively; Docker/Colima require buildx for BuildKit.
 	if c.toolchain.Platform != types.PlatformPodman {
-		if !hasBuildx(binary) {
+		if !hasBuildx(ctx, binary) {
 			return errBuildxRequired
 		}
 		args = append(args, "--provenance=false", "--sbom=false")
@@ -164,8 +164,8 @@ func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string)
 }
 
 // hasBuildx checks whether the Docker CLI has the buildx plugin installed.
-func hasBuildx(dockerBinary string) bool {
-	out, err := exec.Command(dockerBinary, "buildx", "version").CombinedOutput()
+func hasBuildx(ctx context.Context, dockerBinary string) bool {
+	out, err := exec.CommandContext(ctx, dockerBinary, "buildx", "version").CombinedOutput()
 	return err == nil && len(out) > 0
 }
 
