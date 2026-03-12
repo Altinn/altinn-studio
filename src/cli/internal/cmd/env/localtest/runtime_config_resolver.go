@@ -37,7 +37,7 @@ func newRuntimeConfigResolver(
 }
 
 func (r *runtimeConfigResolver) Build(ctx context.Context, portFlag int) (RuntimeConfig, error) {
-	installation := r.client.Installation()
+	platform := r.client.Toolchain().Platform
 
 	n := networking.NewNetworking(r.client, r.cfg, r.debugf)
 	metadata, cached, err := n.ResolveNetworkMetadata(ctx)
@@ -52,7 +52,7 @@ func (r *runtimeConfigResolver) Build(ctx context.Context, portFlag int) (Runtim
 		HostGateway:      metadata.HostGateway,
 		LoadBalancerPort: strconv.Itoa(resolveLoadBalancerPort(portFlag)),
 		User:             runtimeContainerUser(),
-		Installation:     installation,
+		Platform:         platform,
 	}, nil
 }
 

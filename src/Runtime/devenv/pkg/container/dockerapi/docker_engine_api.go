@@ -13,10 +13,12 @@ import (
 	"altinn.studio/devenv/pkg/container/types"
 
 	cerrdefs "github.com/containerd/errdefs"
+	dockertypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	dockermount "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
+	systemtypes "github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -27,37 +29,22 @@ var (
 	errExecExitCode      = errors.New("exec exited with non-zero status")
 	errWaitWithoutStatus = errors.New("wait completed without status")
 	errContextCancelled  = errors.New("context cancelled while waiting for container")
+	errBuildCLINotFound  = errors.New("container build CLI not found")
 )
 
 // Client implements ContainerClient for Docker using the official SDK.
 // It can also connect to Podman's Docker-compatible API socket.
 type Client struct {
-	cli          *client.Client
-	installation types.RuntimeInstallation
+	cli       *client.Client
+	toolchain types.ContainerToolchain
 }
 
-// New creates a new Docker client.
-func New(ctx context.Context) (*Client, error) {
-	return newClient(ctx, types.InstallationDocker)
+// New creates a client with the provided toolchain metadata.
+func New(ctx context.Context, toolchain types.ContainerToolchain) (*Client, error) {
+	return newClient(ctx, toolchain)
 }
 
-// NewPodmanCompat creates a client configured for Podman's Docker-compatible API.
-// Use this when connecting to a Podman socket via DOCKER_HOST.
-func NewPodmanCompat(ctx context.Context) (*Client, error) {
-	return newClient(ctx, types.InstallationPodman)
-}
-
-// NewWithInstallation creates a client with explicit installation type.
-func NewWithInstallation(ctx context.Context, install types.RuntimeInstallation) (*Client, error) {
-	return newClient(ctx, install)
-}
-
-// NewPodmanCompatWithInstallation creates Podman-compat client with explicit installation.
-func NewPodmanCompatWithInstallation(ctx context.Context, install types.RuntimeInstallation) (*Client, error) {
-	return newClient(ctx, install)
-}
-
-func newClient(ctx context.Context, installation types.RuntimeInstallation) (*Client, error) {
+func newClient(ctx context.Context, toolchain types.ContainerToolchain) (*Client, error) {
 	cli, err := client.NewClientWithOpts(
 		client.FromEnv,
 		client.WithAPIVersionNegotiation(),
@@ -72,21 +59,19 @@ func newClient(ctx context.Context, installation types.RuntimeInstallation) (*Cl
 		return nil, fmt.Errorf("failed to connect to docker daemon: %w", err)
 	}
 
-	return &Client{cli: cli, installation: installation}, nil
+	return &Client{
+		cli:       cli,
+		toolchain: normalizeToolchain(toolchain, ""),
+	}, nil
 }
 
-// NewWithHost creates a Docker client connected to specified host.
-func NewWithHost(ctx context.Context, host string) (*Client, error) {
-	return newClientWithHost(ctx, types.InstallationDocker, host)
-}
-
-// NewPodmanCompatWithHost creates Podman-compatible client with explicit host.
-func NewPodmanCompatWithHost(ctx context.Context, host string, install types.RuntimeInstallation) (*Client, error) {
-	return newClientWithHost(ctx, install, host)
+// NewWithHost creates a client connected to the specified host and toolchain.
+func NewWithHost(ctx context.Context, host string, toolchain types.ContainerToolchain) (*Client, error) {
+	return newClientWithHost(ctx, toolchain, host)
 }
 
 // newClientWithHost is shared implementation using client.WithHost().
-func newClientWithHost(ctx context.Context, installation types.RuntimeInstallation, host string) (*Client, error) {
+func newClientWithHost(ctx context.Context, toolchain types.ContainerToolchain, host string) (*Client, error) {
 	opts := []client.Opt{
 		client.WithHost(host),
 		client.WithAPIVersionNegotiation(),
@@ -103,12 +88,33 @@ func newClientWithHost(ctx context.Context, installation types.RuntimeInstallati
 		return nil, fmt.Errorf("failed to connect to docker daemon: %w", err)
 	}
 
-	return &Client{cli: cli, installation: installation}, nil
+	return &Client{
+		cli:       cli,
+		toolchain: normalizeToolchain(toolchain, strings.TrimPrefix(host, "unix://")),
+	}, nil
 }
 
-// Installation returns the container runtime installation type.
-func (c *Client) Installation() types.RuntimeInstallation {
-	return c.installation
+func normalizeToolchain(toolchain types.ContainerToolchain, socketPath string) types.ContainerToolchain {
+	toolchain.AccessMode = types.AccessDockerEngineAPI
+	if socketPath != "" {
+		toolchain.SocketPath = socketPath
+	}
+	return toolchain
+}
+
+// DetectPlatform probes the daemon reached via environment configuration.
+func DetectPlatform(ctx context.Context) (types.ContainerPlatform, error) {
+	return detectPlatform(ctx, strings.TrimSpace(os.Getenv("DOCKER_HOST")), client.FromEnv)
+}
+
+// DetectPlatformWithHost probes the daemon reached via the specified host.
+func DetectPlatformWithHost(ctx context.Context, host string) (types.ContainerPlatform, error) {
+	return detectPlatform(ctx, host, client.WithHost(host))
+}
+
+// Toolchain returns the resolved platform and access mode metadata.
+func (c *Client) Toolchain() types.ContainerToolchain {
+	return c.toolchain
 }
 
 // Close releases resources held by the client.
@@ -119,24 +125,22 @@ func (c *Client) Close() error {
 	return nil
 }
 
-// Name returns the runtime name.
-func (c *Client) Name() string {
-	return types.RuntimeNameDockerEngineAPI
-}
-
 // Build builds a container image from a Dockerfile.
 // Uses CLI with BuildKit for proper --platform=$BUILDPLATFORM support in Dockerfiles.
 // The Docker Engine API doesn't support BuildKit sessions without complex setup.
 func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string) error {
-	binary := "docker"
-	if c.installation == types.InstallationPodman {
-		binary = "podman"
+	binary := c.toolchain.Platform.BuildCLI()
+	if binary == "" {
+		return fmt.Errorf("%w for platform %s", errBuildCLINotFound, c.toolchain.Platform)
+	}
+	if _, err := exec.LookPath(binary); err != nil {
+		return fmt.Errorf("%w: %s", errBuildCLINotFound, binary)
 	}
 
 	args := []string{"build", "-t", tag, "-f", dockerfile}
 
 	// Disable provenance/sbom attestations for local builds (BuildKit feature)
-	if c.installation != types.InstallationPodman {
+	if c.toolchain.Platform != types.PlatformPodman {
 		args = append(args, "--provenance=false", "--sbom=false")
 	}
 
@@ -145,7 +149,7 @@ func (c *Client) Build(ctx context.Context, contextPath, dockerfile, tag string)
 	cmd := exec.CommandContext(ctx, binary, args...)
 
 	// Enable BuildKit for Docker (Podman uses buildah which handles this natively)
-	if c.installation != types.InstallationPodman {
+	if c.toolchain.Platform != types.PlatformPodman {
 		cmd.Env = append(os.Environ(), "DOCKER_BUILDKIT=1")
 	}
 
@@ -177,7 +181,7 @@ func (c *Client) Push(ctx context.Context, img string) error {
 
 // CreateContainer creates and optionally starts a container.
 //
-//nolint:funlen,gocognit,gocyclo,nestif // The Docker container create flow mirrors the underlying API shape.
+//nolint:funlen,nestif // The Docker container create flow mirrors the underlying API shape.
 func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig) (string, error) {
 	// Ensure image exists locally, pull if missing
 	_, err := c.cli.ImageInspect(ctx, cfg.Image)
@@ -241,7 +245,7 @@ func (c *Client) CreateContainer(ctx context.Context, cfg types.ContainerConfig)
 
 	// Build capability list
 	capAdd := cfg.CapAdd
-	if c.installation == types.InstallationPodman {
+	if c.toolchain.Platform == types.PlatformPodman {
 		// Podman has a more restrictive default capability set than Docker.
 		// Add Docker's defaults to ensure consistent behavior.
 		capAdd = types.MergeCapabilities(types.DefaultPodmanCapabilities(), cfg.CapAdd)
@@ -295,6 +299,104 @@ func buildBindMounts(volumes []types.VolumeMount) []dockermount.Mount {
 		})
 	}
 	return mounts
+}
+
+func detectPlatform(ctx context.Context, hostHint string, opts ...client.Opt) (types.ContainerPlatform, error) {
+	opts = append(opts, client.WithAPIVersionNegotiation())
+
+	cli, err := client.NewClientWithOpts(opts...)
+	if err != nil {
+		return types.PlatformUnknown, fmt.Errorf("failed to create docker client: %w", err)
+	}
+	defer closeBestEffort(cli)
+
+	if _, err := cli.Ping(ctx); err != nil {
+		return types.PlatformUnknown, fmt.Errorf("failed to connect to docker daemon: %w", err)
+	}
+
+	if version, err := cli.ServerVersion(ctx); err == nil {
+		if platform, ok := platformFromVersion(version); ok {
+			return platform, nil
+		}
+	}
+
+	if info, err := cli.Info(ctx); err == nil {
+		if platform, ok := platformFromInfo(info); ok {
+			return platform, nil
+		}
+	}
+
+	if platform, ok := platformFromHost(hostHint); ok {
+		return platform, nil
+	}
+
+	return types.PlatformUnknown, nil
+}
+
+func platformFromVersion(version dockertypes.Version) (types.ContainerPlatform, bool) {
+	values := []string{version.Platform.Name, version.Version}
+	for _, component := range version.Components {
+		values = append(values, component.Name, component.Version)
+		for _, detail := range component.Details {
+			values = append(values, detail)
+		}
+	}
+
+	return platformFromStrings(values...)
+}
+
+func platformFromInfo(info systemtypes.Info) (types.ContainerPlatform, bool) {
+	values := make([]string, 0, 5+len(info.SecurityOptions))
+	values = append(values,
+		info.OperatingSystem,
+		info.Name,
+		info.ServerVersion,
+		info.Driver,
+		info.InitBinary,
+	)
+	values = append(values, info.SecurityOptions...)
+
+	return platformFromStrings(values...)
+}
+
+func platformFromStrings(values ...string) (types.ContainerPlatform, bool) {
+	for _, value := range values {
+		lower := strings.ToLower(value)
+		if strings.Contains(lower, "podman") {
+			return types.PlatformPodman, true
+		}
+		if strings.Contains(lower, "colima") {
+			return types.PlatformColima, true
+		}
+	}
+	for _, value := range values {
+		lower := strings.ToLower(value)
+		if strings.Contains(lower, "docker") {
+			return types.PlatformDocker, true
+		}
+	}
+
+	return types.PlatformUnknown, false
+}
+
+func platformFromHost(host string) (types.ContainerPlatform, bool) {
+	lower := strings.ToLower(host)
+
+	switch {
+	case strings.Contains(lower, "podman.sock"),
+		strings.Contains(lower, "/containers/podman/"),
+		strings.Contains(lower, "/run/podman/"),
+		strings.Contains(lower, "/podman/podman.sock"):
+		return types.PlatformPodman, true
+	case strings.Contains(lower, "/.colima/"),
+		strings.Contains(lower, "/colima/"):
+		return types.PlatformColima, true
+	case strings.Contains(lower, "/.docker/run/docker.sock"),
+		strings.Contains(lower, "/var/run/docker.sock"):
+		return types.PlatformDocker, true
+	default:
+		return types.PlatformUnknown, false
+	}
 }
 
 // ContainerState returns the state of a container.

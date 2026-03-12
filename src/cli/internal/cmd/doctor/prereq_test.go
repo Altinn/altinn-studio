@@ -11,7 +11,12 @@ import (
 	"altinn.studio/devenv/pkg/container/types"
 )
 
-const dockerTool = "docker"
+const (
+	colimaTool            = "colima"
+	dockerTool            = "docker"
+	podmanTool            = "podman"
+	resolvedDockerDefault = "Docker Engine API -> Docker (Default)"
+)
 
 var (
 	errMissingTool      = errors.New("missing tool")
@@ -25,13 +30,13 @@ func TestProbeContainerRuntime(t *testing.T) {
 		lookPath: func(string) (string, error) {
 			return "/bin/tool", nil
 		},
-		commandOutput: func(_ context.Context, name string, _ ...string) ([]byte, error) {
+		versionOutput: func(_ context.Context, name string) ([]byte, error) {
 			switch name {
 			case dockerTool:
 				return []byte("Docker version 25.0.1, build deadbeef"), nil
-			case "podman":
+			case podmanTool:
 				return []byte("podman version 5.4.0"), nil
-			case "colima":
+			case colimaTool:
 				return []byte("colima version 0.8.1"), nil
 			default:
 				return nil, errUnexpectedTool
@@ -50,14 +55,14 @@ func TestProbeContainerRuntime(t *testing.T) {
 	if value != "Docker (25.0.1)" {
 		t.Fatalf("probeContainerRuntime() value = %q, want %q", value, "Docker (25.0.1)")
 	}
-	if resolved != "Docker Engine API -> Docker" {
-		t.Fatalf("probeContainerRuntime() resolved = %q, want %q", resolved, "Docker Engine API -> Docker")
+	if resolved != resolvedDockerDefault {
+		t.Fatalf("probeContainerRuntime() resolved = %q, want %q", resolved, resolvedDockerDefault)
 	}
 
 	want := []ContainerTool{
-		{Name: "colima", Version: "0.8.1"},
+		{Name: colimaTool, Version: "0.8.1"},
 		{Name: dockerTool, Version: "25.0.1"},
-		{Name: "podman", Version: "5.4.0"},
+		{Name: podmanTool, Version: "5.4.0"},
 	}
 	if len(tools) != len(want) {
 		t.Fatalf("probeContainerRuntime() tools len = %d, want %d", len(tools), len(want))
@@ -78,7 +83,7 @@ func TestCollectPrerequisitesIncludesDockerHost(t *testing.T) {
 			}
 			return "", errMissingTool
 		},
-		commandOutput: func(_ context.Context, name string, _ ...string) ([]byte, error) {
+		versionOutput: func(_ context.Context, name string) ([]byte, error) {
 			switch name {
 			case "dotnet":
 				return []byte("10.0.103"), nil
@@ -99,7 +104,7 @@ func TestCollectPrerequisitesIncludesDockerHost(t *testing.T) {
 	if prereqs.ContainerHost != "unix:///tmp/podman.sock" {
 		t.Fatalf("collectPrerequisites() ContainerHost = %q", prereqs.ContainerHost)
 	}
-	if prereqs.ContainerResolved != "Docker Engine API -> Docker" {
+	if prereqs.ContainerResolved != resolvedDockerDefault {
 		t.Fatalf("collectPrerequisites() ContainerResolved = %q", prereqs.ContainerResolved)
 	}
 }
@@ -113,7 +118,7 @@ func TestProbeContainerRuntimeReturnsDetectedToolsOnFailure(t *testing.T) {
 			}
 			return "", errMissingTool
 		},
-		commandOutput: func(_ context.Context, name string, _ ...string) ([]byte, error) {
+		versionOutput: func(_ context.Context, name string) ([]byte, error) {
 			if name == dockerTool {
 				return []byte("Docker version 25.0.1, build deadbeef"), nil
 			}
@@ -136,14 +141,55 @@ func TestProbeContainerRuntimeReturnsDetectedToolsOnFailure(t *testing.T) {
 	}
 }
 
+func TestProbeContainerRuntime_APIWithoutCLIStillSucceeds(t *testing.T) {
+	svc := &Service{
+		debugf: func(string, ...any) {},
+		lookPath: func(string) (string, error) {
+			return "", errMissingTool
+		},
+		versionOutput: func(_ context.Context, name string) ([]byte, error) {
+			return nil, errUnexpectedTool
+		},
+		containerDetect: func(context.Context) (container.ContainerClient, error) {
+			return &dockerEngineClient{
+				Client: containermock.New(),
+				toolchain: types.ContainerToolchain{
+					Platform:   types.PlatformDocker,
+					AccessMode: types.AccessDockerEngineAPI,
+					Source:     types.SourceDefault,
+				},
+			}, nil
+		},
+	}
+
+	value, resolved, tools, err := svc.probeContainerRuntime(t.Context())
+	if err != nil {
+		t.Fatalf("probeContainerRuntime() error = %v", err)
+	}
+	if value != "Docker (unknown)" {
+		t.Fatalf("probeContainerRuntime() value = %q, want %q", value, "Docker (unknown)")
+	}
+	if resolved != resolvedDockerDefault {
+		t.Fatalf("probeContainerRuntime() resolved = %q", resolved)
+	}
+	if len(tools) != 0 {
+		t.Fatalf("probeContainerRuntime() tools = %#v, want empty", tools)
+	}
+}
+
 type dockerEngineClient struct {
 	*containermock.Client
+
+	toolchain types.ContainerToolchain
 }
 
-func (*dockerEngineClient) Name() string {
-	return "Docker Engine API"
-}
-
-func (*dockerEngineClient) Installation() types.RuntimeInstallation {
-	return types.InstallationDocker
+func (c *dockerEngineClient) Toolchain() types.ContainerToolchain {
+	if c.toolchain != (types.ContainerToolchain{}) {
+		return c.toolchain
+	}
+	return types.ContainerToolchain{
+		Platform:   types.PlatformDocker,
+		AccessMode: types.AccessDockerEngineAPI,
+		Source:     types.SourceDefault,
+	}
 }

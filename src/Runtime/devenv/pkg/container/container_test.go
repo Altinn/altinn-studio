@@ -7,13 +7,9 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	containermock "altinn.studio/devenv/pkg/container/mock"
 )
 
 const testImage = "alpine:latest@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62"
-
-var errTransientFailure = errors.New("transient failure")
 
 func detectClient(t *testing.T) ContainerClient {
 	t.Helper()
@@ -29,7 +25,7 @@ func detectClient(t *testing.T) ContainerClient {
 
 func cliName() string {
 	// Check which CLI is available - can't rely on runtime name since
-	// Docker Engine API may be connected to Podman's compatible socket
+	// The Docker Engine API transport may be connected to Podman's compatible socket.
 	if _, err := exec.LookPath("docker"); err == nil {
 		return "docker"
 	}
@@ -64,62 +60,17 @@ func TestDetect(t *testing.T) {
 	cli := detectClient(t)
 	defer closeTestClient(t, cli)
 
-	name := cli.Name()
-	if name != RuntimeNameDockerEngineAPI && name != RuntimeNamePodmanCLI {
-		t.Errorf("unexpected runtime name: %q", name)
+	toolchain := cli.Toolchain()
+	if toolchain.AccessMode != AccessDockerEngineAPI && toolchain.AccessMode != AccessPodmanCLI {
+		t.Errorf("unexpected access mode: %q", toolchain.AccessMode)
+	}
+	if toolchain.Platform != PlatformDocker &&
+		toolchain.Platform != PlatformPodman &&
+		toolchain.Platform != PlatformColima {
+		t.Errorf("unexpected platform: %q", toolchain.Platform)
 	}
 
-	t.Logf("using container runtime: %s", name)
-}
-
-func TestDetect_RetriesAfterTransientFailure(t *testing.T) {
-	detectMu.Lock()
-	origDetectRuntimeFn := detectRuntimeFn
-	origNewClientForTypeFn := newClientForTypeFn
-	origDetectionSucceeded := detectionSucceeded
-	origDetectedType := detectedType
-	origDetectedSocketPath := detectedSocketPath
-	detectMu.Unlock()
-
-	t.Cleanup(func() {
-		detectMu.Lock()
-		detectRuntimeFn = origDetectRuntimeFn
-		newClientForTypeFn = origNewClientForTypeFn
-		detectionSucceeded = origDetectionSucceeded
-		detectedType = origDetectedType
-		detectedSocketPath = origDetectedSocketPath
-		detectMu.Unlock()
-	})
-
-	detectMu.Lock()
-	detectionSucceeded = false
-	detectedType = runtimeUnknown
-	detectedSocketPath = ""
-	detectMu.Unlock()
-
-	calls := 0
-	detectRuntimeFn = func(context.Context) (runtimeType, string, error) {
-		calls++
-		if calls == 1 {
-			return runtimeUnknown, "", errTransientFailure
-		}
-		return runtimePodmanCLI, "", nil
-	}
-	newClientForTypeFn = func(context.Context, runtimeType) (ContainerClient, error) {
-		return containermock.New(), nil
-	}
-
-	if _, err := Detect(t.Context()); err == nil {
-		t.Fatal("Detect() expected transient error, got nil")
-	}
-
-	if _, err := Detect(t.Context()); err != nil {
-		t.Fatalf("Detect() on retry error = %v", err)
-	}
-
-	if calls != 2 {
-		t.Fatalf("detectRuntime calls = %d, want 2", calls)
-	}
+	t.Logf("using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 }
 
 func TestContainerLifecycle(t *testing.T) {

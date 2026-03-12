@@ -45,7 +45,7 @@ func (s *Service) collectPrerequisites(ctx context.Context) *Prerequisites {
 }
 
 func (s *Service) probeDotnet(ctx context.Context) (string, error) {
-	output, err := s.runCommandOutput(ctx, "dotnet", "--version")
+	output, err := s.runVersionOutput(ctx, "dotnet")
 	if err != nil {
 		return "", fmt.Errorf("checking dotnet version: %w", err)
 	}
@@ -77,13 +77,19 @@ func (s *Service) probeContainerRuntime(ctx context.Context) (string, string, []
 		}
 	}()
 
-	installation := cli.Installation().String()
-	version := containerToolVersion(tools, strings.ToLower(installation))
+	toolchain := cli.Toolchain()
+	platformName := toolchain.Platform.String()
+	version := containerToolVersion(tools, platformToolVersionName(toolchain.Platform))
 	if version == "" {
 		version = unknownValue
 	}
 
-	return installation + " (" + version + ")", cli.Name() + " -> " + installation, tools, nil
+	resolved := toolchain.AccessMode.String() + " -> " + platformName
+	if toolchain.Source != container.SourceUnknown {
+		resolved += " (" + toolchain.Source.String() + ")"
+	}
+
+	return platformName + " (" + version + ")", resolved, tools, nil
 }
 
 func (s *Service) probeWindowsVersion(ctx context.Context) (string, error) {
@@ -148,7 +154,7 @@ func (s *Service) collectContainerTools(ctx context.Context) []ContainerTool {
 		}
 
 		version := unknownValue
-		output, err := s.runCommandOutput(ctx, name, "--version")
+		output, err := s.runVersionOutput(ctx, name)
 		if err != nil {
 			s.debugf("%s --version failed: %v", name, err)
 		} else if parsed := extractVersionFromOutput(strings.TrimSpace(string(output))); parsed != "" {
@@ -174,4 +180,17 @@ func containerToolVersion(tools []ContainerTool, name string) string {
 		}
 	}
 	return ""
+}
+
+func platformToolVersionName(platform container.ContainerPlatform) string {
+	switch platform {
+	case container.PlatformColima:
+		return "colima"
+	case container.PlatformPodman:
+		return "podman"
+	case container.PlatformDocker:
+		return "docker"
+	default:
+		return ""
+	}
 }

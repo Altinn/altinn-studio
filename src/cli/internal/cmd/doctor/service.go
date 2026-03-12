@@ -45,6 +45,7 @@ const (
 var (
 	errDotnetVersionTooOld = errors.New("dotnet version too old")
 	errNoContainerRuntime  = errors.New("no container runtime found")
+	errUnsupportedCommand  = errors.New("unsupported command")
 	errWindowsVersionOld   = errors.New("windows version too old")
 	errWindowsVersionUnk   = errors.New("windows version unknown")
 )
@@ -63,7 +64,7 @@ type Service struct {
 	cfg             *config.Config
 	debugf          func(format string, args ...any)
 	lookPath        func(file string) (string, error)
-	commandOutput   func(ctx context.Context, name string, args ...string) ([]byte, error)
+	versionOutput   func(ctx context.Context, name string) ([]byte, error)
 	containerDetect func(ctx context.Context) (container.ContainerClient, error)
 }
 
@@ -174,12 +175,10 @@ func New(cfg *config.Config, debugf func(format string, args ...any)) *Service {
 		debugf = func(string, ...any) {}
 	}
 	return &Service{
-		cfg:      cfg,
-		debugf:   debugf,
-		lookPath: exec.LookPath,
-		commandOutput: func(ctx context.Context, name string, args ...string) ([]byte, error) {
-			return exec.CommandContext(ctx, name, args...).Output()
-		},
+		cfg:             cfg,
+		debugf:          debugf,
+		lookPath:        exec.LookPath,
+		versionOutput:   commandVersionOutput,
 		containerDetect: container.Detect,
 	}
 }
@@ -229,16 +228,25 @@ func (s *Service) lookupPath(file string) (string, error) {
 	return path, nil
 }
 
-func (s *Service) runCommandOutput(ctx context.Context, name string, args ...string) ([]byte, error) {
-	if s != nil && s.commandOutput != nil {
-		return s.commandOutput(ctx, name, args...)
+func (s *Service) runVersionOutput(ctx context.Context, name string) ([]byte, error) {
+	if s != nil && s.versionOutput != nil {
+		return s.versionOutput(ctx, name)
 	}
 
-	output, err := exec.CommandContext(ctx, name, args...).Output()
-	if err != nil {
-		return nil, fmt.Errorf("run %s: %w", name, err)
+	return commandVersionOutput(ctx, name)
+}
+
+func commandVersionOutput(ctx context.Context, name string) ([]byte, error) {
+	switch name {
+	case "dotnet", "docker", "podman", "colima":
+		output, err := exec.CommandContext(ctx, name, "--version").Output()
+		if err != nil {
+			return nil, fmt.Errorf("run %s --version: %w", name, err)
+		}
+		return output, nil
+	default:
+		return nil, fmt.Errorf("%w: %s", errUnsupportedCommand, name)
 	}
-	return output, nil
 }
 
 func (s *Service) buildAuth() *Auth {

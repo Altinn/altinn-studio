@@ -61,7 +61,8 @@ func (e *Env) Preflight(ctx context.Context) error {
 
 // Up starts the localtest environment.
 func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
-	e.out.Verbosef("Using container runtime: %s", e.client.Name())
+	toolchain := e.client.Toolchain()
+	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
 	runtimeCfg, err := e.runtimeConfig.Build(ctx, opts.Port)
 	if err != nil {
@@ -106,7 +107,8 @@ func (e *Env) Up(ctx context.Context, opts envtypes.UpOptions) error {
 
 // Down stops the localtest environment.
 func (e *Env) Down(ctx context.Context) error {
-	e.out.Verbosef("Using container runtime: %s", e.client.Name())
+	toolchain := e.client.Toolchain()
+	e.out.Verbosef("Using container toolchain: %s via %s", toolchain.Platform, toolchain.AccessMode)
 
 	hasResources, err := e.hasManagedResources(ctx)
 	if err != nil {
@@ -267,7 +269,7 @@ func (e *Env) buildDestroyOptions() ResourceDestroyOptions {
 		DataDir:           e.cfg.DataDir,
 		Images:            e.cfg.Images,
 		IncludeMonitoring: true, // include all for cleanup
-		Installation:      e.client.Installation(),
+		Platform:          e.client.Toolchain().Platform,
 	}
 }
 

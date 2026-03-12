@@ -23,7 +23,7 @@ type Client struct {
 	NetworkConnectFunc    func(ctx context.Context, network, container string) error
 	ContainerStartFunc    func(ctx context.Context, nameOrID string) error
 	BuildFunc             func(ctx context.Context, contextPath, dockerfile, tag string) error
-	InstallationFunc      func() types.RuntimeInstallation
+	ToolchainFunc         func() types.ContainerToolchain
 	ImageInspectFunc      func(ctx context.Context, image string) (types.ImageInfo, error)
 	ContainerStopFunc     func(ctx context.Context, nameOrID string, timeout *int) error
 	ContainerRemoveFunc   func(ctx context.Context, nameOrID string, force bool) error
@@ -244,17 +244,12 @@ func (emptyReader) Read([]byte) (int, error) {
 	return 0, io.EOF
 }
 
-// Name implements ContainerClient.
-func (c *Client) Name() string {
-	return "Mock"
-}
-
-// Installation implements ContainerClient.
-func (c *Client) Installation() types.RuntimeInstallation {
-	if c.InstallationFunc != nil {
-		return c.InstallationFunc()
+// Toolchain implements ContainerClient.
+func (c *Client) Toolchain() types.ContainerToolchain {
+	if c.ToolchainFunc != nil {
+		return c.ToolchainFunc()
 	}
-	return types.InstallationUnknown
+	return types.ContainerToolchain{}
 }
 
 // Close implements ContainerClient.
