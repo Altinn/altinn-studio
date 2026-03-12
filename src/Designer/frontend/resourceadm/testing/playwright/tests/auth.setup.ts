@@ -16,6 +16,6 @@ setup('authenticate user', async ({ page }): Promise<void> => {
     await loginPage.pressEnterInPasswordField();
     await loginPage.clickAuthorizeButtonIfLoaded();
     await loginPage.confirmSuccessfulLogin();
-    await loginPage.addSessionToSharableStorage();
   }
+  await loginPage.addSessionToSharableStorage();
 });
