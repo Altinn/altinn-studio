@@ -21,10 +21,11 @@ import type { CompRepeatingGroupExternal } from 'src/layout/RepeatingGroup/confi
 
 export const RepeatingGroup = ({ component, parentBinding, itemIndex }: ComponentProps) => {
   const props = component as unknown as CompRepeatingGroupExternal;
-  const groupField = extractField(props.dataModelBindings.group);
-  const rows = useGroupArray(groupField, parentBinding, itemIndex);
-  const pushItem = usePushArrayItem(groupField, parentBinding, itemIndex);
-  const removeItem = useRemoveArrayItem(groupField, parentBinding, itemIndex);
+  const groupBinding = props.dataModelBindings.group;
+  const groupField = extractField(groupBinding);
+  const rows = useGroupArray(groupBinding, parentBinding, itemIndex);
+  const pushItem = usePushArrayItem(groupBinding, parentBinding, itemIndex);
+  const removeItem = useRemoveArrayItem(groupBinding, parentBinding, itemIndex);
   const client = useFormClient();
   const { langAsString } = useLanguage();
 

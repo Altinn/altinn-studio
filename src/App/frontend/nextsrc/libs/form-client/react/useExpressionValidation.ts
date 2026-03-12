@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { evaluateBoolean, evaluateString } from 'nextsrc/libs/form-client/expressions/evaluate';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
+import { selectCurrentData } from 'nextsrc/libs/form-client/stores/formDataStore';
 import { useStore } from 'zustand';
 import type { ExpressionDataSources } from 'nextsrc/libs/form-client/expressions/evaluate';
 import type { FieldValidation } from 'nextsrc/libs/form-client/stores/validationStore';
@@ -17,7 +18,7 @@ export { EXPRESSION_VALIDATION_KEY, expressionValidationPath };
 
 export function useExpressionValidation(): void {
   const client = useFormClient();
-  const formData = useStore(client.formDataStore, (state) => state.data);
+  const formData = useStore(client.formDataStore, selectCurrentData);
   const { langAsString } = useLanguage();
   const previousKeysRef = useRef<Set<string>>(new Set());
 
@@ -27,7 +28,7 @@ export function useExpressionValidation(): void {
     const currentKeys = new Set<string>();
 
     const dataSources: Omit<ExpressionDataSources, 'positionalArguments'> = {
-      formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
+      formDataGetter: (path: string) => client.formDataStore.getState().getValue(path, client.defaultDataType),
       instanceDataSources: client.textResourceDataSources.instanceDataSources,
       frontendSettings: client.textResourceDataSources.applicationSettings,
       textResourceResolver: langAsString,

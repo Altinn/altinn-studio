@@ -39,8 +39,8 @@ export const Task = () => {
  * and re-rendering every form component on every keystroke.
  */
 function DataTaskSideEffects({ loaderData }: { loaderData: DataTaskLoaderData }) {
-  const { instanceOwnerPartyId, instanceGuid, dataElementId } = loaderData;
-  useFormDataPersistence({ instanceOwnerPartyId, instanceGuid, dataElementId });
+  const { instanceOwnerPartyId, instanceGuid, dataElementIds } = loaderData;
+  useFormDataPersistence({ instanceOwnerPartyId, instanceGuid, dataElementIds });
   useExpressionValidation();
   useSchemaValidation();
   return null;

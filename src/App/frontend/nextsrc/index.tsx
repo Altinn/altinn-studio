@@ -19,6 +19,7 @@ import { router } from 'nextsrc/router';
 import 'nextsrc/index.css';
 
 export const formClient = new FormClient({
+  defaultDataType: 'default',
   textResources: GlobalData.textResources?.resources,
   language: GlobalData.textResources?.language,
   applicationSettings: GlobalData.frontendSettings ?? null,

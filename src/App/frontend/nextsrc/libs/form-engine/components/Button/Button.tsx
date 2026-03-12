@@ -1,10 +1,11 @@
 import React from 'react';
 
-import { Button as AppButton } from 'src/app-components/Button/Button';
 import { useProcessActions } from 'nextsrc/features/process/ProcessActionsContext';
 import { useTextResource } from 'nextsrc/libs/form-client/react/hooks';
 import { asTranslationKey } from 'nextsrc/libs/form-engine/AppComponentsBridge';
 import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
+
+import { Button as AppButton } from 'src/app-components/Button/Button';
 import type { CompButtonExternal } from 'src/layout/Button/config.generated';
 
 export const Button = ({ component }: ComponentProps) => {
@@ -13,7 +14,7 @@ export const Button = ({ component }: ComponentProps) => {
   const title = useTextResource(titleKey);
   const processActions = useProcessActions();
 
-  const isSubmit = props.mode === 'submit';
+  const isSubmit = !props.mode || props.mode === 'submit';
 
   const handleClick = () => {
     if (isSubmit) {

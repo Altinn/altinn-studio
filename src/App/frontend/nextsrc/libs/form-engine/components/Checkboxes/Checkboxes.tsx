@@ -1,26 +1,27 @@
 import React from 'react';
 
 import { Checkbox } from '@digdir/designsystemet-react';
-
 import cn from 'classnames';
+import { useComponentBinding, useRequiredValidation, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
+import classes from 'nextsrc/libs/form-engine/components/Checkboxes/Checkboxes.module.css';
+import { useLabelProps } from 'nextsrc/libs/form-engine/components/useLabelProps';
+import { useOptions } from 'nextsrc/libs/form-engine/components/useOptions';
+import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
+import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 
 import { Fieldset } from 'src/app-components/Label/Fieldset';
-import { useBoundValue, useRequiredValidation, useTextResource } from 'nextsrc/libs/form-client/react/hooks';
-import { extractField } from 'nextsrc/libs/form-client/resolveBindings';
-import { ComponentValidations } from 'nextsrc/libs/form-engine/ComponentValidations';
-import classes from 'nextsrc/libs/form-engine/components/Checkboxes/Checkboxes.module.css';
-import { useOptions } from 'nextsrc/libs/form-engine/components/useOptions';
-import { useLabelProps } from 'nextsrc/libs/form-engine/components/useLabelProps';
-import type { ComponentProps } from 'nextsrc/libs/form-engine/components/index';
 import type { CompCheckboxesExternal } from 'src/layout/Checkboxes/config.generated';
 
 export const Checkboxes = ({ component, parentBinding, itemIndex }: ComponentProps) => {
   const props = component as unknown as CompCheckboxesExternal;
-  const simpleBinding = extractField(props.dataModelBindings?.simpleBinding);
-  const { value, setValue } = useBoundValue(simpleBinding, parentBinding, itemIndex);
+  const {
+    field: simpleBindingField,
+    value,
+    setValue,
+  } = useComponentBinding(props.dataModelBindings?.simpleBinding, parentBinding, itemIndex);
   const titleKey = typeof props.textResourceBindings?.title === 'string' ? props.textResourceBindings.title : undefined;
   const title = useTextResource(titleKey);
-  const required = useRequiredValidation(props.required, simpleBinding, value, title);
+  const required = useRequiredValidation(props.required, simpleBindingField, value, title);
   const options = useOptions(props);
   const { help, description, requiredIndicator } = useLabelProps(props.textResourceBindings);
   const isHorizontal = props.layout === 'row';
@@ -30,7 +31,9 @@ export const Checkboxes = ({ component, parentBinding, itemIndex }: ComponentPro
     .filter(Boolean);
 
   const toggle = (optionValue: string) => {
-    const next = selected.includes(optionValue) ? selected.filter((v) => v !== optionValue) : [...selected, optionValue];
+    const next = selected.includes(optionValue)
+      ? selected.filter((v) => v !== optionValue)
+      : [...selected, optionValue];
     setValue(next.join(','));
   };
 
@@ -54,7 +57,7 @@ export const Checkboxes = ({ component, parentBinding, itemIndex }: ComponentPro
           />
         ))}
       </div>
-      <ComponentValidations bindingPath={simpleBinding} />
+      <ComponentValidations bindingPath={simpleBindingField} />
     </Fieldset>
   );
 };

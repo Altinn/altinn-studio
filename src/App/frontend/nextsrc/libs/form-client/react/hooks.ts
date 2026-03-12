@@ -1,79 +1,119 @@
-import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 
 import { evaluateBoolean } from 'nextsrc/libs/form-client/expressions/evaluate';
 import { useFormClient } from 'nextsrc/libs/form-client/react/provider';
 import { expressionValidationPath } from 'nextsrc/libs/form-client/react/useExpressionValidation';
 import { useLanguage } from 'nextsrc/libs/form-client/react/useLanguage';
 import { schemaValidationPath } from 'nextsrc/libs/form-client/react/useSchemaValidation';
+import { extractBinding } from 'nextsrc/libs/form-client/resolveBindings';
+import { selectCurrentData } from 'nextsrc/libs/form-client/stores/formDataStore';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/shallow';
 import type { FormDataNode, FormDataPrimitive } from 'nextsrc/core/api-client/data.api';
 import type { ResolvedLayoutFile } from 'nextsrc/libs/form-client/moveChildren';
+import type { DataModelBinding } from 'nextsrc/libs/form-client/resolveBindings';
+import type { BindingContext } from 'nextsrc/libs/form-client/stores/formDataStore';
 import type { FieldValidation } from 'nextsrc/libs/form-client/stores/validationStore';
 
-export function useFormValue(path: string): { value: FormDataPrimitive; setValue: (v: FormDataPrimitive) => void } {
+export function useFormValue(
+  path: string,
+  dataType?: string,
+): { value: FormDataPrimitive; setValue: (v: FormDataPrimitive) => void } {
   const client = useFormClient();
-  const value = useStore(client.formDataStore, (state) => state.getValue(path));
+  const dt = dataType ?? client.defaultDataType;
+  const value = useStore(client.formDataStore, (state) => state.getValue(path, dt));
   const setValue = useCallback(
-    (next: FormDataPrimitive) => client.formDataStore.getState().setValue(path, next),
-    [client, path],
+    (next: FormDataPrimitive) => client.formDataStore.getState().setValue(path, next, dt),
+    [client, path, dt],
   );
   return { value, setValue };
+}
+
+function useResolvedBinding(binding: string | DataModelBinding, parentBinding?: string, itemIndex?: number) {
+  const client = useFormClient();
+  const { dataType, field } = extractBinding(binding, client.defaultDataType);
+  const bindingContext: BindingContext = useMemo(
+    () => ({ parentBinding, itemIndex, dataType }),
+    [parentBinding, itemIndex, dataType],
+  );
+  return { client, field, bindingContext };
 }
 
 export function useBoundValue(
-  simpleBinding: string,
+  binding: string | DataModelBinding,
   parentBinding?: string,
   itemIndex?: number,
 ): { value: FormDataPrimitive; setValue: (v: FormDataPrimitive) => void } {
-  const client = useFormClient();
+  const { client, field, bindingContext } = useResolvedBinding(binding, parentBinding, itemIndex);
   const value = useStore(
     client.formDataStore,
-    useShallow((state) => state.getBoundValue(simpleBinding, parentBinding, itemIndex)),
+    useShallow((state) => state.getBoundValue(field, bindingContext)),
   );
   const setValue = useCallback(
-    (next: FormDataPrimitive) =>
-      client.formDataStore.getState().setBoundValue(simpleBinding, next, parentBinding, itemIndex),
-    [client, simpleBinding, parentBinding, itemIndex],
+    (next: FormDataPrimitive) => client.formDataStore.getState().setBoundValue(field, next, bindingContext),
+    [client, field, bindingContext],
   );
   return { value, setValue };
 }
 
-export function useGroupArray(binding: string, parentBinding?: string, itemIndex?: number): FormDataNode[] {
+/**
+ * Resolves a raw component binding (string, object, or undefined) into
+ * a bound value, setter, and the extracted field path string.
+ *
+ * This ensures the full binding (including dataType) is passed to the
+ * store, while the extracted field string is used for validation paths.
+ */
+export function useComponentBinding(
+  rawBinding: unknown,
+  parentBinding?: string,
+  itemIndex?: number,
+): { field: string; value: FormDataPrimitive; setValue: (v: FormDataPrimitive) => void } {
+  const binding = (rawBinding ?? '') as string | DataModelBinding;
+  const { value, setValue } = useBoundValue(binding, parentBinding, itemIndex);
   const client = useFormClient();
+  const { field } = extractBinding(binding, client.defaultDataType);
+  return { field, value, setValue };
+}
+
+export function useGroupArray(
+  binding: string | DataModelBinding,
+  parentBinding?: string,
+  itemIndex?: number,
+): FormDataNode[] {
+  const { client, field, bindingContext } = useResolvedBinding(binding, parentBinding, itemIndex);
   return useStore(
     client.formDataStore,
-    useShallow((state) => state.getArray(binding, parentBinding, itemIndex)),
+    useShallow((state) => state.getArray(field, bindingContext)),
   );
 }
 
 export function usePushArrayItem(
-  binding: string,
+  binding: string | DataModelBinding,
   parentBinding?: string,
   itemIndex?: number,
 ): (item: FormDataNode) => void {
-  const client = useFormClient();
+  const { client, field, bindingContext } = useResolvedBinding(binding, parentBinding, itemIndex);
   return useCallback(
-    (item: FormDataNode) => client.formDataStore.getState().pushArrayItem(binding, item, parentBinding, itemIndex),
-    [client, binding, parentBinding, itemIndex],
+    (item: FormDataNode) => client.formDataStore.getState().pushArrayItem(field, item, bindingContext),
+    [client, field, bindingContext],
   );
 }
 
 export function useRemoveArrayItem(
-  binding: string,
+  binding: string | DataModelBinding,
   parentBinding?: string,
   itemIndex?: number,
 ): (index: number) => void {
-  const client = useFormClient();
+  const { client, field, bindingContext } = useResolvedBinding(binding, parentBinding, itemIndex);
   return useCallback(
-    (index: number) => client.formDataStore.getState().removeArrayItem(binding, index, parentBinding, itemIndex),
-    [client, binding, parentBinding, itemIndex],
+    (index: number) => client.formDataStore.getState().removeArrayItem(field, index, bindingContext),
+    [client, field, bindingContext],
   );
 }
 
 export function useFormData(): FormDataNode {
   const client = useFormClient();
-  return useStore(client.formDataStore, (state) => state.data);
+  return useStore(client.formDataStore, selectCurrentData);
 }
 
 export function useTextResource(key: string | undefined): string {
@@ -89,7 +129,7 @@ export function useIsRequired(requiredExpr: unknown): boolean {
   // form data update.
   return useStore(client.formDataStore, () => {
     const dataSources = {
-      formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
+      formDataGetter: (path: string) => client.formDataStore.getState().getValue(path, client.defaultDataType),
       instanceDataSources: client.textResourceDataSources.instanceDataSources,
       frontendSettings: client.textResourceDataSources.applicationSettings,
     };
@@ -173,7 +213,7 @@ export function useLayout(layoutId: string): ResolvedLayoutFile {
     (_cb: () => void) =>
       // Layouts don't change at runtime after being set, so no subscription needed
       () => {},
-    [client],
+    [],
   );
 
   return useSyncExternalStore(subscribe, () => client.getFormLayout(layoutId));
@@ -182,7 +222,7 @@ export function useLayout(layoutId: string): ResolvedLayoutFile {
 export function useRawPageOrder(): string[] {
   const client = useFormClient();
 
-  const subscribe = useCallback((_cb: () => void) => () => {}, [client]);
+  const subscribe = useCallback((_cb: () => void) => () => {}, []);
 
   return useSyncExternalStore(subscribe, () => client.getPageOrder());
 }
@@ -201,7 +241,7 @@ export function usePageOrder(): string[] {
     client.formDataStore,
     useShallow(() => {
       const dataSources = {
-        formDataGetter: (path: string) => client.formDataStore.getState().getValue(path),
+        formDataGetter: (path: string) => client.formDataStore.getState().getValue(path, client.defaultDataType),
         instanceDataSources: client.textResourceDataSources.instanceDataSources,
         frontendSettings: client.textResourceDataSources.applicationSettings,
       };
@@ -220,7 +260,7 @@ export function usePageOrder(): string[] {
 export function useLayoutNames(): string[] {
   const client = useFormClient();
 
-  const subscribe = useCallback((_cb: () => void) => () => {}, [client]);
+  const subscribe = useCallback((_cb: () => void) => () => {}, []);
 
   return useSyncExternalStore(subscribe, () => client.getLayoutNames());
 }
