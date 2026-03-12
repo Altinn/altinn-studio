@@ -18,10 +18,12 @@ import (
 )
 
 // Client implements ContainerClient for Podman using CLI.
-type Client struct{}
+type Client struct {
+	toolchain types.ContainerToolchain
+}
 
 // New creates a new Podman CLI client.
-func New(ctx context.Context) (*Client, error) {
+func New(ctx context.Context, toolchain types.ContainerToolchain) (*Client, error) {
 	// Verify podman is available
 	if _, err := exec.LookPath("podman"); err != nil {
 		return nil, fmt.Errorf("podman not found in PATH: %w", err)
@@ -31,7 +33,11 @@ func New(ctx context.Context) (*Client, error) {
 	if err := cmd.Run(); err != nil {
 		return nil, fmt.Errorf("podman not responsive: %w", err)
 	}
-	return &Client{}, nil
+	toolchain.AccessMode = types.AccessPodmanCLI
+	if toolchain.Platform == types.PlatformUnknown {
+		toolchain.Platform = types.PlatformPodman
+	}
+	return &Client{toolchain: toolchain}, nil
 }
 
 // Close releases resources (no-op for CLI client).
@@ -39,14 +45,9 @@ func (c *Client) Close() error {
 	return nil
 }
 
-// Name returns the runtime name.
-func (c *Client) Name() string {
-	return types.RuntimeNamePodmanCLI
-}
-
-// Installation returns the container runtime installation type.
-func (c *Client) Installation() types.RuntimeInstallation {
-	return types.InstallationPodman
+// Toolchain returns the resolved platform and access mode metadata.
+func (c *Client) Toolchain() types.ContainerToolchain {
+	return c.toolchain
 }
 
 // Build builds a container image from a Dockerfile.
