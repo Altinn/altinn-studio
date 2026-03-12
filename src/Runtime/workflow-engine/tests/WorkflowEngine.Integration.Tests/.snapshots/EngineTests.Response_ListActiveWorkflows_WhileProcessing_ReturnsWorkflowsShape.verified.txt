@@ -1,0 +1,29 @@
+﻿[
+  {
+    databaseId: {Scrubbed},
+    correlationId: Guid_1,
+    operationId: op-wf-1,
+    idempotencyKey: idem-Guid_2,
+    namespace: ttd:e2e-tests,
+    createdAt: {Scrubbed},
+    updatedAt: {Scrubbed},
+    labels: {
+      app: e2e-tests,
+      org: ttd
+    },
+    overallStatus: Processing,
+    steps: [
+      {
+        databaseId: {Scrubbed},
+        idempotencyKey: idem-Guid_2//slow,
+        operationId: /slow,
+        processingOrder: 0,
+        command: {
+          type: webhook
+        },
+        status: Enqueued,
+        retryCount: 0
+      }
+    ]
+  }
+]

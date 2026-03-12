@@ -1,0 +1,31 @@
+﻿{
+  databaseId: {Scrubbed},
+  correlationId: Guid_1,
+  operationId: op-wf-b,
+  idempotencyKey: idem-Guid_2,
+  namespace: ttd:e2e-tests,
+  createdAt: {Scrubbed},
+  updatedAt: {Scrubbed},
+  labels: {
+    app: e2e-tests,
+    org: ttd
+  },
+  overallStatus: Completed,
+  dependencies: {
+    {Scrubbed}: Completed
+  },
+  steps: [
+    {
+      databaseId: {Scrubbed},
+      idempotencyKey: idem-Guid_2//ping-b,
+      operationId: /ping-b,
+      processingOrder: 0,
+      updatedAt: {Scrubbed},
+      command: {
+        type: webhook
+      },
+      status: Completed,
+      retryCount: 0
+    }
+  ]
+}

@@ -102,7 +102,8 @@ internal sealed partial class EngineRepository
                                 setters
                                     .SetProperty(t => t.Status, step.Status)
                                     .SetProperty(t => t.RequeueCount, step.RequeueCount)
-                                    .SetProperty(t => t.StateOut, step.StateOut),
+                                    .SetProperty(t => t.StateOut, step.StateOut)
+                                    .SetProperty(t => t.UpdatedAt, step.UpdatedAt),
                             ct
                         );
                 },
@@ -609,6 +610,7 @@ internal sealed partial class EngineRepository
                 WHERE "Id" IN (
                     SELECT w."Id" FROM "Workflows" w
                     WHERE w."Status" IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued})
+                      AND (w."StartAt" IS NULL OR w."StartAt" <= {now})
                       AND (w."BackoffUntil" IS NULL OR w."BackoffUntil" <= {now})
                       AND NOT EXISTS (
                           SELECT 1 FROM "WorkflowDependency" wd
