@@ -6,6 +6,8 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -77,27 +79,16 @@ public class FormBootstrapController : ControllerBase
     )
     {
         var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-        if (instance == null)
-        {
-            return NotFound(
-                new ProblemDetails
-                {
-                    Title = "Instance not found",
-                    Status = StatusCodes.Status404NotFound,
-                    Detail = $"Instance {instanceOwnerPartyId}/{instanceGuid} not found",
-                }
-            );
-        }
 
-        var folderValidation = ValidateUiFolder(uiFolder);
-        if (folderValidation != null)
+        var layoutSettings = GetLayoutSettings(uiFolder);
+        if (layoutSettings is null)
         {
-            return folderValidation;
+            return CreateUiFolderNotFoundResult(uiFolder);
         }
 
         if (dataElementId != null)
         {
-            var subformValidation = ValidateSubformDataElement(instance, uiFolder, dataElementId);
+            var subformValidation = ValidateSubformDataElement(instance, layoutSettings, dataElementId);
             if (subformValidation != null)
             {
                 return subformValidation;
@@ -154,15 +145,14 @@ public class FormBootstrapController : ControllerBase
         CancellationToken cancellationToken = default
     )
     {
-        var validationResult = ValidateUiFolder(uiFolder);
-        if (validationResult != null)
+        if (GetLayoutSettings(uiFolder) is null)
         {
-            return validationResult;
+            return CreateUiFolderNotFoundResult(uiFolder);
         }
 
         if (User.Identity?.IsAuthenticated != true)
         {
-            var isAnonymousAllowed = await IsAnonymousAllowedForLayoutSet(uiFolder);
+            var isAnonymousAllowed = await IsAnonymousAllowedForFolder(uiFolder);
             if (!isAnonymousAllowed)
             {
                 return Forbid();
@@ -213,35 +203,30 @@ public class FormBootstrapController : ControllerBase
         }
     }
 
-    private NotFoundObjectResult? ValidateUiFolder(string uiFolder)
+    private LayoutSettings? GetLayoutSettings(string uiFolder)
     {
         var uiConfig = _appResources.GetUiConfiguration();
-        if (uiConfig?.Folders.ContainsKey(uiFolder) != true)
-        {
-            return NotFound(
-                new ProblemDetails
-                {
-                    Title = "UI folder not found",
-                    Status = StatusCodes.Status404NotFound,
-                    Detail = $"UI folder '{uiFolder}' not found",
-                }
-            );
-        }
-        return null;
+        return uiConfig?.Folders.GetValueOrDefault(uiFolder);
+    }
+
+    private NotFoundObjectResult CreateUiFolderNotFoundResult(string uiFolder)
+    {
+        return NotFound(
+            new ProblemDetails
+            {
+                Title = "UI folder not found",
+                Status = StatusCodes.Status404NotFound,
+                Detail = $"UI folder '{uiFolder}' not found",
+            }
+        );
     }
 
     private ActionResult? ValidateSubformDataElement(
-        Altinn.Platform.Storage.Interface.Models.Instance instance,
-        string uiFolder,
+        Instance instance,
+        LayoutSettings layoutSettings,
         string dataElementId
     )
     {
-        var uiConfig = _appResources.GetUiConfiguration();
-        if (uiConfig is null || !uiConfig.Folders.TryGetValue(uiFolder, out var layoutSettings))
-        {
-            return null; // unreachable: caller already validated the folder via ValidateUiFolder
-        }
-
         var dataElement = instance.Data.FirstOrDefault(d => d.Id == dataElementId);
         if (dataElement == null)
         {
@@ -271,11 +256,11 @@ public class FormBootstrapController : ControllerBase
         return null;
     }
 
-    private async Task<bool> IsAnonymousAllowedForLayoutSet(string layoutSetId)
+    private async Task<bool> IsAnonymousAllowedForFolder(string uiFolder)
     {
         var appMetadata = await _appMetadata.GetApplicationMetadata();
         var uiConfig = _appResources.GetUiConfiguration();
-        if (uiConfig?.Folders.TryGetValue(layoutSetId, out var layoutSettings) != true || layoutSettings is null)
+        if (uiConfig?.Folders.TryGetValue(uiFolder, out var layoutSettings) != true || layoutSettings is null)
         {
             return false;
         }
