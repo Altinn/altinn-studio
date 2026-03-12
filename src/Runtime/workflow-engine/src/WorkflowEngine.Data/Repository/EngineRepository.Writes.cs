@@ -276,19 +276,19 @@ internal sealed partial class EngineRepository
                     WITH input AS (
                         SELECT * FROM unnest({arrays.Keys}, {arrays.Namespaces}, {hashesParam}, {arrays.WfIdTexts}, {arrays.CreationDates})
                             WITH ORDINALITY
-                            AS t(idempotency_key, namespace, request_body_hash, wf_id_text, created_at, idx)
+                            AS t("IdempotencyKey", "Namespace", "RequestBodyHash", wf_id_text, "CreatedAt", idx)
                     ),
                     inserted AS (
-                        INSERT INTO idempotency_keys (idempotency_key, namespace, request_body_hash, workflow_ids, created_at)
-                        SELECT idempotency_key, namespace, request_body_hash, wf_id_text::uuid[], created_at
+                        INSERT INTO "IdempotencyKeys" ("IdempotencyKey", "Namespace", "RequestBodyHash", "WorkflowIds", "CreatedAt")
+                        SELECT "IdempotencyKey", "Namespace", "RequestBodyHash", wf_id_text::uuid[], "CreatedAt"
                         FROM input
-                        ORDER BY idempotency_key, namespace
-                        ON CONFLICT (idempotency_key, namespace) DO NOTHING
-                        RETURNING idempotency_key, namespace
+                        ORDER BY "IdempotencyKey", "Namespace"
+                        ON CONFLICT ("IdempotencyKey", "Namespace") DO NOTHING
+                        RETURNING "IdempotencyKey", "Namespace"
                     )
                     SELECT (i.idx - 1)::int AS "Value"
                     FROM inserted ins
-                    JOIN input i USING (idempotency_key, namespace)
+                    JOIN input i USING ("IdempotencyKey", "Namespace")
                     """
                 )
                 .ToListAsync(cancellationToken)
@@ -332,8 +332,8 @@ internal sealed partial class EngineRepository
                 $"""
                 SELECT ik.*
                 FROM unnest({keys}, {namespaces})
-                    AS t(idempotency_key, namespace)
-                JOIN idempotency_keys ik USING (idempotency_key, namespace)
+                    AS t("IdempotencyKey", "Namespace")
+                JOIN "IdempotencyKeys" ik USING ("IdempotencyKey", "Namespace")
                 """
             )
             .AsNoTracking()
