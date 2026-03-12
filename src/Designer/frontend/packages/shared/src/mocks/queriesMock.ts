@@ -44,7 +44,7 @@ import type {
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
-import type { UserApiKeyResponse } from 'app-shared/types/api/UserApiKeyResponse';
+import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
 import {
   appConfig,
@@ -263,7 +263,7 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve({ belongsToOrg: true })),
 
   // Queries - User settings
-  getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKeyResponse[]>([])),
+  getUserApiKeys: jest.fn().mockImplementation(() => Promise.resolve<UserApiKey[]>([])),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),

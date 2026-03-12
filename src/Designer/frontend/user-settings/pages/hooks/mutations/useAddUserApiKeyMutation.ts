@@ -11,13 +11,13 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 export const useAddUserApiKeyMutation = () => {
   const { addUserApiKey } = useServicesContext();
   const queryClient = useQueryClient();
-  return useMutation<AddUserApiKeyResponse, AxiosError, AddUserApiKeyRequest>({
+  return useMutation<AddUserApiKeyResponse, AxiosError<ApiError>, AddUserApiKeyRequest>({
     mutationFn: (payload) => addUserApiKey(payload),
     meta: {
       hideDefaultError: (error: AxiosError<ApiError>) =>
         error?.response?.status === ServerCodes.Conflict &&
         error?.response?.data?.errorCode === ApiErrorCodes.DuplicateTokenName,
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [QueryKey.UserApiKeys] }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: [QueryKey.UserApiKeys] }),
   });
 };

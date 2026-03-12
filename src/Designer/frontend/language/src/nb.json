@@ -1559,8 +1559,6 @@
   "user.settings.api_keys.delete_confirm": "Er du sikker på at du vil slette denne API-nøkkelen?",
   "user.settings.api_keys.error": "Det oppsto en feil ved innlasting av API-nøkler. Prøv igjen senere.",
   "user.settings.api_keys.error_duplicate_name": "En API-nøkkel med dette navnet finnes allerede.",
-  "user.settings.api_keys.error_expiry_in_past": "Utløpsdatoen kan ikke være i fortiden.",
-  "user.settings.api_keys.error_expiry_too_long": "Utløpsdatoen kan ikke være mer enn 365 dager frem i tid.",
   "user.settings.api_keys.expired": "Utløpt",
   "user.settings.api_keys.expires_at": "Utløpsdato",
   "user.settings.api_keys.loading": "Laster inn API-nøkler...",

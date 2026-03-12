@@ -15,6 +15,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useAddUserApiKeyMutation } from '../hooks/mutations/useAddUserApiKeyMutation';
 import { useUserApiKeysQuery } from '../hooks/queries/useUserApiKeysQuery';
 import classes from './AddApiKey.module.css';
+import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
 
 const MAX_USER_API_KEY_EXPIRY_DAYS = 365;
 
@@ -43,30 +44,22 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
   const maxExpiresAtString = computeMaxExpiresAt();
 
   const isDuplicateName =
-    (submitted && apiKeys?.some((apiKey) => apiKey.name === name)) ||
-    error?.response?.status === ServerCodes.Conflict;
-  const isExpiryInPast = expiresAt < todayUtc;
-  const isExpiryTooLong = expiresAt > maxExpiresAtString;
+    apiKeys?.some((apiKey) => apiKey.name === name) ||
+    (error?.response?.status === ServerCodes.Conflict &&
+      error?.response?.data?.errorCode === ApiErrorCodes.DuplicateTokenName);
 
   const handleAdd = () => {
     setSubmitted(true);
-    if (
-      !name ||
-      !expiresAt ||
-      isExpiryInPast ||
-      isExpiryTooLong ||
-      apiKeys?.some((apiKey) => apiKey.name === name)
-    )
-      return;
+    if (!name || !expiresAt || isDuplicateName) return;
     addUserApiKey(
       { name, expiresAt: `${expiresAt}T23:59:59Z` },
       {
         onSuccess: (response) => {
-          setSubmitted(false);
           setNewApiKey(response.key);
           onApiKeyCreated(response.id);
           setName('');
           setExpiresAt(computeMaxExpiresAt());
+          setSubmitted(false);
         },
       },
     );
@@ -121,8 +114,9 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
           required
           tagText={t('general.required')}
           error={
-            (submitted && !name ? t('validation_errors.required') : undefined) ??
-            (isDuplicateName ? t('user.settings.api_keys.error_duplicate_name') : undefined)
+            submitted &&
+            ((!name ? t('validation_errors.required') : undefined) ??
+              (isDuplicateName ? t('user.settings.api_keys.error_duplicate_name') : undefined))
           }
           maxLength={100}
         />
@@ -135,18 +129,11 @@ export const AddApiKey = ({ onApiKeyCreated }: AddApiKeyProps): React.ReactEleme
           max={maxExpiresAtString}
           required
           tagText={t('general.required')}
-          error={
-            (submitted && !expiresAt ? t('validation_errors.required') : undefined) ??
-            (submitted && isExpiryInPast
-              ? t('user.settings.api_keys.error_expiry_in_past')
-              : undefined) ??
-            (submitted && isExpiryTooLong
-              ? t('user.settings.api_keys.error_expiry_too_long')
-              : undefined)
-          }
+          error={submitted && !expiresAt ? t('validation_errors.required') : undefined}
           className={classes.dateInput}
         />
         <StudioButton
+          type='submit'
           data-color='success'
           icon={<PlusIcon />}
           onClick={handleAdd}

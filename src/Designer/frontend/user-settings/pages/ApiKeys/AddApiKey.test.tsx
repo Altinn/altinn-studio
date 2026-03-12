@@ -6,7 +6,7 @@ import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { UserApiKeyResponse } from 'app-shared/types/api/UserApiKeyResponse';
+import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
 import { toast } from 'react-toastify';
 import { ApiErrorCodes } from 'app-shared/enums/ApiErrorCodes';
@@ -24,19 +24,7 @@ const validExpiresAt = (() => {
   return d.toISOString().split('T')[0];
 })();
 
-const pastExpiresAt = (() => {
-  const d = new Date(todayUtc);
-  d.setUTCDate(d.getUTCDate() - 1);
-  return d.toISOString().split('T')[0];
-})();
-
-const tooLongExpiresAt = (() => {
-  const d = new Date(todayUtc);
-  d.setUTCDate(d.getUTCDate() + 366);
-  return d.toISOString().split('T')[0];
-})();
-
-const mockApiKeys: UserApiKeyResponse[] = [
+const mockApiKeys: UserApiKey[] = [
   {
     id: 1,
     name: 'Existing api key',
@@ -133,26 +121,6 @@ describe('AddApiKey', () => {
     await screen.findByDisplayValue('secret-key-value');
     await user.click(screen.getByRole('button', { name: textMock('general.close') }));
     expect(getExpiryInput()).toHaveValue(maxUtc);
-  });
-
-  it('shows expiry too long error when expiry date exceeds 365 days', async () => {
-    const user = userEvent.setup();
-    renderAddApiKey();
-    await fillForm(user, 'New api key', tooLongExpiresAt);
-    await user.click(getAddButton());
-    expect(
-      screen.getByText(textMock('user.settings.api_keys.error_expiry_too_long')),
-    ).toBeInTheDocument();
-  });
-
-  it('shows expiry in past error when expiry date is in the past', async () => {
-    const user = userEvent.setup();
-    renderAddApiKey();
-    await fillForm(user, 'New api key', pastExpiresAt);
-    await user.click(getAddButton());
-    expect(
-      screen.getByText(textMock('user.settings.api_keys.error_expiry_in_past')),
-    ).toBeInTheDocument();
   });
 
   it('shows duplicate name error when name already exists', async () => {

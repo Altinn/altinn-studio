@@ -6,10 +6,12 @@ import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { UserApiKeyResponse } from 'app-shared/types/api/UserApiKeyResponse';
+import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 
-const mockApiKeys: UserApiKeyResponse[] = [
+const todayUtc = new Date().toISOString().split('T')[0];
+
+const mockApiKeys: UserApiKey[] = [
   {
     id: 1,
     name: 'My api key',
@@ -74,6 +76,20 @@ describe('ApiKeysList', () => {
   it('does not show expired tag for valid api keys', () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData([QueryKey.UserApiKeys], [mockApiKeys[0]]);
+    renderWithProviders(<ApiKeysList newApiKeyId={null} />, { queryClient });
+    expect(screen.queryByText(textMock('user.settings.api_keys.expired'))).not.toBeInTheDocument();
+  });
+
+  it('does not show expired tag when expiry date is today', () => {
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.UserApiKeys], [
+      {
+        id: 3,
+        name: 'Expires today api key',
+        expiresAt: `${todayUtc}T23:59:59Z`,
+        createdAt: '2024-01-01T00:00:00',
+      },
+    ] as UserApiKey[]);
     renderWithProviders(<ApiKeysList newApiKeyId={null} />, { queryClient });
     expect(screen.queryByText(textMock('user.settings.api_keys.expired'))).not.toBeInTheDocument();
   });
