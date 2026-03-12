@@ -25,5 +25,8 @@ internal static class Defaults
             baseInterval: TimeSpan.FromMilliseconds(100),
             maxDelay: TimeSpan.FromMinutes(2)
         ),
+        MaxWorkflowsPerRequest = 100,
+        MaxStepsPerWorkflow = 50,
+        MaxLabels = 50,
     };
 }

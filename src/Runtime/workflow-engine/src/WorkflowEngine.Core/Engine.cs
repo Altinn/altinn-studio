@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Utils;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
@@ -16,22 +17,13 @@ internal interface IEngine
     );
 }
 
-internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry registry) : IEngine
+internal sealed class Engine(
+    WorkflowWriteBuffer writeBuffer,
+    ICommandRegistry registry,
+    IOptions<EngineSettings> engineSettings
+) : IEngine
 {
-    /// <summary>
-    /// Maximum number of workflows allowed in a single enqueue request.
-    /// </summary>
-    internal const int MaxWorkflowsPerRequest = 100;
-
-    /// <summary>
-    /// Maximum number of steps allowed per workflow.
-    /// </summary>
-    internal const int MaxStepsPerWorkflow = 50;
-
-    /// <summary>
-    /// Maximum number of label entries per request.
-    /// </summary>
-    internal const int MaxLabels = 50;
+    private readonly EngineSettings _settings = engineSettings.Value;
 
     public async Task<WorkflowEnqueueResponse> EnqueueWorkflow(
         WorkflowEnqueueRequest request,
@@ -204,19 +196,19 @@ internal sealed class Engine(WorkflowWriteBuffer writeBuffer, ICommandRegistry r
     /// Validates that the request does not exceed input size limits.
     /// Returns an error message if invalid, or null if valid.
     /// </summary>
-    private static string? ValidateInputSizeLimits(WorkflowEnqueueRequest request)
+    private string? ValidateInputSizeLimits(WorkflowEnqueueRequest request)
     {
-        if (request.Workflows.Count > MaxWorkflowsPerRequest)
-            return $"Request contains {request.Workflows.Count} workflows, maximum is {MaxWorkflowsPerRequest}.";
+        if (request.Workflows.Count > _settings.MaxWorkflowsPerRequest)
+            return $"Request contains {request.Workflows.Count} workflows, maximum is {_settings.MaxWorkflowsPerRequest}.";
 
-        if (request.Labels is { Count: > MaxLabels })
-            return $"Request contains {request.Labels.Count} labels, maximum is {MaxLabels}.";
+        if (request.Labels is not null && request.Labels.Count > _settings.MaxLabels)
+            return $"Request contains {request.Labels.Count} labels, maximum is {_settings.MaxLabels}.";
 
         for (int i = 0; i < request.Workflows.Count; i++)
         {
             var workflow = request.Workflows[i];
-            if (workflow.Steps.Count > MaxStepsPerWorkflow)
-                return $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {MaxStepsPerWorkflow}.";
+            if (workflow.Steps.Count > _settings.MaxStepsPerWorkflow)
+                return $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {_settings.MaxStepsPerWorkflow}.";
         }
 
         return null;

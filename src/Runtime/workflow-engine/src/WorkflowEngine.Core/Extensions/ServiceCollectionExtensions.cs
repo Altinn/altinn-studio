@@ -178,6 +178,15 @@ public static class OptionsBuilderExtensions
 
                 if (config.MaxDegreeOfParallelism <= 0)
                     config.MaxDegreeOfParallelism = Defaults.EngineSettings.MaxDegreeOfParallelism;
+
+                if (config.MaxWorkflowsPerRequest <= 0)
+                    config.MaxWorkflowsPerRequest = Defaults.EngineSettings.MaxWorkflowsPerRequest;
+
+                if (config.MaxStepsPerWorkflow <= 0)
+                    config.MaxStepsPerWorkflow = Defaults.EngineSettings.MaxStepsPerWorkflow;
+
+                if (config.MaxLabels <= 0)
+                    config.MaxLabels = Defaults.EngineSettings.MaxLabels;
             });
 
             return builder;
