@@ -4,12 +4,12 @@ API dependencies for authentication and authorization
 from fastapi import Header, HTTPException
 
 
-async def get_user_token(x_user_token: str = Header(..., alias="X-User-Token")) -> str:
+async def get_api_key(x_api_key: str = Header(..., alias="X-Api-Key")) -> str:
     """
-    Extract user token from X-User-Token header.
-    This token is passed by the Designer backend (AltinityProxyHub) and contains
-    the user's Gitea access token for repository operations.
+    Extract API key from X-Api-Key header.
+    This is a short-lived key created by the Designer backend (AltinityProxyHub)
+    for authenticating git operations through the Gitea proxy.
     """
-    if not x_user_token:
-        raise HTTPException(status_code=401, detail="Missing X-User-Token header")
-    return x_user_token
+    if not x_api_key:
+        raise HTTPException(status_code=401, detail="Missing X-Api-Key header")
+    return x_api_key

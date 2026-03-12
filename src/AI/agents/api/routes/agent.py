@@ -7,7 +7,7 @@ from agents.graph.nodes import assistant
 from agents.services.events import sink, AgentEvent
 from agents.services.llm import parse_intent_async, ParsedIntent, IntentParsingError, suggest_goal_correction
 from agents.services.git.repo_manager import get_repo_manager
-from api.dependencies import get_user_token
+from api.dependencies import get_api_key
 from shared.config import get_config
 from shared.utils.logging_utils import get_logger
 from pathlib import Path
@@ -30,7 +30,7 @@ class StartReq(BaseModel):
 @router.post("/api/agent/start")
 async def start_agent(
     req: StartReq,
-    gitea_token: str = Depends(get_user_token),
+    gitea_token: str = Depends(get_api_key),
     x_session_id: str = Header(..., alias="X-Session-Id")
 ):
     """Start an agent workflow for a single atomic change"""
