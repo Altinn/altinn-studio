@@ -223,3 +223,7 @@ export const canUseFeaturePath = (featureName) => `${apiBasePath}/canUseFeature?
 
 // Custom Templates
 export const customTemplatesPath = () => `${apiBasePath}/customtemplates`; // GET
+
+// User settings
+export const userApiKeyPath = (id) => `${apiBasePath}/v1/user/api-keys/${id}`; // DELETE
+export const userApiKeysPath = () => `${apiBasePath}/v1/user/api-keys`; // GET, POST

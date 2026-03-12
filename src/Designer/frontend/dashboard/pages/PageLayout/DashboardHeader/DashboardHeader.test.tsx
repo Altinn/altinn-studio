@@ -23,6 +23,10 @@ import { PageName } from '@studio/content-library';
 const mockOrgTtd: string = 'ttd';
 const mockNavigate = jest.fn();
 
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+}));
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,

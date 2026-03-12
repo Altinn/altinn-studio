@@ -47,6 +47,7 @@ The frontend consists of several React packages in the following directories:
 - `./scripts` - Independent scripts for configuration of form components.
 - `./studio-root` - The root of the frontend.
 - `./testing` - Contains E2E tests and general test utilities.
+- `./user-settings` - The user settings.
 
 ## Development Commands
 

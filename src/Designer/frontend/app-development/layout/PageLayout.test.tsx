@@ -19,6 +19,10 @@ jest.mock('app-shared/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
 }));
 
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+}));
+
 describe('PageLayout', () => {
   afterEach(() => {
     jest.clearAllMocks();

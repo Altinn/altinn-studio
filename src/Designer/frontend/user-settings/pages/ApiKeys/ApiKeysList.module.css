@@ -1,0 +1,31 @@
+.nameCell {
+  width: 70%;
+  word-break: break-all;
+}
+
+.dateCell {
+  width: 10%;
+  white-space: nowrap;
+}
+
+.expiredTag {
+  margin-left: var(--ds-size-2);
+}
+
+.deleteCell {
+  text-align: end;
+  width: 10%;
+}
+
+@keyframes fade-highlight {
+  0% {
+    background-color: var(--ds-color-success-surface-tinted);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.newRow td {
+  animation: fade-highlight 3s ease-out forwards;
+}
