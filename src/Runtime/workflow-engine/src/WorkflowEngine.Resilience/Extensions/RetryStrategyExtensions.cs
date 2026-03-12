@@ -65,17 +65,18 @@ public static class RetryStrategyExtensions
         /// </summary>
         public TimeSpan CalculateDelay(int iteration)
         {
-            var delay = strategy.BackoffType switch
+            var maxDelaySeconds = strategy.MaxDelay?.TotalSeconds ?? TimeSpan.MaxValue.TotalSeconds;
+
+            var delaySeconds = strategy.BackoffType switch
             {
-                BackoffType.Constant => strategy.BaseInterval,
-                BackoffType.Linear => TimeSpan.FromSeconds((long)(strategy.BaseInterval.TotalSeconds * iteration)),
-                BackoffType.Exponential => TimeSpan.FromSeconds(
-                    strategy.BaseInterval.TotalSeconds * Math.Pow(2, iteration - 2)
-                ),
+                BackoffType.Constant => strategy.BaseInterval.TotalSeconds,
+                BackoffType.Linear => strategy.BaseInterval.TotalSeconds * iteration,
+                BackoffType.Exponential => strategy.BaseInterval.TotalSeconds
+                    * Math.Pow(2, Math.Min(iteration - 1, 62)),
                 _ => throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null),
             };
 
-            return delay > strategy.MaxDelay ? strategy.MaxDelay.Value : delay;
+            return TimeSpan.FromSeconds(Math.Min(delaySeconds, maxDelaySeconds));
         }
 
         /// <summary>
