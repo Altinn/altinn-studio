@@ -150,8 +150,7 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("Namespace")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("TenantId");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("OperationId")
                         .IsRequired()

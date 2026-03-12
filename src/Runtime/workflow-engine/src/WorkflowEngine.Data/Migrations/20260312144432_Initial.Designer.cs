@@ -12,7 +12,7 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    [Migration("20260312131405_Initial")]
+    [Migration("20260312144432_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -153,8 +153,7 @@ namespace WorkflowEngine.Data.Migrations
                     b.Property<string>("Namespace")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("TenantId");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("OperationId")
                         .IsRequired()

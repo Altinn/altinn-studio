@@ -20,7 +20,6 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     public required string IdempotencyKey { get; set; }
 
     [MaxLength(200)]
-    [Column("TenantId")]
     public required string Namespace { get; set; }
 
     public PersistentItemStatus Status { get; set; }

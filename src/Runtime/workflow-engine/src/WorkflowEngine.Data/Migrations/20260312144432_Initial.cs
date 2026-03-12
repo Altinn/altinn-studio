@@ -35,7 +35,7 @@ namespace WorkflowEngine.Data.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     OperationId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     IdempotencyKey = table.Column<string>(type: "text", nullable: false),
-                    TenantId = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Namespace = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     StartAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -183,13 +183,13 @@ namespace WorkflowEngine.Data.Migrations
                 .CreateIndex(name: "IX_Workflows_LabelsJson", table: "Workflows", column: "LabelsJson")
                 .Annotation("Npgsql:IndexMethod", "gin");
 
-            migrationBuilder.CreateIndex(name: "IX_Workflows_Status", table: "Workflows", column: "Status");
-
             migrationBuilder.CreateIndex(
-                name: "IX_Workflows_TenantId_Status",
+                name: "IX_Workflows_Namespace_Status",
                 table: "Workflows",
-                columns: new[] { "TenantId", "Status" }
+                columns: new[] { "Namespace", "Status" }
             );
+
+            migrationBuilder.CreateIndex(name: "IX_Workflows_Status", table: "Workflows", column: "Status");
         }
 
         /// <inheritdoc />
