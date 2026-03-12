@@ -237,8 +237,8 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
-            DefaultCorrelationId,
             DefaultNamespace,
+            DefaultCorrelationId,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -268,8 +268,8 @@ public class EngineEndpointTests
 
         // Act
         var result = await EngineRequestHandlers.ListActiveWorkflows(
-            DefaultCorrelationId,
             DefaultNamespace,
+            DefaultCorrelationId,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -304,8 +304,8 @@ public class EngineEndpointTests
 
         // Act
         await EngineRequestHandlers.ListActiveWorkflows(
-            DefaultCorrelationId,
             DefaultNamespace,
+            DefaultCorrelationId,
             repositoryMock.Object,
             CancellationToken.None
         );
@@ -398,5 +398,62 @@ public class EngineEndpointTests
 
         // Assert — cross-namespace disclosure prevention
         Assert.IsType<NotFound>(result.Result);
+    }
+
+    [Fact]
+    public async Task GetWorkflow_NullNamespace_Returns404()
+    {
+        // Arrange — workflow exists but no namespace provided
+        var step = WorkflowEngineTestFixture.CreateStep(new CommandDefinition { Type = "noop" });
+        var workflow = new Workflow
+        {
+            OperationId = "test-op",
+            IdempotencyKey = "wf-key",
+            Namespace = DefaultNamespace,
+            Steps = [step],
+        };
+
+        var workflowGuid = Guid.NewGuid();
+        var repositoryMock = new Mock<IEngineRepository>();
+        repositoryMock.Setup(r => r.GetWorkflow(workflowGuid, It.IsAny<CancellationToken>())).ReturnsAsync(workflow);
+
+        // Act
+        var result = await EngineRequestHandlers.GetWorkflow(
+            workflowGuid,
+            null!,
+            repositoryMock.Object,
+            CancellationToken.None
+        );
+
+        // Assert — null namespace can never match
+        Assert.IsType<NotFound>(result.Result);
+    }
+
+    [Fact]
+    public async Task Enqueue_AtCapacity_Returns429()
+    {
+        // Arrange
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.AtCapacity));
+
+        // Act
+        var result = await EngineRequestHandlers.EnqueueWorkflows(
+            _defaultWorkflowRequest,
+            engineMock.Object,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert
+        var problem = Assert.IsType<ProblemHttpResult>(result.Result);
+        Assert.Equal(429, problem.StatusCode);
     }
 }

@@ -38,7 +38,6 @@ public sealed record Workflow : PersistentItem
     public IEnumerable<Workflow>? Links { get; init; }
     public string? InitialState { get; init; }
 
-    internal Task? DatabaseTask { get; set; }
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
 
     /// <summary>

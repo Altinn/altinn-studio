@@ -32,7 +32,7 @@ internal class ApiKeyAuthenticationHandler : AuthenticationHandler<Authenticatio
             return Task.FromResult(AuthenticateResult.NoResult());
 
         if (!_settings.ApiKeys.Contains(apiKeyHeader[0]))
-            return Task.FromResult(AuthenticateResult.Fail($"Invalid API key: {apiKeyHeader[0]}"));
+            return Task.FromResult(AuthenticateResult.Fail("Invalid API key"));
 
         var claims = new[] { new Claim(ClaimTypes.Name, "ApiKeyUser") };
         var identity = new ClaimsIdentity(claims, SchemeName);

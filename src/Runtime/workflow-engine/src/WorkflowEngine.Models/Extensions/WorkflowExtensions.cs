@@ -10,20 +10,6 @@ public static class WorkflowExtensions
         public bool IsDone() => workflow.Status.IsDone();
 
         /// <summary>
-        /// Returns the status of the database update task.
-        /// </summary>
-        public TaskStatus DatabaseUpdateStatus() => workflow.DatabaseTask.Status();
-
-        /// <summary>
-        /// Cleans up and disposes of the database task.
-        /// </summary>
-        public void CleanupDatabaseTask()
-        {
-            workflow.DatabaseTask?.Dispose();
-            workflow.DatabaseTask = null;
-        }
-
-        /// <summary>
         /// The list of workflow steps ordered by processing order.
         /// </summary>
         public IEnumerable<Step> OrderedSteps() => workflow.Steps.OrderBy(t => t.ProcessingOrder);
@@ -38,6 +24,9 @@ public static class WorkflowExtensions
 
             if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.Failed))
                 return PersistentItemStatus.Failed;
+
+            if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.DependencyFailed))
+                return PersistentItemStatus.DependencyFailed;
 
             if (workflow.Steps.Any(t => t.Status == PersistentItemStatus.Canceled))
                 return PersistentItemStatus.Canceled;

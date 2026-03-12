@@ -57,6 +57,38 @@ public class WorkflowExtensionsTests
     }
 
     [Fact]
+    public void OverallStatus_ReturnsDependencyFailed_WhenAnyStepDependencyFailed()
+    {
+        // Arrange
+        var workflow = CreateWorkflow(
+            CreateStep(PersistentItemStatus.Completed, 0),
+            CreateStep(PersistentItemStatus.DependencyFailed, 1)
+        );
+
+        // Act
+        var result = workflow.OverallStatus();
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.DependencyFailed, result);
+    }
+
+    [Fact]
+    public void OverallStatus_ReturnsFailed_WhenBothFailedAndDependencyFailed()
+    {
+        // Arrange — Failed takes priority over DependencyFailed
+        var workflow = CreateWorkflow(
+            CreateStep(PersistentItemStatus.Failed, 0),
+            CreateStep(PersistentItemStatus.DependencyFailed, 1)
+        );
+
+        // Act
+        var result = workflow.OverallStatus();
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Failed, result);
+    }
+
+    [Fact]
     public void OverallStatus_ReturnsCanceled_WhenAnyStepCanceled()
     {
         // Arrange

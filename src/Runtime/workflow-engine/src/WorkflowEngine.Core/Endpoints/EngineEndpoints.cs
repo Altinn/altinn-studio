@@ -61,6 +61,7 @@ internal static class EngineRequestHandlers
                     WorkflowEnqueueResponse.Rejection.Duplicate => StatusCodes.Status409Conflict,
                     WorkflowEnqueueResponse.Rejection.Invalid => StatusCodes.Status400BadRequest,
                     WorkflowEnqueueResponse.Rejection.Unavailable => StatusCodes.Status503ServiceUnavailable,
+                    WorkflowEnqueueResponse.Rejection.AtCapacity => StatusCodes.Status429TooManyRequests,
                     _ => throw new UnreachableException(),
                 }
             ),
@@ -69,8 +70,8 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
+        [FromQuery(Name = "namespace")] string ns,
         [FromQuery] Guid? correlationId,
-        [FromQuery(Name = "namespace")] string? ns,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
@@ -87,7 +88,7 @@ internal static class EngineRequestHandlers
 
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
         [FromRoute] Guid workflowId,
-        [FromQuery(Name = "namespace")] string? ns,
+        [FromQuery(Name = "namespace")] string ns,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
@@ -99,8 +100,8 @@ internal static class EngineRequestHandlers
         if (workflow is null)
             return TypedResults.NotFound();
 
-        // Prevent cross-namespace information disclosure when namespace filter is specified
-        if (ns is not null && workflow.Namespace != ns)
+        // Prevent cross-namespace information disclosure — always enforce namespace check
+        if (workflow.Namespace != ns)
             return TypedResults.NotFound();
 
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));

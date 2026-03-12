@@ -8,19 +8,19 @@ Conducted: 2026-03-12
 
 ## Tier 1 — Fix Before Shipping
 
-- [ ] **1. API key echoed in error response**
+- [x] **1. API key echoed in error response**
   `ApiKeyAuthenticationHandler.cs:35` — `AuthenticateResult.Fail($"Invalid API key: {apiKeyHeader[0]}")` echoes the supplied key back in the 403 body. Never echo secrets.
 
-- [ ] **2. Namespace isolation bypass on GetWorkflow / ListActiveWorkflows**
+- [x] **2. Namespace isolation bypass on GetWorkflow / ListActiveWorkflows**
   `EngineEndpoints.cs:103` — The check `if (ns is not null && workflow.Namespace != ns)` only fires when the caller provides `?namespace=`. If omitted, any workflow is returned by GUID alone. If namespace is the tenant isolation boundary, this is a cross-tenant data leak. ListActiveWorkflows (line 80) has the same pattern.
 
-- [ ] **3. Unhandled `AtCapacity` rejection reason**
+- [x] **3. Unhandled `AtCapacity` rejection reason**
   `EngineEndpoints.cs:64` — The switch on `rejected.Reason` handles `Duplicate`, `Invalid`, `Unavailable` but not `AtCapacity` (defined at `WorkflowEnqueueResponse.cs:46`). Falls through to `throw new UnreachableException()` → HTTP 500.
 
-- [ ] **4. OverallStatus() missing `DependencyFailed`**
+- [x] **4. OverallStatus() missing `DependencyFailed`**
   `WorkflowExtensions.cs:34-51` — Never returns `DependencyFailed`. Checks `Failed`, `Canceled`, `Requeued`, `Processing`, `Enqueued` — never `DependencyFailed`. If any step has `DependencyFailed` status, it would return `Processing` or `Enqueued` instead.
 
-- [ ] **5. Dead code: `DatabaseTask`, `DatabaseUpdateStatus()`, `CleanupDatabaseTask()`**
+- [x] **5. Dead code: `DatabaseTask`, `DatabaseUpdateStatus()`, `CleanupDatabaseTask()`**
   `Workflow.cs:41` and `WorkflowExtensions.cs:15-24` — `DatabaseTask` is never assigned. `DatabaseUpdateStatus()` and `CleanupDatabaseTask()` are never called. Orphaned code from a previous design.
 
 ---

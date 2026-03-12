@@ -75,7 +75,8 @@ public sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
     /// </summary>
     public async Task<List<WorkflowStatusResponse>> ListActiveWorkflows(string? ns = null)
     {
-        var path = ns is not null ? $"{BasePath}?namespace={Uri.EscapeDataString(ns)}" : BasePath;
+        ns ??= DefaultNamespace;
+        var path = $"{BasePath}?namespace={Uri.EscapeDataString(ns)}";
         using var response = await _client.GetAsync(path);
 
         if (response.StatusCode == HttpStatusCode.NoContent)
@@ -123,7 +124,7 @@ public sealed class EngineApiClient(EngineAppFixture fixture) : IDisposable
     }
 
     private static string GetWorkflowPath(Guid workflowId, string? ns) =>
-        ns is not null ? $"{BasePath}/{workflowId}?namespace={Uri.EscapeDataString(ns)}" : $"{BasePath}/{workflowId}";
+        $"{BasePath}/{workflowId}?namespace={Uri.EscapeDataString(ns ?? DefaultNamespace)}";
 
     public static async Task<T> AssertSuccessAndDeserialize<T>(HttpResponseMessage response)
     {
