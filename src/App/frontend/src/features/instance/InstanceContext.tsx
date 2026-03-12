@@ -2,18 +2,20 @@ import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
-import { queryOptions, skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import deepEqual from 'fast-deep-equal';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
+import { useOptimisticInstanceUpdate } from 'src/core/queries/instance';
+import { instanceDataQueryOptions, instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
 import { FileScanResults } from 'src/features/attachments/types';
 import { useInstantiation } from 'src/features/instantiate/useInstantiation';
 import { useInstanceOwnerParty } from 'src/features/party/PartiesProvider';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { fetchInstanceData } from 'src/queries/queries';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
+import type { InstanceQueryParams } from 'src/core/queries/instance/instance.queries';
 import type { IData, IInstance, IInstanceDataSources } from 'src/types/shared';
 
 const emptyArray: never[] = [];
@@ -65,46 +67,26 @@ export const useStrictInstanceId = () => {
 
 export type ChangeInstanceData = (callback: (instance: IInstance | undefined) => IInstance | undefined) => void;
 
-export function useInstanceDataQueryArgs() {
+export function useInstanceDataQueryArgs(): InstanceQueryParams {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
 
   return { instanceOwnerPartyId, instanceGuid };
 }
 
+/**
+ * @deprecated Use `instanceQueryKeys` and `instanceDataQueryOptions` from `src/core/queries/instance/instance.queries`
+ */
 export const instanceQueries = {
-  all: () => ['instanceData'] as const,
-  instanceData: ({
-    instanceOwnerPartyId,
-    instanceGuid,
-  }: {
-    instanceOwnerPartyId: string | undefined;
-    instanceGuid: string | undefined;
-  }) =>
-    queryOptions({
-      queryKey: [...instanceQueries.all(), { instanceOwnerPartyId, instanceGuid }] as const,
-      queryFn:
-        !instanceOwnerPartyId || !instanceGuid
-          ? skipToken
-          : async () => {
-              try {
-                return await fetchInstanceData(instanceOwnerPartyId, instanceGuid);
-              } catch (error) {
-                window.logError('Fetching instance data failed:\n', error);
-                throw error;
-              }
-            },
-      refetchIntervalInBackground: false,
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    }),
+  all: instanceQueryKeys.all,
+  instanceData: instanceDataQueryOptions,
 };
 
 export function useInstanceDataQuery<R = IInstance>(
   queryOptions: Omit<UseQueryOptions<IInstance, Error, R>, 'queryKey' | 'queryFn'> = {},
 ) {
   return useQuery<IInstance, Error, R>({
-    ...instanceQueries.instanceData(useInstanceDataQueryArgs()),
+    ...instanceDataQueryOptions(useInstanceDataQueryArgs()),
     refetchOnWindowFocus: queryOptions.refetchInterval !== false,
     select: queryOptions.select, // FIXME: somehow TS complains if this is not here
     ...queryOptions,
@@ -148,7 +130,7 @@ export function useInvalidateInstanceDataCache() {
   const queryClient = useQueryClient();
 
   return async () => {
-    queryClient.invalidateQueries({ queryKey: instanceQueries.all() });
+    queryClient.invalidateQueries({ queryKey: instanceQueryKeys.all() });
   };
 }
 
@@ -156,28 +138,7 @@ export function useInvalidateInstanceDataCache() {
  * OPTIMISTIC UPDATES
  *********************/
 
-export const useOptimisticInstanceUpdate = () => {
-  const queryClient = useQueryClient();
-  const { instanceOwnerPartyId, instanceGuid } = useInstanceDataQueryArgs();
-
-  const queryKey =
-    !instanceOwnerPartyId || !instanceGuid
-      ? undefined
-      : instanceQueries.instanceData({
-          instanceOwnerPartyId,
-          instanceGuid,
-        }).queryKey;
-
-  return (updater: (oldData: IInstance) => IInstance | undefined) => {
-    queryKey &&
-      queryClient.setQueryData(queryKey, (oldData: IInstance | undefined) => {
-        if (!oldData) {
-          throw new Error('Cannot update instance data cache when there is not cached data');
-        }
-        return updater(oldData);
-      });
-  };
-};
+export { useOptimisticInstanceUpdate };
 
 export const useOptimisticallyAppendDataElements = () => {
   const updateInstance = useOptimisticInstanceUpdate();
@@ -225,7 +186,7 @@ export type InstanceDataSelector = <T>(selector: (instance: IInstance) => T) => 
 export const useSelectFromInstanceData = (): InstanceDataSelector => {
   const queryClient = useQueryClient();
   const args = useInstanceDataQueryArgs();
-  const instanceQueryKey = useMemo(() => instanceQueries.instanceData(args).queryKey, [args]);
+  const instanceQueryKey = useMemo(() => instanceDataQueryOptions(args).queryKey, [args]);
 
   return useCallback(
     <T,>(selector: (instance: IInstance) => T): T | undefined => {

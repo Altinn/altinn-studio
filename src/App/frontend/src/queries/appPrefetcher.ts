@@ -1,7 +1,7 @@
 import { matchPath } from 'react-router';
 
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
-import { instanceQueries } from 'src/features/instance/InstanceContext';
+import { instanceQueries } from 'src/features/instance/InstanceContext'; // TODO: migrate to core/queries/instance
 import { usePartiesQueryDef } from 'src/features/party/PartiesProvider';
 
 /**

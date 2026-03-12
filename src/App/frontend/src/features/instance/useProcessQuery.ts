@@ -1,6 +1,6 @@
+import { useInstanceData, useOptimisticInstanceUpdate } from 'src/core/queries/instance';
 import { useIsStateless } from 'src/features/applicationMetadata';
 import { getUiConfig } from 'src/features/form/ui';
-import { useInstanceDataQuery, useOptimisticInstanceUpdate } from 'src/features/instance/InstanceContext';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
 import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import type { LooseAutocomplete } from 'src/types';
@@ -11,7 +11,7 @@ import type { IActionType, IProcess } from 'src/types/shared';
  * Process is now fetched as part of the instance data, not as a separate query.
  */
 export function useProcessQuery() {
-  return useInstanceDataQuery({ select: (instance) => instance.process });
+  return useInstanceData((instance) => instance.process);
 }
 
 export const useIsAuthorized = () => {
