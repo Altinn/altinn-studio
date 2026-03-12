@@ -12,7 +12,7 @@ using WorkflowEngine.Data.Context;
 namespace WorkflowEngine.Data.Migrations
 {
     [DbContext(typeof(EngineDbContext))]
-    [Migration("20260312100108_Initial")]
+    [Migration("20260312131405_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -43,30 +43,25 @@ namespace WorkflowEngine.Data.Migrations
             modelBuilder.Entity("WorkflowEngine.Data.Entities.IdempotencyKeyEntity", b =>
                 {
                     b.Property<string>("IdempotencyKey")
-                        .HasColumnType("text")
-                        .HasColumnName("idempotency_key");
+                        .HasColumnType("text");
 
                     b.Property<string>("Namespace")
-                        .HasColumnType("text")
-                        .HasColumnName("namespace");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<byte[]>("RequestBodyHash")
                         .IsRequired()
-                        .HasColumnType("bytea")
-                        .HasColumnName("request_body_hash");
+                        .HasColumnType("bytea");
 
                     b.PrimitiveCollection<Guid[]>("WorkflowIds")
                         .IsRequired()
-                        .HasColumnType("uuid[]")
-                        .HasColumnName("workflow_ids");
+                        .HasColumnType("uuid[]");
 
                     b.HasKey("IdempotencyKey", "Namespace");
 
-                    b.ToTable("idempotency_keys", (string)null);
+                    b.ToTable("IdempotencyKeys");
                 });
 
             modelBuilder.Entity("WorkflowEngine.Data.Entities.StepEntity", b =>
