@@ -43,21 +43,6 @@ internal static class KorrespondansepartFactory
     }
 
     /// <summary>
-    /// Creates a Korrespondansepart of type InternAvsender (Internal Sender).
-    /// </summary>
-    public static Korrespondansepart CreateInternalSender(string partyId, string partyName) =>
-        new()
-        {
-            Korrespondanseparttype = new Korrespondanseparttype
-            {
-                KodeProperty = KorrespondanseparttypeKoder.InternAvsender.Verdi,
-                Beskrivelse = KorrespondanseparttypeKoder.InternAvsender.Beskrivelse,
-            },
-            KorrespondansepartNavn = partyName.EnsureNotNullOrEmpty("FiksArkiv->InternalSender.Name"),
-            KorrespondansepartID = partyId.EnsureNotNullOrEmpty("FiksArkiv->InternalSender.ID"),
-        };
-
-    /// <summary>
     /// Creates a Korrespondansepart of type Mottaker (Recipient).
     /// </summary>
     /// <remarks>
