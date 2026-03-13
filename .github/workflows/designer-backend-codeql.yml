@@ -1,6 +1,14 @@
 name: Designer Backend - CodeQL
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/Designer/testdata/**'
+      - 'src/Designer/backend/**'
+      - '.github/actions/codeql-config/**'
+      - '.github/codeql/**'
+      - '.github/workflows/designer-backend-codeql.yml'
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
@@ -10,8 +18,6 @@ on:
       - '.github/codeql/**'
       - '.github/workflows/designer-backend-codeql.yml'
   workflow_dispatch:
-  schedule:
-    - cron: "55 4 * * 6"
 
 jobs:
   analyze:
@@ -56,4 +62,4 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
         with:
-          category: "/language:csharp"
+          category: "/codeql/designer/backend/csharp"

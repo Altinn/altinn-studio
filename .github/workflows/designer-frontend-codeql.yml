@@ -1,20 +1,30 @@
-name: App Frontend - CodeQL
+name: Designer Frontend - CodeQL
 
 on:
   push:
     branches: [main]
     paths:
-      - 'src/App/frontend/**'
+      - 'src/Designer/frontend/**'
+      - 'src/Designer/frontend/testing/cypress/**'
+      - '!src/Designer/frontend/stats/**'
+      - 'src/Designer/testdata/**'
       - '.github/actions/codeql-config/**'
       - '.github/codeql/**'
-      - '.github/workflows/app-frontend-codeql.yml'
+      - '.github/workflows/designer-frontend-codeql.yml'
+      - 'package.json'
+      - 'yarn.lock'
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
-      - 'src/App/frontend/**'
+      - 'src/Designer/frontend/**'
+      - 'src/Designer/frontend/testing/cypress/**'
+      - '!src/Designer/frontend/stats/**'
+      - 'src/Designer/testdata/**'
       - '.github/actions/codeql-config/**'
       - '.github/codeql/**'
-      - '.github/workflows/app-frontend-codeql.yml'
+      - '.github/workflows/designer-frontend-codeql.yml'
+      - 'package.json'
+      - 'yarn.lock'
   workflow_dispatch:
 
 jobs:
@@ -25,7 +35,6 @@ jobs:
       actions: read
       contents: read
       security-events: write
-
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -38,7 +47,7 @@ jobs:
         with:
           language: javascript
           paths: |
-            src/App/frontend
+            src/Designer/frontend
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
@@ -50,4 +59,4 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
         with:
-          category: "/codeql/app/frontend/javascript"
+          category: '/codeql/designer/frontend/javascript'
