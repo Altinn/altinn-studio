@@ -1,7 +1,10 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Utils;
+using WorkflowEngine.Data;
 using WorkflowEngine.Data.Constants;
+using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry;
@@ -74,10 +77,10 @@ internal sealed class Engine(
         try
         {
             var hash = request.ComputeHash();
-            var workflowIds = await writeBuffer.EnqueueAsync(request, metadata, hash, cancellationToken);
+            var outcome = await writeBuffer.EnqueueAsync(request, metadata, hash, cancellationToken);
             var results = sortedRequests
                 .Zip(
-                    workflowIds,
+                    outcome.WorkflowIds,
                     (req, id) =>
                         new WorkflowEnqueueResponse.WorkflowResult
                         {
@@ -88,7 +91,12 @@ internal sealed class Engine(
                 )
                 .ToList();
 
-            return WorkflowEnqueueResponse.Accept(results);
+            return outcome.Status switch
+            {
+                BatchEnqueueResultStatus.Created => WorkflowEnqueueResponse.Created(results),
+                BatchEnqueueResultStatus.Duplicate => WorkflowEnqueueResponse.Existing(results),
+                _ => throw new UnreachableException(),
+            };
         }
         catch (IdempotencyConflictException)
         {

@@ -9,7 +9,9 @@ public abstract record WorkflowEnqueueResponse
 {
     private WorkflowEnqueueResponse() { }
 
-    public static Accepted Accept(IReadOnlyList<WorkflowResult> workflows) => new() { Workflows = workflows };
+    public static Accepted.Inserted Created(IReadOnlyList<WorkflowResult> workflows) => new() { Workflows = workflows };
+
+    public static Accepted.Matched Existing(IReadOnlyList<WorkflowResult> workflows) => new() { Workflows = workflows };
 
     public static Rejected Reject(Rejection reason, string? message = null) =>
         new() { Reason = reason, Message = message };
@@ -17,10 +19,20 @@ public abstract record WorkflowEnqueueResponse
     /// <summary>
     /// Represents an accepted response.
     /// </summary>
-    public sealed record Accepted : WorkflowEnqueueResponse
+    public record Accepted : WorkflowEnqueueResponse
     {
         [JsonPropertyName("workflows")]
         public required IReadOnlyList<WorkflowResult> Workflows { get; init; }
+
+        /// <summary>
+        /// Indicates that new database records were inserted for this request.
+        /// </summary>
+        public sealed record Inserted : Accepted;
+
+        /// <summary>
+        /// Indicates that matching database records were returned for this request.
+        /// </summary>
+        public sealed record Matched : Accepted;
     }
 
     /// <summary>

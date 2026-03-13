@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WorkflowEngine.Data;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -29,7 +30,7 @@ internal static class WorkflowTestHelper
             request,
             metadata,
             Guid.NewGuid().ToByteArray(),
-            new TaskCompletionSource<Guid[]>(TaskCreationOptions.RunContinuationsAsynchronously)
+            new TaskCompletionSource<WorkflowEnqueueOutcome>(TaskCreationOptions.RunContinuationsAsynchronously)
         );
 
         return await repository.BatchEnqueueWorkflowsAsync([buffered], TestContext.Current.CancellationToken);

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WorkflowEngine.Data;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
@@ -52,7 +53,7 @@ internal class WorkflowWriteBuffer : BackgroundService
     /// Submit workflows for batched insertion. The returned task completes when the
     /// batch containing this request has been flushed to the database.
     /// </summary>
-    public async Task<Guid[]> EnqueueAsync(
+    public async Task<WorkflowEnqueueOutcome> EnqueueAsync(
         WorkflowEnqueueRequest request,
         WorkflowRequestMetadata metadata,
         byte[] requestBodyHash,
@@ -61,7 +62,7 @@ internal class WorkflowWriteBuffer : BackgroundService
     {
         using var activity = Metrics.Source.StartActivity("WorkflowWriteBuffer.EnqueueAsync");
 
-        var tcs = new TaskCompletionSource<Guid[]>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var tcs = new TaskCompletionSource<WorkflowEnqueueOutcome>(TaskCreationOptions.RunContinuationsAsynchronously);
         var item = new BufferedEnqueueRequest(request, metadata, requestBodyHash, tcs);
 
         if (!_channel.Writer.TryWrite(item))
@@ -194,13 +195,13 @@ internal class WorkflowWriteBuffer : BackgroundService
                         Assert.That(result.WorkflowIds is not null);
                         anyNewWorkflows = true;
                         totalWorkflowsCreated += item.Request.Workflows.Count;
-                        totalStepsCreated += item.Request.Workflows.Sum(w => w.Steps.Count());
-                        item.Completion.TrySetResult(result.WorkflowIds);
+                        totalStepsCreated += item.Request.Workflows.Sum(w => w.Steps.Count);
+                        item.Completion.TrySetResult(new WorkflowEnqueueOutcome(result.WorkflowIds, result.Status));
                         break;
 
                     case BatchEnqueueResultStatus.Duplicate:
                         Assert.That(result.WorkflowIds is not null);
-                        item.Completion.TrySetResult(result.WorkflowIds);
+                        item.Completion.TrySetResult(new WorkflowEnqueueOutcome(result.WorkflowIds, result.Status));
                         break;
 
                     case BatchEnqueueResultStatus.Conflict:

@@ -39,7 +39,13 @@ public static class EngineEndpoints
 
 internal static class EngineRequestHandlers
 {
-    public static async Task<Results<Ok<WorkflowEnqueueResponse.Accepted>, ProblemHttpResult>> EnqueueWorkflows(
+    public static async Task<
+        Results<
+            Created<WorkflowEnqueueResponse.Accepted.Inserted>,
+            Ok<WorkflowEnqueueResponse.Accepted.Matched>,
+            ProblemHttpResult
+        >
+    > EnqueueWorkflows(
         [FromBody] WorkflowEnqueueRequest request,
         [FromServices] IEngine engine,
         [FromServices] TimeProvider timeProvider,
@@ -57,7 +63,8 @@ internal static class EngineRequestHandlers
 
         return response switch
         {
-            WorkflowEnqueueResponse.Accepted accepted => TypedResults.Ok(accepted),
+            WorkflowEnqueueResponse.Accepted.Inserted inserted => TypedResults.Created((string?)null, inserted),
+            WorkflowEnqueueResponse.Accepted.Matched matched => TypedResults.Ok(matched),
             WorkflowEnqueueResponse.Rejected rejected => TypedResults.Problem(
                 detail: rejected.Message,
                 statusCode: rejected.Reason switch

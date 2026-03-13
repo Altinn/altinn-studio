@@ -6,6 +6,8 @@ using WorkflowEngine.Core.Tests.Fixtures;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using Inserted = Microsoft.AspNetCore.Http.HttpResults.Created<WorkflowEngine.Models.WorkflowEnqueueResponse.Accepted.Inserted>;
+using Matched = Microsoft.AspNetCore.Http.HttpResults.Ok<WorkflowEngine.Models.WorkflowEnqueueResponse.Accepted.Matched>;
 
 namespace WorkflowEngine.Core.Tests.Endpoints;
 
@@ -34,7 +36,7 @@ public class EngineEndpointTests
     // === EnqueueWorkflows Handler Tests ===
 
     [Fact]
-    public async Task Enqueue_Accepted_ReturnsOkWithRefMap()
+    public async Task Enqueue_Created_Returns201WithRefMap()
     {
         // Arrange
         var workflowRef = "wf-1";
@@ -50,7 +52,7 @@ public class EngineEndpointTests
                 )
             )
             .ReturnsAsync(
-                WorkflowEnqueueResponse.Accept([
+                WorkflowEnqueueResponse.Created([
                     new WorkflowEnqueueResponse.WorkflowResult
                     {
                         Ref = workflowRef,
@@ -69,7 +71,51 @@ public class EngineEndpointTests
         );
 
         // Assert
-        var ok = Assert.IsType<Ok<WorkflowEnqueueResponse.Accepted>>(result.Result);
+        var created = Assert.IsType<Inserted>(result.Result);
+        Assert.NotNull(created.Value);
+        Assert.Single(created.Value.Workflows);
+        Assert.Equal(workflowId, created.Value.Workflows[0].DatabaseId);
+        Assert.Equal(workflowRef, created.Value.Workflows[0].Ref);
+        Assert.Equal(workflowNs, created.Value.Workflows[0].Namespace);
+    }
+
+    [Fact]
+    public async Task Enqueue_Existing_Returns200WithRefMap()
+    {
+        // Arrange
+        var workflowRef = "wf-1";
+        var workflowId = Guid.NewGuid();
+        var workflowNs = "the-org:the-app";
+        var engineMock = new Mock<IEngine>();
+        engineMock
+            .Setup(e =>
+                e.EnqueueWorkflow(
+                    It.IsAny<WorkflowEnqueueRequest>(),
+                    It.IsAny<WorkflowRequestMetadata>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                WorkflowEnqueueResponse.Existing([
+                    new WorkflowEnqueueResponse.WorkflowResult
+                    {
+                        Ref = workflowRef,
+                        DatabaseId = workflowId,
+                        Namespace = workflowNs,
+                    },
+                ])
+            );
+
+        // Act
+        var result = await EngineRequestHandlers.EnqueueWorkflows(
+            _defaultWorkflowRequest,
+            engineMock.Object,
+            TimeProvider.System,
+            CancellationToken.None
+        );
+
+        // Assert
+        var ok = Assert.IsType<Matched>(result.Result);
         Assert.NotNull(ok.Value);
         Assert.Single(ok.Value.Workflows);
         Assert.Equal(workflowId, ok.Value.Workflows[0].DatabaseId);
@@ -202,7 +248,7 @@ public class EngineEndpointTests
                 (_, meta, _) => capturedMetadata = meta
             )
             .ReturnsAsync(
-                WorkflowEnqueueResponse.Accept([
+                WorkflowEnqueueResponse.Created([
                     new WorkflowEnqueueResponse.WorkflowResult
                     {
                         Ref = "wf-1",
