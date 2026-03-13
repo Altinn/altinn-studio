@@ -1,6 +1,5 @@
-import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioDialog } from './index';
 import { PencilIcon } from '@studio/icons';
 import { StudioHeading } from '../StudioHeading';
@@ -16,9 +15,7 @@ const ComposedComponent = (args): ReactElement => (
   </StudioDialog.TriggerContext>
 );
 
-type Story = StoryFn<typeof ComposedComponent>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioDialog',
   component: ComposedComponent,
   argTypes: {
@@ -31,11 +28,14 @@ const meta: Meta = {
       options: ['none', 'closerequest', 'any'],
     },
   },
-};
-export const Preview: Story = (args): React.ReactElement => <ComposedComponent {...args} />;
-
-Preview.args = {
-  'data-size': 'sm',
-  closedBy: 'any',
-};
+} satisfies Meta<typeof ComposedComponent>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    'data-size': 'sm',
+    closedBy: 'any',
+  },
+};

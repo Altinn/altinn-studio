@@ -3,13 +3,13 @@ import { StudioCodeListEditor } from './StudioCodeListEditor';
 import { texts } from './test-data/texts';
 import { codeList } from './test-data/codeList';
 
-type Story = StoryObj<typeof StudioCodeListEditor>;
-
-const meta: Meta<typeof StudioCodeListEditor> = {
+const meta = {
   title: 'Components/StudioCodeListEditor',
   component: StudioCodeListEditor,
-};
+} satisfies Meta<typeof StudioCodeListEditor>;
 export default meta;
+
+type Story = StoryObj<typeof StudioCodeListEditor>;
 
 export const Preview: Story = {
   args: {

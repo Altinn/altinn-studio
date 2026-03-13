@@ -1,17 +1,17 @@
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioIconCard } from './';
 import { StudioButton } from '../StudioButton';
 import classes from './StudioIconCard.stories.module.css';
 import { InformationIcon } from '@studio/icons';
 
-const meta: Meta<typeof StudioIconCard> = {
+const meta = {
   title: 'Components/StudioIconCard',
   component: StudioIconCard,
   parameters: {
     layout: 'centered',
   },
-};
+} satisfies Meta<typeof StudioIconCard>;
+export default meta;
 
 type Story = StoryObj<typeof meta>;
 
@@ -38,7 +38,4 @@ export const Preview: Story = {
       </div>
     ),
   },
-  render: (args) => <StudioIconCard {...args} />,
 };
-
-export default meta;

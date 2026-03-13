@@ -1,11 +1,8 @@
-import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioPopover } from './';
 
-type Story = StoryFn<typeof StudioPopover>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioPopover',
   component: StudioPopover,
   argTypes: {
@@ -14,15 +11,20 @@ const meta: Meta = {
       options: ['sm', 'md', 'lg'],
     },
   },
-};
-export const Preview: Story = (args): ReactElement => (
-  <StudioPopover.TriggerContext>
-    <StudioPopover.Trigger>Trigger</StudioPopover.Trigger>
-    <StudioPopover {...args}>Content</StudioPopover>
-  </StudioPopover.TriggerContext>
-);
-
-Preview.args = {
-  'data-size': 'sm',
-};
+} satisfies Meta<typeof StudioPopover>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  render: (args): ReactElement => (
+    <StudioPopover.TriggerContext>
+      <StudioPopover.Trigger>Trigger</StudioPopover.Trigger>
+      <StudioPopover {...args}>Content</StudioPopover>
+    </StudioPopover.TriggerContext>
+  ),
+
+  args: {
+    'data-size': 'sm',
+  },
+};

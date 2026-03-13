@@ -1,14 +1,15 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioIconViewer } from './StudioIconViewer';
 
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioIconViewer',
   component: StudioIconViewer,
   parameters: {
     layout: 'padded',
   },
-};
-
-export const Preview: StoryFn = (): React.ReactElement => <StudioIconViewer />;
+} satisfies Meta<typeof StudioIconViewer>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {};

@@ -1,11 +1,11 @@
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioDivider } from './StudioDivider';
 
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioDivider',
   component: StudioDivider,
-};
+} satisfies Meta<typeof StudioDivider>;
+export default meta;
 
 type Story = StoryObj<typeof meta>;
 
@@ -18,5 +18,3 @@ export const Preview: Story = {
     </div>
   ),
 };
-
-export default meta;

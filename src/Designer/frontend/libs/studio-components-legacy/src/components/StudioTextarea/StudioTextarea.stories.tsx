@@ -1,10 +1,7 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioTextarea } from './StudioTextarea';
 
-type Story = StoryFn<typeof StudioTextarea>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioTextarea',
   component: StudioTextarea,
   argTypes: {
@@ -13,14 +10,17 @@ const meta: Meta = {
       options: ['sm', 'md', 'lg'],
     },
   },
-};
-export const Preview: Story = (args): React.ReactElement => <StudioTextarea {...args} />;
-
-Preview.args = {
-  label: 'My awesome label',
-  placeholder: 'Type something here...',
-  error: '',
-  hideLabel: false,
-  size: 'sm',
-};
+} satisfies Meta<typeof StudioTextarea>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    label: 'My awesome label',
+    placeholder: 'Type something here...',
+    error: '',
+    hideLabel: false,
+    size: 'sm',
+  },
+};

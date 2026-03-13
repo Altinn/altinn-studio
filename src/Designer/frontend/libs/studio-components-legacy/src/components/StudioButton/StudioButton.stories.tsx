@@ -1,11 +1,8 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioButton } from './StudioButton';
 import { PencilIcon } from '@studio/icons';
 
-type Story = StoryFn<typeof StudioButton>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioButton',
   component: StudioButton,
   argTypes: {
@@ -18,12 +15,15 @@ const meta: Meta = {
       options: ['primary', 'secondary', 'tertiary'],
     },
   },
-};
-export const Preview: Story = (args): React.ReactElement => <StudioButton {...args} />;
-
-Preview.args = {
-  children: 'Text',
-  iconPlacement: 'left',
-  icon: <PencilIcon />,
-};
+} satisfies Meta<typeof StudioButton>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    children: 'Text',
+    iconPlacement: 'left',
+    icon: <PencilIcon />,
+  },
+};

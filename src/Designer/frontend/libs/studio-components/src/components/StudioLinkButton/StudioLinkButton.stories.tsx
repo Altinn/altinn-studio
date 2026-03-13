@@ -1,12 +1,8 @@
-import React from 'react';
-import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioLinkButton } from './StudioLinkButton';
 import { PencilIcon } from '@studio/icons';
 
-type Story = StoryFn<typeof StudioLinkButton>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioLinkButton',
   component: StudioLinkButton,
   argTypes: {
@@ -27,16 +23,19 @@ const meta: Meta = {
       options: ['primary', 'secondary', 'tertiary'],
     },
   },
-};
-export const Preview: Story = (args): ReactElement => <StudioLinkButton {...args} />;
-
-Preview.args = {
-  children: 'Text',
-  iconPlacement: 'left',
-  href: 'https://designsystemet.no/',
-  icon: <PencilIcon />,
-  'data-size': 'sm',
-  'data-color': 'info',
-  // variant: 'primary',
-};
+} satisfies Meta<typeof StudioLinkButton>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    children: 'Text',
+    iconPlacement: 'left',
+    href: 'https://designsystemet.no/',
+    icon: <PencilIcon />,
+    'data-size': 'sm',
+    'data-color': 'info',
+    // variant: 'primary',
+  },
+};

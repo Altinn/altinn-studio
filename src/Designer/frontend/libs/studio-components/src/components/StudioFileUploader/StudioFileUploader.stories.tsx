@@ -1,11 +1,7 @@
-import React from 'react';
-import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioFileUploader } from './';
 
-type Story = StoryFn<typeof StudioFileUploader>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioFileUploader',
   component: StudioFileUploader,
   argTypes: {
@@ -24,15 +20,16 @@ const meta: Meta = {
       table: { disable: true },
     },
   },
-};
-
-export const Preview: Story = (args): ReactElement => <StudioFileUploader {...args} />;
-
-Preview.args = {
-  uploaderButtonText: 'Last opp fil',
-  variant: 'tertiary',
-  onSubmit: (): void => {},
-  disabled: false,
-};
-
+} satisfies Meta<typeof StudioFileUploader>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    uploaderButtonText: 'Last opp fil',
+    variant: 'tertiary',
+    onSubmit: (): void => {},
+    disabled: false,
+  },
+};

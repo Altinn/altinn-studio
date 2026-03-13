@@ -1,12 +1,12 @@
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioFieldset } from './';
 import { StudioTextfield } from '../StudioTextfield';
 
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioFieldset',
   component: StudioFieldset,
-};
+} satisfies Meta<typeof StudioFieldset>;
+export default meta;
 
 type Story = StoryObj<typeof meta>;
 
@@ -24,11 +24,9 @@ export const Preview: Story = {
   args: defaultArgs,
 };
 
-export const WithHiddenLegend = {
+export const WithHiddenLegend: Story = {
   args: {
     ...defaultArgs,
     hideLegend: true,
   },
 };
-
-export default meta;

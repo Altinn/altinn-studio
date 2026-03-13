@@ -1,14 +1,14 @@
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { action } from 'storybook/actions';
 import { StudioBanner } from './';
 import { StudioButton } from '../StudioButton';
 import { StudioSwitch } from '../StudioSwitch';
 
-const meta: Meta<typeof StudioBanner> = {
+const meta = {
   title: 'Components/StudioBanner',
   component: StudioBanner,
-};
+} satisfies Meta<typeof StudioBanner>;
+export default meta;
 
 type Story = StoryObj<typeof meta>;
 
@@ -66,5 +66,3 @@ export const Hidden: Story = {
     isVisible: false,
   },
 };
-
-export default meta;
