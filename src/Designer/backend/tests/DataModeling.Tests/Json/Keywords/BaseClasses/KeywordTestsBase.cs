@@ -1,36 +1,24 @@
-﻿using Altinn.Studio.DataModeling.Json.Keywords;
+using System.Text.Json;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Json.Schema;
 using SharedResources.Tests;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.BaseClasses;
 
-public abstract class KeywordTestsBase<TTestType, TKeywordType> : FluentTestsBase<TTestType>
-    where TTestType : KeywordTestsBase<TTestType, TKeywordType>
-    where TKeywordType : IJsonSchemaKeyword
+public abstract class KeywordTestsBase<TTestType, TKeywordHandler> : FluentTestsBase<TTestType>
+    where TTestType : KeywordTestsBase<TTestType, TKeywordHandler>
+    where TKeywordHandler : IKeywordHandler
 {
-    protected TKeywordType Keyword { get; set; }
+    protected TKeywordHandler Handler { get; set; }
 
     protected KeywordTestsBase()
     {
         JsonSchemaKeywords.RegisterXsdKeywords();
     }
 
-    protected TTestType KeywordShouldEqual(TKeywordType expectedKeyword)
+    protected object ValidateValue(JsonElement element)
     {
-        Assert.True(Keyword.Equals(expectedKeyword));
-        return this as TTestType;
-    }
-
-    protected TTestType KeywordShouldEqualObject(object obj)
-    {
-        Assert.True(Keyword.Equals(obj));
-        return this as TTestType;
-    }
-
-    protected TTestType KeywordShouldNotEqual(TKeywordType expectedKeyword)
-    {
-        Assert.False(Keyword.Equals(expectedKeyword));
-        return this as TTestType;
+        return Handler.ValidateKeywordValue(element);
     }
 }
