@@ -20,7 +20,7 @@ public sealed partial class AppCommandIntegrationTests
 
         using var response = await _client.EnqueueRaw(request);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body).ScrubMembers("databaseId");
