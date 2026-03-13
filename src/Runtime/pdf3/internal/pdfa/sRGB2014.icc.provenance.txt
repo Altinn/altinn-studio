@@ -1,0 +1,9 @@
+Source URL: https://registry.color.org/rgb-registry/srgbprofiles
+Downloaded file: sRGB2014.icc
+Downloaded on: 2026-03-13
+SHA-256: 384b832de3412066743b52a75ee906b6fb9fb8d9e09e936fc2c43223815c6e0a
+
+This profile is embedded as the PDF/A output intent for Chromium-generated PDFs.
+That is coupled to src/Runtime/pdf3/internal/browser/browser.go, which launches
+Chromium with --force-color-profile=srgb. If that renderer setting changes, this
+embedded profile choice must be re-evaluated.
