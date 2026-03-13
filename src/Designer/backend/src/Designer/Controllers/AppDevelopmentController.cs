@@ -673,9 +673,8 @@ namespace Altinn.Studio.Designer.Controllers
 
                     foreach ((string pageName, JsonNode layoutNode) in layouts)
                     {
-                        PageValidationOnNavigationDto matchingGroupForPage = validationGroupsForLayoutSet.FirstOrDefault(g =>
-                            g.Pages.Contains(pageName)
-                        );
+                        PageValidationOnNavigationDto matchingGroupForPage =
+                            validationGroupsForLayoutSet.FirstOrDefault(g => g.Pages.Contains(pageName));
 
                         JsonObject dataNode = layoutNode?["data"]?.AsObject();
                         if (dataNode == null)
