@@ -12,7 +12,7 @@ const meta = {
   parameters: {
     actions: { argTypesRegex: 'handleSliderChange' },
   },
-} satisfies Meta<typeof meta>;
+} satisfies Meta<typeof StudioGridSelector>;
 export default meta;
 
 type Story = StoryObj<typeof StudioGridSelector>;

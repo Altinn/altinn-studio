@@ -1,8 +1,9 @@
+import type { ReactElement } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioDragAndDrop } from './index';
 import { StudioParagraph } from '../StudioParagraph';
 
-const PreviewComponent = (): React.ReactElement => (
+const PreviewComponent = (): ReactElement => (
   <StudioDragAndDrop.Provider onAdd={() => {}} onMove={() => {}} rootId='1'>
     <StudioDragAndDrop.List>
       <StudioDragAndDrop.ListItem

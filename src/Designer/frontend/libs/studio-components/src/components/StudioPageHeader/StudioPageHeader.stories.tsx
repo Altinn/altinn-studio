@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioPageHeader } from './index';
 import { StudioParagraph } from '../StudioParagraph';
@@ -28,7 +29,7 @@ const profileMenuGroups: StudioProfileMenuGroup[] = [
   },
 ];
 
-const PreviewComponent = (args: { variant?: 'regular' | 'preview' }): React.ReactElement => (
+const PreviewComponent = (args: { variant?: 'regular' | 'preview' }): ReactElement => (
   <div data-color-scheme='dark'>
     <StudioPageHeader {...args}>
       <StudioPageHeader.Main>
