@@ -33,7 +33,16 @@ public class ApiKeyService(
     )
     {
         int maxExpiry = settings.MaxExpiryDays;
-        DateTimeOffset maxAllowed = timeProvider.GetUtcNow().AddDays(maxExpiry);
+        DateTimeOffset maxAllowedDay = timeProvider.GetUtcNow().AddDays(maxExpiry);
+        DateTimeOffset maxAllowed = new(
+            maxAllowedDay.Year,
+            maxAllowedDay.Month,
+            maxAllowedDay.Day,
+            23,
+            59,
+            59,
+            TimeSpan.Zero
+        );
         if (expiresAt > maxAllowed)
         {
             throw new ArgumentException($"Expiry cannot exceed {maxExpiry} days.");

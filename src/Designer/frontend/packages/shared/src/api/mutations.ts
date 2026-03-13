@@ -66,6 +66,8 @@ import {
   orgLibraryUpdatePath,
   orgCodeListPublishPath,
   layoutSetsPath,
+  userApiKeyPath,
+  userApiKeysPath,
   validateNavigationLayoutSettingsPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
@@ -103,6 +105,8 @@ import type { ImportCodeListResponse } from 'app-shared/types/api/ImportCodeList
 import type { UpdateSharedResourcesRequest } from 'app-shared/types/api/UpdateSharedResourcesRequest';
 import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeListPayload';
 import type { AppSettings } from 'app-shared/types/AppSettings';
+import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyRequest';
+import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
 
 const headers = {
   Accept: 'application/json',
@@ -228,3 +232,7 @@ export const updateOrgTextResources = async (org: string, language: string, payl
 export const createBranch = async (org: string, app: string, branchName: string): Promise<Branch> => post(branchesPath(org, app), { branchName });
 export const checkoutBranch = async (org: string, app: string, branchName: string): Promise<RepoStatus> => post(checkoutBranchPath(org, app), { branchName });
 export const discardChanges = async (org: string, app: string): Promise<RepoStatus> => post(discardChangesPath(org, app), {});
+
+// User settings
+export const addUserApiKey = (payload: AddUserApiKeyRequest) => post<AddUserApiKeyResponse, AddUserApiKeyRequest>(userApiKeysPath(), payload);
+export const deleteUserApiKey = (id: number) => del(userApiKeyPath(id));

@@ -14,6 +14,8 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { useSearchParams } from 'react-router-dom';
 import { useFeatureFlagsContext } from '@studio/feature-flags';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { USER_SETTINGS_BASENAME } from 'app-shared/constants';
 
 export type PageHeaderContextProps = {
   user: User;
@@ -43,6 +45,8 @@ export const PageHeaderContextProvider = ({
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
 
+  const { environment } = useEnvironmentConfig();
+
   const repoType = getRepositoryType(org, app);
   const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg, flags);
 
@@ -51,14 +55,29 @@ export const PageHeaderContextProvider = ({
     itemName: t('sync_header.documentation'),
   };
 
+  const userSettingsMenuItem: StudioProfileMenuItem = {
+    action: {
+      type: 'link',
+      href: USER_SETTINGS_BASENAME,
+      openInNewTab: false,
+    },
+    itemName: t('user.settings'),
+  };
+
   const logOutMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
   };
 
-  const profileMenuItems: StudioProfileMenuItem[] = [docsMenuItem, logOutMenuItem];
+  const studioOidc = environment?.featureFlags?.studioOidc;
+
+  const profileMenuItems: StudioProfileMenuItem[] = [
+    docsMenuItem,
+    ...(studioOidc ? [userSettingsMenuItem] : []),
+    logOutMenuItem,
+  ];
   const profileMenuGroups: StudioProfileMenuGroup[] = [
-    { items: [docsMenuItem] },
+    { items: studioOidc ? [docsMenuItem, userSettingsMenuItem] : [docsMenuItem] },
     { items: [logOutMenuItem] },
   ];
 

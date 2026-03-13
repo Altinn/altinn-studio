@@ -105,4 +105,7 @@ export enum QueryKey {
   Altinn2DelegationCount = 'Altinn2DelegationCount',
   UpdateDataType = 'UpdateDataType',
   ConsentResourceTemplates = 'ConsentResourceTemplates',
+
+  // User settings
+  UserApiKeys = 'UserApiKeys',
 }

@@ -9,6 +9,10 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { PageLayout } from './PageLayout';
 import { FeatureFlagsContextProvider } from '@studio/feature-flags';
 
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+}));
+
 const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),

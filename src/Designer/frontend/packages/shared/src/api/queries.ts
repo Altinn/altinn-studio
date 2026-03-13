@@ -80,6 +80,7 @@ import {
   orgLibraryPath,
   publishedResourcesPath,
   customTemplatesPath,
+  userApiKeysPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -130,6 +131,7 @@ import type { SharedResourcesResponse } from 'app-shared/types/api/SharedResourc
 import type { AppValidationResult } from 'app-development/hooks/queries/useAppValidationQuery';
 import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
+import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -231,3 +233,6 @@ export const getOrgCodeLists = (org: string) => get<CodeListsResponse>(orgCodeLi
 export const getOrgTextLanguages = (org: string): Promise<string[] | null> => get<string[] | null>(orgTextLanguagesPath(org));
 export const getOrgTextResources = (org: string, language: string): Promise<ITextResourcesWithLanguage | null> => get<ITextResourcesWithLanguage | null>(orgTextResourcesPath(org, language));
 export const getPublishedResources = (org: string, path?: string): Promise<string[]> => get<string[]>(publishedResourcesPath(org, path));
+
+// User settings
+export const getUserApiKeys = () => get<UserApiKey[]>(userApiKeysPath());
