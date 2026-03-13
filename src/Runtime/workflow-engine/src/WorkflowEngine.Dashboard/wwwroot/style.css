@@ -203,8 +203,18 @@ body{min-height:100vh;padding:0}
 .chip[data-status="1m"].active{color:var(--orange);border-color:var(--orange);background:rgba(var(--orange-rgb),0.08)}
 .chip[data-status="5m"].active{color:var(--green);border-color:var(--green);background:rgba(var(--green-rgb),0.08)}
 .chip[data-status="later"].active{color:var(--text-dim);border-color:var(--text-dim);background:rgba(136,136,152,0.08)}
-.org-chip.active,.app-chip.active,.party-chip.active,.guid-chip.active{color:var(--cyan);border-color:var(--cyan);background:rgba(var(--cyan-rgb),0.08)}
-.guid-chip,.party-chip{font-size:11px;letter-spacing:0.5px;font-variant-numeric:tabular-nums}
+.label-filters{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.label-chip{
+  display:inline-flex;align-items:center;gap:2px;cursor:pointer;
+  background:rgba(var(--cyan-rgb),0.08);border:1px solid rgba(var(--cyan-rgb),0.3);
+  border-radius:10px;padding:2px 8px;font-size:11px;font-weight:600;
+  color:var(--cyan);transition:all 0.15s;white-space:nowrap;
+}
+.label-chip:hover{background:rgba(var(--cyan-rgb),0.16);border-color:rgba(var(--cyan-rgb),0.5)}
+.label-chip-key{color:var(--text-dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:0.5px}
+.label-chip-value{color:var(--cyan)}
+.label-chip-x{color:var(--text-dim);font-size:13px;margin-left:2px;line-height:1}
+.label-chip-x:hover{color:var(--red)}
 
 .filtered-out{display:none !important}
 
@@ -261,7 +271,7 @@ body{min-height:100vh;padding:0}
   transition:background 0.15s,color 0.15s,border-color 0.15s;
 }
 .seg:hover{background:var(--seg-hover-bg);border-color:var(--border)}
-.seg.guid{font-size:11px}
+.seg.ns{font-weight:700;color:var(--cyan)}
 .seg-sep{color:var(--text-dim);opacity:0.3;user-select:none;font-size:10px}
 .open-btn{
   color:var(--text-dim);font-family:var(--font);font-size:14px;font-weight:400;text-decoration:none;margin-left:3px;
@@ -867,9 +877,8 @@ pre.diff-remove{background:rgba(var(--red-rgb),0.12);color:var(--red)}
   .meter-bar{width:60px;height:16px}
   .meter-value{font-size:10px}
   .meter-label{font-size:9px}
-  /* Compact cards: also hide GUID seg */
-  .compact-row .seg.guid{display:none}
-  .compact-row .seg.guid + .seg-sep{display:none}
+  /* Compact cards: truncate label segments on small screens */
+  .compact-row .seg{max-width:80px;overflow:hidden;text-overflow:ellipsis}
   /* Tab padding */
   .tab{padding:10px 14px;font-size:12px;letter-spacing:1px}
   /* Filter bar */

@@ -10,9 +10,9 @@ import { updateTimers } from './modules/shared/timers.js';
 import { bindSectionCallbacks } from './modules/shared/section.js';
 import { updateStatusBadges, updateCapacity } from './modules/features/header.js';
 import { updateScheduledBadge, loadScheduled, bindScheduledCallbacks } from './modules/features/scheduled.js';
-import { updateLiveWorkflows, bindLiveCallbacks } from './modules/features/live.js';
+import { bindLiveCallbacks } from './modules/features/live.js';
 import { updateRecentWorkflows, bindRecentCallbacks } from './modules/features/recent.js';
-import { applyFilter, mergeDiscoveredOrgsAndApps, switchTab, fetchOrgsAndApps, bindFilterCallbacks } from './modules/features/filters.js';
+import { applyFilter, mergeDiscoveredLabels, switchTab, fetchLabelValues, bindFilterCallbacks } from './modules/features/filters.js';
 import { loadQuery } from './modules/features/query.js';
 import { bindThemeCallbacks } from './modules/features/theme.js';
 
@@ -26,8 +26,8 @@ import './modules/features/state-modal.js';
 bindUrlCallbacks({ switchTab, loadQuery, applyFilter });
 bindSectionCallbacks({ loadScheduled, loadQuery, syncUrl });
 bindScheduledCallbacks({ applyFilter });
-bindLiveCallbacks({ mergeDiscoveredOrgsAndApps, applyFilter });
-bindRecentCallbacks({ mergeDiscoveredOrgsAndApps, applyFilter });
+bindLiveCallbacks({ mergeDiscoveredLabels, applyFilter });
+bindRecentCallbacks({ mergeDiscoveredLabels, applyFilter });
 bindFilterCallbacks({ syncUrl, loadQuery });
 bindThemeCallbacks({ syncUrl });
 
@@ -38,7 +38,6 @@ const updateDashboard = (data) => {
   updateStatusBadges(data.engineStatus);
   updateCapacity(data.capacity);
   updateScheduledBadge(data.scheduledCount);
-  updateLiveWorkflows(data.workflows);
 };
 
 /* ── Init ────────────────────────────────────────────────── */
@@ -53,7 +52,7 @@ const init = async () => {
   }
 
   restoreUrl();
-  connectSSE(`${engineUrl}/dashboard/stream`, updateDashboard, { showStatus: true, onConnect: fetchOrgsAndApps });
+  connectSSE(`${engineUrl}/dashboard/stream`, updateDashboard, { showStatus: true, onConnect: fetchLabelValues });
   connectSSE(`${engineUrl}/dashboard/stream/recent`, (data) => updateRecentWorkflows(/** @type {import('./modules/core/state.js').Workflow[]} */ (data)));
   requestAnimationFrame(updateTimers);
   watchForChanges();
