@@ -1,0 +1,29 @@
+﻿[
+  {
+    databaseId: {Scrubbed},
+    correlationId: Guid_1,
+    operationId: op-wf-1,
+    idempotencyKey: idem-Guid_2,
+    namespace: default,
+    createdAt: {Scrubbed},
+    updatedAt: {Scrubbed},
+    actor: {
+      userIdOrOrgNumber: test-user,
+      language: null
+    },
+    overallStatus: Processing,
+    steps: [
+      {
+        databaseId: {Scrubbed},
+        idempotencyKey: idem-Guid_2/webhook,
+        processingOrder: 0,
+        command: {
+          type: Webhook,
+          operationId: webhook
+        },
+        status: Enqueued,
+        retryCount: 0
+      }
+    ]
+  }
+]

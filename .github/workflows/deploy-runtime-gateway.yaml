@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - src/common/**
       - src/Runtime/gateway/**
       - infra/runtime/syncroot/base/gateway.yaml
       - infra/runtime/flux-config/**

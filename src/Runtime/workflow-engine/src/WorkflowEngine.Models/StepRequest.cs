@@ -1,0 +1,28 @@
+using System.Text.Json.Serialization;
+using WorkflowEngine.Resilience.Models;
+
+namespace WorkflowEngine.Models;
+
+/// <summary>
+/// Represents a single task to be processed by the process engine.
+/// </summary>
+public sealed record StepRequest
+{
+    /// <summary>
+    /// The command to be executed by the process engine.
+    /// </summary>
+    [JsonPropertyName("command")]
+    public required Command Command { get; init; }
+
+    /// <summary>
+    /// An optional retry strategy for the task. If none given, the default strategy will be used.
+    /// </summary>
+    [JsonPropertyName("retryStrategy")]
+    public RetryStrategy? RetryStrategy { get; init; }
+
+    /// <summary>
+    /// Optional metadata associated with this request. Expects JSON string.
+    /// </summary>
+    [JsonPropertyName("metadata")]
+    public string? Metadata { get; init; }
+}
