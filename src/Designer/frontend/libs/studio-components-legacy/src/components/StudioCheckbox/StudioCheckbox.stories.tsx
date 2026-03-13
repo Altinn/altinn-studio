@@ -1,9 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioCheckbox } from './StudioCheckbox';
 
-type Story = StoryObj<typeof StudioCheckbox>;
-
-const meta: Meta<typeof StudioCheckbox> = {
+const meta = {
   title: 'Components/StudioCheckbox',
   component: StudioCheckbox,
   argTypes: {
@@ -30,8 +28,10 @@ const meta: Meta<typeof StudioCheckbox> = {
       control: 'boolean',
     },
   },
-};
+} satisfies Meta<typeof StudioCheckbox>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {
   args: {

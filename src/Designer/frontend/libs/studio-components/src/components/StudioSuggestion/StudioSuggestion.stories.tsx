@@ -1,26 +1,28 @@
-import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioSuggestion } from '.';
 
-type Story = StoryFn<typeof StudioSuggestion>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioSuggestion',
   component: StudioSuggestion,
-};
+} satisfies Meta<typeof StudioSuggestion>;
+export default meta;
 
-export const Preview: Story = (args): ReactElement => (
-  <StudioSuggestion {...args}>
-    <SuggestionExampleList />
-  </StudioSuggestion>
-);
+type Story = StoryObj<typeof meta>;
 
-Preview.args = {
-  required: true,
-  tagText: 'Required',
-  label: 'StudioSuggestion',
-  emptyText: 'Empty',
+export const Preview: Story = {
+  render: (args): ReactElement => (
+    <StudioSuggestion {...args}>
+      <SuggestionExampleList />
+    </StudioSuggestion>
+  ),
+
+  args: {
+    required: true,
+    tagText: 'Required',
+    label: 'StudioSuggestion',
+    emptyText: 'Empty',
+  },
 };
 
 function SuggestionExampleList(): ReactElement {
@@ -34,4 +36,3 @@ function SuggestionExampleList(): ReactElement {
     </>
   );
 }
-export default meta;

@@ -1,5 +1,4 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioTreeView } from './index';
 
 import { PencilIcon } from '@studio/icons';
@@ -10,26 +9,27 @@ const PreviewComponent = (args): React.ReactElement => (
   </StudioTreeView.Root>
 );
 
-type Story = StoryFn<typeof PreviewComponent>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioTreeView',
   component: PreviewComponent,
-};
-export const Preview: Story = (args): React.ReactElement => <PreviewComponent {...args} />;
-
-Preview.args = {
-  children: 'MyFile.pdf',
-  label: 'Folder name',
-  nodeId: '1',
-};
-
-export const WithIcon: Story = (args): React.ReactElement => <PreviewComponent {...args} />;
-
-WithIcon.args = {
-  children: 'MyFile.pdf',
-  label: 'Folder name',
-  nodeId: '1',
-  icon: <PencilIcon />,
-};
+} satisfies Meta<typeof PreviewComponent>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    children: 'MyFile.pdf',
+    label: 'Folder name',
+    nodeId: '1',
+  },
+};
+
+export const WithIcon: Story = {
+  args: {
+    children: 'MyFile.pdf',
+    label: 'Folder name',
+    nodeId: '1',
+    icon: <PencilIcon />,
+  },
+};

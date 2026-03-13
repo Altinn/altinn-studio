@@ -1,17 +1,17 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioLabelWrapper } from './StudioLabelWrapper';
 
-type Story = StoryFn<typeof StudioLabelWrapper>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioLabelWrapper',
   component: StudioLabelWrapper,
-};
-export const Preview: Story = (args): React.ReactElement => <StudioLabelWrapper {...args} />;
-
-Preview.args = {
-  withAsterisk: true,
-  children: 'Label',
-};
+} satisfies Meta<typeof StudioLabelWrapper>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    withAsterisk: true,
+    children: 'Label',
+  },
+};

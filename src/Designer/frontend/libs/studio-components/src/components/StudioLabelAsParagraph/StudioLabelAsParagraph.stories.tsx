@@ -1,17 +1,16 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioLabelAsParagraph } from './StudioLabelAsParagraph';
 
-type Story = StoryFn<typeof StudioLabelAsParagraph>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioLabelAsParagraph',
   component: StudioLabelAsParagraph,
-};
-export const Preview: Story = (args): React.ReactElement => <StudioLabelAsParagraph {...args} />;
-
-Preview.args = {
-  children: 'Paragraph in bold',
-};
-
+} satisfies Meta<typeof StudioLabelAsParagraph>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    children: 'Paragraph in bold',
+  },
+};

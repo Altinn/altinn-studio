@@ -1,6 +1,5 @@
-import React from 'react';
 import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioDropdown } from './index';
 import { PencilIcon, UploadIcon } from '@studio/icons';
 
@@ -25,9 +24,7 @@ const ComposedComponent = (args): ReactElement => (
   </StudioDropdown>
 );
 
-type Story = StoryFn<typeof ComposedComponent>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioDropdownMenu',
   component: ComposedComponent,
   argTypes: {
@@ -49,12 +46,15 @@ const meta: Meta = {
       ],
     },
   },
-};
-export const Preview: Story = (args): React.ReactElement => <ComposedComponent {...args} />;
-
-Preview.args = {
-  children: 'Item',
-  placement: 'bottom-start',
-  icon: <PencilIcon />,
-};
+} satisfies Meta<typeof ComposedComponent>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    children: 'Item',
+    placement: 'bottom-start',
+    icon: <PencilIcon />,
+  },
+};

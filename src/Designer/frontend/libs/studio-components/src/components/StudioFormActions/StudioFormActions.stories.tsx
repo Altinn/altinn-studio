@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioFormActions } from './';
 
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioFormActions',
   component: StudioFormActions,
   argTypes: {
@@ -10,9 +10,10 @@ const meta: Meta = {
       label: { control: 'text' },
     },
   },
-};
+} satisfies Meta<typeof StudioFormActions>;
+export default meta;
 
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof StudioFormActions>;
 
 export const Preview: Story = {
   args: {
@@ -26,5 +27,3 @@ export const Preview: Story = {
     },
   },
 };
-
-export default meta;

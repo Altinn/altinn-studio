@@ -1,5 +1,5 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { ReactElement } from 'react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioPopover } from './StudioPopover';
 
 const studioPopoverPlacementOptions: string[] = [
@@ -19,9 +19,7 @@ const studioPopoverPlacementOptions: string[] = [
 const studioPopoverVariantOptions: string[] = ['default', 'danger', 'info', 'warning'];
 const studioPopoverSizeOptions: string[] = ['small', 'medium', 'large'];
 
-type Story = StoryFn<typeof StudioPopover>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioPopover',
   component: StudioPopover,
   argTypes: {
@@ -38,22 +36,25 @@ const meta: Meta = {
       options: studioPopoverSizeOptions,
     },
   },
-};
-
-export const Preview: Story = (args): React.ReactElement => {
-  return (
-    <StudioPopover {...args}>
-      <StudioPopover.Trigger>My trigger!</StudioPopover.Trigger>
-      <StudioPopover.Content>StudioPopover content</StudioPopover.Content>
-    </StudioPopover>
-  );
-};
-
-Preview.args = {
-  placement: 'top',
-  variant: 'default',
-  size: 'medium',
-  onOpenChange: () => {},
-};
-
+} satisfies Meta<typeof StudioPopover>;
 export default meta;
+
+type Story = StoryObj<typeof StudioPopover>;
+
+export const Preview: Story = {
+  render: (args): ReactElement => {
+    return (
+      <StudioPopover {...args}>
+        <StudioPopover.Trigger>My trigger!</StudioPopover.Trigger>
+        <StudioPopover.Content>StudioPopover content</StudioPopover.Content>
+      </StudioPopover>
+    );
+  },
+
+  args: {
+    placement: 'top',
+    variant: 'default',
+    size: 'medium',
+    onOpenChange: () => {},
+  },
+};

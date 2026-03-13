@@ -1,9 +1,8 @@
-import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioButton } from './StudioButton';
 import { PencilIcon } from '@studio/icons';
 
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioButton',
   component: StudioButton,
   argTypes: {
@@ -16,7 +15,8 @@ const meta: Meta = {
       options: ['primary', 'secondary', 'tertiary'],
     },
   },
-};
+} satisfies Meta<typeof StudioButton>;
+export default meta;
 
 type Story = StoryObj<typeof meta>;
 
@@ -37,5 +37,3 @@ export const FullWidth: Story = {
     layout: 'fullscreen',
   },
 };
-
-export default meta;

@@ -1,17 +1,17 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioAnimateHeight } from './StudioAnimateHeight';
 
-type Story = StoryFn<typeof StudioAnimateHeight>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioAnimateHeight',
   component: StudioAnimateHeight,
-};
-export const Preview: Story = (args): React.ReactElement => <StudioAnimateHeight {...args} />;
-
-Preview.args = {
-  children: 'Change the open prop to see the animation in action',
-  open: true,
-};
+} satisfies Meta<typeof StudioAnimateHeight>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    children: 'Change the open prop to see the animation in action',
+    open: true,
+  },
+};

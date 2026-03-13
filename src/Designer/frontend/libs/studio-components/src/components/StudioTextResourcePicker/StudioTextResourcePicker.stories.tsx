@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 import { StudioTextResourcePicker } from './StudioTextResourcePicker';
 import { textResourcesMock } from '../../test-data/textResourcesMock';
 
-type Story = StoryObj<typeof StudioTextResourcePicker>;
-
-const meta: Meta<typeof StudioTextResourcePicker> = {
+const meta = {
   title: 'Components/StudioTextResourcePicker',
   component: StudioTextResourcePicker,
-};
+} satisfies Meta<typeof StudioTextResourcePicker>;
 export default meta;
+
+type Story = StoryObj<typeof StudioTextResourcePicker>;
 
 export const Preview: Story = {
   args: {

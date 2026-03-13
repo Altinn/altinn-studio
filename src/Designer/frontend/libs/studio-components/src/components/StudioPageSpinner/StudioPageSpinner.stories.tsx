@@ -1,18 +1,17 @@
-import React from 'react';
-import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioPageSpinner } from './StudioPageSpinner';
 
-type Story = StoryFn<typeof StudioPageSpinner>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioPageSpinner',
   component: StudioPageSpinner,
-};
-export const Preview: Story = (args): ReactElement => <StudioPageSpinner {...args} />;
-
-Preview.args = {
-  spinnerTitle: 'Loading user profile',
-  showSpinnerTitle: true,
-};
+} satisfies Meta<typeof StudioPageSpinner>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    spinnerTitle: 'Loading user profile',
+    showSpinnerTitle: true,
+  },
+};
