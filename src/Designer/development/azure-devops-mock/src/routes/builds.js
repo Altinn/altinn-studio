@@ -89,23 +89,6 @@ export const buildRoute = async (req, res) => {
   res.json(build);
 };
 
-export const kubernetesWrapperRoute = async (req, res) => {
-  const { org, env } = req.params;
-  const release = req.query.labelSelector?.slice('release='.length);
-
-  const kubernetesWrapperDeployments = [
-    { version: '123456', release: 'kuberneteswrapper' },
-    ...deploys
-      .filter((deploy) => deploy.envName === env && deploy.org === org)
-      .map((deploy) => ({
-        version: deploy.tagName,
-        release: `${deploy.org}-${deploy.app}`,
-      })),
-  ];
-
-  res.json(kubernetesWrapperDeployments.filter((deploy) => !release || deploy.release === release));
-};
-
 export const runtimeGatewayDeploymentsRoute = async (req, res) => {
   const { org, env, origin } = req.params;
 
@@ -121,6 +104,20 @@ export const runtimeGatewayDeploymentsRoute = async (req, res) => {
         imageTag: deploy.tagName,
       })),
   );
+};
+
+export const runtimeGatewayCompatibilityDeploymentsRoute = async (req, res) => {
+  const { org, env } = req.params;
+  const release = req.query.labelSelector?.slice('release='.length);
+
+  const deployments = deploys
+    .filter((deploy) => deploy.envName === env && deploy.org === org)
+    .map((deploy) => ({
+      version: deploy.tagName,
+      release: `${deploy.org}-${deploy.app}`,
+    }));
+
+  res.json(deployments.filter((deploy) => !release || deploy.release === release));
 };
 
 export const runtimeGatewayDeploymentDetailsRoute = async (req, res) => {

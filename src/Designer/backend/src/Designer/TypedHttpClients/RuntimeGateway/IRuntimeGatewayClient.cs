@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Alerts;
 using Altinn.Studio.Designer.Models.Metrics;
+using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway.Models;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
@@ -19,6 +20,12 @@ public interface IRuntimeGatewayClient
         string org,
         string app,
         AltinnEnvironment environment,
+        CancellationToken cancellationToken
+    );
+    Task<IEnumerable<KubernetesDeployment>> GetKubernetesDeploymentsAsync(
+        string org,
+        AltinnEnvironment environment,
+        string labelSelector,
         CancellationToken cancellationToken
     );
     Task<bool> IsAppDeployedWithGitOpsAsync(

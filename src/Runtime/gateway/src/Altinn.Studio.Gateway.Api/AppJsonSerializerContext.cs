@@ -18,6 +18,7 @@ namespace Altinn.Studio.Gateway.Api;
 [JsonSerializable(typeof(IsAppDeployedResponse))]
 [JsonSerializable(typeof(AppDeployment))]
 [JsonSerializable(typeof(List<AppDeployment>))]
+[JsonSerializable(typeof(IReadOnlyList<KubernetesDeployment>))]
 [JsonSerializable(typeof(IEnumerable<GrafanaAlertRule>))]
 [JsonSerializable(typeof(IEnumerable<AlertRule>))]
 [JsonSerializable(typeof(AlertPayload))]

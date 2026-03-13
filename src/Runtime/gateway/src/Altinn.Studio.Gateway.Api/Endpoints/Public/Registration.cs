@@ -9,6 +9,7 @@ internal static class Registration
         var publicApiV1 = app.MapGroup("/runtime/gateway/api/v1").RequirePublicPort();
         publicApiV1.MapHealthEndpoints();
         publicApiV1.MapDeployEndpoints();
+        publicApiV1.MapDeploymentsEndpoints();
         publicApiV1.MapAlertsEndpoints();
         publicApiV1.MapMetricsEndpoints();
         return app;

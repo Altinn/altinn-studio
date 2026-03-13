@@ -15,7 +15,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
-using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Altinn.Studio.Designer.TypedHttpClients.RuntimeGateway;
@@ -74,7 +73,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 IAltinnStorageInstancesClient,
                 AltinnStorageInstancesClient
             >();
-            services.AddKubernetesWrapperTypedHttpClient();
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
@@ -117,14 +115,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 })
                 .AddHttpMessageHandler<AzureDevOpsTokenDelegatingHandler>()
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
-        }
-
-        private static IHttpClientBuilder AddKubernetesWrapperTypedHttpClient(this IServiceCollection services)
-        {
-            return services.AddHttpClient<IKubernetesWrapperClient, KubernetesWrapperClient>();
-            // Commented due to the issue with deployments endpoint described in issue: https://github.com/Altinn/altinn-studio/issues/12037
-            // .AddHttpMessageHandler<EnsureSuccessHandler>()
-            // .AddHttpMessageHandler(sp => new CachingDelegatingHandler(sp.GetService<IMemoryCache>(), 15));
         }
 
         private static IHttpClientBuilder AddGiteaTypedHttpClient(
