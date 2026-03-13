@@ -1,7 +1,6 @@
 #nullable disable
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Models.Dto;
 
@@ -11,7 +10,6 @@ public class OptionListData
     public string Title { get; set; }
 
     [JsonPropertyName("data")]
-    [CanBeNull]
     public List<Option> Data { get; set; }
 
     [JsonPropertyName("hasError")]
