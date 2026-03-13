@@ -25,7 +25,7 @@ public class WorkflowExecutorStateTests
         public string? CapturedStateIn { get; private set; }
 
         public CommandValidationResult Validate(object? commandData, object? workflowContext) =>
-            CommandValidationResult.Accept();
+            new CommandValidationResult.Valid();
 
         public Task<ExecutionResult> ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken)
         {

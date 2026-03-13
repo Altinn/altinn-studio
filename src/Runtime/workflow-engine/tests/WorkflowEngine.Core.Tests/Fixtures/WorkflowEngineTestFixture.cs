@@ -128,7 +128,7 @@ internal sealed class TestDelegateCommand : ICommand
     public void SetAction(Func<Workflow, Step, CancellationToken, Task> action) => _action = action;
 
     public CommandValidationResult Validate(object? commandData, object? workflowContext) =>
-        CommandValidationResult.Accept();
+        new CommandValidationResult.Valid();
 
     public Task<ExecutionResult> ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken)
     {

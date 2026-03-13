@@ -9,53 +9,42 @@ public abstract record WorkflowEnqueueResponse
 {
     private WorkflowEnqueueResponse() { }
 
-    public static Accepted.Inserted Created(IReadOnlyList<WorkflowResult> workflows) => new() { Workflows = workflows };
-
-    public static Accepted.Matched Existing(IReadOnlyList<WorkflowResult> workflows) => new() { Workflows = workflows };
-
-    public static Rejected Reject(Rejection reason, string? message = null) =>
-        new() { Reason = reason, Message = message };
-
     /// <summary>
     /// Represents an accepted response.
     /// </summary>
-    public record Accepted : WorkflowEnqueueResponse
+    public record Accepted([property: JsonPropertyName("workflows")] IReadOnlyList<WorkflowResult> Workflows)
+        : WorkflowEnqueueResponse
     {
-        [JsonPropertyName("workflows")]
-        public required IReadOnlyList<WorkflowResult> Workflows { get; init; }
-
         /// <summary>
         /// Indicates that new database records were inserted for this request.
         /// </summary>
-        public sealed record Inserted : Accepted;
+        public sealed record Created(IReadOnlyList<WorkflowResult> Workflows) : Accepted(Workflows);
 
         /// <summary>
         /// Indicates that matching database records were returned for this request.
         /// </summary>
-        public sealed record Matched : Accepted;
+        public sealed record Existing(IReadOnlyList<WorkflowResult> Workflows) : Accepted(Workflows);
     }
 
     /// <summary>
     /// Represents a rejected response.
     /// </summary>
-    public sealed record Rejected : WorkflowEnqueueResponse
+    public record Rejected([property: JsonPropertyName("message")] string Message) : WorkflowEnqueueResponse
     {
-        [JsonPropertyName("reason")]
-        public required Rejection Reason { get; init; }
+        /// <summary>
+        /// Indicates that the request was invalid.
+        /// </summary>
+        public sealed record Invalid(string Message) : Rejected(Message);
 
-        [JsonPropertyName("message")]
-        public string? Message { get; init; }
-    }
+        /// <summary>
+        /// Indicates that the request was a duplicate.
+        /// </summary>
+        public sealed record Duplicate(string Message) : Rejected(Message);
 
-    /// <summary>
-    /// The reason for a rejection.
-    /// </summary>
-    public enum Rejection
-    {
-        Invalid,
-        Duplicate,
-        Unavailable,
-        AtCapacity,
+        /// <summary>
+        /// Indicates that the queue is at capacity.
+        /// </summary>
+        public sealed record AtCapacity(string Message) : Rejected(Message);
     }
 
     /// <summary>

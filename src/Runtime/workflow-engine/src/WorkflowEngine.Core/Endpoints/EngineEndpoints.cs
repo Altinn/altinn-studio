@@ -41,8 +41,8 @@ internal static class EngineRequestHandlers
 {
     public static async Task<
         Results<
-            Created<WorkflowEnqueueResponse.Accepted.Inserted>,
-            Ok<WorkflowEnqueueResponse.Accepted.Matched>,
+            Created<WorkflowEnqueueResponse.Accepted.Created>,
+            Ok<WorkflowEnqueueResponse.Accepted.Existing>,
             ProblemHttpResult
         >
     > EnqueueWorkflows(
@@ -63,18 +63,19 @@ internal static class EngineRequestHandlers
 
         return response switch
         {
-            WorkflowEnqueueResponse.Accepted.Inserted inserted => TypedResults.Created((string?)null, inserted),
-            WorkflowEnqueueResponse.Accepted.Matched matched => TypedResults.Ok(matched),
-            WorkflowEnqueueResponse.Rejected rejected => TypedResults.Problem(
-                detail: rejected.Message,
-                statusCode: rejected.Reason switch
-                {
-                    WorkflowEnqueueResponse.Rejection.Duplicate => StatusCodes.Status409Conflict,
-                    WorkflowEnqueueResponse.Rejection.Invalid => StatusCodes.Status400BadRequest,
-                    WorkflowEnqueueResponse.Rejection.Unavailable => StatusCodes.Status503ServiceUnavailable,
-                    WorkflowEnqueueResponse.Rejection.AtCapacity => StatusCodes.Status429TooManyRequests,
-                    _ => throw new UnreachableException(),
-                }
+            WorkflowEnqueueResponse.Accepted.Created inserted => TypedResults.Created((string?)null, inserted),
+            WorkflowEnqueueResponse.Accepted.Existing matched => TypedResults.Ok(matched),
+            WorkflowEnqueueResponse.Rejected.Invalid invalid => TypedResults.Problem(
+                detail: invalid.Message,
+                statusCode: StatusCodes.Status400BadRequest
+            ),
+            WorkflowEnqueueResponse.Rejected.Duplicate duplicate => TypedResults.Problem(
+                detail: duplicate.Message,
+                statusCode: StatusCodes.Status409Conflict
+            ),
+            WorkflowEnqueueResponse.Rejected.AtCapacity busy => TypedResults.Problem(
+                detail: busy.Message,
+                statusCode: StatusCodes.Status429TooManyRequests
             ),
             _ => throw new UnreachableException(),
         };

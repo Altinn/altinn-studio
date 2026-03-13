@@ -6,8 +6,8 @@ using WorkflowEngine.Core.Tests.Fixtures;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
-using Inserted = Microsoft.AspNetCore.Http.HttpResults.Created<WorkflowEngine.Models.WorkflowEnqueueResponse.Accepted.Inserted>;
-using Matched = Microsoft.AspNetCore.Http.HttpResults.Ok<WorkflowEngine.Models.WorkflowEnqueueResponse.Accepted.Matched>;
+using Inserted = Microsoft.AspNetCore.Http.HttpResults.Created<WorkflowEngine.Models.WorkflowEnqueueResponse.Accepted.Created>;
+using Matched = Microsoft.AspNetCore.Http.HttpResults.Ok<WorkflowEngine.Models.WorkflowEnqueueResponse.Accepted.Existing>;
 
 namespace WorkflowEngine.Core.Tests.Endpoints;
 
@@ -52,7 +52,7 @@ public class EngineEndpointTests
                 )
             )
             .ReturnsAsync(
-                WorkflowEnqueueResponse.Created([
+                new WorkflowEnqueueResponse.Accepted.Created([
                     new WorkflowEnqueueResponse.WorkflowResult
                     {
                         Ref = workflowRef,
@@ -96,7 +96,7 @@ public class EngineEndpointTests
                 )
             )
             .ReturnsAsync(
-                WorkflowEnqueueResponse.Existing([
+                new WorkflowEnqueueResponse.Accepted.Existing([
                     new WorkflowEnqueueResponse.WorkflowResult
                     {
                         Ref = workflowRef,
@@ -136,7 +136,7 @@ public class EngineEndpointTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Duplicate));
+            .ReturnsAsync(new WorkflowEnqueueResponse.Rejected.Duplicate("..."));
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
@@ -164,7 +164,7 @@ public class EngineEndpointTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid));
+            .ReturnsAsync(new WorkflowEnqueueResponse.Rejected.Invalid("..."));
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
@@ -215,7 +215,7 @@ public class EngineEndpointTests
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid));
+            .ReturnsAsync(new WorkflowEnqueueResponse.Rejected.Invalid("..."));
 
         // Act
         var result = await EngineRequestHandlers.EnqueueWorkflows(
@@ -248,7 +248,7 @@ public class EngineEndpointTests
                 (_, meta, _) => capturedMetadata = meta
             )
             .ReturnsAsync(
-                WorkflowEnqueueResponse.Created([
+                new WorkflowEnqueueResponse.Accepted.Created([
                     new WorkflowEnqueueResponse.WorkflowResult
                     {
                         Ref = "wf-1",

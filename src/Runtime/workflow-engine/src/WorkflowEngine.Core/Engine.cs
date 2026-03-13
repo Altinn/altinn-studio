@@ -49,7 +49,7 @@ internal sealed class Engine(
         if (sizeResult is SizeLimitValidationResult.Invalid sizeError)
         {
             activity?.Errored(errorMessage: sizeError.Message);
-            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, sizeError.Message);
+            return new WorkflowEnqueueResponse.Rejected.Invalid(sizeError.Message);
         }
 
         IReadOnlyList<WorkflowRequest> sortedRequests;
@@ -60,8 +60,7 @@ internal sealed class Engine(
         catch (ArgumentException ex)
         {
             activity?.Errored(ex);
-            return WorkflowEnqueueResponse.Reject(
-                WorkflowEnqueueResponse.Rejection.Invalid,
+            return new WorkflowEnqueueResponse.Rejected.Invalid(
                 $"Invalid request. Workflow graph did not validate: {ex.Message}"
             );
         }
@@ -71,7 +70,7 @@ internal sealed class Engine(
         if (validationResult is CommandValidationResult.Invalid error)
         {
             activity?.Errored(errorMessage: error.Message);
-            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, error.Message);
+            return new WorkflowEnqueueResponse.Rejected.Invalid(error.Message);
         }
 
         try
@@ -93,28 +92,27 @@ internal sealed class Engine(
 
             return outcome.Status switch
             {
-                BatchEnqueueResultStatus.Created => WorkflowEnqueueResponse.Created(results),
-                BatchEnqueueResultStatus.Duplicate => WorkflowEnqueueResponse.Existing(results),
+                BatchEnqueueResultStatus.Created => new WorkflowEnqueueResponse.Accepted.Created(results),
+                BatchEnqueueResultStatus.Duplicate => new WorkflowEnqueueResponse.Accepted.Existing(results),
                 _ => throw new UnreachableException(),
             };
         }
         catch (IdempotencyConflictException)
         {
             activity?.Errored(errorMessage: $"Idempotency conflict for key '{request.IdempotencyKey}'");
-            return WorkflowEnqueueResponse.Reject(
-                WorkflowEnqueueResponse.Rejection.Duplicate,
+            return new WorkflowEnqueueResponse.Rejected.Duplicate(
                 $"Idempotency conflict: the key '{request.IdempotencyKey}' was already used with a different request body."
             );
         }
         catch (InvalidWorkflowReferenceException ex)
         {
             activity?.Errored(ex);
-            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.Invalid, ex.Message);
+            return new WorkflowEnqueueResponse.Rejected.Invalid(ex.Message);
         }
         catch (EngineAtCapacityException ex)
         {
             activity?.Errored(ex);
-            return WorkflowEnqueueResponse.Reject(WorkflowEnqueueResponse.Rejection.AtCapacity, ex.Message);
+            return new WorkflowEnqueueResponse.Rejected.AtCapacity(ex.Message);
         }
     }
 
@@ -134,7 +132,7 @@ internal sealed class Engine(
 
                 if (!registry.HasCommand(commandType))
                 {
-                    return CommandValidationResult.Reject(
+                    return new CommandValidationResult.Invalid(
                         $"Unknown command type '{commandType}' in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
                             + $"step #{stepIndex}."
                     );
@@ -148,7 +146,7 @@ internal sealed class Engine(
                 {
                     if (step.Command.Data is not { } rawData)
                     {
-                        return CommandValidationResult.Reject(
+                        return new CommandValidationResult.Invalid(
                             $"Command '{commandType}' in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
                                 + $"step #{stepIndex} requires command data of type {command.CommandDataType.Name}, but none was provided"
                         );
@@ -163,7 +161,7 @@ internal sealed class Engine(
                     }
                     catch (JsonException ex)
                     {
-                        return CommandValidationResult.Reject(
+                        return new CommandValidationResult.Invalid(
                             $"Failed to deserialize command data for '{commandType}' in workflow "
                                 + $"'{workflow.Ref ?? $"#{workflowIndex}"}' step #{stepIndex}: {ex.Message}"
                         );
@@ -175,7 +173,7 @@ internal sealed class Engine(
                 {
                     if (request.Context is not { } rawContext)
                     {
-                        return CommandValidationResult.Reject(
+                        return new CommandValidationResult.Invalid(
                             $"Command '{commandType}' in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
                                 + $"step #{stepIndex} requires workflow context of type {command.WorkflowContextType.Name}, but none was provided"
                         );
@@ -190,7 +188,7 @@ internal sealed class Engine(
                     }
                     catch (JsonException ex)
                     {
-                        return CommandValidationResult.Reject(
+                        return new CommandValidationResult.Invalid(
                             $"Failed to deserialize workflow context for '{commandType}' in workflow "
                                 + $"'{workflow.Ref ?? $"#{workflowIndex}"}' step #{stepIndex}: {ex.Message}"
                         );
@@ -200,7 +198,7 @@ internal sealed class Engine(
                 var validationResult = command.Validate(typedCommandData, typedWorkflowContext);
                 if (validationResult is CommandValidationResult.Invalid error)
                 {
-                    return CommandValidationResult.Reject(
+                    return new CommandValidationResult.Invalid(
                         $"Validation failed for '{commandType}' command in workflow '{workflow.Ref ?? $"#{workflowIndex}"}' "
                             + $"step #{stepIndex}: {error.Message}"
                     );
@@ -208,7 +206,7 @@ internal sealed class Engine(
             }
         }
 
-        return CommandValidationResult.Accept();
+        return new CommandValidationResult.Valid();
     }
 
     /// <summary>
@@ -217,12 +215,12 @@ internal sealed class Engine(
     private SizeLimitValidationResult ValidateInputSizeLimits(WorkflowEnqueueRequest request)
     {
         if (request.Workflows.Count > _settings.MaxWorkflowsPerRequest)
-            return SizeLimitValidationResult.Reject(
+            return new SizeLimitValidationResult.Invalid(
                 $"Request contains {request.Workflows.Count} workflows, maximum is {_settings.MaxWorkflowsPerRequest}."
             );
 
         if (request.Labels is not null && request.Labels.Count > _settings.MaxLabels)
-            return SizeLimitValidationResult.Reject(
+            return new SizeLimitValidationResult.Invalid(
                 $"Request contains {request.Labels.Count} labels, maximum is {_settings.MaxLabels}."
             );
 
@@ -230,11 +228,11 @@ internal sealed class Engine(
         {
             var workflow = request.Workflows[i];
             if (workflow.Steps.Count > _settings.MaxStepsPerWorkflow)
-                return SizeLimitValidationResult.Reject(
+                return new SizeLimitValidationResult.Invalid(
                     $"Workflow '{workflow.Ref ?? $"#{i}"}' contains {workflow.Steps.Count} steps, maximum is {_settings.MaxStepsPerWorkflow}."
                 );
         }
 
-        return SizeLimitValidationResult.Accept();
+        return new SizeLimitValidationResult.Valid();
     }
 }

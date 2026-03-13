@@ -46,12 +46,12 @@ public sealed class WebhookCommand : Command<WebhookCommandData>
     protected override CommandValidationResult Validate(WebhookCommandData? commandData)
     {
         if (commandData is null || string.IsNullOrWhiteSpace(commandData.Uri))
-            return CommandValidationResult.Reject("Webhook command requires a 'uri' in command data");
+            return new CommandValidationResult.Invalid("Webhook command requires a 'uri' in command data");
 
         if (!Uri.TryCreate(commandData.Uri, UriKind.Absolute, out _))
-            return CommandValidationResult.Reject($"Webhook uri '{commandData.Uri}' is not a valid absolute URI");
+            return new CommandValidationResult.Invalid($"Webhook uri '{commandData.Uri}' is not a valid absolute URI");
 
-        return CommandValidationResult.Accept();
+        return new CommandValidationResult.Valid();
     }
 
     /// <inheritdoc/>
