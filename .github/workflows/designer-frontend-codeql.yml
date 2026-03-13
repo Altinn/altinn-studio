@@ -1,25 +1,33 @@
-name: Designer Backend - CodeQL
+name: Designer Frontend - CodeQL
 
 on:
   push:
     branches: [main]
     paths:
+      - 'src/Designer/frontend/**'
+      - 'src/Designer/frontend/testing/cypress/**'
+      - '!src/Designer/frontend/stats/**'
       - 'src/Designer/testdata/**'
-      - 'src/Designer/backend/**'
       - '.github/actions/codeql-config/**'
       - '.github/codeql/**'
-      - '.github/workflows/designer-backend-codeql.yml'
+      - '.github/workflows/designer-frontend-codeql.yml'
+      - 'package.json'
+      - 'yarn.lock'
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
+      - 'src/Designer/frontend/**'
+      - 'src/Designer/frontend/testing/cypress/**'
+      - '!src/Designer/frontend/stats/**'
       - 'src/Designer/testdata/**'
-      - 'src/Designer/backend/**'
       - '.github/actions/codeql-config/**'
       - '.github/codeql/**'
-      - '.github/workflows/designer-backend-codeql.yml'
+      - '.github/workflows/designer-frontend-codeql.yml'
+      - 'package.json'
+      - 'yarn.lock'
   workflow_dispatch:
   schedule:
-    - cron: '45 1 * * 0'
+    - cron: '55 1 * * 0'
 
 jobs:
   analyze:
@@ -29,39 +37,28 @@ jobs:
       actions: read
       contents: read
       security-events: write
-
-    strategy:
-      fail-fast: false
-
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5
         with:
-          dotnet-version: '9.0.x'
+          fetch-depth: 0
 
       - name: Generate CodeQL config
         id: codeql-config
         uses: ./.github/actions/codeql-config
         with:
-          language: csharp
+          language: javascript
+          paths: |
+            src/Designer/frontend
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
         with:
-          languages: csharp
-          build-mode: manual
+          languages: javascript
           queries: ${{ steps.codeql-config.outputs.queries }}
           config-file: ${{ steps.codeql-config.outputs.config-file }}
-
-      - name: Build solution
-        run: dotnet build backend/Src.sln -v m
-        shell: bash
-        working-directory: src/Designer/
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@820e3160e279568db735cee8ed8f8e77a6da7818 # v3
         with:
-          category: "/codeql/designer/backend/csharp"
+          category: '/codeql/designer/frontend/javascript'

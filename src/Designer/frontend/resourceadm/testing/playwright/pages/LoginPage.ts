@@ -65,7 +65,20 @@ export class LoginPage {
     await this.dismissAccountLinkModalIfVisible();
     await this.page.waitForURL(/\/authorize/);
     await this.page.getByRole('button', { name: /cypress_testuser test playwright/ }).click();
-    await this.confirmSuccessfulLogin();
+
+    const nextButton = this.page.getByRole('button', { name: 'Neste' });
+    const dashboardLoaded = this.page.waitForURL(url(Routes.dashboard));
+    const orgPickerVisible = nextButton.waitFor({ state: 'visible' });
+
+    const result = await Promise.race([
+      dashboardLoaded.then(() => 'dashboard' as const),
+      orgPickerVisible.then(() => 'orgPicker' as const),
+    ]);
+
+    if (result === 'orgPicker') {
+      await nextButton.click();
+      await this.confirmSuccessfulLogin();
+    }
   }
 
   private async dismissAccountLinkModalIfVisible(): Promise<void> {
