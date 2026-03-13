@@ -610,7 +610,6 @@ internal sealed partial class EngineRepository
                 WHERE "Id" IN (
                     SELECT w."Id" FROM "Workflows" w
                     WHERE w."Status" IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued})
-                      AND (w."StartAt" IS NULL OR w."StartAt" <= {now})
                       AND (w."BackoffUntil" IS NULL OR w."BackoffUntil" <= {now})
                       AND NOT EXISTS (
                           SELECT 1 FROM "WorkflowDependency" wd

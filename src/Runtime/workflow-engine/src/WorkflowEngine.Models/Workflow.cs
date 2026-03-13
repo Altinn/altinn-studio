@@ -62,6 +62,7 @@ public sealed record Workflow : PersistentItem
             Namespace = enqueueRequest.Namespace,
             CreatedAt = metadata.CreatedAt,
             StartAt = workflowRequest.StartAt,
+            BackoffUntil = workflowRequest.StartAt,
             Status = PersistentItemStatus.Enqueued,
             Labels = enqueueRequest.Labels,
             Context = enqueueRequest.Context,
