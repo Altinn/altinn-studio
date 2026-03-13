@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json.Nodes;
+using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Formats;
 using Xunit;
 
@@ -19,7 +19,7 @@ public class CustomFormatsTests
                                             }";
 
     [Theory]
-    [InlineData("DateTest", true)]
+    [InlineData("DateField", true)]
     [InlineData("Number", true)]
     [InlineData("Object", true)]
     public void TestDateFormat(string property, bool expected)
@@ -28,12 +28,10 @@ public class CustomFormatsTests
             .GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
             .First(x => x.Name == "CheckDate" && x.IsPrivate && x.IsStatic);
 
-        var node = JsonNode.Parse(JsonStructure);
+        using var doc = JsonDocument.Parse(JsonStructure);
+        var element = doc.RootElement.GetProperty(property);
 
-        List<object> objects = new List<object>();
-        objects.Add(node[property]);
-
-        var result = checkDateMethod.Invoke(null, objects.ToArray());
+        var result = checkDateMethod.Invoke(null, new object[] { element });
 
         Assert.Equal(expected, (bool)result);
     }
