@@ -1,0 +1,34 @@
+import React from 'react';
+import type { ReactElement } from 'react';
+import { StudioContentMenu } from '@studio/components';
+import { useNavigate } from 'react-router-dom';
+import { ShieldLockIcon } from '@studio/icons';
+import { useTranslation } from 'react-i18next';
+import { RoutePaths } from '../../routes/RoutePaths';
+
+export function Menu(): ReactElement {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const menuTabs = [
+    {
+      tabId: RoutePaths.ApiKeys,
+      tabName: t('user.settings.api_keys.api_keys'),
+      icon: <ShieldLockIcon />,
+    },
+  ];
+  return (
+    <StudioContentMenu
+      selectedTabId={RoutePaths.ApiKeys}
+      onChangeTab={(tabId) => navigate({ pathname: tabId })}
+    >
+      {menuTabs.map((tab) => (
+        <StudioContentMenu.ButtonTab
+          key={tab.tabId}
+          icon={tab.icon}
+          tabId={tab.tabId}
+          tabName={tab.tabName}
+        />
+      ))}
+    </StudioContentMenu>
+  );
+}

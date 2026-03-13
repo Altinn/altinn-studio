@@ -1,0 +1,35 @@
+name: runtime-health - Lint
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'src/tools/health/**'
+      - '.github/workflows/runtime-health-build.yml'
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Check formatting and lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/tools/health
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
+        with:
+          go-version-file: src/tools/health/go.mod
+          cache-dependency-path: src/tools/health/go.sum
+
+      - name: Check formatting
+        run: |
+          make fmt
+          git diff --exit-code -- .
+
+      - name: Lint
+        run: make lint

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Form } from 'react-router';
 
-import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';

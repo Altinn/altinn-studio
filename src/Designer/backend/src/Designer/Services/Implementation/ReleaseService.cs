@@ -1,4 +1,5 @@
 #nullable disable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -6,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Models;
@@ -18,6 +20,7 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
+using Microsoft.FeatureManagement;
 using Microsoft.Rest.TransientFaultHandling;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -33,23 +36,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAppScopesRepository _appScopesRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly GeneralSettings _generalSettings;
+        private readonly IFeatureManager _featureManager;
+        private readonly IApiKeyService _apiKeyService;
+        private readonly TimeProvider _timeProvider;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        /// <param name="azureDevOpsBuildClient">IAzureDevOpsBuildClient</param>
-        /// <param name="releaseRepository">IReleaseRepository</param>
-        /// <param name="appScopesRepository">IAppScopesRepository</param>
-        /// <param name="azureDevOpsOptions">AzureDevOpsSettings</param>
-        /// <param name="generalSettings"></param>
         public ReleaseService(
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
             IReleaseRepository releaseRepository,
             IAppScopesRepository appScopesRepository,
             AzureDevOpsSettings azureDevOpsOptions,
-            GeneralSettings generalSettings
+            GeneralSettings generalSettings,
+            IFeatureManager featureManager,
+            IApiKeyService apiKeyService,
+            TimeProvider timeProvider
         )
         {
             _azureDevOpsSettings = azureDevOpsOptions;
@@ -58,6 +61,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _appScopesRepository = appScopesRepository;
             _httpContextAccessor = httpContextAccessor;
             _generalSettings = generalSettings;
+            _featureManager = featureManager;
+            _apiKeyService = apiKeyService;
+            _timeProvider = timeProvider;
         }
 
         /// <inheritdoc/>
@@ -70,6 +76,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await ValidateUniquenessOfRelease(release, cancellationToken);
 
+            var (deployToken, authHeaderName) = await GetDeployTokenAsync(httpContext);
+
             QueueBuildParameters queueBuildParameters = new()
             {
                 AppCommitId = release.TargetCommitish,
@@ -77,7 +85,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 AppRepo = release.App,
                 TagName = release.TagName,
                 GiteaEnvironment = $"{_generalSettings.HostName}/repos",
-                AppDeployToken = await httpContext.GetDeveloperAppTokenAsync(),
+                AppDeployToken = deployToken,
+                AppAuthHeaderName = authHeaderName,
                 AltinnStudioHostname = _generalSettings.HostName,
                 AppMaskinportenScopes = await GetAppScopesAsJson(release.Org, release.App, cancellationToken),
             };
@@ -151,6 +160,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     StatusCode = HttpStatusCode.Conflict,
                 };
             }
+        }
+
+        private async Task<(string Token, string AuthHeaderName)> GetDeployTokenAsync(HttpContext httpContext)
+        {
+            if (await _featureManager.IsEnabledAsync(StudioFeatureFlags.StudioOidc))
+            {
+                string username = AuthenticationHelper.GetDeveloperUserName(httpContext);
+                var (rawKey, _) = await _apiKeyService.CreateAsync(
+                    username,
+                    $"release-{_timeProvider.GetUtcNow():yyyyMMddHHmmss}",
+                    Altinn.Studio.Designer.Models.ApiKey.ApiKeyType.System,
+                    _timeProvider.GetUtcNow().AddHours(1)
+                );
+                return (rawKey, "X-Api-Key");
+            }
+
+            return (await httpContext.GetDeveloperAppTokenAsync(), null);
         }
 
         private async Task<string> GetAppScopesAsJson(string org, string app, CancellationToken cancellationToken)

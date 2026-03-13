@@ -2,14 +2,15 @@ package config
 
 import (
 	"context"
+	"errors"
 	"os"
-	"reflect"
 	"testing"
 	"time"
 
-	"altinn.studio/operator/internal/operatorcontext"
 	"github.com/go-playground/validator/v10"
 	. "github.com/onsi/gomega"
+
+	"altinn.studio/operator/internal/operatorcontext"
 )
 
 func TestConfigMissingValuesFail(t *testing.T) {
@@ -18,12 +19,12 @@ func TestConfigMissingValuesFail(t *testing.T) {
 	file, err := os.CreateTemp(os.TempDir(), "*.env")
 	Expect(err).NotTo(HaveOccurred())
 	defer func() {
-		err := file.Close()
-		Expect(err).NotTo(HaveOccurred())
+		closeErr := file.Close()
+		Expect(closeErr).NotTo(HaveOccurred())
 	}()
 	defer func() {
-		err := os.Remove(file.Name())
-		Expect(err).NotTo(HaveOccurred())
+		removeErr := os.Remove(file.Name())
+		Expect(removeErr).NotTo(HaveOccurred())
 	}()
 
 	_, err = file.WriteString("maskinporten_api.url=https://example.com")
@@ -34,9 +35,8 @@ func TestConfigMissingValuesFail(t *testing.T) {
 	cfg, err := GetConfig(ctx, environment, file.Name())
 	Expect(cfg).To(BeNil())
 	Expect(err).To(HaveOccurred())
-	_, ok := err.(validator.ValidationErrors)
-	errType := reflect.TypeOf(err)
-	Expect(errType.String()).To(Equal("validator.ValidationErrors"))
+	var validationErrors validator.ValidationErrors
+	ok := errors.As(err, &validationErrors)
 	Expect(ok).To(BeTrue())
 }
 
@@ -89,7 +89,8 @@ func TestConfigReloadOnRefresh(t *testing.T) {
 	file, err := os.CreateTemp(os.TempDir(), "config-reload-*.env")
 	Expect(err).NotTo(HaveOccurred())
 	defer func() {
-		_ = os.Remove(file.Name())
+		removeErr := os.Remove(file.Name())
+		Expect(removeErr).NotTo(HaveOccurred())
 	}()
 
 	initialConfig := `maskinporten_api.client_id=test-client
@@ -147,7 +148,8 @@ func TestConfigReloadFailsOnInvalidConfig(t *testing.T) {
 	file, err := os.CreateTemp(os.TempDir(), "config-reload-invalid-*.env")
 	Expect(err).NotTo(HaveOccurred())
 	defer func() {
-		_ = os.Remove(file.Name())
+		removeErr := os.Remove(file.Name())
+		Expect(removeErr).NotTo(HaveOccurred())
 	}()
 
 	initialConfig := `maskinporten_api.client_id=test-client

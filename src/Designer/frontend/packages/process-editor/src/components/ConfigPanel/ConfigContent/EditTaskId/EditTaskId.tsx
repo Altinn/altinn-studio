@@ -13,10 +13,8 @@ export const EditTaskId = (): React.ReactElement => {
   const { metadataFormRef } = useBpmnConfigPanelFormContext();
   const { validateBpmnTaskId } = useValidateBpmnTaskId();
 
-  const modelerInstance = modelerRef.current;
-  const commandStack: CommandStack = modelerInstance.get('commandStack');
-
   const updateId = (value: string): void => {
+    const commandStack: CommandStack = modelerRef.current.get('commandStack');
     commandStack.execute('updateTaskId', {
       element: bpmnDetails.element,
       newId: value,

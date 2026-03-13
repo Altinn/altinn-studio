@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -11,17 +12,27 @@ import (
 	"strings"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/google/uuid"
-	"github.com/jonboulle/clockwork"
+
+	"altinn.studio/operator/internal/assert"
+	opclock "altinn.studio/operator/internal/clock"
+)
+
+var (
+	errNotAfterExpired                = errors.New("notAfter must be after current time")
+	errRotateJWKSNilCurrent           = errors.New("can't rotate JWKS without current state")
+	errRotateJWKSInvalidKeyFormat     = errors.New("invalid key format")
+	errFindActiveKeyNoKeys            = errors.New("JWKS has no keys")
+	errFindActiveKeyUnexpectedCertLen = errors.New("unexpected number of certificates for key")
 )
 
 const DefaultX509SignatureAlgo x509.SignatureAlgorithm = x509.SHA512WithRSA
+
 const DefaultKeySizeBits int = 4096
 
 type CryptoService struct {
-	clock             clockwork.Clock
+	clock             opclock.Clock
 	random            io.Reader
 	signatureAlgo     jose.SignatureAlgorithm
 	x509SignatureAlgo x509.SignatureAlgorithm
@@ -29,7 +40,7 @@ type CryptoService struct {
 }
 
 func NewService(
-	clock clockwork.Clock,
+	clock opclock.Clock,
 	random io.Reader,
 	x509SignatureAlgo x509.SignatureAlgorithm,
 	keySizeBits int,
@@ -50,22 +61,19 @@ func NewService(
 }
 
 func NewDefaultService(
-	clock clockwork.Clock,
+	clock opclock.Clock,
 	random io.Reader,
 ) *CryptoService {
 	return NewService(clock, random, DefaultX509SignatureAlgo, DefaultKeySizeBits)
 }
 
-// CertSubject contains the fields for the certificate subject
+// CertSubject contains the fields for the certificate subject.
 type CertSubject struct {
 	Organization       string // e.g., "Testdepartementet"
 	OrganizationalUnit string // e.g., "ttd"
 	CommonName         string // e.g., "my-app"
 }
 
-// Creates a JWKS
-// Constructs the JWKS from the whole RSA private/public key pair
-// Uses SHA512 with RSA, 4096 bits for RSA
 func (s *CryptoService) CreateJwks(subject CertSubject, notAfter time.Time) (*Jwks, error) {
 	cert, rsaKey, err := s.createCert(subject, notAfter)
 	if err != nil {
@@ -84,7 +92,7 @@ func (s *CryptoService) createJWKS(
 	// in logic elsewhere (for example in client_state.go, where we check for JWKS equality based on KeyID)
 	id, err := uuid.NewRandomFromReader(s.random)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("generate JWKS key ID: %w", err)
 	}
 	keyId := fmt.Sprintf("%s.%d", id.String(), index)
 	return NewJwks(NewJwk([]*x509.Certificate{cert}, rsaKey, keyId, "sig", string(s.signatureAlgo))), nil
@@ -98,7 +106,7 @@ func (s *CryptoService) generateCertSerialNumber() (*big.Int, error) {
 	serialBytes := [16]byte{}
 	n, err := io.ReadFull(s.random, serialBytes[:])
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read certificate serial bytes: %w", err)
 	}
 	assert.That(n == len(serialBytes), "Read should always fill slice when err is nil")
 	serial.SetBytes(serialBytes[:])
@@ -110,6 +118,7 @@ func (s *CryptoService) createCert(
 	subject CertSubject,
 	notAfter time.Time,
 ) (*x509.Certificate, *rsa.PrivateKey, error) {
+	// NOTE: since Go 1.26 random is ingored here, tests now use testing/cryptotest.SetGlobalRandom
 	rsaKey, err := rsa.GenerateKey(s.random, s.keySizeBits)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error generating RSA key for jwks: %w", err)
@@ -122,7 +131,7 @@ func (s *CryptoService) createCert(
 
 	now := s.clock.Now().UTC()
 	if now.Equal(notAfter) || now.After(notAfter) {
-		return nil, nil, fmt.Errorf("notAfter (%s) must be after current time (%s)", notAfter, now)
+		return nil, nil, fmt.Errorf("%w: notAfter=%s current=%s", errNotAfterExpired, notAfter, now)
 	}
 
 	pkixName := pkix.Name{
@@ -167,19 +176,19 @@ func (s *CryptoService) RotateJwks(
 	currentJwks *Jwks,
 ) (*Jwks, error) {
 	if currentJwks == nil {
-		return nil, fmt.Errorf("cant rotate JWKS: currentJwks was nil")
+		return nil, errRotateJWKSNilCurrent
 	}
 
 	activeKey, err := FindActiveKey(currentJwks)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("find active key for rotation: %w", err)
 	}
 
 	keyParts := strings.Split(activeKey.KeyID(), ".")
 	currentIndexStr := keyParts[len(keyParts)-1]
 	currentIndex, err := strconv.Atoi(currentIndexStr)
 	if err != nil {
-		return nil, fmt.Errorf("invalid key format: %s", activeKey.KeyID())
+		return nil, fmt.Errorf("%w: %s", errRotateJWKSInvalidKeyFormat, activeKey.KeyID())
 	}
 
 	cert, rsaKey, err := s.createCert(subject, notAfter)
@@ -189,7 +198,7 @@ func (s *CryptoService) RotateJwks(
 
 	newJwks, err := s.createJWKS(cert, rsaKey, currentIndex+1)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create rotated JWKS: %w", err)
 	}
 	newJwks.Keys = append(newJwks.Keys, activeKey)
 	// Keep max 2 keys (newest + previous) to avoid unbounded growth
@@ -203,15 +212,15 @@ func (s *CryptoService) RotateJwks(
 // Each key must have exactly one certificate.
 func FindActiveKey(jwks *Jwks) (*Jwk, error) {
 	if jwks == nil || len(jwks.Keys) == 0 {
-		return nil, fmt.Errorf("JWKS has no keys")
+		return nil, errFindActiveKeyNoKeys
 	}
 
 	var activeKey *Jwk
-	for i := 0; i < len(jwks.Keys); i++ {
+	for i := range len(jwks.Keys) {
 		key := jwks.Keys[i]
 		certificates := key.Certificates()
 		if len(certificates) != 1 {
-			return nil, fmt.Errorf("unexpected number of certificates for key '%s': %d", key.KeyID(), len(certificates))
+			return nil, fmt.Errorf("%w '%s': %d", errFindActiveKeyUnexpectedCertLen, key.KeyID(), len(certificates))
 		}
 
 		if activeKey == nil {
@@ -251,7 +260,19 @@ func signatureAlgorithmFromX509(algo x509.SignatureAlgorithm) (jose.SignatureAlg
 		return jose.PS384, true
 	case x509.SHA512WithRSAPSS:
 		return jose.PS512, true
-	default:
+	case x509.UnknownSignatureAlgorithm,
+		x509.MD2WithRSA,
+		x509.MD5WithRSA,
+		x509.SHA1WithRSA,
+		x509.DSAWithSHA1,
+		x509.DSAWithSHA256,
+		x509.ECDSAWithSHA1,
+		x509.ECDSAWithSHA256,
+		x509.ECDSAWithSHA384,
+		x509.ECDSAWithSHA512,
+		x509.PureEd25519:
 		return "", false
 	}
+
+	return "", false
 }

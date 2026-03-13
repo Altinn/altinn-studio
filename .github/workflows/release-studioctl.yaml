@@ -42,8 +42,8 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
         with:
-          go-version-file: 'releaser/go.mod'
-          cache-dependency-path: releaser/go.sum
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
 
       - name: Configure git
         run: |
@@ -55,7 +55,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           go run . workflow --component studioctl --base-branch "${{ github.event.pull_request.base.ref }}"
-        working-directory: releaser
+        working-directory: src/tools/releaser
 
       - name: Summary
         if: always()
@@ -67,9 +67,9 @@ jobs:
           echo "- **Version source**: latest released section in src/cli/CHANGELOG.md" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [[ -d "releaser/build/release" ]]; then
+          if [[ -d "build/release" ]]; then
             echo "### Assets" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            ls -la releaser/build/release/ >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No assets found"
+            ls -la build/release/ >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No assets found"
             echo '```' >> $GITHUB_STEP_SUMMARY
           fi

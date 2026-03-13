@@ -11,6 +11,9 @@ import { userMock } from 'app-development/test/userMock';
 import { layoutSet3SubformNameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { useParams } from 'react-router-dom';
 
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+}));
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),

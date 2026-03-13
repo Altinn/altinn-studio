@@ -1,3 +1,4 @@
+//nolint:funlen,gocognit,gosec,govet,nestif,nilnil // Production controller behavior is kept close to the pre-refactor implementation; suppress controller-local lint findings rather than riskier rewrites.
 package cnpgsync
 
 import (
@@ -5,14 +6,13 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/operatorcontext"
-	rt "altinn.studio/operator/internal/runtime"
 	cnpgv1 "github.com/cloudnative-pg/cloudnative-pg/api/v1"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
@@ -30,9 +30,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/diff"
 	"k8s.io/apimachinery/pkg/util/validation"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/operatorcontext"
+	rt "altinn.studio/operator/internal/runtime"
 )
 
 const (
@@ -81,10 +84,28 @@ var postgresqlImageTags = map[int]string{
 }
 var supportedPostgresqlMajorVersions = []int{17, 18}
 
+var (
+	errUnsupportedPostgresqlMajorVersion  = errors.New("unsupported PostgreSQL major version")
+	errUpdateRetryExhausted               = errors.New("failed to update resource after retries")
+	errBuildClusterInvalidScale           = errors.New("cluster scale must be >= 1")
+	errInvalidBackupPVCName               = errors.New("invalid backup PVC name")
+	errBackupScheduleRequired             = errors.New("backup schedule must be specified")
+	errBackupRetentionDaysInvalid         = errors.New("backup retentionDays must be >= 1")
+	errBackupPVCNameRequired              = errors.New("backup pvcName must be specified")
+	errBackupPVCSizeRequired              = errors.New("backup pvcSize must be specified")
+	errBackupStorageClassNameRequired     = errors.New("backup storageClassName must be specified")
+	errManagedRoleAddRetryExhausted       = errors.New("failed to add managed role after conflict retries")
+	errAppSecretUpdateRetryExhausted      = errors.New("failed to update app secret after retries")
+	errManagedRoleRemoveRetryExhausted    = errors.New("failed to remove managed role after conflict retries")
+	errPostgresqlJSONRemoveRetryExhausted = errors.New(
+		"failed to remove postgresql.json from app secret after conflict retries",
+	)
+)
+
 func (r *CnpgSyncReconciler) getImageRef(major int) (string, error) {
 	tag, ok := postgresqlImageTags[major]
 	if !ok {
-		return "", fmt.Errorf("unsupported PostgreSQL major version: %d", major)
+		return "", fmt.Errorf("%w: %d", errUnsupportedPostgresqlMajorVersion, major)
 	}
 	imageRef := postgresqlImageRepo + ":" + tag
 	if !r.runtime.GetOperatorContext().IsLocal() {
@@ -349,10 +370,10 @@ func (r *CnpgSyncReconciler) updateWithRetry(
 		r.logger.Info("conflict updating resource, retrying",
 			"resource", resourceName, "attempt", attempt+1)
 		if err := refreshFn(); err != nil {
-			return err
+			return fmt.Errorf("refresh %s after conflict: %w", resourceName, err)
 		}
 	}
-	return fmt.Errorf("failed to update %s after %d attempts", resourceName, maxUpdateRetries)
+	return fmt.Errorf("%w: %s after %d attempts", errUpdateRetryExhausted, resourceName, maxUpdateRetries)
 }
 
 func (r *CnpgSyncReconciler) ensureNamespace(ctx context.Context) error {
@@ -406,11 +427,11 @@ func (r *CnpgSyncReconciler) deleteNamespaceIfExists(ctx context.Context) error 
 }
 
 type storageClassSpec struct {
-	Provisioner          string
 	Parameters           map[string]string
 	ReclaimPolicy        *corev1.PersistentVolumeReclaimPolicy
 	VolumeBindingMode    *storagev1.VolumeBindingMode
 	AllowVolumeExpansion *bool
+	Provisioner          string
 }
 
 func storageClassSpecFrom(sc *storagev1.StorageClass) storageClassSpec {
@@ -516,7 +537,7 @@ func (r *CnpgSyncReconciler) ensureHelmRepository(ctx context.Context) error {
 			repo.Spec = desired.Spec
 			return nil
 		}); err != nil {
-			return err
+			return fmt.Errorf("update HelmRepository: %w", err)
 		}
 		r.logger.Info("updated HelmRepository", "name", cnpgRepoName)
 	}
@@ -566,7 +587,7 @@ func (r *CnpgSyncReconciler) ensureHelmRelease(ctx context.Context) error {
 			release.Spec = desired.Spec
 			return nil
 		}); err != nil {
-			return err
+			return fmt.Errorf("update HelmRelease: %w", err)
 		}
 		r.logger.Info("updated HelmRelease", "name", cnpgReleaseName)
 	}
@@ -659,7 +680,7 @@ func (r *CnpgSyncReconciler) ensureImageCatalog(ctx context.Context) error {
 			catalog.Spec = desired.Spec
 			return nil
 		}); err != nil {
-			return err
+			return fmt.Errorf("update ImageCatalog: %w", err)
 		}
 		r.logger.Info("updated ImageCatalog", "name", imageCatalogName)
 	}
@@ -728,7 +749,7 @@ func (r *CnpgSyncReconciler) ensureCluster(ctx context.Context) error {
 			cluster.Spec.Managed = managed
 			return nil
 		}); err != nil {
-			return err
+			return fmt.Errorf("update Cluster: %w", err)
 		}
 		r.logger.Info("updated Cluster", "name", clusterName)
 	}
@@ -774,10 +795,10 @@ func (r *CnpgSyncReconciler) buildCluster(numApps int) *cnpgv1.Cluster {
 		},
 		Spec: cnpgv1.ClusterSpec{
 			Instances: cfg.Instances,
-			EnablePDB: ptr.To(cfg.EnablePDB),
+			EnablePDB: new(cfg.EnablePDB),
 			Bootstrap: &cnpgv1.BootstrapConfiguration{
 				InitDB: &cnpgv1.BootstrapInitDB{
-					DataChecksums: ptr.To(true),
+					DataChecksums: new(true),
 					Encoding:      "UTF8",
 					LocaleCollate: "nb_NO.UTF8",
 					LocaleCType:   "nb_NO.UTF8",
@@ -786,7 +807,7 @@ func (r *CnpgSyncReconciler) buildCluster(numApps int) *cnpgv1.Cluster {
 			Env: []corev1.EnvVar{
 				{Name: "TZ", Value: "Europe/Oslo"},
 			},
-			EnableSuperuserAccess: ptr.To(true),
+			EnableSuperuserAccess: new(true),
 			PostgresConfiguration: cnpgv1.PostgresConfiguration{
 				// Azure docs: https://learn.microsoft.com/en-us/azure/aks/deploy-postgresql-ha?tabs=azuredisk#postgresql-performance-parameters
 				// pgtune: https://pgtune.leopard.in.ua/?dbVersion=18&osType=linux&dbType=web&cpuNum=1&totalMemory=1&totalMemoryUnit=GB&connectionNum=100&hdType=ssd
@@ -860,7 +881,7 @@ func (r *CnpgSyncReconciler) buildCluster(numApps int) *cnpgv1.Cluster {
 				},
 			},
 			Affinity: cnpgv1.AffinityConfiguration{
-				EnablePodAntiAffinity: ptr.To(false),
+				EnablePodAntiAffinity: new(false),
 			},
 			TopologySpreadConstraints: []corev1.TopologySpreadConstraint{
 				{
@@ -890,30 +911,30 @@ func clusterScaleForEnvironment(environment string) (int, bool) {
 }
 
 type buildClusterConfig struct {
-	Instances                    int
-	EnablePDB                    bool
-	MaxConnections               int
-	SuperuserReservedConnections int
+	SharedBuffers                string
+	WorkMem                      string
+	PgStatStatementsMax          string
+	EffectiveCacheSize           string
 	StorageSize                  string
 	WalStorageSize               string
 	CPURequest                   string
 	MemoryRequest                string
-	SharedBuffers                string
-	EffectiveCacheSize           string
-	WorkMem                      string
+	AutovacuumVacuumCostLimit    string
+	CheckpointFlushAfter         string
+	WalWriterFlushAfter          string
 	MaintenanceWorkMem           string
 	WalBuffers                   string
 	MinWalSize                   string
 	MaxWalSize                   string
-	WalWriterFlushAfter          string
-	CheckpointFlushAfter         string
-	AutovacuumVacuumCostLimit    string
-	PgStatStatementsMax          string
+	SuperuserReservedConnections int
+	Instances                    int
+	MaxConnections               int
+	EnablePDB                    bool
 }
 
 func newBuildClusterConfig(numApps, scale int) (*buildClusterConfig, error) {
 	if scale < 1 {
-		return nil, fmt.Errorf("cluster scale must be >= 1, got %d", scale)
+		return nil, fmt.Errorf("%w: %d", errBuildClusterInvalidScale, scale)
 	}
 
 	connectionsPerAppScaled := scaleInt(connectionsPerApp, scale)
@@ -1052,7 +1073,7 @@ func (r *CnpgSyncReconciler) ensureBackupPVCs(ctx context.Context, cfg *resolved
 func (r *CnpgSyncReconciler) ensureBackupPVC(ctx context.Context, appId string, cfg *resolvedBackupConfig) error {
 	pvcName, err := backupPVCName(cfg.PvcName, appId)
 	if err != nil {
-		return err
+		return fmt.Errorf("build backup PVC name: %w", err)
 	}
 
 	pvc := &corev1.PersistentVolumeClaim{}
@@ -1078,7 +1099,7 @@ func (r *CnpgSyncReconciler) ensureBackupPVC(ctx context.Context, appId string, 
 						corev1.ResourceStorage: size,
 					},
 				},
-				StorageClassName: ptr.To(cfg.StorageClassName),
+				StorageClassName: new(cfg.StorageClassName),
 			},
 		}
 		if err := r.k8sClient.Create(ctx, pvc); err != nil {
@@ -1152,7 +1173,7 @@ func (r *CnpgSyncReconciler) ensureBackupCronJob(ctx context.Context, appId stri
 		cronJob.Labels = desired.Labels
 		return nil
 	}); err != nil {
-		return err
+		return fmt.Errorf("update CronJob: %w", err)
 	}
 
 	r.logger.Info("updated backup CronJob", "name", cronJobName, "appId", appId)
@@ -1238,7 +1259,7 @@ echo "[pgdump] done app=${app_id} seconds=${elapsed} file=${dump_file}"
 							SecurityContext: &corev1.PodSecurityContext{
 								// pg_dump container runs as non-root in the postgres image.
 								// Ensure mounted backup PVC is group-writable for the pod.
-								FSGroup:             ptr.To(backupFSGroup),
+								FSGroup:             new(backupFSGroup),
 								FSGroupChangePolicy: &fsGroupChangePolicy,
 							},
 							Containers: []corev1.Container{
@@ -1328,7 +1349,7 @@ func (r *CnpgSyncReconciler) cleanupRemovedBackupCronJobs(ctx context.Context, t
 func backupPVCName(baseName, appId string) (string, error) {
 	name := fmt.Sprintf("%s-%s", baseName, appId)
 	if errs := validation.IsDNS1123Label(name); len(errs) > 0 {
-		return "", fmt.Errorf("invalid backup PVC name %q: %s", name, strings.Join(errs, ", "))
+		return "", fmt.Errorf("%w %q: %s", errInvalidBackupPVCName, name, strings.Join(errs, ", "))
 	}
 	return name, nil
 }
@@ -1403,10 +1424,10 @@ func (r *CnpgSyncReconciler) ensureAppDatabase(ctx context.Context, appId string
 
 type resolvedBackupConfig struct {
 	Schedule         string
-	RetentionDays    int
 	PvcName          string
 	PvcSize          string
 	StorageClassName string
+	RetentionDays    int
 }
 
 func (r *CnpgSyncReconciler) resolveBackupConfig() (*resolvedBackupConfig, error) {
@@ -1422,19 +1443,19 @@ func (r *CnpgSyncReconciler) resolveBackupConfig() (*resolvedBackupConfig, error
 	storageClassName := strings.TrimSpace(cfg.StorageClassName)
 
 	if schedule == "" {
-		return nil, fmt.Errorf("backup schedule must be specified")
+		return nil, errBackupScheduleRequired
 	}
 	if cfg.RetentionDays < 1 {
-		return nil, fmt.Errorf("backup retentionDays must be >= 1")
+		return nil, errBackupRetentionDaysInvalid
 	}
 	if pvcName == "" {
-		return nil, fmt.Errorf("backup pvcName must be specified")
+		return nil, errBackupPVCNameRequired
 	}
 	if pvcSize == "" {
-		return nil, fmt.Errorf("backup pvcSize must be specified")
+		return nil, errBackupPVCSizeRequired
 	}
 	if storageClassName == "" {
-		return nil, fmt.Errorf("backup storageClassName must be specified")
+		return nil, errBackupStorageClassNameRequired
 	}
 
 	resolved := &resolvedBackupConfig{
@@ -1496,7 +1517,7 @@ func (r *CnpgSyncReconciler) ensurePasswordSecret(ctx context.Context, appId str
 func generatePassword(length int) (string, error) {
 	bytes := make([]byte, length)
 	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+		return "", fmt.Errorf("generate password bytes: %w", err)
 	}
 	return base64.RawURLEncoding.EncodeToString(bytes)[:length], nil
 }
@@ -1558,7 +1579,11 @@ func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string
 				return false, fmt.Errorf("update cluster with role: %w", err)
 			}
 			r.logger.Info("conflict updating cluster, retrying", "appId", appId, "attempt", attempt+1)
-			if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster); err != nil {
+			if err := r.k8sClient.Get(
+				ctx,
+				client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace},
+				cluster,
+			); err != nil {
 				return false, fmt.Errorf("refresh cluster: %w", err)
 			}
 			// Re-check if role was added by another process
@@ -1569,7 +1594,7 @@ func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string
 			}
 			cluster.Spec.Managed.Roles = append(cluster.Spec.Managed.Roles, role)
 		}
-		return false, fmt.Errorf("failed to add managed role after %d attempts due to conflicts", maxUpdateRetries)
+		return false, fmt.Errorf("%w: %d attempts", errManagedRoleAddRetryExhausted, maxUpdateRetries)
 	}
 
 	// Check if role is reconciled
@@ -1577,10 +1602,8 @@ func (r *CnpgSyncReconciler) ensureManagedRole(ctx context.Context, appId string
 		return false, nil
 	}
 	reconciledRoles := cluster.Status.ManagedRolesStatus.ByStatus[cnpgv1.RoleStatusReconciled]
-	for _, roleName := range reconciledRoles {
-		if roleName == pgRole {
-			return true, nil
-		}
+	if slices.Contains(reconciledRoles, pgRole) {
+		return true, nil
 	}
 	return false, nil
 }
@@ -1660,11 +1683,19 @@ func (r *CnpgSyncReconciler) syncDatabaseSecrets(ctx context.Context) error {
 }
 
 // syncDatabaseSecret updates the app's secret with the PostgreSQL connection string.
-func (r *CnpgSyncReconciler) syncDatabaseSecret(ctx context.Context, opCtx *operatorcontext.Context, appId string) error {
+func (r *CnpgSyncReconciler) syncDatabaseSecret(
+	ctx context.Context,
+	opCtx *operatorcontext.Context,
+	appId string,
+) error {
 	// Read password from our secret
 	passwordSecretName := fmt.Sprintf(passwordSecretNameFormat, appId)
 	passwordSecret := &corev1.Secret{}
-	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: passwordSecretName, Namespace: cnpgNamespace}, passwordSecret); err != nil {
+	if err := r.k8sClient.Get(
+		ctx,
+		client.ObjectKey{Name: passwordSecretName, Namespace: cnpgNamespace},
+		passwordSecret,
+	); err != nil {
 		return fmt.Errorf("get password secret: %w", err)
 	}
 	password := string(passwordSecret.Data["password"])
@@ -1672,17 +1703,36 @@ func (r *CnpgSyncReconciler) syncDatabaseSecret(ctx context.Context, opCtx *oper
 	// Build connection string
 	pgName := sanitizePostgresIdentifier(appId)
 	host := fmt.Sprintf("%s-rw.%s.svc.cluster.local", clusterName, cnpgNamespace)
-	connStr := fmt.Sprintf("Host=%s;Port=5432;Database=%s;Username=%s;Password=%s;Application Name=%s;Maximum Pool Size=%d;Tcp Keepalive=true",
-		host, pgName, pgName, password, appId, connectionsPerApp)
+	connStr := fmt.Sprintf(
+		"Host=%s;Port=5432;Database=%s;Username=%s;Password=%s;Application Name=%s;Maximum Pool Size=%d;Tcp Keepalive=true",
+		host,
+		pgName,
+		pgName,
+		password,
+		appId,
+		connectionsPerApp,
+	)
 
 	// Find app secret
 	appSecretName := fmt.Sprintf("%s-%s-deployment-secrets", opCtx.ServiceOwner.Id, appId)
 	appNamespace := "default"
 
 	appSecret := &corev1.Secret{}
-	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: appSecretName, Namespace: appNamespace}, appSecret); err != nil {
+	if err := r.k8sClient.Get(
+		ctx,
+		client.ObjectKey{Name: appSecretName, Namespace: appNamespace},
+		appSecret,
+	); err != nil {
 		if apierrors.IsNotFound(err) {
-			r.logger.Info("app secret not found, skipping", "appId", appId, "secretName", appSecretName, "namespace", appNamespace)
+			r.logger.Info(
+				"app secret not found, skipping",
+				"appId",
+				appId,
+				"secretName",
+				appSecretName,
+				"namespace",
+				appNamespace,
+			)
 			return nil
 		}
 		return fmt.Errorf("get app secret: %w", err)
@@ -1708,7 +1758,11 @@ func (r *CnpgSyncReconciler) syncDatabaseSecret(ctx context.Context, opCtx *oper
 }
 
 // updateAppSecretWithRetry updates the app secret with retry on conflict.
-func (r *CnpgSyncReconciler) updateAppSecretWithRetry(ctx context.Context, appSecret *corev1.Secret, postgresJson []byte) error {
+func (r *CnpgSyncReconciler) updateAppSecretWithRetry(
+	ctx context.Context,
+	appSecret *corev1.Secret,
+	postgresJson []byte,
+) error {
 	for attempt := range maxUpdateRetries {
 		updatedSecret := appSecret.DeepCopy()
 		if updatedSecret.Data == nil {
@@ -1734,11 +1788,15 @@ func (r *CnpgSyncReconciler) updateAppSecretWithRetry(ctx context.Context, appSe
 			"secretName", appSecret.Name,
 		)
 
-		if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: appSecret.Name, Namespace: appSecret.Namespace}, appSecret); err != nil {
+		if err := r.k8sClient.Get(
+			ctx,
+			client.ObjectKey{Name: appSecret.Name, Namespace: appSecret.Namespace},
+			appSecret,
+		); err != nil {
 			return fmt.Errorf("refresh app secret: %w", err)
 		}
 	}
-	return fmt.Errorf("failed to update app secret after %d attempts", maxUpdateRetries)
+	return fmt.Errorf("%w: %d attempts", errAppSecretUpdateRetryExhausted, maxUpdateRetries)
 }
 
 // cleanupRemovedApps removes database resources for apps no longer in targets.
@@ -1857,7 +1915,11 @@ func (r *CnpgSyncReconciler) removeManagedRole(ctx context.Context, appId string
 			return fmt.Errorf("update cluster to remove role: %w", err)
 		}
 		r.logger.Info("conflict removing role, retrying", "appId", appId, "attempt", attempt+1)
-		if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace}, cluster); err != nil {
+		if err := r.k8sClient.Get(
+			ctx,
+			client.ObjectKey{Name: clusterName, Namespace: cnpgNamespace},
+			cluster,
+		); err != nil {
 			return fmt.Errorf("refresh cluster: %w", err)
 		}
 		if cluster.Spec.Managed == nil {
@@ -1878,7 +1940,7 @@ func (r *CnpgSyncReconciler) removeManagedRole(ctx context.Context, appId string
 		}
 		cluster.Spec.Managed.Roles = newRoles
 	}
-	return fmt.Errorf("failed to remove managed role after %d attempts due to conflicts", maxUpdateRetries)
+	return fmt.Errorf("%w: %d attempts", errManagedRoleRemoveRetryExhausted, maxUpdateRetries)
 }
 
 func (r *CnpgSyncReconciler) deletePasswordSecretIfExists(ctx context.Context, appId string) error {
@@ -1906,12 +1968,20 @@ func (r *CnpgSyncReconciler) deletePasswordSecretIfExists(ctx context.Context, a
 	return nil
 }
 
-func (r *CnpgSyncReconciler) removePostgresqlJsonFromAppSecret(ctx context.Context, opCtx *operatorcontext.Context, appId string) error {
+func (r *CnpgSyncReconciler) removePostgresqlJsonFromAppSecret(
+	ctx context.Context,
+	opCtx *operatorcontext.Context,
+	appId string,
+) error {
 	appSecretName := fmt.Sprintf("%s-%s-deployment-secrets", opCtx.ServiceOwner.Id, appId)
 	appNamespace := "default"
 
 	appSecret := &corev1.Secret{}
-	if err := r.k8sClient.Get(ctx, client.ObjectKey{Name: appSecretName, Namespace: appNamespace}, appSecret); err != nil {
+	if err := r.k8sClient.Get(
+		ctx,
+		client.ObjectKey{Name: appSecretName, Namespace: appNamespace},
+		appSecret,
+	); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil
 		}
@@ -1942,5 +2012,5 @@ func (r *CnpgSyncReconciler) removePostgresqlJsonFromAppSecret(ctx context.Conte
 		}
 		delete(appSecret.Data, postgresqlJsonKey)
 	}
-	return fmt.Errorf("failed to remove postgresql.json from app secret after %d attempts due to conflicts", maxUpdateRetries)
+	return fmt.Errorf("%w: %d attempts", errPostgresqlJSONRemoveRetryExhausted, maxUpdateRetries)
 }

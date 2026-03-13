@@ -185,6 +185,109 @@ img {
     margin-left: 22px;
 }
 
+.account-link-warning {
+    background-color: #f9cb9c;
+    border-left: 5px solid #e06c00;
+    padding: 16px 24px;
+    margin: 0 auto 24px auto;
+    max-width: 560px;
+    text-align: left;
+    font-size: 16px;
+    font-size: 1.6rem;
+    line-height: 1.5;
+    color: #022f51;
+}
+
+.account-link-warning strong {
+    font-family: DIN-bold;
+    font-weight: 400;
+}
+
+.account-link-warning a {
+    color: #0062ba;
+    border-bottom: 2px solid #0062ba;
+    font-family: DIN-bold;
+    font-weight: 400;
+}
+
+.login-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.login-modal {
+    background: #fff;
+    border-left: 5px solid #e06c00;
+    padding: 32px;
+    max-width: 520px;
+    width: 90%;
+    font-size: 16px;
+    font-size: 1.6rem;
+    line-height: 1.5;
+    color: #022f51;
+}
+
+.login-modal strong {
+    font-family: DIN-bold;
+    font-weight: 400;
+    font-size: 20px;
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.login-modal p {
+    margin-bottom: 18px;
+}
+
+.login-modal a {
+    color: #0062ba;
+    border-bottom: 2px solid #0062ba;
+    font-family: DIN-bold;
+    font-weight: 400;
+}
+
+.login-modal-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    font-size: 1.4rem;
+}
+
+.login-modal-checkbox input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.login-modal-buttons {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.login-modal-cancel {
+    background: none;
+    border: none;
+    color: #0062ba;
+    cursor: pointer;
+    font-size: 16px;
+    font-size: 1.6rem;
+    padding: 0;
+    border-bottom: 2px solid #0062ba;
+}
+
 .sr-only {
     position: absolute;
     width: 1px;

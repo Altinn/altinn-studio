@@ -2,7 +2,6 @@ using System.Text;
 using Altinn.App.Clients.Fiks.Constants;
 using Altinn.App.Clients.Fiks.Exceptions;
 using Altinn.App.Clients.Fiks.Extensions;
-using Altinn.App.Clients.Fiks.Factories;
 using Altinn.App.Clients.Fiks.FiksArkiv.Models;
 using Altinn.App.Clients.Fiks.FiksIO.Models;
 using Altinn.App.Core.Features.Auth;
@@ -74,7 +73,6 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
         var defaultDocumentTitle = await _fiksArkivConfigResolver.GetApplicationTitle(cancellationToken);
         var documentMetadata = await _fiksArkivConfigResolver.GetArchiveDocumentMetadata(instance, cancellationToken);
         var recipientParty = _fiksArkivConfigResolver.GetRecipientParty(instance, recipient);
-        var serviceOwnerParty = await _fiksArkivConfigResolver.GetServiceOwnerParty(cancellationToken);
         var instanceOwnerParty = await _fiksArkivConfigResolver.GetInstanceOwnerParty(instance, cancellationToken);
         var instanceOwnerClassification = await _fiksArkivConfigResolver.GetInstanceOwnerClassification(
             _authenticationContext.Current,
@@ -126,20 +124,11 @@ internal sealed class FiksArkivDefaultPayloadGenerator : IFiksArkivPayloadGenera
         // Recipient
         journalEntry.Korrespondansepart.Add(recipientParty);
 
-        // Sender(s)
-        journalEntry.Korrespondansepart.Add(serviceOwnerParty);
+        // Sender
         if (instanceOwnerParty is not null)
         {
             journalEntry.Korrespondansepart.Add(instanceOwnerParty);
         }
-
-        // Internal sender
-        journalEntry.Korrespondansepart.Add(
-            KorrespondansepartFactory.CreateInternalSender(
-                partyId: FiksArkivConstants.AltinnOrgNo,
-                partyName: FiksArkivConstants.AltinnSystemId
-            )
-        );
 
         // Main form data file
         journalEntry.Dokumentbeskrivelse.Add(GetDocumentDescription(archiveDocuments.PrimaryDocument));

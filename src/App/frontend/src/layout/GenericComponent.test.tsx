@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 
 import { GenericComponent } from 'src/layout/GenericComponent';

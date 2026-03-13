@@ -9,6 +9,10 @@ import { repository } from 'app-shared/mocks/mocks';
 import { renderWithProviders } from '../../test/mocks';
 import { StudioPageHeaderContextProvider } from '@studio/components/src/components/StudioPageHeader/context';
 
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+}));
+
 jest.mock('@studio/components-legacy/src/hooks/useMediaQuery');
 
 jest.mock('react-router-dom', () => ({

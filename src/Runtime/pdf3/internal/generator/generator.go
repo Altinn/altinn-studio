@@ -8,6 +8,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
+
 	"altinn.studio/pdf3/internal/assert"
 	"altinn.studio/pdf3/internal/browser"
 	"altinn.studio/pdf3/internal/cdp"
@@ -17,21 +21,17 @@ import (
 	"altinn.studio/pdf3/internal/telemetry"
 	"altinn.studio/pdf3/internal/testing"
 	"altinn.studio/pdf3/internal/types"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type Custom struct {
-	logger         *slog.Logger
-	browserVersion types.BrowserVersion
-	tracer         trace.Tracer
-
+	tracer           trace.Tracer
+	logger           *slog.Logger
 	activeSession    atomic.Pointer[browserSession]
+	browserVersion   types.BrowserVersion
 	sessionIDCounter atomic.Int32
 }
 
-// getBrowserVersion starts a temporary browser and retrieves its version information
+// getBrowserVersion starts a temporary browser and retrieves its version information.
 func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	// Start temporary browser instance
 	browserProc, err := browser.Start(-1)
@@ -39,8 +39,8 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 		return types.BrowserVersion{}, fmt.Errorf("failed to create temporary browser for version info: %w", err)
 	}
 	defer func() {
-		if err := browserProc.Close(); err != nil {
-			logger.Error("Failed to close temporary browser", "error", err)
+		if closeErr := browserProc.Close(); closeErr != nil {
+			logger.Error("Failed to close temporary browser", "error", closeErr)
 		}
 	}()
 
@@ -51,7 +51,9 @@ func getBrowserVersion(logger *slog.Logger) (types.BrowserVersion, error) {
 	}
 	defer func() {
 		// Closing connection during init - will be recreated anyway
-		_ = conn.Close()
+		if closeErr := conn.Close(); closeErr != nil {
+			logger.Error("Failed to close temporary browser connection", "error", closeErr)
+		}
 	}()
 
 	// Get browser version using CDP command
@@ -263,12 +265,13 @@ func (g *Custom) periodicRestart() {
 }
 
 type workerRequest struct {
-	request    types.PdfRequest
-	responder  chan workerResponse
-	ctx        context.Context
 	enqueuedAt time.Time
-	cleanedUp  bool
-	logger     *slog.Logger
+	//nolint:containedctx // The request context is the ownership boundary for request cancellation and test-mode state.
+	ctx       context.Context
+	responder chan workerResponse
+	logger    *slog.Logger
+	request   types.PdfRequest
+	cleanedUp bool
 }
 
 func (r *workerRequest) tryGetTestModeInput() *testing.PdfInternalsTestInput {
@@ -325,11 +328,11 @@ func (r *workerRequest) hasResponded() bool {
 }
 
 type workerResponse struct {
-	Data  []byte
 	Error *types.PDFError
+	Data  []byte
 }
 
-// mapCustomError wraps raw custom implementation errors while preserving our PDFErrors
+// mapCustomError wraps raw custom implementation errors while preserving our PDFErrors.
 func mapCustomError(err error) *types.PDFError {
 	if err == nil {
 		return nil

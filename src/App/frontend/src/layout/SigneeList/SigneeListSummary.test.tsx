@@ -1,7 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router';
 
-import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
 import { render } from '@testing-library/react';
 

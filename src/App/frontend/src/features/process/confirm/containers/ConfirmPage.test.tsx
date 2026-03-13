@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AxiosResponse } from 'axios';

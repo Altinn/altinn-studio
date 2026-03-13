@@ -3,24 +3,39 @@ package orgs
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"sync/atomic"
 	"time"
 
-	"altinn.studio/operator/internal/assert"
-	"altinn.studio/operator/internal/telemetry"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	"altinn.studio/operator/internal/assert"
+	"altinn.studio/operator/internal/telemetry"
 )
 
 const (
+	// DefaultRefreshInterval is the background refresh cadence for the cached registry.
 	DefaultRefreshInterval = 1 * time.Hour
-	DefaultInitialBackoff  = 1 * time.Second
-	DefaultMaxBackoff      = 30 * time.Second
-	DefaultMaxRetries      = 5
+	// DefaultInitialBackoff is the first retry delay after a failed fetch.
+	DefaultInitialBackoff = 1 * time.Second
+	// DefaultMaxBackoff is the largest retry delay after repeated failed fetches.
+	DefaultMaxBackoff = 30 * time.Second
+	// DefaultMaxRetries is the maximum number of fetch attempts before giving up.
+	DefaultMaxRetries  = 5
+	defaultHTTPTimeout = 10 * time.Second
+)
+
+var (
+	errMaxRetriesExceeded  = errors.New("max retries exceeded")
+	errUnexpectedStatus    = errors.New("unexpected status code from org registry")
+	errMissingOrgsKey      = errors.New(`invalid org registry payload: missing required top-level key "orgs"`)
+	errEmptyOrgsPayload    = errors.New(`length of "orgs" property is zero`)
+	errRetryContextStopped = errors.New("org registry retry cancelled")
 )
 
 type Org struct {
@@ -39,9 +54,9 @@ type orgRegistryResponse struct {
 }
 
 type OrgRegistry struct {
-	url            string
 	orgs           atomic.Pointer[map[string]Org]
 	httpClient     *http.Client
+	url            string
 	initialBackoff time.Duration
 	maxBackoff     time.Duration
 	maxRetries     int
@@ -63,7 +78,6 @@ func WithRetryConfig(initialBackoff, maxBackoff time.Duration, maxRetries int) O
 	}
 }
 
-// NewOrgRegistry creates a new OrgRegistry and performs the initial fetch with retry.
 func NewOrgRegistry(ctx context.Context, url string, opts ...OrgRegistryOption) (*OrgRegistry, error) {
 	tracer := telemetry.Tracer()
 	ctx, span := tracer.Start(ctx, "OrgRegistry.New")
@@ -72,7 +86,7 @@ func NewOrgRegistry(ctx context.Context, url string, opts ...OrgRegistryOption) 
 	r := &OrgRegistry{
 		url:            url,
 		orgs:           atomic.Pointer[map[string]Org]{},
-		httpClient:     &http.Client{Timeout: 10 * time.Second},
+		httpClient:     &http.Client{Timeout: defaultHTTPTimeout},
 		initialBackoff: DefaultInitialBackoff,
 		maxBackoff:     DefaultMaxBackoff,
 		maxRetries:     DefaultMaxRetries,
@@ -95,7 +109,6 @@ func NewOrgRegistry(ctx context.Context, url string, opts ...OrgRegistryOption) 
 	return r, nil
 }
 
-// Get returns the org for the given service owner ID.
 func (r *OrgRegistry) Get(serviceOwnerId string) (Org, bool) {
 	orgs := r.orgs.Load()
 	if orgs == nil {
@@ -136,7 +149,7 @@ func (r *OrgRegistry) startPeriodicRefresh(ctx context.Context, interval time.Du
 func (r *OrgRegistry) fetchWithRetry(ctx context.Context) error {
 	backoff := r.initialBackoff
 
-	for attempt := 0; attempt < r.maxRetries; attempt++ {
+	for attempt := range r.maxRetries {
 		err := r.fetch(ctx)
 		if err == nil {
 			return nil
@@ -148,7 +161,7 @@ func (r *OrgRegistry) fetchWithRetry(ctx context.Context) error {
 
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("%w: %w", errRetryContextStopped, ctx.Err())
 		case <-time.After(backoff):
 			backoff *= 2
 			if backoff > r.maxBackoff {
@@ -157,7 +170,12 @@ func (r *OrgRegistry) fetchWithRetry(ctx context.Context) error {
 		}
 	}
 
-	return fmt.Errorf("max retries exceeded")
+	return errMaxRetriesExceeded
+}
+
+//nolint:errcheck,gosec // Response body cleanup is best-effort after the body has been fully consumed.
+func closeResponseBody(resp *http.Response) {
+	resp.Body.Close()
 }
 
 func (r *OrgRegistry) fetch(ctx context.Context) error {
@@ -180,17 +198,15 @@ func (r *OrgRegistry) fetch(ctx context.Context) error {
 		span.SetStatus(codes.Error, err.Error())
 		return fmt.Errorf("failed to fetch orgs: %w", err)
 	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
+	defer closeResponseBody(resp)
 
 	span.SetAttributes(attribute.Int("http.status_code", resp.StatusCode))
 
 	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-		span.RecordError(err)
-		span.SetStatus(codes.Error, err.Error())
-		return err
+		statusErr := fmt.Errorf("%w: %d", errUnexpectedStatus, resp.StatusCode)
+		span.RecordError(statusErr)
+		span.SetStatus(codes.Error, statusErr.Error())
+		return statusErr
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -208,14 +224,14 @@ func (r *OrgRegistry) fetch(ctx context.Context) error {
 	}
 
 	if registry.Orgs == nil {
-		err := fmt.Errorf(`invalid org registry payload: missing required top-level key "orgs"`)
+		err := errMissingOrgsKey
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 
 	if len(registry.Orgs) == 0 {
-		err := fmt.Errorf(`length of "orgs" property is zero`)
+		err := errEmptyOrgsPayload
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
 		return err

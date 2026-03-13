@@ -135,7 +135,7 @@ public class AltinnPartyClient : IAltinnPartyClient
     public async Task<int?> GetPartyIdByUrn(string urn)
     {
         using var activity = _telemetry?.StartLookupPartyActivity();
-        string endpointUrl = "access-management/parties/query";
+        string endpointUrl = "apps/parties/query?fields=id,user.id";
         var query = new { data = new string[] { urn } };
         using var content = new StringContent(JsonSerializer.Serialize(query));
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");

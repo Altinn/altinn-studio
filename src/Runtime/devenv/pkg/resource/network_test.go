@@ -28,8 +28,8 @@ func TestNetwork_NetworkName(t *testing.T) {
 
 func TestNetwork_Validate(t *testing.T) {
 	tests := []struct {
-		name    string
 		network *Network
+		name    string
 		wantErr bool
 	}{
 		{
@@ -71,7 +71,7 @@ func TestNetwork_Fields(t *testing.T) {
 	}
 }
 
-// Test that Network implements required interfaces
+// Test that Network implements required interfaces.
 func TestNetwork_ImplementsInterfaces(t *testing.T) {
 	var _ Resource = (*Network)(nil)
 	var _ NetworkResource = (*Network)(nil)

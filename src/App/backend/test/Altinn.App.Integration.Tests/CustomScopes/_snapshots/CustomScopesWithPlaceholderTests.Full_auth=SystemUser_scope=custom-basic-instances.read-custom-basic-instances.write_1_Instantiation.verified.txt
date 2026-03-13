@@ -19,7 +19,7 @@
         no-store, no-cache
       ],
       Location: [
-        https://app:5005/ttd/basic/instances/501337/<instanceGuid>
+        https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>
       ],
       Transfer-Encoding: [
         chunked
@@ -77,7 +77,7 @@
     AppId: ttd/basic,
     Org: ttd,
     SelfLinks: {
-      Apps: https://app:5005/ttd/basic/instances/501337/<instanceGuid>,
+      Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>,
       Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>
     },
     VisibleAfter: DateTime_1,
@@ -107,7 +107,7 @@
         ContentType: application/xml,
         BlobStoragePath: ttd/basic/<instanceGuid>/data/<dataElementId[0]>,
         SelfLinks: {
-          Apps: https://app:5005/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[0]>,
+          Apps: https://local.altinn.cloud:<localtestPort>/ttd/basic/instances/501337/<instanceGuid>/data/<dataElementId[0]>,
           Platform: https://platform.local.altinn.cloud/storage/api/v1/instances/501337/<instanceGuid>/data/<dataElementId[0]>
         },
         Size: 200,

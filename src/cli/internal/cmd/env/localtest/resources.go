@@ -28,6 +28,9 @@ const (
 
 	devImageTagLocaltest = "localtest:dev"
 	devImageTagPDF3      = "localtest-pdf3:dev"
+	flavorDocker         = "Docker"
+	flavorPodman         = "Podman"
+	flavorUnknown        = "Unknown"
 )
 
 // ErrInvalidResourceLayout is returned when required host paths are missing or have wrong type.
@@ -35,10 +38,10 @@ var ErrInvalidResourceLayout = errors.New("invalid localtest resource layout")
 
 // RuntimeConfig holds runtime-specific configuration for localtest.
 type RuntimeConfig struct {
-	HostGateway      string                        // resolved host gateway IP (e.g., "172.17.0.1")
-	LoadBalancerPort string                        // port for localtest (default: "8000")
-	User             string                        // "uid:gid" to run containers as (prevents root-owned bind mount files)
-	Installation     container.RuntimeInstallation // container runtime installation type
+	HostGateway      string                      // resolved host gateway IP (e.g., "172.17.0.1")
+	LoadBalancerPort string                      // port for localtest (default: "8000")
+	User             string                      // "uid:gid" to run containers as (prevents root-owned bind mount files)
+	Platform         container.ContainerPlatform // selected container platform
 }
 
 // ContainerSpec defines a container to run.
@@ -122,7 +125,7 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 		networking.LocalDomain + ":" + cfg.HostGateway,
 	}
 
-	dotnetEnv := cfg.Installation.String()
+	dotnetEnv := localtestEnvironment(cfg.Platform)
 
 	return []ContainerSpec{
 		newContainerSpec(
@@ -158,6 +161,17 @@ func coreContainers(dataDir string, cfg RuntimeConfig) []ContainerSpec {
 			[]string{ContainerLocaltest},
 			nil,
 		),
+	}
+}
+
+func localtestEnvironment(platform container.ContainerPlatform) string {
+	switch platform {
+	case container.PlatformDocker, container.PlatformColima:
+		return flavorDocker
+	case container.PlatformPodman:
+		return flavorPodman
+	default:
+		return flavorUnknown
 	}
 }
 
@@ -276,7 +290,7 @@ type ResourceDestroyOptions struct {
 	DataDir           string
 	Images            config.ImagesConfig
 	IncludeMonitoring bool
-	Installation      container.RuntimeInstallation
+	Platform          container.ContainerPlatform
 }
 
 type containerResourceMode int
@@ -302,7 +316,7 @@ func BuildResources(opts ResourceBuildOptions) []resource.Resource {
 // BuildResourcesForDestroy creates the list of resources need to shutdown localtest.
 func BuildResourcesForDestroy(opts ResourceDestroyOptions) []resource.Resource {
 	runtimeCfg := RuntimeConfig{
-		Installation:     opts.Installation,
+		Platform:         opts.Platform,
 		HostGateway:      "", // not used for destroy
 		LoadBalancerPort: "", // not used for destroy
 		User:             "", // not used for destroy

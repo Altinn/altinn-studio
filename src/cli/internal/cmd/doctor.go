@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"strconv"
+	"strings"
 
 	doctorsvc "altinn.studio/studioctl/internal/cmd/doctor"
 	"altinn.studio/studioctl/internal/config"
@@ -188,8 +189,33 @@ func (c *DoctorCommand) renderDoctorPrerequisitesSection(sec *ui.Section, prereq
 	} else {
 		sec.KeyValueStatus(false, "Container", "not found")
 	}
+	if prerequisites.ContainerResolved != "" {
+		sec.KeyValue("Resolved", prerequisites.ContainerResolved)
+	}
+	if tools := doctorContainerToolsLabel(prerequisites.ContainerTools); tools != "" {
+		sec.KeyValue("Tools", tools)
+	}
+	if prerequisites.ContainerHost != "" {
+		sec.KeyValue("DOCKER_HOST", prerequisites.ContainerHost)
+	}
 
 	c.renderDoctorWindowsPrerequisite(sec, prerequisites)
+}
+
+func doctorContainerToolsLabel(tools []doctorsvc.ContainerTool) string {
+	if len(tools) == 0 {
+		return ""
+	}
+
+	parts := make([]string, 0, len(tools))
+	for _, tool := range tools {
+		if tool.Version != "" {
+			parts = append(parts, tool.Name+" ("+tool.Version+")")
+			continue
+		}
+		parts = append(parts, tool.Name)
+	}
+	return strings.Join(parts, ", ")
 }
 
 func (c *DoctorCommand) renderDoctorWindowsPrerequisite(sec *ui.Section, prerequisites *doctorsvc.Prerequisites) {

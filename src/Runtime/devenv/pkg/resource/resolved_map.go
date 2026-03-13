@@ -5,8 +5,8 @@ import "sync"
 // resolvedMap is a concurrent map for storing resolved resource state.
 // It maps ResourceID to image ID strings.
 type resolvedMap struct {
-	mu sync.Mutex
 	m  map[ResourceID]string
+	mu sync.Mutex
 }
 
 // newResolvedMap creates a new empty resolved map.

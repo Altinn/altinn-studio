@@ -1,3 +1,4 @@
+//nolint:godot // CRD descriptions intentionally preserve the existing generated contract.
 package v1alpha1
 
 import (
@@ -34,21 +35,19 @@ type ActionRecord struct {
 
 // MaskinportenClientStatus defines the observed state of MaskinportenClient
 type MaskinportenClientStatus struct {
+	// LastSynced is the timestamp of the last successful sync towards Maskinporten API
+	LastSynced *metav1.Time `json:"lastSynced,omitempty"`
 	// ClientId is the client id of the client in Maskinporten API
 	ClientId  string   `json:"clientId,omitempty"`
 	Authority string   `json:"authority,omitempty"`
 	KeyIds    []string `json:"keyIds,omitempty"`
-	// LastSynced is the timestamp of the last successful sync towards Maskinporten API
-	// +kubebuilder:validation:Format=date-time
-	LastSynced         *metav1.Time `json:"lastSynced,omitempty"`
-	ObservedGeneration int64        `json:"observedGeneration,omitempty"`
 	// ActionHistory contains up to 10 recent actions, ordered oldest to newest
-	// +optional
 	ActionHistory []ActionRecord `json:"actionHistory,omitempty"`
 	// Conditions represent the latest available observations of the resource's state
 	// +listType=map
 	// +listMapKey=type
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	Conditions         []metav1.Condition `json:"conditions,omitempty"`
+	ObservedGeneration int64              `json:"observedGeneration,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -65,13 +64,15 @@ type MaskinportenClient struct {
 
 // +kubebuilder:object:root=true
 
-// MaskinportenClientList contains a list of MaskinportenClient
+// MaskinportenClientList contains a list of MaskinportenClient.
 type MaskinportenClientList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []MaskinportenClient `json:"items"`
+
+	Items []MaskinportenClient `json:"items"`
 }
 
+//nolint:gochecknoinits // Kubebuilder API registration relies on init.
 func init() {
 	SchemeBuilder.Register(&MaskinportenClient{}, &MaskinportenClientList{})
 }

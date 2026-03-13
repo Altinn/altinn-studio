@@ -3,7 +3,7 @@
   "description": "Default frontend application for Altinn 3 apps created in Altinn Studio",
   "private": true,
   "author": "Altinn",
-  "license": "3-Clause BSD",
+  "license": "MIT",
   "exports": "./src/index.tsx",
   "scripts": {
     "cy:all": "tsx scripts/cypress-run-all.ts",

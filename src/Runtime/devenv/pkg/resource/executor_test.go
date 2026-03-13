@@ -10,6 +10,12 @@ import (
 	"altinn.studio/devenv/pkg/container/types"
 )
 
+var (
+	errDaemonUnavailable = errors.New("daemon unavailable")
+	errStopFailed        = errors.New("stop failed")
+	errRemoveFailed      = errors.New("remove failed")
+)
+
 func TestNormalizedContainerLabels_DoesNotMutateInput(t *testing.T) {
 	t.Parallel()
 
@@ -88,7 +94,7 @@ func TestExecutor_StopAndRemoveContainer_PropagatesStopError(t *testing.T) {
 
 	client := containermock.New()
 	client.ContainerStopFunc = func(context.Context, string, *int) error {
-		return errors.New("daemon unavailable")
+		return errDaemonUnavailable
 	}
 	removeCalled := false
 	client.ContainerRemoveFunc = func(context.Context, string, bool) error {
@@ -113,20 +119,18 @@ func TestExecutor_StopAndRemoveContainer_JoinsStopAndRemoveErrors(t *testing.T) 
 	t.Parallel()
 
 	client := containermock.New()
-	stopErr := errors.New("stop failed")
-	removeErr := errors.New("remove failed")
-	client.ContainerStopFunc = func(context.Context, string, *int) error { return stopErr }
-	client.ContainerRemoveFunc = func(context.Context, string, bool) error { return removeErr }
+	client.ContainerStopFunc = func(context.Context, string, *int) error { return errStopFailed }
+	client.ContainerRemoveFunc = func(context.Context, string, bool) error { return errRemoveFailed }
 
 	exec := NewExecutor(client)
 	err := exec.stopAndRemoveContainer(t.Context(), "test")
 	if err == nil {
 		t.Fatal("stopAndRemoveContainer() expected error, got nil")
 	}
-	if !errors.Is(err, stopErr) {
+	if !errors.Is(err, errStopFailed) {
 		t.Fatalf("stopAndRemoveContainer() error = %v, want to include stopErr", err)
 	}
-	if !errors.Is(err, removeErr) {
+	if !errors.Is(err, errRemoveFailed) {
 		t.Fatalf("stopAndRemoveContainer() error = %v, want to include removeErr", err)
 	}
 }
@@ -145,5 +149,73 @@ func TestExecutor_StopAndRemoveContainer_IgnoresContainerNotFound(t *testing.T) 
 	exec := NewExecutor(client)
 	if err := exec.stopAndRemoveContainer(t.Context(), "test"); err != nil {
 		t.Fatalf("stopAndRemoveContainer() error = %v, want nil", err)
+	}
+}
+
+func TestExecutor_ApplyRemoteImage_EmitsProgressEvents(t *testing.T) {
+	t.Parallel()
+
+	client := containermock.New()
+
+	inspectCalls := 0
+	client.ImageInspectFunc = func(context.Context, string) (types.ImageInfo, error) {
+		inspectCalls++
+		if inspectCalls == 1 {
+			return types.ImageInfo{}, types.ErrImageNotFound
+		}
+		return types.ImageInfo{ID: "sha256:test-image"}, nil
+	}
+
+	client.ImagePullWithProgressFunc = func(
+		context.Context,
+		string,
+		types.ProgressHandler,
+	) error {
+		return nil
+	}
+
+	img := &RemoteImage{
+		Ref:        "ghcr.io/altinn/test:latest",
+		PullPolicy: PullAlways,
+	}
+
+	graph := NewGraph()
+	if err := graph.Add(img); err != nil {
+		t.Fatalf("graph.Add() error = %v", err)
+	}
+	if err := graph.Validate(); err != nil {
+		t.Fatalf("graph.Validate() error = %v", err)
+	}
+
+	var progressEvents int
+	client.ImagePullWithProgressFunc = func(
+		_ context.Context,
+		_ string,
+		onProgress types.ProgressHandler,
+	) error {
+		if onProgress != nil {
+			onProgress(types.ProgressUpdate{Message: "layer 1", Current: 2, Total: 10})
+			onProgress(types.ProgressUpdate{Message: "layer 1", Current: 10, Total: 10})
+		}
+		return nil
+	}
+
+	exec := NewExecutor(client)
+	exec.SetObserver(ObserverFunc(func(event Event) {
+		if event.Type != EventApplyProgress || event.Resource != img.ID() {
+			return
+		}
+		if event.Progress == nil {
+			t.Fatal("EventApplyProgress without Progress payload")
+		}
+		progressEvents++
+	}))
+
+	if err := exec.Apply(t.Context(), graph); err != nil {
+		t.Fatalf("Apply() error = %v", err)
+	}
+
+	if progressEvents < 2 {
+		t.Fatalf("progress events = %d, want at least 2", progressEvents)
 	}
 }

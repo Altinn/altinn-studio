@@ -1,3 +1,4 @@
+// Package oci wraps the OCI client used by the local runtime fixture.
 package oci
 
 import (
@@ -7,17 +8,19 @@ import (
 	ociclient "github.com/fluxcd/pkg/oci"
 )
 
+// Client pushes OCI artifacts used by the local runtime fixture.
 type Client struct {
 	client *ociclient.Client
 }
 
+// NewClient creates an OCI registry client with Flux defaults.
 func NewClient() *Client {
 	return &Client{
 		client: ociclient.NewClient(ociclient.DefaultOptions()),
 	}
 }
 
-// PushArtifact pushes an OCI artifact to a registry
+// PushArtifact pushes an OCI artifact to a registry.
 func (c *Client) PushArtifact(url, path, source, revision string) error {
 	ctx := context.Background()
 

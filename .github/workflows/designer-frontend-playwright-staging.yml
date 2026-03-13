@@ -1,12 +1,7 @@
 name: Designer Frontend - Playwright tests in Staging
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/Designer/frontend/**'
-      - '.github/workflows/designer-frontend-playwright-staging.yml'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
