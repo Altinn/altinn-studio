@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Json.Schema;
+using System.Linq;
 
 namespace Altinn.Studio.DataModeling.Json.Keywords
 {
@@ -60,7 +60,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// <returns>true of the objects hold the same values. false otherwise.</returns>
         public bool Equals(NamedKeyValuePairs other)
         {
-            return other != null && Name == other.Name && Properties.ContentsEqual(other.Properties);
+            return other != null && Name == other.Name && Properties.SequenceEqual(other.Properties);
         }
 
         /// <summary>
