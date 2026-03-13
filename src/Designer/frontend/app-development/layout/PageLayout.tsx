@@ -53,15 +53,14 @@ export const PageLayout = (): React.ReactNode => {
   }
 
   return (
-    <>
-      <PageHeaderContextProvider user={user} repoOwnerIsOrg={repoOwnerIsOrg}>
-        <PageHeader
-          showSubMenu={!repoStatus?.hasMergeConflict}
-          isRepoError={repoStatusError !== null}
-        />
-      </PageHeaderContextProvider>
-      <Pages repoStatus={repoStatus} repoStatusError={repoStatusError} />
-    </>
+    <PageHeaderContextProvider user={user} repoOwnerIsOrg={repoOwnerIsOrg}>
+      <PageHeader
+        showSubMenu={!repoStatus?.hasMergeConflict}
+        isRepoError={repoStatusError !== null}
+      >
+        <Pages repoStatus={repoStatus} repoStatusError={repoStatusError} />
+      </PageHeader>
+    </PageHeaderContextProvider>
   );
 };
 

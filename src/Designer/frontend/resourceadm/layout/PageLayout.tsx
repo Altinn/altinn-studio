@@ -57,10 +57,15 @@ export const PageLayout = (): React.JSX.Element => {
     };
   }, []);
 
-  return (
-    <>
-      {organizations && user && <ResourceAdmHeader organizations={organizations} user={user} />}
-      {hasMergeConflict ? <MergeConflict org={org} repo={app} /> : <Outlet />}
-    </>
-  );
+  const pageContent = hasMergeConflict ? <MergeConflict org={org} repo={app} /> : <Outlet />;
+
+  if (organizations && user) {
+    return (
+      <ResourceAdmHeader organizations={organizations} user={user}>
+        {pageContent}
+      </ResourceAdmHeader>
+    );
+  }
+
+  return pageContent;
 };

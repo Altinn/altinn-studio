@@ -25,14 +25,13 @@ export const PageLayout = () => {
   if (!isRedirectionComplete) return <StudioPageSpinner spinnerTitle={t('dashboard.loading')} />;
 
   return (
-    <>
-      <HeaderContextProvider
-        user={headerContextValue.user}
-        selectableOrgs={headerContextValue.selectableOrgs}
-      >
-        <DashboardHeader />
-      </HeaderContextProvider>
-      <Outlet />
-    </>
+    <HeaderContextProvider
+      user={headerContextValue.user}
+      selectableOrgs={headerContextValue.selectableOrgs}
+    >
+      <DashboardHeader>
+        <Outlet />
+      </DashboardHeader>
+    </HeaderContextProvider>
   );
 };
