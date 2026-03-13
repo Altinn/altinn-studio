@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { MaskinportenTab } from './MaskinportenTab';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -33,11 +33,11 @@ describe('MaskinportenTab', () => {
       getSelectedMaskinportenScopes,
     });
 
-    await waitFor(() =>
-      expect(
-        screen.getByText(textMock('app_settings.maskinporten_no_scopes_available_description')),
-      ).toBeInTheDocument(),
-    );
+    expect(
+      await screen.findByText(
+        textMock('app_settings.maskinporten_no_scopes_available_description'),
+      ),
+    ).toBeInTheDocument();
   });
 });
 
