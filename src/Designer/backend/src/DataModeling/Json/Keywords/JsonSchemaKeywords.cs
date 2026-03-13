@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Json.Keywords
@@ -16,40 +11,72 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
 
         private static volatile bool s_keywordsRegistered;
 
+        private static Dialect s_dialect;
+
         /// <summary>
-        /// Register custom keywords in
+        /// Register custom keywords by extending the default dialect.
         /// </summary>
         public static void RegisterXsdKeywords()
         {
-            // Basic double checked locking pattern
             if (!s_keywordsRegistered)
             {
                 lock (s_lock)
                 {
                     if (!s_keywordsRegistered)
                     {
-                        IEnumerable<Type> keywordTypes = typeof(JsonSchemaKeywords)
-                            .Assembly.GetTypes()
-                            .Where(t =>
-                                typeof(IJsonSchemaKeyword).IsAssignableFrom(t)
-                                && t.GetCustomAttribute<SchemaKeywordAttribute>() != null
-                            );
+                        IKeywordHandler[] customHandlers =
+                        [
+                            FormatExclusiveMaximumKeyword.Instance,
+                            FormatExclusiveMinimumKeyword.Instance,
+                            FormatMaximumKeyword.Instance,
+                            FormatMinimumKeyword.Instance,
+                            InfoKeyword.Instance,
+                            XsdAnyKeyword.Instance,
+                            XsdAnyAttributeKeyword.Instance,
+                            XsdAttributeKeyword.Instance,
+                            XsdMaxOccursKeyword.Instance,
+                            XsdMinOccursKeyword.Instance,
+                            XsdNamespacesKeyword.Instance,
+                            XsdNillableKeyword.Instance,
+                            XsdRestrictionsKeyword.Instance,
+                            XsdRootElementKeyword.Instance,
+                            XsdSchemaAttributesKeyword.Instance,
+                            XsdStructureKeyword.Instance,
+                            XsdTextKeyword.Instance,
+                            XsdTotalDigitsKeyword.Instance,
+                            XsdTypeKeyword.Instance,
+                            XsdUnhandledAttributesKeyword.Instance,
+                            XsdUnhandledEnumAttributesKeyword.Instance,
+                        ];
 
-                        MethodInfo registerMethod = typeof(SchemaKeywordRegistry).GetMethod(
-                            "Register",
-                            BindingFlags.Static | BindingFlags.Public
+                        s_dialect = Dialect.Draft202012.With(
+                            customHandlers,
+                            id: Dialect.Draft202012.Id,
+                            allowUnknownKeywords: true
                         );
-                        Debug.Assert(registerMethod != null, nameof(registerMethod) + " != null");
-
-                        foreach (Type keywordType in keywordTypes)
-                        {
-                            registerMethod.MakeGenericMethod(keywordType).Invoke(null, Array.Empty<object>());
-                        }
+                        Dialect.Default = s_dialect;
 
                         s_keywordsRegistered = true;
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets fresh build options configured with the custom dialect.
+        /// A new instance is created each time to avoid schema registry conflicts.
+        /// </summary>
+        public static BuildOptions GetBuildOptions()
+        {
+            RegisterXsdKeywords();
+            var dialectRegistry = new DialectRegistry();
+            dialectRegistry.Register(s_dialect);
+            return new BuildOptions
+            {
+                Dialect = s_dialect,
+                SchemaRegistry = new SchemaRegistry(),
+                DialectRegistry = dialectRegistry,
+            };
         }
     }
 }
