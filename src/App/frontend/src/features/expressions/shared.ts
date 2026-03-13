@@ -9,14 +9,14 @@ import type { IApplicationSettings, IData, IInstance, IProcess, ITask } from 'sr
 
 export type DataModelAndElement = {
   dataElement: IData;
-  data: unknown;
+  data: object;
 };
 
 interface SharedTest {
   name: string;
   disabledFrontend?: boolean;
   layouts?: ILayoutCollection;
-  dataModel?: unknown;
+  dataModel?: object;
   dataModels?: DataModelAndElement[];
   instance?: IInstance;
   process?: IProcess;

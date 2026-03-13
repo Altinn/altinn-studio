@@ -4,6 +4,7 @@ import { jest } from '@jest/globals';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import * as useDeviceWidths from 'src/hooks/useDeviceWidths';
@@ -95,20 +96,23 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
       ...component,
     },
     queries: {
-      fetchDataModelSchema: async () => ({
-        type: 'object',
-        properties: {
-          CountryName: {
-            type: 'string',
-          },
-          CountryPopulation: {
-            type: 'number',
-          },
-          CountryHighestMountain: {
-            type: 'number',
-          },
-        },
-      }),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].schema = {
+            type: 'object',
+            properties: {
+              CountryName: {
+                type: 'string',
+              },
+              CountryPopulation: {
+                type: 'number',
+              },
+              CountryHighestMountain: {
+                type: 'number',
+              },
+            },
+          };
+        }),
       fetchDataList: async () => ({
         listItems: countries,
         _metaData: {

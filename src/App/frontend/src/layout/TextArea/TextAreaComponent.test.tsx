@@ -3,6 +3,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -12,9 +13,10 @@ describe('TextAreaComponent', () => {
   it('should render with initial text value', async () => {
     await render({
       queries: {
-        fetchFormData: async () => ({
-          myTextArea: 'initial text content',
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { myTextArea: 'initial text content' };
+          }),
       },
     });
 
@@ -29,9 +31,10 @@ describe('TextAreaComponent', () => {
 
     const { formDataMethods } = await render({
       queries: {
-        fetchFormData: async () => ({
-          myTextArea: initialText,
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { myTextArea: initialText };
+          }),
       },
     });
 
@@ -53,9 +56,10 @@ describe('TextAreaComponent', () => {
         readOnly: true,
       },
       queries: {
-        fetchFormData: async () => ({
-          myTextArea: initialText,
-        }),
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.dataModels[defaultDataTypeMock].initialData = { myTextArea: initialText };
+          }),
       },
     });
 

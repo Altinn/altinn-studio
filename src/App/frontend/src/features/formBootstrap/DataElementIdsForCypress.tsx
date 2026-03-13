@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 
 export function UpdateDataElementIdsForCypress() {
-  const dataElementIds = DataModels.useDataElementIds();
+  const dataElementIds = FormBootstrap.useDataElementIds();
 
   useEffect(() => {
     if (window.Cypress) {

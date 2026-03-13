@@ -4,7 +4,7 @@ import { customReceiptPageAnother, customReceiptPageReceipt } from 'test/e2e/sup
 import { interceptAltinnAppGlobalData } from 'test/e2e/support/intercept-global-data';
 
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
-import type { ILayoutCollection } from 'src/layout/layout';
+import type { FormBootstrapResponse } from 'src/features/formBootstrap/types';
 import type { IInstance } from 'src/types/shared';
 
 const appFrontend = new AppFrontend();
@@ -136,15 +136,16 @@ function interceptAndAddCustomReceipt() {
     };
   });
 
-  cy.intercept('**/layouts/CustomReceipt', (req) => {
-    req.on('response', (res) => {
-      // Layouts are returned as text/plain for some reason
-      const layouts = JSON.parse(res.body) as ILayoutCollection;
-      layouts.receipt = { data: { layout: customReceiptPageReceipt } };
-      layouts.another = { data: { layout: customReceiptPageAnother } };
-      res.body = JSON.stringify(layouts);
-    });
-  }).as('FormLayout');
+  cy.intercept('**/bootstrap-form/CustomReceipt?language=nb', (req) => {
+    req.reply({
+      layouts: {
+        receipt: { data: { layout: customReceiptPageReceipt } },
+        another: { data: { layout: customReceiptPageAnother } },
+      },
+      dataModels: {},
+      staticOptions: {},
+    } satisfies FormBootstrapResponse);
+  }).as('FormBootstrap');
 }
 
 export function testCustomReceiptPage() {

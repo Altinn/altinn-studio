@@ -2,6 +2,7 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { defaultDataTypeMock, getUiConfigMock } from 'src/__mocks__/getUiConfigMock';
 import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -38,42 +39,45 @@ describe('NavigationButtons', () => {
       genericProps,
       initialPage: currentPageId,
       queries: {
-        fetchLayouts: async () => ({
-          layout1: {
-            data: {
-              layout: [
-                {
-                  type: 'Input',
-                  id: 'mockId1',
-                  dataModelBindings: {
-                    simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding1' },
-                  },
-                  readOnly: false,
-                  required: false,
-                  textResourceBindings: {},
+        fetchFormBootstrapForInstance: async () =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = {
+              layout1: {
+                data: {
+                  layout: [
+                    {
+                      type: 'Input',
+                      id: 'mockId1',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding1' },
+                      },
+                      readOnly: false,
+                      required: false,
+                      textResourceBindings: {},
+                    },
+                    ...(currentPageId === 'layout1' ? [component] : []),
+                  ],
                 },
-                ...(currentPageId === 'layout1' ? [component] : []),
-              ],
-            },
-          },
-          layout2: {
-            data: {
-              layout: [
-                {
-                  type: 'Input',
-                  id: 'mockId2',
-                  dataModelBindings: {
-                    simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding2' },
-                  },
-                  readOnly: false,
-                  required: false,
-                  textResourceBindings: {},
+              },
+              layout2: {
+                data: {
+                  layout: [
+                    {
+                      type: 'Input',
+                      id: 'mockId2',
+                      dataModelBindings: {
+                        simpleBinding: { dataType: defaultDataTypeMock, field: 'mockDataBinding2' },
+                      },
+                      readOnly: false,
+                      required: false,
+                      textResourceBindings: {},
+                    },
+                    ...(currentPageId === 'layout2' ? [component] : []),
+                  ],
                 },
-                ...(currentPageId === 'layout2' ? [component] : []),
-              ],
-            },
-          },
-        }),
+              },
+            };
+          }),
       },
     });
   };

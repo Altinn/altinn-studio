@@ -1,4 +1,4 @@
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { Validation } from 'src/features/validation/validationContext';
 import { getRecursiveValidations, makeComponentIdIndex } from 'src/features/validation/ValidationStorePlugin';
@@ -16,7 +16,7 @@ export function useOnGroupCloseValidation() {
   const setNodeVisibility = NodesInternal.useSetNodeVisibility();
   const validating = Validation.useValidating();
   const nodeStore = NodesInternal.useStore();
-  const lookups = useLayoutLookups();
+  const lookups = FormBootstrap.useLayoutLookups();
   const idMutator = useComponentIdMutator(true);
 
   /* Ensures the callback will have the latest state */

@@ -9,6 +9,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
+import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
 import { fetchInstanceData, fetchProcessState } from 'src/queries/queries';
@@ -152,9 +153,22 @@ describe('All known UI folders should render successfully', () => {
       renderer: () =>
         subformComponent ? <SubformTestWrapper baseId={subformComponent.id}>{children}</SubformTestWrapper> : children,
       queries: {
-        fetchLayouts: async (setId) => uiFolder.app.getUiFolder(setId).getLayouts(),
-        fetchFormData: async (url) => uiFolder.getModel({ url }).simulateDataModel(),
-        fetchDataModelSchema: async (name) => uiFolder.getModel({ name }).getSchema(),
+        fetchFormBootstrapForInstance: async (options) =>
+          getFormBootstrapMock((obj) => {
+            obj.layouts = uiFolder.app.getUiFolder(options.uiFolder).getLayouts();
+            const models = uiFolder.app.getDataModelsFromMetaData();
+            obj.dataModels = Object.fromEntries(
+              models.map((model) => [
+                model.getName(),
+                getDataModelBootstrapMock((obj) => {
+                  obj.schema = model.getSchema();
+                  obj.initialData = uiFolder.getModel({ name: model.getName() }).simulateDataModel();
+                  obj.dataElementId = `fakeUuid:${model.getName()}:end`;
+                  obj.expressionValidationConfig = null;
+                }),
+              ]),
+            );
+          }),
         fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,
       },
       alwaysRouteToChildren: true,

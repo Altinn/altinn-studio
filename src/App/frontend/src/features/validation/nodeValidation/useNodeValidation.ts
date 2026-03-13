@@ -1,4 +1,4 @@
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Validation } from 'src/features/validation/validationContext';
 import {
   type CompDef,
@@ -9,7 +9,6 @@ import {
 } from 'src/layout';
 import { useIndexedId } from 'src/utils/layout/DataModelLocation';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useExternalItem } from 'src/utils/layout/hooks';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { AnyValidation, BaseValidation } from 'src/features/validation';
@@ -26,7 +25,7 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
   const def = getComponentDef(component.type);
   const indexedId = useIndexedId(baseComponentId);
   const registry = GeneratorInternal.useRegistry();
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const dataModelBindings = GeneratorInternal.useIntermediateItem()?.dataModelBindings;
   const bindings = Object.entries((dataModelBindings ?? {}) as Record<string, IDataModelReference>);
 
@@ -44,7 +43,7 @@ export function useNodeValidation(baseComponentId: string): AnyValidation[] {
     unfiltered.push(...def.useComponentValidation(baseComponentId));
   }
 
-  const getDataElementIdForDataType = GeneratorData.useGetDataElementIdForDataType();
+  const getDataElementIdForDataType = FormBootstrap.useGetDataElementIdForDataType();
   const fieldValidations = Validation.useFullState((state) => {
     const validations: BaseValidation[] = [];
     for (const [bindingKey, { dataType, field }] of bindings) {

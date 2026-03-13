@@ -3,9 +3,7 @@ import {
   getDataListsUrl,
   getEnvironmentLoginUrl,
   getHostname,
-  getInstanceLayoutsUrl,
   getInstantiateUrl,
-  getLayoutsUrl,
   getOptionsUrl,
   getProcessStateUrl,
   getSetSelectedPartyUrl,
@@ -344,21 +342,6 @@ describe('Frontend urlHelper.ts', () => {
       expect(result).toEqual(
         'https://local.altinn.cloud/ttd/test/api/datalists/country?language=no&size=10&page=2&sortColumn=id&sortDirection=desc&selectedCountry=Norway',
       );
-    });
-  });
-
-  describe('getLayoutsUrl', () => {
-    it('should return layout as passed argument', () => {
-      const result = getLayoutsUrl('custom-layout.json');
-
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/layouts/custom-layout.json');
-    });
-  });
-
-  describe('getInstanceLayoutsUrl', () => {
-    it('should include instance ID in layout URL when provided', () => {
-      const result = getInstanceLayoutsUrl('custom-layout.json', 'instanceId-1234');
-      expect(result).toBe('https://local.altinn.cloud/ttd/test/instances/instanceId-1234/layouts/custom-layout.json');
     });
   });
 });

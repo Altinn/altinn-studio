@@ -9,11 +9,11 @@ import { convertData } from 'src/features/formData/convertData';
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { DEFAULT_DEBOUNCE_TIMEOUT } from 'src/features/formData/types';
 import { getFeature } from 'src/features/toggles';
-import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
+import type { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
 import type { DebounceReason } from 'src/features/formData/types';
-import type { ChangeInstanceData } from 'src/features/instance/InstanceContext';
+import type { ChangeInstanceData, InstanceDataSelector } from 'src/features/instance/InstanceContext';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IInstance } from 'src/types/shared';
@@ -51,9 +51,6 @@ export interface DataModelState {
   // This identifies the specific data element in storage. This is needed for identifying the correct model when receiving updates from the server.
   // For stateless apps, this will be null.
   dataElementId: string | null;
-
-  // Whether this data model can be written to or not
-  readonly: boolean;
 }
 
 interface LockRequest {
@@ -211,6 +208,7 @@ export type FormDataContext = FormDataState & FormDataMethods;
 function makeActions(
   set: (fn: (state: FormDataContext) => void) => void,
   changeInstance: ChangeInstanceData,
+  selectFromInstance: InstanceDataSelector,
   schemaLookup: { [dataType: string]: SchemaLookupTool },
 ): FormDataMethods {
   const debounceOnBlur = getFeature('saveOnBlur').value;
@@ -357,7 +355,7 @@ function makeActions(
       }),
     setLeafValue: ({ reference, newValue, callback, ...rest }) =>
       set((state) => {
-        if (state.dataModels[reference.dataType].readonly) {
+        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           callback?.(FDSetValueReadOnly);
           return;
@@ -377,7 +375,7 @@ function makeActions(
     // list items are immediate.
     appendToListUnique: ({ reference, newValue }) =>
       set((state) => {
-        if (state.dataModels[reference.dataType].readonly) {
+        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -394,7 +392,7 @@ function makeActions(
       }),
     appendToList: ({ reference, newValue }) =>
       set((state) => {
-        if (state.dataModels[reference.dataType].readonly) {
+        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -428,7 +426,7 @@ function makeActions(
       }),
     removeIndexFromList: ({ reference, index }) =>
       set((state) => {
-        if (state.dataModels[reference.dataType].readonly) {
+        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -442,7 +440,7 @@ function makeActions(
 
     removeValueFromList: ({ reference, value }) =>
       set((state) => {
-        if (state.dataModels[reference.dataType].readonly) {
+        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -455,7 +453,7 @@ function makeActions(
       }),
     removeFromListCallback: ({ reference, startAtIndex, callback }) =>
       set((state) => {
-        if (state.dataModels[reference.dataType].readonly) {
+        if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
           window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
           return;
         }
@@ -499,7 +497,7 @@ function makeActions(
       set((state) => {
         const changedTypes = new Set<string>();
         for (const { reference, newValue } of changes) {
-          if (state.dataModels[reference.dataType].readonly) {
+          if (!isWritable(state.dataModels[reference.dataType].dataElementId, selectFromInstance)) {
             window.logError(`Tried to write to readOnly dataType "${reference.dataType}"`);
             continue;
           }
@@ -587,10 +585,11 @@ export const createFormDataWriteStore = (
   proxies: FormDataWriteProxies,
   schemaLookup: { [dataType: string]: SchemaLookupTool },
   changeInstance: ChangeInstanceData,
+  selectFromInstance: InstanceDataSelector,
 ) =>
   createStore<FormDataContext>()(
     immer((set) => {
-      const actions = makeActions(set, changeInstance, schemaLookup);
+      const actions = makeActions(set, changeInstance, selectFromInstance, schemaLookup);
       for (const name of Object.keys(actions)) {
         const fnName = name as keyof FormDataMethods;
         const original = actions[fnName];
@@ -615,3 +614,10 @@ export const createFormDataWriteStore = (
       };
     }),
   );
+
+function isWritable(dataElementId: string | null, selectFromInstance: InstanceDataSelector) {
+  if (!dataElementId) {
+    return true;
+  }
+  return selectFromInstance((instance) => instance.data.find((item) => item.id === dataElementId)?.locked) === false;
+}

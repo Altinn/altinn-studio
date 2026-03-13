@@ -210,6 +210,15 @@
         }
       },
       {
+        endpoint: GET {org}/{app}/api/bootstrap-form/{uiFolder},
+        metadata: {
+          errorMessageTextResourceKeyUser: null,
+          errorMessageTextResourceKeyServiceOwner: null,
+          requiredScopesUsers: null,
+          requiredScopesServiceOwners: null
+        }
+      },
+      {
         endpoint: GET {org}/{app}/api/datalists/{id},
         metadata: {
           errorMessageTextResourceKeyUser: null,
@@ -452,6 +461,20 @@
       },
       {
         endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/api/external/{externalApiId},
+        metadata: {
+          errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
+          errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,
+          requiredScopesUsers: [
+            custom:instances.read,
+            altinn:portal/enduser
+          ],
+          requiredScopesServiceOwners: [
+            custom:serviceowner/instances.read
+          ]
+        }
+      },
+      {
+        endpoint: GET {org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/bootstrap-form/{uiFolder},
         metadata: {
           errorMessageTextResourceKeyUser: authorization.scopes.insufficient,
           errorMessageTextResourceKeyServiceOwner: authorization.scopes.insufficient,

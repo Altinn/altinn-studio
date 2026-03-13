@@ -12,7 +12,7 @@ import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { Loader } from 'src/core/loading/Loader';
 import { useIsNavigating } from 'src/core/routing/useIsNavigating';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { getProcessNextMutationKey, getTargetTaskFromProcess } from 'src/features/instance/useProcessNext';
 import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { Lang } from 'src/features/language/Lang';
@@ -164,7 +164,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
 
 export const ComponentRouting = () => {
   const componentId = useNavigationParam('componentId');
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
 
   // Wait for props to sync, needed for now
   if (!componentId) {

@@ -158,20 +158,3 @@ export function cyMockResponses(whatToMock: Mockable) {
 
   cy.intercept('**/active', whatToMock.activeInstances || []).as('activeInstances');
 }
-
-export function removeAllButOneOrg(parties: IParty[]): IParty[] {
-  // Some users in tt02 have so many valid parties that we get pagination. Remove all
-  // except the first organisation, but keep all the persons.
-  const toKeep: IParty[] = [];
-  let foundOrganisation = false;
-  for (const party of parties) {
-    if (party.partyTypeName === PartyType.Organisation && !foundOrganisation) {
-      toKeep.push(party);
-      foundOrganisation = true;
-    }
-    if (party.partyTypeName === PartyType.Person) {
-      toKeep.push(party);
-    }
-  }
-  return toKeep;
-}

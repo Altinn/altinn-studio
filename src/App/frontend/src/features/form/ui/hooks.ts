@@ -9,23 +9,28 @@ import { useNavigationParam } from 'src/hooks/navigation';
  * will prefer the taskId from the current process state (i.e., where the process is right now,
  * not necessarily what the user is looking at right now).
  */
-export function useCurrentUiFolderNameFromUrl() {
-  const taskId = useNavigationParam('taskId');
-  return useCurrentUiFolderName(taskId);
-}
-
-export function useCurrentUiFolderName(_taskId?: string): string | undefined {
-  const overriddenUiFolder = useTaskOverrides()?.uiFolder;
+export function useCurrentUiFolderNameFromUrl(): string | undefined {
+  const fromUrl = useNavigationParam('taskId');
+  const overridden = useTaskOverrides()?.uiFolder;
   const applicationMetaData = getApplicationMetadata();
-  const processTaskId = useProcessTaskId();
   const isStateless = useIsStateless();
   const fromStateless = isStateless ? applicationMetaData.onEntry.show : undefined;
 
-  return overriddenUiFolder ?? _taskId ?? processTaskId ?? fromStateless;
+  return overridden ?? fromUrl ?? fromStateless;
 }
 
-export function useCurrentUiFolderSettings(_taskId?: string) {
-  return getUiFolderSettings(useCurrentUiFolderName(_taskId));
+export function useCurrentUiFolderName(): string | undefined {
+  const overriddenUiFolder = useTaskOverrides()?.uiFolder;
+  const applicationMetaData = getApplicationMetadata();
+  const fromProcessCurrentTask = useProcessTaskId();
+  const isStateless = useIsStateless();
+  const fromStateless = isStateless ? applicationMetaData.onEntry.show : undefined;
+
+  return overriddenUiFolder ?? fromProcessCurrentTask ?? fromStateless;
+}
+
+export function useCurrentUiFolderSettings() {
+  return getUiFolderSettings(useCurrentUiFolderName());
 }
 
 export function useCurrentUiFolderSettingsFromUrl() {

@@ -9,7 +9,6 @@ import { useCurrentDataModelDataElementId } from 'src/features/datamodel/useBind
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import type { IPdfFormat } from 'src/features/pdf/types';
 
-// Also used for prefetching @see formPrefetcher.ts
 export function usePdfFormatQueryDef(
   enabled: boolean,
   instanceId?: string,

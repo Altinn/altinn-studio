@@ -9,8 +9,8 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { FormProvider } from 'src/features/form/FormContext';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
@@ -114,7 +114,11 @@ const DoSummaryWrapper = ({
         dataModelType={dataElement.dataType}
         uiFolder={uiFolder}
       >
-        <FormProvider readOnly={true}>
+        <FormProvider
+          readOnly={true}
+          uiFolderOverride={uiFolder}
+          dataElementIdOverride={dataElement.id}
+        >
           <Flex
             container
             spacing={6}
@@ -150,7 +154,7 @@ const DoSummaryWrapper = ({
 };
 
 export function AllSubformSummaryComponent2() {
-  const lookups = useLayoutLookups();
+  const lookups = FormBootstrap.useLayoutLookups();
   const allIds = Object.values(lookups.topLevelComponents)
     .flat()
     .filter((id) => (id ? lookups.allComponents[id]?.type === 'Subform' : false))

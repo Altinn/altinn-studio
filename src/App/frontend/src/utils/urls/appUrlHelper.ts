@@ -5,7 +5,6 @@ const { org, app } = window;
 const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
-export const profileApiUrl = `${appPath}/api/v1/profile/user`;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
 export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const instancesControllerUrl = `${appPath}/instances`;
@@ -152,11 +151,6 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
   window.location.href = getUpgradeAuthLevelUrl(reqAuthLevel);
 };
 
-export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
-export const getCustomValidationConfigUrl = (dataTypeId: string) => `${appPath}/api/validationconfig/${dataTypeId}`;
-export const getLayoutsUrl = (uiFolder: string) => `${appPath}/api/layouts/${uiFolder}`;
-export const getInstanceLayoutsUrl = (uiFolder: string, instanceId: string) =>
-  `${appPath}/instances/${instanceId}/layouts/${uiFolder}`;
 export const getActiveInstancesUrl = (partyId: number) => `${appPath}/instances/${partyId}/active`;
 export const getInstanceUiUrl = (instanceId: string) => `${appPath}/instance/${instanceId}`;
 
@@ -256,4 +250,48 @@ export const getDataListsUrl = ({
   url.search = new URLSearchParams(stringParams).toString();
 
   return url.toString();
+};
+
+export const getFormBootstrapUrlForInstance = (options: {
+  instanceId: string;
+  uiFolder: string;
+  dataElementId?: string;
+  pdf?: boolean;
+  language?: string;
+}): string => {
+  const { instanceId, uiFolder, dataElementId, pdf, language } = options;
+  const params = new URLSearchParams();
+
+  if (dataElementId) {
+    params.set('dataElementId', dataElementId);
+  }
+  if (pdf) {
+    params.set('pdf', 'true');
+  }
+  if (language) {
+    params.set('language', language);
+  }
+
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return `${appPath}/instances/${instanceId}/bootstrap-form/${uiFolder}${queryString}`;
+};
+
+export const getFormBootstrapUrlForStateless = (options: {
+  uiFolder: string;
+  language?: string;
+  prefill?: string;
+}): string => {
+  const { uiFolder, language, prefill } = options;
+  const params = new URLSearchParams();
+
+  if (language) {
+    params.set('language', language);
+  }
+
+  if (prefill) {
+    params.set('prefill', prefill);
+  }
+
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return `${appPath}/api/bootstrap-form/${uiFolder}${queryString}`;
 };

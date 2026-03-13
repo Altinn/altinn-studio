@@ -4,8 +4,8 @@ import { ChevronDownIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { ExprVal } from 'src/features/expressions/types';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { getDefaultDataTypeFromUiFolder } from 'src/features/form/ui';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/features/navigation/components/SubformsForPage.module.css';
@@ -24,7 +24,7 @@ import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IData } from 'src/types/shared';
 
 export function SubformsForPage({ pageKey }: { pageKey: string }) {
-  const lookups = useLayoutLookups();
+  const lookups = FormBootstrap.useLayoutLookups();
   const subformIds = lookups.topLevelComponents[pageKey]?.filter((id) => lookups.allComponents[id]?.type === 'Subform');
   if (!subformIds?.length) {
     return null;
@@ -40,7 +40,7 @@ export function SubformsForPage({ pageKey }: { pageKey: string }) {
 
 function SubformGroup({ baseId }: { baseId: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  const pageKey = useLayoutLookups().componentToPage[baseId];
+  const pageKey = FormBootstrap.useLayoutLookups().componentToPage[baseId];
   if (!pageKey) {
     throw new Error(`Unable to find page for subform with id ${baseId}`);
   }

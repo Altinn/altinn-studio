@@ -4,7 +4,7 @@ import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { Flex } from 'src/app-components/Flex/Flex';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
@@ -40,7 +40,7 @@ export const RepeatingGroupSummary = ({ targetBaseComponentId }: Summary2Props) 
     'RepeatingGroup',
   );
   const title = textResourceBindings?.summaryTitle || textResourceBindings?.title;
-  const parent = useLayoutLookups().componentToParent[targetBaseComponentId];
+  const parent = FormBootstrap.useLayoutLookups().componentToParent[targetBaseComponentId];
   const isNested = parent?.type === 'node';
   const hideEmptyFields = useSummaryProp('hideEmptyFields');
 

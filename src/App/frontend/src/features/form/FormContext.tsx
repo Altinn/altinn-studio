@@ -2,18 +2,17 @@ import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
-import { BlockUntilAllLoaded, LoadingRegistryProvider } from 'src/core/loading/LoadingRegistry';
-import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
-import { LayoutsProvider } from 'src/features/form/layout/LayoutsContext';
+import { useTaskOverrides } from 'src/core/contexts/TaskOverrides';
 import { PageNavigationProvider } from 'src/features/form/layout/PageNavigationContext';
+import { getUiFolderSettings } from 'src/features/form/ui';
+import { useCurrentUiFolderNameFromUrl } from 'src/features/form/ui/hooks';
+import { FormBootstrapProvider } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FormDataWriteProvider } from 'src/features/formData/FormDataWrite';
-import { CodeListsProvider } from 'src/features/options/CodeListsProvider';
 import { OrderDetailsProvider } from 'src/features/payment/OrderDetailsProvider';
 import { PaymentInformationProvider } from 'src/features/payment/PaymentInformationProvider';
 import { PaymentProvider } from 'src/features/payment/PaymentProvider';
 import { ValidationProvider } from 'src/features/validation/validationContext';
 import { useNavigationParam } from 'src/hooks/navigation';
-import { FormPrefetcher } from 'src/queries/formPrefetcher';
 import { NodesProvider } from 'src/utils/layout/NodesContext';
 
 export interface FormContext {
@@ -23,6 +22,11 @@ export interface FormContext {
   // prevent any write operations from happening in case components inside try to write new form data, but it will
   // prevent automatic effects from happening.
   readOnly?: boolean;
+}
+
+interface FormProviderProps extends FormContext {
+  uiFolderOverride?: string;
+  dataElementIdOverride?: string;
 }
 
 const { Provider, useLaxCtx } = createContext<FormContext>({
@@ -37,42 +41,58 @@ export function useIsInFormContext() {
 /**
  * This helper-context provider is used to provide all the contexts needed for forms to work
  */
-export function FormProvider({ children, readOnly = false }: React.PropsWithChildren<FormContext>) {
+export function FormProvider({
+  children,
+  readOnly = false,
+  uiFolderOverride,
+  dataElementIdOverride,
+}: React.PropsWithChildren<FormProviderProps>) {
   const isEmbedded = useIsInFormContext();
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const hasProcess = !!(instanceOwnerPartyId && instanceGuid);
+  const taskOverrides = useTaskOverrides();
+  const folderNameFromUrl = useCurrentUiFolderNameFromUrl();
+
+  const uiFolder = uiFolderOverride ?? folderNameFromUrl ?? undefined;
+  const dataElementId = dataElementIdOverride ?? taskOverrides.dataModelElementId ?? undefined;
+
+  if (!uiFolder) {
+    throw new Error('uiFolder is not defined');
+  }
+
+  const folderSettings = getUiFolderSettings(uiFolder);
+  if (!folderSettings || !folderSettings?.defaultDataType) {
+    // No point in trying to render a form here, but this can still happen when FormProvider is applied for all tasks
+    // without actually checking the task type (such as in src/index.tsx). Only data-tasks, subforms, custom receipt and
+    // stateless can render forms.
+    return children;
+  }
 
   return (
-    <LoadingRegistryProvider>
-      <FormPrefetcher />
-      <LayoutsProvider>
-        <CodeListsProvider>
-          <DataModelsProvider>
+    <FormBootstrapProvider
+      uiFolder={uiFolder}
+      dataElementIdOverride={dataElementId}
+    >
+      <FormDataWriteProvider>
+        <ValidationProvider>
+          <NodesProvider
+            readOnly={readOnly}
+            isEmbedded={isEmbedded}
+          >
             <PageNavigationProvider>
-              <FormDataWriteProvider>
-                <ValidationProvider>
-                  <NodesProvider
-                    readOnly={readOnly}
-                    isEmbedded={isEmbedded}
-                  >
-                    <PaymentInformationProvider>
-                      <OrderDetailsProvider>
-                        <MaybePaymentProvider hasProcess={hasProcess}>
-                          <Provider value={{ readOnly }}>
-                            <BlockUntilAllLoaded>{children}</BlockUntilAllLoaded>
-                          </Provider>
-                        </MaybePaymentProvider>
-                      </OrderDetailsProvider>
-                    </PaymentInformationProvider>
-                  </NodesProvider>
-                </ValidationProvider>
-              </FormDataWriteProvider>
+              <PaymentInformationProvider>
+                <OrderDetailsProvider>
+                  <MaybePaymentProvider hasProcess={hasProcess}>
+                    <Provider value={{ readOnly }}>{children}</Provider>
+                  </MaybePaymentProvider>
+                </OrderDetailsProvider>
+              </PaymentInformationProvider>
             </PageNavigationProvider>
-          </DataModelsProvider>
-        </CodeListsProvider>
-      </LayoutsProvider>
-    </LoadingRegistryProvider>
+          </NodesProvider>
+        </ValidationProvider>
+      </FormDataWriteProvider>
+    </FormBootstrapProvider>
   );
 }
 

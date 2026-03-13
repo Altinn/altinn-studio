@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { useLayoutLookups, useLayoutLookupsLax } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
 import { selectValidations } from 'src/features/validation/utils';
 import { nodesProduce } from 'src/utils/layout/NodesContext';
@@ -135,7 +135,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           return out && out.length > 0 ? out : emptyArray;
         }),
       useVisibleValidations: (indexedId, showAll) => {
-        const lookups = useLayoutLookups();
+        const lookups = FormBootstrap.useLayoutLookups();
         return store.useShallowSelector((state) => {
           if (!indexedId) {
             return emptyArray;
@@ -151,7 +151,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         });
       },
       useVisibleValidationsDeep: (indexedId, mask, includeSelf, restriction, severity) => {
-        const lookups = useLayoutLookups();
+        const lookups = FormBootstrap.useLayoutLookups();
         return store.useMemoSelector((state) => {
           const { baseComponentId } = splitDashedKey(indexedId);
           const output: NodeRefValidation[] = [];
@@ -171,7 +171,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         });
       },
       useValidationsSelector: () => {
-        const lookups = useLayoutLookups();
+        const lookups = FormBootstrap.useLayoutLookups();
         return store.useDelayedSelector({
           mode: 'simple',
           selector:
@@ -191,7 +191,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         }) satisfies ValidationsSelector;
       },
       useLaxValidationsSelector: () => {
-        const lookups = useLayoutLookups();
+        const lookups = FormBootstrap.useLayoutLookups();
         return store.useLaxDelayedSelector({
           mode: 'simple',
           selector:
@@ -211,7 +211,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         }) satisfies ValidationsSelector;
       },
       useAllValidations: (mask, severity, includeHidden) => {
-        const lookups = useLayoutLookups();
+        const lookups = FormBootstrap.useLayoutLookups();
         return store.useLaxMemoSelector((state) => {
           const out: NodeRefValidation[] = [];
           for (const nodeData of Object.values(state.nodeData)) {
@@ -235,7 +235,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
       },
       useGetNodesWithErrors: () => {
         const zustand = store.useLaxStore();
-        const lookups = useLayoutLookupsLax();
+        const lookups = FormBootstrap.useLaxLayoutLookups();
         return useCallback(
           (mask, severity, includeHidden = false) => {
             if (zustand === ContextNotProvided) {
@@ -270,7 +270,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
         );
       },
       usePageHasVisibleRequiredValidations: (pageKey) => {
-        const lookups = useLayoutLookups();
+        const lookups = FormBootstrap.useLayoutLookups();
         return store.useSelector((state) => {
           if (!pageKey) {
             return false;

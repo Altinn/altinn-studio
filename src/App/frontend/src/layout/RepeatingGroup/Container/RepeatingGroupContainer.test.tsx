@@ -5,6 +5,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormLayoutRepeatingGroupMock } from 'src/__mocks__/getFormLayoutGroupMock';
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
@@ -116,21 +117,24 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       </RepeatingGroupProvider>
     ),
     queries: {
-      fetchLayouts: async () => ({
-        FormLayout: {
-          data: {
-            layout: [group, ...mockComponents],
-          },
-        },
-      }),
-      fetchFormData: async () => ({
-        Group: Array.from({ length: numRows }).map((_, index) => ({
-          [ALTINN_ROW_ID]: uuidv4(),
-          prop1: `value${index + 1}`,
-          checkboxBinding: ['option.value'],
-        })),
-      }),
-      fetchBackendValidations: async () => validationIssues,
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.layouts = {
+            FormLayout: {
+              data: {
+                layout: [group, ...mockComponents],
+              },
+            },
+          };
+          obj.dataModels[defaultDataTypeMock].initialData = {
+            Group: Array.from({ length: numRows }).map((_, index) => ({
+              [ALTINN_ROW_ID]: uuidv4(),
+              prop1: `value${index + 1}`,
+              checkboxBinding: ['option.value'],
+            })),
+          };
+          obj.dataModels[defaultDataTypeMock].initialValidationIssues = validationIssues;
+        }),
     },
   });
 }

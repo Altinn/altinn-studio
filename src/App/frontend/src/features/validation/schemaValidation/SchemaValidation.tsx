@@ -3,8 +3,8 @@ import { useEffect } from 'react';
 import { FrontendValidationSource } from '..';
 import type { FieldValidations } from '..';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { pointerToDotNotation } from 'src/features/datamodel/notations';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import {
   getErrorCategory,
@@ -19,8 +19,8 @@ export function SchemaValidation({ dataType }: { dataType: string }) {
   const updateDataModelValidations = Validation.useUpdateDataModelValidations();
 
   const formData = FD.useDebounced(dataType);
-  const { validator, rootElementPath, schema } = DataModels.useDataModelSchema(dataType) ?? {};
-  const dataElementId = DataModels.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
+  const { validator, rootElementPath, schema } = FormBootstrap.useDataModelSchema(dataType) ?? {};
+  const dataElementId = FormBootstrap.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
 
   /**
    * Perform validation using AJV schema validation.

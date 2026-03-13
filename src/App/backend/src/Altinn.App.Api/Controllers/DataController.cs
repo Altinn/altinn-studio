@@ -56,6 +56,7 @@ public class DataController : ControllerBase
     private readonly IAuthenticationContext _authenticationContext;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IDataElementAccessChecker _dataElementAccessChecker;
+    private readonly IFormDataReader _formDataReader;
 
     private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -94,6 +95,7 @@ public class DataController : ControllerBase
         _authenticationContext = authenticationContext;
         _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
         _dataElementAccessChecker = serviceProvider.GetRequiredService<IDataElementAccessChecker>();
+        _formDataReader = serviceProvider.GetRequiredService<IFormDataReader>();
     }
 
     /// <summary>
@@ -939,51 +941,21 @@ public class DataController : ControllerBase
         string? language
     )
     {
-        // Get Form Data from data service. Assumes that the data element is form data.
         object appModel = await _dataClient.GetFormData(instance, dataElement);
-
-        if (appModel is null)
-        {
-            return BadRequest($"Did not find form data for data element {dataGuid}");
-        }
-
-        // we need to save a copy to detect changes if dataProcessRead changes the model
-        byte[] beforeProcessDataRead = JsonSerializer.SerializeToUtf8Bytes(appModel);
-
-        var dataProcessors = _appImplementationFactory.GetAll<IDataProcessor>();
-        foreach (var dataProcessor in dataProcessors)
-        {
-            _logger.LogInformation(
-                "ProcessDataRead for {ModelType} using {DataProcessor}",
-                appModel.GetType().Name,
-                dataProcessor.GetType().Name
-            );
-            await dataProcessor.ProcessDataRead(instance, dataGuid, appModel, language);
-        }
-
-        if (includeRowId)
-        {
-            ObjectUtils.InitializeAltinnRowId(appModel);
-        }
-
-        // Save back the changes if dataProcessRead has changed the model and the element is not locked
-        if (!dataElement.Locked && !beforeProcessDataRead.SequenceEqual(JsonSerializer.SerializeToUtf8Bytes(appModel)))
-        {
-            try
-            {
-                await _dataClient.UpdateFormData(instance, appModel, dataElement);
-            }
-            catch (PlatformHttpException e) when (e.Response.StatusCode is HttpStatusCode.Forbidden)
-            {
-                _logger.LogInformation("User does not have write access to the data element. Skipping update.");
-            }
-        }
-
-        if (!includeRowId)
-        {
-            // If the consumer does not request AltinnRowId to be initialized, we remove it from the model
-            ObjectUtils.RemoveAltinnRowId(appModel);
-        }
+        appModel = await _formDataReader.ProcessLoadedFormData(
+            instance,
+            dataElement,
+            appModel,
+            includeRowId: includeRowId,
+            language: language,
+            persistFormData: (processedFormData, cancellationToken) =>
+                _dataClient.UpdateFormData(
+                    instance,
+                    processedFormData,
+                    dataElement,
+                    cancellationToken: cancellationToken
+                )
+        );
 
         // This is likely not required as the instance is already read
         string? userOrgClaim = User.GetOrg();

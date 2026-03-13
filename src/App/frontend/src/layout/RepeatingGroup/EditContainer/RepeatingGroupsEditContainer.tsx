@@ -6,7 +6,7 @@ import cn from 'classnames';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Flex } from 'src/app-components/Flex/Flex';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import {
@@ -88,7 +88,7 @@ function RepeatingGroupsEditContainerInternal({
     ...textsForRow,
   };
 
-  const parent = useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormBootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
   let saveButtonVisible =
     !forceHideSaveButton &&

@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { getLabelId } from 'src/components/label/Label';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
@@ -45,7 +45,7 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericCompo
   const indexedId = useIndexedId(baseComponentId);
 
   const { id, readOnly, textResourceBindings, required } = useItemWhenType(baseComponentId, 'LikertItem');
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const parent = layoutLookups.componentToParent[baseComponentId];
   const likert = parent && parent.type === 'node' ? layoutLookups.getComponent(parent.id, 'Likert') : undefined;
 

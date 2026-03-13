@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useOrderDetails, useRefetchOrderDetails } from 'src/features/payment/OrderDetailsProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -17,7 +17,7 @@ export function PaymentDetailsComponent({ baseComponentId }: PropsFromGenericCom
   const { title, description } = textResourceBindings || {};
   const hasUnsavedChanges = FD.useHasUnsavedChanges();
 
-  const mappedValues = FD.useMapping(mapping, DataModels.useDefaultDataType());
+  const mappedValues = FD.useMapping(mapping, FormBootstrap.useDefaultDataType());
   const prevMappedValues = useRef<Record<string, unknown> | undefined>(undefined);
 
   // refetch data if we have configured mapping and the mapped values have changed

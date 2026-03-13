@@ -4,7 +4,7 @@ import type { PropsWithChildren } from 'react';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { getComponentCapabilities, getComponentDef } from 'src/layout';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
 import { useGeneratorErrorBoundaryNodeRef } from 'src/utils/layout/generator/GeneratorErrorBoundary';
@@ -81,7 +81,7 @@ function AddRemoveNode<T extends CompTypes>({
   const rowIndex = GeneratorInternal.useRowIndex();
   const pageKey = GeneratorInternal.usePage() ?? '';
   const idMutators = GeneratorInternal.useIdMutators();
-  const layoutMap = useLayoutLookups().allComponents;
+  const layoutMap = FormBootstrap.useLayoutLookups().allComponents;
   const isValid = GeneratorInternal.useIsValid();
   const getCapabilities = useCallback((type: CompTypes) => getComponentCapabilities(type), []);
   const stateFactoryProps = useMemo(

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { JSX } from 'react';
 
-import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -12,7 +12,7 @@ export function FileUploadLayoutValidator(
   props: NodeValidationProps<'FileUpload' | 'FileUploadWithTag'>,
 ): JSX.Element | null {
   const { intermediateItem, externalItem } = props;
-  const allPages = useLayouts();
+  const allPages = FormBootstrap.useLayouts();
   const binding = extractBinding(externalItem);
   const { langAsString } = useLanguage();
   const addError = NodesInternal.useAddError();

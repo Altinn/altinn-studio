@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -112,6 +113,13 @@ function useOptionsUrl(item: CompIntermediateExact<CompWithBehavior<'canHaveOpti
   return useGetOptionsUrl(optionsId, mapping, queryParameters, secure);
 }
 
+function hasDynamicOptionsConfig(item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
+  return Boolean(
+    (item.mapping && Object.keys(item.mapping).length > 0) ||
+    (item.queryParameters && Object.keys(item.queryParameters).length > 0),
+  );
+}
+
 export function useFetchOptions({ item }: FetchOptionsProps) {
   const { options, optionsId, source } = item;
 
@@ -127,6 +135,20 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
   }
 
   if (optionsId) {
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const staticOptions = FormBootstrap.useStaticOptionsMap();
+    const bootstrapOptions = staticOptions[optionsId];
+    const shouldFetchFromApi = hasDynamicOptionsConfig(item);
+
+    if (bootstrapOptions && !shouldFetchFromApi) {
+      return {
+        isFetching: false,
+        unsorted: bootstrapOptions.options,
+        downstreamParameters: bootstrapOptions.downstreamParameters ?? undefined,
+      };
+    }
+
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const url = useOptionsUrl(item);

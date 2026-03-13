@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { shouldValidateNode } from 'src/features/validation/StoreValidationsInNode';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { NodesStore } from 'src/utils/layout/NodesContext';
@@ -11,7 +11,7 @@ import type { NodeData } from 'src/utils/layout/types';
 export function useWaitForNodesToValidate() {
   const registry = GeneratorInternal.useRegistry();
   const nodesStore = NodesStore.useStore();
-  const lookups = useLayoutLookups();
+  const lookups = FormBootstrap.useLayoutLookups();
 
   return useCallback(
     async (processedLast: ValidationsProcessedLast): Promise<void> => {

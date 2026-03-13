@@ -435,6 +435,57 @@ namespace Altinn.App.Core.Features.Auth
         Maskinporten = 5,
     }
 }
+namespace Altinn.App.Core.Features.Bootstrap
+{
+    public sealed class FormBootstrapService
+    {
+        public FormBootstrapService(Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.App.Core.Features.Options.IAppOptionsService appOptionsService, Altinn.App.Core.Internal.AppModel.IAppModel appModel, Altinn.App.Core.Internal.Prefill.IPrefill prefillService, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, System.IServiceProvider serviceProvider, Microsoft.Extensions.Logging.ILogger<Altinn.App.Core.Features.Bootstrap.FormBootstrapService> logger) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse> GetInstanceFormBootstrap(Altinn.Platform.Storage.Interface.Models.Instance instance, string uiFolder, string? dataElementIdOverride, bool isPdf, string language, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse> GetStatelessFormBootstrap(string uiFolder, string language, System.Collections.Generic.Dictionary<string, string>? prefillFromQueryParams = null, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+}
+namespace Altinn.App.Core.Features.Bootstrap.Models
+{
+    public sealed class DataModelInfo
+    {
+        public DataModelInfo() { }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("dataElementId")]
+        public string? DataElementId { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("expressionValidationConfig")]
+        public object? ExpressionValidationConfig { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("initialData")]
+        public required object InitialData { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("initialValidationIssues")]
+        public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? InitialValidationIssues { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("schema")]
+        public required object Schema { get; init; }
+    }
+    public sealed class FormBootstrapResponse
+    {
+        public FormBootstrapResponse() { }
+        [System.Text.Json.Serialization.JsonPropertyName("dataModels")]
+        public required System.Collections.Generic.Dictionary<string, Altinn.App.Core.Features.Bootstrap.Models.DataModelInfo> DataModels { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("layouts")]
+        public required object Layouts { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("staticOptions")]
+        public required System.Collections.Generic.Dictionary<string, Altinn.App.Core.Features.Bootstrap.Models.StaticOptionSet> StaticOptions { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("validationIssues")]
+        public System.Collections.Generic.List<Altinn.App.Core.Models.Validation.ValidationIssueWithSource>? ValidationIssues { get; init; }
+    }
+    public sealed class StaticOptionSet
+    {
+        public StaticOptionSet() { }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        [System.Text.Json.Serialization.JsonPropertyName("downstreamParameters")]
+        public string? DownstreamParameters { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("options")]
+        public required System.Collections.Generic.List<Altinn.App.Core.Models.AppOption> Options { get; init; }
+    }
+}
 namespace Altinn.App.Core.Features.Correspondence.Builder
 {
     public class CorrespondenceAttachmentBuilder : Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilder, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderData, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderFilename, Altinn.App.Core.Features.Correspondence.Builder.ICorrespondenceAttachmentBuilderSendersReference

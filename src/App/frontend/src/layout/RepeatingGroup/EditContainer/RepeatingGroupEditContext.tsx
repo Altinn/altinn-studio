@@ -4,7 +4,7 @@ import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
 import { SearchParams } from 'src/core/routing/types';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { useRepeatingGroupComponentId } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { RepGroupHooks } from 'src/layout/RepeatingGroup/utils';
@@ -82,7 +82,7 @@ function useRepeatingGroupEditRowState(
 export function RepeatingGroupEditRowProvider({ children }: PropsWithChildren) {
   const baseComponentId = useRepeatingGroupComponentId();
   const { setMultiPageIndex, ...state } = useRepeatingGroupEditRowState(baseComponentId);
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const [searchParams] = useSearchParams();
 
   useEffect(() => {

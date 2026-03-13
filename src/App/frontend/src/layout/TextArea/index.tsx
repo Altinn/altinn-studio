@@ -1,9 +1,8 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import { TextAreaDef } from 'src/layout/TextArea/config.def.generated';
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
@@ -42,8 +41,8 @@ export class TextArea extends TextAreaDef {
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'TextArea'>): string[] {
-    const lookupBinding = DataModels.useLookupBinding();
-    const layoutLookups = useLayoutLookups();
+    const lookupBinding = FormBootstrap.useLookupBinding();
+    const layoutLookups = FormBootstrap.useLayoutLookups();
     return validateDataModelBindingsSimple(baseComponentId, bindings, lookupBinding, layoutLookups);
   }
 }

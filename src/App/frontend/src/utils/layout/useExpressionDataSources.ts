@@ -1,20 +1,17 @@
-// eslint-disable-next-line react-compiler/react-compiler
-/* eslint-disable react-hooks/rules-of-hooks */
-import { useMemo } from 'react';
+/* eslint-disable react-compiler/react-compiler, react-hooks/rules-of-hooks */
+import { useCallback, useMemo } from 'react';
 
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { useApplicationSettings } from 'src/features/applicationSettings/ApplicationSettingsProvider';
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDisplayDataFor } from 'src/features/displayData/useDisplayData';
 import { ExprFunctionDefinitions } from 'src/features/expressions/expression-functions';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataElementsSelectorProps, useInstanceDataSources } from 'src/features/instance/InstanceContext';
 import { useProcessQuery } from 'src/features/instance/useProcessQuery';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedPathSelector } from 'src/features/language/useLanguage';
-import { useCodeListSelectorProps } from 'src/features/options/CodeListsProvider';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
 import { useNavigationParam } from 'src/hooks/navigation';
 import { useShallowMemo } from 'src/hooks/useShallowMemo';
@@ -28,7 +25,7 @@ import type { ExprFunctionName } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { LayoutLookups } from 'src/features/form/layout/makeLayoutLookups';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
-import type { CodeListSelector } from 'src/features/options/CodeListsProvider';
+import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { DSProps, DSPropsMatching } from 'src/hooks/delayedSelectors';
 import type { FormDataSelectorLax } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -47,7 +44,7 @@ export interface ExpressionDataSources {
   defaultDataType: string | null;
   externalApis: ExternalApisResult;
   currentDataModelPath: IDataModelReference | undefined;
-  codeListSelector: CodeListSelector;
+  codeListSelector: (optionsId: string) => IOptionInternal[] | undefined;
   layoutLookups: LayoutLookups;
   displayValues: Record<string, string | undefined>;
   hiddenComponents: Record<string, boolean | undefined>;
@@ -57,7 +54,6 @@ export interface ExpressionDataSources {
 const multiSelectors = {
   formDataSelector: () => FD.useLaxDebouncedSelectorProps(),
   attachmentsSelector: () => NodesInternal.useAttachmentsSelectorProps(),
-  codeListSelector: () => useCodeListSelectorProps(),
 } satisfies {
   [K in keyof Omit<ExpressionDataSources, 'dataElementSelector'>]?: DSPropsMatching<ExpressionDataSources[K]>;
 };
@@ -67,20 +63,22 @@ const directHooks = {
   applicationSettings: () => useApplicationSettings(),
   currentLanguage: () => useCurrentLanguage(),
   currentDataModelPath: () => useCurrentDataModelLocation(),
-  layoutLookups: () => useLayoutLookups(),
+  layoutLookups: () => FormBootstrap.useLayoutLookups(),
+  codeListSelector: () => {
+    const staticOptions = FormBootstrap.useStaticOptionsMap();
+    return useCallback((optionsId: string) => staticOptions[optionsId]?.options, [staticOptions]);
+  },
   dataElementSelector: () => useDataElementsSelectorProps(),
   instanceDataSources: (isInGenerator) =>
     isInGenerator ? GeneratorData.useLaxInstanceDataSources() : useInstanceDataSources(),
-  defaultDataType: (isInGenerator) =>
-    (isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType()) ?? null,
-  dataModelNames: (isInGenerator) =>
-    isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
+  defaultDataType: () => FormBootstrap.useDefaultDataType() ?? null,
+  dataModelNames: () => FormBootstrap.useReadableDataTypes(),
   externalApis: (isInGenerator) =>
     isInGenerator ? GeneratorData.useExternalApis() : useExternalApis(getApplicationMetadata().externalApiIds ?? []),
-  langToolsSelector: (isInGenerator) =>
+  langToolsSelector: () =>
     useInnerLanguageWithForcedPathSelector(
-      isInGenerator ? GeneratorData.useDefaultDataType() : DataModels.useDefaultDataType(),
-      isInGenerator ? GeneratorData.useReadableDataTypes() : DataModels.useReadableDataTypes(),
+      FormBootstrap.useDefaultDataType(),
+      FormBootstrap.useReadableDataTypes(),
       FD.useDebouncedSelector(),
     ),
   currentPage: (_isInGenerator) => useNavigationParam('pageKey'),

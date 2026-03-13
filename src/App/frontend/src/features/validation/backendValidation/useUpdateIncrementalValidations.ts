@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useGetCachedInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import {
@@ -18,7 +18,7 @@ import type { BackendValidationIssueGroups } from 'src/features/validation';
  */
 export function useUpdateIncrementalValidations(setInFormData = true) {
   const updateBackendValidations = Validation.useUpdateBackendValidations();
-  const defaultDataElementId = DataModels.useDefaultDataElementId();
+  const defaultDataElementId = FormBootstrap.useDefaultDataElementId();
   const getCachedInitialValidations = useGetCachedInitialValidations();
   const updateInFormData = FD.useSetLastValidationIssues();
 

@@ -3,8 +3,7 @@ import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
 import { LikertGeneratorChildren } from 'src/layout/Likert/Generator/LikertGeneratorChildren';
 import { makeLikertChildId } from 'src/layout/Likert/Generator/makeLikertChildId';
@@ -51,8 +50,8 @@ export class Likert extends LikertDef {
   }
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Likert'>): string[] {
-    const lookupBinding = DataModels.useLookupBinding();
-    const layoutLookups = useLayoutLookups();
+    const lookupBinding = FormBootstrap.useLookupBinding();
+    const layoutLookups = FormBootstrap.useLayoutLookups();
     const [questionsErr, questions] = validateDataModelBindingsAny(
       baseComponentId,
       bindings,

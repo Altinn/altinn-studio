@@ -115,9 +115,6 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
         {children}
       </InstanceRouter>
     ),
-    queries: {
-      fetchFormData: async () => ({}),
-    },
   });
 };
 

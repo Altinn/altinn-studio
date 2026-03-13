@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useComponentIdMutator, useCurrentDataModelLocation } from 'src/utils/layout/DataModelLocation';
 import type { IDataModelReference, IMapping } from 'src/layout/common.generated';
 import type { CompIntermediate, CompTypes, IDataModelBindings } from 'src/layout/layout';
@@ -17,7 +17,7 @@ export function useExternalItem<T extends CompTypes = CompTypes>(
   baseComponentId: string,
   type?: T | ((type: CompTypes) => boolean),
 ) {
-  const lookups = useLayoutLookups();
+  const lookups = FormBootstrap.useLayoutLookups();
   return lookups.getComponent(baseComponentId, type);
 }
 

@@ -8,7 +8,7 @@ import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/Condit
 import { Flex } from 'src/app-components/Flex/Flex';
 import { FullWidthWrapper } from 'src/app-components/FullWidthWrapper/FullWidthWrapper';
 import { Fieldset } from 'src/app-components/Label/Fieldset';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
@@ -77,7 +77,7 @@ function ModeOnlyTable() {
 
 function ModeOnlyEdit({ editingId }: { editingId: string }) {
   const baseComponentId = useRepeatingGroupComponentId();
-  const parent = useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormBootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
 
   const groupBinding = useDataModelBindingsFor(baseComponentId, 'RepeatingGroup').group;
@@ -118,7 +118,7 @@ function ModeOnlyEdit({ editingId }: { editingId: string }) {
 
 function ModeShowAll() {
   const baseComponentId = useRepeatingGroupComponentId();
-  const parent = useLayoutLookups().componentToParent[baseComponentId];
+  const parent = FormBootstrap.useLayoutLookups().componentToParent[baseComponentId];
   const isNested = parent?.type === 'node';
 
   const { rowsToDisplay } = useRepeatingGroupPagination();

@@ -3,7 +3,7 @@ import React from 'react';
 import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { Panel } from 'src/app-components/Panel/Panel';
 import { translationKey } from 'src/AppComponentsBridge';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { useItemWhenType } from 'src/utils/layout/useNodeItem';
@@ -11,7 +11,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 
 export const PanelComponent = ({ baseComponentId }: PropsFromGenericComponent<'Panel'>) => {
   const { textResourceBindings, variant, showIcon, grid } = useItemWhenType(baseComponentId, 'Panel');
-  const layoutLookups = useLayoutLookups();
+  const layoutLookups = FormBootstrap.useLayoutLookups();
   const parent = layoutLookups.componentToParent[baseComponentId];
   const fullWidth = !grid && parent?.type === 'page';
 

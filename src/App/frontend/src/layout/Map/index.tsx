@@ -1,8 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
+import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { MapDef } from 'src/layout/Map/config.def.generated';
 import { useValidateGeometriesBindings } from 'src/layout/Map/features/geometries/useValidateGeometriesBindings';
 import { MapComponent } from 'src/layout/Map/MapComponent';
@@ -40,8 +39,8 @@ export class Map extends MapDef {
 
   useDataModelBindingValidation(baseComponentId: string, bindings: IDataModelBindings<'Map'>): string[] {
     const errors: string[] = [];
-    const lookupBinding = DataModels.useLookupBinding();
-    const layoutLookups = useLayoutLookups();
+    const lookupBinding = FormBootstrap.useLookupBinding();
+    const layoutLookups = FormBootstrap.useLayoutLookups();
     const toolbar = useExternalItem(baseComponentId, 'Map').toolbar;
 
     if (bindings?.simpleBinding && bindings?.geometryIsEditable) {

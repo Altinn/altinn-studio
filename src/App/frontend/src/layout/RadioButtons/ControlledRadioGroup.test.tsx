@@ -4,6 +4,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
+import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getFormDataMockForRepGroup } from 'src/__mocks__/getFormDataMockForRepGroup';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
@@ -60,7 +61,12 @@ const render = async ({
           ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
             Promise.resolve({ data: options, headers: {} } as AxiosResponse<IRawOption[], any>)
           : Promise.reject(new Error('No options provided to render()')),
-      fetchFormData: async () => (formData ? { myRadio: formData, ...groupData } : { ...groupData }),
+      fetchFormBootstrapForInstance: async () =>
+        getFormBootstrapMock((obj) => {
+          obj.dataModels[defaultDataTypeMock].initialData = formData
+            ? { myRadio: formData, ...groupData }
+            : { ...groupData };
+        }),
       ...queries,
     },
   });
