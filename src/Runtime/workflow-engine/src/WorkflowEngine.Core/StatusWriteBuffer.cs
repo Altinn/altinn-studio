@@ -11,12 +11,24 @@ using WorkflowEngine.Telemetry.Extensions;
 namespace WorkflowEngine.Core;
 
 /// <summary>
+/// Abstraction for submitting workflow status updates for batched persistence.
+/// </summary>
+internal interface IStatusWriteBuffer
+{
+    /// <summary>
+    /// Submits a workflow and its dirty steps for batched persistence.
+    /// Returns when the update has been flushed to the database.
+    /// </summary>
+    Task SubmitAsync(Workflow workflow, CancellationToken ct);
+}
+
+/// <summary>
 /// Batches workflow + step status updates from concurrent workers into single DB writes.
 /// Workers submit dirty workflow state via <see cref="SubmitAsync"/> and await confirmation
 /// that the update has been persisted. A background loop drains the channel and flushes
 /// updates to the database.
 /// </summary>
-internal sealed class StatusWriteBuffer : BackgroundService
+internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<StatusWriteBuffer> _logger;

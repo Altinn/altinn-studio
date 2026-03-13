@@ -236,6 +236,73 @@ public class AppCommandExecutionTests
         Assert.Contains("invalid response body", result.Message, StringComparison.OrdinalIgnoreCase);
     }
 
+    // --- StateIn / payload completeness ---
+
+    [Fact]
+    public async Task Execute_IncludesStateInPayload()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
+        var command = CreateAppCommand("test-command");
+
+        var step0 = AppCommandTestFixture.CreateStep(
+            App.Commands.AppCommand.AppCommand.Create(new AppCommandData { CommandKey = "step-0" }),
+            operationId: "step-0"
+        );
+        step0.Status = PersistentItemStatus.Completed;
+        step0.StateOut = "previous-state";
+
+        var step1 = new Step
+        {
+            OperationId = "step-1",
+            IdempotencyKey = "test-step-key/step-1",
+            ProcessingOrder = 1,
+            Command = command,
+        };
+
+        var workflow = new Workflow
+        {
+            CorrelationId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+            OperationId = "test-operation",
+            IdempotencyKey = "test-wf-key",
+            Namespace = "test-namespace",
+            Context = AppCommandTestFixture.DefaultWorkflowContext,
+            Steps = [step0, step1],
+        };
+
+        var result = await executor.Execute(workflow, step1, CancellationToken.None);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        Assert.Single(fixture.HttpHandler.Requests);
+
+        var captured = fixture.HttpHandler.Requests[0];
+        Assert.NotNull(captured.Body);
+
+        var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body);
+        Assert.NotNull(payload);
+        Assert.Equal("previous-state", payload.State);
+    }
+
+    [Fact]
+    public async Task Execute_SendsCorrectPayload_IncludesWorkflowIdAndState()
+    {
+        using var fixture = AppCommandTestFixture.Create();
+        var executor = fixture.ServiceProvider.GetRequiredService<IWorkflowExecutor>();
+        var command = CreateAppCommand("test-command", payload: "test-payload-data");
+        var step = AppCommandTestFixture.CreateStep(command);
+        var workflow = AppCommandTestFixture.CreateWorkflow(step);
+
+        var result = await executor.Execute(workflow, step, CancellationToken.None);
+
+        Assert.Equal(ExecutionStatus.Success, result.Status);
+        var captured = fixture.HttpHandler.Requests[0];
+        var payload = JsonSerializer.Deserialize<AppCallbackPayload>(captured.Body!);
+
+        Assert.NotNull(payload);
+        Assert.Equal(workflow.DatabaseId, payload.WorkflowId);
+        Assert.Null(payload.State); // First step with no InitialState → null
+    }
+
     // --- Validation through executor ---
 
     [Fact]

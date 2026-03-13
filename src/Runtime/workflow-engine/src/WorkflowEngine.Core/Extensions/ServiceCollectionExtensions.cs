@@ -59,6 +59,7 @@ public static class ServiceCollectionExtensions
 
             services.AddOptions<StatusWriteBufferOptions>().BindConfiguration("StatusWriteBuffer");
             services.AddSingleton<StatusWriteBuffer>();
+            services.AddSingleton<IStatusWriteBuffer>(sp => sp.GetRequiredService<StatusWriteBuffer>());
             services.AddHostedService(sp => sp.GetRequiredService<StatusWriteBuffer>());
 
             services.AddOptions<WorkflowProcessorOptions>().BindConfiguration("WorkflowProcessor");

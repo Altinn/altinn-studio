@@ -246,6 +246,79 @@ public partial class EngineTests
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 
+    // ── Error response snapshots ────────────────────────────────────────────
+
+    [Fact]
+    public async Task Response_Enqueue_CycleDetection_Returns400WithDetails()
+    {
+        // A → B → A cycle
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/a")], dependsOn: ["b"]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/b")], dependsOn: ["a"]),
+        ]);
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
+    public async Task Response_Enqueue_SizeLimitExceeded_Returns400WithDetails()
+    {
+        // Create a workflow with too many steps (max is 50 per the test config)
+        var steps = Enumerable.Range(1, 51).Select(i => _testHelpers.CreateWebhookStep($"/step-{i}")).ToList();
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", steps));
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
+    public async Task Response_GetWorkflow_AfterRetries_ShowsRetryState()
+    {
+        // Arrange – WireMock returns 500 twice, then 200
+        fixture
+            .WireMock.Given(Request.Create().UsingAnyMethod())
+            .InScenario("retry-snapshot")
+            .WillSetStateTo("failed-once")
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture
+            .WireMock.Given(Request.Create().UsingAnyMethod())
+            .InScenario("retry-snapshot")
+            .WhenStateIs("failed-once")
+            .WillSetStateTo("succeeded")
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture
+            .WireMock.Given(Request.Create().UsingAnyMethod())
+            .InScenario("retry-snapshot")
+            .WhenStateIs("succeeded")
+            .RespondWith(Response.Create().WithStatusCode(200));
+
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/retry-target")])
+        );
+        var accepted = await _client.Enqueue(request);
+        var workflowId = accepted.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        // Act
+        using var response = await _client.GetWorkflowRaw(workflowId);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    // ── ListActiveWorkflows endpoint responses ────────────────────────────────
+
     [Fact]
     public async Task Response_ListActiveWorkflows_AfterCompletion_Returns204()
     {

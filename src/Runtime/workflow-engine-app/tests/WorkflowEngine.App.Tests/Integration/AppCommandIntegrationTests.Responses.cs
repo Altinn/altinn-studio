@@ -88,4 +88,28 @@ public sealed partial class AppCommandIntegrationTests
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body);
     }
+
+    // ── Callback payload snapshot ─────────────────────────────────────────────
+
+    [Fact]
+    public async Task Response_AppCommandCallback_PayloadShape()
+    {
+        var step = _testHelpers.CreateAppCommandStep("/snapshot-callback", payload: "test-payload");
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf-1", [step]),
+            lockToken: InstanceLockToken
+        );
+        var accepted = await _client.Enqueue(request);
+        var workflowId = accepted.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        var logs = fixture.WireMock.LogEntries;
+        Assert.Single(logs);
+
+        var body = logs[0].RequestMessage.Body;
+        Assert.NotNull(body);
+
+        await VerifyJson(body).ScrubMembers("workflowId");
+    }
 }

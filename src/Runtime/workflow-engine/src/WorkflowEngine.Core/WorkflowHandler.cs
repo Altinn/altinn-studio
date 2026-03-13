@@ -17,7 +17,7 @@ namespace WorkflowEngine.Core;
 /// </summary>
 internal sealed class WorkflowHandler(
     IWorkflowExecutor executor,
-    StatusWriteBuffer statusWriteBuffer,
+    IStatusWriteBuffer statusWriteBuffer,
     IOptions<EngineSettings> settings,
     TimeProvider timeProvider,
     ILogger<WorkflowHandler> logger
