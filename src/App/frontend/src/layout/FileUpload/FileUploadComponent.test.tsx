@@ -1,8 +1,5 @@
 import React from 'react';
 
-import '@testing-library/jest-dom';
-import '@testing-library/jest-dom/jest-globals';
-
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
