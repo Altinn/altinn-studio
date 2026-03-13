@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Altinn.App.Api.Tests.Controllers.TestResources;
 using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Configuration;
@@ -43,26 +44,27 @@ public class FormBootstrapServiceTests
     private readonly Mock<IAuthenticationContext> _authenticationContext = new();
     private readonly Mock<ILogger<FormBootstrapService>> _logger = new();
 
-    private FormBootstrapService CreateService() =>
+    private FormBootstrapService CreateService(IAppModel? appModel = null) =>
         new(
             _appResources.Object,
             _appMetadata.Object,
             _appOptionsService.Object,
-            _appModel,
+            appModel ?? _appModel,
             _prefillService.Object,
             _authenticationContext.Object,
-            CreateServiceProvider(),
+            CreateServiceProvider(appModel),
             _logger.Object
         );
 
-    private IServiceProvider CreateServiceProvider()
+    private IServiceProvider CreateServiceProvider(IAppModel? appModel = null)
     {
+        var resolvedAppModel = appModel ?? _appModel;
         var services = new ServiceCollection();
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddSingleton(_dataClient.Object);
         services.AddSingleton(_instanceClient.Object);
         services.AddSingleton(_translationService.Object);
-        services.AddSingleton(new ModelSerializationService(_appModel));
+        services.AddSingleton(new ModelSerializationService(resolvedAppModel));
         services.AddSingleton<IOptions<FrontEndSettings>>(Options.Create(new FrontEndSettings()));
         services.AddSingleton(_appResources.Object);
         services.AddSingleton(_appMetadata.Object);
@@ -72,7 +74,7 @@ public class FormBootstrapServiceTests
                 _instanceClient.Object,
                 _appMetadata.Object,
                 _translationService.Object,
-                new ModelSerializationService(_appModel),
+                new ModelSerializationService(resolvedAppModel),
                 _appResources.Object,
                 Options.Create(new FrontEndSettings())
             )
@@ -182,6 +184,29 @@ public class FormBootstrapServiceTests
         await service.GetStatelessFormBootstrap("stateless", "nn", ["model"]);
 
         _formDataReader.Verify(x => x.ReadStatelessFormData(It.IsAny<object>(), "nn", null), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetStatelessFormBootstrap_InitializesAltinnRowIds()
+    {
+        var appModel = new AppModelMock<RowIdDummyModel>();
+        var appMetadata = CreateAppMetadata(typeof(RowIdDummyModel), "model");
+
+        SetupStatelessMocks(appMetadata);
+        _formDataReader
+            .Setup(x => x.ReadStatelessFormData(It.IsAny<object>(), It.IsAny<string?>(), It.IsAny<InstanceOwner?>()))
+            .Callback<object, string?, InstanceOwner?>(
+                (model, _, _) => ((RowIdDummyModel)model).Items = [new RowIdDummyItem()]
+            )
+            .Returns(Task.CompletedTask);
+
+        var service = CreateService(appModel);
+
+        var result = await service.GetStatelessFormBootstrap("stateless", "nb", ["model"]);
+
+        var initialData = Assert.IsType<RowIdDummyModel>(result.DataModels["model"].InitialData);
+        Assert.Single(initialData.Items);
+        Assert.NotEqual(Guid.Empty, initialData.Items[0].AltinnRowId);
     }
 
     [Fact]
@@ -451,6 +476,56 @@ public class FormBootstrapServiceTests
         // Assert - Should return valid options, not fail entirely
         Assert.Single(result.StaticOptions);
         Assert.True(result.StaticOptions.ContainsKey("valid"));
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_WhenReferencedDataModelFailsToLoad_Throws()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model", "submodel");
+
+        SetupMocks(
+            appMetadata,
+            layoutsJson: """
+            {
+                "page1": {
+                    "data": {
+                        "layout": [
+                            {
+                                "id": "field1",
+                                "type": "Input",
+                                "dataModelBindings": {
+                                    "simpleBinding": {
+                                        "field": "Name",
+                                        "dataType": "submodel"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+            """
+        );
+        _formDataReader
+            .Setup(x =>
+                x.ProcessLoadedFormData(
+                    It.IsAny<Instance>(),
+                    It.Is<DataElement>(d => d.DataType == "submodel"),
+                    It.IsAny<object>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Func<object, CancellationToken, Task>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new ApplicationException("Failed to load submodel"));
+
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<ApplicationException>(() =>
+            service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb")
+        );
     }
 
     [Fact]
@@ -816,7 +891,10 @@ public class FormBootstrapServiceTests
         };
     }
 
-    private static ApplicationMetadata CreateAppMetadata(params string[] dataTypes)
+    private static ApplicationMetadata CreateAppMetadata(params string[] dataTypes) =>
+        CreateAppMetadata(typeof(DummyModel), dataTypes);
+
+    private static ApplicationMetadata CreateAppMetadata(Type modelType, params string[] dataTypes)
     {
         var allDataTypes = dataTypes.Append("submodel").Distinct().ToArray();
         return new ApplicationMetadata("ttd/test")
@@ -825,7 +903,7 @@ public class FormBootstrapServiceTests
                 .Select(dt => new DataType
                 {
                     Id = dt,
-                    AppLogic = new ApplicationLogic { ClassRef = typeof(DummyModel).FullName! },
+                    AppLogic = new ApplicationLogic { ClassRef = modelType.FullName! },
                     AllowedContentTypes = ["application/xml"],
                 })
                 .ToList(),
@@ -837,10 +915,13 @@ public class FormBootstrapServiceTests
         string uiFolder = "Task_1",
         string dataType = "model",
         bool hasValidationConfig = false,
-        Dictionary<string, List<Dictionary<string, string>>>? staticOptions = null
+        Dictionary<string, List<Dictionary<string, string>>>? staticOptions = null,
+        string? layoutsJson = null
     )
     {
-        _appResources.Setup(x => x.GetLayoutsInFolder(It.IsAny<string>())).Returns(CreateLayoutsJson(staticOptions));
+        _appResources
+            .Setup(x => x.GetLayoutsInFolder(It.IsAny<string>()))
+            .Returns(layoutsJson ?? CreateLayoutsJson(staticOptions));
         _appResources.Setup(x => x.GetModelJsonSchema(It.IsAny<string>())).Returns("""{"type": "object"}""");
         _appResources
             .Setup(x => x.GetValidationConfiguration(It.IsAny<string>()))
@@ -986,4 +1067,15 @@ public class FormBootstrapServiceTests
 
         return JsonSerializer.Serialize(layout);
     }
+}
+
+public class RowIdDummyModel
+{
+    public List<RowIdDummyItem> Items { get; set; } = [];
+}
+
+public class RowIdDummyItem
+{
+    [JsonPropertyName("altinnRowId")]
+    public Guid AltinnRowId { get; set; }
 }

@@ -204,78 +204,63 @@ public sealed class FormBootstrapService
 
         var tasks = dataTypes.Select(async dataType =>
         {
-            try
+            var dataTypeDef = appMetadata.DataTypes.FirstOrDefault(dt =>
+                string.Equals(dt.Id, dataType, StringComparison.OrdinalIgnoreCase)
+            );
+
+            if (dataTypeDef?.AppLogic?.ClassRef is null)
             {
-                var dataTypeDef = appMetadata.DataTypes.FirstOrDefault(dt =>
-                    string.Equals(dt.Id, dataType, StringComparison.OrdinalIgnoreCase)
-                );
-
-                if (dataTypeDef?.AppLogic?.ClassRef is null)
-                {
-                    _logger.LogWarning("Data type {DataType} missing AppLogic.ClassRef, skipping", dataType);
-                    return (dataType, null);
-                }
-
-                DataElement? dataElement;
-                var shouldUseSpecificDataElement =
-                    !string.IsNullOrEmpty(specificDataElementId)
-                    && string.Equals(dataType, defaultDataType, StringComparison.OrdinalIgnoreCase);
-
-                if (shouldUseSpecificDataElement)
-                {
-                    dataElement = dataAccessor.Instance.Data.FirstOrDefault(d =>
-                        string.Equals(d.Id, specificDataElementId, StringComparison.OrdinalIgnoreCase)
-                    );
-                }
-                else
-                {
-                    var matchingDataElements = dataAccessor
-                        .Instance.Data.Where(d =>
-                            string.Equals(d.DataType, dataType, StringComparison.OrdinalIgnoreCase)
-                        )
-                        .Take(2)
-                        .ToList();
-
-                    if (matchingDataElements.Count > 1)
-                    {
-                        throw new InvalidOperationException($"Multiple data elements found for data type '{dataType}'");
-                    }
-
-                    dataElement = matchingDataElements.SingleOrDefault();
-                }
-
-                if (dataElement is null)
-                {
-                    _logger.LogDebug("No data element found for type {DataType}", dataType);
-                    return (dataType, null);
-                }
-
-                var schema = GetSchema(dataType);
-                var formData = await GetFormDataAsync(dataAccessor, dataElement, language, cancellationToken);
-                var validationConfig = isPdf || dataElement.Locked ? null : GetValidationConfig(dataType);
-
-                return (
-                    dataType,
-                    (DataModelInfo?)
-                        new DataModelInfo
-                        {
-                            Schema = schema,
-                            InitialData = formData,
-                            DataElementId = dataElement.Id,
-                            ExpressionValidationConfig = validationConfig,
-                        }
-                );
-            }
-            catch (Exception ex)
-            {
-                if (ex is InvalidOperationException)
-                {
-                    throw;
-                }
-
-                _logger.LogWarning(ex, "Failed to load data model for type {DataType}", dataType);
+                _logger.LogWarning("Data type {DataType} missing AppLogic.ClassRef, skipping", dataType);
                 return (dataType, null);
             }
+
+            DataElement? dataElement;
+            var shouldUseSpecificDataElement =
+                !string.IsNullOrEmpty(specificDataElementId)
+                && string.Equals(dataType, defaultDataType, StringComparison.OrdinalIgnoreCase);
+
+            if (shouldUseSpecificDataElement)
+            {
+                dataElement = dataAccessor.Instance.Data.FirstOrDefault(d =>
+                    string.Equals(d.Id, specificDataElementId, StringComparison.OrdinalIgnoreCase)
+                );
+            }
+            else
+            {
+                var matchingDataElements = dataAccessor
+                    .Instance.Data.Where(d => string.Equals(d.DataType, dataType, StringComparison.OrdinalIgnoreCase))
+                    .Take(2)
+                    .ToList();
+
+                if (matchingDataElements.Count > 1)
+                {
+                    throw new InvalidOperationException($"Multiple data elements found for data type '{dataType}'");
+                }
+
+                dataElement = matchingDataElements.SingleOrDefault();
+            }
+
+            if (dataElement is null)
+            {
+                _logger.LogDebug("No data element found for type {DataType}", dataType);
+                return (dataType, null);
+            }
+
+            var schema = GetSchema(dataType);
+            var formData = await GetFormDataAsync(dataAccessor, dataElement, language, cancellationToken);
+            var validationConfig = isPdf || dataElement.Locked ? null : GetValidationConfig(dataType);
+
+            return (
+                dataType,
+                (DataModelInfo?)
+                    new DataModelInfo
+                    {
+                        Schema = schema,
+                        InitialData = formData,
+                        DataElementId = dataElement.Id,
+                        ExpressionValidationConfig = validationConfig,
+                    }
+            );
         });
 
         var results = await Task.WhenAll(tasks);
@@ -331,6 +316,7 @@ public sealed class FormBootstrapService
                 }
 
                 await _formDataReader.ReadStatelessFormData(defaultData, language, instanceOwner);
+                ObjectUtils.InitializeAltinnRowId(defaultData);
                 var validationConfig = GetValidationConfig(dataType);
 
                 result[dataType] = new DataModelInfo
