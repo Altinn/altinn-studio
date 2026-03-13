@@ -31,11 +31,6 @@ public static class StudioOidcAuthenticationExtensions
     private const string OidcCallbackPath = "/studio-oidc-signin";
     private const string LoginPath = "/Login";
 
-    private static readonly JsonSerializerOptions s_jsonProtocolMessageOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
     public static IServiceCollection AddStudioOidcAuthentication(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -161,8 +156,7 @@ public static class StudioOidcAuthenticationExtensions
                         if (oidcSettings.AuthorizationDetails is not null)
                         {
                             parameters["authorization_details"] = JsonSerializer.Serialize(
-                                oidcSettings.AuthorizationDetails,
-                                s_jsonProtocolMessageOptions
+                                oidcSettings.AuthorizationDetails
                             );
                         }
 

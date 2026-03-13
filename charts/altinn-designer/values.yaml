@@ -79,6 +79,8 @@ environmentVariables:
       value: "ansattporten:altinn:service"
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__Resource
       value: "urn:altinn:resource:2480:40"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__OrganizationForm
+      value: "enterprise"
     - name: StudioOidcLoginSettings__AuthorizationDetails__1__Type
       value: "ansattporten:altinn:service"
     - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
@@ -163,6 +165,8 @@ environmentVariables:
       value: "ansattporten:altinn:service"
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__Resource
       value: "urn:altinn:resource:2480:40"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__OrganizationForm
+      value: "enterprise"
     - name: StudioOidcLoginSettings__AuthorizationDetails__1__Type
       value: "ansattporten:altinn:service"
     - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource
@@ -245,6 +249,8 @@ environmentVariables:
       value: "ansattporten:altinn:service"
     - name: StudioOidcLoginSettings__AuthorizationDetails__0__Resource
       value: "urn:altinn:resource:2480:40"
+    - name: StudioOidcLoginSettings__AuthorizationDetails__0__OrganizationForm
+      value: "enterprise"
     - name: StudioOidcLoginSettings__AuthorizationDetails__1__Type
       value: "ansattporten:altinn:service"
     - name: StudioOidcLoginSettings__AuthorizationDetails__1__Resource

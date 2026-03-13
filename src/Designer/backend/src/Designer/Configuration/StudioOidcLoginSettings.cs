@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Altinn.Studio.Designer.Configuration;
 
 public class StudioOidcLoginSettings : OidcLoginSettings
@@ -10,6 +12,12 @@ public class StudioOidcLoginSettings : OidcLoginSettings
 
 public class AuthorizationDetail
 {
+    [JsonPropertyName("type")]
     public required string Type { get; set; }
+
+    [JsonPropertyName("resource")]
     public required string Resource { get; set; }
+
+    [JsonPropertyName("organizationform")]
+    public string? OrganizationForm { get; set; }
 }
