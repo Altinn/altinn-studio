@@ -16,6 +16,8 @@ on:
       - '.github/codeql/**'
       - '.github/workflows/app-frontend-codeql.yml'
   workflow_dispatch:
+  schedule:
+    - cron: '35 1 * * 0'
 
 jobs:
   analyze:

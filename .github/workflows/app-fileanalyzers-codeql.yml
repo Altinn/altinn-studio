@@ -16,6 +16,8 @@ on:
       - '.github/codeql/**'
       - '.github/workflows/app-fileanalyzers-codeql.yml'
   workflow_dispatch:
+  schedule:
+    - cron: '25 1 * * 0'
 
 jobs:
   analyze:

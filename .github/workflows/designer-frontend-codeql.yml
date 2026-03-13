@@ -26,6 +26,8 @@ on:
       - 'package.json'
       - 'yarn.lock'
   workflow_dispatch:
+  schedule:
+    - cron: '55 1 * * 0'
 
 jobs:
   analyze:
