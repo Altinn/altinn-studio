@@ -600,8 +600,15 @@ public sealed class FormBootstrapService
         }
 
         var filteredChanges = new DataElementChanges(persistableChanges);
-        await dataAccessor.UpdateInstanceData(filteredChanges);
-        await dataAccessor.SaveChanges(filteredChanges);
+        try
+        {
+            await dataAccessor.UpdateInstanceData(filteredChanges);
+            await dataAccessor.SaveChanges(filteredChanges);
+        }
+        catch (PlatformHttpException e) when (e.Response.StatusCode is System.Net.HttpStatusCode.Forbidden)
+        {
+            // Read-only users must still be able to open forms even if ProcessDataRead changes cannot be persisted.
+        }
     }
 
     private object GetDefaultFormData(string classRef)
