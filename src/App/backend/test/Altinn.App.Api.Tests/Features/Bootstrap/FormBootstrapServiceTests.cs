@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using Altinn.App.Api.Tests.Controllers.TestResources;
 using Altinn.App.Api.Tests.Mocks;
@@ -6,6 +7,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
@@ -228,22 +230,64 @@ public class FormBootstrapServiceTests
         _prefillService.Verify(
             x =>
                 x.PrefillDataModel(
-                    "501337",
-                    "model",
                     It.IsAny<object>(),
-                    It.Is<Dictionary<string, string>>(prefill => prefill["first"] == "one" && prefill.Count == 1)
+                    It.Is<Dictionary<string, string>>(prefill =>
+                        prefill.Count == 1 && prefill.ContainsKey("first") && prefill["first"] == "one"
+                    ),
+                    true
+                ),
+            Times.Once
+        );
+        _prefillService.Verify(x => x.PrefillDataModel("501337", "model", It.IsAny<object>(), null), Times.Once);
+        _prefillService.Verify(
+            x =>
+                x.PrefillDataModel(
+                    It.IsAny<object>(),
+                    It.Is<Dictionary<string, string>>(prefill =>
+                        prefill.Count == 1 && prefill.ContainsKey("second") && prefill["second"] == "two"
+                    ),
+                    true
+                ),
+            Times.Once
+        );
+        _prefillService.Verify(x => x.PrefillDataModel("501337", "submodel", It.IsAny<object>(), null), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetStatelessFormBootstrap_AnonymousUser_AppliesQueryParameterPrefill()
+    {
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupStatelessMocks(appMetadata);
+
+        var service = CreateService();
+        await service.GetStatelessFormBootstrap(
+            "stateless",
+            "nb",
+            ["model"],
+            new Dictionary<string, Dictionary<string, string>> { ["model"] = new() { ["first"] = "one" } }
+        );
+
+        _prefillService.Verify(
+            x =>
+                x.PrefillDataModel(
+                    It.IsAny<object>(),
+                    It.Is<Dictionary<string, string>>(prefill =>
+                        prefill.Count == 1 && prefill.ContainsKey("first") && prefill["first"] == "one"
+                    ),
+                    true
                 ),
             Times.Once
         );
         _prefillService.Verify(
             x =>
                 x.PrefillDataModel(
-                    "501337",
-                    "submodel",
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
                     It.IsAny<object>(),
-                    It.Is<Dictionary<string, string>>(prefill => prefill["second"] == "two" && prefill.Count == 1)
+                    It.IsAny<Dictionary<string, string>?>()
                 ),
-            Times.Once
+            Times.Never
         );
     }
 
@@ -656,6 +700,74 @@ public class FormBootstrapServiceTests
         );
     }
 
+    [Fact]
+    public async Task GetInstanceFormBootstrap_IgnoresForbiddenWhenPersistingProcessDataReadChanges()
+    {
+        var instance = CreateTestInstance("Task_1");
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupMocks(appMetadata);
+        _formDataReader
+            .Setup(x =>
+                x.ProcessLoadedFormData(
+                    It.IsAny<Instance>(),
+                    It.IsAny<DataElement>(),
+                    It.IsAny<object>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Func<object, CancellationToken, Task>?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                (
+                    Instance _,
+                    DataElement _,
+                    object appModel,
+                    bool _,
+                    string? _,
+                    Func<object, CancellationToken, Task>? _,
+                    CancellationToken _
+                ) =>
+                {
+                    ((DummyModel)appModel).Name = "changed";
+                    return appModel;
+                }
+            );
+        _dataClient
+            .Setup(x =>
+                x.UpdateBinaryData(
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Stream>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ThrowsAsync(new PlatformHttpException(new HttpResponseMessage(HttpStatusCode.Forbidden), "Forbidden"));
+
+        var service = CreateService();
+
+        var result = await service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb");
+
+        Assert.True(result.DataModels.ContainsKey("model"));
+        _dataClient.Verify(
+            x =>
+                x.UpdateBinaryData(
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Stream>(),
+                    It.IsAny<StorageAuthenticationMethod?>(),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
+    }
+
     private static Instance CreateTestInstance(
         string taskId,
         bool locked = false,
@@ -831,7 +943,7 @@ public class FormBootstrapServiceTests
             )
             .ReturnsAsync(new AppOptions { Options = [] });
 
-        // Default to unauthenticated — GetStatelessInstanceOwner returns null and no prefill is attempted.
+        // Default to unauthenticated - GetStatelessInstanceOwner returns null so only query-parameter prefill can run.
         _authenticationContext.Setup(x => x.Current).Returns(TestAuthentication.GetNoneAuthentication());
         _formDataReader
             .Setup(x => x.ReadStatelessFormData(It.IsAny<object>(), It.IsAny<string?>(), It.IsAny<InstanceOwner?>()))

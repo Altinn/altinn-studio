@@ -318,15 +318,16 @@ public sealed class FormBootstrapService
 
                 var schema = GetSchema(dataType);
                 var defaultData = GetDefaultFormData(dataTypeDef.AppLogic.ClassRef);
+                var prefillFromQuery = prefillFromQueryParams?.GetValueOrDefault(dataType);
+
+                if (prefillFromQuery is { Count: > 0 })
+                {
+                    _prefillService.PrefillDataModel(defaultData, prefillFromQuery, continueOnError: true);
+                }
 
                 if (instanceOwner?.PartyId != null)
                 {
-                    await _prefillService.PrefillDataModel(
-                        instanceOwner.PartyId,
-                        dataType,
-                        defaultData,
-                        prefillFromQueryParams?.GetValueOrDefault(dataType)
-                    );
+                    await _prefillService.PrefillDataModel(instanceOwner.PartyId, dataType, defaultData, null);
                 }
 
                 await _formDataReader.ReadStatelessFormData(defaultData, language, instanceOwner);
