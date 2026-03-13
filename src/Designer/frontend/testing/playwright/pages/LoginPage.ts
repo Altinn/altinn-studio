@@ -85,14 +85,19 @@ export class LoginPage extends BasePage {
     await this.dismissAccountLinkModalIfVisible();
     await this.page.waitForURL(/\/authorize/);
     await this.page.getByRole('button', { name: /cypress_testuser test playwright/ }).click();
-    await this.selectOrgIfPickerIsVisible();
-    await this.confirmSuccessfulLogin();
-  }
 
-  private async selectOrgIfPickerIsVisible(): Promise<void> {
     const nextButton = this.page.getByRole('button', { name: 'Neste' });
-    if (await nextButton.isVisible({ timeout: 2000 })) {
+    const dashboardLoaded = this.page.waitForURL(this.getRoute('dashboard'));
+    const orgPickerVisible = nextButton.waitFor({ state: 'visible' });
+
+    const result = await Promise.race([
+      dashboardLoaded.then(() => 'dashboard' as const),
+      orgPickerVisible.then(() => 'orgPicker' as const),
+    ]);
+
+    if (result === 'orgPicker') {
       await nextButton.click();
+      await this.confirmSuccessfulLogin();
     }
   }
 
