@@ -14,7 +14,7 @@ export type StudioBooleanToggleGroupProps = Override<
   WithoutAsChild<ToggleGroupProps>
 >;
 
-const StudioBooleanToggleGroup = forwardRef<HTMLDivElement, StudioBooleanToggleGroupProps>(
+const StudioBooleanToggleGroup = forwardRef<HTMLFieldSetElement, StudioBooleanToggleGroupProps>(
   ({ falseLabel, onChange, trueLabel, value: givenValue, ...rest }, ref) => {
     const [value, setValue] = useState<boolean>(givenValue ?? false);
 

@@ -86,7 +86,7 @@ describe('StudioBooleanToggleGroup', () => {
   });
 
   it('Forwards the ref object to the toggle group element if given', () => {
-    testRefForwarding<HTMLDivElement>((ref) => renderBooleanToggle({}, ref));
+    testRefForwarding<HTMLFieldSetElement>((ref) => renderBooleanToggle({}, ref));
   });
 
   const getTrueToggle = (): HTMLElement => screen.getByRole('radio', { name: trueLabel });
@@ -95,7 +95,7 @@ describe('StudioBooleanToggleGroup', () => {
 
 function renderBooleanToggle(
   props: Partial<StudioBooleanToggleGroupProps> = {},
-  ref?: ForwardedRef<HTMLDivElement>,
+  ref?: ForwardedRef<HTMLFieldSetElement>,
 ): RenderResult {
   return render(<StudioBooleanToggleGroup {...defaultProps} {...props} ref={ref} />);
 }
