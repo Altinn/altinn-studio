@@ -9,6 +9,7 @@ import { type AppRelease } from 'app-shared/types/AppRelease';
 import { appRelease } from 'app-shared/mocks/mocks';
 import { BuildResult } from 'app-shared/types/Build';
 import userEvent from '@testing-library/user-event';
+
 const created = '01.01.2024 18:53';
 const appReleases: AppRelease[] = [
   {
