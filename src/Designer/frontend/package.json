@@ -90,6 +90,7 @@
     "start-studio-root": "yarn workspace studio-root start",
     "start-org-settings": "yarn workspace org-settings start",
     "start-admin": "yarn workspace admin start",
+    "start-user-settings": "yarn workspace user-settings start",
     "stats": "node stats.js",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
     "test": "jest --maxWorkers=50% --config=jest.config.js",

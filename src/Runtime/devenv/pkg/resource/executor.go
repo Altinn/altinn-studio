@@ -177,12 +177,16 @@ func (e *Executor) applyRemoteImage(ctx context.Context, img *RemoteImage) error
 
 	switch img.PullPolicy {
 	case PullAlways:
-		if pullErr := e.client.ImagePull(ctx, img.Ref); pullErr != nil {
+		if pullErr := e.client.ImagePullWithProgress(ctx, img.Ref, func(update types.ProgressUpdate) {
+			e.notifyProgress(img.ID(), progressFromContainerUpdate(update))
+		}); pullErr != nil {
 			return fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
 		}
 	case PullIfNotPresent:
 		if !imageExists {
-			if pullErr := e.client.ImagePull(ctx, img.Ref); pullErr != nil {
+			if pullErr := e.client.ImagePullWithProgress(ctx, img.Ref, func(update types.ProgressUpdate) {
+				e.notifyProgress(img.ID(), progressFromContainerUpdate(update))
+			}); pullErr != nil {
 				return fmt.Errorf("pull image %s: %w", img.Ref, pullErr)
 			}
 		}
@@ -208,7 +212,9 @@ func (e *Executor) applyLocalImage(ctx context.Context, img *LocalImage) error {
 		dockerfile = "Dockerfile"
 	}
 
-	if err := e.client.Build(ctx, img.ContextPath, dockerfile, img.Tag); err != nil {
+	if err := e.client.BuildWithProgress(ctx, img.ContextPath, dockerfile, img.Tag, func(update types.ProgressUpdate) {
+		e.notifyProgress(img.ID(), progressFromContainerUpdate(update))
+	}); err != nil {
 		return fmt.Errorf("build image %s: %w", img.Tag, err)
 	}
 
@@ -437,6 +443,25 @@ func (e *Executor) notify(event EventType, id ResourceID, err error) {
 			Resource: id,
 			Error:    err,
 		})
+	}
+}
+
+func (e *Executor) notifyProgress(id ResourceID, progress Progress) {
+	if e.observer != nil {
+		e.observer.OnEvent(Event{
+			Type:     EventApplyProgress,
+			Resource: id,
+			Progress: &progress,
+		})
+	}
+}
+
+func progressFromContainerUpdate(update types.ProgressUpdate) Progress {
+	return Progress{
+		Message:       update.Message,
+		Current:       update.Current,
+		Total:         update.Total,
+		Indeterminate: update.Indeterminate,
 	}
 }
 

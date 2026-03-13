@@ -348,6 +348,10 @@ internal sealed class LocaltestHttpTransformer : HttpTransformer
             destinationPrefix,
             cancellationToken
         );
+
+        // Match the legacy nginx load balancer by preserving the browser-visible host header
+        // for all proxied requests, even when the upstream target is container-only.
+        proxyRequest.Headers.Host = httpContext.Request.Host.Value;
     }
 
     public override async ValueTask<bool> TransformResponseAsync(

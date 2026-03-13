@@ -5,29 +5,82 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - "src/cli/**"
+      - "src/tools/releaser/**"
       - .github/workflows/cli-build-test.yaml
   workflow_dispatch:
 
 jobs:
-  # validate-changelog:
-  #   name: Validate changelog
-  #   if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-  #       with:
-  #         fetch-depth: 0
+  detect-changelog-change:
+    name: Detect changelog changes
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-changelog')
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.changes.outputs.changed }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
 
-  #     - name: Setup Go for changelog validation
-  #       uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
-  #       with:
-  #         go-version-file: 'src/tools/releaser/go.mod'
-  #         cache-dependency-path: src/tools/releaser/go.sum
+      - name: Detect changelog changes
+        id: changes
+        run: |
+          if git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- src/cli/CHANGELOG.md | grep -q .; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
 
-  #     - name: Validate changelog
-  #       working-directory: src/tools/releaser
-  #       run: |
-  #         go run . validate-changelog -component studioctl -base "${{ github.event.pull_request.base.sha }}" -head "${{ github.event.pull_request.head.sha }}"
+  validate-changelog:
+    name: Validate changelog
+    if: needs.detect-changelog-change.outputs.changed == 'true'
+    needs: detect-changelog-change
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go for changelog validation
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
+        with:
+          go-version-file: 'src/tools/releaser/go.mod'
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Validate changelog
+        working-directory: src/tools/releaser
+        run: |
+          go run . validate-changelog -component studioctl -base "${{ github.event.pull_request.base.sha }}" -head "${{ github.event.pull_request.head.sha }}"
+
+  verify-release-artifacts:
+    name: Verify studioctl release artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
+        with:
+          go-version-file: src/tools/releaser/go.mod
+          cache-dependency-path: src/tools/releaser/go.sum
+
+      - name: Build release artifacts via releaser dry-run
+        working-directory: src/tools/releaser
+        run: |
+          go run . workflow --component studioctl --base-branch main --dry-run --skip-branch-check
+
+      - name: Upload release artifacts
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: studioctl-release-artifacts
+          path: build/release/
+          if-no-files-found: ignore
+          retention-days: 1
 
   analyze:
     strategy:

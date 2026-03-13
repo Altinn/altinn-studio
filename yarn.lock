@@ -13730,6 +13730,14 @@ __metadata:
   languageName: node
   linkType: hard
 
+"user-settings@workspace:src/Designer/frontend/user-settings":
+  version: 0.0.0-use.local
+  resolution: "user-settings@workspace:src/Designer/frontend/user-settings"
+  dependencies:
+    vite: "npm:^6.3.2"
+  languageName: unknown
+  linkType: soft
+
 "util-deprecate@npm:^1.0.2":
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"

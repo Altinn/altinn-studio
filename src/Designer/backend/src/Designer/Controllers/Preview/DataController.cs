@@ -20,7 +20,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route(
-        "{org:regex(^(?!(designer|editor|dashboard|preview|admin|resourceadm|info|org-settings)$).+$)}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances/{partyId}/{instanceGuid}/data"
+        "{org:regex(^(?!(designer|editor|dashboard|preview|admin|resourceadm|info|org-settings|settings)$).+$)}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances/{partyId}/{instanceGuid}/data"
     )]
     public class DataController(
         IInstanceService instanceService,

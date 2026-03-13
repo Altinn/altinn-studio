@@ -49,6 +49,7 @@
     "src/Designer/frontend/studio-root",
     "src/Designer/frontend/org-settings",
     "src/Designer/frontend/admin",
+    "src/Designer/frontend/user-settings",
     "src/Designer/frontend/testing/cypress",
     "src/Designer/frontend/testing/playwright",
     "src/Designer/frontend/packages/schema-editor",

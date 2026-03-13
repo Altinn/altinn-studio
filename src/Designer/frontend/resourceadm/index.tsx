@@ -15,6 +15,7 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';
 import * as mutations from 'app-shared/api/mutations';
 import 'app-shared/design-tokens';
+import { EnvironmentConfigProvider } from 'app-shared/contexts/EnvironmentConfigContext';
 
 i18next.use(initReactI18next).init({
   lng: DEFAULT_LANGUAGE,
@@ -41,7 +42,9 @@ const queryClientConfig: QueryClientConfig = {
 root.render(
   <BrowserRouter basename={RESOURCEADM_BASENAME}>
     <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
-      <App />
+      <EnvironmentConfigProvider>
+        <App />
+      </EnvironmentConfigProvider>
     </ServicesContextProvider>
   </BrowserRouter>,
 );

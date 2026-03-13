@@ -55,6 +55,10 @@ http {
     server ${ORG_SETTINGS_HOST};
   }
 
+  upstream settings {
+    server ${USER_SETTINGS_HOST};
+  }
+
   upstream repositories {
     server ${REPOS_HOST};
   }
@@ -63,7 +67,7 @@ http {
   include /etc/nginx/logging/*.conf;
 
   map $uri $spa_path {
-    ~^/(dashboard|editor|preview|admin|resourceadm|info|org-settings)(/.*)?$ $1;
+    ~^/(dashboard|editor|preview|admin|resourceadm|info|org-settings|settings)(/.*)?$ $1;
     default                                               none;
   }
 
@@ -75,6 +79,7 @@ http {
     resourceadm   resourceadm;
     info          info;
     org-settings  org-settings;
+    settings      settings;
     default       designer;
   }
 
@@ -86,6 +91,7 @@ http {
     resourceadm   1;
     info          1;
     org-settings  1;
+    settings      1;
     default       0;
   }
 
@@ -124,11 +130,11 @@ http {
       include /etc/nginx/error-pages/repos-error*.inc;
     }
 
-    location ~ ^/(dashboard|editor|preview|admin|resourceadm|info|org-settings)/assets(/.*)?$ {
+    location ~ ^/(dashboard|editor|preview|admin|resourceadm|info|org-settings|settings)/assets(/.*)?$ {
       proxy_pass http://$spa_upstream;
     }
 
-    location ~ ^/(dashboard|editor|preview|admin|resourceadm|info|org-settings)(/.*)?$ {
+    location ~ ^/(dashboard|editor|preview|admin|resourceadm|info|org-settings|settings)(/.*)?$ {
       if ($spa_rewrite) {
         rewrite ^/[^/]+(/.*)?$ /$spa_path/index.html break;
       }

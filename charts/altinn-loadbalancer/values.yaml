@@ -25,6 +25,7 @@ env:
   ORG_SETTINGS_HOST: altinn-designer:3000
   RESOURCEADM_HOST: altinn-designer:3000
   INFO_HOST: altinn-designer:3000
+  USER_SETTINGS_HOST: altinn-designer:3000
   REPOS_HOST: altinn-repositories-public
   LISTEN_DIRECTIVE: "443 ssl http2"
   OTEL_ENDPOINT: http://otel-router.observability.svc.cluster.local:4317
