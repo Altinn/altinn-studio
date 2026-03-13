@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import { StudioRecommendedNextAction } from './index';
-import type { StudioRecommendedNextActionProps } from './index';
 import { StudioIconTextfield } from '../StudioIconTextfield';
 import { KeyVerticalIcon } from '../../../../studio-icons/src';
 
-type PreviewProps = Omit<StudioRecommendedNextActionProps, 'children'>;
-
-const ChildrenComponent = () => <p>StudioRecommendedNextAction children will appear here</p>;
+const ChildrenComponent = (): React.ReactElement => (
+  <p>StudioRecommendedNextAction children will appear here</p>
+);
 
 const meta = {
   title: 'Components/StudioRecommendedNextAction',
@@ -18,6 +17,7 @@ const meta = {
     onSkip: fn(),
   },
 } satisfies Meta<typeof StudioRecommendedNextAction>;
+export default meta;
 
 type Story = StoryObj<typeof StudioRecommendedNextAction>;
 
@@ -57,5 +57,3 @@ export const ExampleUseCase: Story = {
     );
   },
 };
-
-export default meta;

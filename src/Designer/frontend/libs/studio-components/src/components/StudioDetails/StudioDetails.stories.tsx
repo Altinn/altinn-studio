@@ -24,6 +24,7 @@ const meta = {
   title: 'Components/StudioDetails',
   component: StudioDetails,
 } satisfies Meta<typeof StudioDetails>;
+export default meta;
 
 type Story = StoryObj<typeof meta>;
 
@@ -34,5 +35,3 @@ export const Preview: Story = {
 export const InCard: Story = {
   render: (args: StudioDetailsProps): ReactElement => <ComposedComponentInCard {...args} />,
 };
-
-export default meta;
