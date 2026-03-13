@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -15,10 +16,10 @@ using Microsoft.IdentityModel.Tokens;
 namespace Altinn.Studio.Designer.Infrastructure.Authorization;
 
 /// <summary>
-/// Authorization handler that validates Ansattporten-authenticated users have reportee access
+/// Authorization handler that validates authenticated users have reportee access
 /// to the organization for the current app.
 /// </summary>
-public sealed class AnsattPortenOrgAccessHandler : AuthorizationHandler<AnsattPortenOrgAccessRequirement>
+public sealed class OrgAccessHandler : AuthorizationHandler<OrgAccessRequirement>
 {
     // ISO 6523 ICD 0192 prefix for organisation numbers
     private const string OrgNumberPrefix = "0192:";
@@ -26,13 +27,13 @@ public sealed class AnsattPortenOrgAccessHandler : AuthorizationHandler<AnsattPo
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IEnvironmentsService _environmentsService;
     private readonly IHostEnvironment _hostEnvironment;
-    private readonly ILogger<AnsattPortenOrgAccessHandler> _logger;
+    private readonly ILogger<OrgAccessHandler> _logger;
 
-    public AnsattPortenOrgAccessHandler(
+    public OrgAccessHandler(
         IHttpContextAccessor httpContextAccessor,
         IEnvironmentsService environmentsService,
         IHostEnvironment hostEnvironment,
-        ILogger<AnsattPortenOrgAccessHandler> logger
+        ILogger<OrgAccessHandler> logger
     )
     {
         _httpContextAccessor = httpContextAccessor;
@@ -44,7 +45,7 @@ public sealed class AnsattPortenOrgAccessHandler : AuthorizationHandler<AnsattPo
     /// <inheritdoc/>
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
-        AnsattPortenOrgAccessRequirement requirement
+        OrgAccessRequirement requirement
     )
     {
         var httpContext = _httpContextAccessor.HttpContext;
@@ -62,7 +63,7 @@ public sealed class AnsattPortenOrgAccessHandler : AuthorizationHandler<AnsattPo
         }
 
         string? accessToken = await httpContext.GetTokenAsync(
-            AnsattPortenConstants.AnsattportenCookiesAuthenticationScheme,
+            CookieAuthenticationDefaults.AuthenticationScheme,
             "access_token"
         );
 
@@ -152,20 +153,17 @@ public sealed class AnsattPortenOrgAccessHandler : AuthorizationHandler<AnsattPo
         }
         catch (SecurityTokenException ex)
         {
-            _logger.LogWarning(ex, "Invalid JWT token format in Ansattporten access token");
+            _logger.LogWarning(ex, "Invalid JWT token format in access token");
             return [];
         }
         catch (JsonException ex)
         {
-            _logger.LogWarning(ex, "Failed to parse authorization_details JSON from Ansattporten token");
+            _logger.LogWarning(ex, "Failed to parse authorization_details JSON from access token");
             return [];
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Unexpected error extracting reportee organization numbers from Ansattporten access token"
-            );
+            _logger.LogError(ex, "Unexpected error extracting reportee organization numbers from access token");
             return [];
         }
     }

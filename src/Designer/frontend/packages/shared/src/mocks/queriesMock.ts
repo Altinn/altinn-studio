@@ -241,9 +241,6 @@ export const queriesMock: ServicesContextProps = {
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getProcessTaskType: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
-  getIsLoggedInWithAnsattporten: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<{ isLoggedIn: false }>({ isLoggedIn: false })),
   getMaskinportenScopes: jest
     .fn()
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
