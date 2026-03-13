@@ -85,7 +85,15 @@ export class LoginPage extends BasePage {
     await this.dismissAccountLinkModalIfVisible();
     await this.page.waitForURL(/\/authorize/);
     await this.page.getByRole('button', { name: /cypress_testuser test playwright/ }).click();
+    await this.selectOrgIfPickerIsVisible();
     await this.confirmSuccessfulLogin();
+  }
+
+  private async selectOrgIfPickerIsVisible(): Promise<void> {
+    const nextButton = this.page.getByRole('button', { name: 'Neste' });
+    if (await nextButton.isVisible({ timeout: 2000 })) {
+      await nextButton.click();
+    }
   }
 
   private async dismissAccountLinkModalIfVisible(): Promise<void> {
