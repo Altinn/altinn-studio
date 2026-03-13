@@ -202,6 +202,8 @@ func createBrowserArgs() []string {
 		"--enable-automation",
 		"--enable-features=NetworkService,NetworkServiceInProcess",
 		"--font-render-hinting=none",
+		// Keep Chromium rendering in sRGB: the PDF/A post-processor embeds an sRGB
+		// output intent and assumes this renderer setting still defines the PDF's RGB space.
 		"--force-color-profile=srgb",
 		"--headless",
 		"--hide-scrollbars",

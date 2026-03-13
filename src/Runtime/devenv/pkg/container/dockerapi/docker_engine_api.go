@@ -831,11 +831,11 @@ func runStreamingBuild(
 	if stderrErr != nil {
 		return stderrErr
 	}
-	if stdoutErr != nil {
-		return fmt.Errorf("build stdout read failed: %w", stdoutErr)
-	}
 	if waitErr != nil {
 		return formatBuildFailure(binary, waitErr, aggregator.LastError(), stdoutBuf.String(), stderrText)
+	}
+	if stdoutErr != nil && !isClosedPipeReadError(stdoutErr) {
+		return fmt.Errorf("build stdout read failed: %w", stdoutErr)
 	}
 
 	reportProgress(onProgress, types.ProgressUpdate{
@@ -846,6 +846,10 @@ func runStreamingBuild(
 	})
 
 	return nil
+}
+
+func isClosedPipeReadError(err error) bool {
+	return errors.Is(err, os.ErrClosed) || strings.Contains(err.Error(), "file already closed")
 }
 
 func streamBuildProgress(

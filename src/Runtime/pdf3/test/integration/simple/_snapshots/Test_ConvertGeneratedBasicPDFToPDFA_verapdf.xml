@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<report>
+  <buildInformation>
+    <releaseDetails id="core" version="1.28.2" buildDate="2025-07-15T16:07:00Z"></releaseDetails>
+    <releaseDetails id="validation-model" version="1.28.2" buildDate="2025-07-15T16:12:00Z"></releaseDetails>
+    <releaseDetails id="gui" version="1.28.2" buildDate="2025-07-15T16:59:00Z"></releaseDetails>
+  </buildInformation>
+  <jobs>
+    <job>
+      <item size="15148">
+        <name>/data/input.pdf</name>
+      </item>
+      <validationReport jobEndStatus="normal" profileName="PDF/A-2B validation profile" statement="PDF file is compliant with Validation Profile requirements." isCompliant="true">
+        <details passedRules="144" failedRules="0" passedChecks="2448" failedChecks="0"></details>
+      </validationReport>
+      <duration start="0" finish="0">00:00:00.000</duration>
+    </job>
+  </jobs>
+  <batchSummary totalJobs="1" failedToParse="0" encrypted="0" outOfMemory="0" veraExceptions="0">
+    <validationReports compliant="1" nonCompliant="0" failedJobs="0">1</validationReports>
+    <featureReports failedJobs="0">0</featureReports>
+    <repairReports failedJobs="0">0</repairReports>
+    <duration start="0" finish="0">00:00:00.000</duration>
+  </batchSummary>
+</report>
