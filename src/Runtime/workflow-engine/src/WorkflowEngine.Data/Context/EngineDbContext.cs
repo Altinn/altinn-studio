@@ -35,7 +35,7 @@ internal sealed class EngineDbContext : DbContext
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
 
             // GIN index on Labels for flexible filtering
-            entity.HasIndex(e => e.LabelsJson).HasMethod("gin");
+            entity.HasIndex(e => e.Labels).HasMethod("gin");
 
             // Self-referencing many-to-many: a workflow can depend on many other workflows
             entity

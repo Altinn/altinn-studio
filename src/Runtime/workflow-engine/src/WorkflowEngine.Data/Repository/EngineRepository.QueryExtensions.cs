@@ -101,10 +101,9 @@ internal static class EngineRepositoryQueryExtensions
             {
                 foreach (var (key, value) in labelFilters)
                 {
-                    // Uses PostgreSQL JSONB containment operator via EF.Functions
-                    query = query.Where(x =>
-                        x.LabelsJson != null && EF.Functions.JsonContains(x.LabelsJson, $"{{\"{key}\":\"{value}\"}}")
-                    );
+                    // Uses PostgreSQL JSONB containment operator (@>) via EF.Functions — GIN-indexed
+                    var filter = new Dictionary<string, string> { [key] = value };
+                    query = query.Where(x => x.Labels != null && EF.Functions.JsonContains(x.Labels, filter));
                 }
             }
 

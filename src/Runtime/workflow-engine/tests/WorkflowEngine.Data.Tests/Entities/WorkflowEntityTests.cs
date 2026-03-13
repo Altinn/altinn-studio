@@ -18,7 +18,7 @@ public class WorkflowEntityTests
             UpdatedAt = new DateTimeOffset(2025, 6, 15, 10, 35, 0, TimeSpan.Zero),
             BackoffUntil = new DateTimeOffset(2025, 6, 15, 12, 31, 0, TimeSpan.Zero),
             Status = PersistentItemStatus.Processing,
-            LabelsJson = """{"env":"test"}""",
+            Labels = new Dictionary<string, string> { ["env"] = "test" },
             ContextJson = """{"key":"value"}""",
             TraceContext = "trace-ctx-abc",
             Steps = steps.ToList(),

@@ -33,7 +33,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     public DateTimeOffset? BackoffUntil { get; set; }
 
     [Column(TypeName = "jsonb")]
-    public string? LabelsJson { get; set; }
+    public Dictionary<string, string>? Labels { get; set; }
 
     [Column(TypeName = "jsonb")]
     public string? ContextJson { get; set; }
@@ -69,8 +69,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             UpdatedAt = workflow.UpdatedAt,
             BackoffUntil = workflow.BackoffUntil,
             Status = workflow.Status,
-            LabelsJson =
-                workflow.Labels != null ? JsonSerializer.Serialize(workflow.Labels, JsonOptions.Default) : null,
+            Labels = workflow.Labels,
             ContextJson = workflow.Context.HasValue ? workflow.Context.Value.GetRawText() : null,
             TraceContext = workflow.DistributedTraceContext,
             MetadataJson = workflow.Metadata,
@@ -102,10 +101,7 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             UpdatedAt = UpdatedAt,
             BackoffUntil = BackoffUntil,
             Status = Status,
-            Labels =
-                LabelsJson != null
-                    ? JsonSerializer.Deserialize<Dictionary<string, string>>(LabelsJson, JsonOptions.Default)
-                    : null,
+            Labels = Labels,
             Context =
                 ContextJson != null ? JsonSerializer.Deserialize<JsonElement>(ContextJson, JsonOptions.Default) : null,
             DistributedTraceContext = TraceContext,

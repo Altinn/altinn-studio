@@ -95,9 +95,9 @@ internal sealed partial class EngineRepository
 
             // Extract distinct values for the given label key from JSONB
             const string sql = """
-                SELECT DISTINCT "LabelsJson"->>@key AS val
+                SELECT DISTINCT "Labels"->>@key AS val
                 FROM "Workflows"
-                WHERE "LabelsJson" IS NOT NULL AND "LabelsJson" ? @key
+                WHERE "Labels" IS NOT NULL AND "Labels" ? @key
                 ORDER BY val
                 """;
 
