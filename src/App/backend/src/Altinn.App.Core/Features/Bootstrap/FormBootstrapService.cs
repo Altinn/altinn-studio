@@ -119,6 +119,7 @@ public sealed class FormBootstrapService
                     taskId,
                     language,
                     defaultDataType,
+                    dataElementIdOverride,
                     cancellationToken
                 );
         AttachInitialValidationIssues(dataModels, initialValidations?.DataModelIssues);
@@ -138,7 +139,8 @@ public sealed class FormBootstrapService
     public async Task<FormBootstrapResponse> GetStatelessFormBootstrap(
         string uiFolder,
         string language,
-        Dictionary<string, string>? prefillFromQueryParams = null,
+        HashSet<string> referencedDataTypes,
+        Dictionary<string, Dictionary<string, string>>? prefillFromQueryParams = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -151,7 +153,6 @@ public sealed class FormBootstrapService
         var layoutsJson = _appResources.GetLayoutsInFolder(uiFolder);
         var layouts = DeserializeJson(layoutsJson);
 
-        var referencedDataTypes = LayoutAnalysisService.GetReferencedDataTypes(layoutsJson, defaultDataType);
         var staticOptionsReferences = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
         var dataModelsTask = LoadStatelessDataModels(
@@ -292,7 +293,7 @@ public sealed class FormBootstrapService
     private async Task<Dictionary<string, DataModelInfo>> LoadStatelessDataModels(
         HashSet<string> dataTypes,
         string language,
-        Dictionary<string, string>? prefillFromQueryParams = null,
+        Dictionary<string, Dictionary<string, string>>? prefillFromQueryParams = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -324,7 +325,7 @@ public sealed class FormBootstrapService
                         instanceOwner.PartyId,
                         dataType,
                         defaultData,
-                        prefillFromQueryParams
+                        prefillFromQueryParams?.GetValueOrDefault(dataType)
                     );
                 }
 
@@ -459,14 +460,17 @@ public sealed class FormBootstrapService
         string taskId,
         string language,
         string defaultDataType,
+        string? defaultDataElementIdOverride,
         CancellationToken cancellationToken
     )
     {
-        var defaultDataElementId = dataAccessor
-            .Instance.Data.FirstOrDefault(d =>
-                string.Equals(d.DataType, defaultDataType, StringComparison.OrdinalIgnoreCase)
-            )
-            ?.Id;
+        var defaultDataElementId =
+            defaultDataElementIdOverride
+            ?? dataAccessor
+                .Instance.Data.FirstOrDefault(d =>
+                    string.Equals(d.DataType, defaultDataType, StringComparison.OrdinalIgnoreCase)
+                )
+                ?.Id;
 
         var issues = await _initialValidationService.Validate(dataAccessor, taskId, language, cancellationToken);
         return PartitionInitialValidationIssues(issues, defaultDataElementId);

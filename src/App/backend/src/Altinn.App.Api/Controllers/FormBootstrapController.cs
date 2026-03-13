@@ -134,7 +134,7 @@ public class FormBootstrapController : ControllerBase
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="uiFolder">The layout set ID to use.</param>
     /// <param name="language">Language code for text resources.</param>
-    /// <param name="prefill">Optional JSON object of field-value pairs for query param prefill.</param>
+    /// <param name="prefill">Optional JSON object containing query param prefill, either for the default data type or keyed by data type.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Complete form bootstrap data.</returns>
     [HttpGet]
@@ -153,14 +153,25 @@ public class FormBootstrapController : ControllerBase
         CancellationToken cancellationToken = default
     )
     {
-        if (GetLayoutSettings(uiFolder) is null)
+        var layoutSettings = GetLayoutSettings(uiFolder);
+        if (layoutSettings is null)
+        {
+            return CreateUiFolderNotFoundResult(uiFolder);
+        }
+        if (layoutSettings.DefaultDataType is null)
         {
             return CreateUiFolderNotFoundResult(uiFolder);
         }
 
+        var layoutsJson = _appResources.GetLayoutsInFolder(uiFolder);
+        var referencedDataTypes = LayoutAnalysisService.GetReferencedDataTypes(
+            layoutsJson,
+            layoutSettings.DefaultDataType
+        );
+
         if (User.Identity?.IsAuthenticated != true)
         {
-            var isAnonymousAllowed = await IsAnonymousAllowedForFolder(uiFolder);
+            var isAnonymousAllowed = await IsAnonymousAllowedForFolder(referencedDataTypes);
             if (!isAnonymousAllowed)
             {
                 return Forbid();
@@ -175,12 +186,12 @@ public class FormBootstrapController : ControllerBase
             }
         }
 
-        Dictionary<string, string>? prefillFromQueryParams = null;
+        Dictionary<string, Dictionary<string, string>>? prefillFromQueryParams = null;
         if (!string.IsNullOrEmpty(prefill))
         {
             try
             {
-                prefillFromQueryParams = JsonSerializer.Deserialize<Dictionary<string, string>>(prefill);
+                prefillFromQueryParams = DeserializePrefill(prefill, layoutSettings.DefaultDataType);
             }
             catch (JsonException)
             {
@@ -188,7 +199,8 @@ public class FormBootstrapController : ControllerBase
                     new ProblemDetails
                     {
                         Title = "Invalid prefill JSON",
-                        Detail = "The 'prefill' query parameter must be a valid JSON object.",
+                        Detail =
+                            "The 'prefill' query parameter must be a valid JSON object with string values, optionally keyed by data type.",
                         Status = StatusCodes.Status400BadRequest,
                     }
                 );
@@ -199,18 +211,21 @@ public class FormBootstrapController : ControllerBase
                 var validateQueryParamPrefill = _appImplementationFactory.Get<IValidateQueryParamPrefill>();
                 if (validateQueryParamPrefill is not null)
                 {
-                    var issue = await validateQueryParamPrefill.PrefillFromQueryParamsIsValid(prefillFromQueryParams);
-                    if (issue != null)
+                    foreach (var prefillForDataType in prefillFromQueryParams.Values)
                     {
-                        return BadRequest(
-                            new ProblemDetails
-                            {
-                                Title = "Validation error from IValidateQueryParamPrefill",
-                                Detail = issue.Description,
-                                Status = StatusCodes.Status400BadRequest,
-                                Extensions = { ["issue"] = issue },
-                            }
-                        );
+                        var issue = await validateQueryParamPrefill.PrefillFromQueryParamsIsValid(prefillForDataType);
+                        if (issue != null)
+                        {
+                            return BadRequest(
+                                new ProblemDetails
+                                {
+                                    Title = "Validation error from IValidateQueryParamPrefill",
+                                    Detail = issue.Description,
+                                    Status = StatusCodes.Status400BadRequest,
+                                    Extensions = { ["issue"] = issue },
+                                }
+                            );
+                        }
                     }
                 }
             }
@@ -221,6 +236,7 @@ public class FormBootstrapController : ControllerBase
             var response = await _formBootstrapService.GetStatelessFormBootstrap(
                 uiFolder,
                 language,
+                referencedDataTypes,
                 prefillFromQueryParams,
                 cancellationToken
             );
@@ -367,21 +383,76 @@ public class FormBootstrapController : ControllerBase
         return null;
     }
 
-    private async Task<bool> IsAnonymousAllowedForFolder(string uiFolder)
+    private static Dictionary<string, Dictionary<string, string>>? DeserializePrefill(
+        string prefill,
+        string? defaultDataType
+    )
+    {
+        using var jsonDocument = JsonDocument.Parse(prefill);
+        if (jsonDocument.RootElement.ValueKind != JsonValueKind.Object)
+        {
+            throw new JsonException();
+        }
+
+        var rootProperties = jsonDocument.RootElement.EnumerateObject().ToList();
+        if (rootProperties.Count == 0)
+        {
+            return [];
+        }
+
+        if (rootProperties.All(static property => property.Value.ValueKind == JsonValueKind.String))
+        {
+            if (string.IsNullOrEmpty(defaultDataType))
+            {
+                return [];
+            }
+
+            return new Dictionary<string, Dictionary<string, string>>
+            {
+                [defaultDataType] = rootProperties.ToDictionary(
+                    property => property.Name,
+                    property => GetRequiredStringValue(property.Value)
+                ),
+            };
+        }
+
+        if (rootProperties.Any(static property => property.Value.ValueKind != JsonValueKind.Object))
+        {
+            throw new JsonException();
+        }
+
+        return rootProperties.ToDictionary(
+            property => property.Name,
+            property =>
+                property
+                    .Value.EnumerateObject()
+                    .ToDictionary(
+                        nestedProperty => nestedProperty.Name,
+                        nestedProperty => GetRequiredStringValue(nestedProperty.Value)
+                    )
+        );
+    }
+
+    private static string GetRequiredStringValue(JsonElement value)
+    {
+        if (value.ValueKind != JsonValueKind.String)
+        {
+            throw new JsonException();
+        }
+
+        return value.GetString() ?? throw new JsonException();
+    }
+
+    private async Task<bool> IsAnonymousAllowedForFolder(HashSet<string> referencedDataTypes)
     {
         var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var uiConfig = _appResources.GetUiConfiguration();
-        if (uiConfig?.Folders.TryGetValue(uiFolder, out var layoutSettings) != true || layoutSettings is null)
+        if (referencedDataTypes.Count == 0)
         {
             return false;
         }
 
-        if (layoutSettings.DefaultDataType == null)
-        {
-            return false;
-        }
-
-        var dataType = appMetadata.DataTypes.FirstOrDefault(dt => dt.Id == layoutSettings.DefaultDataType);
-        return dataType?.AppLogic?.AllowAnonymousOnStateless ?? false;
+        return referencedDataTypes.All(dataType =>
+            appMetadata.DataTypes.FirstOrDefault(dt => dt.Id == dataType)?.AppLogic?.AllowAnonymousOnStateless == true
+        );
     }
 }

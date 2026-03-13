@@ -159,7 +159,7 @@ public class FormBootstrapServiceTests
         var service = CreateService();
 
         // Act
-        var result = await service.GetStatelessFormBootstrap("stateless", "nb");
+        var result = await service.GetStatelessFormBootstrap("stateless", "nb", ["model"]);
 
         // Assert
         Assert.NotNull(result.Layouts);
@@ -177,9 +177,74 @@ public class FormBootstrapServiceTests
         SetupStatelessMocks(appMetadata);
 
         var service = CreateService();
-        await service.GetStatelessFormBootstrap("stateless", "nn");
+        await service.GetStatelessFormBootstrap("stateless", "nn", ["model"]);
 
         _formDataReader.Verify(x => x.ReadStatelessFormData(It.IsAny<object>(), "nn", null), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetStatelessFormBootstrap_UsesPrefillForEachReferencedDataType()
+    {
+        var appMetadata = CreateAppMetadata("model", "submodel");
+        SetupStatelessMocks(
+            appMetadata,
+            layoutsJson: """
+            {
+                "page1": {
+                    "data": {
+                        "layout": [
+                            {
+                                "id": "field1",
+                                "type": "Input",
+                                "dataModelBindings": {
+                                    "simpleBinding": {
+                                        "field": "Name",
+                                        "dataType": "submodel"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+            """
+        );
+        _authenticationContext
+            .Setup(x => x.Current)
+            .Returns(TestAuthentication.GetUserAuthentication(userPartyId: 501337));
+
+        var service = CreateService();
+        await service.GetStatelessFormBootstrap(
+            "stateless",
+            "nb",
+            ["model", "submodel"],
+            new Dictionary<string, Dictionary<string, string>>
+            {
+                ["model"] = new() { ["first"] = "one" },
+                ["submodel"] = new() { ["second"] = "two" },
+            }
+        );
+
+        _prefillService.Verify(
+            x =>
+                x.PrefillDataModel(
+                    "501337",
+                    "model",
+                    It.IsAny<object>(),
+                    It.Is<Dictionary<string, string>>(prefill => prefill["first"] == "one" && prefill.Count == 1)
+                ),
+            Times.Once
+        );
+        _prefillService.Verify(
+            x =>
+                x.PrefillDataModel(
+                    "501337",
+                    "submodel",
+                    It.IsAny<object>(),
+                    It.Is<Dictionary<string, string>>(prefill => prefill["second"] == "two" && prefill.Count == 1)
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -489,6 +554,42 @@ public class FormBootstrapServiceTests
     }
 
     [Fact]
+    public async Task GetInstanceFormBootstrap_DataElementIdOverride_PartitionsFieldValidationToOverride()
+    {
+        var parentDataElementId = Guid.NewGuid().ToString();
+        var subformDataElementId = Guid.NewGuid().ToString();
+        var instance = CreateTestInstance(
+            "Task_1",
+            defaultDataElementId: parentDataElementId,
+            submodelDataElementId: subformDataElementId
+        );
+        var appMetadata = CreateAppMetadata("model", "submodel");
+
+        SetupMocks(appMetadata, uiFolder: "subform", dataType: "submodel");
+        _initialValidationService
+            .Setup(x => x.Validate(It.IsAny<IInstanceDataAccessor>(), "Task_1", "nb", It.IsAny<CancellationToken>()))
+            .ReturnsAsync([
+                new ValidationIssueWithSource
+                {
+                    Severity = ValidationIssueSeverity.Error,
+                    Code = "required",
+                    Description = "Field is required",
+                    Source = "Required",
+                    Field = "some.path",
+                    DataElementId = null,
+                },
+            ]);
+
+        var service = CreateService();
+        var result = await service.GetInstanceFormBootstrap(instance, "subform", subformDataElementId, false, "nb");
+
+        Assert.Null(result.ValidationIssues);
+        Assert.Single(result.DataModels["submodel"].InitialValidationIssues!);
+        Assert.DoesNotContain(result.DataModels, entry => entry.Key == "model");
+        Assert.Equal(subformDataElementId, result.DataModels["submodel"].InitialValidationIssues![0].DataElementId);
+    }
+
+    [Fact]
     public async Task GetInstanceFormBootstrap_WhenNonDefaultDataTypeHasMultipleDataElements_Throws()
     {
         var instance = CreateTestInstance("Task_1", includeExtraSubmodelElement: true);
@@ -709,10 +810,11 @@ public class FormBootstrapServiceTests
     private void SetupStatelessMocks(
         ApplicationMetadata appMetadata,
         string uiFolder = "stateless",
-        string dataType = "model"
+        string dataType = "model",
+        string? layoutsJson = null
     )
     {
-        _appResources.Setup(x => x.GetLayoutsInFolder(It.IsAny<string>())).Returns(CreateLayoutsJson());
+        _appResources.Setup(x => x.GetLayoutsInFolder(It.IsAny<string>())).Returns(layoutsJson ?? CreateLayoutsJson());
         _appResources.Setup(x => x.GetModelJsonSchema(It.IsAny<string>())).Returns("""{"type": "object"}""");
         _appResources.Setup(x => x.GetValidationConfiguration(It.IsAny<string>())).Returns((string?)null);
         _appResources

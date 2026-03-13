@@ -99,7 +99,79 @@ public class FormBootstrapControllerTests
         var problemDetails = Assert.IsType<ProblemDetails>(badRequest.Value);
         Assert.Equal(StatusCodes.Status400BadRequest, problemDetails.Status);
         Assert.Equal("Invalid prefill JSON", problemDetails.Title);
-        Assert.Equal("The 'prefill' query parameter must be a valid JSON object.", problemDetails.Detail);
+        Assert.Equal(
+            "The 'prefill' query parameter must be a valid JSON object with string values, optionally keyed by data type.",
+            problemDetails.Detail
+        );
+    }
+
+    [Fact]
+    public async Task GetStatelessFormBootstrap_AnonymousUser_WhenReferencedDataTypeDisallowsAnonymous_ReturnsForbidden()
+    {
+        var appResources = new Mock<IAppResources>();
+        appResources
+            .Setup(x => x.GetUiConfiguration())
+            .Returns(
+                new UiConfiguration
+                {
+                    Folders = new Dictionary<string, LayoutSettings>
+                    {
+                        ["stateless"] = new() { DefaultDataType = "model" },
+                    },
+                }
+            );
+        appResources
+            .Setup(x => x.GetLayoutsInFolder("stateless"))
+            .Returns(
+                """
+                {
+                    "page1": {
+                        "data": {
+                            "layout": [
+                                {
+                                    "id": "field1",
+                                    "type": "Input",
+                                    "dataModelBindings": {
+                                        "simpleBinding": {
+                                            "field": "Name",
+                                            "dataType": "restricted"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+                """
+            );
+        appResources
+            .Setup(x => x.GetLayoutSettingsForFolder("stateless"))
+            .Returns(new LayoutSettings { DefaultDataType = "model" });
+        appResources.Setup(x => x.GetModelJsonSchema(It.IsAny<string>())).Returns("{}");
+        appResources.Setup(x => x.GetValidationConfiguration(It.IsAny<string>())).Returns((string?)null);
+
+        var appMetadata = new ApplicationMetadata("org/app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "model",
+                    AppLogic = new() { ClassRef = typeof(DummyModel).FullName, AllowAnonymousOnStateless = true },
+                },
+                new DataType
+                {
+                    Id = "restricted",
+                    AppLogic = new() { ClassRef = typeof(DummyModel).FullName, AllowAnonymousOnStateless = false },
+                },
+            ],
+        };
+
+        var controller = CreateController(Mock.Of<IInstanceClient>(), appResources.Object, appMetadata: appMetadata);
+
+        var result = await controller.GetStatelessFormBootstrap("org", "app", "stateless");
+
+        Assert.IsType<ForbidResult>(result.Result);
     }
 
     [Fact]
@@ -184,28 +256,30 @@ public class FormBootstrapControllerTests
         IAppResources appResources,
         IAuthenticationContext? authenticationContext = null,
         IPDP? pdp = null,
-        ClaimsPrincipal? user = null
+        ClaimsPrincipal? user = null,
+        ApplicationMetadata? appMetadata = null
     )
     {
-        var appMetadata = new Mock<IAppMetadata>();
-        appMetadata
+        var appMetadataMock = new Mock<IAppMetadata>();
+        appMetadataMock
             .Setup(x => x.GetApplicationMetadata())
             .ReturnsAsync(
-                new ApplicationMetadata("org/app")
-                {
-                    DataTypes =
-                    [
-                        new DataType
-                        {
-                            Id = "model",
-                            AppLogic = new()
+                appMetadata
+                    ?? new ApplicationMetadata("org/app")
+                    {
+                        DataTypes =
+                        [
+                            new DataType
                             {
-                                ClassRef = typeof(DummyModel).FullName,
-                                AllowAnonymousOnStateless = true,
+                                Id = "model",
+                                AppLogic = new()
+                                {
+                                    ClassRef = typeof(DummyModel).FullName,
+                                    AllowAnonymousOnStateless = true,
+                                },
                             },
-                        },
-                    ],
-                }
+                        ],
+                    }
             );
 
         var implementationServices = new ServiceCollection();
@@ -219,7 +293,7 @@ public class FormBootstrapControllerTests
 
         var formBootstrapService = new FormBootstrapService(
             appResources,
-            appMetadata.Object,
+            appMetadataMock.Object,
             Mock.Of<IAppOptionsService>(),
             Mock.Of<IAppModel>(),
             Mock.Of<IPrefill>(),
@@ -236,7 +310,7 @@ public class FormBootstrapControllerTests
             controllerServices.BuildServiceProvider(),
             instanceClient,
             appResources,
-            appMetadata.Object,
+            appMetadataMock.Object,
             pdp ?? Mock.Of<IPDP>(),
             authenticationContext ?? Mock.Of<IAuthenticationContext>(),
             Mock.Of<ILogger<FormBootstrapController>>()

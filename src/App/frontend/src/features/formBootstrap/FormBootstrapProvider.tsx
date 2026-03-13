@@ -1,10 +1,10 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren as ReactPropsWithChildren } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
-import { getApplicationMetadata } from 'src/features/applicationMetadata';
+import { getApplicationMetadata, useIsStateless } from 'src/features/applicationMetadata';
 import { resolveExpressionValidationConfig } from 'src/features/customValidation/customValidationUtils';
 import { SchemaLookupTool } from 'src/features/datamodel/SchemaLookupTool';
 import { processLayouts } from 'src/features/form/layout/LayoutsContext';
@@ -23,6 +23,7 @@ import { getRootElementPath } from 'src/utils/schemaUtils';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
 const FormBootstrapContext = createContext<FormBootstrapContextValue | null>(null);
+const statelessPrefillCache = new Map<string, string>();
 
 interface FormBootstrapProviderProps {
   uiFolder: string;
@@ -35,7 +36,9 @@ export function FormBootstrapProvider({
   dataElementIdOverride,
 }: ReactPropsWithChildren<FormBootstrapProviderProps>) {
   const defaultDataType = getUiFolderSettings(uiFolder)?.defaultDataType;
-  const [prefill] = useState(() => getPrefillFromSessionStorage(defaultDataType));
+  const isStateless = useIsStateless();
+  const prefillRef = useRef<string | undefined>(isStateless ? getPrefillFromSessionStorage(uiFolder) : undefined);
+  const prefill = prefillRef.current;
   const { data, isLoading, error } = useFormBootstrapQuery({
     uiFolder,
     dataElementIdOverride,
@@ -47,6 +50,7 @@ export function FormBootstrapProvider({
       sessionStorage.removeItem('queryParams');
     }
   }, [data, prefill]);
+
   if (!defaultDataType) {
     throw new Error(`defaultDataType not found for uiFolder: ${uiFolder}`);
   }
@@ -248,14 +252,10 @@ export const FormBootstrap = {
 
 const oneHourInMs = 60 * 60 * 1000;
 
-function getPrefillFromSessionStorage(defaultDataType: string | undefined): string | undefined {
-  if (!defaultDataType) {
-    return undefined;
-  }
-
+function getPrefillFromSessionStorage(uiFolder: string): string | undefined {
   const rawParams = sessionStorage.getItem('queryParams');
   if (!rawParams) {
-    return undefined;
+    return statelessPrefillCache.get(uiFolder);
   }
 
   const appMetadata = getApplicationMetadata();
@@ -264,22 +264,34 @@ function getPrefillFromSessionStorage(defaultDataType: string | undefined): stri
     return undefined;
   }
 
-  const entry = queryParams.find(
-    (param) =>
-      typeof param === 'object' &&
-      param !== null &&
-      (param as Record<string, unknown>).dataModelName === defaultDataType &&
-      (param as Record<string, unknown>).appId === appMetadata.id,
-  ) as Record<string, unknown> | undefined;
+  const validEntries = queryParams.filter(
+    (param): param is Record<string, unknown> =>
+      typeof param === 'object' && param !== null && param.appId === appMetadata.id,
+  );
 
-  if (!entry?.prefillFields || typeof entry.prefillFields !== 'object') {
-    return undefined;
+  const prefillByDataType = Object.fromEntries(
+    validEntries.flatMap((entry) => {
+      if (typeof entry.dataModelName !== 'string') {
+        return [];
+      }
+      if (!entry.prefillFields || typeof entry.prefillFields !== 'object') {
+        return [];
+      }
+
+      const createdTime = new Date(entry.created as string).getTime();
+      if (Number.isNaN(createdTime) || Date.now() - createdTime > oneHourInMs) {
+        return [];
+      }
+
+      return [[entry.dataModelName, entry.prefillFields]];
+    }),
+  );
+
+  if (Object.keys(prefillByDataType).length === 0) {
+    return statelessPrefillCache.get(uiFolder);
   }
 
-  const createdTime = new Date(entry.created as string).getTime();
-  if (Number.isNaN(createdTime) || Date.now() - createdTime > oneHourInMs) {
-    return undefined;
-  }
-
-  return JSON.stringify(entry.prefillFields);
+  const prefill = JSON.stringify(prefillByDataType);
+  statelessPrefillCache.set(uiFolder, prefill);
+  return prefill;
 }

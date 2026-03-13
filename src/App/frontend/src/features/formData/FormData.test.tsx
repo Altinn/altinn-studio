@@ -690,6 +690,54 @@ describe('FormData', () => {
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('');
       expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('false');
     });
+
+    it('Navigating away and back again should keep using the same stateless prefill', async () => {
+      const user = userEvent.setup({ delay: null });
+      sessionStorage.setItem(
+        'queryParams',
+        JSON.stringify([
+          {
+            dataModelName: statelessDataTypeMock,
+            appId: window.altinnAppGlobalData.applicationMetadata.id,
+            prefillFields: {
+              JobTitle: 'designer',
+            },
+            created: new Date().toISOString(),
+          },
+        ]),
+      );
+
+      const { mutations, queries } = await render();
+      const fetchBootstrapMock = queries.fetchFormBootstrapForStateless as unknown as jest.Mock;
+      const fetchBootstrapCalls = fetchBootstrapMock.mock.calls as [{ prefill?: string }][];
+      const firstPrefill = JSON.parse(fetchBootstrapCalls[0][0].prefill as string) as Record<
+        string,
+        Record<string, string>
+      >;
+
+      expect(queries.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(1);
+      expect(firstPrefill).toEqual({
+        [statelessDataTypeMock]: { JobTitle: 'designer' },
+      });
+
+      await user.click(screen.getByRole('button', { name: 'Navigate to a different page' }));
+      await screen.findByText('something different');
+      mutations.doPostStatelessFormData.resolve();
+
+      await user.click(screen.getByRole('button', { name: 'Navigate back' }));
+      await screen.findByTestId('obj2.prop1');
+      const secondPrefill = JSON.parse(fetchBootstrapCalls[1][0].prefill as string) as Record<
+        string,
+        Record<string, string>
+      >;
+
+      expect(queries.fetchFormBootstrapForStateless).toHaveBeenCalledTimes(2);
+      expect(secondPrefill).toEqual({
+        [statelessDataTypeMock]: { JobTitle: 'designer' },
+      });
+
+      sessionStorage.removeItem('queryParams');
+    });
   });
 
   describe('Invaid data', () => {
