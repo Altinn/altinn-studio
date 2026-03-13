@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
@@ -12,6 +13,7 @@ using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Schema;
+using Json.Schema.Keywords;
 
 namespace Altinn.Studio.DataModeling.Converter.Xml
 {
@@ -94,7 +96,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             (string Name, JsonSchema Schema)? root = null;
             if (potentialRoots.Count > 0)
             {
-                root = (potentialRoots[0].Name, potentialRoots[0].Schema);
+                root = (potentialRoots[0].Name, potentialRoots[0].Schema.Build(JsonSchemaKeywords.GetBuildOptions()));
             }
 
             if (root.HasValue)
@@ -106,35 +108,39 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     builder.XsdRootElement(rootName);
                 }
 
-                if (rootSchema.TryGetKeyword(out RefKeyword messageTypeReference))
+                if (rootSchema.TryGetKeyword<RefKeyword>(out var refKd))
                 {
                     var messageTypeReferenceBuilder = new JsonSchemaBuilder();
-                    messageTypeReferenceBuilder.Add(messageTypeReference);
+                    messageTypeReferenceBuilder.Ref(refKd.GetRefString());
 
                     builder.OneOf(messageTypeReferenceBuilder);
                 }
                 else
                 {
                     // Inline root message
+                    var excludedHandlerTypes = new[]
+                    {
+                        typeof(SchemaKeyword),
+                        typeof(IdKeyword),
+                        typeof(TypeKeyword),
+                        typeof(XsdNamespacesKeyword),
+                        typeof(XsdSchemaAttributesKeyword),
+                    };
+
                     foreach (
-                        var keyword in rootSchema.Keywords.Filter(
-                            typeof(SchemaKeyword),
-                            typeof(IdKeyword),
-                            typeof(TypeKeyword),
-                            typeof(XsdNamespacesKeyword),
-                            typeof(XsdSchemaAttributesKeyword)
-                        )
+                        var kd in rootSchema
+                            .GetKeywords()
+                            .Where(k => !excludedHandlerTypes.Contains(k.Handler.GetType()))
                     )
                     {
-                        builder.Add(keyword);
+                        builder.Unrecognized(kd.Handler.Name, JsonNode.Parse(kd.RawValue.GetRawText()));
                     }
                 }
             }
 
             var definitions = items
                 .Where(def => def.Name != root?.Name)
-                .Select(def => (def.Name, def.Schema.Build()))
-                .ToArray();
+                .ToDictionary(def => def.Name, def => def.Schema);
 
             if (definitions.Any())
             {
@@ -142,7 +148,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
 
             var normalizer = new JsonSchemaNormalizer();
-            return normalizer.Normalize(builder);
+            return normalizer.Normalize(builder.Build(JsonSchemaKeywords.GetBuildOptions()));
         }
 
         private static void AddAnnotation(XmlSchemaAnnotation annotation, JsonSchemaBuilder builder)
@@ -619,7 +625,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         {
             HandleAnnotation(choice, builder);
 
-            List<JsonSchema> choices = new List<JsonSchema>();
+            List<JsonSchemaBuilder> choices = new List<JsonSchemaBuilder>();
 
             foreach (XmlSchemaObject item in choice.Items)
             {
@@ -628,7 +634,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     case XmlSchemaElement x:
                         string name = x.Name ?? x.RefName.Name;
                         JsonSchemaBuilder b = new JsonSchemaBuilder();
-                        b.Properties((name, ConvertSchemaElement(x, optional, array)));
+                        var propDict = new Dictionary<string, JsonSchemaBuilder>
+                        {
+                            [name] = ConvertSchemaElement(x, optional, array),
+                        };
+                        b.Properties(propDict);
                         if (x.MinOccurs > 0)
                         {
                             b.Required(name);
@@ -787,14 +797,17 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 var valueBuilder = new JsonSchemaBuilder();
                 HandleSimpleType(item.BaseType, optional, array, valueBuilder);
-                var allOfSchemas = new List<JsonSchema> { valueBuilder };
-                var valueRestrictionsSchema = valueRestrictionsBuilder.Build();
-                if (valueRestrictionsSchema.Keywords?.Count > 0)
+                var allOfBuilders = new List<JsonSchemaBuilder> { valueBuilder };
+                var valueRestrictionsSchema = valueRestrictionsBuilder.Build(JsonSchemaKeywords.GetBuildOptions());
+                if (valueRestrictionsSchema.GetKeywords()?.Length > 0)
                 {
-                    allOfSchemas.Add(valueRestrictionsSchema);
+                    allOfBuilders.Add(valueRestrictionsBuilder);
                 }
 
-                properties.Add("value", new JsonSchemaBuilder().AllOf(allOfSchemas), false);
+                var allOfSchema = new JsonSchemaBuilder()
+                    .AllOf(allOfBuilders)
+                    .Build(JsonSchemaKeywords.GetBuildOptions());
+                properties.Add("value", allOfSchema, false);
             }
             else
             {
@@ -1442,6 +1455,21 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 builder.XsdMaxOccurs(item.MaxOccursString);
             }
+        }
+
+        private static JsonSchemaBuilder RebuildAsBuilder(JsonSchema schema)
+        {
+            var builder = new JsonSchemaBuilder();
+            var keywords = schema.Root?.Keywords;
+            if (keywords != null)
+            {
+                foreach (var kd in keywords)
+                {
+                    builder.Add(kd.Handler.Name, JsonNode.Parse(kd.RawValue.GetRawText()));
+                }
+            }
+
+            return builder;
         }
     }
 }

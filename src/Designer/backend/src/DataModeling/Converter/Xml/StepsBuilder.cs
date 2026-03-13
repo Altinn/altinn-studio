@@ -1,12 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Converter.Xml;
 
 /// <summary>
-/// Class used for building <see cref="AllOfKeyword"/> based on steps added.
+/// Class used for building AllOf keyword based on steps added.
 /// </summary>
 internal class StepsBuilder
 {
@@ -23,9 +24,8 @@ internal class StepsBuilder
 
     /// <summary>
     /// Builds AllOf keyword with all steps added.
-    /// Each added step will be applied to newly created <see cref="JsonSchemaBuilder"/> which will be used for creating <see cref="AllOfKeyword"/> on provided <paramref name="builder"/>
     /// </summary>
-    /// <param name="builder">A <see cref="JsonSchemaBuilder"/> on which <see cref="AllOfKeyword"/> will be generated with all steps mapped to <see cref="JsonSchemaBuilder"/>.</param>
+    /// <param name="builder">A <see cref="JsonSchemaBuilder"/> on which AllOf will be generated with all steps mapped to builders.</param>
     public void BuildWithAllOf(JsonSchemaBuilder builder)
     {
         builder.AllOf(
@@ -33,7 +33,7 @@ internal class StepsBuilder
             {
                 JsonSchemaBuilder stepBuilder = new JsonSchemaBuilder();
                 step(stepBuilder);
-                return stepBuilder.Build();
+                return stepBuilder;
             })
         );
     }
