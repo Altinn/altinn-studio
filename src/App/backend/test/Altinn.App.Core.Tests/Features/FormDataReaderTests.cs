@@ -1,4 +1,6 @@
+using System.Net;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,6 +70,25 @@ public class FormDataReaderTests
         );
 
         Assert.Same(model, persistedModel);
+    }
+
+    [Fact]
+    public async Task ReadFormData_WhenFormDataIsMissing_ThrowsBadRequest()
+    {
+        var instance = new Instance();
+        var dataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "model" };
+
+        var service = CreateService();
+        var exception = await Assert.ThrowsAsync<ServiceException>(() =>
+            service.ProcessLoadedFormData(instance, dataElement, appModel: null)
+        );
+
+        Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+        Assert.Equal($"Form data for data element '{dataElement.Id}' could not be loaded.", exception.Message);
+        _dataProcessor.Verify(
+            x => x.ProcessDataRead(It.IsAny<Instance>(), It.IsAny<Guid?>(), It.IsAny<object>(), It.IsAny<string?>()),
+            Times.Never
+        );
     }
 
     private sealed class TestModel

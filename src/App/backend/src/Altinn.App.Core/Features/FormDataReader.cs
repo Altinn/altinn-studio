@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
@@ -12,7 +13,7 @@ internal interface IFormDataReader
     Task<object> ProcessLoadedFormData(
         Instance instance,
         DataElement dataElement,
-        object appModel,
+        object? appModel,
         bool includeRowId = false,
         string? language = null,
         Func<object, CancellationToken, Task>? persistFormData = null,
@@ -57,13 +58,21 @@ internal sealed class FormDataReader : IFormDataReader
     public async Task<object> ProcessLoadedFormData(
         Instance instance,
         DataElement dataElement,
-        object appModel,
+        object? appModel,
         bool includeRowId = false,
         string? language = null,
         Func<object, CancellationToken, Task>? persistFormData = null,
         CancellationToken cancellationToken = default
     )
     {
+        if (appModel is null)
+        {
+            throw new ServiceException(
+                HttpStatusCode.BadRequest,
+                $"Form data for data element '{dataElement.Id}' could not be loaded."
+            );
+        }
+
         byte[]? beforeProcessDataRead = null;
         if (persistFormData is not null)
         {

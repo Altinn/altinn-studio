@@ -5,6 +5,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Bootstrap.Models;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
@@ -115,6 +116,23 @@ public class FormBootstrapController : ControllerBase
             );
 
             return Ok(response);
+        }
+        catch (ServiceException ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to bootstrap form for instance {InstanceId}",
+                $"{instanceOwnerPartyId}/{instanceGuid}"
+            );
+            return StatusCode(
+                (int)ex.StatusCode,
+                new ProblemDetails
+                {
+                    Title = "Failed to load form data",
+                    Detail = ex.Message,
+                    Status = (int)ex.StatusCode,
+                }
+            );
         }
         catch (Exception ex)
         {

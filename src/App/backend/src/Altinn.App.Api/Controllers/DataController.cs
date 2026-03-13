@@ -554,6 +554,10 @@ public class DataController : ControllerBase
                 $"Cannot get data element of {dataGuid} for {instanceOwnerPartyId}/{instanceGuid}"
             );
         }
+        catch (ServiceException e)
+        {
+            return StatusCode((int)e.StatusCode, e.Message);
+        }
     }
 
     /// <summary>
