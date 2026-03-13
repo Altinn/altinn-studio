@@ -133,9 +133,9 @@ const buildStateContent = (data) => {
  */
 const buildPayloadContent = (data) => {
   const cmd = /** @type {Record<string, unknown>|null} */ (data.command);
-  const payload = cmd?.payload;
-  if (payload == null) return '<div class="modal-loading">No payload</div>';
-  return `<div class="pre-wrap"><pre>${syntaxHighlight(expandJsonStrings(payload))}</pre><button class="pre-copy" onclick="copyPre(event)" title="Copy">&#10697;</button></div>`;
+  const cmdData = cmd?.data;
+  if (cmdData == null) return '<div class="modal-loading">No data</div>';
+  return `<div class="pre-wrap"><pre>${syntaxHighlight(expandJsonStrings(cmdData))}</pre><button class="pre-copy" onclick="copyPre(event)" title="Copy">&#10697;</button></div>`;
 };
 
 /**
@@ -177,13 +177,6 @@ const buildDetailsContent = (data) => {
   html += `<div class="detail-row"><span class="detail-label">Status</span><span class="status-pill ${status}">${esc(status)}</span></div>`;
   html += row('Idempotency Key', data.idempotencyKey);
 
-  const actor = /** @type {Record<string, unknown>|null} */ (data.actor);
-  if (actor) {
-    const actorLabel = actor.language
-      ? `${actor.userIdOrOrgNumber} (${actor.language})`
-      : String(actor.userIdOrOrgNumber);
-    html += row('Actor', actorLabel);
-  }
   html += timeRow('Created', /** @type {string} */ (data.createdAt));
   html += timeRow('Execution Started', /** @type {string} */ (data.executionStartedAt));
   html += timeRow('Last Updated', /** @type {string} */ (data.updatedAt));
@@ -205,13 +198,8 @@ const buildDetailsContent = (data) => {
   const cmd = /** @type {Record<string, unknown>|null} */ (data.command);
   if (cmd) {
     html += '<div class="detail-section">Command</div>';
-    const cmdType = cmd.type === 'app' ? 'AppCommand' : cmd.type === 'webhook' ? 'Webhook' : String(cmd.type || '');
-    html += row('Type', cmdType);
+    html += row('Type', cmd.type);
     html += row('Max Execution Time', fmtDuration(/** @type {string} */ (cmd.maxExecutionTime)));
-    if (cmd.type === 'webhook') {
-      html += row('URI', cmd.uri);
-      html += row('Content-Type', cmd.contentType);
-    }
   }
 
   return html;
@@ -226,7 +214,7 @@ let _hasStateDiff = false;
 
 const renderStepDetail = (data) => {
   const cmd = /** @type {Record<string, unknown>|null} */ (data.command);
-  const hasPayload = cmd?.payload != null;
+  const hasData = cmd?.data != null;
   const hasState = data.stateIn != null || data.stateOut != null;
   _hasStateDiff = data.stateIn != null && data.stateOut != null;
 
@@ -234,9 +222,9 @@ const renderStepDetail = (data) => {
   let tabs = '';
   tabs += `<button class="modal-tab active" onclick="switchModalTab(this,'details')">Details</button>`;
   if (hasState) tabs += `<button class="modal-tab" onclick="switchModalTab(this,'state')">State</button>`;
-  if (hasPayload) tabs += `<button class="modal-tab" onclick="switchModalTab(this,'payload')">Payload</button>`;
+  if (hasData) tabs += `<button class="modal-tab" onclick="switchModalTab(this,'data')">Data</button>`;
   dom.modalTabs.innerHTML = tabs;
-  dom.modalTabs.style.display = (hasPayload || hasState) ? 'flex' : 'none';
+  dom.modalTabs.style.display = (hasData || hasState) ? 'flex' : 'none';
 
   // Build sticky state sub-tabs (Diff | State In | State Out)
   if (_hasStateDiff) {
@@ -254,7 +242,7 @@ const renderStepDetail = (data) => {
   let body = '';
   body += `<div class="modal-tab-panel active" data-panel="details">${buildDetailsContent(data)}</div>`;
   if (hasState) body += `<div class="modal-tab-panel" data-panel="state">${buildStateContent(data)}</div>`;
-  if (hasPayload) body += `<div class="modal-tab-panel" data-panel="payload">${buildPayloadContent(data)}</div>`;
+  if (hasData) body += `<div class="modal-tab-panel" data-panel="data">${buildPayloadContent(data)}</div>`;
   dom.modalBody.innerHTML = body;
 };
 
@@ -296,10 +284,10 @@ window.openStepModal = async (wfKey, stepKey, stepName, createdAt, initialTab) =
     if (!res.ok) throw new Error('Step not found (may have left inbox)');
     const data = await res.json();
     // Enrich title for ExecuteServiceTask with the service task type
-    if (stepName === 'ExecuteServiceTask' && data.command?.payload) {
+    if (stepName === 'ExecuteServiceTask' && data.command?.data) {
       try {
-        const p = typeof data.command.payload === 'string' ? JSON.parse(data.command.payload) : data.command.payload;
-        if (p.serviceTaskType) dom.modalTitle.textContent = `${stepName}: ${p.serviceTaskType}`;
+        const d = typeof data.command.data === 'string' ? JSON.parse(data.command.data) : data.command.data;
+        if (d.serviceTaskType) dom.modalTitle.textContent = `${stepName}: ${d.serviceTaskType}`;
       } catch { /* ignore */ }
     }
     renderStepDetail(data);
