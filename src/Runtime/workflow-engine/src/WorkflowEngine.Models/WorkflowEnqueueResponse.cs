@@ -52,10 +52,12 @@ public abstract record WorkflowEnqueueResponse
     public sealed record WorkflowResult
     {
         [JsonPropertyName("ref")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Ref { get; init; }
 
         [JsonPropertyName("databaseId")]
         public required Guid DatabaseId { get; init; }
+
+        [JsonPropertyName("namespace")]
+        public required string Namespace { get; init; }
     }
 }

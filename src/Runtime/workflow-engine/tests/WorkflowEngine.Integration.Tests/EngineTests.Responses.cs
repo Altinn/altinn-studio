@@ -158,22 +158,6 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task Response_GetWorkflow_WrongInstance_Returns404()
-    {
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateWebhookStep("/ping")])
-        );
-        var accepted = await _client.Enqueue(request);
-        var workflowId = accepted.Workflows.Single().DatabaseId;
-
-        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
-
-        using var response = await _client.GetWorkflowRaw(workflowId, ns: "wrong-namespace");
-
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-    }
-
-    [Fact]
     public async Task Response_GetWorkflow_WithDependencies_ShowsDependencyStatus()
     {
         var workflowA = _testHelpers.CreateWorkflow("wf-a", [_testHelpers.CreateWebhookStep("/ping-a")]);

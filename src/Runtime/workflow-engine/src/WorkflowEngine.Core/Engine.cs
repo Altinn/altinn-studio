@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WorkflowEngine.Core.Utils;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
 using WorkflowEngine.Telemetry;
@@ -33,7 +34,11 @@ internal sealed class Engine(
     {
         using var activity = Metrics.Source.StartActivity(
             "Engine.EnqueueWorkflow",
-            tags: [("request.namespace.id", request.Namespace), ("request.workflows.count", request.Workflows.Count)]
+            tags:
+            [
+                ("request.namespace", WorkflowNamespace.Normalize(request.Namespace)),
+                ("request.workflows.count", request.Workflows.Count),
+            ]
         );
 
         // Validate input size limits before expensive graph validation or command deserialization
@@ -73,7 +78,13 @@ internal sealed class Engine(
             var results = sortedRequests
                 .Zip(
                     workflowIds,
-                    (req, id) => new WorkflowEnqueueResponse.WorkflowResult { Ref = req.Ref, DatabaseId = id }
+                    (req, id) =>
+                        new WorkflowEnqueueResponse.WorkflowResult
+                        {
+                            Ref = req.Ref,
+                            DatabaseId = id,
+                            Namespace = WorkflowNamespace.Normalize(request.Namespace),
+                        }
                 )
                 .ToList();
 

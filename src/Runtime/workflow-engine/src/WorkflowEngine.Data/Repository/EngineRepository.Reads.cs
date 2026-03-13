@@ -158,9 +158,9 @@ internal sealed partial class EngineRepository
                     before,
                     since,
                     retriedOnly,
-                    labelFilters,
-                    namespaceFilter,
-                    correlationId
+                    correlationIdFilter: correlationId != null ? Guid.Parse(correlationId) : null,
+                    namespaceFilter: namespaceFilter,
+                    labelFilter: labelFilters
                 )
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
@@ -212,9 +212,9 @@ internal sealed partial class EngineRepository
                 before: null,
                 since: since,
                 retriedOnly,
-                labelFilters,
-                namespaceFilter,
-                correlationId
+                correlationIdFilter: correlationId != null ? Guid.Parse(correlationId) : null,
+                namespaceFilter: namespaceFilter,
+                labelFilter: labelFilters
             );
             var totalCount = await baseQuery.CountAsync(cancellationToken);
 
@@ -226,9 +226,9 @@ internal sealed partial class EngineRepository
                 before,
                 since,
                 retriedOnly,
-                labelFilters,
-                namespaceFilter,
-                correlationId
+                correlationIdFilter: correlationId != null ? Guid.Parse(correlationId) : null,
+                namespaceFilter: namespaceFilter,
+                labelFilter: labelFilters
             );
             var workflows = await dataQuery.ToDomainModel().ToListAsync(cancellationToken);
 
@@ -370,6 +370,7 @@ internal sealed partial class EngineRepository
     public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
         Guid? correlationId = null,
         string? ns = null,
+        IReadOnlyDictionary<string, string>? labelFilters = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -382,7 +383,7 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
-                .GetActiveWorkflows(correlationIdFilter: correlationId, namespaceFilter: ns)
+                .GetActiveWorkflows(correlationIdFilter: correlationId, namespaceFilter: ns, labelFilter: labelFilters)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 

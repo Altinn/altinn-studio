@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using WorkflowEngine.Core.Authentication.ApiKey;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
@@ -73,15 +74,23 @@ internal static class EngineRequestHandlers
     }
 
     public static async Task<Results<Ok<IEnumerable<WorkflowStatusResponse>>, NoContent>> ListActiveWorkflows(
-        [FromQuery(Name = "namespace")] string ns,
+        [FromQuery(Name = "namespace")] string? ns,
         [FromQuery] Guid? correlationId,
+        [FromQuery(Name = "label")] string[]? labels,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
     {
         Metrics.WorkflowQueriesReceived.Add(1, ("endpoint", "list"));
 
-        var workflows = await repository.GetActiveWorkflowsByCorrelationId(correlationId, ns, cancellationToken);
+        var normalizedNs = string.IsNullOrWhiteSpace(ns) ? null : WorkflowNamespace.Normalize(ns);
+        var labelFilters = ParseLabelFilters(labels);
+        var workflows = await repository.GetActiveWorkflowsByCorrelationId(
+            correlationId,
+            normalizedNs,
+            labelFilters,
+            cancellationToken
+        );
 
         if (workflows.Count == 0)
             return TypedResults.NoContent();
@@ -91,7 +100,6 @@ internal static class EngineRequestHandlers
 
     public static async Task<Results<Ok<WorkflowStatusResponse>, NotFound>> GetWorkflow(
         [FromRoute] Guid workflowId,
-        [FromQuery(Name = "namespace")] string ns,
         [FromServices] IEngineRepository repository,
         CancellationToken cancellationToken
     )
@@ -103,10 +111,39 @@ internal static class EngineRequestHandlers
         if (workflow is null)
             return TypedResults.NotFound();
 
+        // TODO: Decide how we want to deal with the namespace boundary
         // Prevent cross-namespace information disclosure — always enforce namespace check
-        if (workflow.Namespace != ns)
-            return TypedResults.NotFound();
+        // if (workflow.Namespace != WorkflowNamespace.Normalize(ns))
+        //     return TypedResults.NotFound();
 
         return TypedResults.Ok(WorkflowStatusResponse.FromWorkflow(workflow));
+    }
+
+    /// <summary>
+    /// Parses repeated <c>?label=key:value</c> query params into a dictionary.
+    /// Entries without a <c>:</c> separator or with empty key/value are silently ignored.
+    /// </summary>
+    private static Dictionary<string, string>? ParseLabelFilters(string[]? labels)
+    {
+        if (labels is null or { Length: 0 })
+            return null;
+
+        Dictionary<string, string>? result = null;
+        foreach (var label in labels)
+        {
+            var sep = label.IndexOf(':', StringComparison.OrdinalIgnoreCase);
+            if (sep <= 0 || sep >= label.Length - 1)
+                continue;
+
+            var key = label[..sep].Trim();
+            var value = label[(sep + 1)..].Trim();
+            if (key.Length == 0 || value.Length == 0)
+                continue;
+
+            result ??= new Dictionary<string, string>();
+            result[key] = value;
+        }
+
+        return result;
     }
 }

@@ -18,9 +18,10 @@ public sealed record WorkflowEnqueueRequest
 
     /// <summary>
     /// Primary isolation boundary. Idempotency keys are unique within a namespace.
+    /// If not supplied, the engine will use the default (global) namespace.
     /// </summary>
     [JsonPropertyName("namespace")]
-    public required string Namespace { get; init; }
+    public string? Namespace { get; init; }
 
     /// <summary>
     /// An idempotency key for this entire enqueue request (all workflows in the batch).

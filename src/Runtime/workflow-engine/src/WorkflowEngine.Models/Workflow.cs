@@ -40,52 +40,6 @@ public sealed record Workflow : PersistentItem
 
     internal DateTimeOffset? ExecutionStartedAt { get; set; }
 
-    /// <summary>
-    /// Creates a domain <see cref="Workflow"/> from a <see cref="WorkflowRequest"/>,
-    /// server-computed <see cref="WorkflowRequestMetadata"/>, and shared enqueue-level fields.
-    /// </summary>
-    internal static Workflow FromRequest(
-        WorkflowRequest workflowRequest,
-        WorkflowRequestMetadata metadata,
-        WorkflowEnqueueRequest enqueueRequest
-    )
-    {
-        var idempotencyKey = enqueueRequest.IdempotencyKey;
-        int order = 0;
-
-        return new Workflow
-        {
-            DatabaseId = Guid.CreateVersion7(),
-            CorrelationId = metadata.CorrelationId ?? enqueueRequest.CorrelationId,
-            OperationId = workflowRequest.OperationId,
-            IdempotencyKey = idempotencyKey,
-            Namespace = enqueueRequest.Namespace,
-            CreatedAt = metadata.CreatedAt,
-            StartAt = workflowRequest.StartAt,
-            BackoffUntil = workflowRequest.StartAt,
-            Status = PersistentItemStatus.Enqueued,
-            Labels = enqueueRequest.Labels,
-            Context = enqueueRequest.Context,
-            DistributedTraceContext = metadata.TraceContext,
-            Metadata = workflowRequest.Metadata,
-            InitialState = workflowRequest.State,
-            Steps = workflowRequest
-                .Steps.Select(s => new Step
-                {
-                    DatabaseId = Guid.CreateVersion7(),
-                    OperationId = s.OperationId,
-                    IdempotencyKey = $"{idempotencyKey}/{s.OperationId}",
-                    Status = PersistentItemStatus.Enqueued,
-                    CreatedAt = metadata.CreatedAt,
-                    ProcessingOrder = order++,
-                    Command = s.Command,
-                    RetryStrategy = s.RetryStrategy,
-                    Metadata = s.Metadata,
-                })
-                .ToList(),
-        };
-    }
-
     public override string ToString() => $"[{GetType().Name}] {OperationId} ({Status})";
 
     public override int GetHashCode() => DatabaseId.GetHashCode();

@@ -2,7 +2,8 @@
   workflows: [
     {
       ref: wf-1,
-      databaseId: {Scrubbed}
+      databaseId: {Scrubbed},
+      namespace: ttd:e2e-tests
     }
   ]
 }

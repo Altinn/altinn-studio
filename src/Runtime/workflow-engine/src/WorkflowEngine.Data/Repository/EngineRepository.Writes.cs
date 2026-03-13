@@ -2,8 +2,10 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Entities;
+using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -139,7 +141,7 @@ internal sealed partial class EngineRepository
             perRequestWorkflows[i] =
             [
                 .. request.Request.Workflows.Select(workflowRequest =>
-                    Workflow.FromRequest(workflowRequest, request.Metadata, request.Request)
+                    workflowRequest.ToWorkflow(request.Metadata, request.Request)
                 ),
             ];
         }
@@ -227,7 +229,7 @@ internal sealed partial class EngineRepository
                 var req = requests[i];
                 return (
                     req.Request.IdempotencyKey,
-                    req.Request.Namespace,
+                    WorkflowNamespace.Normalize(req.Request.Namespace),
                     req.RequestBodyHash,
                     "{" + string.Join(",", perRequestWorkflows[i].Select(w => w.DatabaseId)) + "}",
                     req.Metadata.CreatedAt
@@ -323,7 +325,9 @@ internal sealed partial class EngineRepository
     )
     {
         var (keys, namespaces) = existingRequestIndices
-            .Select(i => (requests[i].Request.IdempotencyKey, requests[i].Request.Namespace))
+            .Select(i =>
+                (requests[i].Request.IdempotencyKey, WorkflowNamespace.Normalize(requests[i].Request.Namespace))
+            )
             .ToArray()
             .Unzip();
 
@@ -347,7 +351,7 @@ internal sealed partial class EngineRepository
         foreach (var i in existingRequestIndices)
         {
             var req = requests[i];
-            var compositeKey = (req.Request.IdempotencyKey, req.Request.Namespace);
+            var compositeKey = (req.Request.IdempotencyKey, WorkflowNamespace.Normalize(req.Request.Namespace));
             if (existingLookup.TryGetValue(compositeKey, out var existing))
             {
                 if (existing.hash.AsSpan().SequenceEqual(req.RequestBodyHash))
@@ -379,7 +383,7 @@ internal sealed partial class EngineRepository
         var externalRefPairs = new HashSet<(Guid id, string ns)>();
         foreach (var request in requests)
         {
-            var ns = request.Request.Namespace;
+            var ns = WorkflowNamespace.Normalize(request.Request.Namespace);
             foreach (var workflow in request.Request.Workflows)
             {
                 CollectExternalIds(workflow.DependsOn, ns, externalRefPairs);
@@ -408,7 +412,7 @@ internal sealed partial class EngineRepository
 
         for (var i = 0; i < requests.Count; i++)
         {
-            var ns = requests[i].Request.Namespace;
+            var ns = WorkflowNamespace.Normalize(requests[i].Request.Namespace);
             var nonExistentReferences = requests[i]
                 .Request.Workflows.SelectMany(wf => (wf.DependsOn ?? []).Concat(wf.Links ?? []))
                 .Where(r => r.IsId && !verifiedPairs.Contains((r.Id, ns)))
@@ -436,8 +440,8 @@ internal sealed partial class EngineRepository
         BufferedEnqueueRequest? previous = null;
         foreach (
             var (current, index) in requests
-                .Select((Value, Index) => (Value, Index))
-                .OrderBy(x => x.Value.Request.Namespace)
+                .Select((value, index) => (Value: value, Index: index))
+                .OrderBy(x => WorkflowNamespace.Normalize(x.Value.Request.Namespace))
                 .ThenBy(x => x.Value.Request.IdempotencyKey)
         )
         {
@@ -448,7 +452,8 @@ internal sealed partial class EngineRepository
 
             if (
                 previous is not null
-                && current.Request.Namespace == previous.Request.Namespace
+                && WorkflowNamespace.Normalize(current.Request.Namespace)
+                    == WorkflowNamespace.Normalize(previous.Request.Namespace)
                 && current.Request.IdempotencyKey == previous.Request.IdempotencyKey
             )
             {

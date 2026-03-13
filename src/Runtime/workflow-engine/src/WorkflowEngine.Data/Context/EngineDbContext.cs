@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
@@ -33,6 +35,17 @@ internal sealed class EngineDbContext : DbContext
                     $"\"Status\" IN ({(int)PersistentItemStatus.Enqueued}, {(int)PersistentItemStatus.Requeued})"
                 )
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
+
+            // Dictionary<string,string> ↔ jsonb: EF/Npgsql handles this for normal queries,
+            // but our SqlBulkInserter uses COPY BINARY which needs an explicit value converter.
+            entity
+                .Property(e => e.Labels)
+                .HasConversion(
+                    new ValueConverter<Dictionary<string, string>, string>(
+                        v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
+                        v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, JsonSerializerOptions.Default)!
+                    )
+                );
 
             // GIN index on Labels for flexible filtering
             entity.HasIndex(e => e.Labels).HasMethod("gin");

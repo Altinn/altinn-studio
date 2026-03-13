@@ -81,6 +81,7 @@ public interface IEngineRepository
     Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
         Guid? correlationId = null,
         string? ns = null,
+        IReadOnlyDictionary<string, string>? labelFilters = null,
         CancellationToken cancellationToken = default
     );
 

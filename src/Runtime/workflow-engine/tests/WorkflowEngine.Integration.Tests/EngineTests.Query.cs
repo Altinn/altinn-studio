@@ -35,34 +35,6 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task GetWorkflow_WrongInstance_Returns404()
-    {
-        // Arrange
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
-        );
-
-        // Act
-        var response = await _client.Enqueue(request);
-        var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
-
-        var resultForCorrectInstance = await _client.GetWorkflowRaw(workflowId);
-        var resultForIncorrectInstance = await _client.GetWorkflowRaw(workflowId, ns: "wrong-namespace");
-
-        // Assert
-        Assert.Equal(HttpStatusCode.NotFound, resultForIncorrectInstance.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, resultForCorrectInstance.StatusCode);
-
-        await _testHelpers.AssertDbWorkflowCount(1);
-
-        var parsedResult = await EngineApiClient.AssertSuccessAndDeserialize<WorkflowStatusResponse>(
-            resultForCorrectInstance
-        );
-        Assert.Equal(workflowId, parsedResult.DatabaseId);
-    }
-
-    [Fact]
     public async Task ListActiveWorkflows_ReturnsWorkflowWhileStillProcessing()
     {
         // Arrange
