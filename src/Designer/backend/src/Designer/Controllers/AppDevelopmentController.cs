@@ -669,11 +669,11 @@ namespace Altinn.Studio.Designer.Controllers
                         cancellationToken
                     );
 
-                    var groupsForSet = pageSettings.Where(g => g.Task == layoutSet.Id).ToList();
+                    var validationGroupsForLayoutSet = pageSettings.Where(g => g.Task == layoutSet.Id).ToList();
 
                     foreach ((string pageName, JsonNode layoutNode) in layouts)
                     {
-                        PageValidationOnNavigationDto matchingGroup = groupsForSet.FirstOrDefault(g =>
+                        PageValidationOnNavigationDto matchingGroupForPage = validationGroupsForLayoutSet.FirstOrDefault(g =>
                             g.Pages.Contains(pageName)
                         );
 
@@ -682,14 +682,26 @@ namespace Altinn.Studio.Designer.Controllers
                         {
                             continue;
                         }
-                        if (matchingGroup != null)
+
+                        ValidationOnNavigation existingValidation = dataNode["validationOnNavigation"]
+                            ?.Deserialize<ValidationOnNavigation>();
+                        ValidationOnNavigation newValidation =
+                            matchingGroupForPage != null
+                                ? new ValidationOnNavigation
+                                {
+                                    Page = matchingGroupForPage.Page,
+                                    Show = matchingGroupForPage.Show?.OrderBy(s => s).ToList(),
+                                }
+                                : null;
+
+                        if (!HasValidationSettingsChanged(existingValidation, newValidation))
                         {
-                            var nav = new ValidationOnNavigation
-                            {
-                                Page = matchingGroup.Page,
-                                Show = matchingGroup.Show?.OrderBy(s => s).ToList(),
-                            };
-                            dataNode["validationOnNavigation"] = JsonSerializer.SerializeToNode(nav);
+                            continue;
+                        }
+
+                        if (newValidation != null)
+                        {
+                            dataNode["validationOnNavigation"] = JsonSerializer.SerializeToNode(newValidation);
                         }
                         else
                         {
