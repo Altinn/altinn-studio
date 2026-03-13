@@ -2,6 +2,7 @@ import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { App } from './App';
+import { routes } from '../routes/routes';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -13,6 +14,7 @@ import { APP_DASHBOARD_BASENAME } from 'app-shared/constants';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from '../testing/mocks';
 import type { ProviderData } from '../testing/mocks';
+import { Routes, Route } from 'react-router-dom';
 
 jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
   useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
@@ -65,7 +67,7 @@ describe('App', () => {
   });
 
   it('should display dashboard page when data are loaded', async () => {
-    renderApp();
+    renderAppWithRoutes();
     await waitForElementToBeRemoved(querySpinner());
     expect(screen.getByRole('link', { name: textMock('dashboard.header_item_dashboard') }));
     expect(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
@@ -73,7 +75,7 @@ describe('App', () => {
 
   it('should display the apps overview by default', async () => {
     const queryClient = createQueryClientWithUserAndOrg();
-    renderApp({ queryClient, queries });
+    renderAppWithRoutes({ queryClient, queries });
     expect(getFavouriteAppListHeading()).toBeInTheDocument();
   });
 
@@ -81,7 +83,7 @@ describe('App', () => {
     const user = userEvent.setup();
     const queryClient = createQueryClientWithUserAndOrg();
     const initialEntries = [`/${APP_DASHBOARD_BASENAME}/${org.username}`];
-    renderApp({ queryClient, queries, initialEntries });
+    renderAppWithRoutes({ queryClient, queries, initialEntries });
 
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
     expect(getLibraryHeading()).toBeInTheDocument();
@@ -91,7 +93,7 @@ describe('App', () => {
     const user = userEvent.setup();
     const queryClient = createQueryClientWithUserAndOrg();
     const initialEntries = [`/${APP_DASHBOARD_BASENAME}/${org.username}`];
-    renderApp({ queryClient, queries, initialEntries });
+    renderAppWithRoutes({ queryClient, queries, initialEntries });
 
     await user.click(screen.getByRole('link', { name: textMock('dashboard.header_item_library') }));
     await user.click(
@@ -103,6 +105,10 @@ describe('App', () => {
 
 function renderApp(providerData: ProviderData = {}): RenderResult {
   return renderWithProviders(<App />, providerData);
+}
+
+function renderAppWithRoutes(providerData: ProviderData = {}): RenderResult {
+  return renderWithProviders(<Routes>{routes}</Routes>, providerData);
 }
 
 const querySpinner = (): HTMLElement | null =>

@@ -8,7 +8,6 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { AppDevelopmentContextProvider } from 'app-development/contexts/AppDevelopmentContext';
 import { useMediaQuery } from '@studio/components-legacy';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { pageHeaderContextMock } from 'app-development/test/headerMocks';
@@ -145,11 +144,9 @@ const renderSettingsPageButton = (
   };
   return renderWithProviders()(
     <ServicesContextProvider {...allQueries} client={queryClient}>
-      <AppDevelopmentContextProvider>
-        <PageHeaderContext.Provider value={{ ...pageHeaderContextMock }}>
-          <SettingsPageButton />
-        </PageHeaderContext.Provider>
-      </AppDevelopmentContextProvider>
+      <PageHeaderContext.Provider value={{ ...pageHeaderContextMock }}>
+        <SettingsPageButton />
+      </PageHeaderContext.Provider>
     </ServicesContextProvider>,
   );
 };

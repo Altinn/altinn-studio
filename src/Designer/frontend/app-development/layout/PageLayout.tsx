@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, matchPath, useLocation } from 'react-router-dom';
 import { PageHeader } from './PageHeader';
 import { useRepoMetadataQuery, useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
@@ -6,7 +6,7 @@ import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { StudioCenter, StudioPageSpinner } from '@studio/components';
 import { MergeConflictWarning } from 'app-shared/components/MergeConflictWarning';
 import { useOrgListQuery } from '../hooks/queries';
-import { NotFoundPage } from './NotFoundPage';
+import { NotFoundPage } from 'app-shared/routes/NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
 import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderContext';
@@ -14,6 +14,8 @@ import { type AxiosError } from 'axios';
 import { type RepoStatus } from 'app-shared/types/RepoStatus';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { VersionDialog } from './VersionDialog/VersionDialog';
+import classes from './PageLayout.module.css';
+import { useListenToMergeConflictInRepo } from 'app-shared/hooks/useListenToMergeConflictInRepo';
 
 /**
  * Displays the layout for the app development pages
@@ -36,6 +38,12 @@ export const PageLayout = (): React.ReactNode => {
 
   const { data: user, isPending: isUserPending } = useUserQuery();
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  useListenToMergeConflictInRepo(org, app);
+
   if (isRepoStatusPending || isUserPending) {
     return (
       <StudioCenter>
@@ -45,15 +53,14 @@ export const PageLayout = (): React.ReactNode => {
   }
 
   return (
-    <>
-      <PageHeaderContextProvider user={user} repoOwnerIsOrg={repoOwnerIsOrg}>
-        <PageHeader
-          showSubMenu={!repoStatus?.hasMergeConflict}
-          isRepoError={repoStatusError !== null}
-        />
-      </PageHeaderContextProvider>
-      <Pages repoStatus={repoStatus} repoStatusError={repoStatusError} />
-    </>
+    <PageHeaderContextProvider user={user} repoOwnerIsOrg={repoOwnerIsOrg}>
+      <PageHeader
+        showSubMenu={!repoStatus?.hasMergeConflict}
+        isRepoError={repoStatusError !== null}
+      >
+        <Pages repoStatus={repoStatus} repoStatusError={repoStatusError} />
+      </PageHeader>
+    </PageHeaderContextProvider>
   );
 };
 
@@ -72,11 +79,13 @@ const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   }
 
   return (
-    <>
-      <VersionDialog />
-      <WebSocketSyncWrapper>
-        <Outlet />
-      </WebSocketSyncWrapper>
-    </>
+    <div className={classes.container}>
+      <div className={classes.appContainer}>
+        <VersionDialog />
+        <WebSocketSyncWrapper>
+          <Outlet />
+        </WebSocketSyncWrapper>
+      </div>
+    </div>
   );
 };

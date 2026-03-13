@@ -1,14 +1,16 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import classes from './PageLayout.module.css';
-import { Outlet, matchPath, useLocation } from 'react-router-dom';
-import { PageHeader } from './PageHeader';
+import { Outlet, ScrollRestoration, useLocation, useParams } from 'react-router-dom';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { StudioCenter, StudioPageError, StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useOrgListQuery } from 'app-shared/hooks/queries/useOrgListQuery';
 import type { Org } from 'app-shared/types/OrgList';
 import type { User } from 'app-shared/types/Repository';
-import { NotFoundPage } from './NotFoundPage';
+import { NotFoundPage } from 'app-shared/routes/NotFoundPage';
+import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
+import { PageLayout as SharedPageLayout } from 'app-shared/layout';
+import { AdminCenterNav } from './AdminCenterNav';
 
 export const OrgContext = createContext<Org | null>(null);
 const UserContext = createContext<User | null>(null);
@@ -30,12 +32,15 @@ export function useCurrentUser(): User {
 }
 
 export const PageLayout = (): React.ReactNode => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
-  const match = matchPath({ path: '/:org', caseSensitive: true, end: false }, pathname);
-  const { org } = match?.params ?? {};
+  const { org } = useParams();
   const { data: orgs, isPending: isOrgsPending } = useOrgListQuery();
   const { data: user, isPending: isUserPending } = useUserQuery();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   if (isUserPending || isOrgsPending) {
     return (
@@ -53,14 +58,28 @@ export const PageLayout = (): React.ReactNode => {
     return <StudioPageError />;
   }
 
+  const orgName = orgs[org].name[i18n.language] ?? orgs[org].name['nb'];
+
   return (
-    <OrgContext.Provider value={orgs[org]}>
-      <UserContext.Provider value={user}>
-        <PageHeader />
-        <div className={classes.pageWrapper}>
-          <Outlet />
-        </div>
-      </UserContext.Provider>
-    </OrgContext.Provider>
+    <div className={classes.container}>
+      <div className={classes.appContainer}>
+        <WebSocketSyncWrapper>
+          <OrgContext.Provider value={orgs[org]}>
+            <UserContext.Provider value={user}>
+              <SharedPageLayout
+                user={user}
+                title={orgName}
+                centerContent={<AdminCenterNav org={org} />}
+              >
+                <div className={classes.pageWrapper}>
+                  <Outlet />
+                </div>
+              </SharedPageLayout>
+            </UserContext.Provider>
+          </OrgContext.Provider>
+        </WebSocketSyncWrapper>
+      </div>
+      <ScrollRestoration />
+    </div>
   );
 };
