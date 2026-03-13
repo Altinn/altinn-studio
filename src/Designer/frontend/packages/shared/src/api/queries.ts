@@ -60,7 +60,6 @@ import {
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
   resourceAccessPackagesPath,
-  authStatusAnsattporten,
   availableMaskinportenScopesPath,
   selectedMaskinportenScopesPath,
   appSettingsPath,
@@ -133,7 +132,6 @@ import type { CustomTemplateList } from 'app-shared/types/CustomTemplate';
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { UserApiKey } from 'app-shared/types/api/UserApiKey';
 
-export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
 export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
 export const getAppSettings = (org: string, app: string) => get<AppSettings>(appSettingsPath(org, app));
