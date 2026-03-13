@@ -1,22 +1,3 @@
-.container {
-  height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr;
-}
-
-.content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.settingsHeading {
-  display: flex;
-  align-items: center;
-  padding-left: var(--ds-size-4);
-  padding-block: var(--ds-size-4);
-}
-
 .pageContentWrapper {
   display: flex;
   flex: 1;
@@ -35,5 +16,4 @@
   padding: var(--ds-size-7);
   border-top: 1px solid var(--ds-color-neutral-surface-tinted);
   overflow-y: auto;
-  max-width: 1200px;
 }

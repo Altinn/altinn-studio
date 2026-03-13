@@ -13,19 +13,25 @@ import {
 } from './PageRouterErrorBoundary';
 import { routerRoutes } from './routes';
 import { NotFound } from '../pages/NotFound/NotFound';
+import { AppLayout } from '../pages/AppLayout/AppLayout';
 import { PageLayout } from '../pages/PageLayout';
+
+const BASE_PATH = '/:org';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path='/' element={<PageLayout />} errorElement={<AppRouteErrorBoundary />}>
-      {routerRoutes.map((route) => (
-        <Route
-          key={route.path}
-          path={route.path}
-          element={<route.page />}
-          errorElement={<RouteErrorBoundary />}
-        />
-      ))}
+    <Route element={<AppLayout />}>
+      <Route path={BASE_PATH} element={<PageLayout />} errorElement={<AppRouteErrorBoundary />}>
+        {routerRoutes.map((route) => (
+          <Route
+            key={route.path}
+            path={route.path}
+            element={<route.page />}
+            errorElement={<RouteErrorBoundary />}
+          />
+        ))}
+        <Route path='*' element={<NotFound />} errorElement={<NotFoundRouteErrorBoundary />} />
+      </Route>
       <Route path='*' element={<NotFound />} errorElement={<NotFoundRouteErrorBoundary />} />
     </Route>,
   ),

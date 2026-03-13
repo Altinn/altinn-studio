@@ -68,23 +68,25 @@ http {
   }
 
   map $spa_path $spa_upstream {
-    dashboard   dashboard;
-    editor      editor;
-    preview     preview;
-    admin       admin;
-    resourceadm resourceadm;
-    info        info;
-    default     designer;
+    dashboard     dashboard;
+    editor        editor;
+    preview       preview;
+    admin         admin;
+    resourceadm   resourceadm;
+    info          info;
+    org-settings  org-settings;
+    default       designer;
   }
 
   map $spa_path $spa_rewrite {
-    dashboard   1;
-    editor      1;
-    preview     1;
-    admin       1;
-    resourceadm 1;
-    info        1;
-    default     0;
+    dashboard     1;
+    editor        1;
+    preview       1;
+    admin         1;
+    resourceadm   1;
+    info          1;
+    org-settings  1;
+    default       0;
   }
 
   server {
