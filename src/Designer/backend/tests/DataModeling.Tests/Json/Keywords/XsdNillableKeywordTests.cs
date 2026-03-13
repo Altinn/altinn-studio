@@ -1,24 +1,30 @@
-﻿using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.Json.Keywords.BaseClasses;
+using System.Text.Json;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
 
-public class XsdNillableKeywordTests : ValueKeywordTestsBase<XsdNillableKeywordTests, XsdNillableKeyword, bool>
+public class XsdNillableKeywordTests
 {
-    protected override XsdNillableKeyword CreateKeywordWithValue(bool value) => new(value);
+    public XsdNillableKeywordTests()
+    {
+        JsonSchemaKeywords.RegisterXsdKeywords();
+    }
+
+    [Fact]
+    public void Handler_Name_ShouldBe_XsdNillable()
+    {
+        Assert.Equal("@xsdNillable", XsdNillableKeyword.Instance.Name);
+    }
 
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void SameKeywords_Should_BeEqual(bool value)
+    public void ValidateKeywordValue_ShouldParseBool(bool value)
     {
-        var expectedKeyword = new XsdNillableKeyword(value);
-        object expectedKeywordObject = new XsdNillableKeyword(value);
-        Given
-            .That.KeywordCreatedWithValue(value)
-            .Then.KeywordShouldEqual(expectedKeyword)
-            .And.KeywordShouldEqualObject(expectedKeywordObject)
-            .But.KeywordShouldNotEqual(null);
+        var json = JsonSerializer.Serialize(value);
+        var element = JsonDocument.Parse(json).RootElement;
+        var result = XsdNillableKeyword.Instance.ValidateKeywordValue(element);
+        Assert.Equal(value, result);
     }
 }

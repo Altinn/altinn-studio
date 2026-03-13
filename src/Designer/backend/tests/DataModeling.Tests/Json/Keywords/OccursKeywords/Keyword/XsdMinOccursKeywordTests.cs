@@ -1,47 +1,31 @@
-﻿using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.Json.Keywords.BaseClasses;
+using System.Text.Json;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Keyword;
 
-public class XsdMinOccursKeywordTests : ValueKeywordTestsBase<XsdMinOccursKeywordTests, XsdMinOccursKeyword, int>
+public class XsdMinOccursKeywordTests
 {
-    protected override XsdMinOccursKeyword CreateKeywordWithValue(int value) => new(value);
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(100)]
-    public void CreatedKeyword_ShouldHaveValue(int value)
+    public XsdMinOccursKeywordTests()
     {
-        Keyword = new XsdMinOccursKeyword(value);
-        Assert.Equal(value, Keyword.Value);
+        JsonSchemaKeywords.RegisterXsdKeywords();
+    }
+
+    [Fact]
+    public void Handler_Name_ShouldBe_XsdMinOccurs()
+    {
+        Assert.Equal("@xsdMinOccurs", XsdMinOccursKeyword.Instance.Name);
     }
 
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(100)]
-    public void SameKeywords_Should_BeEqual(int value)
+    public void ValidateKeywordValue_ShouldParseInt(int value)
     {
-        var expectedKeyword = new XsdMinOccursKeyword(value);
-        object expectedKeywordObject = new XsdMinOccursKeyword(value);
-
-        Given
-            .That.KeywordCreatedWithValue(value)
-            .Then.KeywordShouldEqual(expectedKeyword)
-            .And.KeywordShouldEqualObject(expectedKeywordObject)
-            .But.KeywordShouldNotEqual(null);
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(100)]
-    public void GetHashCode_ShouldBe_As_Value(int value)
-    {
-        var expectedHashCode = value.GetHashCode();
-        Given.That.KeywordCreatedWithValue(value);
-        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
+        var json = JsonSerializer.Serialize(value);
+        var element = JsonDocument.Parse(json).RootElement;
+        var result = XsdMinOccursKeyword.Instance.ValidateKeywordValue(element);
+        Assert.Equal(value, result);
     }
 }

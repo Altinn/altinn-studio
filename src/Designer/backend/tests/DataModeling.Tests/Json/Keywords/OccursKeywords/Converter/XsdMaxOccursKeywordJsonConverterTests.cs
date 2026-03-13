@@ -1,16 +1,19 @@
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.Json.Keywords.BaseClasses;
+using Altinn.Studio.DataModeling.Utils;
+using Json.Schema;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
 {
     public class XsdMaxOccursKeywordJsonConverterTests
-        : ValueKeywordConverterTestBase<XsdMaxOccursKeywordJsonConverterTests, XsdMaxOccursKeyword, string>
     {
         private const string KeywordPlaceholder = "@xsdMaxOccurs";
 
-        protected override XsdMaxOccursKeyword CreateKeywordWithValue(string value) => new(value);
+        public XsdMaxOccursKeywordJsonConverterTests()
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+        }
 
         [Theory]
         [InlineData("0")]
@@ -23,9 +26,10 @@ namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
                 ""{KeywordPlaceholder}"": ""{value}""
             }}";
 
-            Given.That.JsonSchemaLoaded(jsonSchema).When.KeywordReadFromSchema().Then.KeywordShouldNotBeNull();
-
-            Assert.Equal(Keyword.Value, value);
+            var schema = JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions());
+            var kd = schema.FindKeywordByHandler<XsdMaxOccursKeyword>();
+            Assert.NotNull(kd);
+            Assert.Equal(value, kd.Value);
         }
 
         [Theory]
@@ -34,10 +38,10 @@ namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
         [InlineData("unbounded")]
         public void Write_ValidStructure_ShouldWriteToJson(string value)
         {
-            Given
-                .That.KeywordCreatedWithValue(value)
-                .When.KeywordSerializedAsJson()
-                .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":""{value}""}}");
+            var jsonSchema = @$"{{""{KeywordPlaceholder}"":""{value}""}}";
+            var schema = JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions());
+            var serialized = JsonSerializer.Serialize(schema);
+            Assert.Equal(jsonSchema, serialized);
         }
 
         [Theory]
@@ -50,9 +54,9 @@ namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
                         ""value"": ""{value}""
                 }}";
 
-            var ex = Assert.Throws<JsonException>(() => Given.That.JsonSchemaLoaded(jsonSchema));
-
-            Assert.Equal("Expected string", ex.Message);
+            Assert.ThrowsAny<JsonException>(() =>
+                JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions())
+            );
         }
     }
 }
