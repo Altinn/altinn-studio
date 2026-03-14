@@ -41,7 +41,7 @@ internal sealed class EngineDbContext : DbContext
             entity
                 .Property(e => e.Labels)
                 .HasConversion(
-                    new ValueConverter<Dictionary<string, string>, string>(
+                    new ValueConverter<Dictionary<string, string>?, string>(
                         v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
                         v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, JsonSerializerOptions.Default)!
                     )

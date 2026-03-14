@@ -40,7 +40,10 @@ internal sealed class WorkflowHandler(
 
         if (
             workflow.Dependencies?.Any(x =>
-                x.Status == PersistentItemStatus.Failed || x.Status == PersistentItemStatus.DependencyFailed
+                x.Status
+                    is PersistentItemStatus.Failed
+                        or PersistentItemStatus.DependencyFailed
+                        or PersistentItemStatus.Canceled
             )
             is true
         )
@@ -64,14 +67,15 @@ internal sealed class WorkflowHandler(
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             workflow.EngineActivity?.Errored(errorMessage: "Cancelled during processing");
-            StopActivity(workflow);
 
             if (workflow.Status == PersistentItemStatus.Processing)
             {
                 workflow.Status = PersistentItemStatus.Requeued;
             }
+
             await statusWriteBuffer.SubmitAsync(workflow, CancellationToken.None);
 
+            StopActivity(workflow);
             throw;
         }
         catch (Exception ex)
@@ -102,6 +106,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowTotalTime(workflow);
 
             Metrics.WorkflowsSucceeded.Add(1);
+            workflow.EngineActivity?.Succeeded();
             logger.WorkflowCompleted(workflow);
         }
         else if (workflow.Status == PersistentItemStatus.Failed)
@@ -109,6 +114,7 @@ internal sealed class WorkflowHandler(
             RecordWorkflowServiceTime(workflow);
             RecordWorkflowTotalTime(workflow);
 
+            workflow.EngineActivity?.Errored();
             Metrics.WorkflowsFailed.Add(1);
         }
 
@@ -166,6 +172,7 @@ internal sealed class WorkflowHandler(
 
             if (step.Status == PersistentItemStatus.Completed)
             {
+                step.EngineActivity?.Succeeded();
                 continue;
             }
 
@@ -177,6 +184,7 @@ internal sealed class WorkflowHandler(
 
             if (step.Status == PersistentItemStatus.Failed)
             {
+                step.EngineActivity?.Errored(errorMessage: result.Message);
                 break;
             }
 
@@ -205,7 +213,7 @@ internal sealed class WorkflowHandler(
             return;
         }
 
-        if (result.IsCriticalError() || result.IsCanceled())
+        if (result.IsCriticalError())
         {
             currentStep.Status = PersistentItemStatus.Failed;
             currentStep.LastError = result.Message;
@@ -250,10 +258,16 @@ internal sealed class WorkflowHandler(
 
     private static void StartProcessWorkflowActivity(Workflow workflow)
     {
+        List<string?> possibleLinks =
+        [
+            workflow.DistributedTraceContext,
+            .. workflow.Dependencies?.Select(x => x.DistributedTraceContext) ?? [],
+        ];
+
         workflow.EngineActivity ??= Metrics.Source.StartLinkedRootActivity(
             "WorkflowHandler.HandleAsync",
             kind: ActivityKind.Consumer,
-            links: Metrics.ParseTraceContext(workflow.DistributedTraceContext).ToActivityLinks(),
+            links: possibleLinks.Select(Metrics.ParseTraceContext).ToActivityLinks(),
             tags: workflow.GetActivityTags(),
             includeCurrentContext: false
         );

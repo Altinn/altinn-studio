@@ -35,19 +35,19 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
     [Column(TypeName = "jsonb")]
     public Dictionary<string, string>? Labels { get; set; }
 
-    [Column(TypeName = "jsonb")]
-    public string? ContextJson { get; set; }
-
     public Guid? CorrelationId { get; set; }
 
     [MaxLength(100)]
-    public string? TraceContext { get; set; }
+    public string? DistributedTraceContext { get; set; }
+
+    [MaxLength(100)]
+    public string? EngineTraceContext { get; set; }
+
+    [Column(TypeName = "jsonb")]
+    public string? ContextJson { get; set; }
 
     [Column(TypeName = "jsonb")]
     public string? MetadataJson { get; set; }
-
-    [MaxLength(100)]
-    public string? EngineTraceId { get; set; }
 
     public string? InitialState { get; set; }
 
@@ -70,10 +70,10 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             BackoffUntil = workflow.BackoffUntil,
             Status = workflow.Status,
             Labels = workflow.Labels,
-            ContextJson = workflow.Context.HasValue ? workflow.Context.Value.GetRawText() : null,
-            TraceContext = workflow.DistributedTraceContext,
+            ContextJson = workflow.Context?.GetRawText(),
+            DistributedTraceContext = workflow.DistributedTraceContext,
             MetadataJson = workflow.Metadata,
-            EngineTraceId = workflow.EngineTraceContext,
+            EngineTraceContext = workflow.EngineTraceContext,
             InitialState = workflow.InitialState,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
             Dependencies = workflow.Dependencies?.Select(FromDomainModel).ToList(),
@@ -104,9 +104,9 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             Labels = Labels,
             Context =
                 ContextJson != null ? JsonSerializer.Deserialize<JsonElement>(ContextJson, JsonOptions.Default) : null,
-            DistributedTraceContext = TraceContext,
+            DistributedTraceContext = DistributedTraceContext,
             Metadata = MetadataJson,
-            EngineTraceContext = EngineTraceId,
+            EngineTraceContext = EngineTraceContext,
             InitialState = InitialState,
             Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(x => x.ToDomainModel()).ToList(),
             Dependencies = Dependencies?.Select(x => x.ToDomainModel()).ToList(),

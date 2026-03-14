@@ -20,7 +20,7 @@ public class WorkflowEntityTests
             Status = PersistentItemStatus.Processing,
             Labels = new Dictionary<string, string> { ["env"] = "test" },
             ContextJson = """{"key":"value"}""",
-            TraceContext = "trace-ctx-abc",
+            DistributedTraceContext = "trace-ctx-abc",
             Steps = steps.ToList(),
         };
 
@@ -56,7 +56,7 @@ public class WorkflowEntityTests
         Assert.Equal(entity.UpdatedAt, roundTripped.UpdatedAt);
         Assert.Equal(entity.BackoffUntil, roundTripped.BackoffUntil);
         Assert.Equal(entity.Status, roundTripped.Status);
-        Assert.Equal(entity.TraceContext, roundTripped.TraceContext);
+        Assert.Equal(entity.DistributedTraceContext, roundTripped.DistributedTraceContext);
         Assert.Equal(entity.Steps.Count, roundTripped.Steps.Count);
     }
 

@@ -20,6 +20,9 @@ internal sealed class StepEntity : IHasCommonMetadata
 
     public required string IdempotencyKey { get; set; }
 
+    [MaxLength(100)]
+    public string? EngineTraceContext { get; set; }
+
     public PersistentItemStatus Status { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
@@ -53,6 +56,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             Id = step.DatabaseId,
             OperationId = step.OperationId,
             IdempotencyKey = step.IdempotencyKey,
+            EngineTraceContext = step.EngineTraceContext,
             Status = step.Status,
             CreatedAt = step.CreatedAt,
             UpdatedAt = step.UpdatedAt,
@@ -61,7 +65,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
-            MetadataJson = step?.Metadata,
+            MetadataJson = step.Metadata,
             StateOut = step.StateOut,
         };
     }
@@ -81,6 +85,7 @@ internal sealed class StepEntity : IHasCommonMetadata
             DatabaseId = Id,
             OperationId = OperationId,
             IdempotencyKey = IdempotencyKey,
+            EngineTraceContext = EngineTraceContext,
             Status = Status,
             ProcessingOrder = ProcessingOrder,
             CreatedAt = CreatedAt,

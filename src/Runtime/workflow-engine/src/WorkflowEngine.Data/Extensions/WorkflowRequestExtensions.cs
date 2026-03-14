@@ -17,7 +17,6 @@ internal static class WorkflowRequestExtensions
     )
     {
         var idempotencyKey = enqueueRequest.IdempotencyKey;
-        int order = 0;
 
         return new Workflow
         {
@@ -36,18 +35,21 @@ internal static class WorkflowRequestExtensions
             Metadata = workflowRequest.Metadata,
             InitialState = workflowRequest.State,
             Steps = workflowRequest
-                .Steps.Select(s => new Step
-                {
-                    DatabaseId = Guid.CreateVersion7(),
-                    OperationId = s.OperationId,
-                    IdempotencyKey = $"{idempotencyKey}/{s.OperationId}",
-                    Status = PersistentItemStatus.Enqueued,
-                    CreatedAt = metadata.CreatedAt,
-                    ProcessingOrder = order++,
-                    Command = s.Command,
-                    RetryStrategy = s.RetryStrategy,
-                    Metadata = s.Metadata,
-                })
+                .Steps.Select(
+                    (s, i) =>
+                        new Step
+                        {
+                            DatabaseId = Guid.CreateVersion7(),
+                            OperationId = s.OperationId,
+                            IdempotencyKey = $"{idempotencyKey}/{s.OperationId}",
+                            Status = PersistentItemStatus.Enqueued,
+                            CreatedAt = metadata.CreatedAt,
+                            ProcessingOrder = i,
+                            Command = s.Command,
+                            RetryStrategy = s.RetryStrategy,
+                            Metadata = s.Metadata,
+                        }
+                )
                 .ToList(),
         };
     }

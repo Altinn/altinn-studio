@@ -63,7 +63,9 @@ internal sealed partial class EngineRepository
                             setters =>
                                 setters
                                     .SetProperty(t => t.Status, workflow.Status)
-                                    .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt),
+                                    .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt)
+                                    .SetProperty(t => t.BackoffUntil, workflow.BackoffUntil)
+                                    .SetProperty(t => t.EngineTraceContext, workflow.EngineTraceContext),
                             ct
                         );
                 },
@@ -105,7 +107,8 @@ internal sealed partial class EngineRepository
                                     .SetProperty(t => t.Status, step.Status)
                                     .SetProperty(t => t.RequeueCount, step.RequeueCount)
                                     .SetProperty(t => t.StateOut, step.StateOut)
-                                    .SetProperty(t => t.UpdatedAt, step.UpdatedAt),
+                                    .SetProperty(t => t.UpdatedAt, step.UpdatedAt)
+                                    .SetProperty(t => t.EngineTraceContext, step.EngineTraceContext),
                             ct
                         );
                 },
@@ -623,6 +626,7 @@ internal sealed partial class EngineRepository
                             AND dep."Status" <> {PersistentItemStatus.Completed}
                             AND dep."Status" <> {PersistentItemStatus.Failed}
                             AND dep."Status" <> {PersistentItemStatus.DependencyFailed}
+                            AND dep."Status" <> {PersistentItemStatus.Canceled}
                       )
                     ORDER BY w."BackoffUntil" NULLS FIRST, w."CreatedAt"
                     FOR UPDATE SKIP LOCKED
@@ -680,7 +684,7 @@ internal sealed partial class EngineRepository
                     var ids = new Guid[updates.Count];
                     var statuses = new int[updates.Count];
                     var backoffUntils = new object[updates.Count];
-                    var engineTraceIds = new object[updates.Count];
+                    var engineTraceContexts = new object[updates.Count];
 
                     for (int i = 0; i < updates.Count; i++)
                     {
@@ -688,17 +692,17 @@ internal sealed partial class EngineRepository
                         ids[i] = w.DatabaseId;
                         statuses[i] = (int)w.Status;
                         backoffUntils[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
-                        engineTraceIds[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
+                        engineTraceContexts[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
                     }
 
                     const string updateWorkflowsSql = """
                     UPDATE "Workflows" AS w
-                    SET "Status"        = v.status,
-                        "UpdatedAt"     = @now,
-                        "BackoffUntil" = v.backoff_until,
-                        "EngineTraceId" = v.engine_trace_id
-                    FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_ids)
-                        AS v(id, status, backoff_until, engine_trace_id)
+                    SET "Status"             = v.status,
+                        "UpdatedAt"          = @now,
+                        "BackoffUntil"       = v.backoff_until,
+                        "EngineTraceContext" = v.engine_trace_context
+                    FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts)
+                        AS v(id, status, backoff_until, engine_trace_context)
                     WHERE w."Id" = v.id
                     """;
 
@@ -713,9 +717,9 @@ internal sealed partial class EngineRepository
                             }
                         );
                         cmd.Parameters.Add(
-                            new NpgsqlParameter("engine_trace_ids", NpgsqlDbType.Array | NpgsqlDbType.Text)
+                            new NpgsqlParameter("engine_trace_contexts", NpgsqlDbType.Array | NpgsqlDbType.Text)
                             {
-                                Value = engineTraceIds,
+                                Value = engineTraceContexts,
                             }
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
@@ -731,6 +735,7 @@ internal sealed partial class EngineRepository
                         var stepStatuses = new int[allSteps.Count];
                         var stepRequeueCounts = new int[allSteps.Count];
                         var stepStateOuts = new object[allSteps.Count];
+                        var stepEngineTraceContexts = new object[allSteps.Count];
 
                         for (int i = 0; i < allSteps.Count; i++)
                         {
@@ -739,16 +744,18 @@ internal sealed partial class EngineRepository
                             stepStatuses[i] = (int)s.Status;
                             stepRequeueCounts[i] = s.RequeueCount;
                             stepStateOuts[i] = (object?)s.StateOut ?? DBNull.Value;
+                            stepEngineTraceContexts[i] = (object?)s.EngineTraceContext ?? DBNull.Value;
                         }
 
                         const string updateStepsSql = """
                         UPDATE "Steps" AS s
-                        SET "Status"       = v.status,
-                            "RequeueCount" = v.requeue_count,
-                            "StateOut"     = v.state_out,
-                            "UpdatedAt"    = @now
-                        FROM unnest(@ids, @statuses, @requeue_counts, @state_outs)
-                            AS v(id, status, requeue_count, state_out)
+                        SET "Status"             = v.status,
+                            "RequeueCount"       = v.requeue_count,
+                            "StateOut"           = v.state_out,
+                            "EngineTraceContext" = v.engine_trace_context,
+                            "UpdatedAt"          = @now
+                        FROM unnest(@ids, @statuses, @requeue_counts, @engine_trace_contexts, @state_outs)
+                            AS v(id, status, requeue_count, engine_trace_context, state_out)
                         WHERE s."Id" = v.id
                         """;
 
@@ -760,6 +767,12 @@ internal sealed partial class EngineRepository
                             new NpgsqlParameter("state_outs", NpgsqlDbType.Array | NpgsqlDbType.Text)
                             {
                                 Value = stepStateOuts,
+                            }
+                        );
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("engine_trace_contexts", NpgsqlDbType.Array | NpgsqlDbType.Text)
+                            {
+                                Value = stepEngineTraceContexts,
                             }
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
