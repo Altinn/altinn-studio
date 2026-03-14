@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
-import { Scope, convertToExternalConfig, dummyDataPages } from '../utils/ValidateNavigationUtils';
-import type { ExternalConfigState, InternalConfigState } from '../utils/ValidateNavigationTypes';
+import { Scope, convertToExternalConfig } from '../utils/ValidateNavigationUtils';
+import type { InternalConfigState } from '../utils/ValidateNavigationTypes';
 import { useConvertToInternalConfig } from '../utils/useConvertToInternalConfig';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useValidationOnNavigationPageSettingsQuery } from '@altinn/ux-editor/hooks/queries/usePageValidationOnNavigationLayoutSettingsQuery';
+import { useValidationOnNavigationPageSettingsMutation } from '@altinn/ux-editor/hooks/mutations/useValidationOnNavigationPageSettingsMutation';
 
 export const ValidateSelectedPagesConfig = () => {
-  const [tempExtConfigs, setTempExtConfigs] = useState<ExternalConfigState[]>(dummyDataPages);
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: pageValidationData } = useValidationOnNavigationPageSettingsQuery(org, app);
+  const { mutate: updatePages } = useValidationOnNavigationPageSettingsMutation(org, app);
 
-  const internalConfigs = useConvertToInternalConfig(tempExtConfigs);
+  const internalConfigs = useConvertToInternalConfig(pageValidationData ?? []);
 
   const handleSave = (updatedConfig: InternalConfigState, index?: number) => {
     const updatedInternalConfigs = [...internalConfigs];
@@ -17,18 +22,17 @@ export const ValidateSelectedPagesConfig = () => {
       updatedInternalConfigs.push(updatedConfig);
     }
 
-    const newExternal = updatedInternalConfigs.map(convertToExternalConfig);
-    setTempExtConfigs(newExternal);
+    updatePages(updatedInternalConfigs.map(convertToExternalConfig));
   };
 
   const handleDelete = (index: number) => {
     const newIntConfigs = internalConfigs.filter((_, i) => i !== index);
-    setTempExtConfigs(newIntConfigs.map(convertToExternalConfig));
+    updatePages(newIntConfigs.map(convertToExternalConfig));
   };
 
   return (
     <>
-      {internalConfigs?.map((conf, index) => (
+      {internalConfigs.map((conf, index) => (
         <ValidateNavigationConfig
           key={index}
           scope={Scope.SelectedPages}

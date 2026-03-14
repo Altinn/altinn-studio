@@ -22,6 +22,13 @@ export interface IValidationOnNavigationLayoutSettings {
   page?: string;
 }
 
+export interface IValidationOnNavigationPageSettings {
+  task?: string;
+  pages?: string[];
+  show?: string[];
+  page?: string;
+}
+
 export interface IPagesSettings {
   order?: string[];
   groups?: any;

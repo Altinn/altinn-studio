@@ -9,13 +9,13 @@ import { useUpdateValidationOnNavigationLayoutSettingsMutation } from '@altinn/u
 
 export const ValidateSelectedTasksConfig = () => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: settings } = useValidationOnNavigationGroupedSettingsQuery(org, app);
+  const { data: settingsValidationData } = useValidationOnNavigationGroupedSettingsQuery(org, app);
   const { mutate: updateSettings } = useUpdateValidationOnNavigationLayoutSettingsMutation(
     org,
     app,
   );
 
-  const internalConfigs = useConvertToInternalConfig(settings);
+  const internalConfigs = useConvertToInternalConfig(settingsValidationData ?? []);
 
   const handleSave = (updatedConfig: InternalConfigState, index?: number) => {
     const updatedInternalConfigs = [...internalConfigs];
@@ -25,8 +25,7 @@ export const ValidateSelectedTasksConfig = () => {
       updatedInternalConfigs.push(updatedConfig);
     }
 
-    const newExternal = updatedInternalConfigs.map(convertToExternalConfig);
-    updateSettings(newExternal);
+    updateSettings(updatedInternalConfigs.map(convertToExternalConfig));
   };
 
   const handleDelete = (index: number) => {
@@ -36,17 +35,16 @@ export const ValidateSelectedTasksConfig = () => {
 
   return (
     <>
-      {internalConfigs &&
-        internalConfigs.map((conf, index) => (
-          <ValidateNavigationConfig
-            key={index}
-            scope={Scope.SelectedTasks}
-            config={conf}
-            existingConfigs={internalConfigs}
-            onSave={(newConf) => handleSave(newConf, index)}
-            onDelete={() => handleDelete(index)}
-          />
-        ))}
+      {internalConfigs.map((conf, index) => (
+        <ValidateNavigationConfig
+          key={index}
+          scope={Scope.SelectedTasks}
+          config={conf}
+          existingConfigs={internalConfigs}
+          onSave={(newConf) => handleSave(newConf, index)}
+          onDelete={() => handleDelete(index)}
+        />
+      ))}
       <ValidateNavigationConfig
         scope={Scope.SelectedTasks}
         existingConfigs={internalConfigs}
