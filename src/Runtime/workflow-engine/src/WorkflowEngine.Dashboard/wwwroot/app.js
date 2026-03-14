@@ -9,10 +9,20 @@ import { syncUrl, restoreUrl, bindUrlCallbacks } from './modules/features/url.js
 import { updateTimers } from './modules/shared/timers.js';
 import { bindSectionCallbacks } from './modules/shared/section.js';
 import { updateStatusBadges, updateCapacity } from './modules/features/header.js';
-import { updateScheduledBadge, loadScheduled, bindScheduledCallbacks } from './modules/features/scheduled.js';
-import { bindLiveCallbacks } from './modules/features/live.js';
+import {
+    updateScheduledBadge,
+    loadScheduled,
+    bindScheduledCallbacks,
+} from './modules/features/scheduled.js';
+import { updateLiveWorkflows, bindLiveCallbacks } from './modules/features/live.js';
 import { updateRecentWorkflows, bindRecentCallbacks } from './modules/features/recent.js';
-import { applyFilter, mergeDiscoveredLabels, switchTab, fetchLabelValues, bindFilterCallbacks } from './modules/features/filters.js';
+import {
+    applyFilter,
+    mergeDiscoveredLabels,
+    switchTab,
+    fetchLabelValues,
+    bindFilterCallbacks,
+} from './modules/features/filters.js';
 import { loadQuery } from './modules/features/query.js';
 import { bindThemeCallbacks } from './modules/features/theme.js';
 
@@ -35,27 +45,37 @@ bindThemeCallbacks({ syncUrl });
 
 /** @param {import('./modules/core/state.js').DashboardPayload} data */
 const updateDashboard = (data) => {
-  updateStatusBadges(data.engineStatus);
-  updateCapacity(data.capacity);
-  updateScheduledBadge(data.scheduledCount);
+    updateStatusBadges(data.engineStatus);
+    updateCapacity(data.capacity);
+    updateScheduledBadge(data.scheduledCount);
 };
 
 /* ── Init ────────────────────────────────────────────────── */
 
 const init = async () => {
-  try {
-    const res = await fetch('/api/config');
-    const config = await res.json();
-    setEngineUrl(config.engineUrl || '');
-  } catch {
-    console.warn('Failed to load config, using same-origin for engine URL');
-  }
+    try {
+        const res = await fetch('/api/config');
+        const config = await res.json();
+        setEngineUrl(config.engineUrl || '');
+    } catch {
+        console.warn('Failed to load config, using same-origin for engine URL');
+    }
 
-  restoreUrl();
-  connectSSE(`${engineUrl}/dashboard/stream`, updateDashboard, { showStatus: true, onConnect: fetchLabelValues });
-  connectSSE(`${engineUrl}/dashboard/stream/recent`, (data) => updateRecentWorkflows(/** @type {import('./modules/core/state.js').Workflow[]} */ (data)));
-  requestAnimationFrame(updateTimers);
-  watchForChanges();
+    restoreUrl();
+    connectSSE(`${engineUrl}/dashboard/stream`, updateDashboard, {
+        showStatus: true,
+        onConnect: fetchLabelValues,
+    });
+    connectSSE(`${engineUrl}/dashboard/stream/active`, (data) => {
+        const d =
+            /** @type {{ active?: import('./modules/core/state.js').Workflow[], recent?: import('./modules/core/state.js').Workflow[] }} */ (
+                data
+            );
+        if (d.active !== undefined) updateLiveWorkflows(d.active);
+        if (d.recent !== undefined) updateRecentWorkflows(d.recent);
+    });
+    requestAnimationFrame(updateTimers);
+    watchForChanges();
 };
 
 init();

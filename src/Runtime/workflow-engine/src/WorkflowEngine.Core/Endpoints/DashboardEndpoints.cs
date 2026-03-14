@@ -127,30 +127,92 @@ public static class DashboardEndpoints
             .ExcludeFromDescription();
 
         app.MapGet(
-                "/dashboard/stream/recent",
-                async (IEngineStatus engineStatus, HttpContext ctx, CancellationToken ct) =>
+                "/dashboard/stream/active",
+                async (AsyncSignal workflowSignal, IServiceProvider sp, HttpContext ctx, CancellationToken ct) =>
                 {
                     ctx.Response.ContentType = "text/event-stream";
                     ctx.Response.Headers.CacheControl = "no-cache";
                     ctx.Response.Headers.Connection = "keep-alive";
 
-                    string? previousFingerprint = null;
+                    string? previousActiveFingerprint = null;
+                    string? previousRecentFingerprint = null;
 
                     while (!ct.IsCancellationRequested)
                     {
-                        IReadOnlyList<DashboardWorkflowDto> recent = engineStatus.GetRecentWorkflows(100);
-                        string fingerprint = string.Join(",", recent.Select(r => r.IdempotencyKey));
+                        // Arm the signal before querying so changes during the query aren't lost
+                        workflowSignal.Reset();
 
-                        if (fingerprint != previousFingerprint)
+                        try
                         {
-                            previousFingerprint = fingerprint;
+                            using IServiceScope scope = sp.CreateScope();
+                            var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
 
-                            string json = JsonSerializer.Serialize(recent, _jsonCompact);
-                            await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
-                            await ctx.Response.Body.FlushAsync(ct);
+                            IReadOnlyList<Workflow> active = await repo.GetActiveWorkflows(cancellationToken: ct);
+                            IReadOnlyList<Workflow> recent = await repo.GetFinishedWorkflows(
+                                statuses: [PersistentItemStatus.Completed, PersistentItemStatus.Failed],
+                                take: 100,
+                                cancellationToken: ct
+                            );
+
+                            List<DashboardWorkflowDto> activeMapped = active
+                                .Select(DashboardMapper.MapWorkflow)
+                                .ToList();
+                            List<DashboardWorkflowDto> recentMapped = recent
+                                .Select(DashboardMapper.MapWorkflow)
+                                .ToList();
+
+                            string activeFingerprint = string.Join(
+                                ",",
+                                activeMapped.Select(w =>
+                                    $"{w.IdempotencyKey}|{w.Status}|{w.BackoffUntil}|"
+                                    + string.Join(";", w.Steps.Select(s => $"{s.Status}:{s.RetryCount}"))
+                                )
+                            );
+                            string recentFingerprint = string.Join(
+                                ",",
+                                recentMapped.Select(w => $"{w.IdempotencyKey}|{w.UpdatedAt}")
+                            );
+
+                            bool activeChanged = activeFingerprint != previousActiveFingerprint;
+                            bool recentChanged = recentFingerprint != previousRecentFingerprint;
+
+                            if (activeChanged || recentChanged)
+                            {
+                                previousActiveFingerprint = activeFingerprint;
+                                previousRecentFingerprint = recentFingerprint;
+
+                                string json = JsonSerializer.Serialize(
+                                    new
+                                    {
+                                        active = activeChanged ? activeMapped : null,
+                                        recent = recentChanged ? recentMapped : null,
+                                    },
+                                    _jsonCompact
+                                );
+                                await ctx.Response.WriteAsync($"data: {json}\n\n", ct);
+                                await ctx.Response.Body.FlushAsync(ct);
+                            }
+                        }
+                        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                        {
+                            break;
+                        }
+                        catch
+                        {
+                            // Non-critical — retry next cycle
                         }
 
-                        await Task.Delay(500, ct);
+                        // Wait for a workflow change signal or timeout after 500ms
+                        try
+                        {
+                            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                            cts.CancelAfter(500);
+                            await workflowSignal.WaitAsync(cts.Token);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Expected — either main ct was cancelled or timeout
+                        }
                     }
                 }
             )
