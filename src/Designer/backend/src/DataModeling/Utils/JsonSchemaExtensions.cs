@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Json.Schema;
+using Json.Schema.Keywords;
 
 namespace Altinn.Studio.DataModeling.Utils
 {
@@ -12,166 +15,217 @@ namespace Altinn.Studio.DataModeling.Utils
     public static class JsonSchemaExtensions
     {
         /// <summary>
-        /// Get a keyword from a JsonSchema instance or <code>null</code> if not found.
+        /// Find keyword data by handler type.
         /// </summary>
-        /// <typeparam name="T">The keyword type to search for</typeparam>
-        /// <param name="schema">Look for the keyword in this schema instance</param>
-        /// <returns>The keyword or <code>null</code> if not found</returns>
-        public static T GetKeywordOrNull<T>(this JsonSchema schema)
-            where T : IJsonSchemaKeyword
+        public static KeywordData FindKeywordByHandler<T>(this JsonSchema schema)
+            where T : IKeywordHandler
         {
-            return schema.Keywords.GetKeyword<T>();
+            return schema.Root?.Keywords?.FirstOrDefault(k => k.Handler is T);
         }
 
         /// <summary>
-        /// Get a keyword from a JsonSchema instance or <code>null</code> if not found.
+        /// Find keyword data by handler type in a keyword array.
         /// </summary>
-        /// <typeparam name="T">The keyword type to search for</typeparam>
-        /// <param name="keywords">Look for the keyword in this list of keywords</param>
-        /// <returns>The keyword or <code>null</code> if not found</returns>
-        public static T GetKeyword<T>(this IEnumerable<IJsonSchemaKeyword> keywords)
-            where T : IJsonSchemaKeyword
+        public static KeywordData FindKeywordByHandler<T>(this KeywordData[] keywords)
+            where T : IKeywordHandler
         {
-            return (T)keywords.SingleOrDefault(keyword => keyword is T);
+            return keywords?.FirstOrDefault(k => k.Handler is T);
         }
 
         /// <summary>
-        /// Try to retrieve a keyword with the given type from the Json Schema
+        /// Determine if a keyword is present in the schema by handler type.
         /// </summary>
-        /// <typeparam name="T">The keyword type to search for</typeparam>
-        /// <param name="schema">Look for the keyword in this schema instance</param>
-        /// <param name="keyword">The keyword or <code>null</code> if not found</param>
-        /// <returns><code>true</code> if the keyword is found, <code>false</code> otherwise</returns>
-        public static bool TryGetKeyword<T>(this JsonSchema schema, out T keyword)
-            where T : IJsonSchemaKeyword
-        {
-            keyword = schema.Keywords.GetKeyword<T>();
-            return keyword != null;
-        }
-
-        /// <summary>
-        /// Try to retrieve a keyword with the given type from the Json Schema
-        /// </summary>
-        /// <typeparam name="T">The keyword type to search for</typeparam>
-        /// <param name="keywords">Look for the keyword in this list of keywords</param>
-        /// <param name="keyword">The keyword or <code>null</code> if not found</param>
-        /// <returns><code>true</code> if the keyword is found, <code>false</code> otherwise</returns>
-        public static bool TryGetKeyword<T>(this IEnumerable<IJsonSchemaKeyword> keywords, out T keyword)
-            where T : IJsonSchemaKeyword
-        {
-            keyword = (T)keywords.SingleOrDefault(keyword => keyword is T);
-            return keyword != null;
-        }
-
-        /// <summary>
-        /// Determine if a keyword is present in the schema
-        /// </summary>
-        /// <typeparam name="T">The keyword type to search for</typeparam>
-        /// <param name="schema">Look for the keyword in this schema instance</param>
-        /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
         public static bool HasKeyword<T>(this JsonSchema schema)
+            where T : IKeywordHandler
         {
-            return schema.Keywords.HasKeyword<T>();
+            return schema.Root?.Keywords?.Any(k => k.Handler is T) ?? false;
         }
 
         /// <summary>
-        /// Determine if a keyword is present in the schema
+        /// Determine if a keyword is present in the keyword array.
         /// </summary>
-        /// <typeparam name="T">The keyword type to search for</typeparam>
-        /// <param name="schema">Look for the keyword in this schema instance</param>
-        /// <param name="filter">A filter callback function</param>
-        /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
-        public static bool HasKeyword<T>(this JsonSchema schema, Func<T, bool> filter)
+        public static bool HasKeyword<T>(this KeywordData[] keywords)
+            where T : IKeywordHandler
         {
-            return schema.Keywords.HasKeyword(filter);
+            return keywords?.Any(k => k.Handler is T) ?? false;
         }
 
         /// <summary>
-        /// Determine if a keyword is present in the keyword list
+        /// Determine if any of the keywords are present in the schema.
         /// </summary>
-        /// <typeparam name="T">The keyword type to search for</typeparam>
-        /// <param name="keywords">Look for the keyword in this schema instance</param>
-        /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
-        public static bool HasKeyword<T>(this IEnumerable<IJsonSchemaKeyword> keywords)
+        public static bool HasAnyOfKeywords(this JsonSchema schema, params Type[] handlerTypes)
         {
-            return keywords.Any(keyword => keyword is T);
+            return schema.Root?.Keywords?.Any(k => handlerTypes.Contains(k.Handler.GetType())) ?? false;
         }
 
         /// <summary>
-        /// Determine if a keyword is present in the keyword list
+        /// Try to retrieve keyword data by handler type.
         /// </summary>
-        /// <typeparam name="T">The keyword type to search for</typeparam>
-        /// <param name="keywords">Look for the keyword in this schema instance</param>
-        /// <param name="filter">A filter callback func</param>
-        /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
-        public static bool HasKeyword<T>(this IEnumerable<IJsonSchemaKeyword> keywords, Func<T, bool> filter)
+        public static bool TryGetKeyword<T>(this JsonSchema schema, out KeywordData keyword)
+            where T : IKeywordHandler
         {
-            return keywords.Where(keyword => keyword is T).Cast<T>().Any(filter);
+            keyword = schema.FindKeywordByHandler<T>();
+            return keyword != null;
         }
 
         /// <summary>
-        /// Determine if any of the keywords are present in the keyword list
+        /// Gets the handler name for a keyword data entry.
+        /// Replacement for the v5 keyword.Keyword() method.
         /// </summary>
-        /// <param name="schema">Look for the keywords in this schema instance</param>
-        /// <param name="keywordTypes">The keyword types to look for</param>
-        /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
-        public static bool HasAnyOfKeywords(this JsonSchema schema, params Type[] keywordTypes)
+        public static string KeywordName(this KeywordData kd)
         {
-            return HasAnyOfKeywords(schema.Keywords, keywordTypes);
+            return kd.Handler.Name;
         }
 
         /// <summary>
-        /// Determine if any of the keywords are present in the keyword list
+        /// Gets the keywords from a schema (replacement for schema.Keywords).
         /// </summary>
-        /// <param name="keywords">Look for the keywords in this schema instance</param>
-        /// <param name="keywordTypes">The keyword types to look for</param>
-        /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
-        public static bool HasAnyOfKeywords(this IEnumerable<IJsonSchemaKeyword> keywords, params Type[] keywordTypes)
+        public static KeywordData[] GetKeywords(this JsonSchema schema)
         {
-            return keywords.Any(keyword => keywordTypes.Contains(keyword.GetType()));
+            return schema.Root?.Keywords;
+        }
+
+        // ========== Typed value accessors for standard keywords ==========
+
+        /// <summary>
+        /// Gets the SchemaValueType from a TypeKeyword's KeywordData.
+        /// </summary>
+        public static SchemaValueType GetTypeValue(this KeywordData kd)
+        {
+            return (SchemaValueType)kd.Value;
         }
 
         /// <summary>
-        /// Create a <see cref="WorkList{T}"/> from the keywords in this instance of <see cref="JsonSchema"/>
+        /// Gets the SchemaValueType from a schema's type keyword, or null if not present.
         /// </summary>
-        /// <param name="schema">The schema instance</param>
-        /// <returns>A <see cref="WorkList{T}"/> of keywords</returns>
-        public static WorkList<IJsonSchemaKeyword> AsWorkList(this JsonSchema schema)
+        public static SchemaValueType? GetSchemaType(this JsonSchema schema)
         {
-            return schema.Keywords.AsWorkList();
+            var kd = schema.FindKeywordByHandler<TypeKeyword>();
+            return kd != null ? (SchemaValueType)kd.Value : null;
         }
 
         /// <summary>
-        /// Create a <see cref="WorkList{T}"/> from the list of keywords
+        /// Gets the required properties from a RequiredKeyword's KeywordData.
         /// </summary>
-        /// <param name="keywords">The schema instance</param>
-        /// <returns>A <see cref="WorkList{T}"/> of keywords</returns>
-        public static WorkList<IJsonSchemaKeyword> AsWorkList(this IEnumerable<IJsonSchemaKeyword> keywords)
+        public static string[] GetRequiredProperties(this KeywordData kd)
         {
-            return new WorkList<IJsonSchemaKeyword>(keywords);
+            return (string[])kd.Value;
         }
 
         /// <summary>
-        /// Remove specific keywords from the enumerable.
+        /// Gets the $ref URI from a RefKeyword's KeywordData.
         /// </summary>
-        /// <param name="keywords">The list of keywords to filter</param>
-        /// <param name="keywordTypesToFilterAway">The types of keyword to filter away</param>
-        /// <returns>enumerable without the filtered out keywords</returns>
-        public static IEnumerable<IJsonSchemaKeyword> Filter(
-            this IEnumerable<IJsonSchemaKeyword> keywords,
-            params Type[] keywordTypesToFilterAway
-        )
+        public static Uri GetRefUri(this KeywordData kd)
         {
-            return keywords.Where(keyword => !keywordTypesToFilterAway.Contains(keyword.GetType()));
+            return (Uri)kd.Value;
         }
 
         /// <summary>
-        /// Add a `type` keyword. if nillable isNillable is provided as true, it adds <see cref="SchemaValueType.Null"/> type. If not it build only type keyword with provided type.
+        /// Gets the ref URI string from the raw value.
         /// </summary>
-        /// <param name="builder">The builder.</param>
-        /// <param name="type">The type.  Can be combined with the bit-wise OR operator `|`.</param>
-        /// <param name="isNillable">Indicating if type should be build in combination with <see cref="SchemaValueType.Null"/>/></param>
-        /// <returns>Builder.</returns>
+        public static string GetRefString(this KeywordData kd)
+        {
+            return kd.RawValue.GetString();
+        }
+
+        /// <summary>
+        /// Converts subschemas of a KeywordData to JsonSchema instances.
+        /// Used for allOf, oneOf, anyOf, items, etc.
+        /// </summary>
+        public static IReadOnlyList<JsonSchema> GetSubSchemas(this KeywordData kd)
+        {
+            if (kd.Subschemas == null || kd.Subschemas.Length == 0)
+            {
+                return Array.Empty<JsonSchema>();
+            }
+
+            return kd.Subschemas.Select(n => JsonSchema.Build(n.Source, JsonSchemaKeywords.GetBuildOptions())).ToList();
+        }
+
+        /// <summary>
+        /// Gets a single sub-schema (e.g., for items keyword).
+        /// </summary>
+        public static JsonSchema GetSingleSubSchema(this KeywordData kd)
+        {
+            if (kd.Subschemas == null || kd.Subschemas.Length == 0)
+            {
+                return null;
+            }
+
+            return JsonSchema.Build(kd.Subschemas[0].Source, JsonSchemaKeywords.GetBuildOptions());
+        }
+
+        /// <summary>
+        /// Gets properties as a dictionary from a PropertiesKeyword's KeywordData.
+        /// </summary>
+        public static IReadOnlyDictionary<string, JsonSchema> GetPropertiesDictionary(this KeywordData kd)
+        {
+            if (kd.Subschemas == null || kd.Subschemas.Length == 0)
+            {
+                return new Dictionary<string, JsonSchema>();
+            }
+
+            return kd.Subschemas.ToDictionary(
+                n => n.RelativePath.GetSegment(n.RelativePath.SegmentCount - 1).ToString(),
+                n => JsonSchema.Build(n.Source, JsonSchemaKeywords.GetBuildOptions())
+            );
+        }
+
+        /// <summary>
+        /// Gets the format string from a FormatKeyword's KeywordData.
+        /// </summary>
+        public static string GetFormatString(this KeywordData kd)
+        {
+            return kd.RawValue.GetString();
+        }
+
+        /// <summary>
+        /// Gets a long value from a keyword (minLength, maxLength, minItems, maxItems).
+        /// </summary>
+        public static long GetLongValue(this KeywordData kd)
+        {
+            return (long)kd.Value;
+        }
+
+        /// <summary>
+        /// Gets a decimal value from a keyword's raw value (minimum, maximum, etc.).
+        /// </summary>
+        public static decimal GetDecimalValue(this KeywordData kd)
+        {
+            return kd.RawValue.GetDecimal();
+        }
+
+        /// <summary>
+        /// Gets the raw value as a JsonNode for use in builder.
+        /// </summary>
+        public static JsonNode GetRawValueAsNode(this KeywordData kd)
+        {
+            return JsonNode.Parse(kd.RawValue.GetRawText());
+        }
+
+        /// <summary>
+        /// Gets a string value from a keyword's Value property.
+        /// </summary>
+        public static string GetStringValue(this KeywordData kd)
+        {
+            return (string)kd.Value;
+        }
+
+        // ========== Custom keyword value accessors ==========
+
+        /// <summary>
+        /// Gets the typed custom keyword value cast to T.
+        /// </summary>
+        public static T GetCustomValue<T>(this KeywordData kd)
+        {
+            return (T)kd.Value;
+        }
+
+        // ========== Builder helpers ==========
+
+        /// <summary>
+        /// Add a `type` keyword with optional nillable support.
+        /// </summary>
         public static JsonSchemaBuilder Type(this JsonSchemaBuilder builder, SchemaValueType type, bool isNillable)
         {
             if (isNillable)
@@ -187,14 +241,30 @@ namespace Altinn.Studio.DataModeling.Utils
         }
 
         /// <summary>
-        /// Orders the keywords by priority.
-        /// Currently the only keyword that should be prioritized is <see cref="XsdStructureKeyword"/>.
+        /// Build a JsonSchema from a builder using the configured build options.
         /// </summary>
-        /// <param name="keywords"></param>
-        /// <returns></returns>
-        public static IEnumerable<IJsonSchemaKeyword> OrderByPriority(this IEnumerable<IJsonSchemaKeyword> keywords)
+        public static JsonSchema BuildWithOptions(this JsonSchemaBuilder builder)
         {
-            return keywords.OrderBy(item => item.GetType() != typeof(XsdStructureKeyword));
+            return builder.Build(JsonSchemaKeywords.GetBuildOptions());
+        }
+
+        // ========== WorkList support ==========
+
+        /// <summary>
+        /// Create a <see cref="WorkList"/> from the keywords in this schema.
+        /// </summary>
+        public static WorkList AsWorkList(this JsonSchema schema)
+        {
+            return new WorkList(schema);
+        }
+
+        /// <summary>
+        /// Orders the keywords by priority.
+        /// XsdStructureKeyword should come first.
+        /// </summary>
+        public static IEnumerable<KeywordData> OrderByPriority(this KeywordData[] keywords)
+        {
+            return keywords.OrderBy(item => item.Handler is not XsdStructureKeyword);
         }
     }
 }

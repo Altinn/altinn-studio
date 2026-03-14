@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
+using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
 
@@ -22,14 +23,15 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             JsonSchema = schema;
             Metadata = new JsonSchemaXsdMetadata() { SchemaOrigin = "Seres" };
 
-            if (JsonSchema.TryGetKeyword(out XsdRootElementKeyword rootElementKeyword))
+            if (JsonSchema.TryGetKeyword<XsdRootElementKeyword>(out var rootElementKd))
             {
-                Metadata.MessageName = rootElementKeyword.Value;
+                Metadata.MessageName = (string)rootElementKd.Value;
             }
-            else if (JsonSchema.TryGetKeyword(out InfoKeyword info))
+            else if (JsonSchema.TryGetKeyword<InfoKeyword>(out var infoKd))
             {
-                var messageNameElement = info.Value.GetProperty("meldingsnavn");
-                var messageTypeNameElement = info.Value.GetProperty("modellnavn");
+                var infoValue = (JsonElement)infoKd.Value;
+                var messageNameElement = infoValue.GetProperty("meldingsnavn");
+                var messageTypeNameElement = infoValue.GetProperty("modellnavn");
 
                 Metadata.MessageName =
                     messageNameElement.ValueKind == JsonValueKind.Undefined

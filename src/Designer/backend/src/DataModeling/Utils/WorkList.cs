@@ -1,29 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Utils
 {
     /// <summary>
-    /// <p>
-    ///     Represents a list of items that can be handled in random order, and the remaining items can be handled by enumerating unhandled items <see cref="EnumerateUnhandledItems"/>
-    /// </p>
-    /// <p>
-    ///     This class uses type to separate work items, and multiple instances per type are supported. When getting a work item by type it will pull the first available one.
-    /// </p>
+    /// Represents a list of keyword data items that can be handled in random order,
+    /// and the remaining items can be handled by enumerating unhandled items.
     /// </summary>
-    /// <typeparam name="T">Work item base type</typeparam>
-    public class WorkList<T> : IEnumerable<T>
-        where T : IJsonSchemaKeyword
+    public class WorkList : IEnumerable<KeywordData>
     {
         private class WorkItem
         {
             public bool Handled { get; private set; }
 
-            public T Value { get; }
+            public KeywordData Value { get; }
 
-            public WorkItem(T value)
+            public WorkItem(KeywordData value)
             {
                 Value = value;
             }
@@ -37,22 +34,29 @@ namespace Altinn.Studio.DataModeling.Utils
         private readonly List<WorkItem> _list;
 
         /// <summary>
-        /// Create a new instance of the WorkItem class
+        /// Create a new instance from a schema's keywords.
         /// </summary>
-        /// <param name="list">A list of work items to be processed</param>
-        public WorkList(IEnumerable<T> list)
+        public WorkList(JsonSchema schema)
         {
-            _list = new List<WorkItem>(list.Select(item => new WorkItem(item)));
+            var keywords = schema.Root?.Keywords ?? [];
+            _list = new List<WorkItem>(keywords.Select(item => new WorkItem(item)));
         }
 
         /// <summary>
-        /// Find the first work item of type <typeparamref name="TT"/> and mark it as handled.
+        /// Create a new instance from a list of keyword data.
         /// </summary>
-        /// <typeparam name="TT">The type of work item to pull</typeparam>
-        public void MarkAsHandled<TT>()
-            where TT : T
+        public WorkList(IEnumerable<KeywordData> keywords)
         {
-            WorkItem item = _list.SingleOrDefault(x => x.Value is TT);
+            _list = new List<WorkItem>(keywords.Select(item => new WorkItem(item)));
+        }
+
+        /// <summary>
+        /// Find the first work item with the given handler type and mark it as handled.
+        /// </summary>
+        public void MarkAsHandled<T>()
+            where T : IKeywordHandler
+        {
+            WorkItem item = _list.SingleOrDefault(x => x.Value.Handler is T);
             if (item == null || item.Handled)
             {
                 return;
@@ -62,50 +66,57 @@ namespace Altinn.Studio.DataModeling.Utils
         }
 
         /// <summary>
-        /// Get the first work item of type <typeparamref name="TT"/> and mark it as handled.
+        /// Find the first work item with the given handler name and mark it as handled.
         /// </summary>
-        /// <typeparam name="TT">The type of work item to pull</typeparam>
-        /// <returns>The work item or default/null if no unhandled work items of the given type was found in the list</returns>
-        public TT Pull<TT>()
-            where TT : T
+        public void MarkAsHandledByName(string handlerName)
         {
-            WorkItem item = _list.SingleOrDefault(x => x.Value is TT);
+            WorkItem item = _list.SingleOrDefault(x => x.Value.Handler.Name == handlerName);
             if (item == null || item.Handled)
             {
-                return default;
+                return;
             }
 
             item.MarkAsHandled();
-            return (TT)item.Value;
         }
 
         /// <summary>
-        /// Get the first work item of type <typeparamref name="TT"/> and mark it as handled.
+        /// Get the first work item with the given handler type and mark it as handled.
         /// </summary>
-        /// <typeparam name="TT">The type of work item to pull</typeparam>
-        /// <param name="result">The work item or default/null if no unhandled work items of the given type was found in the list</param>
-        /// <returns><code>true</code> if an unhandled work item was found, <code>false</code> if not</returns>
-        public bool TryPull<TT>(out TT result)
-            where TT : T
+        public KeywordData Pull<T>()
+            where T : IKeywordHandler
         {
-            WorkItem item = _list.SingleOrDefault(x => x.Value is TT);
+            WorkItem item = _list.SingleOrDefault(x => x.Value.Handler is T);
             if (item == null || item.Handled)
             {
-                result = default;
+                return null;
+            }
+
+            item.MarkAsHandled();
+            return item.Value;
+        }
+
+        /// <summary>
+        /// Try to get the first work item with the given handler type and mark it as handled.
+        /// </summary>
+        public bool TryPull<T>(out KeywordData result)
+            where T : IKeywordHandler
+        {
+            WorkItem item = _list.SingleOrDefault(x => x.Value.Handler is T);
+            if (item == null || item.Handled)
+            {
+                result = null;
                 return false;
             }
 
             item.MarkAsHandled();
-            result = (TT)item.Value;
+            result = item.Value;
             return true;
         }
 
         /// <summary>
-        /// Get an enumerable of all the items left in the work list that have not been marked as handled.
+        /// Get an enumerable of all unhandled items.
         /// </summary>
-        /// <param name="markAsHandled">Mark the work items as handled when enumerating over them</param>
-        /// <returns>Enumerable of all unhandled work items</returns>
-        public IEnumerable<T> EnumerateUnhandledItems(bool markAsHandled = true)
+        public IEnumerable<KeywordData> EnumerateUnhandledItems(bool markAsHandled = true)
         {
             foreach (WorkItem item in _list.Where(item => !item.Handled))
             {
@@ -121,8 +132,7 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <summary>
         /// Get the enumerator for all work items in the list, including handled items.
         /// </summary>
-        /// <returns>Enumerator for all work items, including handled items.</returns>
-        public IEnumerator<T> GetEnumerator()
+        public IEnumerator<KeywordData> GetEnumerator()
         {
             return _list.Select(item => item.Value).GetEnumerator();
         }
@@ -130,24 +140,34 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <summary>
         /// Get the enumerator for all work items in the list, including handled items.
         /// </summary>
-        /// <returns>Enumerator for all work items, including handled items.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
 
         /// <summary>
-        /// Converts to JsonSchema
+        /// Converts to JsonSchema by rebuilding from the source JSON of each keyword.
         /// </summary>
         public JsonSchema AsJsonSchema()
         {
             var builder = new JsonSchemaBuilder();
             foreach (var workItem in _list)
             {
-                builder.Add(workItem.Value);
+                var name = workItem.Value.Handler.Name;
+                var rawValue = workItem.Value.RawValue;
+
+                if (workItem.Value.Subschemas is { Length: > 0 })
+                {
+                    // For keywords with subschemas, use the raw JSON value
+                    builder.Add(name, JsonNode.Parse(rawValue.GetRawText()));
+                }
+                else
+                {
+                    builder.Add(name, JsonNode.Parse(rawValue.GetRawText()));
+                }
             }
 
-            return builder.Build();
+            return builder.Build(JsonSchemaKeywords.GetBuildOptions());
         }
     }
 }

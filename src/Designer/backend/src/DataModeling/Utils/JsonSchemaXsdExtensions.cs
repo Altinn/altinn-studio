@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Json.Schema;
 
@@ -11,37 +13,26 @@ namespace Altinn.Studio.DataModeling.Utils
     public static class JsonSchemaXsdExtensions
     {
         /// <summary>
-        /// Add <see cref="InfoKeyword"/> keyword to the builder
+        /// Add info keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="info">Info content as <see cref="JsonElement" /></param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder Info(this JsonSchemaBuilder builder, JsonElement info)
         {
-            builder.Add(new InfoKeyword(info));
+            builder.Unrecognized("info", JsonNode.Parse(info.GetRawText()));
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="XsdAttributeKeyword"/> keyword to the builder
+        /// Add @xsdAttribute keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="attribute">True to set the attribute keyword</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdAttribute(this JsonSchemaBuilder builder, bool attribute = true)
         {
-            builder.Add(new XsdAttributeKeyword(attribute));
+            builder.Unrecognized("@xsdAttribute", JsonValue.Create(attribute));
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="XsdAnyAttributeKeyword"/> keyword to the builder
+        /// Add @xsdAnyAttribute keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="id">The original id of the any attribute.</param>
-        /// <param name="namespace">The original namespace value of the any attribute.</param>
-        /// <param name="processContent">The original processContent value of the any attribute.</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdAnyAttribute(
             this JsonSchemaBuilder builder,
             string id,
@@ -49,226 +40,242 @@ namespace Altinn.Studio.DataModeling.Utils
             string processContent
         )
         {
-            builder.Add(new XsdAnyAttributeKeyword(id, @namespace, processContent));
+            var obj = new JsonObject();
+            if (id != null)
+            {
+                obj["Id"] = id;
+            }
+
+            if (@namespace != null)
+            {
+                obj["Namespace"] = @namespace;
+            }
+
+            if (processContent != null)
+            {
+                obj["ProcessContent"] = processContent;
+            }
+
+            builder.Unrecognized("@xsdAnyAttribute", obj);
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="XsdSchemaAttributesKeyword"/> keyword to the builder
+        /// Add @xsdSchemaAttributes keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="attributes">Global xsd attributes</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdSchemaAttributes(
             this JsonSchemaBuilder builder,
             params (string Name, string Value)[] attributes
         )
         {
-            builder.Add(new XsdSchemaAttributesKeyword(attributes));
+            var obj = new JsonObject();
+            foreach (var (name, value) in attributes)
+            {
+                obj[name] = value;
+            }
+
+            builder.Unrecognized("@xsdSchemaAttributes", obj);
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="XsdUnhandledAttributesKeyword"/> keyword to the builder
+        /// Add @xsdUnhandledAttributes keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="attributes">A list of unhandled attributes for the element</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdUnhandledAttributes(
             this JsonSchemaBuilder builder,
             IEnumerable<(string Name, string Value)> attributes
         )
         {
-            builder.Add(new XsdUnhandledAttributesKeyword(attributes));
+            var obj = new JsonObject();
+            foreach (var (name, value) in attributes)
+            {
+                obj[name] = value;
+            }
+
+            builder.Unrecognized("@xsdUnhandledAttributes", obj);
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="XsdUnhandledEnumAttributesKeyword"/> keyword to the builder
+        /// Add @xsdUnhandledEnumAttributes keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="namedKeyValuePairsList">A list of named unhandled attributes for the enum values</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdUnhandledEnumAttributes(
             this JsonSchemaBuilder builder,
             IEnumerable<NamedKeyValuePairs> namedKeyValuePairsList
         )
         {
-            builder.Add(new XsdUnhandledEnumAttributesKeyword(namedKeyValuePairsList));
+            var obj = new JsonObject();
+            foreach (var item in namedKeyValuePairsList)
+            {
+                var innerObj = new JsonObject();
+                foreach (var pair in item.Properties)
+                {
+                    innerObj[pair.Key] = pair.Value;
+                }
+
+                obj[item.Name] = innerObj;
+            }
+
+            builder.Unrecognized("@xsdUnhandledEnumAttributes", obj);
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="XsdTypeKeyword"/> keyword to the builder
+        /// Add @xsdType keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="type">Xsd type specification</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdType(this JsonSchemaBuilder builder, string type)
         {
-            builder.Add(new XsdTypeKeyword(type));
+            builder.Unrecognized("@xsdType", JsonValue.Create(type));
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="XsdStructureKeyword"/> keyword to the builder
+        /// Add @xsdStructure keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="value">The structure type; sequence, all, choice...</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdStructure(this JsonSchemaBuilder builder, string value)
         {
-            builder.Add(new XsdStructureKeyword(value));
+            builder.Unrecognized("@xsdStructure", JsonValue.Create(value));
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="XsdRestrictionsKeyword"/> keyword to the builder
+        /// Add @xsdRestrictions keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="restrictions">A list of restrictions from the xml schema</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdRestrictions(
             this JsonSchemaBuilder builder,
             IEnumerable<(string Name, JsonElement Value)> restrictions
         )
         {
-            builder.Add(new XsdRestrictionsKeyword(restrictions));
+            var obj = new JsonObject();
+            foreach (var (name, value) in restrictions)
+            {
+                obj[name] = JsonNode.Parse(value.GetRawText());
+            }
+
+            builder.Unrecognized("@xsdRestrictions", obj);
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="XsdNamespacesKeyword"/> keyword to the builder
+        /// Add @xsdNamespaces keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="namespaces">The namespaces declared at the root level of the xml schema</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdNamespaces(
             this JsonSchemaBuilder builder,
             IEnumerable<(string Name, string Ns)> namespaces
         )
         {
-            builder.Add(new XsdNamespacesKeyword(namespaces));
+            var obj = new JsonObject();
+            foreach (var (name, ns) in namespaces)
+            {
+                obj[name] = ns;
+            }
+
+            builder.Unrecognized("@xsdNamespaces", obj);
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="XsdTextKeyword"/> keyword to the builder
+        /// Add @xsdText keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="value">True to set the xsdText keyword</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdText(this JsonSchemaBuilder builder, bool value = false)
         {
-            builder.Add(new XsdTextKeyword(value));
+            builder.Unrecognized("@xsdText", JsonValue.Create(value));
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="FormatExclusiveMinimumKeyword"/> keyword to the builder
+        /// Add formatExclusiveMinimum keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="value">True to set the <see cref="FormatExclusiveMinimumKeyword"/> keyword</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder FormatExclusiveMinimum(this JsonSchemaBuilder builder, string value)
         {
-            builder.Add(new FormatExclusiveMinimumKeyword(value));
+            builder.Unrecognized("formatExclusiveMinimum", JsonValue.Create(value));
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="FormatMinimumKeyword"/> keyword to the builder
+        /// Add formatMinimum keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="value">True to set the <see cref="FormatMinimumKeyword"/> keyword</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder FormatMinimum(this JsonSchemaBuilder builder, string value)
         {
-            builder.Add(new FormatMinimumKeyword(value));
+            builder.Unrecognized("formatMinimum", JsonValue.Create(value));
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="FormatExclusiveMaximumKeyword"/> keyword to the builder
+        /// Add formatExclusiveMaximum keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="value">True to set the <see cref="FormatExclusiveMaximumKeyword"/> keyword</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder FormatExclusiveMaximum(this JsonSchemaBuilder builder, string value)
         {
-            builder.Add(new FormatExclusiveMaximumKeyword(value));
+            builder.Unrecognized("formatExclusiveMaximum", JsonValue.Create(value));
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="FormatMaximumKeyword"/> keyword to the builder
+        /// Add formatMaximum keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="value">True to set the <see cref="FormatMaximumKeyword"/> keyword</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder FormatMaximum(this JsonSchemaBuilder builder, string value)
         {
-            builder.Add(new FormatMaximumKeyword(value));
+            builder.Unrecognized("formatMaximum", JsonValue.Create(value));
             return builder;
         }
 
         /// <summary>
-        /// Adds <see cref="XsdMinOccursKeyword"/> keyword to builder
+        /// Adds @xsdMinOccurs keyword to builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="value">MinOccurs value</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdMinOccurs(this JsonSchemaBuilder builder, int value)
         {
-            builder.Add(new XsdMinOccursKeyword(value));
+            builder.Unrecognized("@xsdMinOccurs", JsonValue.Create(value));
             return builder;
         }
 
         /// <summary>
-        /// Adds <see cref="XsdMaxOccursKeyword"/> keyword to builder
+        /// Adds @xsdMaxOccurs keyword to builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="value">MaxOccurs value</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdMaxOccurs(this JsonSchemaBuilder builder, string value)
         {
-            builder.Add(new XsdMaxOccursKeyword(value));
+            builder.Unrecognized("@xsdMaxOccurs", JsonValue.Create(value));
             return builder;
         }
 
         /// <summary>
-        /// Adds <see cref="XsdTotalDigitsKeyword"/> keyword to builder
+        /// Adds totalDigits keyword to builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="value">MaxOccurs value</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdTotalDigits(this JsonSchemaBuilder builder, uint value)
         {
-            builder.Add(new XsdTotalDigitsKeyword(value));
+            builder.Unrecognized("totalDigits", JsonValue.Create(value));
             return builder;
         }
 
         /// <summary>
-        /// Adds <see cref="XsdRootElementKeyword"/> keyword to builder
+        /// Adds @xsdRootElement keyword to builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="value">MaxOccurs value</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdRootElement(this JsonSchemaBuilder builder, string value)
         {
-            builder.Add(new XsdRootElementKeyword(value));
+            builder.Unrecognized("@xsdRootElement", JsonValue.Create(value));
             return builder;
         }
 
         /// <summary>
-        /// Add <see cref="XsdNillableKeyword"/> keyword to the builder
+        /// Add @xsdNillable keyword to the builder
         /// </summary>
-        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="value">True to set the xsdText keyword</param>
-        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
         public static JsonSchemaBuilder XsdNillable(this JsonSchemaBuilder builder, bool value = false)
         {
-            builder.Add(new XsdNillableKeyword(value));
+            builder.Unrecognized("@xsdNillable", JsonValue.Create(value));
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds @xsdAny keyword to builder
+        /// </summary>
+        public static JsonSchemaBuilder XsdAny(this JsonSchemaBuilder builder, IEnumerable<string> values)
+        {
+            var array = new JsonArray();
+            foreach (var v in values)
+            {
+                array.Add(JsonValue.Create(v));
+            }
+
+            builder.Unrecognized("@xsdAny", array);
             return builder;
         }
     }

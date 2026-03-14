@@ -1,22 +1,20 @@
-﻿using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.Json.Keywords.BaseClasses;
+using System.Text.Json;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Keyword;
 
-public class XsdMaxOccursKeywordTests : ValueKeywordTestsBase<XsdMaxOccursKeywordTests, XsdMaxOccursKeyword, string>
+public class XsdMaxOccursKeywordTests
 {
-    protected override XsdMaxOccursKeyword CreateKeywordWithValue(string value) => new(value);
-
-    [Theory]
-    [InlineData("0")]
-    [InlineData("1")]
-    [InlineData("100")]
-    [InlineData("unbounded")]
-    public void CreatedKeyword_ShouldHaveValue(string value)
+    public XsdMaxOccursKeywordTests()
     {
-        Keyword = new XsdMaxOccursKeyword(value);
-        Assert.Equal(value, Keyword.Value);
+        JsonSchemaKeywords.RegisterXsdKeywords();
+    }
+
+    [Fact]
+    public void Handler_Name_ShouldBe_XsdMaxOccurs()
+    {
+        Assert.Equal("@xsdMaxOccurs", XsdMaxOccursKeyword.Instance.Name);
     }
 
     [Theory]
@@ -24,28 +22,11 @@ public class XsdMaxOccursKeywordTests : ValueKeywordTestsBase<XsdMaxOccursKeywor
     [InlineData("1")]
     [InlineData("100")]
     [InlineData("unbounded")]
-    public void SameKeywords_Should_BeEqual(string value)
+    public void ValidateKeywordValue_ShouldParseString(string value)
     {
-        var expectedKeyword = new XsdMaxOccursKeyword(value);
-        object expectedKeywordObject = new XsdMaxOccursKeyword(value);
-
-        Given
-            .That.KeywordCreatedWithValue(value)
-            .Then.KeywordShouldEqual(expectedKeyword)
-            .And.KeywordShouldEqualObject(expectedKeywordObject)
-            .But.KeywordShouldNotEqual(null);
-    }
-
-    [Theory]
-    [InlineData("0")]
-    [InlineData("1")]
-    [InlineData("100")]
-    [InlineData("unbounded")]
-    public void GetHashCode_ShouldBe_As_Value(string value)
-    {
-        var expectedHashCode = value.GetHashCode();
-        Given.That.KeywordCreatedWithValue(value);
-
-        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
+        var json = JsonSerializer.Serialize(value);
+        var element = JsonDocument.Parse(json).RootElement;
+        var result = XsdMaxOccursKeyword.Instance.ValidateKeywordValue(element);
+        Assert.Equal(value, result);
     }
 }

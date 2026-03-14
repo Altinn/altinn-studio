@@ -126,8 +126,8 @@ public class DataValidationWithModelPopulatingTests
                 Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
             }
         );
-        var jsonNode = JsonNode.Parse(json);
-        var validationResults = ConvertedJsonSchema.Evaluate(jsonNode);
+        var jsonElement = JsonDocument.Parse(json).RootElement;
+        var validationResults = ConvertedJsonSchema.Evaluate(jsonElement);
 
         Assert.True(validationResults.IsValid);
     }

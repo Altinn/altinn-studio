@@ -1,36 +1,30 @@
-﻿using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.Json.Keywords.BaseClasses;
+using System.Text.Json;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
 
 public class XsdRootElementKeywordTests
-    : ValueKeywordTestsBase<XsdRootElementKeywordTests, XsdRootElementKeyword, string>
 {
-    protected override XsdRootElementKeyword CreateKeywordWithValue(string value) => new(value);
-
-    [Theory]
-    [InlineData("melding")]
-    [InlineData("root")]
-    public void SameKeywords_Should_BeEqual(string value)
+    public XsdRootElementKeywordTests()
     {
-        var expectedKeyword = new XsdRootElementKeyword(value);
-        object expectedKeywordObject = new XsdRootElementKeyword(value);
-        Given
-            .That.KeywordCreatedWithValue(value)
-            .Then.KeywordShouldEqual(expectedKeyword)
-            .And.KeywordShouldEqualObject(expectedKeywordObject)
-            .But.KeywordShouldNotEqual(null);
+        JsonSchemaKeywords.RegisterXsdKeywords();
+    }
+
+    [Fact]
+    public void Handler_Name_ShouldBe_XsdRootElement()
+    {
+        Assert.Equal("@xsdRootElement", XsdRootElementKeyword.Instance.Name);
     }
 
     [Theory]
     [InlineData("melding")]
     [InlineData("root")]
-    public void GetHashCode_ShouldBe_As_Value(string value)
+    public void ValidateKeywordValue_ShouldParseString(string value)
     {
-        var expectedHashCode = value.GetHashCode();
-        Given.That.KeywordCreatedWithValue(value);
-
-        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
+        var json = JsonSerializer.Serialize(value);
+        var element = JsonDocument.Parse(json).RootElement;
+        var result = XsdRootElementKeyword.Instance.ValidateKeywordValue(element);
+        Assert.Equal(value, result);
     }
 }

@@ -1,8 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Nodes;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Schema;
+using Json.Schema.Keywords;
 
 namespace Altinn.Studio.DataModeling.Json
 {
@@ -37,110 +39,189 @@ namespace Altinn.Studio.DataModeling.Json
 
         private JsonSchema NormalizeSchema(JsonSchema schema)
         {
-            if (schema.Keywords == null)
+            var keywords = schema.GetKeywords();
+            if (keywords == null)
             {
                 return JsonSchema.True;
             }
 
             var builder = new JsonSchemaBuilder();
-            foreach (var keyword in schema.Keywords)
+            foreach (var kd in keywords)
             {
-                foreach (var kw in NormalizeKeyword(schema, keyword))
+                foreach (var normalizedKd in NormalizeKeyword(schema, kd))
                 {
-                    builder.Add(kw);
+                    builder.Add(normalizedKd.Handler.Name, JsonNode.Parse(normalizedKd.RawValue.GetRawText()));
                 }
             }
 
-            return builder.Build();
+            return builder.Build(JsonSchemaKeywords.GetBuildOptions());
         }
 
-        private IEnumerable<IJsonSchemaKeyword> NormalizeKeyword(JsonSchema schema, IJsonSchemaKeyword keyword)
+        private IEnumerable<KeywordData> NormalizeKeyword(JsonSchema schema, KeywordData kd)
         {
-            var keywords = new List<IJsonSchemaKeyword>();
+            var results = new List<KeywordData>();
 
-            if (keyword is AllOfKeyword allOf && HasSingleSubschema(allOf))
+            if (kd.Handler is AllOfKeyword && HasSingleSubschema(kd))
             {
-                var subSchema = NormalizeSchema(allOf.Schemas[0]);
+                var subSchemas = kd.GetSubSchemas();
+                var subSchema = NormalizeSchema(subSchemas[0]);
+                var parentKeywords = schema.GetKeywords();
 
-                if (schema.Keywords!.Count > 1 && subSchema.HasKeyword<RefKeyword>())
+                if (parentKeywords!.Length > 1 && subSchema.HasKeyword<RefKeyword>())
                 {
-                    // $ref is not allowed together with other keywords
-                    keywords.Add(new AllOfKeyword(subSchema));
+                    // $ref is not allowed together with other keywords - keep allOf wrapper
+                    var wrappedBuilder = new JsonSchemaBuilder().AllOf(RebuildAsBuilder(subSchema));
+                    var wrappedSchema = wrappedBuilder.Build(JsonSchemaKeywords.GetBuildOptions());
+                    var allOfKd = wrappedSchema.GetKeywords()!.First(k => k.Handler is AllOfKeyword);
+                    results.Add(allOfKd);
                 }
-                else if (subSchema.Keywords!.Count == 1 && subSchema.HasKeyword<AllOfKeyword>())
+                else if (subSchema.GetKeywords()!.Length == 1 && subSchema.HasKeyword<AllOfKeyword>())
                 {
                     // Collapse nested single subschema "allOf"s
-                    keywords.Add(subSchema.Keywords!.Single());
+                    results.Add(subSchema.GetKeywords()!.Single());
                 }
-                else if (schema.Keywords!.Count == 1)
+                else if (parentKeywords!.Length == 1)
                 {
                     // The allOf was the only keyword
-                    keywords.AddRange(subSchema.Keywords!);
+                    results.AddRange(subSchema.GetKeywords()!);
                 }
                 else if (!HasCommonKeywords(schema, subSchema))
                 {
-                    // Merge the keywords the current schema
-                    keywords.AddRange(subSchema.Keywords!);
+                    // Merge the keywords into the current schema
+                    results.AddRange(subSchema.GetKeywords()!);
                 }
                 else
                 {
-                    // We need to keep a single level of allOf with our normalized subschema
-                    keywords.Add(new AllOfKeyword(subSchema));
+                    // Keep a single level of allOf with our normalized subschema
+                    var wrappedBuilder = new JsonSchemaBuilder().AllOf(RebuildAsBuilder(subSchema));
+                    var wrappedSchema = wrappedBuilder.Build(JsonSchemaKeywords.GetBuildOptions());
+                    var allOfKd = wrappedSchema.GetKeywords()!.First(k => k.Handler is AllOfKeyword);
+                    results.Add(allOfKd);
                 }
             }
 
-            if (keywords.Count == 0)
+            if (results.Count == 0)
             {
-                keywords.Add(keyword);
+                results.Add(kd);
             }
 
-            for (var i = 0; i < keywords.Count; i++)
+            // Normalize sub-schemas within keywords
+            for (var i = 0; i < results.Count; i++)
             {
-                switch (keywords[i])
+                var current = results[i];
+                if (current.Subschemas is { Length: > 0 })
                 {
-                    case ISchemaContainer container:
-                        keywords[i] = (IJsonSchemaKeyword)
-                            Activator.CreateInstance(keywords[i].GetType(), NormalizeSchema(container.Schema));
-                        break;
-                    case ISchemaCollector collector:
-                        keywords[i] = (IJsonSchemaKeyword)
-                            Activator.CreateInstance(keywords[i].GetType(), collector.Schemas.Select(NormalizeSchema));
-                        break;
-                    case IKeyedSchemaCollector keyedCollector:
-                        var schemas = new List<(string Name, JsonSchema Schema)>();
-                        foreach (var (key, s) in keyedCollector.Schemas)
+                    // Rebuild with normalized subschemas
+                    var subSchemas = current.GetSubSchemas();
+                    var normalized = subSchemas.Select(NormalizeSchema).ToList();
+
+                    // Reconstruct this keyword with normalized sub-schemas
+                    var tempBuilder = new JsonSchemaBuilder();
+                    if (current.Handler is PropertiesKeyword)
+                    {
+                        var props = current.GetPropertiesDictionary();
+                        var normalizedProps = new Dictionary<string, JsonSchemaBuilder>();
+                        foreach (var (key, _) in props)
                         {
-                            schemas.Add((key, NormalizeSchema(s)));
+                            var idx = props.Keys.ToList().IndexOf(key);
+                            normalizedProps[key] = RebuildAsBuilder(NormalizeSchema(subSchemas[idx]));
                         }
 
-                        keywords[i] = (IJsonSchemaKeyword)
-                            Activator.CreateInstance(
-                                keywords[i].GetType(),
-                                schemas.ToDictionary(x => x.Name, x => x.Schema)
-                            );
-                        break;
+                        tempBuilder.Properties(normalizedProps);
+                    }
+                    else if (
+                        current.Handler is AllOfKeyword
+                        || current.Handler is OneOfKeyword
+                        || current.Handler is AnyOfKeyword
+                    )
+                    {
+                        var normalizedBuilders = normalized.Select(RebuildAsBuilder).ToList();
+                        if (current.Handler is AllOfKeyword)
+                        {
+                            tempBuilder.AllOf(normalizedBuilders);
+                        }
+                        else if (current.Handler is OneOfKeyword)
+                        {
+                            tempBuilder.OneOf(normalizedBuilders);
+                        }
+                        else
+                        {
+                            tempBuilder.AnyOf(normalizedBuilders);
+                        }
+                    }
+                    else if (
+                        current.Handler is ItemsKeyword
+                        || current.Handler is AdditionalPropertiesKeyword
+                        || current.Handler is NotKeyword
+                        || current.Handler is ContainsKeyword
+                    )
+                    {
+                        var normalizedSub = NormalizeSchema(subSchemas[0]);
+                        tempBuilder.Add(current.Handler.Name, RebuildAsBuilder(normalizedSub));
+                    }
+                    else if (current.Handler is DefsKeyword)
+                    {
+                        var defsMap = current.Subschemas.ToDictionary(
+                            n => n.RelativePath.GetSegment(n.RelativePath.SegmentCount - 1).ToString(),
+                            n =>
+                                RebuildAsBuilder(
+                                    NormalizeSchema(JsonSchema.Build(n.Source, JsonSchemaKeywords.GetBuildOptions()))
+                                )
+                        );
+                        tempBuilder.Defs(defsMap);
+                    }
+                    else
+                    {
+                        // For other keywords with subschemas, pass through as-is
+                        tempBuilder.Add(current.Handler.Name, JsonNode.Parse(current.RawValue.GetRawText()));
+                    }
+
+                    var tempSchema = tempBuilder.Build(JsonSchemaKeywords.GetBuildOptions());
+                    var rebuilt = tempSchema.GetKeywords()?.FirstOrDefault(k => k.Handler.Name == current.Handler.Name);
+                    if (rebuilt != null)
+                    {
+                        results[i] = rebuilt;
+                    }
                 }
             }
 
-            return keywords.Where(kw => kw != null);
+            return results.Where(k => k != null);
         }
 
-        private static bool HasSingleSubschema(AllOfKeyword allOf)
+        private static JsonSchemaBuilder RebuildAsBuilder(JsonSchema schema)
         {
-            return allOf.Schemas.Count == 1;
+            var builder = new JsonSchemaBuilder();
+            var keywords = schema.GetKeywords();
+            if (keywords != null)
+            {
+                foreach (var kd in keywords)
+                {
+                    builder.Add(kd.Handler.Name, JsonNode.Parse(kd.RawValue.GetRawText()));
+                }
+            }
+
+            return builder;
+        }
+
+        private static bool HasSingleSubschema(KeywordData kd)
+        {
+            return kd.Subschemas is { Length: 1 };
         }
 
         private static bool HasCommonKeywords(JsonSchema schema, JsonSchema other)
         {
-            if ((schema.Keywords?.Count ?? 0) == 0 || (other.Keywords?.Count ?? 0) == 0)
+            var schemaKeywords = schema.GetKeywords();
+            var otherKeywords = other.GetKeywords();
+
+            if ((schemaKeywords?.Length ?? 0) == 0 || (otherKeywords?.Length ?? 0) == 0)
             {
                 return false;
             }
 
-            var schemaKeywords = schema.Keywords.Select(keyword => keyword.Keyword());
-            var otherKeywords = other.Keywords.Select(keyword => keyword.Keyword());
+            var schemaNames = schemaKeywords.Select(k => k.Handler.Name);
+            var otherNames = otherKeywords.Select(k => k.Handler.Name);
 
-            return schemaKeywords.Intersect(otherKeywords).Any();
+            return schemaNames.Intersect(otherNames).Any();
         }
     }
 }

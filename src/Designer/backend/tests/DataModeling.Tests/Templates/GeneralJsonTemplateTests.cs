@@ -3,6 +3,7 @@ using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Schema;
+using Json.Schema.Keywords;
 using Xunit;
 
 namespace DataModeling.Tests.Templates
@@ -22,15 +23,19 @@ namespace DataModeling.Tests.Templates
             var actualJsonTemplate = new GeneralJsonTemplate(new Uri(expectedId), expectedModelName);
 
             // Assert
-            JsonSchema jsonSchema = JsonSchema.FromText(actualJsonTemplate.GetJsonString());
-            var idKeyword = jsonSchema.GetKeywordOrNull<IdKeyword>();
-            Assert.Equal(expectedId, idKeyword.Id.ToString());
+            JsonSchema jsonSchema = JsonSchema.FromText(
+                actualJsonTemplate.GetJsonString(),
+                JsonSchemaKeywords.GetBuildOptions()
+            );
+            var idKd = jsonSchema.FindKeywordByHandler<IdKeyword>();
+            Assert.Equal(expectedId, ((Uri)idKd.Value).ToString());
 
-            Assert.Equal(expectedModelName, jsonSchema.GetKeywordOrNull<XsdRootElementKeyword>().Value);
-            var properties = jsonSchema.GetKeywordOrNull<PropertiesKeyword>();
+            Assert.Equal(expectedModelName, jsonSchema.FindKeywordByHandler<XsdRootElementKeyword>().Value);
+            var propertiesKd = jsonSchema.FindKeywordByHandler<PropertiesKeyword>();
+            var properties = propertiesKd.GetPropertiesDictionary();
 
-            Assert.NotEmpty(properties.Properties);
-            Assert.Equal(3, properties.Properties.Count);
+            Assert.NotEmpty(properties);
+            Assert.Equal(3, properties.Count);
         }
     }
 }

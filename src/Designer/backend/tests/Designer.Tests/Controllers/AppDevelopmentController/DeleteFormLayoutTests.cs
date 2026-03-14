@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
-using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.Testing;
 using SharedResources.Tests;
 using Xunit;
@@ -29,7 +28,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string org,
             string app,
             string developer,
-            [CanBeNull] string layoutSetName,
+            string layoutSetName,
             string layoutName
         )
         {

@@ -1,17 +1,24 @@
-﻿using Json.Schema;
+using System.Text.Json;
+using Altinn.Studio.DataModeling.Utils;
+using Json.Schema;
 
 namespace DataModeling.Tests.Json.Keywords.BaseClasses;
 
-public abstract class ValueKeywordConverterTestBase<TTestType, TKeywordType, TValueType>
-    : ConverterTestBase<TTestType, TKeywordType>
-    where TTestType : ValueKeywordConverterTestBase<TTestType, TKeywordType, TValueType>
-    where TKeywordType : IJsonSchemaKeyword
+public abstract class ValueKeywordConverterTestBase<TTestType, TKeywordHandler, TValueType>
+    : ConverterTestBase<TTestType, TKeywordHandler>
+    where TTestType : ValueKeywordConverterTestBase<TTestType, TKeywordHandler, TValueType>
+    where TKeywordHandler : IKeywordHandler
 {
-    protected abstract TKeywordType CreateKeywordWithValue(TValueType value);
+    protected abstract string BuildSchemaJson(TValueType value);
 
     protected TTestType KeywordCreatedWithValue(TValueType value)
     {
-        Keyword = CreateKeywordWithValue(value);
+        var json = BuildSchemaJson(value);
+        JsonSchema = JsonSchema.FromText(
+            json,
+            Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords.GetBuildOptions()
+        );
+        KeywordData = JsonSchema.FindKeywordByHandler<TKeywordHandler>();
         return this as TTestType;
     }
 }

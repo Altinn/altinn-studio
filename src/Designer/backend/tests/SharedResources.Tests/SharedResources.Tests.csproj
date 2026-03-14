@@ -40,4 +40,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DataModeling\DataModeling.csproj" />
+  </ItemGroup>
+
 </Project>

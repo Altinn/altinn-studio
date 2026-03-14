@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Json.Keywords;
@@ -9,105 +6,19 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 /// <summary>
 /// Adds @xsdType keyword to schema
 /// </summary>
-[SchemaKeyword(Name)]
-[SchemaSpecVersion(SpecVersion.Draft6)]
-[SchemaSpecVersion(SpecVersion.Draft7)]
-[SchemaSpecVersion(SpecVersion.Draft201909)]
-[SchemaSpecVersion(SpecVersion.Draft202012)]
-[SchemaSpecVersion(SpecVersion.DraftNext)]
-[JsonConverter(typeof(XsdTypeKeywordJsonConverter))]
-public sealed class XsdTypeKeyword : IJsonSchemaKeyword, IEquatable<XsdTypeKeyword>
+public sealed class XsdTypeKeyword : IKeywordHandler
 {
-    /// <summary>
-    /// The name of the keyword
-    /// </summary>
-    internal const string Name = "@xsdType";
+    public static readonly XsdTypeKeyword Instance = new();
+    internal const string KeywordName = "@xsdType";
+    public string Name => KeywordName;
 
-    /// <summary>
-    /// The value, Element or Attribute
-    /// </summary>
-    public string Value { get; }
-
-    /// <summary>
-    /// Create a new instance of XsdTypeKeyword with the specified value
-    /// </summary>
-    /// <param name="value">Xsd type name</param>
-    public XsdTypeKeyword(string value)
+    public object ValidateKeywordValue(JsonElement value)
     {
-        Value = value;
+        var s = value.GetString();
+        return string.IsNullOrWhiteSpace(s) ? "Element" : s;
     }
 
-    public KeywordConstraint GetConstraint(
-        SchemaConstraint schemaConstraint,
-        IReadOnlyList<KeywordConstraint> localConstraints,
-        EvaluationContext context
-    )
-    {
-        return new KeywordConstraint(Name, (e, c) => { });
-    }
+    public void BuildSubschemas(KeywordData keyword, BuildContext context) { }
 
-    /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>
-    /// <param name="other">An object to compare with this object.</param>
-    /// <returns><see langword="true" /> if the current object is equal to the <paramref name="other" /> parameter; otherwise, <see langword="false" />.</returns>
-    public bool Equals(XsdTypeKeyword other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        return ReferenceEquals(this, other) || Equals(Value, other.Value);
-    }
-
-    /// <summary>Determines whether the specified object is equal to the current object.</summary>
-    /// <param name="obj">The object to compare with the current object.</param>
-    /// <returns>true if the specified object  is equal to the current object; otherwise, false.</returns>
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as XsdTypeKeyword);
-    }
-
-    /// <summary>Serves as the default hash function.</summary>
-    /// <returns>A hash code for the current object.</returns>
-    public override int GetHashCode()
-    {
-        return Value.GetHashCode();
-    }
-
-    /// <summary>
-    /// Serializer for the @xsdType keyword
-    /// </summary>
-    internal class XsdTypeKeywordJsonConverter : JsonConverter<XsdTypeKeyword>
-    {
-        /// <summary>
-        /// Read @xsdType keyword from json schema
-        /// </summary>
-        public override XsdTypeKeyword Read(
-            ref Utf8JsonReader reader,
-            Type typeToConvert,
-            JsonSerializerOptions options
-        )
-        {
-            if (reader.TokenType != JsonTokenType.String)
-            {
-                throw new JsonException("Expected string");
-            }
-
-            string value = reader.GetString();
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                value = "Element";
-            }
-
-            return new XsdTypeKeyword(value);
-        }
-
-        /// <summary>
-        /// Write @xsdType keyword to json
-        /// </summary>
-        public override void Write(Utf8JsonWriter writer, XsdTypeKeyword value, JsonSerializerOptions options)
-        {
-            writer.WriteString(Name, value.Value);
-        }
-    }
+    public KeywordEvaluation Evaluate(KeywordData keyword, EvaluationContext context) => KeywordEvaluation.Ignore;
 }

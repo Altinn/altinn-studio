@@ -1,49 +1,34 @@
-﻿using System.Text.Json.Nodes;
+using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.Json.Keywords.BaseClasses;
 using Json.Schema;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
 
-public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKeywordTests, XsdTotalDigitsKeyword, uint>
+public class XsdTotalDigitsKeywordTests
 {
     private const string KeywordPlaceholder = "totalDigits";
 
-    protected override XsdTotalDigitsKeyword CreateKeywordWithValue(uint value) => new(value);
-
-    [Theory]
-    [InlineData(1)]
-    [InlineData(100)]
-    public void CreatedKeyword_ShouldHaveValue(uint value)
+    public XsdTotalDigitsKeywordTests()
     {
-        Keyword = new XsdTotalDigitsKeyword(value);
-        Assert.Equal(value, Keyword.Value);
+        JsonSchemaKeywords.RegisterXsdKeywords();
+    }
+
+    [Fact]
+    public void Handler_Name_ShouldBe_TotalDigits()
+    {
+        Assert.Equal("totalDigits", XsdTotalDigitsKeyword.Instance.Name);
     }
 
     [Theory]
     [InlineData(1)]
     [InlineData(100)]
-    public void SameKeywords_Should_BeEqual(uint value)
+    public void ValidateKeywordValue_ShouldParseUint(uint value)
     {
-        var expectedKeyword = new XsdTotalDigitsKeyword(value);
-        object expectedKeywordObject = new XsdTotalDigitsKeyword(value);
-
-        Given
-            .That.KeywordCreatedWithValue(value)
-            .Then.KeywordShouldEqual(expectedKeyword)
-            .And.KeywordShouldEqualObject(expectedKeywordObject)
-            .But.KeywordShouldNotEqual(null);
-    }
-
-    [Theory]
-    [InlineData(1)]
-    [InlineData(100)]
-    public void GetHashCode_ShouldBe_As_Value(uint value)
-    {
-        var expectedHashCode = value.GetHashCode();
-        Given.That.KeywordCreatedWithValue(value);
-        Assert.Equal(expectedHashCode, Keyword.GetHashCode());
+        var json = JsonSerializer.Serialize(value);
+        var element = JsonDocument.Parse(json).RootElement;
+        var result = XsdTotalDigitsKeyword.Instance.ValidateKeywordValue(element);
+        Assert.Equal(value, result);
     }
 
     [Theory]
@@ -54,9 +39,9 @@ public class XsdTotalDigitsKeywordTests : ValueKeywordTestsBase<XsdTotalDigitsKe
     [InlineData(4, "2.12", true)]
     public void Keyword_ShouldValidate(uint totalDigitsValue, string jsonDataValue, bool shouldBeValid)
     {
-        var schema = JsonSchema.FromText(TotalDigitsSchema(totalDigitsValue));
-        var node = JsonNode.Parse(TotalDigitsJson(jsonDataValue));
-        var validationResults = schema.Evaluate(node, new EvaluationOptions() { ProcessCustomKeywords = true });
+        var schema = JsonSchema.FromText(TotalDigitsSchema(totalDigitsValue), JsonSchemaKeywords.GetBuildOptions());
+        var element = JsonDocument.Parse(TotalDigitsJson(jsonDataValue)).RootElement;
+        var validationResults = schema.Evaluate(element);
         Assert.Equal(shouldBeValid, validationResults.IsValid);
     }
 

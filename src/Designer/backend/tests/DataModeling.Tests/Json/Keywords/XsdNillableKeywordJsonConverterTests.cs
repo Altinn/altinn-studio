@@ -1,16 +1,19 @@
 using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.Json.Keywords.BaseClasses;
+using Altinn.Studio.DataModeling.Utils;
+using Json.Schema;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords
 {
     public class XsdNillableKeywordJsonConverterTests
-        : ValueKeywordConverterTestBase<XsdNillableKeywordJsonConverterTests, XsdNillableKeyword, bool>
     {
         private const string KeywordPlaceholder = "@xsdNillable";
 
-        protected override XsdNillableKeyword CreateKeywordWithValue(bool value) => new(value);
+        public XsdNillableKeywordJsonConverterTests()
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+        }
 
         [Theory]
         [InlineData(true)]
@@ -22,9 +25,10 @@ namespace DataModeling.Tests.Json.Keywords
                 ""{KeywordPlaceholder}"": {value.ToString().ToLower()}
             }}";
 
-            Given.That.JsonSchemaLoaded(jsonSchema).When.KeywordReadFromSchema().Then.KeywordShouldNotBeNull();
-
-            Assert.Equal(Keyword.Value, value);
+            var schema = JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions());
+            var kd = schema.FindKeywordByHandler<XsdNillableKeyword>();
+            Assert.NotNull(kd);
+            Assert.Equal(value, kd.Value);
         }
 
         [Theory]
@@ -32,10 +36,14 @@ namespace DataModeling.Tests.Json.Keywords
         [InlineData(false)]
         public void Write_ValidStructure_ShouldWriteToJson(bool value)
         {
-            Given
-                .That.KeywordCreatedWithValue(value)
-                .When.KeywordSerializedAsJson()
-                .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":{value.ToString().ToLower()}}}");
+            var jsonSchema =
+                @$"{{
+                ""{KeywordPlaceholder}"": {value.ToString().ToLower()}
+            }}";
+
+            var schema = JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions());
+            var serialized = JsonSerializer.Serialize(schema);
+            Assert.Equal($@"{{""{KeywordPlaceholder}"":{value.ToString().ToLower()}}}", serialized);
         }
 
         [Theory]
@@ -48,9 +56,9 @@ namespace DataModeling.Tests.Json.Keywords
                         ""value"": ""{value}""
                 }}";
 
-            var ex = Assert.Throws<JsonException>(() => Given.That.JsonSchemaLoaded(jsonSchema));
-
-            Assert.Equal("Expected boolean", ex.Message);
+            Assert.ThrowsAny<JsonException>(() =>
+                JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions())
+            );
         }
     }
 }

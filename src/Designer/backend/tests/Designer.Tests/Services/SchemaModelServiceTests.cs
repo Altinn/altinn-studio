@@ -466,7 +466,13 @@ namespace Designer.Tests.Services
                 Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
                 WriteIndented = true,
             };
-            return System.Text.Json.JsonSerializer.Serialize(Json.Schema.JsonSchema.FromText(jsonContent), options);
+            return System.Text.Json.JsonSerializer.Serialize(
+                Json.Schema.JsonSchema.FromText(
+                    jsonContent,
+                    Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords.GetBuildOptions()
+                ),
+                options
+            );
         }
     }
 }

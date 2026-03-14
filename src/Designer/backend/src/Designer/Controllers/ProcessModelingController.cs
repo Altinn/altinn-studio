@@ -11,7 +11,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using JetBrains.Annotations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -130,7 +129,7 @@ namespace Altinn.Studio.Designer.Controllers
             [FromRoute] string dataTypeId,
             [FromQuery] string taskId,
             CancellationToken cancellationToken,
-            [FromBody] [CanBeNull] List<string> allowedContributors
+            [FromBody] List<string> allowedContributors
         )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

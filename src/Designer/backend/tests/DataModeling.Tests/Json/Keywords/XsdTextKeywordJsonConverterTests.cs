@@ -1,15 +1,19 @@
+using System.Text.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.Json.Keywords.BaseClasses;
+using Altinn.Studio.DataModeling.Utils;
+using Json.Schema;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords
 {
     public class XsdTextKeywordJsonConverterTests
-        : ValueKeywordConverterTestBase<XsdTextKeywordJsonConverterTests, XsdTextKeyword, bool>
     {
         private const string KeywordPlaceholder = "@xsdText";
 
-        protected override XsdTextKeyword CreateKeywordWithValue(bool value) => new(value);
+        public XsdTextKeywordJsonConverterTests()
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+        }
 
         [Theory]
         [InlineData(true)]
@@ -21,9 +25,10 @@ namespace DataModeling.Tests.Json.Keywords
                 ""{KeywordPlaceholder}"": {value.ToString().ToLower()}
             }}";
 
-            Given.That.JsonSchemaLoaded(jsonSchema).When.KeywordReadFromSchema().Then.KeywordShouldNotBeNull();
-
-            Assert.Equal(Keyword.Value, value);
+            var schema = JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions());
+            var kd = schema.FindKeywordByHandler<XsdTextKeyword>();
+            Assert.NotNull(kd);
+            Assert.Equal(value, kd.Value);
         }
 
         [Theory]
@@ -31,10 +36,14 @@ namespace DataModeling.Tests.Json.Keywords
         [InlineData(false)]
         public void Write_ValidStructure_ShouldWriteToJson(bool value)
         {
-            Given
-                .That.KeywordCreatedWithValue(value)
-                .When.KeywordSerializedAsJson()
-                .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":{value.ToString().ToLower()}}}");
+            var jsonSchema =
+                @$"{{
+                ""{KeywordPlaceholder}"": {value.ToString().ToLower()}
+            }}";
+
+            var schema = JsonSchema.FromText(jsonSchema, JsonSchemaKeywords.GetBuildOptions());
+            var serialized = JsonSerializer.Serialize(schema);
+            Assert.Equal($@"{{""{KeywordPlaceholder}"":{value.ToString().ToLower()}}}", serialized);
         }
     }
 }
