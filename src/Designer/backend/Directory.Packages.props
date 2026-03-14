@@ -18,6 +18,7 @@
     <PackageVersion Include="NJsonSchema" Version="11.5.2" />
   </ItemGroup>
   <ItemGroup Label="Shared nuget packages">
+    <PackageVersion Include="JsonPatch.Net" Version="5.0.1" />
     <PackageVersion Include="JsonSchema.Net" Version="9.1.2" />
     <PackageVersion Include="CompilerAttributes" Version="1.1.2" />
     <PackageVersion Include="CSharpier.MsBuild" Version="1.2.6" />

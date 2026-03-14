@@ -26,6 +26,9 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
                     {
                         IKeywordHandler[] customHandlers =
                         [
+                            // Draft-06 keywords not included in Draft-2020-12
+                            global::Json.Schema.Keywords.Draft06.DefinitionsKeyword.Instance,
+                            // Custom XSD/format keywords
                             FormatExclusiveMaximumKeyword.Instance,
                             FormatExclusiveMinimumKeyword.Instance,
                             FormatMaximumKeyword.Instance,

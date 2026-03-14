@@ -170,6 +170,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                 case TitleKeyword:
                 case XsdMinOccursKeyword:
                 case XsdMaxOccursKeyword:
+                case global::Json.Schema.Keywords.Draft06.DefinitionsKeyword:
                     break;
 
                 case RefKeyword:
