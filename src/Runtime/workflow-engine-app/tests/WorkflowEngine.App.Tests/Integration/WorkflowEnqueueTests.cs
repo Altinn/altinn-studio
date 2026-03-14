@@ -119,11 +119,11 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
             """;
 
         var response = await _client.Enqueue(request);
-
-        Assert.Equal(8, response.Workflows.Count);
         var allIds = response.Workflows.Select(w => w.DatabaseId);
         var statuses = await _client.WaitForWorkflowStatus(allIds, PersistentItemStatus.Completed);
 
+        await Verify(response);
+        Assert.Equal(8, response.Workflows.Count);
         Assert.All(statuses, s => Assert.Equal(PersistentItemStatus.Completed, s.OverallStatus));
     }
 
@@ -142,6 +142,7 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
         var workflowId = response.Workflows.Single().DatabaseId;
         var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
+        await Verify(response);
         Assert.Equal(PersistentItemStatus.Completed, status.OverallStatus);
         Assert.Equal(2, status.Steps.Count);
         Assert.All(status.Steps, s => Assert.Equal(PersistentItemStatus.Completed, s.Status));
@@ -157,11 +158,108 @@ public sealed class WorkflowEnqueueTests(AppTestFixture fixture) : IAsyncLifetim
         var request = _testHelpers.CreateEnqueueRequest([wf1, wf2, wf3], lockToken: InstanceLockToken);
 
         var response = await _client.Enqueue(request);
-        Assert.Equal(3, response.Workflows.Count);
-
         var allIds = response.Workflows.Select(w => w.DatabaseId);
         var statuses = await _client.WaitForWorkflowStatus(allIds, PersistentItemStatus.Completed);
 
+        await Verify(response);
+        Assert.Equal(3, response.Workflows.Count);
         Assert.All(statuses, s => Assert.Equal(PersistentItemStatus.Completed, s.OverallStatus));
+    }
+
+    [Fact]
+    public async Task RawJson_MissingContext_Returns400()
+    {
+        const string request = """
+            {
+                "namespace": "ttd:e2e-tests",
+                "idempotencyKey": "missing-context-test",
+                "workflows": [
+                    {
+                        "ref": "wf-no-ctx",
+                        "operationId": "op-no-ctx",
+                        "steps": [{ "operationId": "step-no-ctx", "command": { "type": "app", "data": { "commandKey": "step-no-ctx" } } }]
+                    }
+                ]
+            }
+            """;
+
+        var ex = await Assert.ThrowsAsync<HttpRequestException>(() => _client.Enqueue(request));
+        Assert.Contains("BadRequest", ex.Message);
+    }
+
+    [Fact]
+    public async Task RawJson_IncompleteContext_MissingActor_Returns400()
+    {
+        const string request = $$"""
+            {
+                "namespace": "ttd:e2e-tests",
+                "idempotencyKey": "incomplete-context-test",
+                "context": {
+                    "lockToken": "{{AppTestFixture.DefaultInstanceLockToken}}",
+                    "org": "{{EngineAppFixture.DefaultOrg}}",
+                    "app": "{{EngineAppFixture.DefaultApp}}",
+                    "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                },
+                "workflows": [
+                    {
+                        "ref": "wf-no-actor",
+                        "operationId": "op-no-actor",
+                        "steps": [{ "operationId": "step-no-actor", "command": { "type": "app", "data": { "commandKey": "step-no-actor" } } }]
+                    }
+                ]
+            }
+            """;
+
+        var ex = await Assert.ThrowsAsync<HttpRequestException>(() => _client.Enqueue(request));
+        Assert.Contains("BadRequest", ex.Message);
+    }
+
+    [Fact]
+    public async Task RawJson_ProcessNextPayload_MultipleSteps_AllComplete()
+    {
+        const string request = $$"""
+            {
+                "namespace": "{{EngineAppFixture.DefaultOrg}}:{{EngineAppFixture.DefaultApp}}",
+                "idempotencyKey": "process-next-payload-test",
+                "labels": { "org": "{{EngineAppFixture.DefaultOrg}}", "app": "{{EngineAppFixture.DefaultApp}}" },
+                "context": {
+                    "actor": { "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}", "language": "nb" },
+                    "lockToken": "{{AppTestFixture.DefaultInstanceLockToken}}",
+                    "org": "{{EngineAppFixture.DefaultOrg}}",
+                    "app": "{{EngineAppFixture.DefaultApp}}",
+                    "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
+                    "instanceGuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                },
+                "workflows": [
+                    {
+                        "ref": "process-next",
+                        "operationId": "process-next",
+                        "steps": [
+                            { "operationId": "ProcessTaskEnd", "command": { "type": "app", "data": { "commandKey": "ProcessTaskEnd" } } },
+                            { "operationId": "CommonTaskFinalization", "command": { "type": "app", "data": { "commandKey": "CommonTaskFinalization" } } },
+                            { "operationId": "EndTaskLegacyHook", "command": { "type": "app", "data": { "commandKey": "EndTaskLegacyHook" } } },
+                            { "operationId": "OnTaskEndingHook", "command": { "type": "app", "data": { "commandKey": "OnTaskEndingHook" } } },
+                            { "operationId": "LockTaskData", "command": { "type": "app", "data": { "commandKey": "LockTaskData" } } },
+                            { "operationId": "UpdateInstanceProcessState", "command": { "type": "app", "data": { "commandKey": "UpdateInstanceProcessState" } } },
+                            { "operationId": "UnlockTaskData", "command": { "type": "app", "data": { "commandKey": "UnlockTaskData" } } },
+                            { "operationId": "StartTaskLegacyHook", "command": { "type": "app", "data": { "commandKey": "StartTaskLegacyHook" } } },
+                            { "operationId": "OnTaskStartingHook", "command": { "type": "app", "data": { "commandKey": "OnTaskStartingHook" } } },
+                            { "operationId": "ProcessTaskStart", "command": { "type": "app", "data": { "commandKey": "ProcessTaskStart" } } },
+                            { "operationId": "MovedToAltinnEvent", "command": { "type": "app", "data": { "commandKey": "MovedToAltinnEvent" } } }
+                        ]
+                    }
+                ]
+            }
+            """;
+
+        var response = await _client.Enqueue(request);
+        var workflowId = response.Workflows.Single().DatabaseId;
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        await Verify(response);
+        Assert.Equal(PersistentItemStatus.Completed, status.OverallStatus);
+        Assert.Equal(11, status.Steps.Count);
+        Assert.All(status.Steps, s => Assert.Equal(PersistentItemStatus.Completed, s.Status));
     }
 }

@@ -1,0 +1,9 @@
+﻿{
+  Workflows: [
+    {
+      Ref: wf,
+      DatabaseId: Guid_1,
+      Namespace: ttd:e2e-tests
+    }
+  ]
+}

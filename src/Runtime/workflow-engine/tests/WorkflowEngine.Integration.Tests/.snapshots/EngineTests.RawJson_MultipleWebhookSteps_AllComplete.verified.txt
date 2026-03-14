@@ -1,0 +1,9 @@
+﻿{
+  Workflows: [
+    {
+      Ref: multi-step-wf,
+      DatabaseId: Guid_1,
+      Namespace: ttd:e2e-tests
+    }
+  ]
+}

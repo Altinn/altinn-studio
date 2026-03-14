@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using WorkflowEngine.App.Commands.AppCommand;
 using WorkflowEngine.Models;
@@ -95,7 +96,7 @@ internal sealed class AppTestHelpers(AppTestFixture fixture)
                 LockToken = lockToken,
                 Org = EngineAppFixture.DefaultOrg,
                 App = EngineAppFixture.DefaultApp,
-                InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId),
+                InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId, NumberFormatInfo.InvariantInfo),
                 InstanceGuid = EngineAppFixture.DefaultInstanceGuid,
             }
         );
