@@ -25,6 +25,7 @@ import { useAddGroupMutation } from '../../hooks/mutations/useAddGroupMutation';
 import { ItemType } from '../../../../ux-editor/src/components/Properties/ItemType';
 import {
   isPagesModelWithGroups,
+  type PagesModel,
   type PagesModelWithPageOrder,
 } from 'app-shared/types/api/dto/PagesModel';
 import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
@@ -40,6 +41,30 @@ import useUxEditorParams from '@altinn/ux-editor/hooks/useUxEditorParams';
  * @returns {ReactNode} - The rendered component
  */
 export const DesignView = (): ReactNode => {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { layoutSet } = useUxEditorParams();
+  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet);
+
+  useFormLayoutSettingsQuery(org, app, layoutSet);
+
+  if (pagesQueryPending || !pagesModel) return <StudioSpinner aria-label={t('general.loading')} />;
+
+  return <DesignViewLoadedContent pagesModel={pagesModel} layoutSet={layoutSet} />;
+};
+
+interface DesignViewLoadedContentProps {
+  pagesModel: PagesModel;
+  layoutSet: string;
+}
+
+const DesignViewLoadedContent = ({
+  pagesModel,
+  layoutSet,
+}: DesignViewLoadedContentProps): ReactNode => {
+  const { t } = useTranslation();
+  const { getPdfLayoutName } = usePdf();
+  const layouts = useFormLayouts();
   const { org, app } = useStudioEnvironmentParams();
   const {
     selectedFormLayoutName,
@@ -47,8 +72,7 @@ export const DesignView = (): ReactNode => {
     setSelectedFormLayoutName,
     updateLayoutsForPreview,
   } = useAppContext();
-  const { layoutSet } = useUxEditorParams();
-  const { data: pagesModel, isPending: pagesQueryPending } = usePagesQuery(org, app, layoutSet);
+
   const { mutate: addPageMutation, isPending: isAddPageMutationPending } = useAddPageMutation(
     org,
     app,
@@ -60,20 +84,6 @@ export const DesignView = (): ReactNode => {
     app,
   );
 
-  // Referring to useFormLayoutSettingsQuery twice is a hack to ensure designView is re-rendered after converting
-  // a newly added layout to a PDF. See issue: https://github.com/Altinn/altinn-studio/issues/13679
-  useFormLayoutSettingsQuery(org, app, layoutSet);
-  const layouts = useFormLayouts();
-  const { getPdfLayoutName } = usePdf();
-
-  const { t } = useTranslation();
-
-  /**
-   * Handles the click of an accordion. It updates the URL and sets the
-   * local storage for which page view that is open
-   *
-   * @param pageName the name of the accordion clicked
-   */
   const handleClickAccordion = (pageName: string) => {
     if (selectedFormLayoutName !== pageName) {
       setSelectedFormLayoutName(pageName);
@@ -87,6 +97,7 @@ export const DesignView = (): ReactNode => {
         type: ItemType.Page,
         id: pageName,
       });
+      setSelectedItem(null);
     }
   };
 
@@ -117,8 +128,6 @@ export const DesignView = (): ReactNode => {
     () => findLayoutsContainingDuplicateComponents(layouts),
     [layouts],
   );
-
-  if (pagesQueryPending) return <StudioSpinner aria-label={t('general.loading')} />;
 
   /**
    * Displays the pages as an ordered list

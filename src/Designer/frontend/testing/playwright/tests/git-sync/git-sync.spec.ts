@@ -11,6 +11,7 @@ import { Gitea } from '../../helpers/Gitea';
 import { ComponentType } from '../../enum/ComponentType';
 
 const LAYOUT_SET: string = 'form';
+const PAGE_1: string = 'Side1';
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -33,7 +34,7 @@ const setupAndVerifyUiEditorPage = async (
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
   await uiEditorPage.loadUiEditorPage();
   await uiEditorPage.clickOnUxEditorButton();
-  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET);
+  await uiEditorPage.verifyUiEditorPage(LAYOUT_SET, PAGE_1);
   return uiEditorPage;
 };
 

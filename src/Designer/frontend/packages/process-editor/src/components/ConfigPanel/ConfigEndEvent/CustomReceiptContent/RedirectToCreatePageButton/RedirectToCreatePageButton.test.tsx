@@ -10,6 +10,9 @@ import {
   mockBpmnApiContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('RedirectToCreatePageButton', () => {
   beforeEach(() => {
@@ -31,17 +34,20 @@ describe('RedirectToCreatePageButton', () => {
 });
 
 const renderRedirectToCreatePageButton = () => {
+  const queryClient = createQueryClientMock();
   return render(
     <TestAppRouter>
-      <BpmnApiContext.Provider
-        value={{ ...mockBpmnApiContextValue, existingCustomReceiptLayoutSetId: 'testId' }}
-      >
-        <BpmnContext.Provider value={mockBpmnContextValue}>
-          <BpmnConfigPanelFormContextProvider>
-            <RedirectToCreatePageButton />
-          </BpmnConfigPanelFormContextProvider>
-        </BpmnContext.Provider>
-      </BpmnApiContext.Provider>
+      <ServicesContextProvider {...queriesMock} client={queryClient}>
+        <BpmnApiContext.Provider
+          value={{ ...mockBpmnApiContextValue, existingCustomReceiptLayoutSetId: 'testId' }}
+        >
+          <BpmnContext.Provider value={mockBpmnContextValue}>
+            <BpmnConfigPanelFormContextProvider>
+              <RedirectToCreatePageButton />
+            </BpmnConfigPanelFormContextProvider>
+          </BpmnContext.Provider>
+        </BpmnApiContext.Provider>
+      </ServicesContextProvider>
     </TestAppRouter>,
   );
 };

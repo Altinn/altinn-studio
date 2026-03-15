@@ -7,9 +7,9 @@ import { StudioButton, StudioDivider } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon } from '@studio/icons';
 import classes from './EditLayoutSetForSubform.module.css';
-import getLayoutSetPath from '../../../../utils/routeUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useNavigate } from 'react-router-dom';
+import { useLayoutSetPath } from 'app-shared/hooks/queries/useLayoutSetPath';
 
 export const EditLayoutSetForSubform = <T extends ComponentType>({
   handleComponentChange,
@@ -20,9 +20,10 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
   const navigate = useNavigate();
 
   const existingLayoutSetForSubform = component['layoutSet'];
+  const layoutSetPath = useLayoutSetPath(org, app, existingLayoutSetForSubform);
 
   const navigateToSubform = () => {
-    navigate(getLayoutSetPath(org, app, existingLayoutSetForSubform));
+    navigate(layoutSetPath);
   };
 
   if (existingLayoutSetForSubform) {
