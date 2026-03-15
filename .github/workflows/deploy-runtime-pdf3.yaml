@@ -88,7 +88,7 @@ jobs:
         run: az acr login --name ${{ steps.vars.outputs.registry-name }}
 
       - name: flux install
-        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
       - name: docker build
         run: |
@@ -101,7 +101,7 @@ jobs:
           wait $WORKER_PID
 
       - name: scan image - proxy
-        uses: aquasecurity/trivy-action@97e0b3872f55f89b95b2f65b3dbab56962816478 # 0.34.2
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           image-ref: '${{ steps.vars.outputs.ghcr-image-proxy-repo }}'
           format: 'table'
@@ -112,7 +112,7 @@ jobs:
 
       - name: scan image - worker
         if: success() || failure()
-        uses: aquasecurity/trivy-action@97e0b3872f55f89b95b2f65b3dbab56962816478 # 0.34.2
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           image-ref: '${{ steps.vars.outputs.ghcr-image-worker-repo }}'
           format: 'table'
@@ -178,7 +178,7 @@ jobs:
         run: az acr login --name altinncr
 
       - name: flux install
-        uses: fluxcd/flux2/action@8454b02a32e48d775b9f563cb51fdcb1787b5b93 # v2.7.5
+        uses: fluxcd/flux2/action@bfa461ed2153ae5e0cca6bce08e0845268fb3088 # v2.8.2
 
       - name: tag artifact
         run: |
