@@ -17,7 +17,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o main ./cmd/worker
 
-FROM docker.io/chromedp/headless-shell:stable@sha256:43d8b0d7980c76aa9d9f8a8556d2d994073fdb9c755744cc27667e351e2fe9d5
+FROM docker.io/chromedp/headless-shell:stable@sha256:a406d18fd4582decbacaa42f54c9cf568d83d925b52a4f9a987705f1a2bb97c2
 
 USER root
 
