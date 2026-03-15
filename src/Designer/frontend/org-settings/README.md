@@ -1,0 +1,1 @@
+# Altinn Studio Org Settings

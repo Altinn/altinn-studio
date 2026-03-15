@@ -1,0 +1,19 @@
+.pageContentWrapper {
+  display: flex;
+  flex: 1;
+}
+
+.leftNavWrapper {
+  width: 250px;
+  top: 0;
+  position: sticky;
+  align-self: flex-start;
+  height: 100vh;
+}
+
+.contentWrapper {
+  flex: 1;
+  padding: var(--ds-size-7);
+  border-top: 1px solid var(--ds-color-neutral-surface-tinted);
+  overflow-y: auto;
+}

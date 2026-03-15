@@ -22,6 +22,7 @@ env:
   EDITOR_HOST: altinn-designer:3000
   PREVIEW_HOST: altinn-designer:3000
   ADMIN_HOST: altinn-designer:3000
+  ORG_SETTINGS_HOST: altinn-designer:3000
   RESOURCEADM_HOST: altinn-designer:3000
   INFO_HOST: altinn-designer:3000
   USER_SETTINGS_HOST: altinn-designer:3000
