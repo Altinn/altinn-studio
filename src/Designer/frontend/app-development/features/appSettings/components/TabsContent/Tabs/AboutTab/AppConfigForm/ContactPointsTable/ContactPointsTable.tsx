@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
@@ -11,6 +11,7 @@ import {
 import type { ContactPoint, ContactPointField } from 'app-shared/types/AppConfig';
 import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
+import { useScrollAndFocusOnParamTarget } from '../../hooks/useScrollAndFocusOnParamTarget';
 import classes from './ContactPointsTable.module.css';
 import { ContactPointDialog } from './ContactPointDialog';
 import { ContactPointTableHeader } from './ContactPointTableHeader';
@@ -45,28 +46,20 @@ export const ContactPointsTable = ({
   const isFocusTarget = focusParam === `${id}-0`;
   const [showValidationButtonFocus, setShowValidationButtonFocus] = useState(false);
 
-  useLayoutEffect(() => {
-    if (!isFocusTarget) return;
-    const target = addButtonRef.current ?? contactSectionRef.current;
-    if (!target) return;
-    if (target === addButtonRef.current) setShowValidationButtonFocus(true);
-
-    const scrollAndFocus = () => {
-      contactSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      target.focus({ preventScroll: true });
-    };
-
-    requestAnimationFrame(scrollAndFocus);
-
-    const next = new URLSearchParams(searchParams);
-    next.delete('focus');
-    setSearchParams(next, { replace: true });
-  }, [focusParam, isFocusTarget, items, searchParams, setSearchParams]);
+  useScrollAndFocusOnParamTarget({
+    isTarget: isFocusTarget,
+    sectionRef: contactSectionRef,
+    searchParams,
+    setSearchParams,
+    getFocusElement: () => addButtonRef.current ?? contactSectionRef.current,
+    onFocused: () => setShowValidationButtonFocus(true),
+  });
 
   const [draftContactPoint, setDraftContactPoint] = useState<ContactPoint>(emptyContactPoint);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const openCreateDialog = () => {
+    setShowValidationButtonFocus(false);
     setDraftContactPoint(emptyContactPoint);
     setEditingIndex(null);
     dialogRef.current?.showModal();
