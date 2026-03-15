@@ -12,9 +12,10 @@ import {
   mockBpmnContextValue,
 } from '../../../../../test/mocks/bpmnContextMock';
 import {
-  getMockBpmnElementForTask,
+  getMockBpmnElementForSigningTask,
   mockBpmnDetails,
 } from '../../../../../test/mocks/bpmnDetailsMock';
+import type { SignatureConfig } from '../../../../types/SignatureConfig';
 
 const existingDataTypes = [
   { id: 'dataType1', name: 'Name 1' },
@@ -22,9 +23,14 @@ const existingDataTypes = [
 ];
 
 const getExistingDataTypesProps = () => {
-  const element = getMockBpmnElementForTask('signing');
-  element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
-    { dataTypes: existingDataTypes.map((dataType) => ({ dataType: dataType.id })) };
+  const signatureConfig: SignatureConfig = {
+    signatureDataType: 'signatureDataType',
+    dataTypesToSign: { dataTypes: [] },
+    uniqueFromSignaturesInDataTypes: {
+      dataTypes: existingDataTypes.map((dataType) => dataType.id),
+    },
+  };
+  const element = getMockBpmnElementForSigningTask(signatureConfig);
 
   return {
     bpmnContextProps: {

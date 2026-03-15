@@ -1,6 +1,6 @@
 import { TaskUtils } from './taskUtils';
 import type { BpmnTaskType } from '../../types/BpmnTaskType';
-import type { Element } from 'bpmn-js/lib/model/Types';
+import { getMockBpmnElementForSigningTask } from '../../../test/mocks/bpmnDetailsMock';
 
 type TestCase = {
   input: BpmnTaskType;
@@ -29,36 +29,25 @@ describe('taskUtils', () => {
 
   it.each([
     {
-      input: buildBpmnDetailsElement('user-controlled-signatures'),
+      input: getMockBpmnElementForSigningTask({
+        signatureDataType: 'user-controlled-signatures',
+        signeeStatesDataTypeId: 'some-data-type',
+      }),
       output: true,
     },
     {
-      input: buildBpmnDetailsElement(''),
+      input: getMockBpmnElementForSigningTask({ signatureDataType: 'user-controlled-signatures' }),
       output: false,
     },
     {
-      input: buildBpmnDetailsElement('unknown'),
+      input: getMockBpmnElementForSigningTask({ signatureDataType: '' }),
+      output: false,
+    },
+    {
+      input: getMockBpmnElementForSigningTask({ signatureDataType: 'unknown' }),
       output: false,
     },
   ])('should return true for user-controlled-signing %o', ({ input, output }) => {
     expect(TaskUtils.isUserControlledSigning(input)).toEqual(output);
   });
 });
-
-function buildBpmnDetailsElement(signatureDataType: string): Element {
-  return {
-    di: {
-      bpmnElement: {
-        extensionElements: {
-          values: [
-            {
-              signatureConfig: {
-                signatureDataType,
-              },
-            },
-          ],
-        },
-      },
-    },
-  } as Element;
-}

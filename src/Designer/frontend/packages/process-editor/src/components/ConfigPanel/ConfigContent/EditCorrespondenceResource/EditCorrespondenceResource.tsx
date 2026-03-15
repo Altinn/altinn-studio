@@ -4,7 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useGetCorrespondenceResource } from './useGetCorrespondenceResource';
 import { useUpdateCorrespondenceResource } from './useUpdateCorrespondenceResource';
 
-export const EditCorrespondenceResource = (): ReactElement => {
+export type EditCorrespondenceResourceProps = {
+  isUserControlledSigningTask?: boolean;
+};
+
+export const EditCorrespondenceResource = ({
+  isUserControlledSigningTask,
+}: EditCorrespondenceResourceProps): ReactElement => {
   const { t } = useTranslation();
   const updateCorrespondenceResource = useUpdateCorrespondenceResource();
   const defaultCorrespondenceResource = useGetCorrespondenceResource();
@@ -13,11 +19,21 @@ export const EditCorrespondenceResource = (): ReactElement => {
     updateCorrespondenceResource(correspondenceResource);
   };
 
+  const label = isUserControlledSigningTask
+    ? t('process_editor.configuration_panel.correspondence_resource_user_controlled_signing')
+    : t('process_editor.configuration_panel.correspondence_resource');
+
+  const description = isUserControlledSigningTask
+    ? t(
+        'process_editor.configuration_panel.correspondence_resource_user_controlled_signing_description',
+      )
+    : t('process_editor.configuration_panel.correspondence_resource_description');
+
   return (
     <StudioToggleableTextfield
       onBlur={(event) => saveCorrespondenceResource(event.target.value)}
-      label={t('process_editor.configuration_panel.correspondence_resource')}
-      description={t('process_editor.configuration_panel.correspondence_resource_description')}
+      label={label}
+      description={description}
       defaultValue={defaultCorrespondenceResource}
       icon={null}
     />

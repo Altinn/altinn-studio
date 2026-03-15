@@ -19,7 +19,7 @@ import {
 } from '../../../../../../test/mocks/bpmnModelerMock';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 import {
-  getMockBpmnElementForTask,
+  getMockBpmnElementForSigningTask,
   mockBpmnDetails,
 } from '../../../../../../test/mocks/bpmnDetailsMock';
 
@@ -75,7 +75,7 @@ jest.mock('../../../../../utils/bpmnModeler/StudioModeler', () => {
   };
 });
 
-const element = getMockBpmnElementForTask('signing');
+const element = getMockBpmnElementForSigningTask();
 
 const existingDataTypesProps = {
   bpmnContextProps: {
