@@ -210,6 +210,170 @@ public class WorkflowHandlerTests
         await handler.HandleAsync(workflow, CancellationToken.None);
 
         Assert.Equal(PersistentItemStatus.DependencyFailed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
+        executor.Verify(
+            e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task HandleAsync_DependencyCanceled_WorkflowMarkedDependencyFailed()
+    {
+        var executor = MockExecutor();
+        var handler = CreateHandler(executor.Object);
+        var step = CreateStep();
+        var workflow = new Workflow
+        {
+            OperationId = "test-op",
+            IdempotencyKey = "test-key",
+            Namespace = "test-ns",
+            Context = JsonSerializer.SerializeToElement(new { }),
+            Status = PersistentItemStatus.Processing,
+            Steps = [step],
+            Dependencies =
+            [
+                new Workflow
+                {
+                    OperationId = "dep-op",
+                    IdempotencyKey = "dep-key",
+                    Namespace = "test-ns",
+                    Context = JsonSerializer.SerializeToElement(new { }),
+                    Status = PersistentItemStatus.Canceled,
+                    Steps = [],
+                },
+            ],
+        };
+
+        await handler.HandleAsync(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.DependencyFailed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
+        executor.Verify(
+            e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task HandleAsync_DependencyDependencyFailed_WorkflowMarkedDependencyFailed()
+    {
+        var executor = MockExecutor();
+        var handler = CreateHandler(executor.Object);
+        var step = CreateStep();
+        var workflow = new Workflow
+        {
+            OperationId = "test-op",
+            IdempotencyKey = "test-key",
+            Namespace = "test-ns",
+            Context = JsonSerializer.SerializeToElement(new { }),
+            Status = PersistentItemStatus.Processing,
+            Steps = [step],
+            Dependencies =
+            [
+                new Workflow
+                {
+                    OperationId = "dep-op",
+                    IdempotencyKey = "dep-key",
+                    Namespace = "test-ns",
+                    Context = JsonSerializer.SerializeToElement(new { }),
+                    Status = PersistentItemStatus.DependencyFailed,
+                    Steps = [],
+                },
+            ],
+        };
+
+        await handler.HandleAsync(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.DependencyFailed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
+        executor.Verify(
+            e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task HandleAsync_DependencyFailed_MultipleStepsAllRemainEnqueued()
+    {
+        var executor = MockExecutor();
+        var handler = CreateHandler(executor.Object);
+        var step0 = CreateStep("step-0", processingOrder: 0);
+        var step1 = CreateStep("step-1", processingOrder: 1);
+        var step2 = CreateStep("step-2", processingOrder: 2);
+        var workflow = new Workflow
+        {
+            OperationId = "test-op",
+            IdempotencyKey = "test-key",
+            Namespace = "test-ns",
+            Context = JsonSerializer.SerializeToElement(new { }),
+            Status = PersistentItemStatus.Processing,
+            Steps = [step0, step1, step2],
+            Dependencies =
+            [
+                new Workflow
+                {
+                    OperationId = "dep-op",
+                    IdempotencyKey = "dep-key",
+                    Namespace = "test-ns",
+                    Context = JsonSerializer.SerializeToElement(new { }),
+                    Status = PersistentItemStatus.Failed,
+                    Steps = [],
+                },
+            ],
+        };
+
+        await handler.HandleAsync(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.DependencyFailed, workflow.Status);
+        Assert.All(workflow.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+        executor.Verify(
+            e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
+    }
+
+    [Fact]
+    public async Task HandleAsync_MixedDependencies_OneFailedOnePassed_WorkflowMarkedDependencyFailed()
+    {
+        var executor = MockExecutor();
+        var handler = CreateHandler(executor.Object);
+        var step = CreateStep();
+        var workflow = new Workflow
+        {
+            OperationId = "test-op",
+            IdempotencyKey = "test-key",
+            Namespace = "test-ns",
+            Context = JsonSerializer.SerializeToElement(new { }),
+            Status = PersistentItemStatus.Processing,
+            Steps = [step],
+            Dependencies =
+            [
+                new Workflow
+                {
+                    OperationId = "dep-ok",
+                    IdempotencyKey = "dep-ok-key",
+                    Namespace = "test-ns",
+                    Context = JsonSerializer.SerializeToElement(new { }),
+                    Status = PersistentItemStatus.Completed,
+                    Steps = [],
+                },
+                new Workflow
+                {
+                    OperationId = "dep-bad",
+                    IdempotencyKey = "dep-bad-key",
+                    Namespace = "test-ns",
+                    Context = JsonSerializer.SerializeToElement(new { }),
+                    Status = PersistentItemStatus.Failed,
+                    Steps = [],
+                },
+            ],
+        };
+
+        await handler.HandleAsync(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.DependencyFailed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, step.Status);
         executor.Verify(
             e => e.Execute(It.IsAny<Workflow>(), It.IsAny<Step>(), It.IsAny<CancellationToken>()),
             Times.Never
@@ -231,6 +395,25 @@ public class WorkflowHandlerTests
         Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
         Assert.Equal(PersistentItemStatus.Failed, workflow.Steps[1].Status);
         Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+    }
+
+    [Fact]
+    public async Task HandleAsync_MultiStep_MiddleFails_RemainingStepsStayEnqueued()
+    {
+        var executor = MockExecutor(ExecutionResult.Success(), ExecutionResult.CriticalError("boom"));
+        var handler = CreateHandler(executor.Object);
+        var workflow = CreateWorkflow(
+            CreateStep("step-0", processingOrder: 0),
+            CreateStep("step-1", processingOrder: 1),
+            CreateStep("step-2", processingOrder: 2)
+        );
+
+        await handler.HandleAsync(workflow, CancellationToken.None);
+
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Status);
+        Assert.Equal(PersistentItemStatus.Completed, workflow.Steps[0].Status);
+        Assert.Equal(PersistentItemStatus.Failed, workflow.Steps[1].Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, workflow.Steps[2].Status);
     }
 
     [Fact]

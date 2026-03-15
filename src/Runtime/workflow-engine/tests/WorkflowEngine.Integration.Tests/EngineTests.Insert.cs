@@ -300,6 +300,9 @@ public partial class EngineTests
         Assert.Equal(PersistentItemStatus.Failed, statusA.OverallStatus);
         Assert.Equal(PersistentItemStatus.DependencyFailed, statusB.OverallStatus);
 
+        // Steps on the dependency-failed workflow should remain Enqueued (not touched)
+        Assert.All(statusB.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+
         await _testHelpers.AssertDbWorkflowCount(2);
         await _testHelpers.AssertDbStepCount(2);
 
@@ -312,5 +315,184 @@ public partial class EngineTests
             logs,
             log => log.RequestMessage.AbsolutePath.Contains("/always-succeed", StringComparison.OrdinalIgnoreCase)
         );
+    }
+
+    [Fact]
+    public async Task FailedWorkflow_CascadesMultiLevel_A_B_C()
+    {
+        // Arrange — A → B → C, A fails → B gets DependencyFailed → C gets DependencyFailed
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().WithPath("/always-fail").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture.SetupDefaultStub();
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/always-fail")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/hook-b")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/hook-c")], dependsOn: ["b"]),
+        ]);
+
+        // Act
+        var response = await _client.Enqueue(request);
+        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+
+        var statusA = await _client.WaitForWorkflowStatus(ids["a"], PersistentItemStatus.Failed);
+        var statusB = await _client.WaitForWorkflowStatus(ids["b"], PersistentItemStatus.DependencyFailed);
+        var statusC = await _client.WaitForWorkflowStatus(ids["c"], PersistentItemStatus.DependencyFailed);
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Failed, statusA.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusB.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusC.OverallStatus);
+
+        // Steps on dependency-failed workflows should remain Enqueued
+        Assert.All(statusB.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+        Assert.All(statusC.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+
+        // Only A's webhook should have been called
+        var logs = fixture.WireMock.LogEntries;
+        Assert.DoesNotContain(
+            logs,
+            log => log.RequestMessage.AbsolutePath.Contains("/hook-b", StringComparison.OrdinalIgnoreCase)
+        );
+        Assert.DoesNotContain(
+            logs,
+            log => log.RequestMessage.AbsolutePath.Contains("/hook-c", StringComparison.OrdinalIgnoreCase)
+        );
+    }
+
+    [Fact]
+    public async Task FailedWorkflow_FanOut_AllDependentsGetDependencyFailed()
+    {
+        // Arrange — A fails, B and C both depend on A → both get DependencyFailed
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().WithPath("/always-fail").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture.SetupDefaultStub();
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/always-fail")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/hook-b")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/hook-c")], dependsOn: ["a"]),
+        ]);
+
+        // Act
+        var response = await _client.Enqueue(request);
+        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+
+        var statusA = await _client.WaitForWorkflowStatus(ids["a"], PersistentItemStatus.Failed);
+        var statusB = await _client.WaitForWorkflowStatus(ids["b"], PersistentItemStatus.DependencyFailed);
+        var statusC = await _client.WaitForWorkflowStatus(ids["c"], PersistentItemStatus.DependencyFailed);
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Failed, statusA.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusB.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusC.OverallStatus);
+
+        Assert.All(statusB.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+        Assert.All(statusC.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+    }
+
+    [Fact]
+    public async Task FailedWorkflow_FanIn_OneFailedDependency_CascadesDependencyFailed()
+    {
+        // Arrange — B depends on both A1 (succeeds) and A2 (fails) → B gets DependencyFailed
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().WithPath("/always-fail").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture.SetupDefaultStub();
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a1", [_testHelpers.CreateWebhookStep("/hook-a1")]),
+            _testHelpers.CreateWorkflow("a2", [_testHelpers.CreateWebhookStep("/always-fail")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/hook-b")], dependsOn: ["a1", "a2"]),
+        ]);
+
+        // Act
+        var response = await _client.Enqueue(request);
+        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+
+        var statusA1 = await _client.WaitForWorkflowStatus(ids["a1"], PersistentItemStatus.Completed);
+        var statusA2 = await _client.WaitForWorkflowStatus(ids["a2"], PersistentItemStatus.Failed);
+        var statusB = await _client.WaitForWorkflowStatus(ids["b"], PersistentItemStatus.DependencyFailed);
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Completed, statusA1.OverallStatus);
+        Assert.Equal(PersistentItemStatus.Failed, statusA2.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusB.OverallStatus);
+
+        Assert.All(statusB.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+    }
+
+    [Fact]
+    public async Task DiamondDag_RootFails_AllDescendantsGetDependencyFailed()
+    {
+        // Arrange — Diamond: A → B, A → C, B + C → D. A fails → all descendants DependencyFailed.
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().WithPath("/always-fail").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture.SetupDefaultStub();
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/always-fail")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/hook-b")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/hook-c")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("d", [_testHelpers.CreateWebhookStep("/hook-d")], dependsOn: ["b", "c"]),
+        ]);
+
+        // Act
+        var response = await _client.Enqueue(request);
+        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+
+        var statusA = await _client.WaitForWorkflowStatus(ids["a"], PersistentItemStatus.Failed);
+        var statusB = await _client.WaitForWorkflowStatus(ids["b"], PersistentItemStatus.DependencyFailed);
+        var statusC = await _client.WaitForWorkflowStatus(ids["c"], PersistentItemStatus.DependencyFailed);
+        var statusD = await _client.WaitForWorkflowStatus(ids["d"], PersistentItemStatus.DependencyFailed);
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Failed, statusA.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusB.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusC.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusD.OverallStatus);
+
+        Assert.All(statusB.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+        Assert.All(statusC.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+        Assert.All(statusD.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+    }
+
+    [Fact]
+    public async Task MultiStepWorkflow_StepFails_RemainingStepsStayEnqueued()
+    {
+        // Arrange — 3-step workflow where step 1 (index 0) always fails.
+        // Steps 2 and 3 should remain Enqueued.
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().WithPath("/always-fail").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture.SetupDefaultStub();
+
+        var steps = new[]
+        {
+            _testHelpers.CreateWebhookStep("/always-fail"),
+            _testHelpers.CreateWebhookStep("/hook-2"),
+            _testHelpers.CreateWebhookStep("/hook-3"),
+        };
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", steps));
+
+        // Act
+        var response = await _client.Enqueue(request);
+        var workflowId = response.Workflows.Single().DatabaseId;
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Failed, status.OverallStatus);
+        Assert.Equal(3, status.Steps.Count);
+        Assert.Equal(PersistentItemStatus.Failed, status.Steps[0].Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, status.Steps[1].Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, status.Steps[2].Status);
     }
 }
