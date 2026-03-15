@@ -132,6 +132,36 @@ describe('PageGroupAccordion', () => {
     expect(within(groupHeader).getByText('Group 1')).toBeInTheDocument();
   });
 
+  it('marks group as selected when selectedFormLayoutName points to a page in the group and there is no override', async () => {
+    await renderPageGroupAccordion({
+      props: { selectedFormLayoutName: 'Side 1' as string },
+      appContextProps: {
+        selectedFormLayoutName: 'Side 1',
+        selectedItem: null,
+        selectedItemOverride: undefined,
+      },
+    });
+    const headerGroup0 = groupAccordionHeader(0);
+    const headerGroup1 = groupAccordionHeader(1);
+    expect(headerGroup0).toHaveAttribute('data-selected', 'true');
+    expect(headerGroup1).toHaveAttribute('data-selected', 'false');
+  });
+
+  it('marks group as selected when a page in the group is explicitly overridden as selected', async () => {
+    await renderPageGroupAccordion({
+      props: { selectedFormLayoutName: 'SomeOtherPage' as string },
+      appContextProps: {
+        selectedFormLayoutName: 'SomeOtherPage',
+        selectedItem: null,
+        selectedItemOverride: { type: ItemType.Page, id: 'Side 1' },
+      },
+    });
+    const headerGroup0 = groupAccordionHeader(0);
+    const headerGroup1 = groupAccordionHeader(1);
+    expect(headerGroup0).toHaveAttribute('data-selected', 'true');
+    expect(headerGroup1).toHaveAttribute('data-selected', 'false');
+  });
+
   it('should call handleAddPageInsideGroup when add button is clicked', async () => {
     const user = userEvent.setup();
     await renderPageGroupAccordion({});
@@ -140,6 +170,21 @@ describe('PageGroupAccordion', () => {
     });
     await user.click(addButtons[0]);
     expect(queriesMock.changePageGroups).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks group as selected when selectedItemOverride is a Group type matching the group index', async () => {
+    await renderPageGroupAccordion({
+      props: { selectedFormLayoutName: '' as string },
+      appContextProps: {
+        selectedFormLayoutName: '',
+        selectedItem: { type: ItemType.Group, id: 0 },
+        selectedItemOverride: { type: ItemType.Group, id: 0 },
+      },
+    });
+    const headerGroup0 = groupAccordionHeader(0);
+    const headerGroup1 = groupAccordionHeader(1);
+    expect(headerGroup0).toHaveAttribute('data-selected', 'true');
+    expect(headerGroup1).toHaveAttribute('data-selected', 'false');
   });
 });
 

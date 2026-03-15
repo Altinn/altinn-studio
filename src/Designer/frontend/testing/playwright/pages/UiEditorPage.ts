@@ -22,16 +22,20 @@ export class UiEditorPage extends BasePage {
 
   public async verifyUiEditorPage(layoutSet?: string, layout?: string | null): Promise<void> {
     const baseRoute = this.getRoute('editorUi');
-    const pageUrl = new URL(
-      baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : ''),
-      this.page.url(),
-    );
-    if (layout) pageUrl.searchParams.append('layout', layout);
-    await this.page.waitForURL(pageUrl.toString());
+    const path = baseRoute + (layoutSet ? `/layoutSet/${layoutSet}` : '');
+    await this.page.waitForURL((url) => url.pathname === path);
+    if (layout) {
+      const accordionButton = this.page.getByRole('button', { name: layout, exact: true });
+      await accordionButton.waitFor({ state: 'visible' });
+    }
   }
 
   public async clickOnPageAccordion(pageName: string): Promise<void> {
-    await this.page.getByRole('button', { name: pageName, exact: true }).click();
+    const accordionButton = this.page.getByRole('button', { name: pageName, exact: true });
+    const isExpanded = await accordionButton.getAttribute('aria-expanded');
+    if (isExpanded !== 'true') {
+      await accordionButton.click();
+    }
   }
 
   public async clickOnComponentTextConfigAccordion(): Promise<void> {
