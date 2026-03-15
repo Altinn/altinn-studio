@@ -21,9 +21,7 @@ public class StepEntityTests
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
             UpdatedAt = new DateTimeOffset(2025, 6, 15, 11, 0, 0, TimeSpan.Zero),
             RequeueCount = 2,
-            ActorUserIdOrOrgNumber = "org-456",
-            ActorLanguage = "en",
-            CommandJson = commandJson ?? """{"type":"app","commandKey":"sign","payload":"{\"data\":1}"}""",
+            CommandJson = commandJson ?? """{"type":"app","data":{"value":1}}""",
             RetryStrategyJson = includeRetryStrategy
                 ? (retryStrategyJson ?? """{"backoffType":"Exponential","baseInterval":"00:00:05","maxRetries":3}""")
                 : null,
@@ -47,30 +45,25 @@ public class StepEntityTests
         Assert.Equal(entity.CreatedAt, roundTripped.CreatedAt);
         Assert.Equal(entity.UpdatedAt, roundTripped.UpdatedAt);
         Assert.Equal(entity.RequeueCount, roundTripped.RequeueCount);
-        Assert.Equal(entity.ActorUserIdOrOrgNumber, roundTripped.ActorUserIdOrOrgNumber);
-        Assert.Equal(entity.ActorLanguage, roundTripped.ActorLanguage);
     }
 
     [Fact]
     public void Command_JsonSerialization_RoundTrip()
     {
         // Arrange
-        var entity = CreateEntity(
-            commandJson: """{"type":"app","commandKey":"payment","payload":"{\"amount\":100}"}"""
-        );
+        var entity = CreateEntity(commandJson: """{"type":"app","data":{"amount":100}}""");
 
         // Act
         var domain = entity.ToDomainModel();
         var roundTripped = StepEntity.FromDomainModel(domain);
 
         // Assert — verify the domain model parsed the command correctly
-        var appCommand = Assert.IsType<Command.AppCommand>(domain.Command);
-        Assert.Equal("payment", appCommand.CommandKey);
-        Assert.Equal("{\"amount\":100}", appCommand.Payload);
+        Assert.Equal("app", domain.Command.Type);
+        Assert.NotNull(domain.Command.Data);
 
         // Verify the round-tripped entity serialized it back to valid JSON
         Assert.NotNull(roundTripped.CommandJson);
-        Assert.Contains("payment", roundTripped.CommandJson, StringComparison.Ordinal);
+        Assert.Contains("app", roundTripped.CommandJson, StringComparison.Ordinal);
     }
 
     [Fact]

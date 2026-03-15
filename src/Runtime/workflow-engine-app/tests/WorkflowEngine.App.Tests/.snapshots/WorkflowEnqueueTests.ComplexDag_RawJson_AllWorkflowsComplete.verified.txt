@@ -1,0 +1,44 @@
+﻿{
+  Workflows: [
+    {
+      Ref: wf-root,
+      DatabaseId: Guid_1,
+      Namespace: ttd:e2e-tests
+    },
+    {
+      Ref: wf-a-first,
+      DatabaseId: Guid_2,
+      Namespace: ttd:e2e-tests
+    },
+    {
+      Ref: wf-b-first,
+      DatabaseId: Guid_3,
+      Namespace: ttd:e2e-tests
+    },
+    {
+      Ref: wf-c-first,
+      DatabaseId: Guid_4,
+      Namespace: ttd:e2e-tests
+    },
+    {
+      Ref: wf-a-second,
+      DatabaseId: Guid_5,
+      Namespace: ttd:e2e-tests
+    },
+    {
+      Ref: wf-join-b-c,
+      DatabaseId: Guid_6,
+      Namespace: ttd:e2e-tests
+    },
+    {
+      Ref: wf-a-third,
+      DatabaseId: Guid_7,
+      Namespace: ttd:e2e-tests
+    },
+    {
+      Ref: wf-join-all,
+      DatabaseId: Guid_8,
+      Namespace: ttd:e2e-tests
+    }
+  ]
+}

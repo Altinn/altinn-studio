@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Context;
@@ -8,6 +9,7 @@ namespace WorkflowEngine.Data.Repository;
 
 // EFCore deals with nullable props appropriately
 #pragma warning disable CS8604
+#pragma warning disable CS8602
 
 internal static class EngineRepositoryQueryExtensions
 {
@@ -16,26 +18,30 @@ internal static class EngineRepositoryQueryExtensions
         public IQueryable<WorkflowEntity> GetActiveWorkflows(
             bool includeDependencies = true,
             bool includeLinks = true,
-            Guid? instanceFilter = null,
             Guid? correlationIdFilter = null,
-            string? namespaceFilter = null
+            string? namespaceFilter = null,
+            IReadOnlyDictionary<string, string>? labelFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: includeDependencies, links: includeLinks)
-                .MaybeFilterByInstanceGuid(instanceFilter)
                 .MaybeFilterByCorrelationId(correlationIdFilter)
                 .MaybeFilterByNamespace(namespaceFilter)
+                .MaybeFilterByLabels(labelFilter)
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf => wf.StartAt == null || wf.StartAt <= DateTime.UtcNow)
                 .Where(wf => wf.Steps.Any(step => PersistentItemStatusMap.Incomplete.Contains(step.Status)));
 
         public IQueryable<WorkflowEntity> GetScheduledWorkflows(
             bool includeLinks = true,
-            Guid? instanceFilter = null
+            Guid? correlationIdFilter = null,
+            string? namespaceFilter = null,
+            IReadOnlyDictionary<string, string>? labelFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(steps: true, dependencies: true, links: includeLinks)
-                .MaybeFilterByInstanceGuid(instanceFilter)
+                .MaybeFilterByCorrelationId(correlationIdFilter)
+                .MaybeFilterByNamespace(namespaceFilter)
+                .MaybeFilterByLabels(labelFilter)
                 .Where(wf => PersistentItemStatusMap.Incomplete.Contains(wf.Status))
                 .Where(wf =>
                     wf.StartAt > DateTime.UtcNow
@@ -47,7 +53,9 @@ internal static class EngineRepositoryQueryExtensions
             bool includeSteps = true,
             bool includeDependencies = true,
             bool includeLinks = true,
-            Guid? instanceFilter = null
+            Guid? correlationIdFilter = null,
+            string? namespaceFilter = null,
+            IReadOnlyDictionary<string, string>? labelFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(
@@ -55,14 +63,18 @@ internal static class EngineRepositoryQueryExtensions
                     dependencies: includeDependencies,
                     links: includeLinks
                 )
-                .MaybeFilterByInstanceGuid(instanceFilter)
+                .MaybeFilterByCorrelationId(correlationIdFilter)
+                .MaybeFilterByNamespace(namespaceFilter)
+                .MaybeFilterByLabels(labelFilter)
                 .Where(wf => PersistentItemStatusMap.Failed.Contains(wf.Status));
 
         public IQueryable<WorkflowEntity> GetSuccessfulWorkflows(
             bool includeSteps = true,
             bool includeDependencies = true,
             bool includeLinks = true,
-            Guid? instanceFilter = null
+            Guid? correlationIdFilter = null,
+            string? namespaceFilter = null,
+            IReadOnlyDictionary<string, string>? labelFilter = null
         ) =>
             dbContext
                 .Workflows.IncludeRelatedEntities(
@@ -70,7 +82,9 @@ internal static class EngineRepositoryQueryExtensions
                     dependencies: includeDependencies,
                     links: includeLinks
                 )
-                .MaybeFilterByInstanceGuid(instanceFilter)
+                .MaybeFilterByCorrelationId(correlationIdFilter)
+                .MaybeFilterByNamespace(namespaceFilter)
+                .MaybeFilterByLabels(labelFilter)
                 .Where(wf => PersistentItemStatusMap.Successful.Contains(wf.Status));
 
         public IQueryable<WorkflowEntity> GetFinishedWorkflows(
@@ -80,14 +94,17 @@ internal static class EngineRepositoryQueryExtensions
             DateTimeOffset? before = null,
             DateTimeOffset? since = null,
             bool retriedOnly = false,
-            string? org = null,
-            string? app = null,
-            string? party = null,
-            string? instanceGuid = null,
-            string? correlationId = null
+            Guid? correlationIdFilter = null,
+            string? namespaceFilter = null,
+            IReadOnlyDictionary<string, string>? labelFilter = null
         )
         {
-            var query = dbContext.Workflows.Include(j => j.Steps).Where(x => statuses.Contains(x.Status));
+            var query = dbContext
+                .Workflows.Include(j => j.Steps)
+                .MaybeFilterByNamespace(namespaceFilter)
+                .MaybeFilterByLabels(labelFilter)
+                .MaybeFilterByCorrelationId(correlationIdFilter)
+                .Where(x => statuses.Contains(x.Status));
 
             if (before.HasValue)
                 query = query.Where(x => x.UpdatedAt < before.Value);
@@ -98,32 +115,13 @@ internal static class EngineRepositoryQueryExtensions
             if (retriedOnly)
                 query = query.Where(x => x.Steps.Any(s => s.RequeueCount > 0));
 
-            if (!string.IsNullOrWhiteSpace(org))
-                query = query.Where(x => x.InstanceOrg == org);
-
-            if (!string.IsNullOrWhiteSpace(app))
-                query = query.Where(x => x.InstanceApp == app);
-
-            if (!string.IsNullOrWhiteSpace(party))
-                query = query.Where(x => x.InstanceOwnerPartyId.ToString() == party);
-
-            if (!string.IsNullOrWhiteSpace(instanceGuid))
-                query = query.Where(x => x.InstanceGuid.ToString() == instanceGuid);
-
-            if (!string.IsNullOrWhiteSpace(correlationId))
-                query = query.Where(x => x.CorrelationId.HasValue && x.CorrelationId.Value.ToString() == correlationId);
-
             if (!string.IsNullOrWhiteSpace(search))
             {
-                var s = search.ToLower();
                 query = query.Where(x =>
-                    (x.CorrelationId.HasValue && x.CorrelationId.Value.ToString().Contains(s))
-                    || x.InstanceGuid.ToString().Contains(s)
-                    || x.InstanceOrg.ToLower().Contains(s)
-                    || x.InstanceApp.ToLower().Contains(s)
-                    || x.OperationId.ToLower().Contains(s)
-                    || x.InstanceOwnerPartyId.ToString().Contains(s)
-                    || x.Steps.Any(st => st.OperationId.ToLower().Contains(s))
+                    EF.Functions.ILike(x.Namespace, $"%{search}%")
+                    || EF.Functions.ILike(x.OperationId, $"%{search}%")
+                    || x.Steps.Any(st => EF.Functions.ILike(st.OperationId, $"%{search}%"))
+                    || (x.CorrelationId.HasValue && x.CorrelationId.Value.ToString().Contains(search))
                 );
             }
 
@@ -172,10 +170,10 @@ internal static class EngineRepositoryQueryExtensions
             return entityQuery.AsSplitQuery();
         }
 
-        private IQueryable<WorkflowEntity> MaybeFilterByInstanceGuid(Guid? instanceGuid)
+        private IQueryable<WorkflowEntity> MaybeFilterByNamespace(string? ns)
         {
-            if (instanceGuid is not null)
-                entityQuery = entityQuery.Where(wf => wf.InstanceGuid == instanceGuid.Value);
+            if (ns is not null)
+                entityQuery = entityQuery.Where(wf => wf.Namespace == WorkflowNamespace.Normalize(ns));
 
             return entityQuery;
         }
@@ -188,10 +186,18 @@ internal static class EngineRepositoryQueryExtensions
             return entityQuery;
         }
 
-        private IQueryable<WorkflowEntity> MaybeFilterByNamespace(string? ns)
+        private IQueryable<WorkflowEntity> MaybeFilterByLabels(IReadOnlyDictionary<string, string>? labels)
         {
-            if (ns is not null)
-                entityQuery = entityQuery.Where(wf => wf.Namespace == ns);
+            if (labels is null)
+                return entityQuery;
+
+            foreach (var (key, value) in labels)
+            {
+                var filter = JsonSerializer.Serialize(new Dictionary<string, string> { [key] = value });
+                entityQuery = entityQuery.Where(wf =>
+                    wf.Labels != null && EF.Functions.JsonContains(wf.Labels, filter)
+                );
+            }
 
             return entityQuery;
         }

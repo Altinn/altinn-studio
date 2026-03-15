@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
 using WorkflowEngine.Data.Repository;
-using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
@@ -35,34 +35,6 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task GetWorkflow_WrongInstance_Returns404()
-    {
-        // Arrange
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/hook")])
-        );
-
-        // Act
-        var response = await _client.Enqueue(request);
-        var workflowId = response.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
-
-        var resultForCorrectInstance = await _client.GetWorkflowRaw(workflowId);
-        var resultForIncorrectInstance = await _client.GetWorkflowRaw(Guid.NewGuid());
-
-        // Assert
-        Assert.Equal(HttpStatusCode.NotFound, resultForIncorrectInstance.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, resultForCorrectInstance.StatusCode);
-
-        await _testHelpers.AssertDbWorkflowCount(1);
-
-        var parsedResult = await Fixtures.EngineApiClient.AssertSuccessAndDeserialize<WorkflowStatusResponse>(
-            resultForCorrectInstance
-        );
-        Assert.Equal(workflowId, parsedResult.DatabaseId);
-    }
-
-    [Fact]
     public async Task ListActiveWorkflows_ReturnsWorkflowWhileStillProcessing()
     {
         // Arrange
@@ -86,7 +58,7 @@ public partial class EngineTests
         List<WorkflowStatusResponse> active;
         do
         {
-            active = await _client.ListActiveWorkflows(request.CorrelationId);
+            active = await _client.ListActiveWorkflows();
             if (active.Count > 0)
                 break;
             await Task.Delay(100, TestContext.Current.CancellationToken);
@@ -113,7 +85,7 @@ public partial class EngineTests
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
 
         // After completion the workflow is no longer "active".
-        var active = await _client.ListActiveWorkflows(request.CorrelationId);
+        var active = await _client.ListActiveWorkflows();
         Assert.Empty(active);
     }
 
@@ -136,7 +108,7 @@ public partial class EngineTests
         // Act
         var response = await _client.Enqueue(request);
         var workflowId = response.Workflows.Single().DatabaseId;
-        var activeFromApi = await _client.ListActiveWorkflows(request.CorrelationId);
+        var activeFromApi = await _client.ListActiveWorkflows();
         var scheduledFromDb = await context.GetScheduledWorkflows().ToListAsync(TestContext.Current.CancellationToken);
 
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);

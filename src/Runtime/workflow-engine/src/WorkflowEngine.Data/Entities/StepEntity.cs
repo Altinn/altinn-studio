@@ -20,6 +20,9 @@ internal sealed class StepEntity : IHasCommonMetadata
 
     public required string IdempotencyKey { get; set; }
 
+    [MaxLength(100)]
+    public string? EngineTraceContext { get; set; }
+
     public PersistentItemStatus Status { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
@@ -29,12 +32,6 @@ internal sealed class StepEntity : IHasCommonMetadata
     public int ProcessingOrder { get; set; }
 
     public int RequeueCount { get; set; }
-
-    [MaxLength(50)]
-    public required string ActorUserIdOrOrgNumber { get; set; }
-
-    [MaxLength(10)]
-    public string? ActorLanguage { get; set; }
 
     [Column(TypeName = "jsonb")]
     public string CommandJson { get; set; } = "{}";
@@ -59,17 +56,16 @@ internal sealed class StepEntity : IHasCommonMetadata
             Id = step.DatabaseId,
             OperationId = step.OperationId,
             IdempotencyKey = step.IdempotencyKey,
+            EngineTraceContext = step.EngineTraceContext,
             Status = step.Status,
             CreatedAt = step.CreatedAt,
             UpdatedAt = step.UpdatedAt,
             ProcessingOrder = step.ProcessingOrder,
             RequeueCount = step.RequeueCount,
-            ActorUserIdOrOrgNumber = step.Actor.UserIdOrOrgNumber,
-            ActorLanguage = step.Actor.Language,
             CommandJson = JsonSerializer.Serialize(step.Command, JsonOptions.Default),
             RetryStrategyJson =
                 step.RetryStrategy != null ? JsonSerializer.Serialize(step.RetryStrategy, JsonOptions.Default) : null,
-            MetadataJson = step?.Metadata,
+            MetadataJson = step.Metadata,
             StateOut = step.StateOut,
         };
     }
@@ -77,7 +73,7 @@ internal sealed class StepEntity : IHasCommonMetadata
     public Step ToDomainModel()
     {
         var command =
-            JsonSerializer.Deserialize<Command>(CommandJson, JsonOptions.Default)
+            JsonSerializer.Deserialize<CommandDefinition>(CommandJson, JsonOptions.Default)
             ?? throw new InvalidOperationException("Failed to deserialize CommandJson");
         var retryStrategy =
             RetryStrategyJson != null
@@ -89,12 +85,12 @@ internal sealed class StepEntity : IHasCommonMetadata
             DatabaseId = Id,
             OperationId = OperationId,
             IdempotencyKey = IdempotencyKey,
+            EngineTraceContext = EngineTraceContext,
             Status = Status,
             ProcessingOrder = ProcessingOrder,
             CreatedAt = CreatedAt,
             UpdatedAt = UpdatedAt,
             RequeueCount = RequeueCount,
-            Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
             Command = command,
             RetryStrategy = retryStrategy,
             StateOut = StateOut,

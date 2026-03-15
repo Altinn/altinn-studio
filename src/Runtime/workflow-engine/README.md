@@ -19,27 +19,22 @@ Start the infrastructure (Postgres, PgAdmin, Grafana/LGTM, exporters):
 docker compose up -d
 ```
 
-Then run the API on the host:
+Then run the host application:
 
 ```sh
-dotnet run --project src/WorkflowEngine.Api
+# From the workflow-engine-app directory
+dotnet run --project src/WorkflowEngine.App
 ```
 
 The database is migrated automatically on startup (EF Core). No manual migration step needed.
 
-To run everything in Docker, including the API itself:
+To also include the monitoring dashboard via Docker:
 
 ```sh
-docker compose --profile app up -d
+docker compose --profile dashboard up -d
 ```
 
-To also include the monitoring dashboard:
-
-```sh
-docker compose --profile app --profile dashboard up -d
-```
-
-Or use the `full` profile for everything (engine, dashboard, and observability stack):
+Or use the `full` profile for everything (dashboard and observability stack):
 
 ```sh
 docker compose --profile full up -d
@@ -62,17 +57,14 @@ The dashboard's `wwwroot/` directory is bind-mounted into the container, so fron
 
 All workflow endpoints require an API key via header. The development key is configured in `appsettings.json` under `ApiSettings:ApiKeys`.
 
-### App command callbacks
-
-Details regarding where and how to send app command callbacks are configured in `appsettings.json` under `AppCommandSettings`.
-
 ### API endpoints
 
-See swagger for a [full list](http://localhost:8080/swagger) of endpoints. The main ones so far:
+See swagger for a [full list](http://localhost:8080/swagger) of endpoints. The main ones:
 
 ```
-POST /api/v1/workflow/{org}/{app}/{instanceOwnerPartyId}/{instanceGuid}/next
-GET  /api/v1/workflow/{org}/{app}/{instanceOwnerPartyId}/{instanceGuid}/status
+POST /api/v1/workflows          (enqueue workflows, API key required)
+GET  /api/v1/workflows           (list active workflows)
+GET  /api/v1/workflows/{id}      (get single workflow)
 ```
 
 ## Migrations
@@ -82,7 +74,7 @@ Migrations are applied automatically on startup. To add a new migration after mo
 ```sh
 dotnet ef migrations add <Name> \
   --project src/WorkflowEngine.Data \
-  --startup-project src/WorkflowEngine.Api
+  --startup-project tests/WorkflowEngine.TestApp
 ```
 
 ## Load testing

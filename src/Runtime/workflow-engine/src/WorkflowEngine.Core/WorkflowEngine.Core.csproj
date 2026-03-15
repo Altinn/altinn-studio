@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../WorkflowEngine.Commands/WorkflowEngine.Commands.csproj" />
+    <ProjectReference Include="../WorkflowEngine.Models/WorkflowEngine.Models.csproj" />
+    <ProjectReference Include="../WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
+    <ProjectReference Include="../WorkflowEngine.Telemetry/WorkflowEngine.Telemetry.csproj" />
+    <ProjectReference Include="../../../../common/Altinn.Studio.Runtime.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="WorkflowEngine.Core.Tests" />
+    <InternalsVisibleTo Include="WorkflowEngine.App" />
+    <InternalsVisibleTo Include="WorkflowEngine.App.Tests" />
+    <InternalsVisibleTo Include="WorkflowEngine.Integration.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="bin\" />
+  </ItemGroup>
+
+</Project>

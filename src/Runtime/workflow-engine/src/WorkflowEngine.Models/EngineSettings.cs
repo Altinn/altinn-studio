@@ -55,4 +55,22 @@ public sealed record EngineSettings
     /// </summary>
     [JsonPropertyName("maxConcurrentHttpCalls")]
     public required int MaxConcurrentHttpCalls { get; set; }
+
+    /// <summary>
+    /// Maximum number of workflows allowed in a single enqueue request.
+    /// </summary>
+    [JsonPropertyName("maxWorkflowsPerRequest")]
+    public required int MaxWorkflowsPerRequest { get; set; }
+
+    /// <summary>
+    /// Maximum number of steps allowed per workflow.
+    /// </summary>
+    [JsonPropertyName("maxStepsPerWorkflow")]
+    public required int MaxStepsPerWorkflow { get; set; }
+
+    /// <summary>
+    /// Maximum number of label entries per request.
+    /// </summary>
+    [JsonPropertyName("maxLabels")]
+    public required int MaxLabels { get; set; }
 }

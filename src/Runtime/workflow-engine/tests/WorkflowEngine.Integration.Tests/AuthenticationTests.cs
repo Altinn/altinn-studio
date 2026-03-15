@@ -1,12 +1,14 @@
 using System.Net;
 using WorkflowEngine.Integration.Tests.Fixtures;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
 [Collection(EngineAppCollection.Name)]
-public sealed class AuthenticationTests(EngineAppFixture fixture) : IAsyncLifetime
+public sealed class AuthenticationTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
 {
-    private static readonly string ProtectedPath = $"{EngineAppFixture.ApiBasePath}?correlationId={Guid.NewGuid()}";
+    private static readonly string ProtectedPath =
+        $"/api/v1/workflows?namespace={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}";
 
     public async ValueTask InitializeAsync() => await fixture.ResetAsync();
 
@@ -20,7 +22,7 @@ public sealed class AuthenticationTests(EngineAppFixture fixture) : IAsyncLifeti
         client.DefaultRequestHeaders.Add("X-Api-Key", EngineAppFixture.TestApiKey);
 
         // Act
-        using var response = await client.GetAsync(ProtectedPath);
+        using var response = await client.GetAsync(ProtectedPath, TestContext.Current.CancellationToken);
 
         // Assert — 204 No Content is the expected success response for an empty workflow list
         Assert.True(
@@ -37,7 +39,7 @@ public sealed class AuthenticationTests(EngineAppFixture fixture) : IAsyncLifeti
         client.DefaultRequestHeaders.Add("X-Api-Key", "wrong-key");
 
         // Act
-        using var response = await client.GetAsync(ProtectedPath);
+        using var response = await client.GetAsync(ProtectedPath, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -50,7 +52,7 @@ public sealed class AuthenticationTests(EngineAppFixture fixture) : IAsyncLifeti
         using var client = fixture.CreateRawClient();
 
         // Act
-        using var response = await client.GetAsync(ProtectedPath);
+        using var response = await client.GetAsync(ProtectedPath, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -64,7 +66,7 @@ public sealed class AuthenticationTests(EngineAppFixture fixture) : IAsyncLifeti
         client.DefaultRequestHeaders.Add("X-Api-Key", "");
 
         // Act
-        using var response = await client.GetAsync(ProtectedPath);
+        using var response = await client.GetAsync(ProtectedPath, TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -77,7 +79,7 @@ public sealed class AuthenticationTests(EngineAppFixture fixture) : IAsyncLifeti
         using var client = fixture.CreateRawClient();
 
         // Act
-        using var response = await client.GetAsync("/dashboard/orgs-and-apps");
+        using var response = await client.GetAsync("/dashboard/labels?key=org", TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

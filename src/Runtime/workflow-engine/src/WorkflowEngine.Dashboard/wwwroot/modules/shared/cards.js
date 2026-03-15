@@ -4,15 +4,9 @@ import { parseTransition, stepSubLabel, state, workflowData } from '../core/stat
 import { esc, formatElapsed, fmtTime } from '../core/helpers.js';
 import { buildPipelineHTML, scrollPipelineToActive } from './pipeline.js';
 
-/** @param {string} guid */
-export const copyIconHTML = (guid) =>
-  `<a class="open-btn" onclick="copyGuid(event,'${esc(guid)}')" title="Copy instance GUID">&#10697;</a>`;
-
-/** @param {import('../core/state.js').InstanceInfo} inst */
-export const openIconHTML = (inst) => {
-  const url = `http://local.altinn.cloud/${esc(inst.org)}/${esc(inst.app)}/#/instance/${inst.instanceOwnerPartyId}/${esc(inst.instanceGuid)}`;
-  return `<a class="open-btn" href="${url}" target="_blank" onclick="event.stopPropagation()" title="Open instance">&#8599;</a>`;
-};
+/** @param {string} text @param {string} [title] */
+export const copyIconHTML = (text, title) =>
+  `<a class="open-btn" onclick="copyText(event,'${esc(text)}')" title="${esc(title || 'Copy')}">\u29C9</a>`;
 
 /** @param {string} traceId @param {string} [title] @param {string} [extraClass] @returns {string} */
 export const traceLink = (traceId, title, extraClass) => {
@@ -28,11 +22,11 @@ export const traceIconHTML = (traceId) => traceLink(traceId, 'Engine trace in Gr
 export const stateIconHTML = (wf) =>
   `<a class="open-btn state-btn" onclick="openStateModal('${esc(wf.idempotencyKey)}','${esc(wf.createdAt)}')" title="View state trail">&#123;&#125;</a>`;
 
-/** @param {Event} e @param {string} guid */
-window.copyGuid = async (e, guid) => {
+/** @param {Event} e @param {string} text */
+window.copyText = async (e, text) => {
   e.stopPropagation();
   try {
-    await navigator.clipboard.writeText(guid);
+    await navigator.clipboard.writeText(text);
     const btn = /** @type {HTMLElement} */ (e.currentTarget);
     btn.classList.add('copied');
     setTimeout(() => btn.classList.remove('copied'), 1200);
@@ -76,31 +70,33 @@ const buildTimestampsHTML = (wf, isStatic) => {
   return html;
 };
 
-/* ── Segment rows (org/app/party/guid) ───────────────────── */
+/* ── Label segments (namespace + labels) ─────────────────── */
 
 /**
- * Build the org/app/party/guid segment row.
- * @param {import('../core/state.js').InstanceInfo} inst
+ * Build clickable label segments for a workflow card header.
+ * Shows namespace first, then label key=value pairs.
+ * @param {import('../core/state.js').Workflow} wf
  * @param {boolean} interactive - true adds onclick filter handlers
  * @returns {string}
  */
-const buildSegmentsHTML = (inst, interactive) => {
+const buildLabelsHTML = (wf, interactive) => {
+  let html = '';
   if (interactive) {
-    return `<span class="seg" onclick="toggleOrgFilter('${esc(inst.org)}')" title="Filter by org">${esc(inst.org)}</span>`
-      + `<span class="seg-sep">/</span>`
-      + `<span class="seg" onclick="toggleAppFilter('${esc(inst.app)}')" title="Filter by app">${esc(inst.app)}</span>`
-      + `<span class="seg-sep">/</span>`
-      + `<span class="seg" onclick="togglePartyFilter('${inst.instanceOwnerPartyId}')" title="Filter by party">${inst.instanceOwnerPartyId}</span>`
-      + `<span class="seg-sep">/</span>`
-      + `<span class="seg guid" onclick="toggleGuidFilter('${esc(inst.instanceGuid)}')" title="Filter by instance">${esc(inst.instanceGuid)}</span>`;
+    html += `<span class="seg ns" onclick="toggleLabelFilter('namespace','${esc(wf.namespace)}')" title="Filter by namespace">${esc(wf.namespace)}</span>`;
+  } else {
+    html += `<span class="seg ns">${esc(wf.namespace)}</span>`;
   }
-  return `<span class="seg">${esc(inst.org)}</span>`
-    + `<span class="seg-sep">/</span>`
-    + `<span class="seg">${esc(inst.app)}</span>`
-    + `<span class="seg-sep">/</span>`
-    + `<span class="seg">${inst.instanceOwnerPartyId}</span>`
-    + `<span class="seg-sep">/</span>`
-    + `<span class="seg guid">${esc(inst.instanceGuid)}</span>`;
+  if (wf.labels) {
+    for (const [key, value] of Object.entries(wf.labels)) {
+      html += `<span class="seg-sep">/</span>`;
+      if (interactive) {
+        html += `<span class="seg" onclick="toggleLabelFilter('${esc(key)}','${esc(value)}')" title="Filter by ${esc(key)}">${esc(value)}</span>`;
+      } else {
+        html += `<span class="seg" title="${esc(key)}">${esc(value)}</span>`;
+      }
+    }
+  }
+  return html;
 };
 
 /**
@@ -109,20 +105,18 @@ const buildSegmentsHTML = (inst, interactive) => {
  * @returns {string}
  */
 export const buildCardHTML = (wf, isStatic) => {
-  const { instance: inst } = wf;
   const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
   const tx = parseTransition(wf);
   const wfLabel = tx ? `${wf.operationId}: ${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
 
   let html = `<div class="card-header">`;
-  html += buildSegmentsHTML(inst, true);
+  html += buildLabelsHTML(wf, true);
   html += `<span class="wf-name">${esc(wfLabel)}</span>`;
   html += `<span class="header-spacer"></span>`;
   if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
   html += `<span class="status-pill ${wf.status}"${isStatic ? ' style="animation:none"' : ''}>${wf.status}</span>`;
   html += buildTimestampsHTML(wf, isStatic);
-  html += copyIconHTML(inst.instanceGuid);
-  html += openIconHTML(inst);
+  html += copyIconHTML(wf.idempotencyKey, 'Copy idempotency key');
   if (wf.hasState) html += stateIconHTML(wf);
   if (wf.traceId) html += traceIconHTML(wf.traceId);
   html += `</div>`;
@@ -138,13 +132,12 @@ export const buildCardHTML = (wf, isStatic) => {
  * @returns {string}
  */
 export const buildCompactCardHTML = (wf, isStatic) => {
-  const { instance: inst } = wf;
   const retries = wf.steps.reduce((sum, s) => sum + s.retryCount, 0);
   const tx = parseTransition(wf);
   const wfLabel = tx ? `${wf.operationId}: ${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
 
   let html = `<div class="compact-row">`;
-  html += buildSegmentsHTML(inst, true);
+  html += buildLabelsHTML(wf, true);
   html += `<span class="compact-name">${esc(wfLabel)}</span>`;
 
   html += `<div class="compact-pipeline">`;
@@ -158,8 +151,7 @@ export const buildCompactCardHTML = (wf, isStatic) => {
   if (retries > 0) html += `<span class="retry-badge">&#8635;${retries}</span>`;
   html += `<span class="status-pill ${wf.status} compact-pill">${wf.status}</span>`;
   html += buildTimestampsHTML(wf, isStatic);
-  html += copyIconHTML(inst.instanceGuid);
-  html += openIconHTML(inst);
+  html += copyIconHTML(wf.idempotencyKey, 'Copy idempotency key');
   if (wf.hasState) html += stateIconHTML(wf);
   if (wf.traceId) html += traceIconHTML(wf.traceId);
   html += `</div>`;
@@ -173,19 +165,17 @@ export const buildCompactCardHTML = (wf, isStatic) => {
  * @returns {string}
  */
 export const buildScheduledCardHTML = (wf) => {
-  const { instance: inst } = wf;
   const tx = parseTransition(wf);
   const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
   let html = `<div class="card-header">`;
-  html += buildSegmentsHTML(inst, false);
+  html += buildLabelsHTML(wf, false);
   html += `<span class="wf-name">${esc(wfLabel)}</span>`;
   html += `<span class="header-spacer"></span>`;
   if (wf.startAt) {
     html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
   }
   html += `<span class="status-pill scheduled" style="animation:none">Scheduled</span>`;
-  html += copyIconHTML(inst.instanceGuid);
-  html += openIconHTML(inst);
+  html += copyIconHTML(wf.idempotencyKey, 'Copy idempotency key');
   html += `</div>`;
   html += buildPipelineHTML(wf, true);
   return html;
@@ -197,11 +187,10 @@ export const buildScheduledCardHTML = (wf) => {
  * @returns {string}
  */
 export const buildCompactScheduledCardHTML = (wf) => {
-  const { instance: inst } = wf;
   const tx = parseTransition(wf);
   const wfLabel = tx ? `${tx.from || 'Start Event'} \u2192 ${tx.to}` : wf.operationId;
   let html = `<div class="compact-row">`;
-  html += buildSegmentsHTML(inst, false);
+  html += buildLabelsHTML(wf, false);
   html += `<span class="compact-name">${esc(wfLabel)}</span>`;
   html += `<div class="compact-pipeline">`;
   for (const step of wf.steps) {
@@ -212,8 +201,7 @@ export const buildCompactScheduledCardHTML = (wf) => {
     html += `<span class="elapsed" data-starts-at="${esc(wf.startAt)}"></span>`;
   }
   html += `<span class="status-pill scheduled compact-pill" style="animation:none">Scheduled</span>`;
-  html += copyIconHTML(inst.instanceGuid);
-  html += openIconHTML(inst);
+  html += copyIconHTML(wf.idempotencyKey, 'Copy idempotency key');
   html += `</div>`;
   return html;
 };
@@ -239,7 +227,11 @@ export const createWorkflowCard = (wf, elId) => {
 
 /** @param {import('../core/state.js').Workflow} wf @returns {string} */
 const buildFilterText = (wf) => {
-  const parts = [wf.instance.org, wf.instance.app, wf.instance.instanceOwnerPartyId, wf.instance.instanceGuid, wf.operationId];
+  const parts = [wf.namespace, wf.operationId, wf.idempotencyKey];
+  if (wf.labels) {
+    for (const [k, v] of Object.entries(wf.labels)) parts.push(k, v);
+  }
+  if (wf.correlationId) parts.push(wf.correlationId);
   for (const s of wf.steps) parts.push(s.commandDetail, s.operationId);
   return parts.join(' ').toLowerCase();
 };
@@ -262,8 +254,8 @@ export const setCardFilterData = (card, wf) => {
   workflowData[wf.idempotencyKey] = wf;
   card.dataset.filter = buildFilterText(wf);
   card.dataset.status = buildStatusTags(wf);
-  card.dataset.org = wf.instance.org.toLowerCase();
-  card.dataset.app = wf.instance.app.toLowerCase();
-  card.dataset.party = String(wf.instance.instanceOwnerPartyId);
-  card.dataset.guid = wf.instance.instanceGuid.toLowerCase();
+  card.dataset.namespace = wf.namespace.toLowerCase();
+  if (wf.labels) {
+    card.dataset.labels = Object.entries(wf.labels).map(([k, v]) => `${k}:${v}`).join(',').toLowerCase();
+  }
 };

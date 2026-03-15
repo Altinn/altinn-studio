@@ -1,6 +1,9 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WorkflowEngine.Data.Entities;
+using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Context;
 
@@ -23,20 +26,29 @@ internal sealed class EngineDbContext : DbContext
             // Indexes
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.CreatedAt);
-            entity.HasIndex(e => new
-            {
-                e.InstanceOrg,
-                e.InstanceApp,
-                e.InstanceGuid,
-            });
-            entity.HasIndex(e => new { e.InstanceGuid, e.Status });
             entity.HasIndex(e => e.CorrelationId);
             entity.HasIndex(e => new { e.Namespace, e.Status });
 
             entity
                 .HasIndex(e => new { e.BackoffUntil, e.CreatedAt })
-                .HasFilter("\"Status\" IN (0, 2)")
+                .HasFilter(
+                    $"\"Status\" IN ({(int)PersistentItemStatus.Enqueued}, {(int)PersistentItemStatus.Requeued})"
+                )
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
+
+            // Dictionary<string,string> ↔ jsonb: EF/Npgsql handles this for normal queries,
+            // but our SqlBulkInserter uses COPY BINARY which needs an explicit value converter.
+            entity
+                .Property(e => e.Labels)
+                .HasConversion(
+                    new ValueConverter<Dictionary<string, string>?, string>(
+                        v => JsonSerializer.Serialize(v, JsonSerializerOptions.Default),
+                        v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, JsonSerializerOptions.Default)!
+                    )
+                );
+
+            // GIN index on Labels for flexible filtering
+            entity.HasIndex(e => e.Labels).HasMethod("gin");
 
             // Self-referencing many-to-many: a workflow can depend on many other workflows
             entity
@@ -75,18 +87,10 @@ internal sealed class EngineDbContext : DbContext
             entity.HasIndex(e => new { e.JobId, e.Status });
         });
 
-        // Configure idempotency key entity
+        // Configure IdempotencyKey entity
         modelBuilder.Entity<IdempotencyKeyEntity>(entity =>
         {
-            entity.ToTable("idempotency_keys");
-
             entity.HasKey(e => new { e.IdempotencyKey, e.Namespace });
-
-            entity.Property(e => e.IdempotencyKey).HasColumnName("idempotency_key");
-            entity.Property(e => e.Namespace).HasColumnName("namespace");
-            entity.Property(e => e.RequestBodyHash).HasColumnName("request_body_hash").HasColumnType("bytea");
-            entity.Property(e => e.WorkflowIds).HasColumnName("workflow_ids").HasColumnType("uuid[]");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp with time zone");
         });
     }
 }

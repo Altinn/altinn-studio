@@ -7,7 +7,7 @@
   - [x] [WorkflowType](src/WorkflowEngine.Models/WorkflowType.cs) and [ConcurrencyPolicy](src/WorkflowEngine.Models/ConcurrencyPolicy.cs) can be removed.
 - [x] Cascading failures will be handled by the engine organically, the stored procedure should be removed: [cascade_dependency_failures.sql](src/WorkflowEngine.Data/Sql/Functions/cascade_dependency_failures.sql)
   - [x] Remove `EnginePgRepository.CascadeDependencyFailures` and all references to it.
-- [x] Remove [ConcurrentBuffer](src/WorkflowEngine.Api/ConcurrentBuffer.cs) and its usages.
+- [x] Remove ConcurrentBuffer and its usages.
   - [x] This includes removing the whole Engine.ShouldRun concept.
 - [x] Remove the `Engine.HaveWork` check. This is now replaced by the result of the db query.
 - [ ] Add a timestamp to the `Workflow`, which is used to determine if a workflow is "stuck" in a processing state (worker has crashed)
@@ -38,7 +38,7 @@
 - [x] `GetFinishedWorkflowsWithCount` is currently not covered.
 - [x] `RetryErrorHandler` is currently not covered, because we never trigger a database communication failure during testing.
 
-### [Telemetry and health collectors](src/WorkflowEngine.Api)
+### Telemetry and health collectors
 - [ ] `HealthEngineChecks` and `MetricsCollector` should use their own separate db-concurrency mechanism, disconnected from the API and workflow processing.
 
 #### Tests

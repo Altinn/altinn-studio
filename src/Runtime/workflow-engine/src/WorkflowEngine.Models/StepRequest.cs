@@ -9,10 +9,16 @@ namespace WorkflowEngine.Models;
 public sealed record StepRequest
 {
     /// <summary>
+    /// A human-readable identifier for this operation (used in logs, telemetry, and idempotency keys).
+    /// </summary>
+    [JsonPropertyName("operationId")]
+    public required string OperationId { get; init; }
+
+    /// <summary>
     /// The command to be executed by the process engine.
     /// </summary>
     [JsonPropertyName("command")]
-    public required Command Command { get; init; }
+    public required CommandDefinition Command { get; init; }
 
     /// <summary>
     /// An optional retry strategy for the task. If none given, the default strategy will be used.

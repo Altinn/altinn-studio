@@ -1,6 +1,5 @@
 namespace WorkflowEngine.Models.Extensions;
 
-// TODO: Definitely write some tests for these guys
 public static class HealthStatusExtensions
 {
     extension(EngineHealthStatus status)

@@ -11,21 +11,16 @@ public class WorkflowEntityTests
             Id = Guid.Parse("11111111-2222-3333-4444-555555555555"),
             CorrelationId = Guid.Parse("22222222-3333-4444-5555-666666666666"),
             IdempotencyKey = "wf-key",
-            InstanceLockKey = "lock-key-1",
+            Namespace = "test-tenant",
             OperationId = "next",
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
             StartAt = new DateTimeOffset(2025, 6, 15, 12, 0, 0, TimeSpan.Zero),
             UpdatedAt = new DateTimeOffset(2025, 6, 15, 10, 35, 0, TimeSpan.Zero),
             BackoffUntil = new DateTimeOffset(2025, 6, 15, 12, 31, 0, TimeSpan.Zero),
             Status = PersistentItemStatus.Processing,
-            ActorUserIdOrOrgNumber = "user-123",
-            ActorLanguage = "nb",
-            InstanceOrg = "ttd",
-            InstanceApp = "test-app",
-            InstanceOwnerPartyId = 50001,
-            InstanceGuid = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-            Namespace = "default",
-            TraceContext = "trace-ctx-abc",
+            Labels = new Dictionary<string, string> { ["env"] = "test" },
+            ContextJson = """{"key":"value"}""",
+            DistributedTraceContext = "trace-ctx-abc",
             Steps = steps.ToList(),
         };
 
@@ -38,9 +33,7 @@ public class WorkflowEntityTests
             Status = PersistentItemStatus.Enqueued,
             ProcessingOrder = order,
             CreatedAt = new DateTimeOffset(2025, 6, 15, 10, 30, 0, TimeSpan.Zero),
-            ActorUserIdOrOrgNumber = "user-123",
-            ActorLanguage = "nb",
-            CommandJson = """{"type":"app","commandKey":"noop"}""",
+            CommandJson = """{"type":"app"}""",
         };
 
     [Fact]
@@ -56,25 +49,19 @@ public class WorkflowEntityTests
         // Assert
         Assert.Equal(entity.Id, roundTripped.Id);
         Assert.Equal(entity.CorrelationId, roundTripped.CorrelationId);
-        Assert.Equal(entity.InstanceLockKey, roundTripped.InstanceLockKey);
+        Assert.Equal(entity.Namespace, roundTripped.Namespace);
         Assert.Equal(entity.OperationId, roundTripped.OperationId);
         Assert.Equal(entity.CreatedAt, roundTripped.CreatedAt);
         Assert.Equal(entity.StartAt, roundTripped.StartAt);
         Assert.Equal(entity.UpdatedAt, roundTripped.UpdatedAt);
         Assert.Equal(entity.BackoffUntil, roundTripped.BackoffUntil);
         Assert.Equal(entity.Status, roundTripped.Status);
-        Assert.Equal(entity.TraceContext, roundTripped.TraceContext);
-        Assert.Equal(entity.ActorUserIdOrOrgNumber, roundTripped.ActorUserIdOrOrgNumber);
-        Assert.Equal(entity.ActorLanguage, roundTripped.ActorLanguage);
-        Assert.Equal(entity.InstanceOrg, roundTripped.InstanceOrg);
-        Assert.Equal(entity.InstanceApp, roundTripped.InstanceApp);
-        Assert.Equal(entity.InstanceOwnerPartyId, roundTripped.InstanceOwnerPartyId);
-        Assert.Equal(entity.InstanceGuid, roundTripped.InstanceGuid);
+        Assert.Equal(entity.DistributedTraceContext, roundTripped.DistributedTraceContext);
         Assert.Equal(entity.Steps.Count, roundTripped.Steps.Count);
     }
 
     [Fact]
-    public void ToDomainModel_MapsActorAndInstanceFieldsCorrectly()
+    public void ToDomainModel_MapsNamespaceAndLabelsCorrectly()
     {
         // Arrange
         var entity = CreateWorkflowEntity();
@@ -83,13 +70,11 @@ public class WorkflowEntityTests
         var domain = entity.ToDomainModel();
 
         // Assert
+        Assert.Equal("test-tenant", domain.Namespace);
         Assert.Equal(Guid.Parse("22222222-3333-4444-5555-666666666666"), domain.CorrelationId);
-        Assert.Equal("user-123", domain.Actor.UserIdOrOrgNumber);
-        Assert.Equal("nb", domain.Actor.Language);
-        Assert.Equal("ttd", domain.InstanceInformation.Org);
-        Assert.Equal("test-app", domain.InstanceInformation.App);
-        Assert.Equal(50001, domain.InstanceInformation.InstanceOwnerPartyId);
-        Assert.Equal(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"), domain.InstanceInformation.InstanceGuid);
+        Assert.NotNull(domain.Labels);
+        Assert.Equal("test", domain.Labels["env"]);
+        Assert.NotNull(domain.Context);
     }
 
     [Fact]
