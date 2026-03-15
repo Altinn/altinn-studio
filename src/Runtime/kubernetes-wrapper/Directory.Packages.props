@@ -16,11 +16,11 @@
     <!-- Static analysis, formatting -->
     <PackageVersion Include="CSharpier.MsBuild" Version="1.2.6" />
     <PackageVersion Include="Nullable.Extended.Analyzer" Version="1.15.6581" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.19.0.132793" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.20.0.135146" />
 
     <!-- Testing -->
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.13" />
-    <PackageVersion Include="TUnit" Version="1.17.54" />
+    <PackageVersion Include="TUnit" Version="1.19.22" />
     <PackageVersion Include="Verify.TUnit" Version="31.13.2" />
   </ItemGroup>
 </Project>
