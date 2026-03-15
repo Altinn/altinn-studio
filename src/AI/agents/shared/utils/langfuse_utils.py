@@ -58,6 +58,50 @@ def get_langfuse_client() -> Langfuse | None:
     return _client
 
 
+def fetch_langfuse_prompt(
+    prompt_name: str,
+    variables: dict | None = None,
+    *,
+    label: str | None = None,
+    version: int | None = None,
+    cache_ttl_seconds: int | None = None,
+) -> str:
+    """
+    Fetch a prompt from Langfuse by name.
+
+    When variables are provided, they are substituted into the prompt using
+    Langfuse's {{variable}} syntax.
+
+    Args:
+        prompt_name: Name of the prompt in Langfuse
+        variables: Optional dictionary of variables to substitute into the prompt
+        label: Optional label (e.g. "production", "latest"). Defaults to "production" in Langfuse.
+        version: Optional specific version number to fetch
+        cache_ttl_seconds: Optional cache TTL override in seconds
+
+    Returns:
+        Compiled prompt content as string
+
+    Raises:
+        RuntimeError: If Langfuse client is not initialized
+        Exception: If prompt not found in Langfuse
+    """
+    client = get_langfuse_client()
+    if client is None:
+        raise RuntimeError("Langfuse client not initialized")
+
+    kwargs = {}
+    if label is not None:
+        kwargs["label"] = label
+    if version is not None:
+        kwargs["version"] = version
+    if cache_ttl_seconds is not None:
+        kwargs["cache_ttl_seconds"] = cache_ttl_seconds
+
+    prompt = client.get_prompt(prompt_name, type="text", **kwargs)
+    return prompt.compile(**(variables or {}))
+
+
 def flush_langfuse():
     """Flush any pending Langfuse events (for short-lived applications)"""
     if _client and is_langfuse_enabled():
