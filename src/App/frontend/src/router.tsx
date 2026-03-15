@@ -27,21 +27,10 @@ export function createRouter(queryClient: QueryClient) {
     [
       {
         Component: AppLayout,
+        HydrateFallback: () => null,
         children: [
           {
-            path: routes.instanceSelection,
-            Component: InstanceSelectionRoute,
-            loader: instanceSelectionLoader(queryClient),
-          },
-          {
-            path: routes.partySelection,
-            loader: partySelectionLoader(queryClient),
-            children: [
-              { index: true, Component: PartySelectionRoute },
-              { path: '*', Component: PartySelectionRoute },
-            ],
-          },
-          {
+            path: routes.root,
             Component: IndexRoute,
             loader: indexLoader(queryClient),
             children: [
@@ -87,6 +76,19 @@ export function createRouter(queryClient: QueryClient) {
                   },
                 ],
               },
+            ],
+          },
+          {
+            path: routes.instanceSelection,
+            Component: InstanceSelectionRoute,
+            loader: instanceSelectionLoader(queryClient),
+          },
+          {
+            path: routes.partySelection,
+            loader: partySelectionLoader(queryClient),
+            children: [
+              { index: true, Component: PartySelectionRoute },
+              { path: '*', Component: PartySelectionRoute },
             ],
           },
         ],

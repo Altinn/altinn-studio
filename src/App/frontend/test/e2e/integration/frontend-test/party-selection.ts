@@ -193,6 +193,7 @@ describe('Party selection', () => {
     cy.findAllByText(/org\.nr\. \d+/)
       .first()
       .click();
+
     cy.get(appFrontend.altinnError).should('contain.text', texts.missingRights);
 
     // Try again with another party
