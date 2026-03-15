@@ -132,7 +132,6 @@ const defaultProps: CompleteInterfaceProps = {
   onSelectThread,
   chatThreads: mockChatThreads,
   activeThreadId: '1',
-  connectionStatus: 'connected',
   workflowStatus: { isActive: true },
   previewContent: <p>Preview placeholder</p>,
 };

@@ -16,7 +16,6 @@ function AiAssistant(): ReactElement {
   const userHasAccessToAssistant = useAltinityPermissions();
 
   const {
-    connectionStatus,
     workflowStatus,
     chatThreads,
     currentSessionId,
@@ -69,7 +68,6 @@ function AiAssistant(): ReactElement {
         onSelectThread={selectThread}
         onCreateThread={createNewThread}
         onDeleteThread={deleteThread}
-        connectionStatus={connectionStatus}
         workflowStatus={workflowStatus}
         previewContent={<Preview />}
         fileBrowserContent={<FileBrowser />}

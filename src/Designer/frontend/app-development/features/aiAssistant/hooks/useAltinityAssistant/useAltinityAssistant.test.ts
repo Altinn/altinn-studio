@@ -23,7 +23,6 @@ describe('useAltinityAssistant', () => {
 
     mockUseAltinityThreads.mockReturnValue(threads);
     mockUseAltinityWorkflow.mockReturnValue({
-      connectionStatus: 'connected',
       workflowStatus: { isActive: false },
       onSubmitMessage: jest.fn(),
       resetWorkflowStatus,

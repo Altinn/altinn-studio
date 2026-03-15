@@ -4,7 +4,6 @@ import type { ChatThread, UserMessage } from '../types/ChatThread';
 import { CompactInterface } from '../components/CompactInterface/CompactInterface';
 import { CompleteInterface } from '../components/CompleteInterface/CompleteInterface';
 import type { AssistantTexts } from '../types/AssistantTexts';
-import type { ConnectionStatus } from '../types/ConnectionStatus';
 import type { WorkflowStatus } from '../types/WorkflowStatus';
 import type { User } from '../types/User';
 
@@ -13,7 +12,6 @@ export type AssistantProps = {
   chatThreads?: ChatThread[];
   enableCompactInterface?: boolean;
   activeThreadId: string;
-  connectionStatus: ConnectionStatus;
   onSubmitMessage: (message: UserMessage) => void;
   onSelectThread?: (threadId: string) => void;
   onDeleteThread?: (threadId: string) => void;
@@ -29,7 +27,6 @@ export function Assistant({
   chatThreads,
   enableCompactInterface = false,
   activeThreadId,
-  connectionStatus,
   workflowStatus,
   onSubmitMessage,
   onSelectThread,
@@ -46,7 +43,6 @@ export function Assistant({
       texts={texts}
       chatThreads={chatThreads}
       activeThreadId={activeThreadId}
-      connectionStatus={connectionStatus}
       workflowStatus={workflowStatus}
       onSubmitMessage={onSubmitMessage}
       onSelectThread={onSelectThread}
