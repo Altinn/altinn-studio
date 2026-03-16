@@ -157,6 +157,7 @@ public sealed class FormBootstrapService
 
         var dataModelsTask = LoadStatelessDataModels(
             referencedDataTypes,
+            defaultDataType,
             language,
             prefillFromQueryParams,
             cancellationToken
@@ -277,6 +278,7 @@ public sealed class FormBootstrapService
 
     private async Task<Dictionary<string, DataModelInfo>> LoadStatelessDataModels(
         HashSet<string> dataTypes,
+        string defaultDataType,
         string language,
         Dictionary<string, Dictionary<string, string>>? prefillFromQueryParams = null,
         CancellationToken cancellationToken = default
@@ -329,6 +331,12 @@ public sealed class FormBootstrapService
             }
             catch (Exception ex)
             {
+                if (string.Equals(dataType, defaultDataType, StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogError(ex, "Failed to load default stateless data model for type {DataType}", dataType);
+                    throw;
+                }
+
                 _logger.LogWarning(ex, "Failed to load stateless data model for type {DataType}", dataType);
             }
         }

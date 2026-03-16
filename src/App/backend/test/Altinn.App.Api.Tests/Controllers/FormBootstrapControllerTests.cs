@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Tests.Controllers.TestResources;
+using Altinn.App.Api.Tests.Mocks;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
@@ -227,6 +228,29 @@ public class FormBootstrapControllerTests
         pdp.Verify(x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()), Times.Once);
     }
 
+    [Fact]
+    public async Task GetStatelessFormBootstrap_AuthenticatedUser_AnonymousFolder_DoesNotRequireReadAccess()
+    {
+        var appResources = CreateStatelessAppResources();
+        var authContext = new Mock<IAuthenticationContext>();
+        authContext.Setup(x => x.Current).Returns(TestAuthentication.GetUserAuthentication(userPartyId: 501337));
+
+        var pdp = new Mock<IPDP>(MockBehavior.Strict);
+        var controller = CreateController(
+            Mock.Of<IInstanceClient>(),
+            appResources.Object,
+            authContext.Object,
+            pdp.Object,
+            user: TestAuthentication.GetUserPrincipal(partyId: 501337)
+        );
+
+        var result = await controller.GetStatelessFormBootstrap("org", "app", "stateless");
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.IsType<FormBootstrapResponse>(ok.Value);
+        pdp.Verify(x => x.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>()), Times.Never);
+    }
+
     private static Mock<IAppResources> CreateStatelessAppResources()
     {
         var appResources = new Mock<IAppResources>();
@@ -295,7 +319,7 @@ public class FormBootstrapControllerTests
             appResources,
             appMetadataMock.Object,
             Mock.Of<IAppOptionsService>(),
-            Mock.Of<IAppModel>(),
+            new AppModelMock<DummyModel>(),
             Mock.Of<IPrefill>(),
             authenticationContext ?? Mock.Of<IAuthenticationContext>(),
             implementationServiceProvider,

@@ -187,15 +187,12 @@ public class FormBootstrapController : ControllerBase
             layoutSettings.DefaultDataType
         );
 
-        if (User.Identity?.IsAuthenticated != true)
+        var isAnonymousAllowed = await IsAnonymousAllowedForFolder(referencedDataTypes);
+        if (!isAnonymousAllowed && User.Identity?.IsAuthenticated != true)
         {
-            var isAnonymousAllowed = await IsAnonymousAllowedForFolder(referencedDataTypes);
-            if (!isAnonymousAllowed)
-            {
-                return Forbid();
-            }
+            return Forbid();
         }
-        else
+        else if (!isAnonymousAllowed)
         {
             var enforcementResult = await AuthorizeStatelessRead(org, app);
             if (!enforcementResult.Authorized)

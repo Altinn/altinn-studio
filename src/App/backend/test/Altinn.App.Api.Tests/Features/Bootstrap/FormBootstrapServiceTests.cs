@@ -317,6 +317,23 @@ public class FormBootstrapServiceTests
     }
 
     [Fact]
+    public async Task GetStatelessFormBootstrap_DefaultDataModelFailure_IsSurfaced()
+    {
+        var appMetadata = CreateAppMetadata("model");
+
+        SetupStatelessMocks(appMetadata);
+        _formDataReader
+            .Setup(x => x.ReadStatelessFormData(It.IsAny<object>(), It.IsAny<string?>(), It.IsAny<InstanceOwner?>()))
+            .ThrowsAsync(new InvalidOperationException("prefill failed"));
+
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.GetStatelessFormBootstrap("stateless", "nb", ["model"])
+        );
+    }
+
+    [Fact]
     public async Task GetInstanceFormBootstrap_PdfMode_DoesNotIncludeInitialValidationIssues()
     {
         var instance = CreateTestInstance("Task_1");
