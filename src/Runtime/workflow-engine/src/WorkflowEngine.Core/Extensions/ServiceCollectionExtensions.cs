@@ -167,6 +167,9 @@ public static class OptionsBuilderExtensions
                 if (config.DatabaseCommandTimeout <= TimeSpan.Zero)
                     config.DatabaseCommandTimeout = Defaults.EngineSettings.DatabaseCommandTimeout;
 
+                config.DefaultStepRetryStrategy ??= Defaults.EngineSettings.DefaultStepRetryStrategy;
+                config.DatabaseRetryStrategy ??= Defaults.EngineSettings.DatabaseRetryStrategy;
+
                 if (config.MaxWorkflowsPerRequest <= 0)
                     config.MaxWorkflowsPerRequest = Defaults.EngineSettings.MaxWorkflowsPerRequest;
 
@@ -185,16 +188,19 @@ public static class OptionsBuilderExtensions
                 if (config.Concurrency.MaxHttpCalls <= 0)
                     config.Concurrency.MaxHttpCalls = Defaults.EngineSettings.Concurrency.MaxHttpCalls;
 
-                foreach (var bufferSetting in new[] { config.WriteBuffer, config.UpdateBuffer })
+                ApplyBufferDefaults(config.WriteBuffer, Defaults.EngineSettings.WriteBuffer);
+                ApplyBufferDefaults(config.UpdateBuffer, Defaults.EngineSettings.UpdateBuffer);
+
+                static void ApplyBufferDefaults(BufferSettings target, BufferSettings defaults)
                 {
-                    if (bufferSetting.MaxBatchSize <= 0)
-                        bufferSetting.MaxBatchSize = Defaults.EngineSettings.WriteBuffer.MaxBatchSize;
+                    if (target.MaxBatchSize <= 0)
+                        target.MaxBatchSize = defaults.MaxBatchSize;
 
-                    if (bufferSetting.MaxQueueSize <= 0)
-                        bufferSetting.MaxQueueSize = Defaults.EngineSettings.WriteBuffer.MaxQueueSize;
+                    if (target.MaxQueueSize <= 0)
+                        target.MaxQueueSize = defaults.MaxQueueSize;
 
-                    if (bufferSetting.FlushConcurrency <= 0)
-                        bufferSetting.FlushConcurrency = Defaults.EngineSettings.WriteBuffer.FlushConcurrency;
+                    if (target.FlushConcurrency <= 0)
+                        target.FlushConcurrency = defaults.FlushConcurrency;
                 }
             });
 
