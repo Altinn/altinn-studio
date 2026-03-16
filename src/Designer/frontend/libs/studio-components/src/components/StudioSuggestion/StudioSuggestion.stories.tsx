@@ -1,4 +1,3 @@
-import type { ReactElement } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioSuggestion } from '.';
 
@@ -11,9 +10,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {
-  render: (args): ReactElement => (
+  render: (args) => (
     <StudioSuggestion {...args}>
-      <SuggestionExampleList />
+      <StudioSuggestion.Option label='Option 1' value='1'>
+        Option 1<div style={{ color: 'gray' }}>Description of option 1</div>
+      </StudioSuggestion.Option>
+      <StudioSuggestion.Option value='2'>Option 2</StudioSuggestion.Option>
+      <StudioSuggestion.Option value='3'>Option 3</StudioSuggestion.Option>
     </StudioSuggestion>
   ),
 
@@ -24,15 +27,3 @@ export const Preview: Story = {
     emptyText: 'Empty',
   },
 };
-
-function SuggestionExampleList(): ReactElement {
-  return (
-    <>
-      <StudioSuggestion.Option label='Option 1' value='1'>
-        Option 1<div style={{ color: 'gray' }}>Description of option 1</div>
-      </StudioSuggestion.Option>
-      <StudioSuggestion.Option value='2'>Option 2</StudioSuggestion.Option>
-      <StudioSuggestion.Option value='3'>Option 3</StudioSuggestion.Option>
-    </>
-  );
-}

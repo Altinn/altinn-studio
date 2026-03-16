@@ -19,7 +19,7 @@ export default meta;
 type Story = StoryObj<typeof StudioInlineTextField>;
 
 export const Preview: Story = {
-  render: (args): ReactElement => {
+  render: (args) => {
     const [value, setValue] = useState(args.value ?? '');
 
     return (

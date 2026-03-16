@@ -1,4 +1,3 @@
-import type { ReactElement } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioPopover } from './';
 
@@ -17,7 +16,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Preview: Story = {
-  render: (args): ReactElement => (
+  render: (args) => (
     <StudioPopover.TriggerContext>
       <StudioPopover.Trigger>Trigger</StudioPopover.Trigger>
       <StudioPopover {...args}>Content</StudioPopover>
