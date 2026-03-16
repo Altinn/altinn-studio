@@ -35,7 +35,7 @@ internal sealed class EngineStatusProvider : IEngineStatus
 
     public EngineStatusProvider(IOptions<EngineSettings> options)
     {
-        _maxWorkers = options.Value.MaxWorkers;
+        _maxWorkers = options.Value.Concurrency.MaxWorkers;
     }
 
     /// <summary>

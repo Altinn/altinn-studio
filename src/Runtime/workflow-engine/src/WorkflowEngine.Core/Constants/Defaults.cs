@@ -10,9 +10,6 @@ internal static class Defaults
 {
     public static readonly EngineSettings EngineSettings = new()
     {
-        MaxWorkers = 400,
-        MaxConcurrentHttpCalls = 400,
-        MaxConcurrentDbOperations = 90,
         MaxWorkflowsPerRequest = 100,
         MaxStepsPerWorkflow = 50,
         MaxLabels = 50,
@@ -27,5 +24,23 @@ internal static class Defaults
             baseInterval: TimeSpan.FromMilliseconds(100),
             maxDelay: TimeSpan.FromMinutes(2)
         ),
+        Concurrency = new ConcurrencySettings()
+        {
+            MaxWorkers = 400,
+            MaxHttpCalls = 400,
+            MaxDbOperations = 90,
+        },
+        WriteBuffer = new BufferSettings
+        {
+            FlushConcurrency = 8,
+            MaxBatchSize = 100,
+            MaxQueueSize = 10_000,
+        },
+        UpdateBuffer = new BufferSettings
+        {
+            FlushConcurrency = 8,
+            MaxBatchSize = 50,
+            MaxQueueSize = 5_000,
+        },
     };
 }

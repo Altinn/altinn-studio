@@ -38,7 +38,9 @@ public sealed class EngineWebApplicationFactory<TProgram> : WebApplicationFactor
                     $$"""
                     {
                       "EngineSettings": {
-                        "MaxWorkers": 10,
+                        "Concurrency": {
+                          "MaxWorkers": 10
+                        },
                         "DefaultStepRetryStrategy": {
                           "BackoffType": "Constant",
                           "BaseInterval": "00:00:00.100",

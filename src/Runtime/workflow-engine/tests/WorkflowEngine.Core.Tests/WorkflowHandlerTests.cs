@@ -21,19 +21,22 @@ public class WorkflowHandlerTests
     {
         settings ??= new EngineSettings
         {
-            MaxWorkers = 5,
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
             DatabaseRetryStrategy = RetryStrategy.None(),
-            MaxConcurrentDbOperations = 5,
-            MaxConcurrentHttpCalls = 5,
             MaxWorkflowsPerRequest = 100,
             MaxStepsPerWorkflow = 50,
             MaxLabels = 50,
+            Concurrency = new()
+            {
+                MaxWorkers = 5,
+                MaxDbOperations = 5,
+                MaxHttpCalls = 5,
+            },
         };
 
-        var buffer = new Mock<IStatusWriteBuffer>();
+        var buffer = new Mock<IWorkflowUpdateBuffer>();
         buffer
             .Setup(b => b.SubmitAsync(It.IsAny<Workflow>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
@@ -112,16 +115,19 @@ public class WorkflowHandlerTests
         var executor = MockExecutor(ExecutionResult.RetryableError("transient"));
         var settings = new EngineSettings
         {
-            MaxWorkers = 5,
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
             DatabaseRetryStrategy = RetryStrategy.None(),
-            MaxConcurrentDbOperations = 5,
-            MaxConcurrentHttpCalls = 5,
             MaxWorkflowsPerRequest = 100,
             MaxStepsPerWorkflow = 50,
             MaxLabels = 50,
+            Concurrency = new()
+            {
+                MaxWorkers = 5,
+                MaxDbOperations = 5,
+                MaxHttpCalls = 5,
+            },
         };
         var handler = CreateHandler(executor.Object, settings);
         var workflow = CreateWorkflow(CreateStep());
@@ -459,16 +465,19 @@ public class WorkflowHandlerTests
         var executor = MockExecutor(ExecutionResult.RetryableError("oops"));
         var settings = new EngineSettings
         {
-            MaxWorkers = 5,
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
             DatabaseRetryStrategy = RetryStrategy.None(),
-            MaxConcurrentDbOperations = 5,
-            MaxConcurrentHttpCalls = 5,
             MaxWorkflowsPerRequest = 100,
             MaxStepsPerWorkflow = 50,
             MaxLabels = 50,
+            Concurrency = new()
+            {
+                MaxWorkers = 5,
+                MaxDbOperations = 5,
+                MaxHttpCalls = 5,
+            },
         };
         var handler = CreateHandler(executor.Object, settings);
         var workflow = CreateWorkflow(CreateStep());

@@ -14,7 +14,7 @@ namespace WorkflowEngine.Core;
 /// <summary>
 /// Abstraction for submitting workflow status updates for batched persistence.
 /// </summary>
-internal interface IStatusWriteBuffer
+internal interface IWorkflowUpdateBuffer
 {
     /// <summary>
     /// Submits a workflow and its dirty steps for batched persistence.
@@ -29,25 +29,25 @@ internal interface IStatusWriteBuffer
 /// that the update has been persisted. A background loop drains the channel and flushes
 /// updates to the database.
 /// </summary>
-internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
+internal sealed class WorkflowUpdateBuffer : BackgroundService, IWorkflowUpdateBuffer
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<StatusWriteBuffer> _logger;
-    private readonly Channel<StatusUpdateRequest> _channel;
-    private readonly StatusWriteBufferOptions _options;
+    private readonly ILogger<WorkflowUpdateBuffer> _logger;
+    private readonly Channel<WorkflowUpdateRequest> _channel;
+    private readonly EngineSettings _settings;
 
-    public StatusWriteBuffer(
+    public WorkflowUpdateBuffer(
         IServiceScopeFactory scopeFactory,
-        ILogger<StatusWriteBuffer> logger,
-        IOptions<StatusWriteBufferOptions> options
+        ILogger<WorkflowUpdateBuffer> logger,
+        IOptions<EngineSettings> settings
     )
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
-        _options = options.Value;
+        _settings = settings.Value;
 
-        _channel = Channel.CreateBounded<StatusUpdateRequest>(
-            new BoundedChannelOptions(_options.MaxQueueSize)
+        _channel = Channel.CreateBounded<WorkflowUpdateRequest>(
+            new BoundedChannelOptions(_settings.UpdateBuffer.MaxQueueSize)
             {
                 FullMode = BoundedChannelFullMode.Wait,
                 SingleReader = false,
@@ -65,7 +65,7 @@ internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
         var dirtySteps = workflow.Steps.Where(s => s.HasPendingChanges).ToList();
 
         using var activity = Metrics.Source.StartActivity(
-            "StatusWriteBuffer.SubmitAsync",
+            "WorkflowUpdateBuffer.SubmitAsync",
             parentContext: workflow.EngineActivity?.Context,
             tags:
             [
@@ -82,7 +82,7 @@ internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
         // after the write but before the registration is in place
         await using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
 
-        var request = new StatusUpdateRequest(workflow, dirtySteps, tcs);
+        var request = new WorkflowUpdateRequest(workflow, dirtySteps, tcs);
 
         await _channel.Writer.WriteAsync(request, ct);
 
@@ -92,13 +92,13 @@ internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation(
-            "StatusWriteBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})",
-            _options.MaxBatchSize,
-            _options.FlushConcurrency
+            "WorkflowUpdateBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})",
+            _settings.UpdateBuffer.MaxBatchSize,
+            _settings.UpdateBuffer.FlushConcurrency
         );
 
-        using var flushSemaphore = new SemaphoreSlim(_options.FlushConcurrency);
-        var batch = new List<StatusUpdateRequest>(_options.MaxBatchSize);
+        using var flushSemaphore = new SemaphoreSlim(_settings.UpdateBuffer.FlushConcurrency);
+        var batch = new List<WorkflowUpdateRequest>(_settings.UpdateBuffer.MaxBatchSize);
 
         try
         {
@@ -109,7 +109,7 @@ internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
                     break;
                 }
 
-                while (batch.Count < _options.MaxBatchSize && _channel.Reader.TryRead(out var item))
+                while (batch.Count < _settings.UpdateBuffer.MaxBatchSize && _channel.Reader.TryRead(out var item))
                 {
                     batch.Add(item);
                 }
@@ -117,7 +117,7 @@ internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
                 await flushSemaphore.WaitAsync(stoppingToken);
 
                 var batchToFlush = batch;
-                batch = new List<StatusUpdateRequest>(_options.MaxBatchSize);
+                batch = new List<WorkflowUpdateRequest>(_settings.UpdateBuffer.MaxBatchSize);
 
                 _ = FlushBatchAsync(batchToFlush, flushSemaphore, stoppingToken);
             }
@@ -138,10 +138,10 @@ internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
             await FlushBatchCoreAsync(batch, CancellationToken.None);
         }
 
-        _logger.LogInformation("StatusWriteBuffer shutdown complete");
+        _logger.LogInformation("WorkflowUpdateBuffer shutdown complete");
     }
 
-    private async Task FlushBatchAsync(List<StatusUpdateRequest> batch, SemaphoreSlim semaphore, CancellationToken ct)
+    private async Task FlushBatchAsync(List<WorkflowUpdateRequest> batch, SemaphoreSlim semaphore, CancellationToken ct)
     {
         try
         {
@@ -153,7 +153,7 @@ internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
         }
     }
 
-    private async Task FlushBatchCoreAsync(List<StatusUpdateRequest> batch, CancellationToken ct)
+    private async Task FlushBatchCoreAsync(List<WorkflowUpdateRequest> batch, CancellationToken ct)
     {
         // Filter out items whose callers have already cancelled
         for (int i = batch.Count - 1; i >= 0; i--)
@@ -170,7 +170,7 @@ internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
         }
 
         using var activity = Metrics.Source.StartActivity(
-            "StatusWriteBuffer.FlushBatchCoreAsync",
+            "WorkflowUpdateBuffer.FlushBatchCoreAsync",
             tags: [("batch.size", batch.Count)],
             links: batch.Select(x => Metrics.ParseTraceContext(x.Workflow.EngineTraceContext)).ToActivityLinks()
         );
@@ -191,7 +191,7 @@ internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Status flush failed for {Count} requests", batch.Count);
+            _logger.LogError(ex, "Update flush failed for {Count} requests", batch.Count);
             activity?.Errored(ex);
 
             // Fault all waiting callers
@@ -206,26 +206,8 @@ internal sealed class StatusWriteBuffer : BackgroundService, IStatusWriteBuffer
 /// <summary>
 /// A single status update request waiting in the buffer.
 /// </summary>
-internal sealed record StatusUpdateRequest(
+internal sealed record WorkflowUpdateRequest(
     Workflow Workflow,
     IReadOnlyList<Step> DirtySteps,
     TaskCompletionSource Completion
 );
-
-/// <summary>
-/// Configuration options for the <see cref="StatusWriteBuffer"/>.
-/// </summary>
-internal sealed class StatusWriteBufferOptions
-{
-    /// <summary>Maximum number of status updates per batch flush.</summary>
-    public int MaxBatchSize { get; set; } = 50;
-
-    /// <summary>Maximum time (ms) to wait for the batch to fill before flushing.</summary>
-    public int FlushIntervalMs { get; set; } = 5;
-
-    /// <summary>Maximum number of pending requests in the channel before backpressure is applied.</summary>
-    public int MaxQueueSize { get; set; } = 5_000;
-
-    /// <summary>Number of concurrent flush operations (each uses its own DB connection).</summary>
-    public int FlushConcurrency { get; set; } = 8;
-}

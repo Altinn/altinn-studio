@@ -28,8 +28,11 @@ internal sealed class WorkflowProcessor(
     /// </summary>
     internal static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(30);
 
-    private readonly int _maxWorkers = options.Value.MaxWorkers;
-    private readonly SemaphoreSlim _semaphore = new(options.Value.MaxWorkers, options.Value.MaxWorkers);
+    private readonly int _maxWorkers = options.Value.Concurrency.MaxWorkers;
+    private readonly SemaphoreSlim _semaphore = new(
+        options.Value.Concurrency.MaxWorkers,
+        options.Value.Concurrency.MaxWorkers
+    );
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

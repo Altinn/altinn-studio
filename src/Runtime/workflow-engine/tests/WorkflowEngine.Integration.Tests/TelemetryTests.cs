@@ -167,8 +167,8 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         );
 
         // === Status write phase ===
-        Assert.NotEmpty(collector.GetActivities("StatusWriteBuffer.SubmitAsync"));
-        Assert.NotEmpty(collector.GetActivities("StatusWriteBuffer.FlushBatchCoreAsync"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.SubmitAsync"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatchCoreAsync"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }
 
@@ -338,7 +338,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         AssertChildOf(execute, webhookCommand);
 
         //     └── Engine.SubmitStatusUpdate
-        var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "StatusWriteBuffer.SubmitAsync");
+        var submitStatus = SingleInTrace(collector, processWorkflow.TraceId, "WorkflowUpdateBuffer.SubmitAsync");
         AssertChildOf(processWorkflow, submitStatus);
 
         // ───────────────────────────────────────────────────────────
@@ -346,7 +346,7 @@ public sealed class TelemetryTests(EngineAppFixture<Program> fixture) : IAsyncLi
         // ───────────────────────────────────────────────────────────
         Assert.NotEmpty(collector.GetActivities("WorkflowWriteBuffer.FlushBatchCoreAsync"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchEnqueueWorkflowsAsync"));
-        Assert.NotEmpty(collector.GetActivities("StatusWriteBuffer.FlushBatchCoreAsync"));
+        Assert.NotEmpty(collector.GetActivities("WorkflowUpdateBuffer.FlushBatchCoreAsync"));
         Assert.NotEmpty(collector.GetActivities("EngineRepository.BatchUpdateWorkflowsAndSteps"));
     }
 

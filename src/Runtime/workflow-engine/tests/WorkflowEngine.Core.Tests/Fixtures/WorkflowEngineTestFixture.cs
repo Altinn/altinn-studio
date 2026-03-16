@@ -45,16 +45,19 @@ internal sealed record WorkflowEngineTestFixture(
 
         engineSettings ??= new EngineSettings
         {
-            MaxWorkers = 5,
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
             DatabaseRetryStrategy = RetryStrategy.None(),
-            MaxConcurrentDbOperations = 5,
-            MaxConcurrentHttpCalls = 5,
             MaxWorkflowsPerRequest = 100,
             MaxStepsPerWorkflow = 50,
             MaxLabels = 50,
+            Concurrency = new()
+            {
+                MaxWorkers = 5,
+                MaxDbOperations = 5,
+                MaxHttpCalls = 5,
+            },
         };
 
         var services = new ServiceCollection();
@@ -62,7 +65,7 @@ internal sealed record WorkflowEngineTestFixture(
         services.AddSingleton(Options.Create(engineSettings));
         services.AddLogging();
         services.AddSingleton<IConcurrencyLimiter>(
-            new ConcurrencyLimiter(engineSettings.MaxConcurrentDbOperations, engineSettings.MaxConcurrentHttpCalls)
+            new ConcurrencyLimiter(engineSettings.Concurrency.MaxDbOperations, engineSettings.Concurrency.MaxHttpCalls)
         );
 
         services.AddSingleton<ICommand, WebhookCommand>();

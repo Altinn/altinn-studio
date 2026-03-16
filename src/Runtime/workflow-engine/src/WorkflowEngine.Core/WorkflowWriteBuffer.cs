@@ -24,23 +24,23 @@ internal class WorkflowWriteBuffer : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<WorkflowWriteBuffer> _logger;
     private readonly Channel<BufferedEnqueueRequest> _channel;
-    private readonly WorkflowWriteBufferOptions _options;
+    private readonly EngineSettings _settings;
     private readonly AsyncSignal _workflowSignal;
 
     public WorkflowWriteBuffer(
         IServiceScopeFactory scopeFactory,
         ILogger<WorkflowWriteBuffer> logger,
-        IOptions<WorkflowWriteBufferOptions> options,
+        IOptions<EngineSettings> settings,
         AsyncSignal workflowSignal
     )
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
-        _options = options.Value;
+        _settings = settings.Value;
         _workflowSignal = workflowSignal;
 
         _channel = Channel.CreateBounded<BufferedEnqueueRequest>(
-            new BoundedChannelOptions(_options.MaxQueueSize)
+            new BoundedChannelOptions(_settings.WriteBuffer.MaxQueueSize)
             {
                 FullMode = BoundedChannelFullMode.Wait,
                 SingleReader = true,
@@ -80,12 +80,12 @@ internal class WorkflowWriteBuffer : BackgroundService
     {
         _logger.LogInformation(
             "WorkflowWriteBuffer started (MaxBatchSize={MaxBatchSize}, Concurrency={Concurrency})",
-            _options.MaxBatchSize,
-            _options.FlushConcurrency
+            _settings.WriteBuffer.MaxBatchSize,
+            _settings.WriteBuffer.FlushConcurrency
         );
 
-        using var flushSemaphore = new SemaphoreSlim(_options.FlushConcurrency);
-        var batch = new List<BufferedEnqueueRequest>(_options.MaxBatchSize);
+        using var flushSemaphore = new SemaphoreSlim(_settings.WriteBuffer.FlushConcurrency);
+        var batch = new List<BufferedEnqueueRequest>(_settings.WriteBuffer.MaxBatchSize);
 
         try
         {
@@ -96,7 +96,7 @@ internal class WorkflowWriteBuffer : BackgroundService
                     break;
                 }
 
-                while (batch.Count < _options.MaxBatchSize && _channel.Reader.TryRead(out var item))
+                while (batch.Count < _settings.WriteBuffer.MaxBatchSize && _channel.Reader.TryRead(out var item))
                 {
                     batch.Add(item);
                 }
@@ -104,7 +104,7 @@ internal class WorkflowWriteBuffer : BackgroundService
                 await flushSemaphore.WaitAsync(stoppingToken);
 
                 var batchToFlush = batch;
-                batch = new List<BufferedEnqueueRequest>(_options.MaxBatchSize);
+                batch = new List<BufferedEnqueueRequest>(_settings.WriteBuffer.MaxBatchSize);
 
                 _ = FlushBatchAsync(batchToFlush, flushSemaphore, stoppingToken);
             }
@@ -115,7 +115,7 @@ internal class WorkflowWriteBuffer : BackgroundService
         }
 
         // Wait for all in-flight flushes to complete
-        for (int i = 0; i < _options.FlushConcurrency; i++)
+        for (int i = 0; i < _settings.WriteBuffer.FlushConcurrency; i++)
         {
             await flushSemaphore.WaitAsync(CancellationToken.None);
         }
@@ -242,19 +242,4 @@ internal class WorkflowWriteBuffer : BackgroundService
             }
         }
     }
-}
-
-/// <summary>
-/// Configuration options for the <see cref="WorkflowWriteBuffer"/>.
-/// </summary>
-internal sealed class WorkflowWriteBufferOptions
-{
-    /// <summary>Maximum number of enqueue requests per batch flush.</summary>
-    public int MaxBatchSize { get; set; } = 100;
-
-    /// <summary>Maximum number of pending requests in the channel before backpressure is applied.</summary>
-    public int MaxQueueSize { get; set; } = 10_000;
-
-    /// <summary>Number of concurrent flush operations (each uses its own DB connection).</summary>
-    public int FlushConcurrency { get; set; } = 8;
 }

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Altinn.Studio.Runtime.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -45,7 +47,7 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IConcurrencyLimiter, ConcurrencyLimiter>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
-                return new ConcurrencyLimiter(settings.MaxConcurrentDbOperations, settings.MaxConcurrentHttpCalls);
+                return new ConcurrencyLimiter(settings.Concurrency.MaxDbOperations, settings.Concurrency.MaxHttpCalls);
             });
 
             services.AddSingleton<IEngine, Engine>();
@@ -53,14 +55,12 @@ public static class ServiceCollectionExtensions
 
             services.AddSingleton<AsyncSignal>();
 
-            services.AddOptions<WorkflowWriteBufferOptions>().BindConfiguration("WorkflowWriteBuffer");
             services.AddSingleton<WorkflowWriteBuffer>();
             services.AddHostedService(sp => sp.GetRequiredService<WorkflowWriteBuffer>());
 
-            services.AddOptions<StatusWriteBufferOptions>().BindConfiguration("StatusWriteBuffer");
-            services.AddSingleton<StatusWriteBuffer>();
-            services.AddSingleton<IStatusWriteBuffer>(sp => sp.GetRequiredService<StatusWriteBuffer>());
-            services.AddHostedService(sp => sp.GetRequiredService<StatusWriteBuffer>());
+            services.AddSingleton<WorkflowUpdateBuffer>();
+            services.AddSingleton<IWorkflowUpdateBuffer>(sp => sp.GetRequiredService<WorkflowUpdateBuffer>());
+            services.AddHostedService(sp => sp.GetRequiredService<WorkflowUpdateBuffer>());
 
             services.AddHostedService<WorkflowProcessor>();
 
@@ -167,18 +167,6 @@ public static class OptionsBuilderExtensions
                 if (config.DatabaseCommandTimeout <= TimeSpan.Zero)
                     config.DatabaseCommandTimeout = Defaults.EngineSettings.DatabaseCommandTimeout;
 
-                config.DefaultStepRetryStrategy ??= Defaults.EngineSettings.DefaultStepRetryStrategy;
-                config.DatabaseRetryStrategy ??= Defaults.EngineSettings.DatabaseRetryStrategy;
-
-                if (config.MaxWorkers <= 0)
-                    config.MaxWorkers = Defaults.EngineSettings.MaxWorkers;
-
-                if (config.MaxConcurrentDbOperations <= 0)
-                    config.MaxConcurrentDbOperations = Defaults.EngineSettings.MaxConcurrentDbOperations;
-
-                if (config.MaxConcurrentHttpCalls <= 0)
-                    config.MaxConcurrentHttpCalls = Defaults.EngineSettings.MaxConcurrentHttpCalls;
-
                 if (config.MaxWorkflowsPerRequest <= 0)
                     config.MaxWorkflowsPerRequest = Defaults.EngineSettings.MaxWorkflowsPerRequest;
 
@@ -187,6 +175,27 @@ public static class OptionsBuilderExtensions
 
                 if (config.MaxLabels <= 0)
                     config.MaxLabels = Defaults.EngineSettings.MaxLabels;
+
+                if (config.Concurrency.MaxWorkers <= 0)
+                    config.Concurrency.MaxWorkers = Defaults.EngineSettings.Concurrency.MaxWorkers;
+
+                if (config.Concurrency.MaxDbOperations <= 0)
+                    config.Concurrency.MaxDbOperations = Defaults.EngineSettings.Concurrency.MaxDbOperations;
+
+                if (config.Concurrency.MaxHttpCalls <= 0)
+                    config.Concurrency.MaxHttpCalls = Defaults.EngineSettings.Concurrency.MaxHttpCalls;
+
+                foreach (var bufferSetting in new[] { config.WriteBuffer, config.UpdateBuffer })
+                {
+                    if (bufferSetting.MaxBatchSize <= 0)
+                        bufferSetting.MaxBatchSize = Defaults.EngineSettings.WriteBuffer.MaxBatchSize;
+
+                    if (bufferSetting.MaxQueueSize <= 0)
+                        bufferSetting.MaxQueueSize = Defaults.EngineSettings.WriteBuffer.MaxQueueSize;
+
+                    if (bufferSetting.FlushConcurrency <= 0)
+                        bufferSetting.FlushConcurrency = Defaults.EngineSettings.WriteBuffer.FlushConcurrency;
+                }
             });
 
             return builder;

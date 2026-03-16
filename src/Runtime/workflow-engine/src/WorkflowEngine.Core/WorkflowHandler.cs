@@ -13,11 +13,11 @@ namespace WorkflowEngine.Core;
 
 /// <summary>
 /// Handles processing a single workflow to completion. Executes steps sequentially,
-/// applies retry/backoff logic, and submits dirty state to the <see cref="StatusWriteBuffer"/>.
+/// applies retry/backoff logic, and submits dirty state to the <see cref="WorkflowUpdateBuffer"/>.
 /// </summary>
 internal sealed class WorkflowHandler(
     IWorkflowExecutor executor,
-    IStatusWriteBuffer statusWriteBuffer,
+    IWorkflowUpdateBuffer statusWriteBuffer,
     IOptions<EngineSettings> settings,
     TimeProvider timeProvider,
     ILogger<WorkflowHandler> logger

@@ -121,16 +121,19 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
         var retrySettings = Options.Create(
             new EngineSettings
             {
-                MaxWorkers = 10,
                 DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
                 DefaultStepRetryStrategy = RetryStrategy.None(),
                 DatabaseCommandTimeout = TimeSpan.FromSeconds(30),
                 DatabaseRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(10), maxRetries: maxRetries),
-                MaxConcurrentDbOperations = 50,
-                MaxConcurrentHttpCalls = 50,
                 MaxWorkflowsPerRequest = 100,
                 MaxStepsPerWorkflow = 50,
                 MaxLabels = 50,
+                Concurrency = new()
+                {
+                    MaxWorkers = 10,
+                    MaxDbOperations = 50,
+                    MaxHttpCalls = 50,
+                },
             }
         );
 
