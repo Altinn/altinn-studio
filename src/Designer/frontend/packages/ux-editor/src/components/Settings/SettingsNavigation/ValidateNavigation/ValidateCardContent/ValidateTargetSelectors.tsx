@@ -3,12 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useFormLayoutsQuery } from '@altinn/ux-editor/hooks/queries/useFormLayoutsQuery';
-import {
-  dummyDataPages,
-  getAvailablePages,
-  getAvailableTasks,
-} from '../utils/ValidateNavigationUtils';
+import { getAvailablePages, getAvailableTasks } from '../utils/ValidateNavigationUtils';
 import { useValidationOnNavigationGroupedSettingsQuery } from '@altinn/ux-editor/hooks/queries/useValidationOnNavigationGroupedSettingsQuery';
+import { useValidationOnNavigationPageSettingsQuery } from '@altinn/ux-editor/hooks/queries/usePageValidationOnNavigationLayoutSettingsQuery';
 
 type RenderTaskOptionsProps = {
   tasksWithRules?: string[];
@@ -41,7 +38,6 @@ export const TaskSelector = ({
 }: TaskSelectorProps) => {
   const { t } = useTranslation();
   const initialSelectedTaskValue = initialSelectedTask?.value;
-  const dummyTasksWithRules = dummyDataPages.map((page) => page.task); // This is just to simulate the rules that are already set, in real implementation this will be replaced with fetched query data
 
   return (
     <StudioSuggestion
@@ -51,10 +47,7 @@ export const TaskSelector = ({
       onSelectedChange={onChange}
       multiple={false}
     >
-      <RenderTaskOptions
-        tasksWithRules={dummyTasksWithRules}
-        initialSelectedTasks={[initialSelectedTaskValue]}
-      />
+      <RenderTaskOptions initialSelectedTasks={[initialSelectedTaskValue]} />
     </StudioSuggestion>
   );
 };
@@ -106,11 +99,15 @@ export const PagesSelector = ({ selectedPages, taskName, onChange }: PagesSelect
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, taskName);
+  const { data: pageValidationData } = useValidationOnNavigationPageSettingsQuery(org, app);
+
+  const configsForTask = (pageValidationData ?? []).filter((config) => config.task === taskName);
+
   const availablePages = getAvailablePages(
     formLayouts,
-    dummyDataPages,
+    configsForTask,
     selectedPages?.map((p) => p.value),
-  ); // dummyDataPages is just to simulate the rules that are already set, in real implementation this will be replaced with fetched query data
+  );
 
   const noAvailablePages = taskName && availablePages.length === 0;
   const emptyText = noAvailablePages

@@ -41,6 +41,7 @@ import type {
   IFrontEndSettings,
   ILayoutSettings,
   IValidationOnNavigationLayoutSettings,
+  IValidationOnNavigationPageSettings,
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
@@ -133,6 +134,9 @@ export const queriesMock: ServicesContextProps = {
   getValidationOnNavigationLayoutSettings: jest
     .fn()
     .mockImplementation(() => Promise.resolve<IValidationOnNavigationLayoutSettings[]>([])),
+  getValidationOnNavigationPageSettings: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<IValidationOnNavigationPageSettings[]>([])),
   getFormLayouts: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponse>({})),
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
@@ -309,6 +313,7 @@ export const queriesMock: ServicesContextProps = {
   setStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateTaskNavigationGroup: jest.fn().mockImplementation(() => Promise.resolve()),
   updateValidationOnNavigationLayoutSettings: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateValidationOnNavigationPageSettings: jest.fn().mockImplementation(() => Promise.resolve()),
   unsetStarredRepo: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateDataType: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
