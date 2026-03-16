@@ -115,7 +115,7 @@ export function ProcessWrapper({ children }: PropsWithChildren) {
     return <Loader reason='redirect-to-receipt' />;
   }
 
-  if (!isValidTaskId) {
+  if (!validTaskId) {
     return (
       <PresentationComponent showNavigation={false}>
         <NavigationError label='general.invalid_task_id' />
