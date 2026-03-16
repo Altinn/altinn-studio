@@ -21,8 +21,7 @@ public class WorkflowHandlerTests
     {
         settings ??= new EngineSettings
         {
-            QueueCapacity = 10,
-            MaxDegreeOfParallelism = 5,
+            MaxWorkers = 5,
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
@@ -113,8 +112,7 @@ public class WorkflowHandlerTests
         var executor = MockExecutor(ExecutionResult.RetryableError("transient"));
         var settings = new EngineSettings
         {
-            QueueCapacity = 10,
-            MaxDegreeOfParallelism = 5,
+            MaxWorkers = 5,
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),
@@ -461,8 +459,7 @@ public class WorkflowHandlerTests
         var executor = MockExecutor(ExecutionResult.RetryableError("oops"));
         var settings = new EngineSettings
         {
-            QueueCapacity = 10,
-            MaxDegreeOfParallelism = 5,
+            MaxWorkers = 5,
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(100), maxRetries: 3),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),

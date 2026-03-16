@@ -10,10 +10,12 @@ internal static class Defaults
 {
     public static readonly EngineSettings EngineSettings = new()
     {
-        QueueCapacity = 10000,
-        MaxDegreeOfParallelism = 100,
+        MaxWorkers = 400,
+        MaxConcurrentHttpCalls = 400,
         MaxConcurrentDbOperations = 90,
-        MaxConcurrentHttpCalls = 500,
+        MaxWorkflowsPerRequest = 100,
+        MaxStepsPerWorkflow = 50,
+        MaxLabels = 50,
         DefaultStepCommandTimeout = TimeSpan.FromSeconds(100),
         DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),
@@ -25,8 +27,5 @@ internal static class Defaults
             baseInterval: TimeSpan.FromMilliseconds(100),
             maxDelay: TimeSpan.FromMinutes(2)
         ),
-        MaxWorkflowsPerRequest = 100,
-        MaxStepsPerWorkflow = 50,
-        MaxLabels = 50,
     };
 }

@@ -18,8 +18,7 @@ internal sealed class AsyncSignal
     /// </summary>
     public async Task WaitAsync(CancellationToken ct)
     {
-        var tcs = _tcs;
-        await tcs.Task.WaitAsync(ct);
+        await _tcs.Task.WaitAsync(ct);
     }
 
     /// <summary>

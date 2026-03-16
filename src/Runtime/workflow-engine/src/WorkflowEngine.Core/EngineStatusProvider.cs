@@ -33,7 +33,7 @@ internal sealed class EngineStatusProvider : IEngineStatus
     private readonly RecentWorkflowCache _recentWorkflows = new();
     private volatile SemaphoreSlim? _processorSemaphore;
 
-    public EngineStatusProvider(IOptions<WorkflowProcessorOptions> options)
+    public EngineStatusProvider(IOptions<EngineSettings> options)
     {
         _maxWorkers = options.Value.MaxWorkers;
     }

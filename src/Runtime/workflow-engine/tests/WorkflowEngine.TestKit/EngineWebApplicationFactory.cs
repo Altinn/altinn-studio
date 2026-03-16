@@ -38,8 +38,7 @@ public sealed class EngineWebApplicationFactory<TProgram> : WebApplicationFactor
                     $$"""
                     {
                       "EngineSettings": {
-                        "QueueCapacity": 100,
-                        "MaxDegreeOfParallelism": 10,
+                        "MaxWorkers": 10,
                         "DefaultStepRetryStrategy": {
                           "BackoffType": "Constant",
                           "BaseInterval": "00:00:00.100",

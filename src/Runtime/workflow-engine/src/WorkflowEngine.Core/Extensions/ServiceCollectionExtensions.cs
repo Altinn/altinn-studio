@@ -27,6 +27,13 @@ public static class ServiceCollectionExtensions
             if (!services.IsConfigured<ApiSettings>())
                 services.ConfigureApi(apiConfigSection);
 
+            // Command plugin system
+            services.AddSingleton<ICommandRegistry>(sp =>
+            {
+                var commands = sp.GetServices<ICommand>();
+                return new CommandRegistry(commands);
+            });
+
             services
                 .AddHttpClient()
                 .ConfigureHttpClientDefaults(builder =>
@@ -39,13 +46,6 @@ public static class ServiceCollectionExtensions
             {
                 var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
                 return new ConcurrencyLimiter(settings.MaxConcurrentDbOperations, settings.MaxConcurrentHttpCalls);
-            });
-
-            // Command plugin system
-            services.AddSingleton<ICommandRegistry>(sp =>
-            {
-                var commands = sp.GetServices<ICommand>();
-                return new CommandRegistry(commands);
             });
 
             services.AddSingleton<IEngine, Engine>();
@@ -62,7 +62,6 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IStatusWriteBuffer>(sp => sp.GetRequiredService<StatusWriteBuffer>());
             services.AddHostedService(sp => sp.GetRequiredService<StatusWriteBuffer>());
 
-            services.AddOptions<WorkflowProcessorOptions>().BindConfiguration("WorkflowProcessor");
             services.AddHostedService<WorkflowProcessor>();
 
             services.AddScoped<WorkflowHandler>();
@@ -162,9 +161,6 @@ public static class OptionsBuilderExtensions
         {
             builder.PostConfigure(config =>
             {
-                if (config.QueueCapacity <= 0)
-                    config.QueueCapacity = Defaults.EngineSettings.QueueCapacity;
-
                 if (config.DefaultStepCommandTimeout <= TimeSpan.Zero)
                     config.DefaultStepCommandTimeout = Defaults.EngineSettings.DefaultStepCommandTimeout;
 
@@ -174,14 +170,14 @@ public static class OptionsBuilderExtensions
                 config.DefaultStepRetryStrategy ??= Defaults.EngineSettings.DefaultStepRetryStrategy;
                 config.DatabaseRetryStrategy ??= Defaults.EngineSettings.DatabaseRetryStrategy;
 
+                if (config.MaxWorkers <= 0)
+                    config.MaxWorkers = Defaults.EngineSettings.MaxWorkers;
+
                 if (config.MaxConcurrentDbOperations <= 0)
                     config.MaxConcurrentDbOperations = Defaults.EngineSettings.MaxConcurrentDbOperations;
 
                 if (config.MaxConcurrentHttpCalls <= 0)
                     config.MaxConcurrentHttpCalls = Defaults.EngineSettings.MaxConcurrentHttpCalls;
-
-                if (config.MaxDegreeOfParallelism <= 0)
-                    config.MaxDegreeOfParallelism = Defaults.EngineSettings.MaxDegreeOfParallelism;
 
                 if (config.MaxWorkflowsPerRequest <= 0)
                     config.MaxWorkflowsPerRequest = Defaults.EngineSettings.MaxWorkflowsPerRequest;
@@ -202,11 +198,6 @@ public static class OptionsBuilderExtensions
         public OptionsBuilder<EngineSettings> ValidateEngineSettings()
         {
             const string ns = nameof(EngineSettings);
-
-            builder.Validate(
-                config => config.QueueCapacity > 0,
-                $"{ns}.{nameof(EngineSettings.QueueCapacity)} must be greater than zero."
-            );
 
             builder.Validate(
                 config => config.DefaultStepCommandTimeout > TimeSpan.Zero,

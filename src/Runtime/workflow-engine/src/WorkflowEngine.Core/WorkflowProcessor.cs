@@ -18,7 +18,7 @@ internal sealed class WorkflowProcessor(
     IEngineRepository repo,
     IServiceScopeFactory scopeFactory,
     AsyncSignal workflowSignal,
-    IOptions<WorkflowProcessorOptions> options,
+    IOptions<EngineSettings> options,
     IEngineStatus engineStatus,
     ILogger<WorkflowProcessor> logger
 ) : BackgroundService
@@ -136,15 +136,6 @@ internal sealed class WorkflowProcessor(
         _semaphore.Dispose();
         base.Dispose();
     }
-}
-
-/// <summary>
-/// Configuration options for the <see cref="WorkflowProcessor"/>.
-/// </summary>
-internal sealed class WorkflowProcessorOptions
-{
-    /// <summary>Maximum number of concurrent workflow processing workers.</summary>
-    public int MaxWorkers { get; set; } = 300;
 }
 
 /// <summary>

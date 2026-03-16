@@ -40,8 +40,7 @@ internal sealed record AppCommandTestFixture(
 
         engineSettings ??= new EngineSettings
         {
-            QueueCapacity = 10,
-            MaxDegreeOfParallelism = 5,
+            MaxWorkers = 5,
             DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
             DefaultStepRetryStrategy = RetryStrategy.None(),
             DatabaseCommandTimeout = TimeSpan.FromSeconds(10),

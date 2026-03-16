@@ -121,8 +121,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
         var retrySettings = Options.Create(
             new EngineSettings
             {
-                QueueCapacity = 100,
-                MaxDegreeOfParallelism = 10,
+                MaxWorkers = 10,
                 DefaultStepCommandTimeout = TimeSpan.FromSeconds(30),
                 DefaultStepRetryStrategy = RetryStrategy.None(),
                 DatabaseCommandTimeout = TimeSpan.FromSeconds(30),

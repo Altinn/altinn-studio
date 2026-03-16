@@ -9,15 +9,10 @@ namespace WorkflowEngine.Models;
 public sealed record EngineSettings
 {
     /// <summary>
-    /// The total number of concurrent tasks that can be processed by the engine.
+    /// Maximum number of concurrent workflow processing workers.
     /// </summary>
-    [JsonPropertyName("queueCapacity")]
-    public required int QueueCapacity { get; set; }
-
-    /// <summary>
-    /// The maximum number of parallel queue items that can be processed at the same time.
-    /// </summary>
-    public required int MaxDegreeOfParallelism { get; set; }
+    [JsonPropertyName("maxWorkers")]
+    public required int MaxWorkers { get; set; }
 
     /// <summary>
     /// The default timeout for command execution. Max allowed time to wait for a command to complete.
