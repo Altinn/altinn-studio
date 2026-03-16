@@ -11,7 +11,6 @@
  *   operationId:    string,
  *   commandType:    CommandType,
  *   commandDetail:  string,
- *   commandPayload: string | null,
  *   status:         StepStatus,
  *   processingOrder: number,
  *   retryCount:     number,
@@ -25,20 +24,14 @@
 
 /**
  * @typedef {{
- *   org: string,
- *   app: string,
- *   instanceOwnerPartyId: number,
- *   instanceGuid: string,
- * }} InstanceInfo
- */
-
-/**
- * @typedef {{
  *   idempotencyKey: string,
  *   operationId:    string,
  *   status:         string,
  *   traceId:        string | null,
- *   instance:       InstanceInfo,
+ *   namespace:      string,
+ *   correlationId:  string | null,
+ *   labels:         Record<string, string> | null,
+ *   backoffUntil:   string | null,
  *   createdAt:      string,
  *   updatedAt:      string | null,
  *   executionStartedAt: string | null,
@@ -63,9 +56,8 @@
  * @typedef {{
  *   timestamp:    string,
  *   engineStatus: EngineStatus,
- *   capacity:       { inbox: SlotStatus, db: SlotStatus, http: SlotStatus },
+ *   capacity:       { workers: SlotStatus, db: SlotStatus, http: SlotStatus },
  *   scheduledCount: number,
- *   workflows:      Workflow[],
  * }} DashboardPayload
  */
 
@@ -81,10 +73,7 @@
  *   liveFilter:           string,
  *   querySearch:          string,
  *   sectionStatus:        Record<string, string>,
- *   orgFilter:            Set<string>,
- *   appFilter:            Set<string>,
- *   partyFilter:          Set<string>,
- *   guidFilter:           Set<string>,
+ *   labelFilters:         Map<string, Set<string>>,
  * }} DashboardState
  */
 
@@ -101,14 +90,7 @@ export const dom = {
   liveFilterInput:  /** @type {HTMLInputElement} */ (document.getElementById('live-filter-input')),
   liveFilterClear:  /** @type {HTMLElement} */ (document.getElementById('live-filter-clear')),
   querySearchInput: /** @type {HTMLInputElement} */ (document.getElementById('query-search-input')),
-  orgDropdown:      /** @type {HTMLElement} */ (document.getElementById('org-dropdown')),
-  appDropdown:      /** @type {HTMLElement} */ (document.getElementById('app-dropdown')),
-  orgList:          /** @type {HTMLElement} */ (document.getElementById('org-list')),
-  appList:          /** @type {HTMLElement} */ (document.getElementById('app-list')),
-  orgSelected:      /** @type {HTMLElement} */ (document.getElementById('org-selected')),
-  appSelected:      /** @type {HTMLElement} */ (document.getElementById('app-selected')),
-  partyChips:       /** @type {HTMLElement} */ (document.getElementById('party-chips')),
-  guidChips:        /** @type {HTMLElement} */ (document.getElementById('guid-chips')),
+  labelFilterBar:   /** @type {HTMLElement} */ (document.getElementById('label-filter-bar')),
   scheduledSection: /** @type {HTMLElement} */ (document.getElementById('scheduled-section')),
   scheduledContainer: /** @type {HTMLElement} */ (document.getElementById('scheduled-workflows')),
   sseDot:           /** @type {HTMLElement} */ (document.getElementById('sse-dot')),
@@ -145,13 +127,11 @@ export const state = {
   liveFilter:           '',
   querySearch:          '',
   sectionStatus:        { scheduled: '', live: '', recent: '', query: 'failed' },
-  orgFilter:            new Set(),
-  appFilter:            new Set(),
-  partyFilter:          new Set(),
-  guidFilter:           new Set(),
-  /** @type {Map<string, Set<string>>} org → set of apps */
-  orgsAndApps: new Map(),
-  orgsAndAppsLoaded: false,
+  /** @type {Map<string, Set<string>>} label key → selected values */
+  labelFilters: new Map(),
+  /** @type {Map<string, string[]>} label key → all known values (from backend) */
+  labelValues: new Map(),
+  labelValuesLoaded: false,
   compactSections: {
     scheduled: localStorage.getItem('compact:scheduled') === '1',
     inbox:     localStorage.getItem('compact:inbox') === '1',
@@ -198,12 +178,4 @@ export const stepPhase = (commandDetail) => {
 };
 
 /** Extra sub-label for a step (e.g. service task type). Returns null if none. */
-export const stepSubLabel = (step) => {
-  if (step.commandDetail === 'ExecuteServiceTask' && step.commandPayload) {
-    try {
-      const p = JSON.parse(step.commandPayload);
-      if (p.serviceTaskType) return p.serviceTaskType;
-    } catch { /* ignore */ }
-  }
-  return null;
-};
+export const stepSubLabel = (_step) => null;

@@ -66,4 +66,4 @@ docker compose exec postgres psql -U postgres -d workflow_engine -c 'TRUNCATE "W
 ## Notes
 
 - Dashboard `wwwroot/` is bind-mounted — frontend file edits are live without rebuild (just browser refresh, or automatic via hot-reload).
-- The engine can also be run on the host with `dotnet run --project src/WorkflowEngine.Api` (requires postgres container).
+- The engine can be run on the host from the `workflow-engine-app` directory with `dotnet run --project src/WorkflowEngine.App` (requires postgres container).

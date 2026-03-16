@@ -6,13 +6,13 @@ import { buildCardHTML, buildCompactCardHTML, setCardFilterData } from '../share
 
 /** Late-bound references */
 /** @type {() => void} */
-let _mergeDiscoveredOrgsAndApps = () => {};
+let _mergeDiscoveredLabels = () => {};
 /** @type {() => void} */
 let _applyFilter = () => {};
 
-/** @param {{ mergeDiscoveredOrgsAndApps: () => void, applyFilter: () => void }} fns */
+/** @param {{ mergeDiscoveredLabels: () => void, applyFilter: () => void }} fns */
 export const bindRecentCallbacks = (fns) => {
-  _mergeDiscoveredOrgsAndApps = fns.mergeDiscoveredOrgsAndApps;
+  _mergeDiscoveredLabels = fns.mergeDiscoveredLabels;
   _applyFilter = fns.applyFilter;
 };
 

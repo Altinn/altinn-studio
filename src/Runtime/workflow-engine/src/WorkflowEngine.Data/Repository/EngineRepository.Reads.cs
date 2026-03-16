@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -8,7 +9,10 @@ namespace WorkflowEngine.Data.Repository;
 internal sealed partial class EngineRepository
 {
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflows(
+        string? ns = null,
+        CancellationToken cancellationToken = default
+    )
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflows");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
@@ -18,7 +22,10 @@ internal sealed partial class EngineRepository
             logger.FetchingWorkflows("active");
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context.GetActiveWorkflows().ToDomainModel().ToListAsync(cancellationToken);
+            var result = await context
+                .GetActiveWorkflows(namespaceFilter: ns)
+                .ToDomainModel()
+                .ToListAsync(cancellationToken);
 
             logger.SuccessfullyFetchedWorkflows(result.Count);
 
@@ -66,30 +73,48 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<(string Org, string App)>> GetDistinctOrgsAndApps(
+    public async Task<IReadOnlyList<string>> GetDistinctLabelValues(
+        string labelKey,
         CancellationToken cancellationToken = default
     )
     {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetDistinctOrgsAndApps");
+        using var activity = Metrics.Source.StartActivity("EngineRepository.GetDistinctLabelValues");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         try
         {
-            logger.FetchingWorkflows("dimensions");
+            logger.FetchingWorkflows("label values");
 
-            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var rows = await context
-                .Workflows.Select(x => new { x.InstanceOrg, x.InstanceApp })
-                .Distinct()
-                .OrderBy(x => x.InstanceOrg)
-                .ThenBy(x => x.InstanceApp)
-                .ToListAsync(cancellationToken);
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            await using var conn =
+                dbContext.Database.GetDbConnection() as NpgsqlConnection
+                ?? throw new InvalidOperationException("Expected NpgsqlConnection");
 
-            var result = rows.Select(x => (x.InstanceOrg, x.InstanceApp)).ToList();
+            if (conn.State != System.Data.ConnectionState.Open)
+                await conn.OpenAsync(cancellationToken);
 
-            logger.SuccessfullyFetchedWorkflows(result.Count);
+            // Extract distinct values for the given label key from JSONB
+            const string sql = """
+                SELECT DISTINCT "Labels"->>@key AS val
+                FROM "Workflows"
+                WHERE "Labels" IS NOT NULL AND "Labels" ? @key
+                ORDER BY val
+                """;
 
-            return result;
+            var results = new List<string>();
+            await using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.Add(new NpgsqlParameter<string>("key", labelKey));
+
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                if (!reader.IsDBNull(0))
+                    results.Add(reader.GetString(0));
+            }
+
+            logger.SuccessfullyFetchedWorkflows(results.Count);
+
+            return results;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -111,10 +136,8 @@ internal sealed partial class EngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
-        string? org = null,
-        string? app = null,
-        string? party = null,
-        string? instanceGuid = null,
+        Dictionary<string, string>? labelFilters = null,
+        string? namespaceFilter = null,
         string? correlationId = null,
         CancellationToken cancellationToken = default
     )
@@ -135,11 +158,9 @@ internal sealed partial class EngineRepository
                     before,
                     since,
                     retriedOnly,
-                    org,
-                    app,
-                    party,
-                    instanceGuid,
-                    correlationId
+                    correlationIdFilter: correlationId != null ? Guid.Parse(correlationId) : null,
+                    namespaceFilter: namespaceFilter,
+                    labelFilter: labelFilters
                 )
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
@@ -168,10 +189,8 @@ internal sealed partial class EngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
-        string? org = null,
-        string? app = null,
-        string? party = null,
-        string? instanceGuid = null,
+        Dictionary<string, string>? labelFilters = null,
+        string? namespaceFilter = null,
         string? correlationId = null,
         CancellationToken cancellationToken = default
     )
@@ -193,11 +212,9 @@ internal sealed partial class EngineRepository
                 before: null,
                 since: since,
                 retriedOnly,
-                org,
-                app,
-                party,
-                instanceGuid,
-                correlationId
+                correlationIdFilter: correlationId != null ? Guid.Parse(correlationId) : null,
+                namespaceFilter: namespaceFilter,
+                labelFilter: labelFilters
             );
             var totalCount = await baseQuery.CountAsync(cancellationToken);
 
@@ -209,11 +226,9 @@ internal sealed partial class EngineRepository
                 before,
                 since,
                 retriedOnly,
-                org,
-                app,
-                party,
-                instanceGuid,
-                correlationId
+                correlationIdFilter: correlationId != null ? Guid.Parse(correlationId) : null,
+                namespaceFilter: namespaceFilter,
+                labelFilter: labelFilters
             );
             var workflows = await dataQuery.ToDomainModel().ToListAsync(cancellationToken);
 
@@ -352,45 +367,10 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForInstance(
-        Guid instanceGuid,
-        string? ns = null,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = Metrics.Source.StartActivity("EngineRepository.GetActiveWorkflowsForInstance");
-        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
-
-        try
-        {
-            logger.FetchingWorkflowsForInstance(instanceGuid);
-
-            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-            var result = await context
-                .GetActiveWorkflows(instanceFilter: instanceGuid, namespaceFilter: ns)
-                .ToDomainModel()
-                .ToListAsync(cancellationToken);
-
-            logger.SuccessfullyFetchedWorkflows(result.Count);
-
-            return result;
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            activity?.Errored(ex);
-            logger.FailedToFetchWorkflows(ex.Message, ex);
-            throw;
-        }
-    }
-
-    /// <inheritdoc/>
     public async Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
         Guid? correlationId = null,
         string? ns = null,
+        IReadOnlyDictionary<string, string>? labelFilters = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -403,7 +383,7 @@ internal sealed partial class EngineRepository
 
             await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var result = await context
-                .GetActiveWorkflows(correlationIdFilter: correlationId, namespaceFilter: ns)
+                .GetActiveWorkflows(correlationIdFilter: correlationId, namespaceFilter: ns, labelFilter: labelFilters)
                 .ToDomainModel()
                 .ToListAsync(cancellationToken);
 

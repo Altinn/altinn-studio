@@ -8,9 +8,9 @@ namespace WorkflowEngine.Data.Repository;
 public interface IEngineRepository
 {
     /// <summary>
-    /// Gets all active workflows.
+    /// Gets all active workflows, optionally filtered by namespace.
     /// </summary>
-    Task<IReadOnlyList<Workflow>> GetActiveWorkflows(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Workflow>> GetActiveWorkflows(string? ns = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all scheduled workflows.
@@ -27,10 +27,8 @@ public interface IEngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
-        string? org = null,
-        string? app = null,
-        string? party = null,
-        string? instanceGuid = null,
+        Dictionary<string, string>? labelFilters = null,
+        string? namespaceFilter = null,
         string? correlationId = null,
         CancellationToken cancellationToken = default
     );
@@ -46,18 +44,16 @@ public interface IEngineRepository
         DateTimeOffset? before = null,
         DateTimeOffset? since = null,
         bool retriedOnly = false,
-        string? org = null,
-        string? app = null,
-        string? party = null,
-        string? instanceGuid = null,
+        Dictionary<string, string>? labelFilters = null,
+        string? namespaceFilter = null,
         string? correlationId = null,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Gets all distinct org+app pairs.
+    /// Gets all distinct values for a given label key across all workflows.
     /// </summary>
-    Task<IReadOnlyList<(string Org, string App)>> GetDistinctOrgsAndApps(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<string>> GetDistinctLabelValues(string labelKey, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the number of active workflows.
@@ -80,21 +76,12 @@ public interface IEngineRepository
     Task<PersistentItemStatus?> GetWorkflowStatus(Guid workflowId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all active (incomplete) workflows for the given instance GUID,
-    /// optionally filtered by namespace.
-    /// </summary>
-    Task<IReadOnlyList<Workflow>> GetActiveWorkflowsForInstance(
-        Guid instanceGuid,
-        string? ns = null,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>
     /// Gets all active (incomplete) workflows, optionally filtered by correlation ID and namespace.
     /// </summary>
     Task<IReadOnlyList<Workflow>> GetActiveWorkflowsByCorrelationId(
         Guid? correlationId = null,
         string? ns = null,
+        IReadOnlyDictionary<string, string>? labelFilters = null,
         CancellationToken cancellationToken = default
     );
 
@@ -105,6 +92,8 @@ public interface IEngineRepository
 
     /// <summary>
     /// Gets a workflow by idempotency key and creation time.
+    /// Used by the internal dashboard to resolve step details from SSE-streamed idempotency keys.
+    /// This method is cross-namespace by design — only expose it through non-production endpoints.
     /// </summary>
     Task<Workflow?> GetWorkflow(
         string idempotencyKey,
@@ -143,68 +132,3 @@ public interface IEngineRepository
         CancellationToken cancellationToken
     );
 }
-
-// TODO: These models should live somewhere else
-
-/// <summary>
-/// A single caller's enqueue request waiting in the write buffer.
-/// </summary>
-public sealed record BufferedEnqueueRequest(
-    WorkflowEnqueueRequest Request,
-    WorkflowRequestMetadata Metadata,
-    byte[] RequestBodyHash,
-    TaskCompletionSource<Guid[]> Completion
-);
-
-/// <summary>
-/// Result of a batch enqueue operation for a single request.
-/// </summary>
-public sealed record BatchEnqueueResult(
-    BatchEnqueueResultStatus Status,
-    Guid[]? WorkflowIds,
-    string? ErrorMessage = null
-)
-{
-    public static BatchEnqueueResult Created(Guid[] workflowIds) => new(BatchEnqueueResultStatus.Created, workflowIds);
-
-    public static BatchEnqueueResult Duplicate(Guid[] workflowIds) =>
-        new(BatchEnqueueResultStatus.Duplicate, workflowIds);
-
-    public static BatchEnqueueResult Conflicted() => new(BatchEnqueueResultStatus.Conflict, null);
-
-    public static BatchEnqueueResult InvalidRef(string message) =>
-        new(BatchEnqueueResultStatus.InvalidReference, null, message);
-}
-
-public enum BatchEnqueueResultStatus
-{
-    /// <summary>
-    /// New workflows were created.
-    /// </summary>
-    Created,
-
-    /// <summary>
-    /// Idempotency key matched — returning previously stored workflow IDs.
-    /// </summary>
-    Duplicate,
-
-    /// <summary>
-    /// Idempotency key matched but request body hash differs.
-    /// </summary>
-    Conflict,
-
-    /// <summary>
-    /// One or more workflow dependency/link references could not be resolved.
-    /// </summary>
-    InvalidReference,
-}
-
-/// <summary>
-/// Result of processing a single workflow (status + optional error).
-/// </summary>
-public sealed record WorkflowResult(Guid WorkflowId, PersistentItemStatus Status, string? Error);
-
-/// <summary>
-/// A single workflow and its dirty steps for batched status persistence.
-/// </summary>
-public sealed record BatchWorkflowStatusUpdate(Workflow Workflow, IReadOnlyList<Step> DirtySteps);

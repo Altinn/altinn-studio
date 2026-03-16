@@ -56,7 +56,7 @@ jobs:
           if [ -n "${{ steps.vars.outputs.latest-tag }}" ]; then
             TAGS="$TAGS -t ${{ steps.vars.outputs.latest-tag }}"
           fi
-          docker build --platform linux/amd64,linux/arm64 $TAGS -f Runtime/workflow-engine/Dockerfile .
+          docker build --platform linux/amd64,linux/arm64 $TAGS -f Runtime/workflow-engine-app/Dockerfile .
 
       - name: Scan image
         uses: aquasecurity/trivy-action@97e0b3872f55f89b95b2f65b3dbab56962816478 # 0.34.2

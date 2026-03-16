@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WorkflowEngine.Data;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
@@ -11,19 +12,17 @@ internal static class WorkflowTestHelper
         IEngineRepository repository,
         WorkflowRequestMetadata metadata,
         IReadOnlyList<WorkflowRequest> workflows,
-        string? idempotencyKey = null
+        string? idempotencyKey = null,
+        string ns = "test-namespace",
+        Dictionary<string, string>? labels = null
     )
     {
         var request = new WorkflowEnqueueRequest
         {
             CorrelationId = metadata.CorrelationId,
-            Org = metadata.InstanceInformation.Org,
-            App = metadata.InstanceInformation.App,
-            InstanceOwnerPartyId = metadata.InstanceInformation.InstanceOwnerPartyId,
-            InstanceGuid = metadata.InstanceInformation.InstanceGuid,
-            Actor = metadata.Actor,
+            Namespace = ns,
             IdempotencyKey = idempotencyKey ?? Guid.NewGuid().ToString("N"),
-            LockToken = metadata.InstanceLockKey,
+            Labels = labels,
             Workflows = workflows,
         };
 
@@ -31,7 +30,7 @@ internal static class WorkflowTestHelper
             request,
             metadata,
             Guid.NewGuid().ToByteArray(),
-            new TaskCompletionSource<Guid[]>(TaskCreationOptions.RunContinuationsAsynchronously)
+            new TaskCompletionSource<WorkflowEnqueueOutcome>(TaskCreationOptions.RunContinuationsAsynchronously)
         );
 
         return await repository.BatchEnqueueWorkflowsAsync([buffered], TestContext.Current.CancellationToken);
@@ -42,10 +41,12 @@ internal static class WorkflowTestHelper
         EngineDbContext context,
         WorkflowRequest request,
         WorkflowRequestMetadata metadata,
-        string? idempotencyKey = null
+        string? idempotencyKey = null,
+        string ns = "test-namespace",
+        Dictionary<string, string>? labels = null
     )
     {
-        var results = await EnqueueWorkflows(repository, metadata, [request], idempotencyKey);
+        var results = await EnqueueWorkflows(repository, metadata, [request], idempotencyKey, ns: ns, labels: labels);
         var result = Assert.Single(results);
         Assert.Equal(BatchEnqueueResultStatus.Created, result.Status);
 
@@ -59,65 +60,57 @@ internal static class WorkflowTestHelper
         return entity.ToDomainModel();
     }
 
-    public static (WorkflowRequest Request, WorkflowRequestMetadata Metadata) CreateRequest(
-        Guid? instanceGuid = null,
+    public static (
+        WorkflowRequest Request,
+        WorkflowRequestMetadata Metadata,
+        string Namespace,
+        Dictionary<string, string> Labels
+    ) CreateRequest(
+        string? ns = null,
         IEnumerable<Guid>? dependencies = null,
         IEnumerable<Guid>? links = null,
         string org = "ttd",
         string app = "test-app",
-        int instanceOwnerPartyId = 50001234,
-        DateTimeOffset? startAt = null,
-        string ns = "default"
+        DateTimeOffset? startAt = null
     )
     {
-        instanceGuid ??= Guid.NewGuid();
+        ns ??= Guid.NewGuid().ToString("N");
 
         var request = new WorkflowRequest
         {
             OperationId = "next",
-            Steps = [new StepRequest { Command = new Command.AppCommand("test-step") }],
+            Steps =
+            [
+                new StepRequest
+                {
+                    OperationId = "test-step",
+                    Command = new CommandDefinition { Type = "app" },
+                },
+            ],
             StartAt = startAt,
             DependsOn = dependencies?.Select(id => (WorkflowRef)id).ToList(),
             Links = links?.Select(id => (WorkflowRef)id).ToList(),
         };
 
-        var metadata = new WorkflowRequestMetadata(
-            CorrelationId: Guid.NewGuid(),
-            InstanceInformation: new InstanceInformation
-            {
-                Org = org,
-                App = app,
-                InstanceOwnerPartyId = instanceOwnerPartyId,
-                InstanceGuid = instanceGuid.Value,
-            },
-            Actor: new Actor { UserIdOrOrgNumber = "12345" },
-            CreatedAt: DateTimeOffset.UtcNow,
-            TraceContext: null,
-            InstanceLockKey: null,
-            Namespace: ns
-        );
+        var metadata = new WorkflowRequestMetadata(Guid.NewGuid(), DateTimeOffset.UtcNow, null);
+        var labels = new Dictionary<string, string> { ["org"] = org, ["app"] = app };
 
-        return (request, metadata);
+        return (request, metadata, ns, labels);
     }
 
     public static async Task<Workflow> InsertAndSetStatus(
         IEngineRepository repository,
         EngineDbContext context,
         PersistentItemStatus status,
-        Guid? instanceGuid = null,
+        string? ns = null,
         IEnumerable<Guid>? dependencies = null,
         string org = "ttd",
         string app = "test-app"
     )
     {
-        var (request, metadata) = CreateRequest(
-            instanceGuid: instanceGuid,
-            dependencies: dependencies,
-            org: org,
-            app: app
-        );
+        var (request, metadata, tid, labels) = CreateRequest(ns: ns, dependencies: dependencies, org: org, app: app);
 
-        var workflow = await EnqueueWorkflow(repository, context, request, metadata);
+        var workflow = await EnqueueWorkflow(repository, context, request, metadata, ns: tid, labels: labels);
 
         // Update status directly via raw SQL
         var statusInt = (int)status;

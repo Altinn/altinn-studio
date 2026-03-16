@@ -36,9 +36,9 @@ const updateMeter = (id, slot) => {
   val.textContent = `${slot.used.toLocaleString()} / ${slot.total.toLocaleString()}`;
 };
 
-/** @param {{ inbox: import('../core/state.js').SlotStatus, db: import('../core/state.js').SlotStatus, http: import('../core/state.js').SlotStatus }} cap */
+/** @param {{ workers: import('../core/state.js').SlotStatus, db: import('../core/state.js').SlotStatus, http: import('../core/state.js').SlotStatus }} cap */
 export const updateCapacity = (cap) => {
-  updateMeter('inbox', cap.inbox);
+  updateMeter('workers', cap.workers);
   updateMeter('db',    cap.db);
   updateMeter('http',  cap.http);
 };

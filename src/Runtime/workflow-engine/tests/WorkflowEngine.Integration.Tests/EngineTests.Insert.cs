@@ -1,7 +1,7 @@
+using System.Text.Json;
 using WireMock;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
-using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience.Models;
 
@@ -10,24 +10,14 @@ namespace WorkflowEngine.Integration.Tests;
 public partial class EngineTests
 {
     [Theory]
-    [InlineData(1, "webhook")]
-    [InlineData(3, "app-command")]
-    [InlineData(5, "webhook")]
-    [InlineData(7, "app-command")]
-    public async Task AllStepsComplete_InOrder(int numSteps, string stepType)
+    [InlineData(1)]
+    [InlineData(5)]
+    public async Task AllStepsComplete_InOrder(int numSteps)
     {
         // Arrange
-        var stubs = Enumerable.Range(1, numSteps).Select(i => $"/{stepType}-{i}").ToList();
-        var steps = stepType switch
-        {
-            "webhook" => stubs.Select(x => _testHelpers.CreateWebhookStep(x)).ToList(),
-            "app-command" => stubs.Select(x => _testHelpers.CreateAppCommandStep(x)).ToList(),
-            _ => throw new ArgumentOutOfRangeException(nameof(stepType)),
-        };
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", steps),
-            lockToken: InstanceLockToken
-        );
+        var stubs = Enumerable.Range(1, numSteps).Select(i => $"/webhook-{i}").ToList();
+        var steps = stubs.Select(x => _testHelpers.CreateWebhookStep(x)).ToList();
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", steps));
 
         // Act
         var response = await _client.Enqueue(request);
@@ -79,39 +69,7 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task AppCommand_UsesCorrectMethod()
-    {
-        // Arrange
-        var step = _testHelpers.CreateAppCommandStep("/app-command-callback");
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", [step]),
-            lockToken: InstanceLockToken
-        );
-
-        // Act
-        var response = await _client.Enqueue(request);
-        var workflowId = response.Workflows.Single().DatabaseId;
-        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
-
-        // Assert
-        Assert.Single(status.Steps);
-        Assert.Equal(PersistentItemStatus.Completed, status.OverallStatus);
-        Assert.Equal(PersistentItemStatus.Completed, status.Steps[0].Status);
-
-        var logs = fixture.WireMock.LogEntries;
-        Assert.Single(logs);
-        Assert.Equal("POST", logs[0].RequestMessage.Method, ignoreCase: true);
-        Assert.Contains(
-            "/app-command-callback",
-            logs[0].RequestMessage.AbsolutePath,
-            StringComparison.OrdinalIgnoreCase
-        );
-    }
-
-    [Theory]
-    [InlineData("webhook")]
-    [InlineData("app-command")]
-    public async Task StepCommands_RetryOnFailure_ThenCompletes(string stepType)
+    public async Task StepCommands_RetryOnFailure_ThenCompletes()
     {
         // Arrange -- WireMock returns 500 on the first POST, then 200 on the second.
         fixture
@@ -125,17 +83,9 @@ public partial class EngineTests
             .WhenStateIs("failed-once")
             .RespondWith(Response.Create().WithStatusCode(200));
 
-        var step = stepType switch
-        {
-            "webhook" => _testHelpers.CreateWebhookStep("/hook-callback"),
-            "app-command" => _testHelpers.CreateAppCommandStep("/app-command-callback"),
-            _ => throw new ArgumentOutOfRangeException(nameof(stepType)),
-        };
+        var step = _testHelpers.CreateWebhookStep("/hook-callback");
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", [step]),
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
 
         // Act
         var response = await _client.Enqueue(request);
@@ -147,30 +97,16 @@ public partial class EngineTests
         Assert.Equal(2, fixture.WireMock.LogEntries.Count);
     }
 
-    [Theory]
-    [InlineData("webhook")]
-    [InlineData("app-command")]
-    public async Task StepCommand_ExhaustsRetries_WorkflowFails(string stepType)
+    [Fact]
+    public async Task StepCommand_ExhaustsRetries_WorkflowFails()
     {
         // Arrange – WireMock always returns 500 → step exhausts 3 retries → Failed.
         fixture.WireMock.Reset();
         fixture.WireMock.Given(Request.Create().UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(500));
 
-        var steps = Enumerable
-            .Range(1, 5)
-            .Select(i =>
-                stepType switch
-                {
-                    "webhook" => _testHelpers.CreateWebhookStep($"/hook-callback-{i}"),
-                    "app-command" => _testHelpers.CreateAppCommandStep($"/app-command-callback-{i}"),
-                    _ => throw new InvalidOperationException(),
-                }
-            );
+        var steps = Enumerable.Range(1, 5).Select(i => _testHelpers.CreateWebhookStep($"/hook-callback-{i}"));
 
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", steps),
-            lockToken: InstanceLockToken
-        );
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", steps));
 
         // Act
         var response = await _client.Enqueue(request);
@@ -192,11 +128,19 @@ public partial class EngineTests
 
         var step = new StepRequest
         {
-            Command = new Command.Webhook(
-                $"http://localhost:{fixture.WireMock.Port}{webhookPath}",
-                Payload: payload,
-                ContentType: "application/json"
-            ),
+            OperationId = webhookPath,
+            Command = new CommandDefinition
+            {
+                Type = "webhook",
+                Data = JsonSerializer.SerializeToElement(
+                    new
+                    {
+                        uri = $"http://localhost:{fixture.WireMock.Port}{webhookPath}",
+                        payload,
+                        contentType = "application/json",
+                    }
+                ),
+            },
         };
         var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
 
@@ -214,10 +158,8 @@ public partial class EngineTests
         Assert.Equal(payload, logs[0].RequestMessage.Body);
     }
 
-    [Theory]
-    [InlineData("webhook")]
-    [InlineData("app-command")]
-    public async Task StepCommand_UsesMaxExecutionTime_CanOverrideRetryPolicy(string stepType)
+    [Fact]
+    public async Task StepCommand_UsesMaxExecutionTime_CanOverrideRetryPolicy()
     {
         // Arrange
         var requestReceived = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -238,25 +180,13 @@ public partial class EngineTests
                     .WithDelay(TimeSpan.FromSeconds(1))
             );
 
-        var step = stepType switch
-        {
-            "webhook" => _testHelpers.CreateWebhookStep(
-                $"/{stepType}-callback",
-                maxExecutionTime: TimeSpan.FromSeconds(0.5),
-                retryStrategy: RetryStrategy.None()
-            ),
-            "app-command" => _testHelpers.CreateAppCommandStep(
-                $"/{stepType}-callback",
-                maxExecutionTime: TimeSpan.FromSeconds(0.5),
-                retryStrategy: RetryStrategy.None()
-            ),
-            _ => throw new InvalidOperationException(),
-        };
-
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", [step]),
-            lockToken: InstanceLockToken
+        var step = _testHelpers.CreateWebhookStep(
+            "/webhook-callback",
+            maxExecutionTime: TimeSpan.FromSeconds(0.5),
+            retryStrategy: RetryStrategy.None()
         );
+
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", [step]));
 
         // Act
         var response = await _client.Enqueue(request);
@@ -270,7 +200,7 @@ public partial class EngineTests
         await requestReceived.Task.WaitAsync(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
         Assert.NotNull(requestPath);
-        Assert.Contains($"/{stepType}-callback", requestPath, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/webhook-callback", requestPath, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -370,6 +300,9 @@ public partial class EngineTests
         Assert.Equal(PersistentItemStatus.Failed, statusA.OverallStatus);
         Assert.Equal(PersistentItemStatus.DependencyFailed, statusB.OverallStatus);
 
+        // Steps on the dependency-failed workflow should remain Enqueued (not touched)
+        Assert.All(statusB.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+
         await _testHelpers.AssertDbWorkflowCount(2);
         await _testHelpers.AssertDbStepCount(2);
 
@@ -385,191 +318,181 @@ public partial class EngineTests
     }
 
     [Fact]
-    public async Task ComplexDag_RawJson_AllWorkflowsComplete()
+    public async Task FailedWorkflow_CascadesMultiLevel_A_B_C()
     {
-        // Arrange
-        /*
-                                      [wf-root]
-                                          |
-                  ┌───────────────────────┼───────────────────────┐
-                  |                       |                       |
-            [wf-a-first]            [wf-b-first]            [wf-c-first]
-                  |                       |                       |
-            [wf-a-second]                 └───────────┬───────────┘
-                  |                                   |
-            [wf-a-third]                        [wf-join-b-c]
-                  |                                   |
-                  └──────────────────┬────────────────┘
-                                     |
-                               [wf-join-all]
-         */
+        // Arrange — A → B → C, A fails → B gets DependencyFailed → C gets DependencyFailed
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().WithPath("/always-fail").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture.SetupDefaultStub();
 
-        var correlationId = Guid.NewGuid();
-        var instanceGuid = Guid.NewGuid();
-        string request = $$"""
-            {
-                "correlationId": "{{correlationId}}",
-                "org": "{{EngineAppFixture.DefaultOrg}}",
-                "app": "{{EngineAppFixture.DefaultApp}}",
-                "instanceOwnerPartyId": {{EngineAppFixture.DefaultPartyId}},
-                "instanceGuid": "{{instanceGuid}}",
-                "actor": {
-                    "userIdOrOrgNumber": "{{EngineAppFixture.DefaultPartyId}}",
-                    "language": "nb"
-                },
-                "idempotencyKey": "complex-dag-raw-json",
-                "lockToken": "{{InstanceLockToken}}",
-                "workflows": [
-                    {
-                        "ref": "wf-root",
-                        "operationId": "process-root",
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "commandKey": "process-root"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-a-first",
-                        "operationId": "process-a-1",
-                        "dependsOn": [
-                            "wf-root"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "commandKey": "process-a-1"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-a-second",
-                        "operationId": "process-a-2",
-                        "dependsOn": [
-                            "wf-a-first"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "commandKey": "process-a-2"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-a-third",
-                        "operationId": "process-a-3",
-                        "dependsOn": [
-                            "wf-a-second"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "commandKey": "process-a-3"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-b-first",
-                        "operationId": "process-b-1",
-                        "dependsOn": [
-                            "wf-root"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "commandKey": "process-b-1"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-c-first",
-                        "operationId": "process-c-1",
-                        "dependsOn": [
-                            "wf-root"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "commandKey": "process-c-1"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-join-2-3",
-                        "operationId": "process-join-2-3",
-                        "dependsOn": [
-                            "wf-b-first",
-                            "wf-c-first"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "commandKey": "process-join-2-3"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "ref": "wf-join-all",
-                        "operationId": "process-join-all",
-                        "dependsOn": [
-                            "wf-a-third",
-                            "wf-join-2-3"
-                        ],
-                        "steps": [
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "commandKey": "process-join-all-1"
-                                }
-                            },
-                            {
-                                "command": {
-                                    "type": "app",
-                                    "commandKey": "process-join-all-2"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-            """;
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/always-fail")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/hook-b")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/hook-c")], dependsOn: ["b"]),
+        ]);
 
         // Act
         var response = await _client.Enqueue(request);
-        var statuses = await _client.WaitForWorkflowStatus(
-            response.Workflows.Select(w => w.DatabaseId),
-            PersistentItemStatus.Completed
-        );
+        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+
+        var statusA = await _client.WaitForWorkflowStatus(ids["a"], PersistentItemStatus.Failed);
+        var statusB = await _client.WaitForWorkflowStatus(ids["b"], PersistentItemStatus.DependencyFailed);
+        var statusC = await _client.WaitForWorkflowStatus(ids["c"], PersistentItemStatus.DependencyFailed);
 
         // Assert
-        Assert.Equal(8, response.Workflows.Count);
-        Assert.Equal(8, statuses.Count);
-        Assert.All(statuses, wf => Assert.Equal(PersistentItemStatus.Completed, wf.OverallStatus));
-        Assert.All(statuses, wf => Assert.All(wf.Steps, s => Assert.Equal(PersistentItemStatus.Completed, s.Status)));
+        Assert.Equal(PersistentItemStatus.Failed, statusA.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusB.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusC.OverallStatus);
 
-        await _testHelpers.AssertDbWorkflowCount(8);
-        await _testHelpers.AssertDbStepCount(9); // The last workflow has two steps
+        // Steps on dependency-failed workflows should remain Enqueued
+        Assert.All(statusB.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+        Assert.All(statusC.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
 
+        // Only A's webhook should have been called
         var logs = fixture.WireMock.LogEntries;
-        Assert.Equal(9, logs.Count); // The last workflow has two steps
+        Assert.DoesNotContain(
+            logs,
+            log => log.RequestMessage.AbsolutePath.Contains("/hook-b", StringComparison.OrdinalIgnoreCase)
+        );
+        Assert.DoesNotContain(
+            logs,
+            log => log.RequestMessage.AbsolutePath.Contains("/hook-c", StringComparison.OrdinalIgnoreCase)
+        );
+    }
 
-        Assert.Contains("/process-root", logs[0].RequestMessage.AbsolutePath, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("/process-join-all-1", logs[7].RequestMessage.AbsolutePath, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("/process-join-all-2", logs[8].RequestMessage.AbsolutePath, StringComparison.OrdinalIgnoreCase);
+    [Fact]
+    public async Task FailedWorkflow_FanOut_AllDependentsGetDependencyFailed()
+    {
+        // Arrange — A fails, B and C both depend on A → both get DependencyFailed
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().WithPath("/always-fail").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture.SetupDefaultStub();
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/always-fail")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/hook-b")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/hook-c")], dependsOn: ["a"]),
+        ]);
+
+        // Act
+        var response = await _client.Enqueue(request);
+        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+
+        var statusA = await _client.WaitForWorkflowStatus(ids["a"], PersistentItemStatus.Failed);
+        var statusB = await _client.WaitForWorkflowStatus(ids["b"], PersistentItemStatus.DependencyFailed);
+        var statusC = await _client.WaitForWorkflowStatus(ids["c"], PersistentItemStatus.DependencyFailed);
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Failed, statusA.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusB.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusC.OverallStatus);
+
+        Assert.All(statusB.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+        Assert.All(statusC.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+    }
+
+    [Fact]
+    public async Task FailedWorkflow_FanIn_OneFailedDependency_CascadesDependencyFailed()
+    {
+        // Arrange — B depends on both A1 (succeeds) and A2 (fails) → B gets DependencyFailed
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().WithPath("/always-fail").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture.SetupDefaultStub();
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a1", [_testHelpers.CreateWebhookStep("/hook-a1")]),
+            _testHelpers.CreateWorkflow("a2", [_testHelpers.CreateWebhookStep("/always-fail")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/hook-b")], dependsOn: ["a1", "a2"]),
+        ]);
+
+        // Act
+        var response = await _client.Enqueue(request);
+        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+
+        var statusA1 = await _client.WaitForWorkflowStatus(ids["a1"], PersistentItemStatus.Completed);
+        var statusA2 = await _client.WaitForWorkflowStatus(ids["a2"], PersistentItemStatus.Failed);
+        var statusB = await _client.WaitForWorkflowStatus(ids["b"], PersistentItemStatus.DependencyFailed);
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Completed, statusA1.OverallStatus);
+        Assert.Equal(PersistentItemStatus.Failed, statusA2.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusB.OverallStatus);
+
+        Assert.All(statusB.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+    }
+
+    [Fact]
+    public async Task DiamondDag_RootFails_AllDescendantsGetDependencyFailed()
+    {
+        // Arrange — Diamond: A → B, A → C, B + C → D. A fails → all descendants DependencyFailed.
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().WithPath("/always-fail").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture.SetupDefaultStub();
+
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/always-fail")]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/hook-b")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("c", [_testHelpers.CreateWebhookStep("/hook-c")], dependsOn: ["a"]),
+            _testHelpers.CreateWorkflow("d", [_testHelpers.CreateWebhookStep("/hook-d")], dependsOn: ["b", "c"]),
+        ]);
+
+        // Act
+        var response = await _client.Enqueue(request);
+        var ids = response.Workflows.ToDictionary(w => w.Ref!, w => w.DatabaseId);
+
+        var statusA = await _client.WaitForWorkflowStatus(ids["a"], PersistentItemStatus.Failed);
+        var statusB = await _client.WaitForWorkflowStatus(ids["b"], PersistentItemStatus.DependencyFailed);
+        var statusC = await _client.WaitForWorkflowStatus(ids["c"], PersistentItemStatus.DependencyFailed);
+        var statusD = await _client.WaitForWorkflowStatus(ids["d"], PersistentItemStatus.DependencyFailed);
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Failed, statusA.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusB.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusC.OverallStatus);
+        Assert.Equal(PersistentItemStatus.DependencyFailed, statusD.OverallStatus);
+
+        Assert.All(statusB.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+        Assert.All(statusC.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+        Assert.All(statusD.Steps, s => Assert.Equal(PersistentItemStatus.Enqueued, s.Status));
+    }
+
+    [Fact]
+    public async Task MultiStepWorkflow_StepFails_RemainingStepsStayEnqueued()
+    {
+        // Arrange — 3-step workflow where step 1 (index 0) always fails.
+        // Steps 2 and 3 should remain Enqueued.
+        fixture.WireMock.Reset();
+        fixture
+            .WireMock.Given(Request.Create().WithPath("/always-fail").UsingGet())
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture.SetupDefaultStub();
+
+        var steps = new[]
+        {
+            _testHelpers.CreateWebhookStep("/always-fail"),
+            _testHelpers.CreateWebhookStep("/hook-2"),
+            _testHelpers.CreateWebhookStep("/hook-3"),
+        };
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", steps));
+
+        // Act
+        var response = await _client.Enqueue(request);
+        var workflowId = response.Workflows.Single().DatabaseId;
+        var status = await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Failed);
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Failed, status.OverallStatus);
+        Assert.Equal(3, status.Steps.Count);
+        Assert.Equal(PersistentItemStatus.Failed, status.Steps[0].Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, status.Steps[1].Status);
+        Assert.Equal(PersistentItemStatus.Enqueued, status.Steps[2].Status);
     }
 }

@@ -24,7 +24,7 @@ public sealed record WorkflowRequest
     /// The individual steps comprising this workflow.
     /// </summary>
     [JsonPropertyName("steps")]
-    public required IEnumerable<StepRequest> Steps { get; init; }
+    public required IReadOnlyList<StepRequest> Steps { get; init; }
 
     /// <summary>
     /// An optional start time for when the workflow should be executed.

@@ -3,8 +3,8 @@ using System.Net.Http.Json;
 using System.Text.RegularExpressions;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
-using WorkflowEngine.Integration.Tests.Fixtures;
 using WorkflowEngine.Models;
+using WorkflowEngine.TestKit;
 
 namespace WorkflowEngine.Integration.Tests;
 
@@ -59,7 +59,7 @@ public partial class EngineTests
 
         using var response = await _client.EnqueueRaw(request);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body).ScrubMembers("databaseId");
@@ -77,7 +77,7 @@ public partial class EngineTests
 
         using var response = await _client.EnqueueRaw(request);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         await VerifyJson(body).ScrubMembers("databaseId");
@@ -94,44 +94,12 @@ public partial class EngineTests
         );
 
         using var response = await unauthenticatedClient.PostAsJsonAsync(
-            EngineAppFixture.ApiBasePath,
+            "/api/v1/workflows",
             request,
             TestContext.Current.CancellationToken
         );
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Response_Enqueue_AppCommandWithoutLockToken_Returns400WithProblemDetails()
-    {
-        var request = new WorkflowEnqueueRequest
-        {
-            CorrelationId = Guid.NewGuid(),
-            Org = EngineAppFixture.DefaultOrg,
-            App = EngineAppFixture.DefaultApp,
-            InstanceOwnerPartyId = int.Parse(EngineAppFixture.DefaultPartyId),
-            InstanceGuid = Guid.NewGuid(),
-            Actor = new Actor { UserIdOrOrgNumber = "test-user" },
-            IdempotencyKey = $"idem-{Guid.NewGuid()}",
-            LockToken = null,
-            Workflows =
-            [
-                new WorkflowRequest
-                {
-                    Ref = "wf",
-                    OperationId = $"op-{Guid.NewGuid()}",
-                    Steps = [new StepRequest { Command = new Command.AppCommand("do-something") }],
-                },
-            ],
-        };
-
-        using var response = await _client.EnqueueRaw(request);
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body);
     }
 
     // ── GetWorkflow endpoint responses ────────────────────────────────────────
@@ -141,26 +109,6 @@ public partial class EngineTests
     {
         var request = _testHelpers.CreateEnqueueRequest(
             _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateWebhookStep("/ping")])
-        );
-        var accepted = await _client.Enqueue(request);
-        var workflowId = accepted.Workflows.Single().DatabaseId;
-
-        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
-
-        using var response = await _client.GetWorkflowRaw(workflowId);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        await VerifyJson(body);
-    }
-
-    [Fact]
-    public async Task Response_GetWorkflow_CompletedAppCommand_ReturnsFullDetailsShape()
-    {
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateAppCommandStep("do-something")]),
-            lockToken: InstanceLockToken
         );
         var accepted = await _client.Enqueue(request);
         var workflowId = accepted.Workflows.Single().DatabaseId;
@@ -204,23 +152,6 @@ public partial class EngineTests
     [Fact]
     public async Task Response_GetWorkflow_NonExistent_Returns404()
     {
-        using var response = await _client.GetWorkflowRaw(Guid.NewGuid());
-
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task Response_GetWorkflow_WrongInstance_Returns404()
-    {
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf-1", [_testHelpers.CreateWebhookStep("/ping")])
-        );
-        var accepted = await _client.Enqueue(request);
-        var workflowId = accepted.Workflows.Single().DatabaseId;
-
-        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
-
-        // Use a non-existent workflow ID to verify 404
         using var response = await _client.GetWorkflowRaw(Guid.NewGuid());
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -277,7 +208,7 @@ public partial class EngineTests
         // Act
         using var client = fixture.CreateEngineClient();
         using var response = await client.GetAsync(
-            $"{EngineAppFixture.ApiBasePath}?correlationId={request.CorrelationId}",
+            $"/api/v1/workflows?namespace={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
             TestContext.Current.CancellationToken
         );
 
@@ -292,12 +223,85 @@ public partial class EngineTests
     {
         using var client = fixture.CreateEngineClient();
         using var response = await client.GetAsync(
-            $"{EngineAppFixture.ApiBasePath}?correlationId={Guid.NewGuid()}",
+            $"/api/v1/workflows?namespace={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
             TestContext.Current.CancellationToken
         );
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
+
+    // ── Error response snapshots ────────────────────────────────────────────
+
+    [Fact]
+    public async Task Response_Enqueue_CycleDetection_Returns400WithDetails()
+    {
+        // A → B → A cycle
+        var request = _testHelpers.CreateEnqueueRequest([
+            _testHelpers.CreateWorkflow("a", [_testHelpers.CreateWebhookStep("/a")], dependsOn: ["b"]),
+            _testHelpers.CreateWorkflow("b", [_testHelpers.CreateWebhookStep("/b")], dependsOn: ["a"]),
+        ]);
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
+    public async Task Response_Enqueue_SizeLimitExceeded_Returns400WithDetails()
+    {
+        // Create a workflow with too many steps (max is 50 per the test config)
+        var steps = Enumerable.Range(1, 51).Select(i => _testHelpers.CreateWebhookStep($"/step-{i}")).ToList();
+        var request = _testHelpers.CreateEnqueueRequest(_testHelpers.CreateWorkflow("wf", steps));
+
+        using var response = await _client.EnqueueRaw(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    [Fact]
+    public async Task Response_GetWorkflow_AfterRetries_ShowsRetryState()
+    {
+        // Arrange – WireMock returns 500 twice, then 200
+        fixture
+            .WireMock.Given(Request.Create().UsingAnyMethod())
+            .InScenario("retry-snapshot")
+            .WillSetStateTo("failed-once")
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture
+            .WireMock.Given(Request.Create().UsingAnyMethod())
+            .InScenario("retry-snapshot")
+            .WhenStateIs("failed-once")
+            .WillSetStateTo("succeeded")
+            .RespondWith(Response.Create().WithStatusCode(500));
+        fixture
+            .WireMock.Given(Request.Create().UsingAnyMethod())
+            .InScenario("retry-snapshot")
+            .WhenStateIs("succeeded")
+            .RespondWith(Response.Create().WithStatusCode(200));
+
+        var request = _testHelpers.CreateEnqueueRequest(
+            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/retry-target")])
+        );
+        var accepted = await _client.Enqueue(request);
+        var workflowId = accepted.Workflows.Single().DatabaseId;
+
+        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
+
+        // Act
+        using var response = await _client.GetWorkflowRaw(workflowId);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        await VerifyJson(body);
+    }
+
+    // ── ListActiveWorkflows endpoint responses ────────────────────────────────
 
     [Fact]
     public async Task Response_ListActiveWorkflows_AfterCompletion_Returns204()
@@ -312,7 +316,7 @@ public partial class EngineTests
 
         using var client = fixture.CreateEngineClient();
         using var response = await client.GetAsync(
-            $"{EngineAppFixture.ApiBasePath}?correlationId={request.CorrelationId}",
+            $"/api/v1/workflows?namespace={Uri.EscapeDataString(EngineApiClient.DefaultNamespace)}",
             TestContext.Current.CancellationToken
         );
 

@@ -33,7 +33,7 @@ public sealed record WorkflowStatusResponse
     public required string IdempotencyKey { get; init; }
 
     /// <summary>
-    /// The namespace used for scoping idempotency and workflow references.
+    /// The namespace this workflow belongs to.
     /// </summary>
     [JsonPropertyName("namespace")]
     public required string Namespace { get; init; }
@@ -73,10 +73,11 @@ public sealed record WorkflowStatusResponse
     public string? Metadata { get; init; }
 
     /// <summary>
-    /// The actor that initiated the workflow.
+    /// Labels associated with this workflow.
     /// </summary>
-    [JsonPropertyName("actor")]
-    public required Actor Actor { get; init; }
+    [JsonPropertyName("labels")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? Labels { get; init; }
 
     /// <summary>
     /// The overall status of the workflow for this instance.
@@ -118,7 +119,7 @@ public sealed record WorkflowStatusResponse
             StartAt = workflow.StartAt,
             BackoffUntil = workflow.BackoffUntil,
             Metadata = workflow.Metadata,
-            Actor = workflow.Actor,
+            Labels = workflow.Labels,
             OverallStatus = workflow.Status,
             Dependencies = workflow.Dependencies?.ToDictionary(x => x.DatabaseId, x => x.Status),
             Links = workflow.Links?.ToDictionary(x => x.DatabaseId, x => x.Status),

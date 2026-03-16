@@ -2,14 +2,10 @@ using System.Collections.Concurrent;
 using System.Diagnostics.Metrics;
 using System.Globalization;
 using System.Net.Sockets;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Repository.Tests.Fixtures;
-using WorkflowEngine.Resilience;
 using WorkflowEngine.Resilience.Models;
 using WorkflowEngine.Telemetry;
 
@@ -116,7 +112,7 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
     {
         var repository = postgres.CreateRepository();
         await using var context = postgres.CreateDbContext();
-        var (request, metadata) = WorkflowTestHelper.CreateRequest();
+        var (request, metadata, _, _) = WorkflowTestHelper.CreateRequest();
         return await WorkflowTestHelper.EnqueueWorkflow(repository, context, request, metadata);
     }
 
@@ -133,6 +129,9 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
                 DatabaseRetryStrategy = RetryStrategy.Constant(TimeSpan.FromMilliseconds(10), maxRetries: maxRetries),
                 MaxConcurrentDbOperations = 50,
                 MaxConcurrentHttpCalls = 50,
+                MaxWorkflowsPerRequest = 100,
+                MaxStepsPerWorkflow = 50,
+                MaxLabels = 50,
             }
         );
 

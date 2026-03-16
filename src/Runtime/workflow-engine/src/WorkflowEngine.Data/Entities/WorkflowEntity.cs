@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 using WorkflowEngine.Data.Abstractions;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Entities;
@@ -17,8 +19,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public required string IdempotencyKey { get; set; }
 
-    [MaxLength(100)]
-    public string? InstanceLockKey { get; set; }
+    [MaxLength(200)]
+    public required string Namespace { get; set; }
 
     public PersistentItemStatus Status { get; set; }
 
@@ -30,34 +32,22 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public DateTimeOffset? BackoffUntil { get; set; }
 
-    [MaxLength(50)]
-    public required string ActorUserIdOrOrgNumber { get; set; }
-
-    [MaxLength(10)]
-    public string? ActorLanguage { get; set; }
-
-    [MaxLength(100)]
-    public required string InstanceOrg { get; set; }
-
-    [MaxLength(100)]
-    public required string InstanceApp { get; set; }
-
-    public int InstanceOwnerPartyId { get; set; }
-
-    public Guid InstanceGuid { get; set; }
+    [Column(TypeName = "jsonb")]
+    public Dictionary<string, string>? Labels { get; set; }
 
     public Guid? CorrelationId { get; set; }
 
-    public required string Namespace { get; set; }
+    [MaxLength(100)]
+    public string? DistributedTraceContext { get; set; }
 
     [MaxLength(100)]
-    public string? TraceContext { get; set; }
+    public string? EngineTraceContext { get; set; }
+
+    [Column(TypeName = "jsonb")]
+    public string? ContextJson { get; set; }
 
     [Column(TypeName = "jsonb")]
     public string? MetadataJson { get; set; }
-
-    [MaxLength(100)]
-    public string? EngineTraceId { get; set; }
 
     public string? InitialState { get; set; }
 
@@ -71,24 +61,19 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
         {
             Id = workflow.DatabaseId,
             CorrelationId = workflow.CorrelationId,
-            InstanceLockKey = workflow.InstanceLockKey,
             OperationId = workflow.OperationId,
             IdempotencyKey = workflow.IdempotencyKey,
+            Namespace = workflow.Namespace,
             CreatedAt = workflow.CreatedAt,
             StartAt = workflow.StartAt,
             UpdatedAt = workflow.UpdatedAt,
             BackoffUntil = workflow.BackoffUntil,
             Status = workflow.Status,
-            ActorUserIdOrOrgNumber = workflow.Actor.UserIdOrOrgNumber,
-            ActorLanguage = workflow.Actor.Language,
-            InstanceOrg = workflow.InstanceInformation.Org,
-            InstanceApp = workflow.InstanceInformation.App,
-            InstanceOwnerPartyId = workflow.InstanceInformation.InstanceOwnerPartyId,
-            InstanceGuid = workflow.InstanceInformation.InstanceGuid,
-            Namespace = workflow.Namespace,
-            TraceContext = workflow.DistributedTraceContext,
+            Labels = workflow.Labels,
+            ContextJson = workflow.Context?.GetRawText(),
+            DistributedTraceContext = workflow.DistributedTraceContext,
             MetadataJson = workflow.Metadata,
-            EngineTraceId = workflow.EngineTraceContext,
+            EngineTraceContext = workflow.EngineTraceContext,
             InitialState = workflow.InitialState,
             Steps = workflow.Steps.OrderBy(x => x.ProcessingOrder).Select(StepEntity.FromDomainModel).ToList(),
             Dependencies = workflow.Dependencies?.Select(FromDomainModel).ToList(),
@@ -108,26 +93,20 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
         {
             DatabaseId = Id,
             CorrelationId = CorrelationId,
-            InstanceLockKey = InstanceLockKey,
             IdempotencyKey = IdempotencyKey,
             OperationId = OperationId,
+            Namespace = Namespace,
             CreatedAt = CreatedAt,
             StartAt = StartAt,
             UpdatedAt = UpdatedAt,
             BackoffUntil = BackoffUntil,
             Status = Status,
-            Actor = new Actor { UserIdOrOrgNumber = ActorUserIdOrOrgNumber, Language = ActorLanguage },
-            InstanceInformation = new InstanceInformation
-            {
-                Org = InstanceOrg,
-                App = InstanceApp,
-                InstanceOwnerPartyId = InstanceOwnerPartyId,
-                InstanceGuid = InstanceGuid,
-            },
-            Namespace = Namespace,
-            DistributedTraceContext = TraceContext,
+            Labels = Labels,
+            Context =
+                ContextJson != null ? JsonSerializer.Deserialize<JsonElement>(ContextJson, JsonOptions.Default) : null,
+            DistributedTraceContext = DistributedTraceContext,
             Metadata = MetadataJson,
-            EngineTraceContext = EngineTraceId,
+            EngineTraceContext = EngineTraceContext,
             InitialState = InitialState,
             Steps = Steps.OrderBy(x => x.ProcessingOrder).Select(x => x.ToDomainModel()).ToList(),
             Dependencies = Dependencies?.Select(x => x.ToDomainModel()).ToList(),

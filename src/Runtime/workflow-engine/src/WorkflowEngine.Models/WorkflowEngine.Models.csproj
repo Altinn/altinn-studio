@@ -11,9 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="WorkflowEngine.Commands" />
     <InternalsVisibleTo Include="WorkflowEngine.Data" />
-    <InternalsVisibleTo Include="WorkflowEngine.Api" />
+    <InternalsVisibleTo Include="WorkflowEngine.Core" />
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    <InternalsVisibleTo Include="WorkflowEngine.App" />
     <InternalsVisibleTo Include="WorkflowEngine.Integration.Tests" />
   </ItemGroup>
 

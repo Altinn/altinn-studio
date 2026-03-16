@@ -4,25 +4,13 @@ namespace WorkflowEngine.Models.Tests.Extensions;
 
 public class WorkflowExtensionsTests
 {
-    private static Actor _defaultActor => new() { UserIdOrOrgNumber = "user-1" };
-
-    private static InstanceInformation _defaultInstance =>
-        new()
-        {
-            Org = "ttd",
-            App = "test-app",
-            InstanceOwnerPartyId = 12345,
-            InstanceGuid = Guid.NewGuid(),
-        };
-
     private static Step CreateStep(PersistentItemStatus status, int order = 0) =>
         new()
         {
             OperationId = "op",
             IdempotencyKey = $"step-key-{order}",
-            Actor = _defaultActor,
             ProcessingOrder = order,
-            Command = new Command.Debug.Noop(),
+            Command = new CommandDefinition { Type = "noop" },
             Status = status,
         };
 
@@ -32,9 +20,7 @@ public class WorkflowExtensionsTests
             CorrelationId = Guid.NewGuid(),
             OperationId = "test-op",
             IdempotencyKey = "wf-key",
-            Namespace = "default",
-            Actor = _defaultActor,
-            InstanceInformation = _defaultInstance,
+            Namespace = "ns-1",
             Steps = steps.ToList(),
         };
 
@@ -61,6 +47,38 @@ public class WorkflowExtensionsTests
         var workflow = CreateWorkflow(
             CreateStep(PersistentItemStatus.Completed, 0),
             CreateStep(PersistentItemStatus.Failed, 1)
+        );
+
+        // Act
+        var result = workflow.OverallStatus();
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.Failed, result);
+    }
+
+    [Fact]
+    public void OverallStatus_ReturnsDependencyFailed_WhenAnyStepDependencyFailed()
+    {
+        // Arrange
+        var workflow = CreateWorkflow(
+            CreateStep(PersistentItemStatus.Completed, 0),
+            CreateStep(PersistentItemStatus.DependencyFailed, 1)
+        );
+
+        // Act
+        var result = workflow.OverallStatus();
+
+        // Assert
+        Assert.Equal(PersistentItemStatus.DependencyFailed, result);
+    }
+
+    [Fact]
+    public void OverallStatus_ReturnsFailed_WhenBothFailedAndDependencyFailed()
+    {
+        // Arrange — Failed takes priority over DependencyFailed
+        var workflow = CreateWorkflow(
+            CreateStep(PersistentItemStatus.Failed, 0),
+            CreateStep(PersistentItemStatus.DependencyFailed, 1)
         );
 
         // Act

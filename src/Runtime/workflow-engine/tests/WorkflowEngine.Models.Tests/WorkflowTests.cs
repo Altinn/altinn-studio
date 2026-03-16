@@ -1,18 +1,8 @@
-using WorkflowEngine.Resilience.Models;
-
 namespace WorkflowEngine.Models.Tests;
 
 public class WorkflowTests
 {
-    private static Actor _randomActor => new() { UserIdOrOrgNumber = Guid.NewGuid().ToString() };
-    private static InstanceInformation _randomInstance =>
-        new()
-        {
-            Org = Guid.NewGuid().ToString(),
-            App = Guid.NewGuid().ToString(),
-            InstanceOwnerPartyId = Guid.NewGuid().GetHashCode(),
-            InstanceGuid = Guid.NewGuid(),
-        };
+    private static string _randomNamespace => Guid.NewGuid().ToString();
 
     [Fact]
     public void Equality_Uses_DatabaseId()
@@ -27,9 +17,7 @@ public class WorkflowTests
             CorrelationId = Guid.NewGuid(),
             OperationId = "workflow-1-operation",
             IdempotencyKey = "key-1",
-            Namespace = "default",
-            Actor = _randomActor,
-            InstanceInformation = _randomInstance,
+            Namespace = _randomNamespace,
             Steps = [],
         };
         var sharedId2 = new Workflow
@@ -38,9 +26,7 @@ public class WorkflowTests
             CorrelationId = Guid.NewGuid(),
             OperationId = "workflow-2-operation",
             IdempotencyKey = "key-2",
-            Namespace = "default",
-            Actor = _randomActor,
-            InstanceInformation = _randomInstance,
+            Namespace = _randomNamespace,
             Steps = [],
         };
         var uniqueId = new Workflow
@@ -49,9 +35,7 @@ public class WorkflowTests
             CorrelationId = Guid.NewGuid(),
             OperationId = "workflow-3-operation",
             IdempotencyKey = "key-3",
-            Namespace = "default",
-            Actor = _randomActor,
-            InstanceInformation = _randomInstance,
+            Namespace = _randomNamespace,
             Steps = [],
         };
 
@@ -75,54 +59,54 @@ public class WorkflowTests
     }
 
     [Fact]
-    public void FromRequest_MapsAllFieldsCorrectly()
+    public void Workflow_ConstructsWithAllFields()
     {
         // Arrange
-        var actor = new Actor { UserIdOrOrgNumber = "user-1", Language = "nb" };
-        var instanceInfo = new InstanceInformation
-        {
-            Org = "ttd",
-            App = "test-app",
-            InstanceOwnerPartyId = 12345,
-            InstanceGuid = Guid.NewGuid(),
-        };
-        var retryStrategy = RetryStrategy.Exponential(baseInterval: TimeSpan.FromSeconds(1));
         var createdAt = DateTimeOffset.UtcNow;
         var startAt = createdAt.AddMinutes(10);
         var traceContext = "trace-context-123";
 
-        var workflowRequest = new WorkflowRequest
+        var steps = new List<Step>
         {
-            OperationId = "next",
-            StartAt = startAt,
-            Steps =
-            [
-                new StepRequest { Command = new Command.AppCommand("step-1") },
-                new StepRequest { Command = new Command.AppCommand("step-2"), RetryStrategy = retryStrategy },
-            ],
+            new()
+            {
+                OperationId = "step-1",
+                IdempotencyKey = "step-key-1",
+                ProcessingOrder = 0,
+                Command = new CommandDefinition { Type = "app" },
+                CreatedAt = createdAt,
+            },
+            new()
+            {
+                OperationId = "step-2",
+                IdempotencyKey = "step-key-2",
+                ProcessingOrder = 1,
+                Command = new CommandDefinition { Type = "app" },
+                CreatedAt = createdAt,
+            },
         };
 
-        var metadata = new WorkflowRequestMetadata(
-            CorrelationId: Guid.NewGuid(),
-            InstanceInformation: instanceInfo,
-            Actor: actor,
-            CreatedAt: createdAt,
-            TraceContext: traceContext,
-            InstanceLockKey: "lock-key-1",
-            Namespace: "default"
-        );
-
         // Act
-        var workflow = Workflow.FromRequest(workflowRequest, metadata, "wf-1-key", dependencies: null, links: null);
+        var workflow = new Workflow
+        {
+            OperationId = "next",
+            IdempotencyKey = "wf-1-key",
+            Namespace = "ns-1",
+            Labels = new Dictionary<string, string> { ["org"] = "ttd", ["app"] = "test-app" },
+            CreatedAt = createdAt,
+            StartAt = startAt,
+            DistributedTraceContext = traceContext,
+            Status = PersistentItemStatus.Enqueued,
+            Steps = steps,
+        };
 
         // Assert — Workflow fields
         Assert.Equal("next", workflow.OperationId);
-        Assert.Same(instanceInfo, workflow.InstanceInformation);
-        Assert.Same(actor, workflow.Actor);
+        Assert.Equal("ns-1", workflow.Namespace);
+        Assert.Equal("ttd", workflow.Labels!["org"]);
         Assert.Equal(createdAt, workflow.CreatedAt);
         Assert.Equal(startAt, workflow.StartAt);
         Assert.Equal(traceContext, workflow.DistributedTraceContext);
-        Assert.Equal("lock-key-1", workflow.InstanceLockKey);
         Assert.Equal(PersistentItemStatus.Enqueued, workflow.Status);
         Assert.Null(workflow.Dependencies);
         Assert.Null(workflow.Links);
@@ -132,52 +116,44 @@ public class WorkflowTests
         Assert.Equal(0, workflow.Steps[0].ProcessingOrder);
         Assert.Equal(1, workflow.Steps[1].ProcessingOrder);
 
-        // Assert — Step fields are mapped from metadata
+        // Assert — Step fields
         Assert.Equal("step-1", workflow.Steps[0].OperationId);
         Assert.Equal("step-2", workflow.Steps[1].OperationId);
-        Assert.Same(actor, workflow.Steps[0].Actor);
         Assert.Equal(createdAt, workflow.Steps[0].CreatedAt);
     }
 
     [Fact]
-    public void FromRequest_MapsNullOptionalFields()
+    public void Workflow_NullOptionalFields()
     {
-        // Arrange
-        var workflowRequest = new WorkflowRequest
+        // Arrange & Act
+        var workflow = new Workflow
         {
             OperationId = "op-1",
-            Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
+            IdempotencyKey = "wf-1-key",
+            Namespace = "ns-1",
+            Steps =
+            [
+                new Step
+                {
+                    OperationId = "noop",
+                    IdempotencyKey = "step-key",
+                    ProcessingOrder = 0,
+                    Command = new CommandDefinition { Type = "noop" },
+                },
+            ],
         };
-
-        var metadata = new WorkflowRequestMetadata(
-            CorrelationId: Guid.NewGuid(),
-            InstanceInformation: new InstanceInformation
-            {
-                Org = "ttd",
-                App = "app",
-                InstanceOwnerPartyId = 1,
-                InstanceGuid = Guid.NewGuid(),
-            },
-            Actor: new Actor { UserIdOrOrgNumber = "user-1" },
-            CreatedAt: DateTimeOffset.UtcNow,
-            TraceContext: null,
-            InstanceLockKey: null,
-            Namespace: "default"
-        );
-
-        // Act
-        var workflow = Workflow.FromRequest(workflowRequest, metadata, "wf-1-key", dependencies: null, links: null);
 
         // Assert
         Assert.Null(workflow.StartAt);
         Assert.Null(workflow.DistributedTraceContext);
-        Assert.Null(workflow.InstanceLockKey);
         Assert.Null(workflow.Dependencies);
         Assert.Null(workflow.Links);
+        Assert.Null(workflow.Labels);
+        Assert.Null(workflow.Context);
     }
 
     [Fact]
-    public void FromRequest_WithDependenciesAndLinks_MapsCorrectly()
+    public void Workflow_WithDependenciesAndLinks()
     {
         // Arrange
         var depGuid = Guid.NewGuid();
@@ -189,9 +165,7 @@ public class WorkflowTests
             CorrelationId = Guid.NewGuid(),
             OperationId = "dep-op",
             IdempotencyKey = "dep-key",
-            Namespace = "default",
-            Actor = _randomActor,
-            InstanceInformation = _randomInstance,
+            Namespace = _randomNamespace,
             Steps = [],
         };
         var link = new Workflow
@@ -200,36 +174,29 @@ public class WorkflowTests
             CorrelationId = Guid.NewGuid(),
             OperationId = "link-op",
             IdempotencyKey = "link-key",
-            Namespace = "default",
-            Actor = _randomActor,
-            InstanceInformation = _randomInstance,
+            Namespace = _randomNamespace,
             Steps = [],
         };
 
-        var workflowRequest = new WorkflowRequest
+        // Act
+        var workflow = new Workflow
         {
             OperationId = "op-1",
-            Steps = [new StepRequest { Command = new Command.Debug.Noop() }],
+            IdempotencyKey = "wf-1-key",
+            Namespace = _randomNamespace,
+            Steps =
+            [
+                new Step
+                {
+                    OperationId = "noop",
+                    IdempotencyKey = "step-key",
+                    ProcessingOrder = 0,
+                    Command = new CommandDefinition { Type = "noop" },
+                },
+            ],
+            Dependencies = [dependency],
+            Links = [link],
         };
-
-        var metadata = new WorkflowRequestMetadata(
-            CorrelationId: Guid.NewGuid(),
-            InstanceInformation: _randomInstance,
-            Actor: _randomActor,
-            CreatedAt: DateTimeOffset.UtcNow,
-            TraceContext: null,
-            InstanceLockKey: null,
-            Namespace: "default"
-        );
-
-        // Act
-        var workflow = Workflow.FromRequest(
-            workflowRequest,
-            metadata,
-            "wf-1-key",
-            dependencies: [dependency],
-            links: [link]
-        );
 
         // Assert
         Assert.NotNull(workflow.Dependencies);

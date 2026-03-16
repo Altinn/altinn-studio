@@ -116,6 +116,15 @@ public static class TelemetryExtensions
             }
         }
 
+        /// <summary>
+        /// Explicitly sets the activity status to successful (overrides past .Errored() calls).
+        /// </summary>
+        public void Succeeded()
+        {
+            activity.Record();
+            activity.SetStatus(ActivityStatusCode.Ok);
+        }
+
         public void NoData()
         {
             activity.IsAllDataRequested = false;

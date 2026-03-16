@@ -30,6 +30,9 @@ public sealed class PostgresFixture : IAsyncLifetime
             DatabaseRetryStrategy = RetryStrategy.None(),
             MaxConcurrentDbOperations = 50,
             MaxConcurrentHttpCalls = 50,
+            MaxWorkflowsPerRequest = 100,
+            MaxStepsPerWorkflow = 50,
+            MaxLabels = 50,
         }
     );
 

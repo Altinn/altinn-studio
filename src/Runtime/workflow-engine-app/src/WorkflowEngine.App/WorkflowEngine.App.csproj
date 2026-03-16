@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../workflow-engine/src/WorkflowEngine.Core/WorkflowEngine.Core.csproj" />
+    <ProjectReference Include="../../../workflow-engine/src/WorkflowEngine.Commands/WorkflowEngine.Commands.csproj" />
+    <ProjectReference Include="../../../workflow-engine/src/WorkflowEngine.Data/WorkflowEngine.Data.csproj" />
+    <ProjectReference Include="../../../workflow-engine/src/WorkflowEngine.Telemetry/WorkflowEngine.Telemetry.csproj" />
+    <ProjectReference Include="../../../../common/Altinn.Studio.Runtime.Common.csproj" />
+  </ItemGroup>
+</Project>

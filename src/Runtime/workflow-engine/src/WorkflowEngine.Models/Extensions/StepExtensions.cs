@@ -7,13 +7,11 @@ public static class StepExtensions
         /// <summary>
         /// Step metadata useful for enriching telemetry activities.
         /// </summary>
-        /// <returns></returns>
         public (string key, object? value)[] GetActivityTags() =>
             [
                 ("step.database.id", step.DatabaseId),
-                ("step.actor.id", step.Actor.UserIdOrOrgNumber),
                 ("step.operation.id", step.OperationId),
-                ("step.command.type", step.Command.GetType()),
+                ("step.command.type", step.Command.Type),
             ];
 
         /// <summary>
@@ -21,8 +19,8 @@ public static class StepExtensions
         /// </summary>
         public (string key, object? value)[] GetHistorgramTags() =>
             [
-                ("operation.type", step.Command.GetType().Name),
-                ("operation.id", step.Command.OperationId),
+                ("operation.type", step.Command.Type),
+                ("operation.id", step.OperationId),
                 ("operation.order", step.ProcessingOrder),
             ];
     }

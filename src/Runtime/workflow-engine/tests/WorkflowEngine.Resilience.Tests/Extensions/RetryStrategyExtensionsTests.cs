@@ -39,13 +39,24 @@ public class RetryStrategyExtensionsTests
         // Arrange
         var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(4), maxDelay: TimeSpan.FromMinutes(10));
 
-        // Act
-        var delay2 = strategy.CalculateDelay(2);
-        var delay4 = strategy.CalculateDelay(4);
+        // Act & Assert — progression: 1x, 2x, 4x, 8x base interval
+        Assert.Equal(TimeSpan.FromSeconds(4), strategy.CalculateDelay(1)); // 4 * 2^0 = 4
+        Assert.Equal(TimeSpan.FromSeconds(8), strategy.CalculateDelay(2)); // 4 * 2^1 = 8
+        Assert.Equal(TimeSpan.FromSeconds(16), strategy.CalculateDelay(3)); // 4 * 2^2 = 16
+        Assert.Equal(TimeSpan.FromSeconds(32), strategy.CalculateDelay(4)); // 4 * 2^3 = 32
+    }
+
+    [Fact]
+    public void CalculateDelay_Exponential_ClampsHighIterationsToPreventOverflow()
+    {
+        // Arrange — iteration > 62 would overflow without clamping
+        var strategy = RetryStrategy.Exponential(TimeSpan.FromSeconds(1), maxDelay: TimeSpan.FromHours(24));
+
+        // Act — should not throw, should be clamped to maxDelay
+        var delay = strategy.CalculateDelay(100);
 
         // Assert
-        Assert.Equal(TimeSpan.FromSeconds(4), delay2); // 4 * 2^(2-2) = 4 * 1 = 4
-        Assert.Equal(TimeSpan.FromSeconds(16), delay4); // 4 * 2^(4-2) = 4 * 4 = 16
+        Assert.Equal(TimeSpan.FromHours(24), delay);
     }
 
     [Fact]

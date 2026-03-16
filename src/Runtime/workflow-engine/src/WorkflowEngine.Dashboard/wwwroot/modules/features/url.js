@@ -1,8 +1,6 @@
 /* URL sync — persist tab + filters to query params */
 
 import { dom, state } from '../core/state.js';
-import { updateDropdownToggle } from '../shared/dropdown.js';
-import { rebuildSelectedOnlyChips, updatePartyGuidLabels } from '../shared/chips.js';
 import { getTheme, setTheme, updateThemeToggle } from './theme.js';
 
 /** Late-bound references set from app.js to break circular dependency */
@@ -69,10 +67,13 @@ export const syncUrl = () => {
   if (customTimeRange) { p.set('qtf', customTimeRange.from); p.set('qtt', customTimeRange.to); }
   else if (queryTimeRange) p.set('qt', String(queryTimeRange));
   if (/** @type {HTMLInputElement} */ (document.getElementById('retried-check'))?.checked) p.set('qr', '1');
-  if (state.orgFilter.size) p.set('org', [...state.orgFilter].join(','));
-  if (state.appFilter.size) p.set('app', [...state.appFilter].join(','));
-  if (state.partyFilter.size) p.set('party', [...state.partyFilter].join(','));
-  if (state.guidFilter.size) p.set('guid', [...state.guidFilter].join(','));
+  if (state.labelFilters.size) {
+    const parts = [];
+    for (const [key, values] of state.labelFilters) {
+      for (const v of values) parts.push(`${key}:${v}`);
+    }
+    if (parts.length) p.set('lf', parts.join(','));
+  }
   const collapsed = [];
   const expanded = [];
   for (const [id, key] of [['scheduled-section','sched'],['live-section','inbox'],['recent-section','recent']]) {
@@ -165,22 +166,18 @@ export const restoreUrl = () => {
     const check = /** @type {HTMLInputElement | null} */ (document.getElementById('retried-check'));
     if (check) check.checked = true;
   }
-  for (const v of (p.get('org') || '').split(',').filter(Boolean)) state.orgFilter.add(v);
-  for (const v of (p.get('app') || '').split(',').filter(Boolean)) state.appFilter.add(v);
-  for (const v of (p.get('party') || '').split(',').filter(Boolean)) state.partyFilter.add(v);
-  for (const v of (p.get('guid') || '').split(',').filter(Boolean)) state.guidFilter.add(v);
-  if (state.orgFilter.size || state.appFilter.size) {
-    updateDropdownToggle('org');
-    updateDropdownToggle('app');
-    dom.appDropdown.classList.toggle('disabled', state.orgFilter.size === 0);
-  }
-  if (state.partyFilter.size || state.guidFilter.size) {
-    rebuildSelectedOnlyChips(dom.partyChips, state.partyFilter, 'party-chip');
-    rebuildSelectedOnlyChips(dom.guidChips, state.guidFilter, 'guid-chip', v => v.substring(0, 8));
-    updatePartyGuidLabels();
-  }
-  if (state.orgFilter.size || state.appFilter.size || state.partyFilter.size || state.guidFilter.size) {
-    _applyFilter();
+  const lf = p.get('lf');
+  if (lf) {
+    for (const pair of lf.split(',').filter(Boolean)) {
+      const [key, ...rest] = pair.split(':');
+      const value = rest.join(':');
+      if (key && value) {
+        let set = state.labelFilters.get(key);
+        if (!set) { set = new Set(); state.labelFilters.set(key, set); }
+        set.add(value);
+      }
+    }
+    if (state.labelFilters.size) _applyFilter();
   }
   for (const s of (p.get('cpt') || '').split(',').filter(Boolean)) {
     if (s in state.compactSections) state.compactSections[s] = true;

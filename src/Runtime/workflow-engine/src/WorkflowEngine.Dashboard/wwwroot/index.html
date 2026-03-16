@@ -20,8 +20,8 @@
   </h1>
   <div class="header-meters">
     <div class="meter">
-      <span class="meter-label">Inbox</span>
-      <div class="meter-bar"><div class="meter-fill low" id="meter-inbox" style="width:0%"></div><span class="meter-value" id="meter-inbox-val">0 / 0</span></div>
+      <span class="meter-label">Workers</span>
+      <div class="meter-bar"><div class="meter-fill low" id="meter-workers" style="width:0%"></div><span class="meter-value" id="meter-workers-val">0 / 0</span></div>
     </div>
     <div class="meter">
       <span class="meter-label">DB</span>
@@ -35,34 +35,7 @@
 </div>
 
 <div class="filter-bar">
-  <div class="dropdown" id="org-dropdown">
-    <button class="dropdown-toggle" onclick="toggleDropdown('org-dropdown')">
-      <span class="dropdown-label">Org</span>
-      <span class="dropdown-selected" id="org-selected"></span>
-      <svg class="dropdown-arrow" width="8" height="8" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <div class="dropdown-panel">
-      <input type="text" class="dropdown-search" placeholder="Search orgs..." autocomplete="off" spellcheck="false">
-      <div class="dropdown-list" id="org-list"></div>
-    </div>
-  </div>
-  <div class="dropdown disabled" id="app-dropdown">
-    <button class="dropdown-toggle" onclick="toggleDropdown('app-dropdown')">
-      <span class="dropdown-label">App</span>
-      <span class="dropdown-selected" id="app-selected"></span>
-      <svg class="dropdown-arrow" width="8" height="8" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <div class="dropdown-panel">
-      <input type="text" class="dropdown-search" placeholder="Search apps..." autocomplete="off" spellcheck="false">
-      <div class="dropdown-list" id="app-list"></div>
-    </div>
-  </div>
-  <div class="filter-bar-chips">
-    <span class="chip-label" id="label-party" style="display:none">Party</span>
-    <div class="status-chips" id="party-chips"></div>
-    <span class="chip-label" id="label-guid" style="display:none">Instance</span>
-    <div class="status-chips" id="guid-chips"></div>
-  </div>
+  <div class="label-filters" id="label-filter-bar"></div>
   <span class="filter-bar-spacer"></span>
   <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Switch theme">
     <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>

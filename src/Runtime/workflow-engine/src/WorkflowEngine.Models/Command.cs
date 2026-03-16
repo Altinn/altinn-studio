@@ -1,105 +1,79 @@
-using System.Text.Json.Serialization;
+using WorkflowEngine.Models.Abstractions;
 
 namespace WorkflowEngine.Models;
 
-// CA1056: URI properties should not be strings
-// CA1054: URI parameters should not be strings
-// CA1716: Identifiers should not match keywords
-// CA1711: Identifiers should not have incorrect suffix
-#pragma warning disable CA1054
-#pragma warning disable CA1056
-#pragma warning disable CA1716
-#pragma warning disable CA1711
+/// <summary>
+/// Base class for command descriptors that need both typed command data and typed workflow context.
+/// The engine deserializes the raw JSON into <typeparamref name="TData"/> and <typeparamref name="TContext"/>
+/// before calling <see cref="Validate"/> or <see cref="ExecuteAsync"/>.
+/// </summary>
+/// <typeparam name="TData">The type to deserialize <see cref="CommandDefinition.Data"/> into.</typeparam>
+/// <typeparam name="TContext">The type to deserialize <see cref="Workflow.Context"/> into.</typeparam>
+public abstract class Command<TData, TContext> : ICommand
+    where TData : class
+    where TContext : class
+{
+    public abstract string CommandType { get; }
+
+    public Type CommandDataType => typeof(TData);
+
+    public Type WorkflowContextType => typeof(TContext);
+
+    CommandValidationResult ICommand.Validate(object? commandData, object? workflowContext) =>
+        Validate(commandData as TData, workflowContext as TContext);
+
+    Task<ExecutionResult> ICommand.ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken) =>
+        ExecuteAsync(context, cancellationToken);
+
+    /// <summary>
+    /// Validates the deserialized command data and workflow context.
+    /// Called at enqueue time before the workflow is persisted.
+    /// </summary>
+    protected abstract CommandValidationResult Validate(TData? commandData, TContext? workflowContext);
+
+    /// <summary>
+    /// Executes the command. Use <see cref="CommandExecutionContext.GetCommandData{T}"/>
+    /// and <see cref="CommandExecutionContext.GetWorkflowContext{T}"/> to access typed data.
+    /// </summary>
+    protected abstract Task<ExecutionResult> ExecuteAsync(
+        CommandExecutionContext context,
+        CancellationToken cancellationToken
+    );
+}
 
 /// <summary>
-/// Describes a command to be executed by the process engine.
+/// Base class for command descriptors that need typed command data but no workflow context.
+/// The engine deserializes the raw JSON into <typeparamref name="TData"/>
+/// before calling <see cref="Validate"/> or <see cref="ExecuteAsync"/>.
 /// </summary>
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[JsonDerivedType(typeof(AppCommand), typeDiscriminator: "app")]
-[JsonDerivedType(typeof(Webhook), typeDiscriminator: "webhook")]
-public abstract record Command
+/// <typeparam name="TData">The type to deserialize <see cref="CommandDefinition.Data"/> into.</typeparam>
+public abstract class Command<TData> : ICommand
+    where TData : class
 {
-    /// <summary>
-    /// An identifier for this operation
-    /// </summary>
-    public string OperationId { get; init; }
+    public abstract string CommandType { get; }
+
+    public Type CommandDataType => typeof(TData);
+
+    public Type? WorkflowContextType => null;
+
+    CommandValidationResult ICommand.Validate(object? commandData, object? workflowContext) =>
+        Validate(commandData as TData);
+
+    Task<ExecutionResult> ICommand.ExecuteAsync(CommandExecutionContext context, CancellationToken cancellationToken) =>
+        ExecuteAsync(context, cancellationToken);
 
     /// <summary>
-    /// The maximum allowed execution time for the command.
-    /// If the command does not complete within this time, it will be considered failed.
+    /// Validates the deserialized command data.
+    /// Called at enqueue time before the workflow is persisted.
     /// </summary>
-    [JsonPropertyName("maxExecutionTime")]
-    public TimeSpan? MaxExecutionTime { get; init; }
-
-    private Command(string operationId, TimeSpan? maxExecutionTime = null)
-    {
-        OperationId = operationId;
-        MaxExecutionTime = maxExecutionTime;
-    }
+    protected abstract CommandValidationResult Validate(TData? commandData);
 
     /// <summary>
-    /// A command that gets handled by the calling application (via webhook).
+    /// Executes the command. Use <see cref="CommandExecutionContext.GetCommandData{T}"/>
+    /// to access typed data.
     /// </summary>
-    /// <param name="CommandKey">The command key. A unique identifier that is understood by the app's webhook receiver</param>
-    /// <param name="Payload">Optional payload to send back with the command. If specified this becomes a POST request. Otherwise, GET.</param>
-    /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
-    public sealed record AppCommand(
-        [property: JsonPropertyName("commandKey")] string CommandKey,
-        [property: JsonPropertyName("payload")] string? Payload = null,
-        TimeSpan? MaxExecutionTime = null
-    ) : Command(CommandKey, MaxExecutionTime);
-
-    /// <summary>
-    /// A command that performs a webhook callback to the specified URI with an optional payload.
-    /// </summary>
-    /// <remarks>Currently only used for debugging, but otherwise a potentially useful command type in general.</remarks>
-    /// <param name="Uri">The uri to call.</param>
-    /// <param name="Payload">An optional payload string. If provided, a POST request will be issued. Otherwise, GET.</param>
-    /// <param name="ContentType">The value to send along with the request in the Content-Type header.</param>
-    /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
-    public sealed record Webhook(
-        [property: JsonPropertyName("uri")] string Uri,
-        [property: JsonPropertyName("payload")] string? Payload = null,
-        [property: JsonPropertyName("contentType")] string? ContentType = null,
-        TimeSpan? MaxExecutionTime = null
-    ) : Command("webhook", MaxExecutionTime);
-
-    /// <summary>
-    /// Commands used for testing and debugging purposes.
-    /// </summary>
-    public static class Debug
-    {
-        /// <summary>
-        /// A command that throws an exception when executed.
-        /// </summary>
-        public sealed record Throw() : Command("throw");
-
-        /// <summary>
-        /// A command that performs no operation, simply returns a completed task.
-        /// </summary>
-        public sealed record Noop() : Command("noop");
-
-        /// <summary>
-        /// A command that performs a timeout/delay when executed.
-        /// </summary>
-        /// <param name="Duration">The timeout duration.</param>
-        /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
-        public sealed record Timeout(
-            [property: JsonPropertyName("duration")] TimeSpan Duration,
-            TimeSpan? MaxExecutionTime = null
-        ) : Command("timeout", MaxExecutionTime);
-
-        /// <summary>
-        /// Debug: A command that executes a delegate function.
-        /// </summary>
-        /// <param name="Action">The delegate method</param>
-        /// <param name="MaxExecutionTime">The maximum allowed execution time for the command.</param>
-        public sealed record Delegate(
-            Func<Workflow, Step, CancellationToken, Task> Action,
-            TimeSpan? MaxExecutionTime = null
-        ) : Command("delegate", MaxExecutionTime);
-    }
-
-    /// <inheritdoc/>
-    public sealed override string ToString() => OperationId;
+    protected abstract Task<ExecutionResult> ExecuteAsync(
+        CommandExecutionContext context,
+        CancellationToken cancellationToken
+    );
 }

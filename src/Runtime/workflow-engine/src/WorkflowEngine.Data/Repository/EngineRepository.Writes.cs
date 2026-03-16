@@ -2,8 +2,10 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using NpgsqlTypes;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Entities;
+using WorkflowEngine.Data.Extensions;
 using WorkflowEngine.Models;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
@@ -62,14 +64,13 @@ internal sealed partial class EngineRepository
                                 setters
                                     .SetProperty(t => t.Status, workflow.Status)
                                     .SetProperty(t => t.UpdatedAt, workflow.UpdatedAt)
-                                    .SetProperty(t => t.EngineTraceId, workflow.EngineTraceContext),
+                                    .SetProperty(t => t.BackoffUntil, workflow.BackoffUntil)
+                                    .SetProperty(t => t.EngineTraceContext, workflow.EngineTraceContext),
                             ct
                         );
                 },
                 cancellationToken
             );
-
-            logger.SuccessfullyUpdatedWorkflow(workflow);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -105,14 +106,14 @@ internal sealed partial class EngineRepository
                                 setters
                                     .SetProperty(t => t.Status, step.Status)
                                     .SetProperty(t => t.RequeueCount, step.RequeueCount)
-                                    .SetProperty(t => t.UpdatedAt, step.UpdatedAt),
+                                    .SetProperty(t => t.StateOut, step.StateOut)
+                                    .SetProperty(t => t.UpdatedAt, step.UpdatedAt)
+                                    .SetProperty(t => t.EngineTraceContext, step.EngineTraceContext),
                             ct
                         );
                 },
                 cancellationToken
             );
-
-            logger.SuccessfullyUpdatedStep(step);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -143,7 +144,7 @@ internal sealed partial class EngineRepository
             perRequestWorkflows[i] =
             [
                 .. request.Request.Workflows.Select(workflowRequest =>
-                    Workflow.FromRequest(workflowRequest, request.Metadata, request.Request.IdempotencyKey)
+                    workflowRequest.ToWorkflow(request.Metadata, request.Request)
                 ),
             ];
         }
@@ -231,7 +232,7 @@ internal sealed partial class EngineRepository
                 var req = requests[i];
                 return (
                     req.Request.IdempotencyKey,
-                    req.Metadata.Namespace,
+                    WorkflowNamespace.Normalize(req.Request.Namespace),
                     req.RequestBodyHash,
                     "{" + string.Join(",", perRequestWorkflows[i].Select(w => w.DatabaseId)) + "}",
                     req.Metadata.CreatedAt
@@ -280,19 +281,19 @@ internal sealed partial class EngineRepository
                     WITH input AS (
                         SELECT * FROM unnest({arrays.Keys}, {arrays.Namespaces}, {hashesParam}, {arrays.WfIdTexts}, {arrays.CreationDates})
                             WITH ORDINALITY
-                            AS t(idempotency_key, namespace, request_body_hash, wf_id_text, created_at, idx)
+                            AS t("IdempotencyKey", "Namespace", "RequestBodyHash", wf_id_text, "CreatedAt", idx)
                     ),
                     inserted AS (
-                        INSERT INTO idempotency_keys (idempotency_key, namespace, request_body_hash, workflow_ids, created_at)
-                        SELECT idempotency_key, namespace, request_body_hash, wf_id_text::uuid[], created_at
+                        INSERT INTO "IdempotencyKeys" ("IdempotencyKey", "Namespace", "RequestBodyHash", "WorkflowIds", "CreatedAt")
+                        SELECT "IdempotencyKey", "Namespace", "RequestBodyHash", wf_id_text::uuid[], "CreatedAt"
                         FROM input
-                        ORDER BY idempotency_key, namespace
-                        ON CONFLICT (idempotency_key, namespace) DO NOTHING
-                        RETURNING idempotency_key, namespace
+                        ORDER BY "IdempotencyKey", "Namespace"
+                        ON CONFLICT ("IdempotencyKey", "Namespace") DO NOTHING
+                        RETURNING "IdempotencyKey", "Namespace"
                     )
                     SELECT (i.idx - 1)::int AS "Value"
                     FROM inserted ins
-                    JOIN input i USING (idempotency_key, namespace)
+                    JOIN input i USING ("IdempotencyKey", "Namespace")
                     """
                 )
                 .ToListAsync(cancellationToken)
@@ -327,7 +328,9 @@ internal sealed partial class EngineRepository
     )
     {
         var (keys, namespaces) = existingRequestIndices
-            .Select(i => (requests[i].Request.IdempotencyKey, requests[i].Metadata.Namespace))
+            .Select(i =>
+                (requests[i].Request.IdempotencyKey, WorkflowNamespace.Normalize(requests[i].Request.Namespace))
+            )
             .ToArray()
             .Unzip();
 
@@ -336,8 +339,8 @@ internal sealed partial class EngineRepository
                 $"""
                 SELECT ik.*
                 FROM unnest({keys}, {namespaces})
-                    AS t(idempotency_key, namespace)
-                JOIN idempotency_keys ik USING (idempotency_key, namespace)
+                    AS t("IdempotencyKey", "Namespace")
+                JOIN "IdempotencyKeys" ik USING ("IdempotencyKey", "Namespace")
                 """
             )
             .AsNoTracking()
@@ -351,7 +354,7 @@ internal sealed partial class EngineRepository
         foreach (var i in existingRequestIndices)
         {
             var req = requests[i];
-            var compositeKey = (req.Request.IdempotencyKey, req.Metadata.Namespace);
+            var compositeKey = (req.Request.IdempotencyKey, WorkflowNamespace.Normalize(req.Request.Namespace));
             if (existingLookup.TryGetValue(compositeKey, out var existing))
             {
                 if (existing.hash.AsSpan().SequenceEqual(req.RequestBodyHash))
@@ -383,7 +386,7 @@ internal sealed partial class EngineRepository
         var externalRefPairs = new HashSet<(Guid id, string ns)>();
         foreach (var request in requests)
         {
-            var ns = request.Metadata.Namespace;
+            var ns = WorkflowNamespace.Normalize(request.Request.Namespace);
             foreach (var workflow in request.Request.Workflows)
             {
                 CollectExternalIds(workflow.DependsOn, ns, externalRefPairs);
@@ -412,7 +415,7 @@ internal sealed partial class EngineRepository
 
         for (var i = 0; i < requests.Count; i++)
         {
-            var ns = requests[i].Metadata.Namespace;
+            var ns = WorkflowNamespace.Normalize(requests[i].Request.Namespace);
             var nonExistentReferences = requests[i]
                 .Request.Workflows.SelectMany(wf => (wf.DependsOn ?? []).Concat(wf.Links ?? []))
                 .Where(r => r.IsId && !verifiedPairs.Contains((r.Id, ns)))
@@ -440,8 +443,8 @@ internal sealed partial class EngineRepository
         BufferedEnqueueRequest? previous = null;
         foreach (
             var (current, index) in requests
-                .Select((Value, Index) => (Value, Index))
-                .OrderBy(x => x.Value.Metadata.Namespace)
+                .Select((value, index) => (Value: value, Index: index))
+                .OrderBy(x => WorkflowNamespace.Normalize(x.Value.Request.Namespace))
                 .ThenBy(x => x.Value.Request.IdempotencyKey)
         )
         {
@@ -452,7 +455,8 @@ internal sealed partial class EngineRepository
 
             if (
                 previous is not null
-                && current.Metadata.Namespace == previous.Metadata.Namespace
+                && WorkflowNamespace.Normalize(current.Request.Namespace)
+                    == WorkflowNamespace.Normalize(previous.Request.Namespace)
                 && current.Request.IdempotencyKey == previous.Request.IdempotencyKey
             )
             {
@@ -622,6 +626,7 @@ internal sealed partial class EngineRepository
                             AND dep."Status" <> {PersistentItemStatus.Completed}
                             AND dep."Status" <> {PersistentItemStatus.Failed}
                             AND dep."Status" <> {PersistentItemStatus.DependencyFailed}
+                            AND dep."Status" <> {PersistentItemStatus.Canceled}
                       )
                     ORDER BY w."BackoffUntil" NULLS FIRST, w."CreatedAt"
                     FOR UPDATE SKIP LOCKED
@@ -679,7 +684,7 @@ internal sealed partial class EngineRepository
                     var ids = new Guid[updates.Count];
                     var statuses = new int[updates.Count];
                     var backoffUntils = new object[updates.Count];
-                    var engineTraceIds = new object[updates.Count];
+                    var engineTraceContexts = new object[updates.Count];
 
                     for (int i = 0; i < updates.Count; i++)
                     {
@@ -687,17 +692,17 @@ internal sealed partial class EngineRepository
                         ids[i] = w.DatabaseId;
                         statuses[i] = (int)w.Status;
                         backoffUntils[i] = w.BackoffUntil.HasValue ? w.BackoffUntil.Value : DBNull.Value;
-                        engineTraceIds[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
+                        engineTraceContexts[i] = (object?)w.EngineTraceContext ?? DBNull.Value;
                     }
 
                     const string updateWorkflowsSql = """
                     UPDATE "Workflows" AS w
-                    SET "Status"        = v.status,
-                        "UpdatedAt"     = @now,
-                        "BackoffUntil" = v.backoff_until,
-                        "EngineTraceId" = v.engine_trace_id
-                    FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_ids)
-                        AS v(id, status, backoff_until, engine_trace_id)
+                    SET "Status"             = v.status,
+                        "UpdatedAt"          = @now,
+                        "BackoffUntil"       = v.backoff_until,
+                        "EngineTraceContext" = v.engine_trace_context
+                    FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts)
+                        AS v(id, status, backoff_until, engine_trace_context)
                     WHERE w."Id" = v.id
                     """;
 
@@ -712,9 +717,9 @@ internal sealed partial class EngineRepository
                             }
                         );
                         cmd.Parameters.Add(
-                            new NpgsqlParameter("engine_trace_ids", NpgsqlDbType.Array | NpgsqlDbType.Text)
+                            new NpgsqlParameter("engine_trace_contexts", NpgsqlDbType.Array | NpgsqlDbType.Text)
                             {
-                                Value = engineTraceIds,
+                                Value = engineTraceContexts,
                             }
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
@@ -730,6 +735,7 @@ internal sealed partial class EngineRepository
                         var stepStatuses = new int[allSteps.Count];
                         var stepRequeueCounts = new int[allSteps.Count];
                         var stepStateOuts = new object[allSteps.Count];
+                        var stepEngineTraceContexts = new object[allSteps.Count];
 
                         for (int i = 0; i < allSteps.Count; i++)
                         {
@@ -738,16 +744,18 @@ internal sealed partial class EngineRepository
                             stepStatuses[i] = (int)s.Status;
                             stepRequeueCounts[i] = s.RequeueCount;
                             stepStateOuts[i] = (object?)s.StateOut ?? DBNull.Value;
+                            stepEngineTraceContexts[i] = (object?)s.EngineTraceContext ?? DBNull.Value;
                         }
 
                         const string updateStepsSql = """
                         UPDATE "Steps" AS s
-                        SET "Status"       = v.status,
-                            "RequeueCount" = v.requeue_count,
-                            "StateOut"     = v.state_out,
-                            "UpdatedAt"    = @now
-                        FROM unnest(@ids, @statuses, @requeue_counts, @state_outs)
-                            AS v(id, status, requeue_count, state_out)
+                        SET "Status"             = v.status,
+                            "RequeueCount"       = v.requeue_count,
+                            "StateOut"           = v.state_out,
+                            "EngineTraceContext" = v.engine_trace_context,
+                            "UpdatedAt"          = @now
+                        FROM unnest(@ids, @statuses, @requeue_counts, @engine_trace_contexts, @state_outs)
+                            AS v(id, status, requeue_count, engine_trace_context, state_out)
                         WHERE s."Id" = v.id
                         """;
 
@@ -759,6 +767,12 @@ internal sealed partial class EngineRepository
                             new NpgsqlParameter("state_outs", NpgsqlDbType.Array | NpgsqlDbType.Text)
                             {
                                 Value = stepStateOuts,
+                            }
+                        );
+                        cmd.Parameters.Add(
+                            new NpgsqlParameter("engine_trace_contexts", NpgsqlDbType.Array | NpgsqlDbType.Text)
+                            {
+                                Value = stepEngineTraceContexts,
                             }
                         );
                         cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));

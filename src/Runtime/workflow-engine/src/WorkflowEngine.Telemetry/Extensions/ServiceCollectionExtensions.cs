@@ -34,8 +34,11 @@ public static class ServiceCollectionExtensions
                         {
                             opts.RecordException = true;
                             opts.Filter = httpContext =>
-                                httpContext.Request.Path.Value?.Contains("/health", StringComparison.OrdinalIgnoreCase)
-                                    is not true;
+                            {
+                                var path = httpContext.Request.Path.Value ?? "";
+                                string[] excludedPaths = ["/health", "/dashboard"];
+                                return !excludedPaths.Any(p => path.Contains(p, StringComparison.OrdinalIgnoreCase));
+                            };
                         })
                         .AddEntityFrameworkCoreInstrumentation(opts =>
                         {

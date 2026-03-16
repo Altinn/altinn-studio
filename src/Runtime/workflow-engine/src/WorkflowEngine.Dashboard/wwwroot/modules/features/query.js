@@ -59,10 +59,13 @@ const fetchQuery = async (opts) => {
     params.set('limit', String(QUERY_PAGE));
     if (dbStatus) params.set('status', dbStatus);
     if (searchTerm) params.set('search', searchTerm);
-    if (!isGuid && state.orgFilter.size === 1) params.set('org', [...state.orgFilter][0]);
-    if (!isGuid && state.appFilter.size === 1) params.set('app', [...state.appFilter][0]);
-    if (!isGuid && state.partyFilter.size === 1) params.set('party', [...state.partyFilter][0]);
-    if (!isGuid && state.guidFilter.size === 1) params.set('instanceGuid', [...state.guidFilter][0]);
+    if (!isGuid && state.labelFilters.size > 0) {
+      const labelPairs = [];
+      for (const [key, values] of state.labelFilters) {
+        for (const v of values) labelPairs.push(`${key}:${v}`);
+      }
+      if (labelPairs.length > 0) params.set('labels', labelPairs.join(','));
+    }
     const cursor = queryPageCursors[page] ?? null;
     if (cursor) params.set('before', cursor);
     if (effectiveCustom) {

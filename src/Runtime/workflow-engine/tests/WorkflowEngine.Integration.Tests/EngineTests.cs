@@ -1,4 +1,5 @@
 using WorkflowEngine.Integration.Tests.Fixtures;
+using WorkflowEngine.TestKit;
 
 // CA1816: call GC.SuppressFinalize(object)
 #pragma warning disable CA1816
@@ -19,9 +20,8 @@ namespace WorkflowEngine.Integration.Tests;
 /// database and restore WireMock to its default catch-all 200 stub.
 /// </summary>
 [Collection(EngineAppCollection.Name)]
-public partial class EngineTests(EngineAppFixture fixture) : IAsyncLifetime
+public partial class EngineTests(EngineAppFixture<Program> fixture) : IAsyncLifetime
 {
-    private const string InstanceLockToken = EngineAppFixture.DefaultInstanceLockToken;
     private readonly EngineApiClient _client = new(fixture);
     private readonly TestHelpers _testHelpers = new(fixture);
 

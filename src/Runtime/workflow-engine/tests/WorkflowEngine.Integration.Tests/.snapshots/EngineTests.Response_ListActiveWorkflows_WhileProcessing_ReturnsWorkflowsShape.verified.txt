@@ -4,22 +4,22 @@
     correlationId: Guid_1,
     operationId: op-wf-1,
     idempotencyKey: idem-Guid_2,
-    namespace: default,
+    namespace: ttd:e2e-tests,
     createdAt: {Scrubbed},
     updatedAt: {Scrubbed},
-    actor: {
-      userIdOrOrgNumber: test-user,
-      language: null
+    labels: {
+      app: e2e-tests,
+      org: ttd
     },
     overallStatus: Processing,
     steps: [
       {
         databaseId: {Scrubbed},
-        idempotencyKey: idem-Guid_2/webhook,
+        idempotencyKey: idem-Guid_2//slow,
+        operationId: /slow,
         processingOrder: 0,
         command: {
-          type: Webhook,
-          operationId: webhook
+          type: webhook
         },
         status: Enqueued,
         retryCount: 0

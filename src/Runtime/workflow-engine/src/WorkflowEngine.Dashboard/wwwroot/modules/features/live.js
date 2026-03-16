@@ -8,13 +8,13 @@ import { notifyWorkflowChanged } from './state-modal.js';
 
 /** Late-bound references */
 /** @type {() => void} */
-let _mergeDiscoveredOrgsAndApps = () => {};
+let _mergeDiscoveredLabels = () => {};
 /** @type {() => void} */
 let _applyFilter = () => {};
 
-/** @param {{ mergeDiscoveredOrgsAndApps: () => void, applyFilter: () => void }} fns */
+/** @param {{ mergeDiscoveredLabels: () => void, applyFilter: () => void }} fns */
 export const bindLiveCallbacks = (fns) => {
-  _mergeDiscoveredOrgsAndApps = fns.mergeDiscoveredOrgsAndApps;
+  _mergeDiscoveredLabels = fns.mergeDiscoveredLabels;
   _applyFilter = fns.applyFilter;
 };
 
@@ -81,6 +81,6 @@ export const updateLiveWorkflows = (workflows) => {
   const hasCards = dom.liveContainer.querySelector('.workflow-card') !== null;
   const isEmpty = workflows.length === 0 && !hasCards;
   dom.liveEmpty.style.display = isEmpty ? 'block' : 'none';
-  _mergeDiscoveredOrgsAndApps();
+  _mergeDiscoveredLabels();
   _applyFilter();
 };
