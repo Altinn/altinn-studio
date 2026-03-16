@@ -9,7 +9,8 @@ import { usePageSettings, useRawPageOrder } from 'src/features/form/layoutSettin
 import { getUiConfig } from 'src/features/form/ui';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useGetTaskTypeById, useProcessQuery } from 'src/features/instance/useProcessQuery';
+import { useGetTaskTypeById } from 'src/features/instance/useProcessQuery';
+import type { IProcess } from 'src/types/shared';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
@@ -178,24 +179,17 @@ export function useNavigateToTask() {
   );
 }
 
-export function useIsValidTaskId() {
-  const processTasks = useProcessQuery().data?.processTasks;
-
-  return useCallback(
-    (taskId?: string) => {
-      if (!taskId) {
-        return false;
-      }
-      if (taskId === TaskKeys.ProcessEnd) {
-        return true;
-      }
-      if (taskId === TaskKeys.CustomReceipt) {
-        return true;
-      }
-      return processTasks?.find((task) => task.elementId === taskId) !== undefined;
-    },
-    [processTasks],
-  );
+export function isValidTaskId(taskId: string | undefined, processTasks: IProcess['processTasks']): boolean {
+  if (!taskId) {
+    return false;
+  }
+  if (taskId === TaskKeys.ProcessEnd) {
+    return true;
+  }
+  if (taskId === TaskKeys.CustomReceipt) {
+    return true;
+  }
+  return processTasks?.find((task) => task.elementId === taskId) !== undefined;
 }
 
 export function useNavigatePage() {
