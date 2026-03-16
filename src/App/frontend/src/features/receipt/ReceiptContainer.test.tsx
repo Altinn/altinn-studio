@@ -6,11 +6,11 @@ import { screen } from '@testing-library/react';
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { fetchInstanceData } from 'src/queries/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -91,7 +91,7 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
   window.altinnAppGlobalData.applicationMetadata = getApplicationMetadataMock((a) => {
     a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
   });
-  jest.mocked(fetchInstanceData).mockImplementation(async () => {
+  jest.mocked(InstanceApi.getInstance).mockImplementation(async () => {
     const instance = buildInstance(hasPdf);
     instance.process = getProcessDataMock((p) => {
       p.currentTask = undefined;

@@ -4,44 +4,37 @@ import { useMutation, useMutationState, useQueryClient } from '@tanstack/react-q
 import type { MutateOptions } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 
-import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
-import { instanceQueries } from 'src/features/instance/InstanceContext';
+import { InstanceApi } from 'src/core/api-client/instance.api';
+import { instanceDataQueryOptions } from 'src/core/queries/instance/instance.queries';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import type { InstantiationPrefillData } from 'src/core/api-client/instance.api';
 import type { IInstance } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
-export interface Prefill {
-  [key: string]: unknown;
-}
-
-export interface InstanceOwner {
-  partyId: string | undefined;
-}
-
-export interface Instantiation {
-  instanceOwner: InstanceOwner;
-  prefill: Prefill;
-}
+export type Instantiation = InstantiationPrefillData;
 
 type InstantiationArgs = number | Instantiation;
 type Options<Vars> = MutateOptions<IInstance, AxiosError, Vars, unknown> & { force?: boolean };
 
 export function useInstantiation() {
-  const { doInstantiate, doInstantiateWithPrefill } = useAppMutations();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const currentLanguage = useCurrentLanguage();
 
   const { mutateAsync } = useMutation({
     mutationKey: ['instantiate'],
-    mutationFn: (args: InstantiationArgs) =>
-      typeof args === 'number' ? doInstantiate(args, currentLanguage) : doInstantiateWithPrefill(args, currentLanguage),
+    mutationFn: async (args: InstantiationArgs) => {
+      if (typeof args === 'number') {
+        return InstanceApi.create(args, currentLanguage);
+      }
+      return InstanceApi.createWithPrefill(args, currentLanguage);
+    },
     onError: (error: HttpClientError) => {
       window.logError(`Instantiation failed:\n`, error);
     },
     onSuccess: (data) => {
       const [instanceOwnerPartyId, instanceGuid] = data.id.split('/');
-      const queryKey = instanceQueries.instanceData({
+      const queryKey = instanceDataQueryOptions({
         instanceOwnerPartyId,
         instanceGuid,
       }).queryKey;

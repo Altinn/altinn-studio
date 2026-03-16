@@ -1,7 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
-import { instanceDataQueryOptions, instanceQueryKeys } from 'src/core/queries/instance/instance.queries';
+import {
+  activeInstancesQueryOptions,
+  instanceDataQueryOptions,
+  instanceQueryKeys,
+  useCreateInstanceMutation,
+} from 'src/core/queries/instance/instance.queries';
 import { useNavigationParam } from 'src/hooks/navigation';
 import type { InstanceQueryParams } from 'src/core/queries/instance/instance.queries';
 import type { IData, IInstance } from 'src/types/shared';
@@ -47,6 +52,19 @@ export function useInstanceDataElements(dataType: string | undefined) {
   return data ?? ([] as IData[]);
 }
 
+export function useActiveInstances({
+  partyId,
+  sortDirection,
+}: {
+  partyId: number | undefined;
+  sortDirection: 'desc' | 'asc';
+}) {
+  return useQuery({
+    ...activeInstancesQueryOptions(partyId),
+    select: (instances) => (sortDirection === 'desc' ? [...instances].reverse() : instances),
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Optimistic updates
 // ---------------------------------------------------------------------------
@@ -68,3 +86,5 @@ export function useOptimisticInstanceUpdate() {
     }
   };
 }
+
+export { useCreateInstanceMutation };

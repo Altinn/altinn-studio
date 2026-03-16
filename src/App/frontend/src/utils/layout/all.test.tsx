@@ -10,9 +10,9 @@ import type { JSONSchema7 } from 'json-schema';
 import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import { SubformWrapper } from 'src/layout/Subform/SubformWrapper';
-import { fetchInstanceData } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -144,7 +144,7 @@ describe('All known UI folders should render successfully', () => {
 
     window.altinnAppGlobalData.applicationMetadata = uiFolder.app.getAppMetadata();
     window.altinnAppGlobalData.ui = uiFolder.app.getUiConfig();
-    jest.mocked(fetchInstanceData).mockImplementation(async () => {
+    jest.mocked(InstanceApi.getInstance).mockImplementation(async () => {
       const instance = uiFolder.simulateInstance();
       instance.process = mainFolder.simulateProcessData();
       return instance;

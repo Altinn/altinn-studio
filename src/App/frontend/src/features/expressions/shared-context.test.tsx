@@ -7,6 +7,7 @@ import { getApplicationSettingsMock } from 'src/__mocks__/getApplicationSettings
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { defaultDataTypeMock } from 'src/__mocks__/getUiConfigMock';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -113,6 +114,10 @@ describe('Expressions shared context tests', () => {
           }
         }
 
+        if (instance) {
+          jest.mocked(InstanceApi.getInstance).mockImplementation(async () => instance);
+        }
+
         await renderWithInstanceAndLayout({
           renderer: () => <TestContexts />,
           queries: {
@@ -121,7 +126,6 @@ describe('Expressions shared context tests', () => {
                 obj.layouts = layouts!;
                 obj.dataModels[defaultDataTypeMock].initialData = dataModel ?? {};
               }),
-            ...(instance ? { fetchInstanceData: async () => instance } : {}),
             ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
           },
         });

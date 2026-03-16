@@ -4,8 +4,8 @@ import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { CustomButtonComponent } from 'src/layout/CustomButton/CustomButtonComponent';
-import { fetchInstanceData } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CustomAction } from 'src/layout/CustomButton/config.generated';
 import type { IUserAction } from 'src/types/shared';
@@ -126,7 +126,7 @@ type RenderProps = {
 };
 
 async function render({ actions, actionAuthorization }: RenderProps = { actionAuthorization: [] }) {
-  jest.mocked(fetchInstanceData).mockImplementation(async () =>
+  jest.mocked(InstanceApi.getInstance).mockImplementation(async () =>
     getInstanceDataMock((instance) => {
       instance.process = {
         started: '2024-01-03T06:52:49.716640678Z',

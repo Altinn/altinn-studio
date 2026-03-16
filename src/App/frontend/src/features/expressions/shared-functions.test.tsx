@@ -8,6 +8,7 @@ import { getDataModelBootstrapMock, getFormBootstrapMock } from 'src/__mocks__/g
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { getProfileMock } from 'src/__mocks__/getProfileMock';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
@@ -20,7 +21,6 @@ import {
 } from 'src/features/form/layout/utils/repeating';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
-import { fetchInstanceData } from 'src/queries/queries';
 import { AppQueries } from 'src/queries/types';
 import {
   renderWithInstanceAndLayout,
@@ -186,7 +186,7 @@ function setupMocks(test: FunctionTest): void {
   };
 
   jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
-  jest.mocked(fetchInstanceData).mockImplementation(async () => createInstanceData(test));
+  jest.mocked(InstanceApi.getInstance).mockImplementation(async () => createInstanceData(test));
 }
 
 function createApplicationMetadata({ stateless, instanceDataElements, dataModels }: FunctionTest): ApplicationMetadata {

@@ -1,28 +1,18 @@
 import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useQuery } from '@tanstack/react-query';
-
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
+import { useActiveInstances as useActiveInstancesQuery } from 'src/core/queries/instance';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 
-const useActiveInstancesQuery = () => {
-  const { fetchActiveInstances } = useAppQueries();
+const useActiveInstancesInternal = () => {
   const selectedParty = useSelectedParty();
 
-  const utils = useQuery({
-    queryKey: ['getActiveInstances', selectedParty?.partyId],
-    queryFn: async () => {
-      const simpleInstances = await fetchActiveInstances(selectedParty?.partyId ?? -1);
-
-      // Sort array by last changed date
-      simpleInstances.sort((a, b) => new Date(a.lastChanged).getTime() - new Date(b.lastChanged).getTime());
-
-      return simpleInstances;
-    },
+  const utils = useActiveInstancesQuery({
+    partyId: selectedParty?.partyId,
+    sortDirection: 'asc',
   });
 
   useEffect(() => {
@@ -36,7 +26,7 @@ const { Provider, useCtx } = delayedContext(() =>
   createQueryContext({
     name: 'ActiveInstances',
     required: true,
-    query: useActiveInstancesQuery,
+    query: useActiveInstancesInternal,
   }),
 );
 
