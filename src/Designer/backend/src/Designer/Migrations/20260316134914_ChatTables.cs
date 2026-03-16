@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Altinn.Studio.Designer.Migrations.SqlScripts;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
