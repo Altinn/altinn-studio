@@ -1,4 +1,3 @@
-import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import * as queries from 'app-shared/api/queries';

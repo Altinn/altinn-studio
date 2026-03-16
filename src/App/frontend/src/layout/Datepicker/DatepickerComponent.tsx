@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { DatePickerControl } from 'src/app-components/Datepicker/Datepicker';
 import { getDateConstraint, getDateFormat } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { Flex } from 'src/app-components/Flex/Flex';

@@ -1,5 +1,5 @@
 import type { ChangeEvent, ReactElement } from 'react';
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { StudioSelect, type StudioSelectProps } from '@studio/components';

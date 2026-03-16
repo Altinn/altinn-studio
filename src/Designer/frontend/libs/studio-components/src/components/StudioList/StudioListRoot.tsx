@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from 'react';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 
 export type StudioListRootProps = HTMLAttributes<HTMLDivElement>;
 

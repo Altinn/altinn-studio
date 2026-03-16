@@ -1,4 +1,3 @@
-import React from 'react';
 import { RuleComponent } from '../config/RuleComponent';
 import { useTranslation } from 'react-i18next';
 import { useRuleModelQuery } from '../../hooks/queries/useRuleModelQuery';

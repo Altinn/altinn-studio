@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './Navigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { getFilteredMenuListForOverviewPage } from 'app-development/utils/headerMenu/headerMenuUtils';

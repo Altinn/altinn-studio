@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { createRef, forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { ParagraphDef } from 'src/layout/Paragraph/config.def.generated';
@@ -22,7 +22,7 @@ export class Paragraph extends ParagraphDef {
       >
         <ParagraphComponent
           baseComponentId={props.targetBaseComponentId}
-          containerDivRef={React.createRef()}
+          containerDivRef={createRef()}
         />
       </SummaryFlex>
     );

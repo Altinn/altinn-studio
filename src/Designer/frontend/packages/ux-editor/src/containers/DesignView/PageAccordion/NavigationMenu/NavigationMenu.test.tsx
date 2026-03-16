@@ -14,7 +14,6 @@ import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import React from 'react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import type { NavigationMenuProps } from './NavigationMenu';
 import { NavigationMenu } from './NavigationMenu';

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Field, ValidationMessage } from '@digdir/designsystemet-react';
 import { queryOptions, useQuery } from '@tanstack/react-query';

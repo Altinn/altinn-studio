@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioLink, StudioParagraph, StudioNotFoundPage } from '@studio/components';
 import { useTranslation, Trans } from 'react-i18next';
 

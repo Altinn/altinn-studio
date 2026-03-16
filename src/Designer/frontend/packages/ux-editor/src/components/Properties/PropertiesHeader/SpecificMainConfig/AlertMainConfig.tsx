@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import type { FormItem } from '../../../../types/FormItem';
 import type { ComponentType } from '../../../../../../shared/src/types/ComponentType';
 import { useComponentSchemaQuery } from '../../../../hooks/queries/useComponentSchemaQuery';

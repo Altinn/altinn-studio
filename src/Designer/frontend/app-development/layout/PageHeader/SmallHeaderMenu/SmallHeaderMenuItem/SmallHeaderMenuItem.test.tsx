@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, render } from '@testing-library/react';
 import { SmallHeaderMenuItem, type SmallHeaderMenuItemProps } from './SmallHeaderMenuItem';
 import { textMock } from '@studio/testing/mocks/i18nMock';

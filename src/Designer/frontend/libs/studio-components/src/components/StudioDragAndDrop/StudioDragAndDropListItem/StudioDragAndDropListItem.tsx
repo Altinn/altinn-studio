@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DndItem, ExistingDndItem } from '../types';
 import { DragCursorPosition, DraggableEditorItemType } from '../types';
 import type { CSSProperties, ElementType, ReactElement, ReactNode } from 'react';

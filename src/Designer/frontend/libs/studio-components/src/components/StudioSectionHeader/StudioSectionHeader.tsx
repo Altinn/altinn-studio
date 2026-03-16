@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { ReactElement, ReactNode, Ref, HTMLAttributes } from 'react';
 import classes from './StudioSectionHeader.module.css';
 import cn from 'classnames';

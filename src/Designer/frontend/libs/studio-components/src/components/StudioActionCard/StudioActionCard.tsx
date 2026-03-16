@@ -1,4 +1,5 @@
-import React, { forwardRef, type Ref } from 'react';
+import type { Ref } from 'react';
+import React, { forwardRef } from 'react';
 import { StudioCard } from '../StudioCard';
 import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
 import { PlusIcon } from '@studio/icons';

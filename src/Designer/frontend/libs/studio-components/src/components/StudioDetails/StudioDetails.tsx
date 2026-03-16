@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { Details } from '@digdir/designsystemet-react';
 import type { DetailsProps } from '@digdir/designsystemet-react';

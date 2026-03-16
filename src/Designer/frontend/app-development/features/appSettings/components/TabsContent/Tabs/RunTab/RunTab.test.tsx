@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';

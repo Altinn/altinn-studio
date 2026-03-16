@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { NewsList } from 'app-shared/types/api/NewsList';
 import { textMock } from '@studio/testing/mocks/i18nMock';

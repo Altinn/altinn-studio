@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import React from 'react';
 import classes from './ResourceItem.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioLink } from '@studio/components';

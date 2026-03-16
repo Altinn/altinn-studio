@@ -6,7 +6,6 @@ import {
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { FlagsPage } from './FlagsPage';
-import React from 'react';
 import { userEvent } from '@testing-library/user-event';
 
 const allFlags: FeatureFlag[] = Object.values(FeatureFlag);

@@ -1,6 +1,5 @@
 import classes from './TimeRangeSelect.module.css';
 import { StudioSelect } from '@studio/components';
-import React from 'react';
 
 export type TimeRangeSelectProps = {
   label: string;

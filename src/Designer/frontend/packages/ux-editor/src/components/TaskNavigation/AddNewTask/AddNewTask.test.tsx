@@ -1,4 +1,3 @@
-import React from 'react';
 import { AddNewTask } from './AddNewTask';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../../../testing/mocks';

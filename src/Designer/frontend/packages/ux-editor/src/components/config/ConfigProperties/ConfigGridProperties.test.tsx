@@ -1,4 +1,3 @@
-import React from 'react';
 import { ConfigGridProperties, type ConfigGridPropertiesProps } from './ConfigGridProperties';
 import { componentMocks } from '../../../testing/componentMocks';
 import { render, screen } from '@testing-library/react';

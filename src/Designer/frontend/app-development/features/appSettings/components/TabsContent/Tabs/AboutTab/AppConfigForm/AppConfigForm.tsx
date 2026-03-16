@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';

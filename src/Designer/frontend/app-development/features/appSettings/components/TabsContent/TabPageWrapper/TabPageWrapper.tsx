@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactNode, ReactElement } from 'react';
 import classes from './TabPageWrapper.module.css';
 import cn from 'classnames';

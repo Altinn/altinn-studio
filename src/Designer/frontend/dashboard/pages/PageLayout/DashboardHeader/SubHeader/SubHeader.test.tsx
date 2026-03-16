@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { renderWithProviders } from '../../../../testing/mocks';
 import { SubHeader } from './SubHeader';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { AltinnConfirmDialogProps } from './AltinnConfirmDialog';

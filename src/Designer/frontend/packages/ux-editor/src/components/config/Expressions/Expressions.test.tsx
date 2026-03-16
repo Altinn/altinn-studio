@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';

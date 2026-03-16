@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'react-router';
 
 import { FatalError } from 'src/app-components/error/FatalError/FatalError';

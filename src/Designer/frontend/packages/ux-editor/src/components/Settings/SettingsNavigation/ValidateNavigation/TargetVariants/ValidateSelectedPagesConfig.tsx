@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ValidateNavigationConfig } from '../ValidateNavigationConfig';
 import { Scope, convertToExternalConfig, dummyDataPages } from '../utils/ValidateNavigationUtils';
 import type { ExternalConfigState, InternalConfigState } from '../utils/ValidateNavigationTypes';

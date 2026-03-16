@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '@studio/hooks';
 import { StudioDropdown, StudioSpinner } from '@studio/components';

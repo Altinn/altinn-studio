@@ -1,4 +1,4 @@
-import React from 'react';
+import { createContext } from 'react';
 import { useNavigation } from 'react-router';
 import type { PropsWithChildren } from 'react';
 
@@ -19,7 +19,7 @@ import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
 import type { IData, IInstance, IInstanceDataSources } from 'src/types/shared';
 
 const emptyArray: never[] = [];
-const InstanceContext = React.createContext<IInstance | null>(null);
+const InstanceContext = createContext<IInstance | null>(null);
 
 export const InstanceProvider = ({ children }: PropsWithChildren) => {
   const instanceOwnerPartyId = useNavigationParam('instanceOwnerPartyId');

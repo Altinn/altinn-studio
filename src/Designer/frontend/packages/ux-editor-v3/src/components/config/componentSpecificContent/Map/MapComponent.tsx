@@ -1,4 +1,5 @@
-import React, { type ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
+import React from 'react';
 import { PlusIcon, XMarkIcon } from '@studio/icons';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';

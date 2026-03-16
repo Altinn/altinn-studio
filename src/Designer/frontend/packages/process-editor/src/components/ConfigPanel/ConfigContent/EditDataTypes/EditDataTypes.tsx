@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioProperty } from '@studio/components';
 import { useResetState } from '@studio/hooks';
 import { useTranslation } from 'react-i18next';

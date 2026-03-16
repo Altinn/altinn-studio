@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../../testing/mocks';
 import { ConfigStringProperties, type ConfigStringPropertiesProps } from './ConfigStringProperties';
 import { componentMocks } from '../../../testing/componentMocks';

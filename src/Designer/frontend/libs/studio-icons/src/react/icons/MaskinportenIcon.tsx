@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import type { IconProps } from '../types';
 import { SvgTemplate } from './SvgTemplate';
 

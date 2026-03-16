@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { screen } from '@testing-library/react';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';

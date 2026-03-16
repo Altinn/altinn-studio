@@ -51,6 +51,7 @@ module.exports = {
     {
       files: ['*.tsx'],
       rules: {
+        'react/react-in-jsx-scope': ['off'],
         'react/jsx-no-useless-fragment': ['error', { allowExpressions: true }],
         'no-use-before-define': 'off',
         'no-shadow': 'off',

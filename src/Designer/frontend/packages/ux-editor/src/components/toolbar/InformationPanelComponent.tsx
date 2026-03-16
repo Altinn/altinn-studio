@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './InformationPanelComponent.module.css';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { getComponentHelperTextByComponentType } from '../../utils/language';

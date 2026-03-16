@@ -1,4 +1,3 @@
-import React from 'react';
 import { PageLayout } from './PageLayout';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';

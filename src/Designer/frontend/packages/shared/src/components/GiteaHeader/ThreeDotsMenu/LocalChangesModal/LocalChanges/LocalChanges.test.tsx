@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ByRoleOptions } from '@testing-library/react';
 import { screen } from '@testing-library/react';
 import { LocalChanges } from './LocalChanges';

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { getApplicationMetadata } from 'src/features/applicationMetadata';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';

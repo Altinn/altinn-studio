@@ -1,4 +1,3 @@
-import React from 'react';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import { EditCodeList } from './editModal/EditCodeList';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';

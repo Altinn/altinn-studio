@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, type RenderResult, screen } from '@testing-library/react';
 import { StudioConfigCardFooter, type StudioConfigCardFooterProps } from './StudioConfigCardFooter';
 import userEvent from '@testing-library/user-event';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { RecommendedActionChangeName } from './RecommendedActionChangeName';
 import { useBpmnContext } from '../../../../contexts/BpmnContext';

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { AltinnContentLoader } from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
 import { useAppName } from 'src/core/texts/appTexts';
 import { getApplicationMetadata } from 'src/features/applicationMetadata';

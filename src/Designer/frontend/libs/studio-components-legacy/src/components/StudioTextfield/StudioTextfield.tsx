@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { Textfield } from '@digdir/designsystemet-react';
 import { type SharedTextInputProps } from '../../types/SharedTextInputProps';
 import { useTextInputProps } from '../../hooks/useTextInputProps';

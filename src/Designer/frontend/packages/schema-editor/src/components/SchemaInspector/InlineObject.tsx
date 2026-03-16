@@ -1,4 +1,3 @@
-import React from 'react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import classes from './InlineObject.module.css';
 import { useTranslation } from 'react-i18next';

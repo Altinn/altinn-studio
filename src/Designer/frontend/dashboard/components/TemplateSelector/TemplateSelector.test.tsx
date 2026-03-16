@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { TemplateSelector, type TemplateSelectorProps } from './TemplateSelector';
 import { textMock } from '@studio/testing/mocks/i18nMock';

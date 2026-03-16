@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import type { ChangeEvent, ReactElement } from 'react';
 import classes from './AppVisibilityAndDelegationCard.module.css';
 import { StudioCard, StudioParagraph, StudioSwitch } from '@studio/components';

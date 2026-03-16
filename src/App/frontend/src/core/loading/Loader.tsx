@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { AltinnContentLoader } from 'src/app-components/loading/AltinnContentLoader/AltinnContentLoader';
 import { PresentationComponent, useHasPresentation } from 'src/components/presentation/Presentation';
 import { LoadingProvider } from 'src/core/loading/LoadingContext';

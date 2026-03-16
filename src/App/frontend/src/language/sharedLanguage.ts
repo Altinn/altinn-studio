@@ -1,4 +1,4 @@
-import React from 'react';
+import { createElement } from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
 import DOMPurify from 'dompurify';
@@ -76,52 +76,48 @@ const parserOptions: HTMLReactParserOptions = {
      * Replace p tag with Paragraph component from design system
      */
     if (isElement(domNode) && domNode.name === 'p') {
-      return React.createElement(
-        'p',
-        { style: { margin: 0 } },
-        domToReact(domNode.children as DOMNode[], parserOptions),
-      );
+      return createElement('p', { style: { margin: 0 } }, domToReact(domNode.children as DOMNode[], parserOptions));
     }
     /**
      * Replace h1-h6 tags with Heading component from design system
      */
     if (isElement(domNode) && domNode.name === 'h1') {
-      return React.createElement(
+      return createElement(
         Heading,
         { level: 1, 'data-size': 'lg' },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'h2') {
-      return React.createElement(
+      return createElement(
         Heading,
         { level: 2, 'data-size': 'md' },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'h3') {
-      return React.createElement(
+      return createElement(
         Heading,
         { level: 3, 'data-size': 'sm' },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'h4') {
-      return React.createElement(
+      return createElement(
         Heading,
         { level: 4, 'data-size': 'xs' },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'h5') {
-      return React.createElement(
+      return createElement(
         Heading,
         { level: 5, 'data-size': 'xs' },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'h6') {
-      return React.createElement(
+      return createElement(
         Heading,
         { level: 6, 'data-size': 'xs' },
         domToReact(domNode.children as DOMNode[], parserOptions),
@@ -131,14 +127,14 @@ const parserOptions: HTMLReactParserOptions = {
      * Internal links
      */
     if (isElement(domNode) && domNode.name === 'a' && domNode.attribs['data-link-type'] === 'LinkToPotentialNode') {
-      return React.createElement(
+      return createElement(
         LinkToPotentialNode,
         { to: domNode.attribs.href, preventScrollReset: true },
         domToReact(domNode.children as DOMNode[], parserOptions),
       );
     }
     if (isElement(domNode) && domNode.name === 'a' && domNode.attribs['data-link-type'] === 'LinkToPotentialPage') {
-      return React.createElement(
+      return createElement(
         LinkToPotentialPage,
         { to: domNode.attribs.href, preventScrollReset: true },
         domToReact(domNode.children as DOMNode[], parserOptions),

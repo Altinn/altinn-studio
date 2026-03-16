@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioLinkButton, StudioTable } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 

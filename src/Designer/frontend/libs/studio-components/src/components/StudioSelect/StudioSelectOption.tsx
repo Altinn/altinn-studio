@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import { SelectOption } from '@digdir/designsystemet-react';
 import type { SelectOptionProps } from '@digdir/designsystemet-react';

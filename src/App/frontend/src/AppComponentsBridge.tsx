@@ -1,4 +1,3 @@
-import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { AppComponentsProvider } from 'src/app-components/AppComponentsProvider';

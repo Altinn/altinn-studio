@@ -1,4 +1,3 @@
-import React from 'react';
 import { render } from '@testing-library/react';
 import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

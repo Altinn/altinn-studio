@@ -1,4 +1,3 @@
-import React from 'react';
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { Fieldset } from '@digdir/designsystemet-react';
 import classes from './EditFormComponent.module.css';

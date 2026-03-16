@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { createRef, forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { HeaderDef } from 'src/layout/Header/config.def.generated';
@@ -22,7 +22,7 @@ export class Header extends HeaderDef {
       >
         <HeaderComponent
           baseComponentId={props.targetBaseComponentId}
-          containerDivRef={React.createRef()}
+          containerDivRef={createRef()}
         />
       </SummaryFlex>
     );

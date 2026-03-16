@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { Dropdown, RovingFocusItem, RovingFocusRoot } from '@digdir/designsystemet-react';
 import { CheckmarkIcon, ChevronDownIcon, GlobeIcon } from '@navikt/aksel-icons';

@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioCenter, StudioError, StudioPageSpinner } from '@studio/components';
 import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';

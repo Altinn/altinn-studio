@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import classes from './CreateRelease.module.css';
 import type { ChangeEvent } from 'react';
 import { versionNameValid } from './utils';
