@@ -1,3 +1,5 @@
+import React from 'react';
+
 import type { PropsFromGenericComponent } from '..';
 
 import { Flex } from 'src/app-components/Flex/Flex';

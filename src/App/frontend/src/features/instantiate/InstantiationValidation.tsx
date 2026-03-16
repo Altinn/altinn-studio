@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Lang } from 'src/features/language/Lang';
 import type { IParty } from 'src/types/shared';
 

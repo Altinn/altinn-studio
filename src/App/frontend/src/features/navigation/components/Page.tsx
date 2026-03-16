@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { CheckmarkIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 

@@ -1,3 +1,5 @@
+import React from 'react';
+
 import cn from 'classnames';
 
 import classes from 'src/components/table/AltinnSummaryTable.module.css';

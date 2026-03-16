@@ -1,3 +1,4 @@
+import React from 'react';
 import type { CSSProperties } from 'react';
 
 import { AppCard } from 'src/app-components/Card/Card';

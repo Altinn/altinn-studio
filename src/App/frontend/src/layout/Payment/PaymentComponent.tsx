@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Alert } from '@digdir/designsystemet-react';
 
 import { Button } from 'src/app-components/Button/Button';

@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { LayoutSetSummaryAccordion } from 'src/layout/Summary2/CommonSummaryComponents/LayoutSetSummaryAccordion';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';

@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { AccordionItem } from 'src/app-components/Accordion/AccordionItem';
 import { Flex } from 'src/app-components/Flex/Flex';
 import { translationKey } from 'src/AppComponentsBridge';

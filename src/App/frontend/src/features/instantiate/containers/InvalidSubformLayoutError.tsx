@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Button } from 'src/app-components/Button/Button';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';

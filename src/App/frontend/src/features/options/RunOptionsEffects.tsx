@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { EffectPreselectedOptionIndex } from 'src/features/options/effects/EffectPreselectedOptionIndex';
 import { EffectRemoveStaleValues } from 'src/features/options/effects/EffectRemoveStaleValues';

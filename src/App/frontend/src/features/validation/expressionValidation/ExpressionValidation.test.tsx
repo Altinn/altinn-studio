@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import fs from 'node:fs';
 
 import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';

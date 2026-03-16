@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { EnvelopeClosedIcon, InformationSquareIcon, PhoneIcon } from '@navikt/aksel-icons';
 
 import type { IFooterIcon } from 'src/features/footer/types';

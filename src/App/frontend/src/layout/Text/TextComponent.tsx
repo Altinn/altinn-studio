@@ -1,3 +1,5 @@
+import React from 'react';
+
 import cn from 'classnames';
 
 import { DisplayText } from 'src/app-components/Text/DisplayText';

@@ -1,3 +1,4 @@
+import React from 'react';
 import type { NumericFormatProps, PatternFormatProps } from 'react-number-format';
 
 import { render as renderRtl, screen } from '@testing-library/react';

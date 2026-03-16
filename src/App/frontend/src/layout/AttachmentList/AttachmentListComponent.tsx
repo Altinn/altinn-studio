@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { AltinnAttachments } from 'src/components/atoms/AltinnAttachments';
 import { MainAttachmentHeader } from 'src/components/atoms/AttachmentHeader';
 import { AttachmentGroupings } from 'src/components/organisms/AttachmentGroupings';

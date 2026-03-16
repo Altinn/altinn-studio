@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import {

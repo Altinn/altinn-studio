@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Tag } from '@digdir/designsystemet-react';
 import type { TagProps } from '@digdir/designsystemet-react';
 

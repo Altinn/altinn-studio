@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import type { PropsWithChildren, RefObject } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
@@ -155,7 +155,7 @@ function GeneratorRowProviderInner({
   return <Provider value={value}>{children}</Provider>;
 }
 
-export const GeneratorRowProvider = memo(GeneratorRowProviderInner);
+export const GeneratorRowProvider = React.memo(GeneratorRowProviderInner);
 GeneratorRowProvider.displayName = 'GeneratorRowProvider';
 
 export function GeneratorGlobalProvider({ children, ...rest }: PropsWithChildren<GlobalProviderProps>) {

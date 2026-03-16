@@ -1,3 +1,5 @@
+import React from 'react';
+
 import cn from 'classnames';
 
 import { HelpText } from 'src/app-components/HelpText/HelpText';

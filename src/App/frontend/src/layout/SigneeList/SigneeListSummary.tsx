@@ -1,3 +1,4 @@
+import React from 'react';
 import { useParams } from 'react-router';
 import type { PropsWithChildren, ReactElement } from 'react';
 

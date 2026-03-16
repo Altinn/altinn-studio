@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
@@ -20,7 +20,7 @@ const { useCtx, Provider } = createContext<Context>({
 });
 
 export function NavigationEffectProvider({ children }: PropsWithChildren) {
-  const [effect, setEffect] = useState<Context['effect']>(null);
+  const [effect, setEffect] = React.useState<Context['effect']>(null);
   return <Provider value={{ effect, setEffect }}>{children}</Provider>;
 }
 export const useNavigationEffect = () => useCtx().effect;

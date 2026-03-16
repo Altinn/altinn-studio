@@ -1,6 +1,5 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-import { Children, createRef, useEffect, useMemo, useState } from 'react';
-import React from 'react';
+import React, { Children, createRef, useEffect, useMemo, useState } from 'react';
 
 import classes from 'src/features/devtools/components/SplitView/SplitView.module.css';
 

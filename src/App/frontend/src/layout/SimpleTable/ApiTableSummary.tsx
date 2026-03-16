@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { pick } from 'dot-object';
 
 import { AppTable } from 'src/app-components/Table/Table';

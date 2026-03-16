@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { MarkerLocationText } from 'src/layout/Map/features/singleMarker/MarkerLocationText';

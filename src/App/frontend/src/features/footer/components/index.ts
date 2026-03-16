@@ -1,4 +1,4 @@
-import { createElement } from 'react';
+import React from 'react';
 import type { JSX } from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -19,7 +19,7 @@ export abstract class FooterComponent<T extends IFooterBaseComponent<IFooterComp
   }
 
   public render() {
-    return createElement(FooterComponent.wrapper, {
+    return React.createElement(FooterComponent.wrapper, {
       key: this.id,
       props: this.props,
       childRenderer: this.renderComponent,

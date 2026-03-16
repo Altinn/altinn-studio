@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { Checkbox, EXPERIMENTAL_Suggestion as Suggestion, Fieldset, Tabs } from '@digdir/designsystemet-react';
 import cn from 'classnames';

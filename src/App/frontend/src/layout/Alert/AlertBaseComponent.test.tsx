@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { render as rtlRender, screen } from '@testing-library/react';
 
 import { AlertBaseComponent } from 'src/layout/Alert/AlertBaseComponent';

@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Fieldset, useCheckboxGroup } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 

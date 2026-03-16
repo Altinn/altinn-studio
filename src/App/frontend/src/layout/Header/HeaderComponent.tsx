@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Heading } from '@digdir/designsystemet-react';
 
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';

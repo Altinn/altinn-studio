@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { render, screen } from '@testing-library/react';
 
 import { ErrorPaper } from 'src/components/message/ErrorPaper';

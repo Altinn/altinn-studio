@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 
 import { CheckmarkIcon, ChevronDownIcon, InformationIcon, XMarkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';

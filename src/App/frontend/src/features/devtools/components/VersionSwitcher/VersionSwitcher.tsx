@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React from 'react';
 
 import { EXPERIMENTAL_Suggestion as Suggestion, Fieldset } from '@digdir/designsystemet-react';
 import { useQuery } from '@tanstack/react-query';
@@ -11,7 +11,7 @@ import { optionFilter } from 'src/utils/options';
 import { appFrontendCDNPath, appPath, frontendVersionsCDN } from 'src/utils/urls/appUrlHelper';
 
 export const VersionSwitcher = () => {
-  const [selectedVersion, setSelectedVersion] = useState<string | undefined>(undefined);
+  const [selectedVersion, setSelectedVersion] = React.useState<string | undefined>(undefined);
   const {
     data: versions,
     isLoading: isVersionsLoading,

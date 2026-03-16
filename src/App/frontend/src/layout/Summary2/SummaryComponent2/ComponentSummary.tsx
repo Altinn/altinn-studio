@@ -1,3 +1,4 @@
+import React from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
 import cn from 'classnames';

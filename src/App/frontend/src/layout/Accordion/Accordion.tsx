@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Card } from '@digdir/designsystemet-react';
 
 import { AccordionItem } from 'src/app-components/Accordion/AccordionItem';

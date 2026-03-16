@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { FrontendValidationSource, ValidationMask } from '..';
 import type { FieldValidations, IExpressionValidation } from '..';

@@ -1,5 +1,6 @@
-import type { JSX, ReactNode } from 'react';
+import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { ConditionalWrapper } from 'src/app-components/ConditionalWrapper/ConditionalWrapper';
@@ -7,7 +8,7 @@ import { renderWithAppComponentsProvider } from 'src/app-components/test/renderW
 
 describe('ConditionalWrapper', () => {
   it('should pass children to wrapper callback when condition is true', () => {
-    const wrapperCb = jest.fn((children: ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
+    const wrapperCb = jest.fn((children: React.ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
     render({
       condition: true,
       wrapper: wrapperCb,
@@ -19,7 +20,7 @@ describe('ConditionalWrapper', () => {
   });
 
   it('should not pass children to wrapper callback when condition is false', () => {
-    const wrapperCb = jest.fn((children: ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
+    const wrapperCb = jest.fn((children: React.ReactNode) => <div data-testid='conditional-wrapper'>{children}</div>);
     render({
       condition: false,
       wrapper: wrapperCb,
@@ -31,7 +32,10 @@ describe('ConditionalWrapper', () => {
   });
 });
 
-const render = (overridingProps: { condition?: boolean; wrapper?: (children: ReactNode) => JSX.Element }) => {
+const render = (overridingProps: {
+  condition?: boolean;
+  wrapper?: (children: React.ReactNode) => React.JSX.Element;
+}) => {
   const allProps: Parameters<typeof ConditionalWrapper>[0] = {
     condition: false,
     wrapper: (children) => <div data-testid='conditional-wrapper'>{children}</div>,

@@ -1,4 +1,4 @@
-import { createContext as createReactContext, memo, useContext } from 'react';
+import React, { createContext as createReactContext, memo, useContext } from 'react';
 import type { Provider } from 'react';
 
 interface ContextProvider<T> {

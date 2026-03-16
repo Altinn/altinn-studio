@@ -1,5 +1,4 @@
-import { forwardRef } from 'react';
-import type { JSX } from 'react';
+import React, { forwardRef, type JSX } from 'react';
 
 import { SigneeListDef } from 'src/layout/SigneeList/config.def.generated';
 import { SigneeListComponent } from 'src/layout/SigneeList/SigneeListComponent';

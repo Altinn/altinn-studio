@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { screen } from '@testing-library/react';
 
 import { EditButton } from 'src/layout/Summary2/CommonSummaryComponents/EditButton';

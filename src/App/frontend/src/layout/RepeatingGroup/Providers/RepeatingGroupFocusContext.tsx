@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import type { PropsWithChildren } from 'react';
 

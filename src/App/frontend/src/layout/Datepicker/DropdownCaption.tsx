@@ -1,3 +1,4 @@
+import React from 'react';
 import { formatMonthDropdown, useDayPicker } from 'react-day-picker';
 import type { MonthCaptionProps } from 'react-day-picker';
 

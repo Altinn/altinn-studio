@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { useTranslation } from 'src/app-components/AppComponentsProvider';
 import classes from 'src/app-components/Text/Text.module.css';
 import type { TranslationKey } from 'src/app-components/types';

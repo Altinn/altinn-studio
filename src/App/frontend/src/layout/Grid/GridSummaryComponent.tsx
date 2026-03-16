@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { getComponentDef } from 'src/layout';
 import { useBaseIdsFromGrid } from 'src/layout/Grid/tools';
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';

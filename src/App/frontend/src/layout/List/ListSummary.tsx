@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Heading, Table } from '@digdir/designsystemet-react';
 import dot from 'dot-object';
 

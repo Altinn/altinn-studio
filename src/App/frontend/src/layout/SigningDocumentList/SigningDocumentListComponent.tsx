@@ -1,3 +1,4 @@
+import React from 'react';
 import { useParams } from 'react-router';
 
 import { Link } from '@digdir/designsystemet-react';

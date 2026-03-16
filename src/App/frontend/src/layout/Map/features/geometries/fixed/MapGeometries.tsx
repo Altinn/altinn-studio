@@ -1,3 +1,4 @@
+import React from 'react';
 import { GeoJSON, Tooltip } from 'react-leaflet';
 
 import { icon, marker } from 'leaflet';

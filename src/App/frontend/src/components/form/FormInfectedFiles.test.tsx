@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { screen, waitFor } from '@testing-library/react';
 
 import { getAttachmentDataMock, getAttachmentMock } from 'src/__mocks__/getAttachmentsMock';

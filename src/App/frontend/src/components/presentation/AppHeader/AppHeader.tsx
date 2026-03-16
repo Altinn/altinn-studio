@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
 import { AltinnLogo } from 'src/components/logo/AltinnLogo';
 import classes from 'src/components/presentation/AppHeader/AppHeader.module.css';

@@ -1,4 +1,4 @@
-import { createElement } from 'react';
+import React from 'react';
 import type { JSX } from 'react';
 
 import classes from 'src/features/footer/components/FooterComponentWrapper.module.css';
@@ -11,5 +11,5 @@ interface IFooterComponentWrapper {
 }
 
 export const FooterComponentWrapper = ({ props, childRenderer }: IFooterComponentWrapper) => (
-  <div className={classes.wrapper}>{createElement(childRenderer, props)}</div>
+  <div className={classes.wrapper}>{React.createElement(childRenderer, props)}</div>
 );

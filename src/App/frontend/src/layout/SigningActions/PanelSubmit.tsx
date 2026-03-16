@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Lang } from 'src/features/language/Lang';
 import { SigningPanel } from 'src/layout/SigningActions/PanelSigning';
 import { SubmitSigningButton } from 'src/layout/SigningActions/SubmitSigningButton';

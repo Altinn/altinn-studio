@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Button } from 'src/app-components/Button/Button';
 import { Lang } from 'src/features/language/Lang';

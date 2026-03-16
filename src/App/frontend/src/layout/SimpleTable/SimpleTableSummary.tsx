@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { AppTable } from 'src/app-components/Table/Table';
 import { translationKey } from 'src/AppComponentsBridge';
 import { Caption } from 'src/components/form/caption/Caption';

@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { SummaryAccordionComponent, SummaryAccordionComponent2 } from 'src/layout/Accordion/SummaryAccordion';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';

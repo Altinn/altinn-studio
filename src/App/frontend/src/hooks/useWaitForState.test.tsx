@@ -1,5 +1,6 @@
-import { memo, useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 
+import { jest } from '@jest/globals';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { createStore, useStore } from 'zustand';
@@ -254,7 +255,7 @@ function ChildComponentInner(_props: { wait: () => Promise<string> }) {
   return <div data-testid='childRenderCount'>{renderCount.current}</div>;
 }
 
-const ChildComponent = memo(ChildComponentInner);
+const ChildComponent = React.memo(ChildComponentInner);
 
 function SetterComponent({ store, setToValue }: { store: StoreApi<string>; setToValue: string }) {
   const setStore = useCallback(() => store.setState(setToValue), [store, setToValue]);

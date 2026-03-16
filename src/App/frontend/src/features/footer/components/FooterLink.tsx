@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { FooterGenericLink } from 'src/features/footer/components/shared/FooterGenericLink';
 import { useLanguage } from 'src/features/language/useLanguage';
 import type { IFooterBaseComponent, IFooterIcon } from 'src/features/footer/types';

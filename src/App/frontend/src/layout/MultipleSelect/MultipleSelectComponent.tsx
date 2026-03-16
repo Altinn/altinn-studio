@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 
 import { EXPERIMENTAL_Suggestion as Suggestion, Field, Label as DSLabel } from '@digdir/designsystemet-react';
 

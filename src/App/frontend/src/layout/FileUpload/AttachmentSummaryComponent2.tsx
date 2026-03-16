@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Paragraph } from '@digdir/designsystemet-react';
 
 import { Label } from 'src/components/label/Label';

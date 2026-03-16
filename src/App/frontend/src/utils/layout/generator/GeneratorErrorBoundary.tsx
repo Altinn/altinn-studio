@@ -1,4 +1,4 @@
-import { Component, createContext, useContext, useEffect } from 'react';
+import React, { Component, useEffect } from 'react';
 import type { PropsWithChildren, RefObject } from 'react';
 
 import { NodesInternal } from 'src/utils/layout/NodesContext';
@@ -40,12 +40,12 @@ interface ContextData {
   ref: RefObject<Ref>;
 }
 
-const Context = createContext<ContextData>({
+const Context = React.createContext<ContextData>({
   ref: { current: undefined },
 });
 
 export function useGeneratorErrorBoundaryNodeRef() {
-  return useContext(Context).ref;
+  return React.useContext(Context).ref;
 }
 
 function StoreErrorAndBail({ error, ref }: { error: Error; ref: Ref }) {

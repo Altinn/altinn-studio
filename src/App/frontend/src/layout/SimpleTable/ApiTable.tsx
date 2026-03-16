@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Link } from '@digdir/designsystemet-react';
 import { pick } from 'dot-object';
 

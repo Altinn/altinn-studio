@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { AttributionControl, MapContainer } from 'react-leaflet';
 import type { RefObject } from 'react';
 

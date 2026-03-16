@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { ExprVal } from 'src/features/expressions/types';
 import { useLayoutLookups } from 'src/features/form/layout/LayoutsContext';
 import { Lang } from 'src/features/language/Lang';

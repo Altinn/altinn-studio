@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Lang } from 'src/features/language/Lang';
 import { useUploaderSummaryData } from 'src/layout/FileUpload/Summary/summary';
 import { useImageFile } from 'src/layout/ImageUpload/hooks/useImageFile';

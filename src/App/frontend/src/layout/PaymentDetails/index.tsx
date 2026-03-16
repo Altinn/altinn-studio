@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { PaymentDetailsDef } from 'src/layout/PaymentDetails/config.def.generated';

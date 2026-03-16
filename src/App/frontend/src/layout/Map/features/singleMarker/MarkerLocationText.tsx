@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Paragraph } from '@digdir/designsystemet-react';
 
 import { Lang } from 'src/features/language/Lang';

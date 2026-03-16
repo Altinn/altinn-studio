@@ -1,5 +1,4 @@
-import { forwardRef } from 'react';
-import type { JSX } from 'react';
+import React, { forwardRef, type JSX } from 'react';
 
 import { ValidateSigningTaskType } from 'src/layout/SigningActions/ValidateSigningTaskType';
 import { SigningDocumentListDef } from 'src/layout/SigningDocumentList/config.def.generated';

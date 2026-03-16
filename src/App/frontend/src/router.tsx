@@ -1,3 +1,4 @@
+import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
 
 import type { QueryClient } from '@tanstack/react-query';

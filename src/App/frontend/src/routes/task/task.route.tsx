@@ -1,3 +1,4 @@
+import React from 'react';
 import { Outlet } from 'react-router';
 
 import { ProcessWrapper } from 'src/components/wrappers/ProcessWrapper';

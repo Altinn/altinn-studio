@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import type { PropsWithChildren, RefObject } from 'react';
 
 import deepEqual from 'fast-deep-equal';

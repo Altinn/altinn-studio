@@ -1,3 +1,5 @@
+import React from 'react';
+
 export type HelpTextIconProps = {
   className: string;
   filled?: boolean;

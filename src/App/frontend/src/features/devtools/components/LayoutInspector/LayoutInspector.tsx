@@ -1,6 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import { useEffect, useRef, useState } from 'react';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { Alert } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@navikt/aksel-icons';

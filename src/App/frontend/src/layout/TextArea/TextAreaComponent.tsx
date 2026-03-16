@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Label } from 'src/app-components/Label/Label';
 import { TextArea } from 'src/app-components/TextArea/TextArea';
 import { translationKey } from 'src/AppComponentsBridge';

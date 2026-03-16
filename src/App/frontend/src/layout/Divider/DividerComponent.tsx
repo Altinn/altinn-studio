@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { Divider } from '@digdir/designsystemet-react';
 
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
