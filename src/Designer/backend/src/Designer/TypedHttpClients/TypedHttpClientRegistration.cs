@@ -254,7 +254,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
 
         private static IServiceCollection AddMaskinportenHttpClient(this IServiceCollection services)
         {
-            services.AddTransient<AnsattPortenTokenDelegatingHandler>();
+            services.AddTransient<OidcTokenDelegatingHandler>();
             services
                 .AddHttpClient(
                     MaskinPortenHttpClient.HttpClientName,
@@ -266,7 +266,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                         httpClient.BaseAddress = new Uri(options.BaseUrl);
                     }
                 )
-                .AddHttpMessageHandler<AnsattPortenTokenDelegatingHandler>();
+                .AddHttpMessageHandler<OidcTokenDelegatingHandler>();
             services.AddHttpClient(
                 MaskinPortenHttpClient.PublicHttpClientName,
                 (serviceProvider, httpClient) =>

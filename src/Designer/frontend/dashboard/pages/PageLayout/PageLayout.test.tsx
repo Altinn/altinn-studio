@@ -12,6 +12,10 @@ import { SelectedContextType } from '../../enums/SelectedContextType';
 import { StringUtils } from '@studio/pure-functions';
 
 const mockedNavigate = jest.fn();
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+}));
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockedNavigate,

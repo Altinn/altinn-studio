@@ -18,7 +18,7 @@ public class AltinnPartyClientInterceptor : HttpMessageHandler
         {
             ["", "register", "api", "v1", "parties", var partyIdString]
                 when int.TryParse(partyIdString, out var partyId) => GetPartyResponse(partyId),
-            ["", "register", "api", "v1", "access-management", "parties", "query"] => GetPartyQueryResponse(
+            ["", "register", "api", "v1", "apps", "parties", "query"] => GetPartyQueryResponse(
                 await request.Content!.ReadAsStringAsync(cancellationToken)
             ),
             ["", "parties", "lookup"] => GetPartyLookupResponse(

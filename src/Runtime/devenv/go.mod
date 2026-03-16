@@ -7,18 +7,18 @@ require (
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-connections v0.6.0
 	github.com/fluxcd/flux2/v2 v2.7.5
-	github.com/fluxcd/helm-controller/api v1.5.0
-	github.com/fluxcd/kustomize-controller/api v1.8.0
-	github.com/fluxcd/pkg/apis/meta v1.25.0
+	github.com/fluxcd/helm-controller/api v1.5.2
+	github.com/fluxcd/kustomize-controller/api v1.8.2
+	github.com/fluxcd/pkg/apis/meta v1.25.1
 	github.com/fluxcd/pkg/oci v0.62.0
-	github.com/fluxcd/source-controller/api v1.8.0
+	github.com/fluxcd/source-controller/api v1.8.1
 	github.com/go-git/go-git/v5 v5.16.5
 	golang.org/x/sync v0.19.0
-	helm.sh/helm/v3 v3.20.0
-	k8s.io/api v0.35.1
-	k8s.io/apiextensions-apiserver v0.35.1
+	helm.sh/helm/v3 v3.20.1
+	k8s.io/api v0.35.2
+	k8s.io/apiextensions-apiserver v0.35.2
 	k8s.io/apimachinery v0.35.2
-	k8s.io/client-go v0.35.1
+	k8s.io/client-go v0.35.2
 	sigs.k8s.io/kind v0.31.0
 	sigs.k8s.io/kustomize/api v0.21.1
 	sigs.k8s.io/kustomize/kyaml v0.21.1
@@ -53,7 +53,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.9.0 // indirect
-	github.com/fluxcd/pkg/apis/kustomize v1.15.0 // indirect
+	github.com/fluxcd/pkg/apis/kustomize v1.15.1 // indirect
 	github.com/fluxcd/pkg/kustomize v1.24.0 // indirect
 	github.com/fluxcd/pkg/sourceignore v0.17.0 // indirect
 	github.com/fluxcd/pkg/tar v0.17.0 // indirect

@@ -18,4 +18,8 @@ spec:
   - to:
     - namespaceSelector:
         matchLabels:
-          kubernetes.io/metadata.name: "lhci"  
+          kubernetes.io/metadata.name: "lhci"
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: "observability"

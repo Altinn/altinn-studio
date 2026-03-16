@@ -11,12 +11,13 @@ import { useMediaQuery } from '@studio/hooks';
 import { StudioAvatar } from '@studio/components';
 import { getOrgNameByUsername } from '../../utils/userUtils';
 import { type Organization } from 'app-shared/types/Organization';
-import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { MEDIA_QUERY_MAX_WIDTH, USER_SETTINGS_BASENAME } from 'app-shared/constants';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import type { User } from 'app-shared/types/Repository';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAppName } from '../../utils/stringUtils';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
 
 interface ResourceAdmHeaderProps {
   organizations: Organization[];
@@ -58,6 +59,8 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   const { mutate: logout } = useLogoutMutation();
   const navigate = useNavigate();
   const selectableOrgs = organizations;
+  const { environment } = useEnvironmentConfig();
+  const studioOidc = environment?.featureFlags?.studioOidc;
 
   const triggerButtonText = t('shared.header_user_for_org', {
     user: user?.full_name || user?.login,
@@ -82,14 +85,29 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
     itemName: t('shared.header_go_to_gitea'),
   };
 
+  const userSettingsMenuItem: StudioProfileMenuItem = {
+    action: {
+      type: 'link',
+      href: USER_SETTINGS_BASENAME,
+      openInNewTab: false,
+    },
+    itemName: t('user.settings'),
+  };
+
   const logOutMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
   };
 
+  const otherMenuItems: StudioProfileMenuItem[] = [
+    giteaMenuItem,
+    ...(studioOidc ? [userSettingsMenuItem] : []),
+  ];
+
   const profileMenuGroups: StudioProfileMenuGroup[] = [
     { items: selectableOrgMenuItems },
-    { items: [giteaMenuItem, logOutMenuItem] },
+    { items: otherMenuItems },
+    { items: [logOutMenuItem] },
   ];
 
   return (

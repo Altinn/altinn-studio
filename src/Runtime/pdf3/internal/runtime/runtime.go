@@ -16,6 +16,7 @@ import (
 
 var IsTestInternalsMode bool = os.Getenv("TEST_INTERNALS_MODE") == "true" || testing.Testing()
 
+//nolint:containedctx // Host owns process-lifetime contexts used for staged shutdown coordination.
 type Host struct {
 	logger                     *slog.Logger
 	signalCtx                  context.Context
@@ -33,7 +34,7 @@ type Host struct {
 	readinessDrainDelay time.Duration
 }
 
-// Host container to handle graceful shutdown of process
+// NewHost creates a shutdown coordinator for the process.
 //
 // Arguments:
 //   - `readinessDrainDelay` = how long to wait before starting the graceful shutdown process.

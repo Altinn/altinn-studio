@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import fs from 'node:fs';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';

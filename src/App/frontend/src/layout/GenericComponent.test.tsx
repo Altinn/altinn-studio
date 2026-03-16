@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 
 import { getFormBootstrapMock } from 'src/__mocks__/getFormBootstrapMock';
