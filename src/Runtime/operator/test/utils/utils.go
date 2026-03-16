@@ -11,35 +11,38 @@ import (
 	"math/rand/v2"
 	"sync"
 
-	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
-	"altinn.studio/operator/internal/config"
-	. "github.com/onsi/ginkgo/v2" //nolint:revive,staticcheck
+	. "github.com/onsi/ginkgo/v2" //nolint:staticcheck // Ginkgo DSL is intentionally dot-imported in test helpers.
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+
+	resourcesv1alpha1 "altinn.studio/operator/api/v1alpha1"
+	"altinn.studio/operator/internal/config"
 )
 
 const apisPath = "/apis"
 
-// Run executes the provided command within this context
+// Run executes the provided command within this context.
 func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 	var err error
 	if dir == "" {
 		dir, err = config.TryFindProjectRootByGoMod()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("find project root: %w", err)
 		}
 	}
 
 	cmd.Dir = dir
-	if err := os.Chdir(cmd.Dir); err != nil {
-		_, err = fmt.Fprintf(GinkgoWriter, "chdir dir: %s\n", err)
+	runErr := os.Chdir(cmd.Dir)
+	if runErr != nil {
+		_, err = fmt.Fprintf(GinkgoWriter, "chdir dir: %s\n", runErr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to write to GinkgoWriter: %w", err)
 		}
+		return nil, fmt.Errorf("change directory to %s: %w", cmd.Dir, runErr)
 	}
 
 	cmd.Env = append(os.Environ(), "GO111MODULE=on")
@@ -50,7 +53,7 @@ func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 	}
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return output, fmt.Errorf("%s failed with error: (%v) %s", command, err, string(output))
+		return output, fmt.Errorf("%s failed with error: (%w) %s", command, err, string(output))
 	}
 
 	return output, nil
@@ -60,8 +63,8 @@ func Run(cmd *exec.Cmd, dir string) ([]byte, error) {
 // according to line breakers, and ignores the empty elements in it.
 func GetNonEmptyLines(output string) []string {
 	var res []string
-	elements := strings.Split(output, "\n")
-	for _, element := range elements {
+	elements := strings.SplitSeq(output, "\n")
+	for element := range elements {
 		if element != "" {
 			res = append(res, element)
 		}
@@ -70,7 +73,7 @@ func GetNonEmptyLines(output string) []string {
 	return res
 }
 
-// K8sClient provides REST clients for CRDs, core resources, and Flux resources
+// K8sClient provides REST clients for CRDs, core resources, and Flux resources.
 type K8sClient struct {
 	CRD     *rest.RESTClient
 	Core    *rest.RESTClient
@@ -78,6 +81,25 @@ type K8sClient struct {
 	Source  *rest.RESTClient
 	CNPG    *rest.RESTClient
 	Storage *rest.RESTClient
+}
+
+func newRESTClient(
+	restConfig *rest.Config,
+	codecFactory serializer.CodecFactory,
+	apiPath, group, version, resourceName string,
+) (*rest.RESTClient, error) {
+	cfg := *restConfig
+	cfg.GroupVersion = &schema.GroupVersion{Group: group, Version: version}
+	cfg.APIPath = apiPath
+	cfg.NegotiatedSerializer = codecFactory
+	cfg.UserAgent = rest.DefaultKubernetesUserAgent()
+
+	client, err := rest.UnversionedRESTClientFor(&cfg)
+	if err != nil {
+		return nil, fmt.Errorf("create %s REST client: %w", resourceName, err)
+	}
+
+	return client, nil
 }
 
 // CreateK8sClient returns a client configured for the specified kubectl context.
@@ -90,99 +112,49 @@ func CreateK8sClient(contextName string) (*K8sClient, error) {
 		&clientcmd.ConfigOverrides{CurrentContext: contextName},
 	).ClientConfig()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load kubeconfig for context %s: %w", contextName, err)
 	}
 
 	err = resourcesv1alpha1.AddToScheme(scheme.Scheme)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("register operator API scheme: %w", err)
 	}
 
 	codecFactory := serializer.NewCodecFactory(scheme.Scheme)
 
-	// CRD client
-	crdConfig := *restConfig
-	crdConfig.GroupVersion = &schema.GroupVersion{
-		Group:   resourcesv1alpha1.GroupVersion.Group,
-		Version: resourcesv1alpha1.GroupVersion.Version,
-	}
-	crdConfig.APIPath = apisPath
-	crdConfig.NegotiatedSerializer = codecFactory
-	crdConfig.UserAgent = rest.DefaultKubernetesUserAgent()
-
-	crdClient, err := rest.UnversionedRESTClientFor(&crdConfig)
+	crdClient, err := newRESTClient(
+		restConfig,
+		codecFactory,
+		apisPath,
+		resourcesv1alpha1.GroupVersion.Group,
+		resourcesv1alpha1.GroupVersion.Version,
+		"CRD",
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	// Core client
-	coreConfig := *restConfig
-	coreConfig.GroupVersion = &schema.GroupVersion{Group: "", Version: "v1"}
-	coreConfig.APIPath = "/api"
-	coreConfig.NegotiatedSerializer = codecFactory
-	coreConfig.UserAgent = rest.DefaultKubernetesUserAgent()
-
-	coreClient, err := rest.UnversionedRESTClientFor(&coreConfig)
+	coreClient, err := newRESTClient(restConfig, codecFactory, "/api", "", "v1", "core")
 	if err != nil {
 		return nil, err
 	}
 
-	// Flux client (HelmRelease, Kustomization, etc.)
-	fluxConfig := *restConfig
-	fluxConfig.GroupVersion = &schema.GroupVersion{
-		Group:   "helm.toolkit.fluxcd.io",
-		Version: "v2",
-	}
-	fluxConfig.APIPath = apisPath
-	fluxConfig.NegotiatedSerializer = codecFactory
-	fluxConfig.UserAgent = rest.DefaultKubernetesUserAgent()
-
-	fluxClient, err := rest.UnversionedRESTClientFor(&fluxConfig)
+	fluxClient, err := newRESTClient(restConfig, codecFactory, apisPath, "helm.toolkit.fluxcd.io", "v2", "Flux")
 	if err != nil {
 		return nil, err
 	}
 
-	// Source client (HelmRepository, etc.)
-	sourceConfig := *restConfig
-	sourceConfig.GroupVersion = &schema.GroupVersion{
-		Group:   "source.toolkit.fluxcd.io",
-		Version: "v1",
-	}
-	sourceConfig.APIPath = apisPath
-	sourceConfig.NegotiatedSerializer = codecFactory
-	sourceConfig.UserAgent = rest.DefaultKubernetesUserAgent()
-
-	sourceClient, err := rest.UnversionedRESTClientFor(&sourceConfig)
+	sourceClient, err := newRESTClient(restConfig, codecFactory, apisPath, "source.toolkit.fluxcd.io", "v1", "source")
 	if err != nil {
 		return nil, err
 	}
 
-	// CNPG client (Cluster, Database, ImageCatalog)
-	cnpgConfig := *restConfig
-	cnpgConfig.GroupVersion = &schema.GroupVersion{
-		Group:   "postgresql.cnpg.io",
-		Version: "v1",
-	}
-	cnpgConfig.APIPath = apisPath
-	cnpgConfig.NegotiatedSerializer = codecFactory
-	cnpgConfig.UserAgent = rest.DefaultKubernetesUserAgent()
-
-	cnpgClient, err := rest.UnversionedRESTClientFor(&cnpgConfig)
+	cnpgClient, err := newRESTClient(restConfig, codecFactory, apisPath, "postgresql.cnpg.io", "v1", "CNPG")
 	if err != nil {
 		return nil, err
 	}
 
-	// Storage client (StorageClass, etc.)
-	storageConfig := *restConfig
-	storageConfig.GroupVersion = &schema.GroupVersion{
-		Group:   "storage.k8s.io",
-		Version: "v1",
-	}
-	storageConfig.APIPath = apisPath
-	storageConfig.NegotiatedSerializer = codecFactory
-	storageConfig.UserAgent = rest.DefaultKubernetesUserAgent()
-
-	storageClient, err := rest.UnversionedRESTClientFor(&storageConfig)
+	storageClient, err := newRESTClient(restConfig, codecFactory, apisPath, "storage.k8s.io", "v1", "storage")
 	if err != nil {
 		return nil, err
 	}
@@ -208,11 +180,14 @@ func NewDeterministicRand() io.Reader {
 	seed[0] = 0x13
 	seed[1] = 0x37
 	return &deterministicRand{
+		//nolint:gosec // Test snapshots require deterministic output, not cryptographic randomness.
 		prng: rand.New(rand.NewChaCha8(seed)),
 	}
 }
 
 func (r *deterministicRand) Read(p []byte) (n int, err error) {
+	const byteRange = 256
+
 	if len(p) == 1 {
 		// to work around `randutil.MaybeReadByte`
 		// which is used to enforce non-determinism...
@@ -223,7 +198,8 @@ func (r *deterministicRand) Read(p []byte) (n int, err error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	for i := range p {
-		p[i] = byte(r.prng.UintN(256))
+		//nolint:gosec // UintN(256) is intentionally bounded to a single byte for deterministic test data.
+		p[i] = byte(r.prng.UintN(byteRange))
 	}
 	return len(p), nil
 }

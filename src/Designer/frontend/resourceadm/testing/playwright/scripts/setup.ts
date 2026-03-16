@@ -17,6 +17,7 @@ const environment: Record<string, string> = {
   PLAYWRIGHT_USER: process.env.GITEA_CYPRESS_USER,
   PLAYWRIGHT_PASS: process.env.GITEA_CYPRESS_PASS,
   GITEA_ACCESS_TOKEN: null,
+  STUDIO_OIDC_ENABLED: process.env.FEATUREFLAGS_STUDIOOIDC || 'false',
 };
 
 const createGiteaAccessToken = async (): Promise<void> => {

@@ -1,17 +1,16 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioCodeFragment } from './StudioCodeFragment';
 
-type Story = StoryFn<typeof StudioCodeFragment>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioCodeFragment',
   component: StudioCodeFragment,
-};
+} satisfies Meta<typeof StudioCodeFragment>;
 
 export default meta;
-export const Preview: Story = (args) => <StudioCodeFragment {...args}></StudioCodeFragment>;
+type Story = StoryObj<typeof meta>;
 
-Preview.args = {
-  children: 'function multiply(a: number, b:number) { return a * b }',
+export const Preview: Story = {
+  args: {
+    children: 'function multiply(a: number, b:number) { return a * b }',
+  },
 };

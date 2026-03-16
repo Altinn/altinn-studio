@@ -23,6 +23,16 @@ spec:
             - containerPort: {{ .Values.image.containerPorts.https }}
             - containerPort: {{ .Values.image.containerPorts.lhci }}
           env:
+            {{- if not (hasKey $.Values.hosts $.Values.environment) }}
+            {{- fail "the chosen environment has no host" }}
+            {{- end }}
+            {{- $host := index $.Values.hosts $.Values.environment }}
+            - name: SERVER_NAME
+              value: {{ $host | quote }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
             - name: POD_UID
               valueFrom:
                 fieldRef:

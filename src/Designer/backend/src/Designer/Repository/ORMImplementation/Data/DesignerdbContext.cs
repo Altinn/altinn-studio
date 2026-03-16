@@ -17,6 +17,8 @@ public class DesignerdbContext : DbContext
     public virtual DbSet<AppSettingsDbModel> AppSettings { get; set; }
     public virtual DbSet<ChatThreadDbModel> ChatThreads { get; set; }
     public virtual DbSet<ChatMessageDbModel> ChatMessages { get; set; }
+    public virtual DbSet<UserAccountDbModel> UserAccounts { get; set; }
+    public virtual DbSet<ApiKeyDbModel> ApiKeys { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +31,8 @@ public class DesignerdbContext : DbContext
         modelBuilder.ApplyConfiguration(new AppSettingsConfiguration());
         modelBuilder.ApplyConfiguration(new ChatThreadConfiguration());
         modelBuilder.ApplyConfiguration(new ChatMessageConfiguration());
+        modelBuilder.ApplyConfiguration(new UserAccountConfiguration());
+        modelBuilder.ApplyConfiguration(new ApiKeyConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

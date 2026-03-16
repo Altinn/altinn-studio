@@ -7,9 +7,10 @@ type UpdateUserControlledImplementation = (value: string) => void;
 
 export const useUpdateUserControlledImplementation = (): UpdateUserControlledImplementation => {
   const { bpmnDetails, modelerRef } = useBpmnContext();
-  const modelerInstance = modelerRef.current;
-  const modeling: Modeling = modelerInstance.get('modeling');
-  return (value: string) => updateImplementation(modeling, value, bpmnDetails);
+  return (value: string) => {
+    const modeling: Modeling = modelerRef.current.get('modeling');
+    updateImplementation(modeling, value, bpmnDetails);
+  };
 };
 
 function updateImplementation(modeling: Modeling, value: string, bpmnDetails: BpmnDetails): void {

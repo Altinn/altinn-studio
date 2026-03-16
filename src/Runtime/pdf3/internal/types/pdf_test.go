@@ -109,8 +109,8 @@ func TestPdfRequest_Validate_Valid(t *testing.T) {
 func TestPdfRequest_Validate_Invalid(t *testing.T) {
 	tests := []struct {
 		name        string
-		req         PdfRequest
 		expectedErr string
+		req         PdfRequest
 	}{
 		{
 			name: "missing URL",

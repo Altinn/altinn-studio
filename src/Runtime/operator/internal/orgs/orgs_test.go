@@ -37,7 +37,8 @@ func TestNewOrgRegistry(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(testOrgData))
+		_, err := w.Write([]byte(testOrgData))
+		Expect(err).NotTo(HaveOccurred())
 	}))
 	defer server.Close()
 
@@ -52,7 +53,8 @@ func TestGet(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(testOrgData))
+		_, err := w.Write([]byte(testOrgData))
+		Expect(err).NotTo(HaveOccurred())
 	}))
 	defer server.Close()
 
@@ -84,7 +86,8 @@ func TestFetchWithRetry(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(testOrgData))
+		_, err := w.Write([]byte(testOrgData))
+		Expect(err).NotTo(HaveOccurred())
 	}))
 	defer server.Close()
 
@@ -121,7 +124,8 @@ func TestContextCancellation(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(100 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(testOrgData))
+		_, err := w.Write([]byte(testOrgData))
+		Expect(err).NotTo(HaveOccurred())
 	}))
 	defer server.Close()
 

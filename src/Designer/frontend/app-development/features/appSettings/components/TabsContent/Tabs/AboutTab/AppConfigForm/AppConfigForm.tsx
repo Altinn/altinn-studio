@@ -1,7 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import type { ChangeEvent, MutableRefObject, ReactElement } from 'react';
 import classes from './AppConfigForm.module.css';
 import { useTranslation } from 'react-i18next';
+import { useUnsavedChangesWarning } from '@studio/hooks';
 import { StudioTextfield, StudioInlineTextField } from '@studio/components';
 import type { ContactPoint, Keyword } from 'app-shared/types/AppConfig';
 import { ActionButtons } from './ActionButtons';
@@ -21,19 +22,10 @@ export type AppConfigFormProps = {
 
 export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps): ReactElement {
   const { t } = useTranslation();
-  const appConfigWithDefaults: ApplicationMetadata = useMemo(
-    () => ({
-      ...appConfig,
-      visible: appConfig.visible ?? true,
-      access: { ...appConfig.access, delegable: appConfig.access?.delegable ?? true },
-    }),
-    [appConfig],
-  );
 
   const defaultDescriptionValue = { nb: '', nn: '', en: '' };
 
-  const [updatedAppConfig, setUpdatedAppConfig] =
-    useState<ApplicationMetadata>(appConfigWithDefaults);
+  const [updatedAppConfig, setUpdatedAppConfig] = useState<ApplicationMetadata>(appConfig);
   const [showAppConfigErrors, setShowAppConfigErrors] = useState<boolean>(false);
   const [keywordsInputValue, setKeywordsInputValue] = useState(
     mapKeywordsArrayToString(updatedAppConfig.keywords ?? []),
@@ -44,6 +36,12 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
   );
 
   useScrollIntoView(showAppConfigErrors, errorSummaryRef);
+
+  const hasUnsavedChanges = !ObjectUtils.areObjectsEqual(updatedAppConfig, appConfig);
+  useUnsavedChangesWarning(
+    hasUnsavedChanges,
+    t('app_settings.about_tab_unsaved_changes_navigation_warning'),
+  );
 
   const saveUpdatedAppConfig = (): void => {
     setShowAppConfigErrors(false);
@@ -57,8 +55,8 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 
   const resetAppConfig = (): void => {
     if (confirm(t('app_settings.about_tab_reset_confirmation'))) {
-      setUpdatedAppConfig(appConfigWithDefaults);
-      setKeywordsInputValue(mapKeywordsArrayToString(appConfigWithDefaults.keywords ?? []));
+      setUpdatedAppConfig(appConfig);
+      setKeywordsInputValue(mapKeywordsArrayToString(appConfig.keywords ?? []));
       setShowAppConfigErrors(false);
     }
   };
@@ -123,11 +121,12 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
 
   const onChangeVisible = (e: ChangeEvent<HTMLInputElement>): void => {
     const isVisible = e.target.checked;
-    setUpdatedAppConfig((oldVal: ApplicationMetadata) => ({
-      ...oldVal,
-      visible: isVisible,
-      access: { ...oldVal.access, ...(isVisible ? { delegable: true } : {}) },
-    }));
+    setUpdatedAppConfig(
+      (oldVal: ApplicationMetadata): ApplicationMetadata => ({
+        ...oldVal,
+        access: { ...oldVal.access, visible: isVisible, ...(isVisible ? { delegable: true } : {}) },
+      }),
+    );
   };
 
   return (
@@ -167,7 +166,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
           cancelAriaLabel={t('general.cancel')}
         />
         <AppVisibilityAndDelegationCard
-          visible={updatedAppConfig.visible ?? false}
+          visible={updatedAppConfig.access?.visible ?? false}
           delegable={updatedAppConfig.access?.delegable ?? false}
           descriptionValue={updatedAppConfig.access?.rightDescription ?? defaultDescriptionValue}
           onChangeVisible={onChangeVisible}
@@ -193,7 +192,7 @@ export function AppConfigForm({ appConfig, saveAppConfig }: AppConfigFormProps):
       <ActionButtons
         onSave={saveUpdatedAppConfig}
         onReset={resetAppConfig}
-        areButtonsDisabled={ObjectUtils.areObjectsEqual(updatedAppConfig, appConfigWithDefaults)}
+        areButtonsDisabled={!hasUnsavedChanges}
       />
     </div>
   );

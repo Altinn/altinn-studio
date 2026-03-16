@@ -68,12 +68,31 @@
                 </div>
                 <div class="row">
                     <div class="col-12 pt-5 text-center">
-                        <input type="button" class="btn-lg text-center" onclick="location.href='/login'" value="Logg inn" />
-                        <span>
-                            <a href="repos/user/sign_up" class="link-new-user">Opprett ny bruker</a>
-                        </span>
+                        @if (ViewBag.AccountLinkUrl != null)
+                        {
+                            <input type="button" class="btn-lg text-center" onclick="handleLogin('@ViewBag.AccountLinkUrl')" value="Logg inn" />
+                        }
+                        else
+                        {
+                            <input type="button" class="btn-lg text-center" onclick="location.href='/login'" value="Logg inn" />
+                            <span>
+                                <a href="repos/user/sign_up" class="link-new-user">Opprett ny bruker</a>
+                            </span>
+                        }
                     </div>
                 </div>
+                @if (ViewBag.AccountLinkUrl != null)
+                {
+                    <div class="row">
+                        <div class="col-12 pt-3 text-center">
+                            <div class="account-link-warning">
+                                <strong>Har du allerede en bruker i Altinn Studio?</strong><br />
+                                Du må <a href="@ViewBag.AccountLinkUrl">koble kontoen din til Ansattporten</a>
+                                før du logger inn. Hvis ikke, vil du få en ny konto uten tilgang til dine eksisterende tjenester.
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
         <div class="container">
@@ -304,5 +323,47 @@
                 </div>
             </div>
         </div>
+        @if (ViewBag.AccountLinkUrl != null)
+        {
+            <div id="loginModal" class="login-modal-overlay" style="display:none;">
+                <div class="login-modal">
+                    <strong>Har du allerede en bruker i Altinn Studio?</strong>
+                    <p>
+                        Du må <a href="@ViewBag.AccountLinkUrl">koble kontoen din til Ansattporten</a>
+                        før du logger inn. Hvis ikke, vil du få en ny konto uten tilgang til dine eksisterende tjenester.
+                    </p>
+                    <label class="login-modal-checkbox">
+                        <input type="checkbox" id="dontShowAgain" />
+                        Ikke vis denne meldingen igjen
+                    </label>
+                    <div class="login-modal-buttons">
+                        <input type="button" class="btn-lg" onclick="confirmLogin()" value="Fortsett til innlogging" />
+                        <input type="button" class="login-modal-cancel" onclick="closeLoginModal()" value="Avbryt" />
+                    </div>
+                </div>
+            </div>
+            <script type="text/javascript">
+                var STORAGE_KEY = 'altinn-studio-account-link-dismissed';
+
+                function handleLogin(accountLinkUrl) {
+                    if (localStorage.getItem(STORAGE_KEY) === 'true') {
+                        location.href = '/login';
+                        return;
+                    }
+                    document.getElementById('loginModal').style.display = 'flex';
+                }
+
+                function confirmLogin() {
+                    if (document.getElementById('dontShowAgain').checked) {
+                        localStorage.setItem(STORAGE_KEY, 'true');
+                    }
+                    location.href = '/login';
+                }
+
+                function closeLoginModal() {
+                    document.getElementById('loginModal').style.display = 'none';
+                }
+            </script>
+        }
     </body>
 </html>

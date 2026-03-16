@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Clients.Interfaces;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.ApiKeyAuth;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
@@ -25,7 +26,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [ApiController]
     [Authorize]
-    [AutoValidateAntiforgeryToken]
+    [TypeFilter(typeof(ConditionalAntiforgeryFilter))]
     [Route("/designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/deployments")]
     public class DeploymentsController : ControllerBase
     {

@@ -480,30 +480,38 @@ describe('UI Components', () => {
 
     cy.get('#form-content-colorsCheckboxes').click();
     cy.findByRole('option', { name: /blå/i }).click();
-    cy.findByRole('option', { name: /blå/i }).should('have.attr', 'aria-selected', 'true');
+    cy.findAllByRole('option', { name: /added blå, blå/i })
+      .last()
+      .should('have.attr', 'aria-selected', 'true');
     cy.findByRole('option', { name: /cyan/i }).click();
-    cy.findByRole('option', { name: /cyan/i }).should('have.attr', 'aria-selected', 'true');
+    cy.findAllByRole('option', { name: /added cyan, cyan/i })
+      .last()
+      .should('have.attr', 'aria-selected', 'true');
     cy.findByRole('option', { name: /grønn/i }).click();
-    cy.findByRole('option', { name: /grønn/i }).should('have.attr', 'aria-selected', 'true');
+    cy.findAllByRole('option', { name: /added grønn, grønn/i })
+      .last()
+      .should('have.attr', 'aria-selected', 'true');
     cy.findByRole('option', { name: /gul/i }).click();
-    cy.findByRole('option', { name: /gul/i }).should('have.attr', 'aria-selected', 'true');
+    cy.findAllByRole('option', { name: /added gul, gul/i })
+      .last()
+      .should('have.attr', 'aria-selected', 'true');
 
-    cy.findByRole('button', {
-      name: /Grønn, Press to remove, 3 of 4/i,
+    cy.findByRole('option', {
+      name: /Grønn, Press to remove/i,
     }).click('right', { force: true });
     cy.get(appFrontend.deleteWarningPopover).should('contain.text', 'Er du sikker på at du vil slette Grønn?');
     cy.findByRole('button', { name: /Avbryt/ }).click();
-    cy.findByRole('button', {
-      name: /Grønn, Press to remove, 3 of 4/i,
+    cy.findByRole('option', {
+      name: /Grønn, Press to remove/i,
     }).should('exist');
 
-    cy.findByRole('button', {
-      name: /Gul, Press to remove, 4 of 4/i,
+    cy.findByRole('option', {
+      name: /Gul, Press to remove/i,
     }).click('right', { force: true });
     cy.get(appFrontend.deleteWarningPopover).should('contain.text', 'Er du sikker på at du vil slette Gul?');
     cy.findByRole('button', { name: /Bekreft/ }).click();
-    cy.findByRole('button', {
-      name: /Gul, Press to remove, 4 of 4/i,
+    cy.findByRole('option', {
+      name: /Gul, Press to remove/i,
     }).should('not.exist');
   });
 

@@ -14,6 +14,10 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { renderWithProviders } from '../testing/mocks';
 import type { ProviderData } from '../testing/mocks';
 
+jest.mock('app-shared/contexts/EnvironmentConfigContext', () => ({
+  useEnvironmentConfig: () => ({ environment: null, isLoading: false, error: null }),
+}));
+
 jest.mock('react-router-dom', () => jest.requireActual('react-router-dom')); // Todo: Remove this when we have removed the global mock: https://github.com/Altinn/altinn-studio/issues/14597
 
 jest.mock('app-shared/utils/featureToggleUtils', () => ({

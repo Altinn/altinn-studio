@@ -1,5 +1,8 @@
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Maskinporten.Extensions;
+using Microsoft.Extensions.Configuration.Json;
+using Microsoft.Extensions.FileProviders;
 
 namespace Altinn.App.Api.Extensions;
 
@@ -29,19 +32,114 @@ public static class WebHostBuilderExtensions
 
                 configBuilder.AddInMemoryCollection(config);
 
+                var runtimeSecretsDirectory = context.Configuration["AppSettings:RuntimeSecretsDirectory"];
+                if (string.IsNullOrWhiteSpace(runtimeSecretsDirectory))
+                {
+                    runtimeSecretsDirectory = AppSettings.DefaultRuntimeSecretsDirectory;
+                }
+
                 configBuilder.AddMaskinportenSettingsFile(
                     context,
                     "MaskinportenSettingsFilepath",
-                    "/mnt/app-secrets/maskinporten-settings.json"
+                    Path.Join(runtimeSecretsDirectory, "maskinporten-settings.json")
                 );
                 configBuilder.AddMaskinportenSettingsFile(
                     context,
                     "MaskinportenSettingsInternalFilepath",
-                    "/mnt/app-secrets/maskinporten-settings-internal.json"
+                    Path.Join(runtimeSecretsDirectory, "maskinporten-settings-internal.json")
                 );
 
+                AddRuntimeConfigFiles(configBuilder, context.HostingEnvironment, runtimeSecretsDirectory);
                 configBuilder.LoadAppConfig(args);
             }
         );
+    }
+
+    internal static void AddRuntimeConfigFiles(
+        IConfigurationBuilder configBuilder,
+        IHostEnvironment hostEnvironment,
+        string secretsDirectory
+    )
+    {
+        ArgumentNullException.ThrowIfNull(configBuilder);
+        ArgumentNullException.ThrowIfNull(hostEnvironment);
+        ArgumentException.ThrowIfNullOrWhiteSpace(secretsDirectory);
+
+        if (hostEnvironment.IsDevelopment())
+        {
+            return;
+        }
+
+        const string overrideFileNameFragment = "override";
+        if (!Directory.Exists(secretsDirectory))
+        {
+            return;
+        }
+
+        string[] jsonFiles = Directory.GetFiles(secretsDirectory, "*.json", SearchOption.TopDirectoryOnly);
+        Array.Sort(jsonFiles, StringComparer.OrdinalIgnoreCase);
+
+        PhysicalFileProvider? secretsFileProvider = null;
+        HashSet<string> existingJsonFilePaths = [];
+
+        foreach (JsonConfigurationSource source in configBuilder.Sources.OfType<JsonConfigurationSource>())
+        {
+            if (source.FileProvider is null || string.IsNullOrWhiteSpace(source.Path))
+            {
+                continue;
+            }
+
+            string? existingJsonFilePath = source.FileProvider.GetFileInfo(source.Path).PhysicalPath;
+            if (string.IsNullOrWhiteSpace(existingJsonFilePath))
+            {
+                continue;
+            }
+
+            existingJsonFilePaths.Add(Path.GetFullPath(existingJsonFilePath));
+        }
+
+        foreach (string jsonFile in jsonFiles)
+        {
+            string jsonFilePath = Path.GetFullPath(jsonFile);
+            if (existingJsonFilePaths.Contains(jsonFilePath))
+            {
+                continue;
+            }
+
+            string jsonFileName = Path.GetFileName(jsonFile);
+            if (jsonFileName.Contains(overrideFileNameFragment, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            configBuilder.AddJsonFile(
+                provider: secretsFileProvider ??= new PhysicalFileProvider(secretsDirectory),
+                path: jsonFileName,
+                optional: true,
+                reloadOnChange: true
+            );
+        }
+
+        foreach (string jsonFile in jsonFiles)
+        {
+            string jsonFilePath = Path.GetFullPath(jsonFile);
+            if (existingJsonFilePaths.Contains(jsonFilePath))
+            {
+                continue;
+            }
+
+            string jsonFileName = Path.GetFileName(jsonFile);
+            if (!jsonFileName.Contains(overrideFileNameFragment, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            configBuilder.AddJsonFile(
+                provider: secretsFileProvider ??= new PhysicalFileProvider(secretsDirectory),
+                path: jsonFileName,
+                optional: true,
+                reloadOnChange: true
+            );
+        }
     }
 }

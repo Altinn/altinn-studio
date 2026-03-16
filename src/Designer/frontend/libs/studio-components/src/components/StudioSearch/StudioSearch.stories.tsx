@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioSearch } from './StudioSearch';
 
-const meta: Meta<typeof StudioSearch> = {
+const meta = {
   title: 'Components/StudioSearch',
   component: StudioSearch,
   argTypes: {
@@ -21,7 +21,8 @@ const meta: Meta<typeof StudioSearch> = {
       control: 'text',
     },
   },
-};
+} satisfies Meta<typeof StudioSearch>;
+export default meta;
 
 type Story = StoryObj<typeof meta>;
 
@@ -31,5 +32,3 @@ export const Preview: Story = {
     clearButtonLabel: 'Clear search',
   },
 };
-
-export default meta;
