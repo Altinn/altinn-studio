@@ -8,7 +8,7 @@ using WorkflowEngine.Resilience.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("Steps")]
+[Table("Steps", Schema = Constants.SchemaNames.Engine)]
 internal sealed class StepEntity : IHasCommonMetadata
 {
     [Key]

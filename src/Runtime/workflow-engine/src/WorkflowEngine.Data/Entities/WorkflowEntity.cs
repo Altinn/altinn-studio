@@ -7,7 +7,7 @@ using WorkflowEngine.Models;
 
 namespace WorkflowEngine.Data.Entities;
 
-[Table("Workflows")]
+[Table("Workflows", Schema = Constants.SchemaNames.Engine)]
 internal sealed class WorkflowEntity : IHasCommonMetadata
 {
     [Key]

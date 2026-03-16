@@ -9,11 +9,11 @@
         status: Healthy, Running,
         workers: {
           active: 0,
-          max: 300
+          max: 10
         },
         http_connections: {
           count: 0,
-          limit: 500
+          limit: 400
         },
         db_connections: {
           count: 0,

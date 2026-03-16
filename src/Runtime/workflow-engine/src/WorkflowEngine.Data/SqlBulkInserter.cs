@@ -89,10 +89,12 @@ internal class SqlBulkInserter(IDbContextFactory<EngineDbContext> dbContextFacto
     public static Func<NpgsqlConnection, IEnumerable<(Guid, Guid)>, CancellationToken, Task> CreateForJoinTable(
         string tableName,
         string column1Name,
-        string column2Name
+        string column2Name,
+        string? schema = null
     )
     {
-        var copyCommand = $"COPY \"{tableName}\" (\"{column1Name}\", \"{column2Name}\") FROM STDIN (FORMAT BINARY)";
+        var quotedTable = schema != null ? $"\"{schema}\".\"{tableName}\"" : $"\"{tableName}\"";
+        var copyCommand = $"COPY {quotedTable} (\"{column1Name}\", \"{column2Name}\") FROM STDIN (FORMAT BINARY)";
 
         return async (connection, rows, ctk) =>
         {

@@ -32,11 +32,12 @@ internal sealed partial class EngineRepository
     > _insertDependencies = SqlBulkInserter.CreateForJoinTable(
         "WorkflowDependency",
         "WorkflowId",
-        "DependsOnWorkflowId"
+        "DependsOnWorkflowId",
+        SchemaNames.Engine
     );
 
     private static readonly Func<NpgsqlConnection, IEnumerable<(Guid, Guid)>, CancellationToken, Task> _insertLinks =
-        SqlBulkInserter.CreateForJoinTable("WorkflowLink", "WorkflowId", "LinkedWorkflowId");
+        SqlBulkInserter.CreateForJoinTable("WorkflowLink", "WorkflowId", "LinkedWorkflowId", SchemaNames.Engine);
 
     /// <inheritdoc/>
     public async Task UpdateWorkflow(
@@ -284,7 +285,7 @@ internal sealed partial class EngineRepository
                             AS t("IdempotencyKey", "Namespace", "RequestBodyHash", wf_id_text, "CreatedAt", idx)
                     ),
                     inserted AS (
-                        INSERT INTO "IdempotencyKeys" ("IdempotencyKey", "Namespace", "RequestBodyHash", "WorkflowIds", "CreatedAt")
+                        INSERT INTO "engine"."IdempotencyKeys" ("IdempotencyKey", "Namespace", "RequestBodyHash", "WorkflowIds", "CreatedAt")
                         SELECT "IdempotencyKey", "Namespace", "RequestBodyHash", wf_id_text::uuid[], "CreatedAt"
                         FROM input
                         ORDER BY "IdempotencyKey", "Namespace"
@@ -340,7 +341,7 @@ internal sealed partial class EngineRepository
                 SELECT ik.*
                 FROM unnest({keys}, {namespaces})
                     AS t("IdempotencyKey", "Namespace")
-                JOIN "IdempotencyKeys" ik USING ("IdempotencyKey", "Namespace")
+                JOIN "engine"."IdempotencyKeys" ik USING ("IdempotencyKey", "Namespace")
                 """
             )
             .AsNoTracking()
@@ -613,15 +614,15 @@ internal sealed partial class EngineRepository
         var ids = await context
             .Database.SqlQuery<Guid>(
                 $"""
-                UPDATE "Workflows"
+                UPDATE "engine"."Workflows"
                 SET "Status" = {PersistentItemStatus.Processing}, "UpdatedAt" = {now}
                 WHERE "Id" IN (
-                    SELECT w."Id" FROM "Workflows" w
+                    SELECT w."Id" FROM "engine"."Workflows" w
                     WHERE w."Status" IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued})
                       AND (w."BackoffUntil" IS NULL OR w."BackoffUntil" <= {now})
                       AND NOT EXISTS (
-                          SELECT 1 FROM "WorkflowDependency" wd
-                          JOIN "Workflows" dep ON dep."Id" = wd."DependsOnWorkflowId"
+                          SELECT 1 FROM "engine"."WorkflowDependency" wd
+                          JOIN "engine"."Workflows" dep ON dep."Id" = wd."DependsOnWorkflowId"
                           WHERE wd."WorkflowId" = w."Id"
                             AND dep."Status" <> {PersistentItemStatus.Completed}
                             AND dep."Status" <> {PersistentItemStatus.Failed}
@@ -696,7 +697,7 @@ internal sealed partial class EngineRepository
                     }
 
                     const string updateWorkflowsSql = """
-                    UPDATE "Workflows" AS w
+                    UPDATE "engine"."Workflows" AS w
                     SET "Status"             = v.status,
                         "UpdatedAt"          = @now,
                         "BackoffUntil"       = v.backoff_until,
@@ -748,7 +749,7 @@ internal sealed partial class EngineRepository
                         }
 
                         const string updateStepsSql = """
-                        UPDATE "Steps" AS s
+                        UPDATE "engine"."Steps" AS s
                         SET "Status"             = v.status,
                             "RequeueCount"       = v.requeue_count,
                             "StateOut"           = v.state_out,

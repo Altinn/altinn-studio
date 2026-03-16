@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Context;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Data.Services;
@@ -44,7 +45,10 @@ public static class ServiceCollectionExtensions
             services.AddDbContext<EngineDbContext>(
                 (sp, options) =>
                 {
-                    options.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>());
+                    options.UseNpgsql(
+                        sp.GetRequiredService<NpgsqlDataSource>(),
+                        o => o.MigrationsHistoryTable("__EFMigrationsHistory", SchemaNames.Engine)
+                    );
                     if (enableSensitiveDataLogging)
                         options.EnableSensitiveDataLogging();
                 },
@@ -54,7 +58,10 @@ public static class ServiceCollectionExtensions
             services.AddDbContextFactory<EngineDbContext>(
                 (sp, options) =>
                 {
-                    options.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>());
+                    options.UseNpgsql(
+                        sp.GetRequiredService<NpgsqlDataSource>(),
+                        o => o.MigrationsHistoryTable("__EFMigrationsHistory", SchemaNames.Engine)
+                    );
                     if (enableSensitiveDataLogging)
                         options.EnableSensitiveDataLogging();
                 }

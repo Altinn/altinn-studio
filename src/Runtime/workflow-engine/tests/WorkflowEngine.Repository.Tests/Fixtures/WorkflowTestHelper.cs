@@ -115,7 +115,7 @@ internal static class WorkflowTestHelper
         // Update status directly via raw SQL
         var statusInt = (int)status;
         await context.Database.ExecuteSqlAsync(
-            $"""UPDATE "Workflows" SET "Status" = {statusInt} WHERE "Id" = {workflow.DatabaseId}""",
+            $"""UPDATE "engine"."Workflows" SET "Status" = {statusInt} WHERE "Id" = {workflow.DatabaseId}""",
             TestContext.Current.CancellationToken
         );
 

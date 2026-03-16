@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Entities;
 using WorkflowEngine.Models;
 
@@ -19,6 +20,8 @@ internal sealed class EngineDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.HasDefaultSchema(SchemaNames.Engine);
 
         // Configure Workflow entity
         modelBuilder.Entity<WorkflowEntity>(entity =>
