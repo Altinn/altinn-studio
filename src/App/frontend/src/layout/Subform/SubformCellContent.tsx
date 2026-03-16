@@ -1,5 +1,3 @@
-import React from 'react';
-
 import dot from 'dot-object';
 
 import { evalExpr } from 'src/features/expressions';

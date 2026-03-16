@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { formatDate, formatISO } from 'date-fns';
 
 import type { PropsFromGenericComponent } from '..';

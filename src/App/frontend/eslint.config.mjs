@@ -129,6 +129,7 @@ export default defineConfig([
         'error',
         { checkFragmentShorthand: true, checkKeyMustBeforeSpread: true, warnOnDuplicates: true },
       ],
+      'react/react-in-jsx-scope': ['off'],
       'react/prop-types': ['off'],
 
       'sonarjs/no-duplicate-string': ['off'],

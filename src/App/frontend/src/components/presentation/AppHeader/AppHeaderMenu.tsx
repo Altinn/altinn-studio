@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { Button, Dropdown } from '@digdir/designsystemet-react';
 import { Buildings3Icon, PersonIcon } from '@navikt/aksel-icons';

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Tabs } from '@digdir/designsystemet-react';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 

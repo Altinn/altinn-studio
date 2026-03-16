@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Fieldset, useRadioGroup } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { isValidElement, useLayoutEffect, useMemo, useRef } from 'react';
 import ReactDOMServer from 'react-dom/server';
 
 import dot from 'dot-object';
@@ -53,10 +53,10 @@ export function CustomWebComponent({
 
   const HtmlTag = tagName;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const wcRef = React.useRef<any>(null);
+  const wcRef = useRef<any>(null);
   const { formData, setValue } = useDataModelBindings(dataModelBindings);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     const { current } = wcRef;
     if (current) {
       const handleChange = (customEvent: CustomEvent) => {
@@ -80,7 +80,7 @@ export function CustomWebComponent({
     }
   }, [dataModelBindings?.simpleBinding, setValue, wcRef]);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     const { current } = wcRef;
     if (current) {
       current.texts = getTextsForComponent(textResourceBindings, langTools);
@@ -89,7 +89,7 @@ export function CustomWebComponent({
     }
   }, [wcRef, textResourceBindings, dataModelBindings, langTools, legacyLanguage]);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     const { current } = wcRef;
     if (current) {
       current.formData = formData;
@@ -106,7 +106,7 @@ export function CustomWebComponent({
   const propsAsAttributes: any = {};
   Object.keys(passThroughProps).forEach((key) => {
     let prop = passThroughProps[key];
-    if (React.isValidElement(prop)) {
+    if (isValidElement(prop)) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       prop = ReactDOMServer.renderToStaticMarkup(prop as any);
     } else if (['object', 'array'].includes(typeof prop) && key !== 'containerDivRef') {

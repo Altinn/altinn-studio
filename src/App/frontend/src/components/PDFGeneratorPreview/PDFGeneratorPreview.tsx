@@ -1,4 +1,4 @@
-import React from 'react';
+import { Fragment, useRef, useState } from 'react';
 
 import { Dialog, Heading } from '@digdir/designsystemet-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
@@ -18,11 +18,11 @@ export function PDFGeneratorPreview({
   buttonTitle?: string;
   showErrorDetails?: boolean;
 }) {
-  const modalRef = React.useRef<HTMLDialogElement>(null);
-  const abortRef = React.useRef<AbortController | null>(null);
+  const modalRef = useRef<HTMLDialogElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const [blobUrl, setBlobUrl] = React.useState<string | null>(null);
-  const [errorText, setErrorText] = React.useState<string | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [errorText, setErrorText] = useState<string | null>(null);
 
   const instanceId = useLaxInstanceId();
   const language = useCurrentLanguage();
@@ -90,10 +90,10 @@ export function PDFGeneratorPreview({
             <Heading id='pdfPreview.error' />
             {showErrorDetails &&
               errorText.split('\n').map((line) => (
-                <React.Fragment key={line}>
+                <Fragment key={line}>
                   {line}
                   <br />
-                </React.Fragment>
+                </Fragment>
               ))}
           </div>
         ) : (

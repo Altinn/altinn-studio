@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Paragraph } from '@digdir/designsystemet-react';
 import classNames from 'classnames';
 import type { ArgumentArray } from 'classnames';

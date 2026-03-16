@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Checkbox, Fieldset } from '@digdir/designsystemet-react';
 
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';

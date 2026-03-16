@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 import {
   DownloadIcon,
@@ -123,7 +123,7 @@ export const DevToolsLogs = () => {
                 const urlRegex = /(https?:\/\/[^\s]+)/g;
                 const split = line.split(urlRegex);
                 return (
-                  <React.Fragment key={line}>
+                  <Fragment key={line}>
                     {split.map((part, index) => {
                       if (part.match(urlRegex)) {
                         return (
@@ -140,7 +140,7 @@ export const DevToolsLogs = () => {
                       return part;
                     })}
                     <br />
-                  </React.Fragment>
+                  </Fragment>
                 );
               })}
             </pre>

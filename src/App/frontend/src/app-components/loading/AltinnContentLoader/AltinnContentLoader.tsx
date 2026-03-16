@@ -1,4 +1,3 @@
-import React from 'react';
 import ContentLoader from 'react-content-loader';
 
 import { AltinnContentIcon } from 'src/app-components/loading/AltinnContentLoader/AltinnContentIcon';

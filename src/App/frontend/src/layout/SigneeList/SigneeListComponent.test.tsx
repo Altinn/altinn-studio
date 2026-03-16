@@ -1,7 +1,6 @@
-import React, { ReactElement } from 'react';
+import { createRef, ReactElement } from 'react';
 import { useParams } from 'react-router';
 
-import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
 import { render as renderRtl, RenderOptions } from '@testing-library/react';
 import { randomUUID } from 'crypto';
@@ -101,7 +100,7 @@ describe('SigneeListComponent', () => {
     render(
       <SigneeListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef()}
+        containerDivRef={createRef()}
       />,
     );
 
@@ -128,7 +127,7 @@ describe('SigneeListComponent', () => {
     render(
       <SigneeListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef()}
+        containerDivRef={createRef()}
       />,
     );
 
@@ -145,7 +144,7 @@ describe('SigneeListComponent', () => {
     render(
       <SigneeListComponent
         baseComponentId='whatever'
-        containerDivRef={React.createRef()}
+        containerDivRef={createRef()}
       />,
     );
 

@@ -1,6 +1,3 @@
-import React from 'react';
-
-import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';

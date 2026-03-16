@@ -1,4 +1,3 @@
-import React from 'react';
 import { DayPicker } from 'react-day-picker';
 import type { Matcher, MonthCaption } from 'react-day-picker';
 

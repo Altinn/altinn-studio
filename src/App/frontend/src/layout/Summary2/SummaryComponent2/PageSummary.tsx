@@ -1,4 +1,3 @@
-import React from 'react';
 import type { CSSProperties } from 'react';
 
 import { Flex } from 'src/app-components/Flex/Flex';
