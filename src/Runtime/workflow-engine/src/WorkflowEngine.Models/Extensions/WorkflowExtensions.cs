@@ -45,8 +45,10 @@ public static class WorkflowExtensions
         public (string key, object? value)[] GetActivityTags() =>
             [
                 ("workflow.database.id", workflow.DatabaseId),
+                ("workflow.correlation.id", workflow.CorrelationId),
+                ("workflow.idempotency.key", workflow.IdempotencyKey),
                 ("workflow.operation.id", workflow.OperationId),
-                ("workflow.namespace.id", workflow.Namespace),
+                ("workflow.namespace", workflow.Namespace),
             ];
 
         /// <summary>

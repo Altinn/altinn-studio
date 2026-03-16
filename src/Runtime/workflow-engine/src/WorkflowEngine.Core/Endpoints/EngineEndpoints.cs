@@ -54,12 +54,24 @@ internal static class EngineRequestHandlers
     {
         Metrics.WorkflowRequestsReceived.Add(request.Workflows.Count, ("endpoint", "enqueue"));
 
+        Activity.Current?.SetTag("workflow.correlation.id", request.CorrelationId);
+        Activity.Current?.SetTag("workflow.idempotency.key", request.IdempotencyKey);
+        Activity.Current?.SetTag("workflow.namespace", request.Namespace);
+
         var metadata = new WorkflowRequestMetadata(
             request.CorrelationId,
             timeProvider.GetUtcNow(),
             Activity.Current?.Id
         );
         var response = await engine.EnqueueWorkflow(request, metadata, cancellationToken);
+
+        if (response is WorkflowEnqueueResponse.Accepted accepted)
+        {
+            Activity.Current?.SetTag(
+                "workflow.database.ids",
+                string.Join(", ", accepted.Workflows.Select(w => w.DatabaseId))
+            );
+        }
 
         return response switch
         {
