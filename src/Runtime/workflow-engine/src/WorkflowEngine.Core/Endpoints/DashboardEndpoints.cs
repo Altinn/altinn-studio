@@ -305,102 +305,52 @@ public static class DashboardEndpoints
 
         app.MapGet(
                 "/dashboard/step",
-                async (
-                    IEngineStatus engineStatus,
-                    IServiceProvider sp,
-                    string wf,
-                    string step,
-                    DateTimeOffset? createdAt,
-                    CancellationToken ct
-                ) =>
+                async (IServiceProvider sp, string wf, string step, DateTimeOffset? createdAt, CancellationToken ct) =>
                 {
-                    // Try DB first
-                    Workflow? workflow = null;
+                    if (!createdAt.HasValue)
+                        return Results.NotFound();
 
-                    if (createdAt.HasValue)
-                    {
-                        using IServiceScope scope = sp.CreateScope();
-                        var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
-                        workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
-                    }
+                    using IServiceScope scope = sp.CreateScope();
+                    var repo = scope.ServiceProvider.GetRequiredService<IEngineRepository>();
+                    Workflow? workflow = await repo.GetWorkflow(wf, createdAt.Value, ct);
 
-                    if (workflow is not null)
-                    {
-                        Step? s = workflow.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
-                        if (s is null)
-                            return Results.NotFound();
+                    if (workflow is null)
+                        return Results.NotFound();
 
-                        // Merge lastError from recent cache if the DB doesn't have it
-                        DashboardWorkflowDto? cached = s.LastError is null
-                            ? engineStatus.GetRecentWorkflows(100).FirstOrDefault(c => c.IdempotencyKey == wf)
-                            : null;
-                        string? lastError =
-                            s.LastError ?? cached?.Steps.FirstOrDefault(cs => cs.IdempotencyKey == step)?.LastError;
+                    Step? s = workflow.Steps.FirstOrDefault(st => st.IdempotencyKey == step);
+                    if (s is null)
+                        return Results.NotFound();
 
-                        var stateIn =
-                            s.ProcessingOrder == 0
-                                ? workflow.InitialState
-                                : workflow
-                                    .Steps.Where(st => st.ProcessingOrder < s.ProcessingOrder)
-                                    .OrderByDescending(st => st.ProcessingOrder)
-                                    .Select(st => st.StateOut)
-                                    .FirstOrDefault(st => st is not null);
+                    var stateIn =
+                        s.ProcessingOrder == 0
+                            ? workflow.InitialState
+                            : workflow
+                                .Steps.Where(st => st.ProcessingOrder < s.ProcessingOrder)
+                                .OrderByDescending(st => st.ProcessingOrder)
+                                .Select(st => st.StateOut)
+                                .FirstOrDefault(st => st is not null);
 
-                        return Results.Json(
-                            new
-                            {
-                                idempotencyKey = s.IdempotencyKey,
-                                operationId = s.OperationId,
-                                status = s.Status.ToString(),
-                                processingOrder = s.ProcessingOrder,
-                                retryCount = s.RequeueCount,
-                                lastError,
-                                createdAt = s.CreatedAt,
-                                executionStartedAt = s.ExecutionStartedAt,
-                                updatedAt = s.UpdatedAt,
-                                command = s.Command,
-                                retryStrategy = s.RetryStrategy,
-                                traceId = Metrics.ParseTraceContext(workflow.EngineTraceContext)?.TraceId.ToString()
-                                    ?? workflow.EngineActivity?.TraceId.ToString(),
-                                stateIn,
-                                stateOut = s.StateOut,
-                            },
-                            _jsonIndented
-                        );
-                    }
-
-                    // Fall back to recent cache only (has lastError but no state)
-                    DashboardWorkflowDto? recentCached = engineStatus
-                        .GetRecentWorkflows(100)
-                        .FirstOrDefault(c => c.IdempotencyKey == wf);
-                    if (recentCached is not null)
-                    {
-                        DashboardStepDto? cs = recentCached.Steps.FirstOrDefault(s => s.IdempotencyKey == step);
-                        if (cs is null)
-                            return Results.NotFound();
-
-                        return Results.Json(
-                            new
-                            {
-                                cs.IdempotencyKey,
-                                cs.OperationId,
-                                cs.Status,
-                                cs.ProcessingOrder,
-                                cs.RetryCount,
-                                cs.LastError,
-                                cs.CreatedAt,
-                                cs.ExecutionStartedAt,
-                                cs.UpdatedAt,
-                                recentCached.TraceId,
-                                command = new { type = cs.CommandType, operationId = cs.CommandDetail },
-                                stateIn = (string?)null,
-                                stateOut = (string?)null,
-                            },
-                            _jsonIndented
-                        );
-                    }
-
-                    return Results.NotFound();
+                    return Results.Json(
+                        new
+                        {
+                            idempotencyKey = s.IdempotencyKey,
+                            operationId = s.OperationId,
+                            status = s.Status.ToString(),
+                            processingOrder = s.ProcessingOrder,
+                            retryCount = s.RequeueCount,
+                            lastError = s.LastError,
+                            createdAt = s.CreatedAt,
+                            executionStartedAt = s.ExecutionStartedAt,
+                            updatedAt = s.UpdatedAt,
+                            command = s.Command,
+                            retryStrategy = s.RetryStrategy,
+                            traceId = Metrics.ParseTraceContext(workflow.EngineTraceContext)?.TraceId.ToString()
+                                ?? workflow.EngineActivity?.TraceId.ToString(),
+                            stateIn,
+                            stateOut = s.StateOut,
+                        },
+                        _jsonIndented
+                    );
                 }
             )
             .ExcludeFromDescription();

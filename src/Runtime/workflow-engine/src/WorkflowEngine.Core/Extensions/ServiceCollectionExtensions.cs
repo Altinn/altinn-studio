@@ -47,10 +47,17 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IConcurrencyLimiter, ConcurrencyLimiter>(sp =>
             {
                 var settings = sp.GetRequiredService<IOptions<EngineSettings>>().Value;
-                return new ConcurrencyLimiter(settings.Concurrency.MaxDbOperations, settings.Concurrency.MaxHttpCalls);
+                return new ConcurrencyLimiter(
+                    settings.Concurrency.MaxDbOperations,
+                    settings.Concurrency.MaxHttpCalls,
+                    settings.Concurrency.MaxWorkers
+                );
             });
 
-            services.AddSingleton<IEngine, Engine>();
+            services.AddSingleton<Engine>();
+            services.AddSingleton<IEngine>(sp => sp.GetRequiredService<Engine>());
+            services.AddSingleton<IEngineStatus>(sp => sp.GetRequiredService<Engine>());
+
             services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
 
             services.AddSingleton<AsyncSignal>();
@@ -65,9 +72,6 @@ public static class ServiceCollectionExtensions
             services.AddHostedService<WorkflowProcessor>();
 
             services.AddScoped<WorkflowHandler>();
-
-            services.AddSingleton<EngineStatusProvider>();
-            services.AddSingleton<IEngineStatus>(sp => sp.GetRequiredService<EngineStatusProvider>());
 
             services.AddHostedService<MetricsCollector>();
 

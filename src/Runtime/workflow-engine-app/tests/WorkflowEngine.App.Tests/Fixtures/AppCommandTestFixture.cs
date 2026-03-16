@@ -67,7 +67,11 @@ internal sealed record AppCommandTestFixture(
         services.AddSingleton(Options.Create(appCommandSettings));
         services.AddLogging();
         services.AddSingleton<IConcurrencyLimiter>(
-            new ConcurrencyLimiter(engineSettings.Concurrency.MaxDbOperations, engineSettings.Concurrency.MaxHttpCalls)
+            new ConcurrencyLimiter(
+                engineSettings.Concurrency.MaxDbOperations,
+                engineSettings.Concurrency.MaxHttpCalls,
+                engineSettings.Concurrency.MaxWorkers
+            )
         );
 
         services.AddSingleton<ICommand, AppCommand>();

@@ -7,6 +7,7 @@ using WorkflowEngine.Data.Constants;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Models.Exceptions;
+using WorkflowEngine.Resilience;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -21,13 +22,35 @@ internal interface IEngine
     );
 }
 
+/// <summary>
+/// Provides engine status information for dashboard, health checks, and metrics.
+/// </summary>
+internal interface IEngineStatus
+{
+    /// <summary>Current engine health status flags.</summary>
+    EngineHealthStatus Status { get; }
+
+    /// <summary>Number of workflows currently being processed (active workers).</summary>
+    int ActiveWorkerCount { get; }
+
+    /// <summary>Maximum number of concurrent workers.</summary>
+    int MaxWorkers { get; }
+}
+
 internal sealed class Engine(
     WorkflowWriteBuffer writeBuffer,
     ICommandRegistry registry,
+    IConcurrencyLimiter limiter,
     IOptions<EngineSettings> engineSettings
-) : IEngine
+) : IEngine, IEngineStatus
 {
     private readonly EngineSettings _settings = engineSettings.Value;
+
+    public EngineHealthStatus Status => EngineHealthStatus.Running | EngineHealthStatus.Healthy;
+
+    public int ActiveWorkerCount => limiter.WorkerSlotStatus.Used;
+
+    public int MaxWorkers => limiter.WorkerSlotStatus.Total;
 
     public async Task<WorkflowEnqueueResponse> EnqueueWorkflow(
         WorkflowEnqueueRequest request,

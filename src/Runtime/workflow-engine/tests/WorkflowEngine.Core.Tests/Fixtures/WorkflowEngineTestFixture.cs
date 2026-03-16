@@ -65,7 +65,11 @@ internal sealed record WorkflowEngineTestFixture(
         services.AddSingleton(Options.Create(engineSettings));
         services.AddLogging();
         services.AddSingleton<IConcurrencyLimiter>(
-            new ConcurrencyLimiter(engineSettings.Concurrency.MaxDbOperations, engineSettings.Concurrency.MaxHttpCalls)
+            new ConcurrencyLimiter(
+                engineSettings.Concurrency.MaxDbOperations,
+                engineSettings.Concurrency.MaxHttpCalls,
+                engineSettings.Concurrency.MaxWorkers
+            )
         );
 
         services.AddSingleton<ICommand, WebhookCommand>();

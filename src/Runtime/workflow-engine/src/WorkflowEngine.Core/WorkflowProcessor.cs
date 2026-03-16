@@ -2,9 +2,9 @@ using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
+using WorkflowEngine.Resilience;
 using WorkflowEngine.Telemetry;
 using WorkflowEngine.Telemetry.Extensions;
 
@@ -18,8 +18,7 @@ internal sealed class WorkflowProcessor(
     IEngineRepository repo,
     IServiceScopeFactory scopeFactory,
     AsyncSignal workflowSignal,
-    IOptions<EngineSettings> options,
-    IEngineStatus engineStatus,
+    IConcurrencyLimiter limiter,
     ILogger<WorkflowProcessor> logger
 ) : BackgroundService
 {
@@ -28,24 +27,13 @@ internal sealed class WorkflowProcessor(
     /// </summary>
     internal static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(30);
 
-    private readonly int _maxWorkers = options.Value.Concurrency.MaxWorkers;
-    private readonly SemaphoreSlim _semaphore = new(
-        options.Value.Concurrency.MaxWorkers,
-        options.Value.Concurrency.MaxWorkers
-    );
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var activity = Metrics.Source.StartActivity("WorkflowProcessor.ExecuteAsync");
         activity?.DontRecord();
 
-        logger.ProcessorStarted(_maxWorkers);
-
-        // TODO: Replace by UpDownCounter?
-        if (engineStatus is EngineStatusProvider provider)
-        {
-            provider.SetProcessorSemaphore(_semaphore);
-        }
+        var maxWorkers = limiter.WorkerSlotStatus.Total;
+        logger.ProcessorStarted(maxWorkers);
 
         try
         {
@@ -56,7 +44,7 @@ internal sealed class WorkflowProcessor(
 
                 workflowSignal.Reset();
 
-                var available = _semaphore.CurrentCount;
+                var available = limiter.WorkerSlotStatus.Available;
 
                 if (available > 0)
                 {
@@ -69,7 +57,7 @@ internal sealed class WorkflowProcessor(
 
                     foreach (var workflow in workflows)
                     {
-                        await _semaphore.WaitAsync(stoppingToken);
+                        await limiter.AcquireWorkerSlot(stoppingToken);
                         _ = ProcessWorkflowAsync(workflow, stoppingToken);
                     }
 
@@ -87,21 +75,22 @@ internal sealed class WorkflowProcessor(
             // Expected on shutdown
         }
 
-        logger.ProcessorShuttingDown(_maxWorkers - _semaphore.CurrentCount);
+        var workerStatus = limiter.WorkerSlotStatus;
+        logger.ProcessorShuttingDown(workerStatus.Used);
 
         using var shutdownCts = new CancellationTokenSource(ShutdownTimeout);
         try
         {
-            for (int i = 0; i < _maxWorkers; i++)
+            for (int i = 0; i < maxWorkers; i++)
             {
-                await _semaphore.WaitAsync(shutdownCts.Token);
+                await limiter.AcquireWorkerSlot(shutdownCts.Token);
             }
 
             logger.ProcessorAllWorkersFinished();
         }
         catch (OperationCanceledException)
         {
-            logger.ProcessorShutdownTimedOut(_maxWorkers - _semaphore.CurrentCount);
+            logger.ProcessorShutdownTimedOut(limiter.WorkerSlotStatus.Used);
         }
 
         logger.ProcessorStopped();
@@ -114,15 +103,10 @@ internal sealed class WorkflowProcessor(
             using var scope = scopeFactory.CreateScope();
             var handler = scope.ServiceProvider.GetRequiredService<WorkflowHandler>();
             await handler.HandleAsync(workflow, ct);
-
-            if (workflow.Status is PersistentItemStatus.Completed or PersistentItemStatus.Failed)
-            {
-                engineStatus.RecordCompletion(workflow);
-            }
         }
         finally
         {
-            _semaphore.Release();
+            limiter.ReleaseWorkerSlot();
         }
 
         workflowSignal.Signal();
@@ -132,12 +116,6 @@ internal sealed class WorkflowProcessor(
     {
         await signal.WaitAsync(ct);
         await Task.Delay(delay, ct);
-    }
-
-    public override void Dispose()
-    {
-        _semaphore.Dispose();
-        base.Dispose();
     }
 }
 

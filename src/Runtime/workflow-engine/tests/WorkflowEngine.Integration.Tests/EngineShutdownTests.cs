@@ -88,24 +88,4 @@ public sealed class EngineStatusTests(EngineAppFixture<Program> fixture) : IAsyn
         // Cleanup — wait for the workflow to finish
         await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
     }
-
-    [Fact]
-    public async Task RecentWorkflows_ContainsCompletedWorkflow()
-    {
-        // Arrange
-        var status = fixture.Services.GetRequiredService<IEngineStatus>();
-        var request = _testHelpers.CreateEnqueueRequest(
-            _testHelpers.CreateWorkflow("wf", [_testHelpers.CreateWebhookStep("/recent-hook")])
-        );
-
-        // Act
-        var enqueueResponse = await _client.Enqueue(request);
-        var workflowId = enqueueResponse.Workflows.Single().DatabaseId;
-        await _client.WaitForWorkflowStatus(workflowId, PersistentItemStatus.Completed);
-
-        // Assert — the completed workflow should appear in the recent cache
-        var recent = status.GetRecentWorkflows(10);
-        Assert.NotEmpty(recent);
-        Assert.Contains(recent, wf => wf.OperationId == "op-wf");
-    }
 }

@@ -17,7 +17,7 @@ namespace WorkflowEngine.Repository.Tests.Fixtures;
 public sealed class PostgresFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:18").Build();
-    private readonly ConcurrencyLimiter _limiter = new(50, 50);
+    private readonly ConcurrencyLimiter _limiter = new(50, 50, 5);
 
     private readonly IOptions<EngineSettings> _settings = Options.Create(
         new EngineSettings
