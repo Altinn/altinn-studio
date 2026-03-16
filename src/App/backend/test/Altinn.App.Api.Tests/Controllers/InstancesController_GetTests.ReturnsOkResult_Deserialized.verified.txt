@@ -18,16 +18,50 @@
       Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>
     },
     Process: {
-      Started: DateTime_1,
-      StartEvent: StartEvent_1,
       CurrentTask: {
+        Actions: {
+          action_defined_in_bpmn_but_unauthorized: false,
+          read: true,
+          reject: true,
+          write: true
+        },
+        UserActions: [
+          {
+            Id: read,
+            Authorized: true
+          },
+          {
+            Id: write,
+            Authorized: true
+          },
+          {
+            Id: reject,
+            Authorized: true
+          },
+          {
+            Id: action_defined_in_bpmn_but_unauthorized,
+            Authorized: false
+          }
+        ],
+        HasReadAccess: true,
+        HasWriteAccess: true,
+        ElementType: Task,
         Flow: 2,
-        Started: DateTime_2,
+        Started: DateTime_1,
         ElementId: Task_1,
         Name: Utfylling,
         AltinnTaskType: data,
         FlowType: CompleteCurrentMoveToNext
-      }
+      },
+      ProcessTasks: [
+        {
+          AltinnTaskType: data,
+          ElementId: Task_1,
+          ElementType: Task
+        }
+      ],
+      Started: DateTime_2,
+      StartEvent: StartEvent_1
     },
     Status: {
       IsArchived: false,
@@ -68,16 +102,50 @@
       Apps: https://localhost/tdd/contributer-restriction/instances/<instancOwnerPartyId>/<instanceGuid>
     },
     Process: {
-      Started: DateTime_1,
-      StartEvent: StartEvent_1,
       CurrentTask: {
+        Actions: {
+          action_defined_in_bpmn_but_unauthorized: false,
+          read: true,
+          reject: true,
+          write: true
+        },
+        UserActions: [
+          {
+            Id: read,
+            Authorized: true
+          },
+          {
+            Id: write,
+            Authorized: true
+          },
+          {
+            Id: reject,
+            Authorized: true
+          },
+          {
+            Id: action_defined_in_bpmn_but_unauthorized,
+            Authorized: false
+          }
+        ],
+        HasReadAccess: true,
+        HasWriteAccess: true,
+        ElementType: Task,
         Flow: 2,
-        Started: DateTime_2,
+        Started: DateTime_1,
         ElementId: Task_1,
         Name: Utfylling,
         AltinnTaskType: data,
         FlowType: CompleteCurrentMoveToNext
-      }
+      },
+      ProcessTasks: [
+        {
+          AltinnTaskType: data,
+          ElementId: Task_1,
+          ElementType: Task
+        }
+      ],
+      Started: DateTime_2,
+      StartEvent: StartEvent_1
     },
     Status: {
       IsArchived: false,
