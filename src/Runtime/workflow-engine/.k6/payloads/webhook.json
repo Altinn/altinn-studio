@@ -1,0 +1,21 @@
+{
+  "namespace": "k6-org:k6-app",
+  "idempotencyKey": "__REPLACED_AT_RUNTIME__",
+  "labels": { "org": "k6-org", "app": "k6-app" },
+  "context": {},
+  "workflows": [
+    {
+      "ref": "wf-1",
+      "operationId": "webhook-load-test",
+      "steps": [
+        {
+          "operationId": "callback",
+          "command": {
+            "type": "webhook",
+            "data": { "uri": "http://localhost:6060/webhook-callback" }
+          }
+        }
+      ]
+    }
+  ]
+}

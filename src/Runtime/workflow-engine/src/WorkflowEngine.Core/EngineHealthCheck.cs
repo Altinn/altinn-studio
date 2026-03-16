@@ -8,12 +8,12 @@ internal sealed class EngineHealthCheck(IEngineStatus engineStatus, IConcurrency
     : IHealthCheck
 {
     /// <summary>
-    /// Unhealthy: engine is stopped or explicitly unhealthy.
+    /// Unhealthy: the engine is stopped or explicitly unhealthy.
     /// </summary>
     private const EngineHealthStatus UnhealthyMask = EngineHealthStatus.Unhealthy | EngineHealthStatus.Stopped;
 
     /// <summary>
-    /// Degraded: engine is disabled or queue is full.
+    /// Degraded: the engine is disabled or the queue is full.
     /// </summary>
     private const EngineHealthStatus DegradedMask = EngineHealthStatus.Disabled | EngineHealthStatus.QueueFull;
 

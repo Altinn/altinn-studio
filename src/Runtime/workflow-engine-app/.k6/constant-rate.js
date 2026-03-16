@@ -1,12 +1,17 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
-import { BASE_URL, requestParams, buildPayload, pollHealthOnce } from './lib/helpers.js';
+import {
+    BASE_URL,
+    requestParams,
+    buildPayload,
+    pollHealthOnce,
+} from '../../workflow-engine/.k6/lib/helpers.js';
 
 const RATE = parseInt(__ENV.RATE || '100', 10);
 const MAX_VUS = parseInt(__ENV.MAX_VUS || '2000', 10);
 const POLL_INTERVAL = parseFloat(__ENV.POLL_INTERVAL || '2');
 
-const payloadTemplate = JSON.parse(open('./payloads/webhook.json'));
+const payloadTemplate = JSON.parse(open('./payloads/process-next.json'));
 
 export const options = {
     scenarios: {

@@ -6,12 +6,12 @@ import {
     buildPayload,
     waitForQueueDrain,
     formatSummary,
-} from './lib/helpers.js';
+} from '../../workflow-engine/.k6/lib/helpers.js';
 
 const VUS = parseInt(__ENV.VUS || '100', 10);
 const ITERATIONS = parseInt(__ENV.ITERATIONS || '10000', 10);
 
-const payloadTemplate = JSON.parse(open('./payloads/webhook.json'));
+const payloadTemplate = JSON.parse(open('./payloads/process-next.json'));
 
 export const options = {
     teardownTimeout: '15m',
