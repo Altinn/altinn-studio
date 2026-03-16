@@ -442,6 +442,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            layoutSetsFile.UiSettings ??= new UiSettings();
             layoutSetsFile.UiSettings.ValidationOnNavigation = validationOnNavigation;
 
             await altinnAppGitRepository.SaveLayoutSets(layoutSetsFile);
