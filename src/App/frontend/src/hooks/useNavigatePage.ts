@@ -10,7 +10,6 @@ import { getUiConfig } from 'src/features/form/ui';
 import { FormBootstrap } from 'src/features/formBootstrap/FormBootstrapProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useGetTaskTypeById } from 'src/features/instance/useProcessQuery';
-import type { IProcess } from 'src/types/shared';
 import { useSetNavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAllNavigationParams, useAllNavigationParamsAsRef, useNavigationParam } from 'src/hooks/navigation';
@@ -20,6 +19,7 @@ import { ProcessTaskType } from 'src/types';
 import { useHiddenPages } from 'src/utils/layout/hidden';
 import type { NavigationEffect } from 'src/features/navigation/NavigationEffectContext';
 import type { NodeRefValidation } from 'src/features/validation';
+import type { IProcess } from 'src/types/shared';
 
 export interface NavigateToPageOptions {
   replace?: boolean;
