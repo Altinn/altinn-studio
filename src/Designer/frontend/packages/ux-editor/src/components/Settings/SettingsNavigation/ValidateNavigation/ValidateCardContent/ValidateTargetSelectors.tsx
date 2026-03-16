@@ -102,14 +102,7 @@ export const PagesSelector = ({ selectedPages, taskName, onChange }: PagesSelect
   const { data: formLayouts } = useFormLayoutsQuery(org, app, taskName);
   const { data: pageValidationData } = useValidationOnNavigationPageSettingsQuery(org, app);
 
-  const configsForTask = (pageValidationData ?? [])
-    .filter((config) => config.task === taskName)
-    .map((config) => ({
-      show: config.show ?? [],
-      page: config.page ?? '',
-      task: config.task,
-      pages: config.pages,
-    }));
+  const configsForTask = (pageValidationData ?? []).filter((config) => config.task === taskName);
 
   const availablePages = getAvailablePages(
     formLayouts,
