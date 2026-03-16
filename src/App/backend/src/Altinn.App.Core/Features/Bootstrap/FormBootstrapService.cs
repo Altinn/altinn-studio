@@ -1,25 +1,26 @@
 using System.Text.Json;
 using Altinn.App.Core.Extensions;
-using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
-using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
-namespace Altinn.App.Api.Features.Bootstrap;
+namespace Altinn.App.Core.Features.Bootstrap;
 
 /// <summary>
 /// Aggregates all form bootstrap data into a single response.
 /// </summary>
-internal sealed class FormBootstrapService
+public sealed class FormBootstrapService
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -29,6 +30,7 @@ internal sealed class FormBootstrapService
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly IAppOptionsService _appOptionsService;
+    private readonly IServiceProvider _serviceProvider;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly IInitialValidationService _initialValidationService;
     private readonly IFormDataReader _formDataReader;
@@ -37,31 +39,36 @@ internal sealed class FormBootstrapService
     private readonly IAuthenticationContext _authenticationContext;
     private readonly ILogger<FormBootstrapService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FormBootstrapService"/> class.
+    /// </summary>
     public FormBootstrapService(
         IAppResources appResources,
         IAppMetadata appMetadata,
         IAppOptionsService appOptionsService,
-        AppImplementationFactory appImplementationFactory,
-        IInitialValidationService initialValidationService,
-        IFormDataReader formDataReader,
         IAppModel appModel,
         IPrefill prefillService,
         IAuthenticationContext authenticationContext,
+        IServiceProvider serviceProvider,
         ILogger<FormBootstrapService> logger
     )
     {
         _appResources = appResources;
         _appMetadata = appMetadata;
         _appOptionsService = appOptionsService;
-        _appImplementationFactory = appImplementationFactory;
-        _initialValidationService = initialValidationService;
-        _formDataReader = formDataReader;
+        _serviceProvider = serviceProvider;
+        _appImplementationFactory = serviceProvider.GetRequiredService<AppImplementationFactory>();
+        _initialValidationService = serviceProvider.GetRequiredService<IInitialValidationService>();
+        _formDataReader = serviceProvider.GetRequiredService<IFormDataReader>();
         _appModel = appModel;
         _prefillService = prefillService;
         _authenticationContext = authenticationContext;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Gets all data needed to bootstrap a form for an instance.
+    /// </summary>
     public async Task<FormBootstrapResponse> GetInstanceFormBootstrap(
         Instance instance,
         string uiFolder,
@@ -82,14 +89,6 @@ internal sealed class FormBootstrapService
         var referencedDataTypes = LayoutAnalysisService.GetReferencedDataTypes(layoutsJson, defaultDataType);
         var staticOptionsReferences = LayoutAnalysisService.GetStaticOptionsReferences(layoutsJson);
 
-        var dataModelsTask = LoadInstanceDataModels(
-            instance,
-            referencedDataTypes,
-            dataElementIdOverride,
-            isPdf,
-            language,
-            cancellationToken
-        );
         var optionsTask = LoadStaticOptions(
             staticOptionsReferences,
             language,
@@ -98,14 +97,30 @@ internal sealed class FormBootstrapService
         );
 
         var taskId = instance.Process?.CurrentTask?.ElementId;
-        var initialValidationTask =
-            isPdf || taskId == null
-                ? Task.FromResult<PartitionedInitialValidations?>(null)
-                : LoadAndPartitionInitialValidations(instance, taskId, language, defaultDataType, cancellationToken);
+        var dataAccessor = await _serviceProvider
+            .GetRequiredService<InstanceDataUnitOfWorkInitializer>()
+            .Init(instance, taskId, language);
+        var dataModels = await LoadInstanceDataModels(
+            dataAccessor,
+            referencedDataTypes,
+            defaultDataType,
+            dataElementIdOverride,
+            isPdf,
+            language,
+            cancellationToken
+        );
+        await PersistProcessDataReadChanges(dataAccessor, isPdf);
 
-        await Task.WhenAll(dataModelsTask, optionsTask, initialValidationTask);
-        var dataModels = await dataModelsTask;
-        var initialValidations = await initialValidationTask;
+        var initialValidations =
+            isPdf || taskId == null
+                ? null
+                : await LoadAndPartitionInitialValidations(
+                    dataAccessor,
+                    taskId,
+                    language,
+                    defaultDataType,
+                    cancellationToken
+                );
         AttachInitialValidationIssues(dataModels, initialValidations?.DataModelIssues);
 
         return new FormBootstrapResponse
@@ -117,6 +132,9 @@ internal sealed class FormBootstrapService
         };
     }
 
+    /// <summary>
+    /// Gets all data needed to bootstrap a stateless form.
+    /// </summary>
     public async Task<FormBootstrapResponse> GetStatelessFormBootstrap(
         string uiFolder,
         string language,
@@ -171,8 +189,9 @@ internal sealed class FormBootstrapService
     }
 
     private async Task<Dictionary<string, DataModelInfo>> LoadInstanceDataModels(
-        Instance instance,
+        InstanceDataUnitOfWork dataAccessor,
         HashSet<string> dataTypes,
+        string defaultDataType,
         string? specificDataElementId,
         bool isPdf,
         string language,
@@ -196,19 +215,32 @@ internal sealed class FormBootstrapService
                     return (dataType, null);
                 }
 
-                // Find data element
                 DataElement? dataElement;
-                if (!string.IsNullOrEmpty(specificDataElementId))
+                var shouldUseSpecificDataElement =
+                    !string.IsNullOrEmpty(specificDataElementId)
+                    && string.Equals(dataType, defaultDataType, StringComparison.OrdinalIgnoreCase);
+
+                if (shouldUseSpecificDataElement)
                 {
-                    dataElement = instance.Data.FirstOrDefault(d =>
+                    dataElement = dataAccessor.Instance.Data.FirstOrDefault(d =>
                         string.Equals(d.Id, specificDataElementId, StringComparison.OrdinalIgnoreCase)
                     );
                 }
                 else
                 {
-                    dataElement = instance.Data.FirstOrDefault(d =>
-                        string.Equals(d.DataType, dataType, StringComparison.OrdinalIgnoreCase)
-                    );
+                    var matchingDataElements = dataAccessor
+                        .Instance.Data.Where(d =>
+                            string.Equals(d.DataType, dataType, StringComparison.OrdinalIgnoreCase)
+                        )
+                        .Take(2)
+                        .ToList();
+
+                    if (matchingDataElements.Count > 1)
+                    {
+                        throw new InvalidOperationException($"Multiple data elements found for data type '{dataType}'");
+                    }
+
+                    dataElement = matchingDataElements.SingleOrDefault();
                 }
 
                 if (dataElement is null)
@@ -218,7 +250,7 @@ internal sealed class FormBootstrapService
                 }
 
                 var schema = GetSchema(dataType);
-                var formData = await GetFormDataAsync(instance, dataElement, language, cancellationToken);
+                var formData = await GetFormDataAsync(dataAccessor, dataElement, language, cancellationToken);
                 var validationConfig = isPdf || dataElement.Locked ? null : GetValidationConfig(dataType);
 
                 return (
@@ -235,6 +267,11 @@ internal sealed class FormBootstrapService
             }
             catch (Exception ex)
             {
+                if (ex is InvalidOperationException)
+                {
+                    throw;
+                }
+
                 _logger.LogWarning(ex, "Failed to load data model for type {DataType}", dataType);
                 return (dataType, null);
             }
@@ -259,7 +296,7 @@ internal sealed class FormBootstrapService
         CancellationToken cancellationToken = default
     )
     {
-        _ = cancellationToken; // Reserved for future use
+        _ = cancellationToken;
         var result = new Dictionary<string, DataModelInfo>();
         var appMetadata = await _appMetadata.GetApplicationMetadata();
         var instanceOwner = await GetStatelessInstanceOwner();
@@ -418,18 +455,20 @@ internal sealed class FormBootstrapService
     }
 
     private async Task<PartitionedInitialValidations?> LoadAndPartitionInitialValidations(
-        Instance instance,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
         string language,
         string defaultDataType,
         CancellationToken cancellationToken
     )
     {
-        var defaultDataElementId = instance
-            .Data.FirstOrDefault(d => string.Equals(d.DataType, defaultDataType, StringComparison.OrdinalIgnoreCase))
+        var defaultDataElementId = dataAccessor
+            .Instance.Data.FirstOrDefault(d =>
+                string.Equals(d.DataType, defaultDataType, StringComparison.OrdinalIgnoreCase)
+            )
             ?.Id;
 
-        var issues = await _initialValidationService.Validate(instance, taskId, language, cancellationToken);
+        var issues = await _initialValidationService.Validate(dataAccessor, taskId, language, cancellationToken);
         return PartitionInitialValidationIssues(issues, defaultDataElementId);
     }
 
@@ -517,20 +556,47 @@ internal sealed class FormBootstrapService
     }
 
     private async Task<object> GetFormDataAsync(
-        Instance instance,
+        InstanceDataUnitOfWork dataAccessor,
         DataElement dataElement,
         string language,
         CancellationToken cancellationToken
     )
     {
-        var formData = await _formDataReader.ReadInstanceFormData(
-            instance,
+        var formData = await dataAccessor.GetFormData(dataElement);
+        return await _formDataReader.ProcessLoadedFormData(
+            dataAccessor.Instance,
             dataElement,
+            formData,
             includeRowId: true,
             language: language,
             cancellationToken: cancellationToken
         );
-        return formData;
+    }
+
+    private static async Task PersistProcessDataReadChanges(InstanceDataUnitOfWork dataAccessor, bool isPdf)
+    {
+        var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
+        if (changes.AllChanges.Count == 0)
+        {
+            return;
+        }
+
+        if (isPdf)
+        {
+            return;
+        }
+
+        var persistableChanges = changes
+            .AllChanges.Where(c => c is not FormDataChange { Type: ChangeType.Updated, DataElement.Locked: true })
+            .ToList();
+        if (persistableChanges.Count == 0)
+        {
+            return;
+        }
+
+        var filteredChanges = new DataElementChanges(persistableChanges);
+        await dataAccessor.UpdateInstanceData(filteredChanges);
+        await dataAccessor.SaveChanges(filteredChanges);
     }
 
     private object GetDefaultFormData(string classRef)

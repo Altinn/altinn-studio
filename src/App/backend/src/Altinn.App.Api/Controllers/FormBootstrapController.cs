@@ -1,11 +1,18 @@
 using System.Text.Json;
-using Altinn.App.Api.Features.Bootstrap;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Auth;
+using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Bootstrap.Models;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Models;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Helpers;
+using Altinn.Common.PEP.Interfaces;
+using Altinn.Common.PEP.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,6 +30,8 @@ public class FormBootstrapController : ControllerBase
     private readonly IAppResources _appResources;
     private readonly IAppMetadata _appMetadata;
     private readonly AppImplementationFactory _appImplementationFactory;
+    private readonly IPDP _pdp;
+    private readonly IAuthenticationContext _authenticationContext;
     private readonly ILogger<FormBootstrapController> _logger;
 
     /// <summary>
@@ -33,6 +42,8 @@ public class FormBootstrapController : ControllerBase
         IInstanceClient instanceClient,
         IAppResources appResources,
         IAppMetadata appMetadata,
+        IPDP pdp,
+        IAuthenticationContext authenticationContext,
         ILogger<FormBootstrapController> logger
     )
     {
@@ -41,6 +52,8 @@ public class FormBootstrapController : ControllerBase
         _instanceClient = instanceClient;
         _appResources = appResources;
         _appMetadata = appMetadata;
+        _pdp = pdp;
+        _authenticationContext = authenticationContext;
         _logger = logger;
     }
 
@@ -77,31 +90,17 @@ public class FormBootstrapController : ControllerBase
     )
     {
         var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-        if (instance == null)
+
+        var layoutSettings = GetLayoutSettings(uiFolder);
+        if (layoutSettings is null)
         {
-            return NotFound(
-                new ProblemDetails
-                {
-                    Title = "Instance not found",
-                    Status = StatusCodes.Status404NotFound,
-                    Detail = $"Instance {instanceOwnerPartyId}/{instanceGuid} not found",
-                }
-            );
+            return CreateUiFolderNotFoundResult(uiFolder);
         }
 
-        var folderValidation = ValidateUiFolder(uiFolder);
-        if (folderValidation != null)
+        var subformValidation = ValidateSubformDataElement(instance, layoutSettings, dataElementId);
+        if (subformValidation != null)
         {
-            return folderValidation;
-        }
-
-        if (dataElementId != null)
-        {
-            var subformValidation = ValidateSubformDataElement(instance, uiFolder, dataElementId);
-            if (subformValidation != null)
-            {
-                return subformValidation;
-            }
+            return subformValidation;
         }
 
         try
@@ -154,25 +153,47 @@ public class FormBootstrapController : ControllerBase
         CancellationToken cancellationToken = default
     )
     {
-        var validationResult = ValidateUiFolder(uiFolder);
-        if (validationResult != null)
+        if (GetLayoutSettings(uiFolder) is null)
         {
-            return validationResult;
+            return CreateUiFolderNotFoundResult(uiFolder);
         }
 
         if (User.Identity?.IsAuthenticated != true)
         {
-            var isAnonymousAllowed = await IsAnonymousAllowedForLayoutSet(uiFolder);
+            var isAnonymousAllowed = await IsAnonymousAllowedForFolder(uiFolder);
             if (!isAnonymousAllowed)
             {
                 return Forbid();
+            }
+        }
+        else
+        {
+            var enforcementResult = await AuthorizeStatelessRead(org, app);
+            if (!enforcementResult.Authorized)
+            {
+                return Forbidden(enforcementResult);
             }
         }
 
         Dictionary<string, string>? prefillFromQueryParams = null;
         if (!string.IsNullOrEmpty(prefill))
         {
-            prefillFromQueryParams = JsonSerializer.Deserialize<Dictionary<string, string>>(prefill);
+            try
+            {
+                prefillFromQueryParams = JsonSerializer.Deserialize<Dictionary<string, string>>(prefill);
+            }
+            catch (JsonException)
+            {
+                return BadRequest(
+                    new ProblemDetails
+                    {
+                        Title = "Invalid prefill JSON",
+                        Detail = "The 'prefill' query parameter must be a valid JSON object.",
+                        Status = StatusCodes.Status400BadRequest,
+                    }
+                );
+            }
+
             if (prefillFromQueryParams != null)
             {
                 var validateQueryParamPrefill = _appImplementationFactory.Get<IValidateQueryParamPrefill>();
@@ -213,57 +234,132 @@ public class FormBootstrapController : ControllerBase
         }
     }
 
-    private NotFoundObjectResult? ValidateUiFolder(string uiFolder)
+    private LayoutSettings? GetLayoutSettings(string uiFolder)
     {
         var uiConfig = _appResources.GetUiConfiguration();
-        if (uiConfig?.Folders.ContainsKey(uiFolder) != true)
+        return uiConfig?.Folders.GetValueOrDefault(uiFolder);
+    }
+
+    private async Task<EnforcementResult> AuthorizeStatelessRead(string org, string app)
+    {
+        var partyId = await GetStatelessPartyId();
+        if (partyId is null)
         {
-            return NotFound(
-                new ProblemDetails
-                {
-                    Title = "UI folder not found",
-                    Status = StatusCodes.Status404NotFound,
-                    Detail = $"UI folder '{uiFolder}' not found",
-                }
-            );
+            return new EnforcementResult();
         }
-        return null;
+
+        XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(
+            org,
+            app,
+            HttpContext.User,
+            "read",
+            partyId.Value,
+            null
+        );
+        XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+
+        if (response?.Response == null)
+        {
+            _logger.LogInformation(
+                "// Form Bootstrap Controller // Authorization of action {action} failed for party {partyId}.",
+                "read",
+                partyId.Value
+            );
+            return new EnforcementResult();
+        }
+
+        return DecisionHelper.ValidatePdpDecisionDetailed(response.Response, HttpContext.User);
+    }
+
+    private async Task<int?> GetStatelessPartyId()
+    {
+        return _authenticationContext.Current switch
+        {
+            Authenticated.User user => user.SelectedPartyId,
+            Authenticated.Org auth => (await auth.LoadDetails()).Party.PartyId,
+            Authenticated.ServiceOwner auth => (await auth.LoadDetails()).Party.PartyId,
+            Authenticated.SystemUser auth => (await auth.LoadDetails()).Party.PartyId,
+            _ => null,
+        };
+    }
+
+    private NotFoundObjectResult CreateUiFolderNotFoundResult(string uiFolder)
+    {
+        return NotFound(
+            new ProblemDetails
+            {
+                Title = "UI folder not found",
+                Status = StatusCodes.Status404NotFound,
+                Detail = $"UI folder '{uiFolder}' not found",
+            }
+        );
+    }
+
+    private ActionResult Forbidden(EnforcementResult enforcementResult)
+    {
+        if (enforcementResult.FailedObligations != null && enforcementResult.FailedObligations.Count > 0)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, enforcementResult.FailedObligations);
+        }
+
+        return StatusCode(StatusCodes.Status403Forbidden);
     }
 
     private ActionResult? ValidateSubformDataElement(
-        Altinn.Platform.Storage.Interface.Models.Instance instance,
-        string uiFolder,
-        string dataElementId
+        Instance instance,
+        LayoutSettings layoutSettings,
+        string? dataElementId
     )
     {
-        var uiConfig = _appResources.GetUiConfiguration();
-        if (uiConfig is null || !uiConfig.Folders.TryGetValue(uiFolder, out var layoutSettings))
+        if (dataElementId is not null)
         {
-            return null; // unreachable: caller already validated the folder via ValidateUiFolder
+            var dataElement = instance.Data.FirstOrDefault(d => d.Id == dataElementId);
+            if (dataElement == null)
+            {
+                return NotFound(
+                    new ProblemDetails
+                    {
+                        Title = "Data element not found",
+                        Status = StatusCodes.Status404NotFound,
+                        Detail = $"Data element '{dataElementId}' not found on instance.",
+                    }
+                );
+            }
+
+            if (layoutSettings.DefaultDataType != null && dataElement.DataType != layoutSettings.DefaultDataType)
+            {
+                return BadRequest(
+                    new ProblemDetails
+                    {
+                        Title = "Data type mismatch",
+                        Status = StatusCodes.Status400BadRequest,
+                        Detail =
+                            $"Data element type '{dataElement.DataType}' does not match expected data type '{layoutSettings.DefaultDataType}'.",
+                    }
+                );
+            }
+
+            return null;
         }
 
-        var dataElement = instance.Data.FirstOrDefault(d => d.Id == dataElementId);
-        if (dataElement == null)
+        if (layoutSettings.DefaultDataType is null)
         {
-            return NotFound(
-                new ProblemDetails
-                {
-                    Title = "Data element not found",
-                    Status = StatusCodes.Status404NotFound,
-                    Detail = $"Data element '{dataElementId}' not found on instance.",
-                }
-            );
+            return null;
         }
 
-        if (layoutSettings.DefaultDataType != null && dataElement.DataType != layoutSettings.DefaultDataType)
+        var matchingDataElements = instance
+            .Data.Where(d => d.DataType == layoutSettings.DefaultDataType)
+            .Take(2)
+            .ToList();
+        if (matchingDataElements.Count > 1)
         {
             return BadRequest(
                 new ProblemDetails
                 {
-                    Title = "Data type mismatch",
+                    Title = "Missing data element ID",
                     Status = StatusCodes.Status400BadRequest,
                     Detail =
-                        $"Data element type '{dataElement.DataType}' does not match expected data type '{layoutSettings.DefaultDataType}'.",
+                        $"'dataElementId' is a required argument when multiple data elements of type '{layoutSettings.DefaultDataType}' exist on the instance.",
                 }
             );
         }
@@ -271,11 +367,11 @@ public class FormBootstrapController : ControllerBase
         return null;
     }
 
-    private async Task<bool> IsAnonymousAllowedForLayoutSet(string layoutSetId)
+    private async Task<bool> IsAnonymousAllowedForFolder(string uiFolder)
     {
         var appMetadata = await _appMetadata.GetApplicationMetadata();
         var uiConfig = _appResources.GetUiConfiguration();
-        if (uiConfig?.Folders.TryGetValue(layoutSetId, out var layoutSettings) != true || layoutSettings is null)
+        if (uiConfig?.Folders.TryGetValue(uiFolder, out var layoutSettings) != true || layoutSettings is null)
         {
             return false;
         }

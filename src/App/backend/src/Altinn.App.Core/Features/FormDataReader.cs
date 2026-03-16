@@ -1,7 +1,5 @@
-using System.Net;
 using System.Text.Json;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Internal.Data;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 
@@ -11,30 +9,24 @@ internal interface IFormDataReader
 {
     Task ReadStatelessFormData(object appModel, string? language = null, InstanceOwner? instanceOwner = null);
 
-    Task<object> ReadInstanceFormData(
+    Task<object> ProcessLoadedFormData(
         Instance instance,
         DataElement dataElement,
-        Guid? dataId = null,
+        object appModel,
         bool includeRowId = false,
         string? language = null,
-        bool persistProcessDataReadChanges = true,
+        Func<object, CancellationToken, Task>? persistFormData = null,
         CancellationToken cancellationToken = default
     );
 }
 
 internal sealed class FormDataReader : IFormDataReader
 {
-    private readonly IDataClient _dataClient;
     private readonly AppImplementationFactory _appImplementationFactory;
     private readonly ILogger<FormDataReader> _logger;
 
-    public FormDataReader(
-        IDataClient dataClient,
-        AppImplementationFactory appImplementationFactory,
-        ILogger<FormDataReader> logger
-    )
+    public FormDataReader(AppImplementationFactory appImplementationFactory, ILogger<FormDataReader> logger)
     {
-        _dataClient = dataClient;
         _appImplementationFactory = appImplementationFactory;
         _logger = logger;
     }
@@ -62,30 +54,24 @@ internal sealed class FormDataReader : IFormDataReader
         }
     }
 
-    public async Task<object> ReadInstanceFormData(
+    public async Task<object> ProcessLoadedFormData(
         Instance instance,
         DataElement dataElement,
-        Guid? dataId = null,
+        object appModel,
         bool includeRowId = false,
         string? language = null,
-        bool persistProcessDataReadChanges = true,
+        Func<object, CancellationToken, Task>? persistFormData = null,
         CancellationToken cancellationToken = default
     )
     {
-        object appModel = await _dataClient.GetFormData(instance, dataElement, cancellationToken: cancellationToken);
-
         byte[]? beforeProcessDataRead = null;
-        if (persistProcessDataReadChanges)
+        if (persistFormData is not null)
         {
             // Keep a copy to determine if ProcessDataRead changed the model.
             beforeProcessDataRead = JsonSerializer.SerializeToUtf8Bytes(appModel);
         }
 
-        var resolvedDataId = dataId;
-        if (resolvedDataId is null && Guid.TryParse(dataElement.Id, out var parsedDataId))
-        {
-            resolvedDataId = parsedDataId;
-        }
+        Guid? resolvedDataId = Guid.TryParse(dataElement.Id, out var parsedDataId) ? parsedDataId : null;
 
         await RunDataProcessors(instance, resolvedDataId, appModel, language);
 
@@ -95,7 +81,7 @@ internal sealed class FormDataReader : IFormDataReader
         }
 
         if (
-            persistProcessDataReadChanges
+            persistFormData is not null
             && beforeProcessDataRead is not null
             && !dataElement.Locked
             && !beforeProcessDataRead.SequenceEqual(JsonSerializer.SerializeToUtf8Bytes(appModel))
@@ -103,9 +89,9 @@ internal sealed class FormDataReader : IFormDataReader
         {
             try
             {
-                await _dataClient.UpdateFormData(instance, appModel, dataElement, cancellationToken: cancellationToken);
+                await persistFormData(appModel, cancellationToken);
             }
-            catch (PlatformHttpException e) when (e.Response.StatusCode is HttpStatusCode.Forbidden)
+            catch (PlatformHttpException e) when (e.Response.StatusCode is System.Net.HttpStatusCode.Forbidden)
             {
                 _logger.LogInformation("User does not have write access to the data element. Skipping update.");
             }

@@ -113,6 +113,13 @@ function useOptionsUrl(item: CompIntermediateExact<CompWithBehavior<'canHaveOpti
   return useGetOptionsUrl(optionsId, mapping, queryParameters, secure);
 }
 
+function hasDynamicOptionsConfig(item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
+  return Boolean(
+    (item.mapping && Object.keys(item.mapping).length > 0) ||
+    (item.queryParameters && Object.keys(item.queryParameters).length > 0),
+  );
+}
+
 export function useFetchOptions({ item }: FetchOptionsProps) {
   const { options, optionsId, source } = item;
 
@@ -132,8 +139,9 @@ export function useFetchOptions({ item }: FetchOptionsProps) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const staticOptions = FormBootstrap.useStaticOptionsMap();
     const bootstrapOptions = staticOptions[optionsId];
+    const shouldFetchFromApi = hasDynamicOptionsConfig(item);
 
-    if (bootstrapOptions) {
+    if (bootstrapOptions && !shouldFetchFromApi) {
       return {
         isFetching: false,
         unsorted: bootstrapOptions.options,

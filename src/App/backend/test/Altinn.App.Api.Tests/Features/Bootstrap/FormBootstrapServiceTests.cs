@@ -1,19 +1,25 @@
 using System.Text.Json;
-using Altinn.App.Api.Features.Bootstrap;
+using Altinn.App.Api.Tests.Controllers.TestResources;
+using Altinn.App.Api.Tests.Mocks;
+using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Auth;
 using Altinn.App.Core.Features.Bootstrap;
 using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Prefill;
+using Altinn.App.Core.Internal.Texts;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Altinn.App.Api.Tests.Features.Bootstrap;
@@ -26,7 +32,11 @@ public class FormBootstrapServiceTests
     private readonly Mock<IAppOptionsFileHandler> _appOptionsFileHandler = new();
     private readonly Mock<IInitialValidationService> _initialValidationService = new();
     private readonly Mock<IFormDataReader> _formDataReader = new();
-    private readonly Mock<IAppModel> _appModel = new();
+    private readonly IAppModel _appModel = new AppModelMock<DummyModel>();
+    private readonly Mock<IDataClient> _dataClient = new();
+    private readonly Mock<IInstanceClient> _instanceClient = new();
+    private readonly Mock<ITranslationService> _translationService = new();
+    private readonly Mock<IDataProcessor> _dataProcessor = new();
     private readonly Mock<IPrefill> _prefillService = new();
     private readonly Mock<IAuthenticationContext> _authenticationContext = new();
     private readonly Mock<ILogger<FormBootstrapService>> _logger = new();
@@ -36,21 +46,41 @@ public class FormBootstrapServiceTests
             _appResources.Object,
             _appMetadata.Object,
             _appOptionsService.Object,
-            CreateAppImplementationFactory(),
-            _initialValidationService.Object,
-            _formDataReader.Object,
-            _appModel.Object,
+            _appModel,
             _prefillService.Object,
             _authenticationContext.Object,
+            CreateServiceProvider(),
             _logger.Object
         );
 
-    private AppImplementationFactory CreateAppImplementationFactory()
+    private IServiceProvider CreateServiceProvider()
     {
         var services = new ServiceCollection();
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+        services.AddSingleton(_dataClient.Object);
+        services.AddSingleton(_instanceClient.Object);
+        services.AddSingleton(_translationService.Object);
+        services.AddSingleton(new ModelSerializationService(_appModel));
+        services.AddSingleton<IOptions<FrontEndSettings>>(Options.Create(new FrontEndSettings()));
+        services.AddSingleton(_appResources.Object);
+        services.AddSingleton(_appMetadata.Object);
+        services.AddSingleton(
+            new InstanceDataUnitOfWorkInitializer(
+                _dataClient.Object,
+                _instanceClient.Object,
+                _appMetadata.Object,
+                _translationService.Object,
+                new ModelSerializationService(_appModel),
+                _appResources.Object,
+                Options.Create(new FrontEndSettings())
+            )
+        );
+        services.AddSingleton(_initialValidationService.Object);
+        services.AddSingleton(_formDataReader.Object);
         services.AddSingleton(_appOptionsFileHandler.Object);
-        return new AppImplementationFactory(services.BuildServiceProvider());
+        services.AddSingleton(_dataProcessor.Object);
+        services.AddAppImplementationFactory();
+        return services.BuildServiceProvider();
     }
 
     [Fact]
@@ -83,12 +113,12 @@ public class FormBootstrapServiceTests
     public async Task GetInstanceFormBootstrap_PartitionsInitialValidationIssues()
     {
         var dataElementId = Guid.NewGuid().ToString();
-        var instance = CreateTestInstance("Task_1", dataElementId: dataElementId);
+        var instance = CreateTestInstance("Task_1", defaultDataElementId: dataElementId);
         var appMetadata = CreateAppMetadata("model");
 
         SetupMocks(appMetadata);
         _initialValidationService
-            .Setup(x => x.Validate(instance, "Task_1", "nb", It.IsAny<CancellationToken>()))
+            .Setup(x => x.Validate(It.IsAny<IInstanceDataAccessor>(), "Task_1", "nb", It.IsAny<CancellationToken>()))
             .ReturnsAsync([
                 new ValidationIssueWithSource
                 {
@@ -143,15 +173,13 @@ public class FormBootstrapServiceTests
     public async Task GetStatelessFormBootstrap_RunsProcessDataRead()
     {
         var appMetadata = CreateAppMetadata("model");
-        var model = new object();
 
         SetupStatelessMocks(appMetadata);
-        _appModel.Setup(x => x.Create(It.IsAny<string>())).Returns(model);
 
         var service = CreateService();
         await service.GetStatelessFormBootstrap("stateless", "nn");
 
-        _formDataReader.Verify(x => x.ReadStatelessFormData(model, "nn", null), Times.Once);
+        _formDataReader.Verify(x => x.ReadStatelessFormData(It.IsAny<object>(), "nn", null), Times.Once);
     }
 
     [Fact]
@@ -169,7 +197,12 @@ public class FormBootstrapServiceTests
         Assert.All(result.DataModels.Values, dataModel => Assert.Null(dataModel.InitialValidationIssues));
         _initialValidationService.Verify(
             x =>
-                x.Validate(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+                x.Validate(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Never
         );
     }
@@ -379,7 +412,7 @@ public class FormBootstrapServiceTests
     {
         // Arrange
         var dataElementId = Guid.NewGuid().ToString();
-        var instance = CreateTestInstance("Task_1", dataElementId: dataElementId);
+        var instance = CreateTestInstance("Task_1", defaultDataElementId: dataElementId);
         var appMetadata = CreateAppMetadata("model", "submodel");
 
         SetupMocks(appMetadata, uiFolder: "subform", dataType: "submodel");
@@ -401,7 +434,103 @@ public class FormBootstrapServiceTests
     }
 
     [Fact]
-    public async Task GetInstanceFormBootstrap_UsesFormDataReaderWithLanguage()
+    public async Task GetInstanceFormBootstrap_DataElementIdOverride_OnlyAppliesToDefaultDataType()
+    {
+        // Arrange
+        var parentDataElementId = Guid.NewGuid().ToString();
+        var subformDataElementId = Guid.NewGuid().ToString();
+        var instance = CreateTestInstance(
+            "Task_1",
+            defaultDataElementId: parentDataElementId,
+            submodelDataElementId: subformDataElementId
+        );
+        var appMetadata = CreateAppMetadata("model", "submodel");
+
+        SetupMocks(appMetadata, uiFolder: "subform", dataType: "submodel");
+        _appResources
+            .Setup(x => x.GetLayoutsInFolder("subform"))
+            .Returns(
+                """
+                {
+                    "page1": {
+                        "data": {
+                            "layout": [
+                                {
+                                    "id": "field1",
+                                    "type": "Input",
+                                    "dataModelBindings": {
+                                        "simpleBinding": {
+                                            "field": "Name",
+                                            "dataType": "model"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+                """
+            );
+
+        var service = CreateService();
+
+        // Act
+        var result = await service.GetInstanceFormBootstrap(
+            instance,
+            uiFolder: "subform",
+            dataElementIdOverride: subformDataElementId,
+            isPdf: false,
+            language: "nb"
+        );
+
+        // Assert
+        Assert.Equal(subformDataElementId, result.DataModels["submodel"].DataElementId);
+        Assert.Equal(parentDataElementId, result.DataModels["model"].DataElementId);
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_WhenNonDefaultDataTypeHasMultipleDataElements_Throws()
+    {
+        var instance = CreateTestInstance("Task_1", includeExtraSubmodelElement: true);
+        var appMetadata = CreateAppMetadata("model", "submodel");
+
+        SetupMocks(appMetadata);
+        _appResources
+            .Setup(x => x.GetLayoutsInFolder("Task_1"))
+            .Returns(
+                """
+                {
+                    "page1": {
+                        "data": {
+                            "layout": [
+                                {
+                                    "id": "field1",
+                                    "type": "Input",
+                                    "dataModelBindings": {
+                                        "simpleBinding": {
+                                            "field": "Name",
+                                            "dataType": "submodel"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+                """
+            );
+
+        var service = CreateService();
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.GetInstanceFormBootstrap(instance, "Task_1", null, false, "nb")
+        );
+
+        Assert.Contains("Multiple data elements found for data type 'submodel'", ex.Message);
+    }
+
+    [Fact]
+    public async Task GetInstanceFormBootstrap_PassesLanguageToFormDataReader()
     {
         var instance = CreateTestInstance("Task_1");
         var appMetadata = CreateAppMetadata("model");
@@ -413,53 +542,78 @@ public class FormBootstrapServiceTests
 
         _formDataReader.Verify(
             x =>
-                x.ReadInstanceFormData(
+                x.ProcessLoadedFormData(
                     instance,
                     It.Is<DataElement>(d => d.DataType == "model"),
-                    null,
+                    It.IsAny<object>(),
                     true,
                     "nn",
-                    true,
+                    null,
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
         );
     }
 
-    private static Instance CreateTestInstance(string taskId, bool locked = false, string? dataElementId = null)
+    private static Instance CreateTestInstance(
+        string taskId,
+        bool locked = false,
+        string? defaultDataElementId = null,
+        string? submodelDataElementId = null,
+        bool includeExtraSubmodelElement = false
+    )
     {
-        var elementId = dataElementId ?? Guid.NewGuid().ToString();
-        return new Instance
+        var elementId = defaultDataElementId ?? Guid.NewGuid().ToString();
+        var data = new List<DataElement>
         {
-            Id = "12345/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
-            Data =
-            [
-                new DataElement
-                {
-                    Id = elementId,
-                    DataType = "model",
-                    Locked = locked,
-                },
+            new()
+            {
+                Id = elementId,
+                DataType = "model",
+                Locked = locked,
+                ContentType = "application/xml",
+            },
+            new()
+            {
+                Id = submodelDataElementId ?? Guid.NewGuid().ToString(),
+                DataType = "submodel",
+                Locked = false,
+                ContentType = "application/xml",
+            },
+        };
+
+        if (includeExtraSubmodelElement)
+        {
+            data.Add(
                 new DataElement
                 {
                     Id = Guid.NewGuid().ToString(),
                     DataType = "submodel",
                     Locked = false,
-                },
-            ],
+                    ContentType = "application/xml",
+                }
+            );
+        }
+
+        return new Instance
+        {
+            Id = "12345/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = taskId } },
+            Data = data,
         };
     }
 
     private static ApplicationMetadata CreateAppMetadata(params string[] dataTypes)
     {
+        var allDataTypes = dataTypes.Append("submodel").Distinct().ToArray();
         return new ApplicationMetadata("ttd/test")
         {
-            DataTypes = dataTypes
+            DataTypes = allDataTypes
                 .Select(dt => new DataType
                 {
                     Id = dt,
-                    AppLogic = new ApplicationLogic { ClassRef = $"TestApp.Models.{dt}" },
+                    AppLogic = new ApplicationLogic { ClassRef = typeof(DummyModel).FullName! },
+                    AllowedContentTypes = ["application/xml"],
                 })
                 .ToList(),
         };
@@ -483,6 +637,17 @@ public class FormBootstrapServiceTests
             .Returns(new LayoutSettings { DefaultDataType = dataType });
 
         _appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(appMetadata);
+        _dataClient
+            .Setup(x =>
+                x.GetDataBytes(
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<StorageAuthenticationMethod>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(new ModelSerializationService(_appModel).SerializeToXml(new DummyModel()).ToArray());
         _appOptionsFileHandler
             .Setup(x => x.ReadOptionsFromFileAsync(It.IsAny<string>()))
             .ReturnsAsync((List<AppOption>?)null);
@@ -504,7 +669,12 @@ public class FormBootstrapServiceTests
             .ReturnsAsync(new AppOptions { Options = [] });
         _initialValidationService
             .Setup(x =>
-                x.Validate(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())
+                x.Validate(
+                    It.IsAny<IInstanceDataAccessor>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
             )
             .ReturnsAsync([]);
         _formDataReader
@@ -513,17 +683,27 @@ public class FormBootstrapServiceTests
 
         _formDataReader
             .Setup(x =>
-                x.ReadInstanceFormData(
+                x.ProcessLoadedFormData(
                     It.IsAny<Instance>(),
                     It.IsAny<DataElement>(),
-                    It.IsAny<Guid?>(),
+                    It.IsAny<object>(),
                     It.IsAny<bool>(),
                     It.IsAny<string?>(),
-                    It.IsAny<bool>(),
+                    It.IsAny<Func<object, CancellationToken, Task>?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
-            .ReturnsAsync(new object());
+            .ReturnsAsync(
+                (
+                    Instance _,
+                    DataElement _,
+                    object appModel,
+                    bool _,
+                    string? _,
+                    Func<object, CancellationToken, Task>? _,
+                    CancellationToken _
+                ) => appModel
+            );
     }
 
     private void SetupStatelessMocks(
@@ -548,8 +728,6 @@ public class FormBootstrapServiceTests
                 x.GetOptionsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, string>>())
             )
             .ReturnsAsync(new AppOptions { Options = [] });
-
-        _appModel.Setup(x => x.Create(It.IsAny<string>())).Returns(new object());
 
         // Default to unauthenticated — GetStatelessInstanceOwner returns null and no prefill is attempted.
         _authenticationContext.Setup(x => x.Current).Returns(TestAuthentication.GetNoneAuthentication());

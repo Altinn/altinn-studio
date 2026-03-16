@@ -36,7 +36,7 @@ export function FormBootstrapProvider({
 }: ReactPropsWithChildren<FormBootstrapProviderProps>) {
   const defaultDataType = getUiFolderSettings(uiFolder)?.defaultDataType;
   const [prefill] = useState(() => getPrefillFromSessionStorage(defaultDataType));
-  const { data, isLoading, isError, error } = useFormBootstrapQuery({
+  const { data, isLoading, error } = useFormBootstrapQuery({
     uiFolder,
     dataElementIdOverride,
     prefill,
@@ -125,16 +125,16 @@ export function FormBootstrapProvider({
     return null;
   }, [data, processedLayouts, dataModels, staticOptions, uiFolder]);
 
-  if (isLoading || !data || !contextValue) {
-    return <Loader reason='bootstrap-form' />;
-  }
-
-  if (isError || !contextValue) {
+  if (error) {
     if (isAxiosError(error) && error.response?.status === HttpStatusCodes.Forbidden) {
       return <MissingRolesError />;
     }
 
-    return <DisplayError error={error ?? new Error('Failed to load form bootstrap data')} />;
+    return <DisplayError error={error} />;
+  }
+
+  if (isLoading || !data) {
+    return <Loader reason='bootstrap-form' />;
   }
 
   return (

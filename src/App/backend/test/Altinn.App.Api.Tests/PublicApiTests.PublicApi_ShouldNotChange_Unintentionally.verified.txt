@@ -245,7 +245,7 @@ namespace Altinn.App.Api.Controllers
     [Microsoft.AspNetCore.Mvc.ApiController]
     public class FormBootstrapController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
-        public FormBootstrapController(System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.FormBootstrapController> logger) { }
+        public FormBootstrapController(System.IServiceProvider serviceProvider, Altinn.App.Core.Internal.Instances.IInstanceClient instanceClient, Altinn.App.Core.Internal.App.IAppResources appResources, Altinn.App.Core.Internal.App.IAppMetadata appMetadata, Altinn.Common.PEP.Interfaces.IPDP pdp, Altinn.App.Core.Features.Auth.IAuthenticationContext authenticationContext, Microsoft.Extensions.Logging.ILogger<Altinn.App.Api.Controllers.FormBootstrapController> logger) { }
         [Microsoft.AspNetCore.Authorization.Authorize(Policy="InstanceRead")]
         [Microsoft.AspNetCore.Mvc.HttpGet]
         [Microsoft.AspNetCore.Mvc.ProducesResponseType(typeof(Altinn.App.Core.Features.Bootstrap.Models.FormBootstrapResponse), 200)]
