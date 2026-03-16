@@ -2697,7 +2697,7 @@
           {
             "name": "prefill",
             "in": "query",
-            "description": "Optional JSON object of field-value pairs for query param prefill.",
+            "description": "Optional JSON object containing query param prefill, either for the default data type or keyed by data type.",
             "schema": {
               "type": "string"
             }

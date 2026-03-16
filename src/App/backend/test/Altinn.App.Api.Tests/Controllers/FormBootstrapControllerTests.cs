@@ -190,7 +190,8 @@ public class FormBootstrapControllerTests
             appResources.Object,
             authContext.Object,
             pdp.Object,
-            user: TestAuthentication.GetUserPrincipal(partyId: 501337)
+            user: TestAuthentication.GetUserPrincipal(partyId: 501337),
+            appMetadata: CreateStatelessAppMetadata(allowAnonymousOnStateless: false)
         );
 
         var result = await controller.GetStatelessFormBootstrap("org", "app", "stateless");
@@ -218,7 +219,8 @@ public class FormBootstrapControllerTests
             appResources.Object,
             authContext.Object,
             pdp.Object,
-            user: TestAuthentication.GetUserPrincipal(partyId: 501337)
+            user: TestAuthentication.GetUserPrincipal(partyId: 501337),
+            appMetadata: CreateStatelessAppMetadata(allowAnonymousOnStateless: false)
         );
 
         var result = await controller.GetStatelessFormBootstrap("org", "app", "stateless");
@@ -273,6 +275,25 @@ public class FormBootstrapControllerTests
         appResources.Setup(x => x.GetValidationConfiguration("model")).Returns((string?)null);
 
         return appResources;
+    }
+
+    private static ApplicationMetadata CreateStatelessAppMetadata(bool allowAnonymousOnStateless)
+    {
+        return new ApplicationMetadata("org/app")
+        {
+            DataTypes =
+            [
+                new DataType
+                {
+                    Id = "model",
+                    AppLogic = new()
+                    {
+                        ClassRef = typeof(DummyModel).FullName,
+                        AllowAnonymousOnStateless = allowAnonymousOnStateless,
+                    },
+                },
+            ],
+        };
     }
 
     private static FormBootstrapController CreateController(
