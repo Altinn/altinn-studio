@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -27,8 +28,31 @@ import (
 	"altinn.studio/operator/test/utils"
 )
 
-// createStateFetcher creates a FetchStateFunc for a given MaskinportenClient name and namespace
-func createStateFetcher(k8sClient *utils.K8sClient, name, secretName, ns string) FetchStateFunc { //nolint:unparam
+var (
+	errMaskinportenClientMissing  = errors.New("MaskinportenClient does not exist")
+	errMaskinportenClientNotReady = errors.New("MaskinportenClient not ready")
+	errMissingReadyCondition      = errors.New("MaskinportenClient not ready: no Ready condition")
+	errReconciliationPending      = errors.New("reconciliation pending")
+	errMaskinportenClientExists   = errors.New("MaskinportenClient still exists")
+	errAnnotationNotRemoved       = errors.New("annotation not removed yet")
+	errExpectedSingleController   = errors.New("expected exactly one controller pod")
+	errControllerPodNotRunning    = errors.New("controller pod not running")
+	errTokenRequestFailed         = errors.New("token request failed")
+	errExpectedRotatedKeyCount    = errors.New("expected two keys after rotation")
+	errClientStillExistsInFakesDB = errors.New("client still exists in fakes db")
+)
+
+type stateRef struct {
+	clientName string
+	secretName string
+	namespace  string
+}
+
+// createStateFetcher creates a FetchStateFunc for a given MaskinportenClient name and namespace.
+func createStateFetcher(
+	k8sClient *utils.K8sClient,
+	ref stateRef,
+) FetchStateFunc {
 	return func() (*resourcesv1alpha1.MaskinportenClient, *corev1.Secret, error) {
 		ctx := context.Background()
 
@@ -37,8 +61,8 @@ func createStateFetcher(k8sClient *utils.K8sClient, name, secretName, ns string)
 		clientObj := &resourcesv1alpha1.MaskinportenClient{}
 		err := k8sClient.CRD.Get().
 			Resource("maskinportenclients").
-			Namespace(ns).
-			Name(name).
+			Namespace(ref.namespace).
+			Name(ref.clientName).
 			Do(ctx).
 			Into(clientObj)
 		if err != nil {
@@ -56,8 +80,8 @@ func createStateFetcher(k8sClient *utils.K8sClient, name, secretName, ns string)
 		secretObj := &corev1.Secret{}
 		err = k8sClient.Core.Get().
 			Resource("secrets").
-			Namespace(ns).
-			Name(secretName).
+			Namespace(ref.namespace).
+			Name(ref.secretName).
 			Do(ctx).
 			Into(secretObj)
 		if err != nil {
@@ -74,29 +98,52 @@ func createStateFetcher(k8sClient *utils.K8sClient, name, secretName, ns string)
 	}
 }
 
-// stateIsReconciled checks if the MaskinportenClient is in reconciled state
+// stateIsReconciled checks if the MaskinportenClient is in reconciled state.
 func stateIsReconciled(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
 	if client == nil {
-		return fmt.Errorf("MaskinportenClient does not exist")
+		return errMaskinportenClientMissing
 	}
 	if !apimeta.IsStatusConditionTrue(client.Status.Conditions, maskinporten.ConditionTypeReady) {
 		cond := apimeta.FindStatusCondition(client.Status.Conditions, maskinporten.ConditionTypeReady)
 		if cond != nil {
-			return fmt.Errorf("MaskinportenClient not ready: reason=%s message=%s", cond.Reason, cond.Message)
+			return fmt.Errorf("%w: reason=%s message=%s", errMaskinportenClientNotReady, cond.Reason, cond.Message)
 		}
-		return fmt.Errorf("MaskinportenClient not ready: no Ready condition")
+		return errMissingReadyCondition
 	}
 	if client.Status.ObservedGeneration != client.Generation {
-		return fmt.Errorf("reconciliation pending: observedGeneration=%d, generation=%d",
+		return fmt.Errorf("%w: observedGeneration=%d generation=%d", errReconciliationPending,
 			client.Status.ObservedGeneration, client.Generation)
 	}
 	return nil
 }
 
-// stateIsDeleted checks if the MaskinportenClient has been deleted
+// stateIsDeleted checks if the MaskinportenClient has been deleted.
 func stateIsDeleted(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
 	if client != nil {
-		return fmt.Errorf("MaskinportenClient still exists")
+		return errMaskinportenClientExists
+	}
+	return nil
+}
+
+func nestedMap(obj map[string]any, fields ...string) (map[string]any, error) {
+	value, _, err := unstructured.NestedMap(obj, fields...)
+	if err != nil {
+		return nil, fmt.Errorf("get nested map %v: %w", fields, err)
+	}
+	return value, nil
+}
+
+func nestedString(obj map[string]any, fields ...string) (string, error) {
+	value, _, err := unstructured.NestedString(obj, fields...)
+	if err != nil {
+		return "", fmt.Errorf("get nested string %v: %w", fields, err)
+	}
+	return value, nil
+}
+
+func ginkgoWritef(format string, args ...any) error {
+	if _, err := fmt.Fprintf(GinkgoWriter, format, args...); err != nil {
+		return fmt.Errorf("write to GinkgoWriter: %w", err)
 	}
 	return nil
 }
@@ -112,6 +159,7 @@ var _ = Describe("controller", Ordered, func() {
 
 	var Runtime *kind.KindContainerRuntime
 	var Client *utils.K8sClient
+	var ref stateRef
 
 	BeforeAll(func() {
 		By("loading kind runtime")
@@ -123,6 +171,11 @@ var _ = Describe("controller", Ordered, func() {
 		ExpectWithOffset(2, err).NotTo(HaveOccurred())
 		Client, err = utils.CreateK8sClient(Runtime.GetContextName())
 		ExpectWithOffset(2, err).NotTo(HaveOccurred())
+		ref = stateRef{
+			clientName: clientName,
+			secretName: secretName,
+			namespace:  clientNamespace,
+		}
 	})
 
 	Context("Operator", func() {
@@ -139,22 +192,29 @@ var _ = Describe("controller", Ordered, func() {
 			ctx := context.Background()
 
 			By("cleaning up any existing MaskinportenClient")
-			_ = k8sClient.CRD.Delete().
+			err = k8sClient.CRD.Delete().
 				Resource("maskinportenclients").
 				Namespace(clientNamespace).
 				Name(clientName).
 				Do(ctx).
 				Error()
+			if err != nil && !apierrors.IsNotFound(err) {
+				Expect(err).NotTo(HaveOccurred())
+			}
 
 			By("clearing maskinporten-settings.json from secret")
 			patch := []byte(`[{"op": "remove", "path": "/data/maskinporten-settings.json"}]`)
-			_ = k8sClient.Core.Patch(types.JSONPatchType).
+			err = k8sClient.Core.Patch(types.JSONPatchType).
 				Resource("secrets").
 				Namespace(clientNamespace).
 				Name(secretName).
 				Body(patch).
 				Do(ctx).
 				Error()
+			if err != nil {
+				Expect(ginkgoWritef("Ignoring cleanup patch error for secret %s/%s: %v\n",
+					clientNamespace, secretName, err)).To(Succeed())
+			}
 
 			By("waiting for cleanup to complete")
 			Eventually(func() bool {
@@ -189,7 +249,7 @@ var _ = Describe("controller", Ordered, func() {
 				ExpectWithOffset(2, err).NotTo(HaveOccurred())
 				podNames := utils.GetNonEmptyLines(string(podOutput))
 				if len(podNames) != 1 {
-					return fmt.Errorf("expect 1 controller pods running, but got %d", len(podNames))
+					return fmt.Errorf("%w: got %d", errExpectedSingleController, len(podNames))
 				}
 				controllerPodName = podNames[0]
 				ExpectWithOffset(2, controllerPodName).Should(ContainSubstring("controller-manager"))
@@ -202,7 +262,7 @@ var _ = Describe("controller", Ordered, func() {
 				status, err := utils.Run(cmd, "")
 				ExpectWithOffset(2, err).NotTo(HaveOccurred())
 				if string(status) != "Running" {
-					return fmt.Errorf("controller pod in %s status", status)
+					return fmt.Errorf("%w: %s", errControllerPodNotRunning, status)
 				}
 				return nil
 			}
@@ -215,7 +275,7 @@ var _ = Describe("controller", Ordered, func() {
 			Expect(k8sClient).NotTo(BeNil())
 
 			By("snapshotting initial state (CR does not exist, secret is empty)")
-			mpClient, secret, err := createStateFetcher(k8sClient, clientName, secretName, clientNamespace)()
+			mpClient, secret, err := createStateFetcher(k8sClient, ref)()
 			Expect(err).To(Succeed())
 			db, err := FetchFakesDb()
 			Expect(err).To(Succeed())
@@ -251,7 +311,7 @@ var _ = Describe("controller", Ordered, func() {
 
 			By("waiting for reconciliation and snapshotting state")
 			EventuallyWithSnapshot(
-				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				createStateFetcher(k8sClient, ref),
 				FetchFakesDb,
 				stateIsReconciled,
 				time.Second*10,
@@ -321,8 +381,10 @@ var _ = Describe("controller", Ordered, func() {
 				Into(hr)
 			Expect(err).NotTo(HaveOccurred())
 
-			status, _, _ := unstructured.NestedMap(hr.Object, "status")
-			initialHandled, _, _ := unstructured.NestedString(status, "lastHandledReconcileAt")
+			status, err := nestedMap(hr.Object, "status")
+			Expect(err).NotTo(HaveOccurred())
+			initialHandled, err := nestedString(status, "lastHandledReconcileAt")
+			Expect(err).NotTo(HaveOccurred())
 
 			By("triggering flux reconcile via annotation")
 			annotations := hr.GetAnnotations()
@@ -344,23 +406,29 @@ var _ = Describe("controller", Ordered, func() {
 
 			By("waiting for reconciliation to complete")
 			Eventually(func() bool {
-				hr := &unstructured.Unstructured{}
-				hr.SetGroupVersionKind(schema.GroupVersionKind{
+				currentHR := &unstructured.Unstructured{}
+				currentHR.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   "helm.toolkit.fluxcd.io",
 					Version: "v2",
 					Kind:    "HelmRelease",
 				})
-				err := k8sClient.Flux.Get().
+				getErr := k8sClient.Flux.Get().
 					Resource("helmreleases").
 					Namespace(clientNamespace).
 					Name(helmReleaseName).
 					Do(ctx).
-					Into(hr)
-				if err != nil {
+					Into(currentHR)
+				if getErr != nil {
 					return false
 				}
-				status, _, _ := unstructured.NestedMap(hr.Object, "status")
-				handled, _, _ := unstructured.NestedString(status, "lastHandledReconcileAt")
+				currentStatus, nestedErr := nestedMap(currentHR.Object, "status")
+				if nestedErr != nil {
+					return false
+				}
+				handled, nestedErr := nestedString(currentStatus, "lastHandledReconcileAt")
+				if nestedErr != nil {
+					return false
+				}
 				return handled != initialHandled
 			}, 30*time.Second, time.Second).Should(BeTrue())
 
@@ -378,8 +446,8 @@ var _ = Describe("controller", Ordered, func() {
 			// but we keep the test here to make sure this stays true in the future
 			By("verifying secret was never emptied")
 			for i, ev := range collectedEvents {
-				_, _ = fmt.Fprintf(GinkgoWriter, "Event %d: type=%s, dataLen=%d, hasSettings=%v\n",
-					i, ev.Type, ev.DataLength, ev.HasSettings)
+				Expect(ginkgoWritef("Event %d: type=%s, dataLen=%d, hasSettings=%v\n",
+					i, ev.Type, ev.DataLength, ev.HasSettings)).To(Succeed())
 
 				if ev.Type == watch.Deleted {
 					Fail(fmt.Sprintf("Secret was deleted at event %d", i))
@@ -404,8 +472,10 @@ var _ = Describe("controller", Ordered, func() {
 				Do(ctx).
 				Into(hr)
 			Expect(err).NotTo(HaveOccurred())
-			status, _, _ = unstructured.NestedMap(hr.Object, "status")
-			handled, _, _ := unstructured.NestedString(status, "lastHandledReconcileAt")
+			status, err = nestedMap(hr.Object, "status")
+			Expect(err).NotTo(HaveOccurred())
+			handled, err := nestedString(status, "lastHandledReconcileAt")
+			Expect(err).NotTo(HaveOccurred())
 			Expect(handled).To(Equal(requestedAt))
 		})
 
@@ -415,24 +485,24 @@ var _ = Describe("controller", Ordered, func() {
 			Eventually(func() error {
 				resp, err := FetchToken("altinn:serviceowner/instances.read")
 				if err != nil {
-					_, err = fmt.Fprintf(GinkgoWriter, "FetchToken error: %v\n", err)
-					if err != nil {
-						return fmt.Errorf("failed to write to GinkgoWriter: %w", err)
+					writeErr := ginkgoWritef("FetchToken error: %v\n", err)
+					if writeErr != nil {
+						return writeErr
 					}
 					return err
 				}
 				if !resp.Success {
-					_, err = fmt.Fprintf(GinkgoWriter, "Token request failed: %s\n", resp.Error)
-					if err != nil {
-						return fmt.Errorf("failed to write to GinkgoWriter: %w", err)
+					writeErr := ginkgoWritef("Token request failed: %s\n", resp.Error)
+					if writeErr != nil {
+						return writeErr
 					}
-					return fmt.Errorf("token request failed: %s", resp.Error)
+					return fmt.Errorf("%w: %s", errTokenRequestFailed, resp.Error)
 				}
-				_, err = fmt.Fprintf(
-					GinkgoWriter, "Token request succeeded, clientId: %s, scopes: %v\n",
-					resp.Claims.ClientId, resp.Claims.Scopes)
-				if err != nil {
-					return fmt.Errorf("failed to write to GinkgoWriter: %w", err)
+				if err := ginkgoWritef(
+					"Token request succeeded, clientId: %s, scopes: %v\n",
+					resp.Claims.ClientId, resp.Claims.Scopes,
+				); err != nil {
+					return err
 				}
 				tokenResp = resp
 				return nil
@@ -475,7 +545,7 @@ var _ = Describe("controller", Ordered, func() {
 
 			By("waiting for reconciliation after scope removal")
 			EventuallyWithSnapshot(
-				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				createStateFetcher(k8sClient, ref),
 				FetchFakesDb,
 				stateIsReconciled,
 				time.Second*10,
@@ -520,11 +590,11 @@ var _ = Describe("controller", Ordered, func() {
 
 			By("waiting for rotation and annotation removal")
 			EventuallyWithSnapshot(
-				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				createStateFetcher(k8sClient, ref),
 				FetchFakesDb,
 				func(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
 					if client.Annotations[maskinporten.AnnotationRotateJwk] == rotateJwkEnabled {
-						return fmt.Errorf("annotation not removed yet")
+						return errAnnotationNotRemoved
 					}
 					return stateIsReconciled(client, secret)
 				},
@@ -570,17 +640,18 @@ var _ = Describe("controller", Ordered, func() {
 
 			By("waiting for rotation, annotation removal, and key trimming")
 			EventuallyWithSnapshot(
-				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				createStateFetcher(k8sClient, ref),
 				FetchFakesDb,
 				func(client *resourcesv1alpha1.MaskinportenClient, secret *corev1.Secret) error {
 					if client.Annotations[maskinporten.AnnotationRotateJwk] == rotateJwkEnabled {
-						return fmt.Errorf("annotation not removed yet")
+						return errAnnotationNotRemoved
 					}
-					if err := stateIsReconciled(client, secret); err != nil {
-						return err
+					reconcileErr := stateIsReconciled(client, secret)
+					if reconcileErr != nil {
+						return reconcileErr
 					}
 					if len(client.Status.KeyIds) != 2 {
-						return fmt.Errorf("expected 2 keys after rotation, got %d", len(client.Status.KeyIds))
+						return fmt.Errorf("%w: got %d", errExpectedRotatedKeyCount, len(client.Status.KeyIds))
 					}
 					return nil
 				},
@@ -623,7 +694,7 @@ var _ = Describe("controller", Ordered, func() {
 
 			By("waiting for MaskinportenClient to be deleted")
 			EventuallyWithSnapshot(
-				createStateFetcher(k8sClient, clientName, secretName, clientNamespace),
+				createStateFetcher(k8sClient, ref),
 				FetchFakesDb,
 				stateIsDeleted,
 				time.Second*10,
@@ -639,7 +710,7 @@ var _ = Describe("controller", Ordered, func() {
 				}
 				for _, record := range db {
 					if record.ClientId == expectedClientID {
-						return fmt.Errorf("client %s still exists in fakes db", expectedClientID)
+						return fmt.Errorf("%w: %s", errClientStillExistsInFakesDB, expectedClientID)
 					}
 				}
 				return nil
@@ -675,9 +746,9 @@ var _ = Describe("controller", Ordered, func() {
 
 			By("waiting for reconciliation to complete")
 			Eventually(func() error {
-				client, secret, err := createStateFetcher(k8sClient, clientName, secretName, clientNamespace)()
-				if err != nil {
-					return err
+				client, secret, fetchErr := createStateFetcher(k8sClient, ref)()
+				if fetchErr != nil {
+					return fetchErr
 				}
 				return stateIsReconciled(client, secret)
 			}, 15*time.Second, time.Second).Should(Succeed())
@@ -707,13 +778,13 @@ var _ = Describe("controller", Ordered, func() {
 			DeferCleanup(func() {
 				By("restoring shared app secret for subsequent e2e suites")
 				currentSecret := &corev1.Secret{}
-				err := k8sClient.Core.Get().
+				getErr := k8sClient.Core.Get().
 					Resource("secrets").
 					Namespace(clientNamespace).
 					Name(secretName).
 					Do(ctx).
 					Into(currentSecret)
-				if apierrors.IsNotFound(err) {
+				if apierrors.IsNotFound(getErr) {
 					restored := originalSecret.DeepCopy()
 					restored.SetResourceVersion("")
 					restored.SetUID("")
@@ -723,15 +794,15 @@ var _ = Describe("controller", Ordered, func() {
 					restored.SetFinalizers(nil)
 					restored.SetOwnerReferences(nil)
 
-					err = k8sClient.Core.Post().
+					createErr := k8sClient.Core.Post().
 						Resource("secrets").
 						Namespace(clientNamespace).
 						Body(restored).
 						Do(ctx).
 						Error()
-					Expect(err).To(Succeed())
+					Expect(createErr).To(Succeed())
 				} else {
-					Expect(err).To(Succeed())
+					Expect(getErr).To(Succeed())
 				}
 			})
 
@@ -749,13 +820,13 @@ var _ = Describe("controller", Ordered, func() {
 			By("waiting for secret to be absent before deleting CR")
 			Eventually(func() bool {
 				secret := &corev1.Secret{}
-				err := k8sClient.Core.Get().
+				getErr := k8sClient.Core.Get().
 					Resource("secrets").
 					Namespace(clientNamespace).
 					Name(secretName).
 					Do(ctx).
 					Into(secret)
-				return apierrors.IsNotFound(err)
+				return apierrors.IsNotFound(getErr)
 			}, 10*time.Second, time.Second).Should(BeTrue())
 
 			By("deleting MaskinportenClient after secret deletion")
@@ -771,12 +842,13 @@ var _ = Describe("controller", Ordered, func() {
 
 			By("waiting for CR deletion and API client cleanup")
 			Eventually(func() error {
-				mpClient, secret, err := createStateFetcher(k8sClient, clientName, secretName, clientNamespace)()
-				if err != nil {
-					return err
+				mpClient, secret, fetchErr := createStateFetcher(k8sClient, ref)()
+				if fetchErr != nil {
+					return fetchErr
 				}
-				if err := stateIsDeleted(mpClient, secret); err != nil {
-					return err
+				deleteErr := stateIsDeleted(mpClient, secret)
+				if deleteErr != nil {
+					return deleteErr
 				}
 				db, err := FetchFakesDb()
 				if err != nil {
@@ -784,7 +856,7 @@ var _ = Describe("controller", Ordered, func() {
 				}
 				for _, record := range db {
 					if record.ClientId == expectedClientID {
-						return fmt.Errorf("client %s still exists in fakes db", expectedClientID)
+						return fmt.Errorf("%w: %s", errClientStillExistsInFakesDB, expectedClientID)
 					}
 				}
 				return nil

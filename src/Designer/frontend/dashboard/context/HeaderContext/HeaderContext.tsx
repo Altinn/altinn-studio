@@ -13,6 +13,8 @@ import { type NavigationMenuItem } from '../../types/NavigationMenuItem';
 import { type NavigationMenuGroup } from '../../types/NavigationMenuGroup';
 import type { HeaderMenuItem } from '../../types/HeaderMenuItem';
 import { SelectedContextType } from '../../enums/SelectedContextType';
+import { useEnvironmentConfig } from 'app-shared/contexts/EnvironmentConfigContext';
+import { USER_SETTINGS_BASENAME } from 'app-shared/constants';
 
 export type HeaderContextProps = {
   selectableOrgs?: Organization[];
@@ -40,6 +42,8 @@ export const HeaderContextProvider = ({
   const navigate = useNavigate();
   const repoPath = useRepoPath(user, selectableOrgs);
   const subroute = useSubroute();
+
+  const { environment } = useEnvironmentConfig();
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
     navigate(`${subroute}/${context}${location.search}`);
@@ -69,25 +73,37 @@ export const HeaderContextProvider = ({
     itemName: t('shared.header_go_to_gitea'),
   };
 
+  const userSettingsMenuItem: NavigationMenuItem = {
+    action: {
+      type: 'link',
+      href: USER_SETTINGS_BASENAME,
+      openInNewTab: false,
+    },
+    itemName: t('user.settings'),
+  };
+
   const logOutMenuItem: NavigationMenuItem = {
     action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
   };
+
+  const studioOidc = environment?.featureFlags?.studioOidc;
 
   const selectableOrgMenuGroup: NavigationMenuGroup = {
     name: t('dashboard.header_menu_all_orgs'),
     showName: true,
     items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem],
   };
-  const profileMenuItems: NavigationMenuItem[] = [giteaMenuItem, logOutMenuItem];
+  const otherMenuItems: NavigationMenuItem[] = [
+    giteaMenuItem,
+    ...(studioOidc ? [userSettingsMenuItem] : []),
+  ];
+  const profileMenuItems: NavigationMenuItem[] = [...otherMenuItems, logOutMenuItem];
 
   const profileMenuGroups: NavigationMenuGroup[] = [
     selectableOrgMenuGroup,
-    {
-      name: t('dashboard.header_menu_other'),
-      showName: false,
-      items: [giteaMenuItem, logOutMenuItem],
-    },
+    { items: otherMenuItems },
+    { items: [logOutMenuItem] },
   ];
 
   return (

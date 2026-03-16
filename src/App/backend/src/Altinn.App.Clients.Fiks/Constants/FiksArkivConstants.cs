@@ -8,7 +8,6 @@ namespace Altinn.App.Clients.Fiks.Constants;
 public static class FiksArkivConstants
 {
     internal const string AltinnSystemId = "Altinn Studio";
-    internal const string AltinnOrgNo = "991825827";
 
     /// <summary>
     /// Known filenames used in Fiks Arkiv messages.

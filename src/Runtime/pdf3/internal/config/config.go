@@ -19,11 +19,10 @@ const (
 )
 
 type Config struct {
-	Environment string
-
+	Environment            string
+	LocaltestPublicBaseURL string
 	QueueSize              int
 	BrowserRestartInterval time.Duration
-	LocaltestPublicBaseURL string
 }
 
 func ReadConfig() *Config {
@@ -91,7 +90,7 @@ func ShouldConfigureOTel(environment string) bool {
 	return false
 }
 
-// HostParameters contains timeout values for runtime.NewHost
+// HostParameters contains timeout values for runtime.NewHost.
 type HostParameters struct {
 	ReadinessDrainDelay time.Duration
 	ShutdownPeriod      time.Duration

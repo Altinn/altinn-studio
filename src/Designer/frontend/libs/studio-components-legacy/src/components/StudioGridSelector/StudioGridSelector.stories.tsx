@@ -1,11 +1,8 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioGridSelector } from './StudioGridSelector';
 import { type GridSize } from './types/GridSize';
 
-type Story = StoryFn<typeof StudioGridSelector>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioGridSelector',
   component: StudioGridSelector,
   argTypes: {
@@ -17,11 +14,14 @@ const meta: Meta = {
   parameters: {
     actions: { argTypesRegex: 'handleSliderChange' },
   },
-};
-export const Preview: Story = (args): React.ReactElement => <StudioGridSelector {...args} />;
-
-Preview.args = {
-  sliderValue: 0 as GridSize,
-  disabled: false,
-};
+} satisfies Meta<typeof StudioGridSelector>;
 export default meta;
+
+type Story = StoryObj<typeof StudioGridSelector>;
+
+export const Preview: Story = {
+  args: {
+    sliderValue: 0 as GridSize,
+    disabled: false,
+  },
+};

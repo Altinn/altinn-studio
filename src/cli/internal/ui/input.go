@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	"altinn.studio/studioctl/internal/osutil"
+
 	"golang.org/x/term"
 )
 
@@ -33,9 +35,9 @@ const (
 // Supports context cancellation and Ctrl+C detection.
 // Terminal state is always restored, even on interrupt.
 func ReadPassword(ctx context.Context, out *Output) ([]byte, error) {
-	fd := int(os.Stdin.Fd())
+	fd, ok := osutil.FDInt(os.Stdin.Fd())
 
-	if !term.IsTerminal(fd) {
+	if !ok || !term.IsTerminal(fd) {
 		return ReadLine(ctx, os.Stdin)
 	}
 

@@ -3,7 +3,7 @@
 }
 
 .label {
-  font-weight: 400;
+  font-weight: 600;
   grid-area: label;
 }
 .labelError {

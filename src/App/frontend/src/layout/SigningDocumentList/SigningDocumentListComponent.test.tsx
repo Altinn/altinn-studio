@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { screen } from '@testing-library/dom';
 import { render as renderRtl } from '@testing-library/react';
 import { randomUUID } from 'crypto';

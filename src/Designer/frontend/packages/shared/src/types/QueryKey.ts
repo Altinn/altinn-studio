@@ -60,7 +60,6 @@ export enum QueryKey {
   Widgets = 'Widgets',
   AppConfig = 'AppConfig',
   AppSettings = 'AppSettings',
-  IsLoggedInWithAnsattporten = 'IsLoggedInWithAnsattporten',
   AppScopes = 'AppScopes',
   SelectedAppScopes = 'SelectedAppScopes',
   UserOrgPermissions = 'UserOrgPermissions',
@@ -106,4 +105,7 @@ export enum QueryKey {
   Altinn2DelegationCount = 'Altinn2DelegationCount',
   UpdateDataType = 'UpdateDataType',
   ConsentResourceTemplates = 'ConsentResourceTemplates',
+
+  // User settings
+  UserApiKeys = 'UserApiKeys',
 }

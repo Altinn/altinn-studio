@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioPageImageBackgroundContainer } from './StudioPageImageBackgroundContainer';
 
 const ChildrenComponent = (): ReactElement => {
@@ -18,19 +18,17 @@ const ChildrenComponent = (): ReactElement => {
   );
 };
 
-type Story = StoryFn<typeof StudioPageImageBackgroundContainer>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioPageImageBackgroundContainer',
   component: StudioPageImageBackgroundContainer,
-};
-export const Preview: Story = (args): React.ReactElement => (
-  <StudioPageImageBackgroundContainer {...args} />
-);
-
-Preview.args = {
-  image: 'https://info.altinn.no/Static/img/illustration/illustrasjon_logginn_alt.svg',
-  children: <ChildrenComponent />,
-};
-
+} satisfies Meta<typeof StudioPageImageBackgroundContainer>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    image: 'https://info.altinn.no/Static/img/illustration/illustrasjon_logginn_alt.svg',
+    children: <ChildrenComponent />,
+  },
+};

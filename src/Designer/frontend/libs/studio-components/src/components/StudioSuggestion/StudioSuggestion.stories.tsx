@@ -1,37 +1,29 @@
-import React from 'react';
-import type { ReactElement } from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioSuggestion } from '.';
 
-type Story = StoryFn<typeof StudioSuggestion>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioSuggestion',
   component: StudioSuggestion,
-};
+} satisfies Meta<typeof StudioSuggestion>;
+export default meta;
 
-export const Preview: Story = (args): ReactElement => (
-  <StudioSuggestion {...args}>
-    <SuggestionExampleList />
-  </StudioSuggestion>
-);
+type Story = StoryObj<typeof meta>;
 
-Preview.args = {
-  required: true,
-  tagText: 'Required',
-  label: 'StudioSuggestion',
-  emptyText: 'Empty',
-};
-
-function SuggestionExampleList(): ReactElement {
-  return (
-    <>
+export const Preview: Story = {
+  render: (args) => (
+    <StudioSuggestion {...args}>
       <StudioSuggestion.Option label='Option 1' value='1'>
         Option 1<div style={{ color: 'gray' }}>Description of option 1</div>
       </StudioSuggestion.Option>
       <StudioSuggestion.Option value='2'>Option 2</StudioSuggestion.Option>
       <StudioSuggestion.Option value='3'>Option 3</StudioSuggestion.Option>
-    </>
-  );
-}
-export default meta;
+    </StudioSuggestion>
+  ),
+
+  args: {
+    required: true,
+    tagText: 'Required',
+    label: 'StudioSuggestion',
+    emptyText: 'Empty',
+  },
+};

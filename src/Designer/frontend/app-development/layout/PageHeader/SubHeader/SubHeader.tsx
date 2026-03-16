@@ -17,7 +17,6 @@ import {
   SectionHeaderWarningIcon,
 } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { FeatureFlag, useFeatureFlag } from '@studio/feature-flags';
 import { useAppValidationQuery } from 'app-development/hooks/queries/useAppValidationQuery';
 import { AppValidationDialog } from 'app-shared/components/AppValidationDialog/AppValidationDialog';
 
@@ -29,13 +28,12 @@ export const SubHeader = ({ hasRepoError }: SubHeaderProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const repositoryType = getRepositoryType(org, app);
   const { doReloadPreview } = usePreviewContext();
-  const appMetadataFlag = useFeatureFlag(FeatureFlag.AppMetadata);
 
   return (
     <GiteaHeader
       hasCloneModal
       leftComponent={<LeftContent repositoryType={repositoryType} />}
-      rightContent={appMetadataFlag && <ProblemStatusIndicator />}
+      rightContent={<ProblemStatusIndicator />}
       hasRepoError={hasRepoError}
       onPullSuccess={doReloadPreview}
       owner={org}
