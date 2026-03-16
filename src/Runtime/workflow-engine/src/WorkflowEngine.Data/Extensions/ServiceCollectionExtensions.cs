@@ -32,7 +32,6 @@ public static class ServiceCollectionExtensions
                     ConnectionStringBuilder =
                     {
                         MaxPoolSize = 100,
-                        MinPoolSize = 10,
                         Timeout = 30,
                         KeepAlive = 60,
                     },
