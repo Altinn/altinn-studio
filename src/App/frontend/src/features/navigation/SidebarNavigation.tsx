@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { AppNavigation, AppNavigationHeading, appNavigationHeadingId } from 'src/features/navigation/AppNavigation';
 import classes from 'src/features/navigation/SidebarNavigation.module.css';

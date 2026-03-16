@@ -1,4 +1,3 @@
-import React from 'react';
 import { Form } from 'react-router';
 
 import { screen, waitFor } from '@testing-library/react';

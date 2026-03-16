@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { SummaryComponentFor } from 'src/layout/Summary/SummaryComponent';
 import { EmptyChildrenBoundary } from 'src/layout/Summary2/isEmpty/EmptyChildrenContext';
 import { ComponentSummary, SummaryFlexForContainer } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';

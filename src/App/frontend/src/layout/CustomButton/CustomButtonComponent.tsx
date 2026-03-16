@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useParams } from 'react-router';
 import { toast } from 'react-toastify';
 
@@ -213,7 +213,7 @@ export const CustomButtonComponent = ({ baseComponentId }: PropsFromGenericCompo
   const isAnyProcessing = useIsAnyProcessing();
   const layoutLookups = useLayoutLookups();
 
-  const getScrollPosition = React.useCallback(
+  const getScrollPosition = useCallback(
     () => document.querySelector(`[data-componentid="${id}"]`)?.getClientRects().item(0)?.y,
     [id],
   );

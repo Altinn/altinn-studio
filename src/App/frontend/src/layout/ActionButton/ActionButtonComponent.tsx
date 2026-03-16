@@ -1,5 +1,3 @@
-import React from 'react';
-
 import type { PropsFromGenericComponent } from '..';
 
 import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components/Button/Button';

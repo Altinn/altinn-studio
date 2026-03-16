@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { PDFPreviewButtonDef } from 'src/layout/PDFPreviewButton/config.def.generated';

@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react';
+import { forwardRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Popover } from '@digdir/designsystemet-react';

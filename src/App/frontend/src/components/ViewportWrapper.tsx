@@ -1,4 +1,4 @@
-import React from 'react';
+import { useLayoutEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -16,7 +16,7 @@ export const ViewportWrapper = ({ children }: PropsWithChildren) => {
   // Using a layout effect to make sure the whole app is re-rendered as we want it before taking screenshots
   // for visual testing. This is needed because the visual testing library takes screenshots as soon as the viewport
   // is resized and these classes are set.
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.lang = selectedLanguage;
     document.documentElement.dir = direction;
 

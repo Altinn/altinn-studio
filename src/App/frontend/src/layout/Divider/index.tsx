@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { createRef, forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import type { PropsFromGenericComponent } from '..';
@@ -23,7 +23,7 @@ export class Divider extends DividerDef {
       >
         <DividerComponent
           baseComponentId={props.targetBaseComponentId}
-          containerDivRef={React.createRef()}
+          containerDivRef={createRef()}
         />
       </SummaryFlex>
     );

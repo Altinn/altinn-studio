@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { useLanguage } from 'src/features/language/useLanguage';
 import { AltinnPalette } from 'src/theme/altinnAppTheme';
 

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Button } from '@digdir/designsystemet-react';
 import { ExpandIcon, ShrinkIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';

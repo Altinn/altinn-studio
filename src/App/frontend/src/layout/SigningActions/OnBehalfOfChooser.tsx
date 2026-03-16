@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ChangeEvent } from 'react';
 
 import { ValidationMessage } from '@digdir/designsystemet-react';

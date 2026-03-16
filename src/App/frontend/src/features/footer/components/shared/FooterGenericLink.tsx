@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Link } from '@digdir/designsystemet-react';
 
 import { FooterIcon } from 'src/features/footer/components/shared/FooterIcon';

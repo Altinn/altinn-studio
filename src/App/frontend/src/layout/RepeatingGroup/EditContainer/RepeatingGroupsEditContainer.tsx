@@ -1,4 +1,3 @@
-import React from 'react';
 import type { JSX } from 'react';
 
 import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from '@navikt/aksel-icons';

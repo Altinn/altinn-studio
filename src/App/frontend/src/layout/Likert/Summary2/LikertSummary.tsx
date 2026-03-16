@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { Heading, ValidationMessage } from '@digdir/designsystemet-react';
 
 import { useDisplayData } from 'src/features/displayData/useDisplayData';
