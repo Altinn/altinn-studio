@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { CardBlockProps } from '@digdir/designsystemet-react';
 import { Card } from '@digdir/designsystemet-react';
 import type { WithoutAsChild } from '../../types/WithoutAsChild';

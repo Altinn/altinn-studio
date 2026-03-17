@@ -1,4 +1,5 @@
-import React, { useState, type ReactElement } from 'react';
+import type { ReactElement } from 'react';
+import { useState } from 'react';
 import classes from './SmallHeaderMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { type StudioProfileMenuItem } from '@studio/components';

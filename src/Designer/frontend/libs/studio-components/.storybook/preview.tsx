@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactElement } from 'react';
 import type { Preview } from '@storybook/react-vite';
 import { DocsContainer } from '@storybook/addon-docs/blocks';

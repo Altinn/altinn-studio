@@ -1,4 +1,3 @@
-import React from 'react';
 import type { TopToolbarProps } from './TopToolbar';
 import { TopToolbar } from './TopToolbar';
 import { screen } from '@testing-library/react';

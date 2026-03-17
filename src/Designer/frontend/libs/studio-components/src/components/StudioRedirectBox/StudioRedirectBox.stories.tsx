@@ -1,11 +1,8 @@
-import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react-vite';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StudioRedirectBox } from './StudioRedirectBox';
 import { StudioParagraph } from '../StudioParagraph';
 
-type Story = StoryFn<typeof StudioRedirectBox>;
-
-const meta: Meta = {
+const meta = {
   title: 'Components/StudioRedirectBox',
   component: StudioRedirectBox,
   argTypes: {
@@ -13,13 +10,14 @@ const meta: Meta = {
       control: 'text',
     },
   },
-};
-
-export const Preview: Story = (args): React.ReactElement => <StudioRedirectBox {...args} />;
-
-Preview.args = {
-  title: 'title',
-  children: <StudioParagraph>Children text</StudioParagraph>,
-};
-
+} satisfies Meta<typeof StudioRedirectBox>;
 export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Preview: Story = {
+  args: {
+    title: 'title',
+    children: <StudioParagraph>Children text</StudioParagraph>,
+  },
+};

@@ -1,4 +1,5 @@
-import React, { useState, type ReactElement, type ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { useState } from 'react';
 import classes from './EditSubformTableColumns.module.css';
 import { StudioButton, StudioHeading } from '@studio/components';
 import { PlusIcon } from '@studio/icons';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';

@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import classes from './LoggedInTitle.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioHeading } from '@studio/components';

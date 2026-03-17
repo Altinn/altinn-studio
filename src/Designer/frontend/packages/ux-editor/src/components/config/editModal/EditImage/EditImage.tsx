@@ -1,4 +1,3 @@
-import React from 'react';
 import { Tabs } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../../../config/componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, within } from '@testing-library/react';
 import type { Expression, LogicalTupleFunc } from './types/Expression';

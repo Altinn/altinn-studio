@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { ALLOWED_ORGANIZATIONS, useAltinityPermissions } from './useAltinityPermissions';
 import { TestAppRouter } from '@studio/testing/testRoutingUtils';

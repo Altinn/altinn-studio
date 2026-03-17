@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { FieldsetProps } from '@digdir/designsystemet-react';
 import { Fieldset } from '@digdir/designsystemet-react';
 import type { WithoutAsChild } from '../../types/WithoutAsChild';

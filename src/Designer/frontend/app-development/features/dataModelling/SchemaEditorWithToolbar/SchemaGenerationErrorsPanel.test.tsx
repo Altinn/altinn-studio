@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderWithProviders } from '../../../test/mocks';
 import type { SchemaGenerationErrorsPanelProps } from './SchemaGenerationErrorsPanel';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';

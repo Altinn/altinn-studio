@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react';
 import { useGapValue } from './useGapValue';
-import React from 'react';
 import { StudioDragAndDrop } from '../';
 
 describe('useGapValue', () => {

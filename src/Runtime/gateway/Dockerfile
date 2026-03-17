@@ -21,7 +21,7 @@ COPY Runtime/gateway/src/Altinn.Studio.Gateway.Contracts/ Altinn.Studio.Gateway.
 WORKDIR /build/Altinn.Studio.Gateway.Api
 RUN dotnet publish -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:705078da2d6bbe95ee2ae1dc4733b08b01dd6ff1fa72eaae5e87719ba294cd99
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled@sha256:48f41b8c5c965a37872d9a2afd7126708d3dc6d058c857403014b67ccd3dc8ba
 WORKDIR /app
 COPY --from=build /app/publish .
 

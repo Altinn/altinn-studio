@@ -146,11 +146,23 @@ public static class StudioOidcAuthenticationExtensions
                             return Task.CompletedTask;
                         }
 
+                        var parameters = new NameValueCollection();
+
                         if (!string.IsNullOrWhiteSpace(oidcSettings.AcrValues))
                         {
-                            context.ProtocolMessage.SetParameters(
-                                new NameValueCollection { ["acr_values"] = oidcSettings.AcrValues }
+                            parameters["acr_values"] = oidcSettings.AcrValues;
+                        }
+
+                        if (oidcSettings.AuthorizationDetails is not null)
+                        {
+                            parameters["authorization_details"] = JsonSerializer.Serialize(
+                                oidcSettings.AuthorizationDetails
                             );
+                        }
+
+                        if (parameters.Count > 0)
+                        {
+                            context.ProtocolMessage.SetParameters(parameters);
                         }
 
                         return Task.CompletedTask;

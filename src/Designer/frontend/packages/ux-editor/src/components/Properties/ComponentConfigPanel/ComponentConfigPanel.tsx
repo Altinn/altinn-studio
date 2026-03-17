@@ -3,7 +3,7 @@ import { useFormItemContext } from '../../../containers/FormItemContext';
 import { Accordion } from '@digdir/designsystemet-react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { StudioSpinner } from '@studio/components';
-import React from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2Override } from '../../config/componentSpecificContent/Summary2/Override/Summary2Override';
 import { EditFormComponent } from '../../config/EditFormComponent';
@@ -26,7 +26,7 @@ export const ComponentConfigPanel = ({ selectedItem }: ComponentConfigPanelProps
   const { t } = useTranslation();
   const { setSelectedItem } = useAppContext();
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
-  const [openList, setOpenList] = React.useState<string[]>([]);
+  const [openList, setOpenList] = useState<string[]>([]);
   const { data: schema, isPending: isFetchingSchema } = useComponentSchemaQuery(formItem?.type);
 
   const toggleOpen = (id: string) =>

@@ -1,4 +1,4 @@
-.PHONY: help build test test-e2e test-verbose test-coverage test-race clean tidy fmt lint check
+.PHONY: help build test test-e2e test-verbose test-coverage test-race clean tidy fmt lint lint-fix lint-config check
 .PHONY: run stop golangci-lint
 .DEFAULT_GOAL := help
 
@@ -31,9 +31,18 @@ fmt: golangci-lint ## Format Go code
 	@"$(GOLANGCI_LINT)" fmt
 	@echo "✓ Code formatted"
 
-lint: golangci-lint ## Run linters with auto-fix
+lint: golangci-lint ## Run linters
 	@echo "Running linters..."
-	@"$(GOLANGCI_LINT)" run --fix
+	@"$(GOLANGCI_LINT)" run ./...
+	@echo "✓ Lint passed"
+
+lint-fix: golangci-lint ## Run linters with auto-fix
+	@echo "Running linters with auto-fix..."
+	@"$(GOLANGCI_LINT)" run --fix ./...
+	@echo "✓ Lint fixes applied"
+
+lint-config: golangci-lint ## Verify linter configuration
+	@"$(GOLANGCI_LINT)" config verify
 
 test: ## Run all tests
 	@echo "Running tests..."
@@ -78,7 +87,7 @@ $(LOCALBIN):
 	mkdir -p "$(LOCALBIN)"
 
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
-GOLANGCI_LINT_VERSION ?= v2.6.2
+GOLANGCI_LINT_VERSION ?= v2.11.2
 
 .PHONY: golangci-lint
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.StudioOidc;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
@@ -16,12 +17,12 @@ using Microsoft.FeatureManagement.Mvc;
 namespace Altinn.Studio.Designer.Controllers;
 
 [ApiController]
-[FeatureGate(StudioFeatureFlags.AnsattPorten)]
+[FeatureGate(StudioFeatureFlags.StudioOidc)]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-scopes")]
 public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient, IAppScopesService appScopesService)
     : ControllerBase
 {
-    [Authorize(AnsattPortenConstants.AnsattportenAuthorizationPolicyWithOrgAccess)]
+    [Authorize(StudioOidcConstants.OrgAccessAuthorizationPolicy)]
     [HttpGet("maskinporten")]
     public async Task<IActionResult> GetScopesFromMaskinPorten(
         string org,

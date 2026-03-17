@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef, useImperativeHandle } from 'react';
+import { forwardRef, useRef, useImperativeHandle } from 'react';
 import type { InputHTMLAttributes, ReactElement, Ref, RefObject, FormEvent } from 'react';
 import { UploadIcon } from '@studio/icons';
 import type { StudioButtonProps } from '../StudioButton';

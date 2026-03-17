@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import type { Ref, ReactElement } from 'react';
 import { Textfield } from '@digdir/designsystemet-react';
 import type { TextfieldProps } from '@digdir/designsystemet-react';

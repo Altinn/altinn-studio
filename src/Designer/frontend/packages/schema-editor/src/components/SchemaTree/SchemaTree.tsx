@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioDragAndDropTree } from '@studio/components';
 import { renderSchemaNodeList } from './renderSchemaNodeList';
 import { useTranslation } from 'react-i18next';

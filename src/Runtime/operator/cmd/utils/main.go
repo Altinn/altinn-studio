@@ -4,26 +4,28 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
+	"github.com/go-jose/go-jose/v4"
+
+	opclock "altinn.studio/operator/internal/clock"
 	"altinn.studio/operator/internal/config"
 	"altinn.studio/operator/internal/crypto"
 	"altinn.studio/operator/internal/maskinporten"
 	"altinn.studio/operator/internal/operatorcontext"
 	"altinn.studio/operator/internal/orgs"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
-	"github.com/go-jose/go-jose/v4"
-	"github.com/jonboulle/clockwork"
 )
 
 type setupResult struct {
-	ctx           context.Context
 	config        *config.Config
 	operatorCtx   *operatorcontext.Context
 	client        *maskinporten.HttpApiClient
@@ -36,116 +38,231 @@ const (
 	subcommandClientToken = "client-token"
 	subcommandClients     = "clients"
 	subcommandJwk         = "jwk"
+	subcommandEnv         = "env"
+	defaultCertLifetime   = 365 * 24 * time.Hour
+	maskinportenClientID  = "MaskinportenApi--ClientId"
+	maskinportenJWK       = "MaskinportenApi--Jwk"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s <command> <subcommand> [options]\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "Commands:\n")
-		fmt.Fprintf(os.Stderr, "  get     Get resources (token, client-token, clients)\n")
-		fmt.Fprintf(os.Stderr, "  create  Create resources (jwk, client)\n")
-		fmt.Fprintf(os.Stderr, "  update  Update resources (client)\n")
-		fmt.Fprintf(os.Stderr, "  delete  Delete resources (client)\n")
-		fmt.Fprintf(os.Stderr, "  init    Initialize resources (env)\n")
+		printRootUsage()
 		os.Exit(1)
 	}
 
-	command := os.Args[1]
-
-	switch command {
+	switch os.Args[1] {
 	case "get":
-		if len(os.Args) < 3 {
-			fmt.Fprintf(os.Stderr, "Usage: %s get <subcommand> [options]\n", os.Args[0])
-			fmt.Fprintf(os.Stderr, "Subcommands:\n")
-			fmt.Fprintf(os.Stderr, "  token         Get a Maskinporten access token (using env file credentials)\n")
-			fmt.Fprintf(os.Stderr, "  client-token  Get a Maskinporten access token (using provided client-id and jwk)\n")
-			fmt.Fprintf(os.Stderr, "  clients       List Maskinporten clients\n")
-			os.Exit(1)
-		}
-
-		subcommand := os.Args[2]
-		switch subcommand {
-		case subcommandToken:
-			getToken()
-		case subcommandClientToken:
-			getClientToken()
-		case subcommandClients:
-			getClients()
-		default:
-			fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcommand)
-			os.Exit(1)
-		}
+		runCommandGroup(
+			"get",
+			[]string{
+				"  token         Get a Maskinporten access token (using env file credentials)",
+				"  client-token  Get a Maskinporten access token (using provided client-id and jwk)",
+				"  clients       List Maskinporten clients",
+			},
+			map[string]func(){
+				subcommandToken:       getToken,
+				subcommandClientToken: getClientToken,
+				subcommandClients:     getClients,
+			},
+		)
 	case "create":
-		if len(os.Args) < 3 {
-			fmt.Fprintf(os.Stderr, "Usage: %s create <subcommand> [options]\n", os.Args[0])
-			fmt.Fprintf(os.Stderr, "Subcommands:\n")
-			fmt.Fprintf(os.Stderr, "  jwk     Create a JSON Web Key Set\n")
-			fmt.Fprintf(os.Stderr, "  client  Create a Maskinporten client\n")
-			os.Exit(1)
-		}
-
-		subcommand := os.Args[2]
-		switch subcommand {
-		case subcommandJwk:
-			createJwk()
-		case subcommandClient:
-			createClient()
-		default:
-			fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcommand)
-			os.Exit(1)
-		}
+		runCommandGroup(
+			"create",
+			[]string{
+				"  jwk     Create a JSON Web Key Set",
+				"  client  Create a Maskinporten client",
+			},
+			map[string]func(){
+				subcommandJwk:    createJwk,
+				subcommandClient: createClient,
+			},
+		)
 	case "delete":
-		if len(os.Args) < 3 {
-			fmt.Fprintf(os.Stderr, "Usage: %s delete <subcommand> [options]\n", os.Args[0])
-			fmt.Fprintf(os.Stderr, "Subcommands:\n")
-			fmt.Fprintf(os.Stderr, "  client  Delete a Maskinporten client\n")
-			os.Exit(1)
-		}
-
-		subcommand := os.Args[2]
-		switch subcommand {
-		case subcommandClient:
-			deleteClient()
-		default:
-			fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcommand)
-			os.Exit(1)
-		}
+		runCommandGroup(
+			"delete",
+			[]string{"  client  Delete a Maskinporten client"},
+			map[string]func(){subcommandClient: deleteClient},
+		)
 	case "update":
-		if len(os.Args) < 3 {
-			fmt.Fprintf(os.Stderr, "Usage: %s update <subcommand> [options]\n", os.Args[0])
-			fmt.Fprintf(os.Stderr, "Subcommands:\n")
-			fmt.Fprintf(os.Stderr, "  client  Update a Maskinporten client\n")
-			os.Exit(1)
-		}
-
-		subcommand := os.Args[2]
-		switch subcommand {
-		case subcommandClient:
-			updateClient()
-		default:
-			fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcommand)
-			os.Exit(1)
-		}
+		runCommandGroup(
+			"update",
+			[]string{"  client  Update a Maskinporten client"},
+			map[string]func(){subcommandClient: updateClient},
+		)
 	case "init":
-		if len(os.Args) < 3 {
-			fmt.Fprintf(os.Stderr, "Usage: %s init <subcommand> [options]\n", os.Args[0])
-			fmt.Fprintf(os.Stderr, "Subcommands:\n")
-			fmt.Fprintf(os.Stderr, "  env  Initialize Azure Key Vault secrets for an environment\n")
-			os.Exit(1)
-		}
-
-		subcommand := os.Args[2]
-		switch subcommand {
-		case "env":
-			initEnv()
-		default:
-			fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", subcommand)
-			os.Exit(1)
-		}
+		runCommandGroup(
+			"init",
+			[]string{"  env  Initialize Azure Key Vault secrets for an environment"},
+			map[string]func(){subcommandEnv: initEnv},
+		)
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
+		failf("Unknown command: %s\n", os.Args[1])
+	}
+}
+
+func printRootUsage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s <command> <subcommand> [options]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Commands:\n")
+	fmt.Fprintf(os.Stderr, "  get     Get resources (token, client-token, clients)\n")
+	fmt.Fprintf(os.Stderr, "  create  Create resources (jwk, client)\n")
+	fmt.Fprintf(os.Stderr, "  update  Update resources (client)\n")
+	fmt.Fprintf(os.Stderr, "  delete  Delete resources (client)\n")
+	fmt.Fprintf(os.Stderr, "  init    Initialize resources (env)\n")
+}
+
+func runCommandGroup(command string, subcommands []string, handlers map[string]func()) {
+	if len(os.Args) < 3 {
+		fmt.Fprintf(os.Stderr, "Usage: %s %s <subcommand> [options]\n", os.Args[0], command)
+		fmt.Fprintf(os.Stderr, "Subcommands:\n")
+		for _, subcommand := range subcommands {
+			fmt.Fprintf(os.Stderr, "%s\n", subcommand)
+		}
 		os.Exit(1)
 	}
+
+	handler, ok := handlers[os.Args[2]]
+	if !ok {
+		failf("Unknown subcommand: %s\n", os.Args[2])
+	}
+
+	handler()
+}
+
+func failf(format string, args ...any) {
+	_, _ = fmt.Fprintf(os.Stderr, format, args...)
+	os.Exit(1)
+}
+
+func mustParseFlags(fs *flag.FlagSet) {
+	if err := fs.Parse(os.Args[3:]); err != nil {
+		failf("Failed to parse flags: %v\n", err)
+	}
+}
+
+func requireFlag(fs *flag.FlagSet, value, name string) {
+	if value != "" {
+		return
+	}
+
+	fmt.Fprintf(os.Stderr, "--%s flag is required\n", name)
+	fs.Usage()
+	os.Exit(1)
+}
+
+func mustMarshalJSON(v any, pretty bool, subject string) []byte {
+	var (
+		data []byte
+		err  error
+	)
+
+	if pretty {
+		data, err = json.MarshalIndent(v, "", "  ")
+	} else {
+		data, err = json.Marshal(v)
+	}
+	if err != nil {
+		failf("Failed to marshal %s to JSON: %v\n", subject, err)
+	}
+
+	return data
+}
+
+func mustWriteStdout(value string) {
+	_, err := fmt.Fprintln(os.Stdout, value)
+	if err != nil {
+		failf("Failed to write to stdout: %v\n", err)
+	}
+}
+
+func splitCSV(values string) []string {
+	parts := strings.Split(values, ",")
+	for i := range parts {
+		parts[i] = strings.TrimSpace(parts[i])
+	}
+
+	return parts
+}
+
+func parseNotAfter(notAfterStr string) time.Time {
+	if notAfterStr == "" {
+		return time.Now().Add(defaultCertLifetime)
+	}
+
+	notAfter, err := time.Parse(time.RFC3339, notAfterStr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to parse not-after time: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Expected RFC3339 format, e.g., 2024-12-31T23:59:59Z\n")
+		os.Exit(1)
+	}
+
+	return notAfter
+}
+
+func validatePrivateJWK(jwkStr string) {
+	var jwk jose.JSONWebKey
+	if err := json.Unmarshal([]byte(jwkStr), &jwk); err != nil {
+		failf("Invalid JWK: %v\n", err)
+	}
+	if !jwk.Valid() {
+		failf("Invalid JWK: key validation failed\n")
+	}
+	if jwk.IsPublic() {
+		failf("Invalid JWK: must be a private key, not public\n")
+	}
+}
+
+func ensureSecretAbsent(ctx context.Context, client *azsecrets.Client, secretName string) {
+	if secretExists(ctx, client, secretName) {
+		failf("Secret %s already exists. Use --force to overwrite.\n", secretName)
+	}
+}
+
+func loadSetup(env string, withCrypto bool) (*setupResult, string) {
+	envFile := env + ".env"
+	setup, err := setupMaskinportenClient(env, envFile, withCrypto)
+	if err != nil {
+		failf("%v\n", err)
+	}
+
+	return setup, envFile
+}
+
+func createClientRequest(setup *setupResult, appID, scopes string) *maskinporten.AddClientRequest {
+	integrationType := maskinporten.IntegrationTypeMaskinporten
+	appType := maskinporten.ApplicationTypeWeb
+	tokenEndpointMethod := maskinporten.TokenEndpointAuthMethodPrivateKeyJwt
+	clientName := maskinporten.GetFullClientName(setup.operatorCtx, appID)
+	description := fmt.Sprintf(
+		"Altinn Studio Operator managed client for %s/%s/%s",
+		setup.operatorCtx.ServiceOwner.Id,
+		setup.operatorCtx.Environment,
+		appID,
+	)
+
+	return &maskinporten.AddClientRequest{
+		ClientName:              &clientName,
+		Description:             &description,
+		ClientOrgno:             &setup.operatorCtx.ServiceOwner.OrgNo,
+		GrantTypes:              []maskinporten.GrantType{maskinporten.GrantTypeJwtBearer},
+		Scopes:                  splitCSV(scopes),
+		IntegrationType:         &integrationType,
+		ApplicationType:         &appType,
+		TokenEndpointAuthMethod: &tokenEndpointMethod,
+	}
+}
+
+func mustKeyVaultClient(vaultURL string) *azsecrets.Client {
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		failf("Failed to get Azure credentials: %v\n", err)
+	}
+
+	client, err := azsecrets.NewClient(vaultURL, cred, nil)
+	if err != nil {
+		failf("Failed to create Key Vault client: %v\n", err)
+	}
+
+	return client
 }
 
 func getToken() {
@@ -155,18 +272,9 @@ func getToken() {
 	fs.StringVar(&env, "env", "at22", "Environment name (will load <env>.env file)")
 	fs.BoolVar(&verbose, "verbose", false, "Print configuration information to stderr")
 
-	err := fs.Parse(os.Args[3:])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to parse flags: %v\n", err)
-		os.Exit(1)
-	}
+	mustParseFlags(fs)
 
-	envFile := env + ".env"
-	setup, err := setupMaskinportenClient(env, envFile, false)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
+	setup, envFile := loadSetup(env, false)
 
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Configuration loaded from: %s\n", envFile)
@@ -177,13 +285,13 @@ func getToken() {
 		fmt.Fprintf(os.Stderr, "---\n")
 	}
 
-	tokenResponse, err := setup.client.GetAccessToken(setup.ctx)
+	tokenResponse, err := setup.client.GetAccessToken(context.Background())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get access token: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Println(tokenResponse.AccessToken)
+	mustWriteStdout(tokenResponse.AccessToken)
 }
 
 func getClientToken() {
@@ -250,19 +358,19 @@ func getClientToken() {
 		OrgRegistry: setup.config.OrgRegistry,
 	}
 	clientConfigMonitor := config.NewConfigMonitorForTesting(clientConfig)
-	client, err := maskinporten.NewHttpApiClient(clientConfigMonitor, setup.operatorCtx, clockwork.NewRealClock())
+	client, err := maskinporten.NewHttpApiClient(clientConfigMonitor, setup.operatorCtx, opclock.NewRealClock())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create Maskinporten client: %v\n", err)
 		os.Exit(1)
 	}
 
-	tokenResponse, err := client.GetAccessToken(setup.ctx)
+	tokenResponse, err := client.GetAccessToken(context.Background())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get access token: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Println(tokenResponse.AccessToken)
+	mustWriteStdout(tokenResponse.AccessToken)
 }
 
 func getClients() {
@@ -293,7 +401,7 @@ func getClients() {
 		fmt.Fprintf(os.Stderr, "---\n")
 	}
 
-	clients, err := setup.client.GetAllClients(setup.ctx)
+	clients, err := setup.client.GetAllClients(context.Background())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get clients: %v\n", err)
 		os.Exit(1)
@@ -304,18 +412,7 @@ func getClients() {
 		fmt.Fprintf(os.Stderr, "---\n")
 	}
 
-	var output []byte
-	if pretty {
-		output, err = json.MarshalIndent(clients, "", "  ")
-	} else {
-		output, err = json.Marshal(clients)
-	}
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to marshal clients to JSON: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Println(string(output))
+	mustWriteStdout(string(mustMarshalJSON(clients, pretty, "clients")))
 }
 
 func createClient() {
@@ -331,30 +428,11 @@ func createClient() {
 	fs.BoolVar(&verbose, "verbose", false, "Print configuration information to stderr")
 	fs.BoolVar(&pretty, "pretty", false, "Format JSON output with indentation")
 
-	err := fs.Parse(os.Args[3:])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to parse flags: %v\n", err)
-		os.Exit(1)
-	}
+	mustParseFlags(fs)
+	requireFlag(fs, scopes, "scopes")
+	requireFlag(fs, appId, "app-id")
 
-	if scopes == "" {
-		fmt.Fprintf(os.Stderr, "--scopes flag is required\n")
-		fs.Usage()
-		os.Exit(1)
-	}
-
-	if appId == "" {
-		fmt.Fprintf(os.Stderr, "--app-id flag is required\n")
-		fs.Usage()
-		os.Exit(1)
-	}
-
-	envFile := env + ".env"
-	setup, err := setupMaskinportenClient(env, envFile, true)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
+	setup, envFile := loadSetup(env, true)
 
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Configuration loaded from: %s\n", envFile)
@@ -367,8 +445,7 @@ func createClient() {
 		fmt.Fprintf(os.Stderr, "---\n")
 	}
 
-	// Create JWKS
-	notAfter := time.Now().Add(time.Hour * 24 * 365)
+	notAfter := time.Now().Add(defaultCertLifetime)
 	certSubject := crypto.CertSubject{
 		Organization:       setup.operatorCtx.ServiceOwner.OrgName,
 		OrganizationalUnit: setup.operatorCtx.ServiceOwner.Id,
@@ -380,40 +457,14 @@ func createClient() {
 		os.Exit(1)
 	}
 
-	// Build client request (matching operator behavior from client_state.go)
-	integrationType := maskinporten.IntegrationTypeMaskinporten
-	appType := maskinporten.ApplicationTypeWeb
-	tokenEndpointMethod := maskinporten.TokenEndpointAuthMethodPrivateKeyJwt
-	clientName := maskinporten.GetFullClientName(setup.operatorCtx, appId)
-	description := fmt.Sprintf(
-		"Altinn Studio Operator managed client for %s/%s/%s",
-		setup.operatorCtx.ServiceOwner.Id,
-		setup.operatorCtx.Environment,
-		appId,
-	)
-
-	scopeList := strings.Split(scopes, ",")
-	for i := range scopeList {
-		scopeList[i] = strings.TrimSpace(scopeList[i])
-	}
-
-	req := &maskinporten.AddClientRequest{
-		ClientName:              &clientName,
-		Description:             &description,
-		ClientOrgno:             &setup.operatorCtx.ServiceOwner.OrgNo,
-		GrantTypes:              []maskinporten.GrantType{maskinporten.GrantTypeJwtBearer},
-		Scopes:                  scopeList,
-		IntegrationType:         &integrationType,
-		ApplicationType:         &appType,
-		TokenEndpointAuthMethod: &tokenEndpointMethod,
-	}
+	req := createClientRequest(setup, appId, scopes)
 
 	publicJwks, err := jwks.ToPublic()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get public JWKS: %v\n", err)
 		os.Exit(1)
 	}
-	resp, err := setup.client.CreateClient(setup.ctx, req, publicJwks)
+	resp, err := setup.client.CreateClient(context.Background(), req, publicJwks)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create Maskinporten client: %v\n", err)
 		os.Exit(1)
@@ -425,33 +476,10 @@ func createClient() {
 	}
 
 	// Output the client response
-	var respJson []byte
-	if pretty {
-		respJson, err = json.MarshalIndent(resp, "", "  ")
-	} else {
-		respJson, err = json.Marshal(resp)
-	}
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to marshal response to JSON: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Output the private JWKS for the user to save
 	jwk := jwks.Keys[0]
-	var jwkJson []byte
-	if pretty {
-		jwkJson, err = json.MarshalIndent(jwk, "", "  ")
-	} else {
-		jwkJson, err = json.Marshal(jwk)
-	}
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to marshal JWK to JSON: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Println(string(respJson))
-	fmt.Println("---")
-	fmt.Println(string(jwkJson))
+	mustWriteStdout(string(mustMarshalJSON(resp, pretty, "response")))
+	mustWriteStdout("---")
+	mustWriteStdout(string(mustMarshalJSON(jwk, pretty, "JWK")))
 }
 
 func createJwk() {
@@ -476,25 +504,9 @@ func createJwk() {
 	fs.BoolVar(&pretty, "pretty", false, "Format JSON output with indentation")
 
 	// Parse remaining args (skip program name, "create", "jwk")
-	err := fs.Parse(os.Args[3:])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to parse flags: %v\n", err)
-		os.Exit(1)
-	}
+	mustParseFlags(fs)
 
-	// Parse the notAfter time
-	var notAfter time.Time
-	if notAfterStr == "" {
-		// Default to 1 year from now
-		notAfter = time.Now().Add(time.Hour * 24 * 365)
-	} else {
-		notAfter, err = time.Parse(time.RFC3339, notAfterStr)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to parse not-after time: %v\n", err)
-			fmt.Fprintf(os.Stderr, "Expected RFC3339 format, e.g., 2024-12-31T23:59:59Z\n")
-			os.Exit(1)
-		}
-	}
+	notAfter := parseNotAfter(notAfterStr)
 
 	_, cryptoService := setupBaseServices()
 
@@ -523,32 +535,11 @@ func createJwk() {
 	}
 
 	// Output the JWKS as JSON
-	var jwkJson []byte
-	var publicJwkJson []byte
 	jwk := jwks.Keys[0]
 	publicJwk := jwk.Public()
-	if pretty {
-		jwkJson, err = json.MarshalIndent(jwk, "", "  ")
-	} else {
-		jwkJson, err = json.Marshal(jwk)
-	}
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to marshal JWK to JSON: %v\n", err)
-		os.Exit(1)
-	}
-	if pretty {
-		publicJwkJson, err = json.MarshalIndent(publicJwk, "", "  ")
-	} else {
-		publicJwkJson, err = json.Marshal(publicJwk)
-	}
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to marshal public JWK to JSON: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Println(string(jwkJson))
-	fmt.Println("---")
-	fmt.Println(string(publicJwkJson))
+	mustWriteStdout(string(mustMarshalJSON(jwk, pretty, "JWK")))
+	mustWriteStdout("---")
+	mustWriteStdout(string(mustMarshalJSON(publicJwk, pretty, "public JWK")))
 }
 
 func deleteClient() {
@@ -586,7 +577,7 @@ func deleteClient() {
 		fmt.Fprintf(os.Stderr, "---\n")
 	}
 
-	if err := setup.client.DeleteClient(setup.ctx, clientID); err != nil {
+	if err := setup.client.DeleteClient(context.Background(), clientID); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to delete client: %v\n", err)
 		os.Exit(1)
 	}
@@ -595,7 +586,7 @@ func deleteClient() {
 		fmt.Fprintf(os.Stderr, "Client deleted: %s\n", clientID)
 	}
 
-	fmt.Println(clientID)
+	mustWriteStdout(clientID)
 }
 
 func updateClient() {
@@ -611,30 +602,11 @@ func updateClient() {
 	fs.BoolVar(&verbose, "verbose", false, "Print configuration information to stderr")
 	fs.BoolVar(&pretty, "pretty", false, "Format JSON output with indentation")
 
-	err := fs.Parse(os.Args[3:])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to parse flags: %v\n", err)
-		os.Exit(1)
-	}
+	mustParseFlags(fs)
+	requireFlag(fs, clientID, "client-id")
+	requireFlag(fs, scopes, "scopes")
 
-	if clientID == "" {
-		fmt.Fprintf(os.Stderr, "--client-id flag is required\n")
-		fs.Usage()
-		os.Exit(1)
-	}
-
-	if scopes == "" {
-		fmt.Fprintf(os.Stderr, "--scopes flag is required\n")
-		fs.Usage()
-		os.Exit(1)
-	}
-
-	envFile := env + ".env"
-	setup, err := setupMaskinportenClient(env, envFile, false)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
+	setup, envFile := loadSetup(env, false)
 
 	if verbose {
 		fmt.Fprintf(os.Stderr, "Configuration loaded from: %s\n", envFile)
@@ -645,7 +617,7 @@ func updateClient() {
 	}
 
 	// First, fetch the existing client to get all current fields
-	existingClient, _, err := setup.client.GetClient(setup.ctx, clientID)
+	existingClient, _, err := setup.client.GetClient(context.Background(), clientID)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to get existing client: %v\n", err)
 		os.Exit(1)
@@ -662,13 +634,9 @@ func updateClient() {
 	req := maskinporten.ConvertAddRequestToUpdateRequest(addReq)
 
 	// Update only the scopes
-	scopeList := strings.Split(scopes, ",")
-	for i := range scopeList {
-		scopeList[i] = strings.TrimSpace(scopeList[i])
-	}
-	req.Scopes = scopeList
+	req.Scopes = splitCSV(scopes)
 
-	resp, err := setup.client.UpdateClient(setup.ctx, clientID, req)
+	resp, err := setup.client.UpdateClient(context.Background(), clientID, req)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to update client: %v\n", err)
 		os.Exit(1)
@@ -679,18 +647,7 @@ func updateClient() {
 		fmt.Fprintf(os.Stderr, "---\n")
 	}
 
-	var output []byte
-	if pretty {
-		output, err = json.MarshalIndent(resp, "", "  ")
-	} else {
-		output, err = json.Marshal(resp)
-	}
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to marshal response to JSON: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Println(string(output))
+	mustWriteStdout(string(mustMarshalJSON(resp, pretty, "response")))
 }
 
 func initEnv() {
@@ -706,46 +663,12 @@ func initEnv() {
 	fs.BoolVar(&force, "force", false, "Overwrite existing secrets")
 	fs.BoolVar(&verbose, "verbose", false, "Print verbose output")
 
-	err := fs.Parse(os.Args[3:])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to parse flags: %v\n", err)
-		os.Exit(1)
-	}
+	mustParseFlags(fs)
+	requireFlag(fs, env, "env")
+	requireFlag(fs, clientID, "client-id")
+	requireFlag(fs, jwkStr, "jwk")
 
-	if env == "" {
-		fmt.Fprintf(os.Stderr, "--env flag is required\n")
-		fs.Usage()
-		os.Exit(1)
-	}
-
-	if clientID == "" {
-		fmt.Fprintf(os.Stderr, "--client-id flag is required\n")
-		fs.Usage()
-		os.Exit(1)
-	}
-
-	if jwkStr == "" {
-		fmt.Fprintf(os.Stderr, "--jwk flag is required\n")
-		fs.Usage()
-		os.Exit(1)
-	}
-
-	// Validate JWK
-	var jwk jose.JSONWebKey
-	if err := json.Unmarshal([]byte(jwkStr), &jwk); err != nil {
-		fmt.Fprintf(os.Stderr, "Invalid JWK: %v\n", err)
-		os.Exit(1)
-	}
-	if !jwk.Valid() {
-		fmt.Fprintf(os.Stderr, "Invalid JWK: key validation failed\n")
-		os.Exit(1)
-	}
-	if !jwk.IsPublic() {
-		// Good - it's a private key
-	} else {
-		fmt.Fprintf(os.Stderr, "Invalid JWK: must be a private key, not public\n")
-		os.Exit(1)
-	}
+	validatePrivateJWK(jwkStr)
 
 	ctx := context.Background()
 	vaultURL := config.KeyVaultURL(env)
@@ -756,55 +679,43 @@ func initEnv() {
 		fmt.Fprintf(os.Stderr, "---\n")
 	}
 
-	cred, err := azidentity.NewDefaultAzureCredential(nil)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to get Azure credentials: %v\n", err)
-		os.Exit(1)
-	}
-
-	client, err := azsecrets.NewClient(vaultURL, cred, nil)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create Key Vault client: %v\n", err)
-		os.Exit(1)
-	}
+	client := mustKeyVaultClient(vaultURL)
 
 	// Check for existing secrets if not forcing
 	if !force {
-		if secretExists(ctx, client, "MaskinportenApi--ClientId") {
-			fmt.Fprintf(os.Stderr, "Secret MaskinportenApi--ClientId already exists. Use --force to overwrite.\n")
-			os.Exit(1)
-		}
-		if secretExists(ctx, client, "MaskinportenApi--Jwk") {
-			fmt.Fprintf(os.Stderr, "Secret MaskinportenApi--Jwk already exists. Use --force to overwrite.\n")
-			os.Exit(1)
-		}
+		ensureSecretAbsent(ctx, client, maskinportenClientID)
+		ensureSecretAbsent(ctx, client, maskinportenJWK)
 	}
 
 	// Set secrets
-	if err := setSecret(ctx, client, "MaskinportenApi--ClientId", clientID); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to set MaskinportenApi--ClientId: %v\n", err)
+	if err := setSecret(ctx, client, maskinportenClientID, clientID); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to set %s: %v\n", maskinportenClientID, err)
 		os.Exit(1)
 	}
 	if verbose {
-		fmt.Fprintf(os.Stderr, "Set secret: MaskinportenApi--ClientId\n")
+		fmt.Fprintf(os.Stderr, "Set secret: %s\n", maskinportenClientID)
 	}
 
-	if err := setSecret(ctx, client, "MaskinportenApi--Jwk", jwkStr); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to set MaskinportenApi--Jwk: %v\n", err)
+	if err := setSecret(ctx, client, maskinportenJWK, jwkStr); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to set %s: %v\n", maskinportenJWK, err)
 		os.Exit(1)
 	}
 	if verbose {
-		fmt.Fprintf(os.Stderr, "Set secret: MaskinportenApi--Jwk\n")
+		fmt.Fprintf(os.Stderr, "Set secret: %s\n", maskinportenJWK)
 	}
 
-	fmt.Printf("Successfully initialized Key Vault secrets for environment %s\n", env)
+	_, err := fmt.Fprintf(os.Stdout, "Successfully initialized Key Vault secrets for environment %s\n", env)
+	if err != nil {
+		failf("Failed to write success message: %v\n", err)
+	}
 }
 
 func secretExists(ctx context.Context, client *azsecrets.Client, name string) bool {
 	_, err := client.GetSecret(ctx, name, "", nil)
 	if err != nil {
-		if respErr, ok := err.(*azcore.ResponseError); ok {
-			if respErr.StatusCode == 404 {
+		respErr := &azcore.ResponseError{}
+		if errors.As(err, &respErr) {
+			if respErr.StatusCode == http.StatusNotFound {
 				return false
 			}
 		}
@@ -819,7 +730,10 @@ func setSecret(ctx context.Context, client *azsecrets.Client, name, value string
 		Value: &value,
 	}
 	_, err := client.SetSecret(ctx, name, params, nil)
-	return err
+	if err != nil {
+		return fmt.Errorf("set key vault secret %s: %w", name, err)
+	}
+	return nil
 }
 
 func setupMaskinportenClient(env, envFile string, withCrypto bool) (*setupResult, error) {
@@ -856,7 +770,6 @@ func setupMaskinportenClient(env, envFile string, withCrypto bool) (*setupResult
 	}
 
 	result := &setupResult{
-		ctx:         ctx,
 		config:      configValue,
 		operatorCtx: operatorCtx,
 		client:      client,
@@ -869,8 +782,8 @@ func setupMaskinportenClient(env, envFile string, withCrypto bool) (*setupResult
 	return result, nil
 }
 
-func setupBaseServices() (clockwork.Clock, *crypto.CryptoService) {
-	clock := clockwork.NewRealClock()
+func setupBaseServices() (opclock.Clock, *crypto.CryptoService) {
+	clock := opclock.NewRealClock()
 	cryptoService := crypto.NewDefaultService(clock, rand.Reader)
 	return clock, cryptoService
 }

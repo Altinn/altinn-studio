@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { InputActionWrapperProps } from './InputActionWrapper';
 import { InputActionWrapper } from './InputActionWrapper';

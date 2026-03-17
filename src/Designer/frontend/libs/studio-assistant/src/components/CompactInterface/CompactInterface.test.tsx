@@ -1,4 +1,3 @@
-import React from 'react';
 import { CompactInterface } from './CompactInterface';
 import { render, screen } from '@testing-library/react';
 import type { CompactInterfaceProps } from './CompactInterface';

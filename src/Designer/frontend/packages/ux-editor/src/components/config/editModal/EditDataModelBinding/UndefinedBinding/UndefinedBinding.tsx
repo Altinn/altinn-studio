@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioProperty } from '@studio/components';
 import { LinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { StudioButton } from '@studio/components';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';

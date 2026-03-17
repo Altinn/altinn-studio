@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import type { SelectionComponentType } from '../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useText } from '../../../hooks';
 import { EditBooleanValue } from '../editModal/EditBooleanValue';
 import { StudioProperty } from '@studio/components';

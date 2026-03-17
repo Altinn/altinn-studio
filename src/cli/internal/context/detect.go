@@ -177,6 +177,7 @@ func isStudioRepoRoot(ctx context.Context, dir string) bool {
 		return false
 	}
 
+	//nolint:gosec // G204: git binary and flags are fixed; dir comes from validated local directory traversal.
 	cmd := exec.CommandContext(ctx, "git", "-C", dir, "remote", "-v")
 	out, err := cmd.Output()
 	if err != nil {

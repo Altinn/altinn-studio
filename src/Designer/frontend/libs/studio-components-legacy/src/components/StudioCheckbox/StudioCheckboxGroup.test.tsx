@@ -1,7 +1,6 @@
 import type { StudioCheckboxGroupProps } from './';
 import { StudioCheckbox } from './';
 import type { ForwardedRef } from 'react';
-import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';

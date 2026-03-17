@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useComponentPropertyLabel } from '../../../../hooks';
 import { StudioProperty } from '@studio/components';
 import { PlusCircleIcon } from '@studio/icons';

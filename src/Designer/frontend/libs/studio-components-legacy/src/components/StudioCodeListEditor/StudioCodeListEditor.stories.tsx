@@ -5,13 +5,13 @@ import { texts } from './test-data/texts';
 import { codeListWithStrings } from './test-data/codeListWithStrings';
 import { codeListWithoutTextResources } from './test-data/codeListWithoutTextResources';
 
-type Story = StoryObj<typeof StudioCodeListEditor>;
-
-const meta: Meta<typeof StudioCodeListEditor> = {
+const meta = {
   title: 'Components/StudioCodeListEditor',
   component: StudioCodeListEditor,
-};
+} satisfies Meta<typeof StudioCodeListEditor>;
 export default meta;
+
+type Story = StoryObj<typeof StudioCodeListEditor>;
 
 export const WithTextResources: Story = {
   args: {

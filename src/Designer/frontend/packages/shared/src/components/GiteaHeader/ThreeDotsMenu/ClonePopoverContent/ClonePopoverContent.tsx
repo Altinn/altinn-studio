@@ -1,4 +1,3 @@
-import React from 'react';
 import { repositoryGitPath } from 'app-shared/api/paths';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import classes from './ClonePopoverContent.module.css';

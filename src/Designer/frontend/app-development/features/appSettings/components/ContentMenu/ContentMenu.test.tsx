@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ContentMenu } from './ContentMenu';
 import { typedLocalStorage } from '@studio/pure-functions';

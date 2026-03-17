@@ -13,7 +13,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
-using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
@@ -254,7 +253,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
 
         private static IServiceCollection AddMaskinportenHttpClient(this IServiceCollection services)
         {
-            services.AddTransient<AnsattPortenTokenDelegatingHandler>();
+            services.AddTransient<OidcTokenDelegatingHandler>();
             services
                 .AddHttpClient(
                     MaskinPortenHttpClient.HttpClientName,
@@ -266,7 +265,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                         httpClient.BaseAddress = new Uri(options.BaseUrl);
                     }
                 )
-                .AddHttpMessageHandler<AnsattPortenTokenDelegatingHandler>();
+                .AddHttpMessageHandler<OidcTokenDelegatingHandler>();
             services.AddHttpClient(
                 MaskinPortenHttpClient.PublicHttpClientName,
                 (serviceProvider, httpClient) =>

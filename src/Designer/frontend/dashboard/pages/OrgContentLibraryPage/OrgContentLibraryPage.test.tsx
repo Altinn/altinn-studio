@@ -1,4 +1,3 @@
-import React from 'react';
 import { OrgContentLibraryPage } from './OrgContentLibraryPage';
 import type { RenderResult } from '@testing-library/react';
 import { screen, waitFor, act } from '@testing-library/react';

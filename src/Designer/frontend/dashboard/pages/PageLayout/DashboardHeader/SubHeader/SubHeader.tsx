@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { useSelectedContext } from '../../../../hooks/useSelectedContext';
 import { useOrgRepoName } from '../../../../hooks/useOrgRepoName';

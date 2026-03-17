@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import React from 'react';
 import classes from './ImagesPage.module.css';
 import { Alert } from '@digdir/designsystemet-react';
 import { StudioHeading } from '@studio/components';

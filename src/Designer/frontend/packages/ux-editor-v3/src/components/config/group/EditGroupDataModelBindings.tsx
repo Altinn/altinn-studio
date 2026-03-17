@@ -1,4 +1,3 @@
-import React from 'react';
 import type { IDataModelBindings } from '../../../types/global';
 import { SelectDataModelComponent } from '../SelectDataModelComponent';
 import { useTranslation } from 'react-i18next';

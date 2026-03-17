@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { StudioDeleteButton } from '../../StudioDeleteButton';
 import { StudioParagraph } from '../../StudioParagraph';
 import classes from './StudioConfigCardHeader.module.css';

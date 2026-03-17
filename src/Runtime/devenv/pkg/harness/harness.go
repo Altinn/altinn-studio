@@ -1,45 +1,49 @@
+// Package harness orchestrates local runtime setup, image pushes, and Flux-based deployments.
 package harness
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	"altinn.studio/devenv/pkg/flux"
 	"altinn.studio/devenv/pkg/runtimes/kind"
-	"golang.org/x/sync/errgroup"
 )
 
-// Config describes the complete setup/deployment specification
+var (
+	errClusterCompletedWithoutRegistry = errors.New("cluster completed but registry never signaled ready")
+	errDeploymentConfigMissing         = errors.New("deployment has neither Kustomize nor Helm configured")
+	errProjectRootRequired             = errors.New("ProjectRoot is required")
+	errTimeoutWaitingClusterSetup      = errors.New("timeout waiting for cluster setup")
+	errTimeoutWaitingIngress           = errors.New("timeout waiting for ingress")
+	errTimeoutWaitingRegistry          = errors.New("timeout waiting for registry")
+)
+
+const (
+	clusterSetupTimeout  = 5 * time.Minute
+	ingressReadyTimeout  = 3 * time.Minute
+	registryReadyTimeout = 5 * time.Minute
+	durationLogRounding  = 10 * time.Millisecond
+)
+
+// Config describes the complete setup/deployment specification.
 type Config struct {
-	// ProjectRoot is required - all relative paths resolve from here
-	ProjectRoot string
-
-	// CachePath relative to ProjectRoot, defaults to ".cache"
-	CachePath string
-
-	// Variant determines cluster size (minimal/standard)
-	Variant kind.KindContainerRuntimeVariant
-
-	// ClusterOptions for kind cluster
+	ProjectRoot    string
+	CachePath      string
+	Images         []Image
+	Artifacts      []Artifact
+	HelmCharts     []HelmChart
+	Deployments    []Deployment
+	Variant        kind.KindContainerRuntimeVariant
 	ClusterOptions kind.KindContainerRuntimeOptions
-
-	// Images to build and push (run in parallel once registry ready)
-	Images []Image
-
-	// Artifacts to push to OCI registry (run in parallel with image builds)
-	Artifacts []Artifact
-
-	// HelmCharts to download and push (run in parallel with other tasks)
-	HelmCharts []HelmChart
-
-	// Deployments to execute after all images/artifacts ready (sequential)
-	Deployments []Deployment
 }
 
-// Image represents a container image to build and push
+// Image represents a container image to build and push.
 type Image struct {
 	Name       string // descriptive name for logging
 	Context    string // build context path (relative to ProjectRoot, or absolute). Defaults to ProjectRoot if empty
@@ -47,7 +51,7 @@ type Image struct {
 	Tag        string // full tag including registry, e.g., "localhost:5001/myapp:latest"
 }
 
-// Artifact represents an OCI artifact to push
+// Artifact represents an OCI artifact to push.
 type Artifact struct {
 	Name     string // descriptive name for logging
 	URL      string // OCI URL, e.g., "oci://localhost:5001/my-repo:local"
@@ -56,7 +60,7 @@ type Artifact struct {
 	Revision string // revision identifier for flux, defaults to "local"
 }
 
-// HelmChart represents a helm chart to download and push
+// HelmChart represents a helm chart to download and push.
 type HelmChart struct {
 	Name       string // descriptive name for logging
 	RepoURL    string // git repo URL
@@ -65,90 +69,63 @@ type HelmChart struct {
 	OCIRef     string // OCI registry reference, e.g., "oci://localhost:5001"
 }
 
-// Deployment represents a Flux-based deployment
+// Deployment represents a Flux-based deployment.
 type Deployment struct {
-	Name string // descriptive name for logging
-
-	// WaitForIngress blocks until ingress/CRDs are ready before deploying.
-	// Use for deployments that depend on Traefik CRDs (e.g., IngressRoute).
+	Kustomize      *KustomizeDeploy
+	Helm           *HelmDeploy
+	Name           string
 	WaitForIngress bool
-
-	// One of: Kustomize or Helm (mutually exclusive)
-	Kustomize *KustomizeDeploy
-	Helm      *HelmDeploy
 }
 
-// KustomizeDeploy deploys via Flux Kustomization
+// KustomizeDeploy deploys via Flux Kustomization.
 type KustomizeDeploy struct {
-	// SyncRootDir is the kustomize overlay directory to render and apply (relative to ProjectRoot)
-	SyncRootDir string
-
-	// KustomizationName is the Flux Kustomization resource name
+	ReconcileOpts     *flux.ReconcileOptions
+	SyncRootDir       string
 	KustomizationName string
-
-	// Namespace is the namespace of the Kustomization
-	Namespace string
-
-	// Rollouts to wait for after reconciliation
-	Rollouts []Rollout
-
-	// ReconcileOpts for the Flux reconcile operation. Uses defaults if nil.
-	ReconcileOpts *flux.ReconcileOptions
+	Namespace         string
+	Rollouts          []Rollout
 }
 
-// HelmDeploy deploys via Flux HelmRelease
+// HelmDeploy deploys via Flux HelmRelease.
 type HelmDeploy struct {
-	// ManifestPath is the path to the HelmRelease manifest (relative to ProjectRoot)
-	ManifestPath string
-
-	// HelmRepositoryName for HelmRepository reconciliation
-	HelmRepositoryName string
-
-	// HelmRepositoryNamespace for HelmRepository reconciliation
+	ReconcileOpts           *flux.ReconcileOptions
+	ManifestPath            string
+	HelmRepositoryName      string
 	HelmRepositoryNamespace string
-
-	// HelmReleaseName for HelmRelease reconciliation
-	HelmReleaseName string
-
-	// HelmReleaseNamespace for HelmRelease reconciliation
-	HelmReleaseNamespace string
-
-	// Rollouts to wait for
-	Rollouts []Rollout
-
-	// ReconcileOpts for the Flux reconcile operation. Uses defaults if nil.
-	ReconcileOpts *flux.ReconcileOptions
+	HelmReleaseName         string
+	HelmReleaseNamespace    string
+	Rollouts                []Rollout
 }
 
-// Rollout identifies a deployment to wait for
+// Rollout identifies a deployment to wait for.
 type Rollout struct {
 	Deployment string
 	Namespace  string
 	Timeout    time.Duration // defaults to 2 minutes if zero
 }
 
-// Result from harness execution
+// Result from harness execution.
 type Result struct {
 	Runtime *kind.KindContainerRuntime
 }
 
-// AsyncOptions for RunAsync to receive events during setup
+// AsyncOptions for RunAsync to receive events during setup.
 type AsyncOptions struct {
 	RegistryReady chan<- error // signaled when registry is accepting pushes
 	IngressReady  chan<- error // signaled when ingress is configured
 }
 
-// Run executes the harness configuration synchronously
+// Run executes the harness configuration synchronously.
 func Run(cfg Config) (*Result, error) {
 	return run(cfg, nil)
 }
 
-// RunAsync executes with event channels for fine-grained coordination
+// RunAsync executes with event channels for fine-grained coordination.
 func RunAsync(cfg Config, opts AsyncOptions) (*Result, error) {
 	return run(cfg, &opts)
 }
 
-// LoadExisting loads a pre-existing runtime (for CI scenarios)
+// LoadExisting loads a pre-existing runtime (for CI scenarios).
 func LoadExisting(cachePath string) (*Result, error) {
 	runtime, err := kind.LoadCurrent(cachePath)
 	if err != nil {
@@ -168,7 +145,7 @@ func run(cfg Config, asyncOpts *AsyncOptions) (*Result, error) {
 	}
 	absoluteCachePath := filepath.Join(cfg.ProjectRoot, cachePath)
 
-	fmt.Println("=== Setting Up Runtime ===")
+	writeStdoutln("=== Setting Up Runtime ===")
 
 	// Step 1: Create the kind cluster runtime
 	runtime, err := kind.New(cfg.Variant, absoluteCachePath, cfg.ClusterOptions)
@@ -185,116 +162,77 @@ func run(cfg Config, asyncOpts *AsyncOptions) (*Result, error) {
 	return runSync(cfg, runtime)
 }
 
-// runSync runs cluster setup synchronously, then parallel build/push, then deploy
+// runSync runs cluster setup synchronously, then parallel build/push, then deploy.
 func runSync(cfg Config, runtime *kind.KindContainerRuntime) (*Result, error) {
 	// Step 1: Run cluster setup (blocks until complete including infra)
-	fmt.Println("Setting up cluster...")
+	writeStdoutln("Setting up cluster...")
 	if err := runtime.Run(); err != nil {
 		return nil, fmt.Errorf("cluster setup failed: %w", err)
 	}
 
 	// Step 2: Run parallel build/push tasks
 	if len(cfg.Images) > 0 || len(cfg.Artifacts) > 0 || len(cfg.HelmCharts) > 0 {
-		fmt.Println("Building images and pushing artifacts...")
+		writeStdoutln("Building images and pushing artifacts...")
 		if err := runParallelTasks(cfg, runtime); err != nil {
 			return nil, err
 		}
 	}
 
 	// Step 3: Execute deployments sequentially
-	for _, dep := range cfg.Deployments {
-		if err := executeDeploy(cfg, runtime, dep); err != nil {
-			return nil, fmt.Errorf("deployment %q failed: %w", dep.Name, err)
-		}
+	if err := runDeployments(cfg, runtime, cfg.Deployments); err != nil {
+		return nil, err
 	}
 
-	fmt.Println("=== Runtime Setup Complete ===")
+	writeStdoutln("=== Runtime Setup Complete ===")
 	return &Result{Runtime: runtime}, nil
 }
 
-// runAsync overlaps cluster setup with build/push using event channels
+// runAsync overlaps cluster setup with build/push using event channels.
 func runAsync(cfg Config, runtime *kind.KindContainerRuntime, asyncOpts *AsyncOptions) (*Result, error) {
-	// Set up event channels for async signaling
 	registryReady := make(chan error, 1)
 	ingressReady := make(chan error, 1)
+	clusterDone := make(chan error, 1)
 	runtime.RegistryStartedEvent = registryReady
 	runtime.IngressReadyEvent = ingressReady
-
-	// Start cluster in background
-	clusterDone := make(chan error, 1)
 	go func() {
 		clusterDone <- runtime.Run()
 	}()
 
-	// Wait for registry to be ready
-	fmt.Println("Waiting for registry...")
-	select {
-	case err := <-registryReady:
-		if err != nil {
-			return nil, fmt.Errorf("registry startup failed: %w", err)
-		}
-	case err := <-clusterDone:
-		if err != nil {
-			return nil, fmt.Errorf("cluster setup failed: %w", err)
-		}
-		return nil, errors.New("cluster completed but registry never signaled ready")
-	case <-time.After(5 * time.Minute):
-		return nil, errors.New("timeout waiting for registry")
+	if err := waitForRegistryStart(registryReady, clusterDone); err != nil {
+		return nil, err
 	}
 
-	// Signal registry ready to caller
 	if asyncOpts.RegistryReady != nil {
 		asyncOpts.RegistryReady <- nil
 	}
 
-	// Run parallel build/push tasks (overlapped with cluster setup)
 	if len(cfg.Images) > 0 || len(cfg.Artifacts) > 0 || len(cfg.HelmCharts) > 0 {
-		fmt.Println("Building images and pushing artifacts...")
+		writeStdoutln("Building images and pushing artifacts...")
 		if err := runParallelTasks(cfg, runtime); err != nil {
 			return nil, err
 		}
 	}
 
-	// Wait for cluster setup to complete
-	select {
-	case err := <-clusterDone:
-		if err != nil {
-			return nil, fmt.Errorf("cluster setup failed: %w", err)
-		}
-	default:
-		// Check if cluster already finished during parallel tasks
-		select {
-		case err := <-clusterDone:
-			if err != nil {
-				return nil, fmt.Errorf("cluster setup failed: %w", err)
-			}
-		case <-time.After(5 * time.Minute):
-			return nil, errors.New("timeout waiting for cluster setup")
-		}
+	if err := waitForClusterSetup(clusterDone); err != nil {
+		return nil, err
 	}
 
-	// Execute deployments sequentially, respecting WaitForIngress flag
-	var ingressWaiters []Deployment
+	readyDeployments := make([]Deployment, 0, len(cfg.Deployments))
+	ingressWaiters := make([]Deployment, 0, len(cfg.Deployments))
 	for _, dep := range cfg.Deployments {
 		if dep.WaitForIngress {
 			ingressWaiters = append(ingressWaiters, dep)
 			continue
 		}
-		if err := executeDeploy(cfg, runtime, dep); err != nil {
-			return nil, fmt.Errorf("deployment %q failed: %w", dep.Name, err)
-		}
+		readyDeployments = append(readyDeployments, dep)
+	}
+	if err := runDeployments(cfg, runtime, readyDeployments); err != nil {
+		return nil, err
 	}
 
-	// Wait for ingress ready
 	if len(ingressWaiters) > 0 || asyncOpts.IngressReady != nil {
-		fmt.Println("Waiting for ingress...")
-		select {
-		case err := <-ingressReady:
-			if err != nil {
-				return nil, fmt.Errorf("ingress setup failed: %w", err)
-			}
-		case <-time.After(3 * time.Minute):
-			return nil, errors.New("timeout waiting for ingress")
+		if err := waitForIngressReady(ingressReady); err != nil {
+			return nil, err
 		}
 	}
 
@@ -302,22 +240,71 @@ func runAsync(cfg Config, runtime *kind.KindContainerRuntime, asyncOpts *AsyncOp
 		asyncOpts.IngressReady <- nil
 	}
 
-	// Execute deployments that were waiting for ingress
-	for _, dep := range ingressWaiters {
-		if err := executeDeploy(cfg, runtime, dep); err != nil {
-			return nil, fmt.Errorf("deployment %q failed: %w", dep.Name, err)
-		}
+	if err := runDeployments(cfg, runtime, ingressWaiters); err != nil {
+		return nil, err
 	}
 
-	fmt.Println("=== Runtime Setup Complete ===")
+	writeStdoutln("=== Runtime Setup Complete ===")
 	return &Result{Runtime: runtime}, nil
 }
 
 func validateConfig(cfg *Config) error {
 	if cfg.ProjectRoot == "" {
-		return errors.New("ProjectRoot is required")
+		return errProjectRootRequired
 	}
 	return nil
+}
+
+func waitForRegistryStart(registryReady, clusterDone <-chan error) error {
+	writeStdoutln("Waiting for registry...")
+	select {
+	case err := <-registryReady:
+		if err != nil {
+			return fmt.Errorf("registry startup failed: %w", err)
+		}
+		return nil
+	case err := <-clusterDone:
+		if err != nil {
+			return fmt.Errorf("cluster setup failed: %w", err)
+		}
+		return errClusterCompletedWithoutRegistry
+	case <-time.After(registryReadyTimeout):
+		return errTimeoutWaitingRegistry
+	}
+}
+
+func waitForClusterSetup(clusterDone <-chan error) error {
+	select {
+	case err := <-clusterDone:
+		if err != nil {
+			return fmt.Errorf("cluster setup failed: %w", err)
+		}
+		return nil
+	default:
+	}
+
+	select {
+	case err := <-clusterDone:
+		if err != nil {
+			return fmt.Errorf("cluster setup failed: %w", err)
+		}
+		return nil
+	case <-time.After(clusterSetupTimeout):
+		return errTimeoutWaitingClusterSetup
+	}
+}
+
+func waitForIngressReady(ingressReady <-chan error) error {
+	writeStdoutln("Waiting for ingress...")
+	select {
+	case err := <-ingressReady:
+		if err != nil {
+			return fmt.Errorf("ingress setup failed: %w", err)
+		}
+		return nil
+	case <-time.After(ingressReadyTimeout):
+		return errTimeoutWaitingIngress
+	}
 }
 
 func runParallelTasks(cfg Config, runtime *kind.KindContainerRuntime) error {
@@ -344,30 +331,61 @@ func runParallelTasks(cfg Config, runtime *kind.KindContainerRuntime) error {
 		})
 	}
 
-	return g.Wait()
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("parallel tasks failed: %w", err)
+	}
+	return nil
 }
 
 func executeDeploy(cfg Config, runtime *kind.KindContainerRuntime, dep Deployment) error {
-	fmt.Printf("Deploying %s...\n", dep.Name)
+	writeStdoutf("Deploying %s...\n", dep.Name)
 	start := time.Now()
 
 	var err error
-	if dep.Kustomize != nil {
+	switch {
+	case dep.Kustomize != nil:
 		err = deployKustomize(cfg, runtime, dep.Kustomize)
-	} else if dep.Helm != nil {
+	case dep.Helm != nil:
 		err = deployHelm(cfg, runtime, dep.Helm)
-	} else {
-		return fmt.Errorf("deployment %q has neither Kustomize nor Helm configured", dep.Name)
+	default:
+		return fmt.Errorf("%w: %q", errDeploymentConfigMissing, dep.Name)
 	}
 
 	if err != nil {
 		return err
 	}
 
-	logDuration(fmt.Sprintf("Deployed %s", dep.Name), start)
+	logDuration("Deployed "+dep.Name, start)
+	return nil
+}
+
+func runDeployments(cfg Config, runtime *kind.KindContainerRuntime, deployments []Deployment) error {
+	for _, dep := range deployments {
+		if err := executeDeploy(cfg, runtime, dep); err != nil {
+			return fmt.Errorf("deployment %q failed: %w", dep.Name, err)
+		}
+	}
 	return nil
 }
 
 func logDuration(stepName string, start time.Time) {
-	fmt.Printf("  [%s took %s]\n", stepName, time.Since(start).Round(10*time.Millisecond))
+	writeStdoutf("  [%s took %s]\n", stepName, time.Since(start).Round(durationLogRounding))
+}
+
+func writeStdoutf(format string, args ...any) {
+	writeTo(os.Stdout, fmt.Sprintf(format, args...))
+}
+
+func writeStderrf(format string, args ...any) {
+	writeTo(os.Stderr, fmt.Sprintf(format, args...))
+}
+
+func writeStdoutln(message string) {
+	writeTo(os.Stdout, message+"\n")
+}
+
+func writeTo(file *os.File, message string) {
+	if _, err := file.WriteString(message); err != nil {
+		panic(err)
+	}
 }

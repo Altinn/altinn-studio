@@ -1,4 +1,3 @@
-import React from 'react';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../../mockData';
 import { screen, waitFor, within } from '@testing-library/react';

@@ -1,4 +1,3 @@
-import React from 'react';
 import classes from './LandingPagePanel.module.css';
 import { StudioHeading, StudioButton, StudioParagraph } from '@studio/components';
 import { XSDUpload } from './TopToolbar/XSDUpload';
