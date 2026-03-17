@@ -10,6 +10,39 @@ describe('studioTest', () => {
       });
       expect(delayedFunction).toHaveBeenCalled();
     });
+
+    it('Restores the timers', () => {
+      const delayedFunction = jest.fn();
+      studioTest.runWithFakeTimers(() => {
+        setTimeout(delayedFunction, 100);
+        studioTest.runAllTimers();
+      });
+      expect(studioTest.areTimersFake()).toBe(false);
+    });
+
+    it('Returns whatever the given function returns', () => {
+      const returnedValue = 'Lorem ipsum dolor sit amet';
+      const fun = (): string => returnedValue;
+      expect(studioTest.runWithFakeTimers(fun)).toBe(returnedValue);
+    });
+
+    it('Rethrows when the given function throws an error', () => {
+      const message = 'An error occurred';
+      const fun = (): void => {
+        throw Error(message);
+      };
+      expect(() => studioTest.runWithFakeTimers(fun)).toThrow(message);
+    });
+
+    it('Restores the timers when the given function throws an error', () => {
+      const fun = (): void => {
+        throw Error('An error occurred');
+      };
+      try {
+        studioTest.runWithFakeTimers(fun);
+      } catch {}
+      expect(studioTest.areTimersFake()).toBe(false);
+    });
   });
 
   describe('areTimersFake', () => {

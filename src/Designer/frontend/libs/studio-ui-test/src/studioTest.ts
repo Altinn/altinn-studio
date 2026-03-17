@@ -18,9 +18,11 @@ export const studioTest: StudioTest = {
   runWithFakeTimers<T>(fun: () => T): T {
     const isUsingRealTimers = !this.areTimersFake();
     this.useFakeTimers();
-    const result = fun();
-    if (isUsingRealTimers) this.restoreTimers();
-    return result;
+    try {
+      return fun();
+    } finally {
+      if (isUsingRealTimers) this.restoreTimers();
+    }
   },
   areTimersFake: () => global.Date.isFake === true, // Workaround for a missing feature. See https://github.com/jestjs/jest/issues/10555.
   restoreTimers() {
