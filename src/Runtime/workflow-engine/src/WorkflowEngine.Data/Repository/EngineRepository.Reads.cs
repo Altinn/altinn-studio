@@ -336,6 +336,35 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
+    public async Task<int> CountSuccessfulWorkflows(CancellationToken cancellationToken = default)
+    {
+        using var activity = Metrics.Source.StartActivity("EngineRepository.CountSuccessfulWorkflows");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        try
+        {
+            logger.CountingWorkflows("successful");
+
+            await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var result = await context.GetSuccessfulWorkflows().CountAsync(cancellationToken);
+
+            logger.SuccessfullyFetchedWorkflows(result);
+
+            return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToFetchWorkflows(ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <inheritdoc/>
     public async Task<PersistentItemStatus?> GetWorkflowStatus(
         Guid workflowId,
         CancellationToken cancellationToken = default

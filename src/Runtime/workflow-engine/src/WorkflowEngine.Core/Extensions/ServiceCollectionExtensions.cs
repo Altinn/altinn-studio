@@ -165,6 +165,9 @@ public static class OptionsBuilderExtensions
         {
             builder.PostConfigure(config =>
             {
+                if (config.MetricsCollectionInterval <= TimeSpan.Zero)
+                    config.MetricsCollectionInterval = Defaults.EngineSettings.MetricsCollectionInterval;
+
                 if (config.DefaultStepCommandTimeout <= TimeSpan.Zero)
                     config.DefaultStepCommandTimeout = Defaults.EngineSettings.DefaultStepCommandTimeout;
 

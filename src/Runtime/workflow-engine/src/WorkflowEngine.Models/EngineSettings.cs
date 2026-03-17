@@ -27,6 +27,12 @@ public sealed record EngineSettings
     public required int MaxLabels { get; set; }
 
     /// <summary>
+    /// Interval at which the engine collects metrics.
+    /// </summary>
+    [JsonPropertyName("metricsCollectionInterval")]
+    public required TimeSpan MetricsCollectionInterval { get; set; }
+
+    /// <summary>
     /// The default timeout for command execution. Max allowed time to wait for a command to complete.
     /// </summary>
     [JsonPropertyName("defaultStepCommandTimeout")]
@@ -110,4 +116,11 @@ public sealed record ConcurrencySettings
     /// </summary>
     [JsonPropertyName("maxHttpCalls")]
     public int MaxHttpCalls { get; set; }
+
+    /// <summary>
+    /// When greater than 0, the engine reports <see cref="EngineHealthStatus.QueueFull"/> if the
+    /// active workflow count reaches or exceeds this threshold. Set to 0 (default) to disable.
+    /// </summary>
+    [JsonPropertyName("backpressureThreshold")]
+    public int BackpressureThreshold { get; set; }
 }

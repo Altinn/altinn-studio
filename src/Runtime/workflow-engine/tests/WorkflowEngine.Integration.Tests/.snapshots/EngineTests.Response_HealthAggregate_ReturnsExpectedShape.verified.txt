@@ -18,6 +18,11 @@
         db_connections: {
           count: 0,
           limit: 90
+        },
+        queue: {
+          active_workflows: 1,
+          scheduled_workflows: 0,
+          failed_workflows: 0
         }
       }
     },

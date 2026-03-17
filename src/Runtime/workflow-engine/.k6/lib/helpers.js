@@ -30,7 +30,7 @@ export function buildPayload(template) {
 
 /**
  * Extracts engine health data from the health endpoint response.
- * Shape: { status, workers: { active, max }, http_connections: { count, limit }, db_connections: { count, limit } }
+ * Shape: { status, workers: { active, max }, http_connections: { count, limit }, db_connections: { count, limit }, queue: { active_workflows, scheduled_workflows, failed_workflows } }
  */
 function parseEngineHealth(res) {
     const body = JSON.parse(res.body);
@@ -57,8 +57,9 @@ export function waitForQueueDrain(pollIntervalMs = 500) {
             } else if (engine.workers.active === 0) {
                 drained = true;
             } else {
+                const q = engine.queue || {};
                 console.log(
-                    `  Workers: ${engine.workers.active}/${engine.workers.max}  DB: ${engine.db_connections.count}/${engine.db_connections.limit}  HTTP: ${engine.http_connections.count}/${engine.http_connections.limit}`,
+                    `  Workers: ${engine.workers.active}/${engine.workers.max}  DB: ${engine.db_connections.count}/${engine.db_connections.limit}  HTTP: ${engine.http_connections.count}/${engine.http_connections.limit}  Queue: ${q.active_workflows ?? '?'} active, ${q.scheduled_workflows ?? '?'} scheduled, ${q.failed_workflows ?? '?'} failed`,
                 );
             }
         } catch (e) {
@@ -85,8 +86,9 @@ export function pollHealthOnce() {
         if (!engine) {
             console.warn('[health] Could not read engine data');
         } else {
+            const q = engine.queue || {};
             console.log(
-                `[health] Workers: ${engine.workers.active}/${engine.workers.max}  DB: ${engine.db_connections.count}/${engine.db_connections.limit}  HTTP: ${engine.http_connections.count}/${engine.http_connections.limit}`,
+                `[health] Workers: ${engine.workers.active}/${engine.workers.max}  DB: ${engine.db_connections.count}/${engine.db_connections.limit}  HTTP: ${engine.http_connections.count}/${engine.http_connections.limit}  Queue: ${q.active_workflows ?? '?'} active, ${q.scheduled_workflows ?? '?'} scheduled, ${q.failed_workflows ?? '?'} failed`,
             );
         }
     } catch (e) {

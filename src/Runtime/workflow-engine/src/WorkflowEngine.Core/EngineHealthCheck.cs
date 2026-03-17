@@ -43,6 +43,12 @@ internal sealed class EngineHealthCheck(IEngineStatus engineStatus, IConcurrency
                 ["count"] = dbSlotStatus.Used,
                 ["limit"] = dbSlotStatus.Total,
             },
+            ["queue"] = new Dictionary<string, int>
+            {
+                ["active_workflows"] = engineStatus.ActiveWorkflowCount,
+                ["scheduled_workflows"] = engineStatus.ScheduledWorkflowCount,
+                ["failed_workflows"] = engineStatus.FailedWorkflowCount,
+            },
         };
 
         var status = new

@@ -15,6 +15,9 @@ namespace WorkflowEngine.Core;
 
 internal interface IEngine
 {
+    /// <summary>
+    /// Enqueues one or more workflows for processing.
+    /// </summary>
     Task<WorkflowEnqueueResponse> EnqueueWorkflow(
         WorkflowEnqueueRequest request,
         WorkflowRequestMetadata metadata,
@@ -27,14 +30,43 @@ internal interface IEngine
 /// </summary>
 internal interface IEngineStatus
 {
-    /// <summary>Current engine health status flags.</summary>
+    /// <summary>
+    /// Current engine health status flags.
+    /// </summary>
     EngineHealthStatus Status { get; }
 
-    /// <summary>Number of workflows currently being processed (active workers).</summary>
+    /// <summary>
+    /// Number of workflows currently being processed (active workers).
+    /// </summary>
     int ActiveWorkerCount { get; }
 
-    /// <summary>Maximum number of concurrent workers.</summary>
+    /// <summary>
+    /// Maximum number of concurrent workers.
+    /// </summary>
     int MaxWorkers { get; }
+
+    /// <summary>
+    /// Active (enqueued + processing) workflows in DB.
+    /// Updated by <see cref="MetricsCollector"/> every <see cref="EngineSettings.MetricsCollectionInterval"/>.
+    /// </summary>
+    int ActiveWorkflowCount { get; }
+
+    /// <summary>
+    /// Scheduled workflows in DB (subset of active workflows).
+    /// Updated by <see cref="MetricsCollector"/> every <see cref="EngineSettings.MetricsCollectionInterval"/>.
+    /// </summary>
+    int ScheduledWorkflowCount { get; }
+
+    /// <summary>
+    /// Failed workflows in DB.
+    /// Updated by <see cref="MetricsCollector"/> every <see cref="EngineSettings.MetricsCollectionInterval"/>.
+    /// </summary>
+    int FailedWorkflowCount { get; }
+
+    /// <summary>
+    /// Updates workflow counts for dashboard, health checks, and metrics.
+    /// </summary>
+    void UpdateWorkflowCounts(int active, int scheduled, int failed);
 }
 
 internal sealed class Engine(
@@ -46,12 +78,47 @@ internal sealed class Engine(
 {
     private readonly EngineSettings _settings = engineSettings.Value;
 
-    public EngineHealthStatus Status => EngineHealthStatus.Running | EngineHealthStatus.Healthy;
+    private volatile int _activeWorkflowCount;
+    private volatile int _scheduledWorkflowCount;
+    private volatile int _failedWorkflowCount;
 
+    /// <inheritdoc/>
+    public EngineHealthStatus Status
+    {
+        get
+        {
+            var status = EngineHealthStatus.Running | EngineHealthStatus.Healthy;
+            var threshold = _settings.Concurrency.BackpressureThreshold;
+            if (threshold > 0 && _activeWorkflowCount >= threshold)
+                status |= EngineHealthStatus.QueueFull;
+            return status;
+        }
+    }
+
+    /// <inheritdoc/>
     public int ActiveWorkerCount => limiter.WorkerSlotStatus.Used;
 
+    /// <inheritdoc/>
     public int MaxWorkers => limiter.WorkerSlotStatus.Total;
 
+    /// <inheritdoc/>
+    public int ActiveWorkflowCount => _activeWorkflowCount;
+
+    /// <inheritdoc/>
+    public int ScheduledWorkflowCount => _scheduledWorkflowCount;
+
+    /// <inheritdoc/>
+    public int FailedWorkflowCount => _failedWorkflowCount;
+
+    /// <inheritdoc/>
+    public void UpdateWorkflowCounts(int active, int scheduled, int failed)
+    {
+        _activeWorkflowCount = active;
+        _scheduledWorkflowCount = scheduled;
+        _failedWorkflowCount = failed;
+    }
+
+    /// <inheritdoc/>
     public async Task<WorkflowEnqueueResponse> EnqueueWorkflow(
         WorkflowEnqueueRequest request,
         WorkflowRequestMetadata metadata,

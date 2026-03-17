@@ -13,6 +13,7 @@ internal static class Defaults
         MaxWorkflowsPerRequest = 100,
         MaxStepsPerWorkflow = 50,
         MaxLabels = 50,
+        MetricsCollectionInterval = TimeSpan.FromSeconds(5),
         DefaultStepCommandTimeout = TimeSpan.FromSeconds(100),
         DefaultStepRetryStrategy = RetryStrategy.Exponential(
             baseInterval: TimeSpan.FromSeconds(1),

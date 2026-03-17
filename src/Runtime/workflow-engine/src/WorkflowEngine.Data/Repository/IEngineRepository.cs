@@ -70,6 +70,11 @@ public interface IEngineRepository
     Task<int> CountFailedWorkflows(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the number of successfully completed workflows.
+    /// </summary>
+    Task<int> CountSuccessfulWorkflows(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the status of a workflow by its database ID, or null if not found.
     /// </summary>
     Task<PersistentItemStatus?> GetWorkflowStatus(Guid workflowId, CancellationToken cancellationToken = default);
