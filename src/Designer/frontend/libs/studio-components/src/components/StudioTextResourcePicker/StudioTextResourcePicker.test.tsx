@@ -155,7 +155,7 @@ describe('StudioTextResourcePicker', () => {
     const pickedTextResource = textResources[arbitraryTextResourceIndex];
     renderTextResourcePicker({ value: pickedTextResource.id });
     await user.click(screen.getByRole('button', { name: 'Tøm' }));
-    await user.keyboard('{Tab}');
+    await user.tab();
     await waitFor(() => expect(onValueChange).toHaveBeenCalledWith(null));
   });
 
