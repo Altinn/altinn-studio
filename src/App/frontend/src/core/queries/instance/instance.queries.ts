@@ -7,27 +7,36 @@ import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 
 type InstantiationArgs = number | Instantiation;
 
-export const instanceQueries = {
+interface InstanceQueryParams {
+  instanceOwnerPartyId: string;
+  instanceGuid: string;
+}
+
+export const instanceQueryKeys = {
   all: () => ['instanceData'] as const,
-  instanceData: ({ instanceOwnerPartyId, instanceGuid }: { instanceOwnerPartyId: string; instanceGuid: string }) =>
-    queryOptions({
-      queryKey: [...instanceQueries.all(), { instanceOwnerPartyId, instanceGuid }] as const,
-      queryFn: async () => {
-        try {
-          const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
-          return removeProcessFromInstance(instance);
-        } catch (error) {
-          window.logError('Fetching instance data failed:\n', error);
-          throw error;
-        }
-      },
-    }),
-  active: (partyId: string) => [...instanceQueries.all(), 'active', partyId] as const,
+  instance: ({ instanceOwnerPartyId, instanceGuid }: InstanceQueryParams) =>
+    [...instanceQueryKeys.all(), { instanceOwnerPartyId, instanceGuid }] as const,
+  active: (partyId: string) => [...instanceQueryKeys.all(), 'active', partyId] as const,
 };
+
+export function instanceDataQuery({ instanceOwnerPartyId, instanceGuid }: InstanceQueryParams) {
+  return queryOptions({
+    queryKey: instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid }),
+    queryFn: async () => {
+      try {
+        const instance = await InstanceApi.getInstance({ instanceOwnerPartyId, instanceGuid });
+        return removeProcessFromInstance(instance);
+      } catch (error) {
+        window.logError('Fetching instance data failed:\n', error);
+        throw error;
+      }
+    },
+  });
+}
 
 export function activeInstancesQuery(partyId: string) {
   return queryOptions({
-    queryKey: instanceQueries.active(partyId),
+    queryKey: instanceQueryKeys.active(partyId),
     queryFn: () => InstanceApi.getActiveInstances(partyId),
   });
 }
@@ -44,7 +53,7 @@ export function useCreateInstance(language: string) {
     },
     onSuccess: (data) => {
       const { instanceOwnerPartyId, instanceGuid } = extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId(data.id);
-      const queryKey = instanceQueries.instanceData({ instanceOwnerPartyId, instanceGuid }).queryKey;
+      const queryKey = instanceQueryKeys.instance({ instanceOwnerPartyId, instanceGuid });
       queryClient.setQueryData(queryKey, removeProcessFromInstance(data));
     },
   });

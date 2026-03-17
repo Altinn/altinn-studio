@@ -59,12 +59,6 @@ import type { IActionType, IData, IInstance, IParty, IProcess, PostalCodesRegist
 export const doSetSelectedParty = (partyId: number | string) =>
   putWithoutConfig<LooseAutocomplete<'Party successfully updated'> | null>(getSetSelectedPartyUrl(partyId));
 
-export const doInstantiateWithPrefill = async (data: Instantiation, language?: string): Promise<IInstance> =>
-  removeProcessFromInstance((await httpPost<IInstance>(getInstantiateUrl(language), undefined, data)).data);
-
-export const doInstantiate = async (partyId: number, language?: string): Promise<IInstance> =>
-  removeProcessFromInstance((await httpPost<IInstance>(getCreateInstancesUrl(partyId, language))).data);
-
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);
 
@@ -192,14 +186,6 @@ export const doPostStatelessFormData = async (
 
 export const fetchLogo = async (): Promise<string> =>
   (await axios.get('https://altinncdn.no/img/Altinn-logo-blue.svg')).data;
-
-export const fetchActiveInstances = (partyId: number): Promise<ISimpleInstance[]> =>
-  httpGet(getActiveInstancesUrl(partyId));
-
-export const fetchInstanceData = async (partyId: string, instanceGuid: string): Promise<IInstance> =>
-  removeProcessFromInstance(
-    await httpGet<IInstance & { process: unknown }>(`${instancesControllerUrl}/${partyId}/${instanceGuid}`),
-  );
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
 

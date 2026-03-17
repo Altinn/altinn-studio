@@ -1,14 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
 
 import {
   activeInstancesQuery,
-  instanceQueries,
+  instanceDataQuery,
+  instanceQueryKeys,
   useCreateInstance as useCreateInstanceInternal,
 } from 'src/core/queries/instance/instance.queries';
 import { extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId } from 'src/core/queries/instance/utils';
 import type { BaseQueryResult } from 'src/core/queries/types';
-import type { Instantiation } from 'src/features/instantiate/useInstantiation';
 import type { ISimpleInstance } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 
@@ -21,14 +21,12 @@ function useActiveInstances(partyId: string): UseActiveInstancesResult {
   return { instances: query.data, isLoading: query.isLoading, error: query.error };
 }
 
-interface UseCreateInstanceResult {
-  createInstance: (args: number | Instantiation) => void;
-  createInstanceAsync: (args: number | Instantiation) => Promise<IInstance>;
-  isPending: boolean;
-  error: Error | null;
+function useCurrentInstance(): IInstance | undefined {
+  const queryClient = useQueryClient();
+  return queryClient.getQueriesData<IInstance>({ queryKey: instanceQueryKeys.all() }).find(([, data]) => data)?.[1];
 }
 
-function useCreateInstance(language: string): UseCreateInstanceResult {
+function useCreateInstance(language: string) {
   const mutation = useCreateInstanceInternal(language);
   return {
     createInstance: mutation.mutate,
@@ -42,10 +40,23 @@ function prefetchActiveInstances(queryClient: QueryClient, partyId: string) {
   return queryClient.ensureQueryData(activeInstancesQuery(partyId));
 }
 
+function prefetchInstanceData(
+  queryClient: QueryClient,
+  params: { instanceOwnerPartyId: string; instanceGuid: string },
+) {
+  return queryClient.prefetchQuery(instanceDataQuery(params));
+}
+
+function invalidateInstanceData(queryClient: QueryClient) {
+  return queryClient.invalidateQueries({ queryKey: instanceQueryKeys.all() });
+}
+
 export {
   extractInstanceOwnerPartyIdAndInstanceGuidFromInstanceId,
-  instanceQueries,
+  invalidateInstanceData,
   prefetchActiveInstances,
+  prefetchInstanceData,
   useActiveInstances,
   useCreateInstance,
+  useCurrentInstance,
 };

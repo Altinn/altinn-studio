@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router';
 
 import { Loader } from 'src/core/loading/Loader';
 import { InstantiateValidationError } from 'src/features/instantiate/containers/InstantiateValidationError';
@@ -16,13 +17,18 @@ export const InstantiateContainer = () => {
   changeBodyBackground(AltinnPalette.greyLight);
   const party = useSelectedParty();
   const instantiation = useInstantiation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const shouldCreateInstance = !!party;
     if (shouldCreateInstance) {
-      instantiation.instantiate(party.partyId);
+      instantiation.instantiate(party.partyId).then((data) => {
+        if (data) {
+          navigate(`/instance/${data.id}`);
+        }
+      });
     }
-  }, [instantiation, party]);
+  }, [instantiation, party, navigate]);
 
   if (isAxiosError(instantiation.error) && instantiation.error.response?.status === HttpStatusCodes.Forbidden) {
     if (isInstantiationValidationResult(instantiation.error.response?.data)) {

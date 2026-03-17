@@ -3,26 +3,19 @@ import type { PropsWithChildren } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { InstanceApi } from 'src/core/api-client/instance.api';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
 import { useSelectedParty } from 'src/features/party/PartiesProvider';
 
 const useActiveInstancesQuery = () => {
-  const { fetchActiveInstances } = useAppQueries();
   const selectedParty = useSelectedParty();
+  const partyId = String(selectedParty?.partyId ?? -1);
 
   const utils = useQuery({
-    queryKey: ['getActiveInstances', selectedParty?.partyId],
-    queryFn: async () => {
-      const simpleInstances = await fetchActiveInstances(selectedParty?.partyId ?? -1);
-
-      // Sort array by last changed date
-      simpleInstances.sort((a, b) => new Date(a.lastChanged).getTime() - new Date(b.lastChanged).getTime());
-
-      return simpleInstances;
-    },
+    queryKey: ['activeInstances', partyId],
+    queryFn: () => InstanceApi.getActiveInstances(partyId),
   });
 
   useEffect(() => {

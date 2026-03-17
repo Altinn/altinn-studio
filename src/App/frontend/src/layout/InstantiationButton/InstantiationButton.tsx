@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 
 import { Button } from 'src/app-components/Button/Button';
 import { ErrorListFromInstantiation, ErrorReport } from 'src/components/message/ErrorReport';
@@ -23,6 +24,7 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
   const prefill = FD.useMapping(props.mapping, DataModels.useDefaultDataType());
   const party = useSelectedParty();
   const setNavigationEffect = useSetNavigationEffect();
+  const navigate = useNavigate();
 
   return (
     <ErrorReport
@@ -32,25 +34,25 @@ export const InstantiationButton = ({ children, ...props }: Props) => {
       <Button
         id={useIndexedId(props.baseComponentId)}
         onClick={() =>
-          performProcess(() =>
-            instantiation.instantiateWithPrefill(
+          performProcess(async () => {
+            const data = await instantiation.instantiateWithPrefill(
               {
                 prefill,
                 instanceOwner: {
                   partyId: party?.partyId.toString(),
                 },
               },
-              {
-                force: true,
-                onSuccess: (data) =>
-                  setNavigationEffect({
-                    targetLocation: `/instance/${data.id}`,
-                    matchStart: true,
-                    callback: focusMainContent,
-                  }),
-              },
-            ),
-          )
+              { force: true },
+            );
+            if (data) {
+              setNavigationEffect({
+                targetLocation: `/instance/${data.id}`,
+                matchStart: true,
+                callback: focusMainContent,
+              });
+              navigate(`/instance/${data.id}`);
+            }
+          })
         }
         disabled={isAnyProcessing}
         isLoading={isLoading}

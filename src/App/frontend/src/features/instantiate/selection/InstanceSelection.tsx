@@ -261,15 +261,15 @@ function InstanceSelection() {
               onClick={() =>
                 performProcess(async () => {
                   if (selectedParty) {
-                    await instantiation.instantiate(selectedParty.partyId, {
-                      force: true,
-                      onSuccess: (data) =>
-                        setNavigationEffect({
-                          targetLocation: `/instance/${data.id}`,
-                          matchStart: true,
-                          callback: focusMainContent,
-                        }),
-                    });
+                    const data = await instantiation.instantiate(selectedParty.partyId, { force: true });
+                    if (data) {
+                      setNavigationEffect({
+                        targetLocation: `/instance/${data.id}`,
+                        matchStart: true,
+                        callback: focusMainContent,
+                      });
+                      navigate(`/instance/${data.id}`);
+                    }
                   }
                 })
               }
