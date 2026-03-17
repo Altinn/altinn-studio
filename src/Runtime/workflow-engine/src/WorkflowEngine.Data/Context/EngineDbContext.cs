@@ -39,6 +39,8 @@ internal sealed class EngineDbContext : DbContext
                 )
                 .HasNullSortOrder(NullSortOrder.NullsFirst, NullSortOrder.NullsLast);
 
+            entity.HasIndex(e => e.HeartbeatAt).HasFilter($"\"Status\" = {(int)PersistentItemStatus.Processing}");
+
             // Dictionary<string,string> ↔ jsonb: EF/Npgsql handles this for normal queries,
             // but our SqlBulkInserter uses COPY BINARY which needs an explicit value converter.
             entity

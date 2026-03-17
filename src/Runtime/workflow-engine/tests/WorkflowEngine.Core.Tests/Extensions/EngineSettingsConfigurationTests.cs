@@ -56,6 +56,11 @@ public class EngineSettingsConfigurationTests
         Assert.Equal(50, settings.MaxStepsPerWorkflow);
         Assert.Equal(50, settings.MaxLabels);
 
+        // Heartbeat
+        Assert.Equal(TimeSpan.FromSeconds(3), settings.HeartbeatInterval);
+        Assert.Equal(TimeSpan.FromSeconds(15), settings.StaleWorkflowThreshold);
+        Assert.Equal(3, settings.MaxReclaimCount);
+
         // Write buffer
         Assert.Equal(100, settings.WriteBuffer.MaxBatchSize);
         Assert.Equal(10_000, settings.WriteBuffer.MaxQueueSize);

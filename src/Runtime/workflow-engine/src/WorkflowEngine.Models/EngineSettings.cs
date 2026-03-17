@@ -57,6 +57,27 @@ public sealed record EngineSettings
     public required RetryStrategy DatabaseRetryStrategy { get; set; }
 
     /// <summary>
+    /// Interval at which the engine sends heartbeats for in-flight workflows.
+    /// Workers update HeartbeatAt at this cadence to prove liveness.
+    /// </summary>
+    [JsonPropertyName("heartbeatInterval")]
+    public required TimeSpan HeartbeatInterval { get; set; }
+
+    /// <summary>
+    /// How long a workflow can remain in Processing without a heartbeat before being
+    /// considered stale and reclaimed by another worker. Must be greater than <see cref="HeartbeatInterval"/>.
+    /// </summary>
+    [JsonPropertyName("staleWorkflowThreshold")]
+    public required TimeSpan StaleWorkflowThreshold { get; set; }
+
+    /// <summary>
+    /// Maximum number of times a workflow can be reclaimed before being marked as Failed.
+    /// Protects against poison workflows that crash workers repeatedly.
+    /// </summary>
+    [JsonPropertyName("maxReclaimCount")]
+    public required int MaxReclaimCount { get; set; }
+
+    /// <summary>
     /// Concurrency settings.
     /// </summary>
     [JsonPropertyName("concurrency")]

@@ -101,4 +101,12 @@ internal static partial class EngineRepositoryLogs
         string message,
         Exception ex
     );
+
+    [LoggerMessage(LogLevel.Error, "Failed to batch update heartbeats for {workflowCount} workflows: {message}")]
+    internal static partial void FailedToBatchUpdateHeartbeats(
+        this ILogger<EngineRepository> logger,
+        int workflowCount,
+        string message,
+        Exception ex
+    );
 }

@@ -602,22 +602,44 @@ internal sealed partial class EngineRepository
     }
 
     /// <inheritdoc/>
-    public async Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken)
+    public async Task<FetchResult> FetchAndLockWorkflows(
+        int count,
+        TimeSpan staleThreshold,
+        int maxReclaimCount,
+        CancellationToken cancellationToken
+    )
     {
         using var activity = Metrics.Source.StartActivity("EngineRepository.FetchAndLockWorkflows");
         using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
 
         var now = timeProvider.GetUtcNow();
+        var staleDeadline = now - staleThreshold;
 
         await using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        var ids = await context
-            .Database.SqlQuery<Guid>(
+        // 1) Abandon stale workflows that have exceeded the reclaim limit (mark as Failed).
+        //    This runs first so they are not picked up by the candidate query below.
+        var abandonedCount = await context.Database.ExecuteSqlAsync(
+            $"""
+            UPDATE "engine"."Workflows"
+            SET "Status" = {PersistentItemStatus.Failed}, "UpdatedAt" = {now}, "HeartbeatAt" = NULL
+            WHERE "Status" = {PersistentItemStatus.Processing}
+              AND "HeartbeatAt" IS NOT NULL
+              AND "HeartbeatAt" < {staleDeadline}
+              AND "ReclaimCount" >= {maxReclaimCount}
+            """,
+            cancellationToken
+        );
+
+        // 2) Fetch ready workflows (Enqueued/Requeued) + reclaim stale Processing workflows
+        //    in a single atomic UPDATE. The "was_stale" flag lets us count reclaims.
+        //    FOR UPDATE SKIP LOCKED must be on each individual SELECT (PG disallows it on UNION).
+        var rows = await context
+            .Database.SqlQuery<FetchRow>(
                 $"""
-                UPDATE "engine"."Workflows"
-                SET "Status" = {PersistentItemStatus.Processing}, "UpdatedAt" = {now}
-                WHERE "Id" IN (
-                    SELECT w."Id" FROM "engine"."Workflows" w
+                WITH ready AS (
+                    SELECT w."Id"
+                    FROM "engine"."Workflows" w
                     WHERE w."Status" IN ({PersistentItemStatus.Enqueued}, {PersistentItemStatus.Requeued})
                       AND (w."BackoffUntil" IS NULL OR w."BackoffUntil" <= {now})
                       AND NOT EXISTS (
@@ -632,16 +654,45 @@ internal sealed partial class EngineRepository
                     ORDER BY w."BackoffUntil" NULLS FIRST, w."CreatedAt"
                     FOR UPDATE SKIP LOCKED
                     LIMIT {count}
+                ),
+                stale AS (
+                    SELECT w."Id"
+                    FROM "engine"."Workflows" w
+                    WHERE w."Status" = {PersistentItemStatus.Processing}
+                      AND w."HeartbeatAt" IS NOT NULL
+                      AND w."HeartbeatAt" < {staleDeadline}
+                      AND w."ReclaimCount" < {maxReclaimCount}
+                    ORDER BY w."HeartbeatAt"
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT GREATEST(0, {count} - (SELECT count(*) FROM ready))
+                ),
+                candidates AS (
+                    SELECT "Id", FALSE AS was_stale FROM ready
+                    UNION ALL
+                    SELECT "Id", TRUE  AS was_stale FROM stale
+                ),
+                updated AS (
+                    UPDATE "engine"."Workflows" w
+                    SET "Status"       = {PersistentItemStatus.Processing},
+                        "UpdatedAt"    = {now},
+                        "HeartbeatAt"  = {now},
+                        "ReclaimCount" = w."ReclaimCount" + (CASE WHEN c.was_stale THEN 1 ELSE 0 END)
+                    FROM candidates c
+                    WHERE w."Id" = c."Id"
+                    RETURNING w."Id", c.was_stale AS "WasStale"
                 )
-                RETURNING "Id"
+                SELECT "Id", "WasStale" FROM updated
                 """
             )
             .ToListAsync(cancellationToken);
 
-        if (ids.Count == 0)
+        if (rows.Count == 0)
         {
-            return [];
+            return new FetchResult([], 0, abandonedCount);
         }
+
+        var ids = rows.Select(r => r.Id).ToList();
+        var reclaimedCount = rows.Count(r => r.WasStale);
 
         var entities = await context
             .Workflows.AsNoTracking()
@@ -655,8 +706,58 @@ internal sealed partial class EngineRepository
 
         Metrics.DbOperationsSucceeded.Add(1);
 
-        return workflows;
+        return new FetchResult(workflows, reclaimedCount, abandonedCount);
     }
+
+    /// <inheritdoc/>
+    public async Task BatchUpdateHeartbeats(IReadOnlyList<Guid> workflowIds, CancellationToken cancellationToken)
+    {
+        if (workflowIds.Count == 0)
+            return;
+
+        using var activity = Metrics.Source.StartActivity("EngineRepository.BatchUpdateHeartbeats");
+        using var slot = await limiter.AcquireDbSlot(activity?.Context, cancellationToken);
+
+        var now = timeProvider.GetUtcNow();
+
+        try
+        {
+            await ExecuteWithRetry(
+                async ct =>
+                {
+                    await using var conn = await dataSource.OpenConnectionAsync(ct);
+                    const string sql = """
+                    UPDATE "engine"."Workflows"
+                    SET "HeartbeatAt" = @now
+                    WHERE "Id" = ANY(@ids)
+                      AND "Status" = @status
+                    """;
+
+                    await using var cmd = new NpgsqlCommand(sql, conn);
+                    cmd.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", now));
+                    cmd.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", [.. workflowIds]));
+                    cmd.Parameters.Add(new NpgsqlParameter<int>("status", (int)PersistentItemStatus.Processing));
+                    await cmd.ExecuteNonQueryAsync(ct);
+                },
+                cancellationToken
+            );
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            activity?.Errored(ex);
+            logger.FailedToBatchUpdateHeartbeats(workflowIds.Count, ex.Message, ex);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Row shape returned by the FetchAndLockWorkflows CTE.
+    /// </summary>
+    private sealed record FetchRow(Guid Id, bool WasStale);
 
     /// <inheritdoc/>
     public async Task BatchUpdateWorkflowsAndSteps(
@@ -701,6 +802,7 @@ internal sealed partial class EngineRepository
                     SET "Status"             = v.status,
                         "UpdatedAt"          = @now,
                         "BackoffUntil"       = v.backoff_until,
+                        "HeartbeatAt"        = CASE WHEN v.status = 1 THEN w."HeartbeatAt" ELSE NULL END,
                         "EngineTraceContext" = v.engine_trace_context
                     FROM unnest(@ids, @statuses, @backoff_untils, @engine_trace_contexts)
                         AS v(id, status, backoff_until, engine_trace_context)

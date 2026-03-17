@@ -25,6 +25,9 @@ internal static class Defaults
             baseInterval: TimeSpan.FromMilliseconds(100),
             maxDelay: TimeSpan.FromMinutes(2)
         ),
+        HeartbeatInterval = TimeSpan.FromSeconds(3),
+        StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+        MaxReclaimCount = 3,
         Concurrency = new ConcurrencySettings()
         {
             MaxWorkers = 400,

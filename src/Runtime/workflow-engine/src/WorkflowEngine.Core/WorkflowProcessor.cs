@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using WorkflowEngine.Data.Repository;
 using WorkflowEngine.Models;
 using WorkflowEngine.Resilience;
@@ -13,12 +14,15 @@ namespace WorkflowEngine.Core;
 /// <summary>
 /// Background processing loop that fetches work from the database using FOR UPDATE SKIP LOCKED,
 /// dispatches workflows to fire-and-forget workers via <see cref="WorkflowHandler"/>.
+/// Heartbeats are handled by the dedicated <see cref="HeartbeatService"/>.
 /// </summary>
 internal sealed class WorkflowProcessor(
     IEngineRepository repo,
     IServiceScopeFactory scopeFactory,
     AsyncSignal workflowSignal,
     IConcurrencyLimiter limiter,
+    InFlightTracker tracker,
+    IOptions<EngineSettings> settings,
     ILogger<WorkflowProcessor> logger
 ) : BackgroundService
 {
@@ -32,7 +36,9 @@ internal sealed class WorkflowProcessor(
         using var activity = Metrics.Source.StartActivity("WorkflowProcessor.ExecuteAsync");
         activity?.DontRecord();
 
+        var config = settings.Value;
         var maxWorkers = limiter.WorkerSlotStatus.Total;
+
         logger.ProcessorStarted(maxWorkers);
 
         try
@@ -48,16 +54,34 @@ internal sealed class WorkflowProcessor(
 
                 if (available > 0)
                 {
-                    var workflows = await repo.FetchAndLockWorkflows(available, stoppingToken);
+                    var result = await repo.FetchAndLockWorkflows(
+                        available,
+                        config.StaleWorkflowThreshold,
+                        config.MaxReclaimCount,
+                        stoppingToken
+                    );
 
-                    if (workflows.Count > 0)
+                    if (result.Workflows.Count > 0)
                     {
-                        logger.FetchedWorkflows(workflows.Count, available);
+                        logger.FetchedWorkflows(result.Workflows.Count, available);
                     }
 
-                    foreach (var workflow in workflows)
+                    if (result.ReclaimedCount > 0)
+                    {
+                        Metrics.WorkflowsReclaimed.Add(result.ReclaimedCount);
+                        logger.ReclaimedStaleWorkflows(result.ReclaimedCount);
+                    }
+
+                    if (result.AbandonedCount > 0)
+                    {
+                        Metrics.WorkflowsFailed.Add(result.AbandonedCount);
+                        logger.AbandonedStaleWorkflows(result.AbandonedCount);
+                    }
+
+                    foreach (var workflow in result.Workflows)
                     {
                         await limiter.AcquireWorkerSlot(stoppingToken);
+                        tracker.TryAdd(workflow.DatabaseId);
                         _ = ProcessWorkflowAsync(workflow, stoppingToken);
                     }
 
@@ -106,6 +130,7 @@ internal sealed class WorkflowProcessor(
         }
         finally
         {
+            tracker.TryRemove(workflow.DatabaseId);
             limiter.ReleaseWorkerSlot();
         }
 
@@ -154,4 +179,13 @@ internal static partial class WorkflowProcessorLogs
         Guid workflowId,
         Exception ex
     );
+
+    [LoggerMessage(LogLevel.Warning, "Reclaimed {Count} stale workflows from crashed/unresponsive workers")]
+    internal static partial void ReclaimedStaleWorkflows(this ILogger<WorkflowProcessor> logger, int count);
+
+    [LoggerMessage(
+        LogLevel.Error,
+        "Abandoned {Count} stale workflows that exceeded the reclaim limit — marked as Failed"
+    )]
+    internal static partial void AbandonedStaleWorkflows(this ILogger<WorkflowProcessor> logger, int count);
 }

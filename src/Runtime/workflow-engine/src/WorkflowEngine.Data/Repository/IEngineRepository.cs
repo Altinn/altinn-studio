@@ -125,8 +125,20 @@ public interface IEngineRepository
 
     /// <summary>
     /// Atomically fetches and locks available workflows for processing using FOR UPDATE SKIP LOCKED.
+    /// Also reclaims stale workflows stuck in Processing whose heartbeat has expired.
     /// </summary>
-    Task<List<Workflow>> FetchAndLockWorkflows(int count, CancellationToken cancellationToken);
+    Task<FetchResult> FetchAndLockWorkflows(
+        int count,
+        TimeSpan staleThreshold,
+        int maxReclaimCount,
+        CancellationToken cancellationToken
+    );
+
+    /// <summary>
+    /// Batch-updates HeartbeatAt for all specified workflow IDs in a single statement.
+    /// Used by the processor to prove liveness of in-flight workers.
+    /// </summary>
+    Task BatchUpdateHeartbeats(IReadOnlyList<Guid> workflowIds, CancellationToken cancellationToken);
 
     /// <summary>
     /// Batch-updates multiple workflows and their dirty steps in a single transaction using raw SQL.

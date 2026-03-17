@@ -32,6 +32,10 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
 
     public DateTimeOffset? BackoffUntil { get; set; }
 
+    public DateTimeOffset? HeartbeatAt { get; set; }
+
+    public int ReclaimCount { get; set; }
+
     [Column(TypeName = "jsonb")]
     public Dictionary<string, string>? Labels { get; set; }
 
@@ -68,6 +72,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             StartAt = workflow.StartAt,
             UpdatedAt = workflow.UpdatedAt,
             BackoffUntil = workflow.BackoffUntil,
+            HeartbeatAt = workflow.HeartbeatAt,
+            ReclaimCount = workflow.ReclaimCount,
             Status = workflow.Status,
             Labels = workflow.Labels,
             ContextJson = workflow.Context?.GetRawText(),
@@ -100,6 +106,8 @@ internal sealed class WorkflowEntity : IHasCommonMetadata
             StartAt = StartAt,
             UpdatedAt = UpdatedAt,
             BackoffUntil = BackoffUntil,
+            HeartbeatAt = HeartbeatAt,
+            ReclaimCount = ReclaimCount,
             Status = Status,
             Labels = Labels,
             Context =

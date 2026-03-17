@@ -61,6 +61,7 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IWorkflowExecutor, WorkflowExecutor>();
 
             services.AddSingleton<AsyncSignal>();
+            services.AddSingleton<InFlightTracker>();
 
             services.AddSingleton<WorkflowWriteBuffer>();
             services.AddHostedService(sp => sp.GetRequiredService<WorkflowWriteBuffer>());
@@ -70,6 +71,7 @@ public static class ServiceCollectionExtensions
             services.AddHostedService(sp => sp.GetRequiredService<WorkflowUpdateBuffer>());
 
             services.AddHostedService<WorkflowProcessor>();
+            services.AddHostedService<HeartbeatService>();
 
             services.AddScoped<WorkflowHandler>();
 
@@ -177,6 +179,15 @@ public static class OptionsBuilderExtensions
                 config.DefaultStepRetryStrategy ??= Defaults.EngineSettings.DefaultStepRetryStrategy;
                 config.DatabaseRetryStrategy ??= Defaults.EngineSettings.DatabaseRetryStrategy;
 
+                if (config.HeartbeatInterval <= TimeSpan.Zero)
+                    config.HeartbeatInterval = Defaults.EngineSettings.HeartbeatInterval;
+
+                if (config.StaleWorkflowThreshold <= TimeSpan.Zero)
+                    config.StaleWorkflowThreshold = Defaults.EngineSettings.StaleWorkflowThreshold;
+
+                if (config.MaxReclaimCount <= 0)
+                    config.MaxReclaimCount = Defaults.EngineSettings.MaxReclaimCount;
+
                 if (config.MaxWorkflowsPerRequest <= 0)
                     config.MaxWorkflowsPerRequest = Defaults.EngineSettings.MaxWorkflowsPerRequest;
 
@@ -235,6 +246,11 @@ public static class OptionsBuilderExtensions
             builder.Validate(
                 config => config.DatabaseCommandTimeout > TimeSpan.Zero,
                 $"{ns}.{nameof(EngineSettings.DatabaseCommandTimeout)} must be greater than zero."
+            );
+
+            builder.Validate(
+                config => config.StaleWorkflowThreshold > config.HeartbeatInterval,
+                $"{ns}.{nameof(EngineSettings.StaleWorkflowThreshold)} must be greater than {ns}.{nameof(EngineSettings.HeartbeatInterval)}."
             );
 
             builder.Validate(

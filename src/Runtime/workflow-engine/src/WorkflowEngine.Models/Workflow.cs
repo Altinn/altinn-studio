@@ -32,6 +32,8 @@ public sealed record Workflow : PersistentItem
 
     public DateTimeOffset? StartAt { get; init; }
     public DateTimeOffset? BackoffUntil { get; set; }
+    public DateTimeOffset? HeartbeatAt { get; set; }
+    public int ReclaimCount { get; set; }
     public required IReadOnlyList<Step> Steps { get; init; }
     public string? DistributedTraceContext { get; set; }
     public IEnumerable<Workflow>? Dependencies { get; init; }

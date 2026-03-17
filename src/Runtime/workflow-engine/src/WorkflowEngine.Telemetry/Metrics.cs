@@ -49,6 +49,10 @@ public static class Metrics
     public static readonly Counter<long> WorkflowsFailed = Meter.CreateCounter<long>(
         "engine.workflows.execution.failed"
     );
+    public static readonly Counter<long> WorkflowsReclaimed = Meter.CreateCounter<long>(
+        "engine.workflows.execution.reclaimed",
+        description: "Number of stale workflows reclaimed from crashed workers"
+    );
     public static readonly Histogram<double> WorkflowQueueTime = Meter.CreateHistogram<double>(
         "engine.workflows.time.queue",
         "s",

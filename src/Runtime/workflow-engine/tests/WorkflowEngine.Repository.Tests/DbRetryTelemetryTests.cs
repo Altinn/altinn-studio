@@ -129,6 +129,9 @@ public sealed class DbRetryTelemetryTests(PostgresFixture postgres) : IAsyncLife
                 MaxWorkflowsPerRequest = 100,
                 MaxStepsPerWorkflow = 50,
                 MaxLabels = 50,
+                HeartbeatInterval = TimeSpan.FromSeconds(3),
+                StaleWorkflowThreshold = TimeSpan.FromSeconds(15),
+                MaxReclaimCount = 3,
                 Concurrency = new()
                 {
                     MaxWorkers = 10,
