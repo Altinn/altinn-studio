@@ -341,6 +341,116 @@ namespace Altinn.Studio.Designer.Migrations
                     b.ToTable("deployments", "designer");
                 });
 
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.OrgAlertPersonDbModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("character varying")
+                        .HasColumnName("email");
+
+                    b.Property<int>("EmailSeverity")
+                        .HasColumnType("integer")
+                        .HasColumnName("email_severity");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("character varying")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("Services")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("services");
+
+                    b.Property<int>("SmsSeverity")
+                        .HasColumnType("integer")
+                        .HasColumnName("sms_severity");
+
+                    b.HasKey("Id")
+                        .HasName("org_alert_persons_pkey");
+
+                    b.HasIndex(new[] { "Org" }, "idx_org_alert_persons_org");
+
+                    b.HasIndex(new[] { "Org", "IsActive" }, "idx_org_alert_persons_org_active");
+
+                    b.ToTable("org_alert_persons", "designer");
+                });
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.OrgAlertSlackChannelDbModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("ChannelName")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("channel_name");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.Property<string>("Services")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("services");
+
+                    b.Property<int>("Severity")
+                        .HasColumnType("integer")
+                        .HasColumnName("severity");
+
+                    b.Property<string>("SlackId")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("slack_id");
+
+                    b.HasKey("Id")
+                        .HasName("org_alert_slack_channels_pkey");
+
+                    b.HasIndex(new[] { "Org" }, "idx_org_alert_slack_channels_org");
+
+                    b.HasIndex(new[] { "Org", "SlackId" }, "idx_org_alert_slack_channels_unique_slack_id_per_org")
+                        .IsUnique();
+
+                    b.ToTable("org_alert_slack_channels", "designer");
+                });
+
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.ReleaseDbModel", b =>
                 {
                     b.Property<long>("Sequenceno")

@@ -17,6 +17,8 @@ public class DesignerdbContext : DbContext
     public virtual DbSet<AppSettingsDbModel> AppSettings { get; set; }
     public virtual DbSet<UserAccountDbModel> UserAccounts { get; set; }
     public virtual DbSet<ApiKeyDbModel> ApiKeys { get; set; }
+    public virtual DbSet<OrgAlertPersonDbModel> OrgAlertPersons { get; set; }
+    public virtual DbSet<OrgAlertSlackChannelDbModel> OrgAlertSlackChannels { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +31,8 @@ public class DesignerdbContext : DbContext
         modelBuilder.ApplyConfiguration(new AppSettingsConfiguration());
         modelBuilder.ApplyConfiguration(new UserAccountConfiguration());
         modelBuilder.ApplyConfiguration(new ApiKeyConfiguration());
+        modelBuilder.ApplyConfiguration(new OrgAlertPersonConfiguration());
+        modelBuilder.ApplyConfiguration(new OrgAlertSlackChannelConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

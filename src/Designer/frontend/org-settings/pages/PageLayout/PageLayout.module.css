@@ -1,3 +1,10 @@
+.settingsHeading {
+  display: flex;
+  align-items: center;
+  padding-left: var(--ds-size-4);
+  padding-block: var(--ds-size-4);
+}
+
 .pageContentWrapper {
   display: flex;
   flex: 1;

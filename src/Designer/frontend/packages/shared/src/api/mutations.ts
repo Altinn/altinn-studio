@@ -69,6 +69,10 @@ import {
   userApiKeyPath,
   userApiKeysPath,
   validateNavigationLayoutSettingsPath,
+  orgAlertPersonsPath,
+  orgAlertPersonPath,
+  orgAlertSlackChannelsPath,
+  orgAlertSlackChannelPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -107,6 +111,7 @@ import type { PublishCodeListPayload } from 'app-shared/types/api/PublishCodeLis
 import type { AppSettings } from 'app-shared/types/AppSettings';
 import type { AddUserApiKeyRequest } from 'app-shared/types/api/AddUserApiKeyRequest';
 import type { AddUserApiKeyResponse } from 'app-shared/types/api/AddUserApiKeyResponse';
+import type { OrgAlertPerson, OrgAlertPersonPayload, OrgAlertSlackChannel, OrgAlertSlackChannelPayload } from 'app-shared/types/OrgAlertContactPoint';
 
 const headers = {
   Accept: 'application/json',
@@ -236,3 +241,11 @@ export const discardChanges = async (org: string, app: string): Promise<RepoStat
 // User settings
 export const addUserApiKey = (payload: AddUserApiKeyRequest) => post<AddUserApiKeyResponse, AddUserApiKeyRequest>(userApiKeysPath(), payload);
 export const deleteUserApiKey = (id: number) => del(userApiKeyPath(id));
+
+// Org settings
+export const addOrgAlertPerson = async (org: string, payload: OrgAlertPersonPayload): Promise<OrgAlertPerson> => post(orgAlertPersonsPath(org), payload);
+export const updateOrgAlertPerson = async (org: string, id: string, payload: OrgAlertPersonPayload): Promise<OrgAlertPerson> => put(orgAlertPersonPath(org, id), payload);
+export const deleteOrgAlertPerson = async (org: string, id: string): Promise<void> => del(orgAlertPersonPath(org, id));
+export const addOrgAlertSlackChannel = async (org: string, payload: OrgAlertSlackChannelPayload): Promise<OrgAlertSlackChannel> => post(orgAlertSlackChannelsPath(org), payload);
+export const updateOrgAlertSlackChannel = async (org: string, id: string, payload: OrgAlertSlackChannelPayload): Promise<OrgAlertSlackChannel> => put(orgAlertSlackChannelPath(org, id), payload);
+export const deleteOrgAlertSlackChannel = async (org: string, id: string): Promise<void> => del(orgAlertSlackChannelPath(org, id));

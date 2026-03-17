@@ -64,6 +64,9 @@ function StudioSuggestion(
   );
 }
 
-const ForwardedStudioSuggestion = forwardRef(StudioSuggestion);
+const ForwardedStudioSuggestion = forwardRef<
+  React.ElementRef<typeof Suggestion.Input>,
+  StudioSuggestionProps
+>(StudioSuggestion);
 
 export { ForwardedStudioSuggestion as StudioSuggestion };

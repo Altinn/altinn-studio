@@ -106,6 +106,12 @@ export const orgTextLanguagesPath = (org) => `${apiBasePath}/${org}/text/languag
 export const availableResourcesInOrgLibraryPath = (org, contentType) => `${apiBasePath}/${org}/content?${s({ contentType })}`; // Get
 export const publishedResourcesPath = (org, path) => `${apiBasePath}/${org}/shared-resources/published?${s({ path })}`; // Get
 
+// Org alert contact points
+export const orgAlertPersonsPath = (org) => `${apiBasePath}/${org}/alert-contact-points/persons`; // Get, Post
+export const orgAlertPersonPath = (org, id) => `${apiBasePath}/${org}/alert-contact-points/persons/${id}`; // Put, Delete
+export const orgAlertSlackChannelsPath = (org) => `${apiBasePath}/${org}/alert-contact-points/slack-channels`; // Get, Post
+export const orgAlertSlackChannelPath = (org, id) => `${apiBasePath}/${org}/alert-contact-points/slack-channels/${id}`; // Put, Delete
+
 // Organizations
 export const orgsListPath = () => `${apiBasePath}/orgs`; // Get
 

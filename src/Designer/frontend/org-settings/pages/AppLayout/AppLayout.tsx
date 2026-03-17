@@ -3,15 +3,13 @@ import type { ReactElement } from 'react';
 import classes from './AppLayout.module.css';
 import { Outlet } from 'react-router-dom';
 import type { StudioProfileMenuItem, StudioProfileMenuGroup } from '@studio/components';
-import { StudioAvatar, StudioHeading, StudioPageHeader } from '@studio/components';
+import { StudioAvatar, StudioPageHeader } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { DISPLAY_NAME, ORG_SETTINGS_BASENAME } from 'app-shared/constants';
 import { useUserQuery } from 'app-shared/hooks/queries/useUserQuery';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 
 export const AppLayout = () => {
-  const { t } = useTranslation();
-
   return (
     <div className={classes.container}>
       <div data-color-scheme='dark'>
@@ -25,9 +23,6 @@ export const AppLayout = () => {
         </StudioPageHeader>
       </div>
       <div className={classes.content}>
-        <StudioHeading level={2} className={classes.settingsHeading}>
-          {t('org.settings')}
-        </StudioHeading>
         <Outlet />
       </div>
     </div>
@@ -45,7 +40,7 @@ const RightContent = (): ReactElement => {
       href: ORG_SETTINGS_BASENAME,
       openInNewTab: false,
     },
-    itemName: t('user.settings'),
+    itemName: t('org.settings'),
   };
   const logOutMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: logout },

@@ -11,7 +11,11 @@ import { useMediaQuery } from '@studio/hooks';
 import { StudioAvatar } from '@studio/components';
 import { getOrgNameByUsername } from '../../utils/userUtils';
 import { type Organization } from 'app-shared/types/Organization';
-import { MEDIA_QUERY_MAX_WIDTH, USER_SETTINGS_BASENAME } from 'app-shared/constants';
+import {
+  MEDIA_QUERY_MAX_WIDTH,
+  USER_SETTINGS_BASENAME,
+  ORG_SETTINGS_BASENAME,
+} from 'app-shared/constants';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import type { User } from 'app-shared/types/Repository';
 import { useUrlParams } from '../../hooks/useUrlParams';
@@ -94,6 +98,15 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
     itemName: t('user.settings'),
   };
 
+  const orgSettingsMenuItem: StudioProfileMenuItem = {
+    action: {
+      type: 'link',
+      href: ORG_SETTINGS_BASENAME,
+      openInNewTab: false,
+    },
+    itemName: t('org.settings'),
+  };
+
   const logOutMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: logout },
     itemName: t('shared.header_logout'),
@@ -102,6 +115,7 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
   const otherMenuItems: StudioProfileMenuItem[] = [
     giteaMenuItem,
     ...(studioOidc ? [userSettingsMenuItem] : []),
+    orgSettingsMenuItem,
   ];
 
   const profileMenuGroups: StudioProfileMenuGroup[] = [
